@@ -6,7 +6,6 @@ import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
-import hep.aida.ref.plotter.PlotterStyle;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +26,6 @@ import org.lcsim.event.RawTrackerHit;
 public class SvtHitPlots extends Driver {
 
     // TODO: Add documentation
-    // TODO: Set plot styles
 	
     static {
         hep.aida.jfree.AnalysisFactory.register();
@@ -100,9 +98,9 @@ public class SvtHitPlots extends Driver {
         
 		for (HpsSiSensor sensor : sensors) {
 		   hitsPerSensorPlots.put(sensor, 
-		           histogramFactory.createHistogram1D(sensor.getName() + " - Raw Hits", 10, 0, 10)); 
+		           histogramFactory.createHistogram1D(sensor.getName() + " - Raw Hits", 25, 0, 25)); 
 		   plotters.get("Raw hits per sensor").region(this.computePlotterRegion(sensor))
-		                                      .plot(hitsPerSensorPlots.get(sensor), this.createPlotterStyle());
+		                                      .plot(hitsPerSensorPlots.get(sensor), this.createStyle(sensor, "Number of Raw Hits", ""));
 		   hitsPerSensor.put(sensor, new int[1]);
 		}
 
@@ -111,23 +109,23 @@ public class SvtHitPlots extends Driver {
 
 		layersHitPlots.put("Top",
 		        histogramFactory.createHistogram1D("Top Layers Hit", 12, 0, 12));
-		plotters.get("Number of layers hit").region(0).plot(layersHitPlots.get("Top"));
+		plotters.get("Number of layers hit").region(0).plot(layersHitPlots.get("Top"), this.createStyle("Number of Top Layers Hit",""));
 		layersHitPlots.put("Bottom",
 		        histogramFactory.createHistogram1D("Bottom Layers Hit", 12, 0, 12));
-		plotters.get("Number of layers hit").region(1).plot(layersHitPlots.get("Bottom"));
+		plotters.get("Number of layers hit").region(1).plot(layersHitPlots.get("Bottom"), this.createStyle("Number of Bottom Layers Hit",""));
 	
 		plotters.put("Raw hit counts/Event", plotterFactory.create("Raw hit counts/Event")); 
 		plotters.get("Raw hit counts/Event").createRegions(2, 2);
 
 		hitCountPlots.put("Raw hit counts/Event", 
-		        histogramFactory.createHistogram1D("Raw hit counts", 40, 0, 40));
-		plotters.get("Raw hit counts/Event").region(0).plot(hitCountPlots.get("Raw hit counts/Event"));
+		        histogramFactory.createHistogram1D("Raw hit counts", 100, 0, 100));
+		plotters.get("Raw hit counts/Event").region(0).plot(hitCountPlots.get("Raw hit counts/Event"), this.createStyle("Number of Raw Hits", ""));
 		hitCountPlots.put("SVT top raw hit counts/Event", 
-		        histogramFactory.createHistogram1D("SVT top raw hit counts", 40, 0, 40));
-		plotters.get("Raw hit counts/Event").region(1).plot(hitCountPlots.get("SVT top raw hit counts/Event"));
+		        histogramFactory.createHistogram1D("SVT top raw hit counts", 100, 0, 100));
+		plotters.get("Raw hit counts/Event").region(1).plot(hitCountPlots.get("SVT top raw hit counts/Event"), this.createStyle("Number of Raw Hits in Top Volume", ""));
 		hitCountPlots.put("SVT bottom raw hit counts/Event", 
-		        histogramFactory.createHistogram1D("SVT bottom raw hit counts", 40, 0, 40));
-		plotters.get("Raw hit counts/Event").region(2).plot(hitCountPlots.get("SVT bottom raw hit counts/Event"));
+		        histogramFactory.createHistogram1D("SVT bottom raw hit counts", 100, 0, 100));
+		plotters.get("Raw hit counts/Event").region(2).plot(hitCountPlots.get("SVT bottom raw hit counts/Event"), this.createStyle("Number of Raw Bits in the Bottom Volume", ""));
 		
 		for (IPlotter plotter : plotters.values()) { 
 			plotter.show();
@@ -192,11 +190,6 @@ public class SvtHitPlots extends Driver {
         layersHitPlots.get("Bottom").fill(totalBotLayersHit);
         
     }
-    
-    private IPlotterStyle createPlotterStyle() {
-       IPlotterStyle style = plotterFactory.createPlotterStyle();
-       return style;
-    }
    
     @Override
     protected void endOfData() {
@@ -210,6 +203,51 @@ public class SvtHitPlots extends Driver {
         System.out.println("\n%================================================%");
     }
     
+    IPlotterStyle createStyle(String xAxisTitle, String yAxisTitle) { 
+       
+        // Create a default style
+        IPlotterStyle style = this.plotterFactory.createPlotterStyle();
+        
+        // Set the style of the X axis
+        style.xAxisStyle().setLabel(xAxisTitle);
+        style.xAxisStyle().labelStyle().setFontSize(14);
+        style.xAxisStyle().setVisible(true);
+        
+        // Set the style of the Y axis
+        style.yAxisStyle().setLabel(yAxisTitle);
+        style.yAxisStyle().labelStyle().setFontSize(14);
+        style.yAxisStyle().setVisible(true);
+        
+        // Turn off the histogram grid 
+        style.gridStyle().setVisible(false);
+        
+        // Set the style of the data
+        style.dataStyle().lineStyle().setVisible(false);
+        style.dataStyle().outlineStyle().setVisible(false);
+        style.dataStyle().outlineStyle().setThickness(3);
+        style.dataStyle().fillStyle().setVisible(true);
+        style.dataStyle().fillStyle().setOpacity(.30);
+        style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
+        style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
+        style.dataStyle().errorBarStyle().setVisible(false);
+        
+        // Turn off the legend
+        style.legendBoxStyle().setVisible(false);
+       
+        return style;
+    }
     
-    
+    IPlotterStyle createStyle(HpsSiSensor sensor, String xAxisTitle, String yAxisTitle) { 
+        IPlotterStyle style = this.createStyle(xAxisTitle, yAxisTitle);
+        
+        if (sensor.isTopLayer()) { 
+            style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
+            style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
+        } else { 
+            style.dataStyle().fillStyle().setColor("93, 228, 47, 1");
+            style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
+        }
+        
+        return style;
+    }
 }
