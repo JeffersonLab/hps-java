@@ -18,7 +18,9 @@ import org.lcsim.event.Cluster;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters.ParameterName;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
@@ -35,18 +37,22 @@ public class TrackingReconPlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
     private String trackCollectionName = "MatchedTracks";
+    private String helicalTrackHitCollectionName = "HelicalTrackHits";
     String ecalSubdetectorName = "Ecal";
     String ecalCollectionName = "EcalClusters";
     IDDecoder dec;
     private String outputPlots = null;
     private boolean debug = false;
 
-    double feeMomentumCut = 1.6;
+    double feeMomentumCut = 0.8;
+    int nmodules = 6;
 
     IPlotter plotter;
     IPlotter plotter22;
     IPlotter plotterECal;
     IPlotter plotterFEE;
+    IPlotter plotterHTH;
+    IPlotter plotterXvsY;
 
     IHistogram1D nTracks;
     IHistogram1D nhits;
@@ -68,6 +74,11 @@ public class TrackingReconPlots extends Driver {
     IHistogram1D hfeeTheta;
     IHistogram1D hfeePOverE;
     IHistogram2D hfeeClustPos;
+
+    IHistogram1D[] hthTop = new IHistogram1D[nmodules];
+    IHistogram1D[] hthBot = new IHistogram1D[nmodules];
+    IHistogram2D[] xvsyTop = new IHistogram2D[nmodules];
+    IHistogram2D[] xvsyBot = new IHistogram2D[nmodules];
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -145,6 +156,25 @@ public class TrackingReconPlots extends Driver {
 
         plotterFEE.show();
 
+        plotterHTH = pfac.create("Track Hits");
+        plotterHTH.createRegions(3, 4);
+        plotterXvsY = pfac.create("3d Hit Positions");
+        plotterXvsY.createRegions(3, 4);
+
+        for (int i = 1; i <= nmodules; i++) {
+
+            xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top", 50, -10, 10, 50, 0, 4);
+            xvsyBot[i - 1] = aida.histogram2D("Module " + i + " Bottom", 50, -10, 10, 50, 0, 4);
+            hthTop[i - 1] = aida.histogram1D("Module " + i + "Top: Track Hits", 25, 0, 25);
+            hthBot[i - 1] = aida.histogram1D("Module " + i + "Bot: Track Hits", 25, 0, 25);
+            plot(plotterHTH, hthTop[i - 1], null, computePlotterRegion(i - 1, true));
+            plot(plotterHTH, hthBot[i - 1], null, computePlotterRegion(i - 1, false));
+             plot(plotterXvsY, xvsyTop[i - 1], null, computePlotterRegion(i - 1, true));
+            plot(plotterXvsY, xvsyBot[i - 1], null, computePlotterRegion(i - 1, false));
+        }
+        plotterHTH.show();
+        plotterXvsY.show();
+
     }
 
     public TrackingReconPlots() {
@@ -169,6 +199,42 @@ public class TrackingReconPlots extends Driver {
         if (!event.hasCollection(Track.class, trackCollectionName)) {
             nTracks.fill(0);
             return;
+        }
+
+        if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName))
+            return;
+
+        int[] topHits = {0, 0, 0, 0, 0, 0};
+        int[] botHits = {0, 0, 0, 0, 0, 0};
+        List<TrackerHit> hth = event.get(TrackerHit.class, helicalTrackHitCollectionName);
+        for (TrackerHit hit : hth) {
+            int module = -99;
+            int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
+            if (layer < 2)
+                module = 1;
+            else if (layer < 4)
+                module = 2;
+            else if (layer < 6)
+                module = 3;
+            else if (layer < 8)
+                module = 4;
+            else if (layer < 10)
+                module = 5;
+            else
+                module = 6;
+
+            if (hit.getPosition()[1] > 0) {
+                topHits[module - 1]++;
+                xvsyTop[module - 1].fill(hit.getPosition()[0], hit.getPosition()[0]);
+            } else {
+                botHits[module - 1]++;
+                xvsyBot[module - 1].fill(hit.getPosition()[0], Math.abs(hit.getPosition()[0]));
+            }
+        }
+
+        for (int i = 0; i < nmodules; i++) {
+            hthTop[i].fill(topHits[i]);
+            hthBot[i].fill(botHits[i]);
         }
 
         List<Track> tracks = event.get(Track.class, trackCollectionName);
@@ -266,6 +332,22 @@ public class TrackingReconPlots extends Driver {
             }
         }
         return closest;
+    }
+
+    private int computePlotterRegion(int i, boolean istop) {
+
+        int region = -99;
+        if (i < 3)
+            if (istop)
+                region = i * 4;
+            else
+                region = i * 4 + 1;
+        else if (istop)
+            region = (i - 3) * 4 + 2;
+        else
+            region = (i - 3) * 4 + 3;
+//     System.out.println("Setting region to "+region);
+        return region;
     }
 
 }
