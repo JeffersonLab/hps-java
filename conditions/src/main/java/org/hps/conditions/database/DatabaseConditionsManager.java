@@ -305,13 +305,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             }
             statement.setDate(3, new java.sql.Date(Calendar.getInstance().getTime().getTime()));
             final boolean result = statement.execute();
-            if (result) {
-                resultSet = statement.getGeneratedKeys();
-                resultSet.next();
-                collectionId = resultSet.getInt(1);
-            } else {
-                throw new RuntimeException("Error executing prepared statement.");
-            }
+            resultSet = statement.getGeneratedKeys();
+            resultSet.next();
+            collectionId = resultSet.getInt(1);
         } finally {
             if (resultSet != null) {
                 resultSet.close();

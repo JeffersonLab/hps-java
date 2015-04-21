@@ -25,6 +25,7 @@ public class CollectionIdTest extends TestCase {
     @Override
     public void setUp() {
         this.manager = DatabaseConditionsManager.getInstance();
+        this.manager.setConnectionResource("/org/hps/conditions/config/jeremym_dev_connection.prop");
         this.manager.openConnection();
     }
 
