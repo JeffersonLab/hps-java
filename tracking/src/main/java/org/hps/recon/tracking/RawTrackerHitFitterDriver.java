@@ -2,19 +2,14 @@ package org.hps.recon.tracking;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
-
-
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.svt.HPSSVTConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 //===> import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
@@ -27,7 +22,8 @@ import org.lcsim.util.Driver;
 public class RawTrackerHitFitterDriver extends Driver {
 
     private boolean debug = false;
-    private ShaperFitAlgorithm _shaper = new DumbShaperFit();
+    private ShaperFitAlgorithm fitter = new DumbShaperFit();
+    private PulseShape shape = new PulseShape.FourPole();
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String fitCollectionName = "SVTShapeFitParameters";
     private String fittedHitCollectionName = "SVTFittedRawTrackerHits";
@@ -65,15 +61,25 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     public void setFitAlgorithm(String fitAlgorithm) {
         if (fitAlgorithm.equals("Analytic")) {
-            _shaper = new ShaperAnalyticFitAlgorithm();
+            fitter = new ShaperAnalyticFitAlgorithm();
         } else if (fitAlgorithm.equals("Linear")) {
-            _shaper = new ShaperLinearFitAlgorithm(1);
+            fitter = new ShaperLinearFitAlgorithm(1);
         } else if (fitAlgorithm.equals("PileupAlways")) {
-            _shaper = new ShaperPileupFitAlgorithm(1.0);
+            fitter = new ShaperPileupFitAlgorithm(1.0);
         } else if (fitAlgorithm.equals("Pileup")) {
-            _shaper = new ShaperPileupFitAlgorithm();
+            fitter = new ShaperPileupFitAlgorithm();
         } else {
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
+        }
+    }
+
+    public void setPulseShape(String pulseShape) {
+        if (pulseShape.equals("CR-RC")) {
+            shape = new PulseShape.CRRC();
+        } else if (pulseShape.equals("FourPole")) {
+            shape = new PulseShape.FourPole();
+        } else {
+            throw new RuntimeException("Unrecognized pulseShape: " + pulseShape);
         }
     }
 
@@ -91,7 +97,7 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     @Override
     public void startOfData() {
-        _shaper.setDebug(debug);
+        fitter.setDebug(debug);
         if (rawHitCollectionName == null) {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
         }
@@ -117,7 +123,7 @@ public class RawTrackerHitFitterDriver extends Driver {
             HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
             //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
             //for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
-            for (ShapeFitParameters fit : _shaper.fitShape(hit)) {
+            for (ShapeFitParameters fit : fitter.fitShape(hit, shape)) {
                 if (correctT0Shift) {
                     //===> fit.setT0(fit.getT0() - constants.getT0Shift());
                     fit.setT0(fit.getT0() - sensor.getT0Shift());

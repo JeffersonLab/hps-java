@@ -24,7 +24,7 @@ public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
     }
 
     @Override
-    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth) {
+    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, PulseShape shape) {
         short[] samples = rth.getADCValues();
         HpsSiSensor sensor =(HpsSiSensor) rth.getDetectorElement();
         int channel = rth.getIdentifierFieldValue("strip");

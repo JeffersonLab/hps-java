@@ -12,7 +12,7 @@ import org.lcsim.event.RawTrackerHit;
 public interface ShaperFitAlgorithm {
 
     //===> public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants);
-    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rawHit);
+    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rawHit, PulseShape shape);
 
     public void setDebug(boolean debug);
 }

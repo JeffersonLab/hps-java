@@ -179,6 +179,14 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             }
         }
 
+//        System.out.println("Hits to be clustered:");
+//        for (int i = 0; i < 639; i++) {
+//            FittedRawTrackerHit base_hit = channel_to_hit.get(i);
+//            if (base_hit != null) {
+//                System.out.format("channel %d\tt0 %f\t amp %f\n", i, base_hit.getT0(), base_hit.getAmp());
+//            }
+//        }
+
         // Create a list of clusters
         List<List<FittedRawTrackerHit>> cluster_list = new ArrayList<List<FittedRawTrackerHit>>();
 
@@ -259,6 +267,12 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
         } // End of loop over seeds
 
+//        for (List<FittedRawTrackerHit> cluster : cluster_list) {
+//            System.out.format("cluster with %d hits\n",cluster.size());
+//            for (FittedRawTrackerHit base_hit : cluster) {
+//                System.out.format("channel %d\tt0 %f\t amp %f\n", base_hit.getRawTrackerHit().getIdentifierFieldValue("strip"), base_hit.getT0(), base_hit.getAmp());
+//            }
+//        }
         // Finished finding clusters
         return cluster_list;
     }

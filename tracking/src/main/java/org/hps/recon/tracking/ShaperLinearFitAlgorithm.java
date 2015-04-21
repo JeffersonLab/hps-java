@@ -1,11 +1,8 @@
 package org.hps.recon.tracking;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
@@ -38,14 +35,15 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
     final double[] amplitudes;
     final double[] amplitudeErrors;
     //===> private ChannelConstants channelConstants;
-    HpsSiSensor sensor = null;
+    private HpsSiSensor sensor;
+    private int channel;
+    private PulseShape shape;
     private final double[] sigma = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
     private final double[] y = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
     private int firstUsedSample;
     private int nUsedSamples;
     private int firstFittedPulse;
     private int nFittedPulses;
-    private int channel; 
     private boolean debug = false;
     private static final Logger minuitLoggger = Logger.getLogger("org.freehep.math.minuit");
 
@@ -67,19 +65,19 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
     @Override
     //===> public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
-    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth) {
+    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, PulseShape shape) {
         short[] samples = rth.getADCValues();
-        HpsSiSensor sensor =(HpsSiSensor) rth.getDetectorElement();
-        int channel = rth.getIdentifierFieldValue("strip");
-        return fitShape(channel, samples, sensor);
+        sensor = (HpsSiSensor) rth.getDetectorElement();
+        channel = rth.getIdentifierFieldValue("strip");
+        this.shape = shape;
+        shape.setParameters(channel, sensor);
+        return fitShape(samples);
         //===> return this.fitShape(rth.getADCValues(), constants);
     }
 
-    public Collection<ShapeFitParameters> fitShape(int channelNumber, short[] samples, HpsSiSensor siSensor) {
-    //===> public Collection<ShapeFitParameters> fitShape(short[] samples, ChannelConstants constants) {
+    public Collection<ShapeFitParameters> fitShape(short[] samples) {
+        //===> public Collection<ShapeFitParameters> fitShape(short[] samples, ChannelConstants constants) {
         // channelConstants = constants;
-    	this.sensor = siSensor;
-    	this.channel = channelNumber;
         double[] signal = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
 
         for (int i = 0; i < samples.length; i++) {
@@ -127,14 +125,30 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             fit.setT0(min.userState().value(i));
 
             fit.setT0Err(min.userState().error(i));
-//        if (min.isValid()) {
-//            MnMinos minos = new MnMinos(this, min);
-//            MinosError t0err = minos.minos(0);
-//            if (t0err.isValid()) {
-//                fit.setT0Err((t0err.lower() + t0err.upper()) / 2);
-//            }
-//        }
 
+//            MinosError t0err = null;
+//            if (min.isValid() && min.edm() > 0) {
+//                MnMinos minos = null;
+//
+//                try {
+//                    minos = new MnMinos(this, min);
+//                    t0err = minos.minos(0);
+//                } catch (RuntimeException e) {
+//                    if (debug) {
+//                        System.out.println(e);
+//                    }
+//                }
+//            }
+//            if (t0err != null && t0err.isValid()) {
+//                if (debug) {
+//                    System.out.format("fitter error %f, minos lower %f, upper %f\n", min.userState().error(i), t0err.lower(), t0err.upper());
+//                }
+//                fit.setT0Err((t0err.lower() + t0err.upper()) / 2);
+//            } else {
+//                if (debug) {
+//                    System.out.format("fitter error %f\n", min.userState().error(i));
+//                }
+//            }
 //        System.out.println(fit);
             fits.add(fit);
         }
@@ -171,7 +185,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
                 //subtract first pulse from fit input
                 for (int i = 0; i < samples.length; i++) {
                     //===> fitData[i] -= amplitudes[firstFittedPulse] * getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * i - frontFit.userState().value(0), channelConstants);
-                    fitData[i] -= amplitudes[firstFittedPulse] * getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * i - frontFit.userState().value(0), this.channel, this.sensor);
+                    fitData[i] -= amplitudes[firstFittedPulse] * shape.getAmplitudePeakNorm(HPSSVTConstants.SAMPLING_INTERVAL * i - frontFit.userState().value(0));
                 }
 
                 if (debug) {
@@ -315,7 +329,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         for (int j = 0; j < nUsedSamples; j++) {
             for (int i = 0; i < nFittedPulses; i++) {
                 //===> sc_mat.setEntry(i, j, getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i], channelConstants) / sigma[firstUsedSample + j]);
-                sc_mat.setEntry(i, j, getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i], this.channel, this.sensor) / sigma[firstUsedSample + j]);
+                sc_mat.setEntry(i, j, shape.getAmplitudePeakNorm(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i]) / sigma[firstUsedSample + j]);
             }
             y_vec.setEntry(j, y[firstUsedSample + j] / sigma[firstUsedSample + j]);
             var_vec.setEntry(j, sigma[firstUsedSample + j] * sigma[firstUsedSample + j]);
@@ -351,16 +365,15 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         return chisq;
     }
 
-    //===> private static double getAmplitude(double time, ChannelConstants channelConstants) {
-    private static double getAmplitude(double time, int channel, HpsSiSensor sensor) {
-        if (time < 0) {
-            return 0;
-        }
-        double tp = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
-        //===> return (time / channelConstants.getTp()) * Math.exp(1 - time / channelConstants.getTp());
-        return (time / tp) * Math.exp(1 - time / tp);
-    }
-
+//    //===> private static double getAmplitude(double time, ChannelConstants channelConstants) {
+//    private static double getAmplitude(double time, int channel, HpsSiSensor sensor) {
+//        if (time < 0) {
+//            return 0;
+//        }
+//        double tp = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
+//        //===> return (time / channelConstants.getTp()) * Math.exp(1 - time / channelConstants.getTp());
+//        return (time / tp) * Math.exp(1 - time / tp);
+//    }
     @Override
     public double valueOf(double[] times) {
         return doLinFit(times);

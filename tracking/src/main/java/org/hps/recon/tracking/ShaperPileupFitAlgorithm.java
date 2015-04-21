@@ -26,15 +26,15 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
     }
 
     //===> public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, HPSSVTCalibrationConstants.ChannelConstants constants) {
-    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth) {
+    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, PulseShape shape) {
         //===> Collection<ShapeFitParameters> fittedPulses = onePulseFitter.fitShape(rth, constants);
-        Collection<ShapeFitParameters> fittedPulses = onePulseFitter.fitShape(rth);
+        Collection<ShapeFitParameters> fittedPulses = onePulseFitter.fitShape(rth, shape);
         double singlePulseChiProb = fittedPulses.iterator().next().getChiProb();
         totalFits++;
         if (singlePulseChiProb < refitThreshold) {
             refitAttempts++;
             //===> Collection<ShapeFitParameters> doublePulse = twoPulseFitter.fitShape(rth, constants);
-            Collection<ShapeFitParameters> doublePulse = twoPulseFitter.fitShape(rth);
+            Collection<ShapeFitParameters> doublePulse = twoPulseFitter.fitShape(rth, shape);
             double doublePulseChiProb = doublePulse.iterator().next().getChiProb();
             if (doublePulseChiProb > singlePulseChiProb) {
                 refitsAccepted++;
