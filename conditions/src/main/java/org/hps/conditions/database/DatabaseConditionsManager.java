@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -285,12 +286,16 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @throws SQLException
      */
     public synchronized int addCollection(final String tableName, final String comment) throws SQLException {
+        if (tableName == null) {
+            throw new IllegalArgumentException("The tableName argument is null.");
+        }
         final boolean opened = this.openConnection();
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         int collectionId = -1;
         try {
-            statement = this.connection.prepareStatement("INSERT INTO collections (table_name, comment) VALUES (?, ?)",
+            statement = this.connection.prepareStatement(
+                    "INSERT INTO collections (table_name, comment, created) VALUES (?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, tableName);
             if (comment == null) {
@@ -298,6 +303,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             } else {
                 statement.setString(2, comment);
             }
+            statement.setDate(3, new java.sql.Date(Calendar.getInstance().getTime().getTime()));
             final boolean result = statement.execute();
             if (result) {
                 resultSet = statement.getGeneratedKeys();
