@@ -5,9 +5,9 @@ import hep.aida.IFitFactory;
 import hep.aida.IFitResult;
 import hep.aida.IFitter;
 import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.TDCData;
+import org.hps.recon.ecal.triggerbank.TIData;
 import org.hps.recon.tracking.ShapeFitParameters;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -78,17 +80,19 @@ public class SvtMonitoring extends DataQualityMonitor {
         sensors = this.detector.getSubdetector(trackerName).getDetectorElement().findDescendants(HpsSiSensor.class);
 
         // Reset the data structure that keeps track of strip occupancies.
-        resetOccupancyMap();
+        reset();
 
         // Setup the occupancy plots.
         aida.tree().cd("/");
         for (HpsSiSensor sensor : sensors) {
             //IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
             IHistogram1D occupancyPlot = createSensorPlot(plotDir + "occupancy_", sensor, maxChannels, 0, maxChannels - 1);
-            IHistogram1D t0Plot = createSensorPlot(plotDir + "t0Hit_", sensor, 50, -50., 50.);
-            IHistogram1D amplitudePlot = createSensorPlot(plotDir + "amplitude_", sensor, 50, 0, 2000.0);
+            IHistogram1D t0Plot = createSensorPlot(plotDir + "t0Hit_", sensor, 400, -100., 100.);
+            IHistogram1D amplitudePlot = createSensorPlot(plotDir + "amplitude_", sensor, 50, 0, 4000.0);
+            IHistogram2D t0AmpPlot = createSensorPlot2D(plotDir + "t0AmpHit_", sensor, 200, -100., 100., 50, 0, 4000.0);
             IHistogram1D chiProbPlot = createSensorPlot(plotDir + "chiProb_", sensor, 50, 0, 1.0);
-            IHistogram1D t0ClusterPlot = createSensorPlot(plotDir + "t0Cluster_", sensor, 50, -50., 50.);
+            IHistogram1D t0ClusterPlot = createSensorPlot(plotDir + "t0Cluster_", sensor, 400, -100., 100.);
+            IHistogram2D t0TrigTimePlot = createSensorPlot2D(plotDir + "t0ClusterTrigTime_", sensor, 400, -100., 100., 6, -2, 22);
             IHistogram1D dedxClusterPlot = createSensorPlot(plotDir + "electrons_", sensor, 50, 0., 10.);
             occupancyPlot.reset();
         }
@@ -122,6 +126,7 @@ public class SvtMonitoring extends DataQualityMonitor {
                 double chiProb = ShapeFitParameters.getChiProb(pars);
                 getSensorPlot(plotDir + "t0Hit_", sensorName).fill(t0);
                 getSensorPlot(plotDir + "amplitude_", sensorName).fill(amp);
+                getSensorPlot2D(plotDir + "t0AmpHit_", sensorName).fill(t0, amp);
                 getSensorPlot(plotDir + "chiProb_", sensorName).fill(chiProb);
             }
             ++eventCountFit;
@@ -136,6 +141,7 @@ public class SvtMonitoring extends DataQualityMonitor {
                 double dedx = cluster.getdEdx() * 1e6;
 //                System.out.println("dedx = "+dedx);
                 getSensorPlot(plotDir + "t0Cluster_", sensorName).fill(t0);
+                getSensorPlot2D(plotDir + "t0ClusterTrigTime_", sensorName).fill(t0, event.getTimeStamp() % 24);
                 getSensorPlot(plotDir + "electrons_", sensorName).fill(dedx);
             }
         }
@@ -153,6 +159,26 @@ public class SvtMonitoring extends DataQualityMonitor {
     private IHistogram1D createSensorPlot(String prefix, HpsSiSensor sensor, int nchan, double min, double max) {
         String hname = prefix + getNiceSensorName(sensor);
         IHistogram1D hist = aida.histogram1D(hname, nchan, min, max);
+        hist.setTitle(sensor.getName().replaceAll(nameStrip, "")
+                .replace("module", "mod")
+                .replace("layer", "lyr")
+                .replace("sensor", "sens"));
+
+        return hist;
+    }
+
+    private IHistogram2D getSensorPlot2D(String prefix, HpsSiSensor sensor) {
+        String hname = prefix + getNiceSensorName(sensor);
+        return aida.histogram2D(hname);
+    }
+
+    private IHistogram2D getSensorPlot2D(String prefix, String sensorName) {
+        return aida.histogram2D(prefix + sensorName);
+    }
+
+    private IHistogram2D createSensorPlot2D(String prefix, HpsSiSensor sensor, int nchanX, double minX, double maxX, int nchanY, double minY, double maxY) {
+        String hname = prefix + getNiceSensorName(sensor);
+        IHistogram2D hist = aida.histogram2D(hname, nchanX, minX, maxX, nchanY, minY, maxY);
         hist.setTitle(sensor.getName().replaceAll(nameStrip, "")
                 .replace("module", "mod")
                 .replace("layer", "lyr")
@@ -208,8 +234,9 @@ public class SvtMonitoring extends DataQualityMonitor {
             int[] strips = occupancyMap.get(sensor.getName());
             for (int i = 0; i < strips.length; i++) {
                 double stripOccupancy = (double) strips[i] / (double) (eventCountRaw);
-                if (stripOccupancy != 0)
+                if (stripOccupancy != 0) {
                     sensorHist.fill(i, stripOccupancy);
+                }
                 avg += stripOccupancy;
             }
             //do the end-of-run quantities here too since we've already done the loop.  
