@@ -285,7 +285,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the collection's ID
      * @throws SQLException
      */
-    public synchronized int addCollection(final String tableName, final String comment) throws SQLException {
+    public synchronized int addCollection(final String tableName, final String log, final String description)
+            throws SQLException {
         if (tableName == null) {
             throw new IllegalArgumentException("The tableName argument is null.");
         }
@@ -295,16 +296,21 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         int collectionId = -1;
         try {
             statement = this.connection.prepareStatement(
-                    "INSERT INTO collections (table_name, comment, created) VALUES (?, ?, ?)",
+                    "INSERT INTO collections (table_name, log, description, created) VALUES (?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, tableName);
-            if (comment == null) {
+            if (log == null) {
                 statement.setNull(2, java.sql.Types.VARCHAR);
             } else {
-                statement.setString(2, comment);
+                statement.setString(2, log);
             }
-            statement.setDate(3, new java.sql.Date(Calendar.getInstance().getTime().getTime()));
-            final boolean result = statement.execute();
+            if (description == null) {
+                statement.setNull(3, java.sql.Types.VARCHAR);
+            } else {
+                statement.setString(3, description);
+            }
+            statement.setDate(4, new java.sql.Date(Calendar.getInstance().getTime().getTime()));
+            statement.execute();
             resultSet = statement.getGeneratedKeys();
             resultSet.next();
             collectionId = resultSet.getInt(1);

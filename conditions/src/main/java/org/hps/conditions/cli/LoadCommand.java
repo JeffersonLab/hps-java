@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -44,9 +45,9 @@ class LoadCommand extends AbstractCommand {
     private static final Options OPTIONS = new Options();
     static {
         OPTIONS.addOption(new Option("h", false, "Show help for load command"));
-        OPTIONS.addOption(new Option("t", true, "Set the name of the target table in the database"));
-        OPTIONS.addOption(new Option("c", true, "Set the collection ID of this conditions set"));
-        OPTIONS.addOption(new Option("f", true, "Set the input data file"));
+        OPTIONS.addOption(new Option("t", true, "Name of the target table in the database"));
+        OPTIONS.addOption(new Option("f", true, "Input data file"));
+        OPTIONS.addOption(new Option("d", true, "Description of collection data"));
     }
 
     /**
@@ -64,7 +65,7 @@ class LoadCommand extends AbstractCommand {
     @Override
     public void execute(final String[] arguments) {
 
-        final CommandLine commandLine = parse(arguments);
+        final CommandLine commandLine = this.parse(arguments);
 
         final String fileName = commandLine.getOptionValue("f");
         if (fileName == null) {
@@ -86,30 +87,32 @@ class LoadCommand extends AbstractCommand {
             openedConnection = conditionsManager.openConnection();
         }
 
-        int collectionID;
-        if (commandLine.getOptionValue("c") != null) {
-            collectionID = Integer.parseInt(commandLine.getOptionValue("c"));
-            if (conditionsManager.collectionExists(tableName, collectionID)) {
-                throw new IllegalArgumentException("The user supplied collection ID " + collectionID
-                        + " already exists in this table.");
-            }
-        } else {
-            collectionID = conditionsManager.getNextCollectionID(tableName);
+        String collectionDescription = null;
+        if (commandLine.hasOption("d")) {
+            collectionDescription = commandLine.getOptionValue("d");
+        }
+
+        int collectionId;
+        try {
+            collectionId = conditionsManager.addCollection(tableName,
+                    "loaded with command line client by " + System.getProperty("user.name"), collectionDescription);
+        } catch (final SQLException e) {
+            throw new RuntimeException("Error getting new collection ID.", e);
         }
 
         final List<String> columnNames = new ArrayList<String>();
         final List<List<String>> rows = new ArrayList<List<String>>();
-        parseFile(fileName, columnNames, rows);
+        this.parseFile(fileName, columnNames, rows);
 
-        final String insertSql = QueryBuilder.buildInsert(tableName, collectionID, columnNames, rows);
-        if (getVerbose()) {
+        final String insertSql = QueryBuilder.buildInsert(tableName, collectionId, columnNames, rows);
+        if (this.getVerbose()) {
             LOGGER.info(insertSql);
         }
         // FIXME: This call should go through an object API like ConditionsObjectCollection.insert rather than the
         // manager directly.
         final List<Integer> ids = conditionsManager.updateQuery(insertSql);
         LOGGER.info("Inserted " + ids.size() + " new rows into table " + tableName + " with collection_id "
-                + collectionID);
+                + collectionId);
         conditionsManager.closeConnection(openedConnection);
     }
 
