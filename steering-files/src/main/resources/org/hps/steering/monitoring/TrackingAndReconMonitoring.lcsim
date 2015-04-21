@@ -73,7 +73,6 @@
             <useTruthTime>false</useTruthTime>               
            <debug>false</debug>
         </driver>       
-    </drivers>
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">              
                <useTimeCut>true</useTimeCut>
                <logLevel>ALL</logLevel>
