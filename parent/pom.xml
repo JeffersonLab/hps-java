@@ -184,7 +184,7 @@
             <dependency>
                 <groupId>org.jlab.coda</groupId>
                 <artifactId>jevio</artifactId>
-                <version>4.4.3</version>
+                <version>4.4.5</version>
             </dependency>
             <dependency>
                 <groupId>org.jlab.coda</groupId>
@@ -200,16 +200,16 @@
                 <groupId>jfreechart-aida-experimental</groupId>
                 <artifactId>jfreechart-aida-experimental</artifactId>
                 <version>1.6</version>
-                <exclusions> 
-                    <exclusion> 
-                        <groupId>jdom</groupId> 
-                        <artifactId>jdom</artifactId> 
-                    </exclusion> 
-                    <exclusion> 
-                        <groupId>commons-math</groupId> 
-                        <artifactId>commons-math</artifactId> 
-                    </exclusion> 
-                </exclusions> 
+                <exclusions>
+                    <exclusion>
+                        <groupId>jdom</groupId>
+                        <artifactId>jdom</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-math</groupId>
+                        <artifactId>commons-math</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -234,7 +234,7 @@
                         <link>https://coda.jlab.org/wiki/Downloads/evio/evio-4.3-docs/javadoc/</link>
                         <link>https://coda.jlab.org/wiki/Downloads/et/et-14.0-docs/javadoc/</link>
                     </links>
-                </configuration>                               
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -548,3 +548,4 @@
         </profile>
     </profiles>
 </project>
+
