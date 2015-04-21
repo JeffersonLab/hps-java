@@ -83,7 +83,7 @@ int[]crycounterbot=new int[5];
 double[] vertpos=new double[5];
 
 //e cuts 3393
-
+/*
 double[] ecuttopmin={1.20,1.35,1.50,1.50,1.60,1.60};
 double[] ecuttopmax={1.70,1.90,1.90,2.00,2.00,2.00};
 
@@ -96,10 +96,10 @@ double[] cryecuttopmax={1.8,1.8,1.8,2,2};
 
 double[] cryecutbotmax={2,2,1.9,1.9,2};
 double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
-
+*/
 
 //e cuts 3430
-/*
+
 double[] ecuttopmin={1.20,1.35,1.50,1.50,1.60,1.60};
 double[] ecuttopmax={1.70,1.80,1.90,2.00,2.00,2.00};
 
@@ -112,7 +112,7 @@ double[] cryecuttopmax={1.8,1.8,1.8,2,2};
 
 double[] cryecutbotmax={2,2,1.9,1.9,2};
 double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
-*/
+
 //e cuts 3434
 /*
 double[] ecuttopmin={1.25,1.30,1.40,1.50,1.60,1.60};
@@ -135,6 +135,55 @@ double[] ecuttopmax={1.7,1.7,1.8,1.8,2,2};
 
 double[] ecutbotmin= {1.3,1.35,1.40,1.50,1.60,1.50};
 double[] ecutbotmax={1.7,1.8,1.9,2,2,2};
+
+
+double[] cryecuttopmin={1.38,1.38,1.52,1.6,1.6};
+double[] cryecuttopmax={1.8,1.8,1.8,2,2};
+
+double[] cryecutbotmax={2,2,1.9,1.9,2};
+double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
+
+*/
+//e cuts 3256
+/*
+double[] ecuttopmin={1.35,1.5,1.6,1.6,1.65,1.6};
+double[] ecuttopmax={1.8,1.9,2,2,2,2};
+
+double[] ecutbotmin= {1.4,1.5,1.5,1.6,1.65,1.6};
+double[] ecutbotmax={1.9,1.9,1.9,2,2,2};
+
+
+double[] cryecuttopmin={1.38,1.38,1.52,1.6,1.6};
+double[] cryecuttopmax={1.8,1.8,1.8,2,2};
+
+double[] cryecutbotmax={2,2,1.9,1.9,2};
+double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
+*/
+
+
+//e cuts 3260
+/*
+double[] ecuttopmin={1.3,1.3,1.4,1.5,1.6,1.6};
+double[] ecuttopmax={1.6,1.8,1.9,1.9,2,2};
+
+double[] ecutbotmin= {1.3,1.4,1.4,1.5,1.6,1.6};
+double[] ecutbotmax={1.7,1.8,1.9,2,2,2};
+
+
+double[] cryecuttopmin={1.38,1.38,1.52,1.6,1.6};
+double[] cryecuttopmax={1.8,1.8,1.8,2,2};
+
+double[] cryecutbotmax={2,2,1.9,1.9,2};
+double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
+*/
+
+//e cuts 3444
+/*
+double[] ecuttopmin={1.27,1.3,1.4,1.5,1.55,1.6};
+double[] ecuttopmax={1.6,1.75,1.8,1.9,2,2};
+
+double[] ecutbotmin= {1.3,1.3,1.3,1.5,1.6,1.6};
+double[] ecutbotmax={1.7,1.7,1.8,2,2,2};
 
 
 double[] cryecuttopmin={1.38,1.38,1.52,1.6,1.6};
@@ -312,7 +361,9 @@ System.out.println("theta = " + theta + "\n");
           int ID=getDBID(cluster);   
          clusTot.fill(cluster.getEnergy());
          double posY=cluster.getPosition()[1];
-         double posX=cluster.getPosition()[0];
+         
+         double xcl=cluster.getPosition()[0];
+         double posX=xcl -(0.0066/Math.sqrt(cluster.getEnergy()) -0.03)*xcl -(0.028*cluster.getEnergy()-0.451/Math.sqrt(cluster.getEnergy())+0.465)*10;
          double cryx=cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
          double cryy=cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
          
