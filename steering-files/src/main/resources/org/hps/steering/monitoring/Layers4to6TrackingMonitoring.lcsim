@@ -6,8 +6,8 @@
 -->
     <execute>      
 <!--  the 3 drivers below are for reading out 6-sample ADC data -->
-      <driver name="RawTrackerHitSensorSetup" /> 
-      <driver name="RawTrackerHitFitterDriver" /> 
+<!--      <driver name="RawTrackerHitSensorSetup" />  -->
+      <driver name="RawTrackerHitFitterDriver" />  
       <driver name="TrackerHitDriver" />  
       <driver name="HelicalTrackHitDriver" />
        <driver name="TrackerL4to6ReconDriver"/>      
@@ -24,8 +24,8 @@
     </execute>
     <drivers>       
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
-        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Analytic</fitAlgorithm>
+       <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
             <useTruthTime>false</useTruthTime>

@@ -6,7 +6,7 @@
 -->
     <execute>     
 <!--  the 3 drivers below are for reading out 6-sample ADC data -->
-      <driver name="RawTrackerHitSensorSetup" /> 
+<!--      <driver name="RawTrackerHitSensorSetup" />  --> 
       <driver name="RawTrackerHitFitterDriver" /> 
       <driver name="TrackerHitDriver" />  
       <driver name="HelicalTrackHitDriver" />
@@ -33,7 +33,7 @@
         </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Analytic</fitAlgorithm>
+            <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
             <useTruthTime>false</useTruthTime>
@@ -72,8 +72,9 @@
             <useTimestamps>false</useTimestamps>
             <useTruthTime>false</useTruthTime>               
            <debug>false</debug>
-        </driver>
-         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">              
+        </driver>       
+    </drivers>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">              
                <useTimeCut>true</useTimeCut>
                <logLevel>ALL</logLevel>
         </driver>     
