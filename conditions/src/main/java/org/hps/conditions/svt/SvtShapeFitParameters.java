@@ -13,7 +13,7 @@ import org.hps.conditions.database.Table;
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
-@Table(names = { "svt_shape_fit_parameters", "test_run_svt_shape_fit_parameters" })
+@Table(names = {"svt_shape_fit_parameters", "test_run_svt_shape_fit_parameters"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 // TODO: This class needs better documentation as to what these parameters actually mean.
 public final class SvtShapeFitParameters extends BaseConditionsObject {
@@ -26,23 +26,28 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
     }
 
     /**
-     * Get the SVT channel ID.
-     *
-     * @return The SVT channel ID.
+     * Size of array when retrieving all parameters together using {@link #toArray()}.
      */
-    @Field(names = { "svt_channel_id" })
-    public int getChannelID() {
-        return getFieldValue(Integer.class, "svt_channel_id");
-    }
+    private static final int ARRAY_SIZE = 4;
 
     /**
      * Get the amplitude.
      *
-     * @return The amplifude.
+     * @return The amplitude.
      */
-    @Field(names = { "amplitude" })
+    @Field(names = {"amplitude"})
     public double getAmplitude() {
         return getFieldValue(Double.class, "amplitude");
+    }
+
+    /**
+     * Get the SVT channel ID.
+     *
+     * @return The SVT channel ID.
+     */
+    @Field(names = {"svt_channel_id"})
+    public int getChannelID() {
+        return getFieldValue(Integer.class, "svt_channel_id");
     }
 
     /**
@@ -50,19 +55,29 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      *
      * @return t0
      */
-    @Field(names = { "t0" })
+    @Field(names = {"t0"})
     public double getT0() {
         return getFieldValue(Double.class, "t0");
     }
 
     /**
-     * Get tp.
+     * Get shaping time parameter.
      *
-     * @return tp
+     * @return the shaping time parameter
      */
-    @Field(names = { "tp" })
+    @Field(names = {"tp"})
     public double getTp() {
         return getFieldValue(Double.class, "tp");
+    }
+
+    /**
+     * Get the second shaping time parameter.
+     *
+     * @return the second shaping time parameter
+     */
+    @Field(names = {"tp2"})
+    public double getTp2() {
+        return getFieldValue(Double.class, "tp2");
     }
 
     /**
@@ -71,10 +86,11 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      * @return This object converted to an array of doubles.
      */
     public double[] toArray() {
-        final double[] values = new double[3];
+        final double[] values = new double[ARRAY_SIZE];
         values[0] = getAmplitude();
         values[1] = getT0();
         values[2] = getTp();
+        values[3] = getTp2();
         return values;
     }
 }
