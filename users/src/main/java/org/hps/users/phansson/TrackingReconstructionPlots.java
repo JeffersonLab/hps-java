@@ -8,15 +8,14 @@ import hep.aida.IPlotterStyle;
 import hep.aida.IProfile;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.Hep3Vector;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.DumbShaperFit;
 import org.hps.recon.tracking.HelixConverter;
+import org.hps.recon.tracking.PulseShape;
 import org.hps.recon.tracking.ShapeFitParameters;
 import org.hps.recon.tracking.ShaperFitAlgorithm;
 import org.hps.recon.tracking.StraightLineTrack;
@@ -832,7 +831,7 @@ public class TrackingReconstructionPlots extends Driver {
                     for (HelicalTrackStrip hts : htcross.getStrips()) {
                         double clusterSum = 0;
                         for (RawTrackerHit rawHit : (List<RawTrackerHit>) hts.rawhits()) {
-                            for (ShapeFitParameters fit : _shaper.fitShape(rawHit)) {
+                            for (ShapeFitParameters fit : _shaper.fitShape(rawHit,new PulseShape.CRRC())) {
                                 double amp = fit.getAmp();
                                 clusterSum += amp;
                                 aida.histogram1D("Amp (HitOnTrack)").fill(amp);

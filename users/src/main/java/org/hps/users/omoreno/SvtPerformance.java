@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.hps.recon.tracking.PulseShape;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -377,7 +378,7 @@ public class SvtPerformance extends Driver {
                             }
                         }
 
-                        for (ShapeFitParameters fit : shaperFitter.fitShape(rawHit)) {
+                        for (ShapeFitParameters fit : shaperFitter.fitShape(rawHit, new PulseShape.CRRC())) {
                             if (fit.getAmp() > maxClusterAmplitude) {
                                 maxClusterChannel = channel;
                                 maxClusterAmplitude = fit.getAmp();
