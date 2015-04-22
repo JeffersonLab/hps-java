@@ -7,7 +7,9 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
+import hep.aida.ref.rootwriter.RootFileStore;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +52,7 @@ public class SvtHitCorrelations extends Driver {
     // Detector Name
     private static final String SUBDETECTOR_NAME = "Tracker";
     
+    private int runNumber = -1; 
     
     boolean enableTopAxialAxial = false;
     boolean enableTopAxialStereo = false;
@@ -178,7 +181,9 @@ public class SvtHitCorrelations extends Driver {
 	}
 	
 	public void process(EventHeader event){
-		
+	
+        if (runNumber == -1) runNumber = event.getRunNumber();
+	    
 		if(!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) return;
 	
 		List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
@@ -223,6 +228,20 @@ public class SvtHitCorrelations extends Driver {
 		}
 	}
 
+    public void endOfData() { 
+      
+        String rootFile = "run" + runNumber + "_svt_hit_correlations.root";
+        RootFileStore store = new RootFileStore(rootFile);
+        try {
+            store.open();
+            store.add(tree);
+            store.close(); 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+	
+	
 	private int getLayerNumber(HpsSiSensor sensor) {
 	   return (int) Math.ceil(((double) sensor.getLayerNumber())/2); 
 	}
