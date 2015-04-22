@@ -571,28 +571,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Get the next collection ID for a database conditions table.
-     *
-     * @param tableName the name of the table
-     * @return the next collection ID
-     */
-    public synchronized int getNextCollectionID(final String tableName) {
-        final boolean openedConnection = this.openConnection();
-        final ResultSet resultSet = this.selectQuery("SELECT MAX(collection_id)+1 FROM " + tableName);
-        int collectionId = 1;
-        try {
-            resultSet.next();
-            collectionId = resultSet.getInt(1);
-        } catch (final SQLException e) {
-            e.printStackTrace();
-            logger.warning(e.getMessage());
-        }
-        logger.fine("new collection ID " + collectionId + " created for table " + tableName);
-        this.closeConnection(openedConnection);
-        return collectionId;
-    }
-
-    /**
      * Get the combined SVT conditions for this run.
      *
      * @return the combined SVT conditions
@@ -744,7 +722,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         if (collection.getCollectionId() == -1) {
             try {
-                collection.setCollectionId(this.getNextCollectionID(tableMetaData.getTableName()));
+                collection.setCollectionId(this.addCollection(tableMetaData.getTableName(),
+                        "DatabaseConditionsManager created collection by " + System.getProperty("user.name"), null));
             } catch (final ConditionsObjectException e) {
                 throw new RuntimeException(e);
             }

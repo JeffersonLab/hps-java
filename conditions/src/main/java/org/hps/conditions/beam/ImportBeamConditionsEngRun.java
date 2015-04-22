@@ -37,13 +37,8 @@ public final class ImportBeamConditionsEngRun {
     private static final double NULL_VALUE = -999.0;
 
     /**
-     * Class should not be instantiated.
-     */
-    private ImportBeamConditionsEngRun() {
-    }
-
-    /**
      * Import the Eng Run beam conditions from a text file.
+     *
      * @param args the argument list
      * @throws Exception if there is an error importing the text file
      */
@@ -75,7 +70,7 @@ public final class ImportBeamConditionsEngRun {
             if (beam.getFieldValue("current") == null) {
                 // Use null value to indicate beam was not measured.
                 beam.setFieldValue("energy", null);
-            } else if (((Double) beam.getFieldValue("current")) == 0) {
+            } else if ((Double) beam.getFieldValue("current") == 0) {
                 // Use zero for no beam.
                 beam.setFieldValue("energy", 0);
             } else {
@@ -89,7 +84,7 @@ public final class ImportBeamConditionsEngRun {
 
         System.out.println("printing beam conditions parsed from " + fileName + " ...");
         System.out.println("run id current x y energy");
-        for (Entry<Integer, BeamConditions> entry : beamMap.entrySet()) {
+        for (final Entry<Integer, BeamConditions> entry : beamMap.entrySet()) {
             System.out.print(entry.getKey() + " ");
             System.out.println(entry.getValue() + " ");
         }
@@ -97,12 +92,13 @@ public final class ImportBeamConditionsEngRun {
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.setLogLevel(Level.ALL);
 
-        for (Entry<Integer, BeamConditions> entry : beamMap.entrySet()) {
+        for (final Entry<Integer, BeamConditions> entry : beamMap.entrySet()) {
             final int run = entry.getKey();
             final BeamConditions beam = entry.getValue();
-            final int collectionId = manager.getNextCollectionID("beam");
-            final ConditionsRecord record = new ConditionsRecord(
-                    collectionId, run, run, "beam", "beam", "imported from HPS_Runs.pdf", "eng_run");
+            final int collectionId = manager.addCollection("beam", "ImportBeamConditionsEngRun created collection by "
+                    + System.getProperty("user.name"), null);
+            final ConditionsRecord record = new ConditionsRecord(collectionId, run, run, "beam", "beam",
+                    "imported from HPS_Runs.pdf", "eng_run");
             System.out.println(record);
             System.out.println(beam);
             final BeamConditionsCollection collection = new BeamConditionsCollection();
@@ -115,6 +111,7 @@ public final class ImportBeamConditionsEngRun {
 
     /**
      * Set the value of the beam current.
+     *
      * @param beam the beam conditions object
      * @param fieldName the name of the field
      * @param rawValue the raw value from the text file
@@ -126,5 +123,11 @@ public final class ImportBeamConditionsEngRun {
         } else {
             beam.setFieldValue(fieldName, null);
         }
+    }
+
+    /**
+     * Class should not be instantiated.
+     */
+    private ImportBeamConditionsEngRun() {
     }
 }
