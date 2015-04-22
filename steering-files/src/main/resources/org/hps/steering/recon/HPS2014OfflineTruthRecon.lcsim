@@ -7,7 +7,7 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="RawTrackerHitSensorSetup"/>
+       <driver name="ConditionsDriver"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
@@ -23,7 +23,12 @@
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
-        </driver>        
+        </driver> 
+   <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <detectorName>HPS-EngRun2015-Nominal-v0</detectorName>
+            <runNumber>4888</runNumber>
+            <freeze>true</freeze>
+        </driver>       
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>

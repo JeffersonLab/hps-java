@@ -6,8 +6,7 @@
     </control>
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="RawTrackerHitSensorSetup"/>
-        <driver name="SVTBadChannelFilterDriver"/>
+       <driver name="ConditionsDriver"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver" />
         <driver name="HelicalTrackHitDriver" />
@@ -18,6 +17,11 @@
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
+        </driver>
+   <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <detectorName>HPS-EngRun2015-Nominal-v0</detectorName>
+            <runNumber>4888</runNumber>
+            <freeze>true</freeze>
         </driver>
         <driver name="SVTBadChannelFilterDriver" type="org.hps.recon.tracking.SVTBadChannelFilterDriver"/>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
