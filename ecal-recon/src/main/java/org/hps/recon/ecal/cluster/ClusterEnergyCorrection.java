@@ -4,8 +4,12 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.base.BaseCluster;
 
 /**
- * Cluster energy correction algorithm extracted from <code>HPSEcalClusterIC</code> class.
+ * This is the cluster energy correction requiring the particle id 
+ * uncorrected cluster energy. This is not accurate for edge crystals
+ * and should be used after cluster-track matching and after position
+ * corrections.
  * 
+ * @author Holly Vance <hvanc001@odu.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class ClusterEnergyCorrection {
@@ -71,12 +75,13 @@ public final class ClusterEnergyCorrection {
     /**
      * Calculates the energy correction to a cluster given the variables from the fit as per
      * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
+     * Note that this is correct as there is a typo in the formula print in the note. 
      * @param rawEnergy Raw energy of the cluster
      * @param A,B,C from fitting in note
      * @return Corrected Energy
      */   
     private static double computeCorrectedEnergy(double rawEnergy, double varA, double varB, double varC){
-        double corrEnergy = rawEnergy / (varA * rawEnergy + varB / (Math.sqrt(rawEnergy)) + varC);
+        double corrEnergy = rawEnergy / (varA / rawEnergy + varB / (Math.sqrt(rawEnergy)) + varC);
         return corrEnergy;
     }                   
 }

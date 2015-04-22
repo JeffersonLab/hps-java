@@ -43,9 +43,10 @@ class ReconClusterPropertyCalculator extends AbstractClusterPropertyCalculator {
             EcalCrystal crystal = (EcalCrystal) hit.getDetectorElement();
             Hep3Vector crystalPosition = crystal.getPositionFront();
             
-            eNumX += Math.max(0.0, (w0 + Math.log(hit.getCorrectedEnergy() / cluster.getEnergy()))) * (crystalPosition.x() / 10.0);
-            eNumY += Math.max(0.0, (w0 + Math.log(hit.getCorrectedEnergy() / cluster.getEnergy()))) * (crystalPosition.y() / 10.0);
-            eDen += Math.max(0.0, (w0 + Math.log(hit.getCorrectedEnergy() / cluster.getEnergy())));
+            double wi = Math.max(0.0, (w0 + Math.log(hit.getCorrectedEnergy() / cluster.getEnergy())));
+            eNumX += wi * (crystalPosition.x() / 10.0);
+            eNumY += wi * (crystalPosition.y() / 10.0);
+            eDen += wi;
 
         } // end for iteration through clusterHits
 
