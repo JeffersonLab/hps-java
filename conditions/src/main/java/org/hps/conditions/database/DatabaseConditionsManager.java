@@ -296,7 +296,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         int collectionId = -1;
         try {
             statement = this.connection.prepareStatement(
-                    "INSERT INTO collections (table_name, log, description, created) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO collections (table_name, log, description, created) VALUES (?, ?, ?, NOW())",
                     Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, tableName);
             if (log == null) {
@@ -309,7 +309,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             } else {
                 statement.setString(3, description);
             }
-            statement.setDate(4, new java.sql.Date(Calendar.getInstance().getTime().getTime()));
             statement.execute();
             resultSet = statement.getGeneratedKeys();
             resultSet.next();
