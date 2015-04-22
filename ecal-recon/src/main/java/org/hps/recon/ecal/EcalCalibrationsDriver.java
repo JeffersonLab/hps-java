@@ -286,7 +286,12 @@ public class EcalCalibrationsDriver extends Driver {
      * @param calibrations The collection of calibration objects.
      */
     private void loadCalibrations(EcalCalibrationCollection calibrations) {
-        int collectionId = conditionsManager.getNextCollectionID(ECAL_CALIBRATIONS);
+        int collectionId = -1;
+        try {
+            conditionsManager.addCollection(ECAL_CALIBRATIONS, "EcalCalibrationsDriver added by " + System.getProperty("user.name"), null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         try {
             calibrations.setCollectionId(collectionId);
             calibrations.insert();
