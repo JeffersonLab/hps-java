@@ -7,8 +7,7 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>       
-        <driver name="ConditionsDriver"/>
-        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="ConditionsDriver"/>       
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
