@@ -9,6 +9,7 @@
     </control>
     <execute>
         <driver name="EventMarkerDriver" />
+        <driver name="ConditionsDriver"/>
         <driver name="EcalReadout" />
         <driver name="EcalConverter" />
         <driver name="EcalClusterer" />
@@ -23,6 +24,11 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
+   <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+     <runNumber>4888</runNumber>
+      <detectorName>HPS-Proposal2014-v6-2pt2</detectorName>
+     <freeze>true</freeze> 
+    </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
         </driver>

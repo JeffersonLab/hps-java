@@ -24,7 +24,7 @@
             <eventInterval>1000</eventInterval>
         </driver>        
     <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-     <detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
+     <detectorName>HPS-ECalCommissioning-v3</detectorName>
      <runNumber>3422</runNumber>
      <freeze>true</freeze>
     </driver>
@@ -66,7 +66,7 @@
             <seedEnergyLowThreshold>0.1</seedEnergyLowThreshold>
             <clusterEnergyLowThreshold>0.5</clusterEnergyLowThreshold>
             <clusterEnergyHighThreshold>2.5</clusterEnergyHighThreshold>
-            <prescale>256</prescale>
+            <prescale>1</prescale>
             <outputFileName>${outputFile}.triggers.singles0</outputFileName>
             <!--<verbose>true</verbose>-->
         </driver>         
