@@ -198,7 +198,7 @@ public class EvioDAQParser {
             pairsEnergySumMaxMinEn[ii] = getBoolConfigSSP(ii,  "PAIRS_SUMMAX_MIN",      2);
             pairsEnergyDiffEn[ii]      = getBoolConfigSSP(ii,  "PAIRS_DIFFMAX",         1);
             pairsCoplanarityEn[ii]     = getBoolConfigSSP(ii,  "PAIRS_COPLANARITY",     1);
-            pairsEnergyDistEn[ii]      = getBoolConfigSSP(ii,  "PAIRS_ENERGYDIST",      1);
+            pairsEnergyDistEn[ii]      = getBoolConfigSSP(ii,  "PAIRS_ENERGYDIST",      2);
             
             singlesNhits[ii]           = getIntConfigSSP(ii,   "SINGLES_NMIN",          0);
             singlesEnergyMin[ii]       = getIntConfigSSP(ii,   "SINGLES_EMIN",          0);
