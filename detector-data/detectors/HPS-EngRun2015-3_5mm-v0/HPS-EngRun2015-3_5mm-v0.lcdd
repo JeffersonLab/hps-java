@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-EngRun2015-3_5mm-v0" />
-    <generator name="GeomConverter" version="1.0" file="detectors/HPS-EngRun2015-3_5mm-v0/compact.xml" checksum="1191414036" />
+    <generator name="GeomConverter" version="1.0" file="/Users/mgraham/HPS/hps_trunk/detector-data/detectors/HPS-EngRun2015-3_5mm-v0/compact.xml" checksum="606793113" />
     <author name="NONE" />
     <comment>HPS detector for 2015 Engineering Run with tracker L1 at +-3.5mm from beam this detector uses the box dipole at -0.25T for 1 GeV running</comment>
   </header>
@@ -144,7 +144,7 @@
       <constant name="z01b" value="153.815" />
       <constant name="dipoleMagnetHeight" value="1000.0" />
       <constant name="y02t" value="21.419865625949214" />
-      <constant name="constBFieldY" value="-0.25" />
+      <constant name="constBFieldY" value="-0.24" />
       <constant name="y01b" value="-21.419865625949214" />
       <constant name="x_rot_bot_add" value="0.0" />
       <constant name="ecal_z" value="80.0" />
@@ -8325,7 +8325,7 @@
     </setup>
   </gdml>
   <fields>
-    <box_dipole name="AnalyzingDipole" lunit="mm" funit="tesla" x="21.17" y="0.0" z="457.2" dx="500.0" dy="500.0" dz="540.0" bx="0.0" by="-0.25" bz="0.0" />
+    <box_dipole name="AnalyzingDipole" lunit="mm" funit="tesla" x="21.17" y="0.0" z="457.2" dx="500.0" dy="500.0" dz="540.0" bx="0.0" by="-0.24" bz="0.0" />
   </fields>
 </lcdd>
 

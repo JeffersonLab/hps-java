@@ -30,7 +30,7 @@
         <constant name="dipoleMagnetHeight" value="100*cm"/>
         <constant name="dipoleMagnetWidth" value="100*cm"/>
         <constant name="dipoleMagnetLength" value="108*cm"/>
-        <constant name="constBFieldY" value="-0.25"/><!-- set for 1GeV running -->
+        <constant name="constBFieldY" value="-0.24"/><!-- set for 1GeV running -->
          
         
         <!-- ECAL crystal dimensions -->
