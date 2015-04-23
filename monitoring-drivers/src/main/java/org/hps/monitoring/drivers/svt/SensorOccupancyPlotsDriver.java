@@ -57,6 +57,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
     
     String rootFile = null;
 
+    private int maxSamplePosition = -1;
+    private int timeWindowWeight = 1; 
     private int eventCount = 0;
     private int eventRefreshRate = 1;
     private int runNumber = -1;
@@ -76,6 +78,14 @@ public class SensorOccupancyPlotsDriver extends Driver {
  
     public void setEnablePositionPlots(boolean enablePositionPlots) { 
         this.enablePositionPlots = enablePositionPlots; 
+    }
+    
+    public void setMaxSamplePosition(int maxSamplePosition) { 
+        this.maxSamplePosition = maxSamplePosition;
+    }
+   
+    public void setTimeWindowWeight(int timeWindowWeight) { 
+       this.timeWindowWeight = timeWindowWeight;   
     }
     
     private int computePlotterRegion(HpsSiSensor sensor) {
@@ -186,7 +196,25 @@ public class SensorOccupancyPlotsDriver extends Driver {
         // Increment strip hit count.
         for (RawTrackerHit rawHit : rawHits) {
             
-            occupancyMap.get((HpsSiSensor) rawHit.getDetectorElement())[rawHit.getIdentifierFieldValue("strip")]++;
+            // Obtain the raw ADC samples for each of the six samples readout
+            short[] adcValues = rawHit.getADCValues();
+            
+            // Find the sample that has the largest amplitude.  This should
+            // correspond to the peak of the shaper signal if the SVT is timed
+            // in correctly.  Otherwise, the maximum sample value will default 
+            // to 0.
+            int maxAmplitude = 0;
+            int maxSamplePositionFound = -1;
+            for (int sampleN = 0; sampleN < 6; sampleN++) { 
+                if (adcValues[sampleN] > maxAmplitude) { 
+                    maxAmplitude = adcValues[sampleN];
+                    maxSamplePositionFound = sampleN; 
+                }
+            }
+           
+            if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound) { 
+                occupancyMap.get((HpsSiSensor) rawHit.getDetectorElement())[rawHit.getIdentifierFieldValue("strip")]++;
+            }
         }
 
         // Plot strip occupancies.
@@ -197,6 +225,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 if (enablePositionPlots) occupancyVPositionPlots.get(sensor).reset();
                 for (int channel = 0; channel < strips.length; channel++) {
                     double stripOccupancy = (double) strips[channel] / (double) eventCount;
+                    stripOccupancy /= this.timeWindowWeight;
                     occupancyPlots.get(sensor).fill(channel, stripOccupancy);
               
                     if (enablePositionPlots) {
