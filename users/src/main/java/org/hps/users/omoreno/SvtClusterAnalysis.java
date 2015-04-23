@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotter;
@@ -51,6 +52,8 @@ public class SvtClusterAnalysis extends Driver {
 	private Map<HpsSiSensor, IHistogram1D> singleHitSignalToNoisePlots = new HashMap<HpsSiSensor, IHistogram1D>();
 	private Map<HpsSiSensor, IHistogram1D> multHitClusterChargePlots = new HashMap<HpsSiSensor, IHistogram1D>();
 	private Map<HpsSiSensor, IHistogram1D> multHitSignalToNoisePlots = new HashMap<HpsSiSensor, IHistogram1D>();
+	private Map<HpsSiSensor, IHistogram1D> clusterTimePlots = new HashMap<HpsSiSensor, IHistogram1D>();
+	private Map<HpsSiSensor, IHistogram2D> clusterChargeVsTimePlots = new HashMap<HpsSiSensor, IHistogram2D>();
     
     // Detector name
     private static final String SUBDETECTOR_NAME = "Tracker";
@@ -114,6 +117,12 @@ public class SvtClusterAnalysis extends Driver {
         plotters.put("Signal to Noise", plotterFactory.create("Signal to Noise"));
         plotters.get("Signal to Noise").createRegions(6, 6);
         
+        plotters.put("Cluster Time", plotterFactory.create("Cluster Time"));
+        plotters.get("Cluster Time").createRegions(6, 6);
+        
+        plotters.put("Cluster Amplitude vs Cluster Time", plotterFactory.create("Cluster Amplitude vs Cluster Time"));
+        plotters.get("Cluster Amplitude vs Cluster Time").createRegions(6, 6);
+        
         for (HpsSiSensor sensor : sensors) { 
             
             clusterChargePlots.put(sensor, 
@@ -145,6 +154,18 @@ public class SvtClusterAnalysis extends Driver {
                     histogramFactory.createHistogram1D(sensor.getName() + " - Multiple Hit Signal to Noise", 50, 0, 50));
             plotters.get("Signal to Noise").region(this.computePlotterRegion(sensor))
                                            .plot(multHitSignalToNoisePlots.get(sensor), this.createStyle(2, "Signal to Noise", ""));
+        
+            
+            clusterTimePlots.put(sensor,
+                    histogramFactory.createHistogram1D(sensor.getName() + " - Cluster Time", 100, -100, 100));
+            plotters.get("Cluster Time").region(this.computePlotterRegion(sensor))
+                                        .plot(clusterTimePlots.get(sensor), this.createStyle(1, "Cluster Time [ns]", ""));
+            
+            clusterChargeVsTimePlots.put(sensor,
+                    histogramFactory.createHistogram2D(sensor.getName() + " - Cluster Amplitude vs Time", 100, 0, 5000, 100, -100, 100));
+            plotters.get("Cluster Amplitude vs Cluster Time").region(this.computePlotterRegion(sensor))
+                                                             .plot(clusterChargeVsTimePlots.get(sensor));
+            
         }
         
 		for (IPlotter plotter : plotters.values()) { 
@@ -203,6 +224,8 @@ public class SvtClusterAnalysis extends Driver {
             // Fill all plots
             clusterChargePlots.get(sensor).fill(amplitude);
             signalToNoisePlots.get(sensor).fill(amplitude/noise);
+            clusterTimePlots.get(sensor).fill(cluster.getTime());
+            clusterChargeVsTimePlots.get(sensor).fill(amplitude, cluster.getTime());
             
             if (cluster.getRawHits().size() == 1) { 
                 singleHitClusterChargePlots.get(sensor).fill(amplitude);
