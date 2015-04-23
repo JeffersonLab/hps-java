@@ -26,6 +26,7 @@ import org.lcsim.recon.tracking.digitization.sisim.config.SimTrackerHitReadoutDr
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.ecal.TriggerableDriver;
+import org.hps.recon.tracking.PulseShape;
 import org.hps.util.RandomGaussian;
 
 /**
@@ -39,6 +40,8 @@ public class SimpleSvtReadout extends TriggerableDriver {
     //--- Constants ---//
     //-----------------//
     private static final String SVT_SUBDETECTOR_NAME = "Tracker";
+
+    private PulseShape shape = new PulseShape.FourPole();
 
     private SimTrackerHitReadoutDriver readoutDriver = new SimTrackerHitReadoutDriver();
     private SiSensorSim siSimulation = new CDFSiSensorSim();
@@ -112,6 +115,19 @@ public class SimpleSvtReadout extends TriggerableDriver {
      */
     public void setVerbosity(int verbosity) {
         this.verbosity = verbosity;
+    }
+
+    public void setPulseShape(String pulseShape) {
+        switch (pulseShape) {
+            case "CR-RC":
+                shape = new PulseShape.CRRC();
+                break;
+            case "FourPole":
+                shape = new PulseShape.FourPole();
+                break;
+            default:
+                throw new RuntimeException("Unrecognized pulseShape: " + pulseShape);
+        }
     }
 
     /**
@@ -197,11 +213,12 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
                 for (int sampleN = 0; sampleN < 6; sampleN++) {
                     double time = sampleN * HPSSVTConstants.SAMPLING_INTERVAL - timeOffset;
-                    double tp = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
-                    signal[sampleN] += amplitude * pulseAmplitude(time, tp);//add the pulse to the pedestal
+                    shape.setParameters(channel, (HpsSiSensor) sensor);
+                    signal[sampleN] += amplitude * shape.getAmplitudePeakNorm(time);//add the pulse to the pedestal
                     samples[sampleN] = (short) Math.round(signal[sampleN]);
-                    if (verbosity >= 1)
+                    if (verbosity >= 1) {
                         System.out.println("\t\tMaking samples: sample#" + sampleN + " has " + samples[sampleN] + " ADC counts");
+                    }
                 }
 
                 long channel_id = sensor.makeChannelID(channel);
@@ -292,18 +309,21 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
     private boolean readoutCuts(RawTrackerHit hit) {
         if (enableThresholdCut && !samplesAboveThreshold(hit)) {
-            if (verbosity > 1)
+            if (verbosity > 1) {
                 System.out.println("Failed threshold cut");
+            }
             return false;
         }
         if (enablePileupCut && !pileupCut(hit)) {
-            if (verbosity > 1)
+            if (verbosity > 1) {
                 System.out.println("Failed pileup cut");
+            }
             return false;
         }
         if (dropBadChannels && !badChannelCut(hit)) {
-            if (verbosity > 1)
+            if (verbosity > 1) {
                 System.out.println("Failed bad channel cut");
+            }
             return false;
         }
         return true;
@@ -323,25 +343,28 @@ public class SimpleSvtReadout extends TriggerableDriver {
     private boolean samplesAboveThreshold(RawTrackerHit hit) {
         HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
         int channel = hit.getIdentifierFieldValue("strip");
-        double pedestal = 0;
-        double noise = 0;
+        double pedestal;
+        double noise;
         int count = 0;
         short[] samples = hit.getADCValues();
         for (int sampleN = 0; sampleN < samples.length; sampleN++) {
             pedestal = sensor.getPedestal(channel, sampleN);
             noise = sensor.getNoise(channel, sampleN);
-            if (verbosity > 1)
+            if (verbosity > 1) {
                 System.out.format("%f, %f\n", samples[sampleN] - pedestal, noise * noiseThreshold);
-            if (samples[sampleN] - pedestal > noise * noiseThreshold)
+            }
+            if (samples[sampleN] - pedestal > noise * noiseThreshold) {
                 count++;
+            }
         }
         return count >= samplesAboveThreshold;
     }
 
     @Override
     protected void processTrigger(EventHeader event) {
-        if (noPileup)
+        if (noPileup) {
             return;
+        }
         //System.out.println("Got trigger");
 
         // Create a list to hold the analog data
@@ -372,8 +395,8 @@ public class SimpleSvtReadout extends TriggerableDriver {
                         double meanNoise = 0;
                         for (int sampleN = 0; sampleN < 6; sampleN++) {
                             double sampleTime = firstSample + sampleN * HPSSVTConstants.SAMPLING_INTERVAL;
-                            double tp = ((HpsSiSensor) sensor).getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
-                            double signalAtTime = hit.amplitude * pulseAmplitude(sampleTime - hit.time, tp);
+                            shape.setParameters(channel, (HpsSiSensor) sensor);
+                            double signalAtTime = hit.amplitude * shape.getAmplitudePeakNorm(sampleTime - hit.time);
                             totalContrib += signalAtTime;
                             signal[sampleN] += signalAtTime;
                             meanNoise += ((HpsSiSensor) sensor).getNoise(channel, sampleN);
@@ -442,21 +465,17 @@ public class SimpleSvtReadout extends TriggerableDriver {
         @Override
         public int compareTo(Object o) {
             double deltaT = time - ((StripHit) o).time;
-            if (deltaT > 0)
+            if (deltaT > 0) {
                 return 1;
-            else if (deltaT < 0)
+            } else if (deltaT < 0) {
                 return -1;
-            else
+            } else {
                 return 0;
+            }
         }
     }
 
-    private double pulseAmplitude(double time, double tp) {
-        if (time <= 0.0)
-            return 0.0;
-        return (time / tp) * Math.exp(1.0 - time / tp);
-    }
-
+    @Override
     public int getTimestampType() {
         return ReadoutTimestamp.SYSTEM_TRACKER;
     }
