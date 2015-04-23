@@ -14,11 +14,15 @@ import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
-
 import hep.aida.jfree.plotter.Plotter;
 import hep.aida.jfree.plotter.PlotterRegion;
 
+import hep.physics.vec.Hep3Vector;
+
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+import org.lcsim.detector.tracker.silicon.SiStrips;
+import org.lcsim.detector.ITransform3D;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -43,8 +47,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
     protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
     protected Map<HpsSiSensor, IHistogram1D> occupancyPlots = new HashMap<HpsSiSensor, IHistogram1D>();
+    protected Map<HpsSiSensor, IHistogram1D> occupancyVPositionPlots = new HashMap<HpsSiSensor, IHistogram1D>();
     protected Map<HpsSiSensor, int[]> occupancyMap = new HashMap<HpsSiSensor, int[]>();
     private List<HpsSiSensor> sensors;
+    private Map<HpsSiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<HpsSiSensor, Map<Integer, Hep3Vector>>(); 
 
     private static final String SUBDETECTOR_NAME = "Tracker";
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
@@ -53,7 +59,9 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
     private int eventCount = 0;
     private int eventRefreshRate = 1;
-    private int runNumber = -1; 
+    private int runNumber = -1;
+    
+    private boolean enablePositionPlots = false;
     
     public SensorOccupancyPlotsDriver() {
     }
@@ -65,7 +73,11 @@ public class SensorOccupancyPlotsDriver extends Driver {
     public void setEventRefreshRate(int eventRefreshRate) {
         this.eventRefreshRate = eventRefreshRate;
     }
-  
+ 
+    public void setEnablePositionPlots(boolean enablePositionPlots) { 
+        this.enablePositionPlots = enablePositionPlots; 
+    }
+    
     private int computePlotterRegion(HpsSiSensor sensor) {
 
         if (sensor.getLayerNumber() < 7) {
@@ -96,22 +108,57 @@ public class SensorOccupancyPlotsDriver extends Driver {
     
     protected void detectorChanged(Detector detector) {
 
-        tree = IAnalysisFactory.create().createTreeFactory().create();
-        histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
-
         sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
 
         if (sensors.size() == 0) {
             throw new RuntimeException("There are no sensors associated with this detector");
         }
+        
+        // Create a Map from sensor to bad channels and from bad channels to
+        // strip position
+        for(ChargeCarrier carrier : ChargeCarrier.values()){
+            for(HpsSiSensor sensor : sensors){ 
+                //System.out.println("HpsSiSensor: " + sensor.toString());
+                if(sensor.hasElectrodesOnSide(carrier)){ 
+                    stripPositions.put(sensor, new HashMap<Integer, Hep3Vector>());
+                    SiStrips strips = (SiStrips) sensor.getReadoutElectrodes(carrier);     
+                    ITransform3D parentToLocal = sensor.getReadoutElectrodes(carrier).getParentToLocal();
+                    ITransform3D localToGlobal = sensor.getReadoutElectrodes(carrier).getLocalToGlobal();
+                    for(int physicalChannel = 0; physicalChannel < 640; physicalChannel++){
+                        Hep3Vector localStripPosition = strips.getCellPosition(physicalChannel);
+                        Hep3Vector stripPosition = parentToLocal.transformed(localStripPosition);
+                        Hep3Vector globalStripPosition = localToGlobal.transformed(stripPosition);
+                        //System.out.println("Channel: " + physicalChannel + " localStripPosition: " + localStripPosition.toString());
+                        //System.out.println("Channel: " + physicalChannel + " stripPosition: " + stripPosition.toString());
+                        //System.out.println("Channel: " + physicalChannel + " globalStripPosition: " + globalStripPosition.toString());
+                        stripPositions.get(sensor).put(physicalChannel, globalStripPosition);
+                    }
+                }
+            }
+        }
+
+        tree = IAnalysisFactory.create().createTreeFactory().create();
+        histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
 
         plotters.put("Occupancy", plotterFactory.create("Occupancy"));
         plotters.get("Occupancy").createRegions(6, 6);
 
+        if (enablePositionPlots) { 
+            plotters.put("Occupancy vs Position", plotterFactory.create("Occupancy vs Position"));
+            plotters.get("Occupancy vs Position").createRegions(6, 6);
+        }
+        
         for (HpsSiSensor sensor : sensors) {
             occupancyPlots.put(sensor, histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy", 640, 0, 640));
             plotters.get("Occupancy").region(this.computePlotterRegion(sensor))
                                      .plot(occupancyPlots.get(sensor), this.createOccupancyPlotStyle(sensor));
+        
+            if (enablePositionPlots) {
+                occupancyVPositionPlots.put(sensor, histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy vs Position", 1000, 0, 60));
+                plotters.get("Occupancy vs Position").region(this.computePlotterRegion(sensor))
+                                                     .plot(occupancyVPositionPlots.get(sensor), this.createOccupancyPlotStyle(sensor));
+            }
+            
             occupancyMap.put(sensor, new int[640]);
         }
 
@@ -138,6 +185,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
         // Increment strip hit count.
         for (RawTrackerHit rawHit : rawHits) {
+            
             occupancyMap.get((HpsSiSensor) rawHit.getDetectorElement())[rawHit.getIdentifierFieldValue("strip")]++;
         }
 
@@ -146,9 +194,16 @@ public class SensorOccupancyPlotsDriver extends Driver {
             for (HpsSiSensor sensor : sensors) {
                 int[] strips = occupancyMap.get(sensor);
                 occupancyPlots.get(sensor).reset();
+                if (enablePositionPlots) occupancyVPositionPlots.get(sensor).reset();
                 for (int channel = 0; channel < strips.length; channel++) {
                     double stripOccupancy = (double) strips[channel] / (double) eventCount;
                     occupancyPlots.get(sensor).fill(channel, stripOccupancy);
+              
+                    if (enablePositionPlots) {
+                        double stripPosition = this.getStripPosition(sensor, channel).y();
+                        stripPosition = Math.abs(stripPosition);
+                        occupancyVPositionPlots.get(sensor).fill(stripPosition, stripOccupancy);
+                    }
                 }
             }
         }
@@ -167,6 +222,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
     }
     
+    /**
+     * .
+     */
+    private Hep3Vector getStripPosition(HpsSiSensor sensor, int physicalChannel){ 
+        return stripPositions.get(sensor).get(physicalChannel);
+    }
 
     IPlotterStyle createOccupancyPlotStyle(HpsSiSensor sensor) {
         // Create a default style
