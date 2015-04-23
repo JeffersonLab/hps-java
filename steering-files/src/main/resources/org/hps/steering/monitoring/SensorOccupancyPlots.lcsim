@@ -4,7 +4,10 @@
     </execute>
     <drivers>
         <driver name="SVTOccupancyPlots" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver">
-            <eventRefreshRate>1000</eventRefreshRate>
+            <eventRefreshRate>50</eventRefreshRate>
+            <enablePositionPlots>false</enablePositionPlots>
+            <maxSamplePosition>4</maxSamplePosition>
+            <timeWindowWeight>3</timeWindowWeight>
         </driver>
     </drivers>
 </lcsim>
