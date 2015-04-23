@@ -22,8 +22,7 @@ public abstract class PulseShape {
 
         @Override
         public void setParameters(int channel, HpsSiSensor sensor) {
-            tp = 50.0;
-//            tp = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
+            tp = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
         }
 
         @Override
@@ -51,9 +50,8 @@ public abstract class PulseShape {
 
         @Override
         public void setParameters(int channel, HpsSiSensor sensor) {
-//            tp = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
-            tp = 80.0;
-            tp2 = 12.0;
+            tp = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
+            tp2 = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX + 1];
             peak_t = 3.0 * Math.pow(tp * Math.pow(tp2, 3), 0.25); //approximate solution to exp(x)=1+x+x^2*tp/(2*tp2), where x=(1/tp2-1/tp)*t
             peak_amp = getAmplitudeIntegralNorm(peak_t);
         }
