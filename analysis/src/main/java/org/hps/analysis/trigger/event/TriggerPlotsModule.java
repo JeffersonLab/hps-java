@@ -7,6 +7,7 @@ import org.lcsim.event.Cluster;
 import org.lcsim.util.aida.AIDA;
 
 import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
 
 /**
  * Class <code>TriggerPlotsModule</code> handles the plotting of singles
@@ -37,6 +38,7 @@ public class TriggerPlotsModule {
 	private IHistogram1D[][][] pairHitCountPlot = new IHistogram1D[2][2][5];
 	private IHistogram1D[][][] pairTimePlot = new IHistogram1D[2][2][5];
 	private IHistogram1D[][][] pairSumPlot = new IHistogram1D[2][2][5];
+        private IHistogram2D[][][] pairSumEnergiesPlot = new IHistogram2D[2][2][5];
 	private IHistogram1D[][][] pairDiffPlot = new IHistogram1D[2][2][5];
 	private IHistogram1D[][][] pairSlopePlot = new IHistogram1D[2][2][5];
 	private IHistogram1D[][][] pairCoplanarityPlot = new IHistogram1D[2][2][5];
@@ -91,6 +93,8 @@ public class TriggerPlotsModule {
 							pairDir, sourceType[source], resultType[result]), 8, 0, 32);
 					pairSumPlot[triggerNum][source][result] = aida.histogram1D(String.format("%s/%s Pair Energy Sum (%s)",
 							pairDir, sourceType[source], resultType[result]), 300, 0.0, 3.0);
+                                        pairSumEnergiesPlot[triggerNum][source][result] = aida.histogram2D(String.format("%s/%s Pair 2D Energy Sum (%s)",
+                                                        pairDir, sourceType[source], resultType[result]), 300, 0.0, 3.0, 300, 0.0, 3.0);
 					pairDiffPlot[triggerNum][source][result] = aida.histogram1D(String.format("%s/%s Pair Energy Difference (%s)",
 							pairDir, sourceType[source], resultType[result]), 300, 0.0, 3.0);
 					pairSlopePlot[triggerNum][source][result] = aida.histogram1D(String.format("%s/%s Pair Energy Slope (%s)",
@@ -255,6 +259,7 @@ public class TriggerPlotsModule {
 		// Fill the cluster pair plots.
 		pairTimePlot[triggerNum][RECON][plotType].fill(TriggerModule.getValueTimeCoincidence(pair));
 		pairSumPlot[triggerNum][RECON][plotType].fill(TriggerModule.getValueEnergySum(pair));
+                pairSumEnergiesPlot[triggerNum][RECON][plotType].fill(pair[0].getEnergy(), pair[1].getEnergy());
 		pairDiffPlot[triggerNum][RECON][plotType].fill(TriggerModule.getValueEnergyDifference(pair));
 		pairSlopePlot[triggerNum][RECON][plotType].fill(TriggerModule.getValueEnergySlope(pair, energySlopeParamF[triggerNum]));
 		pairCoplanarityPlot[triggerNum][RECON][plotType].fill(TriggerModule.getValueCoplanarity(pair));
@@ -280,6 +285,7 @@ public class TriggerPlotsModule {
 		// Fill the cluster pair plots.
 		pairTimePlot[triggerNum][SSP][plotType].fill(TriggerModule.getValueTimeCoincidence(pair));
 		pairSumPlot[triggerNum][SSP][plotType].fill(TriggerModule.getValueEnergySum(pair));
+                pairSumEnergiesPlot[triggerNum][SSP][plotType].fill(pair[0].getEnergy(), pair[1].getEnergy());
 		pairDiffPlot[triggerNum][SSP][plotType].fill(TriggerModule.getValueEnergyDifference(pair));
 		pairSlopePlot[triggerNum][SSP][plotType].fill(TriggerModule.getValueEnergySlope(pair, energySlopeParamF[triggerNum]));
 		pairCoplanarityPlot[triggerNum][SSP][plotType].fill(TriggerModule.getValueCoplanarity(pair));
