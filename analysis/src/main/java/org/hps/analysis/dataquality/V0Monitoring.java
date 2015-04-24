@@ -56,16 +56,16 @@ public class V0Monitoring extends DataQualityMonitor {
         /* beamspot constrained */
         IHistogram1D nV0 = aida.histogram1D(plotDir + "Number of V0 per event", 10, 0, 10);
         IHistogram1D bsconMass = aida.histogram1D(plotDir + "BS Constrained Mass (GeV)", 100, 0, 0.200);
-        IHistogram1D bsconVx = aida.histogram1D(plotDir + "BS Constrained Vx (mm)", 50, -1, 1);
-        IHistogram1D bsconVy = aida.histogram1D(plotDir + "BS Constrained Vy (mm)", 50, -1, 1);
-        IHistogram1D bsconVz = aida.histogram1D(plotDir + "BS Constrained Vz (mm)", 50, -10, 10);
-        IHistogram1D bsconChi2 = aida.histogram1D(plotDir + "BS Constrained Chi2", 25, 0, 25);
+        IHistogram1D bsconVx = aida.histogram1D(plotDir + "BS Constrained Vx (mm)", 200, -5, 5);
+        IHistogram1D bsconVy = aida.histogram1D(plotDir + "BS Constrained Vy (mm)", 200, -5, 5);
+        IHistogram1D bsconVz = aida.histogram1D(plotDir + "BS Constrained Vz (mm)", 200, -50, 50);
+        IHistogram1D bsconChi2 = aida.histogram1D(plotDir + "BS Constrained Chi2", 100, 0, 100);
         /* target constrained */
         IHistogram1D tarconMass = aida.histogram1D(plotDir + "Target Constrained Mass (GeV)", 100, 0, 0.200);
-        IHistogram1D tarconVx = aida.histogram1D(plotDir + "Target Constrained Vx (mm)", 50, -1, 1);
-        IHistogram1D tarconVy = aida.histogram1D(plotDir + "Target Constrained Vy (mm)", 50, -1, 1);
-        IHistogram1D tarconVz = aida.histogram1D(plotDir + "Target Constrained Vz (mm)", 50, -10, 10);
-        IHistogram1D tarconChi2 = aida.histogram1D(plotDir + "Target Constrained Chi2", 25, 0, 25);
+        IHistogram1D tarconVx = aida.histogram1D(plotDir + "Target Constrained Vx (mm)", 200, -5, 5);
+        IHistogram1D tarconVy = aida.histogram1D(plotDir + "Target Constrained Vy (mm)", 200, -5, 5);
+        IHistogram1D tarconVz = aida.histogram1D(plotDir + "Target Constrained Vz (mm)", 200, -50, 50);
+        IHistogram1D tarconChi2 = aida.histogram1D(plotDir + "Target Constrained Chi2", 100, 0, 100);
 
     }
 

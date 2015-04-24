@@ -1,5 +1,5 @@
 <!-- 
-  Offline reconstruction for 2014 (electron run) data.
+  Offline reconstruction for 2015 (engineering run with SVT+ECal) data.
   @author Sho Uemura <meeg@slac.stanford.edu>
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
@@ -18,10 +18,6 @@
         <driver name="TrackDataDriver" />              
         <!--<driver name="GBLDriver"/>--> 
         <driver name="LCIOWriter"/>
-
-        <!--<driver name="SVTMonitoring"/>-->  
-        <!--<driver name="TrackingMonitoring"/>-->  
-        <driver name="AidaSaveDriver"/>
 
         <driver name="CleanupDriver"/>
     </execute>    
@@ -108,12 +104,5 @@
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>
-        <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.TrackingMonitoring">
-            <overwriteDB>false</overwriteDB>
-        </driver>
-        <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">
-            <overwriteDB>false</overwriteDB>
-        </driver>
-
     </drivers>
 </lcsim>
