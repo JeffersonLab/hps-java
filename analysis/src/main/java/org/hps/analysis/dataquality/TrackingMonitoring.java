@@ -31,9 +31,12 @@ public class TrackingMonitoring extends DataQualityMonitor {
     private final String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private String trackCollectionName = "MatchedTracks";
     private final String trackerName = "Tracker";
+    private static final String nameStrip = "Tracker_TestRunModule_";
     String ecalSubdetectorName = "Ecal";
     String ecalCollectionName = "EcalClusters";
     private Detector detector = null;
+    private List<HpsSiSensor> sensors;
+
     IDDecoder dec;
     int nEvents = 0;
     int nTotTracks = 0;
@@ -66,10 +69,20 @@ public class TrackingMonitoring extends DataQualityMonitor {
         IHistogram1D trklam = aida.histogram1D(plotDir + "tan(lambda) ", 25, -0.1, 0.1);
         IHistogram1D trkz0 = aida.histogram1D(plotDir + "z0 ", 25, -1.0, 1.0);
         IHistogram1D nHits = aida.histogram1D(plotDir + "Hits per Track", 2, 5, 7);
-        IHistogram1D trackMeanTime = aida.histogram1D(plotDir + "Mean time of hits on track", 200, -20., 20.);
+        IHistogram1D trackMeanTime = aida.histogram1D(plotDir + "Mean time of hits on track", 400, -100., 100.);
         IHistogram1D trackRMSTime = aida.histogram1D(plotDir + "RMS time of hits on track", 200, 0., 15.);
         IHistogram2D trackChi2RMSTime = aida.histogram2D(plotDir + "Track chi2 vs. RMS time of hits", 200, 0., 15., 25, 0, 25.0);
         IHistogram1D seedRMSTime = aida.histogram1D(plotDir + "RMS time of hits on seed layers", 200, 0., 15.);
+
+        // Make a list of SiSensors in the SVT.
+        sensors = this.detector.getSubdetector(trackerName).getDetectorElement().findDescendants(HpsSiSensor.class);
+
+        // Setup the occupancy plots.
+        aida.tree().cd("/");
+        for (HpsSiSensor sensor : sensors) {
+            //IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
+            IHistogram1D hitTimeResidual = createSensorPlot(plotDir + "hitTimeResidual_", sensor, 100, -20, 20);
+        }
 
     }
 
@@ -141,10 +154,13 @@ public class TrackingMonitoring extends DataQualityMonitor {
                 Collection<TrackerHit> htsList = hittostrip.allFrom(hittorotated.from(hit));
                 for (TrackerHit hts : htsList) {
                     rmsTime += Math.pow(hts.getTime() - meanTime, 2);
-                    int layer = ((HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+                    HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement();
+                    int layer = sensor.getLayerNumber();
                     if (layer <= 6) {
                         rmsSeedTime += Math.pow(hts.getTime() - meanSeedTime, 2);
                     }
+                    String sensorName = getNiceSensorName(sensor);
+                    getSensorPlot(plotDir + "hitTimeResidual_", sensorName).fill(hts.getTime() - meanTime);
                 }
             }
             rmsTime = Math.sqrt(rmsTime / nStrips);
@@ -185,4 +201,32 @@ public class TrackingMonitoring extends DataQualityMonitor {
             System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         }
     }
+
+    private IHistogram1D getSensorPlot(String prefix, HpsSiSensor sensor) {
+        String hname = prefix + getNiceSensorName(sensor);
+        return aida.histogram1D(hname);
+    }
+
+    private IHistogram1D getSensorPlot(String prefix, String sensorName) {
+        return aida.histogram1D(prefix + sensorName);
+    }
+
+    private IHistogram1D createSensorPlot(String prefix, HpsSiSensor sensor, int nchan, double min, double max) {
+        String hname = prefix + getNiceSensorName(sensor);
+        IHistogram1D hist = aida.histogram1D(hname, nchan, min, max);
+        hist.setTitle(sensor.getName().replaceAll(nameStrip, "")
+                .replace("module", "mod")
+                .replace("layer", "lyr")
+                .replace("sensor", "sens"));
+
+        return hist;
+    }
+
+    private String getNiceSensorName(HpsSiSensor sensor) {
+        return sensor.getName().replaceAll(nameStrip, "")
+                .replace("module", "mod")
+                .replace("layer", "lyr")
+                .replace("sensor", "sens");
+    }
+
 }
