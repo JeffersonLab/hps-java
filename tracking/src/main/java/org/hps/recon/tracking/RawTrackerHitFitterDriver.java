@@ -29,6 +29,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private String fittedHitCollectionName = "SVTFittedRawTrackerHits";
     private int genericObjectFlags = 1 << LCIOConstants.GOBIT_FIXED;
     private int relationFlags = 0;
+    private double timeOffset = 0.0;
     private boolean correctT0Shift = false;
     private boolean useTimestamps = false;
     private boolean useTruthTime = false;
@@ -48,6 +49,10 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    public void setTimeOffset(double timeOffset) {
+        this.timeOffset = timeOffset;
     }
 
     public void setCorrectT0Shift(boolean correctT0Shift) {
@@ -139,6 +144,8 @@ public class RawTrackerHitFitterDriver extends Driver {
             //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
             //for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
             for (ShapeFitParameters fit : fitter.fitShape(hit, shape)) {
+                fit.setT0(fit.getT0() - timeOffset);
+
                 if (subtractTriggerTime) {
                     fit.setT0(fit.getT0() - (((event.getTimeStamp() + 4 * triggerPhaseOffset) % 24) - 12));
                 }
