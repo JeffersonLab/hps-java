@@ -26,7 +26,7 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
 /**
- * 
+ *
  * @author Matt Graham
  */
 // TODO: Add class documentation.
@@ -87,7 +87,6 @@ public class StripMaker {
     public List<SiTrackerHit> makeHits(SiSensor sensor) {
 
         // System.out.println("makeHits: " + sensor.getName());
-
         List<SiTrackerHit> hits = new ArrayList<SiTrackerHit>();
 
         // Get SiTrackerIdentifierHelper for this sensor and refresh the strip map used to increase
@@ -183,8 +182,9 @@ public class StripMaker {
     }
 
     private SiTrackerHitStrip1D makeTrackerHit(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) {
-        if (_debug)
+        if (_debug) {
             System.out.println(this.getClass().getSimpleName() + " makeTrackerHit ");
+        }
         Hep3Vector position = getPosition(cluster, electrodes);
         SymmetricMatrix covariance = getCovariance(cluster, electrodes);
         double time = getTime(cluster);
@@ -195,25 +195,29 @@ public class StripMaker {
             rth_cluster.add(bth.getRawTrackerHit());
         }
         SiTrackerHitStrip1D hit = new SiTrackerHitStrip1D(position, covariance, energy, time, rth_cluster, type);
-        if (_debug)
+        if (_debug) {
             System.out.println(this.getClass().getSimpleName() + " SiTrackerHitStrip1D created at " + position + "(" + hit.getPositionAsVector().toString() + ")" + " E " + energy + " time " + time);
+        }
         return hit;
     }
 
     private Hep3Vector getPosition(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) {
-        if (_debug)
+        if (_debug) {
             System.out.println(this.getClass().getSimpleName() + " getPosition for cluster size " + cluster.size());
+        }
         List<Double> signals = new ArrayList<Double>();
         List<Hep3Vector> positions = new ArrayList<Hep3Vector>();
 
-        if (_debug)
+        if (_debug) {
             System.out.println(this.getClass().getSimpleName() + " Loop of " + cluster.size() + " and add signals and positions to vectors");
+        }
 
         for (FittedRawTrackerHit hit : cluster) {
             signals.add(hit.getAmp());
             positions.add(((SiStrips) electrodes).getStripCenter(_strip_map.get(hit)));
-            if (_debug)
+            if (_debug) {
                 System.out.println(this.getClass().getSimpleName() + " Added hit with signal " + hit.getAmp() + " at strip center posiiton " + (((SiStrips) electrodes).getStripCenter(_strip_map.get(hit))));
+            }
         }
 
         // Average charge on central strips of longer clusters
@@ -233,8 +237,9 @@ public class StripMaker {
             }
         }
 
-        if (_debug)
+        if (_debug) {
             System.out.println(this.getClass().getSimpleName() + " Calculate charge weighted mean for " + signals.size() + " signals");
+        }
 
         double total_charge = 0;
         Hep3Vector position = new BasicHep3Vector(0, 0, 0);
@@ -244,29 +249,34 @@ public class StripMaker {
 
             total_charge += signal;
             position = VecOp.add(position, VecOp.mult(signal, positions.get(istrip)));
-            if (_debug)
+            if (_debug) {
                 System.out.println(this.getClass().getSimpleName() + "strip " + istrip + ": signal " + signal + " position " + positions.get(istrip) + " -> total_position " + position.toString() + " ( total charge " + total_charge + ")");
+            }
 
         }
         position = VecOp.mult(1 / total_charge, position);
-        if (_debug)
+        if (_debug) {
             System.out.println(this.getClass().getSimpleName() + " charge weighted position " + position.toString() + " (before trans)");
+        }
         electrodes.getParentToLocal().inverse().transform(position);
-        if (_debug)
+        if (_debug) {
             System.out.println(this.getClass().getSimpleName() + " charge weighted position " + position.toString() + " (after trans)");
+        }
 
         // Swim position back through lorentz drift direction to midpoint between bias surfaces
         if (_simulation != null) {
             _simulation.setSensor((SiSensor) electrodes.getDetectorElement());
             _simulation.lorentzCorrect(position, electrodes.getChargeCarrier());
-            if (_debug)
+            if (_debug) {
                 System.out.println(this.getClass().getSimpleName() + ": Position " + position.toString() + " ( after Lorentz)");
+            }
         }
 
         // return position in global coordinates
         Hep3Vector newpos = ((SiSensor) electrodes.getDetectorElement()).getGeometry().getLocalToGlobal().transformed(position);
-        if (_debug)
+        if (_debug) {
             System.out.println(this.getClass().getSimpleName() + " final cluster position " + newpos.toString());
+        }
 
         return ((SiSensor) electrodes.getDetectorElement()).getGeometry().getLocalToGlobal().transformed(position);
         // return electrodes.getLocalToGlobal().transformed(position);
@@ -283,8 +293,8 @@ public class StripMaker {
             double time = hit.getT0();
 //        System.out.format("t0=%f\tA=%f\n",hit.getT0(),hit.getAmp());
 
-            time_sum += time * signal;
-            signal_sum += signal;
+            time_sum += time * signal * signal;
+            signal_sum += signal * signal;
 
         }
         return time_sum / signal_sum;
@@ -299,7 +309,6 @@ public class StripMaker {
         SymmetricMatrix covariance_global = electrodes.getLocalToGlobal().transformed(covariance);
 
         // System.out.println("Global covariance matrix: \n"+covariance_global);
-
         return covariance_global;
 
         // BasicHep3Matrix rotation_matrix =
@@ -320,22 +329,22 @@ public class StripMaker {
     }
 
     private double getMeasuredResolution(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) // should
-                                                                                                           // replace
-                                                                                                           // this
-                                                                                                           // by
-                                                                                                           // a
-                                                                                                           // ResolutionModel
-                                                                                                           // class
-                                                                                                           // that
-                                                                                                           // gives
-                                                                                                           // expected
-                                                                                                           // resolution.
-                                                                                                           // This
-                                                                                                           // could
-                                                                                                           // be
-                                                                                                           // a
-                                                                                                           // big
-                                                                                                           // job.
+    // replace
+    // this
+    // by
+    // a
+    // ResolutionModel
+    // class
+    // that
+    // gives
+    // expected
+    // resolution.
+    // This
+    // could
+    // be
+    // a
+    // big
+    // job.
     {
         double measured_resolution;
 
@@ -347,7 +356,6 @@ public class StripMaker {
         // double signal_expected = (0.000280/DopedSilicon.ENERGY_EHPAIR) *
         // ((SiSensor)electrodes.getDetectorElement()).getThickness(); // ~280 KeV/mm for thick Si
         // sensors
-
         if (cluster.size() == 1) {
             measured_resolution = sense_pitch * _oneClusterErr;
         } else if (cluster.size() == 2) {
