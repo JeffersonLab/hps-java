@@ -1,33 +1,30 @@
 package org.hps.conditions.database;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
-import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.ConditionsSeries;
+import org.hps.conditions.api.DatabaseObjectException;
+import org.hps.conditions.api.TableMetaData;
 
 /**
  * This converter creates a {@link org.hps.conditions.api.ConditionsSeries} which is a list of
- * {@link org.hps.conditions.api.ConditionsObjectCollection} objects having the same type.
- * This can be used to retrieve sets of conditions that may overlap in time validity.  The user
- * may then use whichever collections are of interest to them.
+ * {@link org.hps.conditions.api.ConditionsObjectCollection} objects having the same type. This can be used to retrieve
+ * sets of conditions that may overlap in time validity. The user may then use whichever collections are of interest to
+ * them.
  *
  * @see org.hps.conditions.api.ConditionsSeries
  * @see org.hps.conditions.api.ConditionsObjectCollection
  * @see org.hps.conditions.api.ConditionsObject
  * @see DatabaseConditionsManager
- *
  * @param <ObjectType> The type of the ConditionsObject.
  * @param <CollectionType> The type of the collection.
- *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-final class ConditionsSeriesConverter<ObjectType extends ConditionsObject, 
-    CollectionType extends ConditionsObjectCollection<ObjectType>> {
+final class ConditionsSeriesConverter<ObjectType extends ConditionsObject, CollectionType extends ConditionsObjectCollection<ObjectType>> {
 
     /**
      * The type of the object.
@@ -41,6 +38,7 @@ final class ConditionsSeriesConverter<ObjectType extends ConditionsObject,
 
     /**
      * Class constructor.
+     *
      * @param objectType the type of the object
      * @param collectionType the type of the collection
      */
@@ -51,10 +49,11 @@ final class ConditionsSeriesConverter<ObjectType extends ConditionsObject,
 
     /**
      * Create a new conditions series.
+     *
      * @param tableName the name of the data table
      * @return the conditions series
      */
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     final ConditionsSeries<ObjectType, CollectionType> createSeries(final String tableName) {
 
         if (tableName == null) {
@@ -73,53 +72,31 @@ final class ConditionsSeriesConverter<ObjectType extends ConditionsObject,
         // Get the table meta data for the collection type.
         final TableMetaData tableMetaData = conditionsManager.findTableMetaData(tableName);
         if (tableMetaData == null) {
-            throw new RuntimeException("Table meta data for " + collectionType + " was not found.");
+            throw new RuntimeException("Table meta data for " + this.collectionType + " was not found.");
         }
 
         // Create a new conditions series.
-        final ConditionsSeries<ObjectType, CollectionType> series =
-                new ConditionsSeries<ObjectType, CollectionType>();
+        final ConditionsSeries<ObjectType, CollectionType> series = new ConditionsSeries<ObjectType, CollectionType>();
 
         // Get the ConditionsRecord with the meta-data, which will use the current run number from the manager.
         final ConditionsRecordCollection conditionsRecords = conditionsManager.findConditionsRecords(tableName);
 
-        for (ConditionsRecord conditionsRecord : conditionsRecords) {
+        for (final ConditionsRecord conditionsRecord : conditionsRecords) {
 
-            ConditionsObjectCollection<ObjectType> collection;
+            ConditionsObjectCollection<?> collection = null;
             try {
-                collection = (ConditionsObjectCollection<ObjectType>)
-                        ConditionsRecordConverter.createCollection(conditionsRecord, tableMetaData);
-            } catch (ConditionsObjectException e) {
+                collection = tableMetaData.getCollectionClass().newInstance();
+            } catch (InstantiationException | IllegalAccessException e1) {
+                throw new RuntimeException(e1);
+            }
+            try {
+                collection.setTableMetaData(tableMetaData);
+                collection.setConnection(conditionsManager.getConnection());
+                collection.select(conditionsRecord.getCollectionId());
+            } catch (final DatabaseObjectException | SQLException e) {
                 throw new RuntimeException(e);
             }
-
-            // Get the collection ID.
-            final int collectionId = conditionsRecord.getCollectionId();
-
-            // Build a select query.
-            final String query = QueryBuilder.buildSelect(tableName, collectionId,
-                    tableMetaData.getFieldNames(), "id ASC");
-
-            // Query the database.
-            final ResultSet resultSet = conditionsManager.selectQuery(query);
-
-            try {
-                // Loop over rows.
-                while (resultSet.next()) {
-                    // Create new ConditionsObject.
-                    final ConditionsObject newObject =
-                            ConditionsRecordConverter.createConditionsObject(resultSet, tableMetaData);
-
-                    // Add new object to collection.
-                    collection.add((ObjectType) newObject);
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-
-            DatabaseUtilities.cleanup(resultSet);
-
-            series.add((CollectionType) collection);
+            series.add((ConditionsObjectCollection<ObjectType>) collection);
         }
 
         if (reopenedConnection) {

@@ -13,7 +13,7 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
-@Table(names = { "svt_daq_map" })
+@Table(names = {"svt_daq_map"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public class SvtDaqMapping extends AbstractSvtDaqMapping {
 
@@ -136,7 +136,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      *
      * @return the FEB Hybrid ID
      */
-    @Field(names = { "feb_hybrid_id" })
+    @Field(names = {"feb_hybrid_id"})
     public final int getFebHybridID() {
         return getFieldValue("feb_hybrid_id");
     }
@@ -146,7 +146,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      *
      * @return the FEB ID
      */
-    @Field(names = { "feb_id" })
+    @Field(names = {"feb_id"})
     public final int getFebID() {
         return getFieldValue("feb_id");
     }
@@ -158,7 +158,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      * @see POSITRON
      * @return sensor side (ELECTRON or POSITRON)
      */
-    @Field(names = { "side" })
+    @Field(names = {"side"})
     public final String getSide() {
         return getFieldValue("side");
     }

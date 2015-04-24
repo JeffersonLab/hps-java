@@ -5,6 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.hps.conditions.api.AbstractConditionsObjectConverter;
+
 /**
  * This is an annotation for providing converter configuration for {@link org.hps.conditions.api.ConditionsObject}
  * classes.

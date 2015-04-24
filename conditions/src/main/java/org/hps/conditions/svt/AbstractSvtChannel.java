@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.database.Field;
 import org.hps.util.Pair;
 
@@ -28,13 +29,13 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
      * @param <T> A type extending AbstractSvtChannel
      */
     @SuppressWarnings("serial")
-    public abstract static class AbstractSvtChannelCollection<T extends AbstractSvtChannel>
-        extends BaseConditionsObjectCollection<T> {
+    public abstract static class AbstractSvtChannelCollection<T extends AbstractSvtChannel> extends
+            BaseConditionsObjectCollection<T> {
 
         /**
          * Map of channel number to object.
          */
-        private Map<Integer, T> channelMap = new HashMap<Integer, T>();
+        private final Map<Integer, T> channelMap = new HashMap<Integer, T>();
 
         /**
          * Add a channel of type extending {@link AbstractSvtChannel} to the channel map.
@@ -42,47 +43,47 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
          * @param channel channel of a type extending {@link AbstractSvtChannel}
          */
         @Override
-        public final boolean add(final T channel) {
+        public final boolean add(final T channel) throws ConditionsObjectException {
 
             // If it doesn't exist, add the channel to the channel map
-            if (channelMap.containsKey(channel.getChannelID())) {
+            if (this.channelMap.containsKey(channel.getChannelID())) {
                 throw new IllegalArgumentException("[ " + this.getClass().getSimpleName()
                         + " ]: Channel ID already exists: " + channel.getChannelID());
             }
-            channelMap.put(channel.getChannelID(), channel);
+            this.channelMap.put(channel.getChannelID(), channel);
 
             // Add to the collection
             return super.add(channel);
         }
 
         /**
-         *  Find a channel of type extending {@link AbstractSvtChannel} using the channel ID.
+         * Find a channel of type extending {@link AbstractSvtChannel} using the channel ID.
          *
-         *  @param channelID the channel ID
-         *  @return an SVT channel of type extending {@link AbstractSvtChannel}
+         * @param channelID the channel ID
+         * @return an SVT channel of type extending {@link AbstractSvtChannel}
          */
         public final T findChannel(final int channelID) {
-            return channelMap.get(channelID);
+            return this.channelMap.get(channelID);
         }
 
         /**
-         *  Find the collection of channels of type extending {@link AbstractSvtChannel} that match a DAQ pair
-         *  (FEB ID and FEB Hybrid ID).
+         * Find the collection of channels of type extending {@link AbstractSvtChannel} that match a DAQ pair (FEB ID
+         * and FEB Hybrid ID).
          *
-         *  @param pair the DAQ pair
-         *  @return the channels matching the DAQ pair or null if not found
+         * @param pair the DAQ pair
+         * @return the channels matching the DAQ pair or null if not found
          */
         public abstract Collection<T> find(final Pair<Integer, Integer> pair);
 
         /**
-         *  Convert this object to a human readable string.
+         * Convert this object to a human readable string.
          *
-         *  @return This object converted to a string.
+         * @return This object converted to a string.
          */
         @Override
         public final String toString() {
             final StringBuffer buff = new StringBuffer();
-            for (T channel : this) {
+            for (final T channel : this) {
                 buff.append(channel.toString() + '\n');
             }
             return buff.toString();
@@ -90,9 +91,9 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
     }
 
     /**
-     *  Get the channel ID.
+     * Get the channel ID.
      *
-     *  @return the SVT channel ID
+     * @return the SVT channel ID
      */
     @Field(names = {"channel_id"})
     public final int getChannelID() {
@@ -100,9 +101,9 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
     }
 
     /**
-     *  Get the channel number (0-639). This is different from the ID.
+     * Get the channel number (0-639). This is different from the ID.
      *
-     *  @return the channel number
+     * @return the channel number
      */
     @Field(names = {"channel"})
     public final int getChannel() {
@@ -110,18 +111,18 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
     }
 
     /**
-     *  Set the channel ID.
+     * Set the channel ID.
      *
-     *  @param channelID the SVT channel ID
+     * @param channelID the SVT channel ID
      */
     public final void setChannelID(final int channelID) {
         this.setFieldValue("channel_id", channelID);
     }
 
     /**
-     *  Set the channel number (0-639). This is different from the ID.
+     * Set the channel number (0-639). This is different from the ID.
      *
-     *  @param channel the channel number
+     * @param channel the channel number
      */
     public final void setChannel(final int channel) {
         this.setFieldValue("channel", channel);

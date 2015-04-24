@@ -6,6 +6,7 @@ import java.util.Set;
 
 import javassist.Modifier;
 
+import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectUtilities;
@@ -21,26 +22,26 @@ import org.reflections.Reflections;
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
-public final class ConverterRegistry extends HashMap<Class<? extends ConditionsObject>, AbstractConditionsObjectConverter> {
+public final class ConverterRegistry extends
+        HashMap<Class<? extends ConditionsObject>, AbstractConditionsObjectConverter> {
 
     /**
-     * Class should not be instantiated by users.
-     * The {@link #create()} method should be used instead.
+     * Class should not be instantiated by users. The {@link #create()} method should be used instead.
      */
     private ConverterRegistry() {
     }
 
     /**
      * Automatically create converters for all {@link org.hps.conditions.api.ConditionsObject} classes.
-     * 
+     *
      * @return the global registry of converters
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     static ConverterRegistry create() {
         final ConverterRegistry registry = new ConverterRegistry();
         final Reflections reflections = new Reflections("org.hps.conditions");
         final Set<Class<? extends ConditionsObject>> objectTypes = reflections.getSubTypesOf(ConditionsObject.class);
-        for (Class<? extends ConditionsObject> objectType : objectTypes) {
+        for (final Class<? extends ConditionsObject> objectType : objectTypes) {
             if (Modifier.isAbstract(objectType.getModifiers())) {
                 continue;
             }
@@ -57,8 +58,8 @@ public final class ConverterRegistry extends HashMap<Class<? extends ConditionsO
                 }
             }
 
-            final Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>> 
-                collectionType = ConditionsObjectUtilities.getCollectionType(objectType);
+            final Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>> collectionType = ConditionsObjectUtilities
+                    .getCollectionType(objectType);
 
             AbstractConditionsObjectConverter converter = null;
             if (converterClass == null) {
@@ -70,7 +71,7 @@ public final class ConverterRegistry extends HashMap<Class<? extends ConditionsO
                 };
             } else {
                 try {
-                    Object object = converterClass.newInstance();
+                    final Object object = converterClass.newInstance();
                     if (!(object instanceof AbstractConditionsObjectConverter)) {
                         throw new RuntimeException("The Converter has the wrong type: "
                                 + object.getClass().getCanonicalName());
@@ -88,12 +89,14 @@ public final class ConverterRegistry extends HashMap<Class<? extends ConditionsO
 
     /**
      * Convert the object to a string.
+     * 
      * @return the object converted to a string
      */
+    @Override
     @SuppressWarnings("rawtypes")
     public String toString() {
         final StringBuffer buff = new StringBuffer();
-        for (Entry<Class<? extends ConditionsObject>, AbstractConditionsObjectConverter> entry : entrySet()) {
+        for (final Entry<Class<? extends ConditionsObject>, AbstractConditionsObjectConverter> entry : entrySet()) {
             buff.append(entry.getValue().toString());
         }
         return buff.toString();

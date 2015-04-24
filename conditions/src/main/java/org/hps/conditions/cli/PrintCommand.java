@@ -16,8 +16,8 @@ import org.apache.commons.cli.Options;
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableMetaData;
 import org.lcsim.util.log.LogUtil;
 
 /**
@@ -195,8 +195,8 @@ class PrintCommand extends AbstractCommand {
      * @param collection the collection
      */
     private void printCollectionHeader(final ConditionsObjectCollection<?> collection) {
-        LOGGER.info('\n' + "--------------------------------------" + '\n' + collection.getConditionsRecord()
-                + "--------------------------------------");
+        // LOGGER.info('\n' + "--------------------------------------" + '\n' + collection.getConditionsRecord()
+        // + "--------------------------------------");
     }
 
     /**

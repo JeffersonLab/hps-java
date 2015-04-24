@@ -15,17 +15,19 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.ConditionsSeries;
+import org.hps.conditions.api.TableMetaData;
+import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalConditionsConverter;
 import org.hps.conditions.ecal.TestRunEcalConditionsConverter;
@@ -255,7 +257,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Create the global registry of table meta data.
      */
-    private final TableRegistry tableRegistry = TableRegistry.create();
+    private final TableRegistry tableRegistry = TableRegistry.getTableRegistry();
 
     /**
      * The currently active conditions tag.
@@ -436,7 +438,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         for (final ConditionsRecord record : runConditionsRecords) {
             if (record.getName().equals(name)) {
                 if (this.matchesTag(record)) {
-                    foundConditionsRecords.add(record);
+                    try {
+                        foundConditionsRecords.add(record);
+                    } catch (final ConditionsObjectException e) {
+                        throw new RuntimeException(e);
+                    }
                     logger.finer("found matching conditions record " + record.getRowId());
                 } else {
                     logger.finer("conditions record " + record.getRowId() + " rejected from non-matching tag "
@@ -535,6 +541,18 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
+     * Get the JDBC connection.
+     *
+     * @return the JDBC connection
+     */
+    public Connection getConnection() {
+        if (!isConnected()) {
+            openConnection();
+        }
+        return this.connection;
+    }
+
+    /**
      * Get the current LCSim compact <code>Detector</code> object with the geometry and detector model.
      *
      * @return the detector object
@@ -620,7 +638,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return <code>true</code> if a conditions record exists with the given name
      */
     public boolean hasConditionsRecord(final String name) {
-        return !this.findConditionsRecords(name).isEmpty();
+        return findConditionsRecords(name).size() != 0;
     }
 
     /**
@@ -721,12 +739,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             tableMetaData = metaDataList.get(0);
         }
         if (collection.getCollectionId() == -1) {
-            try {
-                collection.setCollectionId(this.addCollection(tableMetaData.getTableName(),
-                        "DatabaseConditionsManager created collection by " + System.getProperty("user.name"), null));
-            } catch (final ConditionsObjectException e) {
-                throw new RuntimeException(e);
-            }
+        	collection.setCollectionId(this.addCollection(tableMetaData.getTableName(),
+        			"DatabaseConditionsManager created collection by " + System.getProperty("user.name"), null));
         }
         // FIXME: If collection ID is already set this should be an error!
 
@@ -751,8 +765,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 if (object instanceof ConditionsRecord) {
                     parameterIndex = 1;
                 }
-                for (final Entry<String, Object> entry : object.getFieldValues().entrySet()) {
-                    preparedStatement.setObject(parameterIndex, entry.getValue());
+                for (final Object value : object.getFieldValues().getValues()) {
+                    preparedStatement.setObject(parameterIndex, value);
                     ++parameterIndex;
                 }
                 preparedStatement.executeUpdate();

@@ -3,7 +3,7 @@ package org.hps.conditions.ecal;
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-//import org.hps.conditions.config.DevReadOnlyConfiguration;
+// import org.hps.conditions.config.DevReadOnlyConfiguration;
 import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
 import org.hps.conditions.ecal.EcalLedCalibration.EcalLedCalibrationCollection;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
@@ -33,7 +33,7 @@ public final class EcalLedTest extends TestCase {
         conditionsManager = DatabaseConditionsManager.getInstance();
         try {
             conditionsManager.setDetector("HPS-ECalCommissioning-v2", RUN_NUMBER);
-        } catch (ConditionsNotFoundException e) {
+        } catch (final ConditionsNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
@@ -44,9 +44,9 @@ public final class EcalLedTest extends TestCase {
     public void testEcalLed() {
 
         // LED channel information.
-        final EcalLedCollection leds = conditionsManager.getCachedConditions(
-                EcalLedCollection.class, "ecal_leds").getCachedData();
-        for (EcalLed led : leds) {
+        final EcalLedCollection leds = conditionsManager.getCachedConditions(EcalLedCollection.class, "ecal_leds")
+                .getCachedData();
+        for (final EcalLed led : leds) {
             System.out.println(led);
         }
 

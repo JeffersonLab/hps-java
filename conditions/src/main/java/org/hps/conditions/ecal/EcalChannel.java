@@ -4,10 +4,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.AbstractIdentifier;
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
-import org.hps.conditions.database.AbstractConditionsObjectConverter;
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.Field;
@@ -177,7 +179,7 @@ public final class EcalChannel extends BaseConditionsObject {
          * @return <code>true</code> if object was added successfully
          */
         @Override
-        public boolean add(final EcalChannel channel) {
+        public boolean add(final EcalChannel channel) throws ConditionsObjectException {
             super.add(channel);
             final DaqId daqId = channel.createDaqId();
             if (daqId.isValid()) {
@@ -268,8 +270,7 @@ public final class EcalChannel extends BaseConditionsObject {
          *
          * @return the sorted copy of the collection
          */
-        @Override
-        public BaseConditionsObjectCollection<EcalChannel> sorted() {
+        public ConditionsObjectCollection<EcalChannel> sorted() {
             return sorted(new ChannelIdComparator());
         }
     }

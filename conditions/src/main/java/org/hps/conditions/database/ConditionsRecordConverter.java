@@ -3,9 +3,14 @@ package org.hps.conditions.database;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.api.DatabaseObjectException;
+import org.hps.conditions.api.TableMetaData;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
@@ -22,7 +27,8 @@ public final class ConditionsRecordConverter extends AbstractConditionsObjectCon
      * @param name The name of the conditions set.
      * @return The matching ConditionsRecords.
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public ConditionsRecordCollection getData(final ConditionsManager manager, final String name) {
 
         final DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.getInstance();
@@ -55,12 +61,18 @@ public final class ConditionsRecordConverter extends AbstractConditionsObjectCon
 
         try {
             while (resultSet.next()) {
-                final ConditionsObject conditionsRecord = AbstractConditionsObjectConverter.createConditionsObject(resultSet,
-                        tableMetaData);
-                collection.add(conditionsRecord);
+                final ConditionsObject conditionsRecord = new ConditionsRecord();
+                conditionsRecord.setConnection(databaseConditionsManager.getConnection());
+                conditionsRecord.setTableMetaData(tableMetaData);
+                conditionsRecord.select(resultSet.getInt(1));
+                try {
+                    collection.add(conditionsRecord);
+                } catch (final ConditionsObjectException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        } catch (SQLException x) {
-            throw new RuntimeException("Database error", x);
+        } catch (final DatabaseObjectException | SQLException e) {
+            throw new RuntimeException("Error creating new conditions record.", e);
         }
 
         // Close the ResultSet and Statement.
@@ -75,9 +87,10 @@ public final class ConditionsRecordConverter extends AbstractConditionsObjectCon
 
     /**
      * Get the type handled by this converter.
-     * 
+     *
      * @return The type handled by this converter, which is <code>ConditionsRecordCollection</code>.
      */
+    @Override
     public Class<ConditionsRecordCollection> getType() {
         return ConditionsRecordCollection.class;
     }

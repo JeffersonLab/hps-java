@@ -1,20 +1,14 @@
 package org.hps.conditions.api;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.hps.conditions.database.ConditionsRecordConverter;
 import org.hps.conditions.database.Converter;
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.QueryBuilder;
 import org.hps.conditions.database.Table;
-import org.hps.conditions.database.TableMetaData;
 
 /**
  * This class represents a single record from the primary conditions data table, which defines the validity range for a
@@ -134,19 +128,6 @@ public final class ConditionsRecord extends BaseConditionsObject {
         }
 
         /**
-         * Sort the collection in place.
-         *
-         * @param comparator the comparison to use for sorting
-         */
-        @Override
-        public final void sort(final Comparator<ConditionsRecord> comparator) {
-            final List<ConditionsRecord> list = new ArrayList<ConditionsRecord>(this);
-            Collections.sort(list, comparator);
-            this.clear();
-            this.addAll(list);
-        }
-
-        /**
          * Sort in place by creation date.
          */
         public final void sortByCreated() {
@@ -175,27 +156,12 @@ public final class ConditionsRecord extends BaseConditionsObject {
         }
 
         /**
-         * Sort using a comparator and leave the original collection unchanged.
-         *
-         * @param comparator the comparison to use for sorting
-         * @return the sorted collection
-         */
-        @Override
-        public final ConditionsRecordCollection sorted(final Comparator<ConditionsRecord> comparator) {
-            final List<ConditionsRecord> list = new ArrayList<ConditionsRecord>(this);
-            Collections.sort(list, comparator);
-            final ConditionsRecordCollection collection = new ConditionsRecordCollection();
-            collection.addAll(list);
-            return collection;
-        }
-
-        /**
          * Sort and return collection by creation date.
          *
          * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByCreated() {
-            return sorted(new CreatedComparator());
+            return (ConditionsRecordCollection) sorted(new CreatedComparator());
         }
 
         /**
@@ -204,7 +170,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByKey() {
-            return sorted(new KeyComparator());
+            return (ConditionsRecordCollection) sorted(new KeyComparator());
         }
 
         /**
@@ -213,7 +179,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByRunStart() {
-            return sorted(new RunStartComparator());
+            return (ConditionsRecordCollection) sorted(new RunStartComparator());
         }
 
         /**
@@ -222,7 +188,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByUpdated() {
-            return sorted(new UpdatedComparator());
+            return (ConditionsRecordCollection) sorted(new UpdatedComparator());
         }
     }
 
@@ -271,16 +237,6 @@ public final class ConditionsRecord extends BaseConditionsObject {
         this.setFieldValue("tag", tag);
         this.setFieldValue("created", new Date());
         this.setFieldValue("created_by", System.getProperty("user.name"));
-    }
-
-    /**
-     * Get the collection ID, overriding this method from the parent class.
-     *
-     * @return the collection ID
-     */
-    @Field(names = {"collection_id"})
-    public int getCollectionId() {
-        return getFieldValue("collection_id");
     }
 
     /**
@@ -372,29 +328,6 @@ public final class ConditionsRecord extends BaseConditionsObject {
     @Field(names = {"updated"})
     public Date getUpdated() {
         return getFieldValue("updated");
-    }
-
-    /**
-     * Insert the conditions record into the database.
-     *
-     * @throws ConditionsObjectException if there are errors inserting the record
-     */
-    public void insert() throws ConditionsObjectException {
-        if (getFieldValues().size() == 0) {
-            throw new ConditionsObjectException("There are no field values to insert.");
-        }
-        final TableMetaData tableMetaData = DatabaseConditionsManager.getInstance()
-                .findTableMetaData(ConditionsRecordCollection.class).get(0);
-        if (tableMetaData == null) {
-            throw new ConditionsObjectException("Failed to get meta data for ConditionsRecord.");
-        }
-        final String query = QueryBuilder.buildInsert(tableMetaData.getTableName(), this.getFieldValues());
-        // System.out.println(query);
-        final List<Integer> keys = DatabaseConditionsManager.getInstance().updateQuery(query);
-        if (keys.size() != 1) {
-            throw new ConditionsObjectException("SQL insert returned wrong number of keys: " + keys.size());
-        }
-        setRowID(keys.get(0));
     }
 
     /**

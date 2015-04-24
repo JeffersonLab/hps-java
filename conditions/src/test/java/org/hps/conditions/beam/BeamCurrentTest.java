@@ -75,19 +75,20 @@ public final class BeamCurrentTest extends TestCase {
         private int currentRun = Integer.MIN_VALUE;
 
         /**
-         * This method will check the beam current against the answer key for
-         * the first event of a new run.
+         * This method will check the beam current against the answer key for the first event of a new run.
+         *
          * @param the LCSim event
          */
+        @Override
         protected void process(final EventHeader event) {
-            if (currentRun != event.getRunNumber()) {
-                currentRun = event.getRunNumber();
-                final BeamCurrentCollection collection = DatabaseConditionsManager.getInstance().getCachedConditions(
-                                BeamCurrentCollection.class, "beam_current").getCachedData();
+            if (this.currentRun != event.getRunNumber()) {
+                this.currentRun = event.getRunNumber();
+                final BeamCurrentCollection collection = DatabaseConditionsManager.getInstance()
+                        .getCachedConditions(BeamCurrentCollection.class, "beam_current").getCachedData();
                 final BeamCurrent beamCurrent = collection.iterator().next();
                 System.out.println("Run " + event.getRunNumber() + " has integrated beam current "
                         + beamCurrent.getIntegratedBeamCurrent() + " nC.");
-                assertEquals("Wrong beam current for run.", ANSWER_KEY.get(currentRun),
+                assertEquals("Wrong beam current for run.", ANSWER_KEY.get(this.currentRun),
                         beamCurrent.getIntegratedBeamCurrent());
             }
         }

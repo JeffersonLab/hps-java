@@ -4,17 +4,16 @@ import java.util.Comparator;
 
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 /**
- * This class is a simplistic representation of ECal pedestal and noise values
- * from the conditions database.
- *
- * The pedestal and noise are in units of ADC counts. They are the mean and the
- * standard deviation of the digitized pre-amp output.
+ * This class is a simplistic representation of ECal pedestal and noise values from the conditions database. The
+ * pedestal and noise are in units of ADC counts. They are the mean and the standard deviation of the digitized pre-amp
+ * output.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
@@ -30,9 +29,10 @@ public final class EcalCalibration extends BaseConditionsObject {
 
         /**
          * Sort and return the collection but do no modify in place.
+         * 
          * @return the sorted collection
          */
-        public BaseConditionsObjectCollection<EcalCalibration> sorted() {
+        public ConditionsObjectCollection<EcalCalibration> sorted() {
             return sorted(new ChannelIdComparator());
         }
 
@@ -42,10 +42,12 @@ public final class EcalCalibration extends BaseConditionsObject {
         class ChannelIdComparator implements Comparator<EcalCalibration> {
             /**
              * Compare two ECAL calibration objects.
+             * 
              * @param o1 the first object
              * @param o2 the second object
              * @return -1, 0, 1 if first channel ID is less than, equal to, or greater than the second
              */
+            @Override
             public int compare(final EcalCalibration o1, final EcalCalibration o2) {
                 if (o1.getChannelId() < o2.getChannelId()) {
                     return -1;
@@ -66,6 +68,7 @@ public final class EcalCalibration extends BaseConditionsObject {
 
     /**
      * Full qualified constructor.
+     * 
      * @param channelId the channel ID
      * @param pedestal the pedestal measurement (ADC counts)
      * @param noise the noise measured as RMS
@@ -78,6 +81,7 @@ public final class EcalCalibration extends BaseConditionsObject {
 
     /**
      * Get the ECAL channel ID.
+     * 
      * @return the ECAL channel ID
      */
     @Field(names = {"ecal_channel_id"})
@@ -86,8 +90,8 @@ public final class EcalCalibration extends BaseConditionsObject {
     }
 
     /**
-     * Get the pedestal value in units of ADC counts, which is the mean of the
-     * digitized preamplifier output.
+     * Get the pedestal value in units of ADC counts, which is the mean of the digitized preamplifier output.
+     * 
      * @return the gain value
      */
     @Field(names = {"pedestal"})
@@ -96,8 +100,8 @@ public final class EcalCalibration extends BaseConditionsObject {
     }
 
     /**
-     * Get the noise value in units of ADC counts, which is the standard
-     * deviation of the digitized preamplifier output.
+     * Get the noise value in units of ADC counts, which is the standard deviation of the digitized preamplifier output.
+     * 
      * @return the noise value
      */
     @Field(names = {"noise"})

@@ -4,6 +4,7 @@ import java.util.Comparator;
 
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
@@ -26,9 +27,10 @@ public final class EcalTimeShift extends BaseConditionsObject {
 
         /**
          * Sort and return a copy of the collection.
+         * 
          * @return The sorted copy of the collection.
          */
-        public BaseConditionsObjectCollection<EcalTimeShift> sorted() {
+        public ConditionsObjectCollection<EcalTimeShift> sorted() {
             return sorted(new ChannelIdComparator());
         }
 
@@ -38,11 +40,13 @@ public final class EcalTimeShift extends BaseConditionsObject {
         class ChannelIdComparator implements Comparator<EcalTimeShift> {
             /**
              * Compare two objects by channel ID.
+             * 
              * @param o1 the first object
              * @param o2 the second object
              * @return -1, 0 or 1 if first channel ID is less than, equal to, or greater than second
              */
-            public int compare(EcalTimeShift o1, EcalTimeShift o2) {
+            @Override
+            public int compare(final EcalTimeShift o1, final EcalTimeShift o2) {
                 if (o1.getChannelId() < o2.getChannelId()) {
                     return -1;
                 } else if (o1.getChannelId() > o2.getChannelId()) {
@@ -56,6 +60,7 @@ public final class EcalTimeShift extends BaseConditionsObject {
 
     /**
      * Get the channel ID.
+     * 
      * @return the ECAL channel ID
      */
     @Field(names = {"ecal_channel_id"})
@@ -65,6 +70,7 @@ public final class EcalTimeShift extends BaseConditionsObject {
 
     /**
      * Get the time shift in nanoseconds
+     * 
      * @return the time shift in nanoseconds
      */
     @Field(names = {"time_shift"})

@@ -19,9 +19,75 @@ import org.reflections.Reflections;
 public final class ConditionsObjectUtilities {
 
     /**
-     * Do not allow class to be instantiated.
+     * Find all available classes that extend ConditionsObject.
+     *
+     * @return The set of all available classes that extend ConditionsObject.
      */
-    private ConditionsObjectUtilities() {
+    public static Set<Class<? extends ConditionsObject>> findConditionsObjectTypes() {
+        final Reflections reflections = new Reflections("org.hps.conditions");
+        final Set<Class<? extends ConditionsObject>> objectTypes = new HashSet<Class<? extends ConditionsObject>>();
+        for (final Class<? extends ConditionsObject> objectType : reflections.getSubTypesOf(ConditionsObject.class)) {
+            if (Modifier.isAbstract(objectType.getModifiers())) {
+                continue;
+            }
+            if (objectType.getAnnotation(Table.class) == null) {
+                continue;
+            }
+            objectTypes.add(objectType);
+        }
+        return objectTypes;
+    }
+
+    /**
+     * Get the class for the collection of the ConditionsObject type.
+     *
+     * @param type the class of the ConditionsObject
+     * @return the class of the collection
+     */
+    @SuppressWarnings("unchecked")
+    public static Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>> getCollectionType(
+            final Class<? extends ConditionsObject> type) {
+        final String collectionClassName = type.getCanonicalName() + "$" + type.getSimpleName() + "Collection";
+        Class<?> rawCollectionClass;
+        try {
+            rawCollectionClass = Class.forName(collectionClassName);
+        } catch (final ClassNotFoundException e) {
+            throw new RuntimeException("The type does not define a nested collection class.", e);
+        }
+        if (!BaseConditionsObjectCollection.class.isAssignableFrom(rawCollectionClass)) {
+            throw new RuntimeException("The class " + rawCollectionClass.getSimpleName()
+                    + " does not extend ConditionsObjectCollection.");
+        }
+        return (Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>>) rawCollectionClass;
+    }
+
+    /**
+     * Get the list of database field names for the class.
+     *
+     * @param type the class
+     * @return the list of field names
+     */
+    public static Set<String> getFieldNames(final Class<? extends ConditionsObject> type) {
+        final Set<String> fieldNames = new HashSet<String>();
+        for (final Method method : type.getMethods()) {
+            if (!method.getReturnType().equals(Void.TYPE)) {
+                for (final Annotation annotation : method.getAnnotations()) {
+                    if (annotation.annotationType().equals(Field.class)) {
+                        if (!Modifier.isPublic(method.getModifiers())) {
+                            throw new RuntimeException("The method " + type.getName() + "." + method.getName()
+                                    + " has a Field annotation, but it is not public.");
+                        }
+                        final Field field = (Field) annotation;
+                        for (final String fieldName : field.names()) {
+                            if (fieldName != null && !"".equals(fieldName)) {
+                                fieldNames.add(fieldName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return fieldNames;
     }
 
     /**
@@ -40,74 +106,8 @@ public final class ConditionsObjectUtilities {
     }
 
     /**
-     * Get the list of database field names for the class.
-     *
-     * @param type the class
-     * @return the list of field names
+     * Do not allow class to be instantiated.
      */
-    public static Set<String> getFieldNames(final Class<? extends ConditionsObject> type) {
-        final Set<String> fieldNames = new HashSet<String>();
-        for (Method method : type.getMethods()) {
-            if (!method.getReturnType().equals(Void.TYPE)) {
-                for (Annotation annotation : method.getAnnotations()) {
-                    if (annotation.annotationType().equals(Field.class)) {
-                        if (!Modifier.isPublic(method.getModifiers())) {
-                            throw new RuntimeException("The method " + type.getName() + "." + method.getName()
-                                    + " has a Field annotation but is not public.");
-                        }
-                        final Field field = (Field) annotation;
-                        for (String fieldName : field.names()) {
-                            if (fieldName != null && !("".equals(fieldName))) {
-                                fieldNames.add(fieldName);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return fieldNames;
-    }
-
-    /**
-     * Get the class for the collection of the ConditionsObject type.
-     *
-     * @param type the class of the ConditionsObject
-     * @return the class of the collection
-     */
-    @SuppressWarnings("unchecked")
-    public static Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>> getCollectionType(
-            final Class<? extends ConditionsObject> type) {
-        final String collectionClassName = type.getCanonicalName() + "$" + type.getSimpleName() + "Collection";
-        Class<?> rawCollectionClass;
-        try {
-            rawCollectionClass = Class.forName(collectionClassName);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("The type does not define a nested collection class.", e);
-        }
-        if (!BaseConditionsObjectCollection.class.isAssignableFrom(rawCollectionClass)) {
-            throw new RuntimeException("The class " + rawCollectionClass.getSimpleName()
-                    + " does not extend ConditionsObjectCollection.");
-        }
-        return (Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>>) rawCollectionClass;
-    }
-
-    /**
-     * Find all available classes that extend ConditionsObject.
-     *
-     * @return The set of all available classes that extend ConditionsObject.
-     */
-    public static Set<Class<? extends ConditionsObject>> findConditionsObjectTypes() {
-        final Reflections reflections = new Reflections("org.hps.conditions");
-        final Set<Class<? extends ConditionsObject>> objectTypes = new HashSet<Class<? extends ConditionsObject>>();
-        for (Class<? extends ConditionsObject> objectType : reflections.getSubTypesOf(ConditionsObject.class)) {
-            if (Modifier.isAbstract(objectType.getModifiers())) {
-                continue;
-            }
-            if (objectType.getAnnotation(Table.class) == null) {
-                continue;
-            }
-            objectTypes.add(objectType);
-        }
-        return objectTypes;
+    private ConditionsObjectUtilities() {
     }
 }

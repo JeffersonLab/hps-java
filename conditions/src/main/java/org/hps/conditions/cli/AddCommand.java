@@ -1,5 +1,6 @@
 package org.hps.conditions.cli;
 
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -7,9 +8,9 @@ import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
-import org.hps.conditions.api.FieldValueMap;
+import org.hps.conditions.api.DatabaseObjectException;
+import org.hps.conditions.api.FieldValuesMap;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.util.log.LogUtil;
 
@@ -68,21 +69,21 @@ public class AddCommand extends AbstractCommand {
     private ConditionsRecord createConditionsRecord(final int runStart, final int runEnd, final String tableName,
             final String name, final int collectionId, final String createdBy, final String tag, final String notes) {
         final ConditionsRecord conditionsRecord = new ConditionsRecord();
-        final FieldValueMap fieldValues = new FieldValueMap();
-        fieldValues.put("run_start", runStart);
-        fieldValues.put("run_end", runEnd);
-        fieldValues.put("table_name", tableName);
-        fieldValues.put("name", name);
-        fieldValues.put("collection_id", collectionId);
-        fieldValues.put("created_by", createdBy);
+        final FieldValuesMap fieldValues = new FieldValuesMap();
+        fieldValues.setValue("run_start", runStart);
+        fieldValues.setValue("run_end", runEnd);
+        fieldValues.setValue("table_name", tableName);
+        fieldValues.setValue("name", name);
+        fieldValues.setValue("collection_id", collectionId);
+        fieldValues.setValue("created_by", createdBy);
         if (tag != null) {
-            fieldValues.put("tag", tag);
+            fieldValues.setValue("tag", tag);
         }
         if (notes != null) {
-            fieldValues.put("notes", notes);
+            fieldValues.setValue("notes", notes);
         }
         conditionsRecord.setFieldValues(fieldValues);
-        fieldValues.put("created", new Date());
+        fieldValues.setValue("created", new Date());
         return conditionsRecord;
     }
 
@@ -162,7 +163,7 @@ public class AddCommand extends AbstractCommand {
             }
             conditionsRecord.insert();
             manager.closeConnection(createdConnection);
-        } catch (final ConditionsObjectException e) {
+        } catch (final SQLException | DatabaseObjectException e) {
             LOGGER.log(Level.SEVERE, "Error adding conditions record", e);
             throw new RuntimeException("An error occurred while adding a conditions record.", e);
         }

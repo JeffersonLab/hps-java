@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsRecord;
-import org.hps.conditions.api.FieldValueMap;
+import org.hps.conditions.api.FieldValuesMap;
 
 /**
  * This is a static utility class for building SQL queries for the conditions system.
@@ -27,18 +27,18 @@ public final class QueryBuilder {
      * @param fieldValues the field values
      * @return the insert statement
      */
-    public static String buildInsert(final String tableName, final FieldValueMap fieldValues) {
+    public static String buildInsert(final String tableName, final FieldValuesMap fieldValues) {
         if (fieldValues.size() == 0) {
             throw new IllegalArgumentException("The FieldValueMap has no values.");
         }
         final StringBuffer sb = new StringBuffer();
         sb.append("INSERT INTO " + tableName + " (");
-        for (final String fieldName : fieldValues.keySet()) {
+        for (final String fieldName : fieldValues.getFieldNames()) {
             sb.append(" " + fieldName + ",");
         }
         sb.setLength(sb.length() - 1);
         sb.append(" ) VALUES (");
-        for (final Object value : fieldValues.values()) {
+        for (final Object value : fieldValues.getValues()) {
             final String insertValue = value.toString();
             if (value instanceof Date) {
                 sb.append(" STR_TO_DATE( '" + DATE_FORMAT.format((Date) value) + "', '%Y-%m-%d %H:%i:%S' ),");
@@ -110,7 +110,7 @@ public final class QueryBuilder {
         if (!(object instanceof ConditionsRecord)) {
             buffer.append("collection_id,");
         }
-        for (final String fieldName : object.getFieldValues().keySet()) {
+        for (final String fieldName : object.getFieldValues().getFieldNames()) {
             buffer.append(" " + fieldName + ",");
         }
         buffer.setLength(buffer.length() - 1);

@@ -4,8 +4,8 @@ import javax.swing.table.DefaultTableModel;
 
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableMetaData;
 
 /**
  * This is a table model for a collection of conditions objects.
@@ -53,11 +53,8 @@ final class ConditionsCollectionTableModel extends DefaultTableModel {
         this.collection = collection;
         this.rowCount = this.collection.size();
 
-        final String tableName = collection.getConditionsRecord().getTableName();
-        final TableMetaData tableInfo = manager.findTableMetaData(tableName);
-
         // Set column names and count from table meta data.
-        this.setupColumns(tableInfo);
+        this.setupColumns(collection.getTableMetaData());
     }
 
     /**

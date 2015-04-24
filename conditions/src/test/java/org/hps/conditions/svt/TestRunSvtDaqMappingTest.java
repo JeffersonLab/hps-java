@@ -6,8 +6,8 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
 
 /**
- * This test checks if the test run SVT DAQ map was loaded with reasonable
- * values and is being read correctly from the conditions database.
+ * This test checks if the test run SVT DAQ map was loaded with reasonable values and is being read correctly from the
+ * conditions database.
  *
  * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
@@ -55,6 +55,7 @@ public final class TestRunSvtDaqMappingTest extends TestCase {
 
     /**
      * Perform checks of SVT DAQ mapping for Test Run.
+     *
      * @throws Exception if there is a test or conditions error
      */
     public void test() throws Exception {
@@ -68,7 +69,7 @@ public final class TestRunSvtDaqMappingTest extends TestCase {
 
         int totalSensors = 0;
         this.printDebug("");
-        for (TestRunSvtDaqMapping daqMapping : daqMappingCollection) {
+        for (final TestRunSvtDaqMapping daqMapping : daqMappingCollection) {
 
             this.printDebug("Sensor: \n" + daqMapping.toString());
 
@@ -78,13 +79,13 @@ public final class TestRunSvtDaqMappingTest extends TestCase {
 
             // Check that the Hybrid ID is within the allowable limits
             final int hybridID = daqMapping.getHybridID();
-            assertTrue("Hybrid ID " + hybridID + " is out of range!",
-                    hybridID >= MIN_HYBRID_ID && hybridID <= MAX_HYBRID_ID);
+            assertTrue("Hybrid ID " + hybridID + " is out of range!", hybridID >= MIN_HYBRID_ID
+                    && hybridID <= MAX_HYBRID_ID);
 
             // Check that the layer number is within the allowable limits
             final int layerNumber = daqMapping.getLayerNumber();
-            assertTrue("The layer number " + layerNumber + " is out of range!",
-                    layerNumber >= MIN_LAYER_NUMBER && layerNumber <= MAX_LAYER_NUMBER);
+            assertTrue("The layer number " + layerNumber + " is out of range!", layerNumber >= MIN_LAYER_NUMBER
+                    && layerNumber <= MAX_LAYER_NUMBER);
 
             totalSensors++;
         }
@@ -95,6 +96,7 @@ public final class TestRunSvtDaqMappingTest extends TestCase {
 
     /**
      * Print debug message.
+     *
      * @param debugMessage the message
      */
     private void printDebug(final String debugMessage) {

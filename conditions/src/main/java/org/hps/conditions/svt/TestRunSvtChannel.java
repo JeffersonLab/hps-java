@@ -23,8 +23,8 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
      * Concrete collection implementation for {@link TestRunSvtChannel} objects.
      */
     @SuppressWarnings("serial")
-    public static class TestRunSvtChannelCollection
-        extends AbstractSvtChannel.AbstractSvtChannelCollection<TestRunSvtChannel> {
+    public static class TestRunSvtChannelCollection extends
+            AbstractSvtChannel.AbstractSvtChannelCollection<TestRunSvtChannel> {
 
         /**
          * Find a collection of channels by their DAQ pair assignment.
@@ -68,9 +68,11 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
 
     /**
      * Implementation of equals.
+     *
      * @param o the other object
      * @return <code>true</code> if the object equals this one; false if not.
      */
+    @Override
     public boolean equals(final Object o) {
         if (o == null) {
             return false;

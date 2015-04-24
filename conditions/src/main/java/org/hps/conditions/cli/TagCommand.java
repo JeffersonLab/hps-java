@@ -10,12 +10,12 @@ import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.api.DatabaseObjectException;
+import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableMetaData;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.util.log.LogUtil;
 
@@ -24,6 +24,7 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+// TODO: Add command switch to specify multiple records strategy (last updated, last created, latest run end, etc.).
 public class TagCommand extends AbstractCommand {
 
     /**
@@ -105,11 +106,8 @@ public class TagCommand extends AbstractCommand {
                 throw new RuntimeException(e);
             }
 
-            // The records from this run.
-            final ConditionsRecordCollection records = manager.getConditionsRecords();
-
             // The unique conditions keys from this run.
-            final Set<String> keys = records.getConditionsKeys();
+            final Set<String> keys = manager.getConditionsRecords().getConditionsKeys();
 
             // Scan through all the unique keys.
             for (final String key : keys) {
@@ -117,12 +115,13 @@ public class TagCommand extends AbstractCommand {
                 // Get the table meta data for the key.
                 final TableMetaData tableMetaData = manager.findTableMetaData(key);
 
-                // Get the default collection for this key in the run.
-                final ConditionsObjectCollection<?> collection = manager.getCachedConditions(
-                        tableMetaData.getCollectionClass(), tableMetaData.getTableName()).getCachedData();
-
                 // Get the ConditionsRecord from the collection.
-                final ConditionsRecord record = collection.getConditionsRecord();
+                final ConditionsRecordCollection records = manager.findConditionsRecords(key);
+                records.sortByUpdated();
+                final ConditionsRecord record = records.get(records.size() - 1);
+
+                manager.getCachedConditions(tableMetaData.getCollectionClass(), tableMetaData.getTableName())
+                        .getCachedData();
 
                 // Is this record already part of the new tag?
                 if (!addedIds.contains(record.getRowId())) {
@@ -133,7 +132,11 @@ public class TagCommand extends AbstractCommand {
                     newRecord.setFieldValue("tag", newTag);
 
                     // Add the record to the tag.
-                    tagRecords.add(newRecord);
+                    try {
+                        tagRecords.add(newRecord);
+                    } catch (final ConditionsObjectException e) {
+                        throw new RuntimeException(e);
+                    }
 
                     // Flag the record's ID as used so it is only added once.
                     addedIds.add(record.getRowId());
@@ -161,7 +164,7 @@ public class TagCommand extends AbstractCommand {
         if (makeTag) {
             try {
                 tagRecords.insert();
-            } catch (ConditionsObjectException | SQLException e) {
+            } catch (DatabaseObjectException | SQLException e) {
                 throw new RuntimeException(e);
             }
         }

@@ -13,8 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.ConnectionParameters;
-import org.hps.conditions.database.TableMetaData;
 
 /**
  * Manages the DQM database connection and access
