@@ -2,8 +2,8 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-EngRun2015-3_5mm-v0">
-        <comment>HPS detector for 2015 Engineering Run with tracker L1 at +-3.5mm from beam
+    <info name="HPS-EngRun2015-1_5mm-v1">
+        <comment>HPS detector for 2015 Engineering Run with tracker fully open
                   this detector uses the box dipole at -0.25T for 1 GeV running                   
         </comment>
     </info>
@@ -132,7 +132,7 @@
    
     <detectors>
        
-                <detector id="1" name="Tracker" type="HPSTracker2014" readout="TrackerHits">
+                <detector id="1" name="Tracker" type="HPSTracker2014v1" readout="TrackerHits">
         <!-- 
         <SurveyVolumes>
             <SurveyVolume name="base_plate">
@@ -391,12 +391,12 @@
             
             <!-- top support tilt angles -->
  
-           <millepede_constant name="13100" value="0.0107"/> <!-- + means opening-->
+           <millepede_constant name="13100" value="0.0031"/> <!-- + means opening-->
             <millepede_constant name="13200" value="0.0"/>
             <millepede_constant name="13300" value="0.0"/>
             
             <!-- bottom support tilt angles -->
-           <millepede_constant name="23100" value="-0.0116"/>  <!-- - means opening -->
+           <millepede_constant name="23100" value="-0.0033"/>  <!-- - means opening -->
             <millepede_constant name="23200" value="0.0"/>
             <millepede_constant name="23300" value="0.0"/>
             
