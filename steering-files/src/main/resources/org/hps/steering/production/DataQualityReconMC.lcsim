@@ -9,8 +9,10 @@
         <!--        <driver name="DQMDatabaseDriver"/>  -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="SVTMonitoring"/>  
+        <driver name="SVTHitMCEfficiency"/>  
         <driver name="TrackingMonitoring"/>  
         <driver name="TrackingResiduals"/>
+        <driver name="TrackMCEfficiency"/> 
         <driver name="FinalStateMonitoring"/>          
         <driver name="V0Monitoring"/>          
         <driver name="TridentMonitoring"/>
@@ -40,6 +42,12 @@
         <driver name="FinalStateMonitoring" type="org.hps.analysis.dataquality.FinalStateMonitoring">
             <overwriteDB>false</overwriteDB>
         </driver>
+        <driver name="TrackMCEfficiency" type="org.hps.analysis.dataquality.TrackMCEfficiency">
+            <overwriteDB>false</overwriteDB>
+        </driver> 
+        <driver name="SVTHitMCEfficiency" type="org.hps.analysis.dataquality.SVTHitMCEfficiency">
+            <overwriteDB>false</overwriteDB>
+        </driver> 
         <driver name="V0Monitoring" type="org.hps.analysis.dataquality.V0Monitoring">
             <overwriteDB>false</overwriteDB>
         </driver>

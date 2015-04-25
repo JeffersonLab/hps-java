@@ -91,6 +91,9 @@ public class TrackingMonitoring extends DataQualityMonitor {
 
         aida.tree().cd("/");
 
+        if (!event.hasCollection(LCRelation.class, helicalTrackHitRelationsCollectionName)|| !event.hasCollection(LCRelation.class, rotatedHelicalTrackHitRelationsCollectionName)) {
+            return;
+        }
         RelationalTable hittostrip = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> hitrelations = event.get(LCRelation.class, helicalTrackHitRelationsCollectionName);
         for (LCRelation relation : hitrelations) {
