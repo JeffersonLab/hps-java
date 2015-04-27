@@ -14,8 +14,7 @@ import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
-import hep.aida.jfree.plotter.Plotter;
-import hep.aida.jfree.plotter.PlotterRegion;
+
 import hep.physics.vec.Hep3Vector;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -43,13 +42,14 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private static ITree tree = null;
     private IAnalysisFactory analysisFactory = IAnalysisFactory.create();
     private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory();
-    private IHistogramFactory histogramFactory;
+    private IHistogramFactory histogramFactory = null;
 
     // Histogram maps
-    static protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
-    static protected Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
-    static protected Map<String, IHistogram1D> positionPlots = new HashMap<String, IHistogram1D>();
-    static protected Map<String, int[]> occupancyMap = new HashMap<String, int[]>();
+    static private Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
+    static private Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
+    static private Map<String, IHistogram1D> positionPlots = new HashMap<String, IHistogram1D>();
+    static private Map<String, int[]> occupancyMap = new HashMap<String, int[]>();
+    static private Map<String, IHistogram1D> maxSamplePositionPlots = new HashMap<String, IHistogram1D>(); 
 
     private List<HpsSiSensor> sensors;
     private Map<HpsSiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<HpsSiSensor, Map<Integer, Hep3Vector>>(); 
@@ -66,6 +66,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private int runNumber = -1;
     
     private boolean enablePositionPlots = false;
+    private boolean enableMaxSamplePlots = false;
     
     public SensorOccupancyPlotsDriver() {
     }
@@ -80,6 +81,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
  
     public void setEnablePositionPlots(boolean enablePositionPlots) { 
         this.enablePositionPlots = enablePositionPlots; 
+    }
+    
+    public void setEnableMaxSamplePlots(boolean enableMaxSamplePlots) { 
+        this.enableMaxSamplePlots = enableMaxSamplePlots;
     }
     
     public void setMaxSamplePosition(int maxSamplePosition) { 
@@ -184,10 +189,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
         
         // Set the style of the data
         style.dataStyle().lineStyle().setVisible(false);
-        style.dataStyle().outlineStyle().setVisible(true);
+        style.dataStyle().outlineStyle().setVisible(false);
         style.dataStyle().outlineStyle().setThickness(3);
         style.dataStyle().fillStyle().setVisible(true);
-        style.dataStyle().fillStyle().setOpacity(.10);
+        style.dataStyle().fillStyle().setOpacity(.30);
         if (sensor.isTopLayer()) { 
             style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
             style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
@@ -200,8 +205,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
         // Turn off the legend
         style.legendBoxStyle().setVisible(false);
        
-        style.regionBoxStyle().backgroundStyle().setOpacity(.10);
-        if (sensor.isAxial()) style.regionBoxStyle().backgroundStyle().setColor("229, 114, 31, 1");
+        style.regionBoxStyle().backgroundStyle().setOpacity(.20);
+        if (sensor.isAxial()) style.regionBoxStyle().backgroundStyle().setColor("246, 246, 34, 1");
         
         return style;
     }
@@ -220,7 +225,14 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
             // Clear the occupancy plots.
             occupancyPlots.get(sensor.getName()).reset();
-            positionPlots.get(sensor.getName()).reset();
+            
+            if (enablePositionPlots) { 
+                positionPlots.get(sensor.getName()).reset();
+            }
+            
+            if (enableMaxSamplePlots) { 
+                maxSamplePositionPlots.get(sensor.getName()).reset();
+            }
             
             // Reset the hit counters.
             occupancyMap.put(sensor.getName(), new int[640]);
@@ -260,6 +272,11 @@ public class SensorOccupancyPlotsDriver extends Driver {
             plotters.put("Occupancy vs Position", plotterFactory.create("Occupancy vs Position"));
             plotters.get("Occupancy vs Position").createRegions(6, 6);
         }
+       
+        if (enableMaxSamplePlots) { 
+            plotters.put("Max Sample Number", plotterFactory.create("Max Sample Number"));
+            plotters.get("Max Sample Number").createRegions(6, 6);
+        }
         
         for (HpsSiSensor sensor : sensors) {
             occupancyPlots.put(sensor.getName(), histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy", 640, 0, 640));
@@ -279,10 +296,15 @@ public class SensorOccupancyPlotsDriver extends Driver {
                                                      .plot(positionPlots.get(sensor.getName()), this.createOccupancyPlotStyle("Distance from Beam [mm]", sensor));
             }
             occupancyMap.put(sensor.getName(), new int[640]);
+        
+            if (enableMaxSamplePlots) { 
+                maxSamplePositionPlots.put(sensor.getName(), histogramFactory.createHistogram1D(sensor.getName() + " - Max Sample Number", 6, 0, 6));
+                plotters.get("Max Sample Number").region(this.computePlotterRegion(sensor))
+                                                 .plot(maxSamplePositionPlots.get(sensor.getName()),
+                                                         this.createOccupancyPlotStyle("Max Sample Number", sensor));
+            }
         }
         
-        System.out.println("Size of occupancyPlots map: " + occupancyPlots.size());
-
         for (IPlotter plotter : plotters.values()) {
             /*for (int regionN = 0; regionN < 36; regionN++) { 
                 PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
@@ -325,6 +347,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
            
             if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound) { 
                 occupancyMap.get(((HpsSiSensor) rawHit.getDetectorElement()).getName())[rawHit.getIdentifierFieldValue("strip")]++;
+            }
+            
+            if (enableMaxSamplePlots) { 
+                maxSamplePositionPlots.get(((HpsSiSensor) rawHit.getDetectorElement()).getName()).fill(maxSamplePositionFound);
             }
         }
 
