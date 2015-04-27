@@ -358,7 +358,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         this.connection = null;
         this.isConnected = false;
-        logger.info("connection closed");
+        logger.fine("connection closed");
     }
 
     /**
@@ -941,7 +941,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             this.isConnected = true;
             openedConnection = true;
         }
-        logger.info("connection opened successfully");
+        logger.fine("connection opened successfully");
 
         // Flag to indicate whether an existing connection was used or not.
         return openedConnection;
