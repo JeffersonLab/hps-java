@@ -48,7 +48,7 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
      * The action to take if multiple overlapping conditions sets are found. The default is using the most recently
      * updated one.
      */
-    private MultipleCollectionsAction multipleCollections = MultipleCollectionsAction.LAST_UPDATED;
+    private MultipleCollectionsAction multipleCollections = MultipleCollectionsAction.LAST_CREATED;
 
     /**
      * Class constructor.
