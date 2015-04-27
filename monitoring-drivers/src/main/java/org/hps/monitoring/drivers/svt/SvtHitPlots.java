@@ -6,6 +6,7 @@ import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
+import hep.aida.ITree;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,8 +19,8 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 
 /**
- *  Monitoring driver that provides information about the number
- *  of SVT hits per event.
+ *  Monitoring driver that provides information about the number of SVT hits
+ *  per event.
  *   
  *  @author Omar Moreno <omoreno1@ucsc.edu>
  */
@@ -31,16 +32,21 @@ public class SvtHitPlots extends Driver {
         hep.aida.jfree.AnalysisFactory.register();
     } 
 
-    static IHistogramFactory histogramFactory = IAnalysisFactory.create().createHistogramFactory(null);
-	IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
-	
+    // Plotting
+    private static ITree tree = null;
+    private IAnalysisFactory analysisFactory = IAnalysisFactory.create();
+	private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory();
+    private IHistogramFactory histogramFactory = null; 
 	protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>(); 
+
+    // Histogram Maps
+    private static Map<String, IHistogram1D> hitsPerSensorPlots = new HashMap<String, IHistogram1D>();
+    private static Map<String, int[]> hitsPerSensor = new HashMap<String, int[]>();
+    private static Map<String, IHistogram1D> layersHitPlots = new HashMap<String, IHistogram1D>();
+	private static Map<String, IHistogram1D> hitCountPlots = new HashMap<String, IHistogram1D>();
+   
     private List<HpsSiSensor> sensors;
-    protected Map<HpsSiSensor, IHistogram1D> hitsPerSensorPlots = new HashMap<HpsSiSensor, IHistogram1D>();
-    protected Map<HpsSiSensor, int[]> hitsPerSensor = new HashMap<HpsSiSensor, int[]>();
-    protected Map<String, IHistogram1D> layersHitPlots = new HashMap<String, IHistogram1D>();
-	protected Map<String, IHistogram1D> hitCountPlots = new HashMap<String, IHistogram1D>();
-    
+	
     private static final String SUBDETECTOR_NAME = "Tracker";
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
    
@@ -74,34 +80,134 @@ public class SvtHitPlots extends Driver {
 				}
 			}
 		}
-		
 		return -1; 
     }
     
+    /**
+     *  Create a plotter style.
+     * 
+     * @param xAxisTitle : Title of the x axis
+     * @param yAxisTitle : Title of the y axis
+     * @return plotter style
+     */
+    // TODO: Move this to a utilities class
+    IPlotterStyle createStyle(String xAxisTitle, String yAxisTitle) { 
+       
+        // Create a default style
+        IPlotterStyle style = this.plotterFactory.createPlotterStyle();
+        
+        // Set the style of the X axis
+        style.xAxisStyle().setLabel(xAxisTitle);
+        style.xAxisStyle().labelStyle().setFontSize(14);
+        style.xAxisStyle().setVisible(true);
+        
+        // Set the style of the Y axis
+        style.yAxisStyle().setLabel(yAxisTitle);
+        style.yAxisStyle().labelStyle().setFontSize(14);
+        style.yAxisStyle().setVisible(true);
+        
+        // Turn off the histogram grid 
+        style.gridStyle().setVisible(false);
+        
+        // Set the style of the data
+        style.dataStyle().lineStyle().setVisible(false);
+        style.dataStyle().outlineStyle().setVisible(false);
+        style.dataStyle().outlineStyle().setThickness(3);
+        style.dataStyle().fillStyle().setVisible(true);
+        style.dataStyle().fillStyle().setOpacity(.30);
+        style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
+        style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
+        style.dataStyle().errorBarStyle().setVisible(false);
+        
+        // Turn off the legend
+        style.legendBoxStyle().setVisible(false);
+       
+        return style;
+    }
+    
+    /**
+     *  Create a plotter style.
+     * 
+     * @param sensor : HpsSiSensor associated with the plot.  This is used to
+     *                 set certain attributes based on the position of the 
+     *                 sensor.
+     * @param xAxisTitle : Title of the x axis
+     * @param yAxisTitle : Title of the y axis
+     * @return plotter style
+     */
+    // TODO: Move this to a utilities class
+    IPlotterStyle createStyle(HpsSiSensor sensor, String xAxisTitle, String yAxisTitle) { 
+        IPlotterStyle style = this.createStyle(xAxisTitle, yAxisTitle);
+        
+        if (sensor.isTopLayer()) { 
+            style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
+            style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
+        } else { 
+            style.dataStyle().fillStyle().setColor("93, 228, 47, 1");
+            style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
+        }
+        
+        return style;
+    }
+
     private void clearHitMaps() { 
         for (HpsSiSensor sensor : sensors) {
-            hitsPerSensor.get(sensor)[0] = 0; 
+            hitsPerSensor.get(sensor.getName())[0] = 0; 
         }
     }
 
+    /**
+     *  Clear all histograms of it's current data.
+     */
+    private void resetPlots() { 
+      
+        // Reset all hit maps
+        this.clearHitMaps();
+        
+        // Since all plots are mapped to the name of a sensor, loop 
+        // through the sensors, get the corresponding plots and clear them.
+        for (HpsSiSensor sensor : sensors) { 
+            hitsPerSensorPlots.get(sensor.getName()).reset();
+        }
+       
+        for (IHistogram1D histogram : layersHitPlots.values()) {
+            histogram.reset();
+        }
+        
+        for (IHistogram1D histogram : hitCountPlots.values()) { 
+            histogram.reset();
+        }
+        
+    }
+    
     protected void detectorChanged(Detector detector) {
 
-        sensors 
-			= detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
+        // Get the HpsSiSensor objects from the geometry
+        sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
    
         if (sensors.size() == 0) {
             throw new RuntimeException("No sensors were found in this detector.");
         }
         
+        // If the tree already exist, clear all existing plots of any old data
+        // they might contain.
+        if (tree != null) { 
+            this.resetPlots();
+            return; 
+        }
+        
+        tree = analysisFactory.createTreeFactory().create();
+        histogramFactory = analysisFactory.createHistogramFactory(tree);
+        
         plotters.put("Raw hits per sensor", plotterFactory.create("Raw hits per sensor")); 
 		plotters.get("Raw hits per sensor").createRegions(6,6);
         
 		for (HpsSiSensor sensor : sensors) {
-		   hitsPerSensorPlots.put(sensor, 
+		   hitsPerSensorPlots.put(sensor.getName(), 
 		           histogramFactory.createHistogram1D(sensor.getName() + " - Raw Hits", 25, 0, 25)); 
 		   plotters.get("Raw hits per sensor").region(this.computePlotterRegion(sensor))
-		                                      .plot(hitsPerSensorPlots.get(sensor), this.createStyle(sensor, "Number of Raw Hits", ""));
-		   hitsPerSensor.put(sensor, new int[1]);
+		                                      .plot(hitsPerSensorPlots.get(sensor.getName()), this.createStyle(sensor, "Number of Raw Hits", ""));
+		   hitsPerSensor.put(sensor.getName(), new int[1]);
 		}
 
 		plotters.put("Number of layers hit", plotterFactory.create("Number of layers hit"));
@@ -145,7 +251,7 @@ public class SvtHitPlots extends Driver {
         this.clearHitMaps();
         for (RawTrackerHit rawHit : rawHits) { 
             HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
-            hitsPerSensor.get(sensor)[0]++;
+            hitsPerSensor.get(sensor.getName())[0]++;
         }
         
         int[] topLayersHit = new int[12];
@@ -154,12 +260,12 @@ public class SvtHitPlots extends Driver {
         int topEventHitCount = 0;
         int botEventHitCount = 0;
         for (HpsSiSensor sensor : sensors) { 
-            int hitCount = hitsPerSensor.get(sensor)[0];
-            hitsPerSensorPlots.get(sensor).fill(hitCount);
+            int hitCount = hitsPerSensor.get(sensor.getName())[0];
+            hitsPerSensorPlots.get(sensor.getName()).fill(hitCount);
             
             eventHitCount += hitCount;
             
-            if (hitsPerSensor.get(sensor)[0] > 0) { 
+            if (hitsPerSensor.get(sensor.getName())[0] > 0) { 
                 if (sensor.isTopLayer()) { 
                     topLayersHit[sensor.getLayerNumber() - 1]++;
                     topEventHitCount += hitCount;
@@ -203,51 +309,4 @@ public class SvtHitPlots extends Driver {
         System.out.println("\n%================================================%");
     }
     
-    IPlotterStyle createStyle(String xAxisTitle, String yAxisTitle) { 
-       
-        // Create a default style
-        IPlotterStyle style = this.plotterFactory.createPlotterStyle();
-        
-        // Set the style of the X axis
-        style.xAxisStyle().setLabel(xAxisTitle);
-        style.xAxisStyle().labelStyle().setFontSize(14);
-        style.xAxisStyle().setVisible(true);
-        
-        // Set the style of the Y axis
-        style.yAxisStyle().setLabel(yAxisTitle);
-        style.yAxisStyle().labelStyle().setFontSize(14);
-        style.yAxisStyle().setVisible(true);
-        
-        // Turn off the histogram grid 
-        style.gridStyle().setVisible(false);
-        
-        // Set the style of the data
-        style.dataStyle().lineStyle().setVisible(false);
-        style.dataStyle().outlineStyle().setVisible(false);
-        style.dataStyle().outlineStyle().setThickness(3);
-        style.dataStyle().fillStyle().setVisible(true);
-        style.dataStyle().fillStyle().setOpacity(.30);
-        style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
-        style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
-        style.dataStyle().errorBarStyle().setVisible(false);
-        
-        // Turn off the legend
-        style.legendBoxStyle().setVisible(false);
-       
-        return style;
-    }
-    
-    IPlotterStyle createStyle(HpsSiSensor sensor, String xAxisTitle, String yAxisTitle) { 
-        IPlotterStyle style = this.createStyle(xAxisTitle, yAxisTitle);
-        
-        if (sensor.isTopLayer()) { 
-            style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
-            style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
-        } else { 
-            style.dataStyle().fillStyle().setColor("93, 228, 47, 1");
-            style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
-        }
-        
-        return style;
-    }
 }
