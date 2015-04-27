@@ -36,11 +36,6 @@ abstract class AbstractCommand {
     private final Parser parser = new PosixParser();
 
     /**
-     * Verbose setting.
-     */
-    private boolean verbose = false;
-
-    /**
      * Class constructor.
      * @param name the string that invokes this command
      * @param description the description of this command
@@ -82,22 +77,6 @@ abstract class AbstractCommand {
     protected final void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         help.printHelp(getName(), getOptions());
-    }
-
-    /**
-     * Set whether verbose output is enabled.
-     * @param verbose <code>true</code> to enable verbose output
-     */
-    final void setVerbose(final boolean verbose) {
-        this.verbose = verbose;
-    }
-
-    /**
-     * Get verbose flag.
-     * @return the verbose flag
-     */
-    protected boolean getVerbose() {
-        return verbose;
     }
 
     /**

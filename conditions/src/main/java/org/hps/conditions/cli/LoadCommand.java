@@ -32,7 +32,7 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-class LoadCommand extends AbstractCommand {
+final class LoadCommand extends AbstractCommand {
 
     /**
      * Setup logger.
@@ -44,10 +44,10 @@ class LoadCommand extends AbstractCommand {
      */
     private static final Options OPTIONS = new Options();
     static {
-        OPTIONS.addOption(new Option("h", false, "Show help for load command"));
-        OPTIONS.addOption(new Option("t", true, "Name of the target table in the database"));
-        OPTIONS.addOption(new Option("f", true, "Input data file"));
-        OPTIONS.addOption(new Option("d", true, "Description of collection data"));
+        OPTIONS.addOption(new Option("h", false, "print help for load command"));
+        OPTIONS.addOption(new Option("t", true, "name of the target table in the database"));
+        OPTIONS.addOption(new Option("f", true, "input data file"));
+        OPTIONS.addOption(new Option("d", true, "description of collection data"));
     }
 
     /**
@@ -105,9 +105,8 @@ class LoadCommand extends AbstractCommand {
         this.parseFile(fileName, columnNames, rows);
 
         final String insertSql = QueryBuilder.buildInsert(tableName, collectionId, columnNames, rows);
-        if (this.getVerbose()) {
-            LOGGER.info(insertSql);
-        }
+        LOGGER.info(insertSql);
+        
         // FIXME: This call should go through an object API like ConditionsObjectCollection.insert rather than the
         // manager directly.
         final List<Integer> ids = conditionsManager.updateQuery(insertSql);

@@ -26,7 +26,7 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-class PrintCommand extends AbstractCommand {
+final class PrintCommand extends AbstractCommand {
 
     /**
      * Setup logger.
@@ -39,13 +39,12 @@ class PrintCommand extends AbstractCommand {
     static Options options = new Options();
 
     static {
-        options.addOption(new Option("h", false, "Show help for print command"));
-        options.addOption(new Option("t", true, "Set the table name"));
-        options.addOption(new Option("i", false, "Print the ID for the records (off by default)"));
-        options.addOption(new Option("f", true, "Write print output to a file (must be used with -t option)"));
-        options.addOption(new Option("H", false, "Suppress printing of conditions record and table info"));
-        options.addOption(new Option("d", false, "Use tabs for field delimiter instead of spaces"));
-        options.addOption(new Option("T", true, "Specify a conditions tag to use for filtering records"));
+        options.addOption(new Option("h", false, "print help for print command"));
+        options.addOption(new Option("t", true, "table name"));
+        options.addOption(new Option("i", false, "print the ID for the records (off by default)"));
+        options.addOption(new Option("f", true, "write print output to a file (must be used with -t option)"));
+        options.addOption(new Option("H", false, "suppress printing of conditions record and table info"));
+        options.addOption(new Option("d", false, "use tabs for field delimiter instead of spaces"));
     }
 
     /**
@@ -94,11 +93,6 @@ class PrintCommand extends AbstractCommand {
 
         if (!conditionsManager.isInitialized()) {
             throw new RuntimeException("conditions system is not initialized");
-        }
-
-        // User specified tag of conditions records.
-        if (commandLine.hasOption("T")) {
-            conditionsManager.setTag(commandLine.getOptionValue("T"));
         }
 
         // Print conditions sets matching a specific conditions key.
@@ -178,8 +172,10 @@ class PrintCommand extends AbstractCommand {
         final StringBuffer buffer = new StringBuffer();
         for (final Object object : collection) {
             for (final String columnName : collection.getTableMetaData().getFieldNames()) {
-                buffer.append(((ConditionsObject) object).getFieldValue(columnName));
-                buffer.append(this.fieldDelimiter);
+            	if (!"collection_id".equals(columnName)) {
+            		buffer.append(((ConditionsObject) object).getFieldValue(columnName));
+            		buffer.append(this.fieldDelimiter);
+            	}
             }
             buffer.setLength(buffer.length() - 1);
             buffer.append('\n');
@@ -195,8 +191,10 @@ class PrintCommand extends AbstractCommand {
      * @param collection the collection
      */
     private void printCollectionHeader(final ConditionsObjectCollection<?> collection) {
-        // LOGGER.info('\n' + "--------------------------------------" + '\n' + collection.getConditionsRecord()
-        // + "--------------------------------------");
+        LOGGER.info('\n' + "--------------------------------------" + '\n' 
+        		+ "table: " + collection.getTableMetaData().getTableName() + '\n'
+        		+ "collection ID: " + collection.getCollectionId() + '\n'
+        		+ "--------------------------------------");
     }
 
     /**
@@ -228,8 +226,10 @@ class PrintCommand extends AbstractCommand {
             this.ps.print(this.fieldDelimiter);
         }
         for (final String columnName : tableMetaData.getFieldNames()) {
-            this.ps.print(columnName);
-            this.ps.print(this.fieldDelimiter);
+        	if (!"collection_id".equals(columnName)) {
+        		this.ps.print(columnName);
+        		this.ps.print(this.fieldDelimiter);
+        	}
         }
         this.ps.println();
     }

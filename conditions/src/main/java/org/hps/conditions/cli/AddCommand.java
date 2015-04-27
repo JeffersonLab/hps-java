@@ -20,7 +20,7 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public class AddCommand extends AbstractCommand {
+final class AddCommand extends AbstractCommand {
 
     /**
      * Setup logger.
@@ -32,17 +32,17 @@ public class AddCommand extends AbstractCommand {
      */
     private static final Options OPTIONS = new Options();
     static {
-        OPTIONS.addOption(new Option("h", false, "Show help for add command"));
-        OPTIONS.addOption("r", true, "The starting run number (required)");
+        OPTIONS.addOption(new Option("h", false, "print help for add command"));
+        OPTIONS.addOption("r", true, "starting run number (required)");
         OPTIONS.getOption("r").setRequired(true);
-        OPTIONS.addOption("e", true, "The ending run number (default is starting run number)");
-        OPTIONS.addOption("t", true, "The table name (required)");
+        OPTIONS.addOption("e", true, "ending run number (default is starting run number)");
+        OPTIONS.addOption("t", true, "table name (required)");
         OPTIONS.getOption("t").setRequired(true);
-        OPTIONS.addOption("c", true, "The collection ID (required)");
+        OPTIONS.addOption("c", true, "collection ID (required)");
         OPTIONS.getOption("c").setRequired(true);
-        OPTIONS.addOption("T", true, "A tag value (optional)");
-        OPTIONS.addOption("u", true, "Your user name (optional)");
-        OPTIONS.addOption("m", true, "The notes about this conditions set (optional)");
+        OPTIONS.addOption("T", true, "tag value (optional)");
+        OPTIONS.addOption("u", true, "user name (optional)");
+        OPTIONS.addOption("m", true, "notes about this conditions set (optional)");
     }
 
     /**
