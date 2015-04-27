@@ -45,11 +45,11 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private IHistogramFactory histogramFactory = null;
 
     // Histogram maps
-    static private Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
-    static private Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
-    static private Map<String, IHistogram1D> positionPlots = new HashMap<String, IHistogram1D>();
-    static private Map<String, int[]> occupancyMap = new HashMap<String, int[]>();
-    static private Map<String, IHistogram1D> maxSamplePositionPlots = new HashMap<String, IHistogram1D>(); 
+    private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
+    private static Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
+    private static Map<String, IHistogram1D> positionPlots = new HashMap<String, IHistogram1D>();
+    private static Map<String, int[]> occupancyMap = new HashMap<String, int[]>();
+    private static Map<String, IHistogram1D> maxSamplePositionPlots = new HashMap<String, IHistogram1D>(); 
 
     private List<HpsSiSensor> sensors;
     private Map<HpsSiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<HpsSiSensor, Map<Integer, Hep3Vector>>(); 
