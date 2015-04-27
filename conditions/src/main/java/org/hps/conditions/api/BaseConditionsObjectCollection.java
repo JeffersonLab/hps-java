@@ -428,4 +428,12 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
         }
         return exists;
     }
+    
+    protected Set<ObjectType> getObjects() {
+    	return this.objects;
+    }
+    
+    protected void setIsDirty(boolean isDirty) {
+    	this.isDirty = isDirty;
+    }
 }
