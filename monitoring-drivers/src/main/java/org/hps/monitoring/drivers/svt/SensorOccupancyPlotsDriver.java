@@ -16,7 +16,6 @@ import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
 import hep.aida.jfree.plotter.Plotter;
 import hep.aida.jfree.plotter.PlotterRegion;
-
 import hep.physics.vec.Hep3Vector;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -30,7 +29,6 @@ import org.lcsim.util.Driver;
 
 /**
  * This Driver makes plots of SVT sensor occupancies across a run.
- *
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
@@ -40,15 +38,19 @@ public class SensorOccupancyPlotsDriver extends Driver {
    static {
         hep.aida.jfree.AnalysisFactory.register();
     } 
-  
-    ITree tree; 
-    IHistogramFactory histogramFactory;
-    IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
+ 
+    // Plotting
+    private static ITree tree = null;
+    private IAnalysisFactory analysisFactory = IAnalysisFactory.create();
+    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory();
+    private IHistogramFactory histogramFactory;
 
-    protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
-    protected Map<HpsSiSensor, IHistogram1D> occupancyPlots = new HashMap<HpsSiSensor, IHistogram1D>();
-    protected Map<HpsSiSensor, IHistogram1D> occupancyVPositionPlots = new HashMap<HpsSiSensor, IHistogram1D>();
-    protected Map<HpsSiSensor, int[]> occupancyMap = new HashMap<HpsSiSensor, int[]>();
+    // Histogram maps
+    static protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
+    static protected Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
+    static protected Map<String, IHistogram1D> positionPlots = new HashMap<String, IHistogram1D>();
+    static protected Map<String, int[]> occupancyMap = new HashMap<String, int[]>();
+
     private List<HpsSiSensor> sensors;
     private Map<HpsSiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<HpsSiSensor, Map<Integer, Hep3Vector>>(); 
 
@@ -115,17 +117,26 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
         return -1;
     }
-    
-    protected void detectorChanged(Detector detector) {
 
-        sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
+    /**
+     *  Get the global strip position of a physical channel number for a given
+     *  sensor.
+     *  
+     *  @param sensor : HpsSiSensor 
+     *  @param physicalChannel : physical channel number 
+     *  @return The strip position (mm) in the global coordinate system
+     */
+    private Hep3Vector getStripPosition(HpsSiSensor sensor, int physicalChannel){ 
+        return stripPositions.get(sensor).get(physicalChannel);
+    }
+   
+    /**
+     *  For each sensor, create a mapping between a physical channel number and
+     *  it's global strip position.
+     */
+    // TODO: Move this to a utility class
+    private void createStripPositionMap() { 
 
-        if (sensors.size() == 0) {
-            throw new RuntimeException("There are no sensors associated with this detector");
-        }
-        
-        // Create a Map from sensor to bad channels and from bad channels to
-        // strip position
         for(ChargeCarrier carrier : ChargeCarrier.values()){
             for(HpsSiSensor sensor : sensors){ 
                 if(sensor.hasElectrodesOnSide(carrier)){ 
@@ -142,123 +153,18 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 }
             }
         }
-
-        tree = IAnalysisFactory.create().createTreeFactory().create();
-        histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
-
-        plotters.put("Occupancy", plotterFactory.create("Occupancy"));
-        plotters.get("Occupancy").createRegions(6, 6);
-
-        if (enablePositionPlots) { 
-            plotters.put("Occupancy vs Position", plotterFactory.create("Occupancy vs Position"));
-            plotters.get("Occupancy vs Position").createRegions(6, 6);
-        }
-        
-        for (HpsSiSensor sensor : sensors) {
-            occupancyPlots.put(sensor, histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy", 640, 0, 640));
-            plotters.get("Occupancy").region(this.computePlotterRegion(sensor))
-                                     .plot(occupancyPlots.get(sensor), this.createOccupancyPlotStyle("Physical Channel", sensor));
-        
-            if (enablePositionPlots) {
-                if (sensor.isTopLayer()) {
-                    occupancyVPositionPlots.put(sensor, 
-                            histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy vs Position", 1000, 0, 60));
-                } else { 
-                    occupancyVPositionPlots.put(sensor, 
-                            histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy vs Position", 1000, -60, 0));
-                }
-                
-                plotters.get("Occupancy vs Position").region(this.computePlotterRegion(sensor))
-                                                     .plot(occupancyVPositionPlots.get(sensor), this.createOccupancyPlotStyle("Distance from Beam [mm]", sensor));
-            }
-            occupancyMap.put(sensor, new int[640]);
-        }
-
-        for (IPlotter plotter : plotters.values()) {
-            for (int regionN = 0; regionN < 36; regionN++) { 
-                PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
-                region.getPanel().addMouseListener(new PopupPlotterListener(region));
-            }
-            plotter.show();
-        }
     }
 
-    public void process(EventHeader event) {
-
-        // Get the run number from the event and store it.  This will be used 
-        // when writing the plots out to a ROOT file
-        if (runNumber == -1) runNumber = event.getRunNumber();
-       
-        // If the event doesn't have a collection of RawTrackerHit's, skip it.
-        if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) return;
-        // Get RawTrackerHit collection from event.
-        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
-
-        eventCount++;
-        // Increment strip hit count.
-        for (RawTrackerHit rawHit : rawHits) {
-            
-            // Obtain the raw ADC samples for each of the six samples readout
-            short[] adcValues = rawHit.getADCValues();
-            
-            // Find the sample that has the largest amplitude.  This should
-            // correspond to the peak of the shaper signal if the SVT is timed
-            // in correctly.  Otherwise, the maximum sample value will default 
-            // to 0.
-            int maxAmplitude = 0;
-            int maxSamplePositionFound = -1;
-            for (int sampleN = 0; sampleN < 6; sampleN++) { 
-                if (adcValues[sampleN] > maxAmplitude) { 
-                    maxAmplitude = adcValues[sampleN];
-                    maxSamplePositionFound = sampleN; 
-                }
-            }
-           
-            if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound) { 
-                occupancyMap.get((HpsSiSensor) rawHit.getDetectorElement())[rawHit.getIdentifierFieldValue("strip")]++;
-            }
-        }
-
-        // Plot strip occupancies.
-        if (eventCount % eventRefreshRate == 0) {
-            for (HpsSiSensor sensor : sensors) {
-                int[] strips = occupancyMap.get(sensor);
-                occupancyPlots.get(sensor).reset();
-                if (enablePositionPlots) occupancyVPositionPlots.get(sensor).reset();
-                for (int channel = 0; channel < strips.length; channel++) {
-                    double stripOccupancy = (double) strips[channel] / (double) eventCount;
-                    stripOccupancy /= this.timeWindowWeight;
-                    occupancyPlots.get(sensor).fill(channel, stripOccupancy);
-              
-                    if (enablePositionPlots) {
-                        double stripPosition = this.getStripPosition(sensor, channel).y();
-                        occupancyVPositionPlots.get(sensor).fill(stripPosition, stripOccupancy);
-                    }
-                }
-            }
-        }
-    }
-    
-    public void endOfData() { 
-      
-        rootFile = "run" + runNumber + "_occupancy.root";
-        RootFileStore store = new RootFileStore(rootFile);
-        try {
-            store.open();
-            store.add(tree);
-            store.close(); 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
     /**
-     * .
+     *  Create a plotter style.
+     * 
+     * @param xAxisTitle : Title of the x axis
+     * @param sensor : HpsSiSensor associated with the plot.  This is used to
+     *                 set certain attributes based on the position of the 
+     *                 sensor.
+     * @return plotter style
      */
-    private Hep3Vector getStripPosition(HpsSiSensor sensor, int physicalChannel){ 
-        return stripPositions.get(sensor).get(physicalChannel);
-    }
-
+    // TODO: Move this to a utilities class
     IPlotterStyle createOccupancyPlotStyle(String xAxisTitle, HpsSiSensor sensor) {
         // Create a default style
         IPlotterStyle style = this.plotterFactory.createPlotterStyle();
@@ -298,5 +204,160 @@ public class SensorOccupancyPlotsDriver extends Driver {
         if (sensor.isAxial()) style.regionBoxStyle().backgroundStyle().setColor("229, 114, 31, 1");
         
         return style;
+    }
+
+    /**
+     *  Clear all histograms of it's current data.
+     */
+    private void resetPlots() { 
+      
+        // Clear the hit counter map of all previously stored data. 
+        occupancyMap.clear();
+        
+        // Since all plots are mapped to the name of a sensor, loop 
+        // through the sensors, get the corresponding plots and clear them.
+        for (HpsSiSensor sensor : sensors) { 
+
+            // Clear the occupancy plots.
+            occupancyPlots.get(sensor.getName()).reset();
+            positionPlots.get(sensor.getName()).reset();
+            
+            // Reset the hit counters.
+            occupancyMap.put(sensor.getName(), new int[640]);
+        }
+    }
+    
+    protected void detectorChanged(Detector detector) {
+
+        // Get the HpsSiSensor objects from the geometry
+        sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
+
+        // If there were no sensors found, throw an exception
+        if (sensors.size() == 0) {
+            throw new RuntimeException("There are no sensors associated with this detector");
+        }
+        
+        // For each sensor, create a mapping between a physical channel number
+        // and the global strip position
+        this.createStripPositionMap();
+        
+        // If the tree already exist, clear all existing plots of any old data
+        // they might contain.
+        if (tree != null) { 
+            this.resetPlots();
+            return; 
+        }
+       
+        tree = analysisFactory.createTreeFactory().create();
+        histogramFactory = analysisFactory.createHistogramFactory(tree);
+
+        // Create the plotter and regions.  A region is created for each
+        // sensor for a total of 36.
+        plotters.put("Occupancy", plotterFactory.create("Occupancy"));
+        plotters.get("Occupancy").createRegions(6, 6);
+
+        if (enablePositionPlots) { 
+            plotters.put("Occupancy vs Position", plotterFactory.create("Occupancy vs Position"));
+            plotters.get("Occupancy vs Position").createRegions(6, 6);
+        }
+        
+        for (HpsSiSensor sensor : sensors) {
+            occupancyPlots.put(sensor.getName(), histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy", 640, 0, 640));
+            plotters.get("Occupancy").region(this.computePlotterRegion(sensor))
+                                     .plot(occupancyPlots.get(sensor.getName()), this.createOccupancyPlotStyle("Physical Channel", sensor));
+        
+            if (enablePositionPlots) {
+                if (sensor.isTopLayer()) {
+                    positionPlots.put(sensor.getName(), 
+                            histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy vs Position", 1000, 0, 60));
+                } else { 
+                    positionPlots.put(sensor.getName(), 
+                            histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy vs Position", 1000, -60, 0));
+                }
+                
+                plotters.get("Occupancy vs Position").region(this.computePlotterRegion(sensor))
+                                                     .plot(positionPlots.get(sensor.getName()), this.createOccupancyPlotStyle("Distance from Beam [mm]", sensor));
+            }
+            occupancyMap.put(sensor.getName(), new int[640]);
+        }
+        
+        System.out.println("Size of occupancyPlots map: " + occupancyPlots.size());
+
+        for (IPlotter plotter : plotters.values()) {
+            /*for (int regionN = 0; regionN < 36; regionN++) { 
+                PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
+                region.getPanel().addMouseListener(new PopupPlotterListener(region));
+            }*/
+            plotter.show();
+        }
+    }
+
+    public void process(EventHeader event) {
+
+        // Get the run number from the event and store it.  This will be used 
+        // when writing the plots out to a ROOT file
+        if (runNumber == -1) runNumber = event.getRunNumber();
+       
+        // If the event doesn't have a collection of RawTrackerHit's, skip it.
+        if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) return;
+        // Get RawTrackerHit collection from event.
+        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
+
+        eventCount++;
+        // Increment strip hit count.
+        for (RawTrackerHit rawHit : rawHits) {
+            
+            // Obtain the raw ADC samples for each of the six samples readout
+            short[] adcValues = rawHit.getADCValues();
+            
+            // Find the sample that has the largest amplitude.  This should
+            // correspond to the peak of the shaper signal if the SVT is timed
+            // in correctly.  Otherwise, the maximum sample value will default 
+            // to 0.
+            int maxAmplitude = 0;
+            int maxSamplePositionFound = -1;
+            for (int sampleN = 0; sampleN < 6; sampleN++) { 
+                if (adcValues[sampleN] > maxAmplitude) { 
+                    maxAmplitude = adcValues[sampleN];
+                    maxSamplePositionFound = sampleN; 
+                }
+            }
+           
+            if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound) { 
+                occupancyMap.get(((HpsSiSensor) rawHit.getDetectorElement()).getName())[rawHit.getIdentifierFieldValue("strip")]++;
+            }
+        }
+
+        // Plot strip occupancies.
+        if (eventCount % eventRefreshRate == 0) {
+            for (HpsSiSensor sensor : sensors) {
+                int[] strips = occupancyMap.get(sensor.getName());
+                occupancyPlots.get(sensor.getName()).reset();
+                if (enablePositionPlots) positionPlots.get(sensor.getName()).reset();
+                for (int channel = 0; channel < strips.length; channel++) {
+                    double stripOccupancy = (double) strips[channel] / (double) eventCount;
+                    stripOccupancy /= this.timeWindowWeight;
+                    occupancyPlots.get(sensor.getName()).fill(channel, stripOccupancy);
+              
+                    if (enablePositionPlots) {
+                        double stripPosition = this.getStripPosition(sensor, channel).y();
+                        positionPlots.get(sensor.getName()).fill(stripPosition, stripOccupancy);
+                    }
+                }
+            }
+        }
+    }
+    
+    public void endOfData() { 
+      
+        rootFile = "run" + runNumber + "_occupancy.root";
+        RootFileStore store = new RootFileStore(rootFile);
+        try {
+            store.open();
+            store.add(tree);
+            store.close(); 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
