@@ -26,6 +26,18 @@ public final class ConditionsRecord extends BaseConditionsObject {
     @SuppressWarnings("serial")
     public static class ConditionsRecordCollection extends BaseConditionsObjectCollection<ConditionsRecord> {
 
+        @Override
+        public boolean add(final ConditionsRecord object) throws ConditionsObjectException {
+            if (object == null) {
+                throw new IllegalArgumentException("The object argument is null.");
+            }
+            final boolean added = getObjects().add(object);
+            if (!added) {
+                throw new RuntimeException("Failed to add object.");
+            }
+            return added;
+        }
+    	
         /**
          * Compare conditions records by creation date.
          */
@@ -189,6 +201,23 @@ public final class ConditionsRecord extends BaseConditionsObject {
          */
         public final ConditionsRecordCollection sortedByUpdated() {
             return (ConditionsRecordCollection) sorted(new UpdatedComparator());
+        }
+        
+        /**
+         * Find a sub-set of the records with matching key name.
+         */
+        public ConditionsRecordCollection findByKey(String key) {
+        	ConditionsRecordCollection collection = new ConditionsRecordCollection();
+        	for (ConditionsRecord record : this) {
+        		if (record.getName().equals(key)) {
+        			try {
+						collection.add(record);
+					} catch (ConditionsObjectException e) {
+						throw new RuntimeException("Error adding record to new collection.", e);
+					}
+        		}
+        	}
+        	return collection;
         }
     }
 
