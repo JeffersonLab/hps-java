@@ -25,12 +25,24 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public class CommandLineTool {
+public final class CommandLineTool {
 
     /**
      * Setup logging.
      */
     private static final Logger LOGGER = LogUtil.create(CommandLineTool.class);
+    
+    private static Options OPTIONS = new Options();
+    
+    static {
+    	OPTIONS.addOption(new Option("h", false, "print help"));
+    	OPTIONS.addOption(new Option("d", true, "detector name"));
+    	OPTIONS.addOption(new Option("r", true, "run number"));
+    	OPTIONS.addOption(new Option("p", true, "database connection properties file"));
+    	OPTIONS.addOption(new Option("x", true, "conditions XML configuration file"));
+    	OPTIONS.addOption(new Option("t", true, "conditions tag to use for filtering records"));
+    	OPTIONS.addOption(new Option("l", true, "log level of the conditions manager (INFO, FINE, etc.)"));
+    }
 
     /**
      * Create a basic instance of this class.
@@ -39,16 +51,11 @@ public class CommandLineTool {
      */
     private static CommandLineTool create() {
         final CommandLineTool cli = new CommandLineTool();
-        cli.options.addOption(new Option("h", false, "Print help and exit"));
-        cli.options.addOption(new Option("d", true, "Set the detector name"));
-        cli.options.addOption(new Option("r", true, "Set the run number"));
-        cli.options.addOption(new Option("v", false, "Enable verbose print output"));
-        cli.options.addOption(new Option("p", true, "Set the database connection properties file"));
-        cli.options.addOption(new Option("x", true, "Set the conditions XML configuration file"));
         cli.registerCommand(new LoadCommand());
         cli.registerCommand(new PrintCommand());
         cli.registerCommand(new AddCommand());
         cli.registerCommand(new TagCommand());
+        cli.registerCommand(new RunSummaryCommand());
         return cli;
     }
 
@@ -72,19 +79,9 @@ public class CommandLineTool {
     private DatabaseConditionsManager conditionsManager;
 
     /**
-     * The top level options (does not include sub-command options).
-     */
-    private final Options options = new Options();
-
-    /**
      * The options parser.
      */
     private final PosixParser parser = new PosixParser();
-
-    /**
-     * The verbose setting.
-     */
-    private boolean verbose = false;
 
     /**
      * Exit with the given status.
@@ -104,7 +101,7 @@ public class CommandLineTool {
         for (final String command : this.commands.keySet()) {
             s.append(command + '\n');
         }
-        help.printHelp("CommandLineTool", "Commands:\n" + s.toString(), this.options, "");
+        help.printHelp("CommandLineTool", "Commands:\n" + s.toString(), OPTIONS, "");
     }
 
     /**
@@ -133,9 +130,9 @@ public class CommandLineTool {
 
             CommandLine commandLine = null;
             try {
-                commandLine = this.parser.parse(this.options, arguments, true);
+                commandLine = this.parser.parse(OPTIONS, arguments, true);
             } catch (final ParseException e) {
-                LOGGER.log(Level.SEVERE, "error parsing the options", e);
+                LOGGER.log(Level.SEVERE, "Error parsing the options.", e);
                 printUsage();
                 exit(1);
             }
@@ -144,15 +141,7 @@ public class CommandLineTool {
                 printUsage();
                 exit(0);
             }
-
-            // Set verbosity.
-            if (commandLine.hasOption("v")) {
-                LOGGER.setLevel(Level.ALL);
-                LOGGER.getHandlers()[0].setLevel(Level.ALL);
-                this.verbose = true;
-                LOGGER.config("verbose mode enabled");
-            }
-
+            
             // Setup conditions manager from command line options.
             setupConditionsManager(commandLine);
 
@@ -167,8 +156,7 @@ public class CommandLineTool {
             final String[] commandArguments = new String[commandLine.getArgs().length - 1];
             System.arraycopy(commandLine.getArgs(), 1, commandArguments, 0, commandArguments.length);
 
-            // Excecute the sub-command.
-            command.setVerbose(this.verbose);
+            // Execute the sub-command.
             command.execute(commandArguments);
         } catch (final Exception e) {
             e.printStackTrace();
@@ -185,62 +173,80 @@ public class CommandLineTool {
      */
     private void setupConditionsManager(final CommandLine commandLine) {
 
-        LOGGER.info("setting up conditions manager");
+        LOGGER.info("Setting up the conditions manager ...");
 
         // Create new manager.
         this.conditionsManager = DatabaseConditionsManager.getInstance();
-
-        // Set log level.
-        this.conditionsManager.setLogLevel(LOGGER.getLevel());
-
+        
+        // Set the conditions manager log level (does not affect logger of this class or sub-commands).
+        if (commandLine.hasOption("l")) {
+        	Level level = Level.parse(commandLine.getOptionValue("l"));
+        	conditionsManager.setLogLevel(level);
+        	LOGGER.config("conditions manager log level will be set to " + level.toString());
+        }
+       
         // Connection properties.
         if (commandLine.hasOption("p")) {
             final File connectionPropertiesFile = new File(commandLine.getOptionValue("p"));
             this.conditionsManager.setConnectionProperties(connectionPropertiesFile);
-            LOGGER.config("connection properties -p " + connectionPropertiesFile);
+            LOGGER.config("using connection properties " + connectionPropertiesFile.getPath());
         }
 
-        // XML config.
+        // Conditions system XML configuration file.
         if (commandLine.hasOption("x")) {
             final File xmlConfigFile = new File(commandLine.getOptionValue("x"));
             this.conditionsManager.setXmlConfig(xmlConfigFile);
-            LOGGER.config("XML config -x " + xmlConfigFile);
+            LOGGER.config("using XML config " + xmlConfigFile.getPath());
+        }
+        
+        // User specified tag of conditions records.
+        if (commandLine.hasOption("t")) {
+        	String tag = commandLine.getOptionValue("t");
+            conditionsManager.setTag(tag);
+            LOGGER.config("using tag " + tag);
         }
 
         // If there is a run number or detector number then attempt to initialize the conditions system.
         if (commandLine.hasOption("r") || commandLine.hasOption("d")) {
-
-            LOGGER.config("detector name or run number supplied so manager will be initialized");
+        	
+        	if (!commandLine.hasOption("r")) {
+            	// Missing run number.
+        		throw new RuntimeException("Missing -r option with run number which must be given when detector name is used.");
+        	}
+        	
+        	if (!commandLine.hasOption("d")) {
+            	// Missing detector name.
+        		throw new RuntimeException("Missing -d option with detector name which must be given when run number is used.");
+        	}
 
             // Set detector name.
             String detectorName = null;
             if (commandLine.hasOption("d")) {
                 detectorName = commandLine.getOptionValue("d");
-                LOGGER.config("detector -d " + detectorName);
+                LOGGER.config("using detector " + detectorName);
             } else {
                 detectorName = "HPS-ECalCommissioning-v2";
-                LOGGER.config("default detector " + detectorName + " is being used");
             }
 
             // Get run number.
             Integer run = null;
             if (commandLine.hasOption("r")) {
                 run = Integer.parseInt(commandLine.getOptionValue("r"));
-                LOGGER.config("run -r " + run);
+                LOGGER.config("using run " + run);
             } else {
                 run = 0;
-                LOGGER.config("default run number " + run + " is being used");
             }
 
             // Setup the conditions manager with user detector name and run number.
             try {
-                LOGGER.config("initializing conditions manager with detector " + detectorName + " and run " + run);
+                LOGGER.config("Initializing conditions manager with detector " + detectorName + " and run " + run + " ...");
                 DatabaseConditionsManager.getInstance().setDetector(detectorName, run);
-                LOGGER.config("conditions manager initialized successfully");
+                LOGGER.config("Conditions manager was initialized successfully!");
                 LOGGER.getHandlers()[0].flush();
             } catch (final ConditionsNotFoundException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Error setting up the conditions manager.", e);
             }
-        }
+        }         
+        LOGGER.info("Done setting up the conditions manager!");
     }
 }
