@@ -1,46 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
-<!-- 
-  Steering file for tracking and v0 reconstruction monitoring 
-  @author Matt Graham <mgraham@slac.stanford.edu>
--->
+    <!-- 
+      Steering file for tracking and v0 reconstruction monitoring 
+      @author Matt Graham <mgraham@slac.stanford.edu>
+    -->
     <execute>     
-<!--  the 3 drivers below are for reading out 6-sample ADC data -->
-<!--      <driver name="RawTrackerHitSensorSetup" />    -->
-      <driver name="RawTrackerHitFitterDriver" /> 
-      <driver name="TrackerHitDriver" />  
-      <driver name="HelicalTrackHitDriver" />
-<!--  regular tracking and recon -->
-       <driver name="FullTrackerReconDriver"/> 
-       <driver name="TrackDataDriver"/>   
-       <driver name="EcalRawConverter" /> 
-       <driver name="EcalClusterer" />
-       <driver name="ReconParticle" /> 
-<!-- Online Monitoring Drivers -->
-       <driver name="TrackingMonitoring" />
-       <driver name="TrackingResiduals"/>  
-       <driver name="TrackTime"/>  
-       <driver name="V0Monitoring"/>   
-       <driver name="CleanupDriver" />
+        <!--  the 3 drivers below are for reading out 6-sample ADC data -->
+        <!--      <driver name="RawTrackerHitSensorSetup" />    -->
+        <driver name="RawTrackerHitFitterDriver" /> 
+        <driver name="TrackerHitDriver" />  
+        <driver name="HelicalTrackHitDriver" />
+        <!--  regular tracking and recon -->
+        <driver name="FullTrackerReconDriver"/> 
+        <driver name="TrackDataDriver"/>   
+        <driver name="EcalRawConverter" /> 
+        <driver name="EcalClusterer" />
+        <driver name="ReconParticle" /> 
+        <!-- Online Monitoring Drivers -->
+        <driver name="TrackingMonitoring" />
+        <driver name="TrackingResiduals"/>  
+        <driver name="TrackTime"/>  
+        <driver name="V0Monitoring"/>   
+        <driver name="CleanupDriver" />
     </execute>
     <drivers>
-         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>10</eventInterval>
         </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
-      <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
             <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>true</correctChanT0>
+            <timeOffset>51.0</timeOffset>
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
             <debug>false</debug>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
-<!--            <clusterTimeCut>16.0</clusterTimeCut> -->
+            <!--<clusterTimeCut>12.0</clusterTimeCut>-->
+            <maxDt>16.0</maxDt>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
             <saveAxialHits>false</saveAxialHits>
@@ -49,19 +55,20 @@
             <debug>false</debug>
             <trackCollectionName>MatchedTracks</trackCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-Loose.xml</strategyResource>
+            <rmsTimeCut>8.0</rmsTimeCut>
         </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
         </driver>
-         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-              <ecalCollectionName>EcalCalHits</ecalCollectionName>
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
             <useTimestamps>false</useTimestamps>
             <useTruthTime>false</useTruthTime>               
-           <debug>false</debug>
+            <debug>false</debug>
         </driver>
-         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">              
-               <useTimeCut>true</useTimeCut>
-               <logLevel>ALL</logLevel>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">              
+            <useTimeCut>true</useTimeCut>
+            <logLevel>ALL</logLevel>
         </driver>     
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">
             <debug>false</debug>
@@ -70,7 +77,7 @@
         </driver>
         <driver name="TrackingResiduals" type="org.hps.monitoring.drivers.trackrecon.TrackResiduals">              
         </driver>
-         <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">               
+        <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">               
         </driver>      
         <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                
         </driver>
