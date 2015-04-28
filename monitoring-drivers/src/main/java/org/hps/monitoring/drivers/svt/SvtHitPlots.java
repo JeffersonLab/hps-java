@@ -7,6 +7,8 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
+import hep.aida.jfree.plotter.Plotter;
+import hep.aida.jfree.plotter.PlotterRegion;
 
 import java.util.HashMap;
 import java.util.List;
@@ -234,7 +236,13 @@ public class SvtHitPlots extends Driver {
 		plotters.get("Raw hit counts/Event").region(2).plot(hitCountPlots.get("SVT bottom raw hit counts/Event"), this.createStyle("Number of Raw Bits in the Bottom Volume", ""));
 		
 		for (IPlotter plotter : plotters.values()) { 
-			plotter.show();
+			for (int regionN = 0; regionN < plotter.numberOfRegions(); regionN++) { 
+                System.out.println("Plotter Region: " + regionN);
+			    PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
+			    if (region.getPlottedObjects().size() == 0) continue;
+                region.getPanel().addMouseListener(new PopupPlotterListener(region));
+			}
+		    plotter.show();
 		}
     }
     
