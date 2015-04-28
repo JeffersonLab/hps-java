@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hps.recon.ecal.triggerbank.TIData;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -29,6 +30,12 @@ public class DataQualityMonitor extends Driver {
     protected boolean debug=false;
     protected boolean outputPlots = false;
     protected String outputPlotDir = "DQMOutputPlots/";
+    
+     String triggerType = "";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
+
+    public void setTriggerType(String type) {
+        this.triggerType = type;
+    }
     
     public void setRecoVersion(String recoVersion) {
         this.recoVersion = recoVersion;
@@ -158,6 +165,21 @@ public class DataQualityMonitor extends Driver {
             manager.updateQuery(put); 
            
         }
+    }
+    
+      public boolean matchTriggerType(TIData triggerData) {
+        if (triggerType.contentEquals("") || triggerType.contentEquals("all"))
+            return true;
+        if (triggerData.isSingle0Trigger() && triggerType.contentEquals("singles0"))
+            return true;
+        if (triggerData.isSingle1Trigger() && triggerType.contentEquals("singles1"))
+            return true;
+        if (triggerData.isPair0Trigger() && triggerType.contentEquals("pairs0"))
+            return true;
+        if (triggerData.isPair1Trigger() && triggerType.contentEquals("pairs1"))
+            return true;
+        return false;
+
     }
 
     //override this method to do something interesting   

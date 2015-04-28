@@ -15,9 +15,12 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.TIData;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
@@ -51,8 +54,12 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     //some summers
     double sumdelX = 0.0;
     double sumdelY = 0.0;
-    double sumEoverP = 0.0;   
+    double sumEoverP = 0.0;
     private String plotDir = "FinalStateParticles/";
+    double beamEnergy = 1.05; //GeV
+    double maxFactor = 1.5;
+    double feeMomentumCut = 0.8; //GeV
+   
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -61,39 +68,52 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
         /*  Final State Particle Quantities   */
         /*  plot electron & positron momentum separately  */
-        IHistogram1D elePx = aida.histogram1D(plotDir + "Electron Px (GeV)", 50, -0.1, 0.200);
-        IHistogram1D elePy = aida.histogram1D(plotDir + "Electron Py (GeV)", 50, -0.1, 0.1);
-        IHistogram1D elePz = aida.histogram1D(plotDir + "Electron Pz (GeV)", 50, 0, 2.5);
-        IHistogram1D elePzBeam = aida.histogram1D(plotDir + "Beam Electrons Pz (GeV)", 50, 1.8, 2.5);
+        IHistogram1D elePx = aida.histogram1D(plotDir + triggerType + "/" + "Electron Px (GeV)", 50, -0.1, 0.200);
+        IHistogram1D elePy = aida.histogram1D(plotDir + triggerType + "/" + "Electron Py (GeV)", 50, -0.1, 0.1);
+        IHistogram1D elePz = aida.histogram1D(plotDir + triggerType + "/" + "Electron Pz (GeV)", 50, 0, beamEnergy * maxFactor);
+        IHistogram1D elePzBeam = aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Pz (GeV)", 50, feeMomentumCut, beamEnergy * maxFactor);
 
-        IHistogram1D posPx = aida.histogram1D(plotDir + "Positron Px (GeV)", 50, -0.1, 0.200);
-        IHistogram1D posPy = aida.histogram1D(plotDir + "Positron Py (GeV)", 50, -0.1, 0.1);
-        IHistogram1D posPz = aida.histogram1D(plotDir + "Positron Pz (GeV)", 50, 0, 2.5);
+        IHistogram1D posPx = aida.histogram1D(plotDir + triggerType + "/" + "Positron Px (GeV)", 50, -0.1, 0.200);
+        IHistogram1D posPy = aida.histogram1D(plotDir + triggerType + "/" + "Positron Py (GeV)", 50, -0.1, 0.1);
+        IHistogram1D posPz = aida.histogram1D(plotDir + triggerType + "/" + "Positron Pz (GeV)", 50, 0, beamEnergy * maxFactor);
         /*  photon quanties (...right now, just unassociated clusters) */
-        IHistogram1D nPhotonsHisto = aida.histogram1D(plotDir + "Number of photons per event", 15, 0, 15);
-        IHistogram1D enePhoton = aida.histogram1D(plotDir + "Photon Energy (GeV)", 50, 0, 2.4);
-        IHistogram1D xPhoton = aida.histogram1D(plotDir + "Photon X position (mm)", 50, -100, 100);
-        IHistogram1D yPhoton = aida.histogram1D(plotDir + "Photon Y position (mm)", 50, -100, 100);
+        IHistogram1D nPhotonsHisto = aida.histogram1D(plotDir + triggerType + "/" + "Number of photons per event", 15, 0, 15);
+        IHistogram1D enePhoton = aida.histogram1D(plotDir + triggerType + "/" + "Photon Energy (GeV)", 50, 0, 2.4);
+        IHistogram1D xPhoton = aida.histogram1D(plotDir + triggerType + "/" + "Photon X position (mm)", 50, -200, 200);
+        IHistogram1D yPhoton = aida.histogram1D(plotDir + triggerType + "/" + "Photon Y position (mm)", 50, -100, 100);
 
         /*  tracks with associated clusters */
-        IHistogram1D eneOverp = aida.histogram1D(plotDir + "Cluster Energy Over TrackMomentum", 50, 0, 2.0);
-        IHistogram1D deltaXAtCal = aida.histogram1D(plotDir + "delta X @ ECal (mm)", 50, -100, 100.0);
-        IHistogram1D deltaYAtCal = aida.histogram1D(plotDir + "delta Y @ ECal (mm)", 50, -100, 100.0);
-        //IHistogram2D trackXvsECalX = aida.histogram2D(plotDir + "track X vs ECal X", 50, -300, 300.0, 50, -300, 300.0);
-        //IHistogram2D trackYvsECalY = aida.histogram2D(plotDir + "track Y vs ECal Y", 50, -100, 100.0, 50, -100, 100.0);
-        IHistogram2D trackPvsECalE = aida.histogram2D(plotDir + "track mom vs ECal E", 50, 0, 2.5, 50, 0, 2.5);
+        IHistogram1D eneOverp = aida.histogram1D(plotDir + triggerType + "/" + "Cluster Energy Over TrackMomentum", 50, 0, 2.0);
+        IHistogram1D deltaXAtCal = aida.histogram1D(plotDir + triggerType + "/" + "delta X @ ECal (mm)", 50, -50, 50.0);
+        IHistogram1D deltaYAtCal = aida.histogram1D(plotDir + triggerType + "/" + "delta Y @ ECal (mm)", 50, -50, 50.0);
+        //IHistogram2D trackXvsECalX = aida.histogram2D(plotDir + triggerType + "/" + "track X vs ECal X", 50, -300, 300.0, 50, -300, 300.0);
+        //IHistogram2D trackYvsECalY = aida.histogram2D(plotDir + triggerType + "/" + "track Y vs ECal Y", 50, -100, 100.0, 50, -100, 100.0);
+        IHistogram2D trackPvsECalE = aida.histogram2D(plotDir + triggerType + "/" + "track mom vs ECal E", 50, 0.1, beamEnergy * maxFactor, 50, 0.1, beamEnergy * maxFactor);
         /* number of unassocaited tracks/event */
-        IHistogram1D nUnAssTracksHisto = aida.histogram1D(plotDir + "Number of unassociated tracks per event", 5, 0, 5);
+        IHistogram1D nUnAssTracksHisto = aida.histogram1D(plotDir + triggerType + "/" + "Number of unassociated tracks per event", 5, 0, 5);
     }
 
     @Override
     public void process(EventHeader event) {
         /*  make sure everything is there */
-        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)){
-            if(debug)
-                    System.out.println(finalStateParticlesColName+" collection not found???");
+
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
+            if (debug)
+                System.out.println(finalStateParticlesColName + " collection not found???");
             return;
         }
+
+        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
+                    TIData triggerData = new TIData(data);
+                    if (!matchTriggerType(triggerData))//only process singles0 triggers...
+                        return;
+                }
+        } else
+            System.out.println(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
+
         nRecoEvents++;
         int nPhotons = 0;  //number of photons 
         int nUnAssTracks = 0; //number of tracks w/o clusters
@@ -127,15 +147,15 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                 Hep3Vector mom = fsPart.getMomentum();
                 if (charge < 0) {
                     nTotEle++;
-                    aida.histogram1D(plotDir + "Electron Px (GeV)").fill(mom.x());
-                    aida.histogram1D(plotDir + "Electron Py (GeV)").fill(mom.y());
-                    aida.histogram1D(plotDir + "Electron Pz (GeV)").fill(mom.z());
-                    aida.histogram1D(plotDir + "Beam Electrons Pz (GeV)").fill(mom.z());
+                    aida.histogram1D(plotDir + triggerType + "/" + "Electron Px (GeV)").fill(mom.x());
+                    aida.histogram1D(plotDir + triggerType + "/" + "Electron Py (GeV)").fill(mom.y());
+                    aida.histogram1D(plotDir + triggerType + "/" + "Electron Pz (GeV)").fill(mom.z());
+                    aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Pz (GeV)").fill(mom.z());
                 } else {
                     nTotPos++;
-                    aida.histogram1D(plotDir + "Positron Px (GeV)").fill(mom.x());
-                    aida.histogram1D(plotDir + "Positron Py (GeV)").fill(mom.y());
-                    aida.histogram1D(plotDir + "Positron Pz (GeV)").fill(mom.z());
+                    aida.histogram1D(plotDir + triggerType + "/" + "Positron Px (GeV)").fill(mom.x());
+                    aida.histogram1D(plotDir + triggerType + "/" + "Positron Py (GeV)").fill(mom.y());
+                    aida.histogram1D(plotDir + triggerType + "/" + "Positron Pz (GeV)").fill(mom.z());
                 }
 
             }
@@ -151,9 +171,9 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                 double ypos = clusterPosition.y();
                 nPhotons++;
                 nTotPhotons++;
-                aida.histogram1D(plotDir + "Photon Energy (GeV)").fill(ene);
-                aida.histogram1D(plotDir + "Photon X position (mm)").fill(xpos);
-                aida.histogram1D(plotDir + "Photon Y position (mm)").fill(ypos);
+                aida.histogram1D(plotDir + triggerType + "/" + "Photon Energy (GeV)").fill(ene);
+                aida.histogram1D(plotDir + triggerType + "/" + "Photon X position (mm)").fill(xpos);
+                aida.histogram1D(plotDir + triggerType + "/" + "Photon Y position (mm)").fill(ypos);
             }
 
             if (hasCluster && !isPhoton) {
@@ -170,13 +190,13 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                 sumdelY += dy;
                 sumEoverP += eOverP;
 
-                aida.histogram1D(plotDir + "Cluster Energy Over TrackMomentum").fill(eOverP);
-                aida.histogram1D(plotDir + "delta X @ ECal (mm)").fill(dx);
-                aida.histogram1D(plotDir + "delta Y @ ECal (mm)").fill(dy);
+                aida.histogram1D(plotDir + triggerType + "/" + "Cluster Energy Over TrackMomentum").fill(eOverP);
+                aida.histogram1D(plotDir + triggerType + "/" + "delta X @ ECal (mm)").fill(dx);
+                aida.histogram1D(plotDir + triggerType + "/" + "delta Y @ ECal (mm)").fill(dy);
                 /* here are some plots for debugging track-cluster matching */
-                // aida.histogram2D(plotDir + "track X vs ECal X").fill(trackPosAtEcal.x(), clusterPosition.x());
-                // aida.histogram2D(plotDir + "track Y vs ECal Y").fill(trackPosAtEcal.y(), clusterPosition.y());
-                aida.histogram2D(plotDir + "track mom vs ECal E").fill(fsPart.getMomentum().magnitude(), fsPart.getEnergy());
+                // aida.histogram2D(plotDir + triggerType + "/" + "track X vs ECal X").fill(trackPosAtEcal.x(), clusterPosition.x());
+                // aida.histogram2D(plotDir + triggerType + "/" + "track Y vs ECal Y").fill(trackPosAtEcal.y(), clusterPosition.y());
+                aida.histogram2D(plotDir + triggerType + "/" + "track mom vs ECal E").fill(fsPart.getMomentum().magnitude(), fsPart.getEnergy());
                 //          if(dy<-20)
                 //              System.out.println("Big deltaY...")
 
@@ -186,8 +206,8 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                 nTotUnAss++; //and keep a running total for averaging
             }
         }
-        aida.histogram1D(plotDir + "Number of unassociated tracks per event").fill(nUnAssTracks);
-        aida.histogram1D(plotDir + "Number of photons per event").fill(nPhotons);
+        aida.histogram1D(plotDir + triggerType + "/" + "Number of unassociated tracks per event").fill(nUnAssTracks);
+        aida.histogram1D(plotDir + triggerType + "/" + "Number of photons per event").fill(nPhotons);
     }
 
     @Override
@@ -206,7 +226,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
         IFitFactory fitFactory = analysisFactory.createFitFactory();
         IFitter fitter = fitFactory.createFitter("chi2");
-        IHistogram1D beamE = aida.histogram1D(plotDir + "Beam Electrons Pz (GeV)");
+        IHistogram1D beamE = aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Pz (GeV)");
         IFitResult result = fitBeamEnergyPeak(beamE, fitter, "range=\"(-10.0,10.0)\"");
         double[] pars = result.fittedParameters();
         for (int i = 0; i < 5; i++)
@@ -251,5 +271,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 //        double[] init = {20.0, 2.2, 0.1};
         return fitter.fit(h1d, "g+p1", init);
     }
+
+  
 
 }
