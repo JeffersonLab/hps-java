@@ -307,8 +307,9 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
         
         for (IPlotter plotter : plotters.values()) {
-            for (int regionN = 0; regionN < 36; regionN++) { 
+            for (int regionN = 0; regionN < plotter.numberOfRegions(); regionN++) { 
                 PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
+			    if (region.getPlottedObjects().size() == 0) continue;
                 region.getPanel().addMouseListener(new PopupPlotterListener(region));
             }
             plotter.show();
