@@ -30,7 +30,7 @@ public final class SvtBadChannel extends BaseConditionsObject {
      * @return the channel ID
      */
     @Field(names = {"svt_channel_id"})
-    public int getChannelId() {
+    public Integer getChannelId() {
         return getFieldValue("svt_channel_id");
     }
 
@@ -39,7 +39,7 @@ public final class SvtBadChannel extends BaseConditionsObject {
      * @return a note about the bad channel
      */
     @Field(names = {"notes"})
-    public int getNote() {
+    public Integer getNote() {
         return getFieldValue("notes");
     }
 }

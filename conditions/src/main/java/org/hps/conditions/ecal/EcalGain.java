@@ -65,7 +65,7 @@ public final class EcalGain extends BaseConditionsObject {
      * @return the gain value
      */
     @Field(names = {"gain"})
-    public double getGain() {
+    public Double getGain() {
         return getFieldValue("gain");
     }
 
@@ -75,7 +75,7 @@ public final class EcalGain extends BaseConditionsObject {
      * @return the ECal channel ID
      */
     @Field(names = {"ecal_channel_id"})
-    public int getChannelId() {
+    public Integer getChannelId() {
         return getFieldValue("ecal_channel_id");
     }
 }

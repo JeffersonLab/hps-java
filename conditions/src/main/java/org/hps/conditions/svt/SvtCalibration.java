@@ -47,7 +47,7 @@ public final class SvtCalibration extends BaseConditionsObject {
      * @return The channel ID
      */
     @Field(names = {"svt_channel_id"})
-    public int getChannelID() {
+    public Integer getChannelID() {
         return getFieldValue("svt_channel_id");
     }
 
@@ -58,7 +58,7 @@ public final class SvtCalibration extends BaseConditionsObject {
      * @return the noise value
      */
     @Field(names = {"noise_0", "noise_1", "noise_2", "noise_3", "noise_4", "noise_5"})
-    public double getNoise(final int sample) {
+    public Double getNoise(final int sample) {
         if (sample < 0 || sample > MAX_NUMBER_OF_SAMPLES) {
             throw new IllegalArgumentException("Sample number is not within range.");
         }
@@ -72,7 +72,7 @@ public final class SvtCalibration extends BaseConditionsObject {
      * @return The pedestal value.
      */
     @Field(names = {"pedestal_0", "pedestal_1", "pedestal_2", "pedestal_3", "pedestal_4", "pedestal_5"})
-    public double getPedestal(final int sample) {
+    public Double getPedestal(final int sample) {
         if (sample < 0 || sample > MAX_NUMBER_OF_SAMPLES) {
             throw new IllegalArgumentException("Sample number is not within range.");
         }

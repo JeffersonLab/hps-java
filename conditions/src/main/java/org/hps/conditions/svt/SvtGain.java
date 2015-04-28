@@ -29,7 +29,7 @@ public final class SvtGain extends BaseConditionsObject {
      * @return The channel ID.
      */
     @Field(names = { "svt_channel_id" })
-    public int getChannelID() {
+    public Integer getChannelID() {
         return getFieldValue(Integer.class, "svt_channel_id");
     }
 
@@ -39,7 +39,7 @@ public final class SvtGain extends BaseConditionsObject {
      * @return The gain value.
      */
     @Field(names = { "gain" })
-    public double getGain() {
+    public Double getGain() {
         return getFieldValue(Double.class, "gain");
     }
 
@@ -49,7 +49,7 @@ public final class SvtGain extends BaseConditionsObject {
      * @return The offset value.
      */
     @Field(names = { "offset" })
-    public double getOffset() {
+    public Double getOffset() {
         return getFieldValue(Double.class, "offset");
     }
 }

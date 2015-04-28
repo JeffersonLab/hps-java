@@ -37,7 +37,7 @@ public abstract class AbstractSvtT0Shift extends BaseConditionsObject {
      * @return the t0 shift
      */
     @Field(names = {"t0_shift"})
-    public final double getT0Shift() {
+    public final Double getT0Shift() {
         return getFieldValue("t0_shift");
     }
 }

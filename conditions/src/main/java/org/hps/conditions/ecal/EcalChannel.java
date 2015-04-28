@@ -430,7 +430,7 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the channel number
      */
     @Field(names = {"channel"})
-    public int getChannel() {
+    public Integer getChannel() {
         return getFieldValue("channel");
     }
 
@@ -440,7 +440,7 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the ID of the channel
      */
     @Field(names = {"channel_id"})
-    public int getChannelId() {
+    public Integer getChannelId() {
         return getFieldValue("channel_id");
     }
 
@@ -450,7 +450,7 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the crate number
      */
     @Field(names = {"crate"})
-    public int getCrate() {
+    public Integer getCrate() {
         return getFieldValue("crate");
     }
 
@@ -460,7 +460,7 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the slot number
      */
     @Field(names = {"slot"})
-    public int getSlot() {
+    public Integer getSlot() {
         return getFieldValue("slot");
     }
 
@@ -470,7 +470,7 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the x value
      */
     @Field(names = {"x"})
-    public int getX() {
+    public Integer getX() {
         return getFieldValue("x");
     }
 
@@ -480,7 +480,7 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the y value
      */
     @Field(names = {"y"})
-    public int getY() {
+    public Integer getY() {
         return getFieldValue("y");
     }
 }

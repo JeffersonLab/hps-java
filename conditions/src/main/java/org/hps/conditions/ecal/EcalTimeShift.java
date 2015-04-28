@@ -64,7 +64,7 @@ public final class EcalTimeShift extends BaseConditionsObject {
      * @return the ECAL channel ID
      */
     @Field(names = {"ecal_channel_id"})
-    public int getChannelId() {
+    public Integer getChannelId() {
         return getFieldValue("ecal_channel_id");
     }
 
@@ -74,7 +74,7 @@ public final class EcalTimeShift extends BaseConditionsObject {
      * @return the time shift in nanoseconds
      */
     @Field(names = {"time_shift"})
-    public double getTimeShift() {
+    public Double getTimeShift() {
         return getFieldValue("time_shift");
     }
 }

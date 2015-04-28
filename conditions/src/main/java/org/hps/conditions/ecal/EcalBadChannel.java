@@ -62,7 +62,7 @@ public final class EcalBadChannel extends BaseConditionsObject {
      * @return the ECAL channel ID
      */
     @Field(names = {"ecal_channel_id"})
-    public int getChannelId() {
+    public Integer getChannelId() {
         return getFieldValue("ecal_channel_id");
     }
 }

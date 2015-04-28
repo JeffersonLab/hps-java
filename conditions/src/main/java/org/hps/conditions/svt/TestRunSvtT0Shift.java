@@ -47,7 +47,7 @@ public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
      * @return the FPGA ID
      */
     @Field(names = {"fpga"})
-    public int getFpgaID() {
+    public Integer getFpgaID() {
         return getFieldValue("fpga");
     }
 
@@ -57,7 +57,7 @@ public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
      * @return the hybrid ID
      */
     @Field(names = {"hybrid"})
-    public int getHybridID() {
+    public Integer getHybridID() {
         return getFieldValue("hybrid");
     }
 }

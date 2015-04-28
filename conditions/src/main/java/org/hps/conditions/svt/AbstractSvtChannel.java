@@ -96,7 +96,7 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
      * @return the SVT channel ID
      */
     @Field(names = {"channel_id"})
-    public final int getChannelID() {
+    public final Integer getChannelID() {
         return getFieldValue("channel_id");
     }
 
@@ -106,7 +106,7 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
      * @return the channel number
      */
     @Field(names = {"channel"})
-    public final int getChannel() {
+    public final Integer getChannel() {
         return getFieldValue("channel");
     }
 

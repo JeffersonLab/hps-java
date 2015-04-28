@@ -223,7 +223,7 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
      * @return the alignment constant's value as a double
      */
     @Field(names = { "value" })
-    public double getValue() {
+    public Double getValue() {
         return getFieldValue("value");
     }
 

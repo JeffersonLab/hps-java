@@ -36,7 +36,7 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      * @return The amplitude.
      */
     @Field(names = {"amplitude"})
-    public double getAmplitude() {
+    public Double getAmplitude() {
         return getFieldValue(Double.class, "amplitude");
     }
 
@@ -46,7 +46,7 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      * @return The SVT channel ID.
      */
     @Field(names = {"svt_channel_id"})
-    public int getChannelID() {
+    public Integer getChannelID() {
         return getFieldValue(Integer.class, "svt_channel_id");
     }
 
@@ -56,7 +56,7 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      * @return t0
      */
     @Field(names = {"t0"})
-    public double getT0() {
+    public Double getT0() {
         return getFieldValue(Double.class, "t0");
     }
 
@@ -66,7 +66,7 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      * @return the shaping time parameter
      */
     @Field(names = {"tp"})
-    public double getTp() {
+    public Double getTp() {
         return getFieldValue(Double.class, "tp");
     }
 
@@ -76,7 +76,7 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      * @return the second shaping time parameter
      */
     @Field(names = {"tp2"})
-    public double getTp2() {
+    public Double getTp2() {
         return getFieldValue(Double.class, "tp2");
     }
 

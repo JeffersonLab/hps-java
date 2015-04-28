@@ -65,7 +65,7 @@ public final class EcalLed extends BaseConditionsObject {
      * @return the ECAL channel ID
      */
     @Field(names = {"ecal_channel_id"})
-    public int getEcalChannelId() {
+    public Integer getEcalChannelId() {
         return getFieldValue("ecal_channel_id");
     }
 
@@ -75,7 +75,7 @@ public final class EcalLed extends BaseConditionsObject {
      * @return the crate number
      */
     @Field(names = {"crate"})
-    public int getCrateNumber() {
+    public Integer getCrateNumber() {
         return getFieldValue("crate");
     }
 
@@ -85,7 +85,7 @@ public final class EcalLed extends BaseConditionsObject {
      * @return the LED number
      */
     @Field(names = {"number"})
-    public int getLedNumber() {
+    public Integer getLedNumber() {
         return getFieldValue("number");
     }
 
@@ -95,7 +95,7 @@ public final class EcalLed extends BaseConditionsObject {
      * @return the time delay
      */
     @Field(names = {"time_delay"})
-    public double getTimeDelay() {
+    public Double getTimeDelay() {
         return getFieldValue("time_delay");
     }
 
@@ -105,7 +105,7 @@ public final class EcalLed extends BaseConditionsObject {
      * @return the amplitude high setting
      */
     @Field(names = {"amplitude_high"})
-    public double getAmplitudeHigh() {
+    public Double getAmplitudeHigh() {
         return getFieldValue("amplitude_high");
     }
 
@@ -115,7 +115,7 @@ public final class EcalLed extends BaseConditionsObject {
      * @return the amplitude low setting
      */
     @Field(names = {"amplitude_low"})
-    public double getAmplitudeLow() {
+    public Double getAmplitudeLow() {
         return getFieldValue("amplitude_low");
     }
 }

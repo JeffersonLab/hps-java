@@ -85,7 +85,7 @@ public final class EcalCalibration extends BaseConditionsObject {
      * @return the ECAL channel ID
      */
     @Field(names = {"ecal_channel_id"})
-    public int getChannelId() {
+    public Integer getChannelId() {
         return getFieldValue("ecal_channel_id");
     }
 
@@ -95,7 +95,7 @@ public final class EcalCalibration extends BaseConditionsObject {
      * @return the gain value
      */
     @Field(names = {"pedestal"})
-    public double getPedestal() {
+    public Double getPedestal() {
         return getFieldValue("pedestal");
     }
 
@@ -105,7 +105,7 @@ public final class EcalCalibration extends BaseConditionsObject {
      * @return the noise value
      */
     @Field(names = {"noise"})
-    public double getNoise() {
+    public Double getNoise() {
         return getFieldValue("noise");
     }
 }

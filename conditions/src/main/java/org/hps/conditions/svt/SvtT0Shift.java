@@ -48,7 +48,7 @@ public final class SvtT0Shift extends AbstractSvtT0Shift {
      * @return the FEB ID
      */
     @Field(names = {"feb_id"})
-    public int getFebID() {
+    public Integer getFebID() {
         return getFieldValue("feb_id");
     }
 
@@ -58,7 +58,7 @@ public final class SvtT0Shift extends AbstractSvtT0Shift {
      * @return the FEB hybrid ID
      */
     @Field(names = {"feb_hybrid_id"})
-    public int getFebHybridID() {
+    public Integer getFebHybridID() {
         return getFieldValue("feb_hybrid_id");
     }
 }

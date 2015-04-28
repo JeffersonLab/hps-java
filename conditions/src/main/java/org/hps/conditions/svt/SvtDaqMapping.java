@@ -137,7 +137,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      * @return the FEB Hybrid ID
      */
     @Field(names = {"feb_hybrid_id"})
-    public final int getFebHybridID() {
+    public final Integer getFebHybridID() {
         return getFieldValue("feb_hybrid_id");
     }
 
@@ -147,7 +147,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      * @return the FEB ID
      */
     @Field(names = {"feb_id"})
-    public final int getFebID() {
+    public final Integer getFebID() {
         return getFieldValue("feb_id");
     }
 

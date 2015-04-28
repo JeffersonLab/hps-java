@@ -105,7 +105,7 @@ public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
      * @return the FPGA ID
      */
     @Field(names = {"fpga"})
-    public int getFpgaID() {
+    public Integer getFpgaID() {
         return getFieldValue("fpga");
     }
 
@@ -115,7 +115,7 @@ public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
      * @return the Hybrid ID
      */
     @Field(names = {"hybrid"})
-    public int getHybridID() {
+    public Integer getHybridID() {
         return getFieldValue("hybrid");
     }
 }

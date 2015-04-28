@@ -52,7 +52,7 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
      * @return the FPGA ID
      */
     @Field(names = {"fpga"})
-    public int getFpgaID() {
+    public Integer getFpgaID() {
         return getFieldValue("fpga");
     }
 
@@ -62,7 +62,7 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
      * @return the hybrid ID
      */
     @Field(names = {"hybrid"})
-    public int getHybridID() {
+    public Integer getHybridID() {
         return getFieldValue("hybrid");
     }
 
