@@ -193,7 +193,7 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
      *
      * @return the alignment constant's key
      */
-    @Field(names = { "parameter" })
+    @Field(names = {"parameter"})
     public String getParameter() {
         return getFieldValue("parameter");
     }
@@ -222,7 +222,7 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
      *
      * @return the alignment constant's value as a double
      */
-    @Field(names = { "value" })
+    @Field(names = {"value"})
     public Double getValue() {
         return getFieldValue("value");
     }

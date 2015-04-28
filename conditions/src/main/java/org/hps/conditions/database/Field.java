@@ -6,11 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This is a java <code>Annotation</code> for assigning a "get" method
- * to one or more database table columns.
+ * This is a java <code>Annotation</code> for assigning a "get" method to one or more database table columns.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD) 
+@Target(ElementType.METHOD)
 public @interface Field {
 
     /**

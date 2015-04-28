@@ -31,10 +31,9 @@ public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsCo
      * @param manager the conditions manager
      * @return the Test Run {@link SvtShapeFitParametersCollection}
      */
-    protected SvtShapeFitParametersCollection getSvtShapeFitParametersCollection(
-            final DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(SvtShapeFitParametersCollection.class,
-                "test_run_svt_shape_fit_parameters").getCachedData();
+    protected SvtShapeFitParametersCollection getSvtShapeFitParametersCollection(final DatabaseConditionsManager manager) {
+        return manager.getCachedConditions(SvtShapeFitParametersCollection.class, "test_run_svt_shape_fit_parameters")
+                .getCachedData();
     }
 
     /**
@@ -104,6 +103,7 @@ public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsCo
 
     /**
      * Get the type handled by this converter.
+     * 
      * @return The type handled by this converter.
      */
     @Override

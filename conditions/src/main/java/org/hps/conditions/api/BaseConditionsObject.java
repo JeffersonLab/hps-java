@@ -41,7 +41,7 @@ public class BaseConditionsObject implements ConditionsObject {
         final StringBuffer sb = new StringBuffer();
         sb.append("id: " + object.getRowId() + ", ");
         for (final String field : object.getFieldValues().getFieldNames()) {
-            sb.append(field + "=" + object.getFieldValue(Object.class, field) + ", ");
+            sb.append(field + ": " + object.getFieldValue(Object.class, field) + ", ");
         }
         sb.setLength(sb.length() - 2);
         sb.append('\n');

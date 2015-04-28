@@ -6,17 +6,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation can be used to assign a class to one
- * or more database tables.
+ * This annotation can be used to assign a class to one or more database tables.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE) 
+@Target(ElementType.TYPE)
 public @interface Table {
 
     /**
      * Get the names of the tables.
+     * 
      * @return the names of the tables
      */
     String[] names() default "";

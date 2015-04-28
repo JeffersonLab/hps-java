@@ -20,7 +20,6 @@ import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.log.LogUtil;
 
-
 /**
  * This class puts {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.
  *
@@ -56,6 +55,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
     /**
      * Constructor that takes name of SVT.
+     * 
      * @param svtName the name of the SVT subdetector
      */
     public SvtDetectorSetup(final String svtName) {
@@ -64,6 +64,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
     /**
      * Set the name of the SVT in the detector model.
+     * 
      * @param svtName the name of the SVt in the detector model.
      */
     public void setSvtName(final String svtName) {
@@ -72,6 +73,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
     /**
      * Set whether this class is enabled to be activated on conditions changes.
+     * 
      * @param enabled <code>true</code> to enable
      */
     public void setEnabled(final boolean enabled) {
@@ -80,6 +82,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
     /**
      * Set the log level.
+     * 
      * @param level the log level
      */
     public void setLogLevel(final Level level) {
@@ -99,12 +102,12 @@ public final class SvtDetectorSetup implements ConditionsListener {
             final Subdetector subdetector = manager.getDetectorObject().getSubdetector(svtName);
             if (subdetector != null) {
                 if (manager.isTestRun()) {
-                    final TestRunSvtConditions svtConditions = manager.getCachedConditions(
-                            TestRunSvtConditions.class, "test_run_svt_conditions").getCachedData();
+                    final TestRunSvtConditions svtConditions = manager.getCachedConditions(TestRunSvtConditions.class,
+                            "test_run_svt_conditions").getCachedData();
                     loadTestRun(subdetector, svtConditions);
                 } else {
-                    final SvtConditions svtConditions = manager.getCachedConditions(
-                            SvtConditions.class, "svt_conditions").getCachedData();
+                    final SvtConditions svtConditions = manager.getCachedConditions(SvtConditions.class,
+                            "svt_conditions").getCachedData();
                     loadDefault(subdetector, svtConditions);
                 }
             } else {
@@ -203,9 +206,10 @@ public final class SvtDetectorSetup implements ConditionsListener {
             sensor.setT0Shift(sensorT0Shift.getT0Shift());
         }
     }
-    
+
     /**
      * Load conditions from Test Run detector.
+     * 
      * @param subdetector the SVT subdetector object
      * @param conditions the Test Run conditions
      */

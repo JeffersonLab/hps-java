@@ -8,8 +8,7 @@ import org.apache.commons.cli.Parser;
 import org.apache.commons.cli.PosixParser;
 
 /**
- * This is the API that sub-commands such as 'load' or 'print' must implement
- * in the conditions command line interface.
+ * This is the API that sub-commands such as 'load' or 'print' must implement in the conditions command line interface.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
@@ -37,6 +36,7 @@ abstract class AbstractCommand {
 
     /**
      * Class constructor.
+     * 
      * @param name the string that invokes this command
      * @param description the description of this command
      * @param options the command's options (Apache CLI)
@@ -49,6 +49,7 @@ abstract class AbstractCommand {
 
     /**
      * Get the name of this command.
+     * 
      * @return the name of this command
      */
     final String getName() {
@@ -57,6 +58,7 @@ abstract class AbstractCommand {
 
     /**
      * Get the description of this command.
+     * 
      * @return the description of this command
      */
     protected final String getDescription() {
@@ -65,6 +67,7 @@ abstract class AbstractCommand {
 
     /**
      * Get the <code>Options</code> for this command (Apache CLI).
+     * 
      * @return the <code>Options</code> object for this command
      */
     protected final Options getOptions() {
@@ -81,6 +84,7 @@ abstract class AbstractCommand {
 
     /**
      * Parse the sub-command's options.
+     * 
      * @param arguments the sub-command's arguments
      * @return the parsed command line
      */
@@ -100,6 +104,7 @@ abstract class AbstractCommand {
 
     /**
      * The sub-command execution method that should be implemented by sub-classes.
+     * 
      * @param arguments The command's argument list.
      */
     abstract void execute(final String[] arguments);

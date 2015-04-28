@@ -45,13 +45,14 @@ public class CollectionIdTest extends TestCase {
      * @throws SQLException if there is an error executing SQL queries
      */
     public void testCollectionId() throws SQLException {
-    	
-    	DummyConditionsObjectCollection collection = manager.newCollection(DummyConditionsObjectCollection.class);
-    	
-        int collectionId = this.manager.getCollectionId(collection, "test add", "foo bar baz");
+
+        final DummyConditionsObjectCollection collection = this.manager
+                .newCollection(DummyConditionsObjectCollection.class);
+
+        int collectionId = this.manager.getCollectionId(collection, "foo bar baz");
         System.out.println("created new collection " + collectionId);
 
-        collectionId = this.manager.getCollectionId(collection, null, null);
+        collectionId = this.manager.getCollectionId(collection, null);
         System.out.println("created new collection " + collectionId);
     }
 }

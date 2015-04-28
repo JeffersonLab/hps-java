@@ -24,8 +24,16 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     private final Set<ObjectType> objects = new LinkedHashSet<ObjectType>();
     private TableMetaData tableMetaData;
     private boolean isDirty;
+    private Class<ObjectType> type;
 
     protected BaseConditionsObjectCollection() {
+    }
+
+    public BaseConditionsObjectCollection(final Connection connection, final TableMetaData tableMetaData)
+            throws SQLException, DatabaseObjectException {
+        this.connection = connection;
+        this.tableMetaData = tableMetaData;
+        this.type = (Class<ObjectType>) tableMetaData.getObjectClass();
     }
 
     public BaseConditionsObjectCollection(final Connection connection, final TableMetaData tableMetaData,
@@ -36,6 +44,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
         if (collectionId != -1) {
             select(collectionId);
         }
+        this.type = (Class<ObjectType>) tableMetaData.getObjectClass();
     }
 
     @Override
@@ -428,12 +437,12 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
         }
         return exists;
     }
-    
+
     protected Set<ObjectType> getObjects() {
-    	return this.objects;
+        return this.objects;
     }
-    
+
     protected void setIsDirty(boolean isDirty) {
-    	this.isDirty = isDirty;
+        this.isDirty = isDirty;
     }
 }

@@ -31,17 +31,17 @@ public final class CommandLineTool {
      * Setup logging.
      */
     private static final Logger LOGGER = LogUtil.create(CommandLineTool.class);
-    
+
     private static Options OPTIONS = new Options();
-    
+
     static {
-    	OPTIONS.addOption(new Option("h", false, "print help"));
-    	OPTIONS.addOption(new Option("d", true, "detector name"));
-    	OPTIONS.addOption(new Option("r", true, "run number"));
-    	OPTIONS.addOption(new Option("p", true, "database connection properties file"));
-    	OPTIONS.addOption(new Option("x", true, "conditions XML configuration file"));
-    	OPTIONS.addOption(new Option("t", true, "conditions tag to use for filtering records"));
-    	OPTIONS.addOption(new Option("l", true, "log level of the conditions manager (INFO, FINE, etc.)"));
+        OPTIONS.addOption(new Option("h", false, "print help"));
+        OPTIONS.addOption(new Option("d", true, "detector name"));
+        OPTIONS.addOption(new Option("r", true, "run number"));
+        OPTIONS.addOption(new Option("p", true, "database connection properties file"));
+        OPTIONS.addOption(new Option("x", true, "conditions XML configuration file"));
+        OPTIONS.addOption(new Option("t", true, "conditions tag to use for filtering records"));
+        OPTIONS.addOption(new Option("l", true, "log level of the conditions manager (INFO, FINE, etc.)"));
     }
 
     /**
@@ -141,7 +141,7 @@ public final class CommandLineTool {
                 printUsage();
                 exit(0);
             }
-            
+
             // Setup conditions manager from command line options.
             setupConditionsManager(commandLine);
 
@@ -177,14 +177,14 @@ public final class CommandLineTool {
 
         // Create new manager.
         this.conditionsManager = DatabaseConditionsManager.getInstance();
-        
+
         // Set the conditions manager log level (does not affect logger of this class or sub-commands).
         if (commandLine.hasOption("l")) {
-        	Level level = Level.parse(commandLine.getOptionValue("l"));
-        	conditionsManager.setLogLevel(level);
-        	LOGGER.config("conditions manager log level will be set to " + level.toString());
+            Level level = Level.parse(commandLine.getOptionValue("l"));
+            conditionsManager.setLogLevel(level);
+            LOGGER.config("conditions manager log level will be set to " + level.toString());
         }
-       
+
         // Connection properties.
         if (commandLine.hasOption("p")) {
             final File connectionPropertiesFile = new File(commandLine.getOptionValue("p"));
@@ -198,26 +198,28 @@ public final class CommandLineTool {
             this.conditionsManager.setXmlConfig(xmlConfigFile);
             LOGGER.config("using XML config " + xmlConfigFile.getPath());
         }
-        
+
         // User specified tag of conditions records.
         if (commandLine.hasOption("t")) {
-        	String tag = commandLine.getOptionValue("t");
+            String tag = commandLine.getOptionValue("t");
             conditionsManager.setTag(tag);
             LOGGER.config("using tag " + tag);
         }
 
         // If there is a run number or detector number then attempt to initialize the conditions system.
         if (commandLine.hasOption("r") || commandLine.hasOption("d")) {
-        	
-        	if (!commandLine.hasOption("r")) {
-            	// Missing run number.
-        		throw new RuntimeException("Missing -r option with run number which must be given when detector name is used.");
-        	}
-        	
-        	if (!commandLine.hasOption("d")) {
-            	// Missing detector name.
-        		throw new RuntimeException("Missing -d option with detector name which must be given when run number is used.");
-        	}
+
+            if (!commandLine.hasOption("r")) {
+                // Missing run number.
+                throw new RuntimeException(
+                        "Missing -r option with run number which must be given when detector name is used.");
+            }
+
+            if (!commandLine.hasOption("d")) {
+                // Missing detector name.
+                throw new RuntimeException(
+                        "Missing -d option with detector name which must be given when run number is used.");
+            }
 
             // Set detector name.
             String detectorName = null;
@@ -239,14 +241,15 @@ public final class CommandLineTool {
 
             // Setup the conditions manager with user detector name and run number.
             try {
-                LOGGER.config("Initializing conditions manager with detector " + detectorName + " and run " + run + " ...");
+                LOGGER.config("Initializing conditions manager with detector " + detectorName + " and run " + run
+                        + " ...");
                 DatabaseConditionsManager.getInstance().setDetector(detectorName, run);
                 LOGGER.config("Conditions manager was initialized successfully!");
                 LOGGER.getHandlers()[0].flush();
             } catch (final ConditionsNotFoundException e) {
                 throw new RuntimeException("Error setting up the conditions manager.", e);
             }
-        }         
+        }
         LOGGER.info("Done setting up the conditions manager!");
     }
 }

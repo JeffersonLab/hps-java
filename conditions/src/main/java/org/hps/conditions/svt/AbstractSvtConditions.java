@@ -17,8 +17,7 @@ public abstract class AbstractSvtConditions {
     /**
      * A map between the channel object and its conditions constants.
      */
-    private Map<AbstractSvtChannel, ChannelConstants> channelData =
-            new HashMap<AbstractSvtChannel, ChannelConstants>();
+    private Map<AbstractSvtChannel, ChannelConstants> channelData = new HashMap<AbstractSvtChannel, ChannelConstants>();
 
     /**
      * The time shift collection.
@@ -46,9 +45,8 @@ public abstract class AbstractSvtConditions {
     public abstract AbstractSvtDaqMappingCollection<? extends AbstractSvtDaqMapping> getDaqMap();
 
     /**
-     * Get the conditions constants for a specific channel. These will be
-     * created if they do not exist for the given channel, BUT only channels in
-     * the current channel map are allowed as an argument.
+     * Get the conditions constants for a specific channel. These will be created if they do not exist for the given
+     * channel, BUT only channels in the current channel map are allowed as an argument.
      *
      * @param channel the SVT channel of interest
      * @return the conditions constants for the given channel

@@ -172,10 +172,10 @@ final class PrintCommand extends AbstractCommand {
         final StringBuffer buffer = new StringBuffer();
         for (final Object object : collection) {
             for (final String columnName : collection.getTableMetaData().getFieldNames()) {
-            	if (!"collection_id".equals(columnName)) {
-            		buffer.append(((ConditionsObject) object).getFieldValue(columnName));
-            		buffer.append(this.fieldDelimiter);
-            	}
+                if (!"collection_id".equals(columnName)) {
+                    buffer.append(((ConditionsObject) object).getFieldValue(columnName));
+                    buffer.append(this.fieldDelimiter);
+                }
             }
             buffer.setLength(buffer.length() - 1);
             buffer.append('\n');
@@ -191,10 +191,9 @@ final class PrintCommand extends AbstractCommand {
      * @param collection the collection
      */
     private void printCollectionHeader(final ConditionsObjectCollection<?> collection) {
-        LOGGER.info('\n' + "--------------------------------------" + '\n' 
-        		+ "table: " + collection.getTableMetaData().getTableName() + '\n'
-        		+ "collection ID: " + collection.getCollectionId() + '\n'
-        		+ "--------------------------------------");
+        LOGGER.info('\n' + "--------------------------------------" + '\n' + "table: "
+                + collection.getTableMetaData().getTableName() + '\n' + "collection ID: "
+                + collection.getCollectionId() + '\n' + "--------------------------------------");
     }
 
     /**
@@ -226,10 +225,10 @@ final class PrintCommand extends AbstractCommand {
             this.ps.print(this.fieldDelimiter);
         }
         for (final String columnName : tableMetaData.getFieldNames()) {
-        	if (!"collection_id".equals(columnName)) {
-        		this.ps.print(columnName);
-        		this.ps.print(this.fieldDelimiter);
-        	}
+            if (!"collection_id".equals(columnName)) {
+                this.ps.print(columnName);
+                this.ps.print(this.fieldDelimiter);
+            }
         }
         this.ps.println();
     }

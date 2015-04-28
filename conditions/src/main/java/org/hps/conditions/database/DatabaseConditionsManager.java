@@ -279,51 +279,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Add a row for a new collection and return the new collection ID assigned to it.
-     *
-     * @param tableName the name of the table
-     * @param comment an optional comment about this new collection
-     * @return the collection's ID
-     * @throws SQLException
-     */
-    public synchronized int getCollectionId(final ConditionsObjectCollection<?> collection, final String description)
-            throws SQLException {
-    	
-    	final String caller = Thread.currentThread().getStackTrace()[2].getClassName();
-    	final String log = caller + " created by " + System.getProperty("user.name");
-        final boolean opened = this.openConnection();
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        int collectionId = -1;
-        try {
-            statement = this.connection.prepareStatement(
-                    "INSERT INTO collections (table_name, log, description, created) VALUES (?, ?, ?, NOW())",
-                    Statement.RETURN_GENERATED_KEYS);
-            statement.setString(1, collection.getTableMetaData().getTableName());
-            statement.setString(2, log);
-            if (description == null) {
-                statement.setNull(3, java.sql.Types.VARCHAR);
-            } else {
-                statement.setString(3, description);
-            }
-            statement.execute();
-            resultSet = statement.getGeneratedKeys();
-            resultSet.next();
-            collectionId = resultSet.getInt(1);
-        } finally {
-            if (resultSet != null) {
-                resultSet.close();
-            }
-            if (statement != null) {
-                statement.close();
-            }
-            this.closeConnection(opened);
-        }
-        collection.setCollectionId(collectionId);
-        return collectionId;
-    }
-
-    /**
      * Cache conditions sets for all known tables.
      */
     private void cacheConditionsSets() {
@@ -484,6 +439,52 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
+     * Add a row for a new collection and return the new collection ID assigned to it.
+     *
+     * @param tableName the name of the table
+     * @param comment an optional comment about this new collection
+     * @return the collection's ID
+     * @throws SQLException
+     */
+    public synchronized int getCollectionId(final ConditionsObjectCollection<?> collection, final String description)
+            throws SQLException {
+
+        final String caller = Thread.currentThread().getStackTrace()[2].getClassName();
+        final String log = caller.substring(caller.lastIndexOf('.') + 1) + " created by "
+                + System.getProperty("user.name");
+        final boolean opened = this.openConnection();
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        int collectionId = -1;
+        try {
+            statement = this.connection.prepareStatement(
+                    "INSERT INTO collections (table_name, log, description, created) VALUES (?, ?, ?, NOW())",
+                    Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, collection.getTableMetaData().getTableName());
+            statement.setString(2, log);
+            if (description == null) {
+                statement.setNull(3, java.sql.Types.VARCHAR);
+            } else {
+                statement.setString(3, description);
+            }
+            statement.execute();
+            resultSet = statement.getGeneratedKeys();
+            resultSet.next();
+            collectionId = resultSet.getInt(1);
+        } finally {
+            if (resultSet != null) {
+                resultSet.close();
+            }
+            if (statement != null) {
+                statement.close();
+            }
+            this.closeConnection(opened);
+        }
+        collection.setCollectionId(collectionId);
+        return collectionId;
+    }
+
+    /**
      * Get a list of all the {@link ConditionsRecord} objects.
      *
      * @return the list of all the {@link ConditionsRecord} objects
@@ -542,8 +543,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the JDBC connection
      */
     public Connection getConnection() {
-        if (!isConnected()) {
-            openConnection();
+        if (!this.isConnected()) {
+            this.openConnection();
         }
         return this.connection;
     }
@@ -634,7 +635,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return <code>true</code> if a conditions record exists with the given name
      */
     public boolean hasConditionsRecord(final String name) {
-        return findConditionsRecords(name).size() != 0;
+        return this.findConditionsRecords(name).size() != 0;
     }
 
     /**
@@ -735,7 +736,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             tableMetaData = metaDataList.get(0);
         }
         if (collection.getCollectionId() == -1) {
-        	collection.setCollectionId(this.getCollectionId(collection, null));
+            collection.setCollectionId(this.getCollectionId(collection, null));
         }
 
         logger.info("inserting collection with ID " + collection.getCollectionId() + " and key "
@@ -904,6 +905,40 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             return false;
         }
         return this.tag.equals(recordTag);
+    }
+
+    public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(
+            final Class<CollectionType> collectionType) {
+        final List<TableMetaData> tableMetaDataList = TableRegistry.getTableRegistry().findByCollectionType(
+                collectionType);
+        if (tableMetaDataList.size() > 1) {
+            throw new RuntimeException("More than one table meta data object returned for type: "
+                    + collectionType.getName());
+        }
+        final TableMetaData tableMetaData = tableMetaDataList.get(0);
+        CollectionType collection;
+        try {
+            collection = collectionType.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException("Error creating new collection.", e);
+        }
+        collection.setTableMetaData(tableMetaData);
+        collection.setConnection(this.getConnection());
+        return collection;
+    }
+
+    public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(
+            final Class<CollectionType> collectionType, final String tableName) {
+        final TableMetaData tableMetaData = TableRegistry.getTableRegistry().findByTableName(tableName);
+        CollectionType collection;
+        try {
+            collection = collectionType.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException("Error creating new collection.", e);
+        }
+        collection.setTableMetaData(tableMetaData);
+        collection.setConnection(this.getConnection());
+        return collection;
     }
 
     /**
@@ -1176,35 +1211,5 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         DatabaseUtilities.cleanup(resultSet);
         this.closeConnection(openedConnection);
         return keys;
-    }
-    
-    public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(Class<CollectionType> collectionType) {
-    	List<TableMetaData> tableMetaDataList = TableRegistry.getTableRegistry().findByCollectionType(collectionType);
-    	if (tableMetaDataList.size() > 1) {
-    		throw new RuntimeException("More than one table meta data object returned for type: " + collectionType.getName());
-    	}
-    	TableMetaData tableMetaData = tableMetaDataList.get(0);
-    	CollectionType collection;
-		try {
-			collection = collectionType.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new RuntimeException("Error creating new collection.", e);
-		}
-    	collection.setTableMetaData(tableMetaData);
-    	collection.setConnection(this.getConnection());
-    	return collection;
-    }
-    
-    public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(Class<CollectionType> collectionType, String tableName) {
-    	TableMetaData tableMetaData = TableRegistry.getTableRegistry().findByTableName(tableName);
-    	CollectionType collection;
-		try {
-			collection = collectionType.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new RuntimeException("Error creating new collection.", e);
-		}
-    	collection.setTableMetaData(tableMetaData);
-    	collection.setConnection(this.getConnection());
-    	return collection;
     }
 }

@@ -10,8 +10,7 @@ import java.util.ArrayList;
  * @param <CollectionType> the type of the conditions collection
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-@SuppressWarnings({ "serial" })
-public class 
-    ConditionsSeries<ObjectType extends ConditionsObject, CollectionType extends ConditionsObjectCollection<ObjectType>>
-    extends ArrayList<ConditionsObjectCollection<ObjectType>> {
+@SuppressWarnings({"serial"})
+public class ConditionsSeries<ObjectType extends ConditionsObject, CollectionType extends ConditionsObjectCollection<ObjectType>>
+        extends ArrayList<ConditionsObjectCollection<ObjectType>> {
 }

@@ -4,8 +4,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hps.conditions.api.AbstractConditionsObjectConverter;
-import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
@@ -52,7 +52,7 @@ public final class ConditionsRecordConverter extends AbstractConditionsObjectCon
         final ResultSet resultSet = databaseConditionsManager.selectQuery(query);
 
         // Create a collection to return.
-        BaseConditionsObjectCollection collection;
+        ConditionsObjectCollection collection;
         try {
             collection = tableMetaData.getCollectionClass().newInstance();
         } catch (InstantiationException | IllegalAccessException e) {

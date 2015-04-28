@@ -1,7 +1,6 @@
 /**
- * This package contains classes for converting database information
- * into conditions classes as well as updating the records from the
- * objects.
+ * This package contains classes for converting database information into conditions classes as well as updating the
+ * records from the objects.
  *
  * @see DatabaseConditionsManager
  * @see TableMetaData
@@ -10,3 +9,4 @@
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 package org.hps.conditions.database;
+

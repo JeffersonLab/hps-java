@@ -38,7 +38,7 @@ public final class SvtCalibration extends BaseConditionsObject {
      * @param channelID the SVT channel ID
      */
     public SvtCalibration(final int channelID) {
-       this.setChannelID(channelID);
+        this.setChannelID(channelID);
     }
 
     /**

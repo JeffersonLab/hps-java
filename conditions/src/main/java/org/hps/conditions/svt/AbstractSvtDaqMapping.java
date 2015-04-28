@@ -20,7 +20,7 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
      */
     @SuppressWarnings("serial")
     public static abstract class AbstractSvtDaqMappingCollection<T extends AbstractSvtDaqMapping> extends
-    BaseConditionsObjectCollection<T> {
+            BaseConditionsObjectCollection<T> {
 
         /**
          * Get a DAQ pair for the given {@link HpsSiSensor}.
@@ -66,7 +66,7 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
      *
      * @return SVT sensor layer number
      */
-    @Field(names = { "layer" })
+    @Field(names = {"layer"})
     public final int getLayerNumber() {
         return getFieldValue("layer");
     }
@@ -78,7 +78,7 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
      * @see STEREO
      * @return the orientation of the SVT sensor
      */
-    @Field(names = { "orientation" })
+    @Field(names = {"orientation"})
     public final String getOrientation() {
         return getFieldValue("orientation");
     }
@@ -88,7 +88,7 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
      *
      * @return SVT half (TOP or BOTTOM)
      */
-    @Field(names = { "svt_half" })
+    @Field(names = {"svt_half"})
     public final String getSvtHalf() {
         return getFieldValue("svt_half");
     }

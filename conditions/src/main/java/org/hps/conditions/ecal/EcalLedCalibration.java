@@ -47,7 +47,7 @@ public final class EcalLedCalibration extends BaseConditionsObject {
      * 
      * @return The ECAL channel ID.
      */
-    @Field(names = { "ecal_channel_id" })
+    @Field(names = {"ecal_channel_id"})
     public Integer getEcalChannelId() {
         return getFieldValue("ecal_channel_id");
     }
@@ -57,7 +57,7 @@ public final class EcalLedCalibration extends BaseConditionsObject {
      * 
      * @return the average LED response
      */
-    @Field(names = { "led_response" })
+    @Field(names = {"led_response"})
     public Double getLedResponse() {
         return getFieldValue("led_response");
     }
@@ -67,7 +67,7 @@ public final class EcalLedCalibration extends BaseConditionsObject {
      * 
      * @return the RMS of the LED response
      */
-    @Field(names = { "rms" })
+    @Field(names = {"rms"})
     public Integer getRms() {
         return getFieldValue("rms");
     }

@@ -1,9 +1,8 @@
 package org.hps.conditions.database;
 
 /**
- * This is the action that should be used to pick a conditions set
- * if there are multiple conditions sets returned from a query on
- * type and name.
+ * This is the action that should be used to pick a conditions set if there are multiple conditions sets returned from a
+ * query on type and name.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */

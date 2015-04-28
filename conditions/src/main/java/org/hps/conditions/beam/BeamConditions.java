@@ -8,11 +8,9 @@ import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 /**
- * Beam-related detector conditions, including current, position
- * in X and Y, and energy.
+ * Beam-related detector conditions, including current, position in X and Y, and energy.
  * <p>
- * Unless otherwise stated, these are assumed to be average values
- * for an entire run.
+ * Unless otherwise stated, these are assumed to be average values for an entire run.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
@@ -34,9 +32,9 @@ public final class BeamConditions extends BaseConditionsObject {
     }
 
     /**
-     * Get the average beam current (nA).
-     * A value of 0 indicates there was no beam.
-     * A null value means it was not recorded.
+     * Get the average beam current (nA). A value of 0 indicates there was no beam. A null value means it was not
+     * recorded.
+     * 
      * @return the beam current (nA)
      */
     @Field(names = {"current"})
@@ -46,6 +44,7 @@ public final class BeamConditions extends BaseConditionsObject {
 
     /**
      * Get the average beam position in X (mm).
+     * 
      * @return the beam position (mm)
      */
     @Field(names = {"position_x"})
@@ -55,6 +54,7 @@ public final class BeamConditions extends BaseConditionsObject {
 
     /**
      * Get the average beam position in Y (mm).
+     * 
      * @return the beam position (mm)
      */
     @Field(names = {"position_y"})
@@ -63,9 +63,8 @@ public final class BeamConditions extends BaseConditionsObject {
     }
 
     /**
-     * Get the beam energy (GeV).
-     * A value of 0 indicates there was no beam.
-     * A null value means it was not recorded.
+     * Get the beam energy (GeV). A value of 0 indicates there was no beam. A null value means it was not recorded.
+     * 
      * @return the beam energy
      */
     @Field(names = {"energy"})

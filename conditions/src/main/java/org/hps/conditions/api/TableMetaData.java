@@ -118,7 +118,7 @@ public final class TableMetaData {
      *
      * @return the collection class
      */
-    public Class<? extends BaseConditionsObjectCollection<?>> getCollectionClass() {
+    public Class<? extends ConditionsObjectCollection<?>> getCollectionClass() {
         return this.collectionClass;
     }
 

@@ -12,7 +12,7 @@ import org.hps.conditions.database.Table;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-@Table(names = { "svt_gains", "test_run_svt_gains" })
+@Table(names = {"svt_gains", "test_run_svt_gains"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class SvtGain extends BaseConditionsObject {
 
@@ -28,7 +28,7 @@ public final class SvtGain extends BaseConditionsObject {
      *
      * @return The channel ID.
      */
-    @Field(names = { "svt_channel_id" })
+    @Field(names = {"svt_channel_id"})
     public Integer getChannelID() {
         return getFieldValue(Integer.class, "svt_channel_id");
     }
@@ -38,7 +38,7 @@ public final class SvtGain extends BaseConditionsObject {
      *
      * @return The gain value.
      */
-    @Field(names = { "gain" })
+    @Field(names = {"gain"})
     public Double getGain() {
         return getFieldValue(Double.class, "gain");
     }
@@ -48,7 +48,7 @@ public final class SvtGain extends BaseConditionsObject {
      *
      * @return The offset value.
      */
-    @Field(names = { "offset" })
+    @Field(names = {"offset"})
     public Double getOffset() {
         return getFieldValue(Double.class, "offset");
     }

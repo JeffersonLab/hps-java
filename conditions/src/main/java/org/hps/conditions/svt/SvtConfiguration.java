@@ -22,7 +22,7 @@ import org.jdom.output.XMLOutputter;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-@Table(names = { "svt_configurations" })
+@Table(names = {"svt_configurations"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
 public final class SvtConfiguration extends BaseConditionsObject {
 
@@ -38,7 +38,7 @@ public final class SvtConfiguration extends BaseConditionsObject {
      *
      * @return The filename associated with the configuration.
      */
-    @Field(names = { "filename" })
+    @Field(names = {"filename"})
     public String getFileName() {
         return getFieldValue("filename");
     }
@@ -48,7 +48,7 @@ public final class SvtConfiguration extends BaseConditionsObject {
      *
      * @return the content of the XML file as a byte array
      */
-    @Field(names = { "content" })
+    @Field(names = {"content"})
     public byte[] getContent() {
         return getFieldValue("content");
     }

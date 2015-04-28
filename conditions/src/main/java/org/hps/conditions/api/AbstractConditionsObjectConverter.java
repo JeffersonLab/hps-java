@@ -27,10 +27,10 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
      * @return the conditions object collection
      * @throws ConditionsObjectException if there is a problem creating the collection
      */
-    static final BaseConditionsObjectCollection<?> createCollection(final DatabaseConditionsManager manager,
+    private static final ConditionsObjectCollection<?> createCollection(final DatabaseConditionsManager manager,
             final ConditionsRecord conditionsRecord, final TableMetaData tableMetaData)
             throws ConditionsObjectException {
-        BaseConditionsObjectCollection<?> collection;
+        ConditionsObjectCollection<?> collection;
         try {
             collection = tableMetaData.getCollectionClass().newInstance();
             if (conditionsRecord != null) {

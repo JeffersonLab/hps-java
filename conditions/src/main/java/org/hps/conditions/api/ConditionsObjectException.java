@@ -1,9 +1,7 @@
 package org.hps.conditions.api;
 
-
 /**
- * Thrown by methods of {@link ConditionsObject} or other associated classes
- * such as converters and collections.
+ * Thrown by methods of {@link ConditionsObject} or other associated classes such as converters and collections.
  */
 @SuppressWarnings("serial")
 public final class ConditionsObjectException extends Exception {
@@ -45,6 +43,7 @@ public final class ConditionsObjectException extends Exception {
 
     /**
      * Get the associated conditions object to the error.
+     * 
      * @return the object associated with the error
      */
     public ConditionsObject getConditionsObject() {
