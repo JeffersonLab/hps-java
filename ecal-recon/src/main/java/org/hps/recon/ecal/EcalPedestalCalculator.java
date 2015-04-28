@@ -168,7 +168,7 @@ public class EcalPedestalCalculator extends Driver {
 
         int collectionId = -1;
         try {
-            collectionId = conditionsManager.addCollection(dbTableName, "EcalPedestalCalculator added by " + System.getProperty("user.name"), null);
+            collectionId = conditionsManager.getCollectionId(calibrations, "EcalPedestalCalculator added by " + System.getProperty("user.name"), null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

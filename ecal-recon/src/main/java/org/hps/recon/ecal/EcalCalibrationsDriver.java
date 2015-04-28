@@ -293,7 +293,7 @@ public class EcalCalibrationsDriver extends Driver {
     private void loadCalibrations(EcalCalibrationCollection calibrations) {
         int collectionId = -1;
         try {
-            conditionsManager.addCollection(ECAL_CALIBRATIONS, "EcalCalibrationsDriver added by " + System.getProperty("user.name"), null);
+            conditionsManager.getCollectionId(calibrations, "EcalCalibrationsDriver added by " + System.getProperty("user.name"), null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
