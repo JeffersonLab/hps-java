@@ -13,8 +13,9 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
+import hep.aida.jfree.plotter.Plotter;
+import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.ref.rootwriter.RootFileStore;
-
 import hep.physics.vec.Hep3Vector;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -306,10 +307,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
         
         for (IPlotter plotter : plotters.values()) {
-            /*for (int regionN = 0; regionN < 36; regionN++) { 
+            for (int regionN = 0; regionN < 36; regionN++) { 
                 PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
                 region.getPanel().addMouseListener(new PopupPlotterListener(region));
-            }*/
+            }
             plotter.show();
         }
     }
