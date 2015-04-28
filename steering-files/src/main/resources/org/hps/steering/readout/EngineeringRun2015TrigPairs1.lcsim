@@ -25,8 +25,8 @@
             <eventInterval>1000</eventInterval>
         </driver>        
     <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-         <detectorName>HPS-ECalCommissioning-v3</detectorName>
-          <runNumber>3422</runNumber>
+         <detectorName>${detector}</detectorName>
+          <runNumber>${run}</runNumber>
         <freeze>true</freeze>
     </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
