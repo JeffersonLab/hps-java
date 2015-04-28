@@ -6,50 +6,60 @@
 -->
     <execute>
        <driver name="EventMarkerDriver" />
-<!--  the 3 drivers below are for reading out 6-sample ADC data -->
-      <driver name="RawTrackerHitSensorSetup" /> 
-      <driver name="RawTrackerHitFitterDriver" /> 
-      <driver name="TrackerHitDriver" />  
-      <driver name="HelicalTrackHitDriver" />
+<!-- Standard Reconstruction -->
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver"/>
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="FullTrackerReconDriver"/>
+        <driver name="EcalRunningPedestal"/>
+        <driver name="EcalRawConverter" />
+        <driver name="ReconClusterer" />
+       <driver name="ReconParticle" /> 
 <!--  SVT opening angle alignment -->
        <driver name="TrackerL1to3ReconDriver"/> 
        <driver name="TrackerL4to6ReconDriver"/> 
        <driver name="SVTAlignment"/> 
-<!--  regular tracking and recon -->
-       <driver name="FullTrackerReconDriver"/> 
-       <driver name="TrackDataDriver"/>   
-       <driver name="EcalRawConverter" /> 
-       <driver name="EcalClusterer" />
-       <driver name="ReconParticle" /> 
 <!-- Online Monitoring Drivers -->
-       <driver name="TrackingMonitoring" />
+<!--       <driver name="TrackingMonitoring" />  
        <driver name="TrackingResiduals"/>  
        <driver name="TrackTime"/>  
-       <driver name="V0Monitoring"/>   
+       <driver name="V0Monitoring"/>    -->       
+        <driver name="TrackingMonitoringDQM" />  
+         <driver name="TrackingMonitoringPairs0DQM" />  
+          <driver name="TrackingMonitoringPairs1DQM" />  
+       <driver name="TrackingResidualsDQM"/>  
+       <driver name="FinalStateDQM"/>  
+         <driver name="FinalStateDQMPairs0"/>
+       <driver name="FinalStateDQMPairs1"/>
+        <driver name="V0DQM"/>  
+          <driver name="V0DQMPairs0"/>
+       <driver name="V0DQMPairs1"/>
+       <driver name="PositronDebug"/>
+       <driver name="AidaSaveDriver"/>     
+         <driver name="LCIOWriter"/>    
        <driver name="CleanupDriver" />
     </execute>
     <drivers>
          <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>10</eventInterval>
+            <eventInterval>1000</eventInterval>
         </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
-        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+<!--        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
             <useTruthTime>false</useTruthTime>
             <debug>false</debug>
-        </driver>
-        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+        </driver>-->
+<!--        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <debug>false</debug>
-        </driver>
-        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+        </driver>-->
+<!--        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
-<!--            <clusterTimeCut>16.0</clusterTimeCut> -->
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
             <saveAxialHits>false</saveAxialHits>
-        </driver>
+        </driver>-->
         <driver name="TrackerL1to3ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
         <trackCollectionName>L1to3Tracks</trackCollectionName>
@@ -60,14 +70,14 @@
         <trackCollectionName>L4to6Tracks</trackCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L4-6.xml</strategyResource>
         </driver>
-        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+<!--        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <trackCollectionName>MatchedTracks</trackCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
-        </driver>
+        </driver>-->
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
         </driver>
-         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+<!--         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
               <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
             <useTimestamps>false</useTimestamps>
@@ -77,10 +87,74 @@
          <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">              
                <useTimeCut>true</useTimeCut>
                <logLevel>ALL</logLevel>
-        </driver>     
+        </driver>     -->
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">
             <debug>false</debug>
-        </driver>   
+            <dxCut>50</dxCut>
+             <dyCut>50</dyCut>
+        </driver>  
+        
+        <!-- EngineeringRun2015FullRecon from Sho --> 
+         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctT0Shift>false</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>true</correctChanT0>
+            <timeOffset>51.0</timeOffset>
+            <debug>false</debug>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+        </driver>
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <clusterTimeCut>12.0</clusterTimeCut>
+            <maxDt>16.0</maxDt>
+            <maxSeperation>20.0</maxSeperation>
+            <tolerance>1.0</tolerance>
+        </driver>
+        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+            <strategyResource>HPS-Full.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>    
+            <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+            <minLookbackEvents>10</minLookbackEvents>
+            <maxLookbackEvents>50</maxLookbackEvents>
+        </driver>
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <use2014Gain>false</use2014Gain>
+            <useTimestamps>false</useTimestamps>
+            <useTruthTime>false</useTruthTime>
+            <useRunningPedestal>true</useRunningPedestal>
+            <useTimeWalkCorrection>true</useTimeWalkCorrection>
+            <emulateFirmware>true</emulateFirmware>
+            <emulateMode7>false</emulateMode7>
+            <leadingEdgeThreshold>12</leadingEdgeThreshold>
+            <nsa>100</nsa>
+            <nsb>20</nsb>
+            <windowSamples>50</windowSamples>
+            <nPeak>3</nPeak>
+        </driver>       
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+            <hitEnergyThreshold>0.01</hitEnergyThreshold>
+            <seedEnergyThreshold>0.100</seedEnergyThreshold> 
+            <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
+            <minTime>0.0</minTime>
+            <timeWindow>25.0</timeWindow>
+            <useTimeCut>true</useTimeCut>
+            <writeRejectedHitCollection>false</writeRejectedHitCollection>
+        </driver>                
+           <!-- End of EngineeringRun2015FullRecon from Sho --> 
+           
+                      
         <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.TrackingReconPlots">         
         <outputPlots>tracking</outputPlots>
         </driver>
@@ -93,9 +167,74 @@
       <driver name="SVTAlignment" type="org.hps.monitoring.drivers.trackrecon.SVTOpeningAlignment">         
         <outputPlots>alignment</outputPlots>
         </driver>   
-        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                
+        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">   
+             <outputPlots>times</outputPlots>             
         </driver>
 
+    <driver name="TrackingMonitoringDQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+        </driver>
+        
+          <driver name="TrackingMonitoringPairs0DQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+              <triggerType>pairs0</triggerType>
+        </driver>
+           <driver name="TrackingMonitoringPairs1DQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+              <triggerType>pairs1</triggerType>
+        </driver>
+  
+        <driver name="TrackingResidualsDQM" type="org.hps.analysis.dataquality.TrackingResiduals">           
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+        </driver>
+        <driver name="FinalStateDQM" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+              <triggerType>all</triggerType>
+        </driver>
+        
+         <driver name="FinalStateDQMPairs1" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <triggerType>pairs1</triggerType>
+        </driver>
+        <driver name="FinalStateDQMPairs0" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <triggerType>pairs0</triggerType>
+        </driver>
+        
+        <driver name="V0DQM" type="org.hps.analysis.dataquality.V0Monitoring">        
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <triggerType>all</triggerType>
+        </driver>
+              
+            <driver name="V0DQMPairs1" type="org.hps.analysis.dataquality.V0Monitoring">        
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <triggerType>pairs1</triggerType>
+        </driver>
+        
+           <driver name="V0DQMPairs0" type="org.hps.analysis.dataquality.V0Monitoring">        
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <triggerType>pairs0</triggerType>
+        </driver>
+        
+        
+           <driver name="PositronDebug" type="org.hps.users.mgraham.PositronDebug">                   
+        </driver>
+          <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>./${outputFile}.root</outputFileName>
+        </driver>
+ <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />       
     </drivers>
 </lcsim>
