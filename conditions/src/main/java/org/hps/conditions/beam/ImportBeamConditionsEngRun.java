@@ -95,13 +95,12 @@ public final class ImportBeamConditionsEngRun {
         for (final Entry<Integer, BeamConditions> entry : beamMap.entrySet()) {
             final int run = entry.getKey();
             final BeamConditions beam = entry.getValue();
-            final int collectionId = manager.addCollection("beam", "ImportBeamConditionsEngRun created collection by "
-                    + System.getProperty("user.name"), null);
+            System.out.println(beam);
+            final BeamConditionsCollection collection = new BeamConditionsCollection();
+            final int collectionId = manager.getCollectionId(collection, null);
             final ConditionsRecord record = new ConditionsRecord(collectionId, run, run, "beam", "beam",
                     "imported from HPS_Runs.pdf", "eng_run");
             System.out.println(record);
-            System.out.println(beam);
-            final BeamConditionsCollection collection = new BeamConditionsCollection();
             collection.add(beam);
             manager.insertCollection(collection);
             record.insert();
