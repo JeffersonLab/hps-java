@@ -123,7 +123,7 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
     
     /**
      *  Check whether a data bank is valid i.e. contains SVT samples only.  For
-     *  the engineering run, a valid data bank has a tag of 1.
+     *  the engineering run, a valid data bank has a tag of 3.
      * 
      *  @param dataBank - An EVIO bank containing integer data
      *  @return true if the bank is valid, false otherwise
@@ -131,7 +131,17 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
      */
     @Override
     protected boolean isValidDataBank(BaseStructure dataBank) { 
-        if (dataBank.getHeader().getTag() != 3) return false; 
+        
+        // The SVT configuration is stored in a bank with tag equal to 57614.
+        // All other event banks are invalid
+        if (dataBank.getHeader().getTag() == 57614) { 
+            
+            // Store the event bank for processing later.
+            eventBanks.add(dataBank);
+            
+            return false;
+        } else if (dataBank.getHeader().getTag() != 3) return false; 
+        
         return true; 
     }
     
