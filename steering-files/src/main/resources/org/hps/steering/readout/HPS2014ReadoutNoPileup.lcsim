@@ -21,13 +21,10 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>
-
-
-
-   <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-     <runNumber>4888</runNumber>
-      <detectorName>HPS-Proposal2014-v6-2pt2</detectorName>
-     <freeze>true</freeze> 
+  <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+         <detectorName>${detector}</detectorName>
+          <runNumber>${run}</runNumber>
+        <freeze>true</freeze>
     </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
