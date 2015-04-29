@@ -41,10 +41,11 @@
         </driver>
         <driver name="LedAnalysisDriver" type="org.hps.monitoring.ecal.plots.EcalLedSequenceMonitor">
            <isMonitoringApp>false</isMonitoringApp>
+           <doFullAnalysis>false</doFullAnalysis>
            <skipMin>0.25</skipMin>
            <skipInitial>0.05</skipInitial>    
            <useRawEnergy>true</useRawEnergy>
-           <energyCut>2</energyCut>
+           <energyCut>1</energyCut>
            <nEventsMin>300</nEventsMin>
            <evnMinDraw>0.</evnMinDraw>
            <evnMaxDraw>20000.</evnMaxDraw>

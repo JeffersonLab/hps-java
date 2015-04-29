@@ -111,12 +111,16 @@ public final class EcalMonitoringUtilities {
 
     public static Boolean isInHole(final int row, final int column) {
         if (row == 1 || row == -1) {
-            if (column < XHOLESTART + XHOLEWIDTH && column >= XHOLESTART) {
+            if ((column <= XHOLESTART + XHOLEWIDTH) && (column >= XHOLESTART)) {
                 return true;
             }
-        } else if (row == 0) {
+        } 
+        
+        if (row == 0) {
             return true;
-        } else if (column == 0) {
+        } 
+        
+        if (column == 0) {
             return true;
         }
         return false;

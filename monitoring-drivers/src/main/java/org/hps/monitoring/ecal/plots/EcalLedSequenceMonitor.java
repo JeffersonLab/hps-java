@@ -147,7 +147,7 @@ public class EcalLedSequenceMonitor extends Driver{
     private IPlotterStyle style ;
     private int[] fitStatus = new int[NUM_CHANNELS];
     
-    private boolean doEmbedded=true;
+    private boolean doFullAnalysis=false;
     private boolean isMonitoringApp=false; 
     
     private double[] fPars;    
@@ -207,8 +207,8 @@ public class EcalLedSequenceMonitor extends Driver{
         this.isMonitoringApp=app;
     }
 
-    public void setDoEmbedded(boolean embedded){
-        this.doEmbedded=embedded;
+    public void setDoFullAnalysis(boolean fullAnalysis){
+        this.doFullAnalysis=fullAnalysis;
     }
     
     @Override
@@ -260,7 +260,7 @@ public class EcalLedSequenceMonitor extends Driver{
         factory= aida.analysisFactory().createPlotterFactory("Ecal Led Sequence");
         pPlotter= factory.create("Drivers");
         pPlotter.createRegions(4,2);
-        if (doEmbedded){
+        if (isMonitoringApp){
             pPlotter2=factory.create("Sequence Map");
             pPlotter2.createRegions(1,1);
             pPlotter2.region(0).plot(hMeanCharge2D);
@@ -277,8 +277,6 @@ public class EcalLedSequenceMonitor extends Driver{
             int row = EcalMonitoringUtilities.getRowFromHistoID(ii);
             int column = EcalMonitoringUtilities.getColumnFromHistoID(ii);	    
             iTuple.add(aida.analysisFactory().createTupleFactory(aida.tree()).create("nTuple"+ii,"nTuple"+ii,"int fEvn=0 , double fCharge=0.,double fTime=0.",""));
-
-
         }
 
         for (int ii=0;ii<nDrivers;ii++){
@@ -287,7 +285,7 @@ public class EcalLedSequenceMonitor extends Driver{
         }
 
         pPlotter.show();
-        if (doEmbedded) pPlotter2.show();
+        if (isMonitoringApp) pPlotter2.show();
 
     }		
 
@@ -316,7 +314,6 @@ public class EcalLedSequenceMonitor extends Driver{
                 fillTime = hit.getTime();
 
 
-
                 //find the LED
                 if (row>0){
                     ledid=LedTopMap.get(chid);
@@ -327,6 +324,8 @@ public class EcalLedSequenceMonitor extends Driver{
                 driverid=getDriver(ledid);
                 if (row<0) driverid+=4;
 
+
+                                
                 /*Skip the events under thr*/
                 if (energy<energyCut) continue;
 
@@ -405,9 +404,10 @@ public class EcalLedSequenceMonitor extends Driver{
             eMax=-9999;
             row = EcalMonitoringUtilities.getRowFromHistoID(id);
             column = EcalMonitoringUtilities.getColumnFromHistoID(id);
+            System.out.println("");
             System.out.println("Doing channel: X= "+column+" Y= "+row);
-            System.out.println("Number of recognized events: "+nEvents[id]);
             System.out.println("Number of entries in analysis ntuple: "+iTuple.get(id).rows());
+            System.out.println("Number of recognized events: "+nEvents[id]);
             /*Create the profile. Create it for all the channels, to keep sync.*/
             nBins=nEvents[id]/100;
             if (nBins<=0) nBins=1;
@@ -427,13 +427,14 @@ public class EcalLedSequenceMonitor extends Driver{
             fFunction1=fFactory.createFunctionByName("fun1","G");
 
             if (EcalMonitoringUtilities.isInHole(row,column)==true){
+            	System.out.println("Channel X= "+column+" Y= "+row+" is in hole. Skip");
                 hCharge.add(aida.histogram1D("charge_"+id,200,0.,1.)); //create here the histogram to keep sync
                 System.out.println("In hole, skip");
                 continue;
             }
             else if (nEvents[id]<nEventsMin) {
                 hCharge.add(aida.histogram1D("charge_"+id,200,0.,1.)); //create here the histogram to keep sync
-                System.err.println("LedAnalysis:: the channel X= "+column+" Y= "+row+" has not enough");
+                System.err.println("LedAnalysis:: the channel X= "+column+" Y= "+row+" has not enough events "+nEvents[id]+" "+nEventsMin);
                 
                 continue;
             }			  
@@ -457,7 +458,7 @@ public class EcalLedSequenceMonitor extends Driver{
             }			
             fFitter=aida.analysisFactory().createFitFactory().createFitter("chi2","","v");
             
-            if (!isMonitoringApp){ 
+            if (doFullAnalysis){ 
                 //Init function parameters
                 double[] initialPars={eMax-eMin,nEvents[id]/10.,eMin};
                 if (initialPars[0]<0) initialPars[0]=0;
@@ -560,7 +561,7 @@ public class EcalLedSequenceMonitor extends Driver{
 
 
 
-        if ((pPlotter2!=null)&&(doEmbedded)){
+        if ((pPlotter2!=null)&&(isMonitoringApp)){
             style = pPlotter2.region(0).style();
             style.setParameter("hist2DStyle", "colorMap");
             style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
