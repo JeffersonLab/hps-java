@@ -102,7 +102,7 @@ public final class ImportBeamConditionsEngRun {
                     "imported from HPS_Runs.pdf", "eng_run");
             System.out.println(record);
             collection.add(beam);
-            manager.insertCollection(collection);
+            collection.insert();
             record.insert();
         }
         manager.closeConnection();
