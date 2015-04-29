@@ -167,8 +167,10 @@
       <driver name="SVTAlignment" type="org.hps.monitoring.drivers.trackrecon.SVTOpeningAlignment">         
         <outputPlots>alignment</outputPlots>
         </driver>   
-        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">   
-             <outputPlots>times</outputPlots>             
+        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">
+<!--             
+             <outputPlots>times</outputPlots>
+-->                          
         </driver>
 
     <driver name="TrackingMonitoringDQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
