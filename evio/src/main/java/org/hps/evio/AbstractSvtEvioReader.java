@@ -153,6 +153,8 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
      */
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
 
+        logger.fine("Physics Event: " + event.toString());
+        
         // Retrieve the ROC banks encapsulated by the physics bank.  The ROC
         // bank range is set in the subclass.
         List<BaseStructure> rocBanks = new ArrayList<BaseStructure>();
