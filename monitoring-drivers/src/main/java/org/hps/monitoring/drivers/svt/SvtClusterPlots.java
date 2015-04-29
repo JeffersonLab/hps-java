@@ -44,11 +44,11 @@ public class SvtClusterPlots extends Driver {
     private IAnalysisFactory analysisFactory = IAnalysisFactory.create();
 	private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory();
     private IHistogramFactory histogramFactory = null; 
-	protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>(); 
+	private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>(); 
    
 	// Histogram Maps
-	private Map<String, IHistogram1D> clusterChargePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram1D> singleHitClusterChargePlots = new HashMap<String, IHistogram1D>();
+	private static Map<String, IHistogram1D> clusterChargePlots = new HashMap<String, IHistogram1D>();
+	private static Map<String, IHistogram1D> singleHitClusterChargePlots = new HashMap<String, IHistogram1D>();
    
     private List<HpsSiSensor> sensors;
     private Map<RawTrackerHit, FittedRawTrackerHit> fittedRawTrackerHitMap 
@@ -127,7 +127,12 @@ public class SvtClusterPlots extends Driver {
             style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
         }
         style.dataStyle().errorBarStyle().setVisible(false);
-        
+       
+        style.regionBoxStyle().backgroundStyle().setOpacity(.20);
+        if (sensor != null && sensor.isAxial()) {  
+            style.regionBoxStyle().backgroundStyle().setColor("246, 246, 34, 1");
+        }
+            
         // Turn off the legend
         style.legendBoxStyle().setVisible(false);
        
