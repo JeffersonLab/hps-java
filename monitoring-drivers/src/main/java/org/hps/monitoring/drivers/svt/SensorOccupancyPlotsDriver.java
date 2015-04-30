@@ -275,6 +275,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
     }
     
+	private int getLayerNumber(HpsSiSensor sensor) {
+	   return (int) Math.ceil(((double) sensor.getLayerNumber())/2); 
+	}
+    
     protected void detectorChanged(Detector detector) {
 
         // Get the HpsSiSensor objects from the geometry
@@ -457,5 +461,36 @@ public class SensorOccupancyPlotsDriver extends Driver {
         } catch (IOException e) {
             e.printStackTrace();
         }
+       
+        // Calculate the occupancies at the sensor edge
+        int[] topActiveEdgeStripOccupancy = new int[6]; 
+        int[] bottomActiveEdgeStripOccupancy = new int[6];
+        for (HpsSiSensor sensor : sensors) { 
+            if (sensor.isTopLayer() && sensor.isAxial()) { 
+                if (sensor.getSide() == sensor.ELECTRON_SIDE) { 
+                    topActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[1];
+                } else { 
+                    topActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[637];
+                }
+            } else if (sensor.isBottomLayer() && sensor.isAxial()) {
+                if (sensor.getSide() == sensor.ELECTRON_SIDE) { 
+                    bottomActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[1];
+                } else { 
+                    bottomActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[637];
+                }
+            }
+        }
+        
+        System.out.println("%===============================================================================%");
+        System.out.println("%======================== Active Edge Sensor Occupancies =======================%");
+        System.out.println("%===============================================================================%");
+        for (int layerN = 0; layerN < 6; layerN++) {
+           System.out.println("% Top Layer " + (layerN+1) + ": Occupancy: " + topActiveEdgeStripOccupancy[layerN] + " / " + eventCount + " = " 
+                           + ((double) topActiveEdgeStripOccupancy[layerN] / (double) eventCount)); 
+           System.out.println("% Bottom Layer " + (layerN+1) + ": Occupancy: " + bottomActiveEdgeStripOccupancy[layerN] + " / " + eventCount + " = " 
+                           + ((double) bottomActiveEdgeStripOccupancy[layerN] / (double) eventCount)); 
+        }
+        System.out.println("%===============================================================================%");
+        System.out.println("%===============================================================================%");
     }
 }
