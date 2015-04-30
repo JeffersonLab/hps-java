@@ -23,9 +23,13 @@ import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
+
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.TIData;
 
 /**
  * This Driver makes plots of SVT sensor occupancies across a run.
@@ -57,6 +61,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
     private static final String SUBDETECTOR_NAME = "Tracker";
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
+    private String triggerBankCollectionName = "TriggerBank"; 
     
     String rootFile = null;
 
@@ -68,6 +73,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
     
     private boolean enablePositionPlots = false;
     private boolean enableMaxSamplePlots = false;
+    private boolean enableTriggerFilter = false;
+    private boolean filterPulserTriggers = false;
+    private boolean filterSingle0Triggers = false;
+    private boolean filterSingle1Triggers = false;
+    private boolean filterPair0Triggers = false;
+    private boolean filterPair1Triggers = false;
     
     public SensorOccupancyPlotsDriver() {
     }
@@ -87,7 +98,31 @@ public class SensorOccupancyPlotsDriver extends Driver {
     public void setEnableMaxSamplePlots(boolean enableMaxSamplePlots) { 
         this.enableMaxSamplePlots = enableMaxSamplePlots;
     }
+   
+    public void setEnableTriggerFilter(boolean enableTriggerFilter) { 
+        this.enableTriggerFilter = enableTriggerFilter;
+    }
     
+    public void setFilterPulserTriggers(boolean filterPulserTriggers) { 
+        this.filterPulserTriggers = filterPulserTriggers;
+    }
+
+    public void setFilterSingle0Triggers(boolean filterSingle0Triggers) { 
+        this.filterSingle0Triggers = filterSingle0Triggers;
+    }
+    
+    public void setFilterSingle1Triggers(boolean filterSingle1Triggers) { 
+        this.filterSingle1Triggers = filterSingle1Triggers;
+    }
+
+    public void setFilterPair0Triggers(boolean filterPair0Triggers) { 
+        this.filterPair0Triggers = filterPair0Triggers;
+    }
+
+    public void setFilterPair1Triggers(boolean filterPair1Triggers) { 
+        this.filterPair1Triggers = filterPair1Triggers;
+    }
+
     public void setMaxSamplePosition(int maxSamplePosition) { 
         this.maxSamplePosition = maxSamplePosition;
     }
@@ -316,12 +351,47 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
     }
 
+    private boolean passTriggerFilter(List<GenericObject> triggerBanks) { 
+		
+        // Loop through the collection of banks and get the TI banks.
+		for (GenericObject triggerBank : triggerBanks) {
+			   
+		    // If the bank contains TI data, process it
+		    if (AbstractIntData.getTag(triggerBank) == TIData.BANK_TAG) { 
+			        
+		        TIData tiData = new TIData(triggerBank);
+			      
+		        if (filterPulserTriggers && tiData.isPulserTrigger()) {
+		            return false;
+		        } else if (filterSingle0Triggers && tiData.isSingle0Trigger()) { 
+		            return false;
+		        } else if (filterSingle1Triggers && tiData.isSingle1Trigger()) { 
+		            return false;
+		        } else if (filterPair0Triggers && tiData.isPair0Trigger()) { 
+		            return false;
+		        } else if (filterPair1Triggers && tiData.isPair1Trigger()) { 
+		            return false;
+		        }
+		    }
+		}
+		return true;
+    }
+    
     public void process(EventHeader event) {
-
+        
         // Get the run number from the event and store it.  This will be used 
         // when writing the plots out to a ROOT file
         if (runNumber == -1) runNumber = event.getRunNumber();
        
+        if (enableTriggerFilter && event.hasCollection(GenericObject.class, triggerBankCollectionName)) { 
+           
+		    // Get the list of trigger banks from the event
+			List<GenericObject> triggerBanks = event.get(GenericObject.class, triggerBankCollectionName);
+			
+			// Apply the trigger filter
+			if (!passTriggerFilter(triggerBanks)) return;
+        }
+        
         // If the event doesn't have a collection of RawTrackerHit's, skip it.
         if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) return;
         // Get RawTrackerHit collection from event.
