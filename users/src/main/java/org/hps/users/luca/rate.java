@@ -69,11 +69,18 @@ public class rate extends Driver {
     double nevents=0;
     
 double[] time=new double[6];
-double E0=1.92;
+double E0=1.1;
+/* e=1.92
 double[] Ymax={45.91,52.95,60.00,67.01,74.04,81.18};
 double[] Ymin={38.83,45.81,52.95,60.00,67.01,74.04};
 double[] Xmax={-23.59,-23.1,-22.61,-22.11,-21.62,-21.13};
 double[] Xmin={-30.1,-30.59,-31.08,-31.58,-32.07,-32.57};
+*/
+double[] Ymax={45.91,53.95,59.98,67.04,74.05,81.18};
+double[] Ymin={38.84, 45.91,53.95,59.98,67.04,74.05};
+double[] Xmax={-13.25,-12.75,-12.26,-11.77,-11.27,-10.78};
+double[] Xmin={-19.75,-20.24,-20.74,-21.23,-21.72,-22.22};
+
 
 int[] countertop=new int[6];
 int[] counterbot=new int[6];
@@ -99,7 +106,7 @@ double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
 */
 
 //e cuts 3430
-
+/*
 double[] ecuttopmin={1.20,1.35,1.50,1.50,1.60,1.60};
 double[] ecuttopmax={1.70,1.80,1.90,2.00,2.00,2.00};
 
@@ -112,7 +119,7 @@ double[] cryecuttopmax={1.8,1.8,1.8,2,2};
 
 double[] cryecutbotmax={2,2,1.9,1.9,2};
 double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
-
+*/
 //e cuts 3434
 /*
 double[] ecuttopmin={1.25,1.30,1.40,1.50,1.60,1.60};
@@ -192,6 +199,21 @@ double[] cryecuttopmax={1.8,1.8,1.8,2,2};
 double[] cryecutbotmax={2,2,1.9,1.9,2};
 double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
 */
+
+//e cuts 4904
+
+double[] ecuttopmin={0.59,0.6,0.6,0.68,0.7,0.7};
+double[] ecuttopmax={1.70,1.80,1.90,2.00,2.00,2.00};
+
+double[] ecutbotmin= {0.59,0.6,0.6,0.68,0.7,0.7};
+double[] ecutbotmax={0.85,0.89,0.9,0.93,0.92,0.95};
+
+
+double[] cryecuttopmin={1.38,1.38,1.52,1.6,1.6};
+double[] cryecuttopmax={1.8,1.8,1.8,2,2};
+
+double[] cryecutbotmax={2,2,1.9,1.9,2};
+double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
 
 double vertical;
 
@@ -413,7 +435,7 @@ System.out.println("theta = " + theta + "\n");
              else if(posY<= -Ymin[i]&& posY> -Ymax[i]){
                 if(posX<Xmax[i] && posX>Xmin[i]){
                     BotNoCut.get(i).fill(cluster.getEnergy());
-                    if(cluster.getEnergy()>ecutbotmin[i] && cluster.getEnergy()<ecutbotmax[i]){
+                    if(cluster.getEnergy()> ecutbotmin[i] && cluster.getEnergy()<ecutbotmax[i]){
                         Bot.get(i).fill(cluster.getEnergy());
                         counterbot[i]++;
                         BotCry.get(i).fill(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
