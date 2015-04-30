@@ -10,11 +10,11 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
-        <driver name="FullTrackerReconDriver"/>
+ <!--       <driver name="FullTrackerReconDriver"/>
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
-        <driver name="ReconParticle" /> 
+        <driver name="ReconParticle" />  -->
         <!--  SVT opening angle alignment -->
         <driver name="TrackerL1to3ReconDriver"/> 
         <driver name="TrackerL4to6ReconDriver"/> 
@@ -24,7 +24,7 @@
         <driver name="TrackingResiduals"/>  
         <driver name="TrackTime"/>  
         <driver name="V0Monitoring"/>    -->       
-        <driver name="TrackingMonitoringDQM" />  
+<!--        <driver name="TrackingMonitoringDQM" />  
         <driver name="TrackingMonitoringPairs0DQM" />  
         <driver name="TrackingMonitoringPairs1DQM" />  
         <driver name="TrackingResidualsDQM"/>  
@@ -34,9 +34,9 @@
         <driver name="V0DQM"/>  
         <driver name="V0DQMPairs0"/>
         <driver name="V0DQMPairs1"/>
-<!--        <driver name="PositronDebug"/>-->
+        <driver name="PositronDebug"/>-->
         <driver name="AidaSaveDriver"/>     
-<!--        <driver name="LCIOWriter"/>     -->
+        <driver name="LCIOWriter"/>    
         <driver name="CleanupDriver" /> 
     </execute>
     <drivers>
@@ -163,14 +163,10 @@
         </driver>
         <driver name="TrackingResiduals" type="org.hps.monitoring.drivers.trackrecon.TrackResiduals">
         </driver>
-        <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">                    
+        <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">         
         </driver>      
-          
         <driver name="SVTAlignment" type="org.hps.analysis.dataquality.SVTOpeningStudies">         
-        </driver> 
-        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">   
-             
-        </driver>
+        </driver>   
 
         <driver name="TrackingMonitoringDQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
             <overwriteDB>false</overwriteDB>
