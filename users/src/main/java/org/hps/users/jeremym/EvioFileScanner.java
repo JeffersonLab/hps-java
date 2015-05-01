@@ -22,7 +22,9 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventUtilities;
+import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
@@ -37,7 +39,11 @@ import org.lcsim.util.log.LogUtil;
 // -end date (from END)
 // -total number of events
 //
+// -get trigger config
+// -get SVT config
+//
 // Command line args:
+
 // -start and end run number filter (outside range will be excluded)
 // -list of run numbers (not in list will be excluded)
 // -output timestamp file (when dir walk ends)
@@ -48,11 +54,33 @@ public class EvioFileScanner {
     static class EvioFileList extends ArrayList<File> {
 
         public File first() {
-            return get(0);
+            return this.get(0);
+        }
+
+        public int getTotalEvents() {
+            int totalEvents = 0;
+            for (final File file : this) {
+                EvioReader reader = null;
+                try {
+                    reader = new EvioReader(file, false);
+                    totalEvents += reader.getEventCount();
+                } catch (EvioException | IOException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (final IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            return totalEvents;
         }
 
         public File last() {
-            return get(size() - 1);
+            return this.get(this.size() - 1);
         }
 
         public void sort() {
@@ -126,8 +154,8 @@ public class EvioFileScanner {
         }
 
         void sortFiles() {
-            for (final Integer run : keySet()) {
-                get(run).sort();
+            for (final Integer run : this.keySet()) {
+                this.get(run).sort();
             }
         }
     }
@@ -153,7 +181,8 @@ public class EvioFileScanner {
 
     static Integer getRunNumber(final File file) {
         final String name = file.getName();
-        return Integer.parseInt(name.substring(0, name.indexOf(".")).replace("hps_", ""));
+        // FIXME: Better way would be opening the file and getting the PRESTART or head bank value of run.
+        return Integer.parseInt(name.substring(0, name.indexOf(".")).replace("hps_", "").replace("cosmic_", ""));
     }
 
     static Integer getSequenceNumber(final File file) {
@@ -169,19 +198,23 @@ public class EvioFileScanner {
 
     File rootDir = new File(System.getProperty("user.dir"));
 
-    Date getRunEnd(final File file) {
+    Date getDate(final File file, final int eventTag, final int gotoEvent) {
         Date date = null;
         EvioReader reader = null;
         try {
             reader = new EvioReader(file.getPath(), false);
             EvioEvent event;
+            if (gotoEvent > 0) {
+                reader.gotoEventNumber(gotoEvent);
+            } else if (gotoEvent < 0) {
+                reader.gotoEventNumber(reader.getEventCount() + gotoEvent);
+            }
             while ((event = reader.parseNextEvent()) != null) {
-                if (EvioEventUtilities.isEndEvent(event)) {
+                if (event.getHeader().getTag() == eventTag) {
                     final int[] data = EvioEventUtilities.getControlEventData(event);
-                    long seconds = (long)data[0];
-                    //System.out.printf("END control: %d %d %d", data[0], data[1], data[2]);
+                    final long seconds = data[0];
+                    System.out.printf("control: %d %d %d %n", data[0], data[1], data[2]);
                     date = new Date(seconds * MILLISECONDS);
-                    //System.out.println("END date: " + date);
                     break;
                 }
             }
@@ -199,30 +232,69 @@ public class EvioFileScanner {
         return date;
     }
 
-    Date getRunStart(final File file) {
+    Date getHeadBankDate(final EvioEvent event) {
         Date date = null;
-        EvioReader reader = null;
-        try {
-            reader = new EvioReader(file.getPath(), false);
-            EvioEvent event;
-            while ((event = reader.parseNextEvent()) != null) {
-                if (EvioEventUtilities.isPreStartEvent(event)) {
-                    final int[] data = EvioEventUtilities.getControlEventData(event);
-                    //System.out.printf("PRESTART control: %d %d %d%n", data[0], data[1], data[2]);
-                    long seconds = (long)data[0];
-                    date = new Date(seconds * MILLISECONDS);
-                    //System.out.println("PRESTART date: " + date);
-                    break;
+        final BaseStructure headBank = EvioEventUtilities.getHeadBank(event);
+        if (headBank != null) {
+            final int[] data = headBank.getIntData();
+            final long time = data[3];
+            System.out.printf("head bank: %d %d %d %d %d%n", data[0], data[1], data[2], data[3], data[4]);
+            System.out.println("time from head bank: " + time);
+            date = new Date(time);
+        }
+        return date;
+    }
+
+    Date getRunEnd(final File file) {
+        System.out.println("getRunEnd");
+        Date date = this.getDate(file, EvioEventConstants.END_EVENT_TAG, -10);
+        if (date == null) {
+            System.out.println("END tag not found; looking at last event ...");
+            EvioReader reader = null;
+            try {
+                reader = new EvioReader(file.getPath(), false);
+                System.out.println("event count: " + reader.getEventCount());
+                final EvioEvent lastEvent = reader.getEvent(reader.getEventCount() - 1);
+                reader.parseEvent(lastEvent);
+                System.out.println("getting date from last event " + lastEvent.getEventNumber());
+                date = this.getHeadBankDate(lastEvent);
+            } catch (EvioException | IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-        } catch (EvioException | IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final IOException e) {
-                    e.printStackTrace();
+        }
+        return date;
+    }
+
+    Date getRunStart(final File file) {
+        System.out.println("getRunStart");
+        Date date = this.getDate(file, EvioEventConstants.PRESTART_EVENT_TAG, 0);
+        if (date == null) {
+            System.out.println("PRESTART not found; looking at first event ...");
+            EvioReader reader = null;
+            try {
+                reader = new EvioReader(file.getPath(), false);
+                EvioEvent event = null;
+                while (!EvioEventUtilities.isPhysicsEvent(event = reader.parseNextEvent())) {
+                }
+                System.out.println("looking at head bank of event " + event.getEventNumber());
+                date = this.getHeadBankDate(event);
+            } catch (EvioException | IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -269,8 +341,9 @@ public class EvioFileScanner {
             final EvioFileList files = runMap.get(run);
             System.out.println("first file " + files.first());
             System.out.println("last file " + files.last());
-            System.out.println("started at " + getRunStart(files.first()));
-            System.out.println("ended at " + getRunEnd(files.last()));
+            System.out.println("started at " + this.getRunStart(files.first()));
+            System.out.println("ended at " + this.getRunEnd(files.last()));
+            System.out.println("total events: " + files.getTotalEvents());
         }
     }
 }
