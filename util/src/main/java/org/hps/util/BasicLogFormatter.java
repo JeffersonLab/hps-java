@@ -9,9 +9,9 @@ public class BasicLogFormatter extends Formatter {
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
     public String format(LogRecord record) {
         StringBuilder sb = new StringBuilder();
-        System.out.printf("%s: format called\n",getClass().getSimpleName());
+        //System.out.printf("%s: format called\n",getClass().getSimpleName());
         //sb.append(new Date(record.getMillis()))
-            sb.append("TEST ")
+            sb.append(getClass().getSimpleName() + " ")
             .append(record.getLevel().getLocalizedName())
             .append(": ")
             .append(formatMessage(record))
