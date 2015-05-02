@@ -61,7 +61,7 @@ public abstract class AbstractTablePanel extends JPanel implements DiagnosticUpd
 		setLayout(null);
 		
 		// Create header labels for the tables.
-		localHeader = new JLabel("Local Statistics");
+		localHeader = new JLabel("Instantaneous Statistics");
 		localHeader.setHorizontalAlignment(JLabel.CENTER);
 		add(localHeader);
 		

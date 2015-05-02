@@ -50,7 +50,8 @@ public class EfficiencyTablePanel extends AbstractTablePanel implements Diagnost
 		"", "Singles 0", "Singles 1", "Pair 0", "Pair 1", "Count"
 	};
 	private static final String[] ROW_NAMES = {
-		"", "Random", "Cosmic", "Singles 0", "Singles 1", "Pair 0", "Pair 1"
+		"", "Singles 0", "Singles 1", "Pair 0", "Pair 1", "Pulser", "Cosmic"
+		//"", "Random", "Cosmic", "Singles 0", "Singles 1", "Pair 0", "Pair 1"
 	};
 	
 	/**
@@ -141,7 +142,7 @@ public class EfficiencyTablePanel extends AbstractTablePanel implements Diagnost
 						globalText = globalText + " (  N/A  %)";
 					} else {
 						globalText = String.format("%s (%7.3f%%)", globalText,
-								(100.0 * matched[LOCAL][seenTriggerType][tiTriggerType] / triggers[GLOBAL][seenTriggerType][tiTriggerType]));
+								(100.0 * matched[GLOBAL][seenTriggerType][tiTriggerType] / triggers[GLOBAL][seenTriggerType][tiTriggerType]));
 					}
 					globalModel.setValueAt(globalText, tiTriggerType + 1, seenTriggerType + 1);
 				}
