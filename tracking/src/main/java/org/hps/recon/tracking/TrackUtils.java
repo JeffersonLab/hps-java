@@ -192,7 +192,7 @@ public class TrackUtils {
      * @return position at ECAL
      */
     public static Hep3Vector getTrackPositionAtEcal(Track track) {
-        return extrapolateTrack(track, BeamlineConstants.ECAL_FACE_TESTRUN);
+        return extrapolateTrack(track, BeamlineConstants.ECAL_FACE);
     }
 
     /**
@@ -663,8 +663,18 @@ public class TrackUtils {
      * @return helix object based on the MC particle
      */
     public static HelicalTrackFit getHTF(MCParticle mcp, double Bz) {
+        boolean debug = true;
+        if(debug) {
+            System.out.printf("getHTF\n");
+            System.out.printf("mcp org %s mc p %s\n",mcp.getOrigin().toString(),mcp.getMomentum().toString());
+        }
         Hep3Vector org = CoordinateTransformations.transformVectorToTracking(mcp.getOrigin());
         Hep3Vector p = CoordinateTransformations.transformVectorToTracking(mcp.getMomentum());
+
+        if(debug) {
+            System.out.printf("mcp org %s mc p %s (trans)\n",org.toString(),p.toString());
+        }
+
         // Move to x=0 if needed
         double targetX = BeamlineConstants.DIPOLE_EDGELOW_TESTRUN;
         if (org.x() < targetX) {
@@ -681,7 +691,9 @@ public class TrackUtils {
             // old.toString(),p.toString(),org.toString());
         }
 
-        // System.out.printf("outside org %s p %s \n",p.toString(),org.toString());
+        if(debug) {
+            System.out.printf("mcp org %s mc p %s (trans2)\n",org.toString(),p.toString());
+        }
 
         HelixParamCalculator helixParamCalculator = new HelixParamCalculator(p, org, -1 * ((int) mcp.getCharge()), Bz);
         double par[] = new double[5];
@@ -691,8 +703,8 @@ public class TrackUtils {
         par[HelicalTrackFit.curvatureIndex] = 1.0 / helixParamCalculator.getRadius();
         par[HelicalTrackFit.z0Index] = helixParamCalculator.getZ0();
         HelicalTrackFit htf = getHTF(par);
-        // System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n",
-        // htf.dca(),htf.z0(),htf.R(),htf.phi0(),htf.slope() );
+         System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n",
+         htf.dca(),htf.z0(),htf.R(),htf.phi0(),htf.slope() );
         return htf;
     }
 
@@ -735,5 +747,59 @@ public class TrackUtils {
         // System.out.printf("%s: straight line track: x0=%f,y0=%f,z0=%f dz/dx=%f dydx=%f targetY=%f targetZ=%f \n",this.getClass().getSimpleName(),slt1.x0(),slt1.y0(),slt1.z0(),slt1.dzdx(),slt1.dydx(),slt1.TargetYZ()[0],slt1.TargetYZ()[1]);
         return slt1;
     }
+    
+    
+    
+    public static MCParticle getMatchedTruthParticle(Track track) {
+        boolean debug = false;
+        
+        Map<MCParticle,Integer> particlesOnTrack = new HashMap<MCParticle,Integer>();
+        
+        if(debug) System.out.printf("getMatchedTruthParticle: getmatched mc particle from %d tracker hits on the track \n",track.getTrackerHits().size());
+        
+        
+        for(TrackerHit hit : track.getTrackerHits()) {
+            List<MCParticle> mcps = ((HelicalTrackHit)hit).getMCParticles();
+            if(mcps==null) {
+                System.out.printf("getMatchedTruthParticle: warning, this hit (layer %d pos=%s) has no mc particles.\n",((HelicalTrackHit)hit).Layer(),((HelicalTrackHit)hit).getCorrectedPosition().toString());
+            } 
+            else {
+                if( debug ) System.out.printf("getMatchedTruthParticle: this hit (layer %d pos=%s) has %d mc particles.\n",((HelicalTrackHit)hit).Layer(),((HelicalTrackHit)hit).getCorrectedPosition().toString(),mcps.size());
+                for(MCParticle mcp : mcps) {
+                    if( !particlesOnTrack.containsKey(mcp) ) {
+                        particlesOnTrack.put(mcp, 0);
+                    }
+                    int c = particlesOnTrack.get(mcp);
+                    particlesOnTrack.put(mcp, c+1);
+                }
+            }
+        }
+        if(debug) {
+            System.out.printf("Track p=[ %f, %f, %f] \n",track.getTrackStates().get(0).getMomentum()[0],track.getTrackStates().get(0).getMomentum()[1],track.getTrackStates().get(0).getMomentum()[1]);
+            System.out.printf("Found %d particles\n",particlesOnTrack.size());
+            for(Map.Entry<MCParticle, Integer> entry : particlesOnTrack.entrySet()) {
+                System.out.printf("%d hits assigned to %d p=%s \n",entry.getValue(),entry.getKey().getPDGID(),entry.getKey().getMomentum().toString());
+            }
+        }
+        Map.Entry<MCParticle,Integer> maxEntry = null;
+        for(Map.Entry<MCParticle,Integer> entry : particlesOnTrack.entrySet()) {
+            if ( maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0 ) maxEntry = entry;
+            //if ( maxEntry != null ) {
+            //    if(entry.getValue().compareTo(maxEntry.getValue()) < 0) continue;
+            //}
+            //maxEntry = entry;
+        }
+        if(debug) {
+            if (maxEntry != null ) {
+                System.out.printf("Matched particle with pdgId=%d and mom %s to track with charge %d and momentum [%f %f %f]\n",
+                        maxEntry.getKey().getPDGID(),maxEntry.getKey().getMomentum().toString(),
+                        track.getCharge(),track.getTrackStates().get(0).getMomentum()[0],track.getTrackStates().get(0).getMomentum()[1],track.getTrackStates().get(0).getMomentum()[2]);
+            } else {
+                System.out.printf("No truth particle found on this track\n");
+            }
+        }
+        return maxEntry == null ? null : maxEntry.getKey();
+    }
+    
 
 }
