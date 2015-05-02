@@ -189,7 +189,7 @@ public class MakeGblTracks {
         double phi0_gbl = phi0 + xTPrimeCorr;
         
         //calculate new slope
-        double slope_gbl = Math.tan( Math.atan(helix.slope()) + yTPrimeCorr);
+        double slope_gbl = Math.tan( Math.atan(slope) + yTPrimeCorr);
         
         double parameters_gbl[] = new double[5];
         parameters_gbl[HelicalTrackFit.dcaIndex] = d0_gbl;
