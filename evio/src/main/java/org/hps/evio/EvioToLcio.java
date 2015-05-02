@@ -342,7 +342,7 @@ public class EvioToLcio {
 
             // Open the EVIO reader.
             try {
-                reader = new EvioReader(evioFile);
+                reader = new EvioReader(evioFile,false,true);
             } catch (Exception e) {
                 throw new RuntimeException("Error opening the EVIO file reader.", e);
             }
@@ -532,14 +532,14 @@ public class EvioToLcio {
         while (eventQueue.size() < maxBufferSize) {
             try {
                 // Break if no more events from reader.
-                if (reader.getNumEventsRemaining() == 0) {
-                    break;
-                }
+                //if (reader.getNumEventsRemaining() == 0) {
+                //    break;
+                // }   // You dont want to do this on sequential reads!
 
                 // Read the next event.
                 evioEvent = reader.nextEvent();
 
-                if (evioEvent == null) {
+                if (evioEvent == null) { // This catches an end of file or bad event.
                     break;
                 }
 
