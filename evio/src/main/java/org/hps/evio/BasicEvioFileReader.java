@@ -20,7 +20,7 @@ public class BasicEvioFileReader {
             throw new RuntimeException("File " + evioFileName + " does not exist.");
         }
         try {
-            org.jlab.coda.jevio.EvioReader reader = new org.jlab.coda.jevio.EvioReader(evioFile);
+            org.jlab.coda.jevio.EvioReader reader = new org.jlab.coda.jevio.EvioReader(evioFile,true,false);
             int eventN = 1;
             int badEvents = 0;
             fileLoop:

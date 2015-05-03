@@ -115,6 +115,7 @@ public class EvioToLcio {
         options.addOption(new Option("v", false, "print EVIO XML for each event"));
         options.addOption(new Option("m", true, "set the max event buffer size"));
         options.addOption(new Option("t", true, "specify a conditions system tag to use"));
+        options.addOption(new Option("M", false,"Memory map file before reading"));
         logger.setLevel(Level.FINE);
     }
 
@@ -342,7 +343,7 @@ public class EvioToLcio {
 
             // Open the EVIO reader.
             try {
-                reader = new EvioReader(evioFile,false,true);
+               reader = new EvioReader(evioFile,false,!cl.hasOption("M"));
             } catch (Exception e) {
                 throw new RuntimeException("Error opening the EVIO file reader.", e);
             }

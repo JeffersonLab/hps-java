@@ -340,7 +340,7 @@ public final class EvioFileProducer {
 
                 // Open a new EVIO reader.
                 LOGGER.info("Opening next EVIO file " + evioFile.getPath() + " ...");
-                reader = new EvioReader(evioFile.getPath(), false);
+                reader = new EvioReader(evioFile.getPath(), false,true);
                 LOGGER.info("Done opening file!");
 
                 // Print the number of events.
