@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
 import org.hps.analysis.trigger.data.DiagnosticSnapshot;
+import org.hps.analysis.trigger.util.ComponentUtils;
 
 public class ShifterTrigPanel extends JPanel {
 	private static final Color BG_WARNING = new Color(255, 235, 20);
@@ -171,7 +172,101 @@ public class ShifterTrigPanel extends JPanel {
 		}
 	}
 	
-	public void updatePanel(DiagnosticSnapshot snapshot) {
+	public void updatePanel(DiagnosticSnapshot stat) {
+		// If the snapshot is null, insert "null" values in the
+		// field panels,
+		if(stat == null) {
+			// Populate the fields with a "null" entry.
+			for(int index = 0; index < fieldValue.length; index++) {
+				fieldValue[index].setText("--- / --- (  N/A  %)");
+			}
+			
+			// No data exists, so no further processing is needed.
+			return;
+		}
 		
+		// Define index constants.
+		int RECON = 0;
+		int SSP = 1;
+		int TRIGGER_0 = 0;
+		int TRIGGER_1 = 1;
+		
+		// Get the tracked values from the snapshot.
+		int seenClusters = stat.getClusterStats().getReconClusterCount();
+		int[][] seenSinglesTriggers = {
+			{ stat.getSingles0Stats().getReconSimulatedTriggers(), stat.getSingles1Stats().getReconSimulatedTriggers() },
+			{ stat.getSingles0Stats().getSSPSimulatedTriggers(), stat.getSingles1Stats().getSSPSimulatedTriggers() }
+		};
+		int[][] seenPairTriggers = {
+                        { stat.getPair0Stats().getReconSimulatedTriggers(), stat.getPair1Stats().getReconSimulatedTriggers() },
+                        { stat.getPair0Stats().getSSPSimulatedTriggers(), stat.getPair1Stats().getSSPSimulatedTriggers() }
+		};
+		int matchedClusters = stat.getClusterStats().getMatches();
+		int[][] matchedSinglesTriggers = {
+                        { stat.getSingles0Stats().getMatchedReconSimulatedTriggers(), stat.getSingles1Stats().getMatchedReconSimulatedTriggers() },
+                        { stat.getSingles0Stats().getMatchedSSPSimulatedTriggers(), stat.getSingles1Stats().getMatchedSSPSimulatedTriggers() }
+		};
+		int[][] matchedPairTriggers = {
+                        { stat.getPair0Stats().getMatchedReconSimulatedTriggers(), stat.getPair1Stats().getMatchedReconSimulatedTriggers() },
+                        { stat.getPair0Stats().getMatchedSSPSimulatedTriggers(), stat.getPair1Stats().getMatchedSSPSimulatedTriggers() }
+		};
+		
+		// Get the largest digit of the tracked values. This should
+		// always be one of the "seen" values.
+		int mostDigits = ComponentUtils.max(seenClusters, seenSinglesTriggers[0][0], seenSinglesTriggers[0][1],
+				seenSinglesTriggers[1][0], seenSinglesTriggers[1][1], seenPairTriggers[0][0], seenPairTriggers[0][1],
+				seenPairTriggers[1][0], seenPairTriggers[1][1]);
+		int spaces = ComponentUtils.getDigits(mostDigits);
+		
+		// Populate the cluster field panel.
+		processEfficiency(seenClusters, matchedClusters, 0, spaces, 0.98, 0.94);
+		
+		// Populate the singles trigger field panels.
+		processEfficiency(seenSinglesTriggers[RECON][TRIGGER_0], matchedSinglesTriggers[RECON][TRIGGER_0], 1, spaces, 0.99, 0.95);
+                processEfficiency(seenSinglesTriggers[SSP][TRIGGER_0],   matchedSinglesTriggers[SSP][TRIGGER_0],   2, spaces, 0.99, 0.95);
+                processEfficiency(seenSinglesTriggers[RECON][TRIGGER_1], matchedSinglesTriggers[RECON][TRIGGER_1], 3, spaces, 0.99, 0.95);
+                processEfficiency(seenSinglesTriggers[SSP][TRIGGER_1],   matchedSinglesTriggers[SSP][TRIGGER_1],   4, spaces, 0.99, 0.95);
+		
+		// Populate the pair trigger field panels.
+		processEfficiency(seenPairTriggers[RECON][TRIGGER_0], matchedPairTriggers[RECON][TRIGGER_0], 5, spaces, 0.99, 0.95);
+                processEfficiency(seenPairTriggers[SSP][TRIGGER_0],   matchedPairTriggers[SSP][TRIGGER_0],   6, spaces, 0.99, 0.95);
+                processEfficiency(seenPairTriggers[RECON][TRIGGER_1], matchedPairTriggers[RECON][TRIGGER_1], 7, spaces, 0.99, 0.95);
+                processEfficiency(seenPairTriggers[SSP][TRIGGER_1],   matchedPairTriggers[SSP][TRIGGER_1],   8, spaces, 0.99, 0.95);
+	}
+	
+	private void processEfficiency(int seen, int matched, int fieldIndex, int spaces, double threshWarning, double threshCritical) {
+		// Calculate the efficiency.
+		double efficiency = 100.0 * matched / seen;
+		
+		// Create the format string.
+		String format = "%" + spaces + "d / %";
+		
+		// If the number of values seen is zero, there is no
+		// percentage that can be calculated.
+		if(seen == 0) {
+			fieldValue[fieldIndex].setText(String.format(format + " (  N/A  %%)", seen, matched));
+		}
+		
+		// Otherwise, include the percentage.
+		else {
+			fieldValue[fieldIndex].setText(String.format(format + " (7.3f%%)", seen, matched, efficiency));
+		}
+		
+		// If the efficiency is below the critical threshold,
+		// change the field background to the critical color.
+		if(efficiency < threshCritical) {
+			fieldValue[fieldIndex].setBackground(BG_CRITICAL);
+			fieldValue[fieldIndex].setForeground(FONT_CRITICAL);
+		}
+		
+		// Otherwise, if the efficiency is below the warning
+		// level, set the field background to the warning color.
+		else if(efficiency < threshWarning) {
+			fieldValue[fieldIndex].setBackground(BG_WARNING);
+			fieldValue[fieldIndex].setForeground(FONT_WARNING);
+		}
+		
+		// Otherwise, use the default component background.
+		else { fieldValue[fieldIndex].setBackground(getBackground()); }
 	}
 }
