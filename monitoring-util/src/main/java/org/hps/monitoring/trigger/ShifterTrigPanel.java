@@ -22,6 +22,10 @@ public class ShifterTrigPanel extends JPanel {
 	private JLabel[] fieldTitle;
 	private JLabel[] fieldValue;
 	
+	/**
+	 * Instantiates a new <code>ShifterTrigPanel</code> with the
+	 * indicated name.
+	 */
 	public ShifterTrigPanel(String name) {
 		// Instantiate a layout for the fields.
 		SpringLayout layout = new SpringLayout();
@@ -172,6 +176,12 @@ public class ShifterTrigPanel extends JPanel {
 		}
 	}
 	
+	/**
+	 * Updates the panel statistical display with data from the
+	 * argument snapshot.
+	 * @param stat - The snapshot from which to derive statistical
+	 *               data.
+	 */
 	public void updatePanel(DiagnosticSnapshot stat) {
 		// If the snapshot is null, insert "null" values in the
 		// field panels,
@@ -234,6 +244,23 @@ public class ShifterTrigPanel extends JPanel {
                 processEfficiency(seenPairTriggers[SSP][TRIGGER_1],   matchedPairTriggers[SSP][TRIGGER_1],   8, spaces, 0.99, 0.95);
 	}
 	
+	/**
+	 * Updates the indicated field value using the indicated number
+	 * seen and matched elements. Automatically handles the special
+	 * case of zero seen elements and also updates the colors of the
+	 * field labels to the appropriate color based on the efficiency
+	 * and the thresholds for warnings.
+	 * @param seen - The number of elements seen.
+	 * @param matched - The number of elements matched.
+	 * @param fieldIndex - The index for the field that should display
+	 *                     the statistical data.
+	 * @param spaces - The number of spaces to giveto each displayed
+	 *                 value.
+	 * @param threshWarning - The threshold at which the "warning
+	 *                        color should be used.
+	 * @param threshCritical - The threshold at which the "critical"
+	 *                         color should be used.
+	 */
 	private void processEfficiency(int seen, int matched, int fieldIndex, int spaces, double threshWarning, double threshCritical) {
 		// Calculate the efficiency.
 		double efficiency = 100.0 * matched / seen;
@@ -267,6 +294,9 @@ public class ShifterTrigPanel extends JPanel {
 		}
 		
 		// Otherwise, use the default component background.
-		else { fieldValue[fieldIndex].setBackground(getBackground()); }
+		else {
+			fieldValue[fieldIndex].setBackground(getBackground());
+			fieldValue[fieldIndex].setForeground(getForeground());
+		}
 	}
 }
