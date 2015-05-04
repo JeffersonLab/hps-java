@@ -53,7 +53,7 @@ class RunLog {
 
     void update() {
         LOGGER.info("updating database from run log ...");
-        final ConnectionParameters cp = null; //new ConnectionParameters("root", "derp", "hps_run_db", "localhost");
+        final ConnectionParameters cp = new ConnectionParameters("root", "derp", "hps_run_db", "localhost");
         Connection connection = null;
         PreparedStatement runLogStatement = null;
         try {
