@@ -24,7 +24,7 @@
         <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots" />
         <driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Pileup</fitAlgorithm>
+            <fitAlgorithm>Analytic</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
             <useTruthTime>false</useTruthTime>

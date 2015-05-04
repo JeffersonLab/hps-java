@@ -30,6 +30,7 @@ import org.lcsim.util.Driver;
 
 import org.hps.recon.ecal.triggerbank.AbstractIntData;
 import org.hps.recon.ecal.triggerbank.TIData;
+import org.lcsim.util.aida.AIDA;
 
 /**
  * This Driver makes plots of SVT sensor occupancies across a run.
@@ -45,8 +46,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
  
     // Plotting
     private static ITree tree = null;
-    private IAnalysisFactory analysisFactory = IAnalysisFactory.create();
-    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory();
+    private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
+    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Occupancy");
     private IHistogramFactory histogramFactory = null;
 
     // Histogram maps

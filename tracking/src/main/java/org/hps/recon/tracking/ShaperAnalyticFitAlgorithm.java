@@ -26,10 +26,10 @@ public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
     @Override
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, PulseShape shape) {
         short[] samples = rth.getADCValues();
-        HpsSiSensor sensor =(HpsSiSensor) rth.getDetectorElement();
+        HpsSiSensor sensor = (HpsSiSensor) rth.getDetectorElement();
         int channel = rth.getIdentifierFieldValue("strip");
         return this.fitShape(channel, samples, sensor);
-    	//===> return this.fitShape(rth.getADCValues(), constants);
+        //===> return this.fitShape(rth.getADCValues(), constants);
     }
 
     public Collection<ShapeFitParameters> fitShape(int channel, short[] samples, HpsSiSensor sensor) {
@@ -60,11 +60,11 @@ public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
         double[] y = new double[length];
         double[] t = new double[length];
 
-        double tp = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
+        double tp = 2.5*Math.pow(sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX], 0.25) * Math.pow(sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX + 1], 0.75);
 
         for (int i = 0; i < length; i++) {
             //===> y[i] = samples[start + i] - constants.getPedestal();
-        	y[i] = samples[start + i] - sensor.getPedestal(channel, i);
+            y[i] = samples[start + i] - sensor.getPedestal(channel, i);
             t[i] = HPSSVTConstants.SAMPLING_INTERVAL * i;
         }
 
@@ -74,8 +74,8 @@ public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
             //===> p[i] = y[i] / constants.getNoise();
             p[i] = y[i] / sensor.getNoise(channel, i);
             //===> a[i] = Math.exp(1 - t[i] / constants.getTp()) / (constants.getTp() * constants.getNoise());
-            
-            a[i] = Math.exp(1 - t[i] /tp)  / (tp * sensor.getNoise(channel, i));
+
+            a[i] = Math.exp(1 - t[i] / tp) / (tp * sensor.getNoise(channel, i));
         }
 
         double pa, aatt, pat, aat, aa;

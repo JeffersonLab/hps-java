@@ -24,6 +24,7 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 
 import org.hps.recon.tracking.FittedRawTrackerHit;
+import org.lcsim.util.aida.AIDA;
 
 /**
  *  Monitoring driver that looks at the SVT cluster charge.
@@ -41,8 +42,8 @@ public class SvtClusterPlots extends Driver {
    
     // Plotting
     private static ITree tree = null;
-    private IAnalysisFactory analysisFactory = IAnalysisFactory.create();
-	private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory();
+    private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
+	private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Clusters");
     private IHistogramFactory histogramFactory = null; 
 	private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>(); 
    
