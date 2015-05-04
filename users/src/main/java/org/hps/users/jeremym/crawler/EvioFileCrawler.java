@@ -166,9 +166,10 @@ public class EvioFileCrawler {
                 runs.printRunSummaries();
             }
 
-            // Insert run summary into run_log table.
+            // Insert run information into database.
             if (this.update) {
-                runs.update();
+                // Update run log.
+                runs.insert();
             }
         }
 

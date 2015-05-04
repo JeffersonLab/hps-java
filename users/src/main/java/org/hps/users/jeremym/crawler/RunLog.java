@@ -39,40 +39,20 @@ class RunLog {
         return runList;
     }
 
-    void printRunSummaries() {
-        for (final int run : this.runs.keySet()) {
-            this.runs.get(run).printRunSummary(System.out);
-        }
-    }
+    void insert() {
 
-    void sortAllFiles() {
-        for (final Integer run : this.runs.keySet()) {
-            this.runs.get(run).sortFiles();
-        }
-    }
-
-    void update() {
-        LOGGER.info("updating database from run log ...");
+        LOGGER.info("inserting runs into run_log ...");
         final ConnectionParameters cp = new ConnectionParameters("root", "derp", "hps_run_db", "localhost");
-        Connection connection = null;
-        PreparedStatement runLogStatement = null;
+        final Connection connection = cp.createConnection();
         try {
-            connection = cp.createConnection();
             connection.setAutoCommit(false);
-            runLogStatement = connection
-                    .prepareStatement("INSERT INTO run_log (run, start_date, end_date, nevents, nfiles, end_ok, last_updated) VALUES(?, ?, ?, ?, ?, ?, NOW())");
-            for (final Integer run : getSortedRunNumbers()) {
-                LOGGER.info("inserting run " + run + " into database");
-                final RunSummary runSummary = this.runs.get(run);
-                runLogStatement.setInt(1, run);
-                runLogStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getStartDate().getTime()));
-                runLogStatement.setTimestamp(3, new java.sql.Timestamp(runSummary.getEndDate().getTime()));
-                runLogStatement.setInt(4, runSummary.getTotalEvents());
-                runLogStatement.setInt(5, runSummary.getFiles().size());
-                runLogStatement.setBoolean(6, runSummary.isEndOkay());
-                runLogStatement.executeUpdate();
-                connection.commit();
-            }
+
+            insertRunLog(connection);
+
+            insertFiles(connection);
+
+            connection.commit();
+
         } catch (final SQLException e) {
             LOGGER.log(Level.SEVERE, "rolling back transaction", e);
             try {
@@ -84,15 +64,49 @@ class RunLog {
             if (connection != null) {
                 try {
                     connection.setAutoCommit(true);
-                    if (!connection.isClosed()) {
-                        connection.close();
-                    }
+                    connection.close();
                 } catch (final SQLException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
             }
         }
-        LOGGER.info("database was updated!");
     }
 
+    void insertFiles(final Connection connection) throws SQLException {
+        for (final int run : getSortedRunNumbers()) {
+            getRunSummary(run).getFiles().insert(connection, run);
+        }
+    }
+
+    void insertRunLog(final Connection connection) throws SQLException {
+        PreparedStatement runLogStatement = null;
+        runLogStatement = connection
+                .prepareStatement("INSERT INTO run_log (run, start_date, end_date, nevents, nfiles, end_ok, last_updated) VALUES(?, ?, ?, ?, ?, ?, NOW())");
+        for (final Integer run : getSortedRunNumbers()) {
+            LOGGER.info("preparing to insert run " + run + " into database ..");
+            final RunSummary runSummary = this.runs.get(run);
+            runLogStatement.setInt(1, run);
+            runLogStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getStartDate().getTime()));
+            runLogStatement.setTimestamp(3, new java.sql.Timestamp(runSummary.getEndDate().getTime()));
+            runLogStatement.setInt(4, runSummary.getTotalEvents());
+            runLogStatement.setInt(5, runSummary.getFiles().size());
+            runLogStatement.setBoolean(6, runSummary.isEndOkay());
+            runLogStatement.executeUpdate();
+            // connection.commit();
+            LOGGER.info("committed run " + run + " to run_log");
+        }
+        LOGGER.info("run_log was updated!");
+    }
+
+    void printRunSummaries() {
+        for (final int run : this.runs.keySet()) {
+            this.runs.get(run).printRunSummary(System.out);
+        }
+    }
+
+    void sortAllFiles() {
+        for (final Integer run : this.runs.keySet()) {
+            this.runs.get(run).sortFiles();
+        }
+    }
 }

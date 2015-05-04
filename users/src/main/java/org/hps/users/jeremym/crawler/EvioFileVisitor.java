@@ -58,7 +58,7 @@ class EvioFileVisitor extends SimpleFileVisitor<Path> {
 
             this.runs.getRunSummary(run).addFile(file);
         } else {
-            LOGGER.fine("rejected file: " + file.getPath());
+            LOGGER.info("rejected file: " + file.getPath());
         }
         return FileVisitResult.CONTINUE;
     }
