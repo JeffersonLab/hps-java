@@ -186,33 +186,43 @@ public class TrackingMonitoring extends DataQualityMonitor {
 
         aida.tree().cd("/");
 
-        if (!event.hasCollection(LCRelation.class, helicalTrackHitRelationsCollectionName) || !event.hasCollection(LCRelation.class, rotatedHelicalTrackHitRelationsCollectionName))
+        if (!event.hasCollection(LCRelation.class, helicalTrackHitRelationsCollectionName) || !event.hasCollection(LCRelation.class, rotatedHelicalTrackHitRelationsCollectionName)) {
             return;
+        }
         RelationalTable hittostrip = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> hitrelations = event.get(LCRelation.class, helicalTrackHitRelationsCollectionName);
-        for (LCRelation relation : hitrelations)
-            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+        for (LCRelation relation : hitrelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
                 hittostrip.add(relation.getFrom(), relation.getTo());
+            }
+        }
 
         RelationalTable hittorotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> rotaterelations = event.get(LCRelation.class, rotatedHelicalTrackHitRelationsCollectionName);
-        for (LCRelation relation : rotaterelations)
-            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+        for (LCRelation relation : rotaterelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
                 hittorotated.add(relation.getFrom(), relation.getTo());
+            }
+        }
 
-        if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName))
+        if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName)) {
             return;
+        }
 
         if (event.hasCollection(GenericObject.class, "TriggerBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
-            for (GenericObject data : triggerList)
+            for (GenericObject data : triggerList) {
                 if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
                     TIData triggerData = new TIData(data);
                     if (!matchTriggerType(triggerData))//only process singles0 triggers...
+                    {
                         return;
+                    }
                 }
-        } else
+            }
+        } else {
             System.out.println(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
+        }
 
         int[] topHits = {0, 0, 0, 0, 0, 0};
         int[] botHits = {0, 0, 0, 0, 0, 0};
@@ -220,18 +230,19 @@ public class TrackingMonitoring extends DataQualityMonitor {
         for (TrackerHit hit : hth) {
             int module = -99;
             int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
-            if (layer < 2)
+            if (layer < 2) {
                 module = 1;
-            else if (layer < 4)
+            } else if (layer < 4) {
                 module = 2;
-            else if (layer < 6)
+            } else if (layer < 6) {
                 module = 3;
-            else if (layer < 8)
+            } else if (layer < 8) {
                 module = 4;
-            else if (layer < 10)
+            } else if (layer < 10) {
                 module = 5;
-            else
+            } else {
                 module = 6;
+            }
 
             if (hit.getPosition()[1] > 0) {
                 topHits[module - 1]++;
@@ -340,10 +351,11 @@ public class TrackingMonitoring extends DataQualityMonitor {
                     rmsTime += Math.pow(hts.getTime() - meanTime, 2);
                     HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement();
                     int layer = sensor.getLayerNumber();
-                    if (layer <= 6)
+                    if (layer <= 6) {
                         rmsSeedTime += Math.pow(hts.getTime() - meanSeedTime, 2);
+                    }
                     String sensorName = getNiceSensorName(sensor);
-                    getSensorPlot(plotDir + "hitTimeResidual_", sensorName).fill(hts.getTime() - meanTime);
+                    getSensorPlot(plotDir + "hitTimeResidual_", sensorName).fill((hts.getTime() - meanTime) * nStrips / (nStrips - 1)); //correct residual for bias
                 }
             }
             rmsTime = Math.sqrt(rmsTime / nStrips);
@@ -376,15 +388,17 @@ public class TrackingMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMData() {
         System.out.println("ReconMonitoring::printDQMData");
-        for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet())
+        for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
             System.out.println(entry.getKey() + " = " + entry.getValue());
+        }
         System.out.println("*******************************");
     }
 
     @Override
     public void printDQMStrings() {
-        for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet())
+        for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
             System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+        }
     }
 
     private IHistogram1D getSensorPlot(String prefix, HpsSiSensor sensor) {
