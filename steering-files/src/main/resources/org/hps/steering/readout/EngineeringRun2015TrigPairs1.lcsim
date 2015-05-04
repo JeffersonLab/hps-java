@@ -32,7 +32,7 @@
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
             <rejectBackground>false</rejectBackground>
-            <writeSvtData>false</writeSvtData>
+            <writeSvtData>true</writeSvtData>
         </driver>
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <coincidenceWindow>1</coincidenceWindow>
@@ -61,19 +61,29 @@
             <clusterWindow>1</clusterWindow>
         </driver>
         <driver name="PairTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
+            <!--      
+                Hit Count: 2
+                Seed Energy: 50 MeV
+                Cluster Energy: 60 MeV (Low) and 630 MeV (High)
+                Energy Sum: 200 MeV (Low) and 860 MeV (High)
+                Energy Difference: 540 MeV
+                Energy Slope: 600 MeV (with F = 5.5 MeV/mm)
+                Coplanarity: 30 Degrees
+                Time Coincidence: 16 ms 
+                 -->
             <clusterCollectionName>EcalClusters</clusterCollectionName>
             <deadTime>32</deadTime>
-            <minHitCount>3</minHitCount>
+            <minHitCount>2</minHitCount>
             <pairCoincidence>4</pairCoincidence>
-            <clusterEnergyHigh>1.8</clusterEnergyHigh>
-            <clusterEnergyLow>0.2</clusterEnergyLow>
-            <energySumHigh>2.0</energySumHigh>
-            <energySumLow>1.0</energySumLow>
-            <energyDifferenceHigh>1.2</energyDifferenceHigh>
-            <coplanarityHigh>40</coplanarityHigh>
-            <seedEnergyLow>0.1</seedEnergyLow>
+            <clusterEnergyHigh>0.63</clusterEnergyHigh>
+            <clusterEnergyLow>0.06</clusterEnergyLow>
+            <energySumHigh>0.86</energySumHigh>
+            <energySumLow>0.2</energySumLow>
+            <energyDifferenceHigh>0.54</energyDifferenceHigh>
+            <coplanarityHigh>30</coplanarityHigh>
+            <seedEnergyLow>0.05</seedEnergyLow>
             <energySlopeParamF>0.0055</energySlopeParamF>
-            <energySlopeLow>0.4</energySlopeLow>
+            <energySlopeLow>0.6</energySlopeLow>
             <prescale>1</prescale>
             <outputFileName>${outputFile}.triggers.pairs1</outputFileName>
             <!--<verbose>true</verbose>-->
