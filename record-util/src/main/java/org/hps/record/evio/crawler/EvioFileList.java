@@ -1,4 +1,4 @@
-package org.hps.users.jeremym.crawler;
+package org.hps.record.evio.crawler;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,17 +54,6 @@ class EvioFileList extends ArrayList<File> {
         return this.get(0);
     }
 
-    File last() {
-        return this.get(this.size() - 1);
-    }
-
-    void sort() {
-        final List<File> fileList = new ArrayList<File>(this);
-        Collections.sort(fileList, new EvioFileSequenceComparator());
-        this.clear();
-        this.addAll(fileList);
-    }
-
     void insert(final Connection connection, final int run) throws SQLException {
         LOGGER.info("updating file list ...");
         PreparedStatement filesStatement = null;
@@ -81,5 +70,16 @@ class EvioFileList extends ArrayList<File> {
             // connection.commit();
         }
         LOGGER.info("run_log_files was updated!");
+    }
+
+    File last() {
+        return this.get(this.size() - 1);
+    }
+
+    void sort() {
+        final List<File> fileList = new ArrayList<File>(this);
+        Collections.sort(fileList, new EvioFileSequenceComparator());
+        this.clear();
+        this.addAll(fileList);
     }
 }
