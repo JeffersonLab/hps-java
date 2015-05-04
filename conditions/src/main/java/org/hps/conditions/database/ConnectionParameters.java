@@ -23,9 +23,65 @@ public final class ConnectionParameters {
     public static final int DEFAULT_PORT = 3306;
 
     /**
-     * The user name.
+     * Configure the connection parameters from a properties file.
+     *
+     * @param file the properties file
+     * @return the connection parameters
      */
-    private String user;
+    public static ConnectionParameters fromProperties(final File file) {
+        FileInputStream fin = null;
+        try {
+            fin = new FileInputStream(file);
+        } catch (final FileNotFoundException e) {
+            throw new IllegalArgumentException(file.getPath() + " does not exist.", e);
+        }
+        return fromProperties(fin);
+    }
+
+    /**
+     * Configure the connection parameters from an <code>InputStream</code> of properties.
+     *
+     * @param in the InputStream of the properties
+     * @return the connection parameters
+     * @throws RuntimeException if the InputStream is invalid
+     */
+    private static ConnectionParameters fromProperties(final InputStream in) {
+        final Properties properties = new Properties();
+        try {
+            properties.load(in);
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+        final String user = properties.getProperty("user");
+        final String password = properties.getProperty("password");
+        final String database = properties.getProperty("database");
+        final String hostname = properties.getProperty("hostname");
+        int port = DEFAULT_PORT;
+        if (properties.containsKey("port")) {
+            port = Integer.parseInt(properties.getProperty("port"));
+        }
+        return new ConnectionParameters(user, password, database, hostname, port);
+    }
+
+    /**
+     * Configure the connection parameters from an embedded classpath resource which should be a properties file.
+     *
+     * @param resource the resource path
+     * @return the connection parameters
+     */
+    public static ConnectionParameters fromResource(final String resource) {
+        return fromProperties(ConnectionParameters.class.getResourceAsStream(resource));
+    }
+
+    /**
+     * The database name.
+     */
+    private String database;
+
+    /**
+     * The host name.
+     */
+    private String hostname;
 
     /**
      * The user's password.
@@ -38,19 +94,30 @@ public final class ConnectionParameters {
     private int port;
 
     /**
-     * The host name.
+     * The user name.
      */
-    private String hostname;
-
-    /**
-     * The database name.
-     */
-    private String database;
+    private String user;
 
     /**
      * Protected constructor for sub-classes.
      */
     protected ConnectionParameters() {
+    }
+
+    /**
+     * Class constructor using default MySQL port number.
+     *
+     * @param user the user name
+     * @param password the password
+     * @param hostname the hostname
+     * @param database the database name
+     */
+    public ConnectionParameters(final String user, final String password, final String database, final String hostname) {
+        this.user = user;
+        this.password = password;
+        this.database = database;
+        this.hostname = hostname;
+        this.port = DEFAULT_PORT;
     }
 
     /**
@@ -72,74 +139,6 @@ public final class ConnectionParameters {
     }
 
     /**
-     * Get Properties object for this connection.
-     *
-     * @return the Properties for this connection
-     */
-    public Properties getConnectionProperties() {
-        final Properties p = new Properties();
-        p.put("user", user);
-        p.put("password", password);
-        return p;
-    }
-
-    /**
-     * Get the hostname.
-     *
-     * @return the hostname
-     */
-    String getHostname() {
-        return hostname;
-    }
-
-    /**
-     * Get the port number.
-     *
-     * @return the port number
-     */
-    int getPort() {
-        return port;
-    }
-
-    /**
-     * Get the name of the database.
-     *
-     * @return the name of the database
-     */
-    String getDatabase() {
-        return database;
-    }
-
-    /**
-     * Get the user name.
-     *
-     * @return the user name
-     */
-    String getUser() {
-        return user;
-    }
-
-    /**
-     * Get the password.
-     *
-     * @return the password
-     */
-    String getPassword() {
-        return password;
-    }
-
-    /**
-     * Get the connection string for these parameters.
-     * <p>
-     * This is public because the DQM database manager is using it.
-     *
-     * @return the connection string
-     */
-    public String getConnectionString() {
-        return "jdbc:mysql://" + hostname + ":" + port + "/";
-    }
-
-    /**
      * Create a database connection from these parameters. The caller becomes the "owner" and is responsible for closing
      * it when finished.
      *
@@ -151,60 +150,77 @@ public final class ConnectionParameters {
         try {
             connection = DriverManager.getConnection(getConnectionString(), connectionProperties);
             connection.createStatement().execute("USE " + getDatabase());
-        } catch (SQLException x) {
+        } catch (final SQLException x) {
             throw new RuntimeException("Failed to connect to database: " + getConnectionString(), x);
         }
         return connection;
     }
 
     /**
-     * Configure the connection parameters from a properties file.
+     * Get Properties object for this connection.
      *
-     * @param file the properties file
-     * @return the connection parameters
+     * @return the Properties for this connection
      */
-    public static ConnectionParameters fromProperties(final File file) {
-        FileInputStream fin = null;
-        try {
-            fin = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException(file.getPath() + " does not exist.", e);
-        }
-        return fromProperties(fin);
+    public Properties getConnectionProperties() {
+        final Properties p = new Properties();
+        p.put("user", this.user);
+        p.put("password", this.password);
+        return p;
     }
 
     /**
-     * Configure the connection parameters from an embedded classpath resource which should be a properties file.
+     * Get the connection string for these parameters.
+     * <p>
+     * This is public because the DQM database manager is using it.
      *
-     * @param resource the resource path
-     * @return the connection parameters
+     * @return the connection string
      */
-    public static ConnectionParameters fromResource(final String resource) {
-        return fromProperties(ConnectionParameters.class.getResourceAsStream(resource));
+    public String getConnectionString() {
+        return "jdbc:mysql://" + this.hostname + ":" + this.port + "/";
     }
 
     /**
-     * Configure the connection parameters from an <code>InputStream</code> of properties.
+     * Get the name of the database.
      *
-     * @param in the InputStream of the properties
-     * @return the connection parameters
-     * @throws RuntimeException if the InputStream is invalid
+     * @return the name of the database
      */
-    private static ConnectionParameters fromProperties(final InputStream in) {
-        final Properties properties = new Properties();
-        try {
-            properties.load(in);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        final String user = properties.getProperty("user");
-        final String password = properties.getProperty("password");
-        final String database = properties.getProperty("database");
-        final String hostname = properties.getProperty("hostname");
-        int port = DEFAULT_PORT;
-        if (properties.containsKey("port")) {
-            port = Integer.parseInt(properties.getProperty("port"));
-        }
-        return new ConnectionParameters(user, password, database, hostname, port);
+    String getDatabase() {
+        return this.database;
+    }
+
+    /**
+     * Get the hostname.
+     *
+     * @return the hostname
+     */
+    String getHostname() {
+        return this.hostname;
+    }
+
+    /**
+     * Get the password.
+     *
+     * @return the password
+     */
+    String getPassword() {
+        return this.password;
+    }
+
+    /**
+     * Get the port number.
+     *
+     * @return the port number
+     */
+    int getPort() {
+        return this.port;
+    }
+
+    /**
+     * Get the user name.
+     *
+     * @return the user name
+     */
+    String getUser() {
+        return this.user;
     }
 }
