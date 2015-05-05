@@ -15,8 +15,11 @@ import org.lcsim.conditions.ConditionsManager;
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class SvtAlignmentConstantsReader {
+	
+	private SvtAlignmentConstantsReader() {		
+	}
 
-    public List<MilleParameter> readMilleParameters() {
+    public static List<MilleParameter> readMilleParameters() {
 
         if (!ConditionsManager.isSetup()) {
             throw new RuntimeException("Conditions system is not initialized.");

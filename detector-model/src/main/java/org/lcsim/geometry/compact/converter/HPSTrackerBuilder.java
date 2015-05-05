@@ -31,8 +31,9 @@ public abstract class HPSTrackerBuilder {
 	public HPSTrackerBuilder(boolean debug, Element node) {
         this.debug = debug;
         this.node = node;
-        initAlignmentParameters();
-    }
+        this.milleparameters = SvtAlignmentConstantsReader.readMilleParameters();
+        //initAlignmentParameters();
+    }	
 	
 	/**
 	 * Extract alignment constants from xml description
