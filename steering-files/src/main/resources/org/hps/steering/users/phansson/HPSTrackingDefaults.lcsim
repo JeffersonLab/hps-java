@@ -1,41 +1,36 @@
 
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
-    <inputFiles>
-        <!-- -->
-    </inputFiles>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <control>
-        <numberOfEvents>3000</numberOfEvents>
-        <printInputFiles>true</printInputFiles>
-        <printDriversDetailed>true</printDriversDetailed>
+        <printInputFiles>false</printInputFiles>
+        <printDriversDetailed>false</printDriversDetailed>
+        <numberOfEvents>1000</numberOfEvents>
     </control>
     <execute>
-        <driver name="EventMarkerDriver" />
-        <driver name="BadChannelFilter" />
-        <driver name="SimpleSVTReadout" />
-        <driver name="RawTrackerHitFitterDriver" />
-        <driver name="TrackerHitDriver" />
-        <!--  
-        <driver name="TrackerDigiDriver"/> -->
-        <driver name="HelicalTrackHitDriver" />
-        <driver name="TrackerReconDriver" />
-        <driver name="SVTHitReconstructionPlots" />
-        <driver name="LCIOWriter" />
+        <driver name="ConditionsDriver"/>
+        <driver name="EventMarkerDriver"/>   
+        <driver name="TrackerDigiDriver"/>
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="TrackerReconDriver"/>
+        <driver name="GBLOutputDriver"/>
+        <driver name="GBLDriver"/>
+        <driver name="GblTrackingReconstructionPlots"/>
+        <driver name="LCIOWriter"/>
+<!--        <driver name="AidaSaveDriverRoot" /> -->
     </execute>
     <drivers>
+
+    <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+         <detectorName>${detector}</detectorName>
+          <runNumber>${run}</runNumber>
+        <freeze>true</freeze>
+    </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
+            <eventInterval>1</eventInterval>
         </driver>
-        <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" />
-        <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
-            <noPileup>true</noPileup>
-        </driver>
-        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Analytic</fitAlgorithm>
-            <correctT0Shift>true</correctT0Shift>
-        </driver>
-        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />
         <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
-            <debug>true</debug>
+<!--            <dropBadChannels>true</dropBadChannels>-->
+            <debug>false</debug>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
@@ -44,13 +39,34 @@
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-All.xml</strategyResource>
+            <!--<strategyResource>HPS-Full-All.xml</strategyResource>-->
+            <strategyResource>HPS-Full.xml</strategyResource>
         </driver>
-        <driver name="SVTHitReconstructionPlots" type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
-            <outputPlots>SVTHitReconstructionPlots.aida</outputPlots>
+        <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
+            <debug>0</debug>
+            <isMC>true</isMC>
+            <gblFileName>gbl.out</gblFileName>
+        </driver>
+        <driver name="GBLDriver" type="org.hps.recon.tracking.gbl.HpsGblRefitter">
+            <debug>false</debug>
+            <logLevel>WARNING</logLevel>
+            <milleBinaryFileName>milleTest.bin</milleBinaryFileName>
+            <writeMilleBinary>true</writeMilleBinary>
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}</outputFilePath>
         </driver>
+        
+        <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+        
+        <driver name="GblTrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.GblTrackingReconstructionPlots">
+            <outputPlots>TrackingReconstructionPlots.aida</outputPlots>
+        </driver>
+        
+        
+        
+        
     </drivers>
 </lcsim>
