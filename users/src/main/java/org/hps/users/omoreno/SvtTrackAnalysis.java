@@ -1,42 +1,44 @@
 package org.hps.users.omoreno;
 
-//--- java ---//
-//--- hep ---//
-import hep.aida.IPlotter;
-import hep.physics.vec.Hep3Vector;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.recon.tracking.TrackUtils;
-import org.lcsim.event.Cluster;
-//--- org.lcsim ---//
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogramFactory;
+import hep.aida.IPlotterFactory;
+import hep.aida.IPlotter;
+import hep.aida.IHistogram1D;
+import hep.aida.ITree;
+
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
-import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
-import org.lcsim.util.aida.AIDA;
-//--- hps-java ---//
+
+import org.hps.recon.tracking.TrackUtils;
 
 /**
  * 
- * @author Omar Moreno
- * @version $Id: SvtTrackAnalysis.java,v 1.7 2013/11/06 19:19:55 jeremy Exp $
+ * @author Omar Moreno <omoreno1@ucsc.edu>
  *
  */
-
 public class SvtTrackAnalysis extends Driver {
-	
+
+    // Use JFreeChart as the default plotting backend
+    static { 
+        hep.aida.jfree.AnalysisFactory.register();
+    }
+
+    // Plotting
+    ITree tree; 
+    IHistogramFactory histogramFactory; 
+    IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
+    protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
+
+    private Map<String, IHistogram1D> trackParameterPlots = new HashMap<String, IHistogram1D>();
+
     private String trackCollectionName = "MatchedTracks";
-    private String stripHitCollectionName = "StripClusterer_SiTrackerHitStrip1D";
-	private AIDA aida;
-	private List<IPlotter> plotters = new ArrayList<IPlotter>();
-    
 	
 	int npositive = 0;
 	int nnegative = 0;
@@ -46,20 +48,43 @@ public class SvtTrackAnalysis extends Driver {
 	double nTwoTracks = 0;
 	double nevents = 0;
 	
-	
+
+    /**
+     *  Default Constructor
+     */    
 	public SvtTrackAnalysis(){
 	}
 
 	protected void detectorChanged(Detector detector){
-		
-		aida = AIDA.defaultInstance();
-		aida.tree().cd("/");
-		
-		int nPlotters = 0;
-		
+	
+        tree = IAnalysisFactory.create().createTreeFactory().create();
+        histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
+
+        plotters.put("Track Parameters", plotterFactory.create("Track Parameters"));
+        plotters.get("Track Parameters").createRegions(2, 3);
+
+        trackParameterPlots.put("DOCA", histogramFactory.createHistogram1D("DOCA", 80, -80, 80));         
+        plotters.get("Track Parameters").region(0).plot(trackParameterPlots.get("DOCA")); 
+      
+        trackParameterPlots.put("Z0", histogramFactory.createHistogram1D("Z0", 30, -30, 30));    
+        plotters.get("Track Parameters").region(1).plot(trackParameterPlots.get("Z0"));
+
+        trackParameterPlots.put("phi0", histogramFactory.createHistogram1D("phi0", 50, -0.5, 0.5));    
+        plotters.get("Track Parameters").region(2).plot(trackParameterPlots.get("phi0"));
+    
+        trackParameterPlots.put("Curvature", histogramFactory.createHistogram1D("Curvature", 200, -1, 1));    
+        plotters.get("Track Parameters").region(3).plot(trackParameterPlots.get("Curvature"));
+
+        trackParameterPlots.put("Tan(Lambda)", histogramFactory.createHistogram1D("Tan(Lambda)", 100, -1, 1));    
+        plotters.get("Track Parameters").region(4).plot(trackParameterPlots.get("Tan(Lambda)"));
+	
+        trackParameterPlots.put("Chi2", histogramFactory.createHistogram1D("Chi2", 100, 0, 100));    
+        plotters.get("Track Parameters").region(5).plot(trackParameterPlots.get("Chi2"));
+
+
 		//--- Track Extrapolation ---//
 		//---------------------------//	
-		plotters.add(aida.analysisFactory().createPlotterFactory().create("Track Position at Ecal"));
+		/*plotters.add(aida.analysisFactory().createPlotterFactory().create("Track Position at Ecal"));
 		plotters.get(nPlotters).region(0).plot(aida.histogram2D("Track Position at Ecal", 200, -350, 350, 200, -100, 100));
 		plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
@@ -118,44 +143,6 @@ public class SvtTrackAnalysis extends Driver {
 		nPlotters++;
 		
         
-        //--- Track Parameters ---//
-        //------------------------//
-        plotters.add(aida.analysisFactory().createPlotterFactory().create("DOCA"));
-        plotters.get(nPlotters).region(0).plot(aida.histogram1D("DOCA", 120, 0, 120));
-        plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-		nPlotters++;
-        
-        plotters.add(aida.analysisFactory().createPlotterFactory().create("Z0"));
-        plotters.get(nPlotters).region(0).plot(aida.histogram1D("Z0", 120, 0, 120));
-        plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-		nPlotters++;
-        
-        plotters.add(aida.analysisFactory().createPlotterFactory().create("phi0"));
-        plotters.get(nPlotters).region(0).plot(aida.histogram1D("phi0", 50, -Math.PI, Math.PI));
-        plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-		nPlotters++;
-        
-        plotters.add(aida.analysisFactory().createPlotterFactory().create("Curvature"));
-        plotters.get(nPlotters).region(0).plot(aida.histogram1D("R", 200, -10, 10));
-        plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-		nPlotters++;
-        
-        plotters.add(aida.analysisFactory().createPlotterFactory().create("Tan(Lambda)"));
-        plotters.get(nPlotters).region(0).plot(aida.histogram1D("Tan(Lambda)", 100, 0, 1));
-        plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-		nPlotters++;
-		
-        plotters.add(aida.analysisFactory().createPlotterFactory().create("ChiSquared"));
-        plotters.get(nPlotters).region(0).plot(aida.histogram1D("ChiSquared", 100, 0, 100));
-        plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-		nPlotters++;
-		
         //--- Momentum ---//
         //----------------//
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Px"));
@@ -239,13 +226,16 @@ public class SvtTrackAnalysis extends Driver {
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
 		nPlotters++;
-		
-		for(IPlotter plotter : plotters) plotter.show();
+		*/
+		for (IPlotter plotter : plotters.values()) { 
+			plotter.show();
+		}
 	}
 	
 	public void process(EventHeader event){
 		nevents++;
-		
+	
+        /*    
 		if(event.hasCollection(SiTrackerHitStrip1D.class, stripHitCollectionName)){
 			
 			System.out.println("Found Strip Hits!");
@@ -258,17 +248,35 @@ public class SvtTrackAnalysis extends Driver {
 					}
 				}
 			}
-		}
-				
+		}*/
+		
+        // If the event doesn't have any tracks, skip it    
 		if(!event.hasCollection(Track.class, trackCollectionName)) return;
-    	List<SeedTrack> tracks = event.get(SeedTrack.class, trackCollectionName);
     	
-    	Map<Hep3Vector,SeedTrack> trackToEcalPosition = new HashMap<Hep3Vector, SeedTrack>();
-     	Map<SeedTrack, Cluster> trackToCluster = new HashMap<SeedTrack, Cluster>();
+        // Get the collection of tracks from the event
+        List<Track> tracks = event.get(Track.class, trackCollectionName);
+    
+        /*    
+    	Map<Hep3Vector,Track> trackToEcalPosition = new HashMap<Hep3Vector, Track>();
+     	Map<Track, Cluster> trackToCluster = new HashMap<Track, Cluster>();
     	List<Hep3Vector> ecalPos = new ArrayList<Hep3Vector>();
-    	
-    	for(SeedTrack track : tracks){
-    		ntracks++;
+    	*/
+
+    	for(Track track : tracks){
+    
+            trackParameterPlots.get("DOCA").fill(TrackUtils.getDoca(track));
+            trackParameterPlots.get("Z0").fill(TrackUtils.getZ0(track));
+            trackParameterPlots.get("phi0").fill(TrackUtils.getPhi0(track));
+            trackParameterPlots.get("Curvature").fill(TrackUtils.getR(track));
+            trackParameterPlots.get("Tan(Lambda)").fill(TrackUtils.getTanLambda(track));
+            trackParameterPlots.get("Chi2").fill(track.getChi2());
+
+        }
+    }
+}
+
+            /*
+            ntracks++;
     		Hep3Vector positionEcal = TrackUtils.getTrackPositionAtEcal(track);
     		System.out.println("Position at Ecal: " + positionEcal);
     		Hep3Vector positionConverter = TrackUtils.extrapolateTrack(track,-700);
@@ -278,14 +286,10 @@ public class SvtTrackAnalysis extends Driver {
 
     		if(positionEcal.z() > 0 ) ntracksTop++;
     		else if(positionEcal.z() < 0) ntracksBottom++;
+            */
     		
-    		
-    		aida.histogram1D("DOCA").fill(TrackUtils.getDoca(track));
-    		aida.histogram1D("Z0").fill(TrackUtils.getZ0(track));
-    		aida.histogram1D("phi0").fill(TrackUtils.getPhi0(track));
-    		aida.histogram1D("R").fill((1/TrackUtils.getR(track))*1000);
-    		aida.histogram1D("Tan(Lambda)").fill(TrackUtils.getTanLambda(track));
-    		
+    	
+            /*    
     		aida.histogram1D("Px").fill(track.getTrackStates().get(0).getMomentum()[0]);
     		aida.histogram1D("Py").fill(track.getTrackStates().get(0).getMomentum()[1]);
     		aida.histogram1D("Pz").fill(track.getTrackStates().get(0).getMomentum()[2]);
@@ -338,9 +342,9 @@ public class SvtTrackAnalysis extends Driver {
     		aida.histogram2D("XY Difference between Ecal Cluster and Track Position").fill(xdiff, ydiff);
     	}
     	
-    	for(Map.Entry<SeedTrack, Cluster> entry : trackToCluster.entrySet()){
+    	for(Map.Entry<Track, Cluster> entry : trackToCluster.entrySet()){
     		double Energy = entry.getValue().getEnergy();
-    		SeedTrack track = entry.getKey();
+    		Track track = entry.getKey();
     		double pTotal = Math.sqrt(track.getTrackStates().get(0).getMomentum()[0]*track.getTrackStates().get(0).getMomentum()[0] + track.getTrackStates().get(0).getMomentum()[1]*track.getTrackStates().get(0).getMomentum()[1] + track.getTrackStates().get(0).getMomentum()[2]*track.getTrackStates().get(0).getMomentum()[2]);
     		
     		double ep = Energy/(pTotal*1000);
@@ -368,5 +372,4 @@ public class SvtTrackAnalysis extends Driver {
     	System.out.println("Number of top tracks per event: " + tracksTopRatio);
     	System.out.println("Number of bottom tracks per event: " + tracksBottomRatio);
     	System.out.println("Number of two track events: " + twoTrackRatio);
-	}
-}
+	}*/
