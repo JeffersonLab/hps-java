@@ -24,11 +24,14 @@
         <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots" />
         <driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Analytic</fitAlgorithm>
+            <fitAlgorithm>Linear</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
-            <correctT0Shift>false</correctT0Shift>
+            <correctT0Shift>true</correctT0Shift>
             <useTruthTime>false</useTruthTime>
             <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>true</correctChanT0>
+            <timeOffset>51.0</timeOffset>
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">

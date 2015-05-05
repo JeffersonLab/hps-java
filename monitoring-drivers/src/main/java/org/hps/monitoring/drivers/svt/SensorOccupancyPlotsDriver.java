@@ -294,12 +294,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
         // and the global strip position
         this.createStripPositionMap();
         
-        // If the tree already exist, clear all existing plots of any old data
-        // they might contain.
-        if (tree != null) { 
-            this.resetPlots();
-            return; 
-        }
+//        // If the tree already exist, clear all existing plots of any old data
+//        // they might contain.
+//        if (tree != null) { 
+//            this.resetPlots();
+//            return; 
+//        }
        
         tree = analysisFactory.createTreeFactory().create();
         histogramFactory = analysisFactory.createHistogramFactory(tree);

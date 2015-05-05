@@ -1,9 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
 <!-- 
   Offline reconstruction for 2015 (engineering run with SVT+ECal) data.
   @author Sho Uemura <meeg@slac.stanford.edu>
 -->
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -28,7 +28,7 @@
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
-            <correctT0Shift>false</correctT0Shift>
+            <correctT0Shift>true</correctT0Shift>
             <useTruthTime>false</useTruthTime>
             <subtractTOF>true</subtractTOF>
             <subtractTriggerTime>true</subtractTriggerTime>
@@ -43,6 +43,7 @@
             <debug>false</debug>
             <clusterTimeCut>12.0</clusterTimeCut>
             <maxDt>16.0</maxDt>
+            <!--<clusterAmplitudeCut>600.0</clusterAmplitudeCut>-->
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>

@@ -170,6 +170,7 @@ public class SvtHitPlots extends Driver {
         // through the sensors, get the corresponding plots and clear them.
         for (HpsSiSensor sensor : sensors) {
             hitsPerSensorPlots.get(sensor.getName()).reset();
+            firstSamplePlots.get(sensor.getName()).reset();
         }
 
         for (IHistogram1D histogram : layersHitPlots.values()) {
@@ -191,12 +192,12 @@ public class SvtHitPlots extends Driver {
             throw new RuntimeException("No sensors were found in this detector.");
         }
 
-        // If the tree already exist, clear all existing plots of any old data
-        // they might contain.
-        if (tree != null) {
-            this.resetPlots();
-            return;
-        }
+//        // If the tree already exist, clear all existing plots of any old data
+//        // they might contain.
+//        if (tree != null) {
+//            this.resetPlots();
+//            return;
+//        }
 
         tree = analysisFactory.createTreeFactory().create();
         histogramFactory = analysisFactory.createHistogramFactory(tree);
@@ -233,7 +234,7 @@ public class SvtHitPlots extends Driver {
         plotters.get("Raw hit counts/Event").region(1).plot(hitCountPlots.get("SVT top raw hit counts/Event"), this.createStyle("Number of Raw Hits in Top Volume", ""));
         hitCountPlots.put("SVT bottom raw hit counts/Event",
                 histogramFactory.createHistogram1D("SVT bottom raw hit counts", 100, 0, 100));
-        plotters.get("Raw hit counts/Event").region(2).plot(hitCountPlots.get("SVT bottom raw hit counts/Event"), this.createStyle("Number of Raw Bits in the Bottom Volume", ""));
+        plotters.get("Raw hit counts/Event").region(3).plot(hitCountPlots.get("SVT bottom raw hit counts/Event"), this.createStyle("Number of Raw Bits in the Bottom Volume", ""));
 
         plotters.put("First sample distributions (pedestal shifts)", plotterFactory.create("First sample distributions (pedestal shifts)"));
         plotters.get("First sample distributions (pedestal shifts)").createRegions(6, 6);
@@ -271,7 +272,7 @@ public class SvtHitPlots extends Driver {
         for (RawTrackerHit rawHit : rawHits) {
             HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
             hitsPerSensor.get(sensor.getName())[0]++;
-            firstSamplePlots.get(sensor.getName()).fill(rawHit.getADCValues()[0]-sensor.getPedestal(rawHit.getIdentifierFieldValue("strip"), 0));
+            firstSamplePlots.get(sensor.getName()).fill(rawHit.getADCValues()[0] - sensor.getPedestal(rawHit.getIdentifierFieldValue("strip"), 0));
         }
 
         int[] topLayersHit = new int[12];
