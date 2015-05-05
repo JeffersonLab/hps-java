@@ -172,11 +172,13 @@ final class MonitoringApplicationFrame extends JFrame {
         // Create the right panel vertical split pane for displaying plots and their information and statistics.
         this.rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.plotPanel, this.plotInfoPanel);
         this.rightSplitPane.setDividerLocation(680);
+        this.rightSplitPane.setOneTouchExpandable(true);
         rightPanel.add(this.rightSplitPane, BorderLayout.CENTER);
 
         // Create the main horizontal split pane for dividing the left and right panels.
         this.mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
         this.mainSplitPane.setDividerLocation(600);
+        this.mainSplitPane.setOneTouchExpandable(true);
         bottomPanel.add(this.mainSplitPane, BorderLayout.CENTER);
 
         // Create the menu bar.
