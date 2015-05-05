@@ -1,5 +1,8 @@
 package org.hps.analysis.dataquality;
 
+import hep.aida.IFitFactory;
+import hep.aida.IFitResult;
+import hep.aida.IFitter;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import java.util.Collection;
@@ -18,6 +21,7 @@ import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
+import org.lcsim.util.aida.AIDA;
 
 /**
  * DQM driver for reconstructed track quantities plots things like number of
@@ -377,12 +381,35 @@ public class TrackingMonitoring extends DataQualityMonitor {
 
     @Override
     public void calculateEndOfRunQuantities() {
+        IFitFactory fitFactory = AIDA.defaultInstance().analysisFactory().createFitFactory();
+        IFitter fitter = fitFactory.createFitter("chi2");
+
+        for (HpsSiSensor sensor : sensors) {
+            //IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
+            IHistogram1D hitTimeResidual = getSensorPlot(plotDir + "hitTimeResidual_", getNiceSensorName(sensor));
+            IFitResult result = fitGaussian(hitTimeResidual, fitter, "range=\"(-20.0,20.0)\"");
+            System.out.format("%s\t%f\t%f\t%d\t%d\n",getNiceSensorName(sensor), result.fittedParameters()[1], result.fittedParameters()[2], sensor.getFebID(), sensor.getFebHybridID());
+        }
+
         monitoredQuantityMap.put(trackingQuantNames[0], (double) nTotTracks / nEvents);
         monitoredQuantityMap.put(trackingQuantNames[1], (double) nTotHits / nTotTracks);
         monitoredQuantityMap.put(trackingQuantNames[2], sumd0 / nTotTracks);
         monitoredQuantityMap.put(trackingQuantNames[3], sumz0 / nTotTracks);
         monitoredQuantityMap.put(trackingQuantNames[4], sumslope / nTotTracks);
         monitoredQuantityMap.put(trackingQuantNames[5], sumchisq / nTotTracks);
+    }
+
+    IFitResult fitGaussian(IHistogram1D h1d, IFitter fitter, String range) {
+        double[] init = {h1d.maxBinHeight(), h1d.mean(), h1d.rms()};
+        IFitResult ifr = null;
+        try {
+            ifr = fitter.fit(h1d, "g", init, range);
+        } catch (RuntimeException ex) {
+            System.out.println(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
+        }
+        return ifr;
+//        double[] init = {20.0, 0.0, 1.0, 20, -1};
+//        return fitter.fit(h1d, "g+p1", init, range);
     }
 
     @Override
