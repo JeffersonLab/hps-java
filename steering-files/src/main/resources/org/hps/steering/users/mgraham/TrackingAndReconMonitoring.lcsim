@@ -15,6 +15,7 @@
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
         <driver name="ReconParticle" /> 
+        <driver name="GTPOnlineClusterer" />
         <!--  SVT opening angle alignment -->
         <driver name="TrackerL1to3ReconDriver"/> 
         <driver name="TrackerL4to6ReconDriver"/> 
@@ -34,9 +35,9 @@
         <driver name="V0DQM"/>  
         <driver name="V0DQMPairs0"/>
         <driver name="V0DQMPairs1"/>
-<!--        <driver name="PositronDebug"/>-->
+        <!--        <driver name="PositronDebug"/>-->
         <driver name="AidaSaveDriver"/>     
-<!--        <driver name="LCIOWriter"/>     -->
+        <driver name="LCIOWriter"/>     
         <driver name="CleanupDriver" /> 
     </execute>
     <drivers>
@@ -70,7 +71,7 @@
         <driver name="TrackerL4to6ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <includeMS>false</includeMS>
-              <useHPSMaterialManager>false</useHPSMaterialManager>
+            <useHPSMaterialManager>false</useHPSMaterialManager>
             <trackCollectionName>L4to6Tracks</trackCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L4-6.xml</strategyResource>
         </driver>
@@ -237,5 +238,14 @@
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />       
+
+        <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <clustererName>GTPOnlineClusterer</clustererName>
+            <outputClusterCollectionName>EcalClustersGTP</outputClusterCollectionName>
+            <!-- seedMinEnergy -->
+            <cuts>0.100</cuts>
+        </driver>      
+
     </drivers>
 </lcsim>

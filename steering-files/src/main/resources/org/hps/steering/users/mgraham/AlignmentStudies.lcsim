@@ -10,7 +10,7 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
- <!--       <driver name="FullTrackerReconDriver"/>
+        <!--       <driver name="FullTrackerReconDriver"/>
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
@@ -20,11 +20,12 @@
         <driver name="TrackerL4to6ReconDriver"/> 
         <driver name="SVTAlignment"/> 
         <!-- Online Monitoring Drivers -->
-        <!--       <driver name="TrackingMonitoring" />  
-        <driver name="TrackingResiduals"/>  
+        <driver name="TrackingMonitoringL1to3" />  
+        <driver name="TrackingMonitoringL4to6" />  
+        <!--      <driver name="TrackingResiduals"/>  
         <driver name="TrackTime"/>  
         <driver name="V0Monitoring"/>    -->       
-<!--        <driver name="TrackingMonitoringDQM" />  
+        <!--        <driver name="TrackingMonitoringDQM" />  
         <driver name="TrackingMonitoringPairs0DQM" />  
         <driver name="TrackingMonitoringPairs1DQM" />  
         <driver name="TrackingResidualsDQM"/>  
@@ -36,7 +37,7 @@
         <driver name="V0DQMPairs1"/>
         <driver name="PositronDebug"/>-->
         <driver name="AidaSaveDriver"/>     
-        <driver name="LCIOWriter"/>    
+        <!--    <driver name="LCIOWriter"/>  -->   
         <driver name="CleanupDriver" /> 
     </execute>
     <drivers>
@@ -70,7 +71,7 @@
         <driver name="TrackerL4to6ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <includeMS>false</includeMS>
-              <useHPSMaterialManager>false</useHPSMaterialManager>
+            <useHPSMaterialManager>false</useHPSMaterialManager>
             <trackCollectionName>L4to6Tracks</trackCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L4-6.xml</strategyResource>
         </driver>
@@ -157,8 +158,19 @@
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>                
         <!-- End of EngineeringRun2015FullRecon from Sho --> 
-           
-                      
+        <driver name="TrackingMonitoringL1to3" type="org.hps.analysis.dataquality.TrackingMonitoring">         
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <trackCollectionName>L1to3Tracks</trackCollectionName>
+        </driver>
+
+        <driver name="TrackingMonitoringL4to6" type="org.hps.analysis.dataquality.TrackingMonitoring">         
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <trackCollectionName>L4to6Tracks</trackCollectionName>
+        </driver>
+
+                                                                  
         <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.TrackingReconPlots">         
         </driver>
         <driver name="TrackingResiduals" type="org.hps.monitoring.drivers.trackrecon.TrackResiduals">

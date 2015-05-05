@@ -3,9 +3,12 @@
     <!-- 
       Steering file to test readout for the EngRun 2015 MC
       @author Matt Graham <mgraham@slac.stanford.edu>
-    -->
-    <execute>
-    
+    -->    
+     <control>
+        <printInputFiles>true</printInputFiles>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>    
+    <execute>    
         <driver name="ConditionsDriver"/>
         <driver name="EventMarkerDriver" />
 <!--  Readout Simulation -->
@@ -52,6 +55,7 @@
             <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
             <outputClusterCollectionName>EcalClustersGTP</outputClusterCollectionName>            
             <clusterWindow>1</clusterWindow>
+            <level>OFF</level>
         </driver>
         <driver name="PairTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <!--      
@@ -73,7 +77,7 @@
             <energySumHigh>0.86</energySumHigh>
             <energySumLow>0.2</energySumLow>
             <energyDifferenceHigh>0.54</energyDifferenceHigh>
-            <coplanarityHigh>40</coplanarityHigh>
+            <coplanarityHigh>30</coplanarityHigh>
             <seedEnergyLow>0.05</seedEnergyLow>
             <energySlopeParamF>0.0055</energySlopeParamF>
             <energySlopeLow>0.6</energySlopeLow>
