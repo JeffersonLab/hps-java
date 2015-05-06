@@ -3,6 +3,7 @@ package org.hps.analysis.examples;
 import java.util.List;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
+import org.lcsim.event.Vertex;
 import org.lcsim.util.Driver;
 
 /**
@@ -17,6 +18,7 @@ public class StripEventDriver extends Driver
     private int _minNumberOfTracks = 0;
     private int _minNumberOfHitsOnTrack = 0;
     private int _numberOfEventsWritten = 0;
+    private int _minNumberOfUnconstrainedV0Vertices = 0;
 
     @Override
     protected void process(EventHeader event)
@@ -35,6 +37,12 @@ public class StripEventDriver extends Driver
                     }
                 }
             } else {
+                skipEvent = true;
+            }
+        }
+        if (event.hasCollection(Vertex.class, "UnconstrainedV0Vertices")) {
+            int nVertices = event.get(Vertex.class, "UnconstrainedV0Vertices").size();
+            if (nVertices < _minNumberOfUnconstrainedV0Vertices) {
                 skipEvent = true;
             }
         }
@@ -59,6 +67,11 @@ public class StripEventDriver extends Driver
     public void setMinNumberOfHitsOnTrack(int nHits)
     {
         _minNumberOfHitsOnTrack = nHits;
+    }
+
+    public void setMinNumberOfUnconstrainedV0Vertices(int nVertices)
+    {
+        _minNumberOfUnconstrainedV0Vertices = nVertices;
     }
 
 }
