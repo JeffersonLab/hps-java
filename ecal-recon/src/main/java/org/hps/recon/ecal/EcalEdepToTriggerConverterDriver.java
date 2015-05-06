@@ -15,9 +15,18 @@ import org.lcsim.util.Driver;
 
 
 /**
- *
- * @version $Id: HPSEcalRawConverterDriver.java,v 1.2 2012/05/03 00:17:54
- * phansson Exp $
+ * This file can be used on Monte Carlo and excludes pile up. This makes
+ * it useful to study sampling fractions and energy resolution when firing single
+ * energy particles at the detector. This file takes the geant4 energy deposition,
+ * and converts it to uits of FADC using the pulse integral value and gain (amplitude).
+ * The amplitude can include noise if desired. This value is then compared to the 
+ * readout/trigger thresholds in FADC. Finally,this value is converted back into GeV 
+ * energy output which can be used for clustering, etc. 
+ * 
+ * Original author for test run:
+ * @author phansson 
+ * Modified from test run to Spring 2015 running: 
+ * @author Holly Szumila <hvanc001@odu.edu>
  */
 public class EcalEdepToTriggerConverterDriver extends Driver {
 	
@@ -30,16 +39,16 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
     private String readoutCollection = "EcalCalHits";
     private String triggerCollection = "EcalTriggerHits";
     private boolean applyBadCrystalMap = true;
-    private double tp = 14.0;
+    private double tp = 6.95; //14.0 for test run;
     private final double readoutPeriod = 4.0;
-    private final int readoutThreshold = 50;
-    private final int triggerThreshold = 80;
+    private final int readoutThreshold = 12;//FADC units; 50 for test run;
+    private final int triggerThreshold = 12;//FADC units; 80;
     private int truncateScale = 128;
-    private final double pulseIntegral = tp * Math.E / readoutPeriod;
+    private final double pulseIntegral = tp * Math.E * Math.E /(2*readoutPeriod);//tp * Math.E / readoutPeriod (test run);
     private final double gainScale = 1.0; //gain miscalibration factor
     private double _gain = -1.0; //constant gain, activated if >0
     private boolean addNoise = false;
-    private final double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
+    private final double pePerMeV = 32.8; //photoelectrons per MeV, used to calculate noise
 
     public EcalEdepToTriggerConverterDriver() {
     }
