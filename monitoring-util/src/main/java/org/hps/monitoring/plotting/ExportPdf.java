@@ -42,7 +42,7 @@ public class ExportPdf {
     public static void write(List<IPlotter> plotters, String fileName, List<String> runData) throws IOException {
         
         // Open the document and the writer.
-        Document document = new Document(PageSize.A4.rotate(), 50, 50, 50, 50);
+        Document document = new Document(PageSize.LETTER.rotate(), 50, 50, 50, 50);
         PdfWriter writer;
         try {
             writer = PdfWriter.getInstance(document, new FileOutputStream(fileName));
@@ -106,9 +106,9 @@ public class ExportPdf {
             iTextImage = com.itextpdf.text.Image.getInstance(writer, awtImage, 1f);
         } catch (BadElementException e) {
             throw new IOException(e);
-        }                 
-        iTextImage.setAbsolutePosition(50, 50);
-        iTextImage.scalePercent(60);
+        }
+        iTextImage.scaleToFit(document.getPageSize());
+        iTextImage.setAlignment(Element.ALIGN_CENTER);
         try {
             document.add(iTextImage);
         } catch (DocumentException e) {
