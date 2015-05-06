@@ -463,33 +463,40 @@ public class SensorOccupancyPlotsDriver extends Driver {
             e.printStackTrace();
         }
        
+        System.out.println("%===============================================================================%");
+        System.out.println("%======================== Active Edge Sensor Occupancies =======================%");
+        System.out.println("%===============================================================================%");
+        System.out.println("% Total Events: " + eventCount);
         // Calculate the occupancies at the sensor edge
         int[] topActiveEdgeStripOccupancy = new int[6]; 
         int[] bottomActiveEdgeStripOccupancy = new int[6];
         for (HpsSiSensor sensor : sensors) { 
             if (sensor.isTopLayer() && sensor.isAxial()) { 
-                if (sensor.getSide() == sensor.ELECTRON_SIDE) { 
+                if (sensor.getSide() == sensor.ELECTRON_SIDE) {
+                    System.out.println("% Top Layer " + this.getLayerNumber(sensor)  + " Hit Counts: " + occupancyMap.get(sensor.getName())[1]);
                     topActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[1];
                 } else { 
-                    topActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[637];
+                    System.out.println("% Top Layer " + this.getLayerNumber(sensor)  + " Hit Counts: " + occupancyMap.get(sensor.getName())[638]);
+                    topActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[638];
                 }
             } else if (sensor.isBottomLayer() && sensor.isAxial()) {
                 if (sensor.getSide() == sensor.ELECTRON_SIDE) { 
+                    System.out.println("% Bottom Layer " + this.getLayerNumber(sensor)  + " Hit Counts: " + occupancyMap.get(sensor.getName())[1]);
                     bottomActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[1];
                 } else { 
-                    bottomActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[637];
+                    System.out.println("% Bottom Layer " + this.getLayerNumber(sensor)  + " Hit Counts: " + occupancyMap.get(sensor.getName())[638]);
+                    bottomActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[638];
                 }
             }
         }
         
-        System.out.println("%===============================================================================%");
-        System.out.println("%======================== Active Edge Sensor Occupancies =======================%");
-        System.out.println("%===============================================================================%");
         for (int layerN = 0; layerN < 6; layerN++) {
-           System.out.println("% Top Layer " + (layerN+1) + ": Occupancy: " + topActiveEdgeStripOccupancy[layerN] + " / " + eventCount + " = " 
-                           + ((double) topActiveEdgeStripOccupancy[layerN] / (double) eventCount)); 
-           System.out.println("% Bottom Layer " + (layerN+1) + ": Occupancy: " + bottomActiveEdgeStripOccupancy[layerN] + " / " + eventCount + " = " 
-                           + ((double) bottomActiveEdgeStripOccupancy[layerN] / (double) eventCount)); 
+           double topStripOccupancy = (double) topActiveEdgeStripOccupancy[layerN] / (double) eventCount;
+           topStripOccupancy /= this.timeWindowWeight;
+           System.out.println("% Top Layer " + (layerN+1) + ": Occupancy in " + (24/this.timeWindowWeight) + " ns window: " + topStripOccupancy); 
+           double botStripOccupancy = (double) bottomActiveEdgeStripOccupancy[layerN] / (double) eventCount;
+           botStripOccupancy /= this.timeWindowWeight;
+           System.out.println("% Bottom Layer " + (layerN+1) + ": Occupancy in " + (24/this.timeWindowWeight) + " ns window: " + botStripOccupancy); 
         }
         System.out.println("%===============================================================================%");
         System.out.println("%===============================================================================%");
