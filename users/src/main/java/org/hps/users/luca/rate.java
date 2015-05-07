@@ -215,6 +215,53 @@ double[] cryecuttopmax={1.8,1.8,1.8,2,2};
 double[] cryecutbotmax={2,2,1.9,1.9,2};
 double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
 
+
+//e cuts 5072
+/*
+double[] ecuttopmin={0.45,0.6,0.6,0.7,0.7,0.75};
+double[] ecuttopmax={0.8,0.9,0.9,0.9,1,1};
+
+double[] ecutbotmin= {0.45,0.5,0.6,0.7,0.67,0.65};
+double[] ecutbotmax={0.76,0.8,0.8,0.9,1,1};
+
+
+double[] cryecuttopmin={1.38,1.38,1.52,1.6,1.6};
+double[] cryecuttopmax={1.8,1.8,1.8,2,2};
+
+double[] cryecutbotmax={2,2,1.9,1.9,2};
+double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
+*/
+
+// e cut 5181
+/*
+double[] ecuttopmin={0.49,0.6,0.6,0.65,0.69,0.7};
+double[] ecuttopmax={0.8,0.8,0.8,0.9,1,1};
+
+double[] ecutbotmin= {0.45,0.55,0.6,0.6,0.65,0.65};
+double[] ecutbotmax={0.75,0.85,0.8,0.9,0.9,0.9};
+
+
+double[] cryecuttopmin={1.38,1.38,1.52,1.6,1.6};
+double[] cryecuttopmax={1.8,1.8,1.8,2,2};
+
+double[] cryecutbotmax={2,2,1.9,1.9,2};
+double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
+*/
+//e cut 5183
+/*
+double[] ecuttopmin={0.55,0.6,0.6,0.65,0.7,0.65};
+double[] ecuttopmax={0.8,0.85,0.9,0.9,0.9,0.9};
+
+double[] ecutbotmin= {0.5,0.55,0.6,0.7,0.65,0.7};
+double[] ecutbotmax={0.75,0.8,0.8,0.9,0.9,0.9};
+
+
+double[] cryecuttopmin={1.38,1.38,1.52,1.6,1.6};
+double[] cryecuttopmax={1.8,1.8,1.8,2,2};
+
+double[] cryecutbotmax={2,2,1.9,1.9,2};
+double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
+*/
 double vertical;
 
 
@@ -229,7 +276,7 @@ this.outputFileName = outputFileName;
 
 @Override
 public void startOfData(){
-    System.out.println("mo spacco tutto \n");
+    System.out.println("mo spacco tutto davero!!!\n");
  //inizializzo il file di uscita
    try{
     //initialize the writers
@@ -333,7 +380,7 @@ writer.append("events in row  " + t + " = " + crycountertop[t]+ " Rate = " + (cr
 int menot=-t;
 writer.append("events in row  " + menot + " = " + crycounterbot[t]+ " Rate = " + (crycounterbot[t]/timme) + "\n" );
 }
-writer.append("\n verticale = " + vertical +"\n");
+writer.append("\n TEMPO = " + timme +"\n");
 
 }
 
@@ -343,7 +390,7 @@ catch(IOException e)
     System.err.println("Non ho scritto sul file");
     }
 
-System.out.println("vertical =  " + vertical + "\n");
+System.out.println("TEMPO =  " + timme + "\n");
 /*vertical=vertical-6.5;
 for(int i=0;i<7;i++)
 {double theta=Math.atan2( (vertical+i*13),1397);
@@ -391,6 +438,7 @@ System.out.println("theta = " + theta + "\n");
          
          //if(cryy==1){verpos[0]=posY;}
          //da qui righe e colonne
+        /* 
         if(cryx==-5||cryx==-6){
             
             for(int i=0;i<5;i++){
@@ -412,7 +460,7 @@ System.out.println("theta = " + theta + "\n");
                     }
                 }
             }
-        } 
+        } */
         
         
         ///da qui bin angolari 
@@ -422,7 +470,7 @@ System.out.println("theta = " + theta + "\n");
              if(posY>Ymin[i]&&posY<=Ymax[i]){
                 if(posX<=Xmax[i] &&posX>=Xmin[i]){      
                     TopNoCut.get(i).fill(cluster.getEnergy());
-                    if(cluster.getEnergy()>ecuttopmin[i]&&cluster.getEnergy()<ecuttopmax[i]){
+                    if(cluster.getEnergy() > ecuttopmin[i] && cluster.getEnergy() < ecuttopmax[i]){
                         Top.get(i).fill(cluster.getEnergy());
                         countertop[i]++;
                         CryId.fill(ID);
