@@ -11,7 +11,8 @@ public class BasicLogFormatter extends Formatter {
         StringBuilder sb = new StringBuilder();
         //System.out.printf("%s: format called\n",getClass().getSimpleName());
         //sb.append(new Date(record.getMillis()))
-            sb.append(getClass().getSimpleName() + " ")
+            //sb.append(getClass().getSimpleName() + " ")
+            sb.append(record.getLoggerName() + " ")
             .append(record.getLevel().getLocalizedName())
             .append(": ")
             .append(formatMessage(record))
