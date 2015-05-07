@@ -34,7 +34,7 @@ import org.lcsim.util.log.LogUtil;
 
 public class GblTrackingReconstructionPlots extends Driver {
     private double _bfield;
-    private static Logger logger = LogUtil.create(HpsGblRefitter.class, new BasicLogFormatter());
+    private static Logger logger = LogUtil.create(GblTrackingReconstructionPlots.class, new BasicLogFormatter());
     private AIDA aida = AIDA.defaultInstance();
     private String outputPlots = null;
     private final String trackCollectionName = "MatchedTracks";
@@ -47,16 +47,19 @@ public class GblTrackingReconstructionPlots extends Driver {
     IHistogram1D phiDiff;
     IHistogram1D slopeDiff;
     IHistogram1D rDiff;
+    IHistogram1D pDiff;
     IHistogram1D d0Diff2;
     IHistogram1D z0Diff2;
     IHistogram1D phiDiff2;
     IHistogram1D slopeDiff2;
     IHistogram1D rDiff2;
+    IHistogram1D pDiff2;
     IHistogram1D d0DiffGbl;
     IHistogram1D z0DiffGbl;
     IHistogram1D phiDiffGbl;
     IHistogram1D slopeDiffGbl;
     IHistogram1D rDiffGbl;
+    IHistogram1D pDiffGbl;
     IPlotter plotter1;
     IPlotter plotter2;
     IPlotter plotter3;
@@ -102,6 +105,7 @@ public class GblTrackingReconstructionPlots extends Driver {
         slopeDiff = aida.histogram1D("slopeDiff", 25, -0.01, 0.01);
         phiDiff = aida.histogram1D("phiDiff", 25, -0.01, 0.01);
         rDiff = aida.histogram1D("rDiff", 25, -0.0001, 0.0001);
+        pDiff = aida.histogram1D("pDiff", 25, -0.1, 0.1);
 
         plotter2 = fac.createPlotterFactory().create("Truth comparison");
         plotter2.setStyle(style1);
@@ -111,6 +115,7 @@ public class GblTrackingReconstructionPlots extends Driver {
         plotter2.region(2).plot(phiDiff);
         plotter2.region(3).plot(slopeDiff);
         plotter2.region(4).plot(rDiff);
+        plotter2.region(5).plot(pDiff);
         plotter2.show();
         
         
@@ -119,6 +124,7 @@ public class GblTrackingReconstructionPlots extends Driver {
         slopeDiffGbl = aida.histogram1D("slopeDiffGbl", 25, -0.01, 0.01);
         phiDiffGbl = aida.histogram1D("phiDiffGbl", 25, -0.01, 0.01);
         rDiffGbl = aida.histogram1D("rDiffGbl", 25, -0.0001, 0.0001);
+        pDiffGbl = aida.histogram1D("pDiffGbl", 25, -0.1, 0.1);
 
         
         plotter3 = fac.createPlotterFactory().create("Truth comparison GBL");
@@ -129,6 +135,7 @@ public class GblTrackingReconstructionPlots extends Driver {
         plotter3.region(2).plot(phiDiffGbl);
         plotter3.region(3).plot(slopeDiffGbl);
         plotter3.region(4).plot(rDiffGbl);
+        plotter3.region(5).plot(pDiffGbl);
         plotter3.show();
         
         
@@ -137,6 +144,7 @@ public class GblTrackingReconstructionPlots extends Driver {
         slopeDiff2 = aida.histogram1D("slopeDiff2", 25, -0.01, 0.01);
         phiDiff2 = aida.histogram1D("phiDiff2", 25, -0.01, 0.01);
         rDiff2 = aida.histogram1D("rDiff2", 25, -0.0001, 0.0001);
+        pDiff2 = aida.histogram1D("pDiff2", 25, -0.1, 0.1);
 
         
         plotter4 = fac.createPlotterFactory().create("Seed vs GBL");
@@ -147,6 +155,7 @@ public class GblTrackingReconstructionPlots extends Driver {
         plotter4.region(2).plot(phiDiff2);
         plotter4.region(3).plot(slopeDiff2);
         plotter4.region(4).plot(rDiff2);
+        plotter4.region(5).plot(pDiff2);
         plotter4.show();
         
         
@@ -209,27 +218,21 @@ public class GblTrackingReconstructionPlots extends Driver {
             SeedTrack st = (SeedTrack)track;
             SeedCandidate seed = st.getSeedCandidate();
             HelicalTrackFit htf = seed.getHelix(); 
-//            Track seedTrack = null;
-//            for(Track trk : tracks) {
-//                SeedTrack st2 = (SeedTrack)trk;
-//                SeedCandidate s2 = st2.getSeedCandidate();
-//                logger.info("");
-//                if(seed.equals(s2)) {
-//                    seedTrack = trk;
-//                }
-//            }
-//            if(seedTrack!=null) {
-//                throw new RuntimeException("could;t find the seed track from GBL track");
-//            }
             logger.info(htf.toString());
             HelicalTrackFit pHTF = null;
+            double pTruth = -1.;
+            double pTrackTruth = -1.;
             if(trackTruthMatch.get(track)==null) {
                 logger.info("no truth mc particle for this track");
             } else {
-                pHTF = TrackUtils.getHTF(trackTruthMatch.get(track),-1*_bfield);
+                MCParticle part = trackTruthMatch.get(track);
+                pTruth = part.getMomentum().magnitude();
+                pHTF = TrackUtils.getHTF(part,Math.abs(_bfield));
+                pTrackTruth = pHTF.p(Math.abs(_bfield));
                 logger.info("part: " + trackTruthMatch.get(track).getPDGID());
                 logger.info("pHTF:");
                 logger.info(pHTF.toString());
+                logger.info("pTruth="+pTruth+" pTrackTruth="+pTrackTruth);
             }
             
             
@@ -240,12 +243,14 @@ public class GblTrackingReconstructionPlots extends Driver {
             double C = htf.curvature();
             double phi = htf.phi0();
             double slope = htf.slope();
-
+            double p = htf.p(Math.abs(_bfield));
             double d0Gbl = track.getTrackStates().get(0).getD0();
             double z0Gbl = track.getTrackStates().get(0).getZ0();
             double CGbl = track.getTrackStates().get(0).getOmega();
             double phiGbl = track.getTrackStates().get(0).getPhi();
             double slopeGbl = track.getTrackStates().get(0).getTanLambda();
+            double pGbl = getMag(track.getTrackStates().get(0).getMomentum());
+            logger.info("pGbl="+pGbl);
 
             if(pHTF!=null) {
                 double d0Truth = pHTF.dca();
@@ -259,12 +264,14 @@ public class GblTrackingReconstructionPlots extends Driver {
                 phiDiff.fill(phi-phiTruth);
                 rDiff.fill(C-CTruth);
                 slopeDiff.fill(slope-slopeTruth);
+                pDiff.fill(p-pTruth);
 
                 d0DiffGbl.fill(d0Gbl-d0Truth);
                 z0DiffGbl.fill(z0Gbl-z0Truth);
                 phiDiffGbl.fill(phiGbl-phiTruth);
                 rDiffGbl.fill(CGbl-CTruth);
                 slopeDiffGbl.fill(slopeGbl-slopeTruth);
+                pDiffGbl.fill(pGbl-pTruth);
             }
 
 
@@ -273,6 +280,7 @@ public class GblTrackingReconstructionPlots extends Driver {
             phiDiff2.fill(phi-phiGbl);
             rDiff2.fill(C-CGbl);
             slopeDiff2.fill(slope-slopeGbl);
+            pDiff2.fill(p-pGbl);
             
 
         }
@@ -290,6 +298,10 @@ public class GblTrackingReconstructionPlots extends Driver {
         
     }
     
+    
+    private double getMag(double p[]) {
+        return Math.sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
+    }
     
     public void endOfData() {
         if (outputPlots != null) {

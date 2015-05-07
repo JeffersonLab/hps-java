@@ -4,10 +4,10 @@
     <control>
         <printInputFiles>false</printInputFiles>
         <printDriversDetailed>false</printDriversDetailed>
-        <numberOfEvents>1000</numberOfEvents>
+        <!--<numberOfEvents>1000</numberOfEvents>-->
     </control>
     <execute>
-        <driver name="ConditionsDriver"/>
+<!--        <driver name="ConditionsDriver"/> -->
         <driver name="EventMarkerDriver"/>   
         <driver name="TrackerDigiDriver"/>
         <driver name="HelicalTrackHitDriver"/>
@@ -16,7 +16,7 @@
         <driver name="GBLDriver"/>
         <driver name="GblTrackingReconstructionPlots"/>
         <driver name="LCIOWriter"/>
-<!--        <driver name="AidaSaveDriverRoot" /> -->
+        <driver name="AidaSaveDriverRoot" /> 
     </execute>
     <drivers>
 
