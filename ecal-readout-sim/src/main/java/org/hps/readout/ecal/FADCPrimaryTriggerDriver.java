@@ -70,6 +70,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     private IHistogram1D[] pairCoplanarity;
     private IHistogram1D[] pairEnergySlope;
     private IHistogram2D[] clusterDistribution;
+    private IHistogram2D[] pairEnergySum2DDistribution;
     
     /**
      * Initializes the cluster pair queues and other variables.
@@ -106,6 +107,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     	pairEnergyDifference = new IHistogram1D[PLOT_COUNT - 1];
     	pairCoplanarity = new IHistogram1D[PLOT_COUNT - 1];
     	pairEnergySlope = new IHistogram1D[PLOT_COUNT - 1];
+    	pairEnergySum2DDistribution = new IHistogram2D[PLOT_COUNT - 1];
     	
     	// Instantiate the plots.
     	for(int i = 0; i < PLOT_COUNT; i++) {
@@ -120,6 +122,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     			pairEnergyDifference[i] = aida.histogram1D(plotDir[i] + "Pair Energy Difference" + plotType[i], 176, 0.0, 2.2);
     			pairCoplanarity[i] = aida.histogram1D(plotDir[i] + "Pair Coplanarity" + plotType[i], 180, 0.0, 180.0);
     			pairEnergySlope[i] = aida.histogram1D(plotDir[i] + "Pair Energy Slope" + plotType[i], 200, 0.0, 4.0);
+    			pairEnergySum2DDistribution[i] = aida.histogram2D(plotDir[i] + "Pair Energy Sum 2D" + plotType[i], 176, 0.0, 4.4, 176, 0.0, 4.4);
     		}
     	}
     	
@@ -629,6 +632,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             pairEnergyDifference[NO_CUTS].fill(energyDifference);
             pairEnergySlope[NO_CUTS].fill(energySlope);
             pairCoplanarity[NO_CUTS].fill(coplanarity);
+            pairEnergySum2DDistribution[NO_CUTS].fill(clusterPair[0].getEnergy(), clusterPair[1].getEnergy());
             
             // Fill the hit count plots for N > 1.
             if(clusterPair[0].getCalorimeterHits().size() > 1 && clusterPair[1].getCalorimeterHits().size() > 1) {
@@ -637,6 +641,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 pairEnergyDifference[OVER_1HIT].fill(energyDifference);
                 pairEnergySlope[OVER_1HIT].fill(energySlope);
                 pairCoplanarity[OVER_1HIT].fill(coplanarity);
+                pairEnergySum2DDistribution[OVER_1HIT].fill(clusterPair[0].getEnergy(), clusterPair[1].getEnergy());
             	
                 // Fill the hit count plots for N > 2.
                 if(clusterPair[0].getCalorimeterHits().size() > 2 && clusterPair[1].getCalorimeterHits().size() > 2) {
@@ -645,6 +650,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                     pairEnergyDifference[OVER_2HIT].fill(energyDifference);
                     pairEnergySlope[OVER_2HIT].fill(energySlope);
                     pairCoplanarity[OVER_2HIT].fill(coplanarity);
+                    pairEnergySum2DDistribution[OVER_2HIT].fill(clusterPair[0].getEnergy(), clusterPair[1].getEnergy());
                 }
             }
             
@@ -716,6 +722,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             pairEnergyDifference[ALL_CUTS].fill(energyDifference, 1);
             pairEnergySlope[ALL_CUTS].fill(energySlope, 1);
             pairCoplanarity[ALL_CUTS].fill(coplanarity, 1);
+            pairEnergySum2DDistribution[ALL_CUTS].fill(clusterPair[0].getEnergy(), clusterPair[1].getEnergy());
             
             // Clusters that pass all of the pair cuts produce a trigger.
             return true;
