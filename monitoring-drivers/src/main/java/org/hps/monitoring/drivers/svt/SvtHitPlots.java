@@ -89,48 +89,6 @@ public class SvtHitPlots extends Driver {
     /**
      * Create a plotter style.
      *
-     * @param xAxisTitle : Title of the x axis
-     * @param yAxisTitle : Title of the y axis
-     * @return plotter style
-     */
-    // TODO: Move this to a utilities class
-    IPlotterStyle createStyle(String xAxisTitle, String yAxisTitle) {
-
-        // Create a default style
-        IPlotterStyle style = this.plotterFactory.createPlotterStyle();
-
-        // Set the style of the X axis
-        style.xAxisStyle().setLabel(xAxisTitle);
-        style.xAxisStyle().labelStyle().setFontSize(14);
-        style.xAxisStyle().setVisible(true);
-
-        // Set the style of the Y axis
-        style.yAxisStyle().setLabel(yAxisTitle);
-        style.yAxisStyle().labelStyle().setFontSize(14);
-        style.yAxisStyle().setVisible(true);
-
-        // Turn off the histogram grid 
-        style.gridStyle().setVisible(false);
-
-        // Set the style of the data
-        style.dataStyle().lineStyle().setVisible(false);
-        style.dataStyle().outlineStyle().setVisible(false);
-        style.dataStyle().outlineStyle().setThickness(3);
-        style.dataStyle().fillStyle().setVisible(true);
-        style.dataStyle().fillStyle().setOpacity(.30);
-        style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
-        style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
-        style.dataStyle().errorBarStyle().setVisible(false);
-
-        // Turn off the legend
-        style.legendBoxStyle().setVisible(false);
-
-        return style;
-    }
-
-    /**
-     * Create a plotter style.
-     *
      * @param sensor : HpsSiSensor associated with the plot. This is used to set
      * certain attributes based on the position of the sensor.
      * @param xAxisTitle : Title of the x axis
@@ -139,7 +97,7 @@ public class SvtHitPlots extends Driver {
      */
     // TODO: Move this to a utilities class
     IPlotterStyle createStyle(HpsSiSensor sensor, String xAxisTitle, String yAxisTitle) {
-        IPlotterStyle style = this.createStyle(xAxisTitle, yAxisTitle);
+        IPlotterStyle style = SvtPlotUtils.createStyle(plotterFactory, xAxisTitle, yAxisTitle);
 
         if (sensor.isTopLayer()) {
             style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
@@ -198,7 +156,6 @@ public class SvtHitPlots extends Driver {
 //            this.resetPlots();
 //            return;
 //        }
-
         tree = analysisFactory.createTreeFactory().create();
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
@@ -208,7 +165,7 @@ public class SvtHitPlots extends Driver {
         for (HpsSiSensor sensor : sensors) {
             hitsPerSensorPlots.put(sensor.getName(),
                     histogramFactory.createHistogram1D(sensor.getName() + " - Raw Hits", 25, 0, 25));
-            plotters.get("Raw hits per sensor").region(this.computePlotterRegion(sensor))
+            plotters.get("Raw hits per sensor").region(SvtPlotUtils.computePlotterRegion(sensor))
                     .plot(hitsPerSensorPlots.get(sensor.getName()), this.createStyle(sensor, "Number of Raw Hits", ""));
             hitsPerSensor.put(sensor.getName(), new int[1]);
         }
@@ -218,23 +175,23 @@ public class SvtHitPlots extends Driver {
 
         layersHitPlots.put("Top",
                 histogramFactory.createHistogram1D("Top Layers Hit", 12, 0, 12));
-        plotters.get("Number of layers hit").region(0).plot(layersHitPlots.get("Top"), this.createStyle("Number of Top Layers Hit", ""));
+        plotters.get("Number of layers hit").region(0).plot(layersHitPlots.get("Top"), SvtPlotUtils.createStyle(plotterFactory, "Number of Top Layers Hit", ""));
         layersHitPlots.put("Bottom",
                 histogramFactory.createHistogram1D("Bottom Layers Hit", 12, 0, 12));
-        plotters.get("Number of layers hit").region(1).plot(layersHitPlots.get("Bottom"), this.createStyle("Number of Bottom Layers Hit", ""));
+        plotters.get("Number of layers hit").region(1).plot(layersHitPlots.get("Bottom"), SvtPlotUtils.createStyle(plotterFactory, "Number of Bottom Layers Hit", ""));
 
         plotters.put("Raw hit counts/Event", plotterFactory.create("Raw hit counts/Event"));
         plotters.get("Raw hit counts/Event").createRegions(2, 2);
 
         hitCountPlots.put("Raw hit counts/Event",
                 histogramFactory.createHistogram1D("Raw hit counts", 100, 0, 100));
-        plotters.get("Raw hit counts/Event").region(0).plot(hitCountPlots.get("Raw hit counts/Event"), this.createStyle("Number of Raw Hits", ""));
+        plotters.get("Raw hit counts/Event").region(0).plot(hitCountPlots.get("Raw hit counts/Event"), SvtPlotUtils.createStyle(plotterFactory, "Number of Raw Hits", ""));
         hitCountPlots.put("SVT top raw hit counts/Event",
                 histogramFactory.createHistogram1D("SVT top raw hit counts", 100, 0, 100));
-        plotters.get("Raw hit counts/Event").region(1).plot(hitCountPlots.get("SVT top raw hit counts/Event"), this.createStyle("Number of Raw Hits in Top Volume", ""));
+        plotters.get("Raw hit counts/Event").region(2).plot(hitCountPlots.get("SVT top raw hit counts/Event"), SvtPlotUtils.createStyle(plotterFactory, "Number of Raw Hits in Top Volume", ""));
         hitCountPlots.put("SVT bottom raw hit counts/Event",
                 histogramFactory.createHistogram1D("SVT bottom raw hit counts", 100, 0, 100));
-        plotters.get("Raw hit counts/Event").region(3).plot(hitCountPlots.get("SVT bottom raw hit counts/Event"), this.createStyle("Number of Raw Bits in the Bottom Volume", ""));
+        plotters.get("Raw hit counts/Event").region(3).plot(hitCountPlots.get("SVT bottom raw hit counts/Event"), SvtPlotUtils.createStyle(plotterFactory, "Number of Raw Bits in the Bottom Volume", ""));
 
         plotters.put("First sample distributions (pedestal shifts)", plotterFactory.create("First sample distributions (pedestal shifts)"));
         plotters.get("First sample distributions (pedestal shifts)").createRegions(6, 6);
