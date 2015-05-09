@@ -658,8 +658,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     private void openFile() {
         final JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
         fc.setAcceptAllFileFilterUsed(false);
-        fc.addChoosableFileFilter(LCIO_FILTER);
         fc.addChoosableFileFilter(EVIO_FILTER);
+        fc.addChoosableFileFilter(LCIO_FILTER);
         fc.setDialogTitle("Select Data File");
         final int r = fc.showDialog(this.frame, "Select ...");
         if (r == JFileChooser.APPROVE_OPTION) {
