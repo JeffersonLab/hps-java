@@ -753,9 +753,9 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     private void savePlots() {
         final JFileChooser fc = new JFileChooser();
         fc.addChoosableFileFilter(new FileNameExtensionFilter("ROOT file", "root"));
-        final FileFilter filter = new FileNameExtensionFilter("AIDA file", "aida");
+        final FileFilter filter = new FileNameExtensionFilter("PDF file", "pdf");
         fc.addChoosableFileFilter(filter);
-        fc.addChoosableFileFilter(new FileNameExtensionFilter("PDF file", "pdf"));
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("AIDA file", "aida"));
         fc.setAcceptAllFileFilterUsed(false);
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setFileFilter(filter);
