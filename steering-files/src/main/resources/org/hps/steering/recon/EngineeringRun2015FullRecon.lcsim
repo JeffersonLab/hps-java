@@ -52,7 +52,7 @@
             <tolerance>1.0</tolerance>
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
-            <strategyResource>HPS-Full.xml</strategyResource>
+            <strategyResource>HPS-Full-OutsideIn.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>        

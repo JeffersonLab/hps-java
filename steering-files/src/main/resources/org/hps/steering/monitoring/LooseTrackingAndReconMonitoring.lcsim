@@ -45,7 +45,8 @@
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
-            <!--<clusterTimeCut>12.0</clusterTimeCut>-->
+            <clusterTimeCut>12.0</clusterTimeCut>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
             <maxDt>16.0</maxDt>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
@@ -54,7 +55,7 @@
         <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <trackCollectionName>MatchedTracks</trackCollectionName>
-            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-Loose.xml</strategyResource>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-OutsideIn.xml</strategyResource>
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
