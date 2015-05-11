@@ -10,7 +10,6 @@ import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
-import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
 import hep.aida.jfree.plotter.Plotter;
 import hep.aida.jfree.plotter.PlotterRegion;
@@ -46,9 +45,6 @@ public class PedestalPlots extends Driver {
 
     // Plotting
     private static ITree tree = null;
-    private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
-    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Pedestals");
-    private IHistogramFactory histogramFactory = null;
 
     // Histogram maps
     private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
@@ -82,6 +78,9 @@ public class PedestalPlots extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
+        IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
+        IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Pedestals");
+        IHistogramFactory histogramFactory = null;
 
         aida.tree().cd("/");
 
@@ -99,7 +98,7 @@ public class PedestalPlots extends Driver {
         //===> for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
         for (HpsSiSensor sensor : sensors) {
             hists.put(sensor, aida.histogram2D(sensor.getName() + " sample 1 vs. ch", 640, -0.5, 639.5, 100, -500.0, 500.0));
-            plotters.get("Pedestal vs. channel").region(SvtPlotUtils.computePlotterRegion(sensor)).plot(hists.get(sensor), this.createStyle(sensor, "Channel", "Sample 1"));
+            plotters.get("Pedestal vs. channel").region(SvtPlotUtils.computePlotterRegion(sensor)).plot(hists.get(sensor), SvtPlotUtils.createStyle(plotterFactory, sensor, "Channel", "Sample 1"));
 
             if (plotTimeSeries) {
                 counts.put(sensor, new int[640]);
@@ -125,32 +124,16 @@ public class PedestalPlots extends Driver {
         }
     }
 
-    IPlotterStyle createStyle(HpsSiSensor sensor, String xAxisTitle, String yAxisTitle) {
-        IPlotterStyle style = SvtPlotUtils.createStyle(plotterFactory, xAxisTitle, yAxisTitle);
-
-        if (sensor.isTopLayer()) {
-            style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
-            style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
-        } else {
-            style.dataStyle().fillStyle().setColor("93, 228, 47, 1");
-            style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
-        }
-
-        return style;
-    }
-
     @Override
     public void process(EventHeader event) {
         if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
             // Get RawTrackerHit collection from event.
             List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
             eventCount++;
-
             for (RawTrackerHit hit : rawTrackerHits) {
                 HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
                 int strip = hit.getIdentifierFieldValue("strip");
                 double pedestal = sensor.getPedestal(strip, 0);
-                //===> double pedestal = HPSSVTCalibrationConstants.getPedestal(sensor, strip);
                 hists.get(sensor).fill(strip, hit.getADCValues()[0] - pedestal);
 
                 if (plotTimeSeries) {

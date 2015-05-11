@@ -3,6 +3,7 @@ package org.hps.monitoring.drivers.svt;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.RawTrackerHit;
 
 /**
  *
@@ -41,6 +42,7 @@ public class SvtPlotUtils {
     /**
      * Create a plotter style.
      *
+     * @param plotterFactory
      * @param xAxisTitle : Title of the x axis
      * @param yAxisTitle : Title of the y axis
      * @return plotter style
@@ -76,6 +78,20 @@ public class SvtPlotUtils {
 
         // Turn off the legend
         style.legendBoxStyle().setVisible(false);
+
+        return style;
+    }
+
+    public static IPlotterStyle createStyle(IPlotterFactory plotterFactory, HpsSiSensor sensor, String xAxisTitle, String yAxisTitle) {
+        IPlotterStyle style = createStyle(plotterFactory, xAxisTitle, yAxisTitle);
+
+        if (sensor.isTopLayer()) {
+            style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
+            style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
+        } else {
+            style.dataStyle().fillStyle().setColor("93, 228, 47, 1");
+            style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
+        }
 
         return style;
     }
