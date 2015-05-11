@@ -186,16 +186,16 @@ public class EcalMonitoringPlots extends Driver {
     void redraw() {
         hitCountDrawPlot.reset();
         hitCountDrawPlot.add(hitCountFillPlot);
-        plotter.region(0).clear();
-        plotter.region(0).plot(hitCountDrawPlot);
-        plotter.region(0).refresh();
+//        plotter.region(0).clear();
+//        plotter.region(0).plot(hitCountDrawPlot);
+//        plotter.region(0).refresh();
         hitCountFillPlot.reset();
 
         clusterCountDrawPlot.reset();
         clusterCountDrawPlot.add(clusterCountFillPlot);
-        plotter.region(1).clear();
-        plotter.region(1).plot(clusterCountDrawPlot);
-        plotter.region(1).refresh();
+//        plotter.region(1).clear();
+//        plotter.region(1).plot(clusterCountDrawPlot);
+//        plotter.region(1).refresh();
         clusterCountFillPlot.reset();
 
         occupancyDrawPlot.reset();
@@ -208,9 +208,9 @@ public class EcalMonitoringPlots extends Driver {
             if ((row != 0) && (column != 0) && (!EcalMonitoringUtilities.isInHole(row, column)))
                 occupancyDrawPlot.fill(column, row, mean);
         }
-        plotter.region(2).clear();
-        if (occupancyDrawPlot.sumAllBinHeights()> 0) plotter.region(2).plot(occupancyDrawPlot);
-        plotter.region(2).refresh();
+//        plotter.region(2).clear();
+//        if (occupancyDrawPlot.sumAllBinHeights()> 0) plotter.region(2).plot(occupancyDrawPlot);
+//        plotter.region(2).refresh();
     }
 
     private IHistogram2D makeCopy(IHistogram2D hist) {
