@@ -50,7 +50,7 @@ public final class EtSystemMonitor extends EtEventProcessor {
                     elapsedMillis = System.currentTimeMillis() - eventReceivedMillis;
                 if (elapsedMillis > warningIntervalMillis)
                     systemStatus.setStatus(StatusCode.WARNING, "No ET events received for " + elapsedMillis + " millis.");
-                else
+                else if (systemStatus.getStatusCode()!=StatusCode.OKAY)
                     systemStatus.setStatus(StatusCode.OKAY, "ET events received.");
             }
         };
