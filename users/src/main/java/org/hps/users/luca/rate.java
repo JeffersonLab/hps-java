@@ -24,10 +24,13 @@ import java.util.List;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.TIData;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
@@ -201,7 +204,7 @@ double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
 */
 
 //e cuts 4904
-
+/*
 double[] ecuttopmin={0.59,0.6,0.6,0.68,0.7,0.7};
 double[] ecuttopmax={1.70,1.80,1.90,2.00,2.00,2.00};
 
@@ -214,10 +217,10 @@ double[] cryecuttopmax={1.8,1.8,1.8,2,2};
 
 double[] cryecutbotmax={2,2,1.9,1.9,2};
 double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
-
+*/
 
 //e cuts 5072
-/*
+
 double[] ecuttopmin={0.45,0.6,0.6,0.7,0.7,0.75};
 double[] ecuttopmax={0.8,0.9,0.9,0.9,1,1};
 
@@ -230,7 +233,7 @@ double[] cryecuttopmax={1.8,1.8,1.8,2,2};
 
 double[] cryecutbotmax={2,2,1.9,1.9,2};
 double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
-*/
+
 
 // e cut 5181
 /*
@@ -416,6 +419,32 @@ System.out.println("theta = " + theta + "\n");
      
      nevents++;
      
+     
+    	/* natha's code for trigger
+    	List <AbstractIntData> aids = event.get(AbstractIntData.class, "TriggerBank");
+    	for (AbstractIntData aid : aids) {
+    		if (aid.getTag() == TIData.BANK_TAG) {
+    			TIData tt=(TIData)aid;
+    			if (!tt.isSingle1Trigger()) return;
+                        break;
+    		}
+    	}
+     */ //nathans code for trigger end
+     
+     
+     
+  if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
+                    TIData triggerData = new TIData(data);
+                    if (!triggerData.isSingle1Trigger())//only process singles0 triggers...
+
+                        return;
+                }
+        } else //if (debug)
+            System.out.println(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
+  
      for(int i=0;i<6;i++){
     if(countertop[i]==0){timei[i]=timef;}}
         
