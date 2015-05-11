@@ -59,7 +59,6 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     double beamEnergy = 1.05; //GeV
     double maxFactor = 1.5;
     double feeMomentumCut = 0.8; //GeV
-   
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -111,7 +110,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                     if (!matchTriggerType(triggerData))//only process singles0 triggers...
                         return;
                 }
-        } else
+        } else if (debug)
             System.out.println(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
 
         nRecoEvents++;
@@ -228,10 +227,13 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         IFitter fitter = fitFactory.createFitter("chi2");
         IHistogram1D beamE = aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Pz (GeV)");
         IFitResult result = fitBeamEnergyPeak(beamE, fitter, "range=\"(-10.0,10.0)\"");
-        double[] pars = result.fittedParameters();
-        for (int i = 0; i < 5; i++)
-            System.out.println("Beam Energy Peak:  " + result.fittedParameterNames()[i] + " = " + pars[i]);
-
+        if (result != null) {
+            double[] pars = result.fittedParameters();
+            for (int i = 0; i < 5; i++)
+                System.out.println("Beam Energy Peak:  " + result.fittedParameterNames()[i] + " = " + pars[i]);
+            monitoredQuantityMap.put(fpQuantNames[7], (double) pars[1]);
+            monitoredQuantityMap.put(fpQuantNames[8], (double) pars[2]);
+        }
         monitoredQuantityMap.put(fpQuantNames[0], (double) nTotEle / nRecoEvents);
         monitoredQuantityMap.put(fpQuantNames[1], (double) nTotPos / nRecoEvents);
         monitoredQuantityMap.put(fpQuantNames[2], (double) nTotPhotons / nRecoEvents);
@@ -239,8 +241,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         monitoredQuantityMap.put(fpQuantNames[4], (double) sumdelX / nTotAss);
         monitoredQuantityMap.put(fpQuantNames[5], (double) sumdelY / nTotAss);
         monitoredQuantityMap.put(fpQuantNames[6], (double) sumEoverP / nTotAss);
-        monitoredQuantityMap.put(fpQuantNames[7], (double) pars[1]);
-        monitoredQuantityMap.put(fpQuantNames[8], (double) pars[2]);
+
         IPlotter plotter = analysisFactory.createPlotterFactory().create("Beam Energy Electrons");
 
         IPlotterStyle pstyle = plotter.style();
@@ -248,7 +249,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         pstyle.dataStyle().fillStyle().setColor("green");
         pstyle.dataStyle().lineStyle().setColor("black");
         plotter.region(0).plot(beamE);
-        plotter.region(0).plot(result.fittedFunction());
+//        plotter.region(0).plot(result.fittedFunction());
         if (outputPlots)
             try {
                 plotter.writeToFile(outputPlotDir + "beamEnergyElectrons.png");
@@ -269,9 +270,14 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 //        return fitter.fit(h1d, "g+p1", init, range);
         double[] init = {20.0, 2.2, 0.12, 10, 0.0};
 //        double[] init = {20.0, 2.2, 0.1};
-        return fitter.fit(h1d, "g+p1", init);
-    }
+        IFitResult ifr = null;
+        try {
+            ifr = fitter.fit(h1d, "g+p1", init);
+        } catch (RuntimeException ex) {
+            System.out.println(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
+        }
 
-  
+        return ifr;
+    }
 
 }
