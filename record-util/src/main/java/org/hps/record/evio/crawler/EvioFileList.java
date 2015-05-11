@@ -7,16 +7,20 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.util.log.LogUtil;
 
-class EvioFileList extends ArrayList<File> {
+final class EvioFileList extends ArrayList<File> {
 
     private static final Logger LOGGER = LogUtil.create(EvioFileList.class);
+
+    Map<File, Integer> eventCounts = new HashMap<File, Integer>();
 
     void cache() {
         LOGGER.info("running cache commands ...");
@@ -26,25 +30,34 @@ class EvioFileList extends ArrayList<File> {
         LOGGER.info("done running cache commands");
     }
 
+    void computeEventCount(final File file) {
+        LOGGER.info("computing event count for " + file.getPath() + " ...");
+        int eventCount = 0;
+        EvioReader reader = null;
+        try {
+            reader = new EvioReader(file, false);
+            eventCount += reader.getEventCount();
+        } catch (EvioException | IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (final IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        this.eventCounts.put(file, eventCount);
+        LOGGER.info("done computing event count for " + file.getPath());
+    }
+
     int computeTotalEvents() {
         LOGGER.info("computing total events ...");
         int totalEvents = 0;
         for (final File file : this) {
-            EvioReader reader = null;
-            try {
-                reader = new EvioReader(file, false);
-                totalEvents += reader.getEventCount();
-            } catch (EvioException | IOException e) {
-                throw new RuntimeException(e);
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+            getEventCount(file);
+            totalEvents += this.eventCounts.get(file);
         }
         LOGGER.info("done computing total events");
         return totalEvents;
@@ -52,6 +65,13 @@ class EvioFileList extends ArrayList<File> {
 
     File first() {
         return this.get(0);
+    }
+
+    int getEventCount(final File file) {
+        if (!this.eventCounts.containsKey(file)) {
+            computeEventCount(file);
+        }
+        return this.eventCounts.get(file);
     }
 
     void insert(final Connection connection, final int run) throws SQLException {
@@ -67,7 +87,6 @@ class EvioFileList extends ArrayList<File> {
             filesStatement.setString(3, file.getName());
             LOGGER.info("executing statement: " + filesStatement);
             filesStatement.executeUpdate();
-            // connection.commit();
         }
         LOGGER.info("run_log_files was updated!");
     }

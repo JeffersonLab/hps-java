@@ -20,12 +20,12 @@ import org.lcsim.util.log.LogUtil;
 
 /**
  * Crawls EVIO files in a directory tree, groups the files that are found by run, and optionally performs various tasks
- * based on the run summary information, including printing a summary, caching the files from JLAB MSS, and updating a
- * run database.
+ * based on the run summary information that is accumulated, including printing a summary, caching the files from JLAB
+ * MSS, and updating a run database.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public class EvioFileCrawler {
+public final class EvioFileCrawler {
 
     private static final Logger LOGGER = LogUtil.create(EvioFileVisitor.class);
 
@@ -41,30 +41,48 @@ public class EvioFileCrawler {
         OPTIONS.addOption("d", "directory", true, "starting directory");
         OPTIONS.addOption("r", "runs", true, "list of runs to accept (others will be excluded)");
         OPTIONS.addOption("c", "cache", false, "cache files to /cache/mss from MSS (only works at JLAB)");
-        OPTIONS.addOption("p", "print", false, "print run summary at end of job");
+        OPTIONS.addOption("s", "summary", false, "print run summary at end of job");
         OPTIONS.addOption("L", "log-level", true, "set log level (INFO, FINE, etc.)");
         OPTIONS.addOption("u", "update", false, "update the run database");
+        OPTIONS.addOption("e", "epics", false, "process EPICS data");
     }
 
     public static void main(final String[] args) {
-        new EvioFileCrawler().parse(args).run();
+        try {
+            new EvioFileCrawler().parse(args).run();
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    final Set<Integer> acceptRuns = new HashSet<Integer>();
+    private final Set<Integer> acceptRuns = new HashSet<Integer>();
 
-    boolean cache = false;
+    private boolean cache = false;
 
-    final PosixParser parser = new PosixParser();
+    private boolean epics = false;
 
-    boolean printSummary = false;
+    private final PosixParser parser = new PosixParser();
 
-    File rootDir = new File(System.getProperty("user.dir"));
+    private boolean printSummary = false;
 
-    Date timestamp = null;
+    private File rootDir = new File(System.getProperty("user.dir"));
 
-    File timestampFile = null;
+    private Date timestamp = null;
 
-    boolean update = false;
+    private File timestampFile = null;
+
+    private boolean update = false;
+
+    private RunProcessor createRunProcessor(final RunSummary runSummary) {
+        final RunProcessor processor = new RunProcessor(runSummary);
+        if (this.epics) {
+            processor.addProcessor(new EpicsLog(runSummary));
+        }
+        if (this.printSummary) {
+            processor.addProcessor(new EventTypeLog(runSummary));
+        }
+        return processor;
+    }
 
     private EvioFileCrawler parse(final String args[]) {
         try {
@@ -109,7 +127,7 @@ public class EvioFileCrawler {
                 }
             }
 
-            if (cl.hasOption("p")) {
+            if (cl.hasOption("s")) {
                 this.printSummary = true;
             }
 
@@ -126,6 +144,10 @@ public class EvioFileCrawler {
                 throw new IllegalArgumentException("File caching cannot be activated with the -p or -u options.");
             }
 
+            if (cl.hasOption("e")) {
+                this.epics = true;
+            }
+
         } catch (final ParseException e) {
             throw new RuntimeException("Error parsing options.", e);
         }
@@ -133,7 +155,22 @@ public class EvioFileCrawler {
         return this;
     }
 
-    public void run() {
+    private void processRuns(final RunLog runs) throws Exception {
+        // Process all files in the runs.
+        for (final int run : runs.getSortedRunNumbers()) {
+
+            // Get the run summary for the run.
+            final RunSummary runSummary = runs.getRunSummary(run);
+
+            // Create a processor to process all the EVIO records in the run.
+            final RunProcessor processor = createRunProcessor(runSummary);
+
+            // Process the run, updating the run summary.
+            processor.process();
+        }
+    }
+
+    public void run() throws Exception {
         final EnumSet<FileVisitOption> options = EnumSet.noneOf(FileVisitOption.class);
         final EvioFileVisitor visitor = new EvioFileVisitor();
         if (this.timestamp != null) {
@@ -160,6 +197,8 @@ public class EvioFileCrawler {
             // Cache files from MSS.
             runs.cache();
         } else {
+
+            processRuns(runs);
 
             // Print the run summaries.
             if (this.printSummary) {

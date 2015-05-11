@@ -13,7 +13,7 @@ import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.util.log.LogUtil;
 
-public class EvioFileUtilities {
+public final class EvioFileUtilities {
 
     private static final Logger LOGGER = LogUtil.create(EvioFileUtilities.class);
 

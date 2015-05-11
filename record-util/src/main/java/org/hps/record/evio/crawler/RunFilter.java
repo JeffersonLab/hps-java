@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.Set;
 
-class RunFilter implements FileFilter {
+final class RunFilter implements FileFilter {
     Set<Integer> acceptRuns;
 
     RunFilter(final Set<Integer> acceptRuns) {

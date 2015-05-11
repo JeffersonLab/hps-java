@@ -3,7 +3,7 @@ package org.hps.record.evio.crawler;
 import java.io.File;
 import java.io.FileFilter;
 
-class EvioFilter implements FileFilter {
+final class EvioFileFilter implements FileFilter {
 
     @Override
     public boolean accept(final File pathname) {

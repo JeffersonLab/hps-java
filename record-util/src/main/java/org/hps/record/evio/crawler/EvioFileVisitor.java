@@ -12,19 +12,19 @@ import java.util.logging.Logger;
 
 import org.lcsim.util.log.LogUtil;
 
-class EvioFileVisitor extends SimpleFileVisitor<Path> {
+final class EvioFileVisitor extends SimpleFileVisitor<Path> {
 
     private static final Logger LOGGER = LogUtil.create(EvioFileVisitor.class);
 
-    List<FileFilter> filters = new ArrayList<FileFilter>();
+    private final List<FileFilter> filters = new ArrayList<FileFilter>();
 
-    RunLog runs = new RunLog();
+    private final RunLog runs = new RunLog();
 
     EvioFileVisitor() {
-        addFilter(new EvioFilter());
+        addFilter(new EvioFileFilter());
     }
 
-    boolean accept(final File file) {
+    private boolean accept(final File file) {
         boolean accept = true;
         for (final FileFilter filter : this.filters) {
             accept = filter.accept(file);
@@ -57,6 +57,7 @@ class EvioFileVisitor extends SimpleFileVisitor<Path> {
             LOGGER.info("adding file: " + file.getPath() + "; run: " + run + "; seq = " + seq);
 
             this.runs.getRunSummary(run).addFile(file);
+
         } else {
             LOGGER.info("rejected file: " + file.getPath());
         }

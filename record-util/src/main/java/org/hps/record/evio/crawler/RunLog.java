@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import org.hps.conditions.database.ConnectionParameters;
 import org.lcsim.util.log.LogUtil;
 
-class RunLog {
+final class RunLog {
 
     private static final Logger LOGGER = LogUtil.create(RunLog.class);
 
@@ -92,7 +92,6 @@ class RunLog {
             runLogStatement.setInt(5, runSummary.getFiles().size());
             runLogStatement.setBoolean(6, runSummary.isEndOkay());
             runLogStatement.executeUpdate();
-            // connection.commit();
             LOGGER.info("committed run " + run + " to run_log");
         }
         LOGGER.info("run_log was updated!");

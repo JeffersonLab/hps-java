@@ -7,7 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 
-class DateFileFilter implements FileFilter {
+final class DateFileFilter implements FileFilter {
 
     private final Date date;
 
