@@ -195,6 +195,15 @@ public final class EpicsScalarData {
     }
 
     /**
+     * Get a double value from the key which should be a valid EPICS variable name.
+     *
+     * @return the value from the key
+     */
+    public void setValue(final String name, final double value) {
+        this.dataMap.put(name, value);
+    }
+
+    /**
      * Convert this object into a {@link org.lcsim.event.GenericObject} that can be written into an LCIO collection.
      *
      * @return the <code>GenericObject</code> representing this data
