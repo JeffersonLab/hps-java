@@ -38,7 +38,7 @@ final class SystemStatusPanel extends JPanel {
         super(new BorderLayout());
         final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(this.statusTable),
                 new JScrollPane(this.eventsTable));
-        splitPane.setDividerLocation(50);
+        splitPane.setDividerLocation(150);
         this.add(splitPane, BorderLayout.CENTER);
     }
 

@@ -136,14 +136,14 @@ final class MonitoringApplicationFrame extends JFrame {
         // Create the tabbed pane for content in bottom of left panel such as log table and system monitor.
         final JTabbedPane tableTabbedPane = new JTabbedPane();
 
-        // Create the log table and add it to the tabs.
-        this.logPanel = new LogPanel(application.getConfigurationModel(), application);
-        tableTabbedPane.addTab("Log Messages", this.logPanel);
-
         // Create the system monitor.
         // systemStatusTable = new SystemStatusTable();
         this.systemStatusPanel = new SystemStatusPanel();
         tableTabbedPane.addTab("System Status Monitor", this.systemStatusPanel);
+
+        // Create the log table and add it to the tabs.
+        this.logPanel = new LogPanel(application.getConfigurationModel(), application);
+        tableTabbedPane.addTab("Log Messages", this.logPanel);
 
         // Add the trigger diagnostics tables.
         this.triggerPanel = new TriggerDiagnosticsPanel();
