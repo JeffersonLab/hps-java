@@ -70,6 +70,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private int eventCount = 0;
     private int eventRefreshRate = 1;
     private int runNumber = -1;
+    private int resetPeriod = -1;
 
     private boolean enablePositionPlots = false;
     private boolean enableMaxSamplePlots = false;
@@ -89,6 +90,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
     public void setEventRefreshRate(int eventRefreshRate) {
         this.eventRefreshRate = eventRefreshRate;
+    }
+
+    public void setResetPeriod(int resetPeriod) {
+        this.resetPeriod = resetPeriod;
     }
 
     public void setEnablePositionPlots(boolean enablePositionPlots) {
@@ -386,6 +391,13 @@ public class SensorOccupancyPlotsDriver extends Driver {
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
 
         eventCount++;
+
+        if (resetPeriod > 0 && eventCount > resetPeriod) { //reset occupancy numbers after resetPeriod events
+            eventCount = 1;
+            for (HpsSiSensor sensor : sensors) {
+                occupancyMap.put(sensor.getName(), new int[640]);
+            }
+        }
         // Increment strip hit count.
         for (RawTrackerHit rawHit : rawHits) {
 
@@ -455,33 +467,33 @@ public class SensorOccupancyPlotsDriver extends Driver {
         // Calculate the occupancies at the sensor edge
         int[] topActiveEdgeStripOccupancy = new int[6];
         int[] bottomActiveEdgeStripOccupancy = new int[6];
-        for (HpsSiSensor sensor : sensors) { 
-            if (sensor.isTopLayer() && sensor.isAxial()) { 
+        for (HpsSiSensor sensor : sensors) {
+            if (sensor.isTopLayer() && sensor.isAxial()) {
                 if (sensor.getSide() == sensor.ELECTRON_SIDE) {
-                    System.out.println("% Top Layer " + this.getLayerNumber(sensor)  + " Hit Counts: " + occupancyMap.get(sensor.getName())[1]);
+                    System.out.println("% Top Layer " + this.getLayerNumber(sensor) + " Hit Counts: " + occupancyMap.get(sensor.getName())[1]);
                     topActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[1];
                 } else {
-                    System.out.println("% Top Layer " + this.getLayerNumber(sensor)  + " Hit Counts: " + occupancyMap.get(sensor.getName())[638]);
+                    System.out.println("% Top Layer " + this.getLayerNumber(sensor) + " Hit Counts: " + occupancyMap.get(sensor.getName())[638]);
                     topActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[638];
                 }
             } else if (sensor.isBottomLayer() && sensor.isAxial()) {
                 if (sensor.getSide() == sensor.ELECTRON_SIDE) {
-                    System.out.println("% Bottom Layer " + this.getLayerNumber(sensor)  + " Hit Counts: " + occupancyMap.get(sensor.getName())[1]);
+                    System.out.println("% Bottom Layer " + this.getLayerNumber(sensor) + " Hit Counts: " + occupancyMap.get(sensor.getName())[1]);
                     bottomActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[1];
                 } else {
-                    System.out.println("% Bottom Layer " + this.getLayerNumber(sensor)  + " Hit Counts: " + occupancyMap.get(sensor.getName())[638]);
+                    System.out.println("% Bottom Layer " + this.getLayerNumber(sensor) + " Hit Counts: " + occupancyMap.get(sensor.getName())[638]);
                     bottomActiveEdgeStripOccupancy[this.getLayerNumber(sensor) - 1] += occupancyMap.get(sensor.getName())[638];
                 }
             }
         }
 
         for (int layerN = 0; layerN < 6; layerN++) {
-           double topStripOccupancy = (double) topActiveEdgeStripOccupancy[layerN] / (double) eventCount;
-           topStripOccupancy /= this.timeWindowWeight;
-           System.out.println("% Top Layer " + (layerN+1) + ": Occupancy in " + (24/this.timeWindowWeight) + " ns window: " + topStripOccupancy); 
-           double botStripOccupancy = (double) bottomActiveEdgeStripOccupancy[layerN] / (double) eventCount;
-           botStripOccupancy /= this.timeWindowWeight;
-           System.out.println("% Bottom Layer " + (layerN+1) + ": Occupancy in " + (24/this.timeWindowWeight) + " ns window: " + botStripOccupancy); 
+            double topStripOccupancy = (double) topActiveEdgeStripOccupancy[layerN] / (double) eventCount;
+            topStripOccupancy /= this.timeWindowWeight;
+            System.out.println("% Top Layer " + (layerN + 1) + ": Occupancy in " + (24 / this.timeWindowWeight) + " ns window: " + topStripOccupancy);
+            double botStripOccupancy = (double) bottomActiveEdgeStripOccupancy[layerN] / (double) eventCount;
+            botStripOccupancy /= this.timeWindowWeight;
+            System.out.println("% Bottom Layer " + (layerN + 1) + ": Occupancy in " + (24 / this.timeWindowWeight) + " ns window: " + botStripOccupancy);
         }
         System.out.println("%===============================================================================%");
         System.out.println("%===============================================================================%");
