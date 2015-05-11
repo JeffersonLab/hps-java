@@ -151,7 +151,7 @@ public final class EvioFileSource extends AbstractRecordSource {
     private void openReader() {
         try {
             System.out.println("Opening reader for file " + this.files.get(this.fileIndex) + " ...");
-            this.reader = new EvioReader(this.files.get(this.fileIndex), false);
+            this.reader = new EvioReader(this.files.get(this.fileIndex), false,true);
             System.out.println("Done opening file.");
         } catch (EvioException | IOException e) {
             throw new RuntimeException(e);

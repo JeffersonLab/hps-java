@@ -338,13 +338,10 @@ public final class EvioFileProducer {
             // Loop over input EVIO file list.
             for (final File evioFile : this.evioFiles) {
 
-                // Open a new EVIO reader.
+                // Open a new EVIO reader in sequential read mode so events are immediately streamed to server.
                 LOGGER.info("Opening next EVIO file " + evioFile.getPath() + " ...");
-                reader = new EvioReader(evioFile.getPath(), false);
+                reader = new EvioReader(evioFile.getPath(), false, true);
                 LOGGER.info("Done opening file!");
-
-                // Print the number of events.
-                LOGGER.info("EVIO file opened with " + reader.getEventCount() + " events.");
 
                 // Reference to the current EVIO event.
                 EvioEvent event;
@@ -423,6 +420,7 @@ public final class EvioFileProducer {
                     LOGGER.finest("Sucessfully wrote " + eventCount + " event to ET which was EVIO event number "
                             + event.getEventNumber() + " from file " + evioFile.getPath() + ".");
                 }
+                LOGGER.info(eventCount + " events were read from " + evioFile.getPath());
                 reader.close();
             }
 
