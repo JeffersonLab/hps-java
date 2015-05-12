@@ -166,10 +166,10 @@ public class EcalMonitoringPlots extends Driver {
             //System.out.println("Event: "+thisEventN+" "+prevEventN);
             //System.out.println("Time: "+thisEventTime+" "+prevEventTime);
             // System.out.println("Monitor: "+thisTime+" "+prevTime+" "+NoccupancyFill);
-
+if (scale>0) {
             hitCountFillPlot.scale(scale);
             clusterCountFillPlot.scale(scale);
-            redraw();
+            redraw();}
             prevTime=thisTime;
             prevEventN=thisEventN;
             prevEventTime=thisEventTime;
@@ -186,15 +186,15 @@ public class EcalMonitoringPlots extends Driver {
     void redraw() {
         hitCountDrawPlot.reset();
         hitCountDrawPlot.add(hitCountFillPlot);
-//        plotter.region(0).clear();
-//        plotter.region(0).plot(hitCountDrawPlot);
+        plotter.region(0).clear();
+        plotter.region(0).plot(hitCountDrawPlot);
 //        plotter.region(0).refresh();
         hitCountFillPlot.reset();
 
         clusterCountDrawPlot.reset();
         clusterCountDrawPlot.add(clusterCountFillPlot);
-//        plotter.region(1).clear();
-//        plotter.region(1).plot(clusterCountDrawPlot);
+        plotter.region(1).clear();
+        plotter.region(1).plot(clusterCountDrawPlot);
 //        plotter.region(1).refresh();
         clusterCountFillPlot.reset();
 
@@ -208,8 +208,8 @@ public class EcalMonitoringPlots extends Driver {
             if ((row != 0) && (column != 0) && (!EcalMonitoringUtilities.isInHole(row, column)))
                 occupancyDrawPlot.fill(column, row, mean);
         }
-//        plotter.region(2).clear();
-//        if (occupancyDrawPlot.sumAllBinHeights()> 0) plotter.region(2).plot(occupancyDrawPlot);
+        plotter.region(2).clear();
+        if (occupancyDrawPlot.sumAllBinHeights()> 0) plotter.region(2).plot(occupancyDrawPlot);
 //        plotter.region(2).refresh();
     }
 

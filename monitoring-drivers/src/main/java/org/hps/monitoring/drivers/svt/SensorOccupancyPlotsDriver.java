@@ -528,17 +528,17 @@ public class SensorOccupancyPlotsDriver extends Driver {
                     maxSampleStatus.setStatus(StatusCode.ALARM, "Sensor " + sensor.getName() + " looks out of time.");
                 }
                 IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, true);
-//                region.clear();
-//                region.plot(maxSamplePlot, plotterStyle);
-                region.applyStyle(plotterStyle);
+                region.clear();
+                region.plot(maxSamplePlot, plotterStyle);
+//                region.applyStyle(plotterStyle);
 //                region.style().regionBoxStyle().backgroundStyle().setColor("246, 34, 34, 1");
 //                setBackgroundColor(region.style(),sensor.isAxial(),true);
 
             } else {
                 IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, false);
-//                region.clear();
-//                region.plot(maxSamplePlot, plotterStyle);
-                region.applyStyle(plotterStyle);
+                region.clear();
+                region.plot(maxSamplePlot, plotterStyle);
+//                region.applyStyle(plotterStyle);
 //                setBackgroundColor(region.style(),sensor.isAxial(),false);
             }
         }
@@ -572,11 +572,15 @@ public class SensorOccupancyPlotsDriver extends Driver {
                     occupancyStatus.setStatus(StatusCode.ALARM, "Sensor " + sensor.getName() + " occupancy abnormal.");
                 }
                 IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, true);
-                region.applyStyle(plotterStyle);
+                region.clear();
+                region.plot(occupancyPlot, plotterStyle);
+//                region.applyStyle(plotterStyle);
 
             } else {
                 IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, false);
-                region.applyStyle(plotterStyle);
+                region.clear();
+                region.plot(occupancyPlot, plotterStyle);
+//                region.applyStyle(plotterStyle);
             }
         }
         if (isSystemOK) {
