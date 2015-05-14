@@ -22,32 +22,12 @@ final class EvioFileList extends ArrayList<File> {
 
     Map<File, Integer> eventCounts = new HashMap<File, Integer>();
 
-    void cache() {
-        LOGGER.info("running cache commands ...");
-        for (final File file : this) {
-            EvioFileUtilities.cache(file);
-        }
-        LOGGER.info("done running cache commands");
-    }
-
-    void computeEventCount(final File file) {
+    void computeEventCount(EvioReader reader, final File file) throws IOException, EvioException {
+        if (!reader.getPath().equals(file.getPath())) {
+            throw new IllegalArgumentException("The EvioReader and file paths do not match.");
+        }        
         LOGGER.info("computing event count for " + file.getPath() + " ...");
-        int eventCount = 0;
-        EvioReader reader = null;
-        try {
-            reader = new EvioReader(file, false);
-            eventCount += reader.getEventCount();
-        } catch (EvioException | IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        int eventCount = reader.getEventCount();
         this.eventCounts.put(file, eventCount);
         LOGGER.info("done computing event count for " + file.getPath());
     }
@@ -68,8 +48,8 @@ final class EvioFileList extends ArrayList<File> {
     }
 
     int getEventCount(final File file) {
-        if (!this.eventCounts.containsKey(file)) {
-            computeEventCount(file);
+        if (this.eventCounts.get(file) == null) {
+            throw new RuntimeException("The event count for " + file.getPath() + " was never computed.");
         }
         return this.eventCounts.get(file);
     }

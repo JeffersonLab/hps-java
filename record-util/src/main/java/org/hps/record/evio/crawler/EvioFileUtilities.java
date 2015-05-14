@@ -19,18 +19,6 @@ public final class EvioFileUtilities {
 
     private static final long MILLISECONDS = 1000L;
 
-    static void cache(final File file) {
-        if (!file.getPath().startsWith("/mss")) {
-            throw new IllegalArgumentException("Only files on /mss can be cached.");
-        }
-        try {
-            new ProcessBuilder("jcache", "submit", "default", file.getPath()).start();
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
-        LOGGER.info("process started to cache " + file.getPath());
-    }
-
     static Date getControlDate(final File file, final int eventTag, final int gotoEvent) {
         Date date = null;
         EvioReader reader = null;
@@ -149,10 +137,36 @@ public final class EvioFileUtilities {
     }
 
     static EvioReader open(final File file) throws IOException, EvioException {
+        File openFile = file;
+        if (isTapeFile(file)) {
+            openFile = getCachedFile(file);
+        }        
         final long start = System.currentTimeMillis();
-        final EvioReader reader = new EvioReader(file, false, false);
+        final EvioReader reader = new EvioReader(openFile, false, false);
         final long end = System.currentTimeMillis() - start;
-        LOGGER.info("opened " + file.getPath() + " in " + end / MILLISECONDS + " seconds");
+        LOGGER.info("opened " + openFile.getPath() + " in " + end / MILLISECONDS + " seconds");
         return reader;
+    }
+    
+    static EvioReader open(final String path) throws IOException, EvioException {
+        return open(new File(path));
+    }    
+    
+    static File getCachedFile(File file) {
+        if (!isTapeFile(file)) {
+            throw new IllegalArgumentException("File " + file.getPath() + " is not on the JLab MSS.");
+        }
+        if (isCachedFile(file)) {
+            throw new IllegalArgumentException("File " + file.getPath() + " is already on the cache disk.");
+        }
+        return new File("/cache" + file.getPath());
+    }
+    
+    static boolean isTapeFile(File file) {
+        return file.getPath().startsWith("/mss");
+    }
+    
+    static boolean isCachedFile(File file) {
+        return file.getPath().startsWith("/cache");
     }
 }

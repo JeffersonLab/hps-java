@@ -40,11 +40,11 @@ public final class EvioFileCrawler {
                 "timestamp file for date filtering; modified time will be set at end of job");
         OPTIONS.addOption("d", "directory", true, "starting directory");
         OPTIONS.addOption("r", "runs", true, "list of runs to accept (others will be excluded)");
-        OPTIONS.addOption("c", "cache", false, "cache files to /cache/mss from MSS (only works at JLAB)");
         OPTIONS.addOption("s", "summary", false, "print run summary at end of job");
         OPTIONS.addOption("L", "log-level", true, "set log level (INFO, FINE, etc.)");
         OPTIONS.addOption("u", "update", false, "update the run database");
         OPTIONS.addOption("e", "epics", false, "process EPICS data");
+        OPTIONS.addOption("c", "cache", false, "cache all files from MSS");
     }
 
     public static void main(final String[] args) {
@@ -56,8 +56,6 @@ public final class EvioFileCrawler {
     }
 
     private final Set<Integer> acceptRuns = new HashSet<Integer>();
-
-    private boolean cache = false;
 
     private boolean epics = false;
 
@@ -72,6 +70,8 @@ public final class EvioFileCrawler {
     private File timestampFile = null;
 
     private boolean update = false;
+    
+    private boolean cache = false;
 
     private RunProcessor createRunProcessor(final RunSummary runSummary) {
         final RunProcessor processor = new RunProcessor(runSummary);
@@ -134,18 +134,13 @@ public final class EvioFileCrawler {
             if (cl.hasOption("u")) {
                 this.update = true;
             }
-
-            if (cl.hasOption("c")) {
-                this.cache = true;
-            }
-
-            if (this.cache && (this.printSummary || this.update)) {
-                // If file caching is selected, then printing run summary or updating the database won't work.
-                throw new IllegalArgumentException("File caching cannot be activated with the -p or -u options.");
-            }
-
+           
             if (cl.hasOption("e")) {
                 this.epics = true;
+            }
+            
+            if (cl.hasOption("c")) {
+                this.cache = true;
             }
 
         } catch (final ParseException e) {
@@ -155,16 +150,37 @@ public final class EvioFileCrawler {
         return this;
     }
 
+    private void cacheFiles(final RunLog runs) {
+        JCacheManager cache = new JCacheManager();
+        
+        // Process all files in the runs.
+        for (final int run : runs.getSortedRunNumbers()) {
+                        
+            // Get the run summary for the run.
+            final RunSummary runSummary = runs.getRunSummary(run);
+            
+            // Cache all the files.
+            cache.cache(runSummary.getFiles());
+                        
+            // Wait for cache operation to complete. (~5 minutes max)
+            boolean cached = cache.waitForAll(300000);
+            
+            if (!cached) {
+                throw new RuntimeException("The cache operation did not complete in time.");
+            }
+        }
+    }
+    
     private void processRuns(final RunLog runs) throws Exception {
         // Process all files in the runs.
         for (final int run : runs.getSortedRunNumbers()) {
-
+                        
             // Get the run summary for the run.
             final RunSummary runSummary = runs.getRunSummary(run);
-
+                        
             // Create a processor to process all the EVIO records in the run.
             final RunProcessor processor = createRunProcessor(runSummary);
-
+                                   
             // Process the run, updating the run summary.
             processor.process();
         }
@@ -192,27 +208,27 @@ public final class EvioFileCrawler {
 
         LOGGER.fine("sorting files by sequence ...");
         runs.sortAllFiles();
-
+        
+        // Cache all the files to disk before processing them.
         if (this.cache) {
-            // Cache files from MSS.
-            runs.cache();
-        } else {
-
-            processRuns(runs);
-
-            // Print the run summaries.
-            if (this.printSummary) {
-                runs.printRunSummaries();
-            }
-
-            // Insert run information into database.
-            if (this.update) {
-                // Update run log.
-                runs.insert();
-            }
+            cacheFiles(runs);
         }
 
-        // Update timestamp file.
+        // Process all the files in the runs.
+        processRuns(runs);
+
+        // Print the run summaries.
+        if (this.printSummary) {
+            runs.printRunSummaries();
+        }
+
+        // Insert run information into the database.
+        if (this.update) {
+            // Update run log.
+            runs.insert();
+        }
+
+        // Update the timestamp file.
         if (this.timestampFile == null) {
             this.timestampFile = new File("timestamp");
             try {

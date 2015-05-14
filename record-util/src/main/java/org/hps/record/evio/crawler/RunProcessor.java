@@ -37,12 +37,18 @@ public final class RunProcessor {
         if (this.processors.isEmpty()) {
             throw new RuntimeException("The processors list is empty.");
         }
+        
+        // Run the start of job hooks.
         for (final EvioEventProcessor processor : this.processors) {
             processor.startJob();
         }
+        
+        // Process the files.
         for (final File file : this.runSummary.getFiles()) {
             process(file);
         }
+        
+        // Run the end of job hooks.
         for (final EvioEventProcessor processor : this.processors) {
             processor.endJob();
         }
@@ -51,8 +57,13 @@ public final class RunProcessor {
     private void process(final File file) throws EvioException, IOException, Exception {
         EvioReader reader = null;
         try {
+            // Open with wrapper method which will use the cached file path if necessary.
             reader = EvioFileUtilities.open(file);
-            this.runSummary.getFiles().computeEventCount(file);
+            
+            // Compute event count for the file and store the value.
+            this.runSummary.getFiles().computeEventCount(reader, file);
+            
+            // Process the events using the list of EVIO processors.
             EvioEvent event = null;
             while ((event = reader.parseNextEvent()) != null) {
                 for (final EvioEventProcessor processor : this.processors) {
@@ -65,4 +76,5 @@ public final class RunProcessor {
             }
         }
     }
+   
 }

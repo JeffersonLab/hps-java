@@ -20,11 +20,11 @@ final class RunLog {
 
     Map<Integer, RunSummary> runs = new HashMap<Integer, RunSummary>();
 
-    void cache() {
-        for (final int run : getSortedRunNumbers()) {
-            this.runs.get(run).getFiles().cache();
-        }
-    }
+    // void cache() {
+    // for (final int run : getSortedRunNumbers()) {
+    // this.runs.get(run).getFiles().cache();
+    // }
+    // }
 
     public RunSummary getRunSummary(final int run) {
         if (!this.runs.containsKey(run)) {
