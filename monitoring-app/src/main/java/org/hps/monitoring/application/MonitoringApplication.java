@@ -770,9 +770,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                 }
                 try {
                     if ("pdf".equals(extension)) {
-                        // Write to a single PDF file.
-                        ExportPdf.write(MonitoringPlotFactory.getPlotterRegistry().getPlotters(), fileName,
-                                getRunData());
+                        // Write out all plot graphics from the tabs to a single PDF file.
+                        ExportPdf.write(this.frame.getPlotPanel().getPlotPane(), fileName, getRunData());
                     } else {
                         // Save plot object data to AIDA or ROOT file.
                         AIDA.defaultInstance().saveAs(fileName);
