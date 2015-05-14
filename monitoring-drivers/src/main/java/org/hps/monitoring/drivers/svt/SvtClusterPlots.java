@@ -53,6 +53,7 @@ public class SvtClusterPlots extends Driver {
     private static Map<String, IHistogram1D> singleHitClusterChargePlots = new HashMap<String, IHistogram1D>();
     private static Map<String, IHistogram1D> clusterTimePlots = new HashMap<String, IHistogram1D>();
     private static Map<String, IHistogram2D> hitTimeTrigTimePlots = new HashMap<String, IHistogram2D>();
+    private static IHistogram1D[] hitTimeTrigTimePlots1D = new IHistogram1D[6];
 
     private List<HpsSiSensor> sensors;
     private Map<RawTrackerHit, FittedRawTrackerHit> fittedRawTrackerHitMap
@@ -232,15 +233,23 @@ public class SvtClusterPlots extends Driver {
                     .plot(clusterTimePlots.get(sensor.getName()), this.createStyle(null, "Cluster Time [ns]", ""));
         }
 
-        plotters.put("SVT-trigger timing", plotterFactory.create("SVT-trigger timing"));
-        plotters.get("SVT-trigger timing").createRegions(1, 2);
+        plotters.put("SVT-trigger timing top-bottom", plotterFactory.create("SVT-trigger timing top-bottom"));
+        plotters.get("SVT-trigger timing top-bottom").createRegions(1, 2);
 
         hitTimeTrigTimePlots.put("Top",
                 histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -50, 50, 6, -2, 22));
-        plotters.get("SVT-trigger timing").region(0).plot(hitTimeTrigTimePlots.get("Top"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
+        plotters.get("SVT-trigger timing top-bottom").region(0).plot(hitTimeTrigTimePlots.get("Top"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
         hitTimeTrigTimePlots.put("Bottom",
                 histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -50, 50, 6, -2, 22));
-        plotters.get("SVT-trigger timing").region(1).plot(hitTimeTrigTimePlots.get("Bottom"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
+        plotters.get("SVT-trigger timing top-bottom").region(1).plot(hitTimeTrigTimePlots.get("Bottom"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
+
+        plotters.put("SVT-trigger timing by phase", plotterFactory.create("SVT-trigger timing by phase"));
+        plotters.get("SVT-trigger timing by phase").createRegions(1, 6);
+
+        for (int i = 0; i < 6; i++) {
+            hitTimeTrigTimePlots1D[i] = histogramFactory.createHistogram1D("Cluster Time for Phase " + i, 100, -50, 50);
+            plotters.get("SVT-trigger timing by phase").region(i).plot(hitTimeTrigTimePlots1D[i], this.createStyle(null, "Cluster Time [ns]", ""));
+        }
 
         for (IPlotter plotter : plotters.values()) {
             plotter.show();
@@ -292,7 +301,7 @@ public class SvtClusterPlots extends Driver {
             }
 
             clusterTimePlots.get(sensor.getName()).fill(cluster.getTime());
-
+            hitTimeTrigTimePlots1D[(int) (event.getTimeStamp() / 4) % 6].fill(cluster.getTime());
             if (sensor.isTopLayer()) {
                 hitTimeTrigTimePlots.get("Top").fill(cluster.getTime(), event.getTimeStamp() % 24);
             } else {
