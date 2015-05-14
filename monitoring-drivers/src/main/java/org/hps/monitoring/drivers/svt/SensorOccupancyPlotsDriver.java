@@ -382,7 +382,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                                 this.createOccupancyPlotStyle("Max Sample Number", sensor, false));
             }
         }
-
+        
         for (IPlotter plotter : plotters.values()) {
             for (int regionN = 0; regionN < plotter.numberOfRegions(); regionN++) {
                 PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
@@ -392,7 +392,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 region.getPanel().addMouseListener(new PopupPlotterListener(region));
             }
             plotter.show();
-        }
+        }        
     }
 
     private boolean passTriggerFilter(List<GenericObject> triggerBanks) {
@@ -510,6 +510,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
                     }
                 }
             }
+        }
+        
+        if (plotters.get("Occupancy") != null) {
+            plotters.get("Occupancy").refresh();
         }
     }
 
