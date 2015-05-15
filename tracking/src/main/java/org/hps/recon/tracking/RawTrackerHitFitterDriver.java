@@ -35,7 +35,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean useTruthTime = false;
     private boolean subtractTOF = false;
     private boolean subtractTriggerTime = false;
-    private int triggerPhaseOffset = 4;
+    private int triggerPhaseOffset = 3;
     private boolean correctChanT0 = true;
 
     /**
@@ -147,7 +147,7 @@ public class RawTrackerHitFitterDriver extends Driver {
                 fit.setT0(fit.getT0() - timeOffset);
 
                 if (subtractTriggerTime) {
-                    fit.setT0(fit.getT0() - (((event.getTimeStamp() + 4 * triggerPhaseOffset) % 24) - 12));
+                    fit.setT0(fit.getT0() - (((event.getTimeStamp() - 4 * triggerPhaseOffset) % 24) - 12));
                 }
                 if (correctChanT0) {
                     fit.setT0(fit.getT0() - sensor.getShapeFitParameters(strip)[HpsSiSensor.T0_INDEX]);

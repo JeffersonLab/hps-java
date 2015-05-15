@@ -301,7 +301,7 @@ public class SvtClusterPlots extends Driver {
             }
 
             clusterTimePlots.get(sensor.getName()).fill(cluster.getTime());
-            hitTimeTrigTimePlots1D[(int) (event.getTimeStamp() / 4) % 6].fill(cluster.getTime());
+            hitTimeTrigTimePlots1D[(int) ((event.getTimeStamp() / 4) % 6)].fill(cluster.getTime());
             if (sensor.isTopLayer()) {
                 hitTimeTrigTimePlots.get("Top").fill(cluster.getTime(), event.getTimeStamp() % 24);
             } else {

@@ -78,6 +78,8 @@ final class SystemStatusPanel extends JPanel {
 
         // Clear the system status events table.
         ((SystemStatusEventsTableModel) this.eventsTable.getModel()).clear();
+        
+        this.statuses.clear();
     }
 
     private class SystemStatusBeeper extends TimerTask {
@@ -86,7 +88,7 @@ final class SystemStatusPanel extends JPanel {
         public void run() {
             boolean isAlarming = false;
             for (SystemStatus status : statuses) {
-                if (status.getStatusCode() == StatusCode.ALARM) {
+                if (status.isActive() && status.getStatusCode() == StatusCode.ALARM) {
                     isAlarming = true;
                 }
             }

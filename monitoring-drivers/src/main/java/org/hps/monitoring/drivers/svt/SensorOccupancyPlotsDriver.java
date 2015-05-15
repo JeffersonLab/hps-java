@@ -91,7 +91,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private int maxSampleMonitorPeriod = 100;
 
     SystemStatus occupancyStatus;
-    private int occupancyMonitorStart = 2500;
+    private int occupancyMonitorStart = 5000;
     private int occupancyMonitorPeriod = 100;
     private double minPeakOccupancy = 0.0001;
     private double maxPeakOccupancy = 0.01;
@@ -382,7 +382,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                                 this.createOccupancyPlotStyle("Max Sample Number", sensor, false));
             }
         }
-        
+
         for (IPlotter plotter : plotters.values()) {
             for (int regionN = 0; regionN < plotter.numberOfRegions(); regionN++) {
                 PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
@@ -392,7 +392,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 region.getPanel().addMouseListener(new PopupPlotterListener(region));
             }
             plotter.show();
-        }        
+        }
     }
 
     private boolean passTriggerFilter(List<GenericObject> triggerBanks) {
@@ -511,7 +511,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 }
             }
         }
-        
+
         if (plotters.get("Occupancy") != null) {
             plotters.get("Occupancy").refresh();
         }
@@ -532,17 +532,17 @@ public class SensorOccupancyPlotsDriver extends Driver {
                     maxSampleStatus.setStatus(StatusCode.ALARM, "Sensor " + sensor.getName() + " looks out of time.");
                 }
                 IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, true);
-                region.clear();
-                region.plot(maxSamplePlot, plotterStyle);
-//                region.applyStyle(plotterStyle);
+//                region.clear();
+//                region.plot(maxSamplePlot, plotterStyle);
+                region.applyStyle(plotterStyle);
 //                region.style().regionBoxStyle().backgroundStyle().setColor("246, 34, 34, 1");
 //                setBackgroundColor(region.style(),sensor.isAxial(),true);
 
             } else {
                 IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, false);
-                region.clear();
-                region.plot(maxSamplePlot, plotterStyle);
-//                region.applyStyle(plotterStyle);
+//                region.clear();
+//                region.plot(maxSamplePlot, plotterStyle);
+                region.applyStyle(plotterStyle);
 //                setBackgroundColor(region.style(),sensor.isAxial(),false);
             }
         }
@@ -576,15 +576,15 @@ public class SensorOccupancyPlotsDriver extends Driver {
                     occupancyStatus.setStatus(StatusCode.ALARM, "Sensor " + sensor.getName() + " occupancy abnormal.");
                 }
                 IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, true);
-                region.clear();
-                region.plot(occupancyPlot, plotterStyle);
-//                region.applyStyle(plotterStyle);
+//                region.clear();
+//                region.plot(occupancyPlot, plotterStyle);
+                region.applyStyle(plotterStyle);
 
             } else {
                 IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, false);
-                region.clear();
-                region.plot(occupancyPlot, plotterStyle);
-//                region.applyStyle(plotterStyle);
+//                region.clear();
+//                region.plot(occupancyPlot, plotterStyle);
+                region.applyStyle(plotterStyle);
             }
         }
         if (isSystemOK) {
@@ -616,7 +616,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 if (apvOccupancy[i] < 0.1 * peakOccupancy || apvOccupancy[i] < minPeakOccupancy) {
                     continue; //skip through the tail end of the sensor
                 }
-                if (apvOccupancy[i] > apvOccupancy[i - 1]) {
+                if (0.9 * apvOccupancy[i] > apvOccupancy[i - 1]) {
                     System.out.println("occupancy not monotonic");
                     return false;
                 }
@@ -626,7 +626,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 if (apvOccupancy[i] < 0.1 * peakOccupancy || apvOccupancy[i] < minPeakOccupancy) {
                     continue; //skip through the tail end of the sensor
                 }
-                if (apvOccupancy[i] > apvOccupancy[i + 1]) {
+                if (0.9 * apvOccupancy[i] > apvOccupancy[i + 1]) {
                     System.out.println("occupancy not monotonic");
                     return false;
                 }

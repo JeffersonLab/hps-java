@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
 <!-- 
-  Offline reconstruction for 2015 (engineering run with SVT+ECal) data.
+  Offline reconstruction for 2015 (engineering run with SVT+ECal) data, using outside-in tracking strategy optimized for larger opening angles.
   @author Sho Uemura <meeg@slac.stanford.edu>
 -->
     <execute>
@@ -47,7 +47,7 @@
             <debug>false</debug>
             <clusterTimeCut>12.0</clusterTimeCut>
             <maxDt>16.0</maxDt>
-            <!--<clusterAmplitudeCut>600.0</clusterAmplitudeCut>-->
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
