@@ -9,23 +9,39 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
+import org.lcsim.util.log.DefaultLogFormatter;
+import org.lcsim.util.log.LogUtil;
 import org.xml.sax.InputSource;
 
-// sample path => /mss/hallb/hps/data/cosmic_002713.evio.0
+/**
+ * Utility class for using the <i>jcache</i> command at JLAB.
+ */
 public class JCacheManager {
 
-    Map<File, FileInfo> fileInfos = new HashMap<File, FileInfo>();
-
+    private static Logger LOGGER = LogUtil.create(JCacheManager.class, new DefaultLogFormatter(), Level.ALL);
+    
+    private Map<File, FileInfo> fileInfos = new HashMap<File, FileInfo>();
+    
+    private static long DEFAULT_MAX_WAIT_TIME = 300000;
+    
+    private long maxWaitTime = DEFAULT_MAX_WAIT_TIME;
+    
+    private static final long POLL_WAIT_TIME = 10000;
+            
     static class FileInfo {
 
         private Integer requestId = null;
         private File file = null;
+        private boolean cached = false;
+        private Process process = null;
 
-        FileInfo(File file, Integer requestId) {
+        FileInfo(File file, Integer requestId, Process process) {
             this.requestId = requestId;
         }
 
@@ -36,8 +52,25 @@ public class JCacheManager {
         Integer getRequestId() {
             return requestId;
         }
+        
+        Process getProcess() {
+            return process;
+        }
+        
+        boolean isCached() {
+            return cached;
+        }
+                
+        void update() {
+            if (!isCached()) {
+                if (!isPending() && getCachedFile().exists()) {
+                    LOGGER.info("file " + file.getPath() + " is cached");
+                    this.cached = true;
+                }
+            }
+        }
 
-        String getStatus(File file) {
+        String getStatus() {
             Process process = null;
             try {
                 process = new ProcessBuilder("jcache", "request", requestId.toString()).start();
@@ -55,7 +88,14 @@ public class JCacheManager {
             String status = root.getChild("request").getChildText("status");
             return status;
         }
-
+        
+        boolean isPending() {
+            return !"pending".equals(getStatus());
+        }
+    }
+    
+    void setWaitTime(long maxWaitTime) {
+        this.maxWaitTime = maxWaitTime;
     }
     
     void cache(List<File> files) {
@@ -65,9 +105,9 @@ public class JCacheManager {
     }   
 
     void cache(File file) {
-        // LOGGER.info("running cache commands ...");
-        if (!EvioFileUtilities.isCachedFile(file)) {
-            throw new IllegalArgumentException("Only files on /mss can be cached.");
+        if (!EvioFileUtilities.isMssFile(file)) {
+            LOGGER.severe("file " + file.getPath() + " is not on the MSS");
+            throw new IllegalArgumentException("Only files on the MSS can be cached.");
         }
         Process process = null;
         try {
@@ -81,14 +121,11 @@ public class JCacheManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Integer requestId = Integer.parseInt(output.substring(output.indexOf("'") + 1, output.lastIndexOf("'")));
-        FileInfo fileInfo = new FileInfo(file, requestId);
+        Integer requestId = Integer.parseInt(output.substring(output.indexOf("'") + 1, output.lastIndexOf("'")));        
+        FileInfo fileInfo = new FileInfo(file, requestId, process);
         fileInfos.put(file, fileInfo);
+        LOGGER.info("jcache submitted for " + file.getPath() + " with req ID '" + requestId + "' and process " + process);
     }
-
-    // <?xml version="1.0"?><jcache><request
-    // id="5123929"><user>jeremym</user><family>default</family><status>active</status><file
-    // id="1"><path>/cache/mss/hallb/hps/production/slic/tritrig/2pt2/tritrigv1_s2d6_10.slcio</path><status>pending</status></file></request></jcache>
 
     private static Document buildDocument(String xmlString) {
         SAXBuilder builder = new SAXBuilder();
@@ -101,36 +138,46 @@ public class JCacheManager {
         return document;
     }
 
-    boolean waitForAll(int maxWaitMillis) {
-        boolean allCached = false;
+    boolean waitForAll() {
+        if (this.fileInfos.isEmpty()) {
+            throw new IllegalStateException("There are no files being cached.");
+        }
+        LOGGER.info("waiting for files to be cached ...");
         long elapsed = 0;
-        while (!allCached) {
-            boolean cacheCheck = true;
-            for (Entry<File, FileInfo> entry : fileInfos.entrySet()) {
-                // TODO: Should also check the status here.
-                if (!entry.getValue().getCachedFile().exists()) {
-                    cacheCheck = false;
-                    break;
+        boolean cached = false;
+        while (!cached) {
+            boolean check = true;    
+            INFO_LOOP: for (Entry<File, FileInfo> entry : fileInfos.entrySet()) {
+                FileInfo info = entry.getValue();
+                info.update();                
+                if (!info.isCached()) {
+                    LOGGER.info(entry.getKey() + " is not cached yet");
+                    check = false;
+                    break INFO_LOOP;
                 }
             }
-            if (cacheCheck) {
-                allCached = true;
+            if (check) {
+                cached = true;
                 break;
             }
+            
             elapsed = System.currentTimeMillis();
-            if (elapsed > maxWaitMillis) {
+            LOGGER.info("elapsed time: " + elapsed + " ms");
+            if (elapsed > maxWaitTime) {
                 break;
             }
             Object lock = new Object();
             synchronized(lock) {
                 try {
-                    lock.wait(5000); // Wait 5 seconds before re-polling the files.
+                    LOGGER.info("waiting " + POLL_WAIT_TIME + " ms before checking again ...");
+                    lock.wait(POLL_WAIT_TIME);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }
-        return allCached;
+        LOGGER.info("files were cached: " + cached);
+        return cached;
     }
 
     private static String readFully(InputStream inputStream, String encoding) throws IOException {

@@ -138,7 +138,7 @@ public final class EvioFileUtilities {
 
     static EvioReader open(final File file) throws IOException, EvioException {
         File openFile = file;
-        if (isTapeFile(file)) {
+        if (isMssFile(file)) {
             openFile = getCachedFile(file);
         }        
         final long start = System.currentTimeMillis();
@@ -153,7 +153,7 @@ public final class EvioFileUtilities {
     }    
     
     static File getCachedFile(File file) {
-        if (!isTapeFile(file)) {
+        if (!isMssFile(file)) {
             throw new IllegalArgumentException("File " + file.getPath() + " is not on the JLab MSS.");
         }
         if (isCachedFile(file)) {
@@ -162,7 +162,7 @@ public final class EvioFileUtilities {
         return new File("/cache" + file.getPath());
     }
     
-    static boolean isTapeFile(File file) {
+    static boolean isMssFile(File file) {
         return file.getPath().startsWith("/mss");
     }
     

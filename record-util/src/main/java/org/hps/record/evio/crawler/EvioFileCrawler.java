@@ -45,6 +45,7 @@ public final class EvioFileCrawler {
         OPTIONS.addOption("u", "update", false, "update the run database");
         OPTIONS.addOption("e", "epics", false, "process EPICS data");
         OPTIONS.addOption("c", "cache", false, "cache all files from MSS");
+        OPTIONS.addOption("w", "wait", true, "total wait time to allow for file caching operations");
     }
 
     public static void main(final String[] args) {
@@ -72,6 +73,8 @@ public final class EvioFileCrawler {
     private boolean update = false;
     
     private boolean cache = false;
+    
+    private Long waitTime; 
 
     private RunProcessor createRunProcessor(final RunSummary runSummary) {
         final RunProcessor processor = new RunProcessor(runSummary);
@@ -142,6 +145,10 @@ public final class EvioFileCrawler {
             if (cl.hasOption("c")) {
                 this.cache = true;
             }
+            
+            if (cl.hasOption("w")) {
+                this.waitTime = Long.parseLong(cl.getOptionValue("w"));
+            }
 
         } catch (final ParseException e) {
             throw new RuntimeException("Error parsing options.", e);
@@ -151,29 +158,45 @@ public final class EvioFileCrawler {
     }
 
     private void cacheFiles(final RunLog runs) {
+        
         JCacheManager cache = new JCacheManager();
+        
+        if (this.waitTime != null) {
+            LOGGER.config("set jcache wait time to " + waitTime + " millis");
+            cache.setWaitTime(waitTime);
+        }
         
         // Process all files in the runs.
         for (final int run : runs.getSortedRunNumbers()) {
+            
+            LOGGER.info("processing run " + run + " files ...");
                         
             // Get the run summary for the run.
             final RunSummary runSummary = runs.getRunSummary(run);
             
             // Cache all the files.
+            LOGGER.info("caching " + runSummary.getFiles().size() + " files ...");           
             cache.cache(runSummary.getFiles());
                         
-            // Wait for cache operation to complete. (~5 minutes max)
-            boolean cached = cache.waitForAll(300000);
+            // Wait for cache operation to complete.
+            boolean cached = cache.waitForAll();
+            
+            LOGGER.info("files were cached: " + cached);
             
             if (!cached) {
                 throw new RuntimeException("The cache operation did not complete in time.");
             }
+            
+            LOGGER.info("done caching run " + run);
         }
     }
     
     private void processRuns(final RunLog runs) throws Exception {
+                        
         // Process all files in the runs.
         for (final int run : runs.getSortedRunNumbers()) {
+            
+            LOGGER.info("processing run " + run + " ...");
                         
             // Get the run summary for the run.
             final RunSummary runSummary = runs.getRunSummary(run);
@@ -183,6 +206,8 @@ public final class EvioFileCrawler {
                                    
             // Process the run, updating the run summary.
             processor.process();
+            
+            LOGGER.info("done processing run " + run);
         }
     }
 
