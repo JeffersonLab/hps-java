@@ -6,7 +6,6 @@ import java.util.List;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtAlignmentConstant;
 import org.hps.conditions.svt.SvtAlignmentConstant.SvtAlignmentConstantCollection;
-import org.lcsim.conditions.ConditionsManager;
 
 /**
  * Reads in SVT alignment constants from the database and converts them to the {@link MilleParameter} class expected by
@@ -16,19 +15,18 @@ import org.lcsim.conditions.ConditionsManager;
  */
 public class SvtAlignmentConstantsReader {
 	
-	private SvtAlignmentConstantsReader() {		
+	private SvtAlignmentConstantsReader() {
 	}
 
-    public static List<MilleParameter> readMilleParameters() {
-
-        if (!ConditionsManager.isSetup()) {
-            throw new RuntimeException("Conditions system is not initialized.");
-        }
+	/**
+	 * Read SVT alignment constants from the conditions database table <i>svt_alignments</i> and create a list of 
+	 * <code>MilleParameter</code> objects from it.
+	 * 
+	 * @return the Millepede parameter list
+	 */
+    static List<MilleParameter> readMilleParameters() {
 
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-
-        System.out.printf("loading alignment parameters with detector: %s; run: %d", manager.getDetector(),
-                manager.getRun());
 
         final List<MilleParameter> milleParameters = new ArrayList<MilleParameter>();
 
@@ -36,10 +34,8 @@ public class SvtAlignmentConstantsReader {
                 SvtAlignmentConstantCollection.class, "svt_alignments").getCachedData();
 
         for (final SvtAlignmentConstant constant : alignmentConstants) {
-            final MilleParameter p = new MilleParameter(Integer.parseInt(constant.getParameter()), constant.getValue(),
-                    0.0);
+            final MilleParameter p = new MilleParameter(constant.getParameter(), constant.getValue(), 0.0);
             milleParameters.add(p);
-            System.out.println("added " + p.toString());
         }
 
         return milleParameters;
