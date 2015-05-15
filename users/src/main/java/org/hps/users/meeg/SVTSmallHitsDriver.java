@@ -22,6 +22,8 @@ public class SVTSmallHitsDriver extends Driver {
     Map<HpsSiSensor, Set<Integer>> hitMap;
     double dtSumWith = 0;
     double dtSumWithout = 0;
+    double nHitsWith = 0;
+    double nHitsWithout = 0;
     int nWith = 0;
     int nWithout = 0;
 
@@ -68,12 +70,14 @@ public class SVTSmallHitsDriver extends Driver {
             }
             if (smallHitCount > 5) {
                 dtSumWith += event.getTimeStamp() - previousTimestamp;
+                nHitsWith += smallHitCount;
                 nWith++;
             } else {
                 dtSumWithout += event.getTimeStamp() - previousTimestamp;
+                nHitsWithout += smallHitCount;
                 nWithout++;
             }
-            System.out.format("%f ns with small hits,\t%f ns without small hits\n",dtSumWith,nWith,dtSumWith/nWith,dtSumWithout,nWithout,dtSumWithout/nWithout);
+            System.out.format("%f ns with small hits (%d events with %f small hits),\t%f ns without small hits (%d events with %f small hits)\n", dtSumWith / nWith, nWith, nHitsWith / nWith, dtSumWithout / nWithout, nWithout, nHitsWithout / nWithout);
 
             System.out.format("%d %d %d %d ", event.getEventNumber(), event.getTimeStamp(), event.getTimeStamp() - previousTimestamp, smallHitCount);
 
