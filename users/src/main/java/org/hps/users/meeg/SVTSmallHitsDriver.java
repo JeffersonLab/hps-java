@@ -20,6 +20,10 @@ public class SVTSmallHitsDriver extends Driver {
     private long previousTimestamp = 0;
     private boolean printADCValues = false;
     Map<HpsSiSensor, Set<Integer>> hitMap;
+    double dtSumWith = 0;
+    double dtSumWithout = 0;
+    int nWith = 0;
+    int nWithout = 0;
 
     public void setPrintADCValues(boolean printADCValues) {
         this.printADCValues = printADCValues;
@@ -62,7 +66,17 @@ public class SVTSmallHitsDriver extends Driver {
                     smallHitCounts.put(sensor.getName(), count + 1);
                 }
             }
+            if (smallHitCount > 5) {
+                dtSumWith += event.getTimeStamp() - previousTimestamp;
+                nWith++;
+            } else {
+                dtSumWithout += event.getTimeStamp() - previousTimestamp;
+                nWithout++;
+            }
+            System.out.format("%f ns with small hits,\t%f ns without small hits\n",dtSumWith,nWith,dtSumWith/nWith,dtSumWithout,nWithout,dtSumWithout/nWithout);
+
             System.out.format("%d %d %d %d ", event.getEventNumber(), event.getTimeStamp(), event.getTimeStamp() - previousTimestamp, smallHitCount);
+
             previousTimestamp = event.getTimeStamp();
             for (String sensorName : smallHitCounts.keySet()) {
                 System.out.format("%s:%d ", sensorName, smallHitCounts.get(sensorName));
