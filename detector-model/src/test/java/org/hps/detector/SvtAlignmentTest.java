@@ -18,7 +18,7 @@ public class SvtAlignmentTest extends TestCase {
     private static final String DETECTOR_NAME = "HPS-EngRun2015-Nominal-v1";
     
     private static final int[] RUNS = {
-        /* nominal alignment settings */
+        /* nominal */
         0,
         /* 4mm */
         4847,
@@ -29,15 +29,26 @@ public class SvtAlignmentTest extends TestCase {
         /* 1.5mm */
         5259,
         /* open */
-        5222 };
-    
+        5222,
+        /* 0.5mm a.k.a. nominal */
+        5632
+        };
+        
     private static double ANGLES[][] = {
+        /* nominal */
         {0, 0},
+        /* 4mm */
         {0.0107, -0.0116},
+        /* 3mm */
         {0.0077, -0.0086},
+        /* 2mm */
         {0.0046, -0.005},
+        /* 1.5mm */
         {0.0031, -0.0033},
-        {0.0216, -0.0217}        
+        /* open */
+        {0.0216, -0.0217},
+        /* 0.5mm a.k.a. nominal */
+        {0, 0}
     };
 
     public void testSvtAlignment() throws Exception {
@@ -46,9 +57,8 @@ public class SvtAlignmentTest extends TestCase {
         int runIndex = 0;
         for (int run : RUNS) {       
             
-            System.out.println();
-            
-            System.out.println("loading SVT alignments for detector " + DETECTOR_NAME + " and run " + run);
+            System.out.println();            
+            System.out.println("loading run " + run + " SVT alignments for detector " + DETECTOR_NAME + " ...");
             
             manager.setDetector(DETECTOR_NAME, run);
             
