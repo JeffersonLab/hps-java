@@ -354,8 +354,8 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
             System.out.printf("%s: create HpsSiSensor with old layer id %d with sensorNumber %d name %s moduleDe %s sensorPath %s sensor Id %d \n", getClass().getSimpleName(), 
                                 layerDe.getIdentifier(),sensorNumber, sensorName, moduleDe.getName(), sensorPath, sensorNumber);
         }
-        System.out.printf("%s: HpsSiSensor old layer id %d and module nr %d and sensor nr %d <-> DE name %s \n", getClass().getSimpleName(), 
-                builder.getDetectorIdentifierHelper().getValue(layerDe.getIdentifier(), "layer"), ((SiTrackerModule) moduleDe).getModuleId(), sensorNumber,sensorName);
+        //System.out.printf("%s: HpsSiSensor old layer id %d and module nr %d and sensor nr %d <-> DE name %s \n", getClass().getSimpleName(), 
+        //        builder.getDetectorIdentifierHelper().getValue(layerDe.getIdentifier(), "layer"), ((SiTrackerModule) moduleDe).getModuleId(), sensorNumber,sensorName);
         
         // Create the sensor.
         int millepedeLayer = builder._builder.getMillepedeLayer(sensorName);
