@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
@@ -36,6 +37,7 @@ public final class EvioFileCrawler {
     }
 
     static {
+        OPTIONS.addOption("h", "help", false, "print help and exit");
         OPTIONS.addOption("t", "timestamp-file", true,
                 "timestamp file for date filtering; modified time will be set at end of job");
         OPTIONS.addOption("d", "directory", true, "starting directory");
@@ -45,7 +47,7 @@ public final class EvioFileCrawler {
         OPTIONS.addOption("u", "update", false, "update the run database");
         OPTIONS.addOption("e", "epics", false, "process EPICS data");
         OPTIONS.addOption("c", "cache", false, "cache all files from MSS");
-        OPTIONS.addOption("w", "wait", true, "total wait time to allow for file caching operations");
+        OPTIONS.addOption("w", "wait", true, "total time in ms for file caching");
     }
 
     public static void main(final String[] args) {
@@ -86,10 +88,23 @@ public final class EvioFileCrawler {
         }
         return processor;
     }
+    
+    /**
+     * Print the usage statement for this tool to the console.
+     */
+    private final void printUsage() {
+        final HelpFormatter help = new HelpFormatter();
+        help.printHelp("EvioFileCrawler", "", OPTIONS, "");
+        System.exit(0);
+    }
 
     private EvioFileCrawler parse(final String args[]) {
         try {
             final CommandLine cl = this.parser.parse(OPTIONS, args);
+            
+            if (cl.hasOption("h")) {
+                printUsage();
+            }
 
             if (cl.hasOption("L")) {
                 final Level level = Level.parse(cl.getOptionValue("L"));
