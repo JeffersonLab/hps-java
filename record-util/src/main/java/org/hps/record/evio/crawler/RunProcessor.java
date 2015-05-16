@@ -34,14 +34,13 @@ public final class RunProcessor {
     }
 
     void process() throws Exception {
-        if (this.processors.isEmpty()) {
-            throw new RuntimeException("The processors list is empty.");
-        }
         
         // Run the start of job hooks.
         for (final EvioEventProcessor processor : this.processors) {
             processor.startJob();
         }
+         
+        
         
         // Process the files.
         for (final File file : this.runSummary.getFiles()) {

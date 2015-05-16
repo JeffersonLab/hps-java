@@ -17,6 +17,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
@@ -28,13 +29,9 @@ import org.lcsim.util.log.LogUtil;
  */
 public final class EvioFileCrawler {
 
-    private static final Logger LOGGER = LogUtil.create(EvioFileVisitor.class);
+    private static final Logger LOGGER = LogUtil.create(EvioFileVisitor.class, new DefaultLogFormatter(), Level.ALL);
 
     private static final Options OPTIONS = new Options();
-
-    static {
-        LOGGER.setLevel(Level.ALL);
-    }
 
     static {
         OPTIONS.addOption("h", "help", false, "print help and exit");
@@ -217,7 +214,7 @@ public final class EvioFileCrawler {
             final RunSummary runSummary = runs.getRunSummary(run);
                         
             // Create a processor to process all the EVIO records in the run.
-            final RunProcessor processor = createRunProcessor(runSummary);
+            final RunProcessor processor = createRunProcessor(runSummary);            
                                    
             // Process the run, updating the run summary.
             processor.process();
@@ -245,7 +242,15 @@ public final class EvioFileCrawler {
         }
 
         final RunLog runs = visitor.getRunLog();
-
+        
+        // Print run numbers that were found.
+        StringBuffer sb = new StringBuffer();
+        for (Integer run : runs.getSortedRunNumbers()) {
+            sb.append(run + " ");
+        }
+        LOGGER.info("found files from runs: " + sb.toString());
+        
+        // Sort files on their sequence numbers.
         LOGGER.fine("sorting files by sequence ...");
         runs.sortAllFiles();
         
@@ -257,7 +262,7 @@ public final class EvioFileCrawler {
         // Process all the files in the runs.
         processRuns(runs);
 
-        // Print the run summaries.
+        // Print the run summary information.
         if (this.printSummary) {
             runs.printRunSummaries();
         }

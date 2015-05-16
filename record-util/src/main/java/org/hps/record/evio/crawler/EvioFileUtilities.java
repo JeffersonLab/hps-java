@@ -137,12 +137,16 @@ public final class EvioFileUtilities {
     }
 
     static EvioReader open(final File file) throws IOException, EvioException {
+        return open(file, false);
+    }
+    
+    static EvioReader open(final File file, boolean sequential) throws IOException, EvioException {
         File openFile = file;
         if (isMssFile(file)) {
             openFile = getCachedFile(file);
         }        
         final long start = System.currentTimeMillis();
-        final EvioReader reader = new EvioReader(openFile, false, false);
+        final EvioReader reader = new EvioReader(openFile, false, sequential);
         final long end = System.currentTimeMillis() - start;
         LOGGER.info("opened " + openFile.getPath() + " in " + end / MILLISECONDS + " seconds");
         return reader;

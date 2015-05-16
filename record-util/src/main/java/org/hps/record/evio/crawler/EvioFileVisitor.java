@@ -8,6 +8,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.lcsim.util.log.LogUtil;
@@ -57,7 +58,6 @@ final class EvioFileVisitor extends SimpleFileVisitor<Path> {
             LOGGER.info("adding file: " + file.getPath() + "; run: " + run + "; seq = " + seq);
 
             this.runs.getRunSummary(run).addFile(file);
-
         } else {
             LOGGER.info("rejected file: " + file.getPath());
         }

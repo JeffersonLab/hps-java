@@ -5,8 +5,15 @@ import java.io.FileFilter;
 
 final class EvioFileFilter implements FileFilter {
 
-    @Override
+    @Override    
     public boolean accept(final File pathname) {
-        return pathname.getName().contains(".evio");
+        boolean isEvio = pathname.getName().contains(".evio");
+        boolean hasSeqNum = false;
+        try {
+            EvioFileUtilities.getSequenceNumber(pathname);
+            hasSeqNum = true;
+        } catch (Exception e) {
+        }
+        return isEvio && hasSeqNum;
     }
 }
