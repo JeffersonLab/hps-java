@@ -2,6 +2,11 @@ package org.hps.monitoring.drivers.svt;
 
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 
@@ -94,5 +99,45 @@ public class SvtPlotUtils {
         }
 
         return style;
+    }
+
+    public static int countSmallHits(List<RawTrackerHit> rawHits) {
+        int smallHitCount = 0;
+        Map<HpsSiSensor, Set<Integer>> hitMap = new HashMap<HpsSiSensor, Set<Integer>>();
+
+        for (RawTrackerHit hit : rawHits) {
+            HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
+            Set<Integer> hitStrips = hitMap.get(sensor);
+            if (hitStrips == null) {
+                hitStrips = new HashSet<Integer>();
+                hitMap.put(sensor, hitStrips);
+            }
+            int strip = hit.getIdentifierFieldValue("strip");
+            hitStrips.add(strip);
+        }
+
+        for (RawTrackerHit hit : rawHits) {
+            if (isSmallHit(hitMap, hit)) {
+                smallHitCount++;
+            }
+        }
+        return smallHitCount;
+    }
+
+    public static boolean isSmallHit(Map<HpsSiSensor, Set<Integer>> hitMap, RawTrackerHit hit) {
+        HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
+        int strip = hit.getIdentifierFieldValue("strip");
+        double pedestal = sensor.getPedestal(strip, 0);
+        double noise = sensor.getNoise(strip, 0);
+
+        if (hitMap.get(sensor) != null && (hitMap.get(sensor).contains(strip - 1) || hitMap.get(sensor).contains(strip + 1))) {
+            return false;
+        }
+        for (int i = 0; i < 6; i++) {
+            if (hit.getADCValues()[i] > pedestal + 4.0 * noise) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -11,8 +11,10 @@ import hep.aida.jfree.plotter.Plotter;
 import hep.aida.jfree.plotter.PlotterRegion;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.util.Driver;
@@ -52,12 +54,18 @@ public class SvtHitPlots extends Driver {
 
     private static final String SUBDETECTOR_NAME = "Tracker";
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
-
+    
     // Counters
     double eventCount = 0;
     double totalHitCount = 0;
     double totalTopHitCount = 0;
     double totalBotHitCount = 0;
+
+    private boolean dropSmallHitEvents = true;
+
+    public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
+        this.dropSmallHitEvents = dropSmallHitEvents;
+    }
 
     private int computePlotterRegion(HpsSiSensor sensor) {
 
@@ -224,6 +232,10 @@ public class SvtHitPlots extends Driver {
 
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
+
+        if (SvtPlotUtils.countSmallHits(rawHits) > 3) {
+            return;
+        }
 
         this.clearHitMaps();
         for (RawTrackerHit rawHit : rawHits) {

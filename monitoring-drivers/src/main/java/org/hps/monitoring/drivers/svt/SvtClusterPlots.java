@@ -16,6 +16,8 @@ import hep.aida.ITree;
 import hep.aida.jfree.plotter.Plotter;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.ref.rootwriter.RootFileStore;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -67,6 +69,12 @@ public class SvtClusterPlots extends Driver {
     private String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
 
     private int runNumber = -1;
+
+    private boolean dropSmallHitEvents = true;
+
+    public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
+        this.dropSmallHitEvents = dropSmallHitEvents;
+    }
 
     private int computePlotterRegion(HpsSiSensor sensor) {
 
@@ -240,7 +248,7 @@ public class SvtClusterPlots extends Driver {
                 histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -50, 50, 6, -2, 22));
         plotters.get("SVT-trigger timing top-bottom").region(0).plot(hitTimeTrigTimePlots.get("Top"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
         hitTimeTrigTimePlots.put("Bottom",
-                histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -50, 50, 6, -2, 22));
+                histogramFactory.createHistogram2D("Bottom Cluster Time vs. Trigger Phase", 100, -50, 50, 6, -2, 22));
         plotters.get("SVT-trigger timing top-bottom").region(1).plot(hitTimeTrigTimePlots.get("Bottom"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
 
         plotters.put("SVT-trigger timing by phase", plotterFactory.create("SVT-trigger timing by phase"));
@@ -283,6 +291,15 @@ public class SvtClusterPlots extends Driver {
         // If the event doesn't contain any clusters, skip it
         if (!event.hasCollection(SiTrackerHitStrip1D.class, clusterCollectionName)) {
             return;
+        }
+
+        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits")) {
+            // Get RawTrackerHit collection from event.
+            List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+
+            if (SvtPlotUtils.countSmallHits(rawHits) > 3) {
+                return;
+            }
         }
 
         // Get the list of clusters in the event

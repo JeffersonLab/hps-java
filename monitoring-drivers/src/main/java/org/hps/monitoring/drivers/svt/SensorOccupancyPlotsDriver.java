@@ -17,6 +17,8 @@ import hep.aida.jfree.plotter.Plotter;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.ref.rootwriter.RootFileStore;
 import hep.physics.vec.Hep3Vector;
+import java.util.HashSet;
+import java.util.Set;
 import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.Subsystem;
 import org.hps.monitoring.subsys.SystemStatus;
@@ -96,11 +98,17 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private double minPeakOccupancy = 0.0001;
     private double maxPeakOccupancy = 0.01;
 
+    private boolean dropSmallHitEvents = true;
+
     public SensorOccupancyPlotsDriver() {
         maxSampleStatus = new SystemStatusImpl(Subsystem.SVT, "Checks that SVT is timed in (max sample plot)", true);
         maxSampleStatus.setStatus(StatusCode.UNKNOWN, "Status is unknown.");
         occupancyStatus = new SystemStatusImpl(Subsystem.SVT, "Checks SVT occupancy", true);
         occupancyStatus.setStatus(StatusCode.UNKNOWN, "Status is unknown.");
+    }
+
+    public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
+        this.dropSmallHitEvents = dropSmallHitEvents;
     }
 
     public void setRawTrackerHitCollectionName(String rawTrackerHitCollectionName) {
@@ -447,6 +455,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
+
+        if (SvtPlotUtils.countSmallHits(rawHits) > 3) {
+            return;
+        }
 
         if (resetPeriod > 0 && eventCount > resetPeriod) { //reset occupancy numbers after resetPeriod events
             eventCount = 0;
