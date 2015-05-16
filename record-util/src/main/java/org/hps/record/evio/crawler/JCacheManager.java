@@ -39,9 +39,8 @@ public class JCacheManager {
         private Integer requestId = null;
         private File file = null;
         private boolean cached = false;
-        private Process process = null;
 
-        FileInfo(File file, Integer requestId, Process process) {
+        FileInfo(File file, Integer requestId) {
             this.requestId = requestId;
         }
 
@@ -52,11 +51,7 @@ public class JCacheManager {
         Integer getRequestId() {
             return requestId;
         }
-        
-        Process getProcess() {
-            return process;
-        }
-        
+                
         boolean isCached() {
             return cached;
         }
@@ -77,20 +72,36 @@ public class JCacheManager {
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
+            
+            int status = 0;
+            try {
+                status = process.waitFor();
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Process was interrupted.", e);
+            }
+            if (status != 0) {
+                throw new RuntimeException("The jcache request process returned a non-zero exit status: " + status);
+            }            
             String xmlString = null;
             try {
                 xmlString = readFully(process.getInputStream(), "US-ASCII");
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            xmlString = xmlString.trim();
+            LOGGER.info(xmlString);
             Document xml = buildDocument(xmlString);
             Element root = xml.getRootElement();
-            String status = root.getChild("request").getChildText("status");
-            return status;
+            String requestStatus = root.getChild("request").getChildText("status");
+            return requestStatus;
         }
         
         boolean isPending() {
             return !"pending".equals(getStatus());
+        }
+        
+        boolean isDone() {
+            return "done".equals(getStatus());
         }
     }
     
@@ -115,16 +126,25 @@ public class JCacheManager {
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
+        int status = 0;
+        try {
+            status = process.waitFor();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Process was interrupted.", e);
+        }
+        if (status != 0) {
+            throw new RuntimeException("The jcache process returned a non-zero exit status: " + status);
+        }
         String output = null;
         try {
             output = readFully(process.getInputStream(), "US-ASCII");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Integer requestId = Integer.parseInt(output.substring(output.indexOf("'") + 1, output.lastIndexOf("'")));        
-        FileInfo fileInfo = new FileInfo(file, requestId, process);
+        Integer requestId = Integer.parseInt(output.substring(output.indexOf("'") + 1, output.lastIndexOf("'")));
+        FileInfo fileInfo = new FileInfo(file, requestId);
         fileInfos.put(file, fileInfo);
-        LOGGER.info("jcache submitted for " + file.getPath() + " with req ID '" + requestId + "' and process " + process);
+        LOGGER.info("jcache submitted for " + file.getPath() + " with req ID '" + requestId + "'");
     }
 
     private static Document buildDocument(String xmlString) {
