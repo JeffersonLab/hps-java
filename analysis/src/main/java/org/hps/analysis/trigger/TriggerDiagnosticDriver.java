@@ -1,5 +1,6 @@
 package org.hps.analysis.trigger;
 
+import hep.aida.ICloud2D;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 
@@ -45,6 +46,9 @@ import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.base.MyLCRelation;
+import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -54,12 +58,15 @@ public class TriggerDiagnosticDriver extends Driver {
 	private String bankCollectionName = "TriggerBank";
 	private String clusterCollectionName = "EcalClusters";
 	private String diagnosticCollectionName = "DiagnosticSnapshot";
+	private static final int clusterCollectionFlag = 1 << LCIOConstants.CLBIT_HITS;
+	private String[] singlesCandidateCollectionName = { "Singles0TriggerCandidates", "Singles1TriggerCandidates" };
+	private String[] pairCandidateCollectionName = { "Pair0TriggerCandidates", "Pair1TriggerCandidates" };
 	
 	// Store the lists of parsed objects.
 	private TIData tiBank;
 	private SSPData sspBank;
-	private List<Cluster> reconClusters = new ArrayList<Cluster>();
 	private List<SSPCluster> sspClusters;
+	private List<Cluster> reconClusters = new ArrayList<Cluster>();
 	private List<List<PairTrigger<Cluster[]>>> reconPairsTriggers = new ArrayList<List<PairTrigger<Cluster[]>>>(2);
 	private List<List<PairTrigger<SSPCluster[]>>> sspPairsTriggers = new ArrayList<List<PairTrigger<SSPCluster[]>>>(2);
 	private List<List<SinglesTrigger<Cluster>>> reconSinglesTriggers = new ArrayList<List<SinglesTrigger<Cluster>>>(2);
@@ -93,6 +100,10 @@ public class TriggerDiagnosticDriver extends Driver {
 	private RunDiagStats localStats = new RunDiagStats();
 	private RunDiagStats globalStats = new RunDiagStats();
     
+	// Track which clusters/pairs are trigger candidates.
+	private List<List<Cluster>> singlesCandidates = new ArrayList<List<Cluster>>(2);
+	private List<List<LCRelation>> pairCandidates = new ArrayList<List<LCRelation>>(2);
+	
     // Verbose settings.
     private boolean clusterFail = false;
     private boolean singlesEfficiencyFail = false;
@@ -136,56 +147,63 @@ public class TriggerDiagnosticDriver extends Driver {
 	private AIDA aida = AIDA.defaultInstance();
 	private IHistogram1D[][] clusterHitPlot = {
 			{
-				aida.histogram1D("cluster/Recon Cluster Hit Count (All)",     9, 0.5, 9.5),
-				aida.histogram1D("cluster/Recon Cluster Hit Count (Matched)", 9, 0.5, 9.5),
-				aida.histogram1D("cluster/Recon Cluster Hit Count (Failed)",  9, 0.5, 9.5)
+				aida.histogram1D("Clustering/Recon Cluster Hit Count (All)",     9, 0.5, 9.5),
+				aida.histogram1D("Clustering/Recon Cluster Hit Count (Matched)", 9, 0.5, 9.5),
+				aida.histogram1D("Clustering/Recon Cluster Hit Count (Failed)",  9, 0.5, 9.5)
 			},
 			{
-				aida.histogram1D("cluster/SSP Cluster Hit Count (All)",     9, 0.5, 9.5),
-				aida.histogram1D("cluster/SSP Cluster Hit Count (Matched)", 9, 0.5, 9.5),
-				aida.histogram1D("cluster/SSP Cluster Hit Count (Failed)",  9, 0.5, 9.5)
+				aida.histogram1D("Clustering/SSP Cluster Hit Count (All)",     9, 0.5, 9.5),
+				aida.histogram1D("Clustering/SSP Cluster Hit Count (Matched)", 9, 0.5, 9.5),
+				aida.histogram1D("Clustering/SSP Cluster Hit Count (Failed)",  9, 0.5, 9.5)
 			}
 	};
 	private IHistogram1D[][] clusterEnergyPlot = {
 			{
-				aida.histogram1D("cluster/Recon Cluster Energy (All)",     300, 0.0, 3.0),
-				aida.histogram1D("cluster/Recon Cluster Energy (Matched)", 300, 0.0, 3.0),
-				aida.histogram1D("cluster/Recon Cluster Energy (Failed)",  300, 0.0, 3.0)
+				aida.histogram1D("Clustering/Recon Cluster Energy (All)",     300, 0.0, 3.0),
+				aida.histogram1D("Clustering/Recon Cluster Energy (Matched)", 300, 0.0, 3.0),
+				aida.histogram1D("Clustering/Recon Cluster Energy (Failed)",  300, 0.0, 3.0)
 			},
 			{
-				aida.histogram1D("cluster/SSP Cluster Energy (All)",     300, 0.0, 3.0),
-				aida.histogram1D("cluster/SSP Cluster Energy (Matched)", 300, 0.0, 3.0),
-				aida.histogram1D("cluster/SSP Cluster Energy (Failed)",  300, 0.0, 3.0)
+				aida.histogram1D("Clustering/SSP Cluster Energy (All)",     300, 0.0, 3.0),
+				aida.histogram1D("Clustering/SSP Cluster Energy (Matched)", 300, 0.0, 3.0),
+				aida.histogram1D("Clustering/SSP Cluster Energy (Failed)",  300, 0.0, 3.0)
 			}
 	};
 	private IHistogram1D[][] clusterTimePlot = {
 			{
-				aida.histogram1D("cluster/Recon Cluster Time (All)",     115, 0, 460),
-				aida.histogram1D("cluster/Recon Cluster Time (Matched)", 115, 0, 460),
-				aida.histogram1D("cluster/Recon Cluster Time (Failed)",  115, 0, 460)
+				aida.histogram1D("Clustering/Recon Cluster Time (All)",     115, 0, 460),
+				aida.histogram1D("Clustering/Recon Cluster Time (Matched)", 115, 0, 460),
+				aida.histogram1D("Clustering/Recon Cluster Time (Failed)",  115, 0, 460)
 			},
 			{
-				aida.histogram1D("cluster/SSP Cluster Time (All)",     115, 0, 460),
-				aida.histogram1D("cluster/SSP Cluster Time (Matched)", 115, 0, 460),
-				aida.histogram1D("cluster/SSP Cluster Time (Failed)",  115, 0, 460)
+				aida.histogram1D("Clustering/SSP Cluster Time (All)",     115, 0, 460),
+				aida.histogram1D("Clustering/SSP Cluster Time (Matched)", 115, 0, 460),
+				aida.histogram1D("Clustering/SSP Cluster Time (Failed)",  115, 0, 460)
 			}
 	};
 	private IHistogram2D[][] clusterPositionPlot = {
 			{
-				aida.histogram2D("cluster/Recon Cluster Position (All)",     47, -23.5, 23.5, 11, -5.5, 5.5),
-				aida.histogram2D("cluster/Recon Cluster Position (Matched)", 47, -23.5, 23.5, 11, -5.5, 5.5),
-				aida.histogram2D("cluster/Recon Cluster Position (Failed)",  47, -23.5, 23.5, 11, -5.5, 5.5)
+				aida.histogram2D("Clustering/Recon Cluster Position (All)",     47, -23.5, 23.5, 11, -5.5, 5.5),
+				aida.histogram2D("Clustering/Recon Cluster Position (Matched)", 47, -23.5, 23.5, 11, -5.5, 5.5),
+				aida.histogram2D("Clustering/Recon Cluster Position (Failed)",  47, -23.5, 23.5, 11, -5.5, 5.5)
 			},
 			{
-				aida.histogram2D("cluster/SSP Cluster Position (All)",     47, -23.5, 23.5, 11, -5.5, 5.5),
-				aida.histogram2D("cluster/SSP Cluster Position (Matched)", 47, -23.5, 23.5, 11, -5.5, 5.5),
-				aida.histogram2D("cluster/SSP Cluster Position (Failed)",  47, -23.5, 23.5, 11, -5.5, 5.5)
+				aida.histogram2D("Clustering/SSP Cluster Position (All)",     47, -23.5, 23.5, 11, -5.5, 5.5),
+				aida.histogram2D("Clustering/SSP Cluster Position (Matched)", 47, -23.5, 23.5, 11, -5.5, 5.5),
+				aida.histogram2D("Clustering/SSP Cluster Position (Failed)",  47, -23.5, 23.5, 11, -5.5, 5.5)
 			}
 	};
 	private IHistogram2D[] energyhitDiffPlot = {
-		aida.histogram2D("cluster/Recon-SSP Energy-Hit Difference (All)",     21, -0.010, 0.010, 6, -3, 3),
-		aida.histogram2D("cluster/Recon-SSP Energy-Hit Difference (Matched)", 21, -0.010, 0.010, 6, -3, 3),
-		aida.histogram2D("cluster/Recon-SSP Energy-Hit Difference (Failed)",  21, -0.010, 0.010, 6, -3, 3)
+		aida.histogram2D("Clustering/Recon-SSP Energy-Hit Difference (All)",     21, -0.010, 0.010, 6, -3, 3),
+		aida.histogram2D("Clustering/Recon-SSP Energy-Hit Difference (Matched)", 21, -0.010, 0.010, 6, -3, 3),
+		aida.histogram2D("Clustering/Recon-SSP Energy-Hit Difference (Failed)",  21, -0.010, 0.010, 6, -3, 3)
+	};
+	private ICloud2D[] efficiencyTimeHist = {
+			aida.cloud2D("Clustering/Cluster Efficiency vs. Time"),
+			aida.cloud2D("Singles Trigger 0/Cluster Efficiency vs. Time"),
+			aida.cloud2D("Singles Trigger 1/Cluster Efficiency vs. Time"),
+			aida.cloud2D("Pair Trigger 0/Cluster Efficiency vs. Time"),
+			aida.cloud2D("Pair Trigger 1/Cluster Efficiency vs. Time")
 	};
 	
 	/**
@@ -354,6 +372,14 @@ public class TriggerDiagnosticDriver extends Driver {
 				return;
 			}
 		}
+		
+		// Reset the candidate cluster lists.
+		singlesCandidates.clear();
+		singlesCandidates.add(new ArrayList<Cluster>());
+		singlesCandidates.add(new ArrayList<Cluster>());
+		pairCandidates.clear();
+		pairCandidates.add(new ArrayList<LCRelation>());
+		pairCandidates.add(new ArrayList<LCRelation>());
 		
 		// Increment the total event count.
 		localStats.sawEvent(event.getTimeStamp());
@@ -633,9 +659,41 @@ public class TriggerDiagnosticDriver extends Driver {
 			// Push the snapshot to the data stream.
 			event.put(diagnosticCollectionName, snapshotList);
 			
+			// Record the efficiencies in this time snapshot.
+			double[] efficiency = new double[5];
+			efficiency[0] = 1.0 * localStats.getClusterStats().getMatches()
+					/ localStats.getClusterStats().getReconClusterCount();
+			efficiency[1] = 1.0 * localStats.getTriggerStats().getSingles0Stats().getMatchedReconSimulatedTriggers()
+					/ localStats.getTriggerStats().getSingles0Stats().getReconSimulatedTriggers();
+			efficiency[2] = 1.0 * localStats.getTriggerStats().getSingles1Stats().getMatchedReconSimulatedTriggers()
+					/ localStats.getTriggerStats().getSingles1Stats().getReconSimulatedTriggers();
+			efficiency[3] = 1.0 * localStats.getTriggerStats().getPair0Stats().getMatchedReconSimulatedTriggers()
+					/ localStats.getTriggerStats().getPair0Stats().getReconSimulatedTriggers();
+			efficiency[4] = 1.0 * localStats.getTriggerStats().getPair1Stats().getMatchedReconSimulatedTriggers()
+					/ localStats.getTriggerStats().getPair1Stats().getReconSimulatedTriggers();
+			
+			// Get the time for the current snapshot. This is the total
+			// run time before the snapshot plus half of the snapshot.
+			long time = globalStats.getDuration() - (localStats.getDuration() / 2);
+			
+			// Add them to the appropriate cloud plot.
+			for(int i = 0; i < 5; i++) { efficiencyTimeHist[i].fill(time, efficiency[i]); }
+			
 			// Clear the local statistical data.
 			localStats.clear();
 		}
+		
+		
+		
+		// ==========================================================
+		// ==== Write the Candidate Triggers ========================
+		// ==========================================================
+		
+		// Write the candidates to a collection.
+		event.put(pairCandidateCollectionName[0], pairCandidates.get(0), LCRelation.class, 0);
+		event.put(pairCandidateCollectionName[1], pairCandidates.get(1), LCRelation.class, 0);
+		event.put(singlesCandidateCollectionName[0], singlesCandidates.get(0), Cluster.class, clusterCollectionFlag);
+		event.put(singlesCandidateCollectionName[1], singlesCandidates.get(1), Cluster.class, clusterCollectionFlag);
 	}
 
 	public void setPrintResultsEveryNEvents(int n) {
@@ -1706,6 +1764,13 @@ public class TriggerDiagnosticDriver extends Driver {
 				trigger.setStateClusterEnergyHigh(passClusterHigh);
 				trigger.setStateHitCount(passHitCount);
 				
+				// If all the trigger cuts passed, plot this trigger
+				// in the "triggered" plots.
+				if(trigger.getTriggerState()) {
+					globalTriggerPlots.passedTrigger(trigger);
+					singlesCandidates.get(triggerNum).add(trigger.getTriggerSource());
+				}
+				
 				// A trigger will only be reported by the SSP if it
 				// passes all of the enabled cuts for that trigger.
 				// Check whether this trigger meets these conditions.
@@ -1715,12 +1780,6 @@ public class TriggerDiagnosticDriver extends Driver {
 					continue triggerLoop;
 				} if(singlesCutsEnabled[triggerNum][HIT_COUNT] && !trigger.getStateHitCount()) {
 					continue triggerLoop;
-				}
-				
-				// If all the trigger cuts passed, plot this trigger
-				// in the "triggered" plots.
-				if(trigger.getTriggerState()) {
-					globalTriggerPlots.passedTrigger(trigger);
 				}
 				
 				// Store the trigger.
@@ -1851,6 +1910,8 @@ public class TriggerDiagnosticDriver extends Driver {
 				// in the "triggered" plots.
 				if(trigger.getTriggerState()) {
 					globalTriggerPlots.passedTrigger(trigger);
+					LCRelation lcPair = new MyLCRelation(trigger.getTriggerSource()[0], trigger.getTriggerSource()[1]);
+					pairCandidates.get(triggerIndex).add(lcPair);
 				}
 				
 				// Add the trigger to the list.
@@ -1908,6 +1969,12 @@ public class TriggerDiagnosticDriver extends Driver {
 				trigger.setStateCoplanarity(passPairCoplanarity);
 				trigger.setStateTimeCoincidence(passTimeCoincidence);
 				
+				// If all the trigger cuts passed, plot this trigger
+				// in the "triggered" plots.
+				if(trigger.getTriggerState()) {
+					globalTriggerPlots.passedTrigger(trigger);
+				}
+				
 				// A trigger will only be reported by the SSP if it
 				// passes all of the enabled cuts for that trigger.
 				// Check whether this trigger meets these conditions.
@@ -1925,12 +1992,6 @@ public class TriggerDiagnosticDriver extends Driver {
 					continue pairTriggerLoop;
 				} if(pairCutsEnabled[triggerIndex][3 + COPLANARITY] && !trigger.getStateCoplanarity()) {
 					continue pairTriggerLoop;
-				}
-				
-				// If all the trigger cuts passed, plot this trigger
-				// in the "triggered" plots.
-				if(trigger.getTriggerState()) {
-					globalTriggerPlots.passedTrigger(trigger);
 				}
 				
 				// Add the trigger to the list.
