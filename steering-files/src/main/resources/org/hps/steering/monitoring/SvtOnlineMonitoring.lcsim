@@ -19,7 +19,7 @@
         	<eventRefreshRate>100</eventRefreshRate>
             <enablePositionPlots>false</enablePositionPlots>
             <enableMaxSamplePlots>true</enableMaxSamplePlots>
-            <maxSamplePosition>4</maxSamplePosition>
+            <maxSamplePosition>3</maxSamplePosition>
             <timeWindowWeight>3</timeWindowWeight>
             <resetPeriod>50000</resetPeriod>
        </driver>
@@ -34,7 +34,7 @@
             <subtractTOF>true</subtractTOF>
             <subtractTriggerTime>true</subtractTriggerTime>
             <correctChanT0>true</correctChanT0>
-            <timeOffset>51.0</timeOffset>
+            <timeOffset>27.0</timeOffset>
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">

@@ -40,7 +40,7 @@
             <subtractTOF>true</subtractTOF>
             <subtractTriggerTime>true</subtractTriggerTime>
             <correctChanT0>true</correctChanT0>
-            <timeOffset>51.0</timeOffset>
+            <timeOffset>27.0</timeOffset>
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
