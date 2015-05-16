@@ -93,7 +93,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private int maxSampleMonitorPeriod = 100;
 
     SystemStatus occupancyStatus;
-    private int occupancyMonitorStart = 5000;
+    private int occupancyMonitorStart = 2500;
     private int occupancyMonitorPeriod = 100;
     private double minPeakOccupancy = 0.0001;
     private double maxPeakOccupancy = 0.01;
@@ -456,7 +456,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
 
-        if (SvtPlotUtils.countSmallHits(rawHits) > 3) {
+        if (dropSmallHitEvents && SvtPlotUtils.countSmallHits(rawHits) > 3) {
             return;
         }
 
@@ -628,7 +628,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 if (apvOccupancy[i] < 0.1 * peakOccupancy || apvOccupancy[i] < minPeakOccupancy) {
                     continue; //skip through the tail end of the sensor
                 }
-                if (0.9 * apvOccupancy[i] > apvOccupancy[i - 1]) {
+                if (apvOccupancy[i] > apvOccupancy[i - 1]) {
                     System.out.println("occupancy not monotonic");
                     return false;
                 }
@@ -638,7 +638,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 if (apvOccupancy[i] < 0.1 * peakOccupancy || apvOccupancy[i] < minPeakOccupancy) {
                     continue; //skip through the tail end of the sensor
                 }
-                if (0.9 * apvOccupancy[i] > apvOccupancy[i + 1]) {
+                if (apvOccupancy[i] > apvOccupancy[i + 1]) {
                     System.out.println("occupancy not monotonic");
                     return false;
                 }

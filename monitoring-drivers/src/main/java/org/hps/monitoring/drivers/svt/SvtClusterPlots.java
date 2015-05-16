@@ -297,7 +297,7 @@ public class SvtClusterPlots extends Driver {
             // Get RawTrackerHit collection from event.
             List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
 
-            if (SvtPlotUtils.countSmallHits(rawHits) > 3) {
+            if (dropSmallHitEvents && SvtPlotUtils.countSmallHits(rawHits) > 3) {
                 return;
             }
         }

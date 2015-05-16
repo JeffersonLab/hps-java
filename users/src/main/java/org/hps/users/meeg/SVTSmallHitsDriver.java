@@ -68,7 +68,7 @@ public class SVTSmallHitsDriver extends Driver {
                     smallHitCounts.put(sensor.getName(), count + 1);
                 }
             }
-            if (smallHitCount > 5) {
+            if (smallHitCount > 3) {
                 dtSumWith += event.getTimeStamp() - previousTimestamp;
                 nHitsWith += smallHitCount;
                 nWith++;

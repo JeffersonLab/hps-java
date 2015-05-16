@@ -27,7 +27,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 /**
  * This is a class for exporting plot graphics to PDF.
- * 
+ *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class ExportPdf {
@@ -45,11 +45,13 @@ public final class ExportPdf {
 
     /**
      * Save a set of tabs containing plots to a file.
-     * 
-     * @param plotTabs the top level tab component (plots are actually in a set of tabs without these tabs)
+     *
+     * @param plotTabs the top level tab component (plots are actually in a set
+     * of tabs without these tabs)
      * @param fileName the file name
      * @param runData the list of run data to save on the cover page
-     * @throws IOException if there is a problem with the IO (e.g. writing to PDF file)
+     * @throws IOException if there is a problem with the IO (e.g. writing to
+     * PDF file)
      */
     public static void write(List<IPlotter> plotters, String fileName, List<String> runData)
             throws IOException {
@@ -68,7 +70,7 @@ public final class ExportPdf {
 
         // Create 1st page with run summary data.
         try {
-            writeRunData(document, runData);           
+            writeRunData(document, runData);
         } catch (DocumentException e) {
             throw new IOException(e);
         }
@@ -87,15 +89,15 @@ public final class ExportPdf {
 
     /**
      * Write a plotter's graphics into a single PDF page.
-     * 
+     *
      * @param document the output PDF document
      * @param writer the PDF writer
      * @param image the buffered bitmap image
      * @throws IOException if there is a problem writing to the PDF document
      */
     static void writePage(Document document, PdfWriter writer, IPlotter plotter) throws IOException {
-        
-        Image image = ((Plotter)plotter).getImage();
+
+        Image image = ((Plotter) plotter).getImage();
         String title = plotter.title();
 
         // Add header label.
@@ -114,7 +116,7 @@ public final class ExportPdf {
         } catch (BadElementException e) {
             throw new IOException(e);
         }
-        iTextImage.scaleToFit(document.getPageSize());
+        iTextImage.scaleAbsolute(document.getPageSize().getWidth(), (float) 0.75 * document.getPageSize().getHeight());
         iTextImage.setAlignment(Element.ALIGN_CENTER);
         try {
             document.add(iTextImage);
@@ -125,7 +127,7 @@ public final class ExportPdf {
 
     /**
      * Get a buffered image from a Swing component.
-     * 
+     *
      * @param component the Swing component
      * @return the image from painting the component onto a buffered image
      */
@@ -137,7 +139,7 @@ public final class ExportPdf {
 
     /**
      * Add a page with the run summary data.
-     * 
+     *
      * @param runData the list of run summary information
      */
     static void writeRunData(Document document, List<String> runData) throws DocumentException {
