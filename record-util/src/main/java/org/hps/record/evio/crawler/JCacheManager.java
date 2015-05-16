@@ -71,8 +71,7 @@ public class JCacheManager {
                 process = new ProcessBuilder("jcache", "request", requestId.toString()).start();
             } catch (final IOException e) {
                 throw new RuntimeException(e);
-            }
-            
+            }            
             int status = 0;
             try {
                 status = process.waitFor();
@@ -82,26 +81,31 @@ public class JCacheManager {
             if (status != 0) {
                 throw new RuntimeException("The jcache request process returned a non-zero exit status: " + status);
             }            
-            String xmlString = null;
-            try {
-                xmlString = readFully(process.getInputStream(), "US-ASCII");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            xmlString = xmlString.trim();
-            LOGGER.info(xmlString);
-            Document xml = buildDocument(xmlString);
-            Element root = xml.getRootElement();
-            String requestStatus = root.getChild("request").getChildText("status");
-            return requestStatus;
+            return getRequestXml(process.getInputStream()).getChild("request").getChildText("status");
         }
         
+        private Element getRequestXml(InputStream is) {
+            String xmlString = null;
+            try {
+                xmlString = readFully(is, "US-ASCII");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }            
+            xmlString = xmlString.substring(xmlString.trim().indexOf("<?xml"));
+            LOGGER.info(xmlString);
+            return buildDocument(xmlString).getRootElement();
+        }
+                                            
         boolean isPending() {
             return !"pending".equals(getStatus());
         }
         
         boolean isDone() {
             return "done".equals(getStatus());
+        }
+        
+        boolean isHit() {
+            return "hit".equals(getStatus());
         }
     }
     
@@ -169,9 +173,9 @@ public class JCacheManager {
             boolean check = true;    
             INFO_LOOP: for (Entry<File, FileInfo> entry : fileInfos.entrySet()) {
                 FileInfo info = entry.getValue();
-                info.update();                
+                info.update();
                 if (!info.isCached()) {
-                    LOGGER.info(entry.getKey() + " is not cached yet");
+                    LOGGER.info(entry.getKey() + " is not cached with status " + info.getStatus());
                     check = false;
                     break INFO_LOOP;
                 }
