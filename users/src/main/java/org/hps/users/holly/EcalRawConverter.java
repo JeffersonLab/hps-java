@@ -333,7 +333,7 @@ public class EcalRawConverter {
         }
        
         // pulse time with 4ns resolution:
-        double pulseTime=thresholdCrossing*nsPerSample;
+        double pulseTime = thresholdCrossing*nsPerSample;
         
         // calculate Mode-7 high-resolution time:
         if (mode7) {
@@ -344,6 +344,29 @@ public class EcalRawConverter {
             else if (maxADC>0) {
                 // linear interpolation between threshold crossing and
                 // pulse maximum to find time at pulse half-height:
+              
+                final double halfMax = (maxADC+minADC)/2;
+                int t0 = -1;
+                for (int ii=thresholdCrossing+1; ii<thresholdCrossing+lastSample; ii++)
+                {
+                  if (samples[ii]<=halfMax && samples[ii+1]>halfMax)
+                  {
+                    t0 = ii;
+                    break;
+                  }
+                }
+                if (t0 > 0)
+                {
+                  final int t1 = t0 + 1;
+                  final int a0 = samples[t0];
+                  final int a1 = samples[t1];
+                  final double slope = (a1 - a0); // units = ADC/sample
+                  final double yint = a1 - slope * t1;  // units = ADC 
+                  pulseTime = (halfMax - yint ) /slope * nsPerSample; // units = ns  
+                }
+
+                /*
+                // Why this NAB?
                 double t0 = thresholdCrossing*nsPerSample;
                 double a0 = samples[thresholdCrossing];
                 double t1 = sampleMaxADC*nsPerSample;
@@ -355,6 +378,7 @@ public class EcalRawConverter {
                 if (slope>0 && tmpTime>0) {
                     pulseTime = tmpTime;
                 }
+                */
                 // else another special firmware case
             }
         }
