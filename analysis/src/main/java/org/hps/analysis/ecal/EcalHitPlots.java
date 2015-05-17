@@ -158,10 +158,6 @@ public class EcalHitPlots extends Driver {
                 if (AbstractIntData.getTag(data) == TestRunTriggerData.BANK_TAG) {
                     TestRunTriggerData triggerData = new TestRunTriggerData(data);
                     
-                	// TODO: TOP, BOTTOM, AND, and OR triggers are test
-                	// run specific parameters and are only retained
-                	// for legacy purposes. They are not meaningful
-                	// for anything newer and should not be used.
                     int orTrig = triggerData.getOrTrig();
                     if (orTrig != 0) {
                         for (int i = 0; i < 32; i++) {
