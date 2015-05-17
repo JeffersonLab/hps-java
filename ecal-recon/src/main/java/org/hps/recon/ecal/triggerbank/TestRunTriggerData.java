@@ -33,22 +33,18 @@ public class TestRunTriggerData extends AbstractIntData {
         return bank[TIME] & 0xffffffffL;
     }
     
-    @Deprecated
     public int getOrTrig() {
         return bank[OR_TRIG];
     }
     
-    @Deprecated
     public int getTopTrig() {
         return bank[TOP_TRIG];
     }
     
-    @Deprecated
     public int getBotTrig() {
         return bank[BOT_TRIG];
     }
     
-    @Deprecated
     public int getAndTrig() {
         return bank[AND_TRIG];
     }
@@ -57,22 +53,18 @@ public class TestRunTriggerData extends AbstractIntData {
         return AbstractIntData.getBankInt(object, TIME) & 0xffffffffL;
     }
     
-    @Deprecated
     public static int getOrTrig(GenericObject object) {
         return AbstractIntData.getBankInt(object, OR_TRIG);
     }
     
-    @Deprecated
     public static int getTopTrig(GenericObject object) {
         return AbstractIntData.getBankInt(object, TOP_TRIG);
     }
     
-    @Deprecated
     public static int getBotTrig(GenericObject object) {
         return AbstractIntData.getBankInt(object, BOT_TRIG);
     }
     
-    @Deprecated
     public static int getAndTrig(GenericObject object) {
         return AbstractIntData.getBankInt(object, AND_TRIG);
     }
