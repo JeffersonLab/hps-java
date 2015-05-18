@@ -11,30 +11,34 @@
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
         <driver name="FullTrackerReconDriver"/>
+        <driver name="TrackDataDriver" />    
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
-        <driver name="ReconParticle" /> 
-        <driver name="GTPOnlineClusterer" />
+        <driver name="ReconParticle" /> <!--
+        <driver name="GTPOnlineClusterer" /> -->
         <!--  SVT opening angle alignment -->
-        <driver name="TrackerL1to3ReconDriver"/> 
+        <!--        <driver name="TrackerL1to3ReconDriver"/> 
         <driver name="TrackerL4to6ReconDriver"/> 
-        <driver name="SVTAlignment"/> 
+        <driver name="SVTAlignment"/> -->
         <!-- Online Monitoring Drivers -->
         <!--       <driver name="TrackingMonitoring" />  
         <driver name="TrackingResiduals"/>  
         <driver name="TrackTime"/>  
         <driver name="V0Monitoring"/>    -->       
+        <driver name="SVTMonitoring"/>  
         <driver name="TrackingMonitoringDQM" />  
-        <driver name="TrackingMonitoringPairs0DQM" />  
+        <driver name="TrackingMonitoringSingles1DQM" />  
         <driver name="TrackingMonitoringPairs1DQM" />  
-        <driver name="TrackingResidualsDQM"/>  
+        <driver name="TrackingResidualsPairs1DQM"/>  
+         <driver name="TrackingResidualsSingles1DQM"/>  
         <driver name="FinalStateDQM"/>  
-        <driver name="FinalStateDQMPairs0"/>
+        <driver name="FinalStateDQMSingles1"/>
         <driver name="FinalStateDQMPairs1"/>
         <driver name="V0DQM"/>  
-        <driver name="V0DQMPairs0"/>
+        <driver name="V0DQMSingles1"/>
         <driver name="V0DQMPairs1"/>
+        <driver name="TridentMonitoringPairs1"/>
         <!--        <driver name="PositronDebug"/>-->
         <driver name="AidaSaveDriver"/>     
         <driver name="LCIOWriter"/>     
@@ -112,19 +116,25 @@
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-            <neighborDeltaT>8.0</neighborDeltaT>
+<!--            <neighborDeltaT>8.0</neighborDeltaT>-->
+             <neighborDeltaT>24.0</neighborDeltaT>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
-            <clusterTimeCut>12.0</clusterTimeCut>
-            <maxDt>16.0</maxDt>
+<!--            <clusterTimeCut>10.0</clusterTimeCut>
+            <maxDt>12.0</maxDt>-->
+            <!--            <clusterTimeCut>12.0</clusterTimeCut>
+            <maxDt>16.0</maxDt>-->
+               <clusterTimeCut>24.0</clusterTimeCut>
+            <maxDt>24.0</maxDt>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
         <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <strategyResource>HPS-Full.xml</strategyResource>
             <debug>false</debug>             
-            <rmsTimeCut>8.0</rmsTimeCut>
+<!--            <rmsTimeCut>8.0</rmsTimeCut>-->
+            <rmsTimeCut>24.0</rmsTimeCut>
         </driver>    
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
@@ -178,10 +188,10 @@
             <printDQMStrings>false</printDQMStrings>
         </driver>
         
-        <driver name="TrackingMonitoringPairs0DQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
+        <driver name="TrackingMonitoringSingles1DQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
             <overwriteDB>false</overwriteDB>
             <printDQMStrings>false</printDQMStrings>
-            <triggerType>pairs0</triggerType>
+            <triggerType>singles1</triggerType>
         </driver>
         <driver name="TrackingMonitoringPairs1DQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
             <overwriteDB>false</overwriteDB>
@@ -189,9 +199,15 @@
             <triggerType>pairs1</triggerType>
         </driver>
   
-        <driver name="TrackingResidualsDQM" type="org.hps.analysis.dataquality.TrackingResiduals">           
+        <driver name="TrackingResidualsPairs1DQM" type="org.hps.analysis.dataquality.TrackingResiduals">           
             <overwriteDB>false</overwriteDB>
             <printDQMStrings>false</printDQMStrings>
+             <triggerType>pairs1</triggerType>
+        </driver>
+         <driver name="TrackingResidualsSingles1DQM" type="org.hps.analysis.dataquality.TrackingResiduals">           
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+             <triggerType>singles1</triggerType>
         </driver>
         <driver name="FinalStateDQM" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
             <overwriteDB>false</overwriteDB>
@@ -204,10 +220,10 @@
             <printDQMStrings>false</printDQMStrings>
             <triggerType>pairs1</triggerType>
         </driver>
-        <driver name="FinalStateDQMPairs0" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
+        <driver name="FinalStateDQMSingles1" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
             <overwriteDB>false</overwriteDB>
             <printDQMStrings>false</printDQMStrings>
-            <triggerType>pairs0</triggerType>
+            <triggerType>singles1</triggerType>
         </driver>
         
         <driver name="V0DQM" type="org.hps.analysis.dataquality.V0Monitoring">        
@@ -222,12 +238,19 @@
             <triggerType>pairs1</triggerType>
         </driver>
         
-        <driver name="V0DQMPairs0" type="org.hps.analysis.dataquality.V0Monitoring">        
+        <driver name="V0DQMSingles1" type="org.hps.analysis.dataquality.V0Monitoring">        
             <overwriteDB>false</overwriteDB>
             <printDQMStrings>false</printDQMStrings>
-            <triggerType>pairs0</triggerType>
+            <triggerType>singles1</triggerType>
         </driver>
         
+        <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>all</triggerType>
+        </driver>    
+        
+        <driver name="TridentMonitoringPairs1" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>pairs1</triggerType>
+        </driver>
         
         <driver name="PositronDebug" type="org.hps.users.mgraham.PositronDebug">                   
         </driver>

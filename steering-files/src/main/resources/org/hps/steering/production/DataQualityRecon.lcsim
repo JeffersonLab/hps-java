@@ -8,19 +8,52 @@
         <driver name="EventMarkerDriver"/>
         <!--        <driver name="DQMDatabaseDriver"/>  -->
         <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="EcalMonitoring"/>  
         <driver name="SVTMonitoring"/>  
         <driver name="TrackingMonitoring"/>  
         <driver name="TrackingResiduals"/>
         <driver name="FinalStateMonitoring"/>          
         <driver name="V0Monitoring"/>          
         <driver name="TridentMonitoring"/>
+<!-- Singles0 -->
+        <driver name="EcalMonitoringSingles0"/>  
+<!--        <driver name="SVTMonitoringSingles0"/>   -->
+        <driver name="TrackingMonitoringSingles0"/>  
+        <driver name="TrackingResidualsSingles0"/>
+        <driver name="FinalStateMonitoringSingles0"/>          
+        <driver name="V0MonitoringSingles0"/>          
+        <driver name="TridentMonitoringSingles0"/>
+<!-- Singles1 -->
+        <driver name="EcalMonitoringSingles1"/>  
+ <!--       <driver name="SVTMonitoringSingles1"/>  -->
+        <driver name="TrackingMonitoringSingles1"/>  
+        <driver name="TrackingResidualsSingles1"/>
+        <driver name="FinalStateMonitoringSingles1"/>          
+        <driver name="V0MonitoringSingles1"/>          
+        <driver name="TridentMonitoringSingles1"/>
+<!-- Pairs0 -->
+        <driver name="EcalMonitoringPairs0"/>  
+ <!--       <driver name="SVTMonitoringPairs0"/>  -->
+        <driver name="TrackingMonitoringPairs0"/>  
+        <driver name="TrackingResidualsPairs0"/>
+        <driver name="FinalStateMonitoringPairs0"/>          
+        <driver name="V0MonitoringPairs0"/>          
+        <driver name="TridentMonitoringPairs0"/>
+<!-- Pairs1 -->
+        <driver name="EcalMonitoringPairs1"/>  
+ <!--       <driver name="SVTMonitoringPairs1"/>  -->
+        <driver name="TrackingMonitoringPairs1"/>  
+        <driver name="TrackingResidualsPairs1"/>
+        <driver name="FinalStateMonitoringPairs1"/>          
+        <driver name="V0MonitoringPairs1"/>          
+        <driver name="TridentMonitoringPairs1"/>
         <driver name="AidaSaveDriver"/>
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
         <!--    <driver name="DQMDatabaseDriver" type="org.hps.analysis.dataquality.DQMDatabaseDriver"/> -->
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
+            <eventInterval>1000</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
@@ -28,23 +61,127 @@
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>
-        <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">
-            <overwriteDB>false</overwriteDB>
+
+<!-- all triggers  -->
+        <driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>all</triggerType>
         </driver>
+        <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>all</triggerType>
+        </driver>      
         <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.TrackingMonitoring">
             <overwriteDB>false</overwriteDB>
+            <triggerType>all</triggerType>
         </driver>
         <driver name="TrackingResiduals" type="org.hps.analysis.dataquality.TrackingResiduals">
-            <overwriteDB>false</overwriteDB>
+            <triggerType>all</triggerType>
         </driver>
         <driver name="FinalStateMonitoring" type="org.hps.analysis.dataquality.FinalStateMonitoring">
-            <overwriteDB>false</overwriteDB>
+            <triggerType>all</triggerType>
         </driver>
         <driver name="V0Monitoring" type="org.hps.analysis.dataquality.V0Monitoring">
-            <overwriteDB>false</overwriteDB>
+           <triggerType>all</triggerType>
         </driver>
         <driver name="TridentMonitoring" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>all</triggerType>
+        </driver>
+
+<!-- singles0 triggers  -->
+        <driver name="EcalMonitoringSingles0" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>singles0</triggerType>
+        </driver>
+        <driver name="SVTMonitoringSingles0" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>singles0</triggerType>
+        </driver>      
+        <driver name="TrackingMonitoringSingles0" type="org.hps.analysis.dataquality.TrackingMonitoring">
             <overwriteDB>false</overwriteDB>
+            <triggerType>singles0</triggerType>
+        </driver>
+        <driver name="TrackingResidualsSingles0" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>singles0</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringSingles0" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <triggerType>singles0</triggerType>
+        </driver>
+        <driver name="V0MonitoringSingles0" type="org.hps.analysis.dataquality.V0Monitoring">
+           <triggerType>singles0</triggerType>
+        </driver>
+        <driver name="TridentMonitoringSingles0" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>singles0</triggerType>
+        </driver>
+
+<!-- singles1 triggers  -->
+        <driver name="EcalMonitoringSingles1" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>singles1</triggerType>
+        </driver>
+        <driver name="SVTMonitoringSingles1" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>singles1</triggerType>
+        </driver>      
+        <driver name="TrackingMonitoringSingles1" type="org.hps.analysis.dataquality.TrackingMonitoring">
+            <overwriteDB>false</overwriteDB>
+            <triggerType>singles1</triggerType>
+        </driver>
+        <driver name="TrackingResidualsSingles1" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>singles1</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringSingles1" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <triggerType>singles1</triggerType>
+        </driver>
+        <driver name="V0MonitoringSingles1" type="org.hps.analysis.dataquality.V0Monitoring">
+           <triggerType>singles1</triggerType>
+        </driver>
+        <driver name="TridentMonitoringSingles1" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>singles1</triggerType>
+        </driver>
+
+<!-- pairs0 triggers  -->
+        <driver name="EcalMonitoringPairs0" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>pairs0</triggerType>
+        </driver>
+        <driver name="SVTMonitoringPairs0" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>pairs0</triggerType>
+        </driver>      
+        <driver name="TrackingMonitoringPairs0" type="org.hps.analysis.dataquality.TrackingMonitoring">
+            <overwriteDB>false</overwriteDB>
+            <triggerType>pairs0</triggerType>
+        </driver>
+        <driver name="TrackingResidualsPairs0" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>pairs0</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringPairs0" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <triggerType>pairs0</triggerType>
+        </driver>
+        <driver name="V0MonitoringPairs0" type="org.hps.analysis.dataquality.V0Monitoring">
+           <triggerType>pairs0</triggerType>
+        </driver>
+        <driver name="TridentMonitoringPairs0" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>pairs0</triggerType>
+        </driver>
+
+
+
+<!-- pairs1 triggers  -->
+        <driver name="EcalMonitoringPairs1" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>pairs1</triggerType>
+        </driver>
+        <driver name="SVTMonitoringPairs1" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>pairs1</triggerType>
+        </driver>      
+        <driver name="TrackingMonitoringPairs1" type="org.hps.analysis.dataquality.TrackingMonitoring">
+            <overwriteDB>false</overwriteDB>
+            <triggerType>pairs1</triggerType>
+        </driver>
+        <driver name="TrackingResidualsPairs1" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>pairs1</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringPairs1" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <triggerType>pairs1</triggerType>
+        </driver>
+        <driver name="V0MonitoringPairs1" type="org.hps.analysis.dataquality.V0Monitoring">
+           <triggerType>pairs1</triggerType>
+        </driver>
+        <driver name="TridentMonitoringPairs1" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>pairs1</triggerType>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
 
