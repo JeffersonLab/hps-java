@@ -69,10 +69,10 @@ public class EcalMonitoring extends DataQualityMonitor {
     private Map<String, Double> monitoredQuantityMap = new HashMap<>();
     String[] ecalQuantNames = {"avg_N_hits", "avg_Hit_Energy",
         "avg_N_clusters", "avg_N_hitsPerCluster", "avg_Cluster_Energy", "avg_ClusterTime"};
-    double maxE = 2.5;
+    double maxE = 1.1;
     private final String plotHitsDir = "EcalHits/";
     private final String plotClustersDir = "EcalClusters/";
-    private final String plotFidCutDir = "EcalClusters/FiducialCut/";
+    private final String plotFidCutDir = "FiducialCut/";
 
     public void setReadoutHitCollectionName(String readoutHitCollectionName) {
         this.readoutHitCollectionName = readoutHitCollectionName;
@@ -95,35 +95,36 @@ public class EcalMonitoring extends DataQualityMonitor {
         aida.tree().cd("/");
         if (fillHitPlots) {
             // Setup hit plots.
-            hitCountPlot = aida.histogram1D(plotHitsDir + calibratedHitCollectionName + " Hit Count In Event", 40, -0.5, 39.5);
-            hitTimePlot = aida.histogram1D(plotHitsDir + calibratedHitCollectionName + " Hit Time", 50, 0 * 4.0, 50 * 4.0);
-            hitEnergyPlot = aida.histogram1D(plotHitsDir + calibratedHitCollectionName + " Hit Energy", 100, -0.1, maxE);
-            fiducialHitCountPlot = aida.histogram1D(plotHitsDir + calibratedHitCollectionName + " Hit Count with Fiducial Cut", 10, -0.5, 9.5);
-            fiducialEnergyPlot = aida.histogram1D(plotHitsDir + calibratedHitCollectionName + " Hit Energy with Fiducial Cut", 100, -0.1, maxE);
+            hitCountPlot = aida.histogram1D(plotHitsDir + triggerType + "/"+ calibratedHitCollectionName + " Hit Count In Event", 40, -0.5, 39.5);
+            hitTimePlot = aida.histogram1D(plotHitsDir + triggerType + "/"+calibratedHitCollectionName + " Hit Time", 50, 0 * 4.0, 50 * 4.0);
+            hitEnergyPlot = aida.histogram1D(plotHitsDir + triggerType + "/"+calibratedHitCollectionName + " Hit Energy", 100, -0.1, maxE);
+            fiducialHitCountPlot = aida.histogram1D(plotHitsDir + triggerType + "/"+calibratedHitCollectionName + " Hit Count with Fiducial Cut", 10, -0.5, 9.5);
+            fiducialEnergyPlot = aida.histogram1D(plotHitsDir + triggerType + "/"+calibratedHitCollectionName + " Hit Energy with Fiducial Cut", 100, -0.1, maxE);
         }
         // Setup cluster plots
-        clusterCountPlot = aida.histogram1D(plotClustersDir + clusterCollectionName + " Cluster Count per Event", 10, -0.5, 9.5);
-        clusterSizePlot = aida.histogram1D(plotClustersDir + clusterCollectionName + " Cluster Size", 10, -0.5, 9.5);
-        clusterEnergyPlot = aida.histogram1D(plotClustersDir + clusterCollectionName + " Cluster Energy", 100, -0.1, maxE);
-        clusterTimes = aida.histogram1D(plotClustersDir + clusterCollectionName + " Cluster Time Mean", 200, 0, 4.0 * 50);
-        clusterTimeSigma = aida.histogram1D(plotClustersDir + clusterCollectionName + " Cluster Time Sigma", 100, 0, 10);
-        twoclusterTotEnergy = aida.histogram1D(plotClustersDir + clusterCollectionName + " Two Cluster Energy Sum", 100, 0, maxE);
-        twoclusterEnergyAsymmetry = aida.histogram1D(plotClustersDir + clusterCollectionName + " Two Cluster Energy Asymmetry", 100, 0, 1.0);
-        xVsY = aida.histogram2D(plotClustersDir + clusterCollectionName + "X vs Y (NHits >1)", 200, -200.0, 200.0, 85, -85.0, 85.0);
-        energyVsX = aida.histogram2D(plotClustersDir + clusterCollectionName + " Energy vs X", 50, 0, 1.6, 50, .0, 200.0);
-        energyVsY = aida.histogram2D(plotClustersDir + clusterCollectionName + " Energy vs Y", 50, 0, 1.6, 50, 20.0, 85.0);
-        pairsE1vsE2 = aida.histogram2D(plotClustersDir + clusterCollectionName + "Pair E1 vs E2", 50, 0, 2, 50, 0, 2);
+        clusterCountPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Count per Event", 10, -0.5, 9.5);
+        clusterSizePlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Size", 10, -0.5, 9.5);
+        clusterEnergyPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Energy", 100, -0.1, maxE);
+        clusterTimes = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Time Mean", 200, 0, 4.0 * 50);
+        clusterTimeSigma = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Time Sigma", 100, 0, 10);
+        twoclusterTotEnergy = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Two Cluster Energy Sum", 100, 0, maxE);
+        twoclusterEnergyAsymmetry = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Two Cluster Energy Asymmetry", 100, 0, 1.0);
+        xVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + "X vs Y (NHits >1)", 200, -200.0, 200.0, 85, -85.0, 85.0);
+        energyVsX = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs X", 50, 0, 1.6, 50, .0, 200.0);
+        energyVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs Y", 50, 0, 1.6, 50, 20.0, 85.0);
+        pairsE1vsE2 = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + "Pair E1 vs E2", 50, 0, 2, 50, 0, 2);
 
-        fiducialClusterCountPlot = aida.histogram1D(plotFidCutDir + clusterCollectionName + " Cluster Count with Fiducal Cut", 10, -0.5, 9.5);
-        fiducialClusterSizePlot = aida.histogram1D(plotFidCutDir + clusterCollectionName + " Cluster Size with Fiducal Cut", 10, -0.5, 9.5);
-        fiducialClusterEnergyPlot = aida.histogram1D(plotFidCutDir + clusterCollectionName + " Cluster Energy with Fiducal Cut", 100, -0.1, maxE);
-        fiducialenergyVsY = aida.histogram2D(plotFidCutDir + clusterCollectionName + " Energy vs Y with Fiducial Cuts", 50, 0, 1.6, 50, 45.0, 85.0);
-        fiducialenergyVsX = aida.histogram2D(plotFidCutDir + clusterCollectionName + " Energy vs X with Fiducial Cuts", 50, 0, 1.6, 50, 0.0, 200.0);
+        fiducialClusterCountPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+plotFidCutDir + clusterCollectionName + " Cluster Count with Fiducal Cut", 10, -0.5, 9.5);
+        fiducialClusterSizePlot = aida.histogram1D(plotClustersDir+  triggerType + "/" +plotFidCutDir + clusterCollectionName + " Cluster Size with Fiducal Cut", 10, -0.5, 9.5);
+        fiducialClusterEnergyPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+plotFidCutDir  + clusterCollectionName + " Cluster Energy with Fiducal Cut", 100, -0.1, maxE);
+        fiducialenergyVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+plotFidCutDir + clusterCollectionName + " Energy vs Y with Fiducial Cuts", 50, 0, 1.6, 50, 45.0, 85.0);
+        fiducialenergyVsX = aida.histogram2D(plotClustersDir+  triggerType + "/" +plotFidCutDir + clusterCollectionName + " Energy vs X with Fiducial Cuts", 50, 0, 1.6, 50, 0.0, 200.0);
 
     }
 
     @Override
     public void process(EventHeader event) {
+                
         /*  make sure everything is there */
         List<CalorimeterHit> hits;
         if (event.hasCollection(CalorimeterHit.class, calibratedHitCollectionName))
@@ -131,16 +132,10 @@ public class EcalMonitoring extends DataQualityMonitor {
         else
             return; //this might be a non-data event
 
-        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
-            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
-            for (GenericObject data : triggerList)
-                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
-                    TIData triggerData = new TIData(data);
-                    if(!triggerData.isSingle0Trigger())//only process singles0 triggers...
-                        return;
-                }
-        }
-
+          //check to see if this event is from the correct trigger (or "all");
+        if (!matchTrigger(event))
+            return;
+    
         if (fillHitPlots) {
             hitCountPlot.fill(hits.size());
             int fidHitCount = 0;
@@ -248,13 +243,13 @@ public class EcalMonitoring extends DataQualityMonitor {
     @Override
     public void calculateEndOfRunQuantities() {
         if (fillHitPlots) {
-            monitoredQuantityMap.put(calibratedHitCollectionName + " " + ecalQuantNames[0], (double) nTotHits / nEvents);
-            monitoredQuantityMap.put(calibratedHitCollectionName + " " + ecalQuantNames[1], (double) sumHitE / nTotHits);
+            monitoredQuantityMap.put(calibratedHitCollectionName + " " + triggerType+" " + ecalQuantNames[0], (double) nTotHits / nEvents);
+            monitoredQuantityMap.put(calibratedHitCollectionName + " " + triggerType+" " + ecalQuantNames[1], (double) sumHitE / nTotHits);
         }
-        monitoredQuantityMap.put(clusterCollectionName + " " + ecalQuantNames[2], (double) nTotClusters / nEvents);
-        monitoredQuantityMap.put(clusterCollectionName + " " + ecalQuantNames[3], (double) sumHitPerCluster / nTotClusters);
-        monitoredQuantityMap.put(clusterCollectionName + " " + ecalQuantNames[4], (double) sumClusterEnergy / nTotClusters);
-        monitoredQuantityMap.put(clusterCollectionName + " " + ecalQuantNames[5], (double) sumClusterTime / nTotClusters);
+        monitoredQuantityMap.put(clusterCollectionName + " " + triggerType+" "+ ecalQuantNames[2], (double) nTotClusters / nEvents);
+        monitoredQuantityMap.put(clusterCollectionName + " " + triggerType+" "+ ecalQuantNames[3], (double) sumHitPerCluster / nTotClusters);
+        monitoredQuantityMap.put(clusterCollectionName + " " + triggerType+" "+ ecalQuantNames[4], (double) sumClusterEnergy / nTotClusters);
+        monitoredQuantityMap.put(clusterCollectionName + " " + triggerType+" "+ ecalQuantNames[5], (double) sumClusterTime / nTotClusters);
     }
 
     @Override

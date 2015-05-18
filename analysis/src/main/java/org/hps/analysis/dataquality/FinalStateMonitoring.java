@@ -67,10 +67,14 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
         /*  Final State Particle Quantities   */
         /*  plot electron & positron momentum separately  */
-        IHistogram1D elePx = aida.histogram1D(plotDir + triggerType + "/" + "Electron Px (GeV)", 50, -0.1, 0.200);
-        IHistogram1D elePy = aida.histogram1D(plotDir + triggerType + "/" + "Electron Py (GeV)", 50, -0.1, 0.1);
-        IHistogram1D elePz = aida.histogram1D(plotDir + triggerType + "/" + "Electron Pz (GeV)", 50, 0, beamEnergy * maxFactor);
-        IHistogram1D elePzBeam = aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Pz (GeV)", 50, feeMomentumCut, beamEnergy * maxFactor);
+        IHistogram1D elePx = aida.histogram1D(plotDir + triggerType + "/" + "Electron Px (GeV)", 100, -0.1, 0.200);
+        IHistogram1D elePy = aida.histogram1D(plotDir + triggerType + "/" + "Electron Py (GeV)", 100, -0.1, 0.1);
+        IHistogram1D elePz = aida.histogram1D(plotDir + triggerType + "/" + "Electron Pz (GeV)", 100, 0, beamEnergy * maxFactor);
+        IHistogram1D elePzBeam = aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Total P (GeV)", 100, feeMomentumCut, beamEnergy * maxFactor);
+        IHistogram1D elePzBeamTop = aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Total P (GeV):  Top", 100, feeMomentumCut, beamEnergy * maxFactor);
+        IHistogram1D elePzBeamBottom = aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Total P (GeV):  Bottom", 100, feeMomentumCut, beamEnergy * maxFactor);
+        IHistogram1D elePTop = aida.histogram1D(plotDir + triggerType + "/" + "Electron Total P (GeV):  Top", 100, 0, beamEnergy * maxFactor);
+        IHistogram1D elePBottom = aida.histogram1D(plotDir + triggerType + "/" + "Electron Total P (GeV):  Bottom", 100, 0, beamEnergy * maxFactor);
 
         IHistogram1D posPx = aida.histogram1D(plotDir + triggerType + "/" + "Positron Px (GeV)", 50, -0.1, 0.200);
         IHistogram1D posPy = aida.histogram1D(plotDir + triggerType + "/" + "Positron Py (GeV)", 50, -0.1, 0.1);
@@ -102,16 +106,9 @@ public class FinalStateMonitoring extends DataQualityMonitor {
             return;
         }
 
-        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
-            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
-            for (GenericObject data : triggerList)
-                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
-                    TIData triggerData = new TIData(data);
-                    if (!matchTriggerType(triggerData))//only process singles0 triggers...
-                        return;
-                }
-        } else if (debug)
-            System.out.println(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
+        //check to see if this event is from the correct trigger (or "all");
+        if (!matchTrigger(event))
+            return;
 
         nRecoEvents++;
         int nPhotons = 0;  //number of photons 
@@ -130,7 +127,6 @@ public class FinalStateMonitoring extends DataQualityMonitor {
             Cluster fsCluster = null;
             //TODO:  mg-May 14, 2014 use PID to do this instead...not sure if that's implemented yet
             if (fsPart.getTracks().size() == 1)//should always be 1 or zero for final state particles
-
                 fsTrack = fsPart.getTracks().get(0);
             else
                 isPhoton = true;
@@ -149,7 +145,14 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                     aida.histogram1D(plotDir + triggerType + "/" + "Electron Px (GeV)").fill(mom.x());
                     aida.histogram1D(plotDir + triggerType + "/" + "Electron Py (GeV)").fill(mom.y());
                     aida.histogram1D(plotDir + triggerType + "/" + "Electron Pz (GeV)").fill(mom.z());
-                    aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Pz (GeV)").fill(mom.z());
+                    aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Total P (GeV)").fill(mom.magnitude());
+                    if (mom.y() > 0){
+                        aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Total P (GeV):  Top").fill(mom.magnitude());
+                        aida.histogram1D(plotDir + triggerType + "/" + "Electron Total P (GeV):  Top").fill(mom.magnitude());
+                }            else{
+                        aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Total P (GeV):  Bottom").fill(mom.magnitude());
+                        aida.histogram1D(plotDir + triggerType + "/" + "Electron Total P (GeV):  Bottom").fill(mom.magnitude());
+                }
                 } else {
                     nTotPos++;
                     aida.histogram1D(plotDir + triggerType + "/" + "Positron Px (GeV)").fill(mom.x());
@@ -225,22 +228,22 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
         IFitFactory fitFactory = analysisFactory.createFitFactory();
         IFitter fitter = fitFactory.createFitter("chi2");
-        IHistogram1D beamE = aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Pz (GeV)");
+        IHistogram1D beamE = aida.histogram1D(plotDir + triggerType + "/" + "Beam Electrons Total P (GeV)");
         IFitResult result = fitBeamEnergyPeak(beamE, fitter, "range=\"(-10.0,10.0)\"");
         if (result != null) {
             double[] pars = result.fittedParameters();
             for (int i = 0; i < 5; i++)
                 System.out.println("Beam Energy Peak:  " + result.fittedParameterNames()[i] + " = " + pars[i]);
-            monitoredQuantityMap.put(fpQuantNames[7], (double) pars[1]);
-            monitoredQuantityMap.put(fpQuantNames[8], (double) pars[2]);
+            monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[7], (double) pars[1]);
+            monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[8], (double) pars[2]);
         }
-        monitoredQuantityMap.put(fpQuantNames[0], (double) nTotEle / nRecoEvents);
-        monitoredQuantityMap.put(fpQuantNames[1], (double) nTotPos / nRecoEvents);
-        monitoredQuantityMap.put(fpQuantNames[2], (double) nTotPhotons / nRecoEvents);
-        monitoredQuantityMap.put(fpQuantNames[3], (double) nTotUnAss / nRecoEvents);
-        monitoredQuantityMap.put(fpQuantNames[4], (double) sumdelX / nTotAss);
-        monitoredQuantityMap.put(fpQuantNames[5], (double) sumdelY / nTotAss);
-        monitoredQuantityMap.put(fpQuantNames[6], (double) sumEoverP / nTotAss);
+        monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[0], (double) nTotEle / nRecoEvents);
+        monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[1], (double) nTotPos / nRecoEvents);
+        monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[2], (double) nTotPhotons / nRecoEvents);
+        monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[3], (double) nTotUnAss / nRecoEvents);
+        monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[4], (double) sumdelX / nTotAss);
+        monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[5], (double) sumdelY / nTotAss);
+        monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[6], (double) sumEoverP / nTotAss);
 
         IPlotter plotter = analysisFactory.createPlotterFactory().create("Beam Energy Electrons");
 

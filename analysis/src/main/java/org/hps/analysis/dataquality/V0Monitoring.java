@@ -56,6 +56,9 @@ public class V0Monitoring extends DataQualityMonitor {
     IHistogram2D pEleVspEle;
     IHistogram2D pyEleVspyEle;
     IHistogram2D pxEleVspxEle;
+      IHistogram2D pEleVspEleNoBeam;
+    IHistogram2D pyEleVspyEleNoBeam;
+    IHistogram2D pxEleVspxEleNoBeam;
     IHistogram2D massVsVtxZ;
     IHistogram2D VtxYVsVtxZ;
     IHistogram2D VtxXVsVtxZ;
@@ -104,15 +107,18 @@ public class V0Monitoring extends DataQualityMonitor {
         IHistogram1D tarconChi2 = aida.histogram1D(plotDir + triggerType + "/" + "Target Constrained Chi2", 25, 0, 25);
         pEleVspPos = aida.histogram2D(plotDir + triggerType + "/" + "P(e) vs P(p)", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
         pEleVspPosWithCut = aida.histogram2D(plotDir + triggerType + "/" + "P(e) vs P(p): Radiative", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
-        pyEleVspyPos = aida.histogram2D(plotDir + triggerType + "/" + "Py(e) vs Py(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
-        pxEleVspxPos = aida.histogram2D(plotDir + triggerType + "/" + "Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
+        pyEleVspyPos = aida.histogram2D(plotDir + triggerType + "/" + "Py(e) vs Py(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+        pxEleVspxPos = aida.histogram2D(plotDir + triggerType + "/" + "Px(e) vs Px(p)", 50, -0.02, 0.06, 50, -0.02, 0.06);
         massVsVtxZ = aida.histogram2D(plotDir + triggerType + "/" + "Mass vs Vz", 50, 0, 0.15, 50, -50, 80);
         VtxXVsVtxZ = aida.histogram2D(plotDir + triggerType + "/" + "Vx vs Vz", 100, -10, 10, 100, -50, 80);
         VtxYVsVtxZ = aida.histogram2D(plotDir + triggerType + "/" + "Vy vs Vz", 100, -5, 5, 100, -50, 80);
         VtxXVsVtxY = aida.histogram2D(plotDir + triggerType + "/" + "Vx vs Vy", 100, -10, 10, 100, -5, 5);
-        pEleVspEle = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron: P(e) vs P(p)", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
-        pyEleVspyEle = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron:Py(e) vs Py(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
-        pxEleVspxEle = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron:Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
+        pEleVspEle = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron: P(e) vs P(e)", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
+        pyEleVspyEle = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron:Py(e) vs Py(e)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+        pxEleVspxEle = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron:Px(e) vs Px(e)", 50, -0.02, 0.06, 50, -0.02, 0.06);
+           pEleVspEleNoBeam = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron: P(e) vs P(e) NoBeam", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
+        pyEleVspyEleNoBeam = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron:Py(e) vs Py(e) NoBeam", 50, -0.04, 0.04, 50, -0.04, 0.04);
+        pxEleVspxEleNoBeam = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron:Px(e) vs Px(e) NoBeam", 50, -0.02, 0.06, 50, -0.02, 0.06);
         sumChargeHisto = aida.histogram1D(plotDir + triggerType + "/" + "Total Charge of  Event", 5, -2, 3);
         numChargeHisto = aida.histogram1D(plotDir + triggerType + "/" + "Number of Charged Particles", 6, 0, 6);
     }
@@ -129,17 +135,10 @@ public class V0Monitoring extends DataQualityMonitor {
         if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName))
             return;
 
-        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
-            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
-            for (GenericObject data : triggerList)
-                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
-                    TIData triggerData = new TIData(data);
-                    if (!matchTriggerType(triggerData))//only process singles0 triggers...
-                        return;
-                }
-        } else if (debug)
-            System.out.println(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
-
+          //check to see if this event is from the correct trigger (or "all");
+        if (!matchTrigger(event))
+            return;
+        
         nRecoEvents++;
 
         List<ReconstructedParticle> unonstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
@@ -172,7 +171,7 @@ public class V0Monitoring extends DataQualityMonitor {
             ReconstructedParticle ele = trks.get(0);
             ReconstructedParticle pos = trks.get(1);
             //ReconParticles have the charge correct. 
-            if (trks.get(0).getCharge() < 0) {
+            if (trks.get(0).getCharge() > 0) {
                 pos = trks.get(0);
                 ele = trks.get(1);
             }
@@ -240,6 +239,11 @@ public class V0Monitoring extends DataQualityMonitor {
             pEleVspEle.fill(ele1.getMomentum().magnitude(), ele2.getMomentum().magnitude());
             pyEleVspyEle.fill(ele1.getMomentum().y(), ele2.getMomentum().y());
             pxEleVspxEle.fill(ele1.getMomentum().x(), ele2.getMomentum().x());
+            if(ele1.getMomentum().magnitude()<0.85&&ele2.getMomentum().magnitude()<0.85){
+                 pEleVspEleNoBeam.fill(ele1.getMomentum().magnitude(), ele2.getMomentum().magnitude());
+            pyEleVspyEleNoBeam.fill(ele1.getMomentum().y(), ele2.getMomentum().y());
+            pxEleVspxEleNoBeam.fill(ele1.getMomentum().x(), ele2.getMomentum().x());
+            }
         }
     }
 
@@ -300,16 +304,16 @@ public class V0Monitoring extends DataQualityMonitor {
 //        monitoredQuantityMap.put(fpQuantNames[2], sumVx / nTotV0);
 //        monitoredQuantityMap.put(fpQuantNames[3], sumVy / nTotV0);
 //        monitoredQuantityMap.put(fpQuantNames[4], sumVz / nTotV0);
-            monitoredQuantityMap.put(fpQuantNames[2], parsVx[1]);
-            monitoredQuantityMap.put(fpQuantNames[3], parsVy[1]);
-            monitoredQuantityMap.put(fpQuantNames[4], parsVz[1]);
-            monitoredQuantityMap.put(fpQuantNames[5], parsVx[2]);
-            monitoredQuantityMap.put(fpQuantNames[6], parsVy[2]);
-            monitoredQuantityMap.put(fpQuantNames[7], parsVz[2]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName+" "+ triggerType+" " +fpQuantNames[2], parsVx[1]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName+" "+ triggerType+" " +fpQuantNames[3], parsVy[1]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName+" "+ triggerType+" " +fpQuantNames[4], parsVz[1]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName+" "+ triggerType+" " +fpQuantNames[5], parsVx[2]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName+" "+ triggerType+" " +fpQuantNames[6], parsVy[2]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName+" "+ triggerType+" " +fpQuantNames[7], parsVz[2]);
         }
-        monitoredQuantityMap.put(fpQuantNames[0], (double) nTotV0 / nRecoEvents);
-        monitoredQuantityMap.put(fpQuantNames[1], sumMass / nTotV0);
-        monitoredQuantityMap.put(fpQuantNames[8], sumChi2 / nTotV0);
+        monitoredQuantityMap.put(beamConV0CandidatesColName+" "+ triggerType+" " +fpQuantNames[0], (double) nTotV0 / nRecoEvents);
+        monitoredQuantityMap.put(beamConV0CandidatesColName+" "+ triggerType+" " +fpQuantNames[1], sumMass / nTotV0);
+        monitoredQuantityMap.put(beamConV0CandidatesColName+" "+ triggerType+" " +fpQuantNames[8], sumChi2 / nTotV0);
 
     }
 

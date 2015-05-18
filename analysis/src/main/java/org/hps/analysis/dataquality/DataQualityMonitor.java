@@ -3,10 +3,14 @@ package org.hps.analysis.dataquality;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
 import org.hps.recon.ecal.triggerbank.TIData;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -27,24 +31,24 @@ public class DataQualityMonitor extends Driver {
     protected boolean connectToDB = false;
     protected boolean printDQMStrings = false;
     protected Map<String, Double> monitoredQuantityMap = new HashMap<>();
-    protected boolean debug=false;
+    protected boolean debug = false;
     protected boolean outputPlots = false;
     protected String outputPlotDir = "DQMOutputPlots/";
-    
-     String triggerType = "";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
+
+    String triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
 
     public void setTriggerType(String type) {
         this.triggerType = type;
     }
-    
+
     public void setRecoVersion(String recoVersion) {
         this.recoVersion = recoVersion;
     }
 
-    public void setDebug(boolean debug){
-        this.debug=debug;
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
-    
+
     public void setRunNumber(int run) {
         this.runNumber = run;
     }
@@ -61,14 +65,14 @@ public class DataQualityMonitor extends Driver {
         this.printDQMStrings = print;
     }
 
-    public void setOutputPlots(boolean out){
-        this.outputPlots=out;
-    }
-    public void setOutputPlotDir(String dir){
-        this.outputPlotDir=dir;
+    public void setOutputPlots(boolean out) {
+        this.outputPlots = out;
     }
 
-    
+    public void setOutputPlotDir(String dir) {
+        this.outputPlotDir = dir;
+    }
+
     public void DataQualityMonitor() {
 
     }
@@ -121,13 +125,13 @@ public class DataQualityMonitor extends Driver {
     }
 
     public boolean checkSelectionIsNULL(String var) throws SQLException {
-        String ins = "select "+var+" from dqm where " + getRunRecoString();
+        String ins = "select " + var + " from dqm where " + getRunRecoString();
         ResultSet res = manager.selectQuery(ins);
         res.next();
-        double result=res.getDouble(var);
-        if(res.wasNull())
+        double result = res.getDouble(var);
+        if (res.wasNull())
             return true;
-        System.out.println("checkSelectionIsNULL::"+var+" = "+result);
+        System.out.println("checkSelectionIsNULL::" + var + " = " + result);
         return false;
     }
 
@@ -145,29 +149,28 @@ public class DataQualityMonitor extends Driver {
     public void calculateEndOfRunQuantities() {
     }
 
-  
     public void dumpDQMData() {
         for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
             String name = entry.getKey();
             double val = entry.getValue();
-             boolean isnull=false;
-               try {
-                 isnull=checkSelectionIsNULL(name);
+            boolean isnull = false;
+            try {
+                isnull = checkSelectionIsNULL(name);
             } catch (SQLException ex) {
                 Logger.getLogger(SvtMonitoring.class.getName()).log(Level.SEVERE, null, ex);
             }
-            if (!overwriteDB&&!isnull){                
-                System.out.println("Not writing because "+name+" is already filled for this entry");
+            if (!overwriteDB && !isnull) {
+                System.out.println("Not writing because " + name + " is already filled for this entry");
                 continue; //entry exists and I don't want to overwrite                
             }
-            String put = "update dqm SET "+name+" = " + val + " WHERE " + getRunRecoString();
+            String put = "update dqm SET " + name + " = " + val + " WHERE " + getRunRecoString();
             System.out.println(put);
-            manager.updateQuery(put); 
-           
+            manager.updateQuery(put);
+
         }
     }
-    
-      public boolean matchTriggerType(TIData triggerData) {
+
+    public boolean matchTriggerType(TIData triggerData) {
         if (triggerType.contentEquals("") || triggerType.contentEquals("all"))
             return true;
         if (triggerData.isSingle0Trigger() && triggerType.contentEquals("singles0"))
@@ -182,8 +185,24 @@ public class DataQualityMonitor extends Driver {
 
     }
 
+    public boolean matchTrigger(EventHeader event) {
+        boolean match = true;
+        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
+                    TIData triggerData = new TIData(data);
+                    if (!matchTriggerType(triggerData))//only process singles0 triggers...
+                        match = false;
+                }
+        } else if (debug)
+            System.out.println(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
+        return match;
+    }
+
     //override this method to do something interesting   
     //like print the DQM data log file
+
     public void printDQMData() {
     }
 

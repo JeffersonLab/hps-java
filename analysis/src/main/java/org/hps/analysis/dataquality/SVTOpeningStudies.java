@@ -103,56 +103,56 @@ public class SVTOpeningStudies extends DataQualityMonitor {
     protected void detectorChanged(Detector detector) {
         aida.tree().cd("/");
 
-        nTracks13Top = aida.histogram1D(plotDir + "Number of L1-3 Tracks: Top ", 7, 0, 7.0);
-        nTracks46Top = aida.histogram1D(plotDir + "Number of L4-6 Tracks: Top ", 7, 0, 7.0);
+        nTracks13Top = aida.histogram1D(plotDir + triggerType + "/"+"Number of L1-3 Tracks: Top ", 7, 0, 7.0);
+        nTracks46Top = aida.histogram1D(plotDir + triggerType + "/"+"Number of L4-6 Tracks: Top ", 7, 0, 7.0);
 
-        deld0Top = aida.histogram1D(plotDir + "Delta d0: Top", 50, -rangeD0, rangeD0);
-        delphiTop = aida.histogram1D(plotDir + "Delta sin(phi): Top", 50, -rangePhi0, rangePhi0);
-        delwTop = aida.histogram1D(plotDir + "Delta curvature: Top", 50, -rangeOmega, rangeOmega);
-        dellambdaTop = aida.histogram1D(plotDir + "Delta slope: Top", 50, -rangeSlope, rangeSlope);
-        delz0Top = aida.histogram1D(plotDir + "Delta y0: Top", 50, -rangeZ0, rangeZ0);
+        deld0Top = aida.histogram1D(plotDir + triggerType + "/"+"Delta d0: Top", 50, -rangeD0, rangeD0);
+        delphiTop = aida.histogram1D(plotDir + triggerType + "/"+"Delta sin(phi): Top", 50, -rangePhi0, rangePhi0);
+        delwTop = aida.histogram1D(plotDir + triggerType + "/"+"Delta curvature: Top", 50, -rangeOmega, rangeOmega);
+        dellambdaTop = aida.histogram1D(plotDir + triggerType + "/"+"Delta slope: Top", 50, -rangeSlope, rangeSlope);
+        delz0Top = aida.histogram1D(plotDir + triggerType + "/"+"Delta y0: Top", 50, -rangeZ0, rangeZ0);
 
-        nTracks13Bot = aida.histogram1D(plotDir + "Number of L1-3 Tracks: Bot ", 7, 0, 7.0);
-        nTracks46Bot = aida.histogram1D(plotDir + "Number of L4-6 Tracks: Bot ", 7, 0, 7.0);
+        nTracks13Bot = aida.histogram1D(plotDir + triggerType + "/"+"Number of L1-3 Tracks: Bot ", 7, 0, 7.0);
+        nTracks46Bot = aida.histogram1D(plotDir + triggerType + "/"+"Number of L4-6 Tracks: Bot ", 7, 0, 7.0);
 
-        deld0Bot = aida.histogram1D(plotDir + "Delta d0: Bot", 50, -rangeD0, rangeD0);
-        delphiBot = aida.histogram1D(plotDir + "Delta sin(phi): Bot", 50, -rangePhi0, rangePhi0);
-        delwBot = aida.histogram1D(plotDir + "Delta curvature: Bot", 50, -rangeOmega, rangeOmega);
-        dellambdaBot = aida.histogram1D(plotDir + "Delta slope: Bot", 50, -rangeSlope, rangeSlope);
-        delz0Bot = aida.histogram1D(plotDir + "Delta y0: Bot", 50, -rangeZ0, rangeZ0);
+        deld0Bot = aida.histogram1D(plotDir + triggerType + "/"+"Delta d0: Bot", 50, -rangeD0, rangeD0);
+        delphiBot = aida.histogram1D(plotDir + triggerType + "/"+"Delta sin(phi): Bot", 50, -rangePhi0, rangePhi0);
+        delwBot = aida.histogram1D(plotDir + triggerType + "/"+"Delta curvature: Bot", 50, -rangeOmega, rangeOmega);
+        dellambdaBot = aida.histogram1D(plotDir + triggerType + "/"+"Delta slope: Bot", 50, -rangeSlope, rangeSlope);
+        delz0Bot = aida.histogram1D(plotDir + triggerType + "/"+"Delta y0: Bot", 50, -rangeZ0, rangeZ0);
 
-        nTracks13Ele = aida.histogram1D(plotDir + "Number of L1-3 Tracks: Ele ", 7, 0, 7.0);
-        nTracks46Ele = aida.histogram1D(plotDir + "Number of L4-6 Tracks: Ele ", 7, 0, 7.0);
+        nTracks13Ele = aida.histogram1D(plotDir + triggerType + "/"+"Number of L1-3 Tracks: Ele ", 7, 0, 7.0);
+        nTracks46Ele = aida.histogram1D(plotDir + triggerType + "/"+"Number of L4-6 Tracks: Ele ", 7, 0, 7.0);
 
-        deld0Ele = aida.histogram1D(plotDir + "Delta d0: Ele", 50, -rangeD0, rangeD0);
-        delphiEle = aida.histogram1D(plotDir + "Delta sin(phi): Ele", 50, -rangePhi0, rangePhi0);
-        delwEle = aida.histogram1D(plotDir + "Delta curvature: Ele", 50, -rangeOmega, rangeOmega);
-        dellambdaEle = aida.histogram1D(plotDir + "Delta slope: Ele", 50, -rangeSlope, rangeSlope);
-        delz0Ele = aida.histogram1D(plotDir + "Delta y0: Ele", 50, -rangeZ0, rangeZ0);
+        deld0Ele = aida.histogram1D(plotDir + triggerType + "/"+"Delta d0: Ele", 50, -rangeD0, rangeD0);
+        delphiEle = aida.histogram1D(plotDir + triggerType + "/"+"Delta sin(phi): Ele", 50, -rangePhi0, rangePhi0);
+        delwEle = aida.histogram1D(plotDir + triggerType + "/"+"Delta curvature: Ele", 50, -rangeOmega, rangeOmega);
+        dellambdaEle = aida.histogram1D(plotDir + triggerType + "/"+"Delta slope: Ele", 50, -rangeSlope, rangeSlope);
+        delz0Ele = aida.histogram1D(plotDir + triggerType + "/"+"Delta y0: Ele", 50, -rangeZ0, rangeZ0);
 
-        nTracks13Pos = aida.histogram1D(plotDir + "Number of L1-3 Tracks: Pos ", 7, 0, 7.0);
-        nTracks46Pos = aida.histogram1D(plotDir + "Number of L4-6 Tracks: Pos ", 7, 0, 7.0);
+        nTracks13Pos = aida.histogram1D(plotDir + triggerType + "/"+"Number of L1-3 Tracks: Pos ", 7, 0, 7.0);
+        nTracks46Pos = aida.histogram1D(plotDir + triggerType + "/"+"Number of L4-6 Tracks: Pos ", 7, 0, 7.0);
 
-        deld0Pos = aida.histogram1D(plotDir + "Delta d0: Pos", 50, -rangeD0, rangeD0);
-        delphiPos = aida.histogram1D(plotDir + "Delta sin(phi): Pos", 50, -rangePhi0, rangePhi0);
-        delwPos = aida.histogram1D(plotDir + "Delta curvature: Pos", 50, -rangeOmega, rangeOmega);
-        dellambdaPos = aida.histogram1D(plotDir + "Delta slope: Pos", 50, -rangeSlope, rangeSlope);
-        delz0Pos = aida.histogram1D(plotDir + "Delta y0: Pos", 50, -rangeZ0, rangeZ0);
+        deld0Pos = aida.histogram1D(plotDir + triggerType + "/"+"Delta d0: Pos", 50, -rangeD0, rangeD0);
+        delphiPos = aida.histogram1D(plotDir + triggerType + "/"+"Delta sin(phi): Pos", 50, -rangePhi0, rangePhi0);
+        delwPos = aida.histogram1D(plotDir + triggerType + "/"+"Delta curvature: Pos", 50, -rangeOmega, rangeOmega);
+        dellambdaPos = aida.histogram1D(plotDir + triggerType + "/"+"Delta slope: Pos", 50, -rangeSlope, rangeSlope);
+        delz0Pos = aida.histogram1D(plotDir + triggerType + "/"+"Delta y0: Pos", 50, -rangeZ0, rangeZ0);
 
-        d0Ele = aida.histogram2D(plotDir + "electrons d0: L46vs L13", 50, -rangeD0, rangeD0, 50, -rangeD0, rangeD0);
-        phiEle = aida.histogram2D(plotDir + "electrons sin(phi): L46vs L13", 50, -rangePhi0, rangePhi0, 50, -rangePhi0, rangePhi0);
-        wEle = aida.histogram2D(plotDir + "electrons curvature: L46vs L13", 50, -rangeOmega, rangeOmega, 50, -rangeOmega, rangeOmega);
-        lambdaEle = aida.histogram2D(plotDir + "electrons slope: L46vs L13", 50, -10 * rangeSlope, 10 * rangeSlope, 50, -10 * rangeSlope, 10 * rangeSlope);
-        z0Ele = aida.histogram2D(plotDir + "electrons y0: L46vs L13", 50, -rangeZ0, rangeZ0, 50, -rangeZ0, rangeZ0);
+        d0Ele = aida.histogram2D(plotDir + triggerType + "/"+"electrons d0: L46vs L13", 50, -rangeD0, rangeD0, 50, -rangeD0, rangeD0);
+        phiEle = aida.histogram2D(plotDir + triggerType + "/"+"electrons sin(phi): L46vs L13", 50, -rangePhi0, rangePhi0, 50, -rangePhi0, rangePhi0);
+        wEle = aida.histogram2D(plotDir + triggerType + "/"+"electrons curvature: L46vs L13", 50, -rangeOmega, rangeOmega, 50, -rangeOmega, rangeOmega);
+        lambdaEle = aida.histogram2D(plotDir + triggerType + "/"+"electrons slope: L46vs L13", 50, -10 * rangeSlope, 10 * rangeSlope, 50, -10 * rangeSlope, 10 * rangeSlope);
+        z0Ele = aida.histogram2D(plotDir + triggerType + "/"+"electrons y0: L46vs L13", 50, -rangeZ0, rangeZ0, 50, -rangeZ0, rangeZ0);
 
-        d0Pos = aida.histogram2D(plotDir + "positrons d0: L46vs L13", 50, -rangeD0, rangeD0, 50, -rangeD0, rangeD0);
-        phiPos = aida.histogram2D(plotDir + "positrons sin(phi): L46vs L13", 50, -rangePhi0, rangePhi0, 50, -rangePhi0, rangePhi0);
-        wPos = aida.histogram2D(plotDir + "positrons curvature: L46vs L13", 50, -rangeOmega, rangeOmega, 50, -rangeOmega, rangeOmega);
-        lambdaPos = aida.histogram2D(plotDir + "positrons slope: L46vs L13", 50, -10 * rangeSlope, 10 * rangeSlope, 50, -10 * rangeSlope, 10 * rangeSlope);
-        z0Pos = aida.histogram2D(plotDir + "positrons y0: L46vs L13", 50, -rangeZ0, rangeZ0, 50, -rangeZ0, rangeZ0);
+        d0Pos = aida.histogram2D(plotDir + triggerType + "/"+"positrons d0: L46vs L13", 50, -rangeD0, rangeD0, 50, -rangeD0, rangeD0);
+        phiPos = aida.histogram2D(plotDir + triggerType + "/"+"positrons sin(phi): L46vs L13", 50, -rangePhi0, rangePhi0, 50, -rangePhi0, rangePhi0);
+        wPos = aida.histogram2D(plotDir + triggerType + "/"+"positrons curvature: L46vs L13", 50, -rangeOmega, rangeOmega, 50, -rangeOmega, rangeOmega);
+        lambdaPos = aida.histogram2D(plotDir + triggerType + "/"+"positrons slope: L46vs L13", 50, -10 * rangeSlope, 10 * rangeSlope, 50, -10 * rangeSlope, 10 * rangeSlope);
+        z0Pos = aida.histogram2D(plotDir + triggerType + "/"+"positrons y0: L46vs L13", 50, -rangeZ0, rangeZ0, 50, -rangeZ0, rangeZ0);
 
-        nCombosTop = aida.histogram1D(plotDir + "Number of Combinations: Top", 7, 0, 7.0);
-        nCombosBot = aida.histogram1D(plotDir + "Number of Combinations: Bot", 7, 0, 7.0);
+        nCombosTop = aida.histogram1D(plotDir + triggerType + "/"+"Number of Combinations: Top", 7, 0, 7.0);
+        nCombosBot = aida.histogram1D(plotDir + triggerType + "/"+"Number of Combinations: Bot", 7, 0, 7.0);
 
     }
 
