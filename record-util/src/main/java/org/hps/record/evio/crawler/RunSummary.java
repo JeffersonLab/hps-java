@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.hps.record.epics.EpicsScalarData;
+import org.hps.record.epics.EpicsData;
 import org.hps.record.evio.EvioEventConstants;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
@@ -34,7 +34,7 @@ final class RunSummary {
     private static final Logger LOGGER = LogUtil.create(RunSummary.class);
 
     private Date endDate;
-    private EpicsScalarData epics;
+    private EpicsData epics;
     private Map<Object, Integer> eventTypeCounts;
     private final EvioFileList files = new EvioFileList();
     private Boolean isEndOkay;
@@ -60,7 +60,7 @@ final class RunSummary {
         return this.endDate;
     }
 
-    EpicsScalarData getEpicsData() {
+    EpicsData getEpicsData() {
         return this.epics;
     }
 
@@ -135,7 +135,7 @@ final class RunSummary {
         }
     }
 
-    void setEpicsData(final EpicsScalarData epics) {
+    void setEpicsData(final EpicsData epics) {
         this.epics = epics;
     }
 
