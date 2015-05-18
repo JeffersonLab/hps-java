@@ -18,7 +18,7 @@ import org.lcsim.event.GenericObject;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public final class EpicsScalarData {
+public final class EpicsData {
 
     /**
      * Default collection name in the LCSim events.
@@ -111,8 +111,8 @@ public final class EpicsScalarData {
      * @param event the LCIO event
      * @return the EPICS data from the event
      */
-    public static EpicsScalarData read(final EventHeader event) {
-        if (event.hasCollection(GenericObject.class, EpicsScalarData.DEFAULT_COLLECTION_NAME)) {
+    public static EpicsData read(final EventHeader event) {
+        if (event.hasCollection(GenericObject.class, EpicsData.DEFAULT_COLLECTION_NAME)) {
             return read(event, DEFAULT_COLLECTION_NAME);
         } else {
             return null;
@@ -126,12 +126,12 @@ public final class EpicsScalarData {
      * @param collectionName the collection name
      * @return the EPICS data from the LCIO event
      */
-    static EpicsScalarData read(final EventHeader event, final String collectionName) {
+    static EpicsData read(final EventHeader event, final String collectionName) {
         final List<GenericObject> collection = event.get(GenericObject.class, collectionName);
         @SuppressWarnings("rawtypes")
         final Map stringMap = event.getMetaData(collection).getStringParameters();
         final String[] keys = (String[]) stringMap.get(EPICS_SCALAR_NAMES);
-        final EpicsScalarData data = new EpicsScalarData();
+        final EpicsData data = new EpicsData();
         data.fromGenericObject(collection.get(0), keys);
         return data;
     }

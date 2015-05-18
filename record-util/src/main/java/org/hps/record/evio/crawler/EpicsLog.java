@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hps.record.epics.EpicsEvioProcessor;
-import org.hps.record.epics.EpicsScalarData;
+import org.hps.record.epics.EpicsData;
 import org.hps.record.evio.EvioEventProcessor;
 import org.jlab.coda.jevio.EvioEvent;
 
@@ -12,9 +12,9 @@ public final class EpicsLog extends EvioEventProcessor {
 
     private final Map<String, Integer> counts = new HashMap<String, Integer>();
 
-    private EpicsScalarData currentData;
+    private EpicsData currentData;
 
-    private final EpicsScalarData logData = new EpicsScalarData();
+    private final EpicsData logData = new EpicsData();
     private final EpicsEvioProcessor processor = new EpicsEvioProcessor();
 
     private final RunSummary runSummary;

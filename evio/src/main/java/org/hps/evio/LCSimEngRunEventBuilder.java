@@ -10,7 +10,7 @@ import org.hps.recon.ecal.triggerbank.SSPData;
 import org.hps.recon.ecal.triggerbank.TIData;
 import org.hps.recon.ecal.triggerbank.TDCData;
 import org.hps.record.epics.EpicsEvioProcessor;
-import org.hps.record.epics.EpicsScalarData;
+import org.hps.record.epics.EpicsData;
 import org.hps.record.evio.EvioEventUtilities;
 import org.hps.record.scalars.ScalarData;
 import org.hps.record.scalars.ScalarsEvioProcessor;
@@ -36,7 +36,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     TriggerConfigEvioReader triggerConfigReader = null;
 
     EpicsEvioProcessor epicsProcessor = new EpicsEvioProcessor();
-    EpicsScalarData epicsData;
+    EpicsData epicsData;
 
     ScalarsEvioProcessor scalarProcessor = new ScalarsEvioProcessor();
     ScalarData scalarData;
@@ -78,7 +78,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     }
 
     /**
-     * Create and cache an {@link org.hps.record.epics.EpicsScalarData} object.
+     * Create and cache an {@link org.hps.record.epics.EpicsData} object.
      *
      * @param evioEvent The EVIO event data.
      */

@@ -6,7 +6,7 @@ import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
- * This is an EVIO event processor that will read EPICS events (event tag 31) and turn them into {@link EpicsScalarData}
+ * This is an EVIO event processor that will read EPICS events (event tag 31) and turn them into {@link EpicsData}
  * objects.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
@@ -16,19 +16,19 @@ public final class EpicsEvioProcessor extends EvioEventProcessor {
     /**
      * The current EPICS data object.
      */
-    private EpicsScalarData data;
+    private EpicsData data;
 
     /**
-     * Get the current {@link EpicsScalarData} object created from record processing.
+     * Get the current {@link EpicsData} object created from record processing.
      *
-     * @return the {@link EpicsScalarData} object created from record processing
+     * @return the {@link EpicsData} object created from record processing
      */
-    public EpicsScalarData getEpicsScalarData() {
+    public EpicsData getEpicsScalarData() {
         return this.data;
     }
 
     /**
-     * Process EVIO data and create a {@link EpicsScalarData} if EPICS data bank exists in the event.
+     * Process EVIO data and create a {@link EpicsData} if EPICS data bank exists in the event.
      *
      * @param evio the <code>EvioEvent</code> that possibly has EPICS data
      */
@@ -52,7 +52,7 @@ public final class EpicsEvioProcessor extends EvioEventProcessor {
 
         if (epicsBank != null) {
             final String epicsData = epicsBank.getStringData()[0];
-            this.data = new EpicsScalarData();
+            this.data = new EpicsData();
             this.data.fromString(epicsData);
         }
     }
