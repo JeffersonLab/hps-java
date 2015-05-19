@@ -189,7 +189,7 @@
             <dependency>
                 <groupId>org.jlab.coda</groupId>
                 <artifactId>jevio</artifactId>
-                <version>4.4.6-SNAPSHOT</version>
+                <version>4.4.6</version>
             </dependency>
             <dependency>
                 <groupId>org.jlab.coda</groupId>
