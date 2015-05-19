@@ -207,6 +207,11 @@
                 <version>0.9.9-RC1</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>3.5</version>
+            </dependency>
+            <dependency>
                 <groupId>jfreechart-aida-experimental</groupId>
                 <artifactId>jfreechart-aida-experimental</artifactId>
                 <version>1.7-SNAPSHOT</version>
