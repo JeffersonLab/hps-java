@@ -50,12 +50,11 @@ public class SVTSmallHitsDriver extends Driver {
     protected void detectorChanged(Detector detector) {
         aida.tree().cd("/");
 
-        trigDt = aida.histogram1D("trigger dt", 1000, 0, 5e5);
+        trigDt = aida.histogram1D("trigger dt", 1000, 0, 1e5);
         smallHitCount1D = aida.histogram1D("small hit count", 100, 0, 100);
-        trigDtWithSmallHits = aida.histogram1D("trigger dt, events with small hits", 1000, 0, 5e5);
-        smallHitsDt2D = aida.histogram2D("small hit count vs. trigger dt", 1000, 0, 5e5, 100, 0, 100);
-        smallHitFracDt = aida.histogram1D("fraction of events with small hits vs. dt", 1000, 0, 5e5);
-
+        trigDtWithSmallHits = aida.histogram1D("trigger dt, events with small hits", 1000, 0, 1e5);
+        smallHitsDt2D = aida.histogram2D("small hit count vs. trigger dt", 1000, 0, 1e5, 100, 0, 100);
+        smallHitFracDt = aida.histogram1D("fraction of events with small hits vs. dt", 1000, 0, 1e5);
     }
 
     @Override
