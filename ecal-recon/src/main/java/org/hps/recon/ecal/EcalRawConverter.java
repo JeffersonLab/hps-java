@@ -27,6 +27,7 @@ import org.lcsim.geometry.Detector;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  * @author Nathan Baltzell <baltzell@jlab.org>
+ * @author Holly Szumila <hvanc001@odu.edu>
  *
  * baltzell:  New in 2015:  (default behavior is still unchanged)
  *
@@ -287,7 +288,7 @@ public class EcalRawConverter {
      */
     public double[] convertWaveformToPulse(RawTrackerHit hit,int thresholdCrossing,boolean mode7) {
         short samples[] = hit.getADCValues();
-        
+        //System.out.println("NewEvent");
         // choose integration range:
         int firstSample,lastSample;
         if ((NSA+NSB)/nsPerSample >= samples.length) {
@@ -303,7 +304,10 @@ public class EcalRawConverter {
         double minADC=0;
         for (int jj=0; jj<4; jj++) minADC += samples[jj];
         // does the firmware's conversion of min to int occur before or after time calculation?  undocumented.
-        minADC=(int)(minADC/4); 
+        //minADC=(int)(minADC/4); 
+        minADC = (minADC/4);
+        
+        //System.out.println("Avg pedestal:\t"+minADC);
         
         // mode-7's max pulse height:
         double maxADC=0;
@@ -319,43 +323,56 @@ public class EcalRawConverter {
             
             // integrate pulse:
             sumADC += samples[jj];
-           
+        	}
+        
             // find pulse maximum:
-            if (jj>firstSample && jj<samples.length-5) { // The "5" here is a firmware constant.
-                if (samples[jj+1]<samples[jj]) {
+            //if (jj>firstSample && jj<samples.length-5) { // The "5" here is a firmware constant.
+            for (int jj=thresholdCrossing; jj<samples.length-5; jj++) { // The "5" here is a firmware constant.
+            	if (samples[jj+1]<samples[jj]){ 
                     sampleMaxADC=jj;
                     maxADC=samples[jj];
+                    break;                
                 }
             }
-        }
-       
+        
+
         // pulse time with 4ns resolution:
         double pulseTime=thresholdCrossing*nsPerSample;
         
         // calculate Mode-7 high-resolution time:
         if (mode7) {
-            if (thresholdCrossing < 4) {
+        	if (thresholdCrossing < 4) {
                 // special case where firmware sets max to zero and time to 4ns time.
                 maxADC=0;
             }
             else if (maxADC>0) {
-                // linear interpolation between threshold crossing and
-                // pulse maximum to find time at pulse half-height:
-                double t0 = thresholdCrossing*nsPerSample;
-                double a0 = samples[thresholdCrossing];
-                double t1 = sampleMaxADC*nsPerSample;
-                double a1 = maxADC;
-                double slope = (a1-a0)/(t1-t0);
-                double halfMax = (maxADC+minADC)/2;
-                // this is not rigorously firmware-correct, need to find halfMax-crossing.
-                double tmpTime = t1 - (a1 - halfMax) / slope;
-                if (slope>0 && tmpTime>0) {
-                    pulseTime = tmpTime;
-                }
-                // else another special firmware case
+            // linear interpolation between threshold crossing and
+            // pulse maximum to find time at pulse half-height:
+          
+            final double halfMax = (maxADC+minADC)/2;
+            int t0 = -1;
+            for (int ii=thresholdCrossing-1; ii<lastSample; ii++)
+            {
+              if (ii>=samples.length-1) break;
+              if (samples[ii]<=halfMax && samples[ii+1]>halfMax)
+              {
+                t0 = ii;
+                break;
+              }
             }
+            if (t0 > 0)
+            {
+            	final int t1 = t0 + 1;
+              final int a0 = samples[t0];
+              final int a1 = samples[t1];
+              final double slope = (a1 - a0); // units = ADC/sample
+              final double yint = a1 - slope * t1;  // units = ADC 
+              pulseTime = ((halfMax - a0)/(a1-a0) + t0)* nsPerSample;
+              
+            }
+
+           }
         }
-        
         return new double []{pulseTime,sumADC,minADC,maxADC};
     }
    
