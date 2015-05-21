@@ -167,6 +167,8 @@ public class MakeGblTracks {
         double xTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());
         double yTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
         
+        logger.info((slope>0?"top: ":"bot ") + "qOverPCorr " + qOverPCorr + " xTCorr " + xTCorr + " yTCorr " + yTCorr + " xtPrimeCorr " + xTPrimeCorr + " yTPrimeCorr " + yTPrimeCorr);
+        
         // calculate new d0 and z0
         Hep3Matrix perToClPrj = traj.get_track_data().getPrjPerToCl();
         Hep3Matrix clToPerPrj = VecOp.inverse(perToClPrj);
