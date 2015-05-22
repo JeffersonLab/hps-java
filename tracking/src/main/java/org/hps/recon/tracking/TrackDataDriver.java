@@ -13,50 +13,39 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
-import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
-import org.lcsim.event.RelationalTable;
-import org.lcsim.event.base.BaseRelationalTable;
 
 /**
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
+ * @author Sho Uemura <meeg@slac.stanford.edu>
  *
  */
 public class TrackDataDriver extends Driver {
 
     // Collection Names
     String trackCollectionName = "MatchedTracks";
-    // TODO: Change this to match whatever track name is decided on
-    String trackTimeDataCollectionName = "TrackTimeData";
     String trackResidualsCollectionName = "TrackResiduals";
     String rotatedHthRelationsColName = "RotatedHelicalTrackHitRelations";
     String rotatedHthCollectionName = "RotatedHelicalTrackHits";
-    String trackTimeDataRelationsColName = "TrackTimeDataRelations";
     String trackResidualsRelationsColName = "TrackResidualsRelations";
 
     public TrackDataDriver() {
     }
     
-    public void setTrackCollectionName(String name){
+    public void setTrackCollectionName(String name) {
         this.trackCollectionName=name;
-    }
-
-    protected void detectorChanged(Detector detector) {
-
-        // TODO: Add plots of all track data variables
     }
 
     protected void process(EventHeader event) {
 
         // If the event doesn't contain a collection of tracks, skip it.
-        if (!event.hasCollection(Track.class, trackCollectionName)) {
-            return;
-        }
+        if (!event.hasCollection(Track.class, trackCollectionName)) return;
 
         // Get the collection of tracks from the event
         List<Track> tracks = event.get(Track.class, trackCollectionName);
@@ -69,31 +58,27 @@ public class TrackDataDriver extends Driver {
 
         List<HelicalTrackHit> rotatedHths = event.get(HelicalTrackHit.class, rotatedHthCollectionName);
 
-        // Create a collection to hold the track time and t0 residual data
-        List<TrackTimeData> timeDataCollection = new ArrayList<TrackTimeData>();
-
-        // Create a collection of LCRelations between a track and the t0 residual data
-        List<LCRelation> trackToTrackTimeDataRelations = new ArrayList<LCRelation>();
-
+        // Create a container that will be used to store all TrackData objects.
+        List<TrackData> trackDataCollection = new ArrayList<TrackData>();
+       
+        // Create a container that will be used to store all LCRelations between
+        // a TrackData object and the corresponding Track
+        List<LCRelation> trackDataRelations = new ArrayList<LCRelation>();
+        
         // Create a collection to hold the track residuals
         List<TrackResidualsData> trackResidualsCollection = new ArrayList<TrackResidualsData>();
 
         // Create a collection of LCRelations between a track and the track residuals
         List<LCRelation> trackToTrackResidualsRelations = new ArrayList<LCRelation>();
 
-        // Create a collection to hold the track residuals
-        List<TrackQualityData> trackQualityCollection = new ArrayList<TrackQualityData>();
-
-        // Create a collection of LCRelations between a track and the track residuals
-        List<LCRelation> trackQualityDataToTrackRelations = new ArrayList<LCRelation>();
-
-        double totalT0 = 0;
-        double totalHits = 0;
-        double trackTime = 0;
-        double t0Residual = 0;
         double xResidual = 0;
         double yResidual = 0;
-        float trackerVolume = -1;
+        
+        float totalT0 = 0;
+        float totalHits = 0;
+        float trackTime = 0;
+        
+        int trackerVolume = -1;
 
         boolean isFirstHit = true;
 
@@ -118,10 +103,10 @@ public class TrackDataDriver extends Driver {
             trackResidualsX.clear();
             trackResidualsY.clear();
             stereoLayers.clear();
+            isFirstHit = true;
 
             //
-            // Calculate the track time and track residuals. Also, change the 
-            // position of a HelicalTrackHit to be the corrected one.
+            // Change the position of a HelicalTrackHit to be the corrected one.
             //
             // Loop over all stereo hits comprising a track
             for (TrackerHit rotatedStereoHit : track.getTrackerHits()) {
@@ -154,20 +139,6 @@ public class TrackDataDriver extends Driver {
 
                     totalT0 += cluster.time();
                     totalHits++;
-                }
-            }
-
-            // The track time is the mean t0 of hits on a track
-            trackTime = totalT0 / totalHits;
-
-            //
-            // Calculate the t0 residuals
-            //
-            isFirstHit = true;
-            // Loop over all stereo hits comprising a track
-            for (TrackerHit stereoHit : track.getTrackerHits()) {
-                // Loop over the clusters comprising the stereo hit
-                for (HelicalTrackStrip cluster : ((HelicalTrackCross) stereoHit).getStrips()) {
 
                     if (isFirstHit) {
                         sensor = (HpsSiSensor) ((RawTrackerHit) cluster.rawhits().get(0)).getDetectorElement();
@@ -176,18 +147,13 @@ public class TrackDataDriver extends Driver {
                         } else if (sensor.isBottomLayer()) {
                             trackerVolume = 1;
                         }
+                        isFirstHit = false;
                     }
-
-                    // Add the layer number associated with this residual to the list of layers
-                    sensorLayers.add(sensor.getLayerNumber());
-
-                    // Find the t0 residual and add it to the list of residuals
-                    t0Residual = trackTime - cluster.time();
-                    // Apply correction to t0 residual
-                    t0Residual /= Math.sqrt((totalHits - 1) / totalHits);
-                    t0Residuals.add(t0Residual);
                 }
             }
+
+            // The track time is the mean t0 of hits on a track
+            trackTime = totalT0 / totalHits;
 
             double l1Isolation = 99999999.0;
             double l2Isolation = 99999999.0;
@@ -204,27 +170,20 @@ public class TrackDataDriver extends Driver {
                 }
             }
 
-            TrackTimeData timeData = new TrackTimeData(trackerVolume, trackTime, sensorLayers, t0Residuals);
-            timeDataCollection.add(timeData);
-            trackToTrackTimeDataRelations.add(new BaseLCRelation(timeData, track));
+            double qualityArray[] = {l1Isolation, l2Isolation};
+            TrackData trackData = new TrackData(trackerVolume, trackTime, qualityArray);
+            trackDataCollection.add(trackData);
+            trackDataRelations.add(new BaseLCRelation(trackData, track));
 
             TrackResidualsData trackResiduals = new TrackResidualsData((int) trackerVolume, stereoLayers, trackResidualsX, trackResidualsY);
             trackResidualsCollection.add(trackResiduals);
             trackToTrackResidualsRelations.add(new BaseLCRelation(trackResiduals, track));
-
-            double qualityArray[] = {l1Isolation, l2Isolation};
-            TrackQualityData qualityData = new TrackQualityData(qualityArray);
-            trackQualityCollection.add(qualityData);
-            trackQualityDataToTrackRelations.add(new BaseLCRelation(qualityData, track));
         }
 
-        event.put(trackTimeDataCollectionName, timeDataCollection, TrackTimeData.class, 0);
-        event.put(trackTimeDataRelationsColName, trackToTrackTimeDataRelations, LCRelation.class, 0);
+        event.put(TrackData.TRACK_DATA_COLLECTION, trackDataCollection, TrackTimeData.class, 0);
+        event.put(TrackData.TRACK_DATA_RELATION_COLLECTION, trackDataRelations, LCRelation.class, 0);
         event.put(trackResidualsCollectionName, trackResidualsCollection, TrackResidualsData.class, 0);
         event.put(trackResidualsRelationsColName, trackToTrackResidualsRelations, LCRelation.class, 0);
-        event.put(TrackQualityData.QUALITY_COLLECTION, trackQualityCollection, TrackResidualsData.class, 0);
-        event.put(TrackQualityData.QUALITY_RELATION_COLLECTION, trackQualityDataToTrackRelations, LCRelation.class, 0);
-
     }
 
     private static Double getNearestDistance(HelicalTrackStrip cl, List<HelicalTrackHit> toththits) {
