@@ -85,6 +85,7 @@
             <groupId>org.lcsim</groupId>
             <artifactId>lcsim-distribution</artifactId>
             <version>${lcsimVersion}</version>
+            <type>pom</type>
             <exclusions>
                 <exclusion>
                     <groupId>jdom</groupId>
@@ -93,6 +94,31 @@
                 <exclusion>
                     <groupId>commons-math</groupId>
                     <artifactId>commons-math</artifactId>
+                </exclusion>
+                <!-- Exclude some unneeded lcsim jars. -->
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>lcsim-analysis</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>lcsim-cal-calib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>detector-data</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>lcsim-mc</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>lcsim-steering-files</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>lcsim-users</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
