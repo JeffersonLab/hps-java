@@ -95,6 +95,14 @@
                     <groupId>commons-math</groupId>
                     <artifactId>commons-math</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>freehep-graphicsio-tests</groupId>
+                    <artifactId>org.freehep</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>aida-test</groupId>
+                    <artifactId>hep.aida</artifactId>
+                </exclusion>
                 <!-- Exclude some unneeded lcsim jars. -->
                 <exclusion>
                     <groupId>org.lcsim</groupId>
