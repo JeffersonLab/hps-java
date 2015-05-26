@@ -15,6 +15,7 @@
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
         <driver name="GTPOnlineClusterer" />
+		<driver name="CopyCluster" />
         <driver name="ReconParticle" />  
         <driver name="TrackDataDriver" />              
         <!--<driver name="GBLDriver"/>--> 
@@ -92,6 +93,11 @@
             <useTimeCut>true</useTimeCut>
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+        	<inputCollectionName>EcalClusters</inputCollectionName>
+    		<outputCollectionName>EcalClustersCopy</outputCollectionName>
+    		<storeHits>false</storeHits>
+        </driver>
         <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
             <logLevel>WARNING</logLevel>
             <clustererName>GTPOnlineClusterer</clustererName>
@@ -99,7 +105,8 @@
             <!-- seedMinEnergy -->
             <cuts>0.100</cuts>
         </driver>        
-        <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">          
+        <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">  
+        	<ecalClusterCollectionName>EcalClustersCopy</ecalClusterCollectionName/>        
         </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
