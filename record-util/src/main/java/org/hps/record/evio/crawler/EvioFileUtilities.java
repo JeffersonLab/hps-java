@@ -59,7 +59,7 @@ final class EvioFileUtilities {
         Date date = null;
         EvioReader reader = null;
         try {
-            reader = open(file);
+            reader = open(file, true);
             EvioEvent event;
             if (gotoEvent > 0) {
                 reader.gotoEventNumber(gotoEvent);
@@ -118,7 +118,7 @@ final class EvioFileUtilities {
         if (date == null) {
             EvioReader reader = null;
             try {
-                reader = open(file);
+                reader = open(file, true);
                 reader.gotoEventNumber(reader.getEventCount() - 11);
                 EvioEvent event = null;
                 while ((event = reader.parseNextEvent()) != null) {
@@ -170,7 +170,7 @@ final class EvioFileUtilities {
         if (date == null) {
             EvioReader reader = null;
             try {
-                reader = open(file);
+                reader = open(file, true);
                 EvioEvent event = null;
                 while ((event = reader.parseNextEvent()) != null) {
                     if (EvioEventUtilities.isPhysicsEvent(event)) {
@@ -268,6 +268,6 @@ final class EvioFileUtilities {
      * @throws EvioException if there is an error reading the EVIO data
      */
     static EvioReader open(final String path) throws IOException, EvioException {
-        return open(new File(path));
+        return open(new File(path), true);
     }
 }

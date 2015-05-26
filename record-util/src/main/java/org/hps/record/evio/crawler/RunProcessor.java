@@ -134,6 +134,13 @@ final class RunProcessor {
         return this.processors;
     }
 
+    /**
+     * Return <code>true</code> if valid END event can be located. 
+     * 
+     * @param reader the EVIO reader
+     * @return <code>true</code> if valid END event is located
+     * @throws Exception if there are IO problems using the reader
+     */
     boolean isEndOkay(final EvioReader reader) throws Exception {
         LOGGER.info("checking is END okay ...");
         boolean endOkay = false;
@@ -196,7 +203,7 @@ final class RunProcessor {
         try {
             // Open with wrapper method which will use the cached file path if necessary.
             LOGGER.fine("opening " + file.getPath() + " for reading ...");
-            reader = EvioFileUtilities.open(file);
+            reader = EvioFileUtilities.open(file, true);
             LOGGER.fine("done opening " + file.getPath());
 
             // If this is the first file then get the start date.

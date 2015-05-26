@@ -462,8 +462,10 @@ final class JCacheManager {
 
         LOGGER.info("waiting for files to be cached ...");
 
+        // This can happen if all the files are already cached.
         if (this.cacheStatuses.isEmpty()) {
-            throw new IllegalStateException("There are no files registered with the cache manager.");
+            LOGGER.warning("no files to be cached");
+            return true;
         }
 
         // This is the return value which will be changed to true if all files are cached successfully.

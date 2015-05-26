@@ -26,6 +26,9 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+// TODO: write out Auger XML (and don't actually execute job)
+// TODO: write summary EVIO file with control/EPICS events (maybe?)
+// TODO: flag to allow overwriting existing information in run table
 public final class EvioFileCrawler {
 
     /**
@@ -342,7 +345,7 @@ public final class EvioFileCrawler {
         // Insert run information into the database.
         if (this.update) {
             // Update run log.
-            runs.insert();
+            new RunLogUpdater(runs).insert();
         }
 
         // Update the timestamp file which can be used to tell which files have been processed.

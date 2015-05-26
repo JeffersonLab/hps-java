@@ -1,9 +1,6 @@
 package org.hps.record.evio.crawler;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,30 +71,7 @@ final class EvioFileList extends ArrayList<File> {
         }
         return totalEvents;
     }
-
-    /**
-     * Insert the file names into the run database.
-     *
-     * @param connection the database connection
-     * @param run the run number
-     * @throws SQLException if there is a problem executing one of the database queries
-     */
-    void insert(final Connection connection, final int run) throws SQLException {
-        LOGGER.info("updating file list ...");
-        PreparedStatement filesStatement = null;
-        filesStatement = connection.prepareStatement("INSERT INTO run_log_files (run, directory, name) VALUES(?, ?, ?)");
-        LOGGER.info("inserting files from run " + run + " into database");
-        for (final File file : this) {
-            LOGGER.info("creating update statement for " + file.getPath());
-            filesStatement.setInt(1, run);
-            filesStatement.setString(2, file.getParentFile().getPath());
-            filesStatement.setString(3, file.getName());
-            LOGGER.info("executing statement: " + filesStatement);
-            filesStatement.executeUpdate();
-        }
-        LOGGER.info("run_log_files was updated!");
-    }
-
+    
     /**
      * Get the last file.
      *
