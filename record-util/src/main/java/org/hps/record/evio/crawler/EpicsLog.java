@@ -73,7 +73,7 @@ final class EpicsLog extends EvioEventProcessor {
     @Override
     public void process(final EvioEvent evioEvent) {
         this.processor.process(evioEvent);
-        this.currentData = this.processor.getEpicsScalarData();
+        this.currentData = this.processor.getEpicsData();
         this.update();
     }
 

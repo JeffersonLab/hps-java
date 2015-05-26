@@ -73,7 +73,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
         // Create EPICS data if this is an EPICS control event.
         if (EvioEventUtilities.isEpicsEvent(evioEvent)) {
-            createEpicsScalarData(evioEvent);
+            createEpicsData(evioEvent);
         }
     }
 
@@ -82,9 +82,9 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
      *
      * @param evioEvent The EVIO event data.
      */
-    void createEpicsScalarData(EvioEvent evioEvent) {
+    void createEpicsData(EvioEvent evioEvent) {
         epicsProcessor.process(evioEvent);
-        epicsData = epicsProcessor.getEpicsScalarData();
+        epicsData = epicsProcessor.getEpicsData();
     }
 
     /**

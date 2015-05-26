@@ -23,7 +23,7 @@ public final class EpicsEvioProcessor extends EvioEventProcessor {
      *
      * @return the {@link EpicsData} object created from record processing
      */
-    public EpicsData getEpicsScalarData() {
+    public EpicsData getEpicsData() {
         return this.data;
     }
 

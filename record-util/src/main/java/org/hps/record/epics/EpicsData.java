@@ -23,7 +23,7 @@ public final class EpicsData {
     /**
      * Default collection name in the LCSim events.
      */
-    public static final String DEFAULT_COLLECTION_NAME = "EpicsScalarData";
+    public static final String DEFAULT_COLLECTION_NAME = "EpicsData";
 
     /**
      * This map contains the list of EPICS key descriptions from the<br/>

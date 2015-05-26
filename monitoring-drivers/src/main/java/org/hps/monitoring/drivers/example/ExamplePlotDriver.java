@@ -77,7 +77,7 @@ https://docs.google.com/spreadsheets/d/1bqKvriNOEaeTrpTrk38kBGXM8oC_F5QIZeLcSSa3
 FADCGenericHits - class org.hps.recon.ecal.FADCGenericHit                                               
 TriggerConfig - class org.hps.recon.ecal.daqconfig.EvioDAQParser                                        
 EcalReadoutHits - class org.lcsim.event.base.BaseRawCalorimeterHit                                      
-EpicsScalarData - interface org.lcsim.event.GenericObject                                               
+EpicsData - interface org.lcsim.event.GenericObject                                               
 EcalCalHits - interface org.lcsim.event.CalorimeterHit                                                  
 ScalarData - interface org.lcsim.event.GenericObject                                                    
 TriggerBank - class org.hps.recon.ecal.triggerbank.AbstractIntData                                      
