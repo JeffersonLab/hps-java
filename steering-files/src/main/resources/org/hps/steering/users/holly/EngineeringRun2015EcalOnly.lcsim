@@ -14,6 +14,7 @@
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
+        <driver name="CopyCluster" />
         <!--driver name="GTPOnlineClusterer" /-->
         <!--driver name="ReconParticle" /-->  
         <!--driver name="TrackDataDriver" /-->              
@@ -89,8 +90,13 @@
             <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
             <minTime>0.0</minTime>
             <timeWindow>25.0</timeWindow>
-            <useTimeCut>true</useTimeCut>
+            <useTimeCut>false</useTimeCut>
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
+        </driver>
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+        	<inputCollectionName>EcalClusters</inputCollectionName>
+    		<outputCollectionName>EcalClustersCopy</outputCollectionName>
+    		<storeHits>false</storeHits>
         </driver>
         <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
             <logLevel>WARNING</logLevel>
