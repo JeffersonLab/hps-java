@@ -42,9 +42,6 @@
             <correctT0Shift>false</correctT0Shift>
             <useTruthTime>false</useTruthTime>
             <subtractTOF>true</subtractTOF>
-            <subtractTriggerTime>true</subtractTriggerTime>
-            <correctChanT0>true</correctChanT0>
-            <timeOffset>27.0</timeOffset>
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
@@ -52,7 +49,7 @@
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
-            <clusterTimeCut>12.0</clusterTimeCut>
+            <!--<clusterTimeCut>12.0</clusterTimeCut>-->
             <maxDt>16.0</maxDt>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
