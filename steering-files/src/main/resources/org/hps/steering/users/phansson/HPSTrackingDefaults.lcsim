@@ -4,7 +4,7 @@
     <control>
         <printInputFiles>false</printInputFiles>
         <printDriversDetailed>false</printDriversDetailed>
-        <!--<numberOfEvents>1000</numberOfEvents>-->
+        <numberOfEvents>1000</numberOfEvents>
     </control>
     <execute>
 <!--        <driver name="ConditionsDriver"/> -->
@@ -14,9 +14,12 @@
         <driver name="TrackerReconDriver"/>
         <driver name="GBLOutputDriver"/>
         <driver name="GBLDriver"/>
-        <driver name="GblTrackingReconstructionPlots"/>
-        <driver name="LCIOWriter"/>
+<!--        <driver name="GblTrackingReconstructionPlots"/> -->
+        <driver name="TrackingReconstructionPlots"/>
         <driver name="AidaSaveDriverRoot" /> 
+        <driver name="LCIOWriter"/>
+        
+        <driver name="CleanupDriver"/>
     </execute>
     <drivers>
 
@@ -58,13 +61,18 @@
         </driver>
         
         <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>${outputFile}.root</outputFileName>
+            <outputFileName>outputfile.root</outputFileName>
+            
         </driver>
         
         <driver name="GblTrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.GblTrackingReconstructionPlots">
             <outputPlots>TrackingReconstructionPlots.aida</outputPlots>
         </driver>
+        <driver name="TrackingReconstructionPlots" type="org.hps.users.phansson.TrackingReconstructionPlots">
+            <showPlots>True</showPlots>
+        </driver>
         
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         
         
         
