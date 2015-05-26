@@ -12,9 +12,8 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 
 /**
- * This is an API for reading and writing EPICS scalar data to LCIO events, as well as parsing the scalar data from a
- * CDATA section within an EVIO string data bank. The {@link #read(EventHeader)} method should be used to create one of
- * these objects from an LCIO event.
+ * This is an API for reading and writing EPICS scalar data to LCIO events, as well as parsing the scalar data from a CDATA section within an EVIO
+ * string data bank. The {@link #read(EventHeader)} method should be used to create one of these objects from an LCIO event.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
@@ -23,7 +22,7 @@ public final class EpicsData {
     /**
      * Default collection name in the LCSim events.
      */
-    public static final String DEFAULT_COLLECTION_NAME = "EpicsData";
+    public static final String DEFAULT_COLLECTION_NAME = "EpicsScalarData";
 
     /**
      * This map contains the list of EPICS key descriptions from the<br/>
@@ -83,8 +82,8 @@ public final class EpicsData {
     /**
      * Get the static list of available EPICs scalar names.
      * <p>
-     * This could be different than the variable names which were actually written into the collection header. For this,
-     * instead use the method {@link #getUsedNames()}.
+     * This could be different than the variable names which were actually written into the collection header. For this, instead use the method
+     * {@link #getUsedNames()}.
      *
      * @return the set of default EPICS scalar names
      */
@@ -105,8 +104,8 @@ public final class EpicsData {
      * <p>
      * Read data into this object from an LCIO event using the default collection name.
      * <p>
-     * This is the primary method for users to read the EPICS data into their Drivers in the
-     * {@link org.lcsim.util.Driver#process(EventHeader)} method.
+     * This is the primary method for users to read the EPICS data into their Drivers in the {@link org.lcsim.util.Driver#process(EventHeader)}
+     * method.
      *
      * @param event the LCIO event
      * @return the EPICS data from the event
@@ -142,8 +141,7 @@ public final class EpicsData {
     private final Map<String, Double> dataMap = new LinkedHashMap<String, Double>();
 
     /**
-     * Given a list of names, read the double values from the {@link org.lcsim.event.GenericObject} into the data map of
-     * this object.
+     * Given a list of names, read the double values from the {@link org.lcsim.event.GenericObject} into the data map of this object.
      *
      * @param object the <code>GenericObject</code> with the scalar values
      * @param names The list of names.
@@ -176,8 +174,7 @@ public final class EpicsData {
     /**
      * Get the list of used EPICS scalars in this object.
      * <p>
-     * This could potentially be different than the list of default names from {@link #getDefaultNames()} but it will
-     * usually be the same.
+     * This could potentially be different than the list of default names from {@link #getDefaultNames()} but it will usually be the same.
      *
      * @return the list of used EPICS scalar names
      */
@@ -236,13 +233,12 @@ public final class EpicsData {
     }
 
     /**
-     * Write this object's data into a <code>GenericObject</code> collection in the LCIO event using the default
-     * collection name.
+     * Write this object's data into a <code>GenericObject</code> collection in the LCIO event using the default collection name.
      *
      * @param event the LCIO event
      */
     public void write(final EventHeader event) {
-        write(event, DEFAULT_COLLECTION_NAME);
+        this.write(event, DEFAULT_COLLECTION_NAME);
     }
 
     /**
@@ -253,7 +249,7 @@ public final class EpicsData {
      */
     void write(final EventHeader event, final String collectionName) {
         final List<GenericObject> collection = new ArrayList<GenericObject>();
-        final EpicsGenericObject object = toGenericObject();
+        final EpicsGenericObject object = this.toGenericObject();
         collection.add(object);
         final Map<String, String[]> stringMap = new HashMap<String, String[]>();
         stringMap.put(EPICS_SCALAR_NAMES, object.getKeys());
