@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,7 +41,8 @@ import org.lcsim.util.log.LogUtil;
  */
 public class HpsGblRefitter extends Driver
 {
-    private static Logger logger = LogUtil.create(HpsGblRefitter.class, new BasicLogFormatter());
+    static Formatter f =  new BasicLogFormatter();
+    private static Logger logger = LogUtil.create(HpsGblRefitter.class.getSimpleName(), f,Level.WARNING);
     //private static final Logger logger = Logger.getLogger(HpsGblRefitter.class.getName());
     private boolean _debug = false;
     private final String trackCollectionName = "MatchedTracks";
@@ -72,9 +74,14 @@ public class HpsGblRefitter extends Driver
     {
         _makeTracks = new MakeGblTracks();
         logger.setLevel(Level.WARNING);
-        
+        System.out.println("level " + logger.getLevel().toString());
     }
-
+    
+    //@Override
+    //public void setLogLevel(String logLevel) {
+    //    logger.setLevel(Level.parse(logLevel));
+    //}
+    
     @Override
     protected void startOfData()
     {
@@ -423,9 +430,9 @@ public class HpsGblRefitter extends Driver
              for(int i=0; i < milleParameters.size(); ++i) {
                  logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
              }
-             logger.fine("\n"+ logders);
+             logger.info("\n"+ logders);
             
-             logger.fine("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
+             logger.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
             
             //go to next point
             s += step;
