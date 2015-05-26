@@ -465,6 +465,11 @@ public class TrackUtils {
         return residuals;
     }
 
+    public static Map<String, Double> calculateLocalTrackHitResiduals(Track track, HelicalTrackHit hth, HelicalTrackStrip strip, double bFieldInZ) {
+        HelicalTrackStripGbl stripGbl = new HelicalTrackStripGbl(strip, true);
+        return calculateLocalTrackHitResiduals(track, hth, stripGbl, bFieldInZ);
+    }
+    
     public static Map<String, Double> calculateLocalTrackHitResiduals(Track track, HelicalTrackHit hth, HelicalTrackStripGbl strip, double bFieldInZ) {
 
         SeedTrack st = (SeedTrack) track;
@@ -476,19 +481,32 @@ public class TrackUtils {
         return calculateLocalTrackHitResiduals(_trk, strip, msdrdphi, msdz, bFieldInZ);
     }
 
+    public static Map<String, Double> calculateLocalTrackHitResiduals(HelicalTrackFit _trk, HelicalTrackStrip strip, double bFieldInZ) {
+        HelicalTrackStripGbl stripGbl = new HelicalTrackStripGbl(strip, true);
+        return calculateLocalTrackHitResiduals( _trk, stripGbl, 0.0, 0.0, bFieldInZ);
+    }
+    
+    
+    
     public static Map<String, Double> calculateLocalTrackHitResiduals(HelicalTrackFit _trk, HelicalTrackStripGbl strip, double msdrdphi, double msdz, double bFieldInZ) {
 
         boolean debug = false;
         boolean includeMS = true;
 
+        if (debug) {
+            System.out.printf("calculateLocalTrackHitResiduals: for strip on sensor %s \n", 
+                    ((RawTrackerHit)strip.getStrip().rawhits().get(0)).getDetectorElement().getName());
+        }
+        
         Hep3Vector u = strip.u();
         Hep3Vector corigin = strip.origin();
 
         // Find interception with plane that the strips belongs to
-        Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(_trk, strip, bFieldInZ);
+        Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(_trk, strip, Math.abs(bFieldInZ));
 
         if (debug) {
-            System.out.printf("calculateLocalTrackHitResiduals: found interception point at %s \n", trkpos.toString());
+            System.out.printf("calculateLocalTrackHitResiduals: strip u %s origin %s \n", u.toString(),corigin.toString());
+            System.out.printf("calculateLocalTrackHitResiduals: found interception point with sensor at %s \n", trkpos.toString());
         }
 
         if (Double.isNaN(trkpos.x()) || Double.isNaN(trkpos.y()) || Double.isNaN(trkpos.z())) {
@@ -523,6 +541,12 @@ public class TrackUtils {
         double wmeas = 0;
         double wError = 10.0 / Math.sqrt(12); // 0.001;
 
+        
+        if (debug) {
+            System.out.printf("calculateLocalTrackHitResiduals: vdiffTrk %s vdiff %s umc %f umeas %f du %f\n", 
+                    vdiffTrk.toString(),vdiff.toString(),umc, umeas, umeas-umc);
+        }
+        
         Map<String, Double> res = new HashMap<String, Double>();
         res.put("ures", umeas - umc);
         res.put("ureserr", includeMS ? Math.sqrt(uError * uError + msuError * msuError) : uError);
