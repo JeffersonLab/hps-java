@@ -59,7 +59,7 @@ public class GBLOutput {
 	private TrackerHitUtils _trackerHitUtils = new TrackerHitUtils();
     private MaterialSupervisor _materialmanager;
     private MultipleScattering _scattering;
-    private double _beamEnergy = 2.2; //GeV
+    private double _beamEnergy = 1.1; //GeV
 	private boolean AprimeEvent = false; // do extra checks
 	private boolean hasXPlanes = false;
     
@@ -270,7 +270,7 @@ public class GBLOutput {
                 if(_debug>0) System.out.printf("%s: layer %d millepede %d (DE=\"%s\", origin %s) \n",this.getClass().getSimpleName(),strip.layer(), millepedeId, sensor.getName(), strip.origin().toString());
                 
                 if(textFile != null) {
-                	textFile.printStrip(istrip,millepedeId);
+                	textFile.printStrip(istrip,millepedeId,de.getName());
                 }
                 
                 //GBLDATA
@@ -404,10 +404,15 @@ public class GBLOutput {
                 if(textFile != null) {
                 	textFile.printStripMeas(m_meas.x());
                 }
+
+                //if(textFile != null) {
+                //    textFile.printStripTrackPosMeasFrame(trkpos_meas);
+                //}
+
                 
                 //GBLDATA
                 stripData.setMeas(strip.umeas());
-                stripData.setTrackPos(trkpos_meas);
+                //stripData.setTrackPos(trkpos_meas);
                 
                 if(_debug>1) { 
                 System.out.printf("%s: rotation matrix to meas frame\n%s\n", getClass().getSimpleName(), VecOp.toString(trkToStripRot));
