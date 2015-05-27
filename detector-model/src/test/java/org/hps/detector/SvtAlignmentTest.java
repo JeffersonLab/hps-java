@@ -18,8 +18,6 @@ public class SvtAlignmentTest extends TestCase {
     private static final String DETECTOR_NAME = "HPS-EngRun2015-Nominal-v1";
     
     private static final int[] RUNS = {
-        /* nominal */
-        0,
         /* 4mm */
         4847,
         /* 3mm */
@@ -35,8 +33,6 @@ public class SvtAlignmentTest extends TestCase {
         };
         
     private static double ANGLES[][] = {
-        /* nominal */
-        {0, 0},
         /* 4mm */
         {0.0107, -0.0116},
         /* 3mm */
