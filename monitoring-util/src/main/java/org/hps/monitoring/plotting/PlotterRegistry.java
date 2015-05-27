@@ -10,13 +10,14 @@ import java.util.List;
 import java.util.Map.Entry;
 
 /**
- * This is a global registry of plotters used by the monitoring plot factory. 
+ * This is a global registry of plotters used by the monitoring plot factory.
+ * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class PlotterRegistry {
-    
+
     HashMap<IPlotter, int[]> plotterMap = new HashMap<IPlotter, int[]>();
-    
+
     /**
      * Clear the list of plotters.
      */
@@ -24,9 +25,10 @@ public class PlotterRegistry {
         System.out.println("clearing PlotterRegistry");
         plotterMap.clear();
     }
-    
+
     /**
      * Find a plotter that contains the region object.
+     * 
      * @param region The plotter region object.
      * @return The plotter that contains this region or null if none.
      */
@@ -40,20 +42,31 @@ public class PlotterRegistry {
         }
         return null;
     }
-    
+
+    /**
+     * Get the tab indices of the plotter.
+     * 
+     * @param plotter the plotter to lookup
+     * @return the tab indices of the plotter or <code>null</code> if it doesn't exist
+     */
+    public int[] getTabIndices(IPlotter plotter) {
+        return plotterMap.get(plotter);
+    }
+
     /**
      * Register a plotter along with its tab indices.
+     * 
      * @param plotter The plotter to register.
      * @param index1 The top tab index.
      * @param index2 The sub-tab index.
      */
     public void register(IPlotter plotter, int index1, int index2) {
-        plotterMap.put(plotter, new int[] { index1, index2 });
+        plotterMap.put(plotter, new int[] {index1, index2});
     }
-    
+
     /**
-     * Find a plotter by its tab indices e.g. those that are currently selected
-     * in an application.
+     * Find a plotter by its tab indices e.g. those that are currently selected in an application.
+     * 
      * @param index1 The top tab index.
      * @param index2 The sub-tab index.
      * @return The plotter or null if none found.
@@ -67,9 +80,10 @@ public class PlotterRegistry {
         }
         return null;
     }
-    
+
     /**
      * Get the current collection of plotters as an unmodifiable collection.
+     * 
      * @return The current collection of plotters.
      */
     public List<IPlotter> getPlotters() {
