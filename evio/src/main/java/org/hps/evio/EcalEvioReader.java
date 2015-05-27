@@ -39,6 +39,7 @@ import org.lcsim.util.log.LogUtil;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: ECalEvioReader.java,v 1.23 2013/04/18 20:59:16 meeg Exp $
  */
+// TODO: use a logger
 public class EcalEvioReader extends EvioReader {
     // Names of subdetectors.
 
