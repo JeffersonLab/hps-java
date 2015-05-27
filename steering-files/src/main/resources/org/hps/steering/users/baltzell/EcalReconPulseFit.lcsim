@@ -3,7 +3,9 @@
     <execute>
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
+        <driver name="EcalRawConverterFit" />
         <driver name="ReconClusterer" />
+        <driver name="ReconClustererFit" />
         <driver name="LCIOWriter" />
         <!--<driver name="AidaSaveDriver" />-->
         <driver name="CleanupDriver" />
@@ -25,6 +27,23 @@
             <leadingEdgeThreshold>12</leadingEdgeThreshold>
             <nsa>20</nsa>
             <nsb>100</nsb>
+            <useFit>false</useFit>
+            <fixShapeParameter>true</fixShapeParameter>
+            <debug>0</debug>
+            <!--<fitFileName>ecalPulseFits.txt</fitFileName>-->
+        </driver>       
+        <driver name="EcalRawConverterFit" type="org.hps.users.baltzell.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHitsFit</ecalCollectionName>
+            <use2014Gain>false</use2014Gain>
+            <useTimestamps>false</useTimestamps>
+            <useTruthTime>false</useTruthTime>
+            <useRunningPedestal>true</useRunningPedestal>
+            <useTimeWalkCorrection>false</useTimeWalkCorrection>
+            <emulateFirmware>true</emulateFirmware>
+            <emulateMode7>true</emulateMode7>
+            <leadingEdgeThreshold>12</leadingEdgeThreshold>
+            <nsa>20</nsa>
+            <nsb>100</nsb>
             <useFit>true</useFit>
             <fixShapeParameter>true</fixShapeParameter>
             <debug>0</debug>
@@ -33,6 +52,19 @@
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+            <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
+            <hitEnergyThreshold>0.01</hitEnergyThreshold>
+            <seedEnergyThreshold>0.050</seedEnergyThreshold> 
+            <clusterEnergyThreshold>0.100</clusterEnergyThreshold>
+            <minTime>0.0</minTime>
+            <timeWindow>25.0</timeWindow>
+            <useTimeCut>true</useTimeCut>
+            <writeRejectedHitCollection>false</writeRejectedHitCollection>
+        </driver>
+        <driver name="ReconClustererFit" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClustersFit</outputClusterCollectionName>
+            <inputHitCollectionName>EcalCalHitsFit</inputHitCollectionName>
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
             <seedEnergyThreshold>0.050</seedEnergyThreshold> 
             <clusterEnergyThreshold>0.100</clusterEnergyThreshold>
