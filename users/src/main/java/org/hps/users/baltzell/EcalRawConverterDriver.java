@@ -57,9 +57,9 @@ public class EcalRawConverterDriver extends Driver {
         converter = new EcalRawConverter();
     }
 
-    public void setUseFit(boolean useFit) { converter.useFit=useFit; }
-    public void setFitFileName(String name) { converter.fitFileName=name; }
-    public void setFixShapeParameter(boolean fix) { converter.fixShapeParameter=fix; }
+    public void setUseFit(boolean useFit) { converter.setUseFit(useFit); }
+    public void setFitFileName(String name) { converter.setFitFileName(name); }
+    public void setFixShapeParameter(boolean fix) { converter.setFixShapeParameter(fix); }
     
     
     /**

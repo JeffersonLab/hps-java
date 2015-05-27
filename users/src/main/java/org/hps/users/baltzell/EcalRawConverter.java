@@ -1,20 +1,12 @@
 package org.hps.users.baltzell;
 
-import org.hps.users.baltzell.Ecal3PoleFunction;
-
-import hep.aida.IAnalysisFactory;
-import hep.aida.IDataPointSet;
-import hep.aida.IFitFactory;
 import hep.aida.IFitResult;
-import hep.aida.IFitter;
-import hep.aida.IFunction;
-import hep.aida.IFunctionFactory;
-import hep.aida.IHistogram1D;
+//import hep.aida.IHistogram1D;
+//import hep.aida.IHistogram2D;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Level;
@@ -49,7 +41,9 @@ import org.lcsim.util.aida.AIDA;
  * @author Nathan Baltzell <baltzell@jlab.org>
  * @author Holly Szumila <hvanc001@odu.edu>
  *
- * baltzell:  New in 2015:  (default behavior is still unchanged)
+ * baltzell:  New in May, 2015:  Pulse Fitting.
+ *
+ * baltzell:  New in Early-2015:  (default behavior is still unchanged)
  *
  * Implemented conversion of Mode-1 to Mode-3.
  * 
@@ -67,18 +61,22 @@ import org.lcsim.util.aida.AIDA;
  */
 public class EcalRawConverter {
 
-
-    // wtf.
+    EcalPulseFitter pulseFitter = new EcalPulseFitter();
+    
+    /* 
     AIDA aida = AIDA.defaultInstance();
-    IAnalysisFactory analysisFactory = aida.analysisFactory();
-    IFunctionFactory functionFactory = analysisFactory.createFunctionFactory(null);
-    IFitFactory fitFactory = analysisFactory.createFitFactory();
-    IFitter fitter=fitFactory.createFitter();
-    IFunction fitFunction=new Ecal3PoleFunction();
-    IDataPointSet data=aida.analysisFactory().createDataPointSetFactory(null).create("ADC DataPointSet", 2);
-   
-    IHistogram1D hWidth = aida.histogram1D("hShape",500,0,5);
-    IHistogram1D hQuality = aida.histogram1D("hChiSquare",500,0,5);
+    IHistogram1D hWidth = aida.histogram1D("hWidth",500,0,5);
+    IHistogram2D hWidthE = aida.histogram2D("hWidthE",500,0,5,100,0,5000.0);
+    IHistogram1D hChiSquare = aida.histogram1D("hChiSquare",500,0,5);
+    IHistogram2D hWidthChan = aida.histogram2D("hWidthChan",500,0,5,442,0.5,442.5);
+    IHistogram2D hSamplesChanW = aida.histogram2D("hSamplesChanW",442,0.5,442.5,50,-0.5,49.5);
+    IHistogram2D hSamplesChan = aida.histogram2D("hSamplesChan",442,0.5,442.5,50,-0.5,49.5);
+    IHistogram2D hSamplesChanLoW = aida.histogram2D("hSamplesChanLoW",442,0.5,442.5,50,-0.5,49.5);
+    IHistogram2D hSamplesChanLo = aida.histogram2D("hSamplesChanLo",442,0.5,442.5,50,-0.5,49.5);
+    IHistogram2D hSamplesChanHiW = aida.histogram2D("hSamplesChanHiW",442,0.5,442.5,50,-0.5,49.5);
+    IHistogram2D hSamplesChanHi = aida.histogram2D("hSamplesChanHi",442,0.5,442.5,50,-0.5,49.5);
+    IHistogram2D hWidthEnergy153 = aida.histogram2D("hWidthEnergy153",500,0,5,500,0,5000);
+    */
     
     private boolean useTimeWalkCorrection = false;
     private boolean useRunningPedestal = false;
@@ -93,6 +91,11 @@ public class EcalRawConverter {
     public String fitFileName = null;
     public FileWriter fitFileWriter = null;
     public boolean fixShapeParameter = false;
+    //final private double threePoleWidth=2.478;
+
+    public void setUseFit(boolean useFit) { this.useFit=useFit; }
+    public void setFitFileName(String name) { pulseFitter.fitFileName=name; }
+    public void setFixShapeParameter(boolean fix) { pulseFitter.fixShapeParameter=fix; }
 
     /*
      * The time for one FADC sample (units = ns).
@@ -322,89 +325,6 @@ public class EcalRawConverter {
         return (lastSample-firstSample+1)*getSingleSamplePedestal(event,cellID); 
     }
 
-    public IFitResult fitPulse(short samples[],int thresholdCrossing,double maxADC,double noise) {
-       
-        if (thresholdCrossing < 9 || thresholdCrossing > 15) return null;
-    
-        if (debug>0) System.err.println("FITTING.....................................................");
-       
-        data.clear();
-        int nped=0;
-        double ped=0;
-        for (int ii=thresholdCrossing-9; ii<thresholdCrossing-5; ii++) {
-            if (ii<0 || ii>=samples.length) break;
-            ped += samples[ii];
-            nped++;
-        }
-        ped /= nped;
-        if (nped==0) return null;
-        int npts=0;
-        int sumADC=0;
-        for (int ii=thresholdCrossing-10; ii<thresholdCrossing+15; ii++) {
-            if (ii<0) continue;
-            if (ii>=samples.length) break;
-            if (debug>0) System.err.print(ii+":"+samples[ii]+" ");
-            data.addPoint();
-            data.point(npts).coordinate(0).setValue(ii);
-            data.point(npts).coordinate(1).setValue(samples[ii]);
-            data.point(npts).coordinate(1).setErrorMinus(noise);
-            data.point(npts).coordinate(1).setErrorPlus(noise);
-            sumADC += samples[ii];
-            npts++;
-        }
-        if (debug>0) System.err.print("\n");
-        if (npts>=10) {
-            if (debug>0) System.err.println("------- "+ped+" "+thresholdCrossing+" "+maxADC);
-            if (maxADC-ped < 0) return null;
-            final double pulseIntegral = sumADC-ped*npts;
-            fitFunction.setParameter("pedestal",ped);
-            fitFunction.setParameter("time0",(double)thresholdCrossing-2);
-            fitFunction.setParameter("integral",pulseIntegral>0?pulseIntegral:10);
-            fitFunction.setParameter("width",2.478);
-            ((Ecal3PoleFunction)fitFunction).setDebug(debug>1);
-
-            if (debug>0) {
-                System.err.println(String.format("A= %8.2f",fitFunction.parameter("integral")));
-                System.err.println(String.format("T= %8.2f",fitFunction.parameter("time0")*4));
-                System.err.println(String.format("P= %8.2f",fitFunction.parameter("pedestal")));
-                System.err.println(String.format("S= %8.2f",fitFunction.parameter("width")));
-            }
-
-            fitter.fitParameterSettings("integral").setBounds(0,999999);
-            fitter.fitParameterSettings("time0").setBounds(5,40);
-            fitter.fitParameterSettings("width").setBounds(0.1,5);
-            if (fixShapeParameter) fitter.fitParameterSettings("width").setFixed(true);
-           
-            if (debug<1) Logger.getLogger("org.freehep.math.minuit").setLevel(Level.OFF);
-            IFitResult fitResult = fitter.fit(data,fitFunction);
-            writeFit(samples,fitResult);
-            return fitResult;
-        }
-        return null;
-    }
-    
-    public void writeFit(short samples[],IFitResult fit) {
-        if (fitFileName == null) return;
-        if (fitFileWriter == null) {
-            try { fitFileWriter=new FileWriter(fitFileName); }
-            catch (IOException ee) { throw new RuntimeException("Error opening file "+fitFileName,ee); }
-        }
-        
-        try {
-            for (final short ss : samples) fitFileWriter.write(String.format("%6d ",ss));
-            fitFileWriter.write(String.format("%8.3f",fit.fittedParameter("integral")));
-            fitFileWriter.write(String.format("%8.3f",fit.fittedParameter("time0")));
-            fitFileWriter.write(String.format("%8.3f",fit.fittedParameter("pedestal")));
-            fitFileWriter.write(String.format("%8.3f",fit.fittedParameter("width")));
-            fitFileWriter.write(String.format("%8.3f",fit.quality()));
-            fitFileWriter.write("\n");
-        } catch (IOException ee) {
-            throw new RuntimeException("Error writing file "+fitFileName,ee);
-        } 
-    }
-    
-        
-    
     /*
      * Emulate the FADC250 firmware in conversion of Mode-1 waveform to a Mode-3/7 pulse,
      * given a time for threshold crossing.
@@ -490,9 +410,13 @@ public class EcalRawConverter {
               final int a0 = samples[t0];
               final int a1 = samples[t1];
               final double slope = (a1 - a0); // units = ADC/sample
-              final double yint = a1 - slope * t1;  // units = ADC 
-              pulseTime = ((halfMax - a0)/(a1-a0) + t0)* nsPerSample;
+              final double yint = a1 - slope * t1;  // units = ADC
               
+              // mode-7 time, time at half max:
+              pulseTime = ((halfMax - a0)/(a1-a0) + t0)* nsPerSample;
+
+              // mode-8 time, time at pedestal intersection:
+              //pulseTime = (minADC-yint)/slope *  nsPerSample;
             }
 
            }
@@ -500,40 +424,50 @@ public class EcalRawConverter {
        
         if (useFit)
         {
-          final double noise=findChannel(hit.getCellID()).getCalibration().getNoise();
-          IFitResult fitResult=fitPulse(samples,thresholdCrossing,maxADC,noise);
-          
-          if (fitResult != null) {
-
-            final double P=fitResult.fittedParameter("pedestal");
-            final double A=fitResult.fittedParameter("integral");
-            final double T=fitResult.fittedParameter("time0");
-            final double S=fitResult.fittedParameter("width");
-            final double Q=fitResult.quality();
-
-            // finite integral from T to T+NSAMP:
-            //final int NSAMP=30;
-            //final double I = (A/2/S) * S*S*S* ( 2 - Math.exp(-NSAMP/S) * (Math.pow((S+NSAMP)/S,2) + 1));
-
-            // infinite integral:
-            //final double I = A*S*S;
+          IFitResult fitResults[] = pulseFitter.fitPulse(hit,thresholdCrossing,maxADC);
+          if (fitResults!=null && fitResults[0]!=null) {
             
-            // after normalizing the function:
-            final double I = A;
+            IFitResult fitResult=fitResults[0];
+            IFitResult timeResult=fitResults[1]==null?fitResults[0]:fitResults[1];
+
+            pulseTime = timeResult.fittedParameter("time0")*nsPerSample;
+            sumADC = fitResult.fittedParameter("integral");
+            minADC = fitResult.fittedParameter("pedestal");
+            maxADC = ((Ecal3PoleFunction)fitResult.fittedFunction()).maximum();
             
-            if (debug>0) {
-               System.err.println(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
-               System.err.println(String.format("A= %8.2f %8.2f",I,sumADC-P*30));
-               System.err.println(String.format("T= %8.2f %8.2f",T*4,pulseTime));
-               System.err.println(String.format("P= %8.2f %8.2f",P,minADC));
-               System.err.println(String.format("S= %8.2f",S));
-               System.err.println(String.format("M= %8.2f %8.2f",A,(maxADC-P)));
+            /*
+            final double width = fitResult.fittedParameter("width");
+            //final double E[] = fitResult.errors();
+            final int cid = getChannelId(hit.getCellID());
+            hWidth.fill(width);
+            hWidthE.fill(width,fitResult.fittedParameter("integral"));
+            if (cid==153) hWidthEnergy153.fill(width,fitResult.fittedParameter("integral"));
+            hChiSquare.fill(fitResult.quality());
+            hWidthChan.fill(width,cid);
+            for (int ii=0; ii<samples.length; ii++) {
+                hSamplesChan.fill(cid,ii);
+                hSamplesChanW.fill(cid,ii,samples[ii]);
+                if (fitResult.fittedParameter("integral") > 2000)
+                {
+                  hSamplesChanHi.fill(cid,ii);
+                  hSamplesChanHiW.fill(cid,ii,samples[ii]);
+                }
+                else if (fitResult.fittedParameter("integral") < 1000)
+                {
+                  hSamplesChanLo.fill(cid,ii);
+                  hSamplesChanLoW.fill(cid,ii,samples[ii]);
+                }
             }
-
-            hWidth.fill(S);
-            hQuality.fill(Q);
-            pulseTime = T*4;
-            sumADC = I;
+            */
+            
+            /* 
+            timeResult = pulseFitter.fitLeadingEdge(hit,thresholdCrossing);
+            if (timeResult != null) {
+                final double p0 = timeResult.fittedParameter("p0");
+                final double p1 = timeResult.fittedParameter("p1");
+                pulseTime = (minADC-p0)/p1 * nsPerSample;
+            }
+            */ 
           }
         }
         return new double []{pulseTime,sumADC,minADC,maxADC};
@@ -711,6 +645,8 @@ public class EcalRawConverter {
     public void setDetector(Detector detector) {
         // ECAL combined conditions object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+        
+        pulseFitter.setDetector(detector);
     }
 
     /**
@@ -721,6 +657,10 @@ public class EcalRawConverter {
      */
     public EcalChannelConstants findChannel(long cellID) {
         return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
+    }
+    
+    public int getChannelId(long cellID) {
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getChannelId(); 
     }
     
 }
