@@ -330,6 +330,8 @@ public class EcalRawConverter {
      * given a time for threshold crossing.
      */
     public double[] convertWaveformToPulse(RawTrackerHit hit,int thresholdCrossing,boolean mode7) {
+       
+        double fitQuality = -1;
         
         short samples[] = hit.getADCValues();
         //System.out.println("NewEvent");
@@ -429,12 +431,14 @@ public class EcalRawConverter {
             
             IFitResult fitResult=fitResults[0];
             IFitResult timeResult=fitResults[1]==null?fitResults[0]:fitResults[1];
-
-            pulseTime = timeResult.fittedParameter("time0")*nsPerSample;
-            sumADC = fitResult.fittedParameter("integral");
-            minADC = fitResult.fittedParameter("pedestal");
-            maxADC = ((Ecal3PoleFunction)fitResult.fittedFunction()).maximum();
+            fitQuality = fitResult.quality();
             
+            if (fitQuality > 0) {
+                pulseTime = timeResult.fittedParameter("time0")*nsPerSample;
+                sumADC = fitResult.fittedParameter("integral");
+                minADC = fitResult.fittedParameter("pedestal");
+                maxADC = ((Ecal3PoleFunction)fitResult.fittedFunction()).maximum();
+            } 
             /*
             final double width = fitResult.fittedParameter("width");
             //final double E[] = fitResult.errors();
@@ -470,7 +474,7 @@ public class EcalRawConverter {
             */ 
           }
         }
-        return new double []{pulseTime,sumADC,minADC,maxADC};
+        return new double []{pulseTime,sumADC,minADC,maxADC,fitQuality};
     }
   
     /*
@@ -541,8 +545,9 @@ public class EcalRawConverter {
             double sum = data[1];
             final double min = data[2]; // TODO: stick min and max in a GenericObject with an 
             final double max = data[3]; // LCRelation to finish mode-7 emulation
+            final double fitQuality = data[4];
            
-            if (!useFit) {
+            if (!useFit || fitQuality<0) {
               // do pedestal subtraction:
               sum -= getPulsePedestal(event, cellID, samples.length, thresholdCrossing);
             }
