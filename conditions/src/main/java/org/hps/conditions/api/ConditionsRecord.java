@@ -279,7 +279,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      * @return the collection ID
      */
     @Field(names = {"collection_id"})
-    public int getCollectionId() {
+    public Integer getCollectionId() {
         return getFieldValue("collection_id");
     }
 
@@ -330,7 +330,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      * @return the ending run number
      */
     @Field(names = {"run_end"})
-    public int getRunEnd() {
+    public Integer getRunEnd() {
         return getFieldValue("run_end");
     }
 
@@ -340,7 +340,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      * @return the starting run number
      */
     @Field(names = {"run_start"})
-    public int getRunStart() {
+    public Integer getRunStart() {
         return getFieldValue("run_start");
     }
 

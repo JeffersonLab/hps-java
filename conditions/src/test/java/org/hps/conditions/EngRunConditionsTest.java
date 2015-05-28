@@ -121,12 +121,12 @@ public final class EngRunConditionsTest extends TestCase {
         /**
          * Collection ID of calibrations.
          */
-        private static final int CALIBRATIONS_COLLECTION_ID = 4;
+        private static final Integer CALIBRATIONS_COLLECTION_ID = 4;
 
         /**
          * Collection ID of gains.
          */
-        private static final int GAINS_COLLECTION_ID = 4;
+        private static final Integer GAINS_COLLECTION_ID = 4;
 
         /**
          * Flag if {@link #detectorChanged(Detector)} is activated.
@@ -151,7 +151,7 @@ public final class EngRunConditionsTest extends TestCase {
             final EcalChannelCollection channels = conditionsManager.getCachedConditions(
                     EcalChannelCollection.class, "ecal_channels").getCachedData();
             assertEquals("Wrong number of channels.", CHANNEL_COUNT, channels.size());
-            assertEquals("Wrong channel collection ID.", 2, channels.getConditionsRecord().getCollectionId());
+            assertEquals("Wrong channel collection ID.", new Integer(2), channels.getConditionsRecord().getCollectionId());
             checkRunNumbers(channels);
 
             final EcalGainCollection gains = conditionsManager.getCachedConditions(
