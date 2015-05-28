@@ -419,50 +419,48 @@ public class TrackingReconstructionPlots extends Driver {
         
         //   ******************************************************************
           
-        plotter3 = fac.createPlotterFactory().create("HPS Residual Plots");
-        plotter3.setTitle("Residuals");
+        plotter3 = fac.createPlotterFactory().create("HPS Layer Residual Plots");
+        plotter3.setTitle("Layer Residuals");
         //plotterFrame.addPlotter(plotter3);
         IPlotterStyle style3 = plotter3.style();
         style3.dataStyle().fillStyle().setColor("yellow");
         style3.dataStyle().errorBarStyle().setVisible(false);
-        plotter3.createRegions(5, 2);
+        plotter3.createRegions(6, 2);
 
-        double minResidY = -1.5;
-        double maxResidY = 1.5;
+       
 
-        double minResidX = -5;
-        double maxResidX = 5;
+        IHistogram1D mod1ResX = aida.histogram1D("Layer 1 Residual X(mm)", 25, -1, 1);
+        IHistogram1D mod1ResY = aida.histogram1D("Layer 1 Residual Y(mm)", 25, -0.04, 0.04);
 
-        IHistogram1D mod1ResX = aida.histogram1D("Module 1 Residual X(mm)", 25, minResidX, maxResidX);
-        IHistogram1D mod1ResY = aida.histogram1D("Module 1 Residual Y(mm)", 25, minResidY, maxResidY);
+        IHistogram1D mod2ResX = aida.histogram1D("Layer 2 Residual X(mm)", 25, -2, 2);
+        IHistogram1D mod2ResY = aida.histogram1D("Layer 2 Residual Y(mm)", 25, -1, 1);
 
-        IHistogram1D mod2ResX = aida.histogram1D("Module 2 Residual X(mm)", 25, minResidX, maxResidX);
-        IHistogram1D mod2ResY = aida.histogram1D("Module 2 Residual Y(mm)", 25, minResidY, maxResidY);
+        IHistogram1D mod3ResX = aida.histogram1D("Layer 3 Residual X(mm)", 25, -2.5, 2.5);
+        IHistogram1D mod3ResY = aida.histogram1D("Layer 3 Residual Y(mm)", 25, -1.5, 1.5);
 
-        IHistogram1D mod3ResX = aida.histogram1D("Module 3 Residual X(mm)", 25, minResidX, maxResidX);
-        IHistogram1D mod3ResY = aida.histogram1D("Module 3 Residual Y(mm)", 25, minResidY, maxResidY);
+        IHistogram1D mod4ResX = aida.histogram1D("Layer 4 Residual X(mm)", 25, -3.0, 3.0);
+        IHistogram1D mod4ResY = aida.histogram1D("Layer 4 Residual Y(mm)", 25, -2, 2);
 
-        IHistogram1D mod4ResX = aida.histogram1D("Module 4 Residual X(mm)", 25, minResidX, maxResidX);
-        IHistogram1D mod4ResY = aida.histogram1D("Module 4 Residual Y(mm)", 25, minResidY, maxResidY);
+        IHistogram1D mod5ResX = aida.histogram1D("Layer 5 Residual X(mm)", 25, -4, 4);
+        IHistogram1D mod5ResY = aida.histogram1D("Layer 5 Residual Y(mm)", 25, -3, 3);
 
-        IHistogram1D mod5ResX = aida.histogram1D("Module 5 Residual X(mm)", 25, minResidX, maxResidX);
-        IHistogram1D mod5ResY = aida.histogram1D("Module 5 Residual Y(mm)", 25, minResidY, maxResidY);
-
-        IHistogram1D mod6ResX = aida.histogram1D("Module 6 Residual X(mm)", 25, minResidX, maxResidX);
-        IHistogram1D mod6ResY = aida.histogram1D("Module 6 Residual Y(mm)", 25, minResidY, maxResidY);
+        IHistogram1D mod6ResX = aida.histogram1D("Layer 6 Residual X(mm)", 25, -5, 5);
+        IHistogram1D mod6ResY = aida.histogram1D("Layer 6 Residual Y(mm)", 25, -3, 3);
 
         plotter3.region(0).plot(mod1ResX);
         plotter3.region(2).plot(mod2ResX);
         plotter3.region(4).plot(mod3ResX);
         plotter3.region(6).plot(mod4ResX);
         plotter3.region(8).plot(mod5ResX);
+        plotter3.region(10).plot(mod6ResX);
 
         plotter3.region(1).plot(mod1ResY);
         plotter3.region(3).plot(mod2ResY);
         plotter3.region(5).plot(mod3ResY);
         plotter3.region(7).plot(mod4ResY);
         plotter3.region(9).plot(mod5ResY);
-        
+        plotter3.region(11).plot(mod6ResY);
+               
         if(showPlots) plotter3.show();
         
         
@@ -508,25 +506,26 @@ public class TrackingReconstructionPlots extends Driver {
         style3_1.dataStyle().fillStyle().setColor("yellow");
         style3_1.dataStyle().errorBarStyle().setVisible(false);
         plotter3_1.createRegions(6, 2);
+        
+        IHistogram1D mod1ResX_Top = aida.histogram1D("Layer 1 Residual X(mm) Top", 25, -1, 1);
+        IHistogram1D mod1ResY_Top = aida.histogram1D("Layer 1 Residual Y(mm) Top", 25, -0.04, 0.04);
 
-        IHistogram1D mod1ResX_Top = aida.histogram1D("Module 1 Residual X(mm) Top", 25, minResidX, maxResidX);
-        IHistogram1D mod1ResY_Top = aida.histogram1D("Module 1 Residual Y(mm) Top", 25, minResidY, maxResidY);
+        IHistogram1D mod2ResX_Top = aida.histogram1D("Layer 2 Residual X(mm) Top", 25, -2, 2);
+        IHistogram1D mod2ResY_Top = aida.histogram1D("Layer 2 Residual Y(mm) Top", 25, -1, 1);
 
-        IHistogram1D mod2ResX_Top = aida.histogram1D("Module 2 Residual X(mm) Top", 25, minResidX, maxResidX);
-        IHistogram1D mod2ResY_Top = aida.histogram1D("Module 2 Residual Y(mm) Top", 25, minResidY, maxResidY);
+        IHistogram1D mod3ResX_Top = aida.histogram1D("Layer 3 Residual X(mm) Top", 25, -2.5, 2.5);
+        IHistogram1D mod3ResY_Top = aida.histogram1D("Layer 3 Residual Y(mm) Top", 25, -1.5, 1.5);
 
-        IHistogram1D mod3ResX_Top = aida.histogram1D("Module 3 Residual X(mm) Top", 25, minResidX, maxResidX);
-        IHistogram1D mod3ResY_Top = aida.histogram1D("Module 3 Residual Y(mm) Top", 25, minResidY, maxResidY);
+        IHistogram1D mod4ResX_Top = aida.histogram1D("Layer 4 Residual X(mm) Top", 25, -3.0, 3.0);
+        IHistogram1D mod4ResY_Top = aida.histogram1D("Layer 4 Residual Y(mm) Top", 25, -2, 2);
 
-        IHistogram1D mod4ResX_Top = aida.histogram1D("Module 4 Residual X(mm) Top", 25, minResidX, maxResidX);
-        IHistogram1D mod4ResY_Top = aida.histogram1D("Module 4 Residual Y(mm) Top", 25, minResidY, maxResidY);
+        IHistogram1D mod5ResX_Top = aida.histogram1D("Layer 5 Residual X(mm) Top", 25, -4, 4);
+        IHistogram1D mod5ResY_Top = aida.histogram1D("Layer 5 Residual Y(mm) Top", 25, -3, 3);
 
-        IHistogram1D mod5ResX_Top = aida.histogram1D("Module 5 Residual X(mm) Top", 25, minResidX, maxResidX);
-        IHistogram1D mod5ResY_Top = aida.histogram1D("Module 5 Residual Y(mm) Top", 25, minResidY, maxResidY);
+        IHistogram1D mod6ResX_Top = aida.histogram1D("Layer 6 Residual X(mm) Top", 25, -5, 5);
+        IHistogram1D mod6ResY_Top = aida.histogram1D("Layer 6 Residual Y(mm) Top", 25, -3, 3);
 
-        IHistogram1D mod6ResX_Top = aida.histogram1D("Module 6 Residual X(mm) Top", 25, minResidX, maxResidX);
-        IHistogram1D mod6ResY_Top = aida.histogram1D("Module 6 Residual Y(mm) Top", 25, minResidY, maxResidY);
-
+        
         plotter3_1.region(0).plot(mod1ResX_Top);
         plotter3_1.region(2).plot(mod2ResX_Top);
         plotter3_1.region(4).plot(mod3ResX_Top);
@@ -551,23 +550,23 @@ public class TrackingReconstructionPlots extends Driver {
         style3_2.dataStyle().errorBarStyle().setVisible(false);
         plotter3_2.createRegions(6, 2);
 
-        IHistogram1D mod1ResX_Bottom = aida.histogram1D("Module 1 Residual X(mm) Bottom", 25, minResidX, maxResidX);
-        IHistogram1D mod1ResY_Bottom = aida.histogram1D("Module 1 Residual Y(mm) Bottom", 25, minResidY, maxResidY);
+        IHistogram1D mod1ResX_Bottom = aida.histogram1D("Layer 1 Residual X(mm) Bottom", 25, -1, 1);
+        IHistogram1D mod1ResY_Bottom = aida.histogram1D("Layer 1 Residual Y(mm) Bottom", 25, -0.04, 0.04);
 
-        IHistogram1D mod2ResX_Bottom = aida.histogram1D("Module 2 Residual X(mm) Bottom", 25, minResidX, maxResidX);
-        IHistogram1D mod2ResY_Bottom = aida.histogram1D("Module 2 Residual Y(mm) Bottom", 25, minResidY, maxResidY);
+        IHistogram1D mod2ResX_Bottom = aida.histogram1D("Layer 2 Residual X(mm) Bottom", 25, -2, 2);
+        IHistogram1D mod2ResY_Bottom = aida.histogram1D("Layer 2 Residual Y(mm) Bottom", 25, -1, 1);
 
-        IHistogram1D mod3ResX_Bottom = aida.histogram1D("Module 3 Residual X(mm) Bottom", 25, minResidX, maxResidX);
-        IHistogram1D mod3ResY_Bottom = aida.histogram1D("Module 3 Residual Y(mm) Bottom", 25, minResidY, maxResidY);
+        IHistogram1D mod3ResX_Bottom = aida.histogram1D("Layer 3 Residual X(mm) Bottom", 25, -2.5, 2.5);
+        IHistogram1D mod3ResY_Bottom = aida.histogram1D("Layer 3 Residual Y(mm) Bottom", 25, -1.5, 1.5);
 
-        IHistogram1D mod4ResX_Bottom = aida.histogram1D("Module 4 Residual X(mm) Bottom", 25, minResidX, maxResidX);
-        IHistogram1D mod4ResY_Bottom = aida.histogram1D("Module 4 Residual Y(mm) Bottom", 25, minResidY, maxResidY);
+        IHistogram1D mod4ResX_Bottom = aida.histogram1D("Layer 4 Residual X(mm) Bottom", 25, -3.0, 3.0);
+        IHistogram1D mod4ResY_Bottom = aida.histogram1D("Layer 4 Residual Y(mm) Bottom", 25, -2, 2);
 
-        IHistogram1D mod5ResX_Bottom = aida.histogram1D("Module 5 Residual X(mm) Bottom", 25, minResidX, maxResidX);
-        IHistogram1D mod5ResY_Bottom = aida.histogram1D("Module 5 Residual Y(mm) Bottom", 25, minResidY, maxResidY);
+        IHistogram1D mod5ResX_Bottom = aida.histogram1D("Layer 5 Residual X(mm) Bottom", 25, -4, 4);
+        IHistogram1D mod5ResY_Bottom = aida.histogram1D("Layer 5 Residual Y(mm) Bottom", 25, -3, 3);
 
-        IHistogram1D mod6ResX_Bottom = aida.histogram1D("Module 6 Residual X(mm) Bottom", 25, minResidX, maxResidX);
-        IHistogram1D mod6ResY_Bottom = aida.histogram1D("Module 6 Residual Y(mm) Bottom", 25, minResidY, maxResidY);
+        IHistogram1D mod6ResX_Bottom = aida.histogram1D("Layer 6 Residual X(mm) Bottom", 25, -5, 5);
+        IHistogram1D mod6ResY_Bottom = aida.histogram1D("Layer 6 Residual Y(mm) Bottom", 25, -3, 3);
 
         plotter3_2.region(0).plot(mod1ResX_Bottom);
         plotter3_2.region(2).plot(mod2ResX_Bottom);
@@ -1173,24 +1172,24 @@ public class TrackingReconstructionPlots extends Driver {
                 double yTr = posonhelix.y();
                 double zTr = posonhelix.z();
                 int layer = htc.Layer();
-                String modNum = "Module X ";
+                String modNum = "Layer X ";
                 if (layer == 1) {
-                    modNum = "Module 1 ";
+                    modNum = "Layer 1 ";
                 }
                 if (layer == 3) {
-                    modNum = "Module 2 ";
+                    modNum = "Layer 2 ";
                 }
                 if (layer == 5) {
-                    modNum = "Module 3 ";
+                    modNum = "Layer 3 ";
                 }
                 if (layer == 7) {
-                    modNum = "Module 4 ";
+                    modNum = "Layer 4 ";
                 }
                 if (layer == 9) {
-                    modNum = "Module 5 ";
+                    modNum = "Layer 5 ";
                 }
                 if (layer == 11) {
-                    modNum = "Module 6 ";
+                    modNum = "Layer 6 ";
                 }
                 //SymmetricMatrix cov = htc.getCorrectedCovMatrix();
 
