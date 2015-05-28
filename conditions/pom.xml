@@ -37,6 +37,7 @@
                         <exclude>org/hps/conditions/beam/BeamConditionsTest.java</exclude>
                         <exclude>org/hps/conditions/ecal/EcalHardwareConditionsTest.java</exclude>
                         <exclude>org/hps/conditions/database/CollectionIdTest.java</exclude>
+                        <exclude>/org/hps/conditions/svt/SvtTimingConstantsTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
