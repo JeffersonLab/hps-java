@@ -23,6 +23,7 @@ import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
@@ -31,14 +32,17 @@ import org.lcsim.fit.helicaltrack.HelixParamCalculator;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.fit.helicaltrack.HitUtils;
 import org.lcsim.fit.helicaltrack.MultipleScatter;
+import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
+import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.swim.Helix;
 
 /**
- * Assorted helper functions for the track and helix objects in lcsim. Re-use as much of HelixUtils
+ * Assorted helper functions for the track and helix objects in lcsim. Re-use as
+ * much of HelixUtils
  * as possible.
- * 
+ *
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 // TODO: Switch to tracking/LCsim coordinates for the extrapolation output!
@@ -52,8 +56,10 @@ public class TrackUtils {
     }
 
     /**
-     * Extrapolate track to a position along the x-axis. Turn the track into a helix object in
+     * Extrapolate track to a position along the x-axis. Turn the track into a
+     * helix object in
      * order to use HelixUtils.
+     *
      * @param track
      * @param x
      * @return
@@ -64,6 +70,7 @@ public class TrackUtils {
 
     /**
      * Extrapolate helix to a position along the x-axis. Re-use HelixUtils.
+     *
      * @param track
      * @param x
      * @return
@@ -75,7 +82,6 @@ public class TrackUtils {
 
     // ==========================================================================
     // Helper functions for track parameters and commonly used derived variables
-
     public static double getPhi(Track track, Hep3Vector position) {
         double x = Math.sin(getPhi0(track)) - (1 / getR(track)) * (position.x() - getX0(track));
         double y = Math.cos(getPhi0(track)) + (1 / getR(track)) * (position.y() - getY0(track));
@@ -119,10 +125,12 @@ public class TrackUtils {
     }
 
     // ==========================================================================
-
     /**
-     * Calculate the point of interception between the helix and a plane in space. Uses an iterative procedure.
-     * This function makes assumptions on the sign and convecntion of the B-field. Be careful.
+     * Calculate the point of interception between the helix and a plane in
+     * space. Uses an iterative procedure.
+     * This function makes assumptions on the sign and convecntion of the
+     * B-field. Be careful.
+     *
      * @param helfit - helix
      * @param unit_vec_normal_to_plane - unit vector normal to the plane
      * @param point_on_plane - point on the plane
@@ -144,8 +152,10 @@ public class TrackUtils {
     }
 
     /**
-     * Calculate the point of interception between the helix and a plane in space. Uses an
+     * Calculate the point of interception between the helix and a plane in
+     * space. Uses an
      * iterative procedure.
+     *
      * @param helfit - helix
      * @param strip - strip cluster that will define the plane
      * @param bfield - magnetic field value
@@ -174,11 +184,11 @@ public class TrackUtils {
         // y_int = k*x_int + m
         // R^2 = (y_int-y_c)^2 + (x_int-x_c)^2
         // solve for x_int
-
     }
 
     /**
      * Get position of a track extrapolated to the HARP in the HPS test run 2012
+     *
      * @param track
      * @return position at HARP
      */
@@ -187,7 +197,9 @@ public class TrackUtils {
     }
 
     /**
-     * Get position of a track extrapolated to the ECAL face in the HPS test run 2012
+     * Get position of a track extrapolated to the ECAL face in the HPS test run
+     * 2012
+     *
      * @param track
      * @return position at ECAL
      */
@@ -197,8 +209,10 @@ public class TrackUtils {
 
     /**
      * Extrapolate track to given position.
+     *
      * @param helix - to be extrapolated
-     * @param track - position along the x-axis of the helix in lcsim coordiantes
+     * @param track - position along the x-axis of the helix in lcsim
+     * coordiantes
      * @return
      */
     public static Hep3Vector extrapolateTrack(Track track, double z) {
@@ -234,6 +248,7 @@ public class TrackUtils {
 
     /**
      * Extrapolate helix to given position
+     *
      * @param helix - to be extrapolated
      * @param z - position along the x-axis of the helix in lcsim coordiantes
      * @return
@@ -254,7 +269,8 @@ public class TrackUtils {
      * @param helix input helix object
      * @param origin of the plane to intercept
      * @param normal of the plane to intercept
-     * @param eps criteria on the distance to the plane before stopping iteration
+     * @param eps criteria on the distance to the plane before stopping
+     * iteration
      * @return position in space at the intercept of the plane
      */
     public static Hep3Vector getHelixPlanePositionIter(HelicalTrackFit helix, Hep3Vector origin, Hep3Vector normal, double eps) {
@@ -314,79 +330,67 @@ public class TrackUtils {
         // System.out.printf("pos %s xc %f phi_at_x %f dphi_at_x %f s_at_x %f\n",
         // pos.toString(),xc,phi_at_x,dphi_at_x,s_at_x);
         Hep3Vector posXCheck = TrackUtils.extrapolateHelixToXPlane(helix, x);
-        if (VecOp.sub(pos, posXCheck).magnitude() > 0.0000001) {
+        if (VecOp.sub(pos, posXCheck).magnitude() > 0.0000001)
             throw new RuntimeException(String.format("ERROR the helix propagation equations do not agree? (%f,%f,%f) vs (%f,%f,%f) in HelixUtils", pos.x(), pos.y(), pos.z(), posXCheck.x(), posXCheck.y(), posXCheck.z()));
-        }
         return pos;
     }
 
     /**
-        *
-        */
+     *
+     */
     public static double findTriangleArea(double x0, double y0, double x1, double y1, double x2, double y2) {
         return .5 * (x1 * y2 - y1 * x2 - x0 * y2 + y0 * x2 + x0 * y1 - y0 * x1);
     }
 
     /**
-        *
-        */
+     *
+     */
     public static boolean sensorContainsTrack(Hep3Vector trackPosition, SiSensor sensor) {
         boolean debug = false;
         ITransform3D localToGlobal = sensor.getGeometry().getLocalToGlobal();
 
         Box sensorSolid = (Box) sensor.getGeometry().getLogicalVolume().getSolid();
         Polygon3D sensorFace = sensorSolid.getFacesNormalTo(new BasicHep3Vector(0, 0, 1)).get(0);
-        if (debug) {
+        if (debug)
             System.out.println("sensorContainsTrack:  Track Position: " + trackPosition.toString());
-        }
 
         List<Point3D> vertices = new ArrayList<Point3D>();
-        for (int index = 0; index < 4; index++) {
+        for (int index = 0; index < 4; index++)
             vertices.add(new Point3D());
-        }
-        for (Point3D vertex : sensorFace.getVertices()) {
+        for (Point3D vertex : sensorFace.getVertices())
             if (vertex.y() < 0 && vertex.x() > 0) {
                 localToGlobal.transform(vertex);
                 // vertices.set(0, new Point3D(vertex.y() + sensorPos.x(), vertex.x() +
                 // sensorPos.y(), vertex.z() + sensorPos.z()));
                 vertices.set(0, new Point3D(vertex.x(), vertex.y(), vertex.z()));
-                if (debug) {
-                    System.out.println("sensorContainsTrack:  Vertex 1 Position: " + vertices.get(0).toString());
-                    // System.out.println("sensorContainsTrack:  Transformed Vertex 1 Position: " +
-                    // localToGlobal.transformed(vertex).toString());
-                }
+                if (debug)
+                    System.out.println("sensorContainsTrack:  Vertex 1 Position: " + vertices.get(0).toString()); // System.out.println("sensorContainsTrack:  Transformed Vertex 1 Position: " +
+                // localToGlobal.transformed(vertex).toString());
             } else if (vertex.y() > 0 && vertex.x() > 0) {
                 localToGlobal.transform(vertex);
                 // vertices.set(1, new Point3D(vertex.y() + sensorPos.x(), vertex.x() +
                 // sensorPos.y(), vertex.z() + sensorPos.z()));
                 vertices.set(1, new Point3D(vertex.x(), vertex.y(), vertex.z()));
-                if (debug) {
-                    System.out.println("sensorContainsTrack:  Vertex 2 Position: " + vertices.get(1).toString());
-                    // System.out.println("sensorContainsTrack:  Transformed Vertex 2 Position: " +
-                    // localToGlobal.transformed(vertex).toString());
-                }
+                if (debug)
+                    System.out.println("sensorContainsTrack:  Vertex 2 Position: " + vertices.get(1).toString()); // System.out.println("sensorContainsTrack:  Transformed Vertex 2 Position: " +
+                // localToGlobal.transformed(vertex).toString());
             } else if (vertex.y() > 0 && vertex.x() < 0) {
                 localToGlobal.transform(vertex);
                 // vertices.set(2, new Point3D(vertex.y() + sensorPos.x(), vertex.x() +
                 // sensorPos.y(), vertex.z() + sensorPos.z()));
                 vertices.set(2, new Point3D(vertex.x(), vertex.y(), vertex.z()));
-                if (debug) {
-                    System.out.println("sensorContainsTrack:  Vertex 3 Position: " + vertices.get(2).toString());
-                    // System.out.println("sensorContainsTrack:  Transformed Vertex 3 Position: " +
-                    // localToGlobal.transformed(vertex).toString());
-                }
+                if (debug)
+                    System.out.println("sensorContainsTrack:  Vertex 3 Position: " + vertices.get(2).toString()); // System.out.println("sensorContainsTrack:  Transformed Vertex 3 Position: " +
+                // localToGlobal.transformed(vertex).toString());
             } else if (vertex.y() < 0 && vertex.x() < 0) {
                 localToGlobal.transform(vertex);
                 // vertices.set(3, new Point3D(vertex.y() + sensorPos.x(), vertex.x() +
                 // sensorPos.y(), vertex.z() + sensorPos.z()));
                 vertices.set(3, new Point3D(vertex.x(), vertex.y(), vertex.z()));
-                if (debug) {
-                    System.out.println("sensorContainsTrack:  Vertex 4 Position: " + vertices.get(3).toString());
-                    // System.out.println("sensorContainsTrack:  Transformed Vertex 4 Position: " +
-                    // localToGlobal.transformed(vertex).toString());
-                }
+                if (debug)
+                    System.out.println("sensorContainsTrack:  Vertex 4 Position: " + vertices.get(3).toString()); // System.out.println("sensorContainsTrack:  Transformed Vertex 4 Position: " +
+                // localToGlobal.transformed(vertex).toString());
             }
-        }
 
         double area1 = TrackUtils.findTriangleArea(vertices.get(0).x(), vertices.get(0).y(), vertices.get(1).x(), vertices.get(1).y(), trackPosition.y(), trackPosition.z());
         double area2 = TrackUtils.findTriangleArea(vertices.get(1).x(), vertices.get(1).y(), vertices.get(2).x(), vertices.get(2).y(), trackPosition.y(), trackPosition.z());
@@ -414,7 +418,6 @@ public class TrackUtils {
         }
 
         // Calculate the residuals that are being used in the track fit
-
         // Start with the bendplane y
         double drphi_res = hth.drphi();
         double wrphi = Math.sqrt(drphi_res * drphi_res + msdrphi * msdrphi);
@@ -504,10 +507,9 @@ public class TrackUtils {
         // Find interception with plane that the strips belongs to
         Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(_trk, strip, Math.abs(bFieldInZ));
 
-        if (debug) {
+        if (debug)
             System.out.printf("calculateLocalTrackHitResiduals: strip u %s origin %s \n", u.toString(),corigin.toString());
             System.out.printf("calculateLocalTrackHitResiduals: found interception point with sensor at %s \n", trkpos.toString());
-        }
 
         if (Double.isNaN(trkpos.x()) || Double.isNaN(trkpos.y()) || Double.isNaN(trkpos.z())) {
             System.out.printf("calculateLocalTrackHitResiduals: failed to get interception point (%s) \n", trkpos.toString());
@@ -561,17 +563,16 @@ public class TrackUtils {
     }
 
     public static int[] getHitsInTopBottom(Track track) {
-        int n[] = { 0, 0 };
+        int n[] = {0, 0};
         List<TrackerHit> hitsOnTrack = track.getTrackerHits();
         for (TrackerHit hit : hitsOnTrack) {
             HelicalTrackHit hth = (HelicalTrackHit) hit;
             //===> if (SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit) hth.getRawHits().get(0)).getDetectorElement())) {
             HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hth.getRawHits().get(0)).getDetectorElement());
-            if(sensor.isTopLayer()){
+            if (sensor.isTopLayer())
                 n[0] = n[0] + 1;
-            } else {
+            else
                 n[1] = n[1] + 1;
-            }
         }
         return n;
     }
@@ -586,13 +587,12 @@ public class TrackUtils {
 
     public static int isTopOrBottomTrack(Track track, int minhits) {
         int nhits[] = getHitsInTopBottom(track);
-        if (nhits[0] >= minhits && nhits[1] == 0) {
+        if (nhits[0] >= minhits && nhits[1] == 0)
             return 1;
-        } else if (nhits[1] >= minhits && nhits[0] == 0) {
+        else if (nhits[1] >= minhits && nhits[0] == 0)
             return 0;
-        } else {
+        else
             return -1;
-        }
     }
 
     public static boolean hasTopBotHit(Track track) {
@@ -609,10 +609,9 @@ public class TrackUtils {
             List<TrackerHit> hitsOnTrack = track.getTrackerHits();
             for (TrackerHit loop_hit : hitsOnTrack) {
                 HelicalTrackHit loop_hth = (HelicalTrackHit) loop_hit;
-                if (hth.equals(loop_hth)) {
+                if (hth.equals(loop_hth))
                     // System.out.printf("share hit at layer %d at %s (%s) with track w/ chi2=%f\n",hth.Layer(),hth.getCorrectedPosition().toString(),loop_hth.getCorrectedPosition().toString(),track.getChi2());
                     return true;
-                }
             }
         }
         return false;
@@ -624,20 +623,17 @@ public class TrackUtils {
         // System.out.printf("look for another track with chi2=%f and px=%f \n",track.getChi2(),track.getTrackStates().get(0).getMomentum()[0]);
         for (Track t : tracklist) {
             // System.out.printf("add track with chi2=%f and px=%f ?\n",t.getChi2(),t.getTrackStates().get(0).getMomentum()[0]);
-            if (t.equals(track)) {
+            if (t.equals(track))
                 // System.out.printf("NOPE\n");
                 continue;
-            }
             // System.out.printf("YEPP\n");
             tracks.add(t);
         }
         List<TrackerHit> hitsOnTrack = track.getTrackerHits();
         int n_shared = 0;
-        for (TrackerHit hit : hitsOnTrack) {
-            if (isSharedHit(hit, tracks)) {
+        for (TrackerHit hit : hitsOnTrack)
+            if (isSharedHit(hit, tracks))
                 ++n_shared;
-            }
-        }
         return n_shared;
     }
 
@@ -655,8 +651,8 @@ public class TrackUtils {
     }
 
     public static int passTrackSelections(Track track, List<Track> tracklist, EventQuality.Quality trk_quality) {
-        int cuts[] = { 0 };
-        if(trk_quality.compareTo(Quality.NONE) != 0) {
+        int cuts[] = {0};
+        if (trk_quality.compareTo(Quality.NONE) != 0) {
             if (track.getTrackStates().get(0).getMomentum()[0] < EventQuality.instance().getCutValue(EventQuality.Cut.PZ, trk_quality))
                 cut(cuts, EventQuality.Cut.PZ);
             if (track.getChi2() >= EventQuality.instance().getCutValue(EventQuality.Cut.CHI2, trk_quality))
@@ -680,24 +676,24 @@ public class TrackUtils {
     }
 
     /**
-     * Transform MCParticle into a Helix object. Note that it produces the helix parameters at
+     * Transform MCParticle into a Helix object. Note that it produces the helix
+     * parameters at
      * nominal x=0 and assumes that there is no field at x<0
-     * 
+     *
      * @param mcp MC particle to be transformed
      * @return helix object based on the MC particle
      */
     public static HelicalTrackFit getHTF(MCParticle mcp, double Bz) {
         boolean debug = true;
-        if(debug) {
+        if (debug) {
             System.out.printf("getHTF\n");
-            System.out.printf("mcp org %s mc p %s\n",mcp.getOrigin().toString(),mcp.getMomentum().toString());
+            System.out.printf("mcp org %s mc p %s\n", mcp.getOrigin().toString(), mcp.getMomentum().toString());
         }
         Hep3Vector org = CoordinateTransformations.transformVectorToTracking(mcp.getOrigin());
         Hep3Vector p = CoordinateTransformations.transformVectorToTracking(mcp.getMomentum());
 
-        if(debug) {
-            System.out.printf("mcp org %s mc p %s (trans)\n",org.toString(),p.toString());
-        }
+        if (debug)
+            System.out.printf("mcp org %s mc p %s (trans)\n", org.toString(), p.toString());
 
         // Move to x=0 if needed
         double targetX = BeamlineConstants.DIPOLE_EDGELOW_TESTRUN;
@@ -715,9 +711,8 @@ public class TrackUtils {
             // old.toString(),p.toString(),org.toString());
         }
 
-        if(debug) {
-            System.out.printf("mcp org %s mc p %s (trans2)\n",org.toString(),p.toString());
-        }
+        if (debug)
+            System.out.printf("mcp org %s mc p %s (trans2)\n", org.toString(), p.toString());
 
         HelixParamCalculator helixParamCalculator = new HelixParamCalculator(p, org, -1 * ((int) mcp.getCharge()), Bz);
         double par[] = new double[5];
@@ -727,17 +722,16 @@ public class TrackUtils {
         par[HelicalTrackFit.curvatureIndex] = 1.0 / helixParamCalculator.getRadius();
         par[HelicalTrackFit.z0Index] = helixParamCalculator.getZ0();
         HelicalTrackFit htf = getHTF(par);
-         System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n",
-         htf.dca(),htf.z0(),htf.R(),htf.phi0(),htf.slope() );
+        System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n",
+                htf.dca(), htf.z0(), htf.R(), htf.phi0(), htf.slope());
         return htf;
     }
 
     public static HelicalTrackFit getHTF(Track track) {
-        if (track.getClass().isInstance(SeedTrack.class)) {
+        if (track.getClass().isInstance(SeedTrack.class))
             return ((SeedTrack) track).getSeedCandidate().getHelix();
-        } else {
+        else
             return getHTF(track.getTrackStates().get(0).getParameters());
-        }
     }
 
     public static HelicalTrackFit getHTF(double par[]) {
@@ -757,9 +751,8 @@ public class TrackUtils {
         if (useFringe) {
             // broken because you need ot provide the Field Map to get this...
 //            pos1 = hpstrk1.getPositionAtZMap(100.0, zVal, 5.0)[0];            
-        } else {
+        } else
             pos1 = TrackUtils.extrapolateTrack(trk1, zVal);
-        }
         // System.out.printf("%s: Position1 at edge of fringe %s\n",this.getClass().getSimpleName(),pos1.toString());
         Helix traj = (Helix) hpstrk1.getTrajectory();
         if (traj == null) {
@@ -771,59 +764,99 @@ public class TrackUtils {
         // System.out.printf("%s: straight line track: x0=%f,y0=%f,z0=%f dz/dx=%f dydx=%f targetY=%f targetZ=%f \n",this.getClass().getSimpleName(),slt1.x0(),slt1.y0(),slt1.z0(),slt1.dzdx(),slt1.dydx(),slt1.TargetYZ()[0],slt1.TargetYZ()[1]);
         return slt1;
     }
-    
-    
-    
+
     public static MCParticle getMatchedTruthParticle(Track track) {
         boolean debug = false;
-        
-        Map<MCParticle,Integer> particlesOnTrack = new HashMap<MCParticle,Integer>();
-        
-        if(debug) System.out.printf("getMatchedTruthParticle: getmatched mc particle from %d tracker hits on the track \n",track.getTrackerHits().size());
-        
-        
-        for(TrackerHit hit : track.getTrackerHits()) {
-            List<MCParticle> mcps = ((HelicalTrackHit)hit).getMCParticles();
-            if(mcps==null) {
-                System.out.printf("getMatchedTruthParticle: warning, this hit (layer %d pos=%s) has no mc particles.\n",((HelicalTrackHit)hit).Layer(),((HelicalTrackHit)hit).getCorrectedPosition().toString());
-            } 
+
+        Map<MCParticle, Integer> particlesOnTrack = new HashMap<MCParticle, Integer>();
+
+        if (debug)
+            System.out.printf("getMatchedTruthParticle: getmatched mc particle from %d tracker hits on the track \n", track.getTrackerHits().size());
+
+        for (TrackerHit hit : track.getTrackerHits()) {
+            List<MCParticle> mcps = ((HelicalTrackHit) hit).getMCParticles();
+            if (mcps == null)
+                System.out.printf("getMatchedTruthParticle: warning, this hit (layer %d pos=%s) has no mc particles.\n", ((HelicalTrackHit) hit).Layer(), ((HelicalTrackHit) hit).getCorrectedPosition().toString());
             else {
-                if( debug ) System.out.printf("getMatchedTruthParticle: this hit (layer %d pos=%s) has %d mc particles.\n",((HelicalTrackHit)hit).Layer(),((HelicalTrackHit)hit).getCorrectedPosition().toString(),mcps.size());
-                for(MCParticle mcp : mcps) {
-                    if( !particlesOnTrack.containsKey(mcp) ) {
+                if (debug)
+                    System.out.printf("getMatchedTruthParticle: this hit (layer %d pos=%s) has %d mc particles.\n", ((HelicalTrackHit) hit).Layer(), ((HelicalTrackHit) hit).getCorrectedPosition().toString(), mcps.size());
+                for (MCParticle mcp : mcps) {
+                    if (!particlesOnTrack.containsKey(mcp))
                         particlesOnTrack.put(mcp, 0);
-                    }
                     int c = particlesOnTrack.get(mcp);
-                    particlesOnTrack.put(mcp, c+1);
+                    particlesOnTrack.put(mcp, c + 1);
                 }
             }
         }
-        if(debug) {
-            System.out.printf("Track p=[ %f, %f, %f] \n",track.getTrackStates().get(0).getMomentum()[0],track.getTrackStates().get(0).getMomentum()[1],track.getTrackStates().get(0).getMomentum()[1]);
-            System.out.printf("Found %d particles\n",particlesOnTrack.size());
-            for(Map.Entry<MCParticle, Integer> entry : particlesOnTrack.entrySet()) {
-                System.out.printf("%d hits assigned to %d p=%s \n",entry.getValue(),entry.getKey().getPDGID(),entry.getKey().getMomentum().toString());
-            }
+        if (debug) {
+            System.out.printf("Track p=[ %f, %f, %f] \n", track.getTrackStates().get(0).getMomentum()[0], track.getTrackStates().get(0).getMomentum()[1], track.getTrackStates().get(0).getMomentum()[1]);
+            System.out.printf("Found %d particles\n", particlesOnTrack.size());
+            for (Map.Entry<MCParticle, Integer> entry : particlesOnTrack.entrySet())
+                System.out.printf("%d hits assigned to %d p=%s \n", entry.getValue(), entry.getKey().getPDGID(), entry.getKey().getMomentum().toString());
         }
-        Map.Entry<MCParticle,Integer> maxEntry = null;
-        for(Map.Entry<MCParticle,Integer> entry : particlesOnTrack.entrySet()) {
-            if ( maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0 ) maxEntry = entry;
-            //if ( maxEntry != null ) {
-            //    if(entry.getValue().compareTo(maxEntry.getValue()) < 0) continue;
-            //}
-            //maxEntry = entry;
-        }
-        if(debug) {
-            if (maxEntry != null ) {
+        Map.Entry<MCParticle, Integer> maxEntry = null;
+        for (Map.Entry<MCParticle, Integer> entry : particlesOnTrack.entrySet())
+            if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0)
+                maxEntry = entry; //if ( maxEntry != null ) {
+        //    if(entry.getValue().compareTo(maxEntry.getValue()) < 0) continue;
+        //}
+        //maxEntry = entry;
+        if (debug)
+            if (maxEntry != null)
                 System.out.printf("Matched particle with pdgId=%d and mom %s to track with charge %d and momentum [%f %f %f]\n",
-                        maxEntry.getKey().getPDGID(),maxEntry.getKey().getMomentum().toString(),
-                        track.getCharge(),track.getTrackStates().get(0).getMomentum()[0],track.getTrackStates().get(0).getMomentum()[1],track.getTrackStates().get(0).getMomentum()[2]);
-            } else {
+                        maxEntry.getKey().getPDGID(), maxEntry.getKey().getMomentum().toString(),
+                        track.getCharge(), track.getTrackStates().get(0).getMomentum()[0], track.getTrackStates().get(0).getMomentum()[1], track.getTrackStates().get(0).getMomentum()[2]);
+            else
                 System.out.printf("No truth particle found on this track\n");
-            }
-        }
         return maxEntry == null ? null : maxEntry.getKey();
     }
-    
+
+    /*       
+     try to make a seed track from a base track
+     ...some things are irretrivable (tracking strategy)..
+     and some things I just don't care much about to dig out (det name)
+     */
+    public static SeedTrack makeSeedTrackFromBaseTrack(Track track) {
+
+        TrackState trkState = track.getTrackStates().get(0);
+        //  first make the HelicalTrackFit Object
+        double[] covArray = trkState.getCovMatrix();
+        SymmetricMatrix cov = new SymmetricMatrix(5, covArray, true);
+        double[] chisq = {track.getChi2(), 0};
+        int[] ndf = {track.getNDF(), 0};
+        Map<HelicalTrackHit, Double> smap = new HashMap<>();  // just leave these empty
+        Map<HelicalTrackHit, MultipleScatter> msmap = new HashMap<>();// just leave these empty
+        double[] pars = {trkState.getD0(), trkState.getPhi(), trkState.getOmega(), trkState.getZ0(), trkState.getTanLambda()};
+        HelicalTrackFit htf = new HelicalTrackFit(pars, cov, chisq, ndf, smap, msmap);
+        //  now get the hits and make them helicaltrackhits
+        List<TrackerHit> rth = track.getTrackerHits();
+        List<HelicalTrackHit> hth = new ArrayList<>();
+        for (TrackerHit hit : rth)
+            hth.add(makeHelicalTrackHitFromTrackerHit(hit));
+//        SeedCandidate(List<HelicalTrackHit> , SeedStrategy strategy, HelicalTrackFit helix, double bfield) ;
+        SeedCandidate scand = new SeedCandidate(hth, null, htf, 0.24);
+        SeedTrack st = new SeedTrack();
+        st.setSeedCandidate(scand);
+        return st;
+    }
+
+    /*
+        cast TrackerHit as HTH...this is pretty dumb; just a rearrangment of information
+        in TrackerHit.  The important information that's in HTH but not 
+        in Tracker hit is the HelicalTrackCrosses (and from there the individual strip clusters)
+        is lost; some work to get them back.  
+     */
+    public static HelicalTrackHit makeHelicalTrackHitFromTrackerHit(TrackerHit hit) {
+        Hep3Vector pos = new BasicHep3Vector(hit.getPosition());
+        SymmetricMatrix hitcov = new SymmetricMatrix(3, hit.getCovMatrix(), true);
+        double dedx = hit.getdEdx();
+        double time = hit.getTime();
+        int type = hit.getType();
+        List rhits = hit.getRawHits();
+        String detname = "Foobar";
+        int layer = 666;
+        BarrelEndcapFlag beflag = BarrelEndcapFlag.BARREL;
+        return new HelicalTrackHit(pos, hitcov, dedx, time, type, rhits, detname, layer, beflag);
+    }
 
 }

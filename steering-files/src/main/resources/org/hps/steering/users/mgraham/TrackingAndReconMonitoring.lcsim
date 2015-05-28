@@ -10,35 +10,51 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
-        <driver name="FullTrackerReconDriver"/>
-        <driver name="TrackDataDriver" />    
+        <driver name="FullTrackerReconDriver"/><!--
+                <driver name="TrackDataDriver" />    
+        -->        
         <driver name="EcalRunningPedestal"/>
-        <driver name="EcalRawConverter" />
-        <driver name="ReconClusterer" />
+        <driver name="EcalRawConverter" /><!--
+-->        
+        <driver name="ReconClusterer" /><!--
+-->        
         <driver name="ReconParticle" /> <!--
-        <driver name="GTPOnlineClusterer" /> -->
-        <!--  SVT opening angle alignment -->
-        <!--        <driver name="TrackerL1to3ReconDriver"/> 
+        <driver name="GTPOnlineClusterer" /> 
+          SVT opening angle alignment -->
+        <driver name="SplitHitsOnTrack"/>       
+        <driver name="TrackerL1to3ReconDriver"/> 
         <driver name="TrackerL4to6ReconDriver"/> 
-        <driver name="SVTAlignment"/> -->
+        <driver name="TrackerL134ReconDriver"/> 
+        <driver name="ReconParticleL1to3" />
+        <driver name="ReconParticleL4to6" />
+        <driver name="ReconParticleL134" />
+        <driver name="SVTAlignment"/> 
+        <driver name="TrackingMonitoringSingles1DQM" /> 
+        <driver name="TrackingMonitoringL1to3Singles1DQM"/>
+        <driver name="TrackingMonitoringL4to6Singles1DQM"/>
+        <driver name="TrackingMonitoringL134Singles1DQM"/>
+        <driver name="FinalStateL1to3DQMSingles1"/>
+        <driver name="FinalStateL4to6DQMSingles1"/>
+        <driver name="FinalStateL134DQMSingles1"/>
         <!-- Online Monitoring Drivers -->
         <!--       <driver name="TrackingMonitoring" />  
         <driver name="TrackingResiduals"/>  
         <driver name="TrackTime"/>  
         <driver name="V0Monitoring"/>    -->       
-        <driver name="SVTMonitoring"/>  
-        <driver name="TrackingMonitoringDQM" />  
-        <driver name="TrackingMonitoringSingles1DQM" />  
-        <driver name="TrackingMonitoringPairs1DQM" />  
-        <driver name="TrackingResidualsPairs1DQM"/>  
-         <driver name="TrackingResidualsSingles1DQM"/>  
-        <driver name="FinalStateDQM"/>  
-        <driver name="FinalStateDQMSingles1"/>
+        <!--        <driver name="SVTMonitoring"/>  
+                <driver name="TrackingMonitoringDQM" />  
+                <driver name="TrackingMonitoringSingles1DQM" />  
+                <driver name="TrackingMonitoringPairs1DQM" />  
+                <driver name="TrackingResidualsPairs1DQM"/>  
+                <driver name="TrackingResidualsSingles1DQM"/>  
+                <driver name="FinalStateDQM"/>  
+        -->        
+        <driver name="FinalStateDQMSingles1"/><!--
         <driver name="FinalStateDQMPairs1"/>
         <driver name="V0DQM"/>  
         <driver name="V0DQMSingles1"/>
         <driver name="V0DQMPairs1"/>
-        <driver name="TridentMonitoringPairs1"/>
+        <driver name="TridentMonitoringPairs1"/>-->
         <!--        <driver name="PositronDebug"/>-->
         <driver name="AidaSaveDriver"/>     
         <driver name="LCIOWriter"/>     
@@ -65,19 +81,32 @@
             <tolerance>1.0</tolerance>
             <saveAxialHits>false</saveAxialHits>
         </driver>-->
+        
+        <driver name="SplitHitsOnTrack" type="org.hps.users.mgraham.SplitHitsOnTracks">             
+        </driver>
         <driver name="TrackerL1to3ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <includeMS>false</includeMS>
-            <useHPSMaterialManager>false</useHPSMaterialManager>
+<!--            <includeMS>false</includeMS>
+            <useHPSMaterialManager>false</useHPSMaterialManager>-->
+            <inputHitCollectionName>OnTrackHits</inputHitCollectionName>
             <trackCollectionName>L1to3Tracks</trackCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L1-3.xml</strategyResource>
         </driver>
         <driver name="TrackerL4to6ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <includeMS>false</includeMS>
-            <useHPSMaterialManager>false</useHPSMaterialManager>
+<!--            <includeMS>false</includeMS>
+            <useHPSMaterialManager>false</useHPSMaterialManager>-->
             <trackCollectionName>L4to6Tracks</trackCollectionName>
+            <inputHitCollectionName>OnTrackHits</inputHitCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L4-6.xml</strategyResource>
+        </driver>
+         <driver name="TrackerL134ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+<!--            <includeMS>false</includeMS>
+            <useHPSMaterialManager>false</useHPSMaterialManager>-->
+            <trackCollectionName>L134Tracks</trackCollectionName>
+            <inputHitCollectionName>OnTrackHits</inputHitCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L134.xml</strategyResource>
         </driver>
         <!--        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
@@ -103,6 +132,47 @@
             <dyCut>50</dyCut>
         </driver>  
         
+        <driver name="ReconParticleL1to3" type="org.hps.recon.particle.HpsReconParticleDriver">
+            <trackCollectionName>L1to3Tracks</trackCollectionName>
+            <targetConV0VerticesColName>TargetConstrainedV0CandidatesL1to3</targetConV0VerticesColName>
+            <finalStateParticlesColName>FinalStateParticlesL1to3</finalStateParticlesColName>
+            <unconstrainedV0CandidatesColName>UnconstrainedV0CandidatesL1to3</unconstrainedV0CandidatesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0CandidatesL1to3</beamConV0CandidatesColName>
+            <unconstrainedV0VerticesColName>UnconstrainedV0VerticesL1to3</unconstrainedV0VerticesColName>
+            <beamConV0VerticesColName>BeamspotConstrainedV0VerticesL1to3</beamConV0VerticesColName>   
+            <targetConV0VerticesColName>TargetConstrainedV0VerticesL1to3</targetConV0VerticesColName>     
+            <debug>false</debug>
+            <dxCut>50</dxCut>
+            <dyCut>50</dyCut>
+        </driver>  
+        <driver name="ReconParticleL4to6" type="org.hps.recon.particle.HpsReconParticleDriver">
+            <trackCollectionName>L4to6Tracks</trackCollectionName>          
+            <targetConV0VerticesColName>TargetConstrainedV0CandidatesL4to6</targetConV0VerticesColName>
+            <finalStateParticlesColName>FinalStateParticlesL4to6</finalStateParticlesColName>
+            <unconstrainedV0CandidatesColName>UnconstrainedV0CandidatesL4to6</unconstrainedV0CandidatesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0CandidatesL4to6</beamConV0CandidatesColName>
+            <unconstrainedV0VerticesColName>UnconstrainedV0VerticesL4to6</unconstrainedV0VerticesColName>
+            <beamConV0VerticesColName>BeamspotConstrainedV0VerticesL4to6</beamConV0VerticesColName>   
+            <targetConV0VerticesColName>TargetConstrainedV0VerticesL4to6</targetConV0VerticesColName>     
+            <debug>false</debug>
+            <dxCut>50</dxCut>
+            <dyCut>50</dyCut>
+        </driver>  
+        
+          <driver name="ReconParticleL134" type="org.hps.recon.particle.HpsReconParticleDriver">
+            <trackCollectionName>L134Tracks</trackCollectionName>          
+            <targetConV0VerticesColName>TargetConstrainedV0CandidatesL134</targetConV0VerticesColName>
+            <finalStateParticlesColName>FinalStateParticlesL134</finalStateParticlesColName>
+            <unconstrainedV0CandidatesColName>UnconstrainedV0CandidatesL134</unconstrainedV0CandidatesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0CandidatesL134</beamConV0CandidatesColName>
+            <unconstrainedV0VerticesColName>UnconstrainedV0VerticesL134</unconstrainedV0VerticesColName>
+            <beamConV0VerticesColName>BeamspotConstrainedV0VerticesL134</beamConV0VerticesColName>   
+            <targetConV0VerticesColName>TargetConstrainedV0VerticesL134</targetConV0VerticesColName>     
+            <debug>false</debug>
+            <dxCut>50</dxCut>
+            <dyCut>50</dyCut>
+        </driver>  
+        
         <!-- EngineeringRun2015FullRecon from Sho --> 
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
@@ -116,25 +186,25 @@
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-<!--            <neighborDeltaT>8.0</neighborDeltaT>-->
-             <neighborDeltaT>24.0</neighborDeltaT>
+            <neighborDeltaT>8.0</neighborDeltaT>
+<!--            <neighborDeltaT>24.0</neighborDeltaT>-->
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
 <!--            <clusterTimeCut>10.0</clusterTimeCut>
             <maxDt>12.0</maxDt>-->
-            <!--            <clusterTimeCut>12.0</clusterTimeCut>
-            <maxDt>16.0</maxDt>-->
-               <clusterTimeCut>24.0</clusterTimeCut>
-            <maxDt>24.0</maxDt>
+            <clusterTimeCut>12.0</clusterTimeCut>
+            <maxDt>16.0</maxDt>
+<!--            <clusterTimeCut>24.0</clusterTimeCut>
+            <maxDt>24.0</maxDt>-->
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
         <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <strategyResource>HPS-Full.xml</strategyResource>
             <debug>false</debug>             
-<!--            <rmsTimeCut>8.0</rmsTimeCut>-->
-            <rmsTimeCut>24.0</rmsTimeCut>
+            <rmsTimeCut>8.0</rmsTimeCut>
+<!--            <rmsTimeCut>24.0</rmsTimeCut>-->
         </driver>    
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
@@ -188,6 +258,24 @@
             <printDQMStrings>false</printDQMStrings>
         </driver>
         
+            <driver name="TrackingMonitoringL1to3Singles1DQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
+                <trackCollectionName>L1to3Tracks</trackCollectionName>
+                <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+        </driver>
+           <driver name="TrackingMonitoringL4to6Singles1DQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
+                <trackCollectionName>L4to6Tracks</trackCollectionName>
+                <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+        </driver>
+        
+           <driver name="TrackingMonitoringL134Singles1DQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
+                <trackCollectionName>L134Tracks</trackCollectionName>
+                <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+        </driver>
+        
+        
         <driver name="TrackingMonitoringSingles1DQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
             <overwriteDB>false</overwriteDB>
             <printDQMStrings>false</printDQMStrings>
@@ -202,12 +290,12 @@
         <driver name="TrackingResidualsPairs1DQM" type="org.hps.analysis.dataquality.TrackingResiduals">           
             <overwriteDB>false</overwriteDB>
             <printDQMStrings>false</printDQMStrings>
-             <triggerType>pairs1</triggerType>
+            <triggerType>pairs1</triggerType>
         </driver>
-         <driver name="TrackingResidualsSingles1DQM" type="org.hps.analysis.dataquality.TrackingResiduals">           
+        <driver name="TrackingResidualsSingles1DQM" type="org.hps.analysis.dataquality.TrackingResiduals">           
             <overwriteDB>false</overwriteDB>
             <printDQMStrings>false</printDQMStrings>
-             <triggerType>singles1</triggerType>
+            <triggerType>singles1</triggerType>
         </driver>
         <driver name="FinalStateDQM" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
             <overwriteDB>false</overwriteDB>
@@ -215,17 +303,38 @@
             <triggerType>all</triggerType>
         </driver>
         
-        <driver name="FinalStateDQMPairs1" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
-            <overwriteDB>false</overwriteDB>
-            <printDQMStrings>false</printDQMStrings>
-            <triggerType>pairs1</triggerType>
-        </driver>
-        <driver name="FinalStateDQMSingles1" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
+        <driver name="FinalStateL1to3DQMSingles1" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
+            <finalStateParticlesColName>FinalStateParticlesL1to3</finalStateParticlesColName>
             <overwriteDB>false</overwriteDB>
             <printDQMStrings>false</printDQMStrings>
             <triggerType>singles1</triggerType>
         </driver>
         
+        <driver name="FinalStateL4to6DQMSingles1" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
+            <finalStateParticlesColName>FinalStateParticlesL4to6</finalStateParticlesColName>
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <triggerType>singles1</triggerType>
+        </driver>
+         <driver name="FinalStateL134DQMSingles1" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
+            <finalStateParticlesColName>FinalStateParticlesL134</finalStateParticlesColName>
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <triggerType>singles1</triggerType>
+        </driver>
+        <driver name="FinalStateDQMPairs1" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <triggerType>pairs1</triggerType>
+        </driver>
+        
+        
+        <driver name="FinalStateDQMSingles1" type="org.hps.analysis.dataquality.FinalStateMonitoring">        
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+            <triggerType>singles1</triggerType>
+        </driver>
+ 
         <driver name="V0DQM" type="org.hps.analysis.dataquality.V0Monitoring">        
             <overwriteDB>false</overwriteDB>
             <printDQMStrings>false</printDQMStrings>
