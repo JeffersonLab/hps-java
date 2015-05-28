@@ -7,6 +7,7 @@ import hep.aida.IFitter;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -64,7 +65,7 @@ public class TridentMonitoring extends DataQualityMonitor {
     int nPosMax = 1;
     //v0 cuts   
     double v0Chi2 = 10;
-    double v0PzMax = 1.1 * ebeam;//GeV 
+    double v0PzMax = 1.25 * ebeam;//GeV 
     double v0PzMin = 0.1;// GeV
     double v0PyMax = 0.2;//GeV absolute value
     double v0PxMax = 0.2;//GeV absolute value
@@ -182,7 +183,8 @@ public class TridentMonitoring extends DataQualityMonitor {
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             Vertex uncVert = uncV0.getStartVertex();
 //  v0 & vertex-quality cuts
-            Hep3Vector v0Mom = uncV0.getMomentum();
+//            Hep3Vector v0Mom = uncV0.getMomentum();
+            Hep3Vector v0Mom = VecOp.add(uncV0.getParticles().get(1).getMomentum(), uncV0.getParticles().get(0).getMomentum());
             if (v0Mom.z() > v0PzMax || v0Mom.z() < v0PzMin)
                 break;
             if (Math.abs(v0Mom.y()) > v0PyMax)
