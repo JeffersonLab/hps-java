@@ -30,12 +30,12 @@
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
             <correctT0Shift>true</correctT0Shift>
             <useTruthTime>false</useTruthTime>
             <subtractTOF>true</subtractTOF>
             <subtractTriggerTime>true</subtractTriggerTime>
             <correctChanT0>true</correctChanT0>
-            <timeOffset>27.0</timeOffset>
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
