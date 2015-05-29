@@ -95,7 +95,7 @@
         </driver>
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
         	<inputCollectionName>EcalClusters</inputCollectionName>
-    		<outputCollectionName>EcalClustersCopy</outputCollectionName>
+    		<outputCollectionName>EcalClustersCorr</outputCollectionName>
     		<storeHits>false</storeHits>
         </driver>
         <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
@@ -106,7 +106,7 @@
             <cuts>0.100</cuts>
         </driver>        
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">  
-        	<ecalClusterCollectionName>EcalClustersCopy</ecalClusterCollectionName>        
+        	<ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
         </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
