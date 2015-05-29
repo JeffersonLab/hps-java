@@ -1,13 +1,13 @@
-package org.hps.record.scalars;
+package org.hps.record.scalers;
 
 /**
- * Utilities methods for scalar data.
+ * Utilities methods for scaler data.
  * <p>
- * Currently this is used only for computing live time measurements from standard scalar data.
+ * Currently this is used only for computing live time measurements from standard scaler data.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public final class ScalarUtilities {
+public final class ScalerUtilities {
 
     /**
      * Indices for getting live time measurements.
@@ -24,12 +24,12 @@ public final class ScalarUtilities {
      * @param index The enum of the index type.
      * @see LiveTimeIndex
      */
-    public static double getLiveTime(final ScalarData data, final LiveTimeIndex index) {
+    public static double getLiveTime(final ScalerData data, final LiveTimeIndex index) {
         return getLiveTimes(data)[index.ordinal()];
     }
 
     /**
-     * Get the live time measurements from standard scalar data.
+     * Get the live time measurements from standard scaler data.
      * <p>
      * This is returned as a double array of size 3 containing:</br>
      *
@@ -39,13 +39,13 @@ public final class ScalarUtilities {
      * [2] = CLOCK measurement
      * </pre>
      *
-     * This method assumes the standard scalar data structure as outlined in <a
+     * This method assumes the standard scaler data structure as outlined in <a
      * href="https://jira.slac.stanford.edu/browse/HPSJAVA-470">HPSJAVA-470</a>.
      *
-     * @param data The scalar data.
+     * @param data The scaler data.
      * @return The live time measurements.
      */
-    public static double[] getLiveTimes(final ScalarData data) {
+    public static double[] getLiveTimes(final ScalerData data) {
 
         // [03] - gated faraday cup with "TDC" threshold
         final int word03 = data.getValue(3);
@@ -86,7 +86,7 @@ public final class ScalarUtilities {
     /**
      * Disallow class instantiation.
      */
-    private ScalarUtilities() {
+    private ScalerUtilities() {
         throw new UnsupportedOperationException("Do not instantiate this class.");
     }
 }

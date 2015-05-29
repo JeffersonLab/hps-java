@@ -13,7 +13,6 @@ import org.hps.record.composite.CompositeLoopConfiguration;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.enums.ProcessingStage;
 import org.hps.record.epics.EpicsData;
-import org.hps.record.epics.EpicsEvioProcessor;
 import org.hps.record.evio.EvioDetectorConditionsProcessor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
@@ -29,7 +28,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class EpicsDataTest extends TestCase {
 
-    static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps-java/ScalarsTest/hpsecal_004469_1000_events.evio.0";
+    static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps-java/ScalersTest/hpsecal_004469_1000_events.evio.0";
 
     public void test() throws IOException {
 
@@ -44,7 +43,6 @@ public class EpicsDataTest extends TestCase {
 
         // Setup and run the loop to write out LCIO events with the EPICS scalar data.
         final CompositeLoopConfiguration configuration = new CompositeLoopConfiguration();
-        configuration.add(new EpicsEvioProcessor());
         configuration.setDataSourceType(DataSourceType.EVIO_FILE);
         configuration.add(new EvioDetectorConditionsProcessor("HPS-ECalCommissioning-v2"));
         configuration.setLCSimEventBuilder(builder);

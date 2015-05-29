@@ -5,7 +5,7 @@
         <driver name="CleanupDriver" />
     </execute>
     <drivers>     
-        <driver name="DeadtimeMonitor" type="org.hps.monitoring.drivers.scalars.DeadtimePlots">
+        <driver name="DeadtimeMonitor" type="org.hps.monitoring.drivers.scalers.DeadtimePlots">
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
     </drivers>

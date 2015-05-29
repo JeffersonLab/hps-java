@@ -1,12 +1,13 @@
-package org.hps.monitoring.drivers.scalars;
+package org.hps.monitoring.drivers.scalers;
 
 import java.util.Date;
+
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
 import org.hps.monitoring.plotting.StripChartUpdater;
 import org.hps.monitoring.plotting.ValueProvider;
-import org.hps.record.scalars.ScalarData;
-import org.hps.record.scalars.ScalarUtilities;
-import org.hps.record.scalars.ScalarUtilities.LiveTimeIndex;
+import org.hps.record.scalers.ScalerData;
+import org.hps.record.scalers.ScalerUtilities;
+import org.hps.record.scalers.ScalerUtilities.LiveTimeIndex;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.DateAxis;
@@ -19,15 +20,16 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  *
+ * Make a strip chart for DAQ deadtime from the info in the scaler block. 
+ *
  * @author mgraham
- * make a strip chart for DAQ deadtime from the info in the scalar block
  */
 public class DeadtimePlots extends Driver {
 
 //    static final int REFRESH_RATE = 10 * 1000; // units = ms
 //    static final double DOMAIN_SIZE = 4 * 60 * 60 * 1000; // x-axis range (ms)
       double DOMAIN_SIZE =  10 * 60 * 1000; // 10 minutes
-    String scalarsName = "Scalars";
+    //String scalarsName = "Scalars";
 
     int events;
 
@@ -63,10 +65,10 @@ public class DeadtimePlots extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        ScalarData data = ScalarData.read(event);
+        ScalerData data = ScalerData.read(event);
         if (data != null) {
-            fcupTdc = ScalarUtilities.getLiveTime(data, LiveTimeIndex.FCUP_TDC); // etc. }
-            fcupTrg = ScalarUtilities.getLiveTime(data, LiveTimeIndex.FCUP_TRG); // etc. }
+            fcupTdc = ScalerUtilities.getLiveTime(data, LiveTimeIndex.FCUP_TDC); // etc. }
+            fcupTrg = ScalerUtilities.getLiveTime(data, LiveTimeIndex.FCUP_TRG); // etc. }
 
             // fill strip charts:
             long now = System.currentTimeMillis();

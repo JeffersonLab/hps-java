@@ -79,7 +79,7 @@ TriggerConfig - class org.hps.recon.ecal.daqconfig.EvioDAQParser
 EcalReadoutHits - class org.lcsim.event.base.BaseRawCalorimeterHit                                      
 EpicsData - interface org.lcsim.event.GenericObject                                               
 EcalCalHits - interface org.lcsim.event.CalorimeterHit                                                  
-ScalarData - interface org.lcsim.event.GenericObject                                                    
+ScalerData - interface org.lcsim.event.GenericObject                                                    
 TriggerBank - class org.hps.recon.ecal.triggerbank.AbstractIntData                                      
 EcalClusters - interface org.lcsim.event.Cluster
 */  

@@ -1,26 +1,26 @@
-package org.hps.record.scalars;
+package org.hps.record.scalers;
 
 import org.lcsim.event.GenericObject;
 
 /**
- * This is the LCIO {@link org.lcsim.event.GenericObject} binding for EVIO scalar data. This should not be used
- * directly. Rather the {@link ScalarData} class should be used for loading data from LCIO events.
+ * This is the LCIO {@link org.lcsim.event.GenericObject} binding for EVIO scaler data. This should not be used
+ * directly. Rather the {@link ScalerData} class should be used for loading data from LCIO events.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-final class ScalarsGenericObject implements GenericObject {
+final class ScalersGenericObject implements GenericObject {
 
     /**
-     * The scalar data values.
+     * The scaler data values.
      */
     private final int[] values;
 
     /**
-     * Create a new object with the given scalar values.
+     * Create a new object with the given scaler values.
      *
-     * @param values the array of scalar values
+     * @param values the array of scaler values
      */
-    ScalarsGenericObject(final int[] values) {
+    ScalersGenericObject(final int[] values) {
         this.values = values;
     }
 
@@ -35,7 +35,7 @@ final class ScalarsGenericObject implements GenericObject {
     }
 
     /**
-     * Get the scalar value at the index.
+     * Get the scaler value at the index.
      *
      * @param index the index in the data array
      */

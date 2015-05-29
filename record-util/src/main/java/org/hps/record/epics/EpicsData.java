@@ -12,7 +12,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 
 /**
- * This is an API for reading and writing EPICS scalar data to LCIO events, as well as parsing the scalar data from a CDATA section within an EVIO
+ * This is an API for reading and writing EPICS data to LCIO events, as well as parsing the data from a CDATA section within an EVIO
  * string data bank. The {@link #read(EventHeader)} method should be used to create one of these objects from an LCIO event.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
@@ -22,7 +22,7 @@ public final class EpicsData {
     /**
      * Default collection name in the LCSim events.
      */
-    public static final String DEFAULT_COLLECTION_NAME = "EpicsScalarData";
+    private static final String DEFAULT_COLLECTION_NAME = "EpicsData";
 
     /**
      * This map contains the list of EPICS key descriptions from the<br/>
@@ -33,17 +33,17 @@ public final class EpicsData {
     /**
      * Dummy float parameters to make LCIO persistency work.
      */
-    static final Map<String, float[]> DUMMY_FLOAT_MAP = new HashMap<String, float[]>();
+    private static final Map<String, float[]> DUMMY_FLOAT_MAP = new HashMap<String, float[]>();
 
     /**
      * Dummy int parameters to make LCIO persistency work.
      */
-    static final Map<String, int[]> DUMMY_INT_MAP = new HashMap<String, int[]>();
+    private static final Map<String, int[]> DUMMY_INT_MAP = new HashMap<String, int[]>();
 
     /**
      * Collection parameter that has the EPICS variable names.
      */
-    public static final String EPICS_SCALAR_NAMES = "EPICS_SCALAR_NAMES";
+    private static final String EPICS_VARIABLE_NAMES = "EPICS_VARIABLE_NAMES";
 
     /**
      * List of descriptions.
@@ -80,12 +80,12 @@ public final class EpicsData {
     }
 
     /**
-     * Get the static list of available EPICs scalar names.
+     * Get the static list of all available EPICs variable names.
      * <p>
      * This could be different than the variable names which were actually written into the collection header. For this, instead use the method
      * {@link #getUsedNames()}.
      *
-     * @return the set of default EPICS scalar names
+     * @return the set of default EPICS variable names
      */
     public static Set<String> getDefaultNames() {
         return DESCRIPTIONS.keySet();
@@ -94,7 +94,7 @@ public final class EpicsData {
     /**
      * Get the description of a named EPICS variable.
      *
-     * @param name the name of the scalar
+     * @param name the name of the variable
      */
     public static String getDescription(final String name) {
         return DESCRIPTIONS.get(name);
@@ -125,11 +125,11 @@ public final class EpicsData {
      * @param collectionName the collection name
      * @return the EPICS data from the LCIO event
      */
-    static EpicsData read(final EventHeader event, final String collectionName) {
+    private static EpicsData read(final EventHeader event, final String collectionName) {
         final List<GenericObject> collection = event.get(GenericObject.class, collectionName);
         @SuppressWarnings("rawtypes")
         final Map stringMap = event.getMetaData(collection).getStringParameters();
-        final String[] keys = (String[]) stringMap.get(EPICS_SCALAR_NAMES);
+        final String[] keys = (String[]) stringMap.get(EPICS_VARIABLE_NAMES);
         final EpicsData data = new EpicsData();
         data.fromGenericObject(collection.get(0), keys);
         return data;
@@ -143,10 +143,10 @@ public final class EpicsData {
     /**
      * Given a list of names, read the double values from the {@link org.lcsim.event.GenericObject} into the data map of this object.
      *
-     * @param object the <code>GenericObject</code> with the scalar values
+     * @param object the <code>GenericObject</code> with the data values
      * @param names The list of names.
      */
-    void fromGenericObject(final GenericObject object, final String[] names) {
+    private void fromGenericObject(final GenericObject object, final String[] names) {
         for (int index = 0; index < names.length; index++) {
             this.dataMap.put(names[index], object.getDoubleVal(index));
         }
@@ -172,11 +172,11 @@ public final class EpicsData {
     }
 
     /**
-     * Get the list of used EPICS scalars in this object.
+     * Get the list of EPICS variables used by this object.
      * <p>
      * This could potentially be different than the list of default names from {@link #getDefaultNames()} but it will usually be the same.
      *
-     * @return the list of used EPICS scalar names
+     * @return the list of used EPICS variable names
      */
     public Set<String> getUsedNames() {
         return this.dataMap.keySet();
@@ -192,7 +192,7 @@ public final class EpicsData {
     }
 
     /**
-     * Get a double value from the key which should be a valid EPICS variable name.
+     * Set a double value by name.
      *
      * @return the value from the key
      */
@@ -205,7 +205,7 @@ public final class EpicsData {
      *
      * @return the <code>GenericObject</code> representing this data
      */
-    EpicsGenericObject toGenericObject() {
+    private EpicsGenericObject toGenericObject() {
         final EpicsGenericObject newObject = new EpicsGenericObject();
         newObject.setKeys(new String[this.dataMap.size()]);
         newObject.setValues(new double[this.dataMap.size()]);
@@ -247,12 +247,12 @@ public final class EpicsData {
      * @param event the LCIO event
      * @param collectionName the name of the collection in the output event
      */
-    void write(final EventHeader event, final String collectionName) {
+    private void write(final EventHeader event, final String collectionName) {
         final List<GenericObject> collection = new ArrayList<GenericObject>();
         final EpicsGenericObject object = this.toGenericObject();
         collection.add(object);
         final Map<String, String[]> stringMap = new HashMap<String, String[]>();
-        stringMap.put(EPICS_SCALAR_NAMES, object.getKeys());
+        stringMap.put(EPICS_VARIABLE_NAMES, object.getKeys());
         event.put(collectionName, collection, GenericObject.class, 0, DUMMY_INT_MAP, DUMMY_FLOAT_MAP, stringMap);
     }
 }
