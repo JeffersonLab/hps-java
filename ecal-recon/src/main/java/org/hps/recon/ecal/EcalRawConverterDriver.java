@@ -57,6 +57,16 @@ public class EcalRawConverterDriver extends Driver {
         converter = new EcalRawConverter();
     }
 
+    /*
+     * Set to <code>true</code> to use pulse fitting instead of arithmetic integration:<br/>
+     */
+    public void setUseFit(boolean useFit) { converter.setUseFit(useFit); }
+    
+    /*
+     * Set to <code>true</code> to fix fitted pulse widths to their channel's mean value:<br/>
+     */
+    public void setFixShapeParameter(boolean fix) { converter.setFixShapeParameter(fix); }
+    
     /**
      * Set to <code>true</code> to use the "2014" gain formula:<br/>
      * <pre>channelGain * adcSum * gainFactor * readoutPeriod</pre>
