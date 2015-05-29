@@ -12,7 +12,7 @@ import org.hps.recon.ecal.triggerbank.TIData;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsEvioProcessor;
 import org.hps.record.evio.EvioEventUtilities;
-import org.hps.record.scalars.ScalarsEvioProcessor;
+import org.hps.record.scalers.ScalersEvioProcessor;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.log.DefaultLogFormatter;
@@ -31,13 +31,13 @@ import org.lcsim.util.log.LogUtil;
  */
 public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
-    private static final Logger LOGGER = LogUtil.create(LCSimEngRunEventBuilder.class, new DefaultLogFormatter(), Level.ALL);
+    private static final Logger LOGGER = LogUtil.create(LCSimEngRunEventBuilder.class, new DefaultLogFormatter(), Level.INFO);
 
     private EpicsData epicsData;
 
     private final EpicsEvioProcessor epicsProcessor = new EpicsEvioProcessor();
 
-    private final ScalarsEvioProcessor scalarProcessor = new ScalarsEvioProcessor();
+    private final ScalersEvioProcessor scalerProcessor = new ScalersEvioProcessor();
 
     private TriggerConfigEvioReader triggerConfigReader = null;
 
@@ -79,12 +79,16 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
     @Override
     public EventHeader makeLCSimEvent(final EvioEvent evioEvent) {
+
+        LOGGER.finest("creating LCSim event from EVIO event " + evioEvent.getEventNumber());
+
         if (!EvioEventUtilities.isPhysicsEvent(evioEvent)) {
             throw new RuntimeException("Not a physics event: event tag " + evioEvent.getHeader().getTag());
         }
 
         // Create a new LCSimEvent.
         final EventHeader lcsimEvent = this.getEventData(evioEvent);
+        LOGGER.finest("created new LCSim event " + lcsimEvent.getEventNumber());
 
         // Put DAQ Configuration info into lcsimEvent.
         triggerConfigReader.getDAQConfig(evioEvent, lcsimEvent);
@@ -111,8 +115,8 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             epicsData = null;
         }
 
-        // Write scalars into the event, if they exist in this EVIO data.
-        this.writeScalarData(evioEvent, lcsimEvent);
+        // Write scalers into the event, if they exist in this EVIO data.
+        this.writeScalerData(evioEvent, lcsimEvent);
 
         return lcsimEvent;
     }
@@ -123,21 +127,22 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
         // Create EPICS data if this is an EPICS control event.
         if (EvioEventUtilities.isEpicsEvent(evioEvent)) {
+            LOGGER.finest("creating data from EPICS event");
             this.createEpicsData(evioEvent);
         }
     }
 
     /**
-     * Write EVIO scalar data into the LCSim event, if it exists.
+     * Write EVIO scaler data into the LCSim event, if it exists.
      *
      * @param evioEvent The EVIO event data.
      * @param lcsimEvent The output LCSim event.
      */
-    void writeScalarData(final EvioEvent evioEvent, final EventHeader lcsimEvent) {
-        scalarProcessor.process(evioEvent);
-        if (scalarProcessor.getScalarData() != null) {
-            LOGGER.finest("writing scalar data to lcsim event " + lcsimEvent.getEventNumber());
-            scalarProcessor.getScalarData().write(lcsimEvent);
+    void writeScalerData(final EvioEvent evioEvent, final EventHeader lcsimEvent) {
+        scalerProcessor.process(evioEvent);
+        if (scalerProcessor.getScalerData() != null) {
+            LOGGER.finest("writing scaler data to lcsim event " + lcsimEvent.getEventNumber() + " from EVIO event " + evioEvent.getEventNumber());
+            scalerProcessor.getScalerData().write(lcsimEvent);
         }
     }
 }
