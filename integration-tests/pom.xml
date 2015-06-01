@@ -42,6 +42,8 @@
                         <exclude>org/hps/TestRunReadoutToEvioTest.java</exclude>
                         <exclude>org/hps/ReadoutNoPileupTest.java</exclude>
                         <exclude>org/hps/SteeringFilesTest.java</exclude>
+                        <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
+                        <exclude>org/hps/TestRunReconTest.java</exclude>
                     </excludes>
 <!--                    <redirectTestOutputToFile>true</redirectTestOutputToFile> -->
                     <trimStackTrace>false</trimStackTrace>
