@@ -15,17 +15,16 @@
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
         <driver name="GTPOnlineClusterer" />
-		<driver name="CopyCluster" />
+        <driver name="CopyCluster" />
         <driver name="ReconParticle" />  
         <driver name="TrackDataDriver" />              
         <!--<driver name="GBLDriver"/>--> 
         <driver name="LCIOWriter"/>
-
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
+            <eventInterval>1000</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
@@ -64,8 +63,8 @@
         </driver>
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
-            <minLookbackEvents>10</minLookbackEvents>
-            <maxLookbackEvents>50</maxLookbackEvents>
+            <minLookbackEvents>5</minLookbackEvents>
+            <maxLookbackEvents>40</maxLookbackEvents>
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
@@ -73,29 +72,30 @@
             <useTimestamps>false</useTimestamps>
             <useTruthTime>false</useTruthTime>
             <useRunningPedestal>true</useRunningPedestal>
-            <useTimeWalkCorrection>true</useTimeWalkCorrection>
+            <useTimeWalkCorrection>false</useTimeWalkCorrection>
             <emulateFirmware>true</emulateFirmware>
             <emulateMode7>true</emulateMode7>
             <leadingEdgeThreshold>12</leadingEdgeThreshold>
             <nsa>100</nsa>
             <nsb>20</nsb>
-            <windowSamples>50</windowSamples>
             <nPeak>3</nPeak>
+            <useFit>true</useFit>
+            <fixShapeParameter>true</fixShapeParameter>
         </driver>       
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
-            <seedEnergyThreshold>0.100</seedEnergyThreshold> 
-            <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
+            <seedEnergyThreshold>0.050</seedEnergyThreshold> 
+            <clusterEnergyThreshold>0.100</clusterEnergyThreshold>
             <minTime>0.0</minTime>
             <timeWindow>25.0</timeWindow>
             <useTimeCut>true</useTimeCut>
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
-        	<inputCollectionName>EcalClusters</inputCollectionName>
-    		<outputCollectionName>EcalClustersCorr</outputCollectionName>
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
     		<storeHits>false</storeHits>
         </driver>
         <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
@@ -106,7 +106,7 @@
             <cuts>0.100</cuts>
         </driver>        
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">  
-        	<ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
         </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
