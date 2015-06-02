@@ -47,8 +47,6 @@
             <clusterTimeCut>12.0</clusterTimeCut>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
             <maxDt>16.0</maxDt>
-            <maxSeperation>20.0</maxSeperation>
-            <tolerance>1.0</tolerance>
             <saveAxialHits>false</saveAxialHits>
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">

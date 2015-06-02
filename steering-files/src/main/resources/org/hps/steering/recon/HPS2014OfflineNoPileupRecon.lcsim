@@ -45,8 +45,6 @@
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <!--<clusterTimeCut>16.0</clusterTimeCut>-->
-            <maxSeperation>20.0</maxSeperation>
-            <tolerance>1.0</tolerance>
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <strategyResource>HPS-Full.xml</strategyResource>

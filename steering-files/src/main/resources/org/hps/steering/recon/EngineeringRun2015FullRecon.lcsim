@@ -47,8 +47,6 @@
             <clusterTimeCut>12.0</clusterTimeCut>
             <maxDt>16.0</maxDt>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
-            <maxSeperation>20.0</maxSeperation>
-            <tolerance>1.0</tolerance>
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <strategyResource>HPS-Full.xml</strategyResource>

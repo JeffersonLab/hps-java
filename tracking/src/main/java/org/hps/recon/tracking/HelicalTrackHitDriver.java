@@ -72,6 +72,8 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
      * Default Ctor
      */
     public HelicalTrackHitDriver() {
+        _crosser.setMaxSeparation(20.0);
+        _crosser.setTolerance(0.1);
         _colnames.add("StripClusterer_SiTrackerHitStrip1D");
     }
 
