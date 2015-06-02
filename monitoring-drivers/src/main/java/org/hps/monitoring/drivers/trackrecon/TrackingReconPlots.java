@@ -163,8 +163,8 @@ public class TrackingReconPlots extends Driver {
 
         for (int i = 1; i <= nmodules; i++) {
 
-            xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top", 50, -100, 100, 50, 0, 50);
-            xvsyBot[i - 1] = aida.histogram2D("Module " + i + " Bottom", 50, -100, 100, 50, 0, 50);
+            xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top", 100, -100, 150, 55, 0, 55);
+            xvsyBot[i - 1] = aida.histogram2D("Module " + i + " Bottom", 100, -100, 150, 55, 0, 55);
             hthTop[i - 1] = aida.histogram1D("Module " + i + "Top: Track Hits", 25, 0, 25);
             hthBot[i - 1] = aida.histogram1D("Module " + i + "Bot: Track Hits", 25, 0, 25);
             plot(plotterHTH, hthTop[i - 1], null, computePlotterRegion(i - 1, true));
