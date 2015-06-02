@@ -11,7 +11,6 @@
         <driver name="EcalRawConverter"/>
         <driver name="GTPTestDriver"/>
         <driver name="TriggerDiagnostics"/>
-        <driver name="RawPlotsDriver"/>
         <driver name="AidaSaveDriver"/>
         <driver name="ClockDriver"/>
         <driver name="CleanupDriver"/>
@@ -65,12 +64,6 @@
             <enforceStrictTimeCompliance>true</enforceStrictTimeCompliance>
             <readDAQConfig>true</readDAQConfig>
             <verbose>false</verbose>
-        </driver>
-        
-        <driver name="RawPlotsDriver" type="org.hps.users.kmccarty.EvioAnalysis">
-            <clusterCollectionName>EcalClusters</clusterCollectionName>
-            <bankCollectionName>TriggerBank</bankCollectionName>
-            <energySlopeParamF>0.0055</energySlopeParamF>
         </driver>
         
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
