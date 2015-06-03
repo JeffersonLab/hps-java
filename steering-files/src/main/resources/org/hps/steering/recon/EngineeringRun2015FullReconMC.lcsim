@@ -12,7 +12,6 @@
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
         <driver name="TrackerReconDriver"/>
-        <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
         <driver name="GTPOnlineClusterer" />
@@ -62,25 +61,14 @@
             <isMC>false</isMC>
             <gblFileName></gblFileName>
         </driver>
-        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
-            <logLevel>CONFIG</logLevel>
-            <minLookbackEvents>10</minLookbackEvents>
-            <maxLookbackEvents>50</maxLookbackEvents>
-        </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
             <useTimestamps>false</useTimestamps>
             <useTruthTime>false</useTruthTime>
-            <useRunningPedestal>true</useRunningPedestal>
-            <useTimeWalkCorrection>true</useTimeWalkCorrection>
-            <emulateFirmware>true</emulateFirmware>
-            <emulateMode7>true</emulateMode7>
             <leadingEdgeThreshold>12</leadingEdgeThreshold>
             <nsa>100</nsa>
             <nsb>20</nsb>
-            <windowSamples>50</windowSamples>
-            <nPeak>3</nPeak>
         </driver>       
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
