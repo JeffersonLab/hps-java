@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
@@ -36,10 +40,17 @@ public final class RunSpreadsheet {
      *
      * @param args the command line arguments
      */
-    public static void main(final String args[]) {
+    public static void main(final String args[]) throws Exception {
         final RunSpreadsheet runSpreadsheet = new RunSpreadsheet(new File(args[0]));
         for (final CSVRecord record : runSpreadsheet.getRecords()) {
-            System.out.println(record);
+            try {
+                System.out.print("start date: " + parseStartDate(record) + ", ");
+                System.out.print("end date: " + parseEndDate(record) + ", ");
+                System.out.print(record);
+                System.out.println();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -118,4 +129,79 @@ public final class RunSpreadsheet {
     public List<CSVRecord> getRecords() {
         return records;
     }
+    
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy H:mm"); 
+    
+    private static Date parseStartDate(CSVRecord record) throws ParseException {
+        return DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time"));
+    }
+    
+    private static Date parseEndDate(CSVRecord record) throws ParseException {
+        return DATE_FORMAT.parse(record.get("date") + " " + record.get("end_time"));
+    }
+    
+    private static int parseRunNumber(CSVRecord record) throws NumberFormatException {
+        return Integer.parseInt(record.get("run"));
+    }
+    
+    public static class RunData {
+        
+        private int run;
+        private Date startDate;
+        private Date endDate;
+        private CSVRecord record;
+        
+        RunData(CSVRecord record) throws NumberFormatException {
+            this.record = record;
+            run = parseRunNumber(this.record);
+            try {
+                startDate = RunSpreadsheet.parseStartDate(this.record);
+            } catch (ParseException e) {                
+            }
+            try {
+                endDate = RunSpreadsheet.parseEndDate(this.record);
+            } catch (ParseException e) {                
+            }
+        }
+        
+        public int getRun() {
+            return run;
+        }
+        
+        public Date getStartDate() {
+            return startDate;
+        }
+        
+        public Date getEndDate() {
+            return endDate;
+        }      
+        
+        public String toString() {
+            return "RunData { run: " + run + ", startDate: " + startDate + ", endDate: " + endDate + " }";
+        }
+        
+        public CSVRecord getRecord() {
+            return record;
+        }
+    }
+    
+    @SuppressWarnings("serial")
+    public static class RunMap extends LinkedHashMap<Integer, RunData> {
+        
+        private void addRunData(RunData runData) {
+            this.put(runData.getRun(), runData);
+        }
+    }
+    
+    public RunMap getRunMap() {
+        RunMap runMap = new RunMap();
+        for (final CSVRecord record : getRecords()) {
+            try {
+                runMap.addRunData(new RunData(record));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        return runMap;
+    }    
 }
