@@ -68,8 +68,10 @@ public class TrackingMonitoring extends DataQualityMonitor {
     IHistogram2D[] xvsyOnTrackBot = new IHistogram2D[nmodules];
     IHistogram2D[] timevstimeTop = new IHistogram2D[nmodules];
     IHistogram2D[] timevstimeBot = new IHistogram2D[nmodules];
-    IHistogram2D[] timevstimeOnTrack = new IHistogram2D[nmodules];
-    IHistogram1D[] deltaTOnTrack = new IHistogram1D[nmodules];
+    IHistogram2D[] timevstimeOnTrackTop = new IHistogram2D[nmodules];
+    IHistogram2D[] timevstimeOnTrackBot = new IHistogram2D[nmodules];
+    IHistogram1D[] deltaTOnTrackTop = new IHistogram1D[nmodules];
+    IHistogram1D[] deltaTOnTrackBot = new IHistogram1D[nmodules];
 
     IHistogram1D trkYAtECALTop;
     IHistogram1D trkYAtECALBot;
@@ -165,16 +167,18 @@ public class TrackingMonitoring extends DataQualityMonitor {
         trkYAtECALTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track Y at ECAL: Top", 100, 0, 100);
         trkYAtECALBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track Y at ECAL: Bot", 100, 0, 100);
         for (int i = 1; i <= nmodules; i++) {
-            xvsyTop[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Top", 100, -100, 150, 55, 0, 55);
-            xvsyBot[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Bottom", 100, -100, 150, 55, 0, 55);
-            xvsyOnTrackTop[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Top, Hits On Tracks", 100, -100, 150, 55, 0, 55);
-            xvsyOnTrackBot[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Bottom, Hits On Tracks", 100, -100, 150, 55, 0, 55);
-            timevstimeTop[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Top: Hit Times", 50, -25, 25, 50, -25, 25);
-            timevstimeBot[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Bottom: Hit Times", 50, -25, 25, 50, -25, 25);
-            hthTop[i - 1] = aida.histogram1D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + "Top: Track Hits", 25, 0, 25);
-            hthBot[i - 1] = aida.histogram1D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + "Bot: Track Hits", 25, 0, 25);
-            timevstimeOnTrack[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + ": Hit Times, Hits On Tracks", 50, -25, 25, 50, -25, 25);
-            deltaTOnTrack[i - 1] = aida.histogram1D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + ": Hit Time Differences, Hits On Tracks", 50, -25, 25);
+            xvsyTop[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Top", 250, -100, 150, 30, 0, 60);
+            xvsyBot[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Bottom", 250, -100, 150, 30, 0, 60);
+            xvsyOnTrackTop[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Top, Hits On Tracks", 250, -100, 150, 30, 0, 60);
+            xvsyOnTrackBot[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Bottom, Hits On Tracks", 250, -100, 150, 30, 0, 60);
+            timevstimeTop[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Top: Hit Times", 30, -15, 15, 30, -15, 15);
+            timevstimeBot[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Bottom: Hit Times", 30, -15, 15, 30, -15, 15);
+            hthTop[i - 1] = aida.histogram1D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Top: Track Hits", 25, 0, 25);
+            hthBot[i - 1] = aida.histogram1D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Bottom: Track Hits", 25, 0, 25);
+            timevstimeOnTrackTop[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Top: Hit Times, Hits On Tracks", 30, -15, 15, 30, -15, 15);
+            timevstimeOnTrackBot[i - 1] = aida.histogram2D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Bottom: Hit Times, Hits On Tracks", 30, -15, 15, 30, -15, 15);
+            deltaTOnTrackTop[i - 1] = aida.histogram1D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Top: Hit Time Differences, Hits On Tracks", 50, -25, 25);
+            deltaTOnTrackBot[i - 1] = aida.histogram1D(plotDir + triggerType + "/" + hthplotDir + "Module " + i + " Bottom: Hit Time Differences, Hits On Tracks", 50, -25, 25);
         }
 
         trkChi2Pos = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + positronDir + "Track Chi2", 25, 0, 25.0);
@@ -370,12 +374,13 @@ public class TrackingMonitoring extends DataQualityMonitor {
 
                 if (hit.getPosition()[2] > 0) {
                     xvsyOnTrackTop[module - 1].fill(hit.getPosition()[1], hit.getPosition()[2]);
+                    timevstimeOnTrackTop[module - 1].fill(hitTimes[0], hitTimes[1]);
+                    deltaTOnTrackTop[module - 1].fill(hitTimes[0] - hitTimes[1]);
                 } else {
                     xvsyOnTrackBot[module - 1].fill(hit.getPosition()[1], Math.abs(hit.getPosition()[2]));
+                    timevstimeOnTrackBot[module - 1].fill(hitTimes[0], hitTimes[1]);
+                    deltaTOnTrackBot[module - 1].fill(hitTimes[0] - hitTimes[1]);
                 }
-
-                timevstimeOnTrack[module - 1].fill(hitTimes[0], hitTimes[1]);
-                deltaTOnTrack[module - 1].fill(hitTimes[0]- hitTimes[1]);
             }
             meanTime /= nStrips;
             meanSeedTime /= nSeedStrips;
