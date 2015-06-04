@@ -25,7 +25,7 @@ public class StripGoldenEventsDriver extends Driver
     {
         // select "golden" events with two tracks, two clusters and e+ e-
         boolean skipEvent = false;
-        if (event.hasCollection(Vertex.class, "UnconstrainedV0Candidates")) {
+        if (event.hasCollection(ReconstructedParticle.class, "UnconstrainedV0Candidates")) {
             List<ReconstructedParticle> vertices = event.get(ReconstructedParticle.class, "UnconstrainedV0Candidates");
             if (vertices.size() > 1 || vertices.isEmpty()) {
                 skipEvent = true;
@@ -45,7 +45,7 @@ public class StripGoldenEventsDriver extends Driver
                     skipEvent = true;
                 }
                 // require no other clusters in the event
-                if (event.get(Cluster.class, "EcalClusters").size() > 2) {
+                if (event.get(Cluster.class, "EcalClustersGTP").size() > 2) {
                     skipEvent = true;
                 }
             }
