@@ -2,11 +2,12 @@ package org.hps.recon.tracking;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-
+import hep.physics.vec.VecOp;
+import java.util.Iterator;
 import java.util.List;
-
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
@@ -192,6 +193,23 @@ public final class TrackerReconDriver extends Driver {
 
         // Set the type of track to indicate B-field in Y e.g. for swimming in Wired.
         List<Track> tracks = event.get(Track.class, trackCollectionName);
+        Iterator<Track> iter = tracks.iterator();
+        while (iter.hasNext()) {
+            Track track = iter.next();
+            boolean badTrack = false;
+            for (TrackerHit hit : track.getTrackerHits()) {
+                HelicalTrackHit hth = (HelicalTrackHit) hit;
+                double correction = VecOp.sub(hth.getCorrectedPosition(), new BasicHep3Vector(hth.getPosition())).magnitude();
+                double chisq = hth.chisq();
+                if (correction < 1e-6) {
+                    this.getLogger().warning(String.format("Bad HelicalTrackHit on track (correction distance %f, chisq penalty %f) - discarding track\n", correction, chisq));
+                    badTrack = true;
+                }
+            }
+            if (badTrack) {
+                iter.remove();
+            }
+        }
         setTrackType(tracks);
 
         // Increment number of events.
