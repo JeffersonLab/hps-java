@@ -305,6 +305,18 @@ public abstract class SurveyVolume {
         if( getBoxDim()!=null) s += "Box dimensions: " + getBoxDim().toString() + "\n";
 		if(this.coord==null)   s += " No coord system \n";
 		else s += "Coordinate system:" + getCoord().toString() + "\n";
+        s += "AlignmentCorrections: \n";
+		if(this.alignmentCorrections!=null) {
+		    s += "Milleparameters: ";
+		    if(this.alignmentCorrections.getMilleParameters()!=null) {
+		        for(MilleParameter mp : this.alignmentCorrections.getMilleParameters()) s += mp.getId() + " ";
+		    } else {
+		        s += "no MP params associated.";
+		    }
+		    s +=  "(" + this.getName() + ")" + " \n";
+		} else {
+		    s+= " no alignment corrections associated.\n";
+		}
 		SurveyVolume m = getMother();
 		while(m!=null) {    
             Hep3Vector origin_m = HPSTrackerBuilder.transformToParent(new BasicHep3Vector(0, 0, 0), this, m.getName());
@@ -313,6 +325,7 @@ public abstract class SurveyVolume {
             s += String.format("%s origin in %s : (%.4f %.4f %.4f) (inch)\n",getName(), m.getName(), origin_m.x(),origin_m.y(),origin_m.z());            
             m = m.getMother();
 		}
+		
 		
 		return s;
 	}

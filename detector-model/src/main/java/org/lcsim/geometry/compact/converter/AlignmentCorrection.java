@@ -1,5 +1,7 @@
 package org.lcsim.geometry.compact.converter;
 
+import java.util.List;
+
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
@@ -15,6 +17,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 public class AlignmentCorrection {
     private Rotation rotation = null;
     private Hep3Vector translation = null;
+    private List<MilleParameter> milleParameters = null;
     public AlignmentCorrection(double x, double y, double z, double rot_x, double rot_y, double rot_z) {
         setTranslation(x, y, z);
         setRotation(rot_x, rot_y, rot_z);
@@ -44,5 +47,12 @@ public class AlignmentCorrection {
     public void setTranslation(double x, double y, double z) {
         setTranslation(new BasicHep3Vector(x,y,z));
     }
+    public void setMilleParameters(List<MilleParameter> params) {
+       milleParameters  = params;
+    }
+    public List<MilleParameter> getMilleParameters(){
+        return milleParameters;
+    }
+     
 
 }
