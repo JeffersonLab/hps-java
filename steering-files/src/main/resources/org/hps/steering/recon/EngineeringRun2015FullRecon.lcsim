@@ -101,7 +101,7 @@
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
-    		<storeHits>false</storeHits>
+    		<storeHits>true</storeHits>
         </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">  
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
