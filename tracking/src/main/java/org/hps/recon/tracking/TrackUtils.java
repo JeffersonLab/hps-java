@@ -507,10 +507,11 @@ public class TrackUtils {
         // Find interception with plane that the strips belongs to
         Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(_trk, strip, Math.abs(bFieldInZ));
 
-        if (debug)
+        if (debug) {
             System.out.printf("calculateLocalTrackHitResiduals: strip u %s origin %s \n", u.toString(),corigin.toString());
             System.out.printf("calculateLocalTrackHitResiduals: found interception point with sensor at %s \n", trkpos.toString());
-
+        }
+        
         if (Double.isNaN(trkpos.x()) || Double.isNaN(trkpos.y()) || Double.isNaN(trkpos.z())) {
             System.out.printf("calculateLocalTrackHitResiduals: failed to get interception point (%s) \n", trkpos.toString());
             System.out.printf("calculateLocalTrackHitResiduals: track params\n%s\n", _trk.toString());
