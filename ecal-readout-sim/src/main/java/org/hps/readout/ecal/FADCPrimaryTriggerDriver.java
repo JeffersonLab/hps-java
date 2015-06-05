@@ -725,6 +725,9 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             pairEnergySum2DDistribution[ALL_CUTS].fill(clusterPair[0].getEnergy(), clusterPair[1].getEnergy());
             
             // Clusters that pass all of the pair cuts produce a trigger.
+            if (verbose) {
+                System.out.format("Passed trigger cuts: cluster 0 (energy %f, ix %d, iy %d, size %d) and cluster 1 (energy %f, ix %d, iy %d, size %d)\n", clusterPair[0].getEnergy(), clusterPair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), clusterPair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), clusterPair[0].getSize(), clusterPair[1].getEnergy(), clusterPair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), clusterPair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), clusterPair[1].getSize());
+            }
             return true;
         }
         
