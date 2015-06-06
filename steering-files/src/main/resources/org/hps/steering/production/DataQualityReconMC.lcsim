@@ -8,6 +8,7 @@
         <driver name="EventMarkerDriver"/>
         <!--        <driver name="DQMDatabaseDriver"/>  -->
         <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="EcalMonitoring"/>  
         <driver name="SVTMonitoring"/>  
         <driver name="SVTHitMCEfficiency"/>  
         <driver name="TrackingMonitoring"/>  
@@ -29,6 +30,8 @@
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+        <driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">         
         </driver>
         <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">
             <overwriteDB>false</overwriteDB>
