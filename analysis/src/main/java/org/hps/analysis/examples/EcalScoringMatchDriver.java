@@ -31,42 +31,46 @@ public class EcalScoringMatchDriver extends Driver {
         if (hits == null) {
             throw new RuntimeException("Missing ECal hit collection!");
         }
-        List<SimTrackerHit> scoringHits = event.get(SimTrackerHit.class, "TrackerHitsECal");
-        if (scoringHits == null) {
-            throw new RuntimeException("Missing ECal scoring plane hit collection!");
-        }
-        List<SimTrackerHit> fieldHits = event.get(SimTrackerHit.class, "TrackerHitsFieldDef");
-        if (fieldHits == null) {
-            throw new RuntimeException("Missing field boundary scoring plane hit collection!");
-        }
 
         Map<MCParticle, SimTrackerHit> scoringHitMap = new HashMap<MCParticle, SimTrackerHit>();
         Map<MCParticle, SimTrackerHit> fieldHitMap = new HashMap<MCParticle, SimTrackerHit>();
         Map<MCParticle, Double> edepMap = new HashMap<MCParticle, Double>(); //sum of all ECal hit energy contributions from each MCParticle
 
-        for (SimTrackerHit scoringHit : scoringHits) {
-            SimTrackerHit keyHit = scoringHitMap.get(scoringHit.getMCParticle());
+        if (!event.hasCollection(SimTrackerHit.class, "TrackerHitsECal")) {
+            System.out.println("Missing ECal scoring plane hit collection!");
+        } else {
+            List<SimTrackerHit> scoringHits = event.get(SimTrackerHit.class, "TrackerHitsECal");
+            for (SimTrackerHit scoringHit : scoringHits) {
+                SimTrackerHit keyHit = scoringHitMap.get(scoringHit.getMCParticle());
 
-            if (keyHit == null) {
-                scoringHitMap.put(scoringHit.getMCParticle(), scoringHit);
-            } else if (scoringHit.getTime() < keyHit.getTime()) { //keep only the earliest hit from each particle
-                System.out.println("Multiple scoring hits from same particle");
-                scoringHitMap.put(scoringHit.getMCParticle(), scoringHit);
+                if (keyHit == null) {
+                    scoringHitMap.put(scoringHit.getMCParticle(), scoringHit);
+                } else if (scoringHit.getTime() < keyHit.getTime()) { //keep only the earliest hit from each particle
+                    System.out.println("Multiple scoring hits from same particle");
+                    scoringHitMap.put(scoringHit.getMCParticle(), scoringHit);
+                }
             }
         }
-        for (SimTrackerHit fieldHit : fieldHits) {
-            if (fieldHit.getIdentifierFieldValue("layer") != 2) { //reject hits at the -Z end of the magnet
-                continue;
-            }
-            SimTrackerHit keyHit = fieldHitMap.get(fieldHit.getMCParticle());
 
-            if (keyHit == null) {
-                fieldHitMap.put(fieldHit.getMCParticle(), fieldHit);
-            } else if (fieldHit.getTime() < keyHit.getTime()) { //keep only the earliest hit from each particle
-                System.out.println("Multiple scoring hits from same particle");
-                fieldHitMap.put(fieldHit.getMCParticle(), fieldHit);
+        if (!event.hasCollection(SimTrackerHit.class, "TrackerHitsFieldDef")) {
+            System.out.println("Missing field boundary scoring plane hit collection!");
+        } else {
+            List<SimTrackerHit> fieldHits = event.get(SimTrackerHit.class, "TrackerHitsFieldDef");
+            for (SimTrackerHit fieldHit : fieldHits) {
+                if (fieldHit.getIdentifierFieldValue("layer") != 2) { //reject hits at the -Z end of the magnet
+                    continue;
+                }
+                SimTrackerHit keyHit = fieldHitMap.get(fieldHit.getMCParticle());
+
+                if (keyHit == null) {
+                    fieldHitMap.put(fieldHit.getMCParticle(), fieldHit);
+                } else if (fieldHit.getTime() < keyHit.getTime()) { //keep only the earliest hit from each particle
+                    System.out.println("Multiple scoring hits from same particle");
+                    fieldHitMap.put(fieldHit.getMCParticle(), fieldHit);
+                }
             }
         }
+
         for (SimCalorimeterHit hit : hits) {
             for (int i = 0; i < hit.getMCParticleCount(); i++) {
                 MCParticle mcParticle = hit.getMCParticle(i);
