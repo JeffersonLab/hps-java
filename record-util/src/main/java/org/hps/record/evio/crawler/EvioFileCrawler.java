@@ -6,9 +6,11 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +20,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.record.evio.EvioEventProcessor;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
@@ -31,8 +34,9 @@ import org.lcsim.util.log.LogUtil;
 // -database connections prop file
 // -writing Auger XML for crawl job (and don't actually execute job)
 // -writing out a summary EVIO file containing control events only (PRESTART, EPICS, scalars?, END)
-// -allow overwriting existing information in run table rather than inserting
 // -get supplementary information from run spreadsheet (including whether run was "JUNK" or not)
+// -allow running arbitrary EvioEventProcessor classes by giving fully qualified class names as args on command line
+//  e.g. -E org.hps.derp.MyEvioEventProcessor
 public final class EvioFileCrawler {
 
     /**
@@ -61,6 +65,7 @@ public final class EvioFileCrawler {
         OPTIONS.addOption("c", "cache-files", false, "automatically cache files from MSS (JLAB only)");
         OPTIONS.addOption("d", "directory", true, "root directory to start crawling (default is current dir)");
         OPTIONS.addOption("e", "epics", false, "process EPICS data found in EVIO files");
+        OPTIONS.addOption("E", "evio-processor", true, "class name of an additional EVIO processor to execute");
         OPTIONS.addOption("h", "help", false, "print help and exit");
         OPTIONS.addOption("m", "max-files", true, "max number of files to process per run (only for debugging)");
         OPTIONS.addOption("p", "print", true, "set event print interval during EVIO processing");
@@ -156,6 +161,8 @@ public final class EvioFileCrawler {
     private Long waitTime;
     
     private boolean allowUpdates = false;
+    
+    private List<EvioEventProcessor> processors = new ArrayList<EvioEventProcessor>();
 
     /**
      * Create the processor for a single run.
@@ -234,39 +241,46 @@ public final class EvioFileCrawler {
                 for (final String runString : cl.getOptionValues("a")) {
                     final Integer acceptRun = Integer.parseInt(runString);
                     this.acceptRuns.add(acceptRun);
-                    LOGGER.config("added accept run " + acceptRun);
+                    LOGGER.config("added run number filter " + acceptRun);
                 }
             }
 
             if (cl.hasOption("s")) {
+                LOGGER.config("print summary enabled");
                 this.printSummary = true;
             }
 
-            if (cl.hasOption("r")) {
+            if (cl.hasOption("r")) {                
                 this.updateRunLog = true;
+                LOGGER.config("run db will be updated");
             }
 
-            if (cl.hasOption("e")) {
+            if (cl.hasOption("e")) {                
                 this.epics = true;
+                LOGGER.config("EPICS processing enabled");
             }
 
-            if (cl.hasOption("c")) {
+            if (cl.hasOption("c")) {                
                 this.useFileCache = true;
+                LOGGER.config("using file cache");
             }
 
             if (cl.hasOption("w")) {
                 this.waitTime = Long.parseLong(cl.getOptionValue("w")) * MILLISECONDS;
                 if (this.waitTime > 0L) {
                     this.cacheManager.setWaitTime(this.waitTime);
+                    LOGGER.config("max wait time for caching set to " + this.waitTime);
                 }
             }
 
             if (cl.hasOption("m")) {
                 this.maxFiles = Integer.parseInt(cl.getOptionValue("m"));
+                LOGGER.config("max files set to " + this.maxFiles);
             }
 
             if (cl.hasOption("p")) {
                 this.eventPrintInterval = Integer.parseInt(cl.getOptionValue("p"));
+                LOGGER.config("event print interval set to " + this.eventPrintInterval);
             }
             
             if (cl.hasOption("u")) {
@@ -285,6 +299,18 @@ public final class EvioFileCrawler {
                     LOGGER.info("set timestamp to " + DATE_FORMAT.format(this.timestamp));
                 } catch (java.text.ParseException e) {
                     throw new RuntimeException(e);
+                }
+            }
+            
+            
+            if (cl.hasOption("E")) {
+                String[] classNames = cl.getOptionValues("E");
+                for (String className : classNames) {
+                    try {
+                        processors.add(createEvioEventProcessor(className));
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
             
@@ -316,10 +342,15 @@ public final class EvioFileCrawler {
         this.cacheManager.clear();
 
         // Create a processor to process all the EVIO events in the run.
-        final RunProcessor processor = this.createRunProcessor(runSummary);
+        final RunProcessor runProcessor = this.createRunProcessor(runSummary);
+        
+        for (EvioEventProcessor processor : processors) {
+            runProcessor.addProcessor(processor);
+            LOGGER.config("added extra EVIO processor " + processor.getClass().getName());
+        }
 
         // Process all of the runs files.
-        processor.process();
+        runProcessor.process();
     }
 
     /**
@@ -397,5 +428,9 @@ public final class EvioFileCrawler {
         }
         this.timestampFile.setLastModified(System.currentTimeMillis());
         LOGGER.info("set modified on timestamp file: " + new Date(this.timestampFile.lastModified()));
+    }
+    
+    EvioEventProcessor createEvioEventProcessor(String className) throws Exception {
+        return EvioEventProcessor.class.cast(Class.forName(className).newInstance());
     }
 }
