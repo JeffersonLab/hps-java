@@ -11,7 +11,7 @@ import org.jlab.coda.jevio.EvioEvent;
 /**
  * Create a summary log of EPICS information found in EVIO events.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class EpicsLog extends EvioEventProcessor {
 

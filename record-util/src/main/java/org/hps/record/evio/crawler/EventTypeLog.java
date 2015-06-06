@@ -11,7 +11,7 @@ import org.jlab.coda.jevio.EvioEvent;
 /**
  * This class makes a log of the number of different event types found in a run by their tag value.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class EventTypeLog extends EvioEventProcessor {
 

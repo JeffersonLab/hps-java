@@ -14,7 +14,7 @@ import org.lcsim.util.log.LogUtil;
  * This is a list of <code>File</code> objects that are assumed to be EVIO files. There are some added utilities for getting the total number of
  * events in all the files.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class EvioFileList extends ArrayList<File> {
 

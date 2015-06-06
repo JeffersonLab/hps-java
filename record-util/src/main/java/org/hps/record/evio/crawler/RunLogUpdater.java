@@ -1,11 +1,7 @@
 package org.hps.record.evio.crawler;
 
-import java.io.File;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,7 +11,7 @@ import org.lcsim.util.log.LogUtil;
 /**
  * Updates the run database with run log information from crawler job.
  * 
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 public class RunLogUpdater {
     
@@ -24,11 +20,13 @@ public class RunLogUpdater {
      */
     private static final Logger LOGGER = LogUtil.create(RunLogUpdater.class);
     
-    RunLog runLog;
+    private RunLog runLog;
     
-    final Connection connection;
+    private final Connection connection;
+    
+    private boolean allowUpdates = false;
         
-    RunLogUpdater(RunLog runLog) {
+    RunLogUpdater(RunLog runLog, boolean allowUpdates) {
         this.runLog = runLog;
         
         // Create database connection to use in this session.
@@ -43,36 +41,66 @@ public class RunLogUpdater {
             e.printStackTrace();
         }
     }
-            
-    boolean hasRun(int run) {
-        boolean hasRun = false;
-        PreparedStatement statement = null;
-        try {
-            statement = connection.prepareStatement("SELECT run from run_log where run = ?");
-            statement.setInt(1, run);
-            ResultSet rs = statement.executeQuery();
-            if (rs.next()) hasRun = true;
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        } 
-        return hasRun;
-    }
     
     /**
-     * Insert all the information from the run log into the run database.
+     * Insert the run summary information into the database.
+     *
+     * @param connection the database connection
+     * @throws SQLException if there is an error querying the database
      */
-    void insert() {
-
+    void insert() throws SQLException {
+        
         LOGGER.info("inserting runs into run_log ...");
         try {
             connection.setAutoCommit(false);
 
-            this.insertRunLog(connection);
+            // Update or insert a row for every run found.
+            for (final Integer run : runLog.getSortedRunNumbers()) {
+                
+                RunSummary runSummary = runLog.getRunSummary(run);
+                
+                LOGGER.info("updating " + runSummary);
+                                
+                RunSummaryUpdater updater = new RunSummaryUpdater(connection, runSummary);      
+                                
+                // Does a row already exist for run?
+                if (updater.runLogExists()) {
+                    LOGGER.info("record for " + run + " exists already");
+                    // Are updates allowed?
+                    if (allowUpdates) {
+                        LOGGER.info("updating existing row in run_log for " + run);
+                        // Update existing row.
+                        updater.updateRunLog();
+                    } else {
+                        // Row exists and updates not allowed which is an error.
+                        throw new RuntimeException("Row already exists for run " + run + " and allowUpdates is false");
+                    }
+                } else {                
+                    
+                    LOGGER.info("inserting new row in run_log for " + run);
+                    
+                    // Insert new record into run_log.
+                    updater.insertRunLog();
+                }
 
-            this.insertFiles(connection);
-
-            connection.commit();
-
+                boolean fileLogExists = updater.fileLogExists();
+                
+                // Are updates disallowed and file log exists?
+                if (!allowUpdates && fileLogExists) {
+                    // File records exist but updates not allowed so this is an error.
+                    throw new RuntimeException("Cannot delete existing file records because allowUpdates is false");                    
+                }
+                
+                // Delete existing file log.
+                if (fileLogExists) {
+                    // Delete the file log.
+                    updater.deleteFileLog();
+                }
+                
+                // Insert the file log.
+                updater.insertFileLog();
+            }
+            
         } catch (final SQLException e) {
             LOGGER.log(Level.SEVERE, "rolling back transaction", e);
             try {
@@ -83,69 +111,10 @@ public class RunLogUpdater {
         } finally {
             try {
                 connection.setAutoCommit(true);
+                connection.close();
             } catch (final SQLException e) {
                 throw new RuntimeException(e);
-            }            
+            }
         }
-    }
-
-    /**
-     * Insert the file lists into the run database.
-     *
-     * @param connection the database connection
-     * @throws SQLException if there is an error executing the SQL query
-     */
-    private void insertFiles(final Connection connection) throws SQLException {
-        for (final int run : runLog.getSortedRunNumbers()) {
-            insertFiles(connection, run, runLog.getRunSummary(run).getEvioFileList());
-        }
-    }
-
-    /**
-     * Insert the run summary information into the database.
-     *
-     * @param connection the database connection
-     * @throws SQLException if there is an error querying the database
-     */
-    private void insertRunLog(final Connection connection) throws SQLException {
-        PreparedStatement runLogStatement = null;
-        runLogStatement = connection
-                .prepareStatement("INSERT INTO run_log (run, start_date, end_date, nevents, nfiles, end_ok, last_updated) VALUES(?, ?, ?, ?, ?, ?, NOW())");
-        for (final Integer run : runLog.getSortedRunNumbers()) {
-            LOGGER.info("preparing to insert run " + run + " into database ..");
-            final RunSummary runSummary = runLog.getRunSummary(run);
-            runLogStatement.setInt(1, run);
-            runLogStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getStartDate().getTime()));
-            runLogStatement.setTimestamp(3, new java.sql.Timestamp(runSummary.getEndDate().getTime()));
-            runLogStatement.setInt(4, runSummary.getTotalEvents());
-            runLogStatement.setInt(5, runSummary.getEvioFileList().size());
-            runLogStatement.setBoolean(6, runSummary.isEndOkay());
-            runLogStatement.executeUpdate();
-            LOGGER.info("committed run " + run + " to run_log");
-        }
-        LOGGER.info("run_log was updated!");
-    }
-    
-    /**
-     * Insert the file names into the run database.
-     *
-     * @param connection the database connection
-     * @param run the run number
-     * @throws SQLException if there is a problem executing one of the database queries
-     */
-    void insertFiles(final Connection connection, final int run, List<File> files) throws SQLException {
-        LOGGER.info("updating file list ...");
-        PreparedStatement filesStatement = null;
-        filesStatement = connection.prepareStatement("INSERT INTO run_log_files (run, directory, name) VALUES(?, ?, ?)");
-        LOGGER.info("inserting files from run " + run + " into database");
-        for (final File file : files) {
-            LOGGER.info("creating update statement for " + file.getPath());
-            filesStatement.setInt(1, run);
-            filesStatement.setString(2, file.getParentFile().getPath());
-            filesStatement.setString(3, file.getName());
-            LOGGER.info("executing statement: " + filesStatement);
-            filesStatement.executeUpdate();
-        }
-        LOGGER.info("run_log_files was updated!");
-    }    
+    }             
 }

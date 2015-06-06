@@ -12,7 +12,7 @@ import java.util.Date;
  * <p>
  * Files with a creation date after the time stamp will be rejected.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class DateFileFilter implements FileFilter {
 

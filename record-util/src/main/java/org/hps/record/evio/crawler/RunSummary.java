@@ -10,7 +10,8 @@ import org.hps.record.epics.EpicsData;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * This class models the run summary information which is persisted as one record in the <i>run_log</i> table.
+ * This class models the run summary information which is persisted as a row in the <i>run_log</i> table
+ * of the run database.
  * <p>
  * This information includes:
  * <ul>
@@ -20,9 +21,10 @@ import org.lcsim.util.log.LogUtil;
  * <li>total number of events across all files in the run</li>
  * <li>number of files found belonging to the run</li>
  * <li>whether the EVIO END event was found</li>
+ * <li>whether the run is considered good</li>
  * </ul>
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 final class RunSummary {
 
@@ -244,5 +246,10 @@ final class RunSummary {
      */
     void sortFiles() {
         this.files.sort();
+    }
+    
+    public String toString() {
+        return "RunSummary { run: " + this.run + ", started: " + this.getStartDate() + ", ended: " + this.getEndDate() + ", events: " 
+                + this.getTotalEvents() + ", endOkay: " + endOkay + " }";
     }
 }

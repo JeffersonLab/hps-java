@@ -7,7 +7,7 @@ import java.io.FileFilter;
  * This is a simple file filter that will accept EVIO files with a certain convention to their naming which looks like <i>FILENAME.evio.SEQUENCE</i>.
  * This matches the convention used by the CODA DAQ software.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class EvioFileFilter implements FileFilter {
 

@@ -22,29 +22,27 @@ import org.xml.sax.InputSource;
 /**
  * Utility class for using the <i>jcache</i> command at JLAB.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class JCacheManager {
 
     /**
      * Keeps track of cache status for a single file.
-     *
-     * @author Jeremy McCormick
      */
     static class CacheStatus {
 
         /**
-         * Flag indicating if file is cached yet.
+         * Flag indicating if the file is cached yet.
          */
         private boolean cached = false;
 
         /**
-         * Path to the file on the MSS (not the cached path).
+         * Path to the file on the MSS.
          */
         private File file = null;
 
         /**
-         * The request ID from the 'jcache submit' command.
+         * The request ID from executing the 'jcache submit' command.
          */
         private Integer requestId = null;
 
@@ -301,7 +299,7 @@ final class JCacheManager {
     /**
      * Submit cache request for every file in a list.
      *
-     * @param files
+     * @param files the list of files
      */
     void cache(final List<File> files) {
         for (final File file : files) {
@@ -354,7 +352,7 @@ final class JCacheManager {
     }
 
     /**
-     * Clear all cache statuses.
+     * Clear all cache statuses, which means files are no longer tracked by this manager.
      */
     void clear() {
         this.cacheStatuses.clear();

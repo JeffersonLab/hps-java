@@ -16,7 +16,7 @@ import org.lcsim.util.log.LogUtil;
 /**
  * A miscellaneous collection of EVIO file utility methods used by classes in the crawler package.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class EvioFileUtilities {
 
@@ -31,10 +31,10 @@ final class EvioFileUtilities {
     private static final long MILLISECONDS = 1000L;
 
     /**
-     * Get a cached file path assuming that the input file is on the JLAB MSS.
+     * Get a cached file path, assuming that the input file path is on the JLAB MSS e.g. it starts with "/mss".
      *
      * @param file the MSS file path
-     * @return the cached file path
+     * @return the cached file path (prepends "/cache" to the path)
      * @throws IllegalArgumentException if the file is not on the MSS (e.g. path does not start with "/mss")
      */
     static File getCachedFile(final File file) {

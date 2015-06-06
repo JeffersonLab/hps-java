@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * A filter which rejects files that have a run number not in the accept list.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class RunFilter implements FileFilter {
 

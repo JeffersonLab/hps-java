@@ -24,7 +24,7 @@ import org.lcsim.util.log.LogUtil;
  * <p>
  * There is also a list of processors which is run on all events from the run, if the processor list is not empty.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class RunProcessor {
 
@@ -120,7 +120,8 @@ final class RunProcessor {
         List<File> files = this.runSummary.getEvioFileList();
         if (this.maxFiles != -1) {
             LOGGER.info("limiting processing to first " + this.maxFiles + " files from max files setting");
-            files = files.subList(0, this.maxFiles - 1);
+            files = files.subList(0, this.maxFiles);
+            LOGGER.info("using file list with size " + files.size());
         }
         return files;
     }
@@ -195,7 +196,6 @@ final class RunProcessor {
      * @throws IOException if there is some kind of IO error
      * @throws Exception if there is a generic error thrown by event processing
      */
-    // FIXME: I think this method is terribly inefficient right now.
     private void process(final File file) throws EvioException, IOException, Exception {
         LOGGER.fine("processing " + file.getPath() + " ...");
 
@@ -240,7 +240,6 @@ final class RunProcessor {
 
             // Check if END event is present if this is the last file in the run.
             if (file.equals(this.runSummary.getEvioFileList().last())) {
-                LOGGER.info("checking end okay ...");
                 final boolean endOkay = this.isEndOkay(reader);
                 this.runSummary.setEndOkay(endOkay);
                 LOGGER.info("endOkay set to " + endOkay);

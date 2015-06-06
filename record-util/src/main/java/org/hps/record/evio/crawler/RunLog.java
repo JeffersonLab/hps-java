@@ -16,7 +16,7 @@ import org.lcsim.util.log.LogUtil;
  * <p>
  * This class is able to update the run database using the <code>insert</code> methods.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class RunLog {
 

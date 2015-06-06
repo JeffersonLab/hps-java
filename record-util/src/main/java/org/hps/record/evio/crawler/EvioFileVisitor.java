@@ -16,9 +16,11 @@ import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * A file visitor that crawls directories looking for EVIO files.
+ * A file visitor that crawls directories for EVIO files.
+ * <p>
+ * It updates a run log to keep track of which files are associated with which run numbers.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 final class EvioFileVisitor extends SimpleFileVisitor<Path> {
 

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -24,11 +25,14 @@ import org.lcsim.util.log.LogUtil;
  * Crawls EVIO files in a directory tree, groups the files that are found by run, and optionally performs various tasks based on the run summary
  * information that is accumulated, including printing a summary, caching the files from JLAB MSS, and updating a run database.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
-// TODO: write out Auger XML (and don't actually execute job)
-// TODO: write summary EVIO file with control/EPICS events (maybe?)
-// TODO: flag to allow overwriting existing information in run table
+// TODO: need options for...
+// -database connections prop file
+// -writing Auger XML for crawl job (and don't actually execute job)
+// -writing out a summary EVIO file containing control events only (PRESTART, EPICS, scalars?, END)
+// -allow overwriting existing information in run table rather than inserting
+// -get supplementary information from run spreadsheet (including whether run was "JUNK" or not)
 public final class EvioFileCrawler {
 
     /**
@@ -45,23 +49,27 @@ public final class EvioFileCrawler {
      * Command line options for the crawler.
      */
     private static final Options OPTIONS = new Options();
+    
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
      * Statically define the command options.
      */
     static {
+        OPTIONS.addOption("a", "accept-runs", true, "list of run numbers to accept (others will be excluded)");
+        OPTIONS.addOption("b", "begin-date", true, "min date for files (example 2015-03-26 11:28:59)");
+        OPTIONS.addOption("c", "cache-files", false, "automatically cache files from MSS (JLAB only)");
+        OPTIONS.addOption("d", "directory", true, "root directory to start crawling (default is current dir)");
+        OPTIONS.addOption("e", "epics", false, "process EPICS data found in EVIO files");
         OPTIONS.addOption("h", "help", false, "print help and exit");
-        OPTIONS.addOption("t", "timestamp-file", true, "timestamp file for date filtering; modified time will be set at end of job");
-        OPTIONS.addOption("d", "directory", true, "starting directory");
-        OPTIONS.addOption("r", "runs", true, "list of runs to accept (others will be excluded)");
-        OPTIONS.addOption("s", "summary", false, "print run summary at end of job");
-        OPTIONS.addOption("L", "log-level", true, "set log level (INFO, FINE, etc.)");
-        OPTIONS.addOption("u", "update", false, "update the run database");
-        OPTIONS.addOption("e", "epics", false, "process EPICS data");
-        OPTIONS.addOption("c", "cache", false, "automatically cache all files from MSS");
-        OPTIONS.addOption("w", "wait", true, "total time in seconds to allow for file caching");
-        OPTIONS.addOption("m", "max-files", true, "maximum number of files to accept per run (for debugging)");
-        OPTIONS.addOption("p", "print", true, "set event printing interval when running EVIO processors");
+        OPTIONS.addOption("m", "max-files", true, "max number of files to process per run (only for debugging)");
+        OPTIONS.addOption("p", "print", true, "set event print interval during EVIO processing");
+        OPTIONS.addOption("r", "insert-run-log", false, "update the run database (not done by default)");
+        OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name for date cut off");
+        OPTIONS.addOption("s", "print-summary", false, "print run summary at the end of the job");
+        OPTIONS.addOption("w", "max-cache-wait", true, "total seconds to allow for file caching");
+        OPTIONS.addOption("L", "log-level", true, "set the log level (INFO, FINE, etc.)");
+        OPTIONS.addOption("u", "update-run-log", false, "allow overriding existing data in the run db (not allowed by default)");
     }
 
     /**
@@ -83,7 +91,7 @@ public final class EvioFileCrawler {
     private final Set<Integer> acceptRuns = new HashSet<Integer>();
 
     /**
-     * The class for managing the file caching using the jcache command.
+     * The class for managing the file caching using the 'jcache' command.
      */
     private final JCacheManager cacheManager = new JCacheManager();
 
@@ -135,7 +143,7 @@ public final class EvioFileCrawler {
     /**
      * Flag indicating if the run database should be updated from results of the job.
      */
-    private boolean update = false;
+    private boolean updateRunLog = false;
 
     /**
      * Flag indicating if the file cache should be used (e.g. jcache automatically executed to move files to the cache disk from tape).
@@ -146,6 +154,8 @@ public final class EvioFileCrawler {
      * The maximum wait time in milliseconds to allow for file caching operations.
      */
     private Long waitTime;
+    
+    private boolean allowUpdates = false;
 
     /**
      * Create the processor for a single run.
@@ -202,18 +212,26 @@ public final class EvioFileCrawler {
             if (cl.hasOption("t")) {
                 this.timestampFile = new File(cl.getOptionValue("t"));
                 if (!this.timestampFile.exists()) {
-                    throw new IllegalArgumentException("The timestamp file does not exist: " + this.timestampFile.getPath());
-                }
-                try {
-                    this.timestamp = new Date(Files.readAttributes(this.timestampFile.toPath(), BasicFileAttributes.class).lastModifiedTime()
-                            .toMillis());
-                } catch (final IOException e) {
-                    throw new RuntimeException("Error getting attributes of timestamp file.", e);
+                    try {
+                        // Create new time stamp file.
+                        LOGGER.info("creating new timestamp file " + this.timestampFile.getPath());
+                        this.timestampFile.createNewFile();
+                    } catch (IOException e) {
+                        throw new IllegalArgumentException("Error creating timestamp file " + this.timestampFile.getPath());
+                    }
+                } else { 
+                    try {
+                        // Get cut-off date for files from existing time stamp file. 
+                        this.timestamp = new Date(Files.readAttributes(this.timestampFile.toPath(), BasicFileAttributes.class).lastModifiedTime().toMillis());
+                        LOGGER.info("got timestamp " + this.timestamp + " from existing file " + this.timestampFile.getPath());
+                    } catch (final IOException e) {
+                        throw new RuntimeException("Error getting attributes of timestamp file.", e);
+                    }
                 }
             }
 
-            if (cl.hasOption("r")) {
-                for (final String runString : cl.getOptionValues("r")) {
+            if (cl.hasOption("a")) {
+                for (final String runString : cl.getOptionValues("a")) {
                     final Integer acceptRun = Integer.parseInt(runString);
                     this.acceptRuns.add(acceptRun);
                     LOGGER.config("added accept run " + acceptRun);
@@ -224,8 +242,8 @@ public final class EvioFileCrawler {
                 this.printSummary = true;
             }
 
-            if (cl.hasOption("u")) {
-                this.update = true;
+            if (cl.hasOption("r")) {
+                this.updateRunLog = true;
             }
 
             if (cl.hasOption("e")) {
@@ -250,7 +268,26 @@ public final class EvioFileCrawler {
             if (cl.hasOption("p")) {
                 this.eventPrintInterval = Integer.parseInt(cl.getOptionValue("p"));
             }
-
+            
+            if (cl.hasOption("u")) {
+                this.allowUpdates = true;
+                if (!this.updateRunLog) {
+                    LOGGER.info("the -u option is ignored because run_log is not being updated");
+                }
+            }
+            
+            if (cl.hasOption("b")) {
+                try {
+                    if (this.timestamp != null) {
+                        LOGGER.warning("existing timestamp from file " + this.timestamp + " will be overridden by date from -b argument");
+                    }
+                    this.timestamp = DATE_FORMAT.parse(cl.getOptionValue("b"));
+                    LOGGER.info("set timestamp to " + DATE_FORMAT.format(this.timestamp));
+                } catch (java.text.ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            
         } catch (final ParseException e) {
             throw new RuntimeException("Error parsing options.", e);
         }
@@ -343,9 +380,9 @@ public final class EvioFileCrawler {
         }
 
         // Insert run information into the database.
-        if (this.update) {
+        if (this.updateRunLog) {
             // Update run log.
-            new RunLogUpdater(runs).insert();
+            new RunLogUpdater(runs, allowUpdates).insert();
         }
 
         // Update the timestamp file which can be used to tell which files have been processed.
