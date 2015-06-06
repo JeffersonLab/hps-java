@@ -96,7 +96,7 @@ final class EpicsLog extends EvioEventProcessor {
                 this.counts.put(name, count);
                 final double value = this.logData.getValue(name) + this.currentData.getValue(name);
                 this.logData.setValue(name, value);
-                System.out.println(name + " => added " + this.currentData.getValue(name) + "; total = " + value + "; mean = " + value / count);
+                //System.out.println(name + " => added " + this.currentData.getValue(name) + "; total = " + value + "; mean = " + value / count);
             }
         }
     }
