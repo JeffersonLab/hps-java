@@ -41,7 +41,8 @@
             <numSamplesAfter>25</numSamplesAfter>
             <numSamplesBefore>5</numSamplesBefore>
             <readoutThreshold>12</readoutThreshold>
-            <triggerThreshold>12</triggerThreshold>    
+            <triggerThreshold>12</triggerThreshold>
+            <!--<mode>1</mode>-->
         </driver>
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <rawCollectionName>EcalRawHits</rawCollectionName>
@@ -85,7 +86,9 @@
             <outputFileName>${outputFile}.triggers.pairs1</outputFileName>
             <!--<verbose>true</verbose>-->
         </driver>         
-        <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout" />
+        <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
+            <enablePileupCut>false</enablePileupCut>
+        </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
 
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
@@ -97,6 +100,7 @@
             <outputFile>${outputFile}.slcio</outputFile>
             <rejectBackground>false</rejectBackground>
             <writeSvtData>true</writeSvtData>
+            <!--<ecalMode>1</ecalMode>-->
         </driver>
     </drivers>
 </lcsim>
