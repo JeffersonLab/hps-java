@@ -260,7 +260,7 @@ public class EcalEvioReader extends EvioReader {
                 }
 
                 if (id == null) {
-                    FADCGenericHit hit = makeGenericRawHit(EventConstants.ECAL_WINDOW_MODE, crate, slot, channel, cdata, nSamples);
+                    FADCGenericHit hit = makeGenericRawHit(EventConstants.ECAL_RAW_MODE, crate, slot, channel, cdata, nSamples);
                     processUnrecognizedChannel(hit);
                 } else {
                     BaseRawTrackerHit hit = makeECalRawHit(0, id, cdata, nSamples);

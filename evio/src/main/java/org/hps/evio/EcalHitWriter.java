@@ -69,7 +69,7 @@ public class EcalHitWriter implements HitWriter {
 
     public void setMode(int mode) {
         this.mode = mode;
-        if (mode != EventConstants.ECAL_WINDOW_MODE && mode != EventConstants.ECAL_PULSE_MODE && mode != EventConstants.ECAL_PULSE_INTEGRAL_MODE) {
+        if (mode != EventConstants.ECAL_RAW_MODE && mode != EventConstants.ECAL_PULSE_MODE && mode != EventConstants.ECAL_PULSE_INTEGRAL_MODE) {
             throw new IllegalArgumentException("invalid mode " + mode);
         }
     }
@@ -77,7 +77,7 @@ public class EcalHitWriter implements HitWriter {
     @Override
     public boolean hasData(EventHeader event) {
         switch (mode) {
-            case EventConstants.ECAL_WINDOW_MODE:
+            case EventConstants.ECAL_RAW_MODE:
                 return event.hasCollection(RawTrackerHit.class, hitCollectionName);
             case EventConstants.ECAL_PULSE_MODE:
                 return event.hasCollection(RawTrackerHit.class, hitCollectionName);
@@ -92,7 +92,7 @@ public class EcalHitWriter implements HitWriter {
     public void writeData(EventHeader event, EventBuilder builder) {
         List<Object> hits = new ArrayList<Object>();
         switch (mode) {
-            case EventConstants.ECAL_WINDOW_MODE:
+            case EventConstants.ECAL_RAW_MODE:
                 hits.addAll(event.get(RawTrackerHit.class, hitCollectionName));
                 writeHits(hits, builder, mode);
                 break;
@@ -160,7 +160,7 @@ public class EcalHitWriter implements HitWriter {
         }
 
         switch (mode) {
-            case EventConstants.ECAL_WINDOW_MODE:
+            case EventConstants.ECAL_RAW_MODE:
                 // Write the two collections for top and bottom hits to separate EVIO banks.
                 writeWindowHitCollection(topHits, topBank, builder);
                 writeWindowHitCollection(bottomHits, botBank, builder);
@@ -415,7 +415,7 @@ public class EcalHitWriter implements HitWriter {
     public void writeData(EventHeader event, EventHeader toEvent) {
         String readoutName = ((org.lcsim.geometry.compact.Subdetector) subDetector).getReadout().getName();
         switch (mode) {
-            case EventConstants.ECAL_WINDOW_MODE:
+            case EventConstants.ECAL_RAW_MODE:
             case EventConstants.ECAL_PULSE_MODE:
                 List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, hitCollectionName);
                 if (verbosity >= 1) {

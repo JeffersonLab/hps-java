@@ -77,7 +77,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
 
     public void setEcalMode(int ecalMode) {
         this.ecalMode = ecalMode;
-        if (ecalMode != EventConstants.ECAL_WINDOW_MODE && ecalMode != EventConstants.ECAL_PULSE_MODE && ecalMode != EventConstants.ECAL_PULSE_INTEGRAL_MODE) {
+        if (ecalMode != EventConstants.ECAL_RAW_MODE && ecalMode != EventConstants.ECAL_PULSE_MODE && ecalMode != EventConstants.ECAL_PULSE_INTEGRAL_MODE) {
             throw new IllegalArgumentException("invalid mode " + ecalMode);
         }
         if (ecalWriter != null) {

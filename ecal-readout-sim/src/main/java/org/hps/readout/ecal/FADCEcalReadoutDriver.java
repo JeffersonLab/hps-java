@@ -42,7 +42,7 @@ import org.lcsim.lcio.LCIOConstants;
 public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> {
 
     // Repeated here from EventConstants in evio module to avoid depending on it.
-    private static final int ECAL_WINDOW_MODE = 1;
+    private static final int ECAL_RAW_MODE = 1;
     private static final int ECAL_PULSE_MODE = 2;
     private static final int ECAL_PULSE_INTEGRAL_MODE = 3;
     private String ecalName = "Ecal";
@@ -92,16 +92,16 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private double fixedGain = -1;
     private boolean constantTriggerWindow = true;
     private boolean addNoise = false;
-   
+
     // 32.8 p.e./MeV = New detector in 2014
     // 2 p.e./MeV = Test Run detector
     private double pePerMeV = 32.8; //photoelectrons per MeV, used to calculate noise
-    
+
     //switch between test run and 2014 definitions of gain constants
     // true = ONLY simulation studies in 2014
     // false = Test Run data/simulations and 2014+ Detector's real data 
     private boolean use2014Gain = false;
-    
+
     //switch between three pulse shape functions
     private PulseShape pulseShape = PulseShape.ThreePole;
 
@@ -208,7 +208,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 
     public void setMode(int mode) {
         this.mode = mode;
-        if (mode != ECAL_WINDOW_MODE && mode != ECAL_PULSE_MODE && mode != ECAL_PULSE_INTEGRAL_MODE) {
+        if (mode != ECAL_RAW_MODE && mode != ECAL_PULSE_MODE && mode != ECAL_PULSE_INTEGRAL_MODE) {
             throw new IllegalArgumentException("invalid mode " + mode);
         }
     }
@@ -239,7 +239,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 
             FADCPipeline pipeline = pipelineMap.get(cellID);
             pipeline.step();
-            
+
             // Get the channel data.
             EcalChannelConstants channelData = findChannel(cellID);
 
@@ -325,9 +325,9 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     @Override
     protected void processTrigger(EventHeader event) {
         switch (mode) {
-            case ECAL_WINDOW_MODE:
+            case ECAL_RAW_MODE:
                 if (debug) {
-                    System.out.println("Reading out ECal in window mode");
+                    System.out.println("Reading out ECal in raw mode");
                 }
                 event.put(ecalReadoutCollectionName, readWindow(), RawTrackerHit.class, 0, ecalReadoutName);
                 break;
@@ -371,7 +371,17 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
         for (Long cellID : pipelineMap.keySet()) {
             short[] adcValues = getWindow(cellID);
-            hits.add(new BaseRawTrackerHit(cellID, 0, adcValues));
+            EcalChannelConstants channelData = findChannel(cellID);
+            boolean isAboveThreshold = false;
+            for (int i = 0; i < adcValues.length; i++) {
+                if (adcValues[i] > channelData.getCalibration().getPedestal() + readoutThreshold) {
+                    isAboveThreshold = true;
+                    break;
+                }
+            }
+            if (isAboveThreshold) {
+                hits.add(new BaseRawTrackerHit(cellID, 0, adcValues));
+            }
         }
         return hits;
     }
@@ -385,12 +395,15 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             int pointerOffset = 0;
             int numSamplesToRead = 0;
             int thresholdCrossing = 0;
-            
+
             // Get the channel data.
             EcalChannelConstants channelData = findChannel(cellID);
-            
+
             for (int i = 0; i < readoutWindow; i++) {
                 if (numSamplesToRead != 0) {
+                    if (adcValues == null) {
+                        throw new RuntimeException("expected a pulse buffer, none found (this should never happen)");
+                    }
                     adcValues[adcValues.length - numSamplesToRead] = window[i - pointerOffset];
                     numSamplesToRead--;
                     if (numSamplesToRead == 0) {
@@ -416,10 +429,10 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             int pointerOffset = 0;
             int numSamplesToRead = 0;
             int thresholdCrossing = 0;
-            
+
             // Get the channel data.
             EcalChannelConstants channelData = findChannel(cellID);
-            
+
             if (window != null) {
                 for (int i = 0; i < readoutWindow; i++) {
                     if (numSamplesToRead != 0) {
@@ -455,11 +468,11 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 //add preamp noise and photoelectron Poisson noise in quadrature
                 double noise;
                 if (use2014Gain) {
-                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.gainFactor * EcalUtils.ecalReadoutPeriod, 2) 
-                    		+ hit.getRawEnergy() / (EcalUtils.lightYield * EcalUtils.quantumEff * EcalUtils.surfRatio));
+                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.gainFactor * EcalUtils.ecalReadoutPeriod, 2)
+                            + hit.getRawEnergy() / (EcalUtils.lightYield * EcalUtils.quantumEff * EcalUtils.surfRatio));
                 } else {
-                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.MeV, 2) 
-                    		+ hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
+                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.MeV, 2)
+                            + hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
                 }
                 energyAmplitude += RandomGaussian.getGaussian(0, noise);
             }
@@ -482,10 +495,10 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     public void detectorChanged(Detector detector) {
         // Get the Subdetector.
         ecal = detector.getSubdetector(ecalName);
-        
+
         // ECAL combined conditions object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
-        
+
         resetFADCBuffers();
     }
 
@@ -497,7 +510,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         pipelineMap = new HashMap<Long, FADCPipeline>();
         Set<Long> cells = ((HPSEcal3) ecal).getNeighborMap().keySet();
         for (Long cellID : cells) {
-        	EcalChannelConstants channelData = findChannel(cellID);
+            EcalChannelConstants channelData = findChannel(cellID);
             signalMap.put(cellID, new RingBuffer(bufferLength));
             pipelineMap.put(cellID, new FADCPipeline(pipelineLength, (int) Math.round(channelData.getCalibration().getPedestal())));
         }
@@ -507,7 +520,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private double pulseAmplitude(double time, long cellID) {
         // Get the channel data.
         EcalChannelConstants channelData = findChannel(cellID);
-    	
+
         if (use2014Gain) {
             //if fixedGain is set, multiply the default gain by this factor
             double corrGain;
@@ -615,22 +628,22 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             return array[((ptr - pos) % size + size) % size];
         }
     }
-    
-    /** 
+
+    /**
      * Convert physical ID to gain value.
+     *
      * @param cellID (long)
      * @return channel constants (EcalChannelConstants)
      */
     private EcalChannelConstants findChannel(long cellID) {
         return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
     }
-    
-    
-	public static class TimeComparator implements Comparator<RawCalorimeterHit> {
+
+    public static class TimeComparator implements Comparator<RawCalorimeterHit> {
 
         @Override
-		public int compare(RawCalorimeterHit o1, RawCalorimeterHit o2) {
-			return o1.getTimeStamp() - o2.getTimeStamp();
-		}
-	}
+        public int compare(RawCalorimeterHit o1, RawCalorimeterHit o2) {
+            return o1.getTimeStamp() - o2.getTimeStamp();
+        }
+    }
 }

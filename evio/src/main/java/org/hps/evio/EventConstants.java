@@ -16,7 +16,7 @@ public final class EventConstants {
     public static final int SVT_BANK_NUMBER = 1;
     public static final int ECAL_BANK_NUMBER = 1;
     public static final int TRIGGER_BANK_NUMBER = 1;
-    public static final int ECAL_WINDOW_MODE = 1;
+    public static final int ECAL_RAW_MODE = 1;
     public static final int ECAL_PULSE_MODE = 2;
     public static final int ECAL_PULSE_INTEGRAL_MODE = 3; //FADC mode 3
     public static final int ECAL_PULSE_INTEGRAL_HIGHRESTDC_MODE = 4; //FADC mode 7
