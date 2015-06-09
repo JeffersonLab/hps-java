@@ -40,6 +40,10 @@ public class EcalPulseFitter {
     // sample range relative to threshold crossing used to initialize pedestal fit parameter:
     private final static int pedRange[]={-10,-5};
 
+    // if this is positive, it will override individual widths:
+    public double globalThreePoleWidth=-999;
+
+    // these are 442 channels' widths, measured from 2015 data:
     private final static double threePoleWidths[]={
       2.44057,2.40057,2.53389,2.32095,2.44267,2.43631,2.40292,2.46911,2.36032,2.42132,2.41473,2.43864,2.37710,2.43278,2.49126,2.41739,2.40560,
       2.42042,2.51278,2.46731,2.42647,2.35636,2.55308,2.47517,2.38748,2.48324,2.53726,2.54780,2.50771,2.45188,2.35011,2.35110,2.37575,2.37649,
@@ -172,7 +176,8 @@ public class EcalPulseFitter {
         fitFcn3Pole.setParameter("pedestal",ped);
         fitFcn3Pole.setParameter("time0",(double)threshCross-2);
         fitFcn3Pole.setParameter("integral",pulseIntegral>0 ? pulseIntegral : 2);
-        fitFcn3Pole.setParameter("width",threePoleWidths[cid-1]);
+        if (globalThreePoleWidth>0) fitFcn3Pole.setParameter("width",globalThreePoleWidth);
+        else                        fitFcn3Pole.setParameter("width",threePoleWidths[cid-1]);
 
         // constrain parameters:
         fitter.fitParameterSettings("integral").setBounds(0,999999);

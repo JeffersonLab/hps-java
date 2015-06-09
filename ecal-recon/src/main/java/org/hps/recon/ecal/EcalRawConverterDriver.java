@@ -18,17 +18,7 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * 
- * 
- * baltzell New in 2015:  (default behavior is unchanged)
- * Added firmware emulation for converting from Mode-1 readout (RawTrackerHit)
- * to Mode-3 pulse (CalorimeterHit).  Turn it on with "emulateFirmware", else
- * defaults to previous behavior.  
- *  
- * Removed integralWindow in favor of NSA/NSB to allow treating all Modes uniformly.
- * (New) NSA+NSB == (Old) integralWindow*4(ns) 
- * 
- * Implemented finding multiple peaks for Mode-1.
+ * baltzell June 2015: removed outdated javadoc comments in the class header
  */
 public class EcalRawConverterDriver extends Driver {
 
@@ -57,6 +47,11 @@ public class EcalRawConverterDriver extends Driver {
         converter = new EcalRawConverter();
     }
 
+    /*
+     * Fix 3-pole function width to be the same for all 442 ECal channels.  Units=ns.
+     */
+    public void setGlobalFixedPulseWidth(double width) { converter.setGlobalFixedPulseWidth(width); }
+    
     /*
      * Set to <code>true</code> to use pulse fitting instead of arithmetic integration:<br/>
      */
