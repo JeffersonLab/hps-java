@@ -32,7 +32,7 @@ public class EcalPulseFitter {
     private EcalConditions ecalConditions = null;
 
     // don't bother fitting pulses with threshold crossing outside this sample range:
-    private final static int threshRange[]={7,20}; // (28 ns <--> 80 ns)
+    public int threshRange[]={7,20}; // (28 ns <--> 80 ns)
     
     // fit sample range relative to threshold crossing:
     private final static int fitRange[]={-10,15};
@@ -180,10 +180,14 @@ public class EcalPulseFitter {
         else                        fitFcn3Pole.setParameter("width",threePoleWidths[cid-1]);
 
         // constrain parameters:
-        fitter.fitParameterSettings("integral").setBounds(0,999999);
-        fitter.fitParameterSettings("time0").setBounds(1,30);
-//        fitter.fitParameterSettings("time0").setBounds(threshRange[0]-5,threshRange[1]+20);
+//        fitter.fitParameterSettings("time0").setBounds(1,30);
+        double t0min=threshRange[0]-6;
+        double t0max=threshRange[1]+10;
+        if (t0min<1) t0min=1;
+        if (t0max>=samples.length-5) t0max=samples.length-6;
+        fitter.fitParameterSettings("time0").setBounds(t0min,t0max);
         fitter.fitParameterSettings("width").setBounds(0.1,5);
+        fitter.fitParameterSettings("integral").setBounds(0,999999);
         if (fixShapeParameter) fitter.fitParameterSettings("width").setFixed(true);
 
         if (debug>0) {

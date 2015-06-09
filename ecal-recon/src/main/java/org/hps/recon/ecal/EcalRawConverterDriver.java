@@ -48,7 +48,7 @@ public class EcalRawConverterDriver extends Driver {
     }
 
     /*
-     * Fix 3-pole function width to be the same for all 442 ECal channels.  Units=ns.
+     * Fix 3-pole function width to be the same for all 442 ECal channels.  Units=samples.
      */
     public void setGlobalFixedPulseWidth(double width) { converter.setGlobalFixedPulseWidth(width); }
     
@@ -61,6 +61,11 @@ public class EcalRawConverterDriver extends Driver {
      * Set to <code>true</code> to fix fitted pulse widths to their channel's mean value:<br/>
      */
     public void setFixShapeParameter(boolean fix) { converter.setFixShapeParameter(fix); }
+   
+    /*
+     * Limit threshold crossing range for pulse-fitter.  Units=samples.
+     */
+    public void setFitThresholdRange(int sample1,int sample2) { converter.setFitThresholdRange(sample1,sample2); }
     
     /**
      * Set to <code>true</code> to use the "2014" gain formula:<br/>

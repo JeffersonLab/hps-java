@@ -151,7 +151,14 @@ public class EcalRawConverter {
   
     public void setUseFit(boolean useFit) { this.useFit=useFit; }
     public void setFixShapeParameter(boolean fix) { pulseFitter.fixShapeParameter=fix; }
-    public void setGlobalFixedPulseWidth(double width) { pulseFitter.globalThreePoleWidth=width; pulseFitter.fixShapeParameter=true;}
+    public void setGlobalFixedPulseWidth(double width) { 
+        pulseFitter.globalThreePoleWidth=width; 
+        pulseFitter.fixShapeParameter=true;
+    }
+    public void setFitThresholdRange(int sample1,int sample2) {
+        pulseFitter.threshRange[0]=sample1;
+        pulseFitter.threshRange[1]=sample2;
+    }
 
     public void setLeadingEdgeThreshold(double thresh) {
         leadingEdgeThreshold=thresh;
