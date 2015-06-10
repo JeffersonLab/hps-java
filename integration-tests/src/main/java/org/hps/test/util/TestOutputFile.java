@@ -2,8 +2,6 @@ package org.hps.test.util;
 
 import java.io.File;
 
-import junit.framework.TestCase;
-
 /**
  * Convenience class for test file output (basically copied from lcsim.org).
  * 
@@ -22,7 +20,7 @@ public class TestOutputFile extends File {
      * @param testClass the TestCase class
      * @param filename the file name (should not use a directory)
      */
-    public TestOutputFile(Class<? extends TestCase> testClass, String filename) {
+    public TestOutputFile(Class<?> testClass, String filename) {
         super(TEST_OUTPUT_DIR + File.separator + testClass.getSimpleName() + File.separator + filename);
         File dir = this.getParentFile();
         if (!dir.exists()) {
