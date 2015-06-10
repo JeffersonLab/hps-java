@@ -155,10 +155,12 @@ public class EcalRawConverter {
         pulseFitter.globalThreePoleWidth=width; 
         pulseFitter.fixShapeParameter=true;
     }
-    public void setFitThresholdRange(int sample1,int sample2) {
-        pulseFitter.threshRange[0]=sample1;
-        pulseFitter.threshRange[1]=sample2;
-    }
+    public void setFitThresholdTimeLo(int sample) { pulseFitter.threshRange[0]=sample; }
+    public void setFitThresholdTimeHi(int sample) { pulseFitter.threshRange[1]=sample; }
+    public void setFitLimitTimeLo(int sample) { pulseFitter.t0limits[0]=sample; }
+    public void setFitLimitTimeHi(int sample) { pulseFitter.t0limits[1]=sample; }
+    
+    
 
     public void setLeadingEdgeThreshold(double thresh) {
         leadingEdgeThreshold=thresh;

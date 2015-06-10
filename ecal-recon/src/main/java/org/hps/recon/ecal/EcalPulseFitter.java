@@ -14,7 +14,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.lcsim.event.RawTrackerHit;
@@ -33,6 +32,9 @@ public class EcalPulseFitter {
 
     // don't bother fitting pulses with threshold crossing outside this sample range:
     public int threshRange[]={7,20}; // (28 ns <--> 80 ns)
+    
+    // restrict fit's time0 parameter to this range:  (units=samples)
+    public int t0limits[]={1,30};
     
     // fit sample range relative to threshold crossing:
     private final static int fitRange[]={-10,15};
@@ -181,11 +183,7 @@ public class EcalPulseFitter {
 
         // constrain parameters:
 //        fitter.fitParameterSettings("time0").setBounds(1,30);
-        double t0min=threshRange[0]-6;
-        double t0max=threshRange[1]+10;
-        if (t0min<1) t0min=1;
-        if (t0max>=samples.length-5) t0max=samples.length-6;
-        fitter.fitParameterSettings("time0").setBounds(t0min,t0max);
+        fitter.fitParameterSettings("time0").setBounds(t0limits[0],t0limits[1]);
         fitter.fitParameterSettings("width").setBounds(0.1,5);
         fitter.fitParameterSettings("integral").setBounds(0,999999);
         if (fixShapeParameter) fitter.fitParameterSettings("width").setFixed(true);

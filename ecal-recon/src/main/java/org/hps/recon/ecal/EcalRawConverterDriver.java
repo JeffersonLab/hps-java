@@ -48,14 +48,14 @@ public class EcalRawConverterDriver extends Driver {
     }
 
     /*
-     * Fix 3-pole function width to be the same for all 442 ECal channels.  Units=samples.
-     */
-    public void setGlobalFixedPulseWidth(double width) { converter.setGlobalFixedPulseWidth(width); }
-    
-    /*
      * Set to <code>true</code> to use pulse fitting instead of arithmetic integration:<br/>
      */
     public void setUseFit(boolean useFit) { converter.setUseFit(useFit); }
+    
+    /*
+     * Fix 3-pole function width to be the same for all 442 ECal channels.  Units=samples.
+     */
+    public void setGlobalFixedPulseWidth(double width) { converter.setGlobalFixedPulseWidth(width); }
     
     /*
      * Set to <code>true</code> to fix fitted pulse widths to their channel's mean value:<br/>
@@ -63,9 +63,16 @@ public class EcalRawConverterDriver extends Driver {
     public void setFixShapeParameter(boolean fix) { converter.setFixShapeParameter(fix); }
    
     /*
-     * Limit threshold crossing range for pulse-fitter.  Units=samples.
+     * Limit threshold crossing range that is candidate for pulse-fitting.   Units=samples.
      */
-    public void setFitThresholdRange(int sample1,int sample2) { converter.setFitThresholdRange(sample1,sample2); }
+    public void setFitThresholdTimeLo(int sample) { converter.setFitThresholdTimeLo(sample); }
+    public void setFitThresholdTimeHi(int sample) { converter.setFitThresholdTimeHi(sample); }
+    
+    /*
+     * Constrain pulse fit time0 parameter.  Units=samples. 
+     */
+    public void setFitLimitTimeLo(int sample) { converter.setFitLimitTimeLo(sample); }
+    public void setFitLimitTimeHi(int sample) { converter.setFitLimitTimeHi(sample); }
     
     /**
      * Set to <code>true</code> to use the "2014" gain formula:<br/>
