@@ -17,7 +17,7 @@ import org.lcsim.util.log.LogUtil;
  */
 public final class EpicsEvioProcessor extends EvioEventProcessor {
 
-    private static final Logger LOGGER = LogUtil.create(EpicsEvioProcessor.class, new DefaultLogFormatter(), Level.ALL);
+    private static final Logger LOGGER = LogUtil.create(EpicsEvioProcessor.class, new DefaultLogFormatter(), Level.INFO);
 
     /**
      * The current EPICS data object.
@@ -54,7 +54,7 @@ public final class EpicsEvioProcessor extends EvioEventProcessor {
         for (final BaseStructure childBank : topBank.getChildrenList()) {
             if (childBank.getHeader().getTag() == EvioEventConstants.EPICS_BANK_TAG) {
                 epicsBank = childBank;
-                LOGGER.info("found EPICS data bank " + childBank.getHeader().getTag());
+                LOGGER.fine("found EPICS data bank " + childBank.getHeader().getTag());
                 break;
             }
         }
