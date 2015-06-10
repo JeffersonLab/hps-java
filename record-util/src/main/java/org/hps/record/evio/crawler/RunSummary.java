@@ -190,9 +190,9 @@ final class RunSummary {
         for (final Object key : this.eventTypeCounts.keySet()) {
             ps.println("  " + key + ": " + this.eventTypeCounts.get(key));
         }
-        ps.println("files" + this.files.size());
+        ps.println("files " + this.files.size());
         for (final File file : this.files) {
-            ps.println(file.getPath());
+            ps.println("  " + file.getPath());
         }
     }
 

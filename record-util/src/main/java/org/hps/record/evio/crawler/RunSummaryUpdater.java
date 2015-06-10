@@ -5,13 +5,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.record.epics.EpicsData;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * Utilities for updating or insert a run summary row into the run_log table.
+ * Updates the run database tables with information from a single run.
  * 
  * @author Jeremy McCormick, SLAC
  */
@@ -36,7 +37,7 @@ public class RunSummaryUpdater {
      * The run number (read from the summary in the constructor for convenience).
      */
     private int run = -1;
-    
+        
     /**
      * Create a <code>RunSummaryUpdater</code> for the given <code>RunSummary</code>.
      * 
@@ -57,18 +58,18 @@ public class RunSummaryUpdater {
         
         this.run = this.runSummary.getRun();
     }
-    
+        
     /**
      * Execute a SQL update to modify an existing row in the database.
      * 
      * @throws SQLException if there is an error executing the SQL statement
      */
-    void updateRunLog() throws SQLException {
+    void updateRun() throws SQLException {
         
         PreparedStatement runLogStatement = null;
         runLogStatement = 
-                connection.prepareStatement("UPDATE run_log SET start_date = ?, end_date = ?, nevents = ?, nfiles = ?, end_ok = ? where run = ?");        
-        LOGGER.info("preparing to update run " + run + " in run_log ..");
+                connection.prepareStatement("UPDATE runs SET start_date = ?, end_date = ?, nevents = ?, nfiles = ?, end_ok = ? where run = ?");        
+        LOGGER.info("preparing to update run " + run + " in runs table ..");
         runLogStatement.setTimestamp(1, new java.sql.Timestamp(runSummary.getStartDate().getTime()));
         runLogStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getEndDate().getTime()));
         runLogStatement.setInt(3, runSummary.getTotalEvents());
@@ -76,20 +77,19 @@ public class RunSummaryUpdater {
         runLogStatement.setBoolean(5, runSummary.isEndOkay());
         runLogStatement.setInt(6, run);
         runLogStatement.executeUpdate();
-        connection.commit();
-        LOGGER.info("run " + run + " was updated in run_log");
+        LOGGER.info("run " + run + " was updated");
     }
     
     /**
-     * Insert a new row in the run_log table.
+     * Insert a new row in the <i>runs</i> table.
      *
      * @param connection the database connection
      * @throws SQLException if there is an error querying the database
      */
-    void insertRunLog() throws SQLException {
+    void insertRun() throws SQLException {
         PreparedStatement statement = 
-                connection.prepareStatement("INSERT INTO run_log (run, start_date, end_date, nevents, nfiles, end_ok) VALUES(?, ?, ?, ?, ?, ?)");
-        LOGGER.info("preparing to insert run " + run + " into run_log ..");
+                connection.prepareStatement("INSERT INTO runs (run, start_date, end_date, nevents, nfiles, end_ok) VALUES(?, ?, ?, ?, ?, ?)");
+        LOGGER.info("preparing to insert run " + run + " into runs table ..");
         statement.setInt(1, run);
         statement.setTimestamp(2, new java.sql.Timestamp(runSummary.getStartDate().getTime()));
         statement.setTimestamp(3, new java.sql.Timestamp(runSummary.getEndDate().getTime()));
@@ -97,8 +97,7 @@ public class RunSummaryUpdater {
         statement.setInt(5, runSummary.getEvioFileList().size());
         statement.setBoolean(6, runSummary.isEndOkay());
         statement.executeUpdate();
-        connection.commit();
-        LOGGER.info("insert run " + run + " to run_log");
+        LOGGER.info("inserted run " + run + " to runs table");
     }
     
     /**
@@ -107,8 +106,8 @@ public class RunSummaryUpdater {
      * @return <code>true</code> if there is an existing row for this run summary.
      * @throws SQLException if there is an error executing the SQL query
      */
-    boolean runLogExists() throws SQLException {
-        PreparedStatement s = connection.prepareStatement("SELECT run from run_log where run = ?");
+    boolean runExists() throws SQLException {
+        PreparedStatement s = connection.prepareStatement("SELECT run FROM runs where run = ?");
         s.setInt(1, run);        
         ResultSet rs = s.executeQuery();
         return rs.first();
@@ -121,11 +120,11 @@ public class RunSummaryUpdater {
      * @param run the run number
      * @throws SQLException if there is a problem executing one of the database queries
      */
-    void insertFileLog() throws SQLException {
+    void insertFiles() throws SQLException {
         LOGGER.info("updating file list ...");
         PreparedStatement filesStatement = null;
-        filesStatement = connection.prepareStatement("INSERT INTO run_log_files (run, directory, name) VALUES(?, ?, ?)");
-        LOGGER.info("inserting files from run " + run + " into database");
+        filesStatement = connection.prepareStatement("INSERT INTO run_files (run, directory, name) VALUES(?, ?, ?)");
+        LOGGER.info("inserting files from run " + run + " into run_files ...");
         for (final File file : runSummary.getEvioFileList()) {
             LOGGER.info("creating update statement for " + file.getPath());
             filesStatement.setInt(1, run);
@@ -134,8 +133,7 @@ public class RunSummaryUpdater {
             LOGGER.info("executing statement: " + filesStatement);
             filesStatement.executeUpdate();
         }
-        connection.commit();
-        LOGGER.info("run_log_files was updated!");
+        LOGGER.info("run_files was updated");
     }    
     
     /**
@@ -144,27 +142,27 @@ public class RunSummaryUpdater {
      * @param files the list of files
      * @throws SQLException if there is an error executing the SQL query
      */
-    void deleteFileLog() throws SQLException {
-        LOGGER.info("deleting run_log_files for " + run + " ...");
-        PreparedStatement s = connection.prepareStatement("DELETE FROM run_log_files where run = ?");
+    void deleteFiles() throws SQLException {        
+        LOGGER.info("deleting rows from run_files for " + run + " ...");
+        PreparedStatement s = connection.prepareStatement("DELETE FROM run_files where run = ?");
         s.setInt(1, run);
         s.executeUpdate();
-        connection.commit();
-        LOGGER.info("done deleting run_log_files for " + run);
+        LOGGER.info("done deleting rows from run_files for " + run);
     }
     
     /**
-     * Delete the row for this run from the run_log table.
+     * Delete the row for this run from the <i>runs</i> table.
+     * <p>
+     * This doesn't delete the rows from <i>run_epics</i> or <i>run_files</i>.
      * 
      * @throws SQLException if there is an error executing the SQL query
      */
-    void deleteRunLog() throws SQLException {
-        LOGGER.info("deleting run_log for " + run + " ...");
-        PreparedStatement s = connection.prepareStatement("DELETE FROM run_log where run = ?");
+    void deleteRun() throws SQLException {
+        LOGGER.info("deleting record from runs for " + run + " ...");
+        PreparedStatement s = connection.prepareStatement("DELETE FROM runs where run = ?");
         s.setInt(1, run);
         s.executeUpdate();
-        connection.commit();
-        LOGGER.info("done deleting run_log_files for " + run);
+        LOGGER.info("deleted rows from runs for " + run);
     }
     
     /**
@@ -172,9 +170,53 @@ public class RunSummaryUpdater {
      * @return <code>true</code> if there are file rows for this run
      * @throws SQLException if there is an error executing the SQL query
      */
-    boolean fileLogExists() throws SQLException {
-        PreparedStatement s = connection.prepareStatement("SELECT run FROM run_log_files where run = ?");
+    boolean filesExist() throws SQLException {
+        PreparedStatement s = connection.prepareStatement("SELECT run FROM run_files where run = ?");
         s.setInt(1, run);        
+        ResultSet rs = s.executeQuery();
+        return rs.first();
+    }
+    
+    /**
+     * Insert EPICS data into the run_log_epics table.
+     * 
+     * @throws SQLException if there is an error performing the db query
+     */
+    void insertEpics() throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("INSERT INTO run_epics (run, variable_name, value) values (?, ?, ?)");
+        EpicsData data = runSummary.getEpicsData();
+        if (data != null) {
+            for (String variableName : data.getUsedNames()) {
+                statement.setInt(1, this.run);
+                statement.setString(2, variableName);
+                statement.setDouble(3, data.getValue(variableName));
+                statement.executeUpdate();
+            }
+        } else {
+            LOGGER.warning("skipped inserting EPICS data (none found in RunSummary)");
+        }
+    }
+    
+    /**
+     * Delete existing EPICS data from the run_log_epics table.
+     * 
+     * @throws SQLException if there is an error performing the db query
+     */
+    void deleteEpics() throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("DELETE FROM run_epics WHERE run = ?");
+        statement.setInt(1, this.run);
+        statement.executeUpdate();
+    }
+    
+    /**
+     * Return <code>true</code> if there is an existing row for this run summary.
+     * 
+     * @return <code>true</code> if there is an existing row for this run summary.
+     * @throws SQLException if there is an error executing the SQL query
+     */
+    boolean epicsExists() throws SQLException {
+        PreparedStatement s = connection.prepareStatement("SELECT run from run_epics where run = ?");
+        s.setInt(1, run);
         ResultSet rs = s.executeQuery();
         return rs.first();
     }

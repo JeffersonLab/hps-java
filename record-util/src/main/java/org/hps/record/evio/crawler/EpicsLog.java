@@ -99,5 +99,5 @@ final class EpicsLog extends EvioEventProcessor {
                 //System.out.println(name + " => added " + this.currentData.getValue(name) + "; total = " + value + "; mean = " + value / count);
             }
         }
-    }
+    }       
 }

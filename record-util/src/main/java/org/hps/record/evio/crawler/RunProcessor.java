@@ -17,12 +17,11 @@ import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * Processes all the EVIO files from a run.
+ * Processes all the EVIO files from a run in order to extract various information including start and end dates.
  * <p>
- * This class is a wrapper for activating different sub-tasks, including optionally caching all files from the JLAB MSS to the cache disk using
- * jcache.
+ * This class is a wrapper for activating different sub-tasks, including optionally caching all files from the JLAB MSS to the cache disk.
  * <p>
- * There is also a list of processors which is run on all events from the run, if the processor list is not empty.
+ * There is also a list of processors which is run on all events from the run.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -106,6 +105,14 @@ final class RunProcessor {
         LOGGER.info("done caching files from run " + this.runSummary.getRun());
     }
 
+    /**
+     * Get the event count from the current <code>EvioReader</code>.
+     * 
+     * @param reader the current <code>EvioReader</code>
+     * @return the event count
+     * @throws IOException if there is a generic IO error
+     * @throws EvioException if there is an EVIO related error
+     */
     Integer computeEventCount(final EvioReader reader) throws IOException, EvioException {
         return reader.getEventCount();
     }
@@ -136,7 +143,8 @@ final class RunProcessor {
     }
 
     /**
-     * Return <code>true</code> if valid END event can be located. 
+     * Return <code>true</code> if a valid CODA <i>END</i> event can be located in the
+     * <code>EvioReader</code>'s current file. 
      * 
      * @param reader the EVIO reader
      * @return <code>true</code> if valid END event is located
@@ -144,8 +152,13 @@ final class RunProcessor {
      */
     boolean isEndOkay(final EvioReader reader) throws Exception {
         LOGGER.info("checking is END okay ...");
+        
         boolean endOkay = false;
+        
+        // Go to second to last event for searching.
         reader.gotoEventNumber(reader.getEventCount() - 2);
+        
+        // Look for END event.
         EvioEvent event = null;
         while ((event = reader.parseNextEvent()) != null) {
             if (event.getHeader().getTag() == EvioEventConstants.END_EVENT_TAG) {
@@ -157,7 +170,10 @@ final class RunProcessor {
     }
 
     /**
-     * Process the run.
+     * Process the run by executing the registered {@link org.hps.record.evio.EvioEventProcessor}s and 
+     * performing special tasks such as the extraction of start and end dates.
+     * <p>
+     * This method will also activate file caching, if enabled by the {@link #useFileCache} option.
      *
      * @throws Exception if there is an error processing a file
      */

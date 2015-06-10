@@ -20,6 +20,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.evio.EvioEventProcessor;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
@@ -30,13 +31,6 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author Jeremy McCormick, SLAC
  */
-// TODO: need options for...
-// -database connections prop file
-// -writing Auger XML for crawl job (and don't actually execute job)
-// -writing out a summary EVIO file containing control events only (PRESTART, EPICS, scalars?, END)
-// -get supplementary information from run spreadsheet (including whether run was "JUNK" or not)
-// -allow running arbitrary EvioEventProcessor classes by giving fully qualified class names as args on command line
-//  e.g. -E org.hps.derp.MyEvioEventProcessor
 public final class EvioFileCrawler {
 
     /**
@@ -63,15 +57,16 @@ public final class EvioFileCrawler {
         OPTIONS.addOption("a", "accept-runs", true, "list of run numbers to accept (others will be excluded)");
         OPTIONS.addOption("b", "begin-date", true, "min date for files (example 2015-03-26 11:28:59)");
         OPTIONS.addOption("c", "cache-files", false, "automatically cache files from MSS (JLAB only)");
+        OPTIONS.addOption("C", "db-config", true, "database connection properties file (required)");
         OPTIONS.addOption("d", "directory", true, "root directory to start crawling (default is current dir)");
-        OPTIONS.addOption("e", "epics", false, "process EPICS data found in EVIO files");
-        OPTIONS.addOption("E", "evio-processor", true, "class name of an additional EVIO processor to execute");
+        OPTIONS.addOption("e", "epics", false, "process EPICS data found in EVIO files (run log is also updated if -r is used)");
+        OPTIONS.addOption("E", "evio-processor", true, "class name of an additional EVIO processor to execute (can be used multiple times)");
         OPTIONS.addOption("h", "help", false, "print help and exit");
         OPTIONS.addOption("m", "max-files", true, "max number of files to process per run (only for debugging)");
         OPTIONS.addOption("p", "print", true, "set event print interval during EVIO processing");
         OPTIONS.addOption("r", "insert-run-log", false, "update the run database (not done by default)");
         OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name for date cut off");
-        OPTIONS.addOption("s", "print-summary", false, "print run summary at the end of the job");
+        OPTIONS.addOption("s", "print-summary", false, "print the run summaries at the end of the job");
         OPTIONS.addOption("w", "max-cache-wait", true, "total seconds to allow for file caching");
         OPTIONS.addOption("L", "log-level", true, "set the log level (INFO, FINE, etc.)");
         OPTIONS.addOption("u", "update-run-log", false, "allow overriding existing data in the run db (not allowed by default)");
@@ -108,7 +103,7 @@ public final class EvioFileCrawler {
     /**
      * Flag indicating whether EPICS data banks should be processed.
      */
-    private boolean epics = false;
+    private boolean processEpicsData = false;
 
     /**
      * Interval for printing out event number while running EVIO processors.
@@ -116,7 +111,7 @@ public final class EvioFileCrawler {
     private int eventPrintInterval = DEFAULT_EVENT_PRINT_INTERVAL;
 
     /**
-     * The maximum number of files to
+     * The maximum number of files to accept (just used for debugging purposes).
      */
     private int maxFiles = -1;
 
@@ -172,7 +167,7 @@ public final class EvioFileCrawler {
      */
     private RunProcessor createRunProcessor(final RunSummary runSummary) {
         final RunProcessor processor = new RunProcessor(runSummary, this.cacheManager);
-        if (this.epics) {
+        if (this.processEpicsData) {
             processor.addProcessor(new EpicsLog(runSummary));
         }
         if (this.printSummary) {
@@ -204,6 +199,18 @@ public final class EvioFileCrawler {
                 final Level level = Level.parse(cl.getOptionValue("L"));
                 LOGGER.info("setting log level to " + level);
                 LOGGER.setLevel(level);
+            }
+            
+            if (cl.hasOption("C")) {
+                String dbPropPath = cl.getOptionValue("C");
+                File dbPropFile = new File(dbPropPath);
+                if (!dbPropFile.exists()) {
+                    throw new IllegalArgumentException("Connection properties file " + dbPropFile.getPath() + " does not exist.");
+                }
+                LOGGER.config("using " + dbPropPath + " for db connection properties");
+                DatabaseConditionsManager.getInstance().setConnectionProperties(dbPropFile);
+            } else {
+                throw new RuntimeException("The -C switch providing the database connection properties file is a required argument.");
             }
 
             if (cl.hasOption("d")) {
@@ -256,7 +263,7 @@ public final class EvioFileCrawler {
             }
 
             if (cl.hasOption("e")) {                
-                this.epics = true;
+                this.processEpicsData = true;
                 LOGGER.config("EPICS processing enabled");
             }
 
@@ -412,9 +419,21 @@ public final class EvioFileCrawler {
 
         // Insert run information into the database.
         if (this.updateRunLog) {
-            // Update run log.
-            new RunLogUpdater(runs, allowUpdates).insert();
-        }
+
+            // Create and configure RunLogUpdater which updates the run log for all runs found in crawl.
+            RunLogUpdater runUpdater = new RunLogUpdater(runs, allowUpdates);
+            
+            if (!this.processEpicsData) {
+                // Disable inserting EPICS data if it was not processed.
+                runUpdater.setInsertEpicsData(false);
+            }
+            
+            // Update the db.
+            runUpdater.insert();
+            
+            // Close the db connection.
+            runUpdater.close();
+        }               
 
         // Update the timestamp file which can be used to tell which files have been processed.
         if (this.timestampFile == null) {
@@ -430,7 +449,14 @@ public final class EvioFileCrawler {
         LOGGER.info("set modified on timestamp file: " + new Date(this.timestampFile.lastModified()));
     }
     
-    EvioEventProcessor createEvioEventProcessor(String className) throws Exception {
+    /**
+     * Create an {@link org.hps.record.evio.EvioEventProcessor} by its class name.
+     * 
+     * @param className the fully qualified name of the class
+     * @return the new object
+     * @throws Exception if there is a problem instantiating the class (does not exist; access exception etc.)
+     */
+    private EvioEventProcessor createEvioEventProcessor(String className) throws Exception {
         return EvioEventProcessor.class.cast(Class.forName(className).newInstance());
     }
 }

@@ -12,9 +12,7 @@ import org.lcsim.util.log.LogUtil;
 
 /**
  * This class contains summary information about a series of runs that are themselves modeled with the {@link RunSummary} class. These can be looked
- * up by their run number.
- * <p>
- * This class is able to update the run database using the <code>insert</code> methods.
+ * up by their run number {@link #getRunSummary(int)}.
  *
  * @author Jeremy McCormick, SLAC
  */
