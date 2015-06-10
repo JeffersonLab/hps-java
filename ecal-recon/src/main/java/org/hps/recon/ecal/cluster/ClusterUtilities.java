@@ -471,5 +471,64 @@ public final class ClusterUtilities {
         return cluster.getType() == ClusterType.CTP.getType() || 
                 cluster.getType() == ClusterType.GTP.getType() || 
                 cluster.getType() == ClusterType.GTP_ONLINE.getType();
-    }       
+    }
+    
+    /**
+     * Comparator of cluster energies.
+     */
+    static final class ClusterEnergyComparator implements Comparator<Cluster> {
+
+        /**
+         * Compare cluster energies.
+         * 
+         * @return -1, 0, or 1 if first cluster's energy is less than, equal to, or greater than the first's
+         */
+        @Override
+        public int compare(Cluster o1, Cluster o2) {
+            if (o1.getEnergy() < o2.getEnergy()) {
+                return -1;
+            } else if (o1.getEnergy() > o2.getEnergy()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }       
+    }
+    
+    /**
+     * Sort a list of clusters.
+     * 
+     * @param clusters the list of clusters
+     * @param comparator the comparator to use for sorting
+     * @param inPlace <code>true</code> to sort the list in-place and not make a new list
+     * @param reverse <code>true</code> to use reverse comparator (results in list ordered highest to lowest energy)
+     * @return the sorted list of clusters
+     */
+    public static List<Cluster> sort(final List<Cluster> clusters, final Comparator<Cluster> comparator, boolean inPlace, boolean reverse) {
+        List<Cluster> sortedList = null;
+        if (inPlace) {
+            sortedList = clusters;
+        } else {
+            sortedList = new ArrayList<Cluster>(clusters);
+        }
+        if (reverse) {
+            Collections.sort(clusters, Collections.reverseOrder(comparator));
+        } else {
+            Collections.sort(clusters, comparator);
+        }
+        return sortedList;
+    }
+        
+    /**
+     * Find the highest energy cluster from the list.
+     * 
+     * @param clusters the list of clusters
+     * @return the highest energy cluster
+     */
+    public static Cluster findHighestEnergyCluster(final List<Cluster> clusters) {
+        if (clusters.isEmpty()) {
+            throw new IllegalArgumentException("The cluster list is empty.");
+        }
+        return sort(clusters, new ClusterEnergyComparator(), true, true).get(0);
+    }
 }
