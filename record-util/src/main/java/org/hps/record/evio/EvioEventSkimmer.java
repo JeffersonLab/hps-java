@@ -23,9 +23,6 @@ import org.lcsim.util.log.LogUtil;
 
 /**
  * Skim EVIO events into a new file based on a list of event numbers to include.
- * <p>
- * The EVIO event numbers come from the event ID bank, and not from calling 
- * <code>EvioEvent.getEventNumber()</code>.  These never match, unfortunately!
  * 
  * @author Jeremy McCormick
  * @author Norman Graf
