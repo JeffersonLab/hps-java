@@ -96,11 +96,11 @@ public class SvtMonitoring extends DataQualityMonitor {
             IHistogram2D t0ChanPlot = createSensorPlot2D(plotDir + triggerType + "/"+"t0ChanBigHit_", sensor, 640, -0.5, 639.5, 200, -100., 100.);
             IHistogram2D ampChanPlot = createSensorPlot2D(plotDir + triggerType + "/"+"ampChanHit_", sensor, 640, -0.5, 639.5, 50, 0, 4000);
             IHistogram2D chiprobChanPlot = createSensorPlot2D(plotDir + triggerType + "/"+"chiprobChanBigHit_", sensor, 640, -0.5, 639.5, 50, 0, 1.0);
-            IHistogram2D t0TrigTimeHitPlot = createSensorPlot2D(plotDir + triggerType + "/"+"t0BigHitTrigTime_", sensor, 400, -100., 100., 6, -2, 22);
+            IHistogram2D t0TrigTimeHitPlot = createSensorPlot2D(plotDir + triggerType + "/"+"t0BigHitTrigTime_", sensor, 400, -100., 100., 6, 0, 24);
 
             IHistogram1D chiProbPlot = createSensorPlot(plotDir + triggerType + "/"+"chiProb_", sensor, 50, 0, 1.0);
             IHistogram1D t0ClusterPlot = createSensorPlot(plotDir + triggerType + "/"+"t0Cluster_", sensor, 400, -100., 100.);
-            IHistogram2D t0TrigTimePlot = createSensorPlot2D(plotDir + triggerType + "/"+"t0ClusterTrigTime_", sensor, 400, -100., 100., 6, -2, 22);
+            IHistogram2D t0TrigTimePlot = createSensorPlot2D(plotDir + triggerType + "/"+"t0ClusterTrigTime_", sensor, 400, -100., 100., 6, 0, 24);
             IHistogram1D dedxClusterPlot = createSensorPlot(plotDir + triggerType + "/"+"electrons_", sensor, 50, 0., 10.);
             occupancyPlot.reset();
         }
