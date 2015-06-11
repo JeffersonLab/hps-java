@@ -42,7 +42,9 @@
             <numSamplesBefore>5</numSamplesBefore>
             <readoutThreshold>12</readoutThreshold>
             <triggerThreshold>12</triggerThreshold>
-            <!--<mode>1</mode>-->
+<!--            <readoutWindow>50</readoutWindow>
+            <readoutLatency>75</readoutLatency>
+            <mode>1</mode>-->
         </driver>
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <rawCollectionName>EcalRawHits</rawCollectionName>
@@ -88,6 +90,7 @@
         </driver>         
         <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
             <enablePileupCut>false</enablePileupCut>
+            <useTimingConditions>true</useTimingConditions>
         </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
 
