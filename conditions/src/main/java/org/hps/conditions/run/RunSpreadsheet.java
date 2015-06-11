@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -87,7 +88,7 @@ public final class RunSpreadsheet {
     public CSVRecord findRun(final int run) {
         for (final CSVRecord record : records) {
             try {
-                if (run == Integer.parseInt(record.get("run_number"))) {
+                if (run == Integer.parseInt(record.get("run"))) {
                     return record;
                 }
             } catch (final NumberFormatException e) {
@@ -187,21 +188,49 @@ public final class RunSpreadsheet {
     
     @SuppressWarnings("serial")
     public static class RunMap extends LinkedHashMap<Integer, RunData> {
-        
+        public RunMap() {
+            super();
+        }
+        public RunMap(List<CSVRecord> records) {
+            super();
+            for (final CSVRecord record : records) {
+                try {
+                    addRunData(new RunData(record));
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         private void addRunData(RunData runData) {
             this.put(runData.getRun(), runData);
         }
     }
     
     public RunMap getRunMap() {
-        RunMap runMap = new RunMap();
-        for (final CSVRecord record : getRecords()) {
-            try {
-                runMap.addRunData(new RunData(record));
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
+        return new RunMap(getRecords());
+    } 
+
+    public RunMap getRunMap(List<RunRange> ranges) {
+        List<CSVRecord> records = new ArrayList<CSVRecord>();
+        for(RunRange range : ranges) {
+           System.out.println(range.toString());
+           if(range.getColumnNames().contains("run")) {
+               if(!range.getValue("run").isEmpty()) {
+                   CSVRecord record = findRun(Integer.parseInt(range.getValue("run")));
+                   if(record!=null) {
+                       records.add(record);
+                   } else {
+                       throw new RuntimeException("this RunRange object was not found. This shouldn't happen. " + range.toString());
+                   }
+               } else {
+                   throw new RuntimeException("this RunRange object has an empty run value ");
+               }
+           } else {
+               throw new RuntimeException("this RunRange object has no run column? " + range.toString());
+           }
         }
-        return runMap;
-    }    
+        return new RunMap(records);
+    } 
+
+    
 }
