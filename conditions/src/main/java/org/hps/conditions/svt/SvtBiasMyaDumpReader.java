@@ -9,43 +9,63 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.hps.conditions.run.RunSpreadsheet.RunData;
+import org.hps.util.BasicLogFormatter;
+import org.lcsim.util.log.LogUtil;
 
 
 
 public class SvtBiasMyaDumpReader {
+    
+    private static Logger logger = LogUtil.create(SvtBiasMyaDumpReader.class, new BasicLogFormatter(), Level.INFO);
 
     
     public static void main(String[] args) {
         
-        SvtBiasMyaDumpReader dumpReader = new SvtBiasMyaDumpReader();
+        SvtBiasMyaDumpReader dumpReader = new SvtBiasMyaDumpReader(args);
         
-        for( int i=0; i<args.length; ++i) {
-            dumpReader.addEntries(readMyaDump(new File(args[i])));
-        }
-       System.out.println("Got " + dumpReader.getAllEntries().size() + " entries");
-       
-       dumpReader.buildRanges();
-       
-       dumpReader.printRanges();
+        dumpReader.printRanges();
       
         
     }
     
-    
-    
-    
-
-
-
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static final double BIASVALUEON = 178.0;
     private List<SvtBiasMyaEntry> myaEntries = new ArrayList<SvtBiasMyaEntry>();
-    private List<SvtBiasMyaRange> myaBiasOnRanges = new ArrayList<SvtBiasMyaRange>();
+    private SvtBiasMyaRanges biasRanges = new SvtBiasMyaRanges();
     
     public SvtBiasMyaDumpReader() {
-        // TODO Auto-generated constructor stub
     }
 
+    public SvtBiasMyaRanges findOverlappingRanges(Date date_start, Date date_end) {
+        return this.biasRanges.findOverlappingRanges(date_start, date_end);
+    }
+    
+    private void readFromFile(File file) {
+        addEntries(readMyaDump(file));
+        logger.info("Got " + getEntries().size() + " entries from " + file.getName());
+       
+    }
+    public void buildFromFiles(String[] args) {
+        for( int i=0; i<args.length; ++i) {
+            readFromFile(new File(args[i]));
+        }
+        buildRanges();       
+    }
+    
+    public SvtBiasMyaDumpReader(String[] args) {
+        buildFromFiles(args);
+    }
+    
+    public SvtBiasMyaDumpReader(String filepath) {
+        String[] files = {filepath};
+        buildFromFiles(files);
+    }
+
+    
     public void addEntry(SvtBiasMyaEntry e) {
         this.myaEntries.add(e);
     }
@@ -54,18 +74,23 @@ public class SvtBiasMyaDumpReader {
         this.myaEntries.addAll(e);
     }
 
-    public List<SvtBiasMyaEntry> getAllEntries() {
+    public List<SvtBiasMyaEntry> getEntries() {
         return this.myaEntries;
     }
 
+    public SvtBiasMyaRanges getRanges() {
+        return this.biasRanges;
+    }
+
+    
     private void printRanges() {
-        for( SvtBiasMyaRange r : myaBiasOnRanges) {
-            System.out.println(r.toString());
+        for( SvtBiasMyaRange r : biasRanges) {
+            logger.info(r.toString());
         }
      }
     
     
-    private static List<SvtBiasMyaEntry> readMyaDump(File file) {
+    protected static List<SvtBiasMyaEntry> readMyaDump(File file) {
 
         List<SvtBiasMyaEntry> myaEntries = new ArrayList<SvtBiasMyaEntry>();
         try {
@@ -85,14 +110,12 @@ public class SvtBiasMyaDumpReader {
                     SvtBiasMyaEntry entry = new SvtBiasMyaEntry(file.getName(), date, value);
                     myaEntries.add(entry);
                 } catch (ParseException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
             br.close();
 
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return myaEntries;
@@ -108,28 +131,28 @@ public class SvtBiasMyaDumpReader {
             
             if(eprev!=null) {
                 if(e.getDate().before(eprev.getDate())) {
-                    throw new RuntimeException("date list is not ordered.");
+                    throw new RuntimeException("date list is not ordered: " + eprev.toString() + " vs " + e.toString());
                 }
             }
             
             if( e.getValue() > BIASVALUEON) {
                 if (range==null) {
-                    System.out.println("BIAS ON: " + e.toString());
+                    logger.fine("BIAS ON: " + e.toString());
                     range = new SvtBiasMyaRange();
                     range.setStart(e);
                 } 
             } else {
                 //close it
                 if (range!=null) {
-                    System.out.println("BIAS TURNED OFF: " + e.toString());
-                    range.setEnd(eprev);
-                    this.myaBiasOnRanges.add(range);
+                    logger.fine("BIAS TURNED OFF: " + e.toString());
+                    range.setEnd(e);
+                    this.biasRanges.add(range);
                     range = null;
                 }
             }            
             eprev = e;
         }
-        System.out.println("Built " + this.myaBiasOnRanges.size() + " ranges");
+        logger.info("Built " + this.biasRanges.size() + " ranges");
         
     }
     
@@ -154,12 +177,49 @@ public class SvtBiasMyaDumpReader {
         }
     }
 
-   
+
     
-    public static final class SvtBiasMyaRange {
+    public static final class SvtBiasMyaRanges extends ArrayList<SvtBiasMyaRange> {
+        public SvtBiasMyaRanges() {}
+        public SvtBiasMyaRanges findOverlappingRanges(Date date_start, Date date_end) {
+            logger.fine("look for overlaps from " + date_start.toString() + " to " + date_end.toString());
+            SvtBiasMyaRanges overlaps = new SvtBiasMyaRanges();
+            for(SvtBiasMyaRange range : this) {
+                logger.fine("loop bias range " + range.toString());
+                if( range.overlap(date_start,date_end) ) {
+                    overlaps.add(range);
+                    logger.fine("overlap found!! ");
+                }
+            }
+            return overlaps;
+        }
+        public String toString() {
+            StringBuffer sb = new StringBuffer();
+            for(SvtBiasMyaRange range : this) {
+                sb.append(range.toString() + "\n");
+            }
+            return sb.toString();
+        }
+    }
+    
+    public static class SvtBiasMyaRange {
         private SvtBiasMyaEntry start;
         private SvtBiasMyaEntry end;
         public SvtBiasMyaRange() {}
+        public Date getStartDate() {
+            return getStart().getDate();
+        }
+        public Date getEndDate() {
+            return getEnd().getDate();
+        }
+        public boolean overlap(Date date_start, Date date_end) {
+            if( date_end.before(getStartDate()) ) {
+                return false;
+            } else if ( date_start.after(getEndDate())) {
+                return false;
+            } 
+            return true;
+        }
         public SvtBiasMyaRange(SvtBiasMyaEntry start) {
             this.start = start;
         }
@@ -179,5 +239,35 @@ public class SvtBiasMyaDumpReader {
             return "START: " + start.toString() + "   END: " + end.toString();
         }
     }
+    
+    public static final class SvtBiasRunRange {
+        private RunData run;
+        private SvtBiasMyaRanges ranges;
+        public SvtBiasRunRange(RunData run, SvtBiasMyaRanges ranges) {
+            setRun(run);
+            setRanges(ranges);
+        }
+        public RunData getRun() {
+            return run;
+        }
+        public void setRun(RunData run) {
+            this.run = run;
+        }
+        public SvtBiasMyaRanges getRanges() {
+            return ranges;
+        }
+        public void setRanges(SvtBiasMyaRanges ranges) {
+            this.ranges = ranges;
+        }
+        public String toString() {
+            StringBuffer sb  = new StringBuffer();
+            sb.append("\nRun " + run.toString() + ":");
+            for (SvtBiasMyaRange r : ranges) {
+                sb.append("\n" + r.toString());
+            }
+            return sb.toString();
+        }
+    }
+    
 
 }
