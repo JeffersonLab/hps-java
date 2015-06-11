@@ -43,7 +43,7 @@ public class EcalSimReconTest extends TestCase {
     /**
      * Run number for conditions system.
      */
-    private static final Integer RUN = 0;
+    private static final Integer RUN = 5000;
     
     /**
      * Run the test.
@@ -123,7 +123,7 @@ public class EcalSimReconTest extends TestCase {
          * Process events and fill histograms from cluster collection.
          */
         public void process(EventHeader event) {
-            List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
+            List<Cluster> clusters = event.get(Cluster.class, "EcalClusters");
             clusCountH1D.fill(clusters.size());
             for (Cluster cluster : clusters) {
                 clusEnergyH1D.fill(cluster.getEnergy());
