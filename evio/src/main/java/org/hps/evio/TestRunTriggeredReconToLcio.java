@@ -287,7 +287,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
     @Override
     protected void processTrigger(EventHeader event) {
         // Create an LCSim event and pass a flag so that conditions updates are disabled. --JM
-        EventHeader lcsimEvent = new BaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(), event.getEventNumber(), event.getDetectorName(), System.currentTimeMillis() * 1000000, false);
+        EventHeader lcsimEvent = new BaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(), event.getEventNumber(), event.getDetectorName(), (long) 4 * (Math.round(ClockSingleton.getTime() / 4)), false);
         events.add(lcsimEvent);
         if (verbosity >= 1) {
             System.out.println("Creating LCIO event " + eventNum);
