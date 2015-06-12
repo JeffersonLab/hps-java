@@ -109,7 +109,7 @@ public abstract class AbstractTriggerTablePanel extends AbstractTwoColumnTablePa
 			for(int i = 0; i < 2; i++) {
 				sspSimTriggers[i] = triggerStats[i][0].getSSPSimulatedTriggers() + triggerStats[i][1].getSSPSimulatedTriggers();
 				sspBankTriggers[i] = triggerStats[i][0].getReportedTriggers() + triggerStats[i][1].getReportedTriggers();
-				sspBankTriggers[i] = triggerStats[i][0].getReconSimulatedTriggers() + triggerStats[i][1].getReconSimulatedTriggers();
+				reconSimTriggers[i] = triggerStats[i][0].getReconSimulatedTriggers() + triggerStats[i][1].getReconSimulatedTriggers();
 				sspMatchedTriggers[i] = triggerStats[i][0].getMatchedSSPSimulatedTriggers() + triggerStats[i][1].getMatchedSSPSimulatedTriggers();
 				reconMatchedTriggers[i] = triggerStats[i][0].getMatchedReconSimulatedTriggers() + triggerStats[i][1].getMatchedReconSimulatedTriggers();
 			}

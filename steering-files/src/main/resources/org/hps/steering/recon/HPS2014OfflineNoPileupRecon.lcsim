@@ -8,6 +8,7 @@
     <execute>
         <driver name="EventMarkerDriver"/>       
         <driver name="ConditionsDriver"/>       
+        <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
@@ -31,7 +32,9 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>        
-        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
@@ -42,8 +45,6 @@
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <!--<clusterTimeCut>16.0</clusterTimeCut>-->
-            <maxSeperation>20.0</maxSeperation>
-            <tolerance>1.0</tolerance>
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <strategyResource>HPS-Full.xml</strategyResource>

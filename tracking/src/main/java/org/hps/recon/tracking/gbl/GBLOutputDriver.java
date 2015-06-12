@@ -36,7 +36,7 @@ public class GBLOutputDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
     int nevt = 0;
-    GBLOutput gbl;
+    GBLOutput gbl = null;
     TruthResiduals truthRes = null;
     private String gblFileName = "";
     private String outputPlotFileName="";
@@ -166,7 +166,9 @@ public class GBLOutputDriver extends Driver {
 
     @Override
     public void endOfData() {
-        gbl.close();
+        if(gbl!=null)
+            gbl.close();
+        
         if (!"".equals(outputPlotFileName)) {
             try {
                 aida.saveAs(outputPlotFileName);

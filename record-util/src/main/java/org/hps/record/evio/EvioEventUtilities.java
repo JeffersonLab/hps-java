@@ -189,6 +189,26 @@ public final class EvioEventUtilities {
     }
 
     /**
+     * Manually set the event number on an <code>EvioEvent</code> from its "EVENT ID" bank.
+     *
+     * @param evioEvent the input <code>EvioEvent</code>
+     */
+    public static void setEventNumber(final EvioEvent evioEvent) {
+        int eventNumber = -1;
+        if (evioEvent.getChildrenList() != null) {
+            for (final BaseStructure bank : evioEvent.getChildrenList()) {
+                if (bank.getHeader().getTag() == EvioEventConstants.EVENTID_BANK_TAG) {
+                    eventNumber = bank.getIntData()[0];
+                    break;
+                }
+            }
+        }
+        if (eventNumber != -1) {
+            evioEvent.setEventNumber(eventNumber);
+        }
+    }
+
+    /**
      * Class should not be instantiated.
      */
     private EvioEventUtilities() {

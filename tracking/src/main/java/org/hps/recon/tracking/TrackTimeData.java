@@ -8,7 +8,6 @@ import org.lcsim.event.GenericObject;
 /**
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
  *
  */
 public class TrackTimeData implements GenericObject {
@@ -17,6 +16,9 @@ public class TrackTimeData implements GenericObject {
 	List<Double> t0Residuals = new ArrayList<Double>(); 
 	List<Integer> layers = new ArrayList<Integer>(); 
 	
+	// Constants
+	private final static int SVT_VOLUME_INDEX = 0;
+	private final static int TRACK_TIME_INDEX = 1;
 	
 	/**
 	 * Default Ctor
@@ -40,11 +42,41 @@ public class TrackTimeData implements GenericObject {
 	 * @param t0Residual : 
 	 * 
 	 */
-	public void addResidual(int layer, double t0Residual){
+	private void addResidual(int layer, double t0Residual) {
 		layers.add(layer); 
 		t0Residuals.add(t0Residual);
 	}
 
+	/**
+	 * 
+	 */
+	public double getTrackTime() { 
+	    return trackTimeData.get(TRACK_TIME_INDEX); 
+	}
+	
+	/**
+	 * 
+	 * 
+	 */
+	public double getT0Residual(int layer) { 
+	    return this.getDoubleVal(layer);
+	}
+
+	/**
+	 * 
+	 */
+	public double getClusterTime(int layer) {
+	   return this.getTrackTime() - this.getT0Residual(layer); 
+	}
+	
+	/**
+	 * 
+	 * 
+	 */
+	public boolean isTopSvtVolume() { 
+	    return (trackTimeData.get(SVT_VOLUME_INDEX) == 0) ? true : false;
+	}
+	
 	/**
 	 * 
 	 */

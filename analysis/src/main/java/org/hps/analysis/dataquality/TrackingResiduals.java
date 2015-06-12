@@ -55,16 +55,16 @@ public class TrackingResiduals extends DataQualityMonitor {
         aida.tree().cd("/");
         resetOccupancyMap();
         for (int i = 1; i <= nmodules; i++) {
-            IHistogram1D xresid = aida.histogram1D(plotDir + posresDir + "Module " + i + " Top x Residual", 50, -getRange(i, true), getRange(i, true));
-            IHistogram1D yresid = aida.histogram1D(plotDir + posresDir + "Module " + i + " Top y Residual", 50, -getRange(i, false), getRange(i, false));
-            IHistogram1D xresidbot = aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot x Residual", 50, -getRange(i, true), getRange(i, true));
-            IHistogram1D yresidbot = aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot y Residual", 50, -getRange(i, false), getRange(i, false));
+            IHistogram1D xresid = aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Top x Residual", 50, -getRange(i, true), getRange(i, true));
+            IHistogram1D yresid = aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Top y Residual", 50, -getRange(i, false), getRange(i, false));
+            IHistogram1D xresidbot = aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Bot x Residual", 50, -getRange(i, true), getRange(i, true));
+            IHistogram1D yresidbot = aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Bot y Residual", 50, -getRange(i, false), getRange(i, false));
         }
 
         for (int i = 1; i <= nmodules * 2; i++) {
-            IHistogram1D tresid = aida.histogram1D(plotDir + timeresDir + "HalfModule " + i + " t Residual", 50, -20, 20);
-            IHistogram1D utopresid = aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Top u Residual", 50, -getRange((i + 1) / 2, false), getRange((i + 1) / 2, false));
-            IHistogram1D ubotresid = aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Bot u Residual", 50, -getRange((i + 1) / 2, false), getRange((i + 1) / 2, false));
+            IHistogram1D tresid = aida.histogram1D(plotDir + triggerType + "/"+timeresDir + "HalfModule " + i + " t Residual", 50, -20, 20);
+            IHistogram1D utopresid = aida.histogram1D(plotDir + triggerType + "/"+uresDir + "HalfModule " + i + " Top u Residual", 50, -getRange((i + 1) / 2, false), getRange((i + 1) / 2, false));
+            IHistogram1D ubotresid = aida.histogram1D(plotDir + triggerType + "/"+uresDir + "HalfModule " + i + " Bot u Residual", 50, -getRange((i + 1) / 2, false), getRange((i + 1) / 2, false));
         }
     }
 
@@ -75,7 +75,10 @@ public class TrackingResiduals extends DataQualityMonitor {
             return;
         if (!event.hasCollection(GenericObject.class, trackResidualsCollectionName))
             return;
-        nEvents++;
+          //check to see if this event is from the correct trigger (or "all");
+        if (!matchTrigger(event))
+            return;
+        nEvents++;        
         List<GenericObject> trdList = event.get(GenericObject.class, trackResidualsCollectionName);
         for (GenericObject trd : trdList) {
             int nResid = trd.getNDouble();
@@ -83,11 +86,11 @@ public class TrackingResiduals extends DataQualityMonitor {
             for (int i = 1; i <= nResid; i++)
 
                 if (isBot == 1) {
-                    aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot x Residual").fill(trd.getDoubleVal(i - 1));//x is the double value in the generic object
-                    aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot y Residual").fill(trd.getFloatVal(i - 1));//y is the float value in the generic object
+                    aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Bot x Residual").fill(trd.getDoubleVal(i - 1));//x is the double value in the generic object
+                    aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Bot y Residual").fill(trd.getFloatVal(i - 1));//y is the float value in the generic object
                 } else {
-                    aida.histogram1D(plotDir + posresDir + "Module " + i + " Top x Residual").fill(trd.getDoubleVal(i - 1));//x is the double value in the generic object
-                    aida.histogram1D(plotDir + posresDir + "Module " + i + " Top y Residual").fill(trd.getFloatVal(i - 1));//y is the float value in the generic object                    
+                    aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Top x Residual").fill(trd.getDoubleVal(i - 1));//x is the double value in the generic object
+                    aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Top y Residual").fill(trd.getFloatVal(i - 1));//y is the float value in the generic object                    
                 }
         }
 
@@ -95,7 +98,7 @@ public class TrackingResiduals extends DataQualityMonitor {
         for (GenericObject ttd : ttdList) {
             int nResid = ttd.getNDouble();
             for (int i = 1; i <= nResid; i++)
-                aida.histogram1D(plotDir + timeresDir + "HalfModule " + i + " t Residual").fill(ttd.getDoubleVal(i - 1));//x is the double value in the generic object               
+                aida.histogram1D(plotDir + triggerType + "/"+timeresDir + "HalfModule " + i + " t Residual").fill(ttd.getDoubleVal(i - 1));//x is the double value in the generic object               
         }
         if (!event.hasCollection(GenericObject.class, gblStripClusterDataCollectionName))
             return;
@@ -108,9 +111,9 @@ public class TrackingResiduals extends DataQualityMonitor {
 
             int i = gblSCD.getIntVal(0);//implement generic methods into GBLStripClusterData so this isn't hard coded
             if (tanlambda > 0)
-                aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Top u Residual").fill(resid);//x is the double value in the generic object                 
+                aida.histogram1D(plotDir + triggerType + "/"+uresDir + "HalfModule " + i + " Top u Residual").fill(resid);//x is the double value in the generic object                 
             else
-                aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Bot u Residual").fill(resid);//x is the double value in the generic object                 
+                aida.histogram1D(plotDir + triggerType + "/"+uresDir + "HalfModule " + i + " Bot u Residual").fill(resid);//x is the double value in the generic object                 
 
         }
     }
@@ -150,54 +153,61 @@ public class TrackingResiduals extends DataQualityMonitor {
         int irYTop = 0;
         int irYBot = 0;
         for (int i = 1; i <= nmodules; i++) {
-            IHistogram1D xresidTop = aida.histogram1D(plotDir + posresDir + "Module " + i + " Top x Residual");
-            IHistogram1D yresidTop = aida.histogram1D(plotDir + posresDir + "Module " + i + " Top y Residual");
-            IHistogram1D xresidBot = aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot x Residual");
-            IHistogram1D yresidBot = aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot y Residual");
+            IHistogram1D xresidTop = aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Top x Residual");
+            IHistogram1D yresidTop = aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Top y Residual");
+            IHistogram1D xresidBot = aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Bot x Residual");
+            IHistogram1D yresidBot = aida.histogram1D(plotDir + triggerType + "/"+posresDir + "Module " + i + " Bot y Residual");
             IFitResult xresultTop = fitGaussian(xresidTop, fitter, "range=\"(-1.0,1.0)\"");
             IFitResult yresultTop = fitGaussian(yresidTop, fitter, "range=\"(-0.5,0.5)\"");
             IFitResult xresultBot = fitGaussian(xresidBot, fitter, "range=\"(-1.0,1.0)\"");
             IFitResult yresultBot = fitGaussian(yresidBot, fitter, "range=\"(-8.0,8.0)\"");
-            double[] parsXTop = xresultTop.fittedParameters();
-            double[] parsYTop = yresultTop.fittedParameters();
-            double[] parsXBot = xresultBot.fittedParameters();
-            double[] parsYBot = yresultBot.fittedParameters();
+            if (xresultTop != null) {
+                double[] parsXTop = xresultTop.fittedParameters();
+                plotterXTop.region(irXTop).plot(xresidTop);
+                plotterXTop.region(irXTop).plot(xresultTop.fittedFunction());
+                irXTop++;
+                xposTopMeanResidMap.put(trackResidualsCollectionName+" " +triggerType+" " +getQuantityName(0, 0, 1, i) + "_x", parsXTop[1]);
+                xposTopSigmaResidMap.put(trackResidualsCollectionName+" " +triggerType+" " +getQuantityName(0, 1, 1, i) + "_x", parsXTop[2]);
+            }
+            if (yresultTop != null) {
+                double[] parsYTop = yresultTop.fittedParameters();
 
-            plotterXTop.region(irXTop).plot(xresidTop);
-            plotterXTop.region(irXTop).plot(xresultTop.fittedFunction());
-            irXTop++;
-            plotterXBottom.region(irXBot).plot(xresidBot);
-            plotterXBottom.region(irXBot).plot(xresultBot.fittedFunction());
-            irXBot++;
-
-            plotterYTop.region(irYTop).plot(yresidTop);
-            plotterYTop.region(irYTop).plot(yresultTop.fittedFunction());
-            irYTop++;
-            plotterYBottom.region(irYBot).plot(yresidBot);
-            plotterYBottom.region(irYBot).plot(yresultBot.fittedFunction());
-            irYBot++;
-
-            xposTopMeanResidMap.put(getQuantityName(0, 0, 1, i) + "_x", parsXTop[1]);
-            xposTopSigmaResidMap.put(getQuantityName(0, 1, 1, i) + "_x", parsXTop[2]);
-            yposTopMeanResidMap.put(getQuantityName(0, 0, 1, i) + "_y", parsYTop[1]);
-            yposTopSigmaResidMap.put(getQuantityName(0, 1, 1, i) + "_y", parsYTop[2]);
-            xposBotMeanResidMap.put(getQuantityName(0, 0, 0, i) + "_x", parsXBot[1]);
-            xposBotSigmaResidMap.put(getQuantityName(0, 1, 0, i) + "_x", parsXBot[2]);
-            yposBotMeanResidMap.put(getQuantityName(0, 0, 0, i) + "_y", parsYBot[1]);
-            yposBotSigmaResidMap.put(getQuantityName(0, 1, 0, i) + "_y", parsYBot[2]);
+                plotterYTop.region(irYTop).plot(yresidTop);
+                plotterYTop.region(irYTop).plot(yresultTop.fittedFunction());
+                irYTop++;
+                yposTopMeanResidMap.put(trackResidualsCollectionName+" " +triggerType+" " +getQuantityName(0, 0, 1, i) + "_y", parsYTop[1]);
+                yposTopSigmaResidMap.put(trackResidualsCollectionName+" " +triggerType+" " +getQuantityName(0, 1, 1, i) + "_y", parsYTop[2]);
+            }
+            if (xresultBot != null) {
+                double[] parsXBot = xresultBot.fittedParameters();
+                plotterXBottom.region(irXBot).plot(xresidBot);
+                plotterXBottom.region(irXBot).plot(xresultBot.fittedFunction());
+                irXBot++;
+                xposBotMeanResidMap.put(trackResidualsCollectionName+" " +triggerType+" " +getQuantityName(0, 0, 0, i) + "_x", parsXBot[1]);
+                xposBotSigmaResidMap.put(trackResidualsCollectionName+" " +triggerType+" " +getQuantityName(0, 1, 0, i) + "_x", parsXBot[2]);
+            }
+            if (yresultBot != null) {
+                double[] parsYBot = yresultBot.fittedParameters();
+                plotterYBottom.region(irYBot).plot(yresidBot);
+                plotterYBottom.region(irYBot).plot(yresultBot.fittedFunction());
+                irYBot++;
+                yposBotMeanResidMap.put(trackResidualsCollectionName+" " +triggerType+" " +getQuantityName(0, 0, 0, i) + "_y", parsYBot[1]);
+                yposBotSigmaResidMap.put(trackResidualsCollectionName+" " +triggerType+" " +getQuantityName(0, 1, 0, i) + "_y", parsYBot[2]);
+            }
 
         }
         int iTime = 0;
         for (int i = 1; i <= nmodules * 2; i++) {
-            IHistogram1D tresid = aida.histogram1D(plotDir + timeresDir + "HalfModule " + i + " t Residual");
+            IHistogram1D tresid = aida.histogram1D(plotDir + triggerType + "/"+timeresDir + "HalfModule " + i + " t Residual");
             IFitResult tresult = fitGaussian(tresid, fitter, "range=\"(-15.0,15.0)\"");
-            double[] parsTime = tresult.fittedParameters();
-            plotterTime.region(iTime).plot(tresid);
-            plotterTime.region(iTime).plot(tresult.fittedFunction());
-            iTime++;
-
-            timeMeanResidMap.put(getQuantityName(1, 0, 2, i) + "_dt", parsTime[1]);
-            timeSigmaResidMap.put(getQuantityName(1, 1, 2, i) + "_dt", parsTime[2]);
+            if (tresult != null) {
+                double[] parsTime = tresult.fittedParameters();
+                plotterTime.region(iTime).plot(tresid);
+                plotterTime.region(iTime).plot(tresult.fittedFunction());
+                iTime++;
+                timeMeanResidMap.put(trackTimeDataCollectionName+" " +triggerType+" " +getQuantityName(1, 0, 2, i) + "_dt", parsTime[1]);
+                timeSigmaResidMap.put(trackTimeDataCollectionName+" " +triggerType+" " +getQuantityName(1, 1, 2, i) + "_dt", parsTime[2]);
+            }
 
         }
 
@@ -331,7 +341,13 @@ public class TrackingResiduals extends DataQualityMonitor {
 
     IFitResult fitGaussian(IHistogram1D h1d, IFitter fitter, String range) {
         double[] init = {20.0, 0.0, 0.2};
-        return fitter.fit(h1d, "g", init, range);
+        IFitResult ifr = null;
+        try {
+            ifr = fitter.fit(h1d, "g", init, range);
+        } catch (RuntimeException ex) {
+            System.out.println(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
+        }
+        return ifr;
 //        double[] init = {20.0, 0.0, 1.0, 20, -1};
 //        return fitter.fit(h1d, "g+p1", init, range);
     }

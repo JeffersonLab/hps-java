@@ -61,25 +61,29 @@ public class MaterialSupervisor extends MaterialManager
     @Override
     public void buildModel(Detector det)
     {
+        boolean local_debug = false;
         // super.buildModel(det);
-        if (DEBUG) {
+        if (DEBUG || local_debug) {
             System.out.printf("%s: ###########################################################\n", this.getClass().getSimpleName());
             System.out.printf("%s: Build detector model\n", this.getClass().getSimpleName());
         }
         List<SiSensor> sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(SiSensor.class);
         // List<SiTrackerModule> modules =
         // det.getDetectorElement().findDescendants(SiTrackerModule.class);
-        if (DEBUG) {
-            System.out.printf("%s: %d sensors\n", this.getClass().getSimpleName(), sensors.size());
-            System.out.printf("%s: %5s %32s %22s %15s %10s %10s\n", this.getClass().getSimpleName(), "ID", "Pos (mm)", "size(mm)", "t(mm)", "t(%R.L)", "type");
+        if (DEBUG || local_debug) {
+            System.out.printf("%s: %d SiSensors:\n", this.getClass().getSimpleName(), sensors.size());
+            System.out.printf("%s: %45s %35s %35s %35s %35s\n", this.getClass().getSimpleName(), "DE", "Origin", "u", "v", "w");
         }
         for (SiSensor module : sensors) {
 
             SiStripPlane plane = new SiStripPlane(module);
 
+            if (DEBUG || local_debug) {
+                System.out.printf("%s: %45s %35s %35s %35s %35s\n", this.getClass().getSimpleName(), plane.getDetectorElement().getName(), plane.getGeometry().getPosition().toString(), plane.getMeasuredCoordinate().toString(), plane.getUnmeasuredCoordinate().toString(),plane.getPsidePlane().getNormal().toString());
+            }
             _detectorVolumes.add(plane);
         }
-        if (DEBUG) {
+        if (DEBUG || local_debug) {
             System.out.printf("%s: ###########################################################\n", this.getClass().getSimpleName());
         }
     }

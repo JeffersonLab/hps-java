@@ -6,6 +6,7 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>             
+        <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
@@ -22,6 +23,9 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
               </driver>              
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
@@ -37,8 +41,6 @@
             <debug>false</debug>
             <!--<clusterTimeCut>12.0</clusterTimeCut>-->
             <maxDt>16.0</maxDt>
-            <maxSeperation>20.0</maxSeperation>
-            <tolerance>1.0</tolerance>
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <strategyResource>HPS-Full.xml</strategyResource>

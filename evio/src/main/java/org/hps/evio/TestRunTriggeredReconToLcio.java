@@ -77,7 +77,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
 
     public void setEcalMode(int ecalMode) {
         this.ecalMode = ecalMode;
-        if (ecalMode != EventConstants.ECAL_WINDOW_MODE && ecalMode != EventConstants.ECAL_PULSE_MODE && ecalMode != EventConstants.ECAL_PULSE_INTEGRAL_MODE) {
+        if (ecalMode != EventConstants.ECAL_RAW_MODE && ecalMode != EventConstants.ECAL_PULSE_MODE && ecalMode != EventConstants.ECAL_PULSE_INTEGRAL_MODE) {
             throw new IllegalArgumentException("invalid mode " + ecalMode);
         }
         if (ecalWriter != null) {
@@ -287,7 +287,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
     @Override
     protected void processTrigger(EventHeader event) {
         // Create an LCSim event and pass a flag so that conditions updates are disabled. --JM
-        EventHeader lcsimEvent = new BaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(), event.getEventNumber(), event.getDetectorName(), System.currentTimeMillis() * 1000000, false);
+        EventHeader lcsimEvent = new BaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(), event.getEventNumber(), event.getDetectorName(), (long) 4 * (Math.round(ClockSingleton.getTime() / 4)), false);
         events.add(lcsimEvent);
         if (verbosity >= 1) {
             System.out.println("Creating LCIO event " + eventNum);

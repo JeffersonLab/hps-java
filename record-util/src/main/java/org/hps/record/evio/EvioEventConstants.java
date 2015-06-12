@@ -71,14 +71,14 @@ public final class EvioEventConstants {
     public static final int PRESTART_EVENT_TAG = 17;
 
     /**
-     * Tag of the scalars integer bank, which is a child of the crate bank.
+     * Tag of the scalers integer bank, which is a child of the crate bank.
      */
-    public static final int SCALARS_BANK_TAG = 57621;
+    public static final int SCALERS_BANK_TAG = 57621;
 
     /**
-     * Tag of the scalars crate bank, which is a child of the top bank.
+     * Tag of the scalers crate bank, which is a child of the top bank.
      */
-    public static final int SCALARS_CRATE_TAG = 39;
+    public static final int SCALERS_CRATE_TAG = 39;
 
     /**
      * CODA SYNC event tag.

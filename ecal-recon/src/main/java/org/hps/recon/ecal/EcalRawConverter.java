@@ -1,5 +1,7 @@
 package org.hps.recon.ecal;
 
+import hep.aida.IFitResult;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -27,8 +29,11 @@ import org.lcsim.geometry.Detector;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  * @author Nathan Baltzell <baltzell@jlab.org>
+ * @author Holly Szumila <hvanc001@odu.edu>
  *
- * baltzell:  New in 2015:  (default behavior is still unchanged)
+ * baltzell: May 2015:  Pulse Fitting. (default behavior unchanged)
+ *
+ * baltzell:  Early 2015:  (default behavior is still unchanged)
  *
  * Implemented conversion of Mode-1 to Mode-3.
  * 
@@ -54,6 +59,9 @@ public class EcalRawConverter {
     private boolean useDAQConfig = false;
     private FADCConfig config = null;
 
+    private boolean useFit = false;
+    private EcalPulseFitter pulseFitter = new EcalPulseFitter();
+    
     /*
      * The time for one FADC sample (units = ns).
      */
@@ -141,6 +149,19 @@ public class EcalRawConverter {
     	});
     }
   
+    public void setUseFit(boolean useFit) { this.useFit=useFit; }
+    public void setFixShapeParameter(boolean fix) { pulseFitter.fixShapeParameter=fix; }
+    public void setGlobalFixedPulseWidth(double width) { 
+        pulseFitter.globalThreePoleWidth=width; 
+        pulseFitter.fixShapeParameter=true;
+    }
+    public void setFitThresholdTimeLo(int sample) { pulseFitter.threshRange[0]=sample; }
+    public void setFitThresholdTimeHi(int sample) { pulseFitter.threshRange[1]=sample; }
+    public void setFitLimitTimeLo(int sample) { pulseFitter.t0limits[0]=sample; }
+    public void setFitLimitTimeHi(int sample) { pulseFitter.t0limits[1]=sample; }
+    
+    
+
     public void setLeadingEdgeThreshold(double thresh) {
         leadingEdgeThreshold=thresh;
     }
@@ -195,6 +216,8 @@ public class EcalRawConverter {
     public void setUseDAQConfig(boolean state) {
     	useDAQConfig = state;
     }
+    
+
 
     /*
      * This should probably be deprecated.  It just integrates the entire window.
@@ -286,8 +309,11 @@ public class EcalRawConverter {
      * given a time for threshold crossing.
      */
     public double[] convertWaveformToPulse(RawTrackerHit hit,int thresholdCrossing,boolean mode7) {
-        short samples[] = hit.getADCValues();
+       
+        double fitQuality = -1;
         
+        short samples[] = hit.getADCValues();
+        //System.out.println("NewEvent");
         // choose integration range:
         int firstSample,lastSample;
         if ((NSA+NSB)/nsPerSample >= samples.length) {
@@ -303,14 +329,17 @@ public class EcalRawConverter {
         double minADC=0;
         for (int jj=0; jj<4; jj++) minADC += samples[jj];
         // does the firmware's conversion of min to int occur before or after time calculation?  undocumented.
-        minADC=(int)(minADC/4); 
+        //minADC=(int)(minADC/4); 
+        minADC = (minADC/4);
+        
+        //System.out.println("Avg pedestal:\t"+minADC);
         
         // mode-7's max pulse height:
         double maxADC=0;
         int sampleMaxADC=0;
         
         // mode-3/7's pulse integral:
-        short sumADC = 0;
+        double sumADC = 0;
         
         for (int jj=firstSample; jj<=lastSample; jj++) {
         
@@ -319,19 +348,22 @@ public class EcalRawConverter {
             
             // integrate pulse:
             sumADC += samples[jj];
-           
-            // find pulse maximum:
-            if (jj>firstSample && jj<samples.length-5) { // The "5" here is a firmware constant.
-                if (samples[jj+1]<samples[jj]) {
-                    sampleMaxADC=jj;
-                    maxADC=samples[jj];
-                }
+        }
+
+        // find pulse maximum:
+        //if (jj>firstSample && jj<samples.length-5) { // The "5" here is a firmware constant.
+        for (int jj=thresholdCrossing; jj<samples.length-5; jj++) { // The "5" here is a firmware constant.
+            if (samples[jj+1]<samples[jj]){ 
+                sampleMaxADC=jj;
+                maxADC=samples[jj];
+                break;                
             }
         }
-       
+
+
         // pulse time with 4ns resolution:
         double pulseTime=thresholdCrossing*nsPerSample;
-        
+
         // calculate Mode-7 high-resolution time:
         if (mode7) {
             if (thresholdCrossing < 4) {
@@ -341,22 +373,45 @@ public class EcalRawConverter {
             else if (maxADC>0) {
                 // linear interpolation between threshold crossing and
                 // pulse maximum to find time at pulse half-height:
-                double t0 = thresholdCrossing*nsPerSample;
-                double a0 = samples[thresholdCrossing];
-                double t1 = sampleMaxADC*nsPerSample;
-                double a1 = maxADC;
-                double slope = (a1-a0)/(t1-t0);
-                double halfMax = (maxADC+minADC)/2;
-                // this is not rigorously firmware-correct, need to find halfMax-crossing.
-                double tmpTime = t1 - (a1 - halfMax) / slope;
-                if (slope>0 && tmpTime>0) {
-                    pulseTime = tmpTime;
+
+                final double halfMax = (maxADC+minADC)/2;
+                int t0 = -1;
+                for (int ii=thresholdCrossing-1; ii<lastSample; ii++)
+                {
+                    if (ii>=samples.length-1) break;
+                    if (samples[ii]<=halfMax && samples[ii+1]>halfMax)
+                    {
+                        t0 = ii;
+                        break;
+                    }
                 }
-                // else another special firmware case
+                if (t0 > 0)
+                {
+                    final int t1 = t0 + 1;
+                    final int a0 = samples[t0];
+                    final int a1 = samples[t1];
+                    final double slope = (a1 - a0); // units = ADC/sample
+                    final double yint = a1 - slope * t1;  // units = ADC 
+                    pulseTime = ((halfMax - a0)/(a1-a0) + t0)* nsPerSample;
+                }
             }
         }
         
-        return new double []{pulseTime,sumADC,minADC,maxADC};
+        if (useFit)
+        {
+          IFitResult fitResult = pulseFitter.fitPulse(hit,thresholdCrossing,maxADC);
+          if (fitResult!=null) {
+            fitQuality = fitResult.quality();
+            if (fitQuality > 0) {
+                pulseTime = fitResult.fittedParameter("time0")*nsPerSample;
+                sumADC = fitResult.fittedParameter("integral");
+                minADC = fitResult.fittedParameter("pedestal");
+                maxADC = ((Ecal3PoleFunction)fitResult.fittedFunction()).maximum();
+            } 
+          }
+        }
+        
+        return new double []{pulseTime,sumADC,minADC,maxADC,fitQuality};
     }
    
     
@@ -428,9 +483,12 @@ public class EcalRawConverter {
             double sum = data[1];
             final double min = data[2]; // TODO: stick min and max in a GenericObject with an 
             final double max = data[3]; // LCRelation to finish mode-7 emulation
+            final double fitQuality = data[4];
             
-            // do pedestal subtraction:
-            sum -= getPulsePedestal(event, cellID, samples.length, thresholdCrossing);
+            if (!useFit || fitQuality<=0) {
+              // do pedestal subtraction:
+              sum -= getPulsePedestal(event, cellID, samples.length, thresholdCrossing);
+            }
           
             // do gain scaling:
             double energy = adcToEnergy(sum, cellID);
@@ -530,6 +588,7 @@ public class EcalRawConverter {
     public void setDetector(Detector detector) {
         // ECAL combined conditions object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+        pulseFitter.setDetector(detector);
     }
 
     /**

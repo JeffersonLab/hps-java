@@ -35,9 +35,9 @@ public class EpicsEtProcessor extends EtEventProcessor {
             throw new RuntimeException(e);
         }
         this.evioProcessor.process(evio);
-        if (this.evioProcessor.getEpicsScalarData() != null) {
-            System.out.println("EpicsEtProcessor created EpicsScalarData ...");
-            System.out.println(this.evioProcessor.getEpicsScalarData());
+        if (this.evioProcessor.getEpicsData() != null) {
+            System.out.println("EpicsEtProcessor created EpicsData ...");
+            System.out.println(this.evioProcessor.getEpicsData());
         }
     }
 }

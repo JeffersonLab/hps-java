@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
+import org.hps.util.BasicLogFormatter;
 import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
@@ -22,6 +23,7 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
+import org.lcsim.util.log.LogUtil;
 
 
 /**
@@ -34,7 +36,7 @@ public class MakeGblTracks {
 
 
     private String _TrkCollectionName = "GblTracks";
-    private static final Logger logger = Logger.getLogger(MakeGblTracks.class.getName());
+    private static Logger logger = LogUtil.create(MakeGblTracks.class, new BasicLogFormatter());
     
     /**
      * Creates a new instance of MakeTracks.
@@ -44,7 +46,7 @@ public class MakeGblTracks {
          //logger.setUseParentHandlers(false);
         //Handler handler = new StreamHandler(System.out, new SimpleFormatter());
         //logger.addHandler(handler);
-        logger.setLevel(Level.WARNING);
+        logger.setLevel(Level.INFO);
 //        try {
 //            logger.addHandler(new FileHandler(MakeGblTracks.class.getSimpleName()+".log"));
 //        } catch (SecurityException | IOException e) {
@@ -152,7 +154,8 @@ public class MakeGblTracks {
         double phi0 = helix.phi0();
         double slope = helix.slope();
         double p = helix.p(bfield);
-        double qOverP = traj.get_seed().getCharge()/p;
+        double q = traj.get_seed().getCharge();
+        double qOverP = q/p;
         
         // get corrections from GBL fit
         Vector locPar = new Vector(5);
@@ -163,6 +166,8 @@ public class MakeGblTracks {
         double yTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YT.getValue());
         double xTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());
         double yTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
+        
+        logger.info((slope>0?"top: ":"bot ") + "qOverPCorr " + qOverPCorr + " xTCorr " + xTCorr + " yTCorr " + yTCorr + " xtPrimeCorr " + xTPrimeCorr + " yTPrimeCorr " + yTPrimeCorr);
         
         // calculate new d0 and z0
         Hep3Matrix perToClPrj = traj.get_track_data().getPrjPerToCl();
@@ -177,19 +182,23 @@ public class MakeGblTracks {
         double z0_corr = corrPer.z();
         double z0_gbl = z0 + z0_corr;
         
-        // calculate new curvature
-        //      return self.track.qOverP(bfac) + self.curvCorr()
-        double qOverP_gbl = qOverP + qOverPCorr;
-        double pt_gbl = 1.0/qOverP_gbl * helix.sth();
-        double C_gbl = Constants.fieldConversion * bfield / pt_gbl;
-        //make sure sign is not changed
-        C_gbl = Math.signum(helix.curvature())*Math.abs(C_gbl); 
-        
         //calculate new phi0
         double phi0_gbl = phi0 + xTPrimeCorr;
         
         //calculate new slope
-        double slope_gbl = Math.tan( Math.atan(helix.slope()) + yTPrimeCorr);
+        double lambda_gbl = Math.atan(slope) + yTPrimeCorr;
+        double slope_gbl = Math.tan( lambda_gbl );
+
+        // calculate new curvature
+        
+        double qOverP_gbl = qOverP + qOverPCorr;
+        double pt_gbl = Math.abs(1.0/qOverP_gbl) * Math.sin((Math.PI/2.0-lambda_gbl));
+        double C_gbl = Constants.fieldConversion * bfield / pt_gbl;
+        //make sure sign is not changed
+        C_gbl = Math.signum(helix.curvature())*Math.abs(C_gbl); 
+        
+        logger.info("qOverP="+qOverP+" qOverPCorr="+qOverPCorr+" qOverP_gbl="+qOverP_gbl+" ==> pGbl="+1.0/qOverP_gbl);
+        
         
         double parameters_gbl[] = new double[5];
         parameters_gbl[HelicalTrackFit.dcaIndex] = d0_gbl;

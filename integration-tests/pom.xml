@@ -7,7 +7,7 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.3.1-SNAPSHOT</version>
+        <version>3.3.3-SNAPSHOT</version>
     </parent>
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/integration-tests/</url>
@@ -35,11 +35,16 @@
                         <exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
                         <exclude>org/hps/HPSTracker2014GeometryTrackReconTest.java</exclude>
                         <exclude>org/hps/MCFilteredReconTest.java</exclude>
+                        <exclude>org/hps/MockDataReconTest.java</exclude>
                         <exclude>org/hps/ReadoutToEvioTest.java</exclude>
                         <exclude>org/hps/ReadoutToLcioTest.java</exclude>
                         <exclude>org/hps/SimpleSvtReadoutTest.java</exclude>
                         <exclude>org/hps/TestRunReadoutToEvioTest.java</exclude>
                         <exclude>org/hps/ReadoutNoPileupTest.java</exclude>
+                        <exclude>org/hps/SteeringFilesTest.java</exclude>
+                        <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
+                        <exclude>org/hps/TestRunReconTest.java</exclude>
+                        <exclude>org/hps/test/it/EcalSimReconTest.java</exclude>
                     </excludes>
 <!--                    <redirectTestOutputToFile>true</redirectTestOutputToFile> -->
                     <trimStackTrace>false</trimStackTrace>

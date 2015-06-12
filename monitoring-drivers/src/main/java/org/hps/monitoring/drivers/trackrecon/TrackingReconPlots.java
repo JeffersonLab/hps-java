@@ -163,8 +163,8 @@ public class TrackingReconPlots extends Driver {
 
         for (int i = 1; i <= nmodules; i++) {
 
-            xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top", 50, -10, 10, 50, 0, 4);
-            xvsyBot[i - 1] = aida.histogram2D("Module " + i + " Bottom", 50, -10, 10, 50, 0, 4);
+            xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top", 100, -100, 150, 55, 0, 55);
+            xvsyBot[i - 1] = aida.histogram2D("Module " + i + " Bottom", 100, -100, 150, 55, 0, 55);
             hthTop[i - 1] = aida.histogram1D("Module " + i + "Top: Track Hits", 25, 0, 25);
             hthBot[i - 1] = aida.histogram1D("Module " + i + "Bot: Track Hits", 25, 0, 25);
             plot(plotterHTH, hthTop[i - 1], null, computePlotterRegion(i - 1, true));
@@ -225,10 +225,10 @@ public class TrackingReconPlots extends Driver {
 
             if (hit.getPosition()[1] > 0) {
                 topHits[module - 1]++;
-                xvsyTop[module - 1].fill(hit.getPosition()[0], hit.getPosition()[0]);
+                xvsyTop[module - 1].fill(hit.getPosition()[0], hit.getPosition()[1]);
             } else {
                 botHits[module - 1]++;
-                xvsyBot[module - 1].fill(hit.getPosition()[0], Math.abs(hit.getPosition()[0]));
+                xvsyBot[module - 1].fill(hit.getPosition()[0], -1*hit.getPosition()[1]);
             }
         }
 

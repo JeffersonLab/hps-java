@@ -111,6 +111,16 @@ public final class EngRunConditionsTest extends TestCase {
         private static final double PEDESTAL_ANSWER = 105.78;
 
         /**
+         * Collection ID of calibrations.
+         */
+        private static final Integer CALIBRATIONS_COLLECTION_ID = 4;
+
+        /**
+         * Collection ID of gains.
+         */
+        private static final Integer GAINS_COLLECTION_ID = 4;
+
+        /**
          * Flag if {@link #detectorChanged(Detector)} is activated.
          */
         private boolean detectorChangedCalled = false;

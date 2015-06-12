@@ -37,8 +37,8 @@ public class DataTrackerHitDriver extends Driver {
     private double clusterSeedThreshold = 4.0;
     private double clusterNeighborThreshold = 3.0;
     private double clusterThreshold = 4.0;
-    private double meanTime = 24.0;
-    private double timeWindow = 48.0;
+    private double meanTime = 0.0;
+    private double timeWindow = 72.0;
     private double neighborDeltaT = 24.0;
     private int clusterMaxSize = 10;
     private int clusterCentralStripAveragingThreshold = 4;

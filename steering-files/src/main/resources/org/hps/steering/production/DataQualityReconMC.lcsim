@@ -1,0 +1,63 @@
+<!-- 
+  Steering file for running DataQualityMonitoring classes on reconstructed data
+  @author Matt Graham <mgraham@slac.stanford.edu>
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <!--        <driver name="DQMDatabaseDriver"/>  -->
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="EcalMonitoring"/>  
+        <driver name="SVTMonitoring"/>  
+        <driver name="SVTHitMCEfficiency"/>  
+        <driver name="TrackingMonitoring"/>  
+        <driver name="TrackingResiduals"/>
+        <driver name="TrackMCEfficiency"/> 
+        <driver name="FinalStateMonitoring"/>          
+        <driver name="V0Monitoring"/>          
+        <driver name="TridentMonitoring"/>
+        <driver name="AidaSaveDriver"/>
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>    
+        <!--    <driver name="DQMDatabaseDriver" type="org.hps.analysis.dataquality.DQMDatabaseDriver"/> -->
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>100</eventInterval>
+        </driver>        
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+        <driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">         
+        </driver>
+        <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">
+            <overwriteDB>false</overwriteDB>
+        </driver>
+        <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.TrackingMonitoring">
+            <overwriteDB>false</overwriteDB>
+        </driver>
+        <driver name="TrackingResiduals" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <overwriteDB>false</overwriteDB>
+        </driver>
+        <driver name="FinalStateMonitoring" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <overwriteDB>false</overwriteDB>
+        </driver>
+        <driver name="TrackMCEfficiency" type="org.hps.analysis.dataquality.TrackMCEfficiency">
+            <overwriteDB>false</overwriteDB>
+        </driver> 
+        <driver name="SVTHitMCEfficiency" type="org.hps.analysis.dataquality.SVTHitMCEfficiency">
+            <overwriteDB>false</overwriteDB>
+        </driver> 
+        <driver name="V0Monitoring" type="org.hps.analysis.dataquality.V0Monitoring">
+            <overwriteDB>false</overwriteDB>
+        </driver>
+        <driver name="TridentMonitoring" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <overwriteDB>false</overwriteDB>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+
+    </drivers>
+</lcsim>

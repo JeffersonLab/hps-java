@@ -2,11 +2,19 @@ package org.hps.recon.tracking;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-
+import hep.physics.vec.VecOp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-
+import java.util.Map;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
@@ -49,7 +57,9 @@ public final class TrackerReconDriver extends Driver {
     // enable the use of sectoring using sector binning in SeedTracker
     private boolean _applySectorBinning = true;
     private double rmsTimeCut = -1;
-
+    private boolean rejectUncorrectedHits = true;
+    private boolean rejectSharedHits = false;
+    
     public TrackerReconDriver() {
     }
 
@@ -109,6 +119,14 @@ public final class TrackerReconDriver extends Driver {
      */
     public void setRmsTimeCut(double rmsTimeCut) {
         this.rmsTimeCut = rmsTimeCut;
+    }
+
+    public void setRejectUncorrectedHits(boolean rejectUncorrectedHits) {
+        this.rejectUncorrectedHits = rejectUncorrectedHits;
+    }
+
+    public void setRejectSharedHits(boolean rejectSharedHits) {
+        this.rejectSharedHits = rejectSharedHits;
     }
 
     /**
@@ -192,6 +210,79 @@ public final class TrackerReconDriver extends Driver {
 
         // Set the type of track to indicate B-field in Y e.g. for swimming in Wired.
         List<Track> tracks = event.get(Track.class, trackCollectionName);
+
+        if (rejectUncorrectedHits) {
+            Iterator<Track> iter = tracks.iterator();
+            trackLoop:
+            while (iter.hasNext()) {
+                Track track = iter.next();
+                for (TrackerHit hit : track.getTrackerHits()) {
+                    HelicalTrackHit hth = (HelicalTrackHit) hit;
+                    double correction = VecOp.sub(hth.getCorrectedPosition(), new BasicHep3Vector(hth.getPosition())).magnitude();
+                    double chisq = hth.chisq();
+                    if (correction < 1e-6) {
+                        this.getLogger().warning(String.format("Discarding track with bad HelicalTrackHit (correction distance %f, chisq penalty %f)", correction, chisq));
+                        iter.remove();
+                        continue trackLoop;
+                    }
+                }
+            }
+        }
+
+        if (rejectSharedHits) {
+
+            RelationalTable hittostrip = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+            List<LCRelation> hitrelations = event.get(LCRelation.class, "HelicalTrackHitRelations");
+            for (LCRelation relation : hitrelations) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    hittostrip.add(relation.getFrom(), relation.getTo());
+                }
+            }
+
+            RelationalTable hittorotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+            List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
+            for (LCRelation relation : rotaterelations) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    hittorotated.add(relation.getFrom(), relation.getTo());
+                }
+            }
+
+            Map<TrackerHit, List<Track>> stripsToTracks = new HashMap<TrackerHit, List<Track>>();
+            for (Track track : tracks) {
+                for (TrackerHit hit : track.getTrackerHits()) {
+                    Collection<TrackerHit> htsList = hittostrip.allFrom(hittorotated.from(hit));
+                    for (TrackerHit strip : htsList) {
+                        List<Track> sharedTracks = stripsToTracks.get(strip);
+                        if (sharedTracks == null) {
+                            sharedTracks = new ArrayList<Track>();
+                            stripsToTracks.put(strip, sharedTracks);
+                        }
+                        sharedTracks.add(track);
+                    }
+                }
+            }
+            Iterator<Track> iter = tracks.iterator();
+            trackLoop:
+            while (iter.hasNext()) {
+                Track track = iter.next();
+                for (TrackerHit hit : track.getTrackerHits()) {
+                    Collection<TrackerHit> htsList = hittostrip.allFrom(hittorotated.from(hit));
+                    for (TrackerHit strip : htsList) {
+                        List<Track> sharedTracks = stripsToTracks.get(strip);
+                        if (sharedTracks.size() > 1) {
+                            for (Track otherTrack : sharedTracks) {
+                                if (otherTrack.getChi2() < track.getChi2()) {
+                                    this.getLogger().warning(String.format("removing track with shared hits: chisq %f, d0 %f (other track has chisq %f)", track.getChi2(), track.getTrackStates().get(0).getD0(), otherTrack.getChi2()));
+                                    iter.remove();
+                                    continue trackLoop;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         setTrackType(tracks);
 
         // Increment number of events.

@@ -3,9 +3,8 @@ package org.hps.record.epics;
 import org.lcsim.event.GenericObject;
 
 /**
- * This is an implementation of GenericObject for reading and writing EPICS data. There is no functionality here
- * intended for ends users. Instead, the EPICS data should be accessed using
- * {@link EpicsScalarData#read(org.lcsim.event.EventHeader)} to create the data object from input event data.
+ * This is an implementation of GenericObject for reading and writing EPICS data. There is no functionality here intended for ends users. Instead, the
+ * EPICS data should be accessed using {@link EpicsData#read(org.lcsim.event.EventHeader)} to create the data object from input event data.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */

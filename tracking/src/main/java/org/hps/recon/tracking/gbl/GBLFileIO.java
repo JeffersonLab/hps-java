@@ -170,9 +170,13 @@ public class GBLFileIO {
     void printStripTrackPos(Hep3Vector pos) {
         addLine(String.format("Strip track pos %.10f %.10f %.10f",pos.x(),pos.y(),pos.z()));
     }
+    
+    void printStripTrackPosMeasFrame(Hep3Vector pos) {
+        addLine(String.format("Strip track pos meas frame %.10f %.10f %.10f",pos.x(),pos.y(),pos.z()));
+    }
 
-    void printStrip(int id, int layer) {
-        addLine(String.format("New Strip id layer %d %d", id,layer));
+    void printStrip(int id, int layer, String deName) {
+        addLine(String.format("New Strip id layer %d %d %s", id,layer,deName));
     }
 
     void printStripPathLen(double s) {

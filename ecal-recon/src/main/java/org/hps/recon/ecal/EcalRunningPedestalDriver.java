@@ -12,12 +12,15 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 /**
  * Calculate a running pedestal average for every channel from Mode7 FADCs. Uses
  * pedestals from the database if not available from the data.
+ * 
+ * May 2015:  Updated to also work on Mode1 data.
  * 
  * TODO: Use Logger.
  * 
@@ -49,6 +52,9 @@ public class EcalRunningPedestalDriver extends Driver {
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
     private static final String runningPedestalsName = "EcalRunningPedestals";
 
+    // number of samples from the beginning of the time window used to calculate the pedestal:
+    private static final int nSamples = 4;
+    
     // TODO:  Get this from somewhere else.
     private final int nChannels = 442;
 
@@ -57,7 +63,7 @@ public class EcalRunningPedestalDriver extends Driver {
             nChannels);
 
     // recent event-by-event pedestals and timestamps:
-    private Map<EcalChannel, List<Integer>> eventPedestals = new HashMap<EcalChannel, List<Integer>>();
+    private Map<EcalChannel, List<Double>> eventPedestals = new HashMap<EcalChannel, List<Double>>();
     private Map<EcalChannel, List<Long>> eventTimestamps = new HashMap<EcalChannel, List<Long>>();
 
     private boolean debug = false;
@@ -82,7 +88,7 @@ public class EcalRunningPedestalDriver extends Driver {
         for (int ii = 0; ii < nChannels; ii++) {
             EcalChannel chan = findChannel(ii + 1);
             runningPedestals.put(chan,getStaticPedestal(chan));
-            eventPedestals.put(chan,new ArrayList<Integer>());
+            eventPedestals.put(chan,new ArrayList<Double>());
             eventTimestamps.put(chan,new ArrayList<Long>());
         }
         if (debug) {
@@ -127,9 +133,21 @@ public class EcalRunningPedestalDriver extends Driver {
         System.out.printf("\n");
     }
 
+    private double getNSampleMinimum(short samples[]) {
+        double min=99999999;
+        for (int ii=0; ii<samples.length-nSamples; ii++) {
+            double tmp=0;
+            for (int jj=ii; jj<ii+nSamples; jj++) tmp += samples[jj];
+            tmp /= nSamples;
+            if (tmp < min) min=tmp;
+        }
+        return min;
+    }
+    
     @Override
     protected void process(EventHeader event) {
 
+        // Mode-7 Input Data:
         if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) {
             if (event.hasCollection(LCRelation.class, extraDataRelationsName)) {
                 for (LCRelation rel : event.get(LCRelation.class,
@@ -140,7 +158,38 @@ public class EcalRunningPedestalDriver extends Driver {
                 }
             }
         }
+        
+        // Mode-1 Input Data:
+        else if (event.hasCollection(RawTrackerHit.class, rawCollectionName)) {
+            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawCollectionName);
+            for (RawTrackerHit hit : hits) {
+               short samples[] = hit.getADCValues();
+               if (nSamples > samples.length) {
+                   System.err.println("NOT ENGOUTH SAMPLES FOR ECAL RUNNING PEDETSAL.");
+                   System.exit(0);
+               }
+              
+               //double ped = getNSampleMinimum(samples);
+              
+               boolean good=true;
+               double ped=0;
+               for (int ii=0; ii<nSamples; ii++) {
+                   // reject pulses from pedestal calculation:
+                   if (samples[ii] > getStaticPedestal(findChannel(hit))+12) {
+                       good=false;
+                       break;
+                   }
+                   ped += samples[ii];
+               }
+               if (good) {
+                   ped /= nSamples;
+                   updatePedestal(event,findChannel(hit),ped);
+               }
+            }
+        }
+       
         event.put(runningPedestalsName, runningPedestals);
+        
         if (debug) {
             printPedestals();
         }
@@ -149,7 +198,6 @@ public class EcalRunningPedestalDriver extends Driver {
     private void updatePedestal(EventHeader event, RawCalorimeterHit hit,
             GenericObject mode7data) {
 
-        final long timestamp = event.getTimeStamp();
         final int min = ((HitExtraData.Mode7Data) mode7data).getAmplLow();
         final int max = ((HitExtraData.Mode7Data) mode7data).getAmplHigh();
 
@@ -162,7 +210,15 @@ public class EcalRunningPedestalDriver extends Driver {
             System.err.println("hit doesn't correspond to ecalchannel");
             return;
         }
-        List<Integer> peds = eventPedestals.get(chan);
+        
+        updatePedestal(event,chan,(double)min);
+    }
+    
+    private void updatePedestal(EventHeader event,EcalChannel chan,double min) {
+
+        final long timestamp = event.getTimeStamp();
+        
+        List<Double> peds = eventPedestals.get(chan);
         List<Long> times = eventTimestamps.get(chan);
 
         if (maxLookbackTime > 0) {
@@ -214,8 +270,8 @@ public class EcalRunningPedestalDriver extends Driver {
         } else {
             ped = getStaticPedestal(chan);
         }
+        
         runningPedestals.put(chan, ped);
-
     }
 
     public double getStaticPedestal(EcalChannel chan) {
@@ -227,6 +283,10 @@ public class EcalRunningPedestalDriver extends Driver {
         return ecalConditions.getChannelCollection().findChannel(channel_id);
     }
 
+    public EcalChannel findChannel(RawTrackerHit hit) {
+        return ecalConditions.getChannelCollection().findGeometric(
+                hit.getCellID());
+    }
     public EcalChannel findChannel(RawCalorimeterHit hit) {
         return ecalConditions.getChannelCollection().findGeometric(
                 hit.getCellID());

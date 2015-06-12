@@ -6,13 +6,13 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.3.1-SNAPSHOT</version>
+    <version>3.3.3-SNAPSHOT</version>
     <name>parent</name>
     <description>HPS Java parent POM</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-        <lcsimVersion>3.1.1-SNAPSHOT</lcsimVersion>
+        <lcsimVersion>3.1.1</lcsimVersion>
         <skipSite>false</skipSite>
         <skipPlugin>false</skipPlugin>
     </properties>
@@ -31,6 +31,11 @@
             <id>lcsim-repo-public</id>
             <name>LCSIM Public Maven Repository</name>
             <url>http://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</url>
+        </repository>
+        <repository>
+            <id>jlab-coda-repo-public</id>
+            <name>JLAB CODA Maven Repository</name>
+            <url>https://coda.jlab.org/maven/</url>
         </repository>
         <repository>
             <id>maven-central-repo</id>
@@ -80,6 +85,7 @@
             <groupId>org.lcsim</groupId>
             <artifactId>lcsim-distribution</artifactId>
             <version>${lcsimVersion}</version>
+            <type>pom</type>
             <exclusions>
                 <exclusion>
                     <groupId>jdom</groupId>
@@ -88,6 +94,39 @@
                 <exclusion>
                     <groupId>commons-math</groupId>
                     <artifactId>commons-math</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>freehep-graphicsio-tests</groupId>
+                    <artifactId>org.freehep</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>aida-test</groupId>
+                    <artifactId>hep.aida</artifactId>
+                </exclusion>
+                <!-- Exclude some unneeded lcsim jars. -->
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>lcsim-analysis</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>lcsim-cal-calib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>detector-data</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>lcsim-mc</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>lcsim-steering-files</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.lcsim</groupId>
+                    <artifactId>lcsim-users</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -98,93 +137,98 @@
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-util</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-detector-data</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-detector-model</artifactId>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-conditions</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-recon</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-readout-sim</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-tracking</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-evio</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-recon</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-analysis</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-drivers</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-app</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-users</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-steering-files</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-distribution</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-event-display</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-record-util</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-util</artifactId>
-                <version>3.3.1-SNAPSHOT</version>
+                <version>3.3.3-SNAPSHOT</version>
             </dependency>
             <!-- Next are external dependencies used in multiple modules. -->
             <dependency>
                 <groupId>org.jlab.coda</groupId>
                 <artifactId>jevio</artifactId>
-                <version>4.4.5</version>
+                <version>4.4.6</version>
             </dependency>
             <dependency>
                 <groupId>org.jlab.coda</groupId>
@@ -192,14 +236,24 @@
                 <version>14.1</version>
             </dependency>
             <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>18.0</version>
+            </dependency>
+            <dependency>
                 <groupId>org.reflections</groupId>
                 <artifactId>reflections</artifactId>
                 <version>0.9.9-RC1</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>3.5</version>
+            </dependency>
+            <dependency>
                 <groupId>jfreechart-aida-experimental</groupId>
                 <artifactId>jfreechart-aida-experimental</artifactId>
-                <version>1.6</version>
+                <version>1.7</version>
                 <exclusions>
                     <exclusion>
                         <groupId>jdom</groupId>

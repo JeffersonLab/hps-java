@@ -58,7 +58,8 @@ public class ClustererTest extends TestCase {
         boolean checkPropCalc;
         boolean checkClusterPosition;
         boolean checkNullHits;
-        boolean checkHitPositions;        
+        boolean checkHitPositions;    
+        boolean checkHitTime;
         double[] cuts = null;
         ClusterType clusterType;
         String clustererName;
@@ -87,6 +88,11 @@ public class ClustererTest extends TestCase {
 
         ClustererTestConfig checkHitEnergy() {
             checkHitEnergy = true;
+            return this;
+        }
+        
+        ClustererTestConfig checkHitTime() {
+            checkHitTime = true;
             return this;
         }
 
@@ -148,7 +154,8 @@ public class ClustererTest extends TestCase {
             .checkHitEnergy()
             .checkClusterPosition()
             .checkNullHits()
-            .checkHitPositions());
+            .checkHitPositions()
+            .checkHitTime());
     }
 
     /**
@@ -162,7 +169,8 @@ public class ClustererTest extends TestCase {
             .checkHitEnergy()
             .checkClusterPosition()
             .checkNullHits()
-            .checkHitPositions());
+            .checkHitPositions()
+            .checkHitTime());
     }
 
     /**
@@ -175,7 +183,8 @@ public class ClustererTest extends TestCase {
             .checkHitEnergy()
             .checkClusterPosition()
             .checkHitPositions()
-            .checkNullHits());
+            .checkNullHits()
+            .checkHitTime());
     }
 
     /**
@@ -188,7 +197,8 @@ public class ClustererTest extends TestCase {
             .checkHitEnergy()
             .checkClusterPosition()
             .checkHitPositions()
-            .checkNullHits());
+            .checkNullHits()
+            .checkHitTime());
     }
 
     /**
@@ -352,8 +362,10 @@ public class ClustererTest extends TestCase {
                     if (config.checkHitEnergy) {    
                         assertTrue("Hit energy " + hit.getCorrectedEnergy() + " is <= 0.", hit.getCorrectedEnergy() > 0.);
                     }
-                    double time = hit.getTime();
-                    assertTrue("Hit time is invalid.", time != 0.);
+                    if (config.checkHitTime) {
+                        double time = hit.getTime();
+                        assertTrue("Hit time is invalid.", time != 0.);
+                    }                    
                 }
             }
         }

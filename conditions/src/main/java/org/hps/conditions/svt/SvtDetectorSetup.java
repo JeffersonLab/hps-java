@@ -21,7 +21,8 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * This class puts {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.
+ * This class puts {@link SvtConditions} data onto <code>HpsSiSensor</code>
+ * objects.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
@@ -55,7 +56,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
     /**
      * Constructor that takes name of SVT.
-     * 
+     *
      * @param svtName the name of the SVT subdetector
      */
     public SvtDetectorSetup(final String svtName) {
@@ -64,7 +65,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
     /**
      * Set the name of the SVT in the detector model.
-     * 
+     *
      * @param svtName the name of the SVt in the detector model.
      */
     public void setSvtName(final String svtName) {
@@ -73,7 +74,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
     /**
      * Set whether this class is enabled to be activated on conditions changes.
-     * 
+     *
      * @param enabled <code>true</code> to enable
      */
     public void setEnabled(final boolean enabled) {
@@ -82,7 +83,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
     /**
      * Set the log level.
-     * 
+     *
      * @param level the log level
      */
     public void setLogLevel(final Level level) {
@@ -91,7 +92,8 @@ public final class SvtDetectorSetup implements ConditionsListener {
     }
 
     /**
-     * Hook that activates this class when conditions change (new detector or run number).
+     * Hook that activates this class when conditions change (new detector or
+     * run number).
      *
      * @param event the conditions event
      */
@@ -176,7 +178,6 @@ public final class SvtDetectorSetup implements ConditionsListener {
                 //
                 // Set conditions data for this channel on the sensor object:
                 //
-
                 // Check if the channel was flagged as bad
                 if (constants.isBadChannel()) {
                     sensor.setBadChannel(channelNumber);
@@ -203,13 +204,16 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
             // Set the t0 shift for the sensor.
             final SvtT0Shift sensorT0Shift = t0Shifts.getT0Shift(daqPair);
+            if (sensorT0Shift == null) {
+                throw new RuntimeException("Failed to find T0 shift for sensor: " + sensor.getName() + ", FEB hybrid ID " + daqPair.getFirstElement() + ", FEB ID " + daqPair.getSecondElement());
+            }
             sensor.setT0Shift(sensorT0Shift.getT0Shift());
         }
     }
 
     /**
      * Load conditions from Test Run detector.
-     * 
+     *
      * @param subdetector the SVT subdetector object
      * @param conditions the Test Run conditions
      */
@@ -264,7 +268,6 @@ public final class SvtDetectorSetup implements ConditionsListener {
                 //
                 // Set conditions data for this channel on the sensor object:
                 //
-
                 // Check if the channel was flagged as bad
                 if (constants.isBadChannel()) {
                     sensor.setBadChannel(channelNumber);

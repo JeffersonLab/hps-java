@@ -157,7 +157,7 @@ public class EcalHitPlots extends Driver {
             for (GenericObject data : triggerList) {
                 if (AbstractIntData.getTag(data) == TestRunTriggerData.BANK_TAG) {
                     TestRunTriggerData triggerData = new TestRunTriggerData(data);
-
+                    
                     int orTrig = triggerData.getOrTrig();
                     if (orTrig != 0) {
                         for (int i = 0; i < 32; i++) {
@@ -190,10 +190,12 @@ public class EcalHitPlots extends Driver {
                     }
                     break;
                 } else if (AbstractIntData.getTag(data) == SSPData.BANK_TAG) {
-                    SSPData triggerData = new SSPData(data);
-
-                    int orTrig = triggerData.getOrTrig();
-                    if (orTrig != 0) {
+                    //SSPData triggerData = new SSPData(data);
+                    // TODO: TOP, BOTTOM, AND, and OR trigger are test
+                	// run-specific parameters and are not supported by
+                	// SSPData.
+                    int orTrig = 0; //triggerData.getOrTrig();
+                    if(orTrig != 0) {
                         for (int i = 0; i < 32; i++) {
                             if ((1 << (31 - i) & orTrig) != 0) {
                                 orTrigTime = i;
@@ -202,7 +204,7 @@ public class EcalHitPlots extends Driver {
                             }
                         }
                     }
-                    int topTrig = triggerData.getTopTrig();
+                    int topTrig = 1; //triggerData.getTopTrig();
                     if (topTrig != 0) {
                         for (int i = 0; i < 32; i++) {
                             if ((1 << (31 - i) & topTrig) != 0) {
@@ -212,7 +214,7 @@ public class EcalHitPlots extends Driver {
                             }
                         }
                     }
-                    int botTrig = triggerData.getBotTrig();
+                    int botTrig = 0; //triggerData.getBotTrig();
                     if (botTrig != 0) {
                         for (int i = 0; i < 32; i++) {
                             if ((1 << (31 - i) & botTrig) != 0) {
@@ -235,13 +237,15 @@ public class EcalHitPlots extends Driver {
             double botTime = Double.POSITIVE_INFINITY;
             double orTime = Double.POSITIVE_INFINITY;
             for (CalorimeterHit hit : hits) {
-//                if (hit.getIdentifierFieldValue("iy") > 0) {
-//                    topX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
-//                    topY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);
-//                } else {
-//                    botX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
-//                    botY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);                    
-//                }
+            	/*
+                if (hit.getIdentifierFieldValue("iy") > 0) {
+                    topX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
+                    topY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);
+                } else {
+                    botX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
+                    botY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);                    
+                }
+                */
                 hitEnergyPlot.fill(hit.getRawEnergy());
                 hitTimePlot.fill(hit.getTime());
                 if (hit.getTime() < orTime) {

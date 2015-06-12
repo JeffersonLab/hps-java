@@ -4,6 +4,7 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.BasicHepLorentzVector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.HepLorentzVector;
+import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -297,24 +298,13 @@ public abstract class ReconParticleDriver extends Driver {
         if (!unmatchedClusters.isEmpty()) // Iterate over the remaining unmatched clusters.
         {
             for (Cluster unmatchedCluster : unmatchedClusters) {
-                // Create a reconstructed particle to represent the
-                // unmatched cluster.
+                // Create a reconstructed particle to represent the unmatched cluster.
                 ReconstructedParticle particle = new BaseReconstructedParticle();
-                HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0);
-
-                // Add the cluster to the particle.
-                particle.addCluster(unmatchedCluster);
-
-                // Set the reconstructed particle properties based on
-                // the cluster properties.
-                ((BasicHepLorentzVector) fourVector).setT(unmatchedCluster.getEnergy());
-                ((BaseReconstructedParticle) particle).setCharge(0);
-                ((BaseReconstructedParticle) particle).set4Vector(fourVector);
-
-                // The particle is assumed to be a photon, since it
-                // did not leave any track.
+                
+                // The particle is assumed to be a photon, since it did not leave a track.
                 ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(22, 0, 0, 0));
                 
+                // apply cluster corrections
                 if (unmatchedCluster.getType() == ClusterType.RECON.getType()) {
                     int pid = particle.getParticleIDUsed().getPDG();
                     // If not electron....
@@ -324,6 +314,18 @@ public abstract class ReconParticleDriver extends Driver {
                         ClusterUtilities.applyCorrections(unmatchedCluster);
                     }
                 }
+                //get energy and direction from the cluster
+                Hep3Vector p = new BasicHep3Vector(unmatchedCluster.getPosition());
+                double e = unmatchedCluster.getEnergy();
+                // create momentum vector from direction unit vector times the energy (massless photon)
+                HepLorentzVector fourVector = new BasicHepLorentzVector(e, VecOp.mult(e, VecOp.unit(p)));
+
+                // Add the cluster to the particle.
+                particle.addCluster(unmatchedCluster);
+
+                // Set the reconstructed particle properties based on the cluster properties.
+                ((BaseReconstructedParticle) particle).setCharge(0);
+                ((BaseReconstructedParticle) particle).set4Vector(fourVector);
 
                 // Add the particle to the reconstructed particle list.
                 particles.add(particle);

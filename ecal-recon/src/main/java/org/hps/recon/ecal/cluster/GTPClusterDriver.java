@@ -23,7 +23,7 @@ public class GTPClusterDriver extends ClusterDriver {
     public GTPClusterDriver() {
         clusterer = ClustererFactory.create("GTPClusterer");
         gtp = (GTPClusterer) clusterer;
-        setWriteClusterCollection(false);
+        setWriteClusterCollection(true);
     }
     
     /**
@@ -36,7 +36,7 @@ public class GTPClusterDriver extends ClusterDriver {
      * false</code> that the symmetric window should be used.
      */
     @Deprecated
-    void setLimitClusterRange(boolean limitClusterRange) {
+    public void setLimitClusterRange(boolean limitClusterRange) {
         gtp.setLimitClusterRange(limitClusterRange);
     }
     
@@ -85,5 +85,15 @@ public class GTPClusterDriver extends ClusterDriver {
      */
     public void setVerbose(boolean verbose) {
         gtp.setVerbose(verbose);
+    }
+    
+    @Override
+    public void setWriteClusterCollection(boolean state) {
+    	// Set the flag as appropriate with the superclass.
+    	super.setWriteClusterCollection(state);
+    	
+    	// Also tell the clusterer whether it should persist its hit
+    	// collection or not.
+    	gtp.setWriteHitCollection(state);
     }
 }

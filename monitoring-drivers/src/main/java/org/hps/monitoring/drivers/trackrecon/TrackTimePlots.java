@@ -48,11 +48,12 @@ public class TrackTimePlots extends Driver {
     private IHistogram2D[] trackTimeMinMax = new IHistogram2D[4];
 
     private static final String subdetectorName = "Tracker";
-    int nlayers=12;
-    
-    public void setTrackCollectionName(String name){
-        this.trackCollectionName=name;
+    int nlayers = 12;
+
+    public void setTrackCollectionName(String name) {
+        this.trackCollectionName = name;
     }
+
     @Override
     protected void detectorChanged(Detector detector) {
 
@@ -70,14 +71,13 @@ public class TrackTimePlots extends Driver {
         //style2d.zAxisStyle().setParameter("scale", "log");
         style2d.zAxisStyle().setVisible(false);
         style2d.dataBoxStyle().setVisible(false);
-       
-        
+
         IPlotterStyle styleOverlay = store.getStyle("DefaultHistogram1DStyle");
         styleOverlay.dataStyle().errorBarStyle().setVisible(true);
-        styleOverlay.dataStyle().fillStyle().setVisible(false);        
+        styleOverlay.dataStyle().fillStyle().setVisible(false);
         styleOverlay.legendBoxStyle().setVisible(false);
         styleOverlay.dataStyle().outlineStyle().setVisible(false);
-         
+
         plotter = fac.create("Hit Times");
         plotter.createRegions(3, 4);
 
@@ -110,16 +110,14 @@ public class TrackTimePlots extends Driver {
             plot(plotter3, trackHitT0[module][layer], styleOverlay, region);
             trackHitDt[module][layer] = aida.histogram1D(sensor.getName() + "_trackHit_dt", 50, -20, 20.0);
             plot(plotter4, trackHitDt[module][layer], styleOverlay, region);
-           
+
         }
-        
-        
-        
-        for (int i=0; i<nlayers;i++) {            
-            int region = computePlotterRegion(i);                   
-            trackHit2D[i] = aida.histogram2D("Layer "+i+" trackHit vs dt", 75, -50, 100.0, 50, -20, 20.0);
+
+        for (int i = 0; i < nlayers; i++) {
+            int region = computePlotterRegion(i);
+            trackHit2D[i] = aida.histogram2D("Layer " + i + " trackHit vs dt", 75, -50, 100.0, 50, -20, 20.0);
             plot(plotter5, trackHit2D[i], style2d, region);
-            trackHitDtChan[i] = aida.histogram2D("Layer "+i+" dt vs position", 200, -20, 20, 50, -20, 20.0);
+            trackHitDtChan[i] = aida.histogram2D("Layer " + i + " dt vs position", 200, -20, 20, 50, -20, 20.0);
             plot(plotter6, trackHitDtChan[i], style2d, region);
         }
         plotter.show();
@@ -131,7 +129,7 @@ public class TrackTimePlots extends Driver {
         for (int module = 0; module < 2; module++) {
             trackT0[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Time", 75, -50, 100.0);
             plot(plotter2, trackT0[module], null, module);
-            trackTrigTime[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " Track Time vs. Trig Time", 75, -50, 100.0, 33, -1, 32);
+            trackTrigTime[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " Track Time vs. Trig Time", 75, -50, 100.0, 6, -2, 22);
             plot(plotter2, trackTrigTime[module], style2d, module + 2);
 
             trackTimeRange[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Hit Time Range", 75, 0, 30.0);
@@ -148,47 +146,9 @@ public class TrackTimePlots extends Driver {
         this.hitCollection = hitCollection;
     }
 
-  
-
     @Override
     public void process(EventHeader event) {
-        int orTrig = 0;
-        int topTrig = 0;
-        int botTrig = 0;
-
-        int orTrigTime = -1;
-        int topTrigTime = -1;
-        int botTrigTime = -1;
-        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
-            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
-            for (GenericObject data : triggerList)
-                if (AbstractIntData.getTag(data) == TestRunTriggerData.BANK_TAG) {
-                    TestRunTriggerData triggerData = new TestRunTriggerData(data);
-
-                    orTrig = triggerData.getOrTrig();
-                    if (orTrig != 0)
-                        for (int i = 0; i < 32; i++)
-                            if ((1 << (31 - i) & orTrig) != 0) {
-                                orTrigTime = i;
-                                break;
-                            }
-                    topTrig = triggerData.getTopTrig();
-                    if (topTrig != 0)
-                        for (int i = 0; i < 32; i++)
-                            if ((1 << (31 - i) & topTrig) != 0) {
-                                topTrigTime = i;
-                                break;
-                            }
-                    botTrig = triggerData.getBotTrig();
-                    if (botTrig != 0)
-                        for (int i = 0; i < 32; i++)
-                            if ((1 << (31 - i) & botTrig) != 0) {
-                                botTrigTime = i;
-                                break;
-                            }
-                    break;
-                }
-        }
+        int trigTime = (int) (event.getTimeStamp() % 24);
 
         //===> IIdentifierHelper helper = SvtUtils.getInstance().getHelper();
         List<SiTrackerHitStrip1D> hits = event.get(SiTrackerHitStrip1D.class, hitCollection);
@@ -206,40 +166,46 @@ public class TrackTimePlots extends Driver {
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         for (Track track : tracks) {
             int trackModule = -1;
-            if (track.getTrackerHits().get(0).getPosition()[2] > 0)
+            if (track.getTrackerHits().get(0).getPosition()[2] > 0) {
                 trackModule = 0;
-            else
+            } else {
                 trackModule = 1;
+            }
             double minTime = Double.POSITIVE_INFINITY;
             double maxTime = Double.NEGATIVE_INFINITY;
             int hitCount = 0;
             double trackTime = 0;
-            for (TrackerHit hitCross : track.getTrackerHits())
+            for (TrackerHit hitCross : track.getTrackerHits()) {
                 for (HelicalTrackStrip hit : ((HelicalTrackCross) hitCross).getStrips()) {
                     int layer = hit.layer();
                     trackHitT0[trackModule][layer - 1].fill(hit.dEdx() / DopedSilicon.ENERGY_EHPAIR);
                     trackTime += hit.time();
                     hitCount++;
-                    if (hit.time() > maxTime)
+                    if (hit.time() > maxTime) {
                         maxTime = hit.time();
-                    if (hit.time() < minTime)
+                    }
+                    if (hit.time() < minTime) {
                         minTime = hit.time();
+                    }
                 }
+            }
             trackTimeMinMax[trackModule].fill(minTime, maxTime);
             trackTimeRange[trackModule].fill(maxTime - minTime);
             trackTime /= hitCount;
             trackT0[trackModule].fill(trackTime);
-            if (trackModule == 0)
-                trackTrigTime[trackModule].fill(trackTime, topTrigTime);
-            else
-                trackTrigTime[trackModule].fill(trackTime, botTrigTime);
-            for (TrackerHit hitCross : track.getTrackerHits())
+            if (trackModule == 0) {
+                trackTrigTime[trackModule].fill(trackTime, trigTime);
+            } else {
+                trackTrigTime[trackModule].fill(trackTime, trigTime);
+            }
+            for (TrackerHit hitCross : track.getTrackerHits()) {
                 for (HelicalTrackStrip hit : ((HelicalTrackCross) hitCross).getStrips()) {
                     int layer = hit.layer();
                     trackHitDt[trackModule][layer - 1].fill(hit.time() - trackTime);
                     trackHit2D[layer - 1].fill(trackTime, hit.time() - trackTime);
                     trackHitDtChan[layer - 1].fill(hit.umeas(), hit.time() - trackTime);
                 }
+            }
         }
     }
 
@@ -264,42 +230,57 @@ public class TrackTimePlots extends Driver {
     //and assume plotter is split in 3 columns, 4 rows...L0-5 on top 2 rows; L6-11 on bottom 2
     private int computePlotterRegion(int layer) {
 
-        if (layer == 0)
+        if (layer == 0) {
             return 0;
-        if (layer == 1)
+        }
+        if (layer == 1) {
             return 1;
-        if (layer == 2)
+        }
+        if (layer == 2) {
             return 4;
-        if (layer == 3)
+        }
+        if (layer == 3) {
             return 5;
-        if (layer == 4)
+        }
+        if (layer == 4) {
             return 8;
-        if (layer == 5)
+        }
+        if (layer == 5) {
             return 9;
+        }
 
-        if (layer == 6)
+        if (layer == 6) {
             return 2;
-        if (layer == 7)
+        }
+        if (layer == 7) {
             return 3;
-        if (layer == 8)
+        }
+        if (layer == 8) {
             return 6;
-        if (layer == 9)
+        }
+        if (layer == 9) {
             return 7;
-        if (layer == 10)
+        }
+        if (layer == 10) {
             return 10;
-        if (layer == 11)
+        }
+        if (layer == 11) {
             return 11;
+        }
         return -1;
     }
-    
-    private String getColor(int module){
-        String color="Black";
-        if(module==1)
-            color="Green";
-        if(module==2)
-            color="Blue";
-        if(module==3)
-            color="Red";
+
+    private String getColor(int module) {
+        String color = "Black";
+        if (module == 1) {
+            color = "Green";
+        }
+        if (module == 2) {
+            color = "Blue";
+        }
+        if (module == 3) {
+            color = "Red";
+        }
         return color;
     }
 }

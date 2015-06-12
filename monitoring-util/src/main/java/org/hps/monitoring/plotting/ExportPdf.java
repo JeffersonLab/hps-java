@@ -9,6 +9,11 @@ import java.awt.image.BufferedImage;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.lcsim.util.log.DefaultLogFormatter;
+import org.lcsim.util.log.LogUtil;
 
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
@@ -22,35 +27,47 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 /**
  * This is a class for exporting plot graphics to PDF.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  *
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class ExportPdf {
+public final class ExportPdf {
 
-    private ExportPdf() {        
-    }
-    
     /**
-     * Write the graphics from a list of plotters to a PDF, with one plotter per page,
-     * including a summary page with the run data.     
-     * @param plotters The list of plotters.
-     * @param fileName The output file name.
-     * @param runData A list of run data to include on the first page.
-     * @throws IOException If there is a problem opening or writing to the PDF document.
+     * Setup logging.
      */
-    public static void write(List<IPlotter> plotters, String fileName, List<String> runData) throws IOException {
-        
+    private static Logger LOGGER = LogUtil.create(ExportPdf.class, new DefaultLogFormatter(), Level.ALL);
+
+    /**
+     * Do not allow class instantiation.
+     */
+    private ExportPdf() {
+    }
+
+    /**
+     * Save a set of tabs containing plots to a file.
+     *
+     * @param plotTabs the top level tab component (plots are actually in a set
+     * of tabs without these tabs)
+     * @param fileName the file name
+     * @param runData the list of run data to save on the cover page
+     * @throws IOException if there is a problem with the IO (e.g. writing to
+     * PDF file)
+     */
+    public static void write(List<IPlotter> plotters, String fileName, List<String> runData)
+            throws IOException {
+
+        LOGGER.info("writing plots to " + fileName + " ...");
+
         // Open the document and the writer.
-        Document document = new Document(PageSize.A4.rotate(), 50, 50, 50, 50);
-        PdfWriter writer;
+        Document document = new Document(PageSize.LETTER.rotate(), 50, 50, 50, 50);
+        PdfWriter writer = null;
         try {
             writer = PdfWriter.getInstance(document, new FileOutputStream(fileName));
         } catch (DocumentException e) {
             throw new IOException(e);
         }
         document.open();
-        
+
         // Create 1st page with run summary data.
         try {
             writeRunData(document, runData);
@@ -58,67 +75,72 @@ public class ExportPdf {
             throw new IOException(e);
         }
 
-        // Write out the plots to the PDF, one page per plotter.
-        for (int i = 0; i < plotters.size(); i++) {            
-            document.newPage();            
-            IPlotter plotter = plotters.get(i);            
+        // Write the graphics from each plotter on a new page.
+        for (IPlotter plotter : plotters) {
+            plotter.refresh();
+            document.newPage();
             writePage(document, writer, plotter);
         }
-        
+
         document.close();
+
+        LOGGER.info("done writing plots to " + fileName);
     }
-    
+
     /**
-     * Get an image from a Swing component.
-     * @param component The Swing component.
-     * @return The image from the component.
-     */
-    public static BufferedImage getImage(Component component) {
-        BufferedImage image = new BufferedImage(component.getWidth(), component.getHeight(), BufferedImage.TYPE_INT_RGB);
-        component.paint(image.getGraphics());
-        return image;
-    }
-                   
-    /**
-     * Write plotter graphics into a single PDF page.
-     * @param document The output PDF document.
-     * @param writer The PDF writer.
-     * @param plotter The plotter with the graphics.
-     * @throws IOException If there is a problem writing to the PDF document.
+     * Write a plotter's graphics into a single PDF page.
+     *
+     * @param document the output PDF document
+     * @param writer the PDF writer
+     * @param image the buffered bitmap image
+     * @throws IOException if there is a problem writing to the PDF document
      */
     static void writePage(Document document, PdfWriter writer, IPlotter plotter) throws IOException {
-                
+
+        Image image = ((Plotter) plotter).getImage();
+        String title = plotter.title();
+
         // Add header label.
-        Paragraph p = new Paragraph(plotter.title(), new Font(FontFamily.HELVETICA, 24));
+        Paragraph p = new Paragraph(title, new Font(FontFamily.HELVETICA, 24));
         p.setAlignment(Element.ALIGN_CENTER);
         try {
             document.add(p);
         } catch (DocumentException e) {
             throw new IOException(e);
         }
-        
-        // Create image from panel.
-        Image awtImage = getImage(((Plotter)plotter).panel());
-        
+
         // Write image into the document.
         com.itextpdf.text.Image iTextImage = null;
         try {
-            iTextImage = com.itextpdf.text.Image.getInstance(writer, awtImage, 1f);
+            iTextImage = com.itextpdf.text.Image.getInstance(writer, image, 1f);
         } catch (BadElementException e) {
             throw new IOException(e);
-        }                 
-        iTextImage.setAbsolutePosition(50, 50);
-        iTextImage.scalePercent(60);
+        }
+        iTextImage.scaleAbsolute(document.getPageSize().getWidth(), (float) 0.75 * document.getPageSize().getHeight());
+        iTextImage.setAlignment(Element.ALIGN_CENTER);
         try {
             document.add(iTextImage);
         } catch (DocumentException e) {
             throw new IOException(e);
         }
-    }    
-    
+    }
+
+    /**
+     * Get a buffered image from a Swing component.
+     *
+     * @param component the Swing component
+     * @return the image from painting the component onto a buffered image
+     */
+    public static BufferedImage getImage(Component component) {
+        BufferedImage image = new BufferedImage(component.getWidth(), component.getHeight(), BufferedImage.TYPE_INT_RGB);
+        component.paint(image.getGraphics());
+        return image;
+    }
+
     /**
      * Add a page with the run summary data.
-     * @param runData The list of run summary information.
+     *
+     * @param runData the list of run summary information
      */
     static void writeRunData(Document document, List<String> runData) throws DocumentException {
         for (String line : runData) {

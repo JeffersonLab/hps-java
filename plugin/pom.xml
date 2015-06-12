@@ -7,7 +7,7 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.3.1-SNAPSHOT</version>
+        <version>3.3.3-SNAPSHOT</version>
     </parent>
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/plugin/</url>
@@ -51,24 +51,6 @@
                             <value>http://srs.slac.stanford.edu/nexus/service/local/artifact/maven/redirect?r=lcsim-maven2-public</value>
                         </property>
                     </redirectUrls>
-                    <includes>
-                        <include>org.apache.commons:commons-math3</include>
-                        <include>org.hps:hps-analysis</include>
-                        <include>org.hps:hps-conditions</include>
-                        <include>org.hps:hps-detector-data</include>
-                        <include>org.hps:hps-ecal-readout-sim</include>
-                        <include>org.hps:hps-ecal-recon</include>
-                        <include>org.hps:hps-et</include>
-                        <include>org.hps:hps-evio</include>
-                        <include>org.hps:hps-recon</include>
-                        <include>org.hps:hps-record-util</include>
-                        <include>org.hps:hps-tracking</include>
-                        <include>org.hps:hps-users</include>
-                        <include>org.hps:hps-util</include>
-                        <include>mysql:mysql-connector-java</include>
-                        <include>org.jlab.coda:jevio</include>
-                        <include>org.jlab.coda:et</include>                        
-                    </includes>
                 </configuration>
                 <executions>
                     <execution>

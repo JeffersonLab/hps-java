@@ -46,6 +46,9 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
     protected Map<Pair<Integer /* FPGA */, Integer /* Hybrid */>,
                   HpsSiSensor /* Sensor */> daqPairToSensor 
                       = new HashMap<Pair<Integer, Integer>, HpsSiSensor>();
+    
+    // A collection of banks that should be processed after all hits have been made
+    protected List<BaseStructure> eventBanks = new ArrayList<BaseStructure>();
 
     // Flag indicating whether the DAQ map has been setup
     protected boolean isDaqMapSetup = false;
@@ -112,15 +115,14 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
      */
     abstract protected HpsSiSensor getSensor(int[] data);
 
-
     /**
      *  Check whether a data bank is valid i.e. contains SVT samples only.
      * 
      *  @param dataBank - An EVIO bank containing integer data
      *  @return true if the bank is valid, false otherwise
      */
-    abstract protected boolean isValidDataBank(BaseStructure dataBank); 
-
+    abstract protected boolean isValidDataBank(BaseStructure dataBank);
+    
     /**
      * Check whether the samples are valid
      * 
@@ -151,6 +153,8 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
      */
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
 
+        logger.fine("Physics Event: " + event.toString());
+        
         // Retrieve the ROC banks encapsulated by the physics bank.  The ROC
         // bank range is set in the subclass.
         List<BaseStructure> rocBanks = new ArrayList<BaseStructure>();

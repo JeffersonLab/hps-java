@@ -3,10 +3,13 @@ package org.hps.evio;
 import java.util.List;
 
 import org.jlab.coda.jevio.BaseStructure;
+import org.jlab.coda.jevio.EvioEvent;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
+
 import org.hps.util.Pair;
 
 /**
@@ -111,8 +114,8 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
     @Override
     protected HpsSiSensor getSensor(int[] data) {
         
-        logger.fine("FEB ID: " + SvtEvioUtils.getFebID(data) 
-                  + " Hybrid ID: " + SvtEvioUtils.getFebHybridID(data));
+        //logger.fine("FEB ID: " + SvtEvioUtils.getFebID(data) 
+        //          + " Hybrid ID: " + SvtEvioUtils.getFebHybridID(data));
         
         Pair<Integer, Integer> daqPair 
             = new Pair<Integer, Integer>(SvtEvioUtils.getFebID(data), 
@@ -123,7 +126,7 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
     
     /**
      *  Check whether a data bank is valid i.e. contains SVT samples only.  For
-     *  the engineering run, a valid data bank has a tag of 1.
+     *  the engineering run, a valid data bank has a tag of 3.
      * 
      *  @param dataBank - An EVIO bank containing integer data
      *  @return true if the bank is valid, false otherwise
@@ -131,7 +134,17 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
      */
     @Override
     protected boolean isValidDataBank(BaseStructure dataBank) { 
-        if (dataBank.getHeader().getTag() != 3) return false; 
+        
+        // The SVT configuration is stored in a bank with tag equal to 57614.
+        // All other event banks are invalid
+        if (dataBank.getHeader().getTag() == 57614) { 
+            
+            // Store the event bank for processing later.
+            eventBanks.add(dataBank);
+            
+            return false;
+        } else if (dataBank.getHeader().getTag() != 3) return false; 
+        
         return true; 
     }
     
@@ -145,6 +158,41 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
     protected boolean isValidSampleSet(int[] data) {
         return !(SvtEvioUtils.isApvHeader(data) || SvtEvioUtils.isApvTail(data));        
     }
+   
+    /**
+     *  Process an EVIO event and extract all information relevant to the SVT.
+     *  
+     *  @param event - EVIO event to process
+     *  @param lcsimEvent - LCSim event to put collections into 
+     *  @return true if the EVIO was processed successfully, false otherwise 
+     */
+    @Override
+    public boolean processEvent(EvioEvent event, EventHeader lcsimEvent) {
+        
+        // Make RawTrackerHits.  This will also search for and store banks containing
+        // the configuration of the SVT.
+        boolean success = super.processEvent(event, lcsimEvent);
+        
+        /*logger.fine("Event contains " + eventBanks.size() + " event banks");
+        // Loop through all of the event banks and process them
+        for (BaseStructure eventBank : eventBanks) { 
+           logger.fine(eventBank.toString());
+           if (eventBank.getHeader().getTag() == 57614) { 
+               logger.fine("Configuration bank found");
+               String[] stringData = eventBank.getStringData();
+               logger.fine("String data size: " + stringData.length);
+               System.out.println("Configuration: ");
+               for (String stringDatum : stringData) {
+                  System.out.println("Data: " + stringDatum); 
+               }
+           }
+        }*/
+        
+        // Clear out the event banks after they have been processed
+        eventBanks.clear();
+        
+        return success;
+    }
     
     /**
      *  Make a {@linkplain RawTrackerHit} from a set of samples.
@@ -155,7 +203,7 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
     @Override
     protected RawTrackerHit makeHit(int[] data) {
          
-        logger.fine("Channel: " + SvtEvioUtils.getPhysicalChannelNumber(data));
+        //logger.fine("Channel: " + SvtEvioUtils.getPhysicalChannelNumber(data));
         return makeHit(data, SvtEvioUtils.getPhysicalChannelNumber(data));
     }
 }

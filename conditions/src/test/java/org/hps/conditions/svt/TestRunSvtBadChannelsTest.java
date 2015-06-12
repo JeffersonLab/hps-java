@@ -86,7 +86,7 @@ public final class TestRunSvtBadChannelsTest extends TestCase {
                 //System.out.println(collection.getConditionsRecord());
                 totalBadChannels += collection.size();
             }
-            System.out.println("found " + totalBadChannels + " total bad chanenls");
+            System.out.println("found " + totalBadChannels + " total bad channels");
 
             // The run 0 channels are for all runs.
             int expectedBadChannels = BAD_CHANNEL_COUNTS[0];

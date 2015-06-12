@@ -2,14 +2,14 @@ package org.hps.recon.tracking;
 
 import java.util.ArrayList;
 import java.util.List;
-
-//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.svt.HPSSVTConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-//===> import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
@@ -27,15 +27,15 @@ public class RawTrackerHitFitterDriver extends Driver {
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String fitCollectionName = "SVTShapeFitParameters";
     private String fittedHitCollectionName = "SVTFittedRawTrackerHits";
+    private SvtTimingConstants timingConstants;
     private int genericObjectFlags = 1 << LCIOConstants.GOBIT_FIXED;
     private int relationFlags = 0;
-    private double timeOffset = 0.0;
+    private boolean correctTimeOffset = false;
     private boolean correctT0Shift = false;
     private boolean useTimestamps = false;
     private boolean useTruthTime = false;
     private boolean subtractTOF = false;
     private boolean subtractTriggerTime = false;
-    private int triggerPhaseOffset = 4;
     private boolean correctChanT0 = true;
 
     /**
@@ -51,8 +51,8 @@ public class RawTrackerHitFitterDriver extends Driver {
         this.debug = debug;
     }
 
-    public void setTimeOffset(double timeOffset) {
-        this.timeOffset = timeOffset;
+    public void setCorrectTimeOffset(boolean correctTimeOffset) {
+        this.correctTimeOffset = correctTimeOffset;
     }
 
     public void setCorrectT0Shift(boolean correctT0Shift) {
@@ -69,10 +69,6 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     public void setSubtractTriggerTime(boolean subtractTriggerTime) {
         this.subtractTriggerTime = subtractTriggerTime;
-    }
-
-    public void setTriggerPhaseOffset(int triggerPhaseOffset) {
-        this.triggerPhaseOffset = triggerPhaseOffset;
     }
 
     public void setCorrectChanT0(boolean correctChanT0) {
@@ -123,6 +119,10 @@ public class RawTrackerHitFitterDriver extends Driver {
         }
     }
 
+    protected void detectorChanged(Detector detector) {
+        timingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
+    }
+
     @Override
     public void process(EventHeader event) {
         if (!event.hasCollection(RawTrackerHit.class, rawHitCollectionName)) {
@@ -144,10 +144,11 @@ public class RawTrackerHitFitterDriver extends Driver {
             //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
             //for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
             for (ShapeFitParameters fit : fitter.fitShape(hit, shape)) {
-                fit.setT0(fit.getT0() - timeOffset);
-
+                if (correctTimeOffset) {
+                    fit.setT0(fit.getT0() - timingConstants.getOffsetTime());
+                }
                 if (subtractTriggerTime) {
-                    fit.setT0(fit.getT0() - (((event.getTimeStamp() + 4 * triggerPhaseOffset) % 24) - 12));
+                    fit.setT0(fit.getT0() - (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12));
                 }
                 if (correctChanT0) {
                     fit.setT0(fit.getT0() - sensor.getShapeFitParameters(strip)[HpsSiSensor.T0_INDEX]);

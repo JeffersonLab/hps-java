@@ -15,13 +15,17 @@ import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
 
-import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver; 
+import org.lcsim.fit.helicaltrack.HelicalTrackCross;
+import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
+import org.hps.recon.tracking.FittedRawTrackerHit;
 
 /**
  * 
@@ -44,17 +48,21 @@ public class SvtClusterAnalysis extends Driver {
     ITree tree; 
     IHistogramFactory histogramFactory; 
 	IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
-	
 	protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>(); 
+	
 	private Map<HpsSiSensor, IHistogram1D> clusterChargePlots = new HashMap<HpsSiSensor, IHistogram1D>();
-	private Map<HpsSiSensor, IHistogram1D> signalToNoisePlots = new HashMap<HpsSiSensor, IHistogram1D>();
 	private Map<HpsSiSensor, IHistogram1D> singleHitClusterChargePlots = new HashMap<HpsSiSensor, IHistogram1D>();
-	private Map<HpsSiSensor, IHistogram1D> singleHitSignalToNoisePlots = new HashMap<HpsSiSensor, IHistogram1D>();
 	private Map<HpsSiSensor, IHistogram1D> multHitClusterChargePlots = new HashMap<HpsSiSensor, IHistogram1D>();
+	private Map<HpsSiSensor, IHistogram1D> trackClusterChargePlots = new HashMap<HpsSiSensor, IHistogram1D>();
+	private Map<HpsSiSensor, IHistogram1D> signalToNoisePlots = new HashMap<HpsSiSensor, IHistogram1D>();
+	private Map<HpsSiSensor, IHistogram1D> singleHitSignalToNoisePlots = new HashMap<HpsSiSensor, IHistogram1D>();
 	private Map<HpsSiSensor, IHistogram1D> multHitSignalToNoisePlots = new HashMap<HpsSiSensor, IHistogram1D>();
+	private Map<HpsSiSensor, IHistogram1D> trackHitSignalToNoisePlots = new HashMap<HpsSiSensor, IHistogram1D>();
+	private Map<HpsSiSensor, IHistogram1D> clusterMultiplicityPlots = new HashMap<HpsSiSensor, IHistogram1D>();
 	private Map<HpsSiSensor, IHistogram1D> clusterTimePlots = new HashMap<HpsSiSensor, IHistogram1D>();
+	private Map<HpsSiSensor, IHistogram1D> trackClusterTimePlots = new HashMap<HpsSiSensor, IHistogram1D>();
 	private Map<HpsSiSensor, IHistogram2D> clusterChargeVsTimePlots = new HashMap<HpsSiSensor, IHistogram2D>();
-    
+	
     // Detector name
     private static final String SUBDETECTOR_NAME = "Tracker";
     
@@ -63,6 +71,7 @@ public class SvtClusterAnalysis extends Driver {
     private String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
     
     private int runNumber = -1; 
+        
     
     /**
      * Default Ctor
@@ -117,6 +126,9 @@ public class SvtClusterAnalysis extends Driver {
         plotters.put("Signal to Noise", plotterFactory.create("Signal to Noise"));
         plotters.get("Signal to Noise").createRegions(6, 6);
         
+        plotters.put("Cluster Multiplicity", plotterFactory.create("Cluster Multiplicity"));
+        plotters.get("Cluster Multiplicity").createRegions(6, 6);
+        
         plotters.put("Cluster Time", plotterFactory.create("Cluster Time"));
         plotters.get("Cluster Time").createRegions(6, 6);
         
@@ -129,7 +141,7 @@ public class SvtClusterAnalysis extends Driver {
                     histogramFactory.createHistogram1D(sensor.getName() + " - Cluster Charge", 100, 0, 5000));
             plotters.get("Cluster Amplitude").region(this.computePlotterRegion(sensor))
                                              .plot(clusterChargePlots.get(sensor), this.createStyle(1, "Cluster Amplitude [ADC Counts]", ""));
-        
+       
             singleHitClusterChargePlots.put(sensor, 
                     histogramFactory.createHistogram1D(sensor.getName() + " - Single Hit Cluster Charge", 100, 0, 5000));
             plotters.get("Cluster Amplitude").region(this.computePlotterRegion(sensor))
@@ -139,6 +151,11 @@ public class SvtClusterAnalysis extends Driver {
                     histogramFactory.createHistogram1D(sensor.getName() + " - Multiple Hit Cluster Charge", 100, 0, 5000));
             plotters.get("Cluster Amplitude").region(this.computePlotterRegion(sensor))
                                              .plot(multHitClusterChargePlots.get(sensor), this.createStyle(2, "Cluster Amplitude [ADC Counts]", ""));
+
+            trackClusterChargePlots.put(sensor, 
+                    histogramFactory.createHistogram1D(sensor.getName() + " - Tracker Cluster Charge", 100, 0, 5000));
+            plotters.get("Cluster Amplitude").region(this.computePlotterRegion(sensor))
+                                             .plot(trackClusterChargePlots.get(sensor), this.createStyle(3, "Cluster Amplitude [ADC Counts]", ""));
             
             signalToNoisePlots.put(sensor, 
                     histogramFactory.createHistogram1D(sensor.getName() + " - Signal to Noise", 50, 0, 50));
@@ -154,18 +171,31 @@ public class SvtClusterAnalysis extends Driver {
                     histogramFactory.createHistogram1D(sensor.getName() + " - Multiple Hit Signal to Noise", 50, 0, 50));
             plotters.get("Signal to Noise").region(this.computePlotterRegion(sensor))
                                            .plot(multHitSignalToNoisePlots.get(sensor), this.createStyle(2, "Signal to Noise", ""));
-        
+
+            trackHitSignalToNoisePlots.put(sensor, 
+                    histogramFactory.createHistogram1D(sensor.getName() + " - Track Signal to Noise", 50, 0, 50));
+            plotters.get("Signal to Noise").region(this.computePlotterRegion(sensor))
+                                           .plot(trackHitSignalToNoisePlots.get(sensor), this.createStyle(3, "Signal to Noise", ""));
+            
+            clusterMultiplicityPlots.put(sensor,
+                    histogramFactory.createHistogram1D(sensor.getName() + " - Cluster Multiplicity", 10, 0, 10));
+            plotters.get("Cluster Multiplicity").region(this.computePlotterRegion(sensor))
+                                                .plot(clusterMultiplicityPlots.get(sensor), this.createStyle(1, "Cluster Multiplicity", ""));
             
             clusterTimePlots.put(sensor,
                     histogramFactory.createHistogram1D(sensor.getName() + " - Cluster Time", 100, -100, 100));
             plotters.get("Cluster Time").region(this.computePlotterRegion(sensor))
                                         .plot(clusterTimePlots.get(sensor), this.createStyle(1, "Cluster Time [ns]", ""));
+
+            trackClusterTimePlots.put(sensor,
+                    histogramFactory.createHistogram1D(sensor.getName() + " - Track Cluster Time", 100, -100, 100));
+            plotters.get("Cluster Time").region(this.computePlotterRegion(sensor))
+                                        .plot(trackClusterTimePlots.get(sensor), this.createStyle(3, "Cluster Time [ns]", ""));
             
             clusterChargeVsTimePlots.put(sensor,
                     histogramFactory.createHistogram2D(sensor.getName() + " - Cluster Amplitude vs Time", 100, 0, 5000, 100, -100, 100));
             plotters.get("Cluster Amplitude vs Cluster Time").region(this.computePlotterRegion(sensor))
                                                              .plot(clusterChargeVsTimePlots.get(sensor));
-            
         }
         
 		for (IPlotter plotter : plotters.values()) { 
@@ -191,9 +221,10 @@ public class SvtClusterAnalysis extends Driver {
         
         // Get the list of clusters in the event
         List<SiTrackerHitStrip1D> clusters = event.get(SiTrackerHitStrip1D.class, clusterCollectionName);
+        System.out.println("Number of clusters: " + clusters.size()); 
        
         for (SiTrackerHitStrip1D cluster : clusters) { 
-            
+           
             // Get the sensor associated with this cluster
             HpsSiSensor sensor = (HpsSiSensor) cluster.getSensor();
             
@@ -217,7 +248,9 @@ public class SvtClusterAnalysis extends Driver {
                 
                 noise += channelNoise * this.getFittedHit(rawHit).getAmp();
             }
-       
+      
+            clusterMultiplicityPlots.get(sensor).fill(cluster.getRawHits().size());
+            
             // Calculate the signal weighted noise
             noise = noise/amplitude;
             
@@ -233,6 +266,52 @@ public class SvtClusterAnalysis extends Driver {
             } else { 
                 multHitClusterChargePlots.get(sensor).fill(amplitude);
                 multHitSignalToNoisePlots.get(sensor).fill(amplitude/noise);
+            }
+        }
+        
+        if (!event.hasCollection(Track.class, "MatchedTracks")) return;
+        
+        List<Track> tracks = event.get(Track.class, "MatchedTracks");
+        
+        for (Track track : tracks) { 
+            
+            for (TrackerHit stereoHit : track.getTrackerHits()) { 
+               
+                for (HelicalTrackStrip cluster : ((HelicalTrackCross) stereoHit).getStrips()) {
+                    
+                    // Get the raw hits composing this cluster and use them to calculate the amplitude of the hit
+                    double amplitude = 0;
+                    double noise = 0;
+                    HpsSiSensor sensor = null;
+                    for (Object hit : cluster.rawhits()) { 
+                        RawTrackerHit rawHit = (RawTrackerHit) hit;
+                   
+                        sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                        
+                        // Get the channel of the raw hit
+                        int channel = rawHit.getIdentifierFieldValue("strip");
+                
+                        // Add the amplitude of that channel to the total amplitude
+                        amplitude += this.getFittedHit(rawHit).getAmp();
+                
+                        // Calculate the mean noise for the channel
+                        double channelNoise = 0;
+                        for (int sampleN = 0; sampleN < 6; sampleN++) { 
+                            channelNoise += sensor.getNoise(channel, sampleN);
+                        }
+                        channelNoise = channelNoise/6;
+                
+                        noise += channelNoise * this.getFittedHit(rawHit).getAmp();
+                    }
+                    
+                    // Calculate the signal weighted noise
+                    noise = noise/amplitude;
+                   
+                    // Fill all plots
+                    trackClusterChargePlots.get(sensor).fill(amplitude);
+                    trackHitSignalToNoisePlots.get(sensor).fill(amplitude/noise);
+                    trackClusterTimePlots.get(sensor).fill(cluster.time());
+                }
             }
         }
     }
@@ -306,6 +385,10 @@ public class SvtClusterAnalysis extends Driver {
         } else if (color == 2) { 
             style.dataStyle().fillStyle().setColor("93, 228, 47, 1");
             style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
+            style.dataStyle().fillStyle().setOpacity(.70);
+        } else if (color == 3) { 
+            style.dataStyle().fillStyle().setColor("255, 38, 38, 1");
+            style.dataStyle().outlineStyle().setColor("255, 38, 38, 1");
             style.dataStyle().fillStyle().setOpacity(.70);
         }
         style.dataStyle().errorBarStyle().setVisible(false);
