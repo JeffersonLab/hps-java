@@ -26,6 +26,12 @@ public class MilleParameter {
 	public static final int half_offset = 10000;
 	public static final int type_offset = 1000; 
 	public static final int dimension_offset = 100;
+	public static enum Type {
+	    TRANSLATION(1), ROTATION(2);
+	    private int value;
+	    private Type(int value) {this.value = value;}
+	    public int getType() {return this.value;}
+	};
 	
 	public MilleParameter(String line) {
 		String[] vals = StringUtils.split(line);// line.split("\\s+");

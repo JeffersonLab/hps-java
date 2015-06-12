@@ -176,7 +176,11 @@ public class BuildMillepedeCompact {
 		                            if(replaceConstant) {
 		                                newValue = correction;
 		                            } else {
-		                                newValue = oldValue + correction;
+		                                if (p.getType() == MilleParameter.Type.ROTATION.getType()) {
+		                                    newValue = oldValue - correction;
+		                                } else {
+		                                    newValue = oldValue + correction;
+		                                }
 		                            }
 		                            System.out.println("Update " + p.getId() + ": " + oldValue + " (corr. " + correction + ") ->  "  + newValue );
 		                            node.setAttribute("value", String.format("%.6f",newValue));
