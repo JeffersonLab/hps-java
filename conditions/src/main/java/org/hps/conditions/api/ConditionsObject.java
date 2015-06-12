@@ -32,4 +32,8 @@ public interface ConditionsObject extends DatabaseObject {
      * @param value
      */
     void setFieldValue(String name, Object value);
+            
+    // void setCollectionId(Integer id);
+    
+    // void setRowId(Integer id);
 }

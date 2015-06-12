@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunRange;
@@ -58,7 +59,11 @@ public final class SvtTimingConstantsLoader {
             timing.setFieldValue("offset_time", offsetTime);
 
             final SvtTimingConstantsCollection collection = new SvtTimingConstantsCollection();
-            collection.add(timing);
+            try {
+                collection.add(timing);
+            } catch (ConditionsObjectException e) {
+                throw new RuntimeException(e);
+            }
             collections.add(collection);
         }
         return collections;
@@ -113,8 +118,7 @@ public final class SvtTimingConstantsLoader {
         for (final SvtTimingConstantsCollection collection : collections) {
             int collectionId = 0;
             try {
-                collectionId = MANAGER.addCollection("svt_timing_constants", "SVT timing constants added by " + System.getProperty("user.name"),
-                        "timing constants from run spreadsheet");
+                collectionId = MANAGER.getCollectionId(collection, "timing constants from run spreadsheet");
                 collection.setCollectionId(collectionId);
                 collection.insert();
             } catch (final Exception e) {

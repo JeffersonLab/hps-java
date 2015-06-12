@@ -33,7 +33,7 @@ import org.lcsim.util.Driver;
  * end of the hps-distribution. If that class is not being used, then the method must be executed manually at the right
  * time to achieve the proper behavior.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public class ConditionsDriver extends Driver {
 

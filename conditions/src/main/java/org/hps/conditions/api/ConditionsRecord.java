@@ -26,18 +26,6 @@ public final class ConditionsRecord extends BaseConditionsObject {
     @SuppressWarnings("serial")
     public static class ConditionsRecordCollection extends BaseConditionsObjectCollection<ConditionsRecord> {
 
-        @Override
-        public boolean add(final ConditionsRecord object) throws ConditionsObjectException {
-            if (object == null) {
-                throw new IllegalArgumentException("The object argument is null.");
-            }
-            final boolean added = getObjects().add(object);
-            if (!added) {
-                throw new RuntimeException("Failed to add object.");
-            }
-            return added;
-        }
-
         /**
          * Compare conditions records by creation date.
          */
@@ -126,6 +114,35 @@ public final class ConditionsRecord extends BaseConditionsObject {
             }
         }
 
+        @Override
+        public boolean add(final ConditionsRecord object) throws ConditionsObjectException {
+            if (object == null) {
+                throw new IllegalArgumentException("The object argument is null.");
+            }
+            final boolean added = this.getObjects().add(object);
+            if (!added) {
+                throw new RuntimeException("Failed to add object.");
+            }
+            return added;
+        }
+
+        /**
+         * Find a sub-set of the records with matching key name.
+         */
+        public ConditionsRecordCollection findByKey(final String key) {
+            final ConditionsRecordCollection collection = new ConditionsRecordCollection();
+            for (final ConditionsRecord record : this) {
+                if (record.getName().equals(key)) {
+                    try {
+                        collection.add(record);
+                    } catch (final ConditionsObjectException e) {
+                        throw new RuntimeException("Error adding record to new collection.", e);
+                    }
+                }
+            }
+            return collection;
+        }
+
         /**
          * Get the unique conditions keys from the records in this collection.
          *
@@ -143,21 +160,21 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * Sort in place by creation date.
          */
         public final void sortByCreated() {
-            sort(new CreatedComparator());
+            this.sort(new CreatedComparator());
         }
 
         /**
          * Sort in place by key.
          */
         public final void sortByKey() {
-            sort(new KeyComparator());
+            this.sort(new KeyComparator());
         }
 
         /**
          * Sort in place by run start.
          */
         public final void sortByRunStart() {
-            sort(new RunStartComparator());
+            this.sort(new RunStartComparator());
         }
 
         /**
@@ -173,7 +190,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByCreated() {
-            return (ConditionsRecordCollection) sorted(new CreatedComparator());
+            return (ConditionsRecordCollection) this.sorted(new CreatedComparator());
         }
 
         /**
@@ -182,7 +199,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByKey() {
-            return (ConditionsRecordCollection) sorted(new KeyComparator());
+            return (ConditionsRecordCollection) this.sorted(new KeyComparator());
         }
 
         /**
@@ -191,7 +208,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByRunStart() {
-            return (ConditionsRecordCollection) sorted(new RunStartComparator());
+            return (ConditionsRecordCollection) this.sorted(new RunStartComparator());
         }
 
         /**
@@ -200,24 +217,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByUpdated() {
-            return (ConditionsRecordCollection) sorted(new UpdatedComparator());
-        }
-
-        /**
-         * Find a sub-set of the records with matching key name.
-         */
-        public ConditionsRecordCollection findByKey(String key) {
-            ConditionsRecordCollection collection = new ConditionsRecordCollection();
-            for (ConditionsRecord record : this) {
-                if (record.getName().equals(key)) {
-                    try {
-                        collection.add(record);
-                    } catch (ConditionsObjectException e) {
-                        throw new RuntimeException("Error adding record to new collection.", e);
-                    }
-                }
-            }
-            return collection;
+            return (ConditionsRecordCollection) this.sorted(new UpdatedComparator());
         }
     }
 
@@ -269,23 +269,13 @@ public final class ConditionsRecord extends BaseConditionsObject {
     }
 
     /**
-     * Get the collection ID, overriding this method from the parent class.
-     *
-     * @return the collection ID
-     */
-    @Field(names = {"collection_id"})
-    public Integer getCollectionId() {
-        return getFieldValue("collection_id");
-    }
-
-    /**
      * Get the date this record was created.
      *
      * @return the date this record was created
      */
     @Field(names = {"created"})
     public Date getCreated() {
-        return getFieldValue("created");
+        return this.getFieldValue("created");
     }
 
     /**
@@ -295,7 +285,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      */
     @Field(names = {"created_by"})
     public String getCreatedBy() {
-        return getFieldValue("created_by");
+        return this.getFieldValue("created_by");
     }
 
     /**
@@ -306,7 +296,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      */
     @Field(names = {"name"})
     public String getName() {
-        return getFieldValue("name");
+        return this.getFieldValue("name");
     }
 
     /**
@@ -316,7 +306,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      */
     @Field(names = {"notes"})
     public String getNotes() {
-        return getFieldValue("notes");
+        return this.getFieldValue("notes");
     }
 
     /**
@@ -326,7 +316,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      */
     @Field(names = {"run_end"})
     public Integer getRunEnd() {
-        return getFieldValue("run_end");
+        return this.getFieldValue("run_end");
     }
 
     /**
@@ -336,7 +326,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      */
     @Field(names = {"run_start"})
     public Integer getRunStart() {
-        return getFieldValue("run_start");
+        return this.getFieldValue("run_start");
     }
 
     /**
@@ -346,7 +336,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      */
     @Field(names = {"table_name"})
     public String getTableName() {
-        return getFieldValue("table_name");
+        return this.getFieldValue("table_name");
     }
 
     /**
@@ -356,7 +346,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      */
     @Field(names = {"tag"})
     public String getTag() {
-        return getFieldValue("tag");
+        return this.getFieldValue("tag");
     }
 
     /**
@@ -366,7 +356,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
      */
     @Field(names = {"updated"})
     public Date getUpdated() {
-        return getFieldValue("updated");
+        return this.getFieldValue("updated");
     }
 
     /**
@@ -377,17 +367,17 @@ public final class ConditionsRecord extends BaseConditionsObject {
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer();
-        sb.append("id: " + getRowId() + '\n');
-        sb.append("name: " + getName() + '\n');
-        sb.append("runStart: " + getRunStart() + '\n');
-        sb.append("runEnd: " + getRunEnd() + '\n');
-        sb.append("tableName: " + getTableName() + '\n');
-        sb.append("collectionId: " + getCollectionId() + '\n');
-        sb.append("updated: " + getUpdated() + '\n');
-        sb.append("created: " + getCreated() + '\n');
-        sb.append("tag: " + getTag() + '\n');
-        sb.append("createdBy: " + getCreatedBy() + '\n');
-        sb.append("notes: " + getNotes() + '\n');
+        sb.append("id: " + this.getRowId() + '\n');
+        sb.append("name: " + this.getName() + '\n');
+        sb.append("runStart: " + this.getRunStart() + '\n');
+        sb.append("runEnd: " + this.getRunEnd() + '\n');
+        sb.append("tableName: " + this.getTableName() + '\n');
+        sb.append("collectionId: " + this.getCollectionId() + '\n');
+        sb.append("updated: " + this.getUpdated() + '\n');
+        sb.append("created: " + this.getCreated() + '\n');
+        sb.append("tag: " + this.getTag() + '\n');
+        sb.append("createdBy: " + this.getCreatedBy() + '\n');
+        sb.append("notes: " + this.getNotes() + '\n');
         return sb.toString();
     }
 }

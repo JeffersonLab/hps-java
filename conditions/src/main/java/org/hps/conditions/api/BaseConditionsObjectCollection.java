@@ -148,7 +148,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
                         + " table.", this);
             }
         }
-
+        
         // Set collection ID on objects.
         try {
             setConditionsObjectCollectionIds();
@@ -184,7 +184,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
                 ((BaseConditionsObject) object).setRowId(resultSet.getInt(1));
                 resultSet.close();
             }
-            // This will commit the insert statements for the collections info table and the records.
+            // Commit the object insert statements together.
             this.connection.commit();
 
         } catch (final SQLException e1) {
@@ -302,13 +302,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     private final void setConditionsObjectCollectionIds() throws ConditionsObjectException {
         if (this.collectionId != BaseConditionsObject.UNSET_COLLECTION_ID) {
             for (final ConditionsObject object : this) {
-                if (object.getCollectionId() != this.getCollectionId()) {
-                    throw new ConditionsObjectException("The collection ID on the object does not match.");
-                }
-                if (!object.hasValidCollection()) {
-                    // FIXME: Uses concrete type instead of interface.
-                    ((BaseConditionsObject) object).setCollectionId(this.collectionId);
-                }
+                ((BaseConditionsObject) object).setCollectionId(this.collectionId);
             }
         }
     }
@@ -408,24 +402,27 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
 
     @Override
     public boolean isNew() {
-        if (this.collectionId == BaseConditionsObject.UNSET_COLLECTION_ID) {
+        if (this.collectionId == BaseConditionsObject.UNSET_COLLECTION_ID) {           
             return true;
         }
         try {
-            return checkExists();
+            // Valid collection ID exists but need to check if inserted into database yet.
+            return checkExists() == false;
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private boolean checkExists() throws SQLException {
-        Statement statement = null;
+    // FIXME: Use PreparedStatement instead of Statement.
+    private boolean checkExists() throws SQLException {                     
+        PreparedStatement statement = null;
         ResultSet resultSet = null;
         boolean exists = false;
         try {
-            statement = this.connection.createStatement();
-            resultSet = statement.executeQuery("SELECT id FROM " + this.tableMetaData.getTableName()
-                    + " where collection_id=" + this.collectionId);
+            statement = this.connection.prepareStatement("SELECT id FROM " + this.tableMetaData.getTableName()
+                    + " where collection_id = ?");
+            statement.setInt(1, this.collectionId);
+            resultSet = statement.executeQuery();
             exists = resultSet.next();
         } finally {
             if (statement != null) {

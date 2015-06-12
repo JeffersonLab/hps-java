@@ -1,6 +1,7 @@
 package org.hps.conditions.api;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -37,24 +38,31 @@ public class BaseConditionsObject implements ConditionsObject {
      */
     static final int UNSET_ROW_ID = -1;
 
+    /**
+     * Perform the default to string operation on a conditions object.
+     * 
+     * @param object the conditions object
+     * @return the object converted to a string
+     */
     protected static String defaultToString(final BaseConditionsObject object) {
         final StringBuffer sb = new StringBuffer();
+        sb.append(object.getClass().getSimpleName() + " { ");
         sb.append("id: " + object.getRowId() + ", ");
         for (final String field : object.getFieldValues().getFieldNames()) {
             sb.append(field + ": " + object.getFieldValue(Object.class, field) + ", ");
         }
         sb.setLength(sb.length() - 2);
-        sb.append('\n');
+        sb.append(" }");
         return sb.toString();
     }
 
     /**
-     * The JDBC database connection.
+     * The JDBC connection used for database operations.
      */
     private Connection connection;
 
     /**
-     * The field values.
+     * The field values which is a map of key-value pairs corresponding to column values in the database.
      */
     private FieldValues fieldValues;
 
@@ -64,7 +72,7 @@ public class BaseConditionsObject implements ConditionsObject {
     private int rowId = UNSET_ROW_ID;
 
     /**
-     * Flag to indicate object is locally changed and database update has not been executed.
+     * Flag to indicate that the object is locally changed and a database update has not been executed.
      */
     private boolean isDirty;
 
@@ -74,20 +82,20 @@ public class BaseConditionsObject implements ConditionsObject {
     private TableMetaData tableMetaData;
 
     /**
-     *
+     * No argument class constructor; usable by sub-classes only.
      */
     protected BaseConditionsObject() {
         this.fieldValues = new FieldValuesMap();
     }
 
     /**
-     * Class constructor.
+     * Public class constructor.
      * <p>
      * This should be used when creating new objects without a list of field values. A new <code>FieldValues</code>
      * object will be automatically created from the table information.
      *
-     * @param connection
-     * @param tableMetaData
+     * @param connection the database connection
+     * @param tableMetaData the table meta data
      */
     public BaseConditionsObject(final Connection connection, final TableMetaData tableMetaData) {
         this.connection = connection;
@@ -96,13 +104,13 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
-     * Class constructor.
+     * Full qualified class constructor.
      * <p>
      * This should be used when creating new objects from a list of field values.
      *
-     * @param connection
-     * @param tableMetaData
-     * @param fields
+     * @param connection the database connection
+     * @param tableMetaData the table meta data
+     * @param fields the field values
      */
     public BaseConditionsObject(final Connection connection, final TableMetaData tableMetaData, final FieldValues fields) {
         this.connection = connection;
@@ -114,18 +122,24 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
-     *
+     * Delete the object from the database using its row ID.
+     * 
+     * @throws DatabaseObjectException if object is not in the database
+     * @throws SQLException if there is an error performing the delete operation
      */
     @Override
     public final void delete() throws DatabaseObjectException, SQLException {
-        if (isNew()) {
-            throw new DatabaseObjectException("Object is not in database and so cannot be deleted.", this);
+        if (isNew()) {            
+            throw new DatabaseObjectException("Object is not in the database.", this);
         }
-        final String sql = "DELETE FROM " + this.tableMetaData.getTableName() + " WHERE id=" + this.getRowId();
-        Statement statement = null;
+        if (connection.getAutoCommit() == false) {
+            connection.setAutoCommit(true);
+        }
+        PreparedStatement statement = null;
         try {
-            statement = this.connection.createStatement();
-            statement.executeUpdate(sql);
+            statement = this.connection.prepareStatement("DELETE FROM " + this.tableMetaData.getTableName() + " WHERE id = ?");
+            statement.setInt(1, + this.getRowId());
+            statement.executeUpdate();
             this.rowId = UNSET_ROW_ID;
         } finally {
             if (statement != null) {
@@ -135,7 +149,9 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
-     *
+     * Get the collection ID of the object.
+     * 
+     * @return the collection ID of the object
      */
     @Override
     @Field(names = {"collection_id"})
@@ -148,7 +164,9 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
-     *
+     * Get the field values.
+     * 
+     * @return the field values
      */
     @Override
     public FieldValues getFieldValues() {
@@ -156,7 +174,9 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
-     *
+     * Get the row ID.
+     * 
+     * @return the row ID
      */
     @Override
     public final int getRowId() {
@@ -164,7 +184,9 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
-     *
+     * Get the table meta data for the object.
+     * 
+     * @return the table meta data or <code>null</code> if not set
      */
     @Override
     public final TableMetaData getTableMetaData() {
@@ -172,17 +194,21 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
-     *
+     * Get a field value by name.
+     * 
+     * @param type the return type
+     * @param name the name of the field
      */
     @Override
     public final <T> T getFieldValue(final Class<T> type, final String name) {
         return type.cast(this.fieldValues.getValue(type, name));
     }
-
+   
     /**
      *
      */
     @Override
+    // FIXME: Rewrite to use a PreparedStatement.
     public final void insert() throws DatabaseObjectException, SQLException {
         if (!this.isNew()) {
             throw new DatabaseObjectException("Cannot insert existing record with row ID: " + this.getRowId(), this);
@@ -291,12 +317,12 @@ public class BaseConditionsObject implements ConditionsObject {
      *
      */
     void setCollectionId(final int collectionId) throws ConditionsObjectException {
-        if (this.getCollectionId() != UNSET_COLLECTION_ID) {
-            throw new ConditionsObjectException("The collection ID is already set on this object.");
-        }
-        if (collectionId <= UNSET_COLLECTION_ID) {
-            throw new ConditionsObjectException("Invalid collection ID value: " + collectionId);
-        }
+        //if (this.getCollectionId() != UNSET_COLLECTION_ID) {
+        //    throw new ConditionsObjectException("The collection ID is already set on this object.");
+        //}
+        //if (collectionId <= UNSET_COLLECTION_ID) {
+        //    throw new ConditionsObjectException("Invalid collection ID value: " + collectionId);
+        //}
         this.setFieldValue(COLLECTION_ID_FIELD, collectionId);
     }
 
