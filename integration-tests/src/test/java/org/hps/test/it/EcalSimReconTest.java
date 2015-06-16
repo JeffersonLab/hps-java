@@ -33,7 +33,7 @@ public class EcalSimReconTest extends TestCase {
     /**
      * Steering resource file for readout simulation.
      */    
-    private static final String READOUT_STEERING = "/org/hps/steering/readout/EngineeringRun2015TrigPairs1.lcsim";
+    private static final String READOUT_STEERING = "/org/hps/steering/readout/EngineeringRun2015TrigSingles1.lcsim";
     
     /**
      * Steering resource file for running reconstruction.
