@@ -7,6 +7,7 @@ import hep.physics.vec.Hep3Vector;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.jdom.Element;
 
 /**
  * Class containing the final translation and rotation correction from alignment.
@@ -15,6 +16,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
  *
  */
 public class AlignmentCorrection {
+    private Element node = null;
     private Rotation rotation = null;
     private Hep3Vector translation = null;
     private List<MilleParameter> milleParameters = null;
@@ -53,6 +55,11 @@ public class AlignmentCorrection {
     public List<MilleParameter> getMilleParameters(){
         return milleParameters;
     }
-     
+    public void setNode(Element node) {
+        this.node = node;
+    }
+    public Element getNode() {
+        return node;
+    }
 
 }

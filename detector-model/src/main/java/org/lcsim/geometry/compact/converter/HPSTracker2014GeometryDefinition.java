@@ -123,12 +123,18 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             for(SurveyVolume bg : surveyVolumes) {
                 System.out.printf("-------\n%s\n", bg.toString());
             }
+        }
+        //if(isDebug()) {
             System.out.printf("%s: List of the module bundles built\n", this.getClass().getSimpleName());
             for(BaseModuleBundle bundle : this.modules) {
                 bundle.print();
             }
             
-        }
+        //}
+        
+        
+        
+        
 
     }
 
@@ -1957,7 +1963,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         // created through it's references we don't need more than one reference to reach the mother coordinate system
         final SurveyVolume mother = getSurveyVolume(SvtBox.class);
         final SurveyVolume ref;
-        AlignmentCorrection alignmentCorrection = null;
+        AlignmentCorrection alignmentCorrection = new AlignmentCorrection();
+        alignmentCorrection.setNode(node);
         if(half == "bottom") {
             if(layer < 4) {
                 ref = getSurveyVolume(UChannelL13Bottom.class);

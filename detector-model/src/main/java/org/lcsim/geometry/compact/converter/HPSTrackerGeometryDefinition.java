@@ -106,7 +106,7 @@ abstract public class HPSTrackerGeometryDefinition extends HPSTrackerBuilder {
     
         // find alignment correction to this volume
         AlignmentCorrection alignmentCorrection =  getHalfModuleAlignmentCorrection(isTopLayer, millepedeLayer);
-        
+        alignmentCorrection.setNode(this.node);
         
         // find the module bundle that it will be added to
         //TestRunModuleBundle bundle  = (TestRunModuleBundle)getModuleBundle(mother);

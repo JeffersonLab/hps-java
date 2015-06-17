@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.jdom.DataConversionException;
@@ -323,6 +325,17 @@ public abstract class HPSTrackerBuilder {
             return true;
         }
         return false;
+    }
+    
+    public static boolean isModule(String name) {
+        Pattern pattern = Pattern.compile("module_L[1-6][bt]$");
+        Matcher matcher = pattern.matcher(name);
+        boolean found = false;
+        while(matcher.find()) {
+            System.out.printf("isModule: found %s\n", matcher.group());
+            found = true;
+        }
+        return found?true:false;
     }
 
     public static boolean isSensor(String name) {
