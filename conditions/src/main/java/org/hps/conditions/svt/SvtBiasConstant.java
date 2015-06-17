@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.conditions.svt;
 
 import java.util.Date;
@@ -17,10 +14,9 @@ import org.hps.conditions.database.Table;
  * Encapsulates an SVT bias constant, which is range in time where bias was ON.
  * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
-@Table(names  = "svt_bias")
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
+@Table(names  = "svt_bias_constants")
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class SvtBiasConstant extends BaseConditionsObject {
 
     /**
@@ -28,7 +24,6 @@ public final class SvtBiasConstant extends BaseConditionsObject {
      */
     @SuppressWarnings("serial")
     public static class SvtBiasConstantCollection extends BaseConditionsObjectCollection<SvtBiasConstant> {
-        
         
         /**
          * Find bias constant by date.
@@ -50,6 +45,7 @@ public final class SvtBiasConstant extends BaseConditionsObject {
     
     /**
      * The start date. 
+     * 
      * @return the start date
      */
     @Field(names = {"start"})
@@ -59,6 +55,7 @@ public final class SvtBiasConstant extends BaseConditionsObject {
 
     /**
      * The end date. 
+     * 
      * @return the end date
      */
     @Field(names = {"end"})
@@ -67,13 +64,12 @@ public final class SvtBiasConstant extends BaseConditionsObject {
     }
 
     /**
-     * The bias value
-     * . 
+     * The bias value.
+     *  
      * @return the bias value
      */
     @Field(names = {"value"})
-    public double getValue() {
+    public Double getValue() {
         return getFieldValue("value");
     }
-    
 }
