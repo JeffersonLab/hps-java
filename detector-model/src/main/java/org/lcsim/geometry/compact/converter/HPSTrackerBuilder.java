@@ -332,7 +332,7 @@ public abstract class HPSTrackerBuilder {
         Matcher matcher = pattern.matcher(name);
         boolean found = false;
         while(matcher.find()) {
-            System.out.printf("isModule: found %s\n", matcher.group());
+            //System.out.printf("isModule: found %s\n", matcher.group());
             found = true;
         }
         return found?true:false;

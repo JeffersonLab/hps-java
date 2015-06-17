@@ -1,6 +1,5 @@
 package org.lcsim.geometry.compact.converter;
 
-import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -11,8 +10,6 @@ import java.util.List;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.jdom.Element;
-import org.lcsim.detector.Rotation3D;
-import org.lcsim.detector.Transform3D;
 import org.lcsim.detector.Translation3D;
 import org.lcsim.geometry.util.TransformationUtils;
 
@@ -22,7 +19,7 @@ import org.lcsim.geometry.util.TransformationUtils;
  * 
  */
 public abstract class SurveyVolume {
-	protected boolean debug = true;
+	protected boolean debug = false;
 	private String name;
 	private String material = "Vacuum";
 	private SurveyVolume mother = null;
@@ -97,16 +94,14 @@ public abstract class SurveyVolume {
             SurveyResult surveyResult = SurveyResult.findResultFromDetector(node, getName());
             
             if(surveyResult!=null) {
-                //if(debug) 
-                System.out.printf("%s: found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                if(debug) System.out.printf("%s: found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
                 
                 // Adjust coordinate system to match the one used in the geometry.
                 // This depends on the particular volume we are in.
                 
                 if(HPSTrackerBuilder.isModule(name)) {
 
-                    //if(debug) 
-                    System.out.printf("%s: treating it as a module\n", this.getClass().getSimpleName());
+                    if(debug) System.out.printf("%s: treating it as a module\n", this.getClass().getSimpleName());
 
                     Rotation rotation1 = new Rotation(new Vector3D(1, 0, 0), Math.PI/2.0);
                     Rotation rotation2 = new Rotation(new Vector3D(0, 0, 1), Math.PI);
@@ -114,7 +109,7 @@ public abstract class SurveyVolume {
                     surveyResult.rotateOrigin(rotation);
                     surveyResult.rotateUnitVectors(rotation);
 
-                    System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                    if(debug) System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
                     
                     Hep3Vector x = new BasicHep3Vector( VecOp.mult(-1, surveyResult.getY()).v());
                     Hep3Vector y = new BasicHep3Vector( surveyResult.getX().v() );
@@ -126,7 +121,7 @@ public abstract class SurveyVolume {
 //                    Rotation rotation5 = rotation4.applyTo(rotation3);
 //                    surveyResult.rotateUnitVectors(rotation5);
 //                    
-                    System.out.printf("%s: UPDATE2 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                    if(debug) System.out.printf("%s: UPDATE2 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
 
                    
 
@@ -146,7 +141,7 @@ public abstract class SurveyVolume {
                     surveyResult.setX(x);
                     surveyResult.setY(y);
 
-                    System.out.printf("%s: updated found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                    if(debug) System.out.printf("%s: updated found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
                 } else {
                     
                     throw new RuntimeException("I don't think there is a surveyresult defined for this type from " + name);
@@ -178,19 +173,19 @@ public abstract class SurveyVolume {
                 }
 
 
-                System.out.printf("%s: apply to \n%s \n", this.getClass().getSimpleName(), this.getCoord().toString());
+                if(debug) System.out.printf("%s: apply to \n%s \n", this.getClass().getSimpleName(), this.getCoord().toString());
 
                 // get translation and apply it
                 Translation3D transToSurvey = surveyResult.getTranslationFrom(getCoord());
                 getCoord().translate(transToSurvey);
 
-                System.out.printf("%s: after translation to survey \n%s \n", this.getClass().getSimpleName(), this.getCoord().toString());
+                if(debug) System.out.printf("%s: after translation to survey \n%s \n", this.getClass().getSimpleName(), this.getCoord().toString());
 
                 // get rotation and apply it
                 Rotation rotToSurvey = surveyResult.getRotationFrom(getCoord());
                 getCoord().rotateApache(rotToSurvey);
 
-                System.out.printf("%s: after rotation to survey \n%s \n", this.getClass().getSimpleName(), this.getCoord().toString());
+                if(debug) System.out.printf("%s: after rotation to survey \n%s \n", this.getClass().getSimpleName(), this.getCoord().toString());
 
                 
                 
@@ -198,7 +193,7 @@ public abstract class SurveyVolume {
                 
 
             } else {
-                System.out.printf("%s: no survey results for %s in node %s \n", this.getClass().getSimpleName(), getName(), node.getName());
+                if(debug) System.out.printf("%s: no survey results for %s in node %s \n", this.getClass().getSimpleName(), getName(), node.getName());
             }
         }
         

@@ -124,13 +124,13 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
                 System.out.printf("-------\n%s\n", bg.toString());
             }
         }
-        //if(isDebug()) {
+        if(isDebug()) {
             System.out.printf("%s: List of the module bundles built\n", this.getClass().getSimpleName());
             for(BaseModuleBundle bundle : this.modules) {
                 bundle.print();
             }
             
-        //}
+        }
         
         
         

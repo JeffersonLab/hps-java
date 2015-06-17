@@ -32,7 +32,7 @@ import org.lcsim.geometry.util.TransformationUtils;
  */
 public abstract class HPSTracker2014Base extends LCDDSubdetector {
 
-    protected boolean _debug = true;
+    protected boolean _debug = false;
     protected static HPSTrackerLCDDBuilder builder;
     private final boolean buildBeamPlane = false;
     private final double beamPlaneWidth = 385.00;
