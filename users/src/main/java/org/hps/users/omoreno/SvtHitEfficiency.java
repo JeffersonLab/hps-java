@@ -11,7 +11,6 @@ import hep.aida.IPlotterFactory;
 import hep.aida.IPlotter;
 import hep.aida.IHistogram1D;
 import hep.aida.ITree;
-
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -27,12 +26,12 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
-
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 
@@ -56,11 +55,12 @@ public class SvtHitEfficiency extends Driver {
     IHistogramFactory histogramFactory; 
     IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
     protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>(); 
-
     private Map<String, IHistogram1D> trackMomentumPlots = new HashMap<String, IHistogram1D>(); 
+    private Map<String, IHistogram1D> trackPlots = new HashMap<String, IHistogram1D>();
 
     //private Map<SiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<SiSensor, Map<Integer, Hep3Vector>>(); 
     private List<HpsSiSensor> sensors = null;
+    private Map<Track, ReconstructedParticle> reconParticleMap = new HashMap<Track, ReconstructedParticle>();
     private Map<Integer, SvtStereoLayer> topStereoLayers = new HashMap<Integer, SvtStereoLayer>();
     private Map<Integer, SvtStereoLayer> bottomStereoLayers = new HashMap<Integer, SvtStereoLayer>();
 
@@ -90,6 +90,7 @@ public class SvtHitEfficiency extends Driver {
     
     // Collections
     private String trackCollectionName = "MatchedTracks";
+    private String fsParticlesCollectionName = "FinalStateParticles";
     private String stereoHitCollectionName = "HelicalTrackHits";
     private String ecalClustersCollectionName = "EcalClusters";
    
@@ -164,19 +165,25 @@ public class SvtHitEfficiency extends Driver {
         ICloud2D cloud2D = null;
         */
 
-        if (enableMomentumPlots) { 
-            
-           plotters.put("Track Momentum", plotterFactory.create("Track Momentum"));
-           plotters.get("Track Momentum").createRegions(1, 2);
+        plotters.put("Event Information", plotterFactory.create("Event information"));
+        plotters.get("Event Information").createRegions(2, 3);
 
-           trackMomentumPlots.put("Track Momentum", histogramFactory.createHistogram1D("Track Momentum", 50, 0, 5));
-           plotters.get("Track Momentum").region(0).plot(trackMomentumPlots.get("Track Momentum"));
+        trackPlots.put("Number of tracks", histogramFactory.createHistogram1D("Number of tracks", 10, 0, 10));
+        plotters.get("Event Information").region(0).plot(trackPlots.get("Number of tracks"));
+
+        trackPlots.put("Unused Layer", histogramFactory.createHistogram1D("Unused Layer", 6, 1, 7));
+        plotters.get("Event Information").region(1).plot(trackPlots.get("Unused Layer"));
+
+        plotters.put("Track Momentum", plotterFactory.create("Track Momentum"));
+        plotters.get("Track Momentum").createRegions(1, 2);
+
+        trackMomentumPlots.put("Track Momentum", histogramFactory.createHistogram1D("Track Momentum", 50, 0, 1.5));
+        plotters.get("Track Momentum").region(0).plot(trackMomentumPlots.get("Track Momentum"));
            
-           trackMomentumPlots.put("Track Momentum - Tracks Within Acceptance",
-                   histogramFactory.createHistogram1D("Track Momentum - Tracks Within Acceptance", 50, 0, 5));
-           plotters.get("Track Momentum").region(0)
-                                         .plot(trackMomentumPlots.get("Track Momentum - Tracks Within Acceptance"));
-        }
+        trackMomentumPlots.put("Track Momentum - Tracks Within Acceptance",
+                histogramFactory.createHistogram1D("Track Momentum - Tracks Within Acceptance", 50, 0, 1.5));
+        plotters.get("Track Momentum").region(0)
+                                      .plot(trackMomentumPlots.get("Track Momentum - Tracks Within Acceptance"));
 
         // Create a Map from sensor to bad channels and from bad channels to
         // strip position
@@ -274,17 +281,6 @@ public class SvtHitEfficiency extends Driver {
         return stripPositions.get(sensor).get(physicalChannel);
     }*/
 
-    /**
-     * Print a debug message if they are enabled.
-     * 
-     * @param debugMessage : message to be printed
-     */ 
-    private void printDebug(String debugMessage){
-        if(debug){
-            System.out.println(this.getClass().getSimpleName() + ": " + debugMessage);
-        }
-    }
-    
     public void process(EventHeader event){
         
         // If the event does not have tracks, skip it
@@ -293,7 +289,16 @@ public class SvtHitEfficiency extends Driver {
         // Get the list of tracks from the event
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         
-        if(tracks.size() >= 2 ) return;
+        // For now, only look at events with a single track
+        if(tracks.size() != 1 ) return;
+       
+        // Get the list of final state particles from the event.  These will
+        // be used to obtain the track momentum.
+        List<ReconstructedParticle> fsParticles = event.get(ReconstructedParticle.class, fsParticlesCollectionName);
+      
+        this.mapReconstructedParticlesToTracks(tracks, fsParticles);
+        
+        trackPlots.get("Number of tracks").fill(tracks.size());
         
         // Get the list of Ecal clusters from the event
         //List<Cluster> ecalClusters = event.get(Cluster.class, ecalClustersCollectionName);
@@ -308,23 +313,21 @@ public class SvtHitEfficiency extends Driver {
             }
            
             // Calculate the momentum of the track
-            double momentum = (new BasicHep3Vector(track.getTrackStates().get(0).getMomentum())).magnitude();
+            double p = this.getReconstructedParticle(track).getMomentum().magnitude();
 
-            if (enableMomentumPlots) {
-                trackMomentumPlots.get("Track Momentum").fill(momentum); 
-            }
-
+            trackMomentumPlots.get("Track Momentum").fill(p); 
+            
             // Find which of the layers isn't being used in the track fit
             int unusedLayer = this.getUnusedSvtLayer(track.getTrackerHits());
+            
+            trackPlots.get("Unused Layer").fill(unusedLayer);
 
             // Extrapolate the track to the unused layer and check that it lies
             // within the acceptance of that layer.  If it doesn't, move on
             // to the next event
-            if(!isWithinAcceptance(track, unusedLayer)) continue;
+            //if(!isWithinAcceptance(track, unusedLayer)) continue;
 
-            if (enableMomentumPlots) { 
-                trackMomentumPlots.get("Track Momentum - Tracks Within Acceptance").fill(momentum); 
-            }
+            trackMomentumPlots.get("Track Momentum - Tracks Within Acceptance").fill(p); 
             //ecalClusterTrackMatch = false;
             
             // Check if there is an Ecal cluster in the same detector volume as the track
@@ -417,13 +420,35 @@ public class SvtHitEfficiency extends Driver {
         
         int[] svtLayer = new int[6];
         for (TrackerHit hit : hits) {
-            HelicalTrackHit stereoHit = (HelicalTrackHit) hit;
-            int  layer = (stereoHit.Layer() - 1)/2;
-            svtLayer[layer]++;
+           
+            int layer = -1;
+            switch ((int) Math.floor(hit.getPosition()[0])/100) {
+                case 1: 
+                    layer = 1;
+                    break;
+                case 2: 
+                    layer = 2;
+                    break;
+                case 3: 
+                    layer = 3;
+                    break;
+                case 5: 
+                    layer = 4;
+                    break;
+                case 7: 
+                    layer = 5;
+                    break;
+                case 9: 
+                    layer = 6;
+                    break;
+                default:
+                    throw new RuntimeException("Layer not found");
+            }
+            svtLayer[layer - 1]++; 
         }
         
         for(int layer = 0; layer < svtLayer.length; layer++){
-            if(svtLayer[layer] == 0) return (2*layer + 1);
+            if(svtLayer[layer] == 0) return layer;
         }
         
         return -1;
@@ -477,13 +502,13 @@ public class SvtHitEfficiency extends Driver {
         //--------------------------------------------------------------------------//
     
         //Rotate the track position to the JLab coordinate system
-        this.printDebug("Track position in tracking frame: " + trackPosition.toString());
+        //this.printDebug("Track position in tracking frame: " + trackPosition.toString());
         Hep3Vector trackPositionDet = VecOp.mult(VecOp.inverse(this.trackerHitUtils.detToTrackRotationMatrix()), trackPosition);
-        this.printDebug("Track position in JLab frame " + trackPositionDet.toString());
+        //this.printDebug("Track position in JLab frame " + trackPositionDet.toString());
         // Rotate the track to the sensor coordinates
         ITransform3D globalToLocal = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getGlobalToLocal();
         globalToLocal.transform(trackPositionDet);
-        this.printDebug("Track position in sensor electrodes frame " + trackPositionDet.toString());
+        //this.printDebug("Track position in sensor electrodes frame " + trackPositionDet.toString());
 
         // Find the closest channel to the track position
         double deltaY = Double.MAX_VALUE;
@@ -516,7 +541,7 @@ public class SvtHitEfficiency extends Driver {
             if(sensor.isBadChannel(intersectingChannel) 
                     || sensor.isBadChannel(intersectingChannel+1) 
                     || sensor.isBadChannel(intersectingChannel-1)){
-                this.printDebug("Track intersects a bad channel!");
+                //this.printDebug("Track intersects a bad channel!");
                 return false;
             }
         }
@@ -619,4 +644,21 @@ public class SvtHitEfficiency extends Driver {
         }*/
         System.out.println("% \n%===================================================================%");
     }
+
+    private void mapReconstructedParticlesToTracks(List<Track> tracks, List<ReconstructedParticle> particles) {
+        
+       reconParticleMap.clear();
+       for (ReconstructedParticle particle : particles) {
+           for (Track track : tracks) {
+               if (!particle.getTracks().isEmpty() && particle.getTracks().get(0) == track) {
+                   reconParticleMap.put(track, particle);
+               }
+           }
+       }
+    }
+    
+    private ReconstructedParticle getReconstructedParticle(Track track) {
+        return reconParticleMap.get(track);
+    }
+
 }
