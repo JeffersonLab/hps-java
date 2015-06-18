@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,6 +34,7 @@ public class SvtBiasMyaDumpReader {
     }
     
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final TimeZone timeZone = TimeZone.getTimeZone("EST");
     private static final double BIASVALUEON = 178.0;
     private List<SvtBiasMyaEntry> myaEntries = new ArrayList<SvtBiasMyaEntry>();
     private SvtBiasMyaRanges biasRanges = new SvtBiasMyaRanges();
@@ -105,6 +107,7 @@ public class SvtBiasMyaDumpReader {
                     if(arr.length<3) {
                         throw new ParseException("this line is not correct.",0);
                     }
+                    DATE_FORMAT.setTimeZone(timeZone);
                     Date date = DATE_FORMAT.parse(arr[0] + " " + arr[1]);
                     double value = Double.parseDouble(arr[2]);
                     SvtBiasMyaEntry entry = new SvtBiasMyaEntry(file.getName(), date, value);
@@ -173,7 +176,7 @@ public class SvtBiasMyaDumpReader {
             return this.date;
         }
         public String toString() {
-            return name + " " + date.toString() + " value " + value;
+            return name + " " + date.toString() + " (epoch " + Long.toString(date.getTime()) + ")" + " value " + value;
         }
     }
 
@@ -200,6 +203,14 @@ public class SvtBiasMyaDumpReader {
             }
             return sb.toString();
         }
+        
+        public boolean includes(Date date) {
+            for(SvtBiasMyaRange r : this) {
+                if(r.includes(date)) return true;
+            }
+            return false;
+        }
+        
     }
     
     public static class SvtBiasMyaRange {
@@ -237,6 +248,13 @@ public class SvtBiasMyaDumpReader {
         }
         public String toString() {
             return "START: " + start.toString() + "   END: " + end.toString();
+        }
+        public boolean includes(Date date) {
+            if( date.before(getStartDate()) || date.after(getEndDate()) ) {
+                return false;
+            } else {
+                return true;
+            }
         }
     }
     

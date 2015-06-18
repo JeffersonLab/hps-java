@@ -106,7 +106,7 @@ public class SvtBiasConditionsLoader {
      */
     private static boolean isValid(RunData data) {
         if(data.getStartDate() == null || data.getEndDate() == null || data.getStartDate().before(new Date(99,1,1))) {
-            logger.warning("This run data is not valid: " + data.toString());
+            logger.fine("This run data is not valid: " + data.toString());
             return false;
         } 
         if (data.getStartDate().after(data.getEndDate())) {
@@ -118,62 +118,30 @@ public class SvtBiasConditionsLoader {
     //private static Options options = null;
     
     
-    /**
-     * Load SVT HV bias constants into the conditions database.
-     * 
-     * @param args the command line arguments (requires a CVS run log file and a MYA dump file.)
-     */
-    public static void main(String[] args) {
-
-        Options options = new Options();
-        options.addOption(new Option("c", true, "CVS run file"));
-        options.addOption(new Option("m", true, "MYA dump file"));
-        options.addOption(new Option("g", false, "Actually load stuff into DB"));
-        options.addOption(new Option("s", false, "Show plots"));
-        
-        final CommandLineParser parser = new PosixParser();
-        CommandLine cl = null;
-        try {
-            cl = parser.parse(options, args);
-        } catch (ParseException e) {
-            throw new RuntimeException("Cannot parse.", e);
-        }
-        
- 
-        // Setup plots
-        setupPlots(cl.hasOption("s")?true:false);
-
-        
+    public static RunMap getRunMapFromSpreadSheet(String path) {
         // Load in CSV records from the exported run spreadsheet.
-        final String path = cl.getOptionValue("c");
         logger.info(path);
         final RunSpreadsheet runSheet = new RunSpreadsheet(new File(path));
 
         // Find the run ranges that have the same fields values.
         final List<RunRange> ranges = RunRange.findRunRanges(runSheet, FIELDS);
         logger.info("Found " + ranges.size() + " ranges.");
-        for(RunRange range : ranges) logger.info(range.toString());
+        for(RunRange range : ranges) logger.fine(range.toString());
         // find the run records (has converted dates and stuff) for these ranges
         RunMap runmap  = runSheet.getRunMap(ranges);
         logger.info("Found " + runmap.size() + " runs in the run map.");
-        
-        
-        
-        // Load MYA dump
-        SvtBiasMyaDumpReader biasMyaReader = new SvtBiasMyaDumpReader(cl.getOptionValue("m"));
-        logger.info("Got " + biasMyaReader.getRanges().size() + " bias ranges");
-        
-        
-        // Combine them to run ranges when bias was on        
-        // each run may have multiple bias ranges
-        
+        return runmap;
+    }
+    
+    public static List<SvtBiasRunRange> getBiasRunRanges(RunMap runmap,
+            SvtBiasMyaDumpReader biasMyaReader) {
         List<SvtBiasRunRange> biasRunRanges = new ArrayList<SvtBiasRunRange>();
         // loop over runs from CSV        
         RunData prev = null;
         for(Entry<Integer,RunData> entry : runmap.entrySet()) {
             int run = entry.getKey();
             RunData data = entry.getValue();
-            logger.info("Processing " + run + " " + data.toString());
+            logger.fine("Processing " + run + " " + data.toString());
             
             //check that data is ok
             if (isValid(data)) {
@@ -197,6 +165,96 @@ public class SvtBiasConditionsLoader {
 
             }
         }
+        return biasRunRanges;
+    }
+    
+    
+    /**
+     * Load SVT HV bias constants into the conditions database.
+     * 
+     * @param args the command line arguments (requires a CVS run log file and a MYA dump file.)
+     */
+    public static void main(String[] args) {
+
+        Options options = new Options();
+        options.addOption(new Option("c", true, "CVS run file"));
+        options.addOption(new Option("m", true, "MYA dump file"));
+        options.addOption(new Option("g", false, "Actually load stuff into DB"));
+        options.addOption(new Option("s", false, "Show plots"));
+        
+        final CommandLineParser parser = new PosixParser();
+        CommandLine cl = null;
+        try {
+            cl = parser.parse(options, args);
+        } catch (ParseException e) {
+            throw new RuntimeException("Cannot parse.", e);
+        }
+        
+       
+        
+ 
+        // Setup plots
+        setupPlots(cl.hasOption("s")?true:false);
+
+        
+        // Load in CSV records from the exported run spreadsheet.
+        final String path = cl.getOptionValue("c");
+        logger.info(path);
+        
+        RunMap runmap = getRunMapFromSpreadSheet(path);
+        
+//        final RunSpreadsheet runSheet = new RunSpreadsheet(new File(path));
+//
+//        // Find the run ranges that have the same fields values.
+//        final List<RunRange> ranges = RunRange.findRunRanges(runSheet, FIELDS);
+//        logger.info("Found " + ranges.size() + " ranges.");
+//        for(RunRange range : ranges) logger.info(range.toString());
+//        // find the run records (has converted dates and stuff) for these ranges
+//        RunMap runmap  = runSheet.getRunMap(ranges);
+//        logger.info("Found " + runmap.size() + " runs in the run map.");
+        
+        
+        
+        // Load MYA dump
+        SvtBiasMyaDumpReader biasMyaReader = new SvtBiasMyaDumpReader(cl.getOptionValue("m"));
+        logger.info("Got " + biasMyaReader.getRanges().size() + " bias ranges");
+        
+        
+        // Combine them to run ranges when bias was on        
+        // each run may have multiple bias ranges
+        
+        List<SvtBiasRunRange> biasRunRanges = getBiasRunRanges(runmap,biasMyaReader);
+        
+//        List<SvtBiasRunRange> biasRunRanges = new ArrayList<SvtBiasRunRange>();
+//        // loop over runs from CSV        
+//        RunData prev = null;
+//        for(Entry<Integer,RunData> entry : runmap.entrySet()) {
+//            int run = entry.getKey();
+//            RunData data = entry.getValue();
+//            logger.info("Processing " + run + " " + data.toString());
+//            
+//            //check that data is ok
+//            if (isValid(data)) {
+//                if(prev!=null) {
+//                    if(isValid(prev)) {
+//                        if(prev.getEndDate().after(data.getStartDate())) {
+//                            throw new RuntimeException("prev end date after run started?: " + prev.toString() + "   " + data.toString());
+//                        } else if(prev.getStartDate().after(data.getEndDate())) {
+//                            throw new RuntimeException("prev start date before run ended?: " + prev.toString() + "   " + data.toString());
+//                        }
+//                    }
+//                }
+//                
+//                // find the bias ranges applicable to this run
+//                SvtBiasMyaRanges overlaps = biasMyaReader.findOverlappingRanges(data.getStartDate(), data.getEndDate());
+//                logger.fine("Found " + overlaps.size() + " overlapping bias ranges");
+//                logger.fine(overlaps.toString());
+//
+//                biasRunRanges.add(new SvtBiasRunRange(data,overlaps));
+//                prev = data;
+//
+//            }
+//        }
         
         
         // fill graphs
@@ -229,6 +287,8 @@ public class SvtBiasConditionsLoader {
         
     }
     
+    
+
     private final static SvtBiasConstantCollection findCollection(final List<SvtBiasConstantCollection> list, Date date) {
         for( SvtBiasConstantCollection collection : list) {
             if(collection.find(date) != null) {
