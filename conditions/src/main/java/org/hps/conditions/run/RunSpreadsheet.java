@@ -7,9 +7,12 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -92,7 +95,8 @@ public final class RunSpreadsheet {
                     return record;
                 }
             } catch (final NumberFormatException e) {
-                e.printStackTrace();
+                //System.out.println("problem reading run" + run);
+                //e.printStackTrace();
             }
         }
         return null;
@@ -131,13 +135,39 @@ public final class RunSpreadsheet {
         return records;
     }
     
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy H:mm"); 
+    private static final AnotherSimpleDateFormat DATE_FORMAT = new AnotherSimpleDateFormat("MM/dd/yyyy H:mm"); 
+    //private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy H:mm"); 
+    private static final TimeZone TIME_ZONE =  TimeZone.getTimeZone("EST");
+    
+    
+    @SuppressWarnings("serial")
+    private static class AnotherSimpleDateFormat extends SimpleDateFormat {
+        public AnotherSimpleDateFormat(String formatstring) {
+            super(formatstring);
+            //Calendar c = Calendar.getInstance(TIME_ZONE,Locale.US);
+            //setTimeZone(TIME_ZONE);
+        }
+
+        public Date parse(String source) throws ParseException {
+            setTimeZone(TIME_ZONE);
+            System.out.println("parse  " + source);
+            Date date = super.parse(source);
+            System.out.println("update date " + date.toString() + " epoch " + date.getTime());
+            Date dateUpdated = new Date(date.getTime()-3600*1000);
+            System.out.println("updated date " + dateUpdated.toString() + " epoch " + dateUpdated.getTime());
+            return dateUpdated;
+        }
+        
+    }
+
     
     private static Date parseStartDate(CSVRecord record) throws ParseException {
+        System.out.printf("Start date result of parsing %s %s is %s since epoch %d  \n",record.get("date"), record.get("start_time"),DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time")).toString(), DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time")).getTime() );
         return DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time"));
     }
     
     private static Date parseEndDate(CSVRecord record) throws ParseException {
+        //DATE_FORMAT.setTimeZone(TIME_ZONE);
         return DATE_FORMAT.parse(record.get("date") + " " + record.get("end_time"));
     }
     
@@ -213,7 +243,7 @@ public final class RunSpreadsheet {
     public RunMap getRunMap(List<RunRange> ranges) {
         List<CSVRecord> records = new ArrayList<CSVRecord>();
         for(RunRange range : ranges) {
-           System.out.println(range.toString());
+           //System.out.println(range.toString());
            if(range.getColumnNames().contains("run")) {
                if(!range.getValue("run").isEmpty()) {
                    CSVRecord record = findRun(Integer.parseInt(range.getValue("run")));
