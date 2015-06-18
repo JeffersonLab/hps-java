@@ -5,10 +5,12 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hps.recon.tracking.axial.HelicalTrack2DHit;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
@@ -24,6 +26,7 @@ import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.MyLCRelation;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
@@ -61,6 +64,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     private boolean _saveAxialHits = false;
     private String _axialname = "AxialTrackHits";
     private String _axialmcrelname = "AxialTrackHitsMCRelations";
+    private boolean rejectGhostHits = false;
 
     public enum LayerGeometryType {
 
@@ -101,6 +105,16 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
 
     public void setClusterAmplitudeCut(double clusterAmplitudeCut) {
         this.clusterAmplitudeCut = clusterAmplitudeCut;
+    }
+
+    /**
+     * Drop any HelicalTrackHit containing a 1D hit that is also used in another
+     * HelicalTrackHit.
+     *
+     * @param rejectGhostHits
+     */
+    public void setRejectGhostHits(boolean rejectGhostHits) {
+        this.rejectGhostHits = rejectGhostHits;
     }
 
     /**
@@ -207,7 +221,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                     // Cast the hit as a 1D strip hit and find the
                     // identifier for the detector/layer combo
                     SiTrackerHitStrip1D h = (SiTrackerHitStrip1D) hit;
-                    if (clusterAmplitudeCut > 0 && h.getdEdx()/DopedSilicon.ENERGY_EHPAIR < clusterAmplitudeCut) {
+                    if (clusterAmplitudeCut > 0 && h.getdEdx() / DopedSilicon.ENERGY_EHPAIR < clusterAmplitudeCut) {
                         continue;
                     }
                     if (_clusterTimeCut > 0 && Math.abs(h.getTime()) > _clusterTimeCut) {
@@ -386,6 +400,29 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                 }
                 if (_debug) {
                     System.out.printf("%s: cross at %.2f,%.2f,%.2f \n", this.getClass().getSimpleName(), cross.getPosition()[0], cross.getPosition()[1], cross.getPosition()[2]);
+                }
+            }
+
+            if (rejectGhostHits) {
+                RelationalTable hittostrip = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+                for (HelicalTrackCross cross : helicalTrackCrosses) {
+                    for (HelicalTrackStrip strip : cross.getStrips()) {
+                        hittostrip.add(cross, stripmap.get(strip));
+                    }
+                }
+                crossLoop:
+                for (Iterator<HelicalTrackCross> iter = helicalTrackCrosses.listIterator(); iter.hasNext();) {
+                    HelicalTrackCross cross = iter.next();
+                    Collection<TrackerHit> htsList = hittostrip.allFrom(cross);
+                    for (TrackerHit strip : htsList) {
+                        Set<HelicalTrackHit> sharedCrosses = hittostrip.allTo(strip);
+                        System.out.println(sharedCrosses.size());
+                        if (sharedCrosses.size() > 1) {
+//                    this.getLogger().warning(String.format("removing possible ghost hit"));
+                            iter.remove();
+                            continue crossLoop;
+                        }
+                    }
                 }
             }
 
