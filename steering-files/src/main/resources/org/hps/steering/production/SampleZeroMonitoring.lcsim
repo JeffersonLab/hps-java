@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
 <!-- 
-  Offline reconstruction for 2015 (engineering run with SVT+ECal) data.
-  @author Sho Uemura <meeg@slac.stanford.edu>
+  Check bias run ranges and noise
+  @author Per Hansson Adrian <phansson@slac.stanford.edu>
 -->
     <control>
         <printInputFiles>false</printInputFiles>
