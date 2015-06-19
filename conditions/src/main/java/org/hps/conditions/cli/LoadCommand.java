@@ -39,7 +39,7 @@ import org.lcsim.util.log.MessageOnlyLogFormatter;
  *     -p conditions_dev_local.properties load -t scratch_svt_gains -f ./scratch_svt_gains.txt -c 1
  * </pre>
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 final class LoadCommand extends AbstractCommand {
 
@@ -137,15 +137,8 @@ final class LoadCommand extends AbstractCommand {
         }
 
         final TableMetaData tableMetaData = conditionsManager.findTableMetaData(tableName);
-        BaseConditionsObjectCollection<ConditionsObject> newCollection = null;
-        try {
-            // Create a new collection. We don't use the specific type here because that won't work later when adding
-            // objects to it.
-            newCollection = new BaseConditionsObjectCollection<ConditionsObject>(conditionsManager.getConnection(),
-                    tableMetaData);
-        } catch (SQLException | DatabaseObjectException e) {
-            throw new RuntimeException("Error creating new collection.", e);
-        }
+        final BaseConditionsObjectCollection<ConditionsObject> newCollection = new BaseConditionsObjectCollection<ConditionsObject>(
+                conditionsManager.getConnection(), tableMetaData);
 
         LOGGER.info("getting new collection ID ...");
 
