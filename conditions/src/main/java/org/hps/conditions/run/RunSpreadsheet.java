@@ -150,11 +150,11 @@ public final class RunSpreadsheet {
 
         public Date parse(String source) throws ParseException {
             setTimeZone(TIME_ZONE);
-            System.out.println("parse  " + source);
+            //System.out.println("parse  " + source);
             Date date = super.parse(source);
-            System.out.println("update date " + date.toString() + " epoch " + date.getTime());
+            //System.out.println("update date " + date.toString() + " epoch " + date.getTime());
             Date dateUpdated = new Date(date.getTime()-3600*1000);
-            System.out.println("updated date " + dateUpdated.toString() + " epoch " + dateUpdated.getTime());
+            //System.out.println("updated date " + dateUpdated.toString() + " epoch " + dateUpdated.getTime());
             return dateUpdated;
         }
         
