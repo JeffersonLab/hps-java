@@ -135,13 +135,13 @@ public final class RunSpreadsheet {
         return records;
     }
     
-    private static final AnotherSimpleDateFormat DATE_FORMAT = new AnotherSimpleDateFormat("MM/dd/yyyy H:mm"); 
-    //private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy H:mm"); 
+    public static final AnotherSimpleDateFormat DATE_FORMAT = new AnotherSimpleDateFormat("MM/dd/yyyy H:mm"); 
     private static final TimeZone TIME_ZONE =  TimeZone.getTimeZone("EST");
     
     
     @SuppressWarnings("serial")
-    private static class AnotherSimpleDateFormat extends SimpleDateFormat {
+    public
+    static class AnotherSimpleDateFormat extends SimpleDateFormat {
         public AnotherSimpleDateFormat(String formatstring) {
             super(formatstring);
             //Calendar c = Calendar.getInstance(TIME_ZONE,Locale.US);

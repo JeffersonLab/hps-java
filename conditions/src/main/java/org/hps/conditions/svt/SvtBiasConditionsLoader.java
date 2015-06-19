@@ -203,18 +203,7 @@ public class SvtBiasConditionsLoader {
         
         RunMap runmap = getRunMapFromSpreadSheet(path);
         
-//        final RunSpreadsheet runSheet = new RunSpreadsheet(new File(path));
-//
-//        // Find the run ranges that have the same fields values.
-//        final List<RunRange> ranges = RunRange.findRunRanges(runSheet, FIELDS);
-//        logger.info("Found " + ranges.size() + " ranges.");
-//        for(RunRange range : ranges) logger.info(range.toString());
-//        // find the run records (has converted dates and stuff) for these ranges
-//        RunMap runmap  = runSheet.getRunMap(ranges);
-//        logger.info("Found " + runmap.size() + " runs in the run map.");
-        
-        
-        
+
         // Load MYA dump
         SvtBiasMyaDumpReader biasMyaReader = new SvtBiasMyaDumpReader(cl.getOptionValue("m"));
         logger.info("Got " + biasMyaReader.getRanges().size() + " bias ranges");
@@ -225,37 +214,7 @@ public class SvtBiasConditionsLoader {
         
         List<SvtBiasRunRange> biasRunRanges = getBiasRunRanges(runmap,biasMyaReader);
         
-//        List<SvtBiasRunRange> biasRunRanges = new ArrayList<SvtBiasRunRange>();
-//        // loop over runs from CSV        
-//        RunData prev = null;
-//        for(Entry<Integer,RunData> entry : runmap.entrySet()) {
-//            int run = entry.getKey();
-//            RunData data = entry.getValue();
-//            logger.info("Processing " + run + " " + data.toString());
-//            
-//            //check that data is ok
-//            if (isValid(data)) {
-//                if(prev!=null) {
-//                    if(isValid(prev)) {
-//                        if(prev.getEndDate().after(data.getStartDate())) {
-//                            throw new RuntimeException("prev end date after run started?: " + prev.toString() + "   " + data.toString());
-//                        } else if(prev.getStartDate().after(data.getEndDate())) {
-//                            throw new RuntimeException("prev start date before run ended?: " + prev.toString() + "   " + data.toString());
-//                        }
-//                    }
-//                }
-//                
-//                // find the bias ranges applicable to this run
-//                SvtBiasMyaRanges overlaps = biasMyaReader.findOverlappingRanges(data.getStartDate(), data.getEndDate());
-//                logger.fine("Found " + overlaps.size() + " overlapping bias ranges");
-//                logger.fine(overlaps.toString());
-//
-//                biasRunRanges.add(new SvtBiasRunRange(data,overlaps));
-//                prev = data;
-//
-//            }
-//        }
-        
+
         
         // fill graphs
         if(cl.hasOption("s")) {

@@ -13,6 +13,7 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.run.RunSpreadsheet;
 import org.hps.conditions.run.RunSpreadsheet.RunData;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.util.log.LogUtil;
@@ -33,8 +34,8 @@ public class SvtBiasMyaDumpReader {
         
     }
     
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private static final TimeZone timeZone = TimeZone.getTimeZone("EST");
+    private static final SimpleDateFormat DATE_FORMAT = new RunSpreadsheet.AnotherSimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    //private static final TimeZone timeZone = TimeZone.getTimeZone("EST");
     private static final double BIASVALUEON = 178.0;
     private List<SvtBiasMyaEntry> myaEntries = new ArrayList<SvtBiasMyaEntry>();
     private SvtBiasMyaRanges biasRanges = new SvtBiasMyaRanges();
@@ -107,7 +108,7 @@ public class SvtBiasMyaDumpReader {
                     if(arr.length<3) {
                         throw new ParseException("this line is not correct.",0);
                     }
-                    DATE_FORMAT.setTimeZone(timeZone);
+                    
                     Date date = DATE_FORMAT.parse(arr[0] + " " + arr[1]);
                     double value = Double.parseDouble(arr[2]);
                     SvtBiasMyaEntry entry = new SvtBiasMyaEntry(file.getName(), date, value);
@@ -140,14 +141,14 @@ public class SvtBiasMyaDumpReader {
             
             if( e.getValue() > BIASVALUEON) {
                 if (range==null) {
-                    logger.fine("BIAS ON: " + e.toString());
+                    logger.info("BIAS ON: " + e.toString());
                     range = new SvtBiasMyaRange();
                     range.setStart(e);
                 } 
             } else {
                 //close it
                 if (range!=null) {
-                    logger.fine("BIAS TURNED OFF: " + e.toString());
+                    logger.info("BIAS TURNED OFF: " + e.toString());
                     range.setEnd(e);
                     this.biasRanges.add(range);
                     range = null;
