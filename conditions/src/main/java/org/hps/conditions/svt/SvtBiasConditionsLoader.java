@@ -326,7 +326,7 @@ public class SvtBiasConditionsLoader {
                 condition.setFieldValue("run_start", rundata.getRun());
                 condition.setFieldValue("run_end", rundata.getRun());
                 condition.setFieldValue("name", "svt_bias");
-                condition.setFieldValue("table_name", "svt_bias");
+                condition.setFieldValue("table_name", "svt_bias_constants");
                 condition.setFieldValue("notes", "constants from mya");
                 condition.setFieldValue("created", new Date());
                 condition.setFieldValue("created_by", System.getProperty("user.name"));
