@@ -14,7 +14,7 @@ import org.reflections.Reflections;
 /**
  * This is a collection of utility methods for {@link ConditionsObject}.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class ConditionsObjectUtilities {
 

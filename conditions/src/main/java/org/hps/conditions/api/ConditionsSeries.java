@@ -8,9 +8,10 @@ import java.util.ArrayList;
  *
  * @param <ObjectType> the type of the conditions object
  * @param <CollectionType> the type of the conditions collection
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings({"serial"})
+// FIXME: This class should possibly be removed. It doesn't provide much functionality.
 public class ConditionsSeries<ObjectType extends ConditionsObject, CollectionType extends ConditionsObjectCollection<ObjectType>>
         extends ArrayList<ConditionsObjectCollection<ObjectType>> {
 }

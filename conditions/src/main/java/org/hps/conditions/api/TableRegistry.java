@@ -19,7 +19,7 @@ import org.hps.conditions.database.Field;
 public final class TableRegistry extends HashMap<String, TableMetaData> {
 
     /**
-     * Maps collection types to table meta data.
+     * Class which maps collection types to their table meta data.
      */
     static class CollectionTypeMap extends
             HashMap<Class<? extends BaseConditionsObjectCollection<?>>, List<TableMetaData>> {
@@ -39,7 +39,7 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
     }
 
     /**
-     * Maps types to table meta data.
+     * Class that maps object types to their table meta data.
      */
     static class ObjectTypeMap extends HashMap<Class<? extends ConditionsObject>, List<TableMetaData>> {
         /**
@@ -56,7 +56,10 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
         }
     }
 
-    static TableRegistry instance = null;
+    /**
+     * The global, static instance of the registry.
+     */
+    private static TableRegistry instance = null;
 
     /**
      * Create a new table meta data registry.
@@ -101,8 +104,14 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
         return registry;
     }
 
+    /**
+     * Get the global static instance of the registry.
+     *
+     * @return the global static instance of the registry
+     */
     public synchronized static TableRegistry getTableRegistry() {
         if (instance == null) {
+            // Create registry if it does not exist.
             instance = TableRegistry.create();
         }
         return instance;
@@ -119,7 +128,7 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
     private final ObjectTypeMap objectTypeMap = new ObjectTypeMap();
 
     /**
-     * Class should not be directly instantiated.
+     * Prevent direct class instantiation by users.
      * <p>
      * Use the {@link #create()} method instead.
      */

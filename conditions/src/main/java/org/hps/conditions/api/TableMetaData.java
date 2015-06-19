@@ -9,16 +9,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * This class provides meta data about a conditions table, including a list of fields. A row ID field called <i>id</i>
+ * is assumed to exist and be a primary key for the table. (Problems will occur if this is not the case!)
  * <p>
- * This class provides meta data about a conditions table, including a list of conditions data fields. The list of
- * fields does not include the collection ID or row ID, which are implicitly assumed to exist.
- * <p>
- * It also has references to the implementation classes which are used for the ORM onto {@link ConditionsObject} and
- * {@link ConditionsObjectCollection}.
+ * The class also has references to the implementation classes which are used for mapping database operations to the
+ * {@link ConditionsObject} and {@link ConditionsObjectCollection} API.
  *
+ * @author Jeremy McCormick, SLAC
  * @see org.hps.conditions.api.ConditionsObject
  * @see org.hps.conditions.api.BaseConditionsObjectCollection
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class TableMetaData {
 
@@ -71,6 +70,11 @@ public final class TableMetaData {
      */
     private String tableName;
 
+    /**
+     * Class constructor.
+     * <p>
+     * Creates an empty object.
+     */
     public TableMetaData() {
     }
 
@@ -167,6 +171,11 @@ public final class TableMetaData {
         return this.tableName;
     }
 
+    /**
+     * Set all the field names from an array of strings.
+     *
+     * @param fieldNames the names of the fields
+     */
     void setFieldNames(final String[] fieldNames) {
         this.fieldNames = new HashSet<String>();
         for (final String fieldName : fieldNames) {
@@ -174,14 +183,30 @@ public final class TableMetaData {
         }
     }
 
+    /**
+     * Set the type of a field.
+     *
+     * @param fieldName the field name
+     * @param fieldType the field's type (class)
+     */
     void setFieldType(final String fieldName, final Class<?> fieldType) {
         this.fieldTypes.put(fieldName, fieldType);
     }
 
+    /**
+     * Set the class that maps to the database.
+     *
+     * @param objectClass the class that maps to the database
+     */
     void setObjectClass(final Class<? extends ConditionsObject> objectClass) {
         this.objectClass = objectClass;
     }
 
+    /**
+     * Set the table name.
+     *
+     * @param tableName the table name
+     */
     void setTableName(final String tableName) {
         this.tableName = tableName;
     }

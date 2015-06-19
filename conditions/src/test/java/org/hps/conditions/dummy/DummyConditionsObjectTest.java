@@ -87,7 +87,7 @@ public final class DummyConditionsObjectTest extends TestCase {
                 + newObject.getTableMetaData().getTableName() + " table.");
         assertEquals("The isNew method returned the wrong value.", false, newObject.isNew());
         assertEquals("The isDirty method returned the wrong value.", false, newObject.isDirty());
-        assertEquals("Object does not have a valid collection after insert.", true, newObject.hasValidCollection());
+        assertEquals("Object does not have a valid collection after insert.", true, newObject.hasValidCollectionId());
 
         // Select into another object by ID.
         final DummyConditionsObject anotherObject = new DummyConditionsObject(connection, tableMetaData);
@@ -97,7 +97,7 @@ public final class DummyConditionsObjectTest extends TestCase {
 
         // Check that the selection into another object worked.
         assertEquals("Selected object has wrong row id.", newObject.getRowId(), anotherObject.getRowId());
-        assertTrue("Select object does not have valid collection.", anotherObject.hasValidCollection());
+        assertTrue("Select object does not have valid collection.", anotherObject.hasValidCollectionId());
         assertEquals("Selected object has wrong collection id.", newObject.getCollectionId(),
                 anotherObject.getCollectionId());
         assertEquals("Selected object has wrong value.", newObject.getDummy(), anotherObject.getDummy());

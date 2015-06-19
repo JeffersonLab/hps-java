@@ -3,7 +3,7 @@ package org.hps.conditions.api;
 /**
  * This class is a simplistic representation of a packaged identifier for use in the conditions system.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public abstract class AbstractIdentifier {
 

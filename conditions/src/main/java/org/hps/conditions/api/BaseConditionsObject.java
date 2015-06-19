@@ -14,7 +14,7 @@ import org.hps.conditions.database.Field;
  * This is a basic ORM class for performing CRUD (create, read, update, delete) operations on objects in the conditions
  * system. Each object is mapped to a single row in a database table.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public class BaseConditionsObject implements ConditionsObject {
 
@@ -26,7 +26,7 @@ public class BaseConditionsObject implements ConditionsObject {
     /**
      * Date formatting for insert statement.
      */
-    static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+    static final SimpleDateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
 
     /**
      * Value that indicates collection ID is not set (no collection assigned).
@@ -40,7 +40,7 @@ public class BaseConditionsObject implements ConditionsObject {
 
     /**
      * Perform the default to string operation on a conditions object.
-     * 
+     *
      * @param object the conditions object
      * @return the object converted to a string
      */
@@ -67,14 +67,14 @@ public class BaseConditionsObject implements ConditionsObject {
     private FieldValues fieldValues;
 
     /**
-     * The row ID of the object in its table. This will be -1 for new objects that are not in the database.
-     */
-    private int rowId = UNSET_ROW_ID;
-
-    /**
      * Flag to indicate that the object is locally changed and a database update has not been executed.
      */
     private boolean isDirty;
+
+    /**
+     * The row ID of the object in its table. This will be -1 for new objects that are not in the database.
+     */
+    private int rowId = UNSET_ROW_ID;
 
     /**
      * The information about the associated table such as the table and column names.
@@ -91,8 +91,8 @@ public class BaseConditionsObject implements ConditionsObject {
     /**
      * Public class constructor.
      * <p>
-     * This should be used when creating new objects without a list of field values. A new <code>FieldValues</code>
-     * object will be automatically created from the table information.
+     * This should be used when creating new objects without a list of field values. A new {@link FieldValues} object
+     * will be automatically created from the table information.
      *
      * @param connection the database connection
      * @param tableMetaData the table meta data
@@ -104,7 +104,7 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
-     * Full qualified class constructor.
+     * Fully qualified class constructor.
      * <p>
      * This should be used when creating new objects from a list of field values.
      *
@@ -123,22 +123,21 @@ public class BaseConditionsObject implements ConditionsObject {
 
     /**
      * Delete the object from the database using its row ID.
-     * 
+     *
      * @throws DatabaseObjectException if object is not in the database
      * @throws SQLException if there is an error performing the delete operation
      */
     @Override
     public final void delete() throws DatabaseObjectException, SQLException {
-        if (isNew()) {            
+        if (this.isNew()) {
             throw new DatabaseObjectException("Object is not in the database.", this);
         }
-        if (connection.getAutoCommit() == false) {
-            connection.setAutoCommit(true);
-        }
+        this.connection.setAutoCommit(true);
         PreparedStatement statement = null;
         try {
-            statement = this.connection.prepareStatement("DELETE FROM " + this.tableMetaData.getTableName() + " WHERE id = ?");
-            statement.setInt(1, + this.getRowId());
+            statement = this.connection.prepareStatement("DELETE FROM " + this.tableMetaData.getTableName()
+                    + " WHERE id = ?");
+            statement.setInt(1, +this.getRowId());
             statement.executeUpdate();
             this.rowId = UNSET_ROW_ID;
         } finally {
@@ -150,22 +149,45 @@ public class BaseConditionsObject implements ConditionsObject {
 
     /**
      * Get the collection ID of the object.
-     * 
+     *
      * @return the collection ID of the object
      */
     @Override
     @Field(names = {"collection_id"})
     public final Integer getCollectionId() {
         if (this.fieldValues.isNonNull(COLLECTION_ID_FIELD)) {
-            return getFieldValue(Integer.class, COLLECTION_ID_FIELD);
+            return this.getFieldValue(Integer.class, COLLECTION_ID_FIELD);
         } else {
             return UNSET_COLLECTION_ID;
         }
     }
 
     /**
+     * Get a field value by name.
+     *
+     * @param type the return type
+     * @param name the name of the field
+     */
+    @Override
+    public final <T> T getFieldValue(final Class<T> type, final String name) {
+        return type.cast(this.fieldValues.getValue(type, name));
+    }
+
+    /**
+     * Get a field value.
+     *
+     * @param name the field name
+     * @param T the field value
+     * @param <T> the implicit return return
+     */
+    @Override
+    public <T> T getFieldValue(final String name) {
+        return (T) this.fieldValues.getValue(name);
+    }
+
+    /**
      * Get the field values.
-     * 
+     *
      * @return the field values
      */
     @Override
@@ -175,7 +197,7 @@ public class BaseConditionsObject implements ConditionsObject {
 
     /**
      * Get the row ID.
-     * 
+     *
      * @return the row ID
      */
     @Override
@@ -185,7 +207,7 @@ public class BaseConditionsObject implements ConditionsObject {
 
     /**
      * Get the table meta data for the object.
-     * 
+     *
      * @return the table meta data or <code>null</code> if not set
      */
     @Override
@@ -194,26 +216,24 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
-     * Get a field value by name.
-     * 
-     * @param type the return type
-     * @param name the name of the field
-     */
-    @Override
-    public final <T> T getFieldValue(final Class<T> type, final String name) {
-        return type.cast(this.fieldValues.getValue(type, name));
-    }
-   
-    /**
+     * Return <code>true</code> if collection ID is valid.
      *
+     * @param <code>true</code> if collection ID is valid
      */
     @Override
-    // FIXME: Rewrite to use a PreparedStatement.
+    public boolean hasValidCollectionId() {
+        return this.getCollectionId() != UNSET_COLLECTION_ID;
+    }
+
+    /**
+     * Insert the object into the conditions database.
+     */
+    @Override
     public final void insert() throws DatabaseObjectException, SQLException {
         if (!this.isNew()) {
             throw new DatabaseObjectException("Cannot insert existing record with row ID: " + this.getRowId(), this);
         }
-        if (!this.hasValidCollection()) {
+        if (!this.hasValidCollectionId()) {
             throw new DatabaseObjectException("Cannot insert object without a valid collection ID.", this);
         }
         final StringBuffer sb = new StringBuffer();
@@ -225,7 +245,7 @@ public class BaseConditionsObject implements ConditionsObject {
         sb.append(") VALUES (");
         for (final Object value : this.fieldValues.getValues()) {
             if (value instanceof Date) {
-                sb.append("STR_TO_DATE( '" + DATE_FORMAT.format((Date) value) + "', '%Y-%m-%d %H:%i:%S' ), ");
+                sb.append("STR_TO_DATE( '" + DEFAULT_DATE_FORMAT.format((Date) value) + "', '%Y-%m-%d %H:%i:%S' ), ");
             } else {
                 sb.append("'" + value + "', ");
             }
@@ -256,7 +276,9 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
+     * Return <code>true</code> if object is dirty and needs a database update.
      *
+     * @return <code>true</code> if object is dirty
      */
     @Override
     public final boolean isDirty() {
@@ -264,15 +286,22 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
+     * Return <code>true</code> if object is not in the database.
+     * <p>
+     * This returns <code>true</code> if the object has a valid row ID.
      *
+     * @return <code>true</code> if object is not in the database
      */
     @Override
     public final boolean isNew() {
-        return getRowId() == UNSET_ROW_ID;
+        return this.getRowId() == UNSET_ROW_ID;
     }
 
     /**
+     * Select a conditions object by its row ID.
      *
+     * @param id the row ID
+     * @return <code>true</code> is selection was performed
      */
     @Override
     public final boolean select(final int id) throws DatabaseObjectException, SQLException {
@@ -314,20 +343,18 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
+     * Set the collection ID of the object.
      *
+     * @param collectionId the collection ID of the object
      */
     void setCollectionId(final int collectionId) throws ConditionsObjectException {
-        //if (this.getCollectionId() != UNSET_COLLECTION_ID) {
-        //    throw new ConditionsObjectException("The collection ID is already set on this object.");
-        //}
-        //if (collectionId <= UNSET_COLLECTION_ID) {
-        //    throw new ConditionsObjectException("Invalid collection ID value: " + collectionId);
-        //}
         this.setFieldValue(COLLECTION_ID_FIELD, collectionId);
     }
 
     /**
+     * Set the JDBC database connection of the object.
      *
+     * @param connection the database connection of the object
      */
     @Override
     public final void setConnection(final Connection connection) {
@@ -335,24 +362,12 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
+     * Set a field value.
+     * <p>
+     * Calling this method will flag the object as "dirty" meaning it needs to be updated in the database.
      *
-     */
-    @Override
-    public void setFieldValues(final FieldValues fieldValues) {
-        this.fieldValues = fieldValues;
-        this.isDirty = true;
-    }
-
-    /**
-     *
-     */
-    @Override
-    public final void setTableMetaData(final TableMetaData tableMetaData) {
-        this.tableMetaData = tableMetaData;
-    }
-
-    /**
-     *
+     * @param name the name of the field
+     * @param value the new value of the field
      */
     @Override
     public final void setFieldValue(final String name, final Object value) {
@@ -361,7 +376,41 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
+     * Set the field values of the object.
      *
+     * @param fieldValues the field values of the object
+     */
+    @Override
+    public void setFieldValues(final FieldValues fieldValues) {
+        this.fieldValues = fieldValues;
+        this.isDirty = true;
+    }
+
+    /**
+     * Set the row ID of the object.
+     *
+     * @param rowId the new row ID
+     */
+    void setRowId(final int rowId) {
+        this.rowId = rowId;
+    }
+
+    /**
+     * Set the table meta data of the object.
+     * <p>
+     * This sets which table is associated with the object for database operations.
+     *
+     * @param tableMetaData the table meta data
+     */
+    @Override
+    public final void setTableMetaData(final TableMetaData tableMetaData) {
+        this.tableMetaData = tableMetaData;
+    }
+
+    /**
+     * Convert this object to a string.
+     *
+     * @return this object converted to a string
      */
     @Override
     public String toString() {
@@ -369,13 +418,15 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
+     * Perform an update operation to insert this object's data in the database.
      *
+     * @return <code>true</code> if an update occurred
      */
     @Override
     public final boolean update() throws DatabaseObjectException, SQLException {
         int rowsUpdated = 0;
-        if (isDirty()) {
-            if (isNew()) {
+        if (this.isDirty()) {
+            if (this.isNew()) {
                 throw new DatabaseObjectException("Cannot update a new object.", this);
             }
             final StringBuffer sb = new StringBuffer();
@@ -384,8 +435,8 @@ public class BaseConditionsObject implements ConditionsObject {
                 sb.append(fieldName + "=");
                 final Object value = this.fieldValues.getValue(fieldName);
                 if (value instanceof Date) {
-                    // FIXME: Is there a more generic way to handle this?
-                    sb.append("STR_TO_DATE( '" + DATE_FORMAT.format((Date) value) + "', '%Y-%m-%d %H:%i:%S' ), ");
+                    sb.append("STR_TO_DATE( '" + DEFAULT_DATE_FORMAT.format((Date) value)
+                            + "', '%Y-%m-%d %H:%i:%S' ), ");
                 } else {
                     sb.append("'" + value + "', ");
                 }
@@ -407,25 +458,5 @@ public class BaseConditionsObject implements ConditionsObject {
             this.isDirty = false;
         }
         return rowsUpdated != 0;
-    }
-
-    /**
-     *
-     */
-    @Override
-    public <T> T getFieldValue(final String name) {
-        return (T) this.fieldValues.getValue(name);
-    }
-
-    /**
-     *
-     */
-    @Override
-    public boolean hasValidCollection() {
-        return getCollectionId() != UNSET_COLLECTION_ID;
-    }
-
-    void setRowId(final int rowId) {
-        this.rowId = rowId;
     }
 }

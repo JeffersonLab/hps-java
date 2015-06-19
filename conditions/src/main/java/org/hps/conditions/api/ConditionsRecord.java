@@ -14,7 +14,7 @@ import org.hps.conditions.database.Table;
  * This class represents a single record from the primary conditions data table, which defines the validity range for a
  * specific collection of conditions objects.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"conditions"})
 @Converter(converter = ConditionsRecordConverter.class)
@@ -23,13 +23,13 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * The concrete collection implementation, including sorting utilities.
      */
-    @SuppressWarnings("serial")
     public static class ConditionsRecordCollection extends BaseConditionsObjectCollection<ConditionsRecord> {
 
         /**
          * Compare conditions records by creation date.
          */
         private static class CreatedComparator implements Comparator<ConditionsRecord> {
+
             /**
              * Compare the creation dates of two conditions records.
              *
@@ -54,6 +54,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * Compare conditions records by their key (table name).
          */
         private static class KeyComparator implements Comparator<ConditionsRecord> {
+
             /**
              * Compare the keys (names) of two conditions records.
              *
@@ -72,6 +73,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * Compare conditions records by run start.
          */
         private static class RunStartComparator implements Comparator<ConditionsRecord> {
+
             /**
              * Compare the run start numbers of two conditions records.
              *
@@ -94,6 +96,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
          * Compare conditions records by updated date.
          */
         private static class UpdatedComparator implements Comparator<ConditionsRecord> {
+
             /**
              * Compare the updated dates of two conditions records.
              *
@@ -114,7 +117,14 @@ public final class ConditionsRecord extends BaseConditionsObject {
             }
         }
 
+        /**
+         * Add a <code>ConditionsRecord</code> to the collection.
+         *
+         * @param object the <code>ConditionsRecord</code> to add to the collection
+         * @return <code>true</code> if object was added
+         */
         @Override
+        // FIXME: Not sure this method needs to exist.
         public boolean add(final ConditionsRecord object) throws ConditionsObjectException {
             if (object == null) {
                 throw new IllegalArgumentException("The object argument is null.");
@@ -127,7 +137,11 @@ public final class ConditionsRecord extends BaseConditionsObject {
         }
 
         /**
-         * Find a sub-set of the records with matching key name.
+         * Find a sub-set of the records matching the key name.
+         * <p>
+         * These will generally map to names of tables.
+         *
+         * @param key the key to find
          */
         public ConditionsRecordCollection findByKey(final String key) {
             final ConditionsRecordCollection collection = new ConditionsRecordCollection();
@@ -157,35 +171,35 @@ public final class ConditionsRecord extends BaseConditionsObject {
         }
 
         /**
-         * Sort in place by creation date.
+         * Sort the collection in place by creation date.
          */
         public final void sortByCreated() {
             this.sort(new CreatedComparator());
         }
 
         /**
-         * Sort in place by key.
+         * Sort the collection in place by key.
          */
         public final void sortByKey() {
             this.sort(new KeyComparator());
         }
 
         /**
-         * Sort in place by run start.
+         * Sort the collection in place by run start.
          */
         public final void sortByRunStart() {
             this.sort(new RunStartComparator());
         }
 
         /**
-         * Sort in place by updated date.
+         * Sort the collection in place by updated date.
          */
         public final void sortByUpdated() {
             this.sort(new UpdatedComparator());
         }
 
         /**
-         * Sort and return collection by creation date.
+         * Sort and return the collection by creation date.
          *
          * @return the sorted collection
          */
@@ -194,7 +208,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
         }
 
         /**
-         * Sort and return by key (table name).
+         * Sort and return the collection by key (table name).
          *
          * @return the sorted collection
          */
@@ -203,7 +217,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
         }
 
         /**
-         * Sort and return by run start number.
+         * Sort and return the collection by run start number.
          *
          * @return the sorted collection
          */
@@ -212,7 +226,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
         }
 
         /**
-         * Sort and return collection by updated date.
+         * Sort and return the collection by updated date.
          *
          * @return the sorted collection
          */
@@ -222,7 +236,9 @@ public final class ConditionsRecord extends BaseConditionsObject {
     }
 
     /**
-     * Create a "blank" conditions record.
+     * Class constructor.
+     * <p>
+     * Creates an empty conditions record.
      */
     public ConditionsRecord() {
     }
@@ -245,12 +261,12 @@ public final class ConditionsRecord extends BaseConditionsObject {
     }
 
     /**
-     * Create a conditions record with fully qualified constructor.
+     * Fully qualified class constructor.
      *
      * @param collectionId the ID of the associated conditions collection
      * @param runStart the starting run number
      * @param runEnd the ending run number
-     * @param name the name of the conditions set (usually same as table name)
+     * @param name the name of the conditions set (usually the same as table name but can be different)
      * @param tableName the name of the conditions data table
      * @param notes text notes about this record
      * @param tag the conditions tag for grouping this record with others

@@ -21,12 +21,13 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
     /**
      * Create a conditions object collection.
      *
+     * @param manager the conditions manager
      * @param conditionsRecord the conditions record
      * @param tableMetaData the table data
      * @return the conditions object collection
      * @throws ConditionsObjectException if there is a problem creating the collection
      */
-    private static final ConditionsObjectCollection<?> createCollection(final DatabaseConditionsManager manager,
+    private static ConditionsObjectCollection<?> createCollection(final DatabaseConditionsManager manager,
             final ConditionsRecord conditionsRecord, final TableMetaData tableMetaData)
             throws ConditionsObjectException {
         ConditionsObjectCollection<?> collection;
