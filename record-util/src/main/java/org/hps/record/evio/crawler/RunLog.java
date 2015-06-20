@@ -11,8 +11,9 @@ import java.util.logging.Logger;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * This class contains summary information about a series of runs that are themselves modeled with the {@link RunSummary} class. These can be looked
- * up by their run number {@link #getRunSummary(int)}.
+ * This class contains summary information about a series of runs which are modeled with the {@link RunSummary} class.
+ * <p> 
+ * These can be looked up by their run number {@link #getRunSummary(int)}.
  *
  * @author Jeremy McCormick, SLAC
  */

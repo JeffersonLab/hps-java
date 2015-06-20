@@ -7,11 +7,11 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.hps.record.epics.EpicsData;
+import org.hps.record.scalers.ScalerData;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * This class models the run summary information which is persisted as a row in the <i>run_log</i> table
- * of the run database.
+ * This class models the run summary information which is persisted as a row in the <i>run_log</i> table of the run database.
  * <p>
  * This information includes:
  * <ul>
@@ -62,6 +62,8 @@ final class RunSummary {
      * The run number.
      */
     private final int run;
+
+    private ScalerData scalerData;
 
     /**
      * The start date of the run.
@@ -141,6 +143,10 @@ final class RunSummary {
      */
     int getRun() {
         return this.run;
+    }
+
+    ScalerData getScalerData() {
+        return this.scalerData;
     }
 
     /**
@@ -232,6 +238,10 @@ final class RunSummary {
         this.eventTypeCounts = eventTypeCounts;
     }
 
+    void setScalerData(final ScalerData scalerData) {
+        this.scalerData = scalerData;
+    }
+
     /**
      * Set the start date of the run.
      *
@@ -247,9 +257,10 @@ final class RunSummary {
     void sortFiles() {
         this.files.sort();
     }
-    
+
+    @Override
     public String toString() {
-        return "RunSummary { run: " + this.run + ", started: " + this.getStartDate() + ", ended: " + this.getEndDate() + ", events: " 
+        return "RunSummary { run: " + this.run + ", started: " + this.getStartDate() + ", ended: " + this.getEndDate() + ", events: "
                 + this.getTotalEvents() + ", endOkay: " + endOkay + " }";
     }
 }
