@@ -29,6 +29,7 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.constants.Constants;
 import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
@@ -41,6 +42,8 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
+import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
@@ -119,7 +122,7 @@ public class GBLOutput {
 
 
     
-    void printGBL(Track trk, GBLTrackData gtd, List<GBLStripClusterData> stripClusterDataList, List<MCParticle> mcParticles, List<SimTrackerHit> simTrackerHits, boolean isMC) {
+    void printGBL(Track trk, List<SiTrackerHitStrip1D> stripHits, GBLTrackData gtd, List<GBLStripClusterData> stripClusterDataList, List<MCParticle> mcParticles, List<SimTrackerHit> simTrackerHits, boolean isMC) {
 
         SeedTrack st = (SeedTrack)trk;
         SeedCandidate seed = st.getSeedCandidate();
@@ -381,6 +384,45 @@ public class GBLOutput {
                 stripData.setTrackLambda(lambda);
                 
                 
+                List<RawTrackerHit> rawhits = strip.getStrip().rawhits();
+                for(RawTrackerHit rawhit : rawhits) {
+                    System.out.println("rawhit cellID " + rawhit.getCellID());
+                }
+                
+                
+                // calculate isolation to other strip clusters
+                double stripIsoMin = 9999.9;
+                for (SiTrackerHitStrip1D stripHit : stripHits) {
+                    if(stripHit.getRawHits().get(0).getDetectorElement().getName().equals(de.getName())) {
+                        // same sensor, calucalte min distance
+//                        boolean found = false;
+//                        for(RawTrackerHit rawhitloop : stripHit.getRawHits()) {
+//                            System.out.println("rawhitloop cellID " + rawhitloop.getCellID());
+//                            for(RawTrackerHit rawhit : rawhits) {
+//                                System.out.println("rawhit cellID " + rawhit.getCellID());
+//                            
+//                                if(rawhitloop.getCellID()==rawhit.getCellID()) {
+//                                    System.out.println("FOUND THE rawhit cellID " + rawhit.getCellID());
+//                                    found = true;
+//                                }
+//                            }
+//                        }
+                        SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+                        double d = Math.abs(strip.umeas() - local.getPosition()[0]);
+                        if (d<stripIsoMin && d>0) {
+                            stripIsoMin = d;
+                        }
+//                        if(found) {
+//                            System.out.println("found rawhits! d " + d + " umeas " + strip.umeas() + " local.getPosition()[0] " + local.getPosition()[0]);
+//                        }
+                    }
+                }
+                
+                if(_debug>0) System.out.printf("%s: stripIsoMin = %f \n", this.getClass().getSimpleName(), stripIsoMin);
+                
+                if(textFile != null) {
+                    textFile.printStripIso(stripIsoMin);
+                }
                 
                 
                 //Print residual in measurement system

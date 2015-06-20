@@ -18,6 +18,7 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.MyLCRelation;
 import org.lcsim.geometry.Detector;
+import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -85,6 +86,10 @@ public class GBLOutputDriver extends Driver {
              }
         }
 
+        List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
+        if(_debug>0) System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", stripHits.size());
+        
+       
 
         List<MCParticle> mcParticles = new ArrayList<MCParticle>();
         if(event.hasCollection(MCParticle.class,this.MCParticleCollectionName)) {
@@ -134,7 +139,7 @@ public class GBLOutputDriver extends Driver {
             
             //print to text file
             gbl.printTrackID(iTrack);
-            gbl.printGBL(trk,gblTrackData,gblStripDataList,mcParticles,simTrackerHits,this.isMC);
+            gbl.printGBL(trk, stripHits, gblTrackData,gblStripDataList,mcParticles,simTrackerHits,this.isMC);
             
             //GBLDATA
             //add relation to normal track object

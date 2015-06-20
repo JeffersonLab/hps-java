@@ -250,6 +250,10 @@ public class GBLFileIO {
         addLine(String.format("Strip 3D hit pos %.10f %.10f %.10f",pos.x(),pos.y(),pos.z()));
     }
 
+    public void printStripIso(double stripIsoMin) {
+        addLine(String.format("Strip iso %.10f", stripIsoMin));
+    }
+
 
 
 }
