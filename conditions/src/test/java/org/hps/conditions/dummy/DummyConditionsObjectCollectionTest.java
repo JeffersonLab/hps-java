@@ -1,9 +1,12 @@
 package org.hps.conditions.dummy;
 
+import java.io.File;
 import java.sql.Connection;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectUtilities;
 import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -62,5 +65,17 @@ public class DummyConditionsObjectCollectionTest extends TestCase {
         // Delete all objects.
         System.out.println("deleting objects from collection " + collection.getCollectionId());
         collection.delete();
+    }
+
+    public void testCsv() throws Exception {        
+
+        // Create an object collection.
+        final ConditionsObjectCollection<?> collection = ConditionsObjectUtilities.newCollection("dummy");
+        
+        // Load CSV data.
+        collection.loadCsv(new File("dummy.txt"));
+        
+        System.out.println("loaded dummy collection ...");
+        System.out.println(collection.toString());
     }
 }

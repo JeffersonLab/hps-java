@@ -7,8 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +20,7 @@ import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.ConditionsObjectUtilities;
 import org.hps.conditions.api.DatabaseObjectException;
 import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -72,27 +73,6 @@ final class LoadCommand extends AbstractCommand {
      */
     LoadCommand() {
         super("load", "Create a new conditions collection in the database from an input text file", OPTIONS);
-    }
-
-    /**
-     * Convert from a raw string into a specific type.
-     *
-     * @param type the target type
-     * @param value the raw value
-     * @return the value converter to the given type
-     */
-    Object convertValue(final Class<?> type, final String value) {
-        if (Integer.class.equals(type)) {
-            return Integer.parseInt(value);
-        } else if (Double.class.equals(type)) {
-            return Double.parseDouble(value);
-        } else if (Float.class.equals(type)) {
-            return Float.parseFloat(value);
-        } else if (Boolean.class.equals(type)) {
-            return Boolean.parseBoolean(value);
-        } else {
-            return value;
-        }
     }
 
     /**
@@ -205,7 +185,7 @@ final class LoadCommand extends AbstractCommand {
             final Class<? extends ConditionsObject> objectClass = tableMetaData.getObjectClass();
 
             // Get the field names from the table info.
-            final List<String> fieldNames = new ArrayList<String>(Arrays.asList(tableMetaData.getFieldNames()));
+            final Set<String> fieldNames = tableMetaData.getFieldNames();
             fieldNames.remove("collection_id");
 
             // Check that the column names which were read in from the header row are valid.
@@ -259,7 +239,7 @@ final class LoadCommand extends AbstractCommand {
                     LOGGER.info("value: " + value);
 
                     // Convert the value to a specific type and set the value on the object.
-                    object.setFieldValue(columnNames.get(i), this.convertValue(columnType, value));
+                    object.setFieldValue(columnNames.get(i), ConditionsObjectUtilities.convertValue(columnType, value));
 
                     // Add the object to the collection.
                     LOGGER.info("adding conditions object: " + object);

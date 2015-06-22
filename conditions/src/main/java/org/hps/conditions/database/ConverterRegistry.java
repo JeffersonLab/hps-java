@@ -9,7 +9,7 @@ import javassist.Modifier;
 import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
-import org.hps.conditions.api.ConditionsObjectUtilities;
+import org.hps.conditions.api.TableRegistry;
 import org.reflections.Reflections;
 
 /**
@@ -58,8 +58,7 @@ public final class ConverterRegistry extends
                 }
             }
 
-            final Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>> collectionType = ConditionsObjectUtilities
-                    .getCollectionType(objectType);
+            final Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>> collectionType = TableRegistry.getCollectionType(objectType);
 
             AbstractConditionsObjectConverter converter = null;
             if (converterClass == null) {

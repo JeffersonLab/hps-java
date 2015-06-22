@@ -326,9 +326,10 @@ public class BaseConditionsObject implements ConditionsObject {
             resultSet = statement.executeQuery(sql);
             selected = resultSet.next();
             if (selected) {
-                for (int columnIndex = 1; columnIndex <= this.tableMetaData.getFieldNames().length; columnIndex++) {
-                    this.setFieldValue(this.tableMetaData.getFieldNames()[columnIndex - 1],
-                            resultSet.getObject(columnIndex));
+                int columnIndex = 1;
+                for (String fieldName : this.tableMetaData.getFieldNames()) {
+                    this.setFieldValue(fieldName, resultSet.getObject(columnIndex));
+                    ++columnIndex;
                 }
             }
         } finally {

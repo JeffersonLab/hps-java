@@ -1,5 +1,8 @@
 package org.hps.conditions.api;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Comparator;
 
 /**
@@ -49,6 +52,16 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
      * @return the collection ID
      */
     int getCollectionId();
+
+    /**
+     * Load collection from a CSV file.
+     *
+     * @param file the input CSV file
+     * @throws IOException if there is an error closing the reader
+     * @throws FileNotFoundException if the input file does not exist
+     * @throws ConditionsObjectException if there is an error creating a conditions object
+     */
+    void loadCsv(File file) throws IOException, FileNotFoundException, ConditionsObjectException;
 
     /**
      * Set the collection ID.

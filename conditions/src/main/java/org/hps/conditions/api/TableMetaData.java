@@ -127,12 +127,12 @@ public final class TableMetaData {
     }
 
     /**
-     * Get the names of the fields. Types are implied from the database tables.
+     * Get the field names.
      *
-     * @return the names of the fields
+     * @return the set of field names
      */
-    public String[] getFieldNames() {
-        return this.fieldNames.toArray(new String[] {});
+    public Set<String> getFieldNames() {
+        return this.fieldNames;
     }
 
     /**
@@ -229,5 +229,37 @@ public final class TableMetaData {
         buff.setLength(buff.length() - 1);
         buff.append('\n');
         return buff.toString();
+    }
+    
+    /**
+     * Create a new collection instance from the table meta data's collection type.
+     * 
+     * @return the new object collection
+     * @throws ConditionsObjectException if there is an error creating a new collection
+     */
+    ConditionsObjectCollection<?> newCollection() throws ConditionsObjectException {
+        try {
+            ConditionsObjectCollection<?> collection = this.getCollectionClass().newInstance();
+            collection.setTableMetaData(this);
+            return collection;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ConditionsObjectException("Error creating new conditions object collection.", e);
+        }
+    }
+    
+    /**
+     * Create a new object instance from the table meta data's object type.
+     * 
+     * @return the new conditions object
+     * @throws ConditionsObjectException if there is an error creating a new object
+     */
+    ConditionsObject newObject() throws ConditionsObjectException  {
+        try {
+            ConditionsObject object = this.getObjectClass().newInstance();
+            object.setTableMetaData(this);
+            return object;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ConditionsObjectException("Error creating new conditions object collection.", e);
+        }        
     }
 }

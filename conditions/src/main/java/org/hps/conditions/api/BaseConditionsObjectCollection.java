@@ -1,5 +1,9 @@
 package org.hps.conditions.api;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,7 +15,12 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 /**
  * Implementation of the {@link ConditionsObjectCollection} interface.
@@ -326,7 +335,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
         }
         sb.setLength(sb.length() - 2);
         sb.append(") VALUES (");
-        for (int fieldIndex = 0; fieldIndex < this.getTableMetaData().getFieldNames().length; fieldIndex++) {
+        for (String fieldName : this.getTableMetaData().getFieldNames()) {
             sb.append("?, ");
         }
         sb.setLength(sb.length() - 2);
@@ -335,10 +344,11 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
         try {
             insertObjects = this.connection.prepareStatement(updateStatement, Statement.RETURN_GENERATED_KEYS);
             for (final ObjectType object : this) {
-                for (int fieldIndex = 0; fieldIndex < this.getTableMetaData().getFieldNames().length; fieldIndex++) {
-                    final String fieldName = this.getTableMetaData().getFieldNames()[fieldIndex];
-                    insertObjects.setObject(fieldIndex + 1,
+                int fieldIndex = 1;
+                for (String fieldName : this.getTableMetaData().getFieldNames()) {
+                    insertObjects.setObject(fieldIndex,
                             object.getFieldValue(this.getTableMetaData().getFieldType(fieldName), fieldName));
+                    fieldIndex++;
                 }
                 insertObjects.executeUpdate();
                 final ResultSet resultSet = insertObjects.getGeneratedKeys();
@@ -406,6 +416,84 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     }
 
     /**
+     * Load data from a CSV file.
+     *
+     * @param file the CSV file
+     */
+    @Override
+    public void loadCsv(final File file) throws IOException, FileNotFoundException, ConditionsObjectException {
+
+        // Clear the objects from the collection.
+        this.objects.clear();
+        
+        // Unset the collection ID.
+        this.collectionId = BaseConditionsObject.UNSET_COLLECTION_ID;
+                
+        // Check if the table info exists.
+        if (this.getTableMetaData() == null) {
+            // Table name is invalid.
+            throw new RuntimeException("The table meta data is not set.");
+        }
+
+        // Read in the CSV records.
+        final FileReader reader = new FileReader(file);
+        final CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withHeader());
+        final List<CSVRecord> records = parser.getRecords();
+
+        // Get the database field names from the table info.
+        final Set<String> fields = this.getTableMetaData().getFieldNames();
+
+        // Get the text file column headers from the parser.
+        final Map<String, Integer> headerMap = parser.getHeaderMap();
+        
+        // Get the headers that were read in from CSV.
+        final Set<String> headers = headerMap.keySet();
+        
+        // Make sure the headers are actually valid column names in the database.
+        for (final String header : headerMap.keySet()) {
+            if (!fields.contains(header)) {
+                // The field name does not match a table column.
+                throw new RuntimeException("Header " + header + " from CSV is not a column in the "
+                        + this.getTableMetaData().getTableName() + " table.");
+            }
+        }
+
+        // Get the class of the objects contained in this collection.
+        final Class<? extends ConditionsObject> objectClass = this.getTableMetaData().getObjectClass();
+
+        // Iterate over the CSV records.
+        for (final CSVRecord record : records) {
+            
+            // Create a new conditions object.
+            final ObjectType object;
+            try {
+                // Create a new conditions object and cast to correct type for adding to collection.
+                object = (ObjectType) objectClass.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException("Error creating conditions object.", e);
+            }
+            
+            // Set the field values on the object.
+            for (final String header : headers) {
+                // Set the value of a field in the object based on the header name, converting to the correct type.
+                object.setFieldValue(
+                        header,
+                        ConditionsObjectUtilities.convertValue(this.getTableMetaData().getFieldType(header), record.get(header)));
+            }
+            
+            // Add the object to the collection.
+            this.add(object);
+        }
+        
+        // Close the CSV parser and reader.
+        parser.close();
+        reader.close();
+        
+        // Flag collection as dirty (since it is read from text it is not explicitly in the database).
+        this.isDirty = true;
+    }
+
+    /**
      * Select objects into this collection by their collection ID in the database.
      *
      * @return <code>true</code> if at least one object was selected
@@ -434,9 +522,10 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
                     newObject.setTableMetaData(this.tableMetaData);
                     final int id = resultSet.getInt(1);
                     ((BaseConditionsObject) newObject).setRowId(id);
-                    for (int fieldIndex = 0; fieldIndex < this.tableMetaData.getFieldNames().length; fieldIndex++) {
-                        final String fieldName = this.tableMetaData.getFieldNames()[fieldIndex];
-                        newObject.setFieldValue(fieldName, resultSet.getObject(fieldIndex + 2));
+                    int fieldIndex = 2;
+                    for (String fieldName : this.tableMetaData.getFieldNames()) {
+                        newObject.setFieldValue(fieldName, resultSet.getObject(fieldIndex));
+                        ++fieldIndex;
                     }
                     try {
                         this.add(newObject);
@@ -584,5 +673,19 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
             }
         }
         return updated;
+    }
+    
+    /**
+     * Convert object to string.
+     * 
+     * @return this object converted to a string
+     */
+    public String toString() {
+        StringBuffer buff = new StringBuffer();
+        for (ConditionsObject object : this.getObjects()) {
+            buff.append(object);
+            buff.append('\n');
+        }
+        return buff.toString();
     }
 }

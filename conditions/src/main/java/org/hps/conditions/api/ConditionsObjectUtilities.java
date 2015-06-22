@@ -1,15 +1,10 @@
 package org.hps.conditions.api;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-import javassist.Modifier;
-
-import org.hps.conditions.database.Field;
-import org.hps.conditions.database.Table;
-import org.reflections.Reflections;
+import org.hps.conditions.database.DatabaseConditionsManager;
 
 /**
  * This is a collection of utility methods for {@link ConditionsObject}.
@@ -17,94 +12,72 @@ import org.reflections.Reflections;
  * @author Jeremy McCormick, SLAC
  */
 public final class ConditionsObjectUtilities {
+    
+    /**
+     * Static instance of conditions manager.
+     */
+    private static final DatabaseConditionsManager MANAGER = DatabaseConditionsManager.getInstance();
 
     /**
-     * Find all available classes that extend ConditionsObject.
-     *
-     * @return The set of all available classes that extend ConditionsObject.
+     * Default input date format from text data.
      */
-    public static Set<Class<? extends ConditionsObject>> findConditionsObjectTypes() {
-        final Reflections reflections = new Reflections("org.hps.conditions");
-        final Set<Class<? extends ConditionsObject>> objectTypes = new HashSet<Class<? extends ConditionsObject>>();
-        for (final Class<? extends ConditionsObject> objectType : reflections.getSubTypesOf(ConditionsObject.class)) {
-            if (Modifier.isAbstract(objectType.getModifiers())) {
-                continue;
+    private static final SimpleDateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    
+    /**
+     * Convert from a raw string into a specific type.
+     *
+     * @param type the target type
+     * @param value the raw value
+     * @return the value converter to the given type
+     */
+    public static Object convertValue(final Class<?> type, final String value) throws ConditionsObjectException {
+        if (Integer.class.equals(type)) {
+            return Integer.parseInt(value);
+        } else if (Double.class.equals(type)) {
+            return Double.parseDouble(value);
+        } else if (Float.class.equals(type)) {
+            return Float.parseFloat(value);
+        } else if (Boolean.class.equals(type)) {
+            return Boolean.parseBoolean(value);
+        } else if (Date.class.equals(type)) {
+            try {
+                return DEFAULT_DATE_FORMAT.parse(value);
+            } catch (ParseException e) {
+                throw new ConditionsObjectException("Error parsing date.", e);
             }
-            if (objectType.getAnnotation(Table.class) == null) {
-                continue;
-            }
-            objectTypes.add(objectType);
-        }
-        return objectTypes;
-    }
-
-    /**
-     * Get the class for the collection of the ConditionsObject type.
-     *
-     * @param type the class of the ConditionsObject
-     * @return the class of the collection
-     */
-    @SuppressWarnings("unchecked")
-    public static Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>> getCollectionType(
-            final Class<? extends ConditionsObject> type) {
-        final String collectionClassName = type.getCanonicalName() + "$" + type.getSimpleName() + "Collection";
-        Class<?> rawCollectionClass;
-        try {
-            rawCollectionClass = Class.forName(collectionClassName);
-        } catch (final ClassNotFoundException e) {
-            throw new RuntimeException("The type does not define a nested collection class.", e);
-        }
-        if (!BaseConditionsObjectCollection.class.isAssignableFrom(rawCollectionClass)) {
-            throw new RuntimeException("The class " + rawCollectionClass.getSimpleName()
-                    + " does not extend ConditionsObjectCollection.");
-        }
-        return (Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>>) rawCollectionClass;
-    }
-
-    /**
-     * Get the list of database field names for the class.
-     *
-     * @param type the class
-     * @return the list of field names
-     */
-    public static Set<String> getFieldNames(final Class<? extends ConditionsObject> type) {
-        final Set<String> fieldNames = new HashSet<String>();
-        for (final Method method : type.getMethods()) {
-            if (!method.getReturnType().equals(Void.TYPE)) {
-                for (final Annotation annotation : method.getAnnotations()) {
-                    if (annotation.annotationType().equals(Field.class)) {
-                        if (!Modifier.isPublic(method.getModifiers())) {
-                            throw new RuntimeException("The method " + type.getName() + "." + method.getName()
-                                    + " has a Field annotation, but it is not public.");
-                        }
-                        final Field field = (Field) annotation;
-                        for (final String fieldName : field.names()) {
-                            if (fieldName != null && !"".equals(fieldName)) {
-                                fieldNames.add(fieldName);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return fieldNames;
-    }
-
-    /**
-     * Get the list of table names for the class.
-     *
-     * @param type the class
-     * @return the list of table names
-     */
-    public static String[] getTableNames(final Class<? extends ConditionsObject> type) {
-        final Table tableAnnotation = type.getAnnotation(Table.class);
-        if (tableAnnotation != null) {
-            return tableAnnotation.names();
         } else {
-            return new String[] {};
+            return value;
         }
     }
-
+                
+    /**
+     * Create a new conditions collection from the table name.
+     * 
+     * @param tableName the name of the table
+     * @return the new conditions collection
+     * @throws ConditionsObjectException if there is an error creating the collection
+     */
+    public static ConditionsObjectCollection<?> newCollection(String tableName) throws ConditionsObjectException {
+        TableMetaData tableInfo = TableRegistry.getTableRegistry().findByTableName(tableName);
+        ConditionsObjectCollection<?> collection = tableInfo.newCollection();
+        collection.setConnection(MANAGER.getConnection());
+        return collection; 
+    }
+    
+    /**
+     * Create a new conditions object from the table name.
+     * 
+     * @param tableName the name of the table
+     * @return the new conditions object
+     * @throws ConditionsObjectException if there is an error creating the object
+     */
+    public static ConditionsObject newObject(String tableName) throws ConditionsObjectException {
+        TableMetaData tableInfo = TableRegistry.getTableRegistry().findByTableName(tableName);
+        ConditionsObject object = tableInfo.newObject();
+        object.setConnection(MANAGER.getConnection());
+        return object;
+    }
+    
     /**
      * Do not allow class to be instantiated.
      */
