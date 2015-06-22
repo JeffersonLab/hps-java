@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -169,6 +170,9 @@ public class SvtBiasConditionsLoader {
     }
     
     
+    
+    
+    
     /**
      * Load SVT HV bias constants into the conditions database.
      * 
@@ -190,16 +194,19 @@ public class SvtBiasConditionsLoader {
             throw new RuntimeException("Cannot parse.", e);
         }
         
-       
+        if(!cl.hasOption("c") || !cl.hasOption("m")) {
+            printUsage(options);
+            return;
+        }
         
- 
+        
+        
         // Setup plots
         setupPlots(cl.hasOption("s")?true:false);
 
         
         // Load in CSV records from the exported run spreadsheet.
         final String path = cl.getOptionValue("c");
-        logger.info(path);
         
         RunMap runmap = getRunMapFromSpreadSheet(path);
         
@@ -247,6 +254,12 @@ public class SvtBiasConditionsLoader {
     }
     
     
+
+    private static void printUsage(Options options) {
+       HelpFormatter formatter  = new HelpFormatter();
+       formatter.printHelp("Need to adhere to these options", options);
+        
+    }
 
     private final static SvtBiasConstantCollection findCollection(final List<SvtBiasConstantCollection> list, Date date) {
         for( SvtBiasConstantCollection collection : list) {

@@ -162,7 +162,7 @@ public final class RunSpreadsheet {
 
     
     private static Date parseStartDate(CSVRecord record) throws ParseException {
-        System.out.printf("Start date result of parsing %s %s is %s since epoch %d  \n",record.get("date"), record.get("start_time"),DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time")).toString(), DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time")).getTime() );
+        //System.out.printf("Start date result of parsing %s %s is %s since epoch %d  \n",record.get("date"), record.get("start_time"),DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time")).toString(), DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time")).getTime() );
         return DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time"));
     }
     

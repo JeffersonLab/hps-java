@@ -141,14 +141,14 @@ public class SvtBiasMyaDumpReader {
             
             if( e.getValue() > BIASVALUEON) {
                 if (range==null) {
-                    logger.info("BIAS ON: " + e.toString());
+                    logger.fine("BIAS ON: " + e.toString());
                     range = new SvtBiasMyaRange();
                     range.setStart(e);
                 } 
             } else {
                 //close it
                 if (range!=null) {
-                    logger.info("BIAS TURNED OFF: " + e.toString());
+                    logger.fine("BIAS TURNED OFF: " + e.toString());
                     range.setEnd(e);
                     this.biasRanges.add(range);
                     range = null;
