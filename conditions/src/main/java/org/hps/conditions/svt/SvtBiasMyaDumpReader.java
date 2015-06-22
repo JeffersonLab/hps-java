@@ -36,7 +36,7 @@ public class SvtBiasMyaDumpReader {
     
     private static final SimpleDateFormat DATE_FORMAT = new RunSpreadsheet.AnotherSimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     //private static final TimeZone timeZone = TimeZone.getTimeZone("EST");
-    private static final double BIASVALUEON = 178.0;
+    public static final double BIASVALUEON = 178.0;
     private List<SvtBiasMyaEntry> myaEntries = new ArrayList<SvtBiasMyaEntry>();
     private SvtBiasMyaRanges biasRanges = new SvtBiasMyaRanges();
     

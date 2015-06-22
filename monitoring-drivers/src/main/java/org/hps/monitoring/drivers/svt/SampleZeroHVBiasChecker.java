@@ -23,6 +23,7 @@ import org.hps.conditions.svt.SvtBiasMyaDumpReader;
 import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasRunRange;
 import org.hps.recon.ecal.triggerbank.AbstractIntData;
 import org.hps.recon.ecal.triggerbank.HeadBankData;
+import org.hps.record.epics.EpicsData;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -74,6 +75,12 @@ public class SampleZeroHVBiasChecker extends Driver {
     private int eventCountHvOff = 0;
     private String runSpreadSheetPath;
     private String myaDumpPath; 
+    private double epicsBiasValue = -1; 
+    private boolean hvOnEpics = false;
+    private boolean hvOn = false;
+    private EpicsData epicsData = null;
+    private int eventCountEpicsDisagree = 0;
+
     
 
     public void setMyaDumpPath(String myaDumpPath) {
@@ -181,12 +188,37 @@ public class SampleZeroHVBiasChecker extends Driver {
     public void process(EventHeader event) {
         
         
+        // Read EPICS data if available
+        epicsData = EpicsData.read(event);
+        
+        if(epicsData!=null) {
+            logger.info(epicsData.toString());
+            if(epicsData.getUsedNames().contains("SVT:bias:top:0:v_sens")) {
+                
+                epicsBiasValue = epicsData.getValue("SVT:bias:top:0:v_sens");
+                logger.info("epicsBiasValue = " + Double.toString(epicsBiasValue));
+                
+                if(epicsBiasValue>SvtBiasMyaDumpReader.BIASVALUEON) {
+                    hvOnEpics = true;
+                }
+                
+            }
+        } else {
+            logger.fine("no epics information in this event");
+        }
+        
+        
+        
+        // Read the timestamp for the event
+        // It comes in on block level so not every event has it, use the latest one throughout a block
         
         Date newEventDate = getEventTimeStamp(event);
         if(newEventDate!=null) {
             eventDate = newEventDate;
         }
-
+        
+        // only do this analysis where there is a date availabe.
+        
         if(eventDate!=null) {
 
             eventCount++;
@@ -198,10 +230,20 @@ public class SampleZeroHVBiasChecker extends Driver {
                     }
                 }
             }
-            boolean hvOn = runRange.getRanges().includes(eventDate);
-            if(!hvOn) {
-                logger.info("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn?"YES":"NO"));
+            
+            hvOn = runRange.getRanges().includes(eventDate);
+            
+            // print the cases where epics and run range do not agree
+            if(hvOn!=hvOnEpics && epicsBiasValue>0.) {
+                logger.warning("hvOn is " + (hvOn?"ON":"OFF") + " hvOnEpics " + (hvOnEpics?"ON":"OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn?"YES":"NO") + " hvOnEpics " + (hvOnEpics?"YES":"NO"));
                 pWriter.println("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn?"YES":"NO"));
+                eventCountEpicsDisagree++;
+            }
+            
+            // print the cases where the HV is OFF
+            if(!hvOn) {
+                logger.info("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn?"YES":"NO")+ " hvOnEpics " + (hvOnEpics?"YES":"NO"));
+                pWriter.println("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn?"YES":"NO")+ " hvOnEpics " + (hvOnEpics?"YES":"NO"));
                 eventCountHvOff++;
             }
             if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
@@ -238,8 +280,8 @@ public class SampleZeroHVBiasChecker extends Driver {
     @Override
     public void endOfData() {
         
-        logger.info("eventCount " + Integer.toString(eventCount) + " eventCountHvOff " + Integer.toString(eventCountHvOff));
-        pWriter.println("eventCount " + Integer.toString(eventCount) + " eventCountHvOff " + Integer.toString(eventCountHvOff));
+        logger.info("eventCount " + Integer.toString(eventCount) + " eventCountHvOff " + Integer.toString(eventCountHvOff) + " eventCountEpicsDisagree " + Integer.toString(eventCountEpicsDisagree));
+        pWriter.println("eventCount " + Integer.toString(eventCount) + " eventCountHvOff " + Integer.toString(eventCountHvOff) + " eventCountEpicsDisagree " + Integer.toString(eventCountEpicsDisagree));
         
         try {
             pWriter.close();
