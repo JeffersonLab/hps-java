@@ -9,17 +9,14 @@ import hep.aida.IHistogram2D;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
+import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.LCRelation;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
-import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 
 /**
@@ -31,8 +28,6 @@ import org.lcsim.geometry.Detector;
  */
 public class TridentMonitoring extends DataQualityMonitor {
 
-    private final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
-    private final String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private double ebeam = 1.05;
     String finalStateParticlesColName = "FinalStateParticles";
     String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
@@ -41,8 +36,7 @@ public class TridentMonitoring extends DataQualityMonitor {
     String trackListName = "MatchedTracks";
     String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
 
-    boolean debug = false;
-    private String plotDir = "TridentMonitoring/";
+    private final String plotDir = "TridentMonitoring/";
     IHistogram2D trackTime2D;
     IHistogram1D trackTimeDiff;
     IHistogram2D vertexMassMomentum;
@@ -96,6 +90,10 @@ public class TridentMonitoring extends DataQualityMonitor {
 
     int nPassClusterCuts = 0;
 
+    public void setEbeam(double ebeam) {
+        this.ebeam = ebeam;
+    }
+
     @Override
     protected void detectorChanged(Detector detector) {
         System.out.println("TridentMonitoring::detectorChanged  Setting up the plotter");
@@ -136,46 +134,47 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     public void process(EventHeader event) {
         /*  make sure everything is there */
-        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
-        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName))
+        }
+        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
             return;
-        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName))
+        }
+        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName)) {
             return;
-        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName))
+        }
+        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName)) {
             return;
-        if (!event.hasCollection(Track.class, trackListName))
+        }
+        if (!event.hasCollection(Track.class, trackListName)) {
             return;
+        }
 
         //check to see if this event is from the correct trigger (or "all");
-        if (!matchTrigger(event))
+        if (!matchTrigger(event)) {
             return;
+        }
 
         nRecoEvents++;
 
-        RelationalTable hittostrip = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-        List<LCRelation> hitrelations = event.get(LCRelation.class, helicalTrackHitRelationsCollectionName);
-        for (LCRelation relation : hitrelations)
-            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
-                hittostrip.add(relation.getFrom(), relation.getTo());
-
-        RelationalTable hittorotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
-        List<LCRelation> rotaterelations = event.get(LCRelation.class, rotatedHelicalTrackHitRelationsCollectionName);
-        for (LCRelation relation : rotaterelations)
-            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
-                hittorotated.add(relation.getFrom(), relation.getTo());
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
         List<Track> trks = event.get(Track.class, trackListName);
         int ntracks = trks.size();
-        if (ntracks > nTrkMax || ntracks < 2)
+        if (ntracks > nTrkMax || ntracks < 2) {
             return;
+        }
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         int npos = 0;
-        for (ReconstructedParticle fsp : fspList)
-            if (fsp.getCharge() > 0)
+        for (ReconstructedParticle fsp : fspList) {
+            if (fsp.getCharge() > 0) {
                 npos++;
-        if (npos < 1 || npos > nPosMax)
+            }
+        }
+        if (npos < 1 || npos > nPosMax) {
             return;
+        }
 
         nPassBasicCuts++;//passed some basic event-level cuts...
 
@@ -185,47 +184,49 @@ public class TridentMonitoring extends DataQualityMonitor {
 //  v0 & vertex-quality cuts
 //            Hep3Vector v0Mom = uncV0.getMomentum();
             Hep3Vector v0Mom = VecOp.add(uncV0.getParticles().get(1).getMomentum(), uncV0.getParticles().get(0).getMomentum());
-            if (v0Mom.z() > v0PzMax || v0Mom.z() < v0PzMin)
+            if (v0Mom.z() > v0PzMax || v0Mom.z() < v0PzMin) {
                 break;
-            if (Math.abs(v0Mom.y()) > v0PyMax)
+            }
+            if (Math.abs(v0Mom.y()) > v0PyMax) {
                 break;
-            if (Math.abs(v0Mom.x()) > v0PxMax)
+            }
+            if (Math.abs(v0Mom.x()) > v0PxMax) {
                 break;
+            }
             Hep3Vector v0Vtx = uncVert.getPosition();
-            if (Math.abs(v0Vtx.z()) > v0VzMax)
+            if (Math.abs(v0Vtx.z()) > v0VzMax) {
                 break;
-            if (Math.abs(v0Vtx.y()) > v0VyMax)
+            }
+            if (Math.abs(v0Vtx.y()) > v0VyMax) {
                 break;
-            if (Math.abs(v0Vtx.x()) > v0VxMax)
+            }
+            if (Math.abs(v0Vtx.x()) > v0VxMax) {
                 break;
+            }
 
             List<Track> tracks = new ArrayList<Track>();
             ReconstructedParticle electron = null, positron = null;
-            for (ReconstructedParticle particle : uncV0.getParticles())
-//                tracks.addAll(particle.getTracks());  //add add electron first, then positron...down below
-                if (particle.getCharge() > 0)
+            for (ReconstructedParticle particle : uncV0.getParticles()) //                tracks.addAll(particle.getTracks());  //add add electron first, then positron...down below
+            {
+                if (particle.getCharge() > 0) {
                     positron = particle;
-                else if (particle.getCharge() < 0)
+                } else if (particle.getCharge() < 0) {
                     electron = particle;
-                else
+                } else {
                     throw new RuntimeException("expected only electron and positron in vertex, got something with charge 0");
+                }
+            }
+            if (electron == null || positron == null) {
+                throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
+            }
             tracks.add(electron.getTracks().get(0));
             tracks.add(positron.getTracks().get(0));
-            if (tracks.size() != 2)
+            if (tracks.size() != 2) {
                 throw new RuntimeException("expected two tracks in vertex, got " + tracks.size());
+            }
             List<Double> trackTimes = new ArrayList<Double>();
             for (Track track : tracks) {
-                int nStrips = 0;
-                double meanTime = 0;
-                for (TrackerHit hit : track.getTrackerHits()) {
-                    Collection<TrackerHit> htsList = hittostrip.allFrom(hittorotated.from(hit));
-                    for (TrackerHit hts : htsList) {
-                        nStrips++;
-                        meanTime += hts.getTime();
-                    }
-                }
-                meanTime /= nStrips;
-                trackTimes.add(meanTime);
+                trackTimes.add(TrackUtils.getTrackTime(track, hitToStrips, hitToRotated));
             }
             trackTime2D.fill(trackTimes.get(0), trackTimes.get(1));
             trackTimeDiff.fill(trackTimes.get(0) - trackTimes.get(1));
@@ -258,8 +259,9 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMData() {
         System.out.println("TridentMonitoring::printDQMData");
-        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet())
+        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
             System.out.println(entry.getKey() + " = " + entry.getValue());
+        }
         System.out.println("*******************************");
     }
 
@@ -278,8 +280,9 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMStrings() {
         for (int i = 0; i < 9; i++)//TODO:  do this in a smarter way...loop over the map
-
+        {
             System.out.println("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
+        }
     }
 
     IFitResult fitVertexPosition(IHistogram1D h1d, IFitter fitter, double[] init, String range) {

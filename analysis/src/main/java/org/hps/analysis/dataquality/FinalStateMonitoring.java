@@ -84,10 +84,11 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     IHistogram1D eneOverp;
     IHistogram1D deltaXAtCal;
     IHistogram1D deltaYAtCal;
-    //IHistogram2D trackXvsECalX = aida.histogram2D(plotDir + finalStateParticlesColName + "/" + triggerType+ "/" + "track X vs ECal X", 50, -300, 300.0, 50, -300, 300.0);
-    //IHistogram2D trackYvsECalY = aida.histogram2D(plotDir + finalStateParticlesColName + "/" + triggerType+ "/" + "track Y vs ECal Y", 50, -100, 100.0, 50, -100, 100.0);
+//    IHistogram2D trackXvsECalX;
+//    IHistogram2D trackYvsECalY;
     IHistogram2D trackPvsECalE;
     IHistogram2D trackTvsECalT;
+    IHistogram1D timeMatchDeltaT;
     /* number of unassocaited tracks/event */
     IHistogram1D nUnAssTracksHisto;
 
@@ -127,10 +128,11 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         eneOverp = aida.histogram1D(plotDir + finalStateParticlesColName + "/" + triggerType + "/" + "Cluster Energy Over TrackMomentum", 50, 0, 2.0);
         deltaXAtCal = aida.histogram1D(plotDir + finalStateParticlesColName + "/" + triggerType + "/" + "delta X @ ECal (mm)", 50, -50, 50.0);
         deltaYAtCal = aida.histogram1D(plotDir + finalStateParticlesColName + "/" + triggerType + "/" + "delta Y @ ECal (mm)", 50, -50, 50.0);
-        //IHistogram2D trackXvsECalX = aida.histogram2D(plotDir + finalStateParticlesColName + "/" + triggerType+ "/" + "track X vs ECal X", 50, -300, 300.0, 50, -300, 300.0);
-        //IHistogram2D trackYvsECalY = aida.histogram2D(plotDir + finalStateParticlesColName + "/" + triggerType+ "/" + "track Y vs ECal Y", 50, -100, 100.0, 50, -100, 100.0);
+//        trackXvsECalX = aida.histogram2D(plotDir + finalStateParticlesColName + "/" + triggerType + "/" + "track X vs ECal X", 50, -300, 300.0, 50, -300, 300.0);
+//        trackYvsECalY = aida.histogram2D(plotDir + finalStateParticlesColName + "/" + triggerType + "/" + "track Y vs ECal Y", 50, -100, 100.0, 50, -100, 100.0);
         trackPvsECalE = aida.histogram2D(plotDir + finalStateParticlesColName + "/" + triggerType + "/" + "track mom vs ECal E", 50, 0.1, beamEnergy * maxFactor, 50, 0.1, beamEnergy * maxFactor);
         trackTvsECalT = aida.histogram2D(plotDir + finalStateParticlesColName + "/" + triggerType + "/" + "track T vs ECal T", 200, 0.0, 200.0, 100, -25.0, 25.0);
+        timeMatchDeltaT = aida.histogram1D(plotDir + finalStateParticlesColName + "/" + triggerType + "/" + "ECal T minus track T", 200, -25, 175);
         /* number of unassocaited tracks/event */
         nUnAssTracksHisto = aida.histogram1D(plotDir + finalStateParticlesColName + "/" + triggerType + "/" + "Number of unassociated tracks per event", 5, 0, 5);
     }
@@ -256,10 +258,11 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                 deltaXAtCal.fill(dx);
                 deltaYAtCal.fill(dy);
                 /* here are some plots for debugging track-cluster matching */
-                // aida.histogram2D(plotDir + finalStateParticlesColName + "/" + triggerType+ "/" + "track X vs ECal X").fill(trackPosAtEcal.x(), clusterPosition.x());
-                // aida.histogram2D(plotDir + finalStateParticlesColName + "/" + triggerType+ "/" + "track Y vs ECal Y").fill(trackPosAtEcal.y(), clusterPosition.y());
+//                trackXvsECalX.fill(trackPosAtEcal.x(), clusterPosition.x());
+//                trackYvsECalY.fill(trackPosAtEcal.y(), clusterPosition.y());
                 trackPvsECalE.fill(fsPart.getMomentum().magnitude(), fsPart.getEnergy());
                 trackTvsECalT.fill(ClusterUtilities.getSeedHitTime(fsCluster), TrackUtils.getTrackTime(fsTrack, hitToStrips, hitToRotated));
+                timeMatchDeltaT.fill(ClusterUtilities.getSeedHitTime(fsCluster) - TrackUtils.getTrackTime(fsTrack, hitToStrips, hitToRotated));
                 //          if(dy<-20)
                 //              System.out.println("Big deltaY...")
 
