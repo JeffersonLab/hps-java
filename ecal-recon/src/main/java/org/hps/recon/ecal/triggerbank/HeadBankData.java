@@ -4,7 +4,7 @@ import java.util.Date;
 import org.lcsim.event.GenericObject;
 
 /**
- * 
+ *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class HeadBankData extends AbstractIntData {
@@ -36,8 +36,8 @@ public class HeadBankData extends AbstractIntData {
         return bank[EVENT_NUM];
     }
 
-    public int getUnixTime() {
-        return bank[UNIX_TIME];
+    public long getUnixTime() {
+        return bank[UNIX_TIME] & 0xffffffffL;
     }
 
     public Date getDate() {
@@ -52,8 +52,8 @@ public class HeadBankData extends AbstractIntData {
         return AbstractIntData.getBankInt(object, EVENT_NUM);
     }
 
-    public static int getUnixTime(GenericObject object) {
-        return AbstractIntData.getBankInt(object, UNIX_TIME);
+    public static long getUnixTime(GenericObject object) {
+        return AbstractIntData.getBankInt(object, UNIX_TIME) & 0xffffffffL;
     }
 
     public static Date getDate(GenericObject object) {
