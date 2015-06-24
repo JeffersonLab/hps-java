@@ -50,20 +50,20 @@ public final class Crawler {
      * Statically define the command options.
      */
     static {
-        OPTIONS.addOption("a", "accept-runs", true, "list of run numbers to accept (others will be excluded)");
-        OPTIONS.addOption("b", "begin-date", true, "min date for files (example 2015-03-26 11:28:59)");
-        OPTIONS.addOption("c", "cache-files", false, "automatically cache files from MSS (JLAB only)");
-        OPTIONS.addOption("C", "db-config", true, "database connection properties file (required)");
+        OPTIONS.addOption("a", "runs", true, "list of run numbers to accept (others will be excluded)");
+        OPTIONS.addOption("b", "min-date", true, "min date for files (example 2015-03-26 11:28:59)");
+        OPTIONS.addOption("c", "cache", false, "automatically cache files from MSS (JLAB only)");
+        OPTIONS.addOption("C", "connection-properties", true, "database connection properties file (required)");
         OPTIONS.addOption("d", "directory", true, "root directory to start crawling (default is current dir)");
         OPTIONS.addOption("E", "evio-processor", true, "full class name of an EvioEventProcessor to execute (can be used multiple times)");
         OPTIONS.addOption("h", "help", false, "print help and exit");
         OPTIONS.addOption("m", "max-files", true, "max number of files to process per run (mostly for debugging)");
         OPTIONS.addOption("p", "print", true, "set event printing interval during EVIO processing");
-        OPTIONS.addOption("r", "insert-run-log", false, "update the run database (not done by default)");
+        OPTIONS.addOption("r", "insert", false, "insert information into the run database (not done by default)");
         OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name");
         OPTIONS.addOption("w", "max-cache-wait", true, "total time to allow for file caching (seconds)");
         OPTIONS.addOption("L", "log-level", true, "set the log level (INFO, FINE, etc.)");
-        OPTIONS.addOption("u", "update-run-log", false, "allow overriding existing data in the run db (not allowed by default)");
+        OPTIONS.addOption("u", "update", false, "allow overriding existing data in the run db (not allowed by default)");
     }
 
     /**
