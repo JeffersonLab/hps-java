@@ -2,8 +2,12 @@ package org.hps.record.evio.crawler;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 import org.hps.record.epics.EpicsData;
@@ -11,7 +15,8 @@ import org.hps.record.scalers.ScalerData;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * This class models the run summary information which is persisted as a row in the <i>run_log</i> table of the run database.
+ * This class models the run summary information which is persisted as a row in the <i>run_log</i>
+ * table of the run database.
  * <p>
  * This information includes:
  * <ul>
@@ -26,8 +31,16 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author Jeremy McCormick, SLAC
  */
-final class RunSummary {
+public final class RunSummary {
 
+    /**
+     * Set up date formatting to display EST (GMT-4).
+     */
+    private static final DateFormat DATE_DISPLAY = new SimpleDateFormat();
+    static {
+        DATE_DISPLAY.setCalendar(new GregorianCalendar(TimeZone.getTimeZone("America/New_York")));
+    }
+    
     /**
      * Setup logger.
      */
@@ -63,6 +76,9 @@ final class RunSummary {
      */
     private final int run;
 
+    /**
+     * The scaler data from the last physics event in the run.
+     */
     private ScalerData scalerData;
 
     /**
@@ -103,7 +119,7 @@ final class RunSummary {
      *
      * @return the date when the run ended
      */
-    Date getEndDate() {
+    public Date getEndDate() {
         return this.endDate;
     }
 
@@ -114,7 +130,7 @@ final class RunSummary {
      *
      * @return the EPICS data summary
      */
-    EpicsData getEpicsData() {
+    public EpicsData getEpicsData() {
         return this.epics;
     }
 
@@ -123,7 +139,7 @@ final class RunSummary {
      *
      * @return the counts of different event types
      */
-    Map<Object, Integer> getEventTypeCounts() {
+    public Map<Object, Integer> getEventTypeCounts() {
         return this.eventTypeCounts;
     }
 
@@ -132,20 +148,25 @@ final class RunSummary {
      *
      * @return the list of EVIO files in this run
      */
-    EvioFileList getEvioFileList() {
+    public EvioFileList getEvioFileList() {
         return this.files;
     }
-
+    
     /**
      * Get the run number.
      *
      * @return the run number
      */
-    int getRun() {
+    public int getRun() {
         return this.run;
     }
 
-    ScalerData getScalerData() {
+    /**
+     * Get the scaler data of this run (last event only).
+     * 
+     * @return the scaler data of this run from the last event
+     */
+    public ScalerData getScalerData() {
         return this.scalerData;
     }
 
@@ -154,7 +175,7 @@ final class RunSummary {
      *
      * @return the start date of the run
      */
-    Date getStartDate() {
+    public Date getStartDate() {
         return this.startDate;
     }
 
@@ -163,11 +184,39 @@ final class RunSummary {
      *
      * @return the total events in the run
      */
-    int getTotalEvents() {
+    public int getTotalEvents() {
         if (this.totalEvents == -1) {
             this.totalEvents = this.files.getTotalEvents();
         }
         return this.totalEvents;
+    }
+    
+    /**
+     * Get the number of seconds in the run which is the difference between the start and end times.
+     * 
+     * @return the total seconds in the run
+     */
+    public long getTotalSeconds() {
+        if (this.getStartDate() == null) {
+            throw new RuntimeException("missing start date");
+        }
+        if (this.getEndDate() == null) {
+            throw new RuntimeException("missing end date");
+        }
+        return (getEndDate().getTime() - getStartDate().getTime()) / 1000;
+    }
+    
+    /**
+     * Get the event rate (effectively the trigger rate) which is the total events divided by the number
+     * of seconds in the run.
+     * 
+     * @return the event rate
+     */
+    public double getEventRate() {
+        if (this.getTotalEvents() <= 0) {
+            throw new RuntimeException("Total events is zero or invalid.");
+        }
+        return (double) this.getTotalEvents() / (double) this.getTotalSeconds();
     }
 
     /**
@@ -175,7 +224,7 @@ final class RunSummary {
      *
      * @return <code>true</code> if END event was in the data
      */
-    boolean isEndOkay() {
+    public boolean isEndOkay() {
         return this.endOkay;
     }
 
@@ -184,19 +233,21 @@ final class RunSummary {
      *
      * @param ps the print stream for output
      */
-    void printRunSummary(final PrintStream ps) {
+    public void printRunSummary(final PrintStream ps) {
         ps.println("--------------------------------------------");
         ps.println("run: " + this.run);
         ps.println("first file: " + this.files.first());
         ps.println("last file: " + this.files.last());
-        ps.println("started: " + this.getStartDate());
-        ps.println("ended: " + this.getEndDate());
+        ps.println("started: " + DATE_DISPLAY.format(this.getStartDate()));
+        ps.println("ended: " + DATE_DISPLAY.format(this.getEndDate()));
         ps.println("total events: " + this.getTotalEvents());
+        ps.println("end OK: " + this.isEndOkay());
+        ps.println("event rate: " + this.getEventRate());
         ps.println("event types");
         for (final Object key : this.eventTypeCounts.keySet()) {
             ps.println("  " + key + ": " + this.eventTypeCounts.get(key));
         }
-        ps.println("files " + this.files.size());
+        ps.println(this.files.size() + " files");
         for (final File file : this.files) {
             ps.println("  " + file.getPath());
         }
@@ -258,6 +309,11 @@ final class RunSummary {
         this.files.sort();
     }
 
+    /**
+     * Convert this object to a string.
+     * 
+     * @return this object converted to a string
+     */
     @Override
     public String toString() {
         return "RunSummary { run: " + this.run + ", started: " + this.getStartDate() + ", ended: " + this.getEndDate() + ", events: "
