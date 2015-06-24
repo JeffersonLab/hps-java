@@ -11,6 +11,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.jdom.Element;
 import org.lcsim.detector.Translation3D;
+import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.SvtBox;
 import org.lcsim.geometry.util.TransformationUtils;
 
 /**
@@ -101,33 +102,60 @@ public abstract class SurveyVolume {
                 
                 if(HPSTrackerBuilder.isModule(name)) {
 
-                    if(debug) System.out.printf("%s: treating it as a module\n", this.getClass().getSimpleName());
+                    if(HPSTrackerBuilder.isTopFromName(name)) {
+                        
+                        if(debug) System.out.printf("%s: treating it as a top module\n", this.getClass().getSimpleName());
+                        
+                        // The U-channel coordinate system is flipped 90deg clockwise around survey x-axis
+                        
+                        Rotation rotation1 = new Rotation(new Vector3D(1, 0, 0),-Math.PI/2.0);
+                        surveyResult.rotateOrigin(rotation1);
+                        surveyResult.rotateUnitVectors(rotation1);
+                        
+                        if(debug) System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                        
+                        // The unit vectors of the survey module coordinate system (pin bases) are different:
+                        // survey x-axis is module v-axis
+                        // survey y-axis is module -1*u-axis
+                        // survey z-axis is module w-axis
 
-                    Rotation rotation1 = new Rotation(new Vector3D(1, 0, 0), Math.PI/2.0);
-                    Rotation rotation2 = new Rotation(new Vector3D(0, 0, 1), Math.PI);
-                    Rotation rotation = rotation2.applyTo(rotation1);
-                    surveyResult.rotateOrigin(rotation);
-                    surveyResult.rotateUnitVectors(rotation);
-
-                    if(debug) System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                        Hep3Vector y = new BasicHep3Vector(surveyResult.getX().v());
+                        Hep3Vector x = new BasicHep3Vector(VecOp.mult(-1, surveyResult.getY()).v());
+                        surveyResult.setX(x);
+                        surveyResult.setY(y);
+                        
+                    }
+                    else {
                     
-                    Hep3Vector x = new BasicHep3Vector( VecOp.mult(-1, surveyResult.getY()).v());
-                    Hep3Vector y = new BasicHep3Vector( surveyResult.getX().v() );
-                    surveyResult.setX(x);
-                    surveyResult.setY(y);
-                    
-//                    Rotation rotation3 = new Rotation(new Vector3D(1, 0, 0), Math.PI/2.0);
-//                    Rotation rotation4 = new Rotation(new Vector3D(0, 0, 1), -Math.PI/2.0);
-//                    Rotation rotation5 = rotation4.applyTo(rotation3);
-//                    surveyResult.rotateUnitVectors(rotation5);
-//                    
-                    if(debug) System.out.printf("%s: UPDATE2 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                        if(debug) System.out.printf("%s: treating it as a bottom module\n", this.getClass().getSimpleName());
 
+                        // The survey u-channel coordinate system needs two rotations to correspond to the one used here
+                        Rotation rotation1 = new Rotation(new Vector3D(1, 0, 0), Math.PI/2.0);
+                        Rotation rotation2 = new Rotation(new Vector3D(0, 0, 1), Math.PI);
+                        Rotation rotation = rotation2.applyTo(rotation1);
+                        surveyResult.rotateOrigin(rotation);
+                        surveyResult.rotateUnitVectors(rotation);
+
+                        if(debug) System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                        
+                        // The unit vectors of the survey module coordinate system (pin bases) are different:
+                        // survey x-axis is module v-axis
+                        // survey y-axis is module -1*u-axis
+                        // survey z-axis is module w-axis
+                        
+                        Hep3Vector x = new BasicHep3Vector( VecOp.mult(-1, surveyResult.getY()).v());
+                        Hep3Vector y = new BasicHep3Vector( surveyResult.getX().v() );
+                        surveyResult.setX(x);
+                        surveyResult.setY(y);
+
+                        if(debug) System.out.printf("%s: UPDATE2 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                    }
                    
 
 
                 } else if(HPSTrackerBuilder.isHalfModule(name)) {
 
+                    if(debug) System.out.printf("%s: treating it as a half-module\n", this.getClass().getSimpleName());
 
                     // Adjust origin to the sensor center
                     surveyResult.setOrigin(VecOp.add(surveyResult.getOrigin(), VecOp.mult(-0.160, surveyResult.getZ())));
@@ -142,6 +170,47 @@ public abstract class SurveyVolume {
                     surveyResult.setY(y);
 
                     if(debug) System.out.printf("%s: updated found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                
+                } else if(HPSTrackerBuilder.isUChannelSupport(name)) {
+
+                    if(debug) System.out.printf("%s: treating it as a U-channel\n", this.getClass().getSimpleName());
+                   
+                    // Survey coordinates at upstream end of box need to be translated to the center of the Svt Box used here
+                    surveyResult.setOrigin(VecOp.sub(surveyResult.getOrigin(),new BasicHep3Vector(0, 0, SvtBox.length/2.0)));
+
+                    if(debug) System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                    
+                    // rotate origin into the SVT box coordinates
+                    Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI/2.0);
+                    surveyResult.rotateOrigin(r1);
+                    surveyResult.rotateUnitVectors(r1);
+                    
+                    if(debug) System.out.printf("%s: UPDATE2 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                   
+                    // Swap definition of unit axis to the one used in the U-channels
+                    if(HPSTrackerBuilder.isTopFromName(name)) {
+                     
+                        Hep3Vector y = new BasicHep3Vector( surveyResult.getZ().v() );
+                        Hep3Vector z = new BasicHep3Vector( VecOp.mult(-1, surveyResult.getY()).v() );
+                        surveyResult.setY(y);
+                        surveyResult.setZ(z);
+                    
+                    } else {
+                        
+                        Hep3Vector x = new BasicHep3Vector( VecOp.mult(-1,surveyResult.getX()).v() );
+                        Hep3Vector y = new BasicHep3Vector( surveyResult.getZ().v() );
+                        Hep3Vector z = new BasicHep3Vector( surveyResult.getY().v() );
+                        surveyResult.setX(x);
+                        surveyResult.setY(y);
+                        surveyResult.setZ(z);
+                        
+                    }
+                    
+                    
+                    if(debug) System.out.printf("%s: UPDATE3 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                    
+                    
+                    
                 } else {
                     
                     throw new RuntimeException("I don't think there is a surveyresult defined for this type from " + name);

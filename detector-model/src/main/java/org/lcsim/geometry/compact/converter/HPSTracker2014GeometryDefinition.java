@@ -87,6 +87,10 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         SupportRingL13TopKinMount supportRingKinL13Top = new SupportRingL13TopKinMount("c_support_kin_L13t", svtBox, supTopCorr); 
         surveyVolumes.add(supportRingKinL13Top);
 
+        // Create an alignment correction object for the U-channels -> this is really ugly. FIX THIS!
+        AlignmentCorrection alignmentCorrectionUChannels = new AlignmentCorrection();
+        alignmentCorrectionUChannels.setNode(node);
+        
         
         UChannelL13Top uChannelL13Top = new UChannelL13Top("support_top_L13", svtBox, null, supportRingKinL13Top); 
         surveyVolumes.add(uChannelL13Top);
@@ -94,13 +98,13 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         UChannelL13Plate uChannelL13TopPlate = new UChannelL13TopPlate("support_plate_top_L13", svtBox, null, uChannelL13Top); 
         surveyVolumes.add(uChannelL13TopPlate);
         
-        UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, null);
+        UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, alignmentCorrectionUChannels);
         surveyVolumes.add(uChannelL46Bottom);
         
         UChannelL46Plate uChannelL46BottomPlate = new UChannelL46BottomPlate("support_plate_bottom_L46", svtBox, null, uChannelL46Bottom);
         surveyVolumes.add(uChannelL46BottomPlate);
 
-        UChannelL46 uChannelL46Top = new UChannelL46Top("support_top_L46", svtBox, null);
+        UChannelL46 uChannelL46Top = new UChannelL46Top("support_top_L46", svtBox, alignmentCorrectionUChannels);
         surveyVolumes.add(uChannelL46Top);
         
         UChannelL46Plate uChannelL46TopPlate = new UChannelL46TopPlate("support_plate_top_L46", svtBox, null, uChannelL46Top);
@@ -129,7 +133,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             for(BaseModuleBundle bundle : this.modules) {
                 bundle.print();
             }
-            
         }
         
         
@@ -140,7 +143,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
     
     /**
-     * @SurveyVolume volume defining the pair spectrometer (PS) vacuum chamber
+     * {@link SurveyVolume} volume defining the pair spectrometer (PS) vacuum chamber
      * Reference: tracking volume coordinate system
      * Origin: same as reference
      * Orientation:  u - points in x direction (towards positron side), v - points upstream
@@ -176,7 +179,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     
     /**
-     * @SurveyVolume volume defining the SVT box envelope 
+     * {@link SurveyVolume} volume defining the SVT box envelope 
      * Reference: PS vacuum chamber coordinate system. Note that the PS vacuum chamber box is placed w.r.t. this box and the target positions.
      * Origin: intersection of midplanes vertically and horizontally
      * Orientation: same as reference
@@ -220,8 +223,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     
     /**
-     * @SurveyVolume volume defining the base plate of the SVT box.
-     * Reference: @SvtBox  coordinate system.
+     * {@link SurveyVolume} volume defining the base plate of the SVT box.
+     * Reference: {@link SvtBox}  coordinate system.
      * Origin: surface of base plate intersection with center of hole for adjustment screw on positron side
      * Orientation: same as reference
      * 
@@ -268,7 +271,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     
     /**
-     * @SurveyVolume volume defining the coordinate system of the support ring
+     * {@link SurveyVolume} volume defining the coordinate system of the support ring
      *  Reference: @SvtBoxBasePlate
      *  Origin: pin position of support ring (electron side)
      *  Orientation: slot position is vee position (positron side) i.e u points towards the positron side and v in the upstream beam direction
@@ -315,7 +318,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     
     /**
-     * Abstract @SurveyVolume volume defining a coordinate system from the kinematic mount positions for support channels
+     * Abstract {@link SurveyVolume} volume defining a coordinate system from the kinematic mount positions for support channels
      *  
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
@@ -352,7 +355,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     }
     
     /**
-     * @SurveyVolume volume defining a coordinate system from the kinematic mount positions for support channels
+     * {@link SurveyVolume} volume defining a coordinate system from the kinematic mount positions for support channels
      *  Reference: {@SvtBox} coordinate system
      *  Origin: cone mount (it's on the electron side)
      *  Orientation: ball is cone mount, slot mount is vee position and flat is along beamline pointing upstream
@@ -394,7 +397,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     }
     
     /**
-     * @SurveyVolume volume defining a coordinate system from the kinematic mount positions for support channels
+     * {@link SurveyVolume} volume defining a coordinate system from the kinematic mount positions for support channels
      *  Reference: @SupportRing coordinate system
      *  Origin: cone mount (it's on the electron side)
      *  Orientation: ball is cone mount, slot mount is vee position and flat is along beamline pointing upstream
@@ -436,7 +439,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     
     /**
-     * Abstract @SurveyVolume volume defining the coordinate system of the L1-3 u-channels 
+     * Abstract {@link SurveyVolume} volume defining the coordinate system of the L1-3 u-channels 
      *  
      *  @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
@@ -466,7 +469,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     }
     
     /**
-     * @SurveyVolume volume defining the coordinate system of the bottom L1-3 u-channel 
+     * {@link SurveyVolume} volume defining the coordinate system of the bottom L1-3 u-channel 
      *  Reference: SupportRingL13BottomKinMount coordinate system
      *  Origin: midpoint between upstream survey cones
      *  Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
@@ -526,7 +529,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         protected static final Hep3Vector fwd_right = new BasicHep3Vector(-6.493, 9.353,-.332);
         protected static final Hep3Vector bwd_right = new BasicHep3Vector(-6.253, 1.483, -.332);
         protected static final Hep3Vector fwd_left = new BasicHep3Vector( 2.836, 9.638, -.332);
-        protected static final Hep3Vector bwd_left = new BasicHep3Vector(3.076, 1.767, -.332);
+        //protected static final Hep3Vector bwd_left = new BasicHep3Vector(3.076, 1.767, -.332);
         
         protected static Hep3Vector getVeeOffset() {
             return  VecOp.mult(0.5,VecOp.sub(fwd_right, fwd_left));
@@ -537,41 +540,10 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     }
     
     
-    
-    
-    
-    
-//    public static class UChannelL13Bottom extends UChannelL13 {
-//        private static final double kin_mount_to_edge_of_plate_y = length-15.8*inch;
-//        private final static double cone_to_edge_of_plate_y = 12.25*inch; 
-//        //private final static double cone_to_L1_hole_y = cone_to_edge_of_plate_y - kin_mount_to_edge_of_plate_y; 
-//        public UChannelL13Bottom(String name, SurveyVolume m,
-//                AlignmentCorrection alignmentCorrection,
-//                SurveyVolume ref) {
-//            super(name, m, alignmentCorrection, ref);
-//            init();
-//        }
-//        protected void setCenter() {
-//            final double x = 0.0;
-//            final double y = cone_to_edge_of_plate_y - length/2.0;
-//            final double z = -side_plate_cone_y - UChannelL13Plate.height + height/2.0;
-//            setCenter(x,y,z);
-//        }
-//        protected void setPos() {
-//            final double ball_pos_x = 4*inch;
-//            //final double ball_pos_y = (4.175 + 2*3.937) * inch; 
-//            final double ball_pos_y =  cone_to_edge_of_plate_y - kin_mount_to_edge_of_plate_y;
-//            final double ball_pos_z = -UChannelPlate.dist_from_plate_surface_to_pivot_point + UChannelL13Plate.height + side_plate_cone_y; 
-//            
-//            ballPos = new BasicHep3Vector(ball_pos_x, ball_pos_y, ball_pos_z);
-//            veePos = new BasicHep3Vector(ballPos.x()-1, ballPos.y(), ballPos.z());
-//            flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y()-1, ballPos.z());
-//        }
-//    }
-    
+  
     
     /**
-     * @SurveyVolume volume defining the coordinate system of the top L1-3 u-channel 
+     * {@link SurveyVolume} volume defining the coordinate system of the top L1-3 u-channel 
      *  Reference: SupportRingL13TopKinMount coordinate system
      *  Origin: midpoint between upstream survey cones
      *  Orientation: u - width pointing towards positron side, v - pointing along the U-channel in the beam direction
@@ -584,7 +556,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         private final static Hep3Vector ball_kinMount = new BasicHep3Vector(SupportRingL13TopKinMount.kin_mount_pos_x,SupportRingL13TopKinMount.kin_mount_pos_y,SupportRingL13TopKinMount.kin_mount_pos_z);
 
         private final static double length = UChannelL13.length;
-        //private static final double kin_mount_to_edge_of_plate_y = length-15.8*inch;
         private final static double cone_to_side_plate_pin_y = (14.5-3.125)*inch; 
         private final static double side_plate_pin_to_edge_of_plate_y = (16.0-14.5)*inch; 
         private final static double cone_to_edge_of_plate_y = cone_to_side_plate_pin_y + side_plate_pin_to_edge_of_plate_y;
@@ -607,9 +578,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             Hep3Vector flatOffset = UChannelL13TopSurveyBalls.getFlatOffset();
             flatPos = VecOp.add(ballPos, flatOffset);
             
-//            ballPos = VecOp.sub(UChannelL13TopSurveyBalls.ball_pos, ball_kinMount);
-//            veePos = new BasicHep3Vector(ballPos.x()+1, ballPos.y(), ballPos.z());
-//            flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y()-1, ballPos.z());
         }
         protected double getLength() {
            return length;
@@ -638,7 +606,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
         
         protected static final Hep3Vector fwd_right = new BasicHep3Vector(-6.512, 9.978, .332);
-        protected static final Hep3Vector bwd_right = new BasicHep3Vector(-6.272, 2.107, .332);
+        //protected static final Hep3Vector bwd_right = new BasicHep3Vector(-6.272, 2.107, .332);
         protected static final Hep3Vector fwd_left = new BasicHep3Vector( 2.817, 10.262, .332);
         protected static final Hep3Vector bwd_left = new BasicHep3Vector(3.057, 2.392, .332);
         
@@ -654,43 +622,9 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     
     
-//    public static class UChannelL13Top extends UChannelL13 {
-//        private final static double length = UChannelL13.length;
-//        private static final double kin_mount_to_edge_of_plate_y = length-15.8*inch;
-//        private final static double cone_to_side_plate_pin_y = (14.5-3.125)*inch; 
-//        private final static double side_plate_pin_to_edge_of_plate_y = (16.0-14.5)*inch; 
-//        private final static double cone_to_edge_of_plate_y = cone_to_side_plate_pin_y + side_plate_pin_to_edge_of_plate_y;
-//        
-//        public UChannelL13Top(String name, SurveyVolume m,
-//                AlignmentCorrection alignmentCorrection,
-//                SurveyVolume ref) {
-//            super(name, m, alignmentCorrection, ref);
-//            init();
-//        }
-//        protected void setCenter() {
-//            final double x = 0.0;
-//            final double y = cone_to_edge_of_plate_y - length/2.0;
-//            final double z = -side_plate_cone_y - UChannelL13Plate.height + height/2.0;
-//            setCenter(x,y,z);
-//        }
-//        protected void setPos() {
-//            final double ball_pos_x = 4*inch;
-//            final double ball_pos_y = cone_to_edge_of_plate_y - kin_mount_to_edge_of_plate_y;
-//            final double ball_pos_z = SupportRingL13KinMount.kin_mount_offset_vertically - side_plate_cone_y; 
-//            // Note that this coordinate system is flipped pi compared to bottom
-//            ballPos = new BasicHep3Vector(ball_pos_x, ball_pos_y, ball_pos_z);
-//            veePos = new BasicHep3Vector(ballPos.x()+1, ballPos.y(), ballPos.z());
-//            flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y()-1, ballPos.z());
-//        }
-//        protected double getLength() {
-//           return length;
-//        }
-//    }
-
-    
 
     /**
-     * Abstract @SurveyVolume volume defining the coordinate system of the u-channel plate
+     * Abstract {@link SurveyVolume} volume defining the coordinate system of the u-channel plate
 
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
@@ -707,7 +641,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     }
 
     /**
-     * Abstract @SurveyVolume volume defining the coordinate system of the u-channel plate
+     * Abstract {@link SurveyVolume} volume defining the coordinate system of the u-channel plate
 
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
@@ -716,7 +650,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         private final static double pocket_depth_L1 = 0.025;
         private final static double pocket_depth_L2 = pocket_depth_L1 + 0.059;
         private final static double pocket_depth_L3 = pocket_depth_L2 + 0.059;
-        private final static double module_mounting_hole_to_hole_x =3.937*inch;
+        //private final static double module_mounting_hole_to_hole_x =3.937*inch;
         private static final double width = 9.25*inch;
         protected static final double height = 0.375*inch;
         protected final static double length = 16.0*inch;
@@ -767,7 +701,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         
     
     /**
-     * @SurveyVolume volume defining the coordinate system of the bottom u-channel plate
+     * {@link SurveyVolume} volume defining the coordinate system of the bottom u-channel plate
      * Reference:  @UChannelL13Bottom coordinate system
      * Origin:  same as reference
      * Orientation: same as reference
@@ -794,7 +728,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     }
     
     /**
-     * @SurveyVolume volume defining the coordinate system of the bottom u-channel plate
+     * {@link SurveyVolume} volume defining the coordinate system of the bottom u-channel plate
      * Reference:  @UChannelL13Bottom coordinate system
      * Origin:  same as reference
      * Orientation: same as reference
@@ -822,7 +756,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     
     /**
-     * Abstract @SurveyVolume volume defining the L4-6 u-channel volume
+     * Abstract {@link SurveyVolume} volume defining the L4-6 u-channel volume
      * 
      *  @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
@@ -831,8 +765,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         protected static final double width = UChannelL46Plate.width;
         protected static final double length = UChannelL46Plate.length;
         protected static final double height = 2.575*inch;
-        private static final double kin_mount_to_edge_of_plate_x = width/2.0-5.75*inch;
-        private static final double kin_mount_to_edge_of_plate_y = 0.2*inch;
+        //private static final double kin_mount_to_edge_of_plate_x = width/2.0-5.75*inch;
+        //private static final double kin_mount_to_edge_of_plate_y = 0.2*inch;
         protected static final double side_plate_cone_y = 2.0*inch;
         
         public UChannelL46(String name, SurveyVolume m,
@@ -851,7 +785,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
    
     
     /**
-     * @SurveyVolume volume defining the coordinate system of the u-channel 
+     * {@link SurveyVolume} volume defining the coordinate system of the u-channel 
      *  Reference: SVTBox coordinate system
      *  Origin: midpoint between upstream survey cones
      *  Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
@@ -899,9 +833,9 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         private static final double cone_fwd_right_y = -6.419*inch;
         private static final double cone_fwd_right_z = -0.332*inch;
 
-        private static final double cone_bwd_right_x = -6.539*inch;
-        private static final double cone_bwd_right_y = -22.159*inch;
-        private static final double cone_bwd_right_z = -0.332*inch;
+        //private static final double cone_bwd_right_x = -6.539*inch;
+        //private static final double cone_bwd_right_y = -22.159*inch;
+        //private static final double cone_bwd_right_z = -0.332*inch;
 
         private static final double cone_fwd_left_x = 6.558*inch;
         private static final double cone_fwd_left_y = -6.005*inch;
@@ -913,7 +847,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         
         protected static final Hep3Vector fwd_right = new BasicHep3Vector(cone_fwd_right_x, cone_fwd_right_y, cone_fwd_right_z);
         protected static final Hep3Vector fwd_left = new BasicHep3Vector(cone_fwd_left_x, cone_fwd_left_y, cone_fwd_left_z);
-        protected static final Hep3Vector bwd_right = new BasicHep3Vector(cone_bwd_right_x, cone_bwd_right_y, cone_bwd_right_z);
+        //protected static final Hep3Vector bwd_right = new BasicHep3Vector(cone_bwd_right_x, cone_bwd_right_y, cone_bwd_right_z);
         protected static final Hep3Vector bwd_left = new BasicHep3Vector(cone_bwd_left_x, cone_bwd_left_y, cone_bwd_left_z);
         
         protected static Hep3Vector getVeeOffset() {
@@ -926,57 +860,11 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     
     
-    
-//  public static class UChannelL46Bottom extends UChannelL46 {
-//      // Coordinates of the survey ball engaging the machined features
-//      protected static final double cone_fwd_right_x = -7.019*inch;
-//      protected static final double cone_fwd_right_y = -6.419*inch;
-//      protected static final double cone_fwd_right_z = -0.332*inch;
-//
-//      protected static final double cone_bwd_right_x = -6.539*inch;
-//      protected static final double cone_bwd_right_y = -22.159*inch;
-//      protected static final double cone_bwd_right_z = -0.332*inch;
-//
-//      protected static final double cone_fwd_left_x = 6.558*inch;
-//      protected static final double cone_fwd_left_y = -6.005*inch;
-//      protected static final double cone_fwd_left_z = -0.332*inch;
-//
-//      protected static final double cone_bwd_left_x = 7.038*inch;
-//      protected static final double cone_bwd_left_y = -21.745*inch;
-//      protected static final double cone_bwd_left_z = -0.332*inch;
-//
-//      protected static final double cone_to_edge_of_plate_y = 2.75*inch;
-//
-//      public UChannelL46Bottom(String name, SurveyVolume m,
-//              AlignmentCorrection alignmentCorrection) {
-//          super(name, m, alignmentCorrection);
-//          init();
-//      }
-//      protected void setCenter() {
-//          final double x = 0.0;
-//          final double y = -cone_to_edge_of_plate_y + length/2.0;
-//          final double z = -side_plate_cone_y - UChannelL46Plate.height + height/2.0;
-//          setCenter(x,y,z);
-//      }
-//      protected void setPos() {
-//          //locate coordinate system from cone in mother coordinate system
-//          Hep3Vector fwd_right = new BasicHep3Vector(cone_fwd_right_x, cone_fwd_right_y, cone_fwd_right_z);
-//          Hep3Vector fwd_left = new BasicHep3Vector(cone_fwd_left_x, cone_fwd_left_y, cone_fwd_left_z);
-//          Hep3Vector bwd_right = new BasicHep3Vector(cone_bwd_right_x, cone_bwd_right_y, cone_bwd_right_z);
-//          Hep3Vector bwd_left = new BasicHep3Vector(cone_bwd_left_x, cone_bwd_left_y, cone_bwd_left_z);
-//          
-//          Hep3Vector d = VecOp.mult(0.5,VecOp.sub(fwd_left, fwd_right));
-//          ballPos = VecOp.add(fwd_right, d);
-//          veePos = fwd_right;
-//          d = VecOp.mult(0.5, VecOp.sub(bwd_left, bwd_right));
-//          flatPos = VecOp.add(bwd_right, d);
-//      }
-//  }
   
     
     /**
-     * @SurveyVolume volume defining the coordinate system of the u-channel 
-     *  Reference: SVTBox coordinate system
+     * {@link SurveyVolume} volume defining the coordinate system of the u-channel 
+     *  Reference: {@link SVTBox} coordinate system
      *  Origin: midpoint between upstream survey cones
      *  Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
      *  
@@ -1047,7 +935,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         protected static final Hep3Vector fwd_right = new BasicHep3Vector(cone_fwd_right_x, cone_fwd_right_y, cone_fwd_right_z);
         protected static final Hep3Vector fwd_left = new BasicHep3Vector(cone_fwd_left_x, cone_fwd_left_y, cone_fwd_left_z);
         protected static final Hep3Vector bwd_right = new BasicHep3Vector(cone_bwd_right_x, cone_bwd_right_y, cone_bwd_right_z);
-        protected static final Hep3Vector bwd_left = new BasicHep3Vector(cone_bwd_left_x, cone_bwd_left_y, cone_bwd_left_z);
+        //protected static final Hep3Vector bwd_left = new BasicHep3Vector(cone_bwd_left_x, cone_bwd_left_y, cone_bwd_left_z);
 
         protected static Hep3Vector getVeeOffset() {
             return  VecOp.mult(0.5,VecOp.sub(fwd_left, fwd_right));
@@ -1058,61 +946,9 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     }
 
 
-//    public static class UChannelL46Top extends UChannelL46 {
-//        // Coordinates of the survey ball engaging the machined features
-//        protected static final double cone_fwd_right_x = -7.038*inch;
-//        protected static final double cone_fwd_right_y = -5.794*inch;
-//        protected static final double cone_fwd_right_z = 0.332*inch;
-//
-//        protected static final double cone_bwd_right_x = -6.558*inch;
-//        protected static final double cone_bwd_right_y = -21.535*inch;
-//        protected static final double cone_bwd_right_z = 0.332*inch;
-//
-//        protected static final double cone_fwd_left_x = 6.539*inch;
-//        protected static final double cone_fwd_left_y = -5.380*inch;
-//        protected static final double cone_fwd_left_z = 0.332*inch;
-//
-//        protected static final double cone_bwd_left_x = 7.019*inch;
-//        protected static final double cone_bwd_left_y = -21.121*inch;
-//        protected static final double cone_bwd_left_z = 0.332*inch;
-//        
-//        private static final double cone_to_side_plate_pin_y = (0.875-0.25)*inch;
-//        private static final double side_plate_pin_to_edge_of_plate_y = 1.5*inch;
-//        
-//        protected static final double cone_to_edge_of_plate_y = cone_to_side_plate_pin_y + side_plate_pin_to_edge_of_plate_y;
-//        
-//        public UChannelL46Top(String name, SurveyVolume m,
-//                AlignmentCorrection alignmentCorrection) {
-//            super(name, m, alignmentCorrection);
-//            init();
-//        }
-//        protected void setCenter() {
-//            final double x = 0.0;
-//            final double y = -cone_to_edge_of_plate_y + length/2.0;
-//            final double z = -side_plate_cone_y - UChannelL46Plate.height + height/2.0;
-//            setCenter(x,y,z);
-//        }
-//        protected void setPos() {
-//            
-//          //locate coordinate system from cone in mother coordinate system
-//            Hep3Vector fwd_right = new BasicHep3Vector(cone_fwd_right_x, cone_fwd_right_y, cone_fwd_right_z);
-//            Hep3Vector fwd_left = new BasicHep3Vector(cone_fwd_left_x, cone_fwd_left_y, cone_fwd_left_z);
-//            Hep3Vector bwd_right = new BasicHep3Vector(cone_bwd_right_x, cone_bwd_right_y, cone_bwd_right_z);
-//            Hep3Vector bwd_left = new BasicHep3Vector(cone_bwd_left_x, cone_bwd_left_y, cone_bwd_left_z);
-//            
-//            Hep3Vector d = VecOp.mult(0.5,VecOp.sub(fwd_left, fwd_right));
-//            ballPos = VecOp.add(fwd_right, d);
-//            veePos = fwd_left;
-//            d = VecOp.mult(0.5, VecOp.sub(bwd_left, bwd_right));
-//            flatPos = VecOp.add(bwd_right, d);
-//            
-//        }
-//    }
-
-    
     
     /**
-     * Abstract @SurveyVolume  defining the coordinate system of the u-channel plates
+     * Abstract {@link SurveyVolume}  defining the coordinate system of the u-channel plates
 
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
@@ -1170,7 +1006,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     }
     
     /**
-     * @SurveyVolume  defining the coordinate system of the bottom u-channel plate
+     * {@link SurveyVolume}  defining the coordinate system of the bottom u-channel plate
      * Reference:  @UChannelL13Bottom coordinate system
      * Origin:  same as reference
      * Orientation: same as reference
@@ -1198,7 +1034,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     
     /**
-     * @SurveyVolume defining the coordinate system of the top u-channel plate
+     * {@link SurveyVolume} defining the coordinate system of the top u-channel plate
      * Reference:  @UChannelL13Top coordinate system
      * Origin:  same as reference
      * Orientation: same as reference
@@ -1227,7 +1063,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
 
     /**
-     * @SurveyVolume volume defining the coordinate system of module L1-3
+     * {@link SurveyVolume} volume defining the coordinate system of module L1-3
      * Reference:  @UChannelL13Bottom coordinate system
      * Origin:  hole position on mounting surface (on electron side)
      * Orientation: u - is normal to the surface pointing vertically down, v - points along module away from hybrid side (i.e. positron direction).
@@ -1412,7 +1248,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
    
     
     /**
-     * Abstract @SurveyVolume volume defining the coordinate system of module L4-6
+     * Abstract {@link SurveyVolume} volume defining the coordinate system of module L4-6
      * 
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
@@ -1452,7 +1288,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     
     /**
-     * Abstract @SurveyVolume volume defining the coordinate system of bottom modules for L4-6
+     * Abstract {@link SurveyVolume} volume defining the coordinate system of bottom modules for L4-6
      * Reference:  @UChannelL46Bottom coordinate system
      * Origin:  hole position on mounting surface (electron side)
      * Orientation: u - is normal to the mounting surface pointing vertically down, v - points along module towards positron side.
@@ -1477,7 +1313,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     }
     
     /**
-     * Abstract @SurveyVolume volume defining the coordinate system of top modules for L4-6
+     * Abstract {@link SurveyVolume} volume defining the coordinate system of top modules for L4-6
      * Reference:  @UChannelL46Top coordinate system
      * Origin:  hole position on mounting surface (electron side when installed)
      * Orientation: u - is normal to the mounting surface pointing vertically down, v - points along module towards electron side when installed.
@@ -1804,7 +1640,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
 
     /**
-     * @SurveyVolume volume defining the coordinate system of the axial half-module in module L1-3
+     * {@link SurveyVolume} volume defining the coordinate system of the axial half-module in module L1-3
      * Reference:  @ModuleL13Bot coordinate system
      * Origin:  sensor center
      * Orientation: w - is normal to the surface pointing from p-side to n-side, v - points along strips away from signal bond pads
@@ -1844,7 +1680,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
    
     /**
-     * @SurveyVolume volume defining the coordinate system of the stereo half-module in module L1-3
+     * {@link SurveyVolume} volume defining the coordinate system of the stereo half-module in module L1-3
      * Reference:  @ModuleL13Bot coordinate system
      * Origin:  sensor center
      * Orientation: same as axial - the module is rotated later.
@@ -2128,7 +1964,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         
         // find alignment correction to this volume
         AlignmentCorrection alignmentCorrection =  getHalfModuleAlignmentCorrection(isTopLayer, millepedeLayer);
-        
+        alignmentCorrection.setNode(node);
+       
         
         // find the module bundle that it will be added to
         //TestRunModuleBundle bundle  = (TestRunModuleBundle)getModuleBundle(mother);

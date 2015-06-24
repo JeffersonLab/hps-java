@@ -113,7 +113,7 @@ public class SurveyResult {
     public static SurveyResult findResultFromDetector(Element detectorNode,  String name) {
         Element elementSurveyVolumes = detectorNode.getChild("SurveyVolumes");
         if(elementSurveyVolumes==null) {
-           System.out.printf("WARNING: no XML file for survey information available.\n");
+           //System.out.printf("WARNING: no XML file for survey information available.\n");
            //throw new RuntimeException("no SurveyVolumes in this xml file.");
            return null;
         }

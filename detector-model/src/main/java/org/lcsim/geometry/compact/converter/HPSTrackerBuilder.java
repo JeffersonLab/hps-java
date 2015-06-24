@@ -258,6 +258,11 @@ public abstract class HPSTrackerBuilder {
         }
     }
 
+    
+    public static boolean isTopFromName(String name) {
+        return getHalfFromName(name).equals("top") ? true : false;
+    }
+    
     public static String getHalfFromName(String name) {
         String half = "";
         if (name.contains("bottom")) {
@@ -337,7 +342,20 @@ public abstract class HPSTrackerBuilder {
         }
         return found?true:false;
     }
-
+    
+    public static boolean isUChannelSupport(String name) {
+        Pattern patter = Pattern.compile("^support_[a-z]+_L1|3$4|6");
+        Matcher matcher = patter.matcher(name);
+        boolean found = false;
+        if(matcher.find() ) {
+            found = true;
+            System.out.printf("isUChannelSupport: found U-channel: %s\n", name);
+        } else {
+           System.out.printf("isUChannelSupport: this is not a U-channel: %s\n", name);
+        }
+        return found;
+    }
+    
     public static boolean isSensor(String name) {
         if (name.endsWith("sensor")) {
             return true;
