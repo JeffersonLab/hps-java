@@ -46,6 +46,18 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
         if(isDebug()) System.out.printf("%s: constructing the geometry objects\n", this.getClass().getSimpleName());
 
+        
+        // Create alignment correction objects
+        // THis is really a ugly approach with MP corrections initialized before and 
+        // the survey corrections based on the XML node
+        // FIX THIS! //TODO
+        AlignmentCorrection alignmentCorrections = new AlignmentCorrection();
+        alignmentCorrections.setNode(node);
+        AlignmentCorrection supBotCorr = getL13UChannelAlignmentCorrection(false);
+        supBotCorr.setNode(node);
+        AlignmentCorrection supTopCorr = this.getL13UChannelAlignmentCorrection(true);
+        supTopCorr.setNode(node);
+        
         // Build the geometry from the basic building blocks in the geometry definition class
         // Keep the order correct.
         // Each item has knowledge of its mother but not its daughters
@@ -60,51 +72,38 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
         SvtBoxBasePlate svtBoxBasePlate = new SvtBoxBasePlate("base_plate",svtBox,null);
         surveyVolumes.add(svtBoxBasePlate);
+                
         
-        //SupportRing supportRing = new SupportRing("c_support", svtBox, null, svtBoxBasePlate); 
-        //surveyVolumes.add(supportRing);
-       
-//        AlignmentCorrection supBotCorr = this.getSupportAlignmentCorrection(false);
-//        SupportRingL13BottomKinMount supportRingKinL13Bottom = new SupportRingL13BottomKinMount("c_support_kin_L13b", svtBox, supBotCorr, supportRing); 
-//        surveyVolumes.add(supportRingKinL13Bottom);
         
-        AlignmentCorrection supBotCorr = this.getSupportAlignmentCorrection(false);
         SupportRingL13BottomKinMount supportRingKinL13Bottom = new SupportRingL13BottomKinMount("c_support_kin_L13b", svtBox, supBotCorr); 
         surveyVolumes.add(supportRingKinL13Bottom);
         
         
-        UChannelL13 uChannelL13Bottom = new UChannelL13Bottom("support_bottom_L13", svtBox, null, supportRingKinL13Bottom); 
+        UChannelL13 uChannelL13Bottom = new UChannelL13Bottom("support_bottom_L13", svtBox, alignmentCorrections, supportRingKinL13Bottom); 
         surveyVolumes.add(uChannelL13Bottom);
         
         UChannelL13Plate uChannelL13BottomPlate = new UChannelL13BottomPlate("support_plate_bottom_L13", svtBox, null, uChannelL13Bottom); 
         surveyVolumes.add(uChannelL13BottomPlate);
 
-//        AlignmentCorrection supTopCorr = this.getSupportAlignmentCorrection(true);
-//        SupportRingL13TopKinMount supportRingKinL13Top = new SupportRingL13TopKinMount("c_support_kin_L13t", svtBox, supTopCorr, supportRing); 
-//        surveyVolumes.add(supportRingKinL13Top);
-
-        AlignmentCorrection supTopCorr = this.getSupportAlignmentCorrection(true);
+        
         SupportRingL13TopKinMount supportRingKinL13Top = new SupportRingL13TopKinMount("c_support_kin_L13t", svtBox, supTopCorr); 
         surveyVolumes.add(supportRingKinL13Top);
 
-        // Create an alignment correction object for the U-channels -> this is really ugly. FIX THIS!
-        AlignmentCorrection alignmentCorrectionUChannels = new AlignmentCorrection();
-        alignmentCorrectionUChannels.setNode(node);
         
         
-        UChannelL13Top uChannelL13Top = new UChannelL13Top("support_top_L13", svtBox, null, supportRingKinL13Top); 
+        UChannelL13Top uChannelL13Top = new UChannelL13Top("support_top_L13", svtBox, alignmentCorrections, supportRingKinL13Top); 
         surveyVolumes.add(uChannelL13Top);
         
         UChannelL13Plate uChannelL13TopPlate = new UChannelL13TopPlate("support_plate_top_L13", svtBox, null, uChannelL13Top); 
         surveyVolumes.add(uChannelL13TopPlate);
         
-        UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, alignmentCorrectionUChannels);
+        UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, alignmentCorrections);
         surveyVolumes.add(uChannelL46Bottom);
         
         UChannelL46Plate uChannelL46BottomPlate = new UChannelL46BottomPlate("support_plate_bottom_L46", svtBox, null, uChannelL46Bottom);
         surveyVolumes.add(uChannelL46BottomPlate);
 
-        UChannelL46 uChannelL46Top = new UChannelL46Top("support_top_L46", svtBox, alignmentCorrectionUChannels);
+        UChannelL46 uChannelL46Top = new UChannelL46Top("support_top_L46", svtBox, alignmentCorrections);
         surveyVolumes.add(uChannelL46Top);
         
         UChannelL46Plate uChannelL46TopPlate = new UChannelL46TopPlate("support_plate_top_L46", svtBox, null, uChannelL46Top);
@@ -356,9 +355,9 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     /**
      * {@link SurveyVolume} volume defining a coordinate system from the kinematic mount positions for support channels
-     *  Reference: {@SvtBox} coordinate system
+     *  Reference: {@link SvtBox} coordinate system
      *  Origin: cone mount (it's on the electron side)
-     *  Orientation: ball is cone mount, slot mount is vee position and flat is along beamline pointing upstream
+     *  Orientation: ball is cone mount, slot mount is vee position and flat is along beam line pointing upstream
      *  
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
@@ -376,23 +375,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         protected double getKinMountVerticalPos() {
             return kin_mount_pos_z;
         }
-
-//        protected void setPos() {
-//            final double ball_pos_x = (7.0 - 5.444) *inch;
-//            final double ball_pos_y = 0.574*inch;
-//            final double ball_pos_z = SupportRing.plateThickness + kin_mount_offset_vertically;
-//            ballPos = new BasicHep3Vector(ball_pos_x, ball_pos_y, ball_pos_z);
-//            
-//            final double vee_pos_x = (2*7.0)*inch;
-//            final double vee_pos_y = ball_pos_y;
-//            final double vee_pos_z = ball_pos_z;
-//            veePos = new BasicHep3Vector(vee_pos_x, vee_pos_y, vee_pos_z);
-//            
-//            final double flat_pos_x = ball_pos_x;
-//            final double flat_pos_y = ball_pos_y + 1.0; // random distance
-//            final double flat_pos_z = ball_pos_z;
-//            flatPos = new BasicHep3Vector(flat_pos_x,flat_pos_y,flat_pos_z);
-//        }
         
     }
     
@@ -470,7 +452,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the bottom L1-3 u-channel 
-     *  Reference: SupportRingL13BottomKinMount coordinate system
+     *  Reference: {@link SupportRingL13BottomKinMount} coordinate system
      *  Origin: midpoint between upstream survey cones
      *  Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
      *  

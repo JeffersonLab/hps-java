@@ -57,56 +57,46 @@
 
         <SurveyVolumes>
  
-  <!-- Module support surface survey  -->
- <SurveyVolume name="support_bottom_L46" desc="B46 ball basis in box fiducial frame:">
-    <origin x="-5.9779" y="-8.4112" z="789.6352"/>
-    <unitvec name="X" x="9.9955e-01" y="-7.7349e-05" z="-3.0082e-02"/>
-    <unitvec name="Y" x="7.6453e-05" y="1.0000e+00" z="-3.0945e-05"/>
-    <unitvec name="Z" x="3.0082e-02" y="2.8631e-05" z="9.9955e-01"/>
-</SurveyVolume>
+                 <!-- U-channel in Svt box survey survey  -->
+                <SurveyVolume name="support_bottom_L46" desc="B46 ball basis in box fiducial frame:">
+                    <origin x="-5.9779" y="-8.4112" z="789.6352"/>
+                    <unitvec name="X" x="9.9955e-01" y="-7.7349e-05" z="-3.0082e-02"/>
+                    <unitvec name="Y" x="7.6453e-05" y="1.0000e+00" z="-3.0945e-05"/>
+                    <unitvec name="Z" x="3.0082e-02" y="2.8631e-05" z="9.9955e-01"/>
+                </SurveyVolume>
+                <SurveyVolume name="support_top_L46" desc="T46 ball basis in box fiducial frame:">
+                    <origin x="-6.3106" y="8.462" z="773.7906"/>
+                    <unitvec name="X" x="9.9954e-01" y="7.3687e-05" z="-3.0209e-02"/>
+                    <unitvec name="Y" x="-7.2695e-05" y="1.0000e+00" z="3.3946e-05"/>
+                    <unitvec name="Z" x="3.0209e-02" y="-3.1734e-05" z="9.9954e-01"/>
+                </SurveyVolume>
+                <SurveyVolume name="support_bottom_L13" desc="B13 ball basis in pivot frame:">
+                    <origin x="0." y="59.9476" z="-304.9173"/>
+                    <unitvec name="X" x="1." y="0." z="0."/>
+                    <unitvec name="Y" x="0." y="1." z="0."/>
+                    <unitvec name="Z" x="0." y="0." z="1."/>
+                </SurveyVolume>
+                <SurveyVolume name="c_support_kin_L13b" desc="B13 pivot basis in box frame:">
+                    <origin x="-37.3429" y="-68.3632" z="695.2994"/>
+                    <unitvec name="X" x="9.9954e-01" y="1.3427e-04" z="-3.0350e-02"/>
+                    <unitvec name="Y" x="-1.3440e-04" y="1.0000e+00" z="-2.1271e-06"/>
+                    <unitvec name="Z" x="3.0350e-02" y="6.2051e-06" z="9.9954e-01"/>
+                </SurveyVolume>
+                <SurveyVolume name="support_top_L13" desc="T13 ball basis in pivot frame:">
+                    <origin x="0." y="-50.9272" z="-319.7481"/>
+                    <unitvec name="X" x="1." y="0." z="0."/>
+                    <unitvec name="Y" x="0." y="1." z="0."/>
+                    <unitvec name="Z" x="0." y="0." z="1."/>
+                </SurveyVolume>
+                <SurveyVolume name="c_support_kin_L13t" desc="T13 pivot basis in box frame:">
+                    <origin x="-36.9837" y="59.4777" z="694.2924"/>
+                    <unitvec name="X" x="9.9952e-01" y="4.2882e-05" z="-3.1132e-02"/>
+                    <unitvec name="Y" x="-5.2348e-05" y="1.0000e+00" z="-3.0325e-04"/>
+                    <unitvec name="Z" x="3.1132e-02" y="3.0473e-04" z="9.9952e-01"/>
+                </SurveyVolume>
 
-<SurveyVolume name="support_top_L46" desc="T46 ball basis in box fiducial frame:">
-    <origin x="-6.3106" y="8.462" z="773.7906"/>
-    <unitvec name="X" x="9.9954e-01" y="7.3687e-05" z="-3.0209e-02"/>
-    <unitvec name="Y" x="-7.2695e-05" y="1.0000e+00" z="3.3946e-05"/>
-    <unitvec name="Z" x="3.0209e-02" y="-3.1734e-05" z="9.9954e-01"/>
-</SurveyVolume>
 
-<!-- 
-<SurveyVolume name="" desc="B13 ball basis in pivot frame:">
-    <origin x="0." y="59.9476" z="-304.9173"/>
-    <unitvec name="X" x="1." y="0." z="0."/>
-    <unitvec name="Y" x="0." y="1." z="0."/>
-    <unitvec name="Z" x="0." y="0." z="1."/>
-</SurveyVolume>
 
-<SurveyVolume name="" desc="B13 pivot basis in box frame:">
-    <origin x="-37.3429" y="-68.3632" z="695.2994"/>
-    <unitvec name="X" x="9.9954e-01" y="1.3427e-04" z="-3.0350e-02"/>
-    <unitvec name="Y" x="-1.3440e-04" y="1.0000e+00" z="-2.1271e-06"/>
-    <unitvec name="Z" x="3.0350e-02" y="6.2051e-06" z="9.9954e-01"/>
-</SurveyVolume>
-
-<SurveyVolume name="" desc="T13 ball basis in pivot frame:">
-    <origin x="0." y="-50.9272" z="-319.7481"/>
-    <unitvec name="X" x="1." y="0." z="0."/>
-    <unitvec name="Y" x="0." y="1." z="0."/>
-    <unitvec name="Z" x="0." y="0." z="1."/>
-</SurveyVolume>
-
-<SurveyVolume name="" desc="T13 pivot basis in box frame:">
-    <origin x="-36.9837" y="59.4777" z="694.2924"/>
-    <unitvec name="X" x="9.9952e-01" y="4.2882e-05" z="-3.1132e-02"/>
-    <unitvec name="Y" x="-5.2348e-05" y="1.0000e+00" z="-3.0325e-04"/>
-    <unitvec name="Z" x="3.1132e-02" y="3.0473e-04" z="9.9952e-01"/>
-</SurveyVolume>
--->
- 
- 
- 
- 
- 
- 
  
                 <!-- Module support surface survey  -->
                 <!-- 

@@ -69,7 +69,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         CSupport cSupport = new CSupport("c_support", base);
         surveyVolumes.add(cSupport);        
         
-        AlignmentCorrection alignmentCorrectionSupportBottom = getSupportAlignmentCorrection(false);
+        AlignmentCorrection alignmentCorrectionSupportBottom = getL13UChannelAlignmentCorrection(false);
         SupportBottom supportBottom = new SupportBottom("support_bottom", base, alignmentCorrectionSupportBottom, cSupport);
         surveyVolumes.add(supportBottom);
         // The support survey positions are now with respect to its mother and not the reference coord. system.
@@ -78,7 +78,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         SupportPlateBottom supportPlateBottom = new SupportPlateBottom("support_plate_bottom", base, supportBottom, "Aluminum");
         surveyVolumes.add(supportPlateBottom);        
         
-        AlignmentCorrection alignmentCorrectionSupportTop = getSupportAlignmentCorrection(true);
+        AlignmentCorrection alignmentCorrectionSupportTop = getL13UChannelAlignmentCorrection(true);
         SupportTop supportTop = new SupportTop("support_top", base, alignmentCorrectionSupportTop, cSupport);
         surveyVolumes.add(supportTop);
         

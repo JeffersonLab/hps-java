@@ -174,7 +174,7 @@ public abstract class HPSTrackerBuilder {
      * @param isTopLayer - top or bottom layer
      * @return the alignment correction
      */
-    protected AlignmentCorrection getSupportAlignmentCorrection(boolean isTopLayer) {
+    protected AlignmentCorrection getL13UChannelAlignmentCorrection(boolean isTopLayer) {
         double r[] = {0, 0, 0};
         double t[] = {0, 0, 0};
         for (MilleParameter p_loop : milleparameters) {
@@ -278,18 +278,13 @@ public abstract class HPSTrackerBuilder {
         }
         // check for other signatures
         if (half.isEmpty()) {
-            // 6 layers is arbitrary here
-            for (int layer = 1; layer <= 6; ++layer) {
-                if (name.contains(String.format("L%db", layer))) {
-                    half = "bottom";
-                    break;
-                }
-                if (name.contains(String.format("L%dt", layer))) {
-                    if (half.equals("bottom")) {
-                        throw new RuntimeException("found both halfs from name  " + name);
-                    }
+            Pattern pattern = Pattern.compile(".*_L[1-6][1-6]?([a-z]).*");
+            Matcher matcher = pattern.matcher(name);
+            if(matcher.matches()) {
+                if(matcher.group(1).equals("t")) {
                     half = "top";
-                    break;
+                } else if(matcher.group(1).equals("b")) {
+                    half = "bottom";
                 }
             }
         }
@@ -336,25 +331,41 @@ public abstract class HPSTrackerBuilder {
         Pattern pattern = Pattern.compile("module_L[1-6][bt]$");
         Matcher matcher = pattern.matcher(name);
         boolean found = false;
-        while(matcher.find()) {
+        while(matcher.matches()) {
             //System.out.printf("isModule: found %s\n", matcher.group());
             found = true;
         }
         return found?true:false;
     }
     
-    public static boolean isUChannelSupport(String name) {
-        Pattern patter = Pattern.compile("^support_[a-z]+_L1|3$4|6");
-        Matcher matcher = patter.matcher(name);
-        boolean found = false;
-        if(matcher.find() ) {
-            found = true;
-            System.out.printf("isUChannelSupport: found U-channel: %s\n", name);
+    public static int getUChannelSupportLayer(String name) {
+        if(isUChannelSupport(name)) {
+            Pattern patter = Pattern.compile("^support_[a-z]*_L([1-6])[1-6]$");
+            Matcher matcher = patter.matcher(name);
+            if(matcher.matches() ) {
+                int layer = Integer.parseInt(matcher.group(1));
+                return layer;
+            } else {
+                throw new RuntimeException("this is not a valid u-channel name: " + name);
+            }
         } else {
-           System.out.printf("isUChannelSupport: this is not a U-channel: %s\n", name);
+            throw new RuntimeException("this is not a valid u-channel name: " + name);
         }
-        return found;
     }
+    
+    
+    public static boolean isUChannelSupport(String name) {
+        Pattern patter = Pattern.compile("^support_[a-z]*_L(4|1)(6|3)$");
+        Matcher matcher = patter.matcher(name);
+        return matcher.matches();
+    }
+
+    public static boolean isSupportRingKinMount(String name) {
+        Pattern patter = Pattern.compile("^c_support_kin_L13(b|t)$");
+        Matcher matcher = patter.matcher(name);
+        return matcher.matches();
+    }    
+    
     
     public static boolean isSensor(String name) {
         if (name.endsWith("sensor")) {
