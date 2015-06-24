@@ -94,7 +94,7 @@ final class JCacheManager {
                 throw new RuntimeException(e);
             }
             // LOGGER.finer("raw XML: " + xmlString);
-            xmlString = xmlString.substring(xmlString.trim().indexOf("<?xml") + 1);
+            xmlString = xmlString.substring(xmlString.trim().indexOf("<jcache>"));
             // LOGGER.finer("cleaned XML: " + xmlString);
             return buildDocument(xmlString).getRootElement();
         }
@@ -210,6 +210,7 @@ final class JCacheManager {
      * @return the XML document
      */
     private static Document buildDocument(final String xmlString) {
+        LOGGER.fine("building doc from string: " + xmlString);
         final SAXBuilder builder = new SAXBuilder();
         Document document = null;
         try {
