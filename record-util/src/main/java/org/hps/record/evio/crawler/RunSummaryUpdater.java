@@ -72,12 +72,15 @@ public class RunSummaryUpdater {
         // Delete EPICS log.
         this.deleteEpics();
 
+        // Delete scaler data.
+        this.deleteScalerData();
+        
         // Delete file list.
         this.deleteFiles();
 
         // Delete run log.
         this.deleteRun();
-
+                
         LOGGER.info("deleted run " + runSummary.getRun() + " info successfully");
     }
 
@@ -88,6 +91,17 @@ public class RunSummaryUpdater {
      */
     private void deleteEpics() throws SQLException {
         final PreparedStatement statement = connection.prepareStatement("DELETE FROM run_epics WHERE run = ?");
+        statement.setInt(1, this.run);
+        statement.executeUpdate();
+    }
+    
+    /**
+     * Delete existing EPICS data from the run_log_epics table.
+     *
+     * @throws SQLException if there is an error performing the db query
+     */
+    private void deleteScalerData() throws SQLException {
+        final PreparedStatement statement = connection.prepareStatement("DELETE FROM run_scalers WHERE run = ?");
         statement.setInt(1, this.run);
         statement.executeUpdate();
     }
@@ -215,7 +229,7 @@ public class RunSummaryUpdater {
      */
     private void insertRun() throws SQLException {
         final PreparedStatement statement = connection
-                .prepareStatement("INSERT INTO runs (run, start_date, end_date, nevents, nfiles, end_ok) VALUES(?, ?, ?, ?, ?, ?)");
+                .prepareStatement("INSERT INTO runs (run, start_date, end_date, nevents, nfiles, end_ok, created) VALUES(?, ?, ?, ?, ?, ?, NOW())");
         LOGGER.info("preparing to insert run " + run + " into runs table ..");
         statement.setInt(1, run);
         statement.setTimestamp(2, new java.sql.Timestamp(runSummary.getStartDate().getTime()));
