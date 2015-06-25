@@ -384,42 +384,21 @@ public class GBLOutput {
                 stripData.setTrackLambda(lambda);
                 
                 
-                List<RawTrackerHit> rawhits = strip.getStrip().rawhits();
-                for(RawTrackerHit rawhit : rawhits) {
-                    System.out.println("rawhit cellID " + rawhit.getCellID());
-                }
-                
-                
                 // calculate isolation to other strip clusters
                 double stripIsoMin = 9999.9;
                 for (SiTrackerHitStrip1D stripHit : stripHits) {
                     if(stripHit.getRawHits().get(0).getDetectorElement().getName().equals(de.getName())) {
-                        // same sensor, calucalte min distance
-//                        boolean found = false;
-//                        for(RawTrackerHit rawhitloop : stripHit.getRawHits()) {
-//                            System.out.println("rawhitloop cellID " + rawhitloop.getCellID());
-//                            for(RawTrackerHit rawhit : rawhits) {
-//                                System.out.println("rawhit cellID " + rawhit.getCellID());
-//                            
-//                                if(rawhitloop.getCellID()==rawhit.getCellID()) {
-//                                    System.out.println("FOUND THE rawhit cellID " + rawhit.getCellID());
-//                                    found = true;
-//                                }
-//                            }
-//                        }
                         SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
                         double d = Math.abs(strip.umeas() - local.getPosition()[0]);
                         if (d<stripIsoMin && d>0) {
                             stripIsoMin = d;
                         }
-//                        if(found) {
-//                            System.out.println("found rawhits! d " + d + " umeas " + strip.umeas() + " local.getPosition()[0] " + local.getPosition()[0]);
-//                        }
                     }
                 }
                 
                 if(_debug>0) System.out.printf("%s: stripIsoMin = %f \n", this.getClass().getSimpleName(), stripIsoMin);
                 
+                // Add isolation to text file output
                 if(textFile != null) {
                     textFile.printStripIso(stripIsoMin);
                 }
