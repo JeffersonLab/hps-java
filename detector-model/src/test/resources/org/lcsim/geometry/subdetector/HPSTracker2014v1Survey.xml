@@ -58,7 +58,7 @@
         <SurveyVolumes>
  
                  <!-- U-channel in Svt box survey survey  -->
-                
+                 
                 <SurveyVolume name="support_bottom_L46" desc="B46 ball basis in box fiducial frame:">
                     <origin x="-5.9779" y="-8.4112" z="789.6352"/>
                     <unitvec name="X" x="9.9955e-01" y="-7.7349e-05" z="-3.0082e-02"/>
@@ -95,11 +95,11 @@
                     <unitvec name="Y" x="-5.2348e-05" y="1.0000e+00" z="-3.0325e-04"/>
                     <unitvec name="Z" x="3.1132e-02" y="3.0473e-04" z="9.9952e-01"/>
                 </SurveyVolume>
-
+                
 
  
                 <!-- Module support surface survey  -->
-                
+                 
                 <SurveyVolume name="module_L1t" desc="Top L1 pin basis in U-channel fiducial frame:">
                     <origin x="-95.2594" y="51.3976" z="-9.5359"/>
                     <unitvec name="X" x="1.0000e+00" y="-9.0423e-06" z="1.9487e-04"/>
@@ -173,7 +173,7 @@
                     <unitvec name="Y" x="5.9519e-05" y="1.0000e+00" z="-4.2261e-04"/>
                     <unitvec name="Z" x="6.3379e-05" y="4.2261e-04" z="1.0000e+00"/>
                 </SurveyVolume>
-                 
+                
 
 
 
@@ -401,7 +401,7 @@
                     <unitvec name="Y" x="2.0836e-04" y="-1.0000e+00" z="-1.5378e-04"/>
                     <unitvec name="Z" x="7.4449e-04" y="-1.5363e-04" z="1.0000e+00"/>
                 </SurveyVolume>
-                
+                 
         
         </SurveyVolumes>
 
