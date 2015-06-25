@@ -95,7 +95,7 @@ public class ReadSurveyOutput {
         logger.info("dT " + dT.toString());
         logger.info("orgT " + orgT.toString());
         //translate to center of SVT box
-        Hep3Vector orgTbox = VecOp.sub(orgT, new BasicHep3Vector(0, 0, 0.375*HPSTrackerGeometryDefinition.inch));
+        Hep3Vector orgTbox = VecOp.add(orgT, new BasicHep3Vector(0, 0, 0.375*HPSTrackerGeometryDefinition.inch));
         logger.info("orgTbox " + orgTbox.toString());
 
         orgTbox = VecOp.sub(orgTbox, new BasicHep3Vector(0, 0, HPSTracker2014GeometryDefinition.SvtBox.length/2.0));

@@ -328,14 +328,7 @@ public abstract class HPSTrackerBuilder {
     }
     
     public static boolean isModule(String name) {
-        Pattern pattern = Pattern.compile("module_L[1-6][bt]$");
-        Matcher matcher = pattern.matcher(name);
-        boolean found = false;
-        while(matcher.matches()) {
-            //System.out.printf("isModule: found %s\n", matcher.group());
-            found = true;
-        }
-        return found?true:false;
+        return Pattern.matches("module_L[1-6][bt]$", name);
     }
     
     public static int getUChannelSupportLayer(String name) {
