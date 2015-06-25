@@ -48,6 +48,14 @@ public class TridentMonitoring extends DataQualityMonitor {
     IHistogram1D vertexX;
     IHistogram1D vertexY;
     IHistogram1D vertexZ;
+    IHistogram1D vertexPx;
+    IHistogram1D vertexPy;
+    IHistogram1D vertexPz;
+    IHistogram1D vertexU;
+    IHistogram1D vertexV;
+//    IHistogram1D vertexW;
+    IHistogram2D vertexVZ;
+    IHistogram2D vertexZY;
 
     IHistogram1D deltaP;
     IHistogram1D deltaPRad;
@@ -129,6 +137,14 @@ public class TridentMonitoring extends DataQualityMonitor {
         vertexX = aida.histogram1D(plotDir + triggerType + "/" + "Vertex X Position (mm)", 100, -v0VxMax, v0VxMax);
         vertexY = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Y Position (mm)", 100, -v0VyMax, v0VyMax);
         vertexZ = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Z Position (mm)", 100, -v0VzMax, v0VzMax);
+        vertexPx = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Px (GeV)", 100, -0.1, 0.1);
+        vertexPy = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Py (GeV)", 100, -0.1, 0.1);
+        vertexPz = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Pz (GeV)", 100, 0.0, v0PzMax);
+        vertexU = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Px over Ptot (GeV)", 100, -0.1, 0.1);
+        vertexV = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Py over Ptot (GeV)", 100, -0.1, 0.1);
+//        vertexW = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Pz overPtot (GeV)", 100, 0.95, 1.0);
+        vertexVZ = aida.histogram2D(plotDir + triggerType + "/" + "Vertex Py over Ptot vs. Z", 100, -v0VzMax, v0VzMax, 100, -0.1, 0.1);
+        vertexZY = aida.histogram2D(plotDir + triggerType + "/" + "Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
     }
 
     @Override
@@ -185,23 +201,23 @@ public class TridentMonitoring extends DataQualityMonitor {
 //            Hep3Vector v0Mom = uncV0.getMomentum();
             Hep3Vector v0Mom = VecOp.add(uncV0.getParticles().get(1).getMomentum(), uncV0.getParticles().get(0).getMomentum());
             if (v0Mom.z() > v0PzMax || v0Mom.z() < v0PzMin) {
-                break;
+                continue;
             }
             if (Math.abs(v0Mom.y()) > v0PyMax) {
-                break;
+                continue;
             }
             if (Math.abs(v0Mom.x()) > v0PxMax) {
-                break;
+                continue;
             }
             Hep3Vector v0Vtx = uncVert.getPosition();
             if (Math.abs(v0Vtx.z()) > v0VzMax) {
-                break;
+                continue;
             }
             if (Math.abs(v0Vtx.y()) > v0VyMax) {
-                break;
+                continue;
             }
             if (Math.abs(v0Vtx.x()) > v0VxMax) {
-                break;
+                continue;
             }
 
             List<Track> tracks = new ArrayList<Track>();
@@ -233,6 +249,7 @@ public class TridentMonitoring extends DataQualityMonitor {
             boolean trackTimeDiffCut = Math.abs(trackTimes.get(0) - trackTimes.get(1)) < trkTimeDiff;
             boolean pCut = electron.getMomentum().magnitude() > trkPzMin && positron.getMomentum().magnitude() > trkPzMin;
             boolean pTotCut = uncV0.getMomentum().magnitude() > v0PzMin && uncV0.getMomentum().magnitude() < v0PzMax;
+//            if (electron.getMomentum().y()* positron.getMomentum().y()<0) continue;
             if (trackTimeDiffCut) {
                 vertexMassMomentum.fill(uncV0.getMomentum().magnitude(), uncV0.getMass());
                 vertexedTrackMomentum2D.fill(electron.getMomentum().magnitude(), positron.getMomentum().magnitude());
@@ -250,6 +267,14 @@ public class TridentMonitoring extends DataQualityMonitor {
                     vertexX.fill(v0Vtx.x());
                     vertexY.fill(v0Vtx.y());
                     vertexZ.fill(v0Vtx.z());
+                    vertexPx.fill(uncV0.getMomentum().x());
+                    vertexPy.fill(uncV0.getMomentum().y());
+                    vertexPz.fill(uncV0.getMomentum().z());
+                    vertexU.fill(uncV0.getMomentum().x()/uncV0.getMomentum().magnitude());
+                    vertexV.fill(uncV0.getMomentum().y()/uncV0.getMomentum().magnitude());
+//                    vertexW.fill(uncV0.getMomentum().z()/uncV0.getMomentum().magnitude());
+                    vertexVZ.fill(v0Vtx.z(), uncV0.getMomentum().y()/uncV0.getMomentum().magnitude());
+                    vertexZY.fill(v0Vtx.y(), v0Vtx.z());
                 }
             }
 //            System.out.println(tarV0.getTracks())

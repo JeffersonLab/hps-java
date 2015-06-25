@@ -12,7 +12,7 @@ import org.lcsim.util.Driver;
 
 /**
  * Remove final state particles with bad track-cluster time matching, and
- * vertices with shared tracks.
+ * vertices with shared hits.
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: $
@@ -20,11 +20,16 @@ import org.lcsim.util.Driver;
 public class ReconParticleCleanupDriver extends Driver {
 
     private final String finalStateParticlesColName = "FinalStateParticles";
-    private final String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
-    private final String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
-    private final String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
+    private final String[] v0ColNames = {"UnconstrainedV0Candidates", "BeamspotConstrainedV0Candidates", "TargetConstrainedV0Candidates"};
+
     private double fsDeltaT = 43.5;
-    private double fsDeltaTCut = 5.0;
+    private double fsDeltaTCut = -1;
+    private double maxTrackDt = -1;
+    private boolean discardUnmatchedTracks = false;
+
+    public void setDiscardUnmatchedTracks(boolean discardUnmatchedTracks) {
+        this.discardUnmatchedTracks = discardUnmatchedTracks;
+    }
 
     /**
      * Center value for (cluster - track) time cut.
@@ -36,12 +41,23 @@ public class ReconParticleCleanupDriver extends Driver {
     }
 
     /**
-     * Cut window half-width for (cluster - track) time cut.
+     * Cut window half-width for (cluster - track) time cut. Negative value
+     * disables this cut.
      *
      * @param fsDeltaTCut
      */
     public void setFsDeltaTCut(double fsDeltaTCut) {
         this.fsDeltaTCut = fsDeltaTCut;
+    }
+
+    /**
+     * Cut window half-width for (track - track) time cut. Negative value
+     * disables this cut.
+     *
+     * @param maxTrackDt
+     */
+    public void setMaxTrackDt(double maxTrackDt) {
+        this.maxTrackDt = maxTrackDt;
     }
 
     @Override
@@ -51,7 +67,7 @@ public class ReconParticleCleanupDriver extends Driver {
 
         for (Iterator<ReconstructedParticle> iter = event.get(ReconstructedParticle.class, finalStateParticlesColName).listIterator(); iter.hasNext();) {
             ReconstructedParticle fs = iter.next();
-            if (fs.getClusters().isEmpty()) {//track without cluster, discard
+            if (discardUnmatchedTracks && fs.getClusters().isEmpty()) {//track without cluster, discard
                 iter.remove();
                 continue;
             }
@@ -60,55 +76,50 @@ public class ReconParticleCleanupDriver extends Driver {
                 continue;
             }
 
-            double deltaT = ClusterUtilities.getSeedHitTime(fs.getClusters().get(0)) - TrackUtils.getTrackTime(fs.getTracks().get(0), hitToStrips, hitToRotated);
-            if (Math.abs(deltaT - fsDeltaT) > fsDeltaTCut) {//bad track-cluster time match, discard
-                iter.remove();
+            if (!fs.getClusters().isEmpty() && !fs.getTracks().isEmpty()) {
+                double deltaT = ClusterUtilities.getSeedHitTime(fs.getClusters().get(0)) - TrackUtils.getTrackTime(fs.getTracks().get(0), hitToStrips, hitToRotated);
+                if (fsDeltaTCut > 0 && Math.abs(deltaT - fsDeltaT) > fsDeltaTCut) {//bad track-cluster time match, discard
+                    iter.remove();
+                }
             }
         }
 
         Set<ReconstructedParticle> fsParticles = new HashSet<ReconstructedParticle>(event.get(ReconstructedParticle.class, finalStateParticlesColName));
 
-        v0Loop:
-        for (Iterator<ReconstructedParticle> iter = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName).listIterator(); iter.hasNext();) {
-            ReconstructedParticle v0 = iter.next();
-            if (hasSharedStrips(v0, hitToStrips, hitToRotated)) {
-                iter.remove();
-                continue;
-            }
-            for (ReconstructedParticle particle : v0.getParticles()) {
-                if (!fsParticles.contains(particle)) {
-                    iter.remove();
-                    continue v0Loop;
-                }
-            }
-        }
+        for (String colName : v0ColNames) {
+            v0Loop:
+            for (Iterator<ReconstructedParticle> iter = event.get(ReconstructedParticle.class, colName).listIterator(); iter.hasNext();) {
+                ReconstructedParticle v0 = iter.next();
 
-        v0Loop:
-        for (Iterator<ReconstructedParticle> iter = event.get(ReconstructedParticle.class, beamConV0CandidatesColName).listIterator(); iter.hasNext();) {
-            ReconstructedParticle v0 = iter.next();
-            if (hasSharedStrips(v0, hitToStrips, hitToRotated)) {
-                iter.remove();
-                continue;
-            }
-            for (ReconstructedParticle particle : v0.getParticles()) {
-                if (!fsParticles.contains(particle)) {
-                    iter.remove();
-                    continue v0Loop;
+                ReconstructedParticle[] particles = new ReconstructedParticle[2];
+                for (ReconstructedParticle particle : v0.getParticles()) //                tracks.addAll(particle.getTracks());  //add add electron first, then positron...down below
+                {
+                    if (particle.getCharge() < 0) {
+                        particles[0] = particle;
+                    } else if (particle.getCharge() > 0) {
+                        particles[1] = particle;
+                    } else {
+                        throw new RuntimeException("expected only electron and positron in vertex, got something with charge 0");
+                    }
                 }
-            }
-        }
+                if (particles[0] == null || particles[1] == null) {
+                    throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
+                }
+                double deltaT = TrackUtils.getTrackTime(particles[0].getTracks().get(0), hitToStrips, hitToRotated) - TrackUtils.getTrackTime(particles[1].getTracks().get(0), hitToStrips, hitToRotated); //electron time - positron time
 
-        v0Loop:
-        for (Iterator<ReconstructedParticle> iter = event.get(ReconstructedParticle.class, targetV0ConCandidatesColName).listIterator(); iter.hasNext();) {
-            ReconstructedParticle v0 = iter.next();
-            if (hasSharedStrips(v0, hitToStrips, hitToRotated)) {
-                iter.remove();
-                continue;
-            }
-            for (ReconstructedParticle particle : v0.getParticles()) {
-                if (!fsParticles.contains(particle)) {
+                if (hasSharedStrips(v0, hitToStrips, hitToRotated)) {
                     iter.remove();
-                    continue v0Loop;
+                    continue;
+                }
+                if (maxTrackDt > 0 && Math.abs(deltaT) > maxTrackDt) {
+                    iter.remove();
+                    continue;
+                }
+                for (ReconstructedParticle particle : v0.getParticles()) {
+                    if (!fsParticles.contains(particle)) {
+                        iter.remove();
+                        continue v0Loop;
+                    }
                 }
             }
         }
@@ -121,5 +132,4 @@ public class ReconParticleCleanupDriver extends Driver {
     private static boolean hasSharedStrips(ReconstructedParticle fs1, ReconstructedParticle fs2, RelationalTable hittostrip, RelationalTable hittorotated) {
         return TrackUtils.hasSharedStrips(fs1.getTracks().get(0), fs2.getTracks().get(0), hittostrip, hittorotated);
     }
-
 }

@@ -65,6 +65,12 @@ public class V0Monitoring extends DataQualityMonitor {
     /* beamspot constrained */
 
     IHistogram1D nV0;
+
+    IHistogram1D v0Time;
+    IHistogram1D v0Dt;
+    IHistogram2D trigTimeV0Time;
+    IHistogram1D trigTime;
+
     IHistogram1D bsconMass;
     IHistogram1D bsconVx;
     IHistogram1D bsconVy;
@@ -144,6 +150,11 @@ public class V0Monitoring extends DataQualityMonitor {
         /* beamspot constrained */
 
         nV0 = aida.histogram1D(plotDir + triggerType + "/" + "Number of V0 per event", 10, 0, 10);
+        v0Time = aida.histogram1D(plotDir + triggerType + "/" + "V0 mean time", 100, -25, 25);
+        v0Dt = aida.histogram1D(plotDir + triggerType + "/" + "V0 time difference", 100, -25, 25);
+        trigTimeV0Time = aida.histogram2D(plotDir + triggerType + "/" + "Trigger phase vs. V0 mean time", 100, -25, 25, 6, 0, 24);
+        trigTime = aida.histogram1D(plotDir + triggerType + "/" + "Trigger phase", 6, 0, 24);
+
         bsconMass = aida.histogram1D(plotDir + triggerType + "/" + "BS Constrained Mass (GeV)", 100, 0, 0.200);
         bsconVx = aida.histogram1D(plotDir + triggerType + "/" + "BS Constrained Vx (mm)", 50, -10, 10);
         bsconVy = aida.histogram1D(plotDir + triggerType + "/" + "BS Constrained Vy (mm)", 50, -10, 10);
@@ -259,6 +270,14 @@ public class V0Monitoring extends DataQualityMonitor {
             {
                 pEleVspPosWithCut.fill(pe, pp);
             }
+
+            double eleT = TrackUtils.getTrackTime(ele.getTracks().get(0), hitToStrips, hitToRotated);
+            double posT = TrackUtils.getTrackTime(pos.getTracks().get(0), hitToStrips, hitToRotated);
+            double meanT = (eleT + posT) / 2.0;
+            v0Time.fill(meanT);
+            v0Dt.fill(eleT-posT);
+            trigTimeV0Time.fill(meanT, event.getTimeStamp() % 24);
+            trigTime.fill(event.getTimeStamp() % 24);
         }
 
         List<ReconstructedParticle> beamConstrainedV0List = event.get(ReconstructedParticle.class, beamConV0CandidatesColName);
