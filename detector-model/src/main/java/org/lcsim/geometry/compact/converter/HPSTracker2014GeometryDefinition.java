@@ -117,8 +117,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             }
         }       
 
-        //System.out.printf("%s: Constructed %d geometry objects\n", this.getClass().getSimpleName(), surveyVolumes.size());
-        //System.out.printf("%s: Constructed %d module bundles\n", this.getClass().getSimpleName(),modules.size());        
+        System.out.printf("%s: Constructed %d geometry objects\n", this.getClass().getSimpleName(), surveyVolumes.size());
+        System.out.printf("%s: Constructed %d module bundles\n", this.getClass().getSimpleName(),modules.size());        
 
         if(isDebug()) {
             System.out.printf("%s: DONE constructing the geometry objects\n", this.getClass().getSimpleName());
