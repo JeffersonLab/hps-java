@@ -320,7 +320,7 @@
                  <SurveyVolume name="module_L3b_halfmodule_stereo" desc="Bottom L3S sensor basis in pin frame:">
                     <origin x="124.0978" y="39.2465" z="-13.6345" />
                     <unitvec name="X" x="9.9501e-01" y="9.9818e-02" z="4.5773e-04" />
-                    <unitvec name="Y" x="9.9814e-02" y="9.9500e-01" z="4.5062e-03" />
+                    <unitvec name="Y" x="9.9814e-02" y="-9.9500e-01" z="4.5062e-03" />
                     <unitvec name="Z" x="9.0524e-04" y="-4.4380e-03" z="-9.9999e-01" />
                 </SurveyVolume>
                 <SurveyVolume name="module_L3b_halfmodule_axial" desc="Bottom L3A sensor basis in pin frame:">
