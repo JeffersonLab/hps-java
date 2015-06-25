@@ -26,12 +26,13 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
+
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 
@@ -61,8 +62,8 @@ public class SvtHitEfficiency extends Driver {
     //private Map<SiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<SiSensor, Map<Integer, Hep3Vector>>(); 
     private List<HpsSiSensor> sensors = null;
     private Map<Track, ReconstructedParticle> reconParticleMap = new HashMap<Track, ReconstructedParticle>();
-    private Map<Integer, SvtStereoLayer> topStereoLayers = new HashMap<Integer, SvtStereoLayer>();
-    private Map<Integer, SvtStereoLayer> bottomStereoLayers = new HashMap<Integer, SvtStereoLayer>();
+    private Map<Integer, List<SvtStereoLayer>> topStereoLayers = new HashMap<Integer, List<SvtStereoLayer>>();
+    private Map<Integer, List<SvtStereoLayer>> bottomStereoLayers = new HashMap<Integer, List<SvtStereoLayer>>();
 
     TrackerHitUtils trackerHitUtils = new TrackerHitUtils();
     
@@ -151,20 +152,20 @@ public class SvtHitEfficiency extends Driver {
         List<SvtStereoLayer> stereoLayers 
             = ((HpsTracker2) detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement()).getStereoPairs();
         for (SvtStereoLayer stereoLayer : stereoLayers) { 
-            if (stereoLayer.getAxialSensor().isTopLayer()) { 
-                topStereoLayers.put(stereoLayer.getLayerNumber(), stereoLayer);
+            if (stereoLayer.getAxialSensor().isTopLayer()) {
+                //System.out.println("Adding stereo layer " + stereoLayer.getLayerNumber());
+                if (!topStereoLayers.containsKey(stereoLayer.getLayerNumber())) { 
+                    topStereoLayers.put(stereoLayer.getLayerNumber(), new ArrayList<SvtStereoLayer>());
+                } 
+                topStereoLayers.get(stereoLayer.getLayerNumber()).add(stereoLayer);
             } else { 
-                bottomStereoLayers.put(stereoLayer.getLayerNumber(), stereoLayer);
+                if (!bottomStereoLayers.containsKey(stereoLayer.getLayerNumber())) { 
+                    bottomStereoLayers.put(stereoLayer.getLayerNumber(), new ArrayList<SvtStereoLayer>());
+                } 
+                bottomStereoLayers.get(stereoLayer.getLayerNumber()).add(stereoLayer);
             }
         }
     
-        /*
-        String title = null;
-        IHistogram2D histo2D = null;
-        IHistogram1D histo1D = null;
-        ICloud2D cloud2D = null;
-        */
-
         plotters.put("Event Information", plotterFactory.create("Event information"));
         plotters.get("Event Information").createRegions(2, 3);
 
@@ -175,16 +176,21 @@ public class SvtHitEfficiency extends Driver {
         plotters.get("Event Information").region(1).plot(trackPlots.get("Unused Layer"));
 
         plotters.put("Track Momentum", plotterFactory.create("Track Momentum"));
-        plotters.get("Track Momentum").createRegions(1, 2);
+        plotters.get("Track Momentum").createRegions(2, 2);
 
         trackMomentumPlots.put("Track Momentum", histogramFactory.createHistogram1D("Track Momentum", 50, 0, 1.5));
         plotters.get("Track Momentum").region(0).plot(trackMomentumPlots.get("Track Momentum"));
            
         trackMomentumPlots.put("Track Momentum - Tracks Within Acceptance",
                 histogramFactory.createHistogram1D("Track Momentum - Tracks Within Acceptance", 50, 0, 1.5));
-        plotters.get("Track Momentum").region(0)
+        plotters.get("Track Momentum").region(1)
                                       .plot(trackMomentumPlots.get("Track Momentum - Tracks Within Acceptance"));
 
+        trackMomentumPlots.put("Track Momentum - All Layers Hit", 
+                histogramFactory.createHistogram1D("Track Momentum - All Layers Hit", 50, 0, 1.5));
+        plotters.get("Track Momentum").region(2)
+                                      .plot(trackMomentumPlots.get("Track Momentum - All Layers Hit"));
+        
         // Create a Map from sensor to bad channels and from bad channels to
         // strip position
         /*
@@ -300,6 +306,9 @@ public class SvtHitEfficiency extends Driver {
         
         trackPlots.get("Number of tracks").fill(tracks.size());
         
+        //  Get all of the stereo hits in the event
+        List<TrackerHit> stereoHits = event.get(TrackerHit.class, stereoHitCollectionName);
+        
         // Get the list of Ecal clusters from the event
         //List<Cluster> ecalClusters = event.get(Cluster.class, ecalClustersCollectionName);
 
@@ -325,9 +334,64 @@ public class SvtHitEfficiency extends Driver {
             // Extrapolate the track to the unused layer and check that it lies
             // within the acceptance of that layer.  If it doesn't, move on
             // to the next event
-            //if(!isWithinAcceptance(track, unusedLayer)) continue;
+            if(!isWithinAcceptance(track, unusedLayer)) continue;
 
+            HpsSiSensor trackSensor = (HpsSiSensor) ((RawTrackerHit)track.getTrackerHits().get(0).getRawHits().get(0)).getDetectorElement();
+            
+            if (trackSensor.isTopLayer()) {
+                numberOfTopTracks++;
+            } else { 
+                numberOfBottomTracks++;
+            }
+            
             trackMomentumPlots.get("Track Momentum - Tracks Within Acceptance").fill(p); 
+           
+            // Check if there is a stereo hit within some distance of the track 
+            // in the unused layer
+            for (TrackerHit stereoHit : stereoHits) {
+                
+                // Retrieve the sensor associated with one of the hits.  This will
+                // be used to retrieve the layer number
+                HpsSiSensor hitSensor = (HpsSiSensor) ((RawTrackerHit) stereoHit.getRawHits().get(0)).getDetectorElement();
+           
+                if ((trackSensor.isTopLayer() && hitSensor.isBottomLayer()) 
+                        || (trackSensor.isBottomLayer() && hitSensor.isTopLayer())) continue;
+                
+                // Retrieve the layer number by using the sensor
+                int layer = (hitSensor.getLayerNumber() + 1)/2;
+                
+                if (unusedLayer == layer) { 
+                    trackMomentumPlots.get("Track Momentum - All Layers Hit").fill(p);
+                    
+                    if (hitSensor.isTopLayer()) { 
+                        numberOfTopTracksWithHitOnMissingLayer++;
+                    } else { 
+                        numberOfBottomTracksWithHitOnMissingLayer++;
+                    }
+                    
+                    return;
+                }
+            }
+            
+            /* 
+            for(HelicalTrackHit stereoHit : stereoHits){
+                if(layer == stereoHit.Layer()){
+                    if(debug) System.out.println(this.getClass().getSimpleName() + ": Track has five layers hit");
+                    if(TrackUtils.getZ0(track) > 0){
+                        topTracksWithHitOnMissingLayer[arrayPosition]++;
+                    } else {
+                        bottomTracksWithHitOnMissingLayer[arrayPosition]++;
+                    }
+                    if(enableMomentumPlots)
+                        aida.histogram1D("Track Momentum - Tracks With All Layers Hit").fill(momentum);
+                    if(enableChiSquaredPlots)
+                        aida.histogram1D("Chi Squared - Tracks With All Layers Hit").fill(track.getChi2());
+                    
+                    return;
+                }
+            }*/
+            
+            
             //ecalClusterTrackMatch = false;
             
             // Check if there is an Ecal cluster in the same detector volume as the track
@@ -349,39 +413,9 @@ public class SvtHitEfficiency extends Driver {
             }*/
             
             
-            //int arrayPosition = (layer - 1)/2;
-            
-            //if(TrackUtils.getZ0(track) > 0){
-                //numberOfTopTracks++;
-                //topTracksPerMissingLayer[arrayPosition]++;
-            //} else {
-                //numberOfBottomTracks++;
-                //bottomTracksPerMissingLayer[arrayPosition]++;
-            //}
-
             //if(enableChiSquaredPlots)
             //    aida.histogram1D("Chi Squared - Tracks Within Acceptance").fill(track.getChi2());
             
-            // Find if there is a stereo hit within that layer
-            /*List<HelicalTrackHit> stereoHits = event.get(HelicalTrackHit.class, stereoHitCollectionName);
-            for(HelicalTrackHit stereoHit : stereoHits){
-                if(layer == stereoHit.Layer()){
-                    if(debug) System.out.println(this.getClass().getSimpleName() + ": Track has five layers hit");
-                    if(TrackUtils.getZ0(track) > 0){
-                        numberOfTopTracksWithHitOnMissingLayer++;
-                        topTracksWithHitOnMissingLayer[arrayPosition]++;
-                    } else {
-                        numberOfBottomTracksWithHitOnMissingLayer++;
-                        bottomTracksWithHitOnMissingLayer[arrayPosition]++;
-                    }
-                    if(enableMomentumPlots)
-                        aida.histogram1D("Track Momentum - Tracks With All Layers Hit").fill(momentum);
-                    if(enableChiSquaredPlots)
-                        aida.histogram1D("Chi Squared - Tracks With All Layers Hit").fill(track.getChi2());
-                    
-                    return;
-                }
-            }*/
             
             /*int layerNumber = (layer - 1)/2 + 1;
             if(enableTrackPositionPlots){
@@ -416,81 +450,102 @@ public class SvtHitEfficiency extends Driver {
      *  @param hits : List of stereo hits associated with a track
      *  @return Layer not used in the track fit
      */
-    private int getUnusedSvtLayer(List<TrackerHit> hits) {
+    private int getUnusedSvtLayer(List<TrackerHit> stereoHits) {
         
         int[] svtLayer = new int[6];
-        for (TrackerHit hit : hits) {
+        
+        // Loop over all of the stereo hits associated with the track
+        for (TrackerHit stereoHit : stereoHits) {
+            
+            // Retrieve the sensor associated with one of the hits.  This will
+            // be used to retrieve the layer number
+            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stereoHit.getRawHits().get(0)).getDetectorElement();
+            
+            // Retrieve the layer number by using the sensor
+            int layer = (sensor.getLayerNumber() + 1)/2;
            
-            int layer = -1;
-            switch ((int) Math.floor(hit.getPosition()[0])/100) {
-                case 1: 
-                    layer = 1;
-                    break;
-                case 2: 
-                    layer = 2;
-                    break;
-                case 3: 
-                    layer = 3;
-                    break;
-                case 5: 
-                    layer = 4;
-                    break;
-                case 7: 
-                    layer = 5;
-                    break;
-                case 9: 
-                    layer = 6;
-                    break;
-                default:
-                    throw new RuntimeException("Layer not found");
-            }
-            svtLayer[layer - 1]++; 
+            // If a hit is associated with that layer, increment its 
+            // corresponding counter
+            svtLayer[layer - 1]++;
         }
         
+        // Loop through the layer counters and find which layer has not been
+        // incremented i.e. is unused by the track
         for(int layer = 0; layer < svtLayer.length; layer++){
-            if(svtLayer[layer] == 0) return layer;
+            if(svtLayer[layer] == 0) { 
+                System.out.println("Layer number " + (layer+1) + " is not used");
+                return (layer + 1);
+            }
         }
-        
+      
+        // If all of the layers are being used, this track can't be used to 
+        // in the single hit efficiency calculation.  This means that something
+        // is wrong with the file
+        // TODO: This should probably throw an exception
         return -1;
     }
    
     /**
-     *  Check if a track lies within the acceptance of a layer.
-     *
+     * Extrapolate a track to a layer and check that it lies within its 
+     * acceptance.
+     *  
+     * @param track The track that will be extrapolated to the layer of interest
+     * @param layer The layer number to extrapolate to
+     * @return true if the track lies within the sensor acceptance, false otherwise
      */
-    // TODO: Move this to a utility class 
     private boolean isWithinAcceptance(Track track, int layer) {
        
+        // TODO: Move this to a utility class 
+       
+        //System.out.println("Retrieving sensors for layer: " + layer);
         
-
-        List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
-        /*if(TrackUtils.getZ0(track) > 0){
-           //sensors.add(SvtUtils.getInstance().getTopSensor(layer, 0));
-           //sensors.add(SvtUtils.getInstance().getTopSensor(layer + 1, 0));
+        // Since TrackUtils.isTop/BottomTrack does not work when running off 
+        // a recon file, get the detector volume that a track is associated 
+        // with by using the sensor.  This assumes that a track is always
+        // composed by stereo hits that lie within a single detector volume
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit)track.getTrackerHits().get(0).getRawHits().get(0)).getDetectorElement();
+        
+        // Get the sensors associated with the layer that the track
+        // will be extrapolated to
+        List<SvtStereoLayer> stereoLayers = null;
+        
+        // if (TrackUtils.isTopTrack(track, track.getTrackerHits().size())) {
+        if (sensor.isTopLayer()) {
+            //System.out.println("Top track found.");
+            stereoLayers = this.topStereoLayers.get(layer);
+        //} else if (TrackUtils.isBottomTrack(track, track.getTrackerHits().size())) {
         } else {
-           //sensors.add(SvtUtils.getInstance().getBottomSensor(layer, 0));
-           //sensors.add(SvtUtils.getInstance().getBottomSensor(layer + 1, 0));
-        }*/
+            //System.out.println("Bottom track found.");
+            stereoLayers = this.bottomStereoLayers.get(layer);
+        }
         
-        Hep3Vector frontSensorPos = sensors.get(0).getGeometry().getPosition();
-        Hep3Vector rearSensorPos = sensors.get(1).getGeometry().getPosition();
-        
-        this.frontTrackPos = TrackUtils.extrapolateTrack(track,frontSensorPos.z());
-        this.rearTrackPos = TrackUtils.extrapolateTrack(track,rearSensorPos.z());
-        
-        if(this.sensorContainsTrack(frontTrackPos, sensors.get(0)) && this.sensorContainsTrack(rearTrackPos, sensors.get(1))){
-//          if(this.sensorContainsTrack(trackPos, sensor))
-            if(enableTrackPositionPlots){
-                int layerNumber = (layer - 1)/2 + 1;
-                String title = "Track Position - Layer " + layerNumber + " - Tracks Within Acceptance";
-                //aida.histogram2D(title).fill(trackPos.y(), trackPos.z());
-                //aida.cloud2D(title).fill(frontTrackPos.y(), frontTrackPos.z());
+        for (SvtStereoLayer stereoLayer : stereoLayers) { 
+            Hep3Vector axialSensorPosition = stereoLayer.getAxialSensor().getGeometry().getPosition();
+            Hep3Vector stereoSensorPosition = stereoLayer.getStereoSensor().getGeometry().getPosition();
+       
+            //System.out.println("Axial sensor position: " + axialSensorPosition.toString());
+            //System.out.println("Stereo sensor position: " + stereoSensorPosition.toString());
+            
+            Hep3Vector axialTrackPos = TrackUtils.extrapolateTrack(track,  axialSensorPosition.z());
+            Hep3Vector stereoTrackPos = TrackUtils.extrapolateTrack(track, stereoSensorPosition.z());
+      
+            //System.out.println("Track position at axial sensor: " + axialTrackPos.toString());
+            //System.out.println("Track position at stereo sensor: " + stereoTrackPos.toString());
+            
+            if(this.sensorContainsTrack(axialTrackPos, stereoLayer.getAxialSensor()) 
+                    && this.sensorContainsTrack(stereoTrackPos, stereoLayer.getStereoSensor())){
+                //System.out.println("Track lies within layer acceptance.");
+                return true;
             }
-            return true;
-        } 
-        
+        }
         
         return false;
+        
+        /*int layerNumber = (layer - 1)/2 + 1;
+        String title = "Track Position - Layer " + layerNumber + " - Tracks Within Acceptance";
+        //aida.histogram2D(title).fill(trackPos.y(), trackPos.z());
+        //aida.cloud2D(title).fill(frontTrackPos.y(), frontTrackPos.z()); */
+        
     }
     
     /**
@@ -561,45 +616,44 @@ public class SvtHitEfficiency extends Driver {
                 localToGlobal.transform(vertex);
                 //vertices.set(0, new Point3D(vertex.y() + sensorPos.x(), vertex.x() + sensorPos.y(), vertex.z() + sensorPos.z()));
                 vertices.set(0, new Point3D(vertex.x(), vertex.y(), vertex.z()));
-                if(debug){
-                    System.out.println(this.getClass().getSimpleName() + ": Vertex 1 Position: " + vertices.get(0).toString());
-                    //System.out.println(this.getClass().getSimpleName() + ": Transformed Vertex 1 Position: " + localToGlobal.transformed(vertex).toString());
-                }
+               //System.out.println(this.getClass().getSimpleName() + ": Vertex 1 Position: " + vertices.get(0).toString());
+               //System.out.println(this.getClass().getSimpleName() + ": Transformed Vertex 1 Position: " + localToGlobal.transformed(vertex).toString());
             } 
             else if(vertex.y() > 0 && vertex.x() > 0){
                 localToGlobal.transform(vertex);
                 //vertices.set(1, new Point3D(vertex.y() + sensorPos.x(), vertex.x() + sensorPos.y(), vertex.z() + sensorPos.z()));
                 vertices.set(1, new Point3D(vertex.x(), vertex.y(), vertex.z()));
-                if(debug){
-                System.out.println(this.getClass().getSimpleName() + ": Vertex 2 Position: " + vertices.get(1).toString());
+                //System.out.println(this.getClass().getSimpleName() + ": Vertex 2 Position: " + vertices.get(1).toString());
                 //System.out.println(this.getClass().getSimpleName() + ": Transformed Vertex 2 Position: " + localToGlobal.transformed(vertex).toString());
-                }
             } 
             else if(vertex.y() > 0 && vertex.x() < 0){
                 localToGlobal.transform(vertex);
                 //vertices.set(2, new Point3D(vertex.y() + sensorPos.x(), vertex.x() + sensorPos.y(), vertex.z() + sensorPos.z()));
                 vertices.set(2, new Point3D(vertex.x(), vertex.y(), vertex.z()));
-                if(debug){
-                System.out.println(this.getClass().getSimpleName() + ": Vertex 3 Position: " + vertices.get(2).toString());
+                //System.out.println(this.getClass().getSimpleName() + ": Vertex 3 Position: " + vertices.get(2).toString());
                 //System.out.println(this.getClass().getSimpleName() + ": Transformed Vertex 3 Position: " + localToGlobal.transformed(vertex).toString());
-                }
             }             
             else if(vertex.y() < 0 && vertex.x() < 0){
                 localToGlobal.transform(vertex);
                 //vertices.set(3, new Point3D(vertex.y() + sensorPos.x(), vertex.x() + sensorPos.y(), vertex.z() + sensorPos.z()));
                 vertices.set(3, new Point3D(vertex.x(), vertex.y(), vertex.z()));
-                if(debug){
-                System.out.println(this.getClass().getSimpleName() + ": Vertex 4 Position: " + vertices.get(3).toString());
+                //System.out.println(this.getClass().getSimpleName() + ": Vertex 4 Position: " + vertices.get(3).toString());
                 //System.out.println(this.getClass().getSimpleName() + ": Transformed Vertex 4 Position: " + localToGlobal.transformed(vertex).toString());
-                }
             } 
         }
 
+        /*
         double area1 = this.findTriangleArea(vertices.get(0).x(), vertices.get(0).y(), vertices.get(1).x(), vertices.get(1).y(), trackPosition.y(), trackPosition.z()); 
         double area2 = this.findTriangleArea(vertices.get(1).x(), vertices.get(1).y(), vertices.get(2).x(), vertices.get(2).y(), trackPosition.y(), trackPosition.z()); 
         double area3 = this.findTriangleArea(vertices.get(2).x(), vertices.get(2).y(), vertices.get(3).x(), vertices.get(3).y(), trackPosition.y(), trackPosition.z()); 
         double area4 = this.findTriangleArea(vertices.get(3).x(), vertices.get(3).y(), vertices.get(0).x(), vertices.get(0).y(), trackPosition.y(), trackPosition.z()); 
+        */
         
+        double area1 = this.findTriangleArea(vertices.get(0).x(), vertices.get(0).y(), vertices.get(1).x(), vertices.get(1).y(), trackPosition.x(), trackPosition.y()); 
+        double area2 = this.findTriangleArea(vertices.get(1).x(), vertices.get(1).y(), vertices.get(2).x(), vertices.get(2).y(), trackPosition.x(), trackPosition.y()); 
+        double area3 = this.findTriangleArea(vertices.get(2).x(), vertices.get(2).y(), vertices.get(3).x(), vertices.get(3).y(), trackPosition.x(), trackPosition.y()); 
+        double area4 = this.findTriangleArea(vertices.get(3).x(), vertices.get(3).y(), vertices.get(0).x(), vertices.get(0).y(), trackPosition.x(), trackPosition.y()); 
+
         if((area1 > 0 && area2 > 0 && area3 > 0 && area4 > 0) || (area1 < 0 && area2 < 0 && area3 < 0 && area4 < 0)) return true;
         return false;
     } 
@@ -645,6 +699,11 @@ public class SvtHitEfficiency extends Driver {
         System.out.println("% \n%===================================================================%");
     }
 
+    /**
+     * 
+     * @param tracks
+     * @param particles
+     */
     private void mapReconstructedParticlesToTracks(List<Track> tracks, List<ReconstructedParticle> particles) {
         
        reconParticleMap.clear();
@@ -656,7 +715,12 @@ public class SvtHitEfficiency extends Driver {
            }
        }
     }
-    
+   
+    /**
+     * 
+     * @param track
+     * @return
+     */
     private ReconstructedParticle getReconstructedParticle(Track track) {
         return reconParticleMap.get(track);
     }
