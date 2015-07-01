@@ -44,6 +44,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
@@ -63,6 +64,8 @@ public class TrackingReconstructionPlots extends Driver {
     
     private AIDA aida = AIDA.defaultInstance();
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
+    private String stripClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+    
     private String trackCollectionName = "MatchedTracks";
     String ecalSubdetectorName = "Ecal";
     String ecalCollectionName = "EcalClusters";
@@ -90,6 +93,7 @@ public class TrackingReconstructionPlots extends Driver {
     IPlotter plotter66;
     IPlotter plotter7;
     IPlotter plotter8;
+    IPlotter plotter88;
     IPlotter plotter9;
     IPlotter top1;
     IPlotter top2;
@@ -798,8 +802,8 @@ public class TrackingReconstructionPlots extends Driver {
         style55.dataStyle().markerStyle().setSize(20);
         plotter55.createRegions(1, 2);
 
-        IProfile avgLayersTopPlot = aida.profile1D("Number of Stereo Hits per layer in Top Half", 5, 1, 11);
-        IProfile avgLayersBottomPlot = aida.profile1D("Number of Stereo Hits per layer in Bottom Half", 5, 1, 11);
+        IProfile avgLayersTopPlot = aida.profile1D("Number of Stereo Hits per layer in Top Half", 13, 0, 13);
+        IProfile avgLayersBottomPlot = aida.profile1D("Number of Stereo Hits per layer in Bottom Half", 13, 0, 13);
 
         plotter55.region(0).plot(avgLayersTopPlot);
         plotter55.region(1).plot(avgLayersBottomPlot);
@@ -873,7 +877,7 @@ public class TrackingReconstructionPlots extends Driver {
         
         if(showPlots) plotter7.show();
         
-        plotter8 = fac.createPlotterFactory().create("HPS Strip Hit Multiplicity");
+        plotter8 = fac.createPlotterFactory().create("HPS Strip Hit From Stereo Multiplicity");
         plotter8.setTitle("Strip Hit Multiplicity");
         //plotterFrame.addPlotter(plotter8);
         IPlotterStyle style8 = plotter8.style();
@@ -882,12 +886,26 @@ public class TrackingReconstructionPlots extends Driver {
         plotter8.createRegions(6, 6);
         i=0;
         for(SiSensor sensor : sensors) {
-            IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip hits", 10, 0, 10);
+            IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip hits from stereo", 10, 0, 10);
             plotter8.region(i).plot(resX);
             i++;
         }
 
         if(showPlots) plotter8.show();
+        
+        plotter88 = fac.createPlotterFactory().create("HPS Strip Hit Multiplicity");
+        plotter88.setTitle("Strip Hit Multiplicity");
+        //plotterFrame.addPlotter(plotter88);
+        plotter88.setStyle(style8);
+        plotter88.createRegions(6, 6);
+        i=0;
+        for(SiSensor sensor : sensors) {
+            IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip hits", 10, 0, 10);
+            plotter88.region(i).plot(resX);
+            i++;
+        }
+
+        if(showPlots) plotter88.show();
         
         
         plotter9 = fac.createPlotterFactory().create("HPS Strip Hit On Track Multiplicity");
@@ -936,19 +954,41 @@ public class TrackingReconstructionPlots extends Driver {
 //            System.out.println(helicalTrackHitCollectionName + " does not exist; skipping event");
             return;
         }
+        
+        List<SiTrackerHitStrip1D> stripClusters = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
+        //System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", stripHits.size());
+        Map<HpsSiSensor, Integer> stripHits = new HashMap<HpsSiSensor, Integer>();
+        for (SiTrackerHitStrip1D stripHit : stripClusters) {
+            HpsSiSensor sensor = (HpsSiSensor) stripHit.getRawHits().get(0).getDetectorElement();
+            int n;
+            if(stripHits.containsKey(sensor)) {
+                n = stripHits.get(sensor);
+            } else {
+                n=0;
+            }
+            n++;
+            stripHits.put(sensor, n);
+        }
+        
+        for(Map.Entry<HpsSiSensor,Integer> sensor : stripHits.entrySet()) {
+            aida.histogram1D(sensor.getKey().getName() + " strip hits").fill(sensor.getValue());
+        }
+        
+        
+        
         List<HelicalTrackHit> hthList = event.get(HelicalTrackHit.class, helicalTrackHitCollectionName);
         int[] layersTop = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         int[] layersBot = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        Map<HpsSiSensor, Integer> stripHits = new HashMap<HpsSiSensor, Integer>();
+        Map<HpsSiSensor, Integer> stripHitsFromStereoHits = new HashMap<HpsSiSensor, Integer>();
         for (HelicalTrackHit hth : hthList) {
             HelicalTrackCross htc = (HelicalTrackCross) hth;
             HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement());
             for(HelicalTrackStrip strip : htc.getStrips()) {
                 HpsSiSensor stripsensor = (HpsSiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement();
-                if(stripHits.containsKey(stripsensor)) {
-                    stripHits.put(stripsensor, stripHits.get(stripsensor) + 1);
+                if(stripHitsFromStereoHits.containsKey(stripsensor)) {
+                    stripHitsFromStereoHits.put(stripsensor, stripHitsFromStereoHits.get(stripsensor) + 1);
                 } else {
-                    stripHits.put(stripsensor, 0);
+                    stripHitsFromStereoHits.put(stripsensor, 0);
                 }
             }
             if(sensor.isTopLayer()){
@@ -957,8 +997,8 @@ public class TrackingReconstructionPlots extends Driver {
                 layersBot[htc.Layer() - 1]++;
             }
         }
-        for(Map.Entry<HpsSiSensor,Integer> sensor : stripHits.entrySet()) {
-            aida.histogram1D(sensor.getKey().getName() + " strip hits").fill(sensor.getValue());
+        for(Map.Entry<HpsSiSensor,Integer> sensor : stripHitsFromStereoHits.entrySet()) {
+            aida.histogram1D(sensor.getKey().getName() + " strip hits from stereo").fill(sensor.getValue());
         }
         
         for (int i = 0; i < 12; i++) {
