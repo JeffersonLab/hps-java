@@ -379,7 +379,9 @@ final class RunProcessor {
             RunSummary runSummary = runs.getRunSummary(run);
             
             // Clear the cache manager.
-            cacheManager.clear();
+            if (config.useFileCache()) {
+                cacheManager.clear();
+            }
 
             // Create a processor to process all the EVIO events in the run.
             final RunProcessor runProcessor = RunProcessor.createRunProcessor(cacheManager, runSummary, config);

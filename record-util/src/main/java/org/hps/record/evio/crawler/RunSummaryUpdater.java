@@ -145,7 +145,7 @@ public class RunSummaryUpdater {
         // Does the run exist in the database already?
         if (this.runExists()) {
             // Is deleting existing rows allowed?
-            if (allowDeleteExisting) {
+            if (this.allowDeleteExisting) {
                 // Delete the existing rows.
                 this.delete();
             } else {

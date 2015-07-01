@@ -49,11 +49,14 @@ public class RunLogUpdater {
         
         // Set the run log with the run info to update.
         this.runLog = runLog;
+        
+        // Set whether db updates are allowed (replacement of existing records).
+        this.allowUpdates = allowUpdates;
     }
             
     /**
-     * Insert the run summary information into the database, including updating the run_log_files
-     * and run_log_epics tables.
+     * Insert the run summary information into the database, including updating the <i>run_log_files</i>
+     * and <i>run_log_epics</i> tables.
      *
      * @param connection the database connection
      * @throws SQLException if there is an error querying the database
@@ -76,9 +79,11 @@ public class RunLogUpdater {
                                 
                 // Create the db updater for the RunSummary.
                 RunSummaryUpdater runUpdater = new RunSummaryUpdater(connection, runSummary);
-                
+                                                
                 // Set whether existing records can be replaced.
                 runUpdater.setAllowDeleteExisting(allowUpdates);
+                
+                LOGGER.info("allow updates: " + allowUpdates);
                 
                 // Insert the run records.
                 runUpdater.insert();
