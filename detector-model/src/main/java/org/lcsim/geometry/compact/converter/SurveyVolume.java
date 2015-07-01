@@ -609,7 +609,9 @@ public abstract class SurveyVolume {
 		if( getCenter()!=null) s += "Center of box: " + getCenter().toString() + "\n";
         if( getBoxDim()!=null) s += "Box dimensions: " + getBoxDim().toString() + "\n";
 		if(this.coord==null)   s += " No coord system \n";
-		else s += "Coordinate system:" + getCoord().toString() + "\n";
+		else {
+		    s += getName() + " origin " + getCoord().origin() + " u " + getCoord().u()+ " v " + getCoord().v()+ " w " + getCoord().w();
+		}
         s += "AlignmentCorrections: \n";
 		if(this.alignmentCorrections!=null) {
 		    s += "Milleparameters: ";
@@ -625,9 +627,16 @@ public abstract class SurveyVolume {
 		SurveyVolume m = getMother();
 		while(m!=null) {    
             Hep3Vector origin_m = HPSTrackerBuilder.transformToParent(new BasicHep3Vector(0, 0, 0), this, m.getName());
-            s += String.format("%s origin in %s : %s (mm)\n",getName(), m.getName(), origin_m.toString());            
-            origin_m = VecOp.mult(0.0393701, origin_m);
-            s += String.format("%s origin in %s : (%.4f %.4f %.4f) (inch)\n",getName(), m.getName(), origin_m.x(),origin_m.y(),origin_m.z());            
+            String unitVecStr = "";
+            if(getCoord()!=null) {
+                Hep3Vector u_m = HPSTrackerBuilder.rotateToParent(getCoord().u(), this, m.getName());
+                Hep3Vector v_m = HPSTrackerBuilder.rotateToParent(getCoord().v(), this, m.getName());
+                Hep3Vector w_m = HPSTrackerBuilder.rotateToParent(getCoord().w(), this, m.getName());
+                unitVecStr += String.format("u %s v %s w %s", u_m.toString(), v_m.toString(), w_m.toString());            
+            }
+            s += String.format("%s origin in %s : %s (mm) %s\n",getName(), m.getName(), origin_m.toString(), unitVecStr);            
+            //origin_m = VecOp.mult(0.0393701, origin_m);
+            //s += String.format("%s origin in %s : (%.4f %.4f %.4f) (inch)\n",getName(), m.getName(), origin_m.x(),origin_m.y(),origin_m.z());            
             m = m.getMother();
 		}
 		
