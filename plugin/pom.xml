@@ -42,7 +42,7 @@
                         </property>
                         <property>
                             <name>org.jlab.coda:*</name>
-                            <value>http://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</value>
+                            <value>https://coda.jlab.org/maven/</value>
                         </property>
                     </urls>
                     <redirectUrls>
