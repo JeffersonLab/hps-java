@@ -567,6 +567,48 @@ public abstract class HPSTrackerBuilder {
         }
         return transformToParent(vec_mother_coord, geometry.getMother(), targetName);
     }
+    
+    
+    /**
+     * Find the vector in a mother volume coordinate system.
+     * 
+     * @param vec - vector to transform
+     * @param geometry - geometry where vector is defined.
+     * @return transformed vector.
+     */
+    public static Hep3Vector rotateToParent(Hep3Vector vec, SurveyVolume geometry, String targetName) {
+        int debug = 0;
+        if (debug > 0)
+            System.out.printf("\nrotateToParent: vec %s in local coordiantes of %s\n", vec.toString(),
+                    geometry.getName());
+        if (geometry.getMother() == null) {
+            if (debug > 0)
+                System.out.printf("\nrotateToParent: no mother, return null\n", vec.toString(), geometry.getName());
+            return null;
+        }
+        if (debug > 0)
+            System.out.printf("\nrotateToParent: vec %s in local coordinates of %s with mother %s\n",
+                    vec.toString(), geometry.getName(), geometry.getMother().getName().toString());
+        SurveyCoordinateSystem coord = geometry.getCoord();
+        if (coord == null) {
+            throw new RuntimeException("rotateToParent: no coordinate system found for %s, return null "
+                    + geometry.getName());
+        }
+        Hep3Vector vec_mother_coord = coord.getTransformation().rotated(vec);
+        if (debug > 0)
+            System.out.printf("vec_mother_coord %s\n", vec_mother_coord.toString());
+        if (geometry.getMother().getName().equals(targetName)) {
+            if (debug > 0)
+                System.out.printf("reached target \"%s\"tracking volume. Return \n", targetName);
+            return vec_mother_coord;
+        } else {
+            if (debug > 0)
+                System.out.printf("continue searching.\n");
+        }
+        return rotateToParent(vec_mother_coord, geometry.getMother(), targetName);
+    }
+
+    
 
     /**
      * Get axial or stereo key name from string
