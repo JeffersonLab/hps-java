@@ -4,6 +4,7 @@ import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.hps.recon.tracking.axial.HelicalTrack2DHit;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
@@ -78,6 +80,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     public HelicalTrackHitDriver() {
         _crosser.setMaxSeparation(20.0);
         _crosser.setTolerance(0.1);
+        _crosser.setEpsParallel(0.013);
         _colnames.add("StripClusterer_SiTrackerHitStrip1D");
     }
 
@@ -133,6 +136,14 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         this._debug = debug;
     }
 
+    public void setEpsParallel(double eps) {
+        this._crosser.setEpsParallel(eps);
+    }
+
+    public void setEpsStereo(double eps) {
+        this._crosser.setEpsStereoAngle(eps);
+    }
+    
     /**
      *
      * @param trans
@@ -618,7 +629,16 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                     System.out.printf("%s: adding rotated strip with origin %s and u %s v %s w %s \n", getClass().toString(), newstrip.origin().toString(), newstrip.u().toString(), newstrip.v().toString(), newstrip.w().toString());
                 }
             }
-            HelicalTrackCross newhit = new HelicalTrackCross(rotatedstriphits.get(0), rotatedstriphits.get(1));
+            List<HelicalTrackStrip> strip1 = new ArrayList<HelicalTrackStrip>();
+            List<HelicalTrackStrip> strip2 = new ArrayList<HelicalTrackStrip>();
+            strip1.add(rotatedstriphits.get(0));
+            strip2.add(rotatedstriphits.get(1));
+            List<HelicalTrackCross> newhits = _crosser.MakeHits(strip1, strip2);
+            if(newhits.size()!=1) {
+                throw new RuntimeException("no rotated cross was created!?");
+            }
+            HelicalTrackCross newhit  = newhits.get(0);
+            //HelicalTrackCross newhit = new HelicalTrackCross(rotatedstriphits.get(0), rotatedstriphits.get(1));
             for (MCParticle mcp : cross.getMCParticles()) {
                 newhit.addMCParticle(mcp);
             }
