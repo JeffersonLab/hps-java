@@ -42,9 +42,9 @@
             <numSamplesBefore>5</numSamplesBefore>
             <readoutThreshold>12</readoutThreshold>
             <triggerThreshold>12</triggerThreshold>
-<!--            <readoutWindow>50</readoutWindow>
+            <readoutWindow>50</readoutWindow>
             <readoutLatency>75</readoutLatency>
-            <mode>1</mode>-->
+            <mode>1</mode>
         </driver>
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <rawCollectionName>EcalRawHits</rawCollectionName>
@@ -103,7 +103,7 @@
             <outputFile>${outputFile}.slcio</outputFile>
             <rejectBackground>false</rejectBackground>
             <writeSvtData>true</writeSvtData>
-            <!--<ecalMode>1</ecalMode>-->
+            <ecalMode>1</ecalMode>
         </driver>
     </drivers>
 </lcsim>
