@@ -248,8 +248,9 @@ public class SvtBiasConditionsLoader {
 
         
         // load to DB
-        loadToConditionsDB(biasRunRanges,cl.hasOption("g")?true:false);
-        
+        if(cl.hasOption("g")) {
+            loadToConditionsDB(biasRunRanges);
+        }
     }
     
     
@@ -269,7 +270,7 @@ public class SvtBiasConditionsLoader {
         return null;
     }
 
-    private static final void loadToConditionsDB(List<SvtBiasRunRange> ranges, boolean doIt) {
+    private static final void loadToConditionsDB(List<SvtBiasRunRange> ranges) {
         logger.info("Load to DB...");
         
         // Create a new collection for each run
@@ -327,22 +328,22 @@ public class SvtBiasConditionsLoader {
                 
                 logger.info(condition.toString());
             }
-            
-            if(doIt) {
+
+
+            try {
                 try {
-                    try {
-                        collection.insert();
-                    } catch (SQLException e) {
-                        throw new RuntimeException("cant instert collection", e);
-                    }
-                    condition.insert();
-                    
-                } catch (ConditionsObjectException e) {
-                    throw new RuntimeException(e);
+                    collection.insert();
+                } catch (SQLException e) {
+                    throw new RuntimeException("cant instert collection", e);
                 }
+                condition.insert();
+
+            } catch (ConditionsObjectException e) {
+                throw new RuntimeException(e);
             }
+            
         }
-        
+
 
     }
     
