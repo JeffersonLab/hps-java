@@ -55,35 +55,42 @@
             <use2014Gain>false</use2014Gain> 
         </driver>   
         <driver name="EcalClustererGTP" type="org.hps.recon.ecal.cluster.GTPClusterDriver">
+            <!--
+            Hit Time Coincidence:         +/-16 ns
+            Seed Energy Threshold:           50 MeV
+            -->
             <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
             <outputClusterCollectionName>EcalClustersGTP</outputClusterCollectionName>            
-            <clusterWindow>1</clusterWindow>
+            <clusterWindow>4</clusterWindow>
+            <seedEnergyThreshold>0.050</seedEnergyThreshold>
             <logLevel>SEVERE</logLevel>
         </driver>
         <driver name="PairTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <!--      
-           Hit Count: 2
-           Seed Energy: 50 MeV
-           Cluster Energy: 60 MeV (Low) and 630 MeV (High)
-           Energy Sum: 200 MeV (Low) and 860 MeV (High)
-           Energy Difference: 540 MeV
-           Energy Slope: 600 MeV (with F = 5.5 MeV/mm)
-           Coplanarity: 30 Degrees
-           Time Coincidence: 16 ms 
+            Hits Per Cluster Min:             1
+            Cluster Time Coincidence:     +/-12 ns
+            Cluster Energy Min:              54 MeV
+            Cluster Energy Max:             630 MeV
+            2-Cluster Energy-Sum Min:       180 MeV
+            2-Cluster Energy-Sum Min:       860 MeV
+            2-Cluster Energy-Diff Max:      540 MeV
+            Coplanarity Maximum:             30 deg
+            Energy-Dist Slope:              5.5 MeV/mm
+            Energy-Dist Minimum:            600 MeV
             -->
             <clusterCollectionName>EcalClustersGTP</clusterCollectionName>
             <deadTime>32</deadTime>
-            <minHitCount>2</minHitCount>
-            <pairCoincidence>4</pairCoincidence>
-            <clusterEnergyHigh>0.63</clusterEnergyHigh>
-            <clusterEnergyLow>0.06</clusterEnergyLow>
-            <energySumHigh>0.86</energySumHigh>
-            <energySumLow>0.2</energySumLow>
-            <energyDifferenceHigh>0.54</energyDifferenceHigh>
+            <seedEnergyLow>0.050</seedEnergyLow>
+            <minHitCount>1</minHitCount>
+            <pairCoincidence>3</pairCoincidence>
+            <clusterEnergyLow>0.054</clusterEnergyLow>
+            <clusterEnergyHigh>0.630</clusterEnergyHigh>
+            <energySumLow>0.180</energySumLow>
+            <energySumHigh>0.860</energySumHigh>
+            <energyDifferenceHigh>0.540</energyDifferenceHigh>
             <coplanarityHigh>30</coplanarityHigh>
-            <seedEnergyLow>0.05</seedEnergyLow>
             <energySlopeParamF>0.0055</energySlopeParamF>
-            <energySlopeLow>0.6</energySlopeLow>
+            <energySlopeLow>0.600</energySlopeLow>
             <prescale>1</prescale>
             <outputFileName>${outputFile}.triggers.pairs1</outputFileName>
             <!--<verbose>true</verbose>-->
