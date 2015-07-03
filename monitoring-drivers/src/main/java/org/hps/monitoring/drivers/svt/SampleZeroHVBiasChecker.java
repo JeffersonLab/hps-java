@@ -17,9 +17,14 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunSpreadsheet.RunMap;
 import org.hps.conditions.svt.SvtBiasConditionsLoader;
+import org.hps.conditions.svt.SvtBiasConstant;
+import org.hps.conditions.svt.SvtBiasConstant.SvtBiasConstantCollection;
 import org.hps.conditions.svt.SvtBiasMyaDumpReader;
+import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasRunRange;
 import org.hps.recon.ecal.triggerbank.AbstractIntData;
 import org.hps.recon.ecal.triggerbank.HeadBankData;
@@ -80,6 +85,8 @@ public class SampleZeroHVBiasChecker extends Driver {
     private boolean hvOn = false;
     private EpicsData epicsData = null;
     private int eventCountEpicsDisagree = 0;
+    SvtBiasConstantCollection svtBiasConstants = null;
+    
 
     
 
@@ -104,6 +111,21 @@ public class SampleZeroHVBiasChecker extends Driver {
     
     @Override
     protected void detectorChanged(Detector detector) {
+    
+        
+        ConditionsRecordCollection col_svt_bias = DatabaseConditionsManager.getInstance().findConditionsRecords("svt_bias");
+        if(col_svt_bias==null) {
+            logger.info("svt_bias name collection wasn't found");
+        }
+        ConditionsRecordCollection col_svt_bias_constants = DatabaseConditionsManager.getInstance().findConditionsRecords("svt_bias_constants");
+        if(col_svt_bias_constants==null) {
+            logger.info("col_svt_bias_constants name collection wasn't found");
+        }
+        
+        
+        
+        svtBiasConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtBiasConstant.SvtBiasConstantCollection.class , "svt_bias").getCachedData();
+
         
         try {
             fWriter = new FileWriter(fileName);
@@ -221,7 +243,26 @@ public class SampleZeroHVBiasChecker extends Driver {
         
         if(eventDate!=null) {
 
+            logger.info("eventDate " + eventDate.toString());
+            
             eventCount++;
+            
+            
+            // check what the DB has
+            if(svtBiasConstants != null) {
+                logger.info("there are " + svtBiasConstants.size() + " constants to search");
+                for(SvtBiasConstant constant : svtBiasConstants) {
+                    logger.info("start " + constant.getStart().toString() + " end " + constant.getEnd() + " value " + constant.getValue());
+                }
+                
+                
+                SvtBiasConstant constant = svtBiasConstants.find(eventDate);
+                
+                logger.info(constant==null?"No constant found!":("Found constant " + "start " + constant.getStart().toString() + " end " + constant.getEnd() + " value " + constant.getValue()));
+                
+            }
+            
+            
             
             if(runRange==null) {
                 for(SvtBiasRunRange r : runRanges) {
