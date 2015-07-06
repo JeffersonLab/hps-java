@@ -9,268 +9,72 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.run.RunSpreadsheet;
 import org.hps.conditions.run.RunSpreadsheet.RunData;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
-/**
- * @author Per Hansson Adrian, SLAC
- */
+
+
 public class SvtBiasMyaDumpReader {
-
-    public static final class SvtBiasMyaEntry {
-        private final Date date;
-        private final String name;
-        private final double value;
-
-        public SvtBiasMyaEntry(final String name, final Date date, final double value) {
-            this.date = date;
-            this.name = name;
-            this.value = value;
-        }
-
-        public Date getDate() {
-            return this.date;
-        }
-
-        public double getValue() {
-            return this.value;
-        }
-
-        @Override
-        public String toString() {
-            return this.name + " " + this.date.toString() + " value " + this.value;
-        }
-    }
-
-    public static class SvtBiasMyaRange {
-        private SvtBiasMyaEntry end;
-        private SvtBiasMyaEntry start;
-
-        public SvtBiasMyaRange() {
-        }
-
-        public SvtBiasMyaRange(final SvtBiasMyaEntry start) {
-            this.start = start;
-        }
-
-        public SvtBiasMyaEntry getEnd() {
-            return this.end;
-        }
-
-        public Date getEndDate() {
-            return this.getEnd().getDate();
-        }
-
-        public SvtBiasMyaEntry getStart() {
-            return this.start;
-        }
-
-        public Date getStartDate() {
-            return this.getStart().getDate();
-        }
-
-        public boolean overlap(final Date date_start, final Date date_end) {
-            if (date_end.before(this.getStartDate())) {
-                return false;
-            } else if (date_start.after(this.getEndDate())) {
-                return false;
-            }
-            return true;
-        }
-
-        public void setEnd(final SvtBiasMyaEntry end) {
-            this.end = end;
-        }
-
-        public void setStart(final SvtBiasMyaEntry start) {
-            this.start = start;
-        }
-
-        @Override
-        public String toString() {
-            return "START: " + this.start.toString() + "   END: " + this.end.toString();
-        }
-    }
-
-    public static final class SvtBiasMyaRanges extends ArrayList<SvtBiasMyaRange> {
-        public SvtBiasMyaRanges() {
-        }
-
-        public SvtBiasMyaRanges findOverlappingRanges(final Date date_start, final Date date_end) {
-            logger.fine("look for overlaps from " + date_start.toString() + " to " + date_end.toString());
-            final SvtBiasMyaRanges overlaps = new SvtBiasMyaRanges();
-            for (final SvtBiasMyaRange range : this) {
-                logger.fine("loop bias range " + range.toString());
-                if (range.overlap(date_start, date_end)) {
-                    overlaps.add(range);
-                    logger.fine("overlap found!! ");
-                }
-            }
-            return overlaps;
-        }
-
-        @Override
-        public String toString() {
-            final StringBuffer sb = new StringBuffer();
-            for (final SvtBiasMyaRange range : this) {
-                sb.append(range.toString() + "\n");
-            }
-            return sb.toString();
-        }
-    }
-
-    public static final class SvtBiasRunRange {
-        private SvtBiasMyaRanges ranges;
-        private RunData run;
-
-        public SvtBiasRunRange(final RunData run, final SvtBiasMyaRanges ranges) {
-            this.setRun(run);
-            this.setRanges(ranges);
-        }
-
-        public SvtBiasMyaRanges getRanges() {
-            return this.ranges;
-        }
-
-        public RunData getRun() {
-            return this.run;
-        }
-
-        public void setRanges(final SvtBiasMyaRanges ranges) {
-            this.ranges = ranges;
-        }
-
-        public void setRun(final RunData run) {
-            this.run = run;
-        }
-
-        @Override
-        public String toString() {
-            final StringBuffer sb = new StringBuffer();
-            sb.append("\nRun " + this.run.toString() + ":");
-            for (final SvtBiasMyaRange r : this.ranges) {
-                sb.append("\n" + r.toString());
-            }
-            return sb.toString();
-        }
-    }
-
-    private static final double BIASVALUEON = 178.0;
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
+    
     private static Logger logger = LogUtil.create(SvtBiasMyaDumpReader.class, new BasicLogFormatter(), Level.INFO);
 
-    public static void main(final String[] args) {
-
-        final SvtBiasMyaDumpReader dumpReader = new SvtBiasMyaDumpReader(args);
-
+    
+    public static void main(String[] args) {
+        
+        SvtBiasMyaDumpReader dumpReader = new SvtBiasMyaDumpReader(args);
+        
         dumpReader.printRanges();
-
+      
+        
     }
-
-    protected static List<SvtBiasMyaEntry> readMyaDump(final File file) {
-
-        final List<SvtBiasMyaEntry> myaEntries = new ArrayList<SvtBiasMyaEntry>();
-        try {
-
-            final BufferedReader br = new BufferedReader(new FileReader(file));
-            String line;
-            while ((line = br.readLine()) != null) {
-                // System.out.println(line);
-                final String arr[] = line.split(" ");
-                try {
-
-                    if (arr.length < 3) {
-                        throw new ParseException("this line is not correct.", 0);
-                    }
-                    final Date date = DATE_FORMAT.parse(arr[0] + " " + arr[1]);
-                    final double value = Double.parseDouble(arr[2]);
-                    final SvtBiasMyaEntry entry = new SvtBiasMyaEntry(file.getName(), date, value);
-                    myaEntries.add(entry);
-                } catch (final ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-            br.close();
-
-        } catch (final IOException e) {
-            e.printStackTrace();
-        }
-        return myaEntries;
-
-    }
-
-    private final SvtBiasMyaRanges biasRanges = new SvtBiasMyaRanges();
-
-    private final List<SvtBiasMyaEntry> myaEntries = new ArrayList<SvtBiasMyaEntry>();
-
+    
+    private static final SimpleDateFormat DATE_FORMAT = new RunSpreadsheet.AnotherSimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    //private static final TimeZone timeZone = TimeZone.getTimeZone("EST");
+    public static final double BIASVALUEON = 178.0;
+    private List<SvtBiasMyaEntry> myaEntries = new ArrayList<SvtBiasMyaEntry>();
+    private SvtBiasMyaRanges biasRanges = new SvtBiasMyaRanges();
+    
     public SvtBiasMyaDumpReader() {
     }
 
-    public SvtBiasMyaDumpReader(final String filepath) {
-        final String[] files = {filepath};
-        this.buildFromFiles(files);
+    public SvtBiasMyaRanges findOverlappingRanges(Date date_start, Date date_end) {
+        return this.biasRanges.findOverlappingRanges(date_start, date_end);
+    }
+    
+    private void readFromFile(File file) {
+        addEntries(readMyaDump(file));
+        logger.info("Got " + getEntries().size() + " entries from " + file.getName());
+       
+    }
+    public void buildFromFiles(String[] args) {
+        for( int i=0; i<args.length; ++i) {
+            readFromFile(new File(args[i]));
+        }
+        buildRanges();       
+    }
+    
+    public SvtBiasMyaDumpReader(String[] args) {
+        buildFromFiles(args);
+    }
+    
+    public SvtBiasMyaDumpReader(String filepath) {
+        String[] files = {filepath};
+        buildFromFiles(files);
     }
 
-    public SvtBiasMyaDumpReader(final String[] args) {
-        this.buildFromFiles(args);
-    }
-
-    public void addEntries(final List<SvtBiasMyaEntry> e) {
-        this.myaEntries.addAll(e);
-    }
-
-    public void addEntry(final SvtBiasMyaEntry e) {
+    
+    public void addEntry(SvtBiasMyaEntry e) {
         this.myaEntries.add(e);
     }
 
-    public void buildFromFiles(final String[] args) {
-        for (final String arg : args) {
-            this.readFromFile(new File(arg));
-        }
-        this.buildRanges();
-    }
-
-    public void buildRanges() {
-        SvtBiasMyaRange range = null;
-        SvtBiasMyaEntry eprev = null;
-        for (final SvtBiasMyaEntry e : this.myaEntries) {
-
-            // System.out.println(e.toString());
-
-            if (eprev != null) {
-                if (e.getDate().before(eprev.getDate())) {
-                    throw new RuntimeException("date list is not ordered: " + eprev.toString() + " vs " + e.toString());
-                }
-            }
-
-            if (e.getValue() > BIASVALUEON) {
-                if (range == null) {
-                    logger.fine("BIAS ON: " + e.toString());
-                    range = new SvtBiasMyaRange();
-                    range.setStart(e);
-                }
-            } else {
-                // close it
-                if (range != null) {
-                    logger.fine("BIAS TURNED OFF: " + e.toString());
-                    range.setEnd(e);
-                    this.biasRanges.add(range);
-                    range = null;
-                }
-            }
-            eprev = e;
-        }
-        logger.info("Built " + this.biasRanges.size() + " ranges");
-
-    }
-
-    public SvtBiasMyaRanges findOverlappingRanges(final Date date_start, final Date date_end) {
-        return this.biasRanges.findOverlappingRanges(date_start, date_end);
+    public void addEntries(List<SvtBiasMyaEntry> e) {
+        this.myaEntries.addAll(e);
     }
 
     public List<SvtBiasMyaEntry> getEntries() {
@@ -281,16 +85,208 @@ public class SvtBiasMyaDumpReader {
         return this.biasRanges;
     }
 
+    
     private void printRanges() {
-        for (final SvtBiasMyaRange r : this.biasRanges) {
+        for( SvtBiasMyaRange r : biasRanges) {
             logger.info(r.toString());
+        }
+     }
+    
+    
+    protected static List<SvtBiasMyaEntry> readMyaDump(File file) {
+
+        List<SvtBiasMyaEntry> myaEntries = new ArrayList<SvtBiasMyaEntry>();
+        try {
+
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = br.readLine()) != null) {
+                //System.out.println(line);
+                String arr[] = line.split(" ");
+                try {
+                    
+                    if(arr.length<3) {
+                        throw new ParseException("this line is not correct.",0);
+                    }
+                    
+                    Date date = DATE_FORMAT.parse(arr[0] + " " + arr[1]);
+                    double value = Double.parseDouble(arr[2]);
+                    SvtBiasMyaEntry entry = new SvtBiasMyaEntry(file.getName(), date, value);
+                    myaEntries.add(entry);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+            br.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return myaEntries;
+
+    }
+    
+    public void buildRanges() {
+        SvtBiasMyaRange range = null;
+        SvtBiasMyaEntry eprev = null;
+        for(SvtBiasMyaEntry e : this.myaEntries) {
+            
+            //System.out.println(e.toString());
+            
+            if(eprev!=null) {
+                if(e.getDate().before(eprev.getDate())) {
+                    throw new RuntimeException("date list is not ordered: " + eprev.toString() + " vs " + e.toString());
+                }
+            }
+            
+            if( e.getValue() > BIASVALUEON) {
+                if (range==null) {
+                    logger.fine("BIAS ON: " + e.toString());
+                    range = new SvtBiasMyaRange();
+                    range.setStart(e);
+                } 
+            } else {
+                //close it
+                if (range!=null) {
+                    logger.fine("BIAS TURNED OFF: " + e.toString());
+                    range.setEnd(e);
+                    this.biasRanges.add(range);
+                    range = null;
+                }
+            }            
+            eprev = e;
+        }
+        logger.info("Built " + this.biasRanges.size() + " ranges");
+        
+    }
+    
+    
+    public static final class SvtBiasMyaEntry {
+        private Date date;
+        private String name;
+        private double value;
+        public SvtBiasMyaEntry(String name, Date date, double value) {
+            this.date = date;
+            this.name = name;
+            this.value = value;
+        }
+        public double getValue() {
+            return value;
+        }
+        public Date getDate() {
+            return this.date;
+        }
+        public String toString() {
+            return name + " " + date.toString() + " (epoch " + Long.toString(date.getTime()) + ")" + " value " + value;
         }
     }
 
-    private void readFromFile(final File file) {
-        this.addEntries(readMyaDump(file));
-        logger.info("Got " + this.getEntries().size() + " entries from " + file.getName());
 
+    
+    public static final class SvtBiasMyaRanges extends ArrayList<SvtBiasMyaRange> {
+        public SvtBiasMyaRanges() {}
+        public SvtBiasMyaRanges findOverlappingRanges(Date date_start, Date date_end) {
+            logger.fine("look for overlaps from " + date_start.toString() + " to " + date_end.toString());
+            SvtBiasMyaRanges overlaps = new SvtBiasMyaRanges();
+            for(SvtBiasMyaRange range : this) {
+                logger.fine("loop bias range " + range.toString());
+                if( range.overlap(date_start,date_end) ) {
+                    overlaps.add(range);
+                    logger.fine("overlap found!! ");
+                }
+            }
+            return overlaps;
+        }
+        public String toString() {
+            StringBuffer sb = new StringBuffer();
+            for(SvtBiasMyaRange range : this) {
+                sb.append(range.toString() + "\n");
+            }
+            return sb.toString();
+        }
+        
+        public boolean includes(Date date) {
+            for(SvtBiasMyaRange r : this) {
+                if(r.includes(date)) return true;
+            }
+            return false;
+        }
+        
     }
+    
+    public static class SvtBiasMyaRange {
+        private SvtBiasMyaEntry start;
+        private SvtBiasMyaEntry end;
+        public SvtBiasMyaRange() {}
+        public Date getStartDate() {
+            return getStart().getDate();
+        }
+        public Date getEndDate() {
+            return getEnd().getDate();
+        }
+        public boolean overlap(Date date_start, Date date_end) {
+            if( date_end.before(getStartDate()) ) {
+                return false;
+            } else if ( date_start.after(getEndDate())) {
+                return false;
+            } 
+            return true;
+        }
+        public SvtBiasMyaRange(SvtBiasMyaEntry start) {
+            this.start = start;
+        }
+        public SvtBiasMyaEntry getEnd() {
+            return end;
+        }
+        public void setEnd(SvtBiasMyaEntry end) {
+            this.end = end;
+        }
+        public SvtBiasMyaEntry getStart() {
+            return start;
+        }
+        public void setStart(SvtBiasMyaEntry start) {
+            this.start = start;
+        }
+        public String toString() {
+            return "START: " + start.toString() + "   END: " + end.toString();
+        }
+        public boolean includes(Date date) {
+            if( date.before(getStartDate()) || date.after(getEndDate()) ) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+    
+    public static final class SvtBiasRunRange {
+        private RunData run;
+        private SvtBiasMyaRanges ranges;
+        public SvtBiasRunRange(RunData run, SvtBiasMyaRanges ranges) {
+            setRun(run);
+            setRanges(ranges);
+        }
+        public RunData getRun() {
+            return run;
+        }
+        public void setRun(RunData run) {
+            this.run = run;
+        }
+        public SvtBiasMyaRanges getRanges() {
+            return ranges;
+        }
+        public void setRanges(SvtBiasMyaRanges ranges) {
+            this.ranges = ranges;
+        }
+        public String toString() {
+            StringBuffer sb  = new StringBuffer();
+            sb.append("\nRun " + run.toString() + ":");
+            for (SvtBiasMyaRange r : ranges) {
+                sb.append("\n" + r.toString());
+            }
+            return sb.toString();
+        }
+    }
+    
 
 }
