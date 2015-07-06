@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+<!-- 
+  Check bias run ranges and noise
+  @author Per Hansson Adrian <phansson@slac.stanford.edu>
+-->
+    <control>
+        <printInputFiles>false</printInputFiles>
+        <printDriversDetailed>false</printDriversDetailed>
+        <numberOfEvents>10000</numberOfEvents>
+    </control>
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="BiasCheck"/>
+         <driver name="AidaSaveDriverRoot" /> 
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>    
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>10000</eventInterval>
+        </driver>        
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="BiasCheck" type="org.hps.monitoring.drivers.svt.SampleZeroHVBiasChecker">
+            <showPlots>False</showPlots>
+            <runSpreadSheetPath>/Users/phansson/work/HPS/software/kepler2/hps-java-sandbox/HPS_Runs_2015-SVT_timing_guesses_for_Jeremy.csv</runSpreadSheetPath>
+            <myaDumpPath>/Users/phansson/work/HPS/software/kepler2/hps-java-sandbox/biascrawling/svtbiasmon/SVT:bias:bot:20:v_sens.mya</myaDumpPath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+        
+        
+    </drivers>
+</lcsim>

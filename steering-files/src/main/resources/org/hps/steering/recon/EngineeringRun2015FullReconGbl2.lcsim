@@ -91,7 +91,7 @@
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
-            <hitEnergyThreshold>0.01</hitEnergyThreshold>
+            <hitEnergyThreshold>0.0075</hitEnergyThreshold>
             <seedEnergyThreshold>0.050</seedEnergyThreshold> 
             <clusterEnergyThreshold>0.100</clusterEnergyThreshold>
             <minTime>0.0</minTime>
@@ -109,7 +109,7 @@
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
-    		<storeHits>false</storeHits>
+    		<storeHits>true</storeHits>
         </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">  
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        

@@ -13,7 +13,7 @@ import org.lcsim.detector.Transform3D;
 import org.lcsim.detector.Translation3D;
 
      /**
-	 * Class describing a simple coordinate system used to define the {@SurveyVolume}.
+	 * Class describing a simple coordinate system used to define the {@link SurveyVolume}.
 	 * 
 	 *    @author Per Hansson Adrian <phansson@slac.stanford.edu>
 	 */

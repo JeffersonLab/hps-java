@@ -71,8 +71,6 @@ public class TrackingResiduals extends DataQualityMonitor {
     @Override
     public void process(EventHeader event) {
         aida.tree().cd("/");
-        if (!event.hasCollection(GenericObject.class, trackTimeDataCollectionName))
-            return;
         if (!event.hasCollection(GenericObject.class, trackResidualsCollectionName))
             return;
           //check to see if this event is from the correct trigger (or "all");
@@ -94,12 +92,16 @@ public class TrackingResiduals extends DataQualityMonitor {
                 }
         }
 
-        List<GenericObject> ttdList = event.get(GenericObject.class, trackTimeDataCollectionName);
-        for (GenericObject ttd : ttdList) {
-            int nResid = ttd.getNDouble();
-            for (int i = 1; i <= nResid; i++)
-                aida.histogram1D(plotDir + triggerType + "/"+timeresDir + "HalfModule " + i + " t Residual").fill(ttd.getDoubleVal(i - 1));//x is the double value in the generic object               
+        if (event.hasCollection(GenericObject.class, trackTimeDataCollectionName)) {
+            List<GenericObject> ttdList = event.get(GenericObject.class, trackTimeDataCollectionName);
+            for (GenericObject ttd : ttdList) {
+                int nResid = ttd.getNDouble();
+                for (int i = 1; i <= nResid; i++) {
+                    aida.histogram1D(plotDir + triggerType + "/" + timeresDir + "HalfModule " + i + " t Residual").fill(ttd.getDoubleVal(i - 1));//x is the double value in the generic object               
+                }
+            }
         }
+        
         if (!event.hasCollection(GenericObject.class, gblStripClusterDataCollectionName))
             return;
         List<GenericObject> gblSCDList = event.get(GenericObject.class, gblStripClusterDataCollectionName);

@@ -531,4 +531,13 @@ public final class ClusterUtilities {
         }
         return sort(clusters, new ClusterEnergyComparator(), true, true).get(0);
     }
+    
+    /**
+     * Return the time of the seed hit.
+     * @param cluster
+     * @return the seed hit time
+     */
+    public static double getSeedHitTime(Cluster cluster) {
+        return findSeedHit(cluster).getTime();
+    }
 }

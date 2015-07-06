@@ -50,6 +50,11 @@ final class JCacheManager {
          * The current status from executing the 'jcache request' command.
          */
         private String status;
+        
+        /**
+         * The xml node with request data.
+         */
+        private Element xml;
 
         /**
          * Create a new <code>CacheStatus</code> object.
@@ -94,7 +99,7 @@ final class JCacheManager {
                 throw new RuntimeException(e);
             }
             // LOGGER.finer("raw XML: " + xmlString);
-            xmlString = xmlString.substring(xmlString.trim().indexOf("<?xml") + 1);
+            xmlString = xmlString.substring(xmlString.trim().indexOf("<jcache>"));
             // LOGGER.finer("cleaned XML: " + xmlString);
             return buildDocument(xmlString).getRootElement();
         }
@@ -122,38 +127,58 @@ final class JCacheManager {
         }
 
         /**
-         * Return </code>true</code> if status is "done".
+         * Return <code>true</code> if status is "done".
          *
-         * @return </code>true</code> if status is "done"
+         * @return <code>true</code> if status is "done"
          */
         boolean isDone() {
             return "done".equals(this.status);
         }
 
         /**
-         * Return </code>true</code> if status is "hit".
+         * Return <code>true</code> if status is "hit".
          *
-         * @return </code>true</code> if status is "hit"
+         * @return <code>true</code> if status is "hit"
          */
         boolean isHit() {
             return "hit".equals(this.status);
         }
 
         /**
-         * Return </code>true</code> if status is "pending".
+         * Return <code>true</code> if status is "pending".
          *
-         * @return </code>true</code> if status is "pending"
+         * @return <code>true</code> if status is "pending"
          */
         boolean isPending() {
             return "pending".equals(this.status);
         }
-
+        
         /**
-         * Request the file status string using the 'jcache request' command.
-         *
-         * @return the file status string
+         * Return <code>true</code> if status is "failed".
          */
-        private String requestFileStatus() {
+        boolean isFailed() {
+            return "failed".equals(this.status);
+        }
+        
+        /**
+         * Get the error message from the XML request.
+         * 
+         * @return the error message from the XML request
+         */
+        String getErrorMessage() {
+            if (this.xml.getChild("request").getChild("file").getChild("error") != null) {
+                return this.xml.getChild("request").getChild("file").getChild("error").getText();
+            } else {
+                return "";
+            }
+        }
+      
+        /**
+         * Run the <i>jcache request</i> command for this request ID and return the XML output.
+         * 
+         * @return the XML output from the <i>jcache request</i> command
+         */
+        private Element request() {
             Process process = null;
             try {
                 process = new ProcessBuilder(JCACHE_COMMAND, "request", this.requestId.toString()).start();
@@ -169,15 +194,22 @@ final class JCacheManager {
             if (status != 0) {
                 throw new RuntimeException("The jcache request returned an error status: " + status);
             }
-            return this.getRequestXml(process.getInputStream()).getChild("request").getChild("file").getChildText("status");
+            return this.getRequestXml(process.getInputStream());            
         }
 
         /**
          * Update the cache status.
          */
         void update() {
-            this.status = this.requestFileStatus();
+            // Request status update and get the XML from that process.
+            this.xml = request();
+            
+            // Update the status from the XML.
+            this.status = this.xml.getChild("request").getChild("file").getChildText("status");
+            
+            // Is request done or file already in cache?
             if (this.isDone() || this.isHit()) {
+                // Flag file as cached.
                 this.cached = true;
             }
         }
@@ -210,6 +242,7 @@ final class JCacheManager {
      * @return the XML document
      */
     private static Document buildDocument(final String xmlString) {
+        LOGGER.fine("building doc from string: " + xmlString);
         final SAXBuilder builder = new SAXBuilder();
         Document document = null;
         try {
@@ -343,6 +376,13 @@ final class JCacheManager {
                 } else {
                     // Log that this file is now cached. It will not be checked next time.
                     LOGGER.info(cacheStatus.getFile().getPath() + " is cached with status " + cacheStatus.getStatus(false));
+                }
+                
+                // Did the request fail?
+                if (cacheStatus.isFailed()) {
+                    // Cache failure is a fatal error.
+                    LOGGER.severe("cache request failed with error: " + cacheStatus.getErrorMessage());
+                    throw new RuntimeException("Cache request failed.");
                 }
             } else {
                 LOGGER.info(cacheStatus.getFile().getPath() + " is already cached");

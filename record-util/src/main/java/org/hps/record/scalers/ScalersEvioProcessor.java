@@ -24,6 +24,8 @@ public final class ScalersEvioProcessor extends EvioEventProcessor {
      */
     private ScalerData data;
 
+    boolean resetEveryEvent = true;
+
     /**
      * Get the current scaler data or null if there was none in the last event processed.
      *
@@ -41,7 +43,9 @@ public final class ScalersEvioProcessor extends EvioEventProcessor {
      */
     @Override
     public void process(final EvioEvent evio) {
-        this.data = null;
+        if (resetEveryEvent) {
+            this.data = null;
+        }
         for (final BaseStructure bank : evio.getChildrenList()) {
             // Does the crate tag match?
             if (bank.getHeader().getTag() == EvioEventConstants.SCALERS_CRATE_TAG) {
@@ -60,5 +64,9 @@ public final class ScalersEvioProcessor extends EvioEventProcessor {
                 }
             }
         }
+    }
+
+    public void setResetEveryEvent(final boolean resetEveryEvent) {
+        this.resetEveryEvent = resetEveryEvent;
     }
 }

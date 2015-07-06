@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- 
   Offline reconstruction for 2015 (engineering run with SVT+ECal) data.
   @author Sho Uemura <meeg@slac.stanford.edu>
@@ -70,17 +71,17 @@
             <use2014Gain>false</use2014Gain>
             <useTimestamps>false</useTimestamps>
             <useTruthTime>false</useTruthTime>
-<!--            <useRunningPedestal>false</useRunningPedestal>
+            <useRunningPedestal>false</useRunningPedestal>
             <useTimeWalkCorrection>false</useTimeWalkCorrection>
             <emulateFirmware>true</emulateFirmware>
-            <emulateMode7>true</emulateMode7>-->
+            <emulateMode7>true</emulateMode7>
             <leadingEdgeThreshold>12</leadingEdgeThreshold>
             <nsa>100</nsa>
             <nsb>20</nsb>
-<!--            <nPeak>3</nPeak>
+            <nPeak>3</nPeak>
             <useFit>true</useFit>
             <fixShapeParameter>true</fixShapeParameter>
-            <globalFixedPulseWidth>2.4</globalFixedPulseWidth>-->
+            <globalFixedPulseWidth>2.4</globalFixedPulseWidth>
             <!--<debug>true</debug>-->
         </driver>       
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">

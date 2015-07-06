@@ -6,12 +6,12 @@ import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.SpacePoint;
 import hep.physics.vec.VecOp;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
 import org.hps.recon.tracking.EventQuality.Quality;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
 import org.lcsim.detector.ITransform3D;
@@ -20,11 +20,15 @@ import org.lcsim.detector.solids.Point3D;
 import org.lcsim.detector.solids.Polygon3D;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
@@ -859,5 +863,57 @@ public class TrackUtils {
         BarrelEndcapFlag beflag = BarrelEndcapFlag.BARREL;
         return new HelicalTrackHit(pos, hitcov, dedx, time, type, rhits, detname, layer, beflag);
     }
+    
+    public static RelationalTable getHitToStripsTable(EventHeader event) {
+        RelationalTable hitToStrips = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        List<LCRelation> hitrelations = event.get(LCRelation.class, "HelicalTrackHitRelations");
+        for (LCRelation relation : hitrelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                hitToStrips.add(relation.getFrom(), relation.getTo());
+            }
+        }
 
+        return hitToStrips;
+    }
+
+    public static RelationalTable getHitToRotatedTable(EventHeader event) {
+
+        RelationalTable hitToRotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+        List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
+        for (LCRelation relation : rotaterelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                hitToRotated.add(relation.getFrom(), relation.getTo());
+            }
+        }
+        return hitToRotated;
+    }
+
+    public static double getTrackTime(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+        int nStrips = 0;
+        double meanTime = 0;
+        for (TrackerHit hit : track.getTrackerHits()) {
+            Set<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
+            for (TrackerHit hts : htsList) {
+                nStrips++;
+                meanTime += hts.getTime();
+            }
+        }
+        meanTime /= nStrips;
+        return meanTime;
+    }
+    
+    public static boolean hasSharedStrips(Track track1, Track track2, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+        Set<TrackerHit> track1hits = new HashSet<TrackerHit>();
+        for (TrackerHit hit : track1.getTrackerHits()) {
+            track1hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
+        }
+        for (TrackerHit hit : track2.getTrackerHits()) {
+            for (TrackerHit hts : (Set<TrackerHit>) hitToStrips.allFrom(hitToRotated.from(hit))) {
+                if (track1hits.contains(hts)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

@@ -36,7 +36,7 @@ abstract public class HPSTrackerGeometryDefinition extends HPSTrackerBuilder {
 
 
     //General
-    static final double inch = 25.4; //mm
+    protected static final double inch = 25.4; //mm
     protected static final boolean useSiStripsConvention = true;
     protected static final boolean use30mradRotation = true;
     protected static final boolean useFakeHalfModuleAxialPos = false;
@@ -106,7 +106,7 @@ abstract public class HPSTrackerGeometryDefinition extends HPSTrackerBuilder {
     
         // find alignment correction to this volume
         AlignmentCorrection alignmentCorrection =  getHalfModuleAlignmentCorrection(isTopLayer, millepedeLayer);
-        
+        alignmentCorrection.setNode(node);
         
         // find the module bundle that it will be added to
         //TestRunModuleBundle bundle  = (TestRunModuleBundle)getModuleBundle(mother);

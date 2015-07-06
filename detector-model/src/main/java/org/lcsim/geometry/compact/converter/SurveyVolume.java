@@ -7,12 +7,16 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.jdom.Element;
+import org.lcsim.detector.Translation3D;
+import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.SvtBox;
 import org.lcsim.geometry.util.TransformationUtils;
 
 /**
  * 
- * Class containing the basic geometry information for building a volume based on survey positions.
+ * Contains the geometry information that is used to build any volume. 
  * 
  */
 public abstract class SurveyVolume {
@@ -53,6 +57,14 @@ public abstract class SurveyVolume {
 	protected abstract void setCenter();
 	protected abstract void setBoxDim();
 
+	/**
+	 * 
+	 * Initialize the volume. 
+	 * This needs to be called at the top level implementation of the {@link SurveyVolume} to properly setup
+	 * the coordinate systems. It takes care of applying user supplied custom transformations and alignment corrections
+	 * in the order given in the function below. That order must be preserved to get a uniform behavior. 
+	 * 
+	 */
 	protected void init() {
 	    if(debug) System.out.printf("%s: init SurveyVolume %s\n",this.getClass().getSimpleName(),getName());
         setPos();
@@ -69,10 +81,312 @@ public abstract class SurveyVolume {
 	}
 	
 
+    private void applySurvey(Element node) {
+
+        if(debug) System.out.printf("%s: apply survey from compact.\n", this.getClass().getSimpleName());
+
+        // Check that XML file is read into memory and available
+        if(node==null) {
+            
+            if(debug) System.out.printf("%s: WARNING: no XML file for survey information available.\n", this.getClass().getSimpleName());
+    
+        } else {
+            
+            SurveyResult surveyResult = SurveyResult.findResultFromDetector(node, getName());
+            
+            if(surveyResult!=null) {
+                if(debug) System.out.printf("%s: found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                
+                // Adjust coordinate system to match the one used in the geometry.
+                // This depends on the particular volume we are in.
+                
+                if(HPSTrackerBuilder.isModule(name)) {
+
+                    if(HPSTrackerBuilder.isTopFromName(name)) {
+                        
+                        if(debug) System.out.printf("%s: treating it as a top module\n", this.getClass().getSimpleName());
+                        
+                        // The U-channel coordinate system is flipped 90deg clockwise around survey x-axis
+                        
+                        Rotation rotation1 = new Rotation(new Vector3D(1, 0, 0),-Math.PI/2.0);
+                        surveyResult.rotateOrigin(rotation1);
+                        surveyResult.rotateUnitVectors(rotation1);
+                        
+                        if(debug) System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                        
+                        // The unit vectors of the survey module coordinate system (pin bases) are different:
+                        // survey x-axis is module v-axis
+                        // survey y-axis is module -1*u-axis
+                        // survey z-axis is module w-axis
+
+                        Hep3Vector y = new BasicHep3Vector(surveyResult.getX().v());
+                        Hep3Vector x = new BasicHep3Vector(VecOp.mult(-1, surveyResult.getY()).v());
+                        surveyResult.setX(x);
+                        surveyResult.setY(y);
+                        
+                    }
+                    else {
+                    
+                        if(debug) System.out.printf("%s: treating it as a bottom module\n", this.getClass().getSimpleName());
+
+                        // The survey u-channel coordinate system needs two rotations to correspond to the one used here
+                        Rotation rotation1 = new Rotation(new Vector3D(1, 0, 0), Math.PI/2.0);
+                        Rotation rotation2 = new Rotation(new Vector3D(0, 0, 1), Math.PI);
+                        Rotation rotation = rotation2.applyTo(rotation1);
+                        surveyResult.rotateOrigin(rotation);
+                        surveyResult.rotateUnitVectors(rotation);
+
+                        if(debug) System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                        
+                        // The unit vectors of the survey module coordinate system (pin bases) are different:
+                        // survey x-axis is module v-axis
+                        // survey y-axis is module -1*u-axis
+                        // survey z-axis is module w-axis
+                        
+                        Hep3Vector x = new BasicHep3Vector( VecOp.mult(-1, surveyResult.getY()).v());
+                        Hep3Vector y = new BasicHep3Vector( surveyResult.getX().v() );
+                        surveyResult.setX(x);
+                        surveyResult.setY(y);
+
+                        if(debug) System.out.printf("%s: UPDATE2 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                    }
+                   
+
+
+                } else if(HPSTrackerBuilder.isHalfModule(name)) {
+
+                    if(debug) System.out.printf("%s: treating it as a half-module\n", this.getClass().getSimpleName());
+
+                    // Adjust origin to the sensor center
+                    surveyResult.setOrigin(VecOp.add(surveyResult.getOrigin(), VecOp.mult(-0.160, surveyResult.getZ())));
+
+                    // rotate and flip axis to adhere to the definitions of the u,v,w used for the SurveyVolume
+                    Rotation rotation = new Rotation(new Vector3D(0,0,1),Math.PI/2.0);
+                    surveyResult.rotateOrigin(rotation);                
+                    surveyResult.rotateUnitVectors(rotation);
+                    Hep3Vector x = new BasicHep3Vector( VecOp.mult(-1, surveyResult.getY()).v());
+                    Hep3Vector y = new BasicHep3Vector( surveyResult.getX().v() );
+                    surveyResult.setX(x);
+                    surveyResult.setY(y);
+
+                    if(debug) System.out.printf("%s: updated found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                
+                    
+                    
+                    
+                    
+                } else if(HPSTrackerBuilder.isSupportRingKinMount(name)) {
+
+                    if(debug) System.out.printf("%s: treating it as support ring kinematic mount\n", this.getClass().getSimpleName());
+
+
+
+                    // Survey SVT box origin  translated to the edge of the SVT box
+                    surveyResult.setOrigin(VecOp.sub(surveyResult.getOrigin(), new BasicHep3Vector(0, 0, -0.375*HPSTrackerGeometryDefinition.inch)));
+
+                    if(debug) System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+
+
+                    // Survey SVT box origin translated to the center of the Svt Box used in the geometry
+                    surveyResult.setOrigin(VecOp.sub(surveyResult.getOrigin(),new BasicHep3Vector(0, 0, SvtBox.length/2.0)));
+
+
+                    if(debug) System.out.printf("%s: UPDATE2 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+
+                    // rotate origin into the SVT box coordinates
+                    Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI/2.0);
+                    surveyResult.rotateOrigin(r1);
+                    surveyResult.rotateUnitVectors(r1);
+
+                    if(debug) System.out.printf("%s: UPDATE3 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+
+
+
+                    // Swap definition of unit axis to the one used in the U-channels
+                    if(HPSTrackerBuilder.isTopFromName(name)) {
+
+                      //Hep3Vector x = new BasicHep3Vector( VecOp.mult(-1,surveyResult.getX()).v() );
+                        Hep3Vector y = new BasicHep3Vector( VecOp.mult(-1,surveyResult.getZ()).v() );
+                        Hep3Vector z = new BasicHep3Vector( surveyResult.getY().v() );
+                        //surveyResult.setX(x);
+                        surveyResult.setY(y);
+                        surveyResult.setZ(z);
+
+                    } else {
+
+                        //Hep3Vector x = new BasicHep3Vector( VecOp.mult(-1,surveyResult.getX()).v() );
+                        Hep3Vector y = new BasicHep3Vector( VecOp.mult(-1,surveyResult.getZ()).v() );
+                        Hep3Vector z = new BasicHep3Vector( surveyResult.getY().v() );
+                        //surveyResult.setX(x);
+                        surveyResult.setY(y);
+                        surveyResult.setZ(z);
+
+                    }
+
+
+
+
+                } else if(HPSTrackerBuilder.isUChannelSupport(name) ) {
+
+                   
+                    
+                    int layer = HPSTrackerBuilder.getUChannelSupportLayer(name);
+
+                    if(layer >= 4 ) {
+                        if(debug) System.out.printf("%s: treating it as a L4-6 U-channel (%d)\n", this.getClass().getSimpleName(), layer);
+
+
+                        // Survey SVT box origin  translated to the edge of the SVT box
+                        surveyResult.setOrigin(VecOp.sub(surveyResult.getOrigin(), new BasicHep3Vector(0, 0, -0.375*HPSTrackerGeometryDefinition.inch)));
+
+                        if(debug) System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+
+                        // Survey SVT box origin translated to the center of the Svt Box used in the geometry
+                        surveyResult.setOrigin(VecOp.sub(surveyResult.getOrigin(),new BasicHep3Vector(0, 0, SvtBox.length/2.0)));
+
+
+                        if(debug) System.out.printf("%s: UPDATE2 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+
+                        // rotate origin into the SVT box coordinates
+                        Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI/2.0);
+                        surveyResult.rotateOrigin(r1);
+                        surveyResult.rotateUnitVectors(r1);
+
+                        if(debug) System.out.printf("%s: UPDATE3 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+
+                        // Swap definition of unit axis to the one used in the U-channels
+                        if(HPSTrackerBuilder.isTopFromName(name)) {
+
+                            Hep3Vector y = new BasicHep3Vector( surveyResult.getZ().v() );
+                            Hep3Vector z = new BasicHep3Vector( VecOp.mult(-1, surveyResult.getY()).v() );
+                            surveyResult.setY(y);
+                            surveyResult.setZ(z);
+
+                        } else {
+
+                            Hep3Vector x = new BasicHep3Vector( VecOp.mult(-1,surveyResult.getX()).v() );
+                            Hep3Vector y = new BasicHep3Vector( surveyResult.getZ().v() );
+                            Hep3Vector z = new BasicHep3Vector( surveyResult.getY().v() );
+                            surveyResult.setX(x);
+                            surveyResult.setY(y);
+                            surveyResult.setZ(z);
+
+                        }
+                        
+
+                    } else {
+                        
+                        if(debug) System.out.printf("%s: treating it as a L1-3 U-channel (%d)\n", this.getClass().getSimpleName(), layer);
+                        
+                        // Rotate the survey origin into the kinematic mount coordinate frame used here
+                        Rotation r = new Rotation(new Vector3D(1,0,0), Math.PI/2.0);
+                        surveyResult.rotateOrigin(r);
+                        surveyResult.rotateUnitVectors(r);
+                        
+                        if(debug) System.out.printf("%s: UPDATE1 found survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+
+                        
+                        // Swap definition of unit axis to the one used in the U-channels
+                        if(HPSTrackerBuilder.isTopFromName(name)) {
+
+                            Hep3Vector y = new BasicHep3Vector( surveyResult.getZ().v() );
+                            Hep3Vector z = new BasicHep3Vector( VecOp.mult(-1, surveyResult.getY()).v() );
+                            surveyResult.setY(y);
+                            surveyResult.setZ(z);
+
+                        } else {
+
+                            Hep3Vector y = new BasicHep3Vector( surveyResult.getZ().v() );
+                            Hep3Vector z = new BasicHep3Vector( surveyResult.getY().v() );
+                            Hep3Vector x = new BasicHep3Vector( VecOp.mult(-1,surveyResult.getX()).v() );
+                            surveyResult.setX(x);
+                            surveyResult.setY(y);
+                            surveyResult.setZ(z);
+
+                        }
+                        
+                    }
+
+
+                    
+                    
+                } else {
+                    
+                    throw new RuntimeException("I don't think there is a surveyresult defined for this type from " + name);
+                    
+                }
+                
+                if(debug) System.out.printf("%s:  survey results after corrections: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+
+                
+                
+                // Need to go through the reference/ghost geometries if they exist
+                
+                if(referenceGeom!=null) {
+                    if(debug) System.out.printf("%s: apply reference transformation for %s\n",this.getClass().getSimpleName(),getName());
+                    if(debug) System.out.printf("%s: survey system before %d ref transformations:\n%s\n",this.getClass().getSimpleName(),referenceGeom.size(),surveyResult.toString());
+                    for(SurveyVolume ref : referenceGeom) {
+                        if(debug) {
+                            System.out.printf("%s: survey system before ref %s transform:\n%s\n",this.getClass().getSimpleName(),ref.getName(),surveyResult.toString());
+                            System.out.printf("%s: Ref %s coord\n%s\n",this.getClass().getSimpleName(), ref.getName(),ref.getCoord().toString());
+                        }
+                        surveyResult.transform(ref.getCoord().getTransformation());
+                        
+                        if(debug) System.out.printf("%s: survey system after ref %s transform:\n%s\n",this.getClass().getSimpleName(),ref.getName(),surveyResult.toString());
+
+                    }
+
+                    if(debug) System.out.printf("%s: survey system after ref transformations:\n%s\n",this.getClass().getSimpleName(),surveyResult.toString());
+
+                } else {
+
+                    if(debug) System.out.printf("%s: no reference transformation exists for %s\n",this.getClass().getSimpleName(),getName());
+
+                }
+
+
+                if(debug) System.out.printf("%s: apply to \n%s \n", this.getClass().getSimpleName(), this.getCoord().toString());
+
+                // get translation and apply it
+                Translation3D transToSurvey = surveyResult.getTranslationFrom(getCoord());
+                getCoord().translate(transToSurvey);
+
+                if(debug) System.out.printf("%s: after translation to survey \n%s \n", this.getClass().getSimpleName(), this.getCoord().toString());
+
+                // get rotation and apply it
+                Rotation rotToSurvey = surveyResult.getRotationFrom(getCoord());
+                getCoord().rotateApache(rotToSurvey);
+
+                if(debug) System.out.printf("%s: after rotation to survey \n%s \n", this.getClass().getSimpleName(), this.getCoord().toString());
+
+                
+                
+                
+                
+
+            } else {
+                if(debug) System.out.printf("%s: no survey results for %s in node %s \n", this.getClass().getSimpleName(), getName(), node.getName());
+            }
+        }
+        
+        if(debug) System.out.printf("%s: DONE apply survey from compact.\n", this.getClass().getSimpleName());
+
+        
+    }
+
+    /**
+     * Apply a generic correction to the coordinate system of this volume. 
+     */
     protected void applyGenericCoordinateSystemCorrections() {
 	    //do nothing here unless overridden
 	   
 	}
+    
+	/**
+	 * Applies a user supplied reference transformation to the module. 
+	 * This is convenient as it allows for intermediary "virtual" mother volumes to be used 
+	 * in referencing a volume to it's physcial mother volume.
+	 */
 	protected void applyReferenceTransformation() {
 
 	        	    
@@ -106,7 +420,12 @@ public abstract class SurveyVolume {
 
 	}
 	
+	/**
+	 * Apply @link AlignmentCorrection to the volume if they are supplied. 
+	 * 
+	 */
 	private void applyLocalAlignmentCorrections() {
+	    
 	    // Apply alignment corrections to local coordinate system that is already built
 	    boolean debug_local = false;
 	    if(this.coord==null) 
@@ -114,6 +433,21 @@ public abstract class SurveyVolume {
 
 	    if(alignmentCorrections!=null) {
 
+	        
+	        if(alignmentCorrections.getNode()!=null) {
+	            
+	            if(debug_local || debug) System.out.printf("%s: Apply survey results to %s\n",this.getClass().getSimpleName(),this.getName());
+	            
+	            applySurvey(alignmentCorrections.getNode());
+
+	            if(debug_local || debug) System.out.printf("%s: DONE Apply survey results to %s\n",this.getClass().getSimpleName(),this.getName());
+                
+	        }
+	        
+	        
+	        
+	        
+	        
 	        if(debug_local || debug) System.out.printf("%s: Apply alignment corrections to %s\n",this.getClass().getSimpleName(),this.getName());
 
 	        // translate
@@ -163,36 +497,7 @@ public abstract class SurveyVolume {
                 }
 
 	            
-	            // Do some gymnastics from Apache rotation to use the rotation class
-	            //double matMP_v[][] = alignmentCorrections.getRotation().getMatrix();
-                //Hep3Matrix matMP = new BasicHep3Matrix(matMP_v[0][0], matMP_v[0][1], matMP_v[0][2], 
-                //                                       matMP_v[1][0], matMP_v[1][1], matMP_v[1][2],
-                //                                       matMP_v[2][0], matMP_v[2][1], matMP_v[2][2]);
-                //
-                //Rotation3D rotMP = new Rotation3D(matMP);
-
-                // get the rotation correction in the mother coordinate system
-                //Rotation3D r = Rotation3D.multiply(getCoord().getTransformation().getRotation(),rotMP);
 	            
-//                if(debug_local || debug) {
-//	                System.out.printf("%s: Apply rotation matrix:\n", this.getClass().getSimpleName());             
-//	                double mat[][] = alignmentCorrections.getRotation().getMatrix();
-//	                TransformationUtils.printMatrix(mat);
-//	                System.out.printf("%s: corresponding Rotation3D object:\n%s\n",this.getClass().getSimpleName(), rotMP.toString());
-//	                // Get the Cardan angles of the rotation
-//	                double res[] = alignmentCorrections.getRotation().getAngles(RotationOrder.ZYX);
-//	                // Since the rotation was created based on active transformations convert to passive right here. 
-//	                // This conversion is simply to reverse the order of rotations.
-//	                Hep3Vector res_passive = new BasicHep3Vector(res[2],res[1],res[0]);
-//	                System.out.printf("%s: Corresponding LCDD Cardan angles: %s\n", this.getClass().getSimpleName(), res_passive.toString());             
-//	                System.out.printf("%s: Apply local to mother rotation\n%s\n",this.getClass().getSimpleName(), getCoord().getTransformation().getRotation().toString());
-//	                System.out.printf("%s: resulting rotation correction to apply\n%s\n",this.getClass().getSimpleName(), r.toString());
-//                    
-//	            }
-
-                // Apply correction to coordinate system
-	            //getCoord().rotateApache(alignmentCorrections.getRotation());
-                //getCoord().rotate(r);
 
 	        } else {
 	            if(debug_local || debug) System.out.printf("%s: No rotation to coordinate system\n", this.getClass().getSimpleName());
@@ -304,7 +609,9 @@ public abstract class SurveyVolume {
 		if( getCenter()!=null) s += "Center of box: " + getCenter().toString() + "\n";
         if( getBoxDim()!=null) s += "Box dimensions: " + getBoxDim().toString() + "\n";
 		if(this.coord==null)   s += " No coord system \n";
-		else s += "Coordinate system:" + getCoord().toString() + "\n";
+		else {
+		    s += getName() + " origin " + getCoord().origin() + " u " + getCoord().u()+ " v " + getCoord().v()+ " w " + getCoord().w();
+		}
         s += "AlignmentCorrections: \n";
 		if(this.alignmentCorrections!=null) {
 		    s += "Milleparameters: ";
@@ -320,9 +627,16 @@ public abstract class SurveyVolume {
 		SurveyVolume m = getMother();
 		while(m!=null) {    
             Hep3Vector origin_m = HPSTrackerBuilder.transformToParent(new BasicHep3Vector(0, 0, 0), this, m.getName());
-            s += String.format("%s origin in %s : %s (mm)\n",getName(), m.getName(), origin_m.toString());            
-            origin_m = VecOp.mult(0.0393701, origin_m);
-            s += String.format("%s origin in %s : (%.4f %.4f %.4f) (inch)\n",getName(), m.getName(), origin_m.x(),origin_m.y(),origin_m.z());            
+            String unitVecStr = "";
+            if(getCoord()!=null) {
+                Hep3Vector u_m = HPSTrackerBuilder.rotateToParent(getCoord().u(), this, m.getName());
+                Hep3Vector v_m = HPSTrackerBuilder.rotateToParent(getCoord().v(), this, m.getName());
+                Hep3Vector w_m = HPSTrackerBuilder.rotateToParent(getCoord().w(), this, m.getName());
+                unitVecStr += String.format("u %s v %s w %s", u_m.toString(), v_m.toString(), w_m.toString());            
+            }
+            s += String.format("%s origin in %s : %s (mm) %s\n",getName(), m.getName(), origin_m.toString(), unitVecStr);            
+            //origin_m = VecOp.mult(0.0393701, origin_m);
+            //s += String.format("%s origin in %s : (%.4f %.4f %.4f) (inch)\n",getName(), m.getName(), origin_m.x(),origin_m.y(),origin_m.z());            
             m = m.getMother();
 		}
 		
@@ -330,15 +644,6 @@ public abstract class SurveyVolume {
 		return s;
 	}
 	
-//	private void printCoordInfo() {
-//	    if(debug) {
-//	        SurveyVolume m = getMother();
-//	        while(m!=null) {    
-//	            Hep3Vector origin_m = HPSTrackerBuilder.transformToParent(getCoord().origin(), this, m.getName());
-//	            System.out.printf("%s: %s final coord system in %s : %s\n",this.getClass().getSimpleName(),getName(), getMother()==null?" <no mother> ":getMother().getName(),getCoord().toString());            
-//	        }
-//	        System.out.printf("%s: init of SurveyVolume %s DONE\n",this.getClass().getSimpleName(),getName());            
-//	    }
-//	}
+
 	
 }

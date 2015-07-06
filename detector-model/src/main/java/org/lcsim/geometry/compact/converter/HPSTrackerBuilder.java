@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.jdom.DataConversionException;
@@ -172,7 +174,7 @@ public abstract class HPSTrackerBuilder {
      * @param isTopLayer - top or bottom layer
      * @return the alignment correction
      */
-    protected AlignmentCorrection getSupportAlignmentCorrection(boolean isTopLayer) {
+    protected AlignmentCorrection getL13UChannelAlignmentCorrection(boolean isTopLayer) {
         double r[] = {0, 0, 0};
         double t[] = {0, 0, 0};
         for (MilleParameter p_loop : milleparameters) {
@@ -256,6 +258,11 @@ public abstract class HPSTrackerBuilder {
         }
     }
 
+    
+    public static boolean isTopFromName(String name) {
+        return getHalfFromName(name).equals("top") ? true : false;
+    }
+    
     public static String getHalfFromName(String name) {
         String half = "";
         if (name.contains("bottom")) {
@@ -271,18 +278,13 @@ public abstract class HPSTrackerBuilder {
         }
         // check for other signatures
         if (half.isEmpty()) {
-            // 6 layers is arbitrary here
-            for (int layer = 1; layer <= 6; ++layer) {
-                if (name.contains(String.format("L%db", layer))) {
-                    half = "bottom";
-                    break;
-                }
-                if (name.contains(String.format("L%dt", layer))) {
-                    if (half.equals("bottom")) {
-                        throw new RuntimeException("found both halfs from name  " + name);
-                    }
+            Pattern pattern = Pattern.compile(".*_L[1-6][1-6]?([a-z]).*");
+            Matcher matcher = pattern.matcher(name);
+            if(matcher.matches()) {
+                if(matcher.group(1).equals("t")) {
                     half = "top";
-                    break;
+                } else if(matcher.group(1).equals("b")) {
+                    half = "bottom";
                 }
             }
         }
@@ -324,7 +326,40 @@ public abstract class HPSTrackerBuilder {
         }
         return false;
     }
+    
+    public static boolean isModule(String name) {
+        return Pattern.matches("module_L[1-6][bt]$", name);
+    }
+    
+    public static int getUChannelSupportLayer(String name) {
+        if(isUChannelSupport(name)) {
+            Pattern patter = Pattern.compile("^support_[a-z]*_L([1-6])[1-6]$");
+            Matcher matcher = patter.matcher(name);
+            if(matcher.matches() ) {
+                int layer = Integer.parseInt(matcher.group(1));
+                return layer;
+            } else {
+                throw new RuntimeException("this is not a valid u-channel name: " + name);
+            }
+        } else {
+            throw new RuntimeException("this is not a valid u-channel name: " + name);
+        }
+    }
+    
+    
+    public static boolean isUChannelSupport(String name) {
+        Pattern patter = Pattern.compile("^support_[a-z]*_L(4|1)(6|3)$");
+        Matcher matcher = patter.matcher(name);
+        return matcher.matches();
+    }
 
+    public static boolean isSupportRingKinMount(String name) {
+        Pattern patter = Pattern.compile("^c_support_kin_L13(b|t)$");
+        Matcher matcher = patter.matcher(name);
+        return matcher.matches();
+    }    
+    
+    
     public static boolean isSensor(String name) {
         if (name.endsWith("sensor")) {
             return true;
@@ -532,6 +567,48 @@ public abstract class HPSTrackerBuilder {
         }
         return transformToParent(vec_mother_coord, geometry.getMother(), targetName);
     }
+    
+    
+    /**
+     * Find the vector in a mother volume coordinate system.
+     * 
+     * @param vec - vector to transform
+     * @param geometry - geometry where vector is defined.
+     * @return transformed vector.
+     */
+    public static Hep3Vector rotateToParent(Hep3Vector vec, SurveyVolume geometry, String targetName) {
+        int debug = 0;
+        if (debug > 0)
+            System.out.printf("\nrotateToParent: vec %s in local coordiantes of %s\n", vec.toString(),
+                    geometry.getName());
+        if (geometry.getMother() == null) {
+            if (debug > 0)
+                System.out.printf("\nrotateToParent: no mother, return null\n", vec.toString(), geometry.getName());
+            return null;
+        }
+        if (debug > 0)
+            System.out.printf("\nrotateToParent: vec %s in local coordinates of %s with mother %s\n",
+                    vec.toString(), geometry.getName(), geometry.getMother().getName().toString());
+        SurveyCoordinateSystem coord = geometry.getCoord();
+        if (coord == null) {
+            throw new RuntimeException("rotateToParent: no coordinate system found for %s, return null "
+                    + geometry.getName());
+        }
+        Hep3Vector vec_mother_coord = coord.getTransformation().rotated(vec);
+        if (debug > 0)
+            System.out.printf("vec_mother_coord %s\n", vec_mother_coord.toString());
+        if (geometry.getMother().getName().equals(targetName)) {
+            if (debug > 0)
+                System.out.printf("reached target \"%s\"tracking volume. Return \n", targetName);
+            return vec_mother_coord;
+        } else {
+            if (debug > 0)
+                System.out.printf("continue searching.\n");
+        }
+        return rotateToParent(vec_mother_coord, geometry.getMother(), targetName);
+    }
+
+    
 
     /**
      * Get axial or stereo key name from string

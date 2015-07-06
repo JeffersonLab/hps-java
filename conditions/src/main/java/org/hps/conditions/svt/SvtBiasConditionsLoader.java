@@ -3,17 +3,14 @@
  */
 package org.hps.conditions.svt;
 
-import hep.aida.IDataPoint;
-import hep.aida.IDataPointSet;
-import hep.aida.IDataPointSetFactory;
-import hep.aida.IPlotter;
-import hep.aida.IPlotterStyle;
+import hep.aida.*;
 
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -27,8 +24,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
-import org.hps.conditions.api.DatabaseObjectException;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunRange;
 import org.hps.conditions.run.RunSpreadsheet;
@@ -38,6 +35,7 @@ import org.hps.conditions.svt.SvtBiasConstant.SvtBiasConstantCollection;
 import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasMyaRange;
 import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasMyaRanges;
 import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasRunRange;
+import org.hps.conditions.svt.SvtTimingConstants.SvtTimingConstantsCollection;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.log.LogUtil;
@@ -294,17 +292,21 @@ public class SvtBiasConditionsLoader {
                 logger.info("No bias range for run " + range.getRun().getRun());
                 continue;
             }
-                       
-            //create a collection
-            SvtBiasConstantCollection collection = new SvtBiasConstantCollection();
+            
             int collectionId = -1;
             try {
-                collectionId = MANAGER.getCollectionId(collection, "run ranges for SVT HV bias ON");
+                collectionId = MANAGER.addCollection("svt_bias_constants", "whatever that is fine","run ranges for SVT HV bias ON");
             } catch (SQLException e1) {
                throw new RuntimeException(e1);
             }
-
-            collection.setCollectionId(collectionId);
+            
+            //create a collection
+            SvtBiasConstantCollection collection = new SvtBiasConstantCollection();
+            try {
+                collection.setCollectionId(collectionId);
+            } catch (ConditionsObjectException e1) {
+                throw new RuntimeException("cant set collection id",e1);
+            }
             
             final ConditionsRecord condition = new ConditionsRecord();
             condition.setFieldValue("run_start", rundata.getRun());
@@ -315,8 +317,7 @@ public class SvtBiasConditionsLoader {
             condition.setFieldValue("created", new Date());
             condition.setFieldValue("created_by", System.getProperty("user.name"));            
             condition.setFieldValue("collection_id", collectionId);
-               
-            try {
+            
             for (SvtBiasMyaRange biasRange : range.getRanges()) {
                 //create a constant and add to the collection
                 final SvtBiasConstant constant = new SvtBiasConstant();
@@ -327,9 +328,7 @@ public class SvtBiasConditionsLoader {
                 
                 logger.info(condition.toString());
             }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+
 
             try {
                 try {
@@ -339,7 +338,7 @@ public class SvtBiasConditionsLoader {
                 }
                 condition.insert();
 
-            } catch (DatabaseObjectException | SQLException e) {
+            } catch (ConditionsObjectException e) {
                 throw new RuntimeException(e);
             }
             

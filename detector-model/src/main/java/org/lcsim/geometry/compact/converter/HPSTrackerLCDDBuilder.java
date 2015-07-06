@@ -10,7 +10,7 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 
 public abstract class HPSTrackerLCDDBuilder  implements IHPSTrackerLCDDBuilder {
 
-	public boolean _debug = true;
+	public boolean _debug = false;
 	protected LCDD lcdd = null;
 	protected LCDDSurveyVolume baseSurveyVolume;
 	protected List<LCDDSurveyVolume> lcddSurveyVolumes = new ArrayList<LCDDSurveyVolume>();

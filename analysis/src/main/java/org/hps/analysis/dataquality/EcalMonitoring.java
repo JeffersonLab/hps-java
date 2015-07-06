@@ -2,17 +2,13 @@ package org.hps.analysis.dataquality;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.math.stat.StatUtils;
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.TIData;
-import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 
 /**
@@ -41,6 +37,7 @@ public class EcalMonitoring extends DataQualityMonitor {
     IHistogram1D clusterSizePlot;
     IHistogram1D clusterEnergyPlot;
     IHistogram1D clusterTimes;
+    IHistogram1D clusterTimeMean;
     IHistogram1D clusterTimeSigma;
     //mg...12/13/2014
     IHistogram1D twoclusterTotEnergy;
@@ -55,8 +52,11 @@ public class EcalMonitoring extends DataQualityMonitor {
     IHistogram2D fiducialenergyVsX;
     IHistogram2D energyVsY;
     IHistogram2D energyVsX;
+    IHistogram2D energyVsT;
     IHistogram2D xVsY;
     IHistogram2D pairsE1vsE2;
+    IHistogram2D pairsT1vsT2;
+    IHistogram1D pairsDeltaT;
 
     int nEvents = 0;
     int nTotHits = 0;
@@ -66,7 +66,6 @@ public class EcalMonitoring extends DataQualityMonitor {
     double sumClusterEnergy = 0;
     double sumClusterTime = 0;
     boolean fillHitPlots = true;
-    private Map<String, Double> monitoredQuantityMap = new HashMap<>();
     String[] ecalQuantNames = {"avg_N_hits", "avg_Hit_Energy",
         "avg_N_clusters", "avg_N_hitsPerCluster", "avg_Cluster_Energy", "avg_ClusterTime"};
     double maxE = 1.1;
@@ -90,6 +89,7 @@ public class EcalMonitoring extends DataQualityMonitor {
         this.fillHitPlots = fill;
     }
 
+    @Override
     protected void detectorChanged(Detector detector) {
         System.out.println("EcalMonitoring::detectorChanged  Setting up the plotter");
         aida.tree().cd("/");
@@ -105,14 +105,18 @@ public class EcalMonitoring extends DataQualityMonitor {
         clusterCountPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Count per Event", 10, -0.5, 9.5);
         clusterSizePlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Size", 10, -0.5, 9.5);
         clusterEnergyPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Energy", 100, -0.1, maxE);
-        clusterTimes = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Time Mean", 200, 0, 4.0 * 50);
+        clusterTimes = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Seed Times", 400, 0, 4.0 * 50);
+        clusterTimeMean = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Time Mean", 400, 0, 4.0 * 50);
         clusterTimeSigma = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Time Sigma", 100, 0, 10);
         twoclusterTotEnergy = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Two Cluster Energy Sum", 100, 0, maxE);
         twoclusterEnergyAsymmetry = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Two Cluster Energy Asymmetry", 100, 0, 1.0);
-        xVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + "X vs Y (NHits >1)", 200, -200.0, 200.0, 85, -85.0, 85.0);
+        energyVsT = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs time", 400, 0.0, 200.0, 100, -0.1, maxE);
+        xVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " X vs Y (NHits >1)", 200, -200.0, 200.0, 85, -85.0, 85.0);
         energyVsX = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs X", 50, 0, 1.6, 50, .0, 200.0);
         energyVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs Y", 50, 0, 1.6, 50, 20.0, 85.0);
         pairsE1vsE2 = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + "Pair E1 vs E2", 50, 0, 2, 50, 0, 2);
+        pairsT1vsT2 = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + "Pair T1 vs T2", 200, 0, 100, 200, 0, 100);
+        pairsDeltaT = aida.histogram1D(plotClustersDir + triggerType + "/" + clusterCollectionName + " Pair Time Difference", 100, -20.0, 20.0);
 
         fiducialClusterCountPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+plotFidCutDir + clusterCollectionName + " Cluster Count with Fiducal Cut", 10, -0.5, 9.5);
         fiducialClusterSizePlot = aida.histogram1D(plotClustersDir+  triggerType + "/" +plotFidCutDir + clusterCollectionName + " Cluster Size with Fiducal Cut", 10, -0.5, 9.5);
@@ -159,10 +163,6 @@ public class EcalMonitoring extends DataQualityMonitor {
         List<Cluster> clusters;
         if (event.hasCollection(Cluster.class, clusterCollectionName))
             clusters = event.get(Cluster.class, clusterCollectionName);
-        else if (event.hasCollection(Cluster.class, clusterCollectionName))
-            clusters = event.get(Cluster.class, clusterCollectionName);
-        else if (event.hasCollection(Cluster.class, clusterCollectionName))
-            clusters = event.get(Cluster.class, clusterCollectionName);
         else {
             clusterCountPlot.fill(0);
             return;
@@ -173,9 +173,11 @@ public class EcalMonitoring extends DataQualityMonitor {
         int fidcnt = 0;
         for (Cluster cluster : clusters) {
             clusterEnergyPlot.fill(cluster.getEnergy());
+            clusterTimes.fill(ClusterUtilities.findSeedHit(cluster).getTime());
+            energyVsT.fill(ClusterUtilities.findSeedHit(cluster).getTime(), cluster.getEnergy());
             sumClusterEnergy += cluster.getEnergy();
             double[] times = new double[cluster.getCalorimeterHits().size()];
-            double[] energies = new double[cluster.getCalorimeterHits().size()];
+//            double[] energies = new double[cluster.getCalorimeterHits().size()];
             CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
             int ix = seed.getIdentifierFieldValue("ix");
             int iy = seed.getIdentifierFieldValue("iy");
@@ -196,11 +198,11 @@ public class EcalMonitoring extends DataQualityMonitor {
 
             int size = 0;
             for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
-                energies[size] = hit.getCorrectedEnergy();
+//                energies[size] = hit.getCorrectedEnergy();
                 times[size] = hit.getTime();
                 size++;
             }
-            clusterTimes.fill(StatUtils.mean(times, 0, size));
+            clusterTimeMean.fill(StatUtils.mean(times, 0, size));
             clusterSizePlot.fill(size); //The number of "hits" in a "cluster"
             clusterTimeSigma.fill(Math.sqrt(StatUtils.variance(times, 0, size)));
             sumHitPerCluster += size;
@@ -212,16 +214,18 @@ public class EcalMonitoring extends DataQualityMonitor {
         if (clusters.size() == 2) {
             Cluster cl1 = clusters.get(0);
             Cluster cl2 = clusters.get(1);
-            double[] p1 = cl1.getPosition();
-            double[] p2 = cl2.getPosition();
+//            double[] p1 = cl1.getPosition();
+//            double[] p2 = cl2.getPosition();
             double e1 = cl1.getEnergy();
             double e2 = cl2.getEnergy();
+            double t1 = ClusterUtilities.findSeedHit(cl1).getTime();
+            double t2 = ClusterUtilities.findSeedHit(cl2).getTime();
             twoclusterTotEnergy.fill(e1 + e2);
             twoclusterEnergyAsymmetry.fill(Math.abs(e1 - e2) / (e1 + e2));
             pairsE1vsE2.fill(e1, e2);
-
+            pairsT1vsT2.fill(t1, t2);
+            pairsDeltaT.fill(t1 - t2);
         }
-
     }
 
     @Override
