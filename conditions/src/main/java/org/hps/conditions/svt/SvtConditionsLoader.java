@@ -23,7 +23,7 @@ import org.lcsim.util.log.LogUtil;
 /**
  * Command line tool used to load SVT conditions into the conditions database.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 public final class SvtConditionsLoader {
 

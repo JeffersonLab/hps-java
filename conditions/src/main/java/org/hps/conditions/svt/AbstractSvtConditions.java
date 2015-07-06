@@ -10,20 +10,14 @@ import org.hps.conditions.svt.AbstractSvtT0Shift.AbstractSvtT0ShiftCollection;
 /**
  * Abstract class providing some of the common functionality used to define an SVT conditions object.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 public abstract class AbstractSvtConditions {
 
     /**
      * A map between the channel object and its conditions constants.
      */
-    private Map<AbstractSvtChannel, ChannelConstants> channelData = new HashMap<AbstractSvtChannel, ChannelConstants>();
-
-    /**
-     * The time shift collection.
-     */
-    // FIXME: Should be private with accessor methods.
-    protected AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<? extends AbstractSvtT0Shift> t0Shifts = null;
+    private final Map<AbstractSvtChannel, ChannelConstants> channelData = new HashMap<AbstractSvtChannel, ChannelConstants>();
 
     /**
      * The channel map.
@@ -38,11 +32,10 @@ public abstract class AbstractSvtConditions {
     protected AbstractSvtDaqMapping.AbstractSvtDaqMappingCollection<? extends AbstractSvtDaqMapping> daqMap = null;
 
     /**
-     * Get the DAQ map associated with these conditions.
-     *
-     * @return The SVT DAQ map.
+     * The time shift collection.
      */
-    public abstract AbstractSvtDaqMappingCollection<? extends AbstractSvtDaqMapping> getDaqMap();
+    // FIXME: Should be private with accessor methods.
+    protected AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<? extends AbstractSvtT0Shift> t0Shifts = null;
 
     /**
      * Get the conditions constants for a specific channel. These will be created if they do not exist for the given
@@ -54,15 +47,15 @@ public abstract class AbstractSvtConditions {
      */
     public final ChannelConstants getChannelConstants(final AbstractSvtChannel channel) {
         // This channel must come from the map.
-        if (!channelMap.contains(channel)) {
+        if (!this.channelMap.contains(channel)) {
             System.err.println("[ " + this.getClass().getSimpleName() + " ]: Channel not found in map => " + channel);
             throw new IllegalArgumentException("Channel was not found in map.");
         }
         // If channel has no data yet, then add it.
-        if (!channelData.containsKey(channel)) {
-            channelData.put(channel, new ChannelConstants());
+        if (!this.channelData.containsKey(channel)) {
+            this.channelData.put(channel, new ChannelConstants());
         }
-        return channelData.get(channel);
+        return this.channelData.get(channel);
     }
 
     /**
@@ -73,20 +66,18 @@ public abstract class AbstractSvtConditions {
     public abstract AbstractSvtChannelCollection<? extends AbstractSvtChannel> getChannelMap();
 
     /**
+     * Get the DAQ map associated with these conditions.
+     *
+     * @return The SVT DAQ map.
+     */
+    public abstract AbstractSvtDaqMappingCollection<? extends AbstractSvtDaqMapping> getDaqMap();
+
+    /**
      * Get the t0 shifts for this conditions set.
      *
      * @return the t0 shifts by sensor
      */
     public abstract AbstractSvtT0ShiftCollection<? extends AbstractSvtT0Shift> getT0Shifts();
-
-    /**
-     * Set the DAQ map for this conditions set.
-     *
-     * @param daqMap DAQ map for this conditions set
-     */
-    public final void setDaqMap(final AbstractSvtDaqMappingCollection<? extends AbstractSvtDaqMapping> daqMap) {
-        this.daqMap = daqMap;
-    }
 
     /**
      * Set the SVT channel map for this conditions set.
@@ -95,6 +86,15 @@ public abstract class AbstractSvtConditions {
      */
     public final void setChannelMap(final AbstractSvtChannelCollection<? extends AbstractSvtChannel> channelMap) {
         this.channelMap = channelMap;
+    }
+
+    /**
+     * Set the DAQ map for this conditions set.
+     *
+     * @param daqMap DAQ map for this conditions set
+     */
+    public final void setDaqMap(final AbstractSvtDaqMappingCollection<? extends AbstractSvtDaqMapping> daqMap) {
+        this.daqMap = daqMap;
     }
 
     /**

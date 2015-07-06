@@ -8,7 +8,9 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.dummy.DummyConditionsObject.DummyConditionsObjectCollection;
 
 /**
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * Test converter API using a dummy class.
+ * 
+ * @author Jeremy McCormick, SLAC
  */
 public class DummyConditionsObjectConverterTest extends TestCase {
 

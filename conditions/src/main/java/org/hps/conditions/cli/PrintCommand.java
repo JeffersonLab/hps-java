@@ -24,7 +24,7 @@ import org.lcsim.util.log.LogUtil;
  * This sub-command of the conditions CLI prints conditions conditions table data by run number to the console or
  * optionally writes it to an output file.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 final class PrintCommand extends AbstractCommand {
 
@@ -87,7 +87,7 @@ final class PrintCommand extends AbstractCommand {
     @Override
     final void execute(final String[] arguments) {
 
-        final CommandLine commandLine = parse(arguments);
+        final CommandLine commandLine = this.parse(arguments);
 
         final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 
@@ -154,7 +154,7 @@ final class PrintCommand extends AbstractCommand {
         final Set<String> conditionsKeys = conditionsRecords.getConditionsKeys();
 
         // Print the records and the data.
-        printConditionsRecords(conditionsKeys);
+        this.printConditionsRecords(conditionsKeys);
         this.ps.flush();
         this.ps.close();
 
@@ -205,10 +205,10 @@ final class PrintCommand extends AbstractCommand {
         // Loop over all the collections and print them.
         for (final ConditionsObjectCollection<?> collection : collectionList) {
             if (this.printHeaders) {
-                printCollectionHeader(collection);
+                this.printCollectionHeader(collection);
             }
-            printColumnNames(collection.getTableMetaData());
-            printCollection(collection);
+            this.printColumnNames(collection.getTableMetaData());
+            this.printCollection(collection);
             this.ps.println();
         }
         this.ps.flush();
@@ -270,7 +270,7 @@ final class PrintCommand extends AbstractCommand {
             collectionList.add(collection);
 
             // Print out all the collection data to console or file.
-            printCollections(collectionList);
+            this.printCollections(collectionList);
         }
     }
 }

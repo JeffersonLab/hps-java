@@ -9,14 +9,14 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
  * This test checks if the SVT DAQ map was loaded with reasonable values and is being read correctly from the conditions
  * database.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 public final class SvtDaqMappingTest extends TestCase {
 
     /**
-     * Total number of SVT sensors.
+     * Maximum FEB Hybrid ID.
      */
-    public static final int TOTAL_NUMBER_OF_SENSORS = 36;
+    public static final int MAX_FEB_HYBRID_ID = 3;
 
     /**
      * Minimum FEB Hybrid ID.
@@ -24,9 +24,9 @@ public final class SvtDaqMappingTest extends TestCase {
     public static final int MIN_FEB_HYBRID_ID = 0;
 
     /**
-     * Maximum FEB Hybrid ID.
+     * Total number of SVT sensors.
      */
-    public static final int MAX_FEB_HYBRID_ID = 3;
+    public static final int TOTAL_NUMBER_OF_SENSORS = 36;
 
     /**
      * Load the DAQ map from the database.

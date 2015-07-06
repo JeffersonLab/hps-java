@@ -2,20 +2,16 @@ package org.hps.conditions.svt;
 
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
-import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 /**
  * This class encapsulates the shape fit parameters for an SVT channel.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Jeremy McCormick, SLAC
+ * @author Omar Moreno, UCSC
  */
 @Table(names = {"svt_shape_fit_parameters", "test_run_svt_shape_fit_parameters"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
-// TODO: This class needs better documentation as to what these parameters actually mean.
 public final class SvtShapeFitParameters extends BaseConditionsObject {
 
     /**
@@ -37,7 +33,7 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      */
     @Field(names = {"amplitude"})
     public Double getAmplitude() {
-        return getFieldValue(Double.class, "amplitude");
+        return this.getFieldValue(Double.class, "amplitude");
     }
 
     /**
@@ -47,7 +43,7 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      */
     @Field(names = {"svt_channel_id"})
     public Integer getChannelID() {
-        return getFieldValue(Integer.class, "svt_channel_id");
+        return this.getFieldValue(Integer.class, "svt_channel_id");
     }
 
     /**
@@ -57,7 +53,7 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      */
     @Field(names = {"t0"})
     public Double getT0() {
-        return getFieldValue(Double.class, "t0");
+        return this.getFieldValue(Double.class, "t0");
     }
 
     /**
@@ -67,7 +63,7 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      */
     @Field(names = {"tp"})
     public Double getTp() {
-        return getFieldValue(Double.class, "tp");
+        return this.getFieldValue(Double.class, "tp");
     }
 
     /**
@@ -77,7 +73,7 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      */
     @Field(names = {"tp2"})
     public Double getTp2() {
-        return getFieldValue(Double.class, "tp2");
+        return this.getFieldValue(Double.class, "tp2");
     }
 
     /**
@@ -87,10 +83,10 @@ public final class SvtShapeFitParameters extends BaseConditionsObject {
      */
     public double[] toArray() {
         final double[] values = new double[ARRAY_SIZE];
-        values[0] = getAmplitude();
-        values[1] = getT0();
-        values[2] = getTp();
-        values[3] = getTp2();
+        values[0] = this.getAmplitude();
+        values[1] = this.getT0();
+        values[2] = this.getTp();
+        values[3] = this.getTp2();
         return values;
     }
 }

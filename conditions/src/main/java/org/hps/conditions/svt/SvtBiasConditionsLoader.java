@@ -3,13 +3,16 @@
  */
 package org.hps.conditions.svt;
 
-import hep.aida.*;
+import hep.aida.IDataPoint;
+import hep.aida.IDataPointSet;
+import hep.aida.IDataPointSetFactory;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -33,19 +36,25 @@ import org.hps.conditions.svt.SvtBiasConstant.SvtBiasConstantCollection;
 import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasMyaRange;
 import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasMyaRanges;
 import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasRunRange;
-import org.hps.conditions.svt.SvtTimingConstants.SvtTimingConstantsCollection;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ * @author Per Hansson Adrian, SLAC
  */
 public class SvtBiasConditionsLoader {
 
-    private static final Set<String> FIELDS = new HashSet<String>();
-    private static Logger logger = LogUtil.create(SvtBiasConditionsLoader.class, new BasicLogFormatter(), Level.INFO);
+    /**
+     * Setup control plots.
+     */
+    private static AIDA aida = AIDA.defaultInstance();
+    static IDataPointSet dpsBiasRuns = null;
 
+    static IDataPointSet dpsRuns = null;
+    private static final Set<String> FIELDS = new HashSet<String>();
+
+    private static Logger logger = LogUtil.create(SvtBiasConditionsLoader.class, new BasicLogFormatter(), Level.INFO);
     /**
      * Setup conditions.
      */
@@ -57,31 +66,6 @@ public class SvtBiasConditionsLoader {
         FIELDS.add("end_time");
     }
 
-    /**
-     * Setup control plots.
-     */
-    private static AIDA aida = AIDA.defaultInstance();
-    static IDataPointSet dpsRuns = null;
-    static IDataPointSet dpsBiasRuns = null;
-
-    private static void setupPlots(final boolean show) {
-        final IDataPointSetFactory dpsf = aida.analysisFactory().createDataPointSetFactory(aida.tree());
-        dpsRuns = dpsf.create("dpsRuns", "Run intervals", 2);
-        dpsBiasRuns = dpsf.create("dpsBiasRuns", "Bias ON intervals associated with runs", 2);
-        final IPlotter plotter = aida.analysisFactory().createPlotterFactory().create("Bias run ranges");
-        final IPlotterStyle plotterStyle = aida.analysisFactory().createPlotterFactory().createPlotterStyle();
-        plotterStyle.xAxisStyle().setParameter("type", "date");
-        plotter.createRegions(1, 3);
-        plotter.region(0).plot(dpsRuns, plotterStyle);
-        plotter.region(1).plot(dpsBiasRuns, plotterStyle);
-        plotter.region(2).plot(dpsRuns, plotterStyle);
-        plotter.region(2).plot(dpsBiasRuns, plotterStyle, "mode=overlay");
-        if (show) {
-            plotter.show();
-        }
-
-    }
-
     private static IDataPoint addPoint(final IDataPointSet dps, final long mstime, final double val) {
         final IDataPoint dp = dps.addPoint();
         dp.coordinate(0).setValue(mstime / 1000.);
@@ -89,10 +73,14 @@ public class SvtBiasConditionsLoader {
         return dp;
     }
 
-    /**
-     * Default constructor
-     */
-    public SvtBiasConditionsLoader() {
+    private final static SvtBiasConstantCollection findCollection(final List<SvtBiasConstantCollection> list,
+            final Date date) {
+        for (final SvtBiasConstantCollection collection : list) {
+            if (collection.find(date) != null) {
+                return collection;
+            }
+        }
+        return null;
     }
 
     /**
@@ -110,6 +98,59 @@ public class SvtBiasConditionsLoader {
             throw new RuntimeException("start date is after end date?!" + data.toString());
         }
         return true;
+    }
+
+    private static final void loadToConditionsDB(final List<SvtBiasRunRange> ranges, final boolean doIt) {
+        logger.info("Load to DB...");
+
+        // Create a new collection for each run
+        final List<Integer> runsadded = new ArrayList<Integer>();
+
+        for (final SvtBiasRunRange range : ranges) {
+            logger.info("Loading " + range.toString());
+            final RunData rundata = range.getRun();
+            if (runsadded.contains(rundata.getRun())) {
+                logger.warning("Run " + Integer.toString(rundata.getRun()) + " was already added?");
+                throw new RuntimeException("Run " + Integer.toString(rundata.getRun()) + " was already added?");
+            }
+            runsadded.add(rundata.getRun());
+            for (final SvtBiasMyaRange biasRange : range.getRanges()) {
+                // create a collection
+                final SvtBiasConstantCollection collection = new SvtBiasConstantCollection();
+                // create a constant and add to the collection
+                final SvtBiasConstant constant = new SvtBiasConstant();
+                constant.setFieldValue("start", biasRange.getStartDate());
+                constant.setFieldValue("end", biasRange.getEndDate());
+                constant.setFieldValue("value", biasRange.getStart().getValue());
+                try {
+                    collection.add(constant);
+                } catch (final ConditionsObjectException e) {
+                    throw new RuntimeException(e);
+                }
+
+                final ConditionsRecord condition = new ConditionsRecord();
+                condition.setFieldValue("run_start", rundata.getRun());
+                condition.setFieldValue("run_end", rundata.getRun());
+                condition.setFieldValue("name", "svt_bias");
+                condition.setFieldValue("table_name", "svt_bias");
+                condition.setFieldValue("notes", "constants from mya");
+                condition.setFieldValue("created", new Date());
+                condition.setFieldValue("created_by", System.getProperty("user.name"));
+
+                condition.setFieldValue("collection_id", collection.getCollectionId());
+
+                logger.info(condition.toString());
+
+                if (doIt) {
+                    try {
+                        condition.insert();
+                    } catch (final Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+
     }
 
     // private static Options options = null;
@@ -222,67 +263,27 @@ public class SvtBiasConditionsLoader {
 
     }
 
-    private final static SvtBiasConstantCollection findCollection(final List<SvtBiasConstantCollection> list,
-            final Date date) {
-        for (final SvtBiasConstantCollection collection : list) {
-            if (collection.find(date) != null) {
-                return collection;
-            }
+    private static void setupPlots(final boolean show) {
+        final IDataPointSetFactory dpsf = aida.analysisFactory().createDataPointSetFactory(aida.tree());
+        dpsRuns = dpsf.create("dpsRuns", "Run intervals", 2);
+        dpsBiasRuns = dpsf.create("dpsBiasRuns", "Bias ON intervals associated with runs", 2);
+        final IPlotter plotter = aida.analysisFactory().createPlotterFactory().create("Bias run ranges");
+        final IPlotterStyle plotterStyle = aida.analysisFactory().createPlotterFactory().createPlotterStyle();
+        plotterStyle.xAxisStyle().setParameter("type", "date");
+        plotter.createRegions(1, 3);
+        plotter.region(0).plot(dpsRuns, plotterStyle);
+        plotter.region(1).plot(dpsBiasRuns, plotterStyle);
+        plotter.region(2).plot(dpsRuns, plotterStyle);
+        plotter.region(2).plot(dpsBiasRuns, plotterStyle, "mode=overlay");
+        if (show) {
+            plotter.show();
         }
-        return null;
+
     }
 
-    private static final void loadToConditionsDB(final List<SvtBiasRunRange> ranges, final boolean doIt) {
-        logger.info("Load to DB...");
-
-        // Create a new collection for each run
-        final List<Integer> runsadded = new ArrayList<Integer>();
-
-        for(final SvtBiasRunRange range : ranges) {
-            logger.info("Loading " + range.toString());
-            final RunData rundata = range.getRun();
-            if(runsadded.contains(rundata.getRun())) {
-                logger.warning("Run " + Integer.toString(rundata.getRun()) + " was already added?");
-                throw new RuntimeException("Run " + Integer.toString(rundata.getRun()) + " was already added?");
-            }
-            runsadded.add(rundata.getRun());
-            for (final SvtBiasMyaRange biasRange : range.getRanges()) {
-                //create a collection
-                final SvtBiasConstantCollection collection = new SvtBiasConstantCollection();
-                //create a constant and add to the collection
-                final SvtBiasConstant constant = new SvtBiasConstant();
-                constant.setFieldValue("start", biasRange.getStartDate());
-                constant.setFieldValue("end", biasRange.getEndDate());
-                constant.setFieldValue("value", biasRange.getStart().getValue());
-                try {
-                    collection.add(constant);
-                } catch (final ConditionsObjectException e) {
-                    throw new RuntimeException(e);
-                }
-
-                final ConditionsRecord condition = new ConditionsRecord();
-                condition.setFieldValue("run_start", rundata.getRun());
-                condition.setFieldValue("run_end", rundata.getRun());
-                condition.setFieldValue("name", "svt_bias");
-                condition.setFieldValue("table_name", "svt_bias");
-                condition.setFieldValue("notes", "constants from mya");
-                condition.setFieldValue("created", new Date());
-                condition.setFieldValue("created_by", System.getProperty("user.name"));
-
-                condition.setFieldValue("collection_id", collection.getCollectionId());
-
-                logger.info(condition.toString());
-
-                if(doIt) {
-                    try {
-                        condition.insert();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        }
-
-
+    /**
+     * Default constructor
+     */
+    public SvtBiasConditionsLoader() {
     }
 }

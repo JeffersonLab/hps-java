@@ -1,15 +1,7 @@
 package org.hps.conditions.cli;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,9 +10,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
-import org.hps.conditions.api.ConditionsObjectException;
-import org.hps.conditions.api.ConditionsObjectUtilities;
 import org.hps.conditions.api.DatabaseObjectException;
 import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -28,10 +17,10 @@ import org.lcsim.util.log.LogUtil;
 import org.lcsim.util.log.MessageOnlyLogFormatter;
 
 /**
- * This is a sub-command to add conditions data using an input text file. The file should be ASCII text that is tab or
- * space delimited and includes headers with the names of the database columns. (These must match exactly!) The user
- * must supply a table name as the target for the SQL insert. An optional collection ID can be supplied, which may not
- * exist already in the table. Otherwise, the command will fail. By default, the next collection ID will be found by the
+ * This is a sub-command to add conditions data using an input text file. The file should be ASCII text that is comma
+ * delimited with the first row containing headers that exactly match the table column names. The user must supply a
+ * table name as the target for the SQL insert. An optional collection ID can be supplied, which is not allowed to exist
+ * already in the table. Otherwise, the command will fail. By default, the next collection ID will be found by the
  * conditions manager.
  * <p>
  *
@@ -45,9 +34,9 @@ import org.lcsim.util.log.MessageOnlyLogFormatter;
 final class LoadCommand extends AbstractCommand {
 
     /**
-     * The default separator for making tokens from input data.
+     * The default separator for making tokens from input data (tab-delimited).
      */
-    private static final String DEFAULT_FIELD_SEPARATOR = " \t";
+    private static final String DEFAULT_FIELD_SEPARATOR = "\t";
 
     /**
      * Setup the logger.
@@ -65,7 +54,7 @@ final class LoadCommand extends AbstractCommand {
         OPTIONS.addOption(new Option("f", true, "input data file path (required)"));
         OPTIONS.getOption("f").setRequired(true);
         OPTIONS.addOption(new Option("d", true, "description of the collection for log"));
-        OPTIONS.addOption(new Option("s", true, "field seperator string (default is tabs or spaces)"));
+        OPTIONS.addOption(new Option("c", true, "field delimiter (default is tabs)"));
     }
 
     /**
@@ -111,8 +100,11 @@ final class LoadCommand extends AbstractCommand {
         }
 
         String separator = DEFAULT_FIELD_SEPARATOR;
-        if (commandLine.hasOption("s")) {
-            separator = commandLine.getOptionValue("s");
+        if (commandLine.hasOption("c")) {
+            separator = commandLine.getOptionValue("c");
+            if (separator.length() > 1) {
+                throw new IllegalArgumentException("Separator must be a single character.");
+            }
             LOGGER.info("using separator character <" + separator + ">");
         }
 
@@ -131,7 +123,11 @@ final class LoadCommand extends AbstractCommand {
         LOGGER.info("collection was assigned ID " + newCollection.getCollectionId());
 
         LOGGER.info("parsing input file " + fileName + " ...");
-        this.parseFile(fileName, newCollection, separator);
+        try {
+            newCollection.load(new File(fileName), separator.charAt(0));
+        } catch (final Exception e) {
+            throw new RuntimeException("Error loading CSV file.", e);
+        }
         LOGGER.info("Done parsing input file!");
 
         try {
@@ -143,124 +139,7 @@ final class LoadCommand extends AbstractCommand {
         }
 
         conditionsManager.closeConnection(openedConnection);
-    }
 
-    /**
-     * Parse an input text file and create conditions objects from its row data.
-     *
-     * @param fileName the name of the text file
-     * @param collection the collection into which objects will be inserted
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private final void parseFile(final String fileName, final ConditionsObjectCollection collection,
-            final String seperator) {
-
-        BufferedReader reader = null;
-
-        try {
-            final File inputFile = new File(fileName);
-            reader = new BufferedReader(new FileReader(inputFile));
-
-            LOGGER.info("reading in header line ...");
-
-            // Read in the header line with column names.
-            final String headerLine = reader.readLine();
-            LOGGER.info("got header line: " + headerLine);
-            if (headerLine == null) {
-                throw new IllegalArgumentException("The file is empty.");
-            }
-            StringTokenizer tokenizer = new StringTokenizer(headerLine, seperator);
-            final List<String> columnNames = new ArrayList<String>();
-            while (tokenizer.hasMoreTokens()) {
-                final String columnName = tokenizer.nextToken().trim();
-                LOGGER.info("read column name: " + columnName);
-                columnNames.add(columnName);
-            }
-            if (columnNames.isEmpty()) {
-                throw new RuntimeException("No column names found in file.");
-            }
-
-            // Get table info.
-            final TableMetaData tableMetaData = collection.getTableMetaData();
-            final Class<? extends ConditionsObject> objectClass = tableMetaData.getObjectClass();
-
-            // Get the field names from the table info.
-            final Set<String> fieldNames = tableMetaData.getFieldNames();
-            fieldNames.remove("collection_id");
-
-            // Check that the column names which were read in from the header row are valid.
-            for (final String columnName : columnNames) {
-                LOGGER.info("checking column: " + columnName);
-                if (!fieldNames.contains(columnName)) {
-                    throw new RuntimeException("Unknown column name: " + columnName);
-                }
-            }
-
-            // Read lines from the file.
-            String line = null;
-            int lineNumber = 1;
-            while ((line = reader.readLine()) != null) {
-
-                LOGGER.info("reading line " + lineNumber);
-
-                // Create a new conditions object for the row.
-                ConditionsObject object;
-                try {
-                    object = objectClass.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    throw new RuntimeException("Error creating new object.", e);
-                }
-
-                // Parse the line.
-                tokenizer = new StringTokenizer(line, " \t");
-                final int tokens = tokenizer.countTokens();
-
-                // Check that the number of data items is correct.
-                if (tokens != columnNames.size()) {
-                    throw new RuntimeException("Row " + lineNumber + " has wrong number of data items.");
-                }
-
-                // Iterate over the tokens.
-                for (int i = 0; i < tokens; i++) {
-
-                    LOGGER.info("proc token " + i);
-
-                    // Get the column name.
-                    final String columnName = columnNames.get(i);
-
-                    // Get the column type.
-                    final Class<?> columnType = tableMetaData.getFieldType(columnName);
-
-                    // Get the value of the cell.
-                    final String value = tokenizer.nextToken();
-
-                    LOGGER.info("columnName: " + columnName);
-                    LOGGER.info("columnType: " + columnType.getName());
-                    LOGGER.info("value: " + value);
-
-                    // Convert the value to a specific type and set the value on the object.
-                    object.setFieldValue(columnNames.get(i), ConditionsObjectUtilities.convertValue(columnType, value));
-
-                    // Add the object to the collection.
-                    LOGGER.info("adding conditions object: " + object);
-                    collection.add(object);
-                }
-                ++lineNumber;
-            }
-        } catch (final FileNotFoundException e) {
-            throw new RuntimeException("The input file does not exist.", e);
-        } catch (final IOException e) {
-            throw new RuntimeException("Error reading from the file.", e);
-        } catch (final ConditionsObjectException e) {
-            throw new RuntimeException("Error adding object to collection.", e);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        LOGGER.info("Collection was loaded successfully!");
     }
 }

@@ -3,10 +3,15 @@ package org.hps.conditions.svt;
 /**
  * This class represents the combined conditions for a single SVT channel.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Omar Moreno, UCSC
+ * @author Jeremy McCormick, SLAC
  */
 public final class ChannelConstants {
+
+    /**
+     * Flag to indicate the channel is bad and should not be used for reconstruction.
+     */
+    private boolean badChannel = false;
 
     /**
      * The pedestal and noise for the channel.
@@ -24,41 +29,45 @@ public final class ChannelConstants {
     private SvtShapeFitParameters shapeFitParameters = null;
 
     /**
-     * Flag to indicate the channel is bad and should not be used for reconstruction.
-     */
-    private boolean badChannel = false;
-
-    /**
      * Class constructor.
      */
     ChannelConstants() {
     }
 
     /**
-     * Set the pulse parameters.
+     * Get the calibration.
      *
-     * @param shapeFitParameters the pulse parameters
+     * @return the calibration object
      */
-    void setShapeFitParameters(final SvtShapeFitParameters shapeFitParameters) {
-        this.shapeFitParameters = shapeFitParameters;
+    public SvtCalibration getCalibration() {
+        return this.calibration;
     }
 
     /**
-     * Set the gain.
+     * Get the gain.
      *
-     * @param gain the gain object
+     * @return the gain object
      */
-    void setGain(final SvtGain gain) {
-        this.gain = gain;
+    public SvtGain getGain() {
+        return this.gain;
     }
 
     /**
-     * Set the calibration.
+     * Get the shape fit parameters.
      *
-     * @param calibration the calibration object
+     * @return the shape fit parameters
      */
-    void setCalibration(final SvtCalibration calibration) {
-        this.calibration = calibration;
+    public SvtShapeFitParameters getShapeFitParameters() {
+        return this.shapeFitParameters;
+    }
+
+    /**
+     * Check if this is a bad channel.
+     *
+     * @return <code>true</code> if channel is bad
+     */
+    public boolean isBadChannel() {
+        return this.badChannel;
     }
 
     /**
@@ -71,39 +80,30 @@ public final class ChannelConstants {
     }
 
     /**
-     * Check if this is a bad channel.
+     * Set the calibration.
      *
-     * @return <code>true</code> if channel is bad
+     * @param calibration the calibration object
      */
-    public boolean isBadChannel() {
-        return badChannel;
+    void setCalibration(final SvtCalibration calibration) {
+        this.calibration = calibration;
     }
 
     /**
-     * Get the shape fit parameters.
+     * Set the gain.
      *
-     * @return the shape fit parameters
+     * @param gain the gain object
      */
-    public SvtShapeFitParameters getShapeFitParameters() {
-        return shapeFitParameters;
+    void setGain(final SvtGain gain) {
+        this.gain = gain;
     }
 
     /**
-     * Get the gain.
+     * Set the pulse parameters.
      *
-     * @return the gain object
+     * @param shapeFitParameters the pulse parameters
      */
-    public SvtGain getGain() {
-        return gain;
-    }
-
-    /**
-     * Get the calibration.
-     *
-     * @return the calibration object
-     */
-    public SvtCalibration getCalibration() {
-        return calibration;
+    void setShapeFitParameters(final SvtShapeFitParameters shapeFitParameters) {
+        this.shapeFitParameters = shapeFitParameters;
     }
 
     /**
@@ -111,13 +111,14 @@ public final class ChannelConstants {
      *
      * @return This object converted to a string.
      */
+    @Override
     public String toString() {
         final StringBuffer buffer = new StringBuffer();
-        buffer.append(getCalibration());
+        buffer.append(this.getCalibration());
         buffer.append(", ");
-        buffer.append(getGain());
+        buffer.append(this.getGain());
         buffer.append(", ");
-        buffer.append(getShapeFitParameters());
+        buffer.append(this.getShapeFitParameters());
         return buffer.toString();
     }
 }

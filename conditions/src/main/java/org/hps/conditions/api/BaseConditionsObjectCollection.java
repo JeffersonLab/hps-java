@@ -3,6 +3,7 @@ package org.hps.conditions.api;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,6 +13,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.Set;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 /**
@@ -40,11 +43,6 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * The database connection.
      */
     private Connection connection;
-
-    /**
-     * Flag to indicate collection needs to be updated in the database.
-     */
-    private boolean isDirty;
 
     /**
      * The set of objects contained in the collection (no duplicate references allowed to the same object).
@@ -128,7 +126,6 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
         if (!added) {
             throw new RuntimeException("Failed to add object.");
         }
-        this.isDirty = true;
         return added;
     }
 
@@ -142,6 +139,38 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
         for (final ObjectType object : collection) {
             this.objects.add(object);
         }
+    }
+
+    /**
+     * Build a SQL insert statement.
+     *
+     * @return the SQL insert statement
+     */
+    private String buildInsertStatement() {
+        final StringBuffer sb = new StringBuffer();
+        sb.append("INSERT INTO " + this.getTableMetaData().getTableName() + " (");
+        for (final String field : this.getTableMetaData().getFieldNames()) {
+            sb.append(field + ", ");
+        }
+        sb.setLength(sb.length() - 2);
+        sb.append(") VALUES (");
+        for (final String fieldName : this.getTableMetaData().getFieldNames()) {
+            sb.append("?, ");
+        }
+        sb.setLength(sb.length() - 2);
+        sb.append(")");
+        final String updateStatement = sb.toString();
+        return updateStatement;
+    }
+
+    /**
+     * Clear the objects from this collection and reset its ID.
+     * <p>
+     * This has no effect on the underlying database values.
+     */
+    @Override
+    public void clear() {
+        this.objects.clear();
     }
 
     /**
@@ -246,7 +275,8 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      */
     private synchronized int getNextCollectionId() throws SQLException, DatabaseObjectException {
         final String log = "BaseConditionsObject generated new collection ID";
-        final String description = "inserted " + this.size() + " records into " + this.tableMetaData.getTableName();
+        final String description = System.getProperty("user.name") + " created new collection in "
+                + this.tableMetaData.getTableName();
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         int nextCollectionId = -1;
@@ -319,46 +349,26 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
                         + " table.", this);
             }
         }
-
         // Set collection ID on objects.
         try {
             this.setConditionsObjectCollectionIds();
         } catch (final ConditionsObjectException e) {
             throw new DatabaseObjectException("Error setting collection IDs on objects.", e, this);
         }
-
-        PreparedStatement insertObjects = null;
-        final StringBuffer sb = new StringBuffer();
-        sb.append("INSERT INTO " + this.getTableMetaData().getTableName() + " (");
-        for (final String field : this.getTableMetaData().getFieldNames()) {
-            sb.append(field + ", ");
-        }
-        sb.setLength(sb.length() - 2);
-        sb.append(") VALUES (");
-        for (String fieldName : this.getTableMetaData().getFieldNames()) {
-            sb.append("?, ");
-        }
-        sb.setLength(sb.length() - 2);
-        sb.append(")");
-        final String updateStatement = sb.toString();
+        PreparedStatement insertStatement = null;
         try {
-            insertObjects = this.connection.prepareStatement(updateStatement, Statement.RETURN_GENERATED_KEYS);
+            insertStatement = this.connection.prepareStatement(this.buildInsertStatement(),
+                    Statement.RETURN_GENERATED_KEYS);
             for (final ObjectType object : this) {
-                int fieldIndex = 1;
-                for (String fieldName : this.getTableMetaData().getFieldNames()) {
-                    insertObjects.setObject(fieldIndex,
-                            object.getFieldValue(this.getTableMetaData().getFieldType(fieldName), fieldName));
-                    fieldIndex++;
-                }
-                insertObjects.executeUpdate();
-                final ResultSet resultSet = insertObjects.getGeneratedKeys();
+                ConditionsObjectUtilities.setupPreparedStatement(insertStatement, object);
+                insertStatement.executeUpdate();
+                final ResultSet resultSet = insertStatement.getGeneratedKeys();
                 resultSet.next();
                 ((BaseConditionsObject) object).setRowId(resultSet.getInt(1));
                 resultSet.close();
             }
-            // Commit the object insert statements together.
+            // Commit all the object insert statements together.
             this.connection.commit();
-
         } catch (final SQLException e1) {
             e1.printStackTrace();
             if (this.connection != null) {
@@ -370,21 +380,11 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
                 }
             }
         } finally {
-            if (insertObjects != null) {
-                insertObjects.close();
+            if (insertStatement != null) {
+                insertStatement.close();
             }
             this.connection.setAutoCommit(true);
         }
-    }
-
-    /**
-     * Return <code>true</code> if the collection has objects that need to be inserted into the database.
-     *
-     * @return <code>true</code> if the collection is dirty
-     */
-    @Override
-    public final boolean isDirty() {
-        return this.isDirty;
     }
 
     /**
@@ -421,76 +421,94 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * @param file the CSV file
      */
     @Override
-    public void loadCsv(final File file) throws IOException, FileNotFoundException, ConditionsObjectException {
+    public void load(final File file, final Character delimiter) throws IOException, FileNotFoundException,
+            ConditionsObjectException {
 
         // Clear the objects from the collection.
         this.objects.clear();
-        
-        // Unset the collection ID.
-        this.collectionId = BaseConditionsObject.UNSET_COLLECTION_ID;
-                
+
+        final TableMetaData tableMetaData = this.getTableMetaData();
+
         // Check if the table info exists.
-        if (this.getTableMetaData() == null) {
+        if (tableMetaData == null) {
             // Table name is invalid.
             throw new RuntimeException("The table meta data is not set.");
         }
 
-        // Read in the CSV records.
-        final FileReader reader = new FileReader(file);
-        final CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withHeader());
-        final List<CSVRecord> records = parser.getRecords();
+        FileReader reader = null;
+        CSVParser parser = null;
 
-        // Get the database field names from the table info.
-        final Set<String> fields = this.getTableMetaData().getFieldNames();
+        try {
 
-        // Get the text file column headers from the parser.
-        final Map<String, Integer> headerMap = parser.getHeaderMap();
-        
-        // Get the headers that were read in from CSV.
-        final Set<String> headers = headerMap.keySet();
-        
-        // Make sure the headers are actually valid column names in the database.
-        for (final String header : headerMap.keySet()) {
-            if (!fields.contains(header)) {
-                // The field name does not match a table column.
-                throw new RuntimeException("Header " + header + " from CSV is not a column in the "
-                        + this.getTableMetaData().getTableName() + " table.");
+            // Read in the CSV records.
+            reader = new FileReader(file);
+
+            // Default comma-delimited format.
+            CSVFormat csvFileFormat = CSVFormat.DEFAULT.withHeader();
+
+            if (delimiter != null) {
+                if (delimiter == '\t') {
+                    // Tab-delimited format.
+                    csvFileFormat = CSVFormat.TDF.withHeader();
+                } else {
+                    // Custom delimiter was provided.
+                    csvFileFormat = CSVFormat.newFormat(delimiter);
+                }
             }
+
+            parser = new CSVParser(reader, csvFileFormat);
+            final List<CSVRecord> records = parser.getRecords();
+
+            // Get the database field names from the table info.
+            final Set<String> fields = tableMetaData.getFieldNames();
+
+            // Get the text file column headers from the parser.
+            final Map<String, Integer> headerMap = parser.getHeaderMap();
+
+            // Get the headers that were read in from CSV.
+            final Set<String> headers = headerMap.keySet();
+
+            // Make sure the headers are actually valid column names in the database.
+            for (final String header : headerMap.keySet()) {
+                if (!fields.contains(header)) {
+                    // The field name does not match a table column.
+                    throw new RuntimeException("Header " + header + " from CSV is not a column in the "
+                            + tableMetaData.getTableName() + " table.");
+                }
+            }
+
+            // Get the class of the objects contained in this collection.
+            final Class<? extends ConditionsObject> objectClass = this.getTableMetaData().getObjectClass();
+
+            // Iterate over the CSV records.
+            for (final CSVRecord record : records) {
+
+                // Create a new conditions object.
+                final ObjectType object;
+                try {
+                    // Create a new conditions object and cast to correct type for adding to collection.
+                    object = (ObjectType) objectClass.newInstance();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new RuntimeException("Error creating conditions object.", e);
+                }
+
+                // Set the field values on the object.
+                for (final String header : headers) {
+                    // Set the value of a field in the object based on the header name, converting to the correct type.
+                    object.setFieldValue(
+                            header,
+                            ConditionsObjectUtilities.convertValue(this.getTableMetaData().getFieldType(header),
+                                    record.get(header)));
+                }
+
+                // Add the object to the collection.
+                this.add(object);
+            }
+        } finally {
+            // Close the CSV parser and reader.
+            parser.close();
+            reader.close();
         }
-
-        // Get the class of the objects contained in this collection.
-        final Class<? extends ConditionsObject> objectClass = this.getTableMetaData().getObjectClass();
-
-        // Iterate over the CSV records.
-        for (final CSVRecord record : records) {
-            
-            // Create a new conditions object.
-            final ObjectType object;
-            try {
-                // Create a new conditions object and cast to correct type for adding to collection.
-                object = (ObjectType) objectClass.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException("Error creating conditions object.", e);
-            }
-            
-            // Set the field values on the object.
-            for (final String header : headers) {
-                // Set the value of a field in the object based on the header name, converting to the correct type.
-                object.setFieldValue(
-                        header,
-                        ConditionsObjectUtilities.convertValue(this.getTableMetaData().getFieldType(header), record.get(header)));
-            }
-            
-            // Add the object to the collection.
-            this.add(object);
-        }
-        
-        // Close the CSV parser and reader.
-        parser.close();
-        reader.close();
-        
-        // Flag collection as dirty (since it is read from text it is not explicitly in the database).
-        this.isDirty = true;
     }
 
     /**
@@ -498,7 +516,6 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      *
      * @return <code>true</code> if at least one object was selected
      */
-    // FIXME: Rewrite to use a PreparedStatement.
     @Override
     public final boolean select(final int collectionId) throws SQLException, DatabaseObjectException {
         this.collectionId = collectionId;
@@ -512,7 +529,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
                 sb.append(fieldName + ", ");
             }
             sb.setLength(sb.length() - 2);
-            sb.append(" FROM " + this.tableMetaData.getTableName() + " WHERE collection_id=" + collectionId);
+            sb.append(" FROM " + this.tableMetaData.getTableName() + " WHERE collection_id = " + collectionId);
             final String sql = sb.toString();
             final ResultSet resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
@@ -522,10 +539,10 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
                     newObject.setTableMetaData(this.tableMetaData);
                     final int id = resultSet.getInt(1);
                     ((BaseConditionsObject) newObject).setRowId(id);
-                    int fieldIndex = 2;
-                    for (String fieldName : this.tableMetaData.getFieldNames()) {
-                        newObject.setFieldValue(fieldName, resultSet.getObject(fieldIndex));
-                        ++fieldIndex;
+                    int column = 2;
+                    for (final String fieldName : this.tableMetaData.getFieldNames()) {
+                        newObject.setFieldValue(fieldName, resultSet.getObject(column));
+                        ++column;
                     }
                     try {
                         this.add(newObject);
@@ -657,35 +674,84 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     }
 
     /**
-     * Perform database updates on the objects in the collection.
-     *
-     * @return <code>true</code> if at least one object was updated
-     */
-    @Override
-    // FIXME: This method should execute a prepared statement in a transaction.
-    public boolean update() throws DatabaseObjectException, SQLException {
-        boolean updated = false;
-        for (final ObjectType object : this.objects) {
-            if (object.isDirty()) {
-                if (object.update() && updated == false) {
-                    updated = true;
-                }
-            }
-        }
-        return updated;
-    }
-    
-    /**
      * Convert object to string.
-     * 
+     *
      * @return this object converted to a string
      */
+    @Override
     public String toString() {
-        StringBuffer buff = new StringBuffer();
-        for (ConditionsObject object : this.getObjects()) {
+        final StringBuffer buff = new StringBuffer();
+        for (final ConditionsObject object : this.getObjects()) {
             buff.append(object);
             buff.append('\n');
         }
         return buff.toString();
+    }
+
+    /**
+     * Perform database updates on the objects in the collection.
+     *
+     * @return <code>true</code> if at least one object was updated
+     */
+    // FIXME: Rewrite to use PreparedStatement.
+    @Override
+    public boolean update() throws DatabaseObjectException, SQLException {
+        boolean updated = false;
+        for (final ObjectType object : this.objects) {
+            if (object.update() && updated == false) {
+                updated = true;
+            }
+        }
+        return updated;
+    }
+
+    /**
+     * Write contents of this collection to a CSV file.
+     *
+     * @param file the output CSV file
+     */
+    @Override
+    public void write(final File file, final Character delimiter) throws IOException {
+        FileWriter fileWriter = null;
+        CSVPrinter csvFilePrinter = null;
+
+        // Default comma-delimited format.
+        CSVFormat csvFileFormat = CSVFormat.DEFAULT;
+
+        if (delimiter != null) {
+            if (delimiter == '\t') {
+                // Tab-delimited format.
+                csvFileFormat = CSVFormat.TDF;
+            } else {
+                // Custom delimiter was provided.
+                csvFileFormat = CSVFormat.newFormat(delimiter);
+            }
+        }
+        try {
+            fileWriter = new FileWriter(file);
+            csvFilePrinter = new CSVPrinter(fileWriter, csvFileFormat);
+            final List<String> fieldNameList = new ArrayList<String>(this.getTableMetaData().getFieldNames());
+            fieldNameList.remove(BaseConditionsObject.COLLECTION_ID_FIELD);
+            csvFilePrinter.printRecord(fieldNameList);
+            for (final ConditionsObject conditionsObject : this.getObjects()) {
+                final List<Object> conditionsObjectRecord = new ArrayList<Object>();
+                for (final String fieldName : fieldNameList) {
+                    Object value = conditionsObject.getFieldValue(fieldName);
+                    if (value instanceof Date) {
+                        value = BaseConditionsObject.DEFAULT_DATE_FORMAT.format(value);
+                    }
+                    conditionsObjectRecord.add(value);
+                }
+                csvFilePrinter.printRecord(conditionsObjectRecord);
+            }
+        } finally {
+            try {
+                fileWriter.flush();
+                fileWriter.close();
+                csvFilePrinter.close();
+            } catch (final IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

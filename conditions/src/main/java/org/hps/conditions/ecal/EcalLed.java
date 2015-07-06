@@ -5,18 +5,15 @@ import java.util.Comparator;
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectCollection;
-import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 /**
  * A conditions class for representing the setup of the LED system in the ECAL for one channel.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @Table(names = "ecal_leds")
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class EcalLed extends BaseConditionsObject {
 
     /**
@@ -24,15 +21,6 @@ public final class EcalLed extends BaseConditionsObject {
      */
     @SuppressWarnings("serial")
     public static class EcalLedCollection extends BaseConditionsObjectCollection<EcalLed> {
-
-        /**
-         * Sort and return a copy of this collection.
-         *
-         * @return the new sorted collection
-         */
-        public ConditionsObjectCollection<EcalLed> sorted() {
-            return sorted(new ChannelIdComparator());
-        }
 
         /**
          * Comparison implementation by channel ID.
@@ -57,46 +45,15 @@ public final class EcalLed extends BaseConditionsObject {
             }
 
         }
-    }
 
-    /**
-     * Get the ECAL channel ID.
-     *
-     * @return the ECAL channel ID
-     */
-    @Field(names = {"ecal_channel_id"})
-    public Integer getEcalChannelId() {
-        return getFieldValue("ecal_channel_id");
-    }
-
-    /**
-     * Get the crate number assigned to this crystal.
-     *
-     * @return the crate number
-     */
-    @Field(names = {"crate"})
-    public Integer getCrateNumber() {
-        return getFieldValue("crate");
-    }
-
-    /**
-     * Get the LED number assigned to this crystal.
-     *
-     * @return the LED number
-     */
-    @Field(names = {"number"})
-    public Integer getLedNumber() {
-        return getFieldValue("number");
-    }
-
-    /**
-     * Get the time delay of this channel.
-     *
-     * @return the time delay
-     */
-    @Field(names = {"time_delay"})
-    public Double getTimeDelay() {
-        return getFieldValue("time_delay");
+        /**
+         * Sort and return a copy of this collection.
+         *
+         * @return the new sorted collection
+         */
+        public ConditionsObjectCollection<EcalLed> sorted() {
+            return this.sorted(new ChannelIdComparator());
+        }
     }
 
     /**
@@ -106,7 +63,7 @@ public final class EcalLed extends BaseConditionsObject {
      */
     @Field(names = {"amplitude_high"})
     public Double getAmplitudeHigh() {
-        return getFieldValue("amplitude_high");
+        return this.getFieldValue("amplitude_high");
     }
 
     /**
@@ -116,6 +73,46 @@ public final class EcalLed extends BaseConditionsObject {
      */
     @Field(names = {"amplitude_low"})
     public Double getAmplitudeLow() {
-        return getFieldValue("amplitude_low");
+        return this.getFieldValue("amplitude_low");
+    }
+
+    /**
+     * Get the crate number assigned to this crystal.
+     *
+     * @return the crate number
+     */
+    @Field(names = {"crate"})
+    public Integer getCrateNumber() {
+        return this.getFieldValue("crate");
+    }
+
+    /**
+     * Get the ECAL channel ID.
+     *
+     * @return the ECAL channel ID
+     */
+    @Field(names = {"ecal_channel_id"})
+    public Integer getEcalChannelId() {
+        return this.getFieldValue("ecal_channel_id");
+    }
+
+    /**
+     * Get the LED number assigned to this crystal.
+     *
+     * @return the LED number
+     */
+    @Field(names = {"number"})
+    public Integer getLedNumber() {
+        return this.getFieldValue("number");
+    }
+
+    /**
+     * Get the time delay of this channel.
+     *
+     * @return the time delay
+     */
+    @Field(names = {"time_delay"})
+    public Double getTimeDelay() {
+        return this.getFieldValue("time_delay");
     }
 }

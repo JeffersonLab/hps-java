@@ -6,7 +6,7 @@ import java.sql.SQLException;
 /**
  * This is a simple ORM interface for mapping Java objects to a database.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public interface DatabaseObject {
 
@@ -34,13 +34,6 @@ public interface DatabaseObject {
      * @throws SQLException
      */
     public void insert() throws DatabaseObjectException, SQLException;
-
-    /**
-     * Return <code>true</code> if there are local data modifications that have not been persisted to the database.
-     *
-     * @return <code>true</code> if there un-persisted local data modifications
-     */
-    boolean isDirty();
 
     /**
      * Return <code>true</code> if the record

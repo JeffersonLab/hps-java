@@ -2,18 +2,15 @@ package org.hps.conditions.svt;
 
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
-import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 /**
  * This class represents the signal gain measurement for a single SVT channel.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"svt_gains", "test_run_svt_gains"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class SvtGain extends BaseConditionsObject {
 
     /**
@@ -30,7 +27,7 @@ public final class SvtGain extends BaseConditionsObject {
      */
     @Field(names = {"svt_channel_id"})
     public Integer getChannelID() {
-        return getFieldValue(Integer.class, "svt_channel_id");
+        return this.getFieldValue(Integer.class, "svt_channel_id");
     }
 
     /**
@@ -40,7 +37,7 @@ public final class SvtGain extends BaseConditionsObject {
      */
     @Field(names = {"gain"})
     public Double getGain() {
-        return getFieldValue(Double.class, "gain");
+        return this.getFieldValue(Double.class, "gain");
     }
 
     /**
@@ -50,6 +47,6 @@ public final class SvtGain extends BaseConditionsObject {
      */
     @Field(names = {"offset"})
     public Double getOffset() {
-        return getFieldValue(Double.class, "offset");
+        return this.getFieldValue(Double.class, "offset");
     }
 }

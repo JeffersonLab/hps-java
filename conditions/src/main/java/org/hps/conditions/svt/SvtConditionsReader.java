@@ -12,7 +12,7 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 /**
  * Reader used to parse SVT conditions.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 public final class SvtConditionsReader {
 

@@ -9,23 +9,17 @@ import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.geometry.Detector;
 
 /**
- * This test loads {@link TestRunSvtConditions} data onto the detector and then
- * checks that all channels of each sensor have non-zero data values for
- * applicable parameters.
+ * This test loads {@link TestRunSvtConditions} data onto the detector and then checks that all channels of each sensor
+ * have non-zero data values for applicable parameters.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 public final class TestRunSvtDetectorSetupTest extends TestCase {
 
     /**
-     * Run number to use for test.
+     * Maximum channel number.
      */
-    private static final int RUN_NUMBER = 1351;
-
-    /**
-     * Total number of SVT sensors.
-     */
-    private static final int TOTAL_NUMBER_OF_SENSORS = 20;
+    private static final int MAX_CHANNEL_NUMBER = 639;
 
     /**
      * Maximum FPGA ID.
@@ -38,9 +32,9 @@ public final class TestRunSvtDetectorSetupTest extends TestCase {
     private static final int MAX_HYBRID_ID = 2;
 
     /**
-     * Maximum channel number.
+     * Run number to use for test.
      */
-    private static final int MAX_CHANNEL_NUMBER = 639;
+    private static final int RUN_NUMBER = 1351;
 
     /**
      * Name of SVT subdetector.
@@ -48,7 +42,22 @@ public final class TestRunSvtDetectorSetupTest extends TestCase {
     private static final String SVT_SUBDETECTOR_NAME = "Tracker";
 
     /**
+     * Total number of SVT sensors.
+     */
+    private static final int TOTAL_NUMBER_OF_SENSORS = 20;
+
+    /**
+     * Print debug message.
+     * 
+     * @param debugMessage the message
+     */
+    private void printDebug(final String debugMessage) {
+        System.out.println(this.getClass().getSimpleName() + ":: " + debugMessage);
+    }
+
+    /**
      * Load SVT conditions data onto the detector and then perform basic checks of channel conditions data.
+     * 
      * @throws Exception if there is a test error
      */
     public void test() throws Exception {
@@ -70,7 +79,7 @@ public final class TestRunSvtDetectorSetupTest extends TestCase {
 
         // Loop over sensors.
         int totalSensors = 0;
-        for (HpsTestRunSiSensor sensor : sensors) {
+        for (final HpsTestRunSiSensor sensor : sensors) {
 
             final int nChannels = sensor.getNumberOfChannels();
             assertTrue("The number of channels this sensor has is invalid", nChannels <= MAX_CHANNEL_NUMBER);
@@ -82,8 +91,8 @@ public final class TestRunSvtDetectorSetupTest extends TestCase {
             assertTrue("FPGA ID is invalid.  The FPGA ID should be less than " + MAX_FPGA_ID, fpgaID <= MAX_FPGA_ID);
 
             final int hybridID = sensor.getHybridID();
-            assertTrue("Hybrid ID is invalid.  The Hybrid ID should be less than "
-                    + MAX_HYBRID_ID, hybridID <= MAX_HYBRID_ID);
+            assertTrue("Hybrid ID is invalid.  The Hybrid ID should be less than " + MAX_HYBRID_ID,
+                    hybridID <= MAX_HYBRID_ID);
 
             for (int channel = 0; channel < nChannels; channel++) {
 
@@ -101,14 +110,6 @@ public final class TestRunSvtDetectorSetupTest extends TestCase {
             ++totalSensors;
         }
         System.out.println("Successfully loaded test run conditions data onto " + totalSensors + " SVT sensors!");
-    }
-
-    /**
-     * Print debug message.
-     * @param debugMessage the message
-     */
-    private void printDebug(String debugMessage) {
-        System.out.println(this.getClass().getSimpleName() + ":: " + debugMessage);
     }
 
 }

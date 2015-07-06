@@ -13,8 +13,8 @@ import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
  * SVT channel map should be used to lookup the conditions using the {@link #getChannelConstants(TestRunSvtChannel)}
  * method.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Jeremy McCormick, SLAC
+ * @author Omar Moreno, UCSC
  */
 public final class TestRunSvtConditions extends AbstractSvtConditions {
 
@@ -24,16 +24,6 @@ public final class TestRunSvtConditions extends AbstractSvtConditions {
     private static final int DIVIDER_LEN = 115;
 
     /**
-     * Get the {@link TestRunSvtDaqMappingCollection} associated with these conditions.
-     *
-     * @return The SVT DAQ map.
-     */
-    @Override
-    public TestRunSvtDaqMappingCollection getDaqMap() {
-        return (TestRunSvtDaqMappingCollection) this.daqMap;
-    }
-
-    /**
      * Get the {@link TestRunSvtChannelCollection} for this set of conditions.
      *
      * @return The SVT channel map.
@@ -41,6 +31,16 @@ public final class TestRunSvtConditions extends AbstractSvtConditions {
     @Override
     public TestRunSvtChannelCollection getChannelMap() {
         return (TestRunSvtChannelCollection) this.channelMap;
+    }
+
+    /**
+     * Get the {@link TestRunSvtDaqMappingCollection} associated with these conditions.
+     *
+     * @return The SVT DAQ map.
+     */
+    @Override
+    public TestRunSvtDaqMappingCollection getDaqMap() {
+        return (TestRunSvtDaqMappingCollection) this.daqMap;
     }
 
     /**
@@ -125,7 +125,7 @@ public final class TestRunSvtConditions extends AbstractSvtConditions {
             System.out.println("Channel: " + channel.toString());
 
             // Get the conditions for the channel.
-            final ChannelConstants constants = getChannelConstants(channel);
+            final ChannelConstants constants = this.getChannelConstants(channel);
             final SvtGain gain = constants.getGain();
             final SvtShapeFitParameters shapeFit = constants.getShapeFitParameters();
             final SvtCalibration calibration = constants.getCalibration();
@@ -161,7 +161,7 @@ public final class TestRunSvtConditions extends AbstractSvtConditions {
         buff.append("Printing SVT DAQ Map...");
         buff.append('\n');
         buff.append('\n');
-        buff.append(getDaqMap());
+        buff.append(this.getDaqMap());
 
         return buff.toString();
     }

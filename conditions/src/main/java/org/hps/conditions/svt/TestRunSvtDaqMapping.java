@@ -1,8 +1,6 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -11,10 +9,9 @@ import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 /**
  * This class encapsulates the Test Run SVT DAQ map.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 @Table(names = {"test_run_svt_daq_map"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
 
     /**
@@ -106,7 +103,7 @@ public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
      */
     @Field(names = {"fpga"})
     public Integer getFpgaID() {
-        return getFieldValue("fpga");
+        return this.getFieldValue("fpga");
     }
 
     /**
@@ -116,6 +113,6 @@ public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
      */
     @Field(names = {"hybrid"})
     public Integer getHybridID() {
-        return getFieldValue("hybrid");
+        return this.getFieldValue("hybrid");
     }
 }

@@ -20,14 +20,56 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * This class tests that the correct bad channel conditions are found for the test run.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class SvtBadChannelTest extends TestCase {
 
     /**
-     * This test file has a few events from each of the "good runs" of the 2012 Test Run.
+     * This Driver will check the number of bad channels for a run against the answer key.
      */
-    private static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps/conditions_test.slcio";
+    static class SvtBadChannelChecker extends Driver {
+
+        /**
+         * The current run number.
+         */
+        private int currentRun = -1;
+
+        /**
+         * This method will check the number of bad channels against the answer key for the first event of a new run.
+         * 
+         * @param the LCSim event
+         */
+        @Override
+        public void process(final EventHeader event) {
+            final int run = event.getRunNumber();
+            if (run != this.currentRun) {
+                this.currentRun = run;
+                final Detector detector = event.getDetector();
+                int badChannels = 0;
+                final List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
+                for (final HpsSiSensor sensor : sensors) {
+                    final int nchannels = sensor.getNumberOfChannels();
+                    for (int i = 0; i < nchannels; i++) {
+                        if (sensor.isBadChannel(i)) {
+                            ++badChannels;
+                        }
+                    }
+                }
+                System.out.println("Run " + this.currentRun + " has " + badChannels + " SVT bad channels.");
+                if (ANSWER_KEY.containsKey(this.currentRun)) {
+                    final Integer badChannelsExpected = ANSWER_KEY.get(run);
+                    TestCase.assertEquals("Wrong number of bad channels found.", (int) badChannelsExpected, badChannels);
+                } else {
+                    TestCase.assertEquals("Wrong number of bad channels found.", BAD_CHANNELS_QA_ANSWER, badChannels);
+                }
+            }
+        }
+    }
+
+    /**
+     * Answer key for number of bad channels per run.
+     */
+    private static final Map<Integer, Integer> ANSWER_KEY = new HashMap<Integer, Integer>();
 
     /**
      * This is the number of bad channels in the conditions set that covers all run numbers.
@@ -35,9 +77,9 @@ public final class SvtBadChannelTest extends TestCase {
     private static final int BAD_CHANNELS_QA_ANSWER = 50;
 
     /**
-     * Answer key for number of bad channels per run.
+     * This test file has a few events from each of the "good runs" of the 2012 Test Run.
      */
-    private static final Map<Integer, Integer> ANSWER_KEY = new HashMap<Integer, Integer>();
+    private static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps/conditions_test.slcio";
 
     /**
      * Setup the answer key.
@@ -53,6 +95,7 @@ public final class SvtBadChannelTest extends TestCase {
 
     /**
      * Run the test.
+     * 
      * @throws Exception if there is an event processing error
      */
     public void test() throws Exception {
@@ -73,49 +116,5 @@ public final class SvtBadChannelTest extends TestCase {
 
         // Run over all events.
         loop.loop(-1, null);
-    }
-
-    /**
-     * This Driver will check the number of bad channels for a run against the answer key.
-     */
-    static class SvtBadChannelChecker extends Driver {
-
-        /**
-         * The current run number.
-         */
-        private int currentRun = -1;
-
-        /**
-         * This method will check the number of bad channels against the answer
-         * key for the first event of a new run.
-         * @param the LCSim event
-         */
-        public void process(final EventHeader event) {
-            final int run = event.getRunNumber();
-            if (run != currentRun) {
-                currentRun = run;
-                final Detector detector = event.getDetector();
-                int badChannels = 0;
-                final List<HpsSiSensor> sensors = detector.getDetectorElement()
-                        .findDescendants(HpsSiSensor.class);
-                for (final HpsSiSensor sensor : sensors) {
-                    final int nchannels = sensor.getNumberOfChannels();
-                    for (int i = 0; i < nchannels; i++) {
-                        if (sensor.isBadChannel(i)) {
-                            ++badChannels;
-                        }
-                    }
-                }
-                System.out.println("Run " + currentRun + " has " + badChannels + " SVT bad channels.");
-                if (ANSWER_KEY.containsKey(currentRun)) {
-                    final Integer badChannelsExpected = ANSWER_KEY.get(run);
-                    TestCase.assertEquals("Wrong number of bad channels found.",
-                            (int) badChannelsExpected, (int) badChannels);
-                } else {
-                    TestCase.assertEquals("Wrong number of bad channels found.",
-                            (int) BAD_CHANNELS_QA_ANSWER, (int) badChannels);
-                }
-            }
-        }
     }
 }

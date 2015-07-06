@@ -16,7 +16,7 @@ import org.lcsim.conditions.ConditionsManager;
 /**
  * Read {@link org.hps.conditions.api.ConditionsRecord} objects from the conditions database.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class ConditionsRecordConverter extends AbstractConditionsObjectConverter<ConditionsRecordCollection> {
 
@@ -82,7 +82,7 @@ public final class ConditionsRecordConverter extends AbstractConditionsObjectCon
             databaseConditionsManager.closeConnection();
         }
 
-        return getType().cast(collection);
+        return this.getType().cast(collection);
     }
 
     /**

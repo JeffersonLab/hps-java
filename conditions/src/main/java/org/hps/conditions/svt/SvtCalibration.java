@@ -1,5 +1,7 @@
 package org.hps.conditions.svt;
 
+import static org.hps.conditions.svt.AbstractSvtChannel.MAX_NUMBER_OF_SAMPLES;
+
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
@@ -7,13 +9,11 @@ import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
-import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
-
 /**
  * This class encapsulates noise and pedestal measurement for an SVT channel.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Jeremy McCormick, SLAC
+ * @author Omar Moreno, UCSC
  */
 @Table(names = {"svt_calibrations", "test_run_svt_calibrations"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
@@ -48,7 +48,7 @@ public final class SvtCalibration extends BaseConditionsObject {
      */
     @Field(names = {"svt_channel_id"})
     public Integer getChannelID() {
-        return getFieldValue("svt_channel_id");
+        return this.getFieldValue("svt_channel_id");
     }
 
     /**
@@ -62,7 +62,7 @@ public final class SvtCalibration extends BaseConditionsObject {
         if (sample < 0 || sample > MAX_NUMBER_OF_SAMPLES) {
             throw new IllegalArgumentException("Sample number is not within range.");
         }
-        return getFieldValue(Double.class, "noise_" + Integer.toString(sample));
+        return this.getFieldValue(Double.class, "noise_" + Integer.toString(sample));
     }
 
     /**
@@ -76,7 +76,7 @@ public final class SvtCalibration extends BaseConditionsObject {
         if (sample < 0 || sample > MAX_NUMBER_OF_SAMPLES) {
             throw new IllegalArgumentException("Sample number is not within range.");
         }
-        return getFieldValue(Double.class, "pedestal_" + Integer.toString(sample));
+        return this.getFieldValue(Double.class, "pedestal_" + Integer.toString(sample));
     }
 
     /**
@@ -116,6 +116,7 @@ public final class SvtCalibration extends BaseConditionsObject {
      * @return This object converted to a string.
      */
     // FIXME: This is a mess when it prints to console.
+    @Override
     public String toString() {
         final StringBuffer buffer = new StringBuffer();
         buffer.append("Channel ID: " + this.getChannelID());

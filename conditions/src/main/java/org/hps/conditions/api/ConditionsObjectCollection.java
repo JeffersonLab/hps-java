@@ -31,6 +31,13 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
     void addAll(ConditionsObjectCollection<ObjectType> collection);
 
     /**
+     * Clear the objects from this collection and reset its ID.
+     * <p>
+     * This has no effect on the underlying database values.
+     */
+    void clear();
+
+    /**
      * Return <code>true</code> if collection contains this object.
      *
      * @param object the object to check
@@ -57,11 +64,13 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
      * Load collection from a CSV file.
      *
      * @param file the input CSV file
+     * @param delimiter the field delimiter (leave blank for default which is comma-delimited)
      * @throws IOException if there is an error closing the reader
      * @throws FileNotFoundException if the input file does not exist
      * @throws ConditionsObjectException if there is an error creating a conditions object
      */
-    void loadCsv(File file) throws IOException, FileNotFoundException, ConditionsObjectException;
+    void load(final File file, Character delimiter) throws IOException, FileNotFoundException,
+            ConditionsObjectException;
 
     /**
      * Set the collection ID.
@@ -91,4 +100,12 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
      * @return the sorted copy of the collection
      */
     ConditionsObjectCollection<ObjectType> sorted(final Comparator<ObjectType> comparator);
+
+    /**
+     * Write the collection contents to a text file.
+     *
+     * @param file the output text file
+     * @param delimiter the field delimiter (leave blank for default which is comma-delimited)
+     */
+    void write(File file, Character delimiter) throws IOException;
 }

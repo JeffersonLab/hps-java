@@ -10,7 +10,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * Handler for DAQ map events.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 public final class DaqMapHandler extends DefaultHandler {
 

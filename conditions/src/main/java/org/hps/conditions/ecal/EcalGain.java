@@ -5,18 +5,15 @@ import java.util.Comparator;
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectCollection;
-import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 /**
  * A per channel ECAL gain value.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
-@Table(names = {"ecal_gains", "test_run_ecal_gains", "ecal_hardware_gains"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
+@Table(names = {"ecal_gains", "test_run_ecal_gains"})
 public final class EcalGain extends BaseConditionsObject {
 
     /**
@@ -26,21 +23,12 @@ public final class EcalGain extends BaseConditionsObject {
     public static final class EcalGainCollection extends BaseConditionsObjectCollection<EcalGain> {
 
         /**
-         * Sort and return a copy of the collection.
-         * 
-         * @return A sorted copy of the collection.
-         */
-        public ConditionsObjectCollection<EcalGain> sorted() {
-            return sorted(new ChannelIdComparator());
-        }
-
-        /**
          * Comparison implementation by channel ID.
          */
         class ChannelIdComparator implements Comparator<EcalGain> {
             /**
              * Compare two objects by their channel ID.
-             * 
+             *
              * @param o1 The first object.
              * @param o2 The second object.
              * @return -1, 0 or 1 if first channel ID is less than, equal to, or greater than second.
@@ -57,16 +45,15 @@ public final class EcalGain extends BaseConditionsObject {
             }
 
         }
-    }
 
-    /**
-     * Get the gain value in units of MeV/ADC count.
-     *
-     * @return the gain value
-     */
-    @Field(names = {"gain"})
-    public Double getGain() {
-        return getFieldValue("gain");
+        /**
+         * Sort and return a copy of the collection.
+         *
+         * @return A sorted copy of the collection.
+         */
+        public ConditionsObjectCollection<EcalGain> sorted() {
+            return this.sorted(new ChannelIdComparator());
+        }
     }
 
     /**
@@ -76,6 +63,16 @@ public final class EcalGain extends BaseConditionsObject {
      */
     @Field(names = {"ecal_channel_id"})
     public Integer getChannelId() {
-        return getFieldValue("ecal_channel_id");
+        return this.getFieldValue("ecal_channel_id");
+    }
+
+    /**
+     * Get the gain value in units of MeV/ADC count.
+     *
+     * @return the gain value
+     */
+    @Field(names = {"gain"})
+    public Double getGain() {
+        return this.getFieldValue("gain");
     }
 }

@@ -18,7 +18,7 @@ import org.reflections.Reflections;
 /**
  * This is a registry providing a map between tables and their meta-data.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("serial")
 public final class TableRegistry extends HashMap<String, TableMetaData> {
@@ -107,7 +107,27 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
         }
         return registry;
     }
-    
+
+    /**
+     * Find all available classes that extend ConditionsObject.
+     *
+     * @return The set of all available classes that extend ConditionsObject.
+     */
+    public static Set<Class<? extends ConditionsObject>> findConditionsObjectTypes() {
+        final Reflections reflections = new Reflections("org.hps.conditions");
+        final Set<Class<? extends ConditionsObject>> objectTypes = new HashSet<Class<? extends ConditionsObject>>();
+        for (final Class<? extends ConditionsObject> objectType : reflections.getSubTypesOf(ConditionsObject.class)) {
+            if (Modifier.isAbstract(objectType.getModifiers())) {
+                continue;
+            }
+            if (objectType.getAnnotation(Table.class) == null) {
+                continue;
+            }
+            objectTypes.add(objectType);
+        }
+        return objectTypes;
+    }
+
     /**
      * Get the class for the collection of the ConditionsObject type.
      *
@@ -130,7 +150,50 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
         }
         return (Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>>) rawCollectionClass;
     }
-    
+
+    /**
+     * Get the list of database field names for the class.
+     *
+     * @param type the class
+     * @return the list of field names
+     */
+    private static Set<String> getFieldNames(final Class<? extends ConditionsObject> type) {
+        final Set<String> fieldNames = new HashSet<String>();
+        for (final Method method : type.getMethods()) {
+            if (!method.getReturnType().equals(Void.TYPE)) {
+                for (final Annotation annotation : method.getAnnotations()) {
+                    if (annotation.annotationType().equals(Field.class)) {
+                        if (!Modifier.isPublic(method.getModifiers())) {
+                            throw new RuntimeException("The method " + type.getName() + "." + method.getName()
+                                    + " has a Field annotation, but it is not public.");
+                        }
+                        final Field field = (Field) annotation;
+                        for (final String fieldName : field.names()) {
+                            if (fieldName != null && !"".equals(fieldName)) {
+                                fieldNames.add(fieldName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return fieldNames;
+    }
+
+    /**
+     * Get the list of table names for the class.
+     *
+     * @param type the class
+     * @return the list of table names
+     */
+    private static String[] getTableNames(final Class<? extends ConditionsObject> type) {
+        final Table tableAnnotation = type.getAnnotation(Table.class);
+        if (tableAnnotation != null) {
+            return tableAnnotation.names();
+        } else {
+            return new String[] {};
+        }
+    }
 
     /**
      * Get the global static instance of the registry.
@@ -162,50 +225,6 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
      */
     private TableRegistry() {
     }
-    
-    /**
-     * Get the list of database field names for the class.
-     *
-     * @param type the class
-     * @return the list of field names
-     */
-    private static Set<String> getFieldNames(final Class<? extends ConditionsObject> type) {
-        final Set<String> fieldNames = new HashSet<String>();
-        for (final Method method : type.getMethods()) {
-            if (!method.getReturnType().equals(Void.TYPE)) {
-                for (final Annotation annotation : method.getAnnotations()) {
-                    if (annotation.annotationType().equals(Field.class)) {
-                        if (!Modifier.isPublic(method.getModifiers())) {
-                            throw new RuntimeException("The method " + type.getName() + "." + method.getName()
-                                    + " has a Field annotation, but it is not public.");
-                        }
-                        final Field field = (Field) annotation;
-                        for (final String fieldName : field.names()) {
-                            if (fieldName != null && !"".equals(fieldName)) {
-                                fieldNames.add(fieldName);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return fieldNames;
-    }
-    
-    /**
-     * Get the list of table names for the class.
-     *
-     * @param type the class
-     * @return the list of table names
-     */
-    private static String[] getTableNames(final Class<? extends ConditionsObject> type) {
-        final Table tableAnnotation = type.getAnnotation(Table.class);
-        if (tableAnnotation != null) {
-            return tableAnnotation.names();
-        } else {
-            return new String[] {};
-        }
-    }
 
     /**
      * Find meta data by collection type.
@@ -236,26 +255,6 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
     public TableMetaData findByTableName(final String name) {
         return this.get(name);
     }
-    
-    /**
-     * Find all available classes that extend ConditionsObject.
-     *
-     * @return The set of all available classes that extend ConditionsObject.
-     */
-    public static Set<Class<? extends ConditionsObject>> findConditionsObjectTypes() {
-        final Reflections reflections = new Reflections("org.hps.conditions");
-        final Set<Class<? extends ConditionsObject>> objectTypes = new HashSet<Class<? extends ConditionsObject>>();
-        for (final Class<? extends ConditionsObject> objectType : reflections.getSubTypesOf(ConditionsObject.class)) {
-            if (Modifier.isAbstract(objectType.getModifiers())) {
-                continue;
-            }
-            if (objectType.getAnnotation(Table.class) == null) {
-                continue;
-            }
-            objectTypes.add(objectType);
-        }
-        return objectTypes;
-    }    
 
     /**
      * Convert this object to a string.

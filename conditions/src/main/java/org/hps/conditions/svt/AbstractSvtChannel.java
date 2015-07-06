@@ -13,15 +13,10 @@ import org.hps.util.Pair;
 /**
  * This abstract class provides basic setup information for an SVT sensor channel.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Jeremy McCormick, SLAC
+ * @author Omar Moreno, UCSC
  */
 public abstract class AbstractSvtChannel extends BaseConditionsObject {
-
-    /**
-     * Default number of samples to read out.
-     */
-    // TODO: Put constants into their own class.
-    public static final int MAX_NUMBER_OF_SAMPLES = 6;
 
     /**
      * Collection implementation for {@link AbstractSvtChannel}.
@@ -57,6 +52,15 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
         }
 
         /**
+         * Find the collection of channels of type extending {@link AbstractSvtChannel} that match a DAQ pair (FEB ID
+         * and FEB Hybrid ID).
+         *
+         * @param pair the DAQ pair
+         * @return the channels matching the DAQ pair or null if not found
+         */
+        public abstract Collection<T> find(final Pair<Integer, Integer> pair);
+
+        /**
          * Find a channel of type extending {@link AbstractSvtChannel} using the channel ID.
          *
          * @param channelID the channel ID
@@ -65,15 +69,6 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
         public final T findChannel(final int channelID) {
             return this.channelMap.get(channelID);
         }
-
-        /**
-         * Find the collection of channels of type extending {@link AbstractSvtChannel} that match a DAQ pair (FEB ID
-         * and FEB Hybrid ID).
-         *
-         * @param pair the DAQ pair
-         * @return the channels matching the DAQ pair or null if not found
-         */
-        public abstract Collection<T> find(final Pair<Integer, Integer> pair);
 
         /**
          * Convert this object to a human readable string.
@@ -91,14 +86,10 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
     }
 
     /**
-     * Get the channel ID.
-     *
-     * @return the SVT channel ID
+     * Default number of samples to read out.
      */
-    @Field(names = {"channel_id"})
-    public final Integer getChannelID() {
-        return getFieldValue("channel_id");
-    }
+    // TODO: Put constants into their own class.
+    public static final int MAX_NUMBER_OF_SAMPLES = 6;
 
     /**
      * Get the channel number (0-639). This is different from the ID.
@@ -107,16 +98,17 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
      */
     @Field(names = {"channel"})
     public final Integer getChannel() {
-        return getFieldValue("channel");
+        return this.getFieldValue("channel");
     }
 
     /**
-     * Set the channel ID.
+     * Get the channel ID.
      *
-     * @param channelID the SVT channel ID
+     * @return the SVT channel ID
      */
-    public final void setChannelID(final int channelID) {
-        this.setFieldValue("channel_id", channelID);
+    @Field(names = {"channel_id"})
+    public final Integer getChannelID() {
+        return this.getFieldValue("channel_id");
     }
 
     /**
@@ -126,5 +118,14 @@ public abstract class AbstractSvtChannel extends BaseConditionsObject {
      */
     public final void setChannel(final int channel) {
         this.setFieldValue("channel", channel);
+    }
+
+    /**
+     * Set the channel ID.
+     *
+     * @param channelID the SVT channel ID
+     */
+    public final void setChannelID(final int channelID) {
+        this.setFieldValue("channel_id", channelID);
     }
 }

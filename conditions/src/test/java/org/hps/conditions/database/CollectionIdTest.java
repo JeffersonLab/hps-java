@@ -12,7 +12,7 @@ import org.hps.conditions.dummy.DummyConditionsObject.DummyConditionsObjectColle
 /**
  * Test adding a new collection and getting its unique ID.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public class CollectionIdTest extends TestCase {
 

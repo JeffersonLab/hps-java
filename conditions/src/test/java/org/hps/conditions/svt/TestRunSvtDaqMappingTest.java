@@ -9,9 +9,39 @@ import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollectio
  * This test checks if the test run SVT DAQ map was loaded with reasonable values and is being read correctly from the
  * conditions database.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class TestRunSvtDaqMappingTest extends TestCase {
+
+    /**
+     * Maximum FPGA ID.
+     */
+    private static final int MAX_FPGA_ID = 6;
+
+    /**
+     * Maximum Hybrid ID.
+     */
+    private static final int MAX_HYBRID_ID = 2;
+
+    /**
+     * Maximum layer number.
+     */
+    private static final int MAX_LAYER_NUMBER = 10;
+
+    /**
+     * Minimum FPGA ID.
+     */
+    private static final int MIN_FPGA_ID = 0;
+
+    /**
+     * Minimum Hybrid ID.
+     */
+    private static final int MIN_HYBRID_ID = 0;
+
+    /**
+     * Minimum layer number.
+     */
+    private static final int MIN_LAYER_NUMBER = 1;
 
     /**
      * The run number to use for the test.
@@ -24,34 +54,13 @@ public final class TestRunSvtDaqMappingTest extends TestCase {
     private static final int TOTAL_NUMBER_OF_SENSORS = 20;
 
     /**
-     * Minimum FPGA ID.
+     * Print debug message.
+     *
+     * @param debugMessage the message
      */
-    private static final int MIN_FPGA_ID = 0;
-
-    /**
-     * Maximum FPGA ID.
-     */
-    private static final int MAX_FPGA_ID = 6;
-
-    /**
-     * Minimum Hybrid ID.
-     */
-    private static final int MIN_HYBRID_ID = 0;
-
-    /**
-     * Maximum Hybrid ID.
-     */
-    private static final int MAX_HYBRID_ID = 2;
-
-    /**
-     * Minimum layer number.
-     */
-    private static final int MIN_LAYER_NUMBER = 1;
-
-    /**
-     * Maximum layer number.
-     */
-    private static final int MAX_LAYER_NUMBER = 10;
+    private void printDebug(final String debugMessage) {
+        System.out.println("[ " + this.getClass().getSimpleName() + " ]: " + debugMessage);
+    }
 
     /**
      * Perform checks of SVT DAQ mapping for Test Run.
@@ -92,14 +101,5 @@ public final class TestRunSvtDaqMappingTest extends TestCase {
 
         this.printDebug("Total number of sensors found: " + totalSensors);
         assertTrue(totalSensors == TOTAL_NUMBER_OF_SENSORS);
-    }
-
-    /**
-     * Print debug message.
-     *
-     * @param debugMessage the message
-     */
-    private void printDebug(final String debugMessage) {
-        System.out.println("[ " + this.getClass().getSimpleName() + " ]: " + debugMessage);
     }
 }

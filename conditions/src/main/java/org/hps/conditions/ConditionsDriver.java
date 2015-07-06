@@ -5,7 +5,6 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.util.Driver;
 
 /**
- * <p>
  * This {@link org.lcsim.util.Driver} can be used to customize the behavior of the {@link DatabaseConditionsManager}. It
  * allows the setting of a detector name and run number, as well as other parameters, if the user wishes to override the
  * default behavior of the conditions system, which is generally activated from LCSim events. It is not necessary to run

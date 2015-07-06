@@ -22,7 +22,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
  * <p>
  * The beam energy is hard-coded to 1.92 GeV for now, pending updates with better information.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class ImportBeamConditionsEngRun {
 

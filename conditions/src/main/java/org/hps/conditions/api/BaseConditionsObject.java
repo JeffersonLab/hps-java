@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import org.hps.conditions.database.Field;
 
@@ -67,11 +66,6 @@ public class BaseConditionsObject implements ConditionsObject {
     private FieldValues fieldValues;
 
     /**
-     * Flag to indicate that the object is locally changed and a database update has not been executed.
-     */
-    private boolean isDirty;
-
-    /**
      * The row ID of the object in its table. This will be -1 for new objects that are not in the database.
      */
     private int rowId = UNSET_ROW_ID;
@@ -116,9 +110,44 @@ public class BaseConditionsObject implements ConditionsObject {
         this.connection = connection;
         this.tableMetaData = tableMetaData;
         this.fieldValues = fields;
+    }
 
-        // Since a list of field values are being provided, this object is flagged as needing to be updated.
-        this.isDirty = true;
+    /**
+     * Create a SQL insert string for a prepared statement.
+     *
+     * @return the SQL insert string for a prepared statement
+     */
+    private String buildInsertStatement() {
+        final StringBuffer sb = new StringBuffer();
+        sb.append("INSERT INTO " + this.tableMetaData.getTableName() + " (");
+        for (final String fieldName : this.getTableMetaData().getFieldNames()) {
+            sb.append(fieldName + ", ");
+        }
+        sb.setLength(sb.length() - 2);
+        sb.append(") VALUES (");
+        for (final String fieldName : this.getTableMetaData().getFieldNames()) {
+            sb.append("?, ");
+        }
+        sb.setLength(sb.length() - 2);
+        sb.append(")");
+        final String insertSql = sb.toString();
+        return insertSql;
+    }
+
+    /**
+     * Build a SQL update string for a prepared statement.
+     *
+     * @return the SQL update string for a prepared statement
+     */
+    private String buildUpdateStatement() {
+        final StringBuffer sb = new StringBuffer();
+        sb.append("UPDATE " + this.tableMetaData.getTableName() + " SET ");
+        for (final String fieldName : this.tableMetaData.getFieldNames()) {
+            sb.append(fieldName + " = ?, ");
+        }
+        sb.setLength(sb.length() - 2);
+        sb.append(" WHERE id = ?");
+        return sb.toString();
     }
 
     /**
@@ -130,14 +159,14 @@ public class BaseConditionsObject implements ConditionsObject {
     @Override
     public final void delete() throws DatabaseObjectException, SQLException {
         if (this.isNew()) {
-            throw new DatabaseObjectException("Object is not in the database.", this);
+            throw new DatabaseObjectException("Missing valid row ID.", this);
         }
         this.connection.setAutoCommit(true);
         PreparedStatement statement = null;
         try {
             statement = this.connection.prepareStatement("DELETE FROM " + this.tableMetaData.getTableName()
                     + " WHERE id = ?");
-            statement.setInt(1, +this.getRowId());
+            statement.setInt(1, this.getRowId());
             statement.executeUpdate();
             this.rowId = UNSET_ROW_ID;
         } finally {
@@ -236,53 +265,24 @@ public class BaseConditionsObject implements ConditionsObject {
         if (!this.hasValidCollectionId()) {
             throw new DatabaseObjectException("Cannot insert object without a valid collection ID.", this);
         }
-        final StringBuffer sb = new StringBuffer();
-        sb.append("INSERT INTO " + this.tableMetaData.getTableName() + " (");
-        for (final String fieldName : this.fieldValues.getFieldNames()) {
-            sb.append(fieldName + ", ");
-        }
-        sb.setLength(sb.length() - 2);
-        sb.append(") VALUES (");
-        for (final Object value : this.fieldValues.getValues()) {
-            if (value instanceof Date) {
-                sb.append("STR_TO_DATE( '" + DEFAULT_DATE_FORMAT.format((Date) value) + "', '%Y-%m-%d %H:%i:%S' ), ");
-            } else {
-                sb.append("'" + value + "', ");
-            }
-        }
-        sb.setLength(sb.length() - 2);
-        sb.append(")");
-        final String sql = sb.toString();
-        Statement statement = null;
+        PreparedStatement insertStatement = null;
         ResultSet resultSet = null;
         try {
-            statement = this.connection.createStatement();
-            statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-            resultSet = statement.getGeneratedKeys();
-            while (resultSet.next()) {
-                final int key = resultSet.getInt(1);
-                this.rowId = key;
-                break;
-            }
+            insertStatement = this.connection.prepareStatement(this.buildInsertStatement(),
+                    Statement.RETURN_GENERATED_KEYS);
+            ConditionsObjectUtilities.setupPreparedStatement(insertStatement, this);
+            insertStatement.executeUpdate();
+            resultSet = insertStatement.getGeneratedKeys();
+            resultSet.next();
+            this.rowId = resultSet.getInt(1);
         } finally {
             if (resultSet != null) {
                 resultSet.close();
             }
-            if (statement != null) {
-                statement.close();
+            if (insertStatement != null) {
+                insertStatement.close();
             }
         }
-        this.isDirty = false;
-    }
-
-    /**
-     * Return <code>true</code> if object is dirty and needs a database update.
-     *
-     * @return <code>true</code> if object is dirty
-     */
-    @Override
-    public final boolean isDirty() {
-        return this.isDirty;
     }
 
     /**
@@ -307,7 +307,7 @@ public class BaseConditionsObject implements ConditionsObject {
     public final boolean select(final int id) throws DatabaseObjectException, SQLException {
         this.rowId = id;
         if (id < 1) {
-            throw new IllegalArgumentException("bad row ID value: " + id);
+            throw new IllegalArgumentException("Invalid row ID: " + id);
         }
         final StringBuffer sb = new StringBuffer();
         sb.append("SELECT");
@@ -327,7 +327,7 @@ public class BaseConditionsObject implements ConditionsObject {
             selected = resultSet.next();
             if (selected) {
                 int columnIndex = 1;
-                for (String fieldName : this.tableMetaData.getFieldNames()) {
+                for (final String fieldName : this.tableMetaData.getFieldNames()) {
                     this.setFieldValue(fieldName, resultSet.getObject(columnIndex));
                     ++columnIndex;
                 }
@@ -373,7 +373,6 @@ public class BaseConditionsObject implements ConditionsObject {
     @Override
     public final void setFieldValue(final String name, final Object value) {
         this.fieldValues.setValue(name, value);
-        this.isDirty = true;
     }
 
     /**
@@ -384,7 +383,6 @@ public class BaseConditionsObject implements ConditionsObject {
     @Override
     public void setFieldValues(final FieldValues fieldValues) {
         this.fieldValues = fieldValues;
-        this.isDirty = true;
     }
 
     /**
@@ -419,44 +417,26 @@ public class BaseConditionsObject implements ConditionsObject {
     }
 
     /**
-     * Perform an update operation to insert this object's data in the database.
+     * Perform an update operation to insert this object's data into the database.
      *
      * @return <code>true</code> if an update occurred
      */
     @Override
     public final boolean update() throws DatabaseObjectException, SQLException {
         int rowsUpdated = 0;
-        if (this.isDirty()) {
-            if (this.isNew()) {
-                throw new DatabaseObjectException("Cannot update a new object.", this);
-            }
-            final StringBuffer sb = new StringBuffer();
-            sb.append("UPDATE " + this.tableMetaData.getTableName() + " SET ");
-            for (final String fieldName : this.fieldValues.getFieldNames()) {
-                sb.append(fieldName + "=");
-                final Object value = this.fieldValues.getValue(fieldName);
-                if (value instanceof Date) {
-                    sb.append("STR_TO_DATE( '" + DEFAULT_DATE_FORMAT.format((Date) value)
-                            + "', '%Y-%m-%d %H:%i:%S' ), ");
-                } else {
-                    sb.append("'" + value + "', ");
-                }
-            }
-            sb.setLength(sb.length() - 2);
-            sb.append(" WHERE id=" + this.getRowId());
-            final String sql = sb.toString();
-            Statement statement = null;
-            try {
-                statement = this.connection.createStatement();
-                rowsUpdated = statement.executeUpdate(sql);
-            } finally {
-                if (statement != null) {
-                    statement.close();
-                }
-            }
+        if (this.isNew()) {
+            throw new DatabaseObjectException("Cannot perform an update on a new object.", this);
         }
-        if (rowsUpdated > 0) {
-            this.isDirty = false;
+        PreparedStatement updateStatement = null;
+        try {
+            updateStatement = this.connection.prepareStatement(this.buildUpdateStatement());
+            updateStatement.setInt(this.fieldValues.getFieldNames().size() + 1, this.getRowId());
+            ConditionsObjectUtilities.setupPreparedStatement(updateStatement, this);
+            rowsUpdated = updateStatement.executeUpdate();
+        } finally {
+            if (updateStatement != null) {
+                updateStatement.close();
+            }
         }
         return rowsUpdated != 0;
     }

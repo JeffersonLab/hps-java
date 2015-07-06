@@ -131,7 +131,7 @@ final class ConditionsCollectionTableModel extends DefaultTableModel {
      */
     private void setupColumns(final TableMetaData tableInfo) {
 
-        final int fieldNameCount = tableInfo.getFieldNames().length;
+        final int fieldNameCount = tableInfo.getFieldNames().size();
         this.columnCount = fieldNameCount + 1;
 
         this.columnTypes = new Class<?>[this.columnCount];
@@ -140,10 +140,10 @@ final class ConditionsCollectionTableModel extends DefaultTableModel {
         this.columnNames[0] = "id";
         this.columnTypes[0] = int.class;
 
-        for (int i = 0; i < fieldNameCount; i++) {
-            final String fieldName = tableInfo.getFieldNames()[i];
-            this.columnNames[i + 1] = fieldName;
-            this.columnTypes[i + 1] = tableInfo.getFieldType(fieldName);
+        int columnNumber = 1;
+        for (String fieldName : tableInfo.getFieldNames()) {
+            this.columnNames[columnNumber + 1] = fieldName;
+            this.columnTypes[columnNumber + 1] = tableInfo.getFieldType(fieldName);
         }
     }
 }

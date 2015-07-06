@@ -2,9 +2,7 @@ package org.hps.conditions.svt;
 
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
-import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 /**
@@ -12,10 +10,9 @@ import org.hps.conditions.database.Table;
  * <p>
  * There will generally be only one of these records per run.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"svt_timing_constants"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class SvtTimingConstants extends BaseConditionsObject {
 
     /**

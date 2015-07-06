@@ -16,7 +16,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * Handler for calibration events.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 class CalibrationHandler extends DefaultHandler {
 
@@ -27,9 +27,14 @@ class CalibrationHandler extends DefaultHandler {
             Level.INFO);
 
     /**
-     * List of SVT channels.
+     * Baseline sample ID (0-5).
      */
-    private final SvtChannelCollection svtChannels;
+    private int baselineSampleID = 0;
+
+    /**
+     * An SVT calibration object encapsulating the baseline and noise values for a channel.
+     */
+    private SvtCalibration calibration = null;
 
     /**
      * List of SVT calibrations.
@@ -37,9 +42,9 @@ class CalibrationHandler extends DefaultHandler {
     private final SvtCalibrationCollection calibrations = new SvtCalibrationCollection();
 
     /**
-     * An SVT calibration object encapsulating the baseline and noise values for a channel.
+     * Channel number (0-639).
      */
-    private SvtCalibration calibration = null;
+    private int channel = 0;
 
     /**
      * The string content from parsing an XML calibration.
@@ -57,14 +62,10 @@ class CalibrationHandler extends DefaultHandler {
     private int hybridID = 0;
 
     /**
-     * Channel number (0-639).
+     * Flag denoting whether the calibrations of a given channel should be loaded into the conditions DB. If a channel
+     * is found to be missing baseline or noise values, is will be marked invalid.
      */
-    private int channel = 0;
-
-    /**
-     * Baseline sample ID (0-5).
-     */
-    private int baselineSampleID = 0;
+    private boolean isValidChannel = false;
 
     /**
      * Noise sample ID (0-5).
@@ -73,10 +74,9 @@ class CalibrationHandler extends DefaultHandler {
     private int noiseSampleID = 0;
 
     /**
-     * Flag denoting whether the calibrations of a given channel should be loaded into the conditions DB. If a channel
-     * is found to be missing baseline or noise values, is will be marked invalid.
+     * List of SVT channels.
      */
-    private boolean isValidChannel = false;
+    private final SvtChannelCollection svtChannels;
 
     /**
      * Default constructor.
@@ -84,6 +84,62 @@ class CalibrationHandler extends DefaultHandler {
     public CalibrationHandler() {
         this.svtChannels = DatabaseConditionsManager.getInstance()
                 .getCachedConditions(SvtChannelCollection.class, "svt_channels").getCachedData();
+    }
+
+    /**
+     * Method called to extract character data inside of an element.
+     *
+     * @param ch the characters
+     * @param start the start position in the character array
+     * @param length the number of characters to use from the character array
+     * @throws SAXException if there is an error processing the element (possibly wraps another exception type)
+     */
+    @Override
+    public void characters(final char[] ch, final int start, final int length) throws SAXException {
+        this.content = String.copyValueOf(ch, start, length).trim();
+    }
+
+    /**
+     * Method that is triggered when the end of a tag is encountered.
+     *
+     * @param uri the Namespace URI
+     * @param locaName the local name (without prefix)
+     * @param qName the qualified name (with prefix)
+     * @throws SAXException if there is an error processing the element
+     */
+    @Override
+    public void endElement(final String uri, final String localName, final String qName) throws SAXException {
+
+        switch (qName) {
+            case "channel":
+                if (this.isValidChannel) {
+                    try {
+                        this.calibrations.add(this.calibration);
+                    } catch (final ConditionsObjectException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                break;
+            case "baseline":
+                this.calibration.setPedestal(this.baselineSampleID, Double.parseDouble(this.content));
+                this.isValidChannel = true;
+                break;
+            case "noise":
+                this.calibration.setNoise(this.baselineSampleID, Double.parseDouble(this.content));
+                this.isValidChannel = true;
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Get the {@link SvtCalibrationCollection} created from parsing the XML input file.
+     *
+     * @return the {@link SvtCalibrationCollection} created from parsing the XML
+     */
+    public SvtCalibrationCollection getCalibrations() {
+        return this.calibrations;
     }
 
     /**
@@ -122,61 +178,5 @@ class CalibrationHandler extends DefaultHandler {
             default:
                 break;
         }
-    }
-
-    /**
-     * Method that is triggered when the end of a tag is encountered.
-     *
-     * @param uri the Namespace URI
-     * @param locaName the local name (without prefix)
-     * @param qName the qualified name (with prefix)
-     * @throws SAXException if there is an error processing the element
-     */
-    @Override
-    public void endElement(final String uri, final String localName, final String qName) throws SAXException {
-
-        switch (qName) {
-            case "channel":
-                if (this.isValidChannel) {
-                    try {
-                        this.calibrations.add(this.calibration);
-                    } catch (final ConditionsObjectException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                break;
-            case "baseline":
-                this.calibration.setPedestal(this.baselineSampleID, Double.parseDouble(this.content));
-                this.isValidChannel = true;
-                break;
-            case "noise":
-                this.calibration.setNoise(this.baselineSampleID, Double.parseDouble(this.content));
-                this.isValidChannel = true;
-                break;
-            default:
-                break;
-        }
-    }
-
-    /**
-     * Method called to extract character data inside of an element.
-     *
-     * @param ch the characters
-     * @param start the start position in the character array
-     * @param length the number of characters to use from the character array
-     * @throws SAXException if there is an error processing the element (possibly wraps another exception type)
-     */
-    @Override
-    public void characters(final char[] ch, final int start, final int length) throws SAXException {
-        this.content = String.copyValueOf(ch, start, length).trim();
-    }
-
-    /**
-     * Get the {@link SvtCalibrationCollection} created from parsing the XML input file.
-     *
-     * @return the {@link SvtCalibrationCollection} created from parsing the XML
-     */
-    public SvtCalibrationCollection getCalibrations() {
-        return this.calibrations;
     }
 }

@@ -23,8 +23,8 @@ import org.lcsim.util.log.MessageOnlyLogFormatter;
  * any conditions objects, only the collection information. By default it will print information about the single
  * collection found for a given type, which is by convention the last one updated. The <code>-a</code> option can be
  * used to print out all collection information.
- * 
- * @author @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ *
+ * @author Jeremy McCormick, SLAC
  */
 final class RunSummaryCommand extends AbstractCommand {
 
@@ -58,7 +58,7 @@ final class RunSummaryCommand extends AbstractCommand {
     @Override
     final void execute(final String[] arguments) {
 
-        final CommandLine commandLine = parse(arguments);
+        final CommandLine commandLine = this.parse(arguments);
 
         final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 
@@ -68,39 +68,39 @@ final class RunSummaryCommand extends AbstractCommand {
 
         final int run = conditionsManager.getRun();
 
-        boolean printAll = commandLine.hasOption("a");
+        final boolean printAll = commandLine.hasOption("a");
         if (printAll) {
             LOGGER.info("All collections will be printed.");
         }
 
         // Get all the conditions records from the manager including those that overlap in time validity.
-        ConditionsRecordCollection conditionsRecords = conditionsManager.getConditionsRecords();
+        final ConditionsRecordCollection conditionsRecords = conditionsManager.getConditionsRecords();
         LOGGER.info('\n' + "Run " + run + " has " + conditionsRecords.size() + " conditions records.");
 
         // Get the list of unique conditions keys and sort them.
-        List<String> conditionsKeys = new ArrayList<String>(conditionsRecords.getConditionsKeys());
+        final List<String> conditionsKeys = new ArrayList<String>(conditionsRecords.getConditionsKeys());
         Collections.sort(conditionsKeys);
         LOGGER.info('\n' + "Found these unique conditions keys for the run ...");
-        for (String key : conditionsKeys) {
+        for (final String key : conditionsKeys) {
             LOGGER.info(key);
         }
         LOGGER.info("");
 
         // Loop over all the conditions keys that apply to this run.
-        for (String key : conditionsKeys) {
+        for (final String key : conditionsKeys) {
 
             // Get the table meta data for the key.
-            TableMetaData tableMetaData = conditionsManager.findTableMetaData(key);
+            final TableMetaData tableMetaData = conditionsManager.findTableMetaData(key);
 
             // Get all the conditions records that match this key.
-            ConditionsRecordCollection collectionRecords = conditionsRecords.findByKey(key);
+            final ConditionsRecordCollection collectionRecords = conditionsRecords.findByKey(key);
 
             // Get the table name.
             final String tableName = tableMetaData.getTableName();
 
             if (!printAll) {
                 // Print out the single collection that will be used if retrieved through the converter.
-                ConditionsObjectCollection<?> collection = conditionsManager.getCachedConditions(
+                final ConditionsObjectCollection<?> collection = conditionsManager.getCachedConditions(
                         tableMetaData.getCollectionClass(), key).getCachedData();
                 LOGGER.info(tableMetaData.getObjectClass().getSimpleName() + " collection "
                         + collection.getCollectionId() + " in " + tableName + " with " + collection.size() + " rows.");
@@ -109,7 +109,7 @@ final class RunSummaryCommand extends AbstractCommand {
                 // be used.
                 LOGGER.info(tableMetaData.getObjectClass().getSimpleName() + " has " + collectionRecords.size()
                         + " collection(s) in " + tableName + " for run.");
-                for (ConditionsRecord record : collectionRecords) {
+                for (final ConditionsRecord record : collectionRecords) {
                     LOGGER.info("  collection " + record.getCollectionId().toString() + " created on "
                             + record.getCreated().toString());
                 }

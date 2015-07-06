@@ -1,8 +1,6 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -10,11 +8,10 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 /**
  * This class encapsulates the SVT DAQ map.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Jeremy McCormick, SLAC
+ * @author Omar Moreno, UCSC
  */
 @Table(names = {"svt_daq_map"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public class SvtDaqMapping extends AbstractSvtDaqMapping {
 
     /**
@@ -138,7 +135,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      */
     @Field(names = {"feb_hybrid_id"})
     public final Integer getFebHybridID() {
-        return getFieldValue("feb_hybrid_id");
+        return this.getFieldValue("feb_hybrid_id");
     }
 
     /**
@@ -148,7 +145,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      */
     @Field(names = {"feb_id"})
     public final Integer getFebID() {
-        return getFieldValue("feb_id");
+        return this.getFieldValue("feb_id");
     }
 
     /**
@@ -160,7 +157,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      */
     @Field(names = {"side"})
     public final String getSide() {
-        return getFieldValue("side");
+        return this.getFieldValue("side");
     }
 
     /**

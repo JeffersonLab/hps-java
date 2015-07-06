@@ -34,61 +34,9 @@ import org.lcsim.util.loop.LCSimLoop;
  * <p>
  * This test will need to be updated if the default conditions sets are changed for the Eng Run.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class EngRunConditionsTest extends TestCase {
-
-    /**
-     * Number of events to process.
-     */
-    private static final int EVENT_COUNT = 100;
-
-    /**
-     * Data file URL.
-     */
-    private static final String URL = "http://www.lcsim.org/test/hps-java/hps_003393.0_recon_20141225-0-100.slcio";
-
-    /**
-     * The run number to use for the test.
-     */
-    private static final int RUN_NUMBER = 3393;
-
-    /**
-     * Number of ECAL channels.
-     */
-    private static final int CHANNEL_COUNT = 442;
-
-    /**
-     * Test Eng Run conditions.
-     *
-     * @throws Exception if there is an error (record processing problem)
-     */
-    public void test() throws Exception {
-
-        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        DatabaseConditionsManager.getLogger().setLevel(Level.ALL);
-        manager.setTag("pass0");
-        manager.setXmlConfig("/org/hps/conditions/config/conditions_database_engrun.xml");
-
-        final FileCache cache = new FileCache();
-        final File inputFile = cache.getCachedFile(new URL(URL));
-
-        final LCSimLoop loop = new LCSimLoop();
-        loop.add(new EventMarkerDriver());
-        loop.add(new ConditionsCheckDriver());
-        loop.setLCIORecordSource(inputFile);
-        loop.loop(EVENT_COUNT);
-    }
-
-    /**
-     * Check the run numbers of the conditions records.
-     *
-     * @param collection the conditions collection
-     */
-    static void checkRunNumbers(final BaseConditionsObjectCollection<?> collection) {
-        // assertTrue("Run start out of range.", collection.getConditionsRecord().getRunStart() >= RUN_START);
-        // assertTrue("Run end out of range.", collection.getConditionsRecord().getRunEnd() <= RUN_END);
-    }
 
     /**
      * This {@link org.lcsim.util.Driver} performs basic conditions data checks.
@@ -96,9 +44,19 @@ public final class EngRunConditionsTest extends TestCase {
     static class ConditionsCheckDriver extends Driver {
 
         /**
+         * Collection ID of calibrations.
+         */
+        private static final Integer CALIBRATIONS_COLLECTION_ID = 4;
+
+        /**
          * Answer for gain value check of single channel.
          */
         private static final double GAIN_ANSWER = 0.17;
+
+        /**
+         * Collection ID of gains.
+         */
+        private static final Integer GAINS_COLLECTION_ID = 4;
 
         /**
          * Answer for noise value check of single channel.
@@ -109,16 +67,6 @@ public final class EngRunConditionsTest extends TestCase {
          * Answer for pedestal value check of single channel.
          */
         private static final double PEDESTAL_ANSWER = 105.78;
-
-        /**
-         * Collection ID of calibrations.
-         */
-        private static final Integer CALIBRATIONS_COLLECTION_ID = 4;
-
-        /**
-         * Collection ID of gains.
-         */
-        private static final Integer GAINS_COLLECTION_ID = 4;
 
         /**
          * Flag if {@link #detectorChanged(Detector)} is activated.
@@ -189,6 +137,16 @@ public final class EngRunConditionsTest extends TestCase {
         }
 
         /**
+         * End of data hook. Checks that {@link #detectorChanged(Detector)} was called.
+         */
+        @Override
+        public void endOfData() {
+            if (!this.detectorChangedCalled) {
+                throw new RuntimeException("The detectorChanged method was never called.");
+            }
+        }
+
+        /**
          * Event processing. Performs a few conditions system and geometry checks.
          *
          * @param event the LCSim event
@@ -221,15 +179,57 @@ public final class EngRunConditionsTest extends TestCase {
                 }
             }
         }
+    }
 
-        /**
-         * End of data hook. Checks that {@link #detectorChanged(Detector)} was called.
-         */
-        @Override
-        public void endOfData() {
-            if (!this.detectorChangedCalled) {
-                throw new RuntimeException("The detectorChanged method was never called.");
-            }
-        }
+    /**
+     * Number of ECAL channels.
+     */
+    private static final int CHANNEL_COUNT = 442;
+
+    /**
+     * Number of events to process.
+     */
+    private static final int EVENT_COUNT = 100;
+
+    /**
+     * The run number to use for the test.
+     */
+    private static final int RUN_NUMBER = 3393;
+
+    /**
+     * Data file URL.
+     */
+    private static final String URL = "http://www.lcsim.org/test/hps-java/hps_003393.0_recon_20141225-0-100.slcio";
+
+    /**
+     * Check the run numbers of the conditions records.
+     *
+     * @param collection the conditions collection
+     */
+    static void checkRunNumbers(final BaseConditionsObjectCollection<?> collection) {
+        // assertTrue("Run start out of range.", collection.getConditionsRecord().getRunStart() >= RUN_START);
+        // assertTrue("Run end out of range.", collection.getConditionsRecord().getRunEnd() <= RUN_END);
+    }
+
+    /**
+     * Test Eng Run conditions.
+     *
+     * @throws Exception if there is an error (record processing problem)
+     */
+    public void test() throws Exception {
+
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        DatabaseConditionsManager.getLogger().setLevel(Level.ALL);
+        manager.setTag("pass0");
+        manager.setXmlConfig("/org/hps/conditions/config/conditions_database_engrun.xml");
+
+        final FileCache cache = new FileCache();
+        final File inputFile = cache.getCachedFile(new URL(URL));
+
+        final LCSimLoop loop = new LCSimLoop();
+        loop.add(new EventMarkerDriver());
+        loop.add(new ConditionsCheckDriver());
+        loop.setLCIORecordSource(inputFile);
+        loop.loop(EVENT_COUNT);
     }
 }

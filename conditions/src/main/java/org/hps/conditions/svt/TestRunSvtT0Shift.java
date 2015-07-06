@@ -1,18 +1,15 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 
 /**
  * This class is a container that allows associating a t0 shift with a specific sensor by FPGA ID and hybrid ID.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 @Table(names = {"test_run_svt_t0_shifts"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
 
     /**
@@ -48,7 +45,7 @@ public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
      */
     @Field(names = {"fpga"})
     public Integer getFpgaID() {
-        return getFieldValue("fpga");
+        return this.getFieldValue("fpga");
     }
 
     /**
@@ -58,6 +55,6 @@ public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
      */
     @Field(names = {"hybrid"})
     public Integer getHybridID() {
-        return getFieldValue("hybrid");
+        return this.getFieldValue("hybrid");
     }
 }

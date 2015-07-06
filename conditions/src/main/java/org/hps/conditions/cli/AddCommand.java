@@ -18,7 +18,7 @@ import org.lcsim.util.log.LogUtil;
  * This is a command for the conditions CLI that will add a conditions record, making a conditions set with a particular
  * collection ID available by run number via the {@link org.hps.conditions.database.DatabaseConditionsManager}.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 final class AddCommand extends AbstractCommand {
 
@@ -95,7 +95,7 @@ final class AddCommand extends AbstractCommand {
     @Override
     final void execute(final String[] arguments) {
 
-        final CommandLine commandLine = parse(arguments);
+        final CommandLine commandLine = this.parse(arguments);
 
         // This command has 3 required options.
         if (commandLine.getOptions().length == 0) {
@@ -153,7 +153,7 @@ final class AddCommand extends AbstractCommand {
         }
 
         // Create the conditions record to insert.
-        final ConditionsRecord conditionsRecord = createConditionsRecord(runStart, runEnd, tableName, name,
+        final ConditionsRecord conditionsRecord = this.createConditionsRecord(runStart, runEnd, tableName, name,
                 collectionId, createdBy, tag, notes);
         try {
             boolean createdConnection = false;

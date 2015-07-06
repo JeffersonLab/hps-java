@@ -172,6 +172,38 @@ public final class TableMetaData {
     }
 
     /**
+     * Create a new collection instance from the table meta data's collection type.
+     *
+     * @return the new object collection
+     * @throws ConditionsObjectException if there is an error creating a new collection
+     */
+    ConditionsObjectCollection<?> newCollection() throws ConditionsObjectException {
+        try {
+            final ConditionsObjectCollection<?> collection = this.getCollectionClass().newInstance();
+            collection.setTableMetaData(this);
+            return collection;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ConditionsObjectException("Error creating new conditions object collection.", e);
+        }
+    }
+
+    /**
+     * Create a new object instance from the table meta data's object type.
+     *
+     * @return the new conditions object
+     * @throws ConditionsObjectException if there is an error creating a new object
+     */
+    ConditionsObject newObject() throws ConditionsObjectException {
+        try {
+            final ConditionsObject object = this.getObjectClass().newInstance();
+            object.setTableMetaData(this);
+            return object;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ConditionsObjectException("Error creating new conditions object collection.", e);
+        }
+    }
+
+    /**
      * Set all the field names from an array of strings.
      *
      * @param fieldNames the names of the fields
@@ -230,36 +262,14 @@ public final class TableMetaData {
         buff.append('\n');
         return buff.toString();
     }
-    
-    /**
-     * Create a new collection instance from the table meta data's collection type.
-     * 
-     * @return the new object collection
-     * @throws ConditionsObjectException if there is an error creating a new collection
-     */
-    ConditionsObjectCollection<?> newCollection() throws ConditionsObjectException {
-        try {
-            ConditionsObjectCollection<?> collection = this.getCollectionClass().newInstance();
-            collection.setTableMetaData(this);
-            return collection;
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new ConditionsObjectException("Error creating new conditions object collection.", e);
-        }
-    }
-    
-    /**
-     * Create a new object instance from the table meta data's object type.
-     * 
-     * @return the new conditions object
-     * @throws ConditionsObjectException if there is an error creating a new object
-     */
-    ConditionsObject newObject() throws ConditionsObjectException  {
-        try {
-            ConditionsObject object = this.getObjectClass().newInstance();
-            object.setTableMetaData(this);
-            return object;
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new ConditionsObjectException("Error creating new conditions object collection.", e);
-        }        
-    }
+
+    // TODO: add methods for getting SQL strings for PreparedStatements; can be setup once at initialization time for
+    // each table
+    // String getSelectStatement();
+    // String getInsertStatement();
+    // String getUpdateStatement();
+    // String getDeleteStatement();
+
+    // TODO: add method for getting column class name that maps to JDBC; see similar ConditionsObjectUtilities method
+    // String getColumnClassName(String columnName);
 }

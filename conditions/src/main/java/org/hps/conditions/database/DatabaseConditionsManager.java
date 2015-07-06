@@ -56,7 +56,7 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  * Differences between Test Run and Engineering Run configurations are handled automatically.
  *
  * @see org.lcsim.conditions.ConditionsManager
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("rawtypes")
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {

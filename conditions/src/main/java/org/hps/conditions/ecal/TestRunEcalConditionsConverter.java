@@ -13,60 +13,65 @@ import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
  * <p>
  * The default names are overridden to use tables that contain only Test Run data.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Jeremy McCormick, SLAC
+ * @author Omar Moreno, UCSC
  */
 public final class TestRunEcalConditionsConverter extends EcalConditionsConverter {
 
     /**
-     * Get the {@link EcalChannel} collection for Test Run.
-     * 
-     * @param manager the conditions manager
-     * @return the Test Run ECAL channel collection
-     */
-    protected EcalChannelCollection getEcalChannelCollection(DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(EcalChannelCollection.class, "test_run_ecal_channels").getCachedData();
-    }
-
-    /**
-     * Get the {@link EcalGain} collection for Test Run.
-     * 
-     * @param manager the conditions manager
-     * @return the Test Run ECAL gain collection
-     */
-    protected EcalGainCollection getEcalGainCollection(DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(EcalGainCollection.class, "test_run_ecal_gains").getCachedData();
-    }
-
-    /**
      * Get the collections of {@link EcalBadChannel} objects for Test Run.
-     * 
+     *
      * @param manager the conditions manager
      * @return the Test Run bad channel collections
      */
+    @Override
     protected ConditionsSeries<EcalBadChannel, EcalBadChannelCollection> getEcalBadChannelSeries(
-            DatabaseConditionsManager manager) {
+            final DatabaseConditionsManager manager) {
         return manager.getConditionsSeries(EcalBadChannelCollection.class, "test_run_ecal_bad_channels");
     }
 
     /**
      * Get the {@link EcalCalibration} collection for Test Run.
-     * 
+     *
      * @param manager the conditions manager
      * @return the Test Run ECAL calibration collection
      */
-    protected EcalCalibrationCollection getEcalCalibrationCollection(DatabaseConditionsManager manager) {
+    @Override
+    protected EcalCalibrationCollection getEcalCalibrationCollection(final DatabaseConditionsManager manager) {
         return manager.getCachedConditions(EcalCalibrationCollection.class, "test_run_ecal_calibrations")
                 .getCachedData();
     }
 
     /**
+     * Get the {@link EcalChannel} collection for Test Run.
+     *
+     * @param manager the conditions manager
+     * @return the Test Run ECAL channel collection
+     */
+    @Override
+    protected EcalChannelCollection getEcalChannelCollection(final DatabaseConditionsManager manager) {
+        return manager.getCachedConditions(EcalChannelCollection.class, "test_run_ecal_channels").getCachedData();
+    }
+
+    /**
+     * Get the {@link EcalGain} collection for Test Run.
+     *
+     * @param manager the conditions manager
+     * @return the Test Run ECAL gain collection
+     */
+    @Override
+    protected EcalGainCollection getEcalGainCollection(final DatabaseConditionsManager manager) {
+        return manager.getCachedConditions(EcalGainCollection.class, "test_run_ecal_gains").getCachedData();
+    }
+
+    /**
      * Get the {@link EcalTimeShift} collection for Test Run.
-     * 
+     *
      * @param manager the conditions manager
      * @return the Test Run ECAL time shift collection
      */
-    protected EcalTimeShiftCollection getEcalTimeShiftCollection(DatabaseConditionsManager manager) {
+    @Override
+    protected EcalTimeShiftCollection getEcalTimeShiftCollection(final DatabaseConditionsManager manager) {
         return manager.getCachedConditions(EcalTimeShiftCollection.class, "test_run_ecal_time_shifts").getCachedData();
     }
 }

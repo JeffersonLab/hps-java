@@ -21,7 +21,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 /**
  * Load beam conditions for every run from the ECAL commissioning.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class BeamConditionsTest extends TestCase {
 
@@ -40,37 +40,8 @@ public final class BeamConditionsTest extends TestCase {
             3455, 3456, 3457, 3458, 3459, 3461, 3462, 3463, 3216, 2926, 2935, 2934, 2937};
 
     /**
-     * Test the beam conditions.
-     */
-    public void testBeamConditions() {
-        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        manager.setLogLevel(Level.SEVERE);
-        System.out.println("run id current position_x position_y energy");
-        final Map<Integer, BeamConditions> beamConditions = new LinkedHashMap<Integer, BeamConditions>();
-        for (final int run : runs) {
-            try {
-                manager.setDetector("HPS-ECalCommissioning", run);
-            } catch (final ConditionsNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            final BeamConditionsCollection beamCollection = manager.getCachedConditions(BeamConditionsCollection.class,
-                    "beam").getCachedData();
-            final BeamConditions beam = beamCollection.get(0);
-            System.out.print(run + " ");
-            System.out.print(beam.getRowId() + " ");
-            System.out.print(beam.getCurrent() + " ");
-            System.out.print(beam.getPositionX() + " ");
-            System.out.print(beam.getPositionY() + " ");
-            System.out.print(beam.getEnergy());
-            System.out.println();
-            beamConditions.put(run, beam);
-        }
-        writeBeamTuple(beamConditions);
-    }
-
-    /**
      * Write out an AIDA tuple with the beam conditions.
-     * 
+     *
      * @param beamConditions the beam conditions
      */
     private static void writeBeamTuple(final Map<Integer, BeamConditions> beamConditions) {
@@ -117,5 +88,34 @@ public final class BeamConditionsTest extends TestCase {
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Test the beam conditions.
+     */
+    public void testBeamConditions() {
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        manager.setLogLevel(Level.SEVERE);
+        System.out.println("run id current position_x position_y energy");
+        final Map<Integer, BeamConditions> beamConditions = new LinkedHashMap<Integer, BeamConditions>();
+        for (final int run : runs) {
+            try {
+                manager.setDetector("HPS-ECalCommissioning", run);
+            } catch (final ConditionsNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            final BeamConditionsCollection beamCollection = manager.getCachedConditions(BeamConditionsCollection.class,
+                    "beam").getCachedData();
+            final BeamConditions beam = beamCollection.get(0);
+            System.out.print(run + " ");
+            System.out.print(beam.getRowId() + " ");
+            System.out.print(beam.getCurrent() + " ");
+            System.out.print(beam.getPositionX() + " ");
+            System.out.print(beam.getPositionY() + " ");
+            System.out.print(beam.getEnergy());
+            System.out.println();
+            beamConditions.put(run, beam);
+        }
+        writeBeamTuple(beamConditions);
     }
 }

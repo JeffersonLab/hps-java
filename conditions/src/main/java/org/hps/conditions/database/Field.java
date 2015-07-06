@@ -7,6 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * This is a java <code>Annotation</code> for assigning a "get" method to one or more database table columns.
+ * 
+ * @author Jeremy McCormick, SLAC
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
@@ -14,7 +16,7 @@ public @interface Field {
 
     /**
      * The names of the table columns associated with this method.
-     * 
+     *
      * @return the names of the table columns associated with this method
      */
     String[] names() default "";

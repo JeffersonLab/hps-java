@@ -11,7 +11,7 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 /**
  * A test to make sure ECAL LED information is readable from the conditions dev database.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class EcalLedTest extends TestCase {
 

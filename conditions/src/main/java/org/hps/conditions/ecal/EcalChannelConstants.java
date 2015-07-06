@@ -2,8 +2,8 @@ package org.hps.conditions.ecal;
 
 /**
  * This class represents the conditions of a single ECAL channel such as a calibration and gain.
- * 
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ *
+ * @author Jeremy McCormick, SLAC
  * @see EcalGain
  * @see EcalCalibration
  * @see EcalTimeShift
@@ -12,9 +12,9 @@ package org.hps.conditions.ecal;
 public final class EcalChannelConstants {
 
     /**
-     * The channel {@link EcalGain} conditions.
+     * True if channel is bad and should not be used for reconstruction.
      */
-    private EcalGain gain = null;
+    private boolean badChannel = false;
 
     /**
      * The channel {@link EcalCalibration} conditions.
@@ -22,14 +22,14 @@ public final class EcalChannelConstants {
     private EcalCalibration calibration = null;
 
     /**
+     * The channel {@link EcalGain} conditions.
+     */
+    private EcalGain gain = null;
+
+    /**
      * The channel {@link EcalTimeShift} conditions.
      */
     private EcalTimeShift timeShift = null;
-
-    /**
-     * True if channel is bad and should not be used for reconstruction.
-     */
-    private boolean badChannel = false;
 
     /**
      * Class constructor, which is package protected.
@@ -38,35 +38,44 @@ public final class EcalChannelConstants {
     }
 
     /**
-     * Set the gain.
-     * 
-     * @param gain the new gain object
+     * Get the calibration.
+     *
+     * @return The calibration.
      */
-    void setGain(final EcalGain gain) {
-        this.gain = gain;
+    public EcalCalibration getCalibration() {
+        return this.calibration;
     }
 
     /**
-     * Set the calibration.
-     * 
-     * @param calibration the new calibration object
+     * Get the gain.
+     *
+     * @return The gain.
      */
-    void setCalibration(final EcalCalibration calibration) {
-        this.calibration = calibration;
+    public EcalGain getGain() {
+        return this.gain;
     }
 
     /**
-     * Set the time shift.
-     * 
-     * @param timeShift the new time shift
+     * Get the time shift.
+     *
+     * @return The time shift.
      */
-    void setTimeShift(final EcalTimeShift timeShift) {
-        this.timeShift = timeShift;
+    public EcalTimeShift getTimeShift() {
+        return this.timeShift;
+    }
+
+    /**
+     * True if this is a bad channel.
+     *
+     * @return True if channel is bad.
+     */
+    public boolean isBadChannel() {
+        return this.badChannel;
     }
 
     /**
      * Set whether this is a bad channel.
-     * 
+     *
      * @param badChannel set to true to flag channel as bad
      */
     void setBadChannel(final boolean badChannel) {
@@ -74,38 +83,29 @@ public final class EcalChannelConstants {
     }
 
     /**
-     * Get the gain.
-     * 
-     * @return The gain.
+     * Set the calibration.
+     *
+     * @param calibration the new calibration object
      */
-    public EcalGain getGain() {
-        return gain;
+    void setCalibration(final EcalCalibration calibration) {
+        this.calibration = calibration;
     }
 
     /**
-     * Get the calibration.
-     * 
-     * @return The calibration.
+     * Set the gain.
+     *
+     * @param gain the new gain object
      */
-    public EcalCalibration getCalibration() {
-        return calibration;
+    void setGain(final EcalGain gain) {
+        this.gain = gain;
     }
 
     /**
-     * Get the time shift.
-     * 
-     * @return The time shift.
+     * Set the time shift.
+     *
+     * @param timeShift the new time shift
      */
-    public EcalTimeShift getTimeShift() {
-        return timeShift;
-    }
-
-    /**
-     * True if this is a bad channel.
-     * 
-     * @return True if channel is bad.
-     */
-    public boolean isBadChannel() {
-        return badChannel;
+    void setTimeShift(final EcalTimeShift timeShift) {
+        this.timeShift = timeShift;
     }
 }

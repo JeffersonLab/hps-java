@@ -16,25 +16,25 @@ import org.hps.conditions.api.TableMetaData;
  * sets of conditions that may overlap in time validity. The user may then use whichever collections are of interest to
  * them.
  *
+ * @author Jeremy McCormick, SLAC
  * @see org.hps.conditions.api.ConditionsSeries
  * @see org.hps.conditions.api.ConditionsObjectCollection
  * @see org.hps.conditions.api.ConditionsObject
  * @see DatabaseConditionsManager
  * @param <ObjectType> The type of the ConditionsObject.
  * @param <CollectionType> The type of the collection.
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 final class ConditionsSeriesConverter<ObjectType extends ConditionsObject, CollectionType extends ConditionsObjectCollection<ObjectType>> {
-
-    /**
-     * The type of the object.
-     */
-    final Class<ObjectType> objectType;
 
     /**
      * The type of the collection.
      */
     final Class<CollectionType> collectionType;
+
+    /**
+     * The type of the object.
+     */
+    final Class<ObjectType> objectType;
 
     /**
      * Class constructor.

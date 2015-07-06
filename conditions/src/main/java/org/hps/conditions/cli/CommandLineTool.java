@@ -23,7 +23,7 @@ import org.lcsim.util.log.LogUtil;
  * Command line options can be used to supply a custom connection properties file or XML which will override the
  * default.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class CommandLineTool {
 
@@ -124,8 +124,8 @@ public final class CommandLineTool {
     private void run(final String[] arguments) {
         try {
             if (arguments.length == 0) {
-                printUsage();
-                exit(0);
+                this.printUsage();
+                this.exit(0);
             }
 
             CommandLine commandLine = null;
@@ -133,17 +133,17 @@ public final class CommandLineTool {
                 commandLine = this.parser.parse(OPTIONS, arguments, true);
             } catch (final ParseException e) {
                 LOGGER.log(Level.SEVERE, "Error parsing the options.", e);
-                printUsage();
-                exit(1);
+                this.printUsage();
+                this.exit(1);
             }
 
             if (commandLine.hasOption("h") || commandLine.getArgs().length == 0) {
-                printUsage();
-                exit(0);
+                this.printUsage();
+                this.exit(0);
             }
 
             // Setup conditions manager from command line options.
-            setupConditionsManager(commandLine);
+            this.setupConditionsManager(commandLine);
 
             // Get the sub-command to use.
             final String commandName = commandLine.getArgs()[0];
@@ -180,8 +180,8 @@ public final class CommandLineTool {
 
         // Set the conditions manager log level (does not affect logger of this class or sub-commands).
         if (commandLine.hasOption("l")) {
-            Level level = Level.parse(commandLine.getOptionValue("l"));
-            conditionsManager.setLogLevel(level);
+            final Level level = Level.parse(commandLine.getOptionValue("l"));
+            this.conditionsManager.setLogLevel(level);
             LOGGER.config("conditions manager log level will be set to " + level.toString());
         }
 
@@ -201,8 +201,8 @@ public final class CommandLineTool {
 
         // User specified tag of conditions records.
         if (commandLine.hasOption("t")) {
-            String tag = commandLine.getOptionValue("t");
-            conditionsManager.setTag(tag);
+            final String tag = commandLine.getOptionValue("t");
+            this.conditionsManager.setTag(tag);
             LOGGER.config("using tag " + tag);
         }
 

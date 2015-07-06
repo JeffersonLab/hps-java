@@ -22,9 +22,8 @@ import org.lcsim.util.log.LogUtil;
 /**
  * Create a conditions system tag.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
-// TODO: Add command switch to specify multiple records strategy (last updated, last created, latest run end, etc.).
 public class TagCommand extends AbstractCommand {
 
     /**
@@ -68,7 +67,7 @@ public class TagCommand extends AbstractCommand {
     @Override
     void execute(final String[] arguments) {
 
-        final CommandLine commandLine = parse(arguments);
+        final CommandLine commandLine = this.parse(arguments);
 
         final Set<Integer> runNumbers = new LinkedHashSet<Integer>();
         for (final String value : commandLine.getOptionValues("r")) {

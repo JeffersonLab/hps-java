@@ -15,9 +15,26 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * This is a basic test of using ConditionsDriver that doesn't actually check anything at the moment.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class ConditionsDriverTest extends TestCase {
+
+    /**
+     * This {@link org.lcsim.util.Driver} prints out when the conditions change.
+     */
+    static class CheckDriver extends Driver {
+
+        /**
+         * Hook for conditions system change.
+         * 
+         * @param detector the detector object
+         */
+        @Override
+        public void detectorChanged(final Detector detector) {
+            System.out.println("detectorChanged - detector " + detector.getDetectorName() + " and run #"
+                    + DatabaseConditionsManager.getInstance().getRun());
+        }
+    }
 
     /**
      * The run number to use for the test.
@@ -26,6 +43,7 @@ public final class ConditionsDriverTest extends TestCase {
 
     /**
      * Test the {@link ConditionsDriver} on Test Run data.
+     * 
      * @throws Exception if there is a test error or conditions error
      */
     public void testConditionsDriverTestRun() throws Exception {
@@ -47,20 +65,5 @@ public final class ConditionsDriverTest extends TestCase {
         loop.add(new EventMarkerDriver());
         loop.add(new CheckDriver());
         loop.loop(-1);
-    }
-
-    /**
-     * This {@link org.lcsim.util.Driver} prints out when the conditions change.
-     */
-    static class CheckDriver extends Driver {
-
-        /**
-         * Hook for conditions system change.
-         * @param detector the detector object
-         */
-        public void detectorChanged(final Detector detector) {
-            System.out.println("detectorChanged - detector " + detector.getDetectorName()
-                    + " and run #" + DatabaseConditionsManager.getInstance().getRun());
-        }
     }
 }

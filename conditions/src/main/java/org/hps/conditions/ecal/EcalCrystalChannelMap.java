@@ -11,19 +11,19 @@ import org.lcsim.detector.converter.compact.HPSEcalAPI;
  * This is a convenience utility for associating the geometric crystal objects with the conditions system channel
  * information and vice versa.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 final class EcalCrystalChannelMap {
-
-    /**
-     * Map of crystal to channel.
-     */
-    private final Map<EcalCrystal, EcalChannel> crystalMap = new HashMap<EcalCrystal, EcalChannel>();
 
     /**
      * Map of channel to crystal.
      */
     private final Map<EcalChannel, EcalCrystal> channelMap = new HashMap<EcalChannel, EcalCrystal>();
+
+    /**
+     * Map of crystal to channel.
+     */
+    private final Map<EcalCrystal, EcalChannel> crystalMap = new HashMap<EcalCrystal, EcalChannel>();
 
     /**
      * Creates the map between crystals and channels.

@@ -18,8 +18,8 @@
  * <p>
  * The energy of a hit is reconstructed by multiplying the gain by the pedestal-subtracted ADC integral (e.g. in Test
  * Run 2012 data).
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author Jeremy McCormick, SLAC
  */
 package org.hps.conditions.ecal;
 

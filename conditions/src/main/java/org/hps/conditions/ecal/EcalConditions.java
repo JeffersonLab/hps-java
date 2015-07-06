@@ -16,9 +16,14 @@ import org.lcsim.geometry.Subdetector;
  * a composite object containing data assembled from many other {@link org.hps.conditions.ConditionsObjects} and has a
  * special data converter {@link EcalConditionsConverter}.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class EcalConditions {
+
+    /**
+     * This is just used for a divider length in print output.
+     */
+    private static final int DIVIDER_SIZE = 91;
 
     /**
      * The collection of {@link EcalChannel} objects.
@@ -53,16 +58,13 @@ public final class EcalConditions {
     }
 
     /**
-     * Set the channel map.
+     * Get the channel information for a geometric crystal.
      *
-     * @param channelCollection the channel map
+     * @param crystal the geometric crystal
+     * @return the channel information or null if does not exist
      */
-    void setChannelCollection(final EcalChannelCollection channelCollection) {
-        this.channelCollection = channelCollection;
-
-        // Build the map between crystals and channels.
-        this.crystalMap = new EcalCrystalChannelMap((HPSEcalAPI) this.subdetector.getDetectorElement(),
-                channelCollection);
+    public EcalChannel getChannel(final EcalCrystal crystal) {
+        return this.crystalMap.getEcalChannel(crystal);
     }
 
     /**
@@ -72,16 +74,6 @@ public final class EcalConditions {
      */
     public EcalChannelCollection getChannelCollection() {
         return this.channelCollection;
-    }
-
-    /**
-     * Get the channel information for a geometric crystal.
-     *
-     * @param crystal the geometric crystal
-     * @return the channel information or null if does not exist
-     */
-    public EcalChannel getChannel(final EcalCrystal crystal) {
-        return this.crystalMap.getEcalChannel(crystal);
     }
 
     /**
@@ -106,9 +98,17 @@ public final class EcalConditions {
     }
 
     /**
-     * This is just used for a divider length in print output.
+     * Set the channel map.
+     *
+     * @param channelCollection the channel map
      */
-    private static final int DIVIDER_SIZE = 91;
+    void setChannelCollection(final EcalChannelCollection channelCollection) {
+        this.channelCollection = channelCollection;
+
+        // Build the map between crystals and channels.
+        this.crystalMap = new EcalCrystalChannelMap((HPSEcalAPI) this.subdetector.getDetectorElement(),
+                channelCollection);
+    }
 
     /**
      * Convert this object to a string.
@@ -156,7 +156,7 @@ public final class EcalConditions {
         // Loop over all channels.
         for (final EcalChannel channel : this.channelCollection) {
 
-            final EcalChannelConstants constants = getChannelConstants(channel);
+            final EcalChannelConstants constants = this.getChannelConstants(channel);
 
             final double gain = constants.getGain().getGain();
             final double pedestal = constants.getCalibration().getPedestal();

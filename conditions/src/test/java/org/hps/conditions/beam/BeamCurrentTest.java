@@ -17,17 +17,47 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * This test checks the Test Run beam current values by run.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class BeamCurrentTest extends TestCase {
+
+    /**
+     * This Driver will check the beam current for a run against the answer key.
+     */
+    static class BeamCurrentChecker extends Driver {
+
+        /**
+         * The current run number.
+         */
+        private int currentRun = Integer.MIN_VALUE;
+
+        /**
+         * This method will check the beam current against the answer key for the first event of a new run.
+         *
+         * @param the LCSim event
+         */
+        @Override
+        protected void process(final EventHeader event) {
+            if (this.currentRun != event.getRunNumber()) {
+                this.currentRun = event.getRunNumber();
+                final BeamCurrentCollection collection = DatabaseConditionsManager.getInstance()
+                        .getCachedConditions(BeamCurrentCollection.class, "beam_current").getCachedData();
+                final BeamCurrent beamCurrent = collection.iterator().next();
+                System.out.println("Run " + event.getRunNumber() + " has integrated beam current "
+                        + beamCurrent.getIntegratedBeamCurrent() + " nC.");
+                assertEquals("Wrong beam current for run.", ANSWER_KEY.get(this.currentRun),
+                        beamCurrent.getIntegratedBeamCurrent());
+            }
+        }
+    }
+
+    /** Answer key for beam current by run. */
+    private static final Map<Integer, Double> ANSWER_KEY = new HashMap<Integer, Double>();
 
     /**
      * This test file has a few events from the "good runs" of the Test Run.
      */
     private static final String URL = "http://www.lcsim.org/test/hps-java/ConditionsTest.slcio";
-
-    /** Answer key for beam current by run. */
-    private static final Map<Integer, Double> ANSWER_KEY = new HashMap<Integer, Double>();
 
     /** Setup the beam current answer key by run. */
     static {
@@ -62,35 +92,5 @@ public final class BeamCurrentTest extends TestCase {
         loop.setLCIORecordSource(testFile);
         loop.add(new BeamCurrentChecker());
         loop.loop(-1, null);
-    }
-
-    /**
-     * This Driver will check the beam current for a run against the answer key.
-     */
-    static class BeamCurrentChecker extends Driver {
-
-        /**
-         * The current run number.
-         */
-        private int currentRun = Integer.MIN_VALUE;
-
-        /**
-         * This method will check the beam current against the answer key for the first event of a new run.
-         *
-         * @param the LCSim event
-         */
-        @Override
-        protected void process(final EventHeader event) {
-            if (this.currentRun != event.getRunNumber()) {
-                this.currentRun = event.getRunNumber();
-                final BeamCurrentCollection collection = DatabaseConditionsManager.getInstance()
-                        .getCachedConditions(BeamCurrentCollection.class, "beam_current").getCachedData();
-                final BeamCurrent beamCurrent = collection.iterator().next();
-                System.out.println("Run " + event.getRunNumber() + " has integrated beam current "
-                        + beamCurrent.getIntegratedBeamCurrent() + " nC.");
-                assertEquals("Wrong beam current for run.", ANSWER_KEY.get(this.currentRun),
-                        beamCurrent.getIntegratedBeamCurrent());
-            }
-        }
     }
 }

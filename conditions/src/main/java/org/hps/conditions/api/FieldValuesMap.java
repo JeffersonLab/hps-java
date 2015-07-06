@@ -1,7 +1,7 @@
 package org.hps.conditions.api;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,7 +15,7 @@ public final class FieldValuesMap implements FieldValues {
     /**
      * Map of field names to values.
      */
-    private final Map<String, Object> data = new HashMap<String, Object>();
+    private final Map<String, Object> data = new LinkedHashMap<String, Object>();
 
     /**
      * Class constructor.
