@@ -21,12 +21,6 @@ import org.lcsim.util.log.MessageOnlyLogFormatter;
  * delimited consistently by a single character. The user must supply a table name as the target for the SQL insert. An
  * optional collection ID can be supplied, which is not allowed to exist already in the table. Otherwise, the command
  * will fail. By default, the next collection ID will be found by the conditions manager.
- * <p>
- *
- * <pre>
- * java -cp hps-distribution-bin.jar org.hps.conditions.cli.CommandLineTool \
- *     -p conditions_dev_local.properties load -t scratch_svt_gains -f ./scratch_svt_gains.txt -c 1
- * </pre>
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -52,9 +46,9 @@ final class LoadCommand extends AbstractCommand {
         OPTIONS.getOption("t").setRequired(true);
         OPTIONS.addOption(new Option("f", true, "input data file path (required)"));
         OPTIONS.getOption("f").setRequired(true);
-        OPTIONS.addOption(new Option("d", true, "description of the collection for log"));
+        OPTIONS.addOption(new Option("d", true, "description for the collection log"));
         OPTIONS.addOption(new Option("c", true, "field delimiter character (default is tab-delimited)"));
-        OPTIONS.addOption(new Option("s", false, "use space as field delimiter"));
+        OPTIONS.addOption(new Option("s", false, "use space as field delimiter (overrides the -c arg if also present)"));
     }
 
     /**
