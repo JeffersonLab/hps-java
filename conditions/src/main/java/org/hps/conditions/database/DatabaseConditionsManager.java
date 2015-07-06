@@ -450,8 +450,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             throws SQLException {
 
         final String caller = Thread.currentThread().getStackTrace()[2].getClassName();
-        final String log = caller.substring(caller.lastIndexOf('.') + 1) + " created by "
-                + System.getProperty("user.name");
+        final String log = "created by " + System.getProperty("user.name") + " using "
+                + caller.substring(caller.lastIndexOf('.') + 1);
         final boolean opened = this.openConnection();
         PreparedStatement statement = null;
         ResultSet resultSet = null;
