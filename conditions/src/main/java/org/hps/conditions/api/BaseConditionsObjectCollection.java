@@ -360,6 +360,8 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
             insertStatement = this.connection.prepareStatement(this.buildInsertStatement(),
                     Statement.RETURN_GENERATED_KEYS);
             for (final ObjectType object : this) {
+                object.setConnection(this.connection);
+                object.setTableMetaData(this.tableMetaData);
                 ConditionsObjectUtilities.setupPreparedStatement(insertStatement, object);
                 insertStatement.executeUpdate();
                 final ResultSet resultSet = insertStatement.getGeneratedKeys();
@@ -452,7 +454,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
                     csvFileFormat = CSVFormat.TDF.withHeader();
                 } else {
                     // Custom delimiter was provided.
-                    csvFileFormat = CSVFormat.newFormat(delimiter);
+                    csvFileFormat = CSVFormat.newFormat(delimiter).withHeader();
                 }
             }
 
