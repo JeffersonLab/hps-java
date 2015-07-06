@@ -17,11 +17,10 @@ import org.lcsim.util.log.LogUtil;
 import org.lcsim.util.log.MessageOnlyLogFormatter;
 
 /**
- * This is a sub-command to add conditions data using an input text file. The file should be ASCII text that is comma
- * delimited with the first row containing headers that exactly match the table column names. The user must supply a
- * table name as the target for the SQL insert. An optional collection ID can be supplied, which is not allowed to exist
- * already in the table. Otherwise, the command will fail. By default, the next collection ID will be found by the
- * conditions manager.
+ * This is a sub-command to add conditions data using an input text file. The file should be ASCII text that is
+ * delimited consistently by a single character. The user must supply a table name as the target for the SQL insert. An
+ * optional collection ID can be supplied, which is not allowed to exist already in the table. Otherwise, the command
+ * will fail. By default, the next collection ID will be found by the conditions manager.
  * <p>
  *
  * <pre>
@@ -54,7 +53,8 @@ final class LoadCommand extends AbstractCommand {
         OPTIONS.addOption(new Option("f", true, "input data file path (required)"));
         OPTIONS.getOption("f").setRequired(true);
         OPTIONS.addOption(new Option("d", true, "description of the collection for log"));
-        OPTIONS.addOption(new Option("c", true, "field delimiter (default is tabs)"));
+        OPTIONS.addOption(new Option("c", true, "field delimiter character (default is tab-delimited)"));
+        OPTIONS.addOption(new Option("s", false, "use space as field delimiter"));
     }
 
     /**
@@ -102,13 +102,22 @@ final class LoadCommand extends AbstractCommand {
         String separator = DEFAULT_FIELD_SEPARATOR;
         if (commandLine.hasOption("c")) {
             separator = commandLine.getOptionValue("c");
+            LOGGER.info("using column separator <" + separator + ">");
             if (separator.length() > 1) {
                 throw new IllegalArgumentException("Separator must be a single character.");
             }
-            LOGGER.info("using separator character <" + separator + ">");
+        }
+
+        if (commandLine.hasOption("s")) {
+            separator = " ";
+            LOGGER.info("using space for column separator");
         }
 
         final TableMetaData tableMetaData = conditionsManager.findTableMetaData(tableName);
+        if (tableMetaData == null) {
+            throw new IllegalArgumentException("No table meta data found for " + tableName);
+        }
+        LOGGER.info("found tableMetaData for " + tableMetaData.getTableName());
         final BaseConditionsObjectCollection<ConditionsObject> newCollection = new BaseConditionsObjectCollection<ConditionsObject>(
                 conditionsManager.getConnection(), tableMetaData);
 
