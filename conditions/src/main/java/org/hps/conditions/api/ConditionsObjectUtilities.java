@@ -111,7 +111,7 @@ public final class ConditionsObjectUtilities {
             throws SQLException {
         int column = 1;
         final TableMetaData tableMetaData = object.getTableMetaData();
-        final Collection<String> fieldNames = object.getTableMetaData().getFieldNames();
+        final Collection<String> fieldNames = tableMetaData.getFieldNames();
         for (final String fieldName : fieldNames) {
             Object value = object.getFieldValue(fieldName);
             if (value != null) {
