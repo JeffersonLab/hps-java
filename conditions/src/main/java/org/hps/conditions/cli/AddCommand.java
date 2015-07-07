@@ -11,6 +11,7 @@ import org.apache.commons.cli.Options;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.DatabaseObjectException;
 import org.hps.conditions.api.FieldValuesMap;
+import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.util.log.LogUtil;
 
@@ -65,7 +66,6 @@ final class AddCommand extends AbstractCommand {
      * @param notes the text notes about the collection
      * @return the new conditions record
      */
-    // FIXME: Too many method parameters (max 7 is recommended).
     private ConditionsRecord createConditionsRecord(final int runStart, final int runEnd, final String tableName,
             final String name, final int collectionId, final String createdBy, final String tag, final String notes) {
         final ConditionsRecord conditionsRecord = new ConditionsRecord();
@@ -96,12 +96,6 @@ final class AddCommand extends AbstractCommand {
     final void execute(final String[] arguments) {
 
         final CommandLine commandLine = this.parse(arguments);
-
-        // This command has 3 required options.
-        if (commandLine.getOptions().length == 0) {
-            this.printUsage();
-            System.exit(1);
-        }
 
         // Run start (required).
         final int runStart;
@@ -155,12 +149,15 @@ final class AddCommand extends AbstractCommand {
         // Create the conditions record to insert.
         final ConditionsRecord conditionsRecord = this.createConditionsRecord(runStart, runEnd, tableName, name,
                 collectionId, createdBy, tag, notes);
+        LOGGER.info("inserting conditions record ..." + '\n' + conditionsRecord);
         try {
             boolean createdConnection = false;
             final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
             if (!DatabaseConditionsManager.getInstance().isConnected()) {
                 createdConnection = manager.openConnection();
             }
+            conditionsRecord.setConnection(manager.getConnection());
+            conditionsRecord.setTableMetaData(TableRegistry.getTableRegistry().findByTableName("conditions"));
             conditionsRecord.insert();
             manager.closeConnection(createdConnection);
         } catch (final SQLException | DatabaseObjectException e) {
