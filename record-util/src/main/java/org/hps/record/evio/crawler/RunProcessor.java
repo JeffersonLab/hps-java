@@ -26,6 +26,7 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author Jeremy McCormick, SLAC
  */
+// FIXME: Replace this class with Freehep loop implementation, EvioFileSource, etc.
 final class RunProcessor {
 
     /**
@@ -163,13 +164,11 @@ final class RunProcessor {
         // Get the list of files to process, taking into account the max files setting.
         List<File> files = this.runSummary.getEvioFileList();
         if (this.maxFiles != -1) {
-            LOGGER.info("limiting files to max " + this.maxFiles);
             int toIndex = this.maxFiles;
             if (toIndex > files.size()) {
                 toIndex = files.size();                
             }            
             files = files.subList(0, toIndex);
-            LOGGER.info("using file list with size " + files.size());
         }
         return files;
     }
@@ -240,12 +239,16 @@ final class RunProcessor {
             processor.startJob();
         }
 
+        List<File> files = this.getFiles();
+        
+        LOGGER.info("processing " + files.size() + " from run " + this.runSummary.getRun());
+        
         // Process all the files.
-        for (final File file : this.getFiles()) {
+        for (final File file : files) {
             this.process(file);
         }
 
-        // Run the end of job hooks.
+        // Run the end job hooks.
         for (final EvioEventProcessor processor : this.processors) {
             processor.endJob();
         }
@@ -304,7 +307,7 @@ final class RunProcessor {
             LOGGER.info("done running EVIO processors");
 
             // Check if END event is present if this is the last file in the run.
-            if (file.equals(this.runSummary.getEvioFileList().last())) {
+            if (file.equals(getFiles().get(getFiles().size() - 1))) {
                 final boolean endOkay = this.isEndOkay(reader);
                 this.runSummary.setEndOkay(endOkay);
                 LOGGER.info("endOkay set to " + endOkay);
