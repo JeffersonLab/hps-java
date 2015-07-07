@@ -12,6 +12,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
+import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.DatabaseObjectException;
 import org.hps.conditions.api.TableMetaData;
@@ -70,6 +71,9 @@ public class TagCommand extends AbstractCommand {
         final CommandLine commandLine = this.parse(arguments);
 
         final Set<Integer> runNumbers = new LinkedHashSet<Integer>();
+        if (commandLine.getOptionValues("r") == null) {
+            throw new RuntimeException("Missing -r argument with list of run numbers.");
+        }
         for (final String value : commandLine.getOptionValues("r")) {
             runNumbers.add(Integer.parseInt(value));
         }
@@ -162,6 +166,8 @@ public class TagCommand extends AbstractCommand {
         // Create the tag in the database if user verified or force option was present.
         if (makeTag) {
             try {
+                tagRecords.setConnection(manager.getConnection());
+                tagRecords.setTableMetaData(TableRegistry.getTableRegistry().findByTableName("conditions"));
                 tagRecords.insert();
             } catch (DatabaseObjectException | SQLException e) {
                 throw new RuntimeException(e);
