@@ -110,7 +110,7 @@ public class DummyConditionsObjectCollectionTest extends TestCase {
         collection.add(object2);
 
         // Write to CSV file.
-        collection.write(new File("dummy.csv"), null);
+        collection.writeCsv(new File("dummy.csv"));
         System.out.println("wrote CSV values");
         System.out.println(collection);
 
@@ -118,45 +118,10 @@ public class DummyConditionsObjectCollectionTest extends TestCase {
         final ConditionsObjectCollection<?> csvCollection = ConditionsObjectUtilities.newCollection("dummy");
 
         // Load CSV data.
-        collection.load(new File("dummy.csv"), null);
+        collection.loadCsv(new File("dummy.csv"));
 
         System.out.println("loaded CSV values");
         System.out.println(csvCollection);
     }
 
-    public void testTsv() throws Exception {
-        System.out.println("DummyConditionsObjectCollectionTest.testTsv");
-
-        // Create a new collection.
-        final DummyConditionsObjectCollection collection = new DummyConditionsObjectCollection(this.connection,
-                this.tableMetaData);
-
-        // Add object to collection.
-        final DummyConditionsObject object1 = new DummyConditionsObject(this.connection, this.tableMetaData);
-        object1.setFieldValue("dummy", 1.0);
-        object1.setFieldValue("dummy_ts", new Date());
-        object1.setFieldValue("dummy_dt", new Date());
-        collection.add(object1);
-
-        // Add object to collection.
-        final DummyConditionsObject object2 = new DummyConditionsObject(this.connection, this.tableMetaData);
-        object2.setFieldValue("dummy", 2.0);
-        object2.setFieldValue("dummy_ts", new Date());
-        object2.setFieldValue("dummy_dt", new Date());
-        collection.add(object2);
-
-        // Write to CSV file.
-        collection.write(new File("dummy.tsv"), '\t');
-        System.out.println("wrote TSV values");
-        System.out.println(collection);
-
-        // Create an object collection.
-        final ConditionsObjectCollection<?> csvCollection = ConditionsObjectUtilities.newCollection("dummy");
-
-        // Load CSV data.
-        collection.load(new File("dummy.tsv"), '\t');
-
-        System.out.println("loaded TSV values");
-        System.out.println(csvCollection);
-    }
 }

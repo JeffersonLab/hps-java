@@ -27,11 +27,6 @@ import org.lcsim.util.log.MessageOnlyLogFormatter;
 final class LoadCommand extends AbstractCommand {
 
     /**
-     * The default separator for making tokens from input data (tab-delimited).
-     */
-    private static final String DEFAULT_FIELD_SEPARATOR = "\t";
-
-    /**
      * Setup the logger.
      */
     private static final Logger LOGGER = LogUtil.create(LoadCommand.class, new MessageOnlyLogFormatter(), Level.ALL);
@@ -47,8 +42,6 @@ final class LoadCommand extends AbstractCommand {
         OPTIONS.addOption(new Option("f", true, "input data file path (required)"));
         OPTIONS.getOption("f").setRequired(true);
         OPTIONS.addOption(new Option("d", true, "description for the collection log"));
-        OPTIONS.addOption(new Option("c", true, "field delimiter character (default is tab-delimited)"));
-        OPTIONS.addOption(new Option("s", false, "use space as field delimiter (overrides the -c arg if also present)"));
     }
 
     /**
@@ -93,20 +86,6 @@ final class LoadCommand extends AbstractCommand {
             description = commandLine.getOptionValue("d");
         }
 
-        String separator = DEFAULT_FIELD_SEPARATOR;
-        if (commandLine.hasOption("c")) {
-            separator = commandLine.getOptionValue("c");
-            LOGGER.info("using column separator <" + separator + ">");
-            if (separator.length() > 1) {
-                throw new IllegalArgumentException("Separator must be a single character.");
-            }
-        }
-
-        if (commandLine.hasOption("s")) {
-            separator = " ";
-            LOGGER.info("using space for column separator");
-        }
-
         final TableMetaData tableMetaData = conditionsManager.findTableMetaData(tableName);
         if (tableMetaData == null) {
             throw new IllegalArgumentException("No table meta data found for " + tableName);
@@ -127,7 +106,7 @@ final class LoadCommand extends AbstractCommand {
 
         LOGGER.info("parsing input file " + fileName + " ...");
         try {
-            newCollection.load(new File(fileName), separator.charAt(0));
+            newCollection.loadCsv(new File(fileName));
         } catch (final Exception e) {
             throw new RuntimeException("Error loading CSV file.", e);
         }

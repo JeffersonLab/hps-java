@@ -423,7 +423,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * @param file the CSV file
      */
     @Override
-    public void load(final File file, final Character delimiter) throws IOException, FileNotFoundException,
+    public void loadCsv(final File file) throws IOException, FileNotFoundException,
             ConditionsObjectException {
 
         // Clear the objects from the collection.
@@ -445,20 +445,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
             // Read in the CSV records.
             reader = new FileReader(file);
 
-            // Default comma-delimited format.
-            CSVFormat csvFileFormat = CSVFormat.DEFAULT.withHeader();
-
-            if (delimiter != null) {
-                if (delimiter == '\t') {
-                    // Tab-delimited format.
-                    csvFileFormat = CSVFormat.TDF.withHeader();
-                } else {
-                    // Custom delimiter was provided.
-                    csvFileFormat = CSVFormat.newFormat(delimiter).withHeader();
-                }
-            }
-
-            parser = new CSVParser(reader, csvFileFormat);
+            parser = new CSVParser(reader, CSVFormat.DEFAULT.withHeader());
             final List<CSVRecord> records = parser.getRecords();
 
             // Get the database field names from the table info.
@@ -713,38 +700,26 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * @param file the output CSV file
      */
     @Override
-    public void write(final File file, final Character delimiter) throws IOException {
+    public void writeCsv(final File file) throws IOException {
         FileWriter fileWriter = null;
         CSVPrinter csvFilePrinter = null;
 
-        // Default comma-delimited format.
-        CSVFormat csvFileFormat = CSVFormat.DEFAULT;
-
-        if (delimiter != null) {
-            if (delimiter == '\t') {
-                // Tab-delimited format.
-                csvFileFormat = CSVFormat.TDF;
-            } else {
-                // Custom delimiter was provided.
-                csvFileFormat = CSVFormat.newFormat(delimiter);
-            }
-        }
         try {
             fileWriter = new FileWriter(file);
-            csvFilePrinter = new CSVPrinter(fileWriter, csvFileFormat);
+            csvFilePrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
             final List<String> fieldNameList = new ArrayList<String>(this.getTableMetaData().getFieldNames());
             fieldNameList.remove(BaseConditionsObject.COLLECTION_ID_FIELD);
             csvFilePrinter.printRecord(fieldNameList);
             for (final ConditionsObject conditionsObject : this.getObjects()) {
-                final List<Object> conditionsObjectRecord = new ArrayList<Object>();
+                final List<Object> record = new ArrayList<Object>();
                 for (final String fieldName : fieldNameList) {
                     Object value = conditionsObject.getFieldValue(fieldName);
                     if (value instanceof Date) {
                         value = BaseConditionsObject.DEFAULT_DATE_FORMAT.format(value);
                     }
-                    conditionsObjectRecord.add(value);
+                    record.add(value);
                 }
-                csvFilePrinter.printRecord(conditionsObjectRecord);
+                csvFilePrinter.printRecord(record);
             }
         } finally {
             try {

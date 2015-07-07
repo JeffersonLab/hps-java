@@ -69,8 +69,7 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
      * @throws FileNotFoundException if the input file does not exist
      * @throws ConditionsObjectException if there is an error creating a conditions object
      */
-    void load(final File file, Character delimiter) throws IOException, FileNotFoundException,
-            ConditionsObjectException;
+    public void loadCsv(final File file) throws IOException, FileNotFoundException, ConditionsObjectException;
 
     /**
      * Set the collection ID.
@@ -107,5 +106,5 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
      * @param file the output text file
      * @param delimiter the field delimiter (leave blank for default which is comma-delimited)
      */
-    void write(File file, Character delimiter) throws IOException;
+    void writeCsv(File file) throws IOException;
 }
