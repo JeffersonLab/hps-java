@@ -7,12 +7,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.3.3-SNAPSHOT</version>
+        <version>3.3.3</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/monitoring-app/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/monitoring-app/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/monitoring-app/</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.3.3/monitoring-app</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.3.3/monitoring-app</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.3.3/monitoring-app</developerConnection>
     </scm>
     <build>
         <plugins>
