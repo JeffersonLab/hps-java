@@ -163,8 +163,12 @@ final class RunProcessor {
         // Get the list of files to process, taking into account the max files setting.
         List<File> files = this.runSummary.getEvioFileList();
         if (this.maxFiles != -1) {
-            LOGGER.info("limiting processing to first " + this.maxFiles + " files from max files setting");
-            files = files.subList(0, this.maxFiles);
+            LOGGER.info("limiting files to max " + this.maxFiles);
+            int toIndex = this.maxFiles;
+            if (toIndex > files.size()) {
+                toIndex = files.size();                
+            }            
+            files = files.subList(0, toIndex);
             LOGGER.info("using file list with size " + files.size());
         }
         return files;
@@ -337,7 +341,7 @@ final class RunProcessor {
     /**
      * Set the maximum number of files to process.
      * <p>
-     * This is primarily used for debugging purposes.
+     * This is intended primarily for debugging.
      *
      * @param maxFiles the maximum number of files to process
      */
@@ -391,7 +395,7 @@ final class RunProcessor {
                 LOGGER.config("added extra EVIO processor " + processor.getClass().getName());
             }
 
-            // Process all of the runs files.
+            // Process all of the run's files.
             runProcessor.process();
         }
     }
