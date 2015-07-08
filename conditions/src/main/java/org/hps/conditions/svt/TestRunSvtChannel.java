@@ -4,27 +4,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 
 /**
  * The implementation of {@link AbstractSvtChannel} for Test Run conditions.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 @Table(names = {"test_run_svt_channels"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class TestRunSvtChannel extends AbstractSvtChannel {
 
     /**
      * Concrete collection implementation for {@link TestRunSvtChannel} objects.
      */
     @SuppressWarnings("serial")
-    public static class TestRunSvtChannelCollection
-        extends AbstractSvtChannel.AbstractSvtChannelCollection<TestRunSvtChannel> {
+    public static class TestRunSvtChannelCollection extends
+            AbstractSvtChannel.AbstractSvtChannelCollection<TestRunSvtChannel> {
 
         /**
          * Find a collection of channels by their DAQ pair assignment.
@@ -47,30 +44,12 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
     }
 
     /**
-     * Get the FPGA ID.
-     *
-     * @return the FPGA ID
-     */
-    @Field(names = {"fpga"})
-    public int getFpgaID() {
-        return getFieldValue("fpga");
-    }
-
-    /**
-     * Get the hybrid ID.
-     *
-     * @return the hybrid ID
-     */
-    @Field(names = {"hybrid"})
-    public int getHybridID() {
-        return getFieldValue("hybrid");
-    }
-
-    /**
      * Implementation of equals.
+     *
      * @param o the other object
      * @return <code>true</code> if the object equals this one; false if not.
      */
+    @Override
     public boolean equals(final Object o) {
         if (o == null) {
             return false;
@@ -82,7 +61,27 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
             return true;
         }
         final TestRunSvtChannel channel = (TestRunSvtChannel) o;
-        return getChannelID() == channel.getChannelID() && getFpgaID() == channel.getFpgaID()
-                && getHybridID() == channel.getHybridID() && getChannel() == channel.getChannel();
+        return this.getChannelID() == channel.getChannelID() && this.getFpgaID() == channel.getFpgaID()
+                && this.getHybridID() == channel.getHybridID() && this.getChannel() == channel.getChannel();
+    }
+
+    /**
+     * Get the FPGA ID.
+     *
+     * @return the FPGA ID
+     */
+    @Field(names = {"fpga"})
+    public Integer getFpgaID() {
+        return this.getFieldValue("fpga");
+    }
+
+    /**
+     * Get the hybrid ID.
+     *
+     * @return the hybrid ID
+     */
+    @Field(names = {"hybrid"})
+    public Integer getHybridID() {
+        return this.getFieldValue("hybrid");
     }
 }

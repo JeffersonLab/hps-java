@@ -6,17 +6,17 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
 /**
- * This test checks if the SVT DAQ map was loaded with reasonable values and is
- * being read correctly from the conditions database.
+ * This test checks if the SVT DAQ map was loaded with reasonable values and is being read correctly from the conditions
+ * database.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 public final class SvtDaqMappingTest extends TestCase {
 
     /**
-     * Total number of SVT sensors.
+     * Maximum FEB Hybrid ID.
      */
-    public static final int TOTAL_NUMBER_OF_SENSORS = 36;
+    public static final int MAX_FEB_HYBRID_ID = 3;
 
     /**
      * Minimum FEB Hybrid ID.
@@ -24,13 +24,13 @@ public final class SvtDaqMappingTest extends TestCase {
     public static final int MIN_FEB_HYBRID_ID = 0;
 
     /**
-     * Maximum FEB Hybrid ID.
+     * Total number of SVT sensors.
      */
-    public static final int MAX_FEB_HYBRID_ID = 3;
-
+    public static final int TOTAL_NUMBER_OF_SENSORS = 36;
 
     /**
      * Load the DAQ map from the database.
+     *
      * @throws Exception if there is a test error
      */
     public void test() throws Exception {
@@ -40,25 +40,17 @@ public final class SvtDaqMappingTest extends TestCase {
                 SvtDaqMappingCollection.class, "svt_daq_map").getCachedData();
         int totalSensors = 0;
         int febHybridID;
-        //this.printDebug("");
-        for (SvtDaqMapping daqMapping : daqMappingCollection) {
-            //this.printDebug("Sensor: \n" + daqMapping.toString());
+        // this.printDebug("");
+        for (final SvtDaqMapping daqMapping : daqMappingCollection) {
+            // this.printDebug("Sensor: \n" + daqMapping.toString());
             // Check that the FEB Hybrid ID is within the allowable limits
             febHybridID = daqMapping.getFebHybridID();
-            assertTrue("FEB Hybrid ID is out of range!.",
-                    febHybridID >= MIN_FEB_HYBRID_ID && febHybridID <= MAX_FEB_HYBRID_ID);
+            assertTrue("FEB Hybrid ID is out of range!.", febHybridID >= MIN_FEB_HYBRID_ID
+                    && febHybridID <= MAX_FEB_HYBRID_ID);
             totalSensors++;
         }
-        //this.printDebug("Total number of sensors found: " + totalSensors);
+        // this.printDebug("Total number of sensors found: " + totalSensors);
         assertTrue(totalSensors == TOTAL_NUMBER_OF_SENSORS);
 
-    }
-
-    /**
-     * Print debug message.
-     * @param debugMessage the message
-     */
-    private void printDebug(final String debugMessage) {
-        System.out.println(this.getClass().getSimpleName() + ":: " + debugMessage);
     }
 }

@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 /**
  * This test loads the {@link ConverterRegistry}.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 // FIXME: Doesn't test anything.
 public final class ConverterRegistryTest extends TestCase {

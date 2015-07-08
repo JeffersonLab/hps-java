@@ -1,64 +1,58 @@
 package org.hps.conditions.cli;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.DatabaseObjectException;
+import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.QueryBuilder;
 import org.lcsim.util.log.LogUtil;
+import org.lcsim.util.log.MessageOnlyLogFormatter;
 
 /**
- * This is a sub-command to add conditions data using an input text file. The file should be ASCII text that is tab or
- * space delimited and includes headers with the names of the database columns. (These must match exactly!) The user
- * must supply a table name as the target for the SQL insert. An optional collection ID can be supplied, which may not
- * exist already in the table. Otherwise, the command will fail. By default, the next collection ID will be found by the
- * conditions manager.
- * <p>
+ * This is a sub-command to add conditions data using an input text file. The file should be ASCII text that is
+ * delimited consistently by a single character. The user must supply a table name as the target for the SQL insert. An
+ * optional collection ID can be supplied, which is not allowed to exist already in the table. Otherwise, the command
+ * will fail. By default, the next collection ID will be found by the conditions manager.
  *
- * <pre>
- * java -cp hps-distribution-bin.jar org.hps.conditions.cli.CommandLineTool \
- *     -p conditions_dev_local.properties load -t scratch_svt_gains -f ./scratch_svt_gains.txt -c 1
- * </pre>
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
-class LoadCommand extends AbstractCommand {
+final class LoadCommand extends AbstractCommand {
 
     /**
-     * Setup logger.
+     * Setup the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(LoadCommand.class);
+    private static final Logger LOGGER = LogUtil.create(LoadCommand.class, new MessageOnlyLogFormatter(), Level.ALL);
 
     /**
      * Define command options.
      */
     private static final Options OPTIONS = new Options();
     static {
-        OPTIONS.addOption(new Option("h", false, "Show help for load command"));
-        OPTIONS.addOption(new Option("t", true, "Name of the target table in the database"));
-        OPTIONS.addOption(new Option("f", true, "Input data file"));
-        OPTIONS.addOption(new Option("d", true, "Description of collection data"));
+        OPTIONS.addOption(new Option("h", false, "print help for load command"));
+        OPTIONS.addOption(new Option("t", true, "name of the target table (required)"));
+        OPTIONS.getOption("t").setRequired(true);
+        OPTIONS.addOption(new Option("f", true, "input data file path (required)"));
+        OPTIONS.getOption("f").setRequired(true);
+        OPTIONS.addOption(new Option("d", true, "description for the collection log"));
     }
 
     /**
      * Class constructor.
      */
     LoadCommand() {
-        super("load", "Load a set of conditions into the database from a text file", OPTIONS);
+        super("load", "Create a new conditions collection in the database from an input text file", OPTIONS);
     }
 
     /**
-     * Execute the 'load' command with the given arguments.
+     * Execute the <i>load</i> command with the given arguments.
      *
      * @param arguments the command arguments
      */
@@ -87,74 +81,47 @@ class LoadCommand extends AbstractCommand {
             openedConnection = conditionsManager.openConnection();
         }
 
-        String collectionDescription = null;
+        String description = null;
         if (commandLine.hasOption("d")) {
-            collectionDescription = commandLine.getOptionValue("d");
+            description = commandLine.getOptionValue("d");
         }
 
-        int collectionId;
+        final TableMetaData tableMetaData = conditionsManager.findTableMetaData(tableName);
+        if (tableMetaData == null) {
+            throw new IllegalArgumentException("No table meta data found for " + tableName);
+        }
+        LOGGER.info("found tableMetaData for " + tableMetaData.getTableName());
+        final BaseConditionsObjectCollection<ConditionsObject> newCollection = new BaseConditionsObjectCollection<ConditionsObject>(
+                conditionsManager.getConnection(), tableMetaData);
+
+        LOGGER.info("getting new collection ID ...");
+
         try {
-            collectionId = conditionsManager.addCollection(tableName,
-                    "loaded with command line client by " + System.getProperty("user.name"), collectionDescription);
+            conditionsManager.getCollectionId(newCollection, description);
         } catch (final SQLException e) {
-            throw new RuntimeException("Error getting new collection ID.", e);
+            throw new RuntimeException("Error getting collection ID.", e);
         }
 
-        final List<String> columnNames = new ArrayList<String>();
-        final List<List<String>> rows = new ArrayList<List<String>>();
-        this.parseFile(fileName, columnNames, rows);
+        LOGGER.info("collection was assigned ID " + newCollection.getCollectionId());
 
-        final String insertSql = QueryBuilder.buildInsert(tableName, collectionId, columnNames, rows);
-        if (this.getVerbose()) {
-            LOGGER.info(insertSql);
-        }
-        // FIXME: This call should go through an object API like ConditionsObjectCollection.insert rather than the
-        // manager directly.
-        final List<Integer> ids = conditionsManager.updateQuery(insertSql);
-        LOGGER.info("Inserted " + ids.size() + " new rows into table " + tableName + " with collection_id "
-                + collectionId);
-        conditionsManager.closeConnection(openedConnection);
-    }
-
-    /**
-     * Parse an input text file and add column names and row data to the input lists.
-     *
-     * @param fileName the name of the text file
-     * @param columnNames the list of columns (modified by this method)
-     * @param rows the list of rows (modified by this method)
-     */
-    private final void parseFile(final String fileName, final List<String> columnNames, final List<List<String>> rows) {
-        final File inputFile = new File(fileName);
-        BufferedReader reader = null;
+        LOGGER.info("parsing input file " + fileName + " ...");
         try {
-            reader = new BufferedReader(new FileReader(inputFile));
-            final String headerLine = reader.readLine();
-            if (headerLine == null) {
-                throw new IllegalArgumentException("The file is empty.");
-            }
-            StringTokenizer tokenizer = new StringTokenizer(headerLine, " \t");
-            while (tokenizer.hasMoreTokens()) {
-                columnNames.add(tokenizer.nextToken().trim());
-            }
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                tokenizer = new StringTokenizer(line, " \t");
-                final List<String> row = new ArrayList<String>();
-                while (tokenizer.hasMoreTokens()) {
-                    row.add(tokenizer.nextToken().trim());
-                }
-                rows.add(row);
-            }
+            newCollection.loadCsv(new File(fileName));
         } catch (final Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            throw new RuntimeException("Error loading CSV file.", e);
         }
+        LOGGER.info("Done parsing input file!");
+
+        try {
+            LOGGER.info("Inserting collection ...");
+            newCollection.insert();
+            LOGGER.info("Done inserting collection!");
+        } catch (SQLException | DatabaseObjectException e) {
+            throw new RuntimeException("Error getting collection ID.", e);
+        }
+
+        conditionsManager.closeConnection(openedConnection);
+
+        LOGGER.info("Collection was loaded successfully!");
     }
 }

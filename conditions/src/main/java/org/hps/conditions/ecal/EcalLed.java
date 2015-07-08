@@ -4,19 +4,16 @@ import java.util.Comparator;
 
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
-import org.hps.conditions.database.Converter;
+import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
-import org.hps.conditions.ecal.EcalGain.EcalGainCollection.ChannelIdComparator;
 
 /**
  * A conditions class for representing the setup of the LED system in the ECAL for one channel.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @Table(names = "ecal_leds")
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class EcalLed extends BaseConditionsObject {
 
     /**
@@ -26,25 +23,17 @@ public final class EcalLed extends BaseConditionsObject {
     public static class EcalLedCollection extends BaseConditionsObjectCollection<EcalLed> {
 
         /**
-         * Sort and return a copy of this collection.
-         * 
-         * @return the new sorted collection
-         */
-        public BaseConditionsObjectCollection<EcalLed> sorted() {
-            return sorted(new ChannelIdComparator());
-        }
-
-        /**
          * Comparison implementation by channel ID.
          */
         class ChannelIdComparator implements Comparator<EcalLed> {
             /**
              * Compare two objects by channel ID.
-             * 
+             *
              * @param o1 the first object
              * @param o2 the second object
              * @return -1, 0, or 1 if first channel ID is less than, equal to or greater than the first
              */
+            @Override
             public int compare(final EcalLed o1, final EcalLed o2) {
                 if (o1.getEcalChannelId() < o2.getEcalChannelId()) {
                     return -1;
@@ -56,65 +45,74 @@ public final class EcalLed extends BaseConditionsObject {
             }
 
         }
-    }
 
-    /**
-     * Get the ECAL channel ID.
-     * 
-     * @return the ECAL channel ID
-     */
-    @Field(names = { "ecal_channel_id" })
-    public int getEcalChannelId() {
-        return getFieldValue("ecal_channel_id");
-    }
-
-    /**
-     * Get the crate number assigned to this crystal.
-     * 
-     * @return the crate number
-     */
-    @Field(names = { "crate" })
-    public int getCrateNumber() {
-        return getFieldValue("crate");
-    }
-
-    /**
-     * Get the LED number assigned to this crystal.
-     * 
-     * @return the LED number
-     */
-    @Field(names = { "number" })
-    public int getLedNumber() {
-        return getFieldValue("number");
-    }
-
-    /**
-     * Get the time delay of this channel.
-     * 
-     * @return the time delay
-     */
-    @Field(names = { "time_delay" })
-    public double getTimeDelay() {
-        return getFieldValue("time_delay");
+        /**
+         * Sort and return a copy of this collection.
+         *
+         * @return the new sorted collection
+         */
+        public ConditionsObjectCollection<EcalLed> sorted() {
+            return this.sorted(new ChannelIdComparator());
+        }
     }
 
     /**
      * Get the amplitude high setting.
-     * 
+     *
      * @return the amplitude high setting
      */
-    @Field(names = { "amplitude_high" })
-    public double getAmplitudeHigh() {
-        return getFieldValue("amplitude_high");
+    @Field(names = {"amplitude_high"})
+    public Double getAmplitudeHigh() {
+        return this.getFieldValue("amplitude_high");
     }
 
     /**
      * Get the amplitude low setting.
-     * 
+     *
      * @return the amplitude low setting
      */
-    @Field(names = { "amplitude_low" })
-    public double getAmplitudeLow() {
-        return getFieldValue("amplitude_low");
+    @Field(names = {"amplitude_low"})
+    public Double getAmplitudeLow() {
+        return this.getFieldValue("amplitude_low");
+    }
+
+    /**
+     * Get the crate number assigned to this crystal.
+     *
+     * @return the crate number
+     */
+    @Field(names = {"crate"})
+    public Integer getCrateNumber() {
+        return this.getFieldValue("crate");
+    }
+
+    /**
+     * Get the ECAL channel ID.
+     *
+     * @return the ECAL channel ID
+     */
+    @Field(names = {"ecal_channel_id"})
+    public Integer getEcalChannelId() {
+        return this.getFieldValue("ecal_channel_id");
+    }
+
+    /**
+     * Get the LED number assigned to this crystal.
+     *
+     * @return the LED number
+     */
+    @Field(names = {"number"})
+    public Integer getLedNumber() {
+        return this.getFieldValue("number");
+    }
+
+    /**
+     * Get the time delay of this channel.
+     *
+     * @return the time delay
+     */
+    @Field(names = {"time_delay"})
+    public Double getTimeDelay() {
+        return this.getFieldValue("time_delay");
     }
 }

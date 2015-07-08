@@ -9,7 +9,7 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 /**
  * This abstract class provides some of the basic functionality used to access SVT DAQ map variables.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
 
@@ -20,7 +20,7 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
      */
     @SuppressWarnings("serial")
     public static abstract class AbstractSvtDaqMappingCollection<T extends AbstractSvtDaqMapping> extends
-    BaseConditionsObjectCollection<T> {
+            BaseConditionsObjectCollection<T> {
 
         /**
          * Get a DAQ pair for the given {@link HpsSiSensor}.
@@ -66,9 +66,9 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
      *
      * @return SVT sensor layer number
      */
-    @Field(names = { "layer" })
+    @Field(names = {"layer"})
     public final int getLayerNumber() {
-        return getFieldValue("layer");
+        return this.getFieldValue("layer");
     }
 
     /**
@@ -78,9 +78,9 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
      * @see STEREO
      * @return the orientation of the SVT sensor
      */
-    @Field(names = { "orientation" })
+    @Field(names = {"orientation"})
     public final String getOrientation() {
-        return getFieldValue("orientation");
+        return this.getFieldValue("orientation");
     }
 
     /**
@@ -88,9 +88,9 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
      *
      * @return SVT half (TOP or BOTTOM)
      */
-    @Field(names = { "svt_half" })
+    @Field(names = {"svt_half"})
     public final String getSvtHalf() {
-        return getFieldValue("svt_half");
+        return this.getFieldValue("svt_half");
     }
 
     /**

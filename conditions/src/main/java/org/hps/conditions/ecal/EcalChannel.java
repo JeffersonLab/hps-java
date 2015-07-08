@@ -4,14 +4,15 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.AbstractIdentifier;
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
-import org.hps.conditions.database.AbstractConditionsObjectConverter;
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.Field;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
@@ -23,10 +24,10 @@ import org.lcsim.geometry.Subdetector;
  * This class encapsulates all the information about a single ECal channel, corresponding to one physical crystal in the
  * detector.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"ecal_channels", "test_run_ecal_channels"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED, converter = EcalChannel.EcalChannelConverter.class)
+@Converter(converter = EcalChannel.EcalChannelConverter.class)
 public final class EcalChannel extends BaseConditionsObject {
 
     /**
@@ -177,7 +178,7 @@ public final class EcalChannel extends BaseConditionsObject {
          * @return <code>true</code> if object was added successfully
          */
         @Override
-        public boolean add(final EcalChannel channel) {
+        public boolean add(final EcalChannel channel) throws ConditionsObjectException {
             super.add(channel);
             final DaqId daqId = channel.createDaqId();
             if (daqId.isValid()) {
@@ -268,9 +269,8 @@ public final class EcalChannel extends BaseConditionsObject {
          *
          * @return the sorted copy of the collection
          */
-        @Override
-        public BaseConditionsObjectCollection<EcalChannel> sorted() {
-            return sorted(new ChannelIdComparator());
+        public ConditionsObjectCollection<EcalChannel> sorted() {
+            return this.sorted(new ChannelIdComparator());
         }
     }
 
@@ -387,7 +387,7 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the {@link #DaqId} for this ECAL channel
      */
     DaqId createDaqId() {
-        return new DaqId(new int[] {getCrate(), getSlot(), getChannel()});
+        return new DaqId(new int[] {this.getCrate(), this.getSlot(), this.getChannel()});
     }
 
     /**
@@ -398,7 +398,7 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the geometry ID
      */
     GeometryId createGeometryId(final IIdentifierHelper helper, final int system) {
-        return new GeometryId(helper, new int[] {system, getX(), getY()});
+        return new GeometryId(helper, new int[] {system, this.getX(), this.getY()});
     }
 
     /**
@@ -419,8 +419,9 @@ public final class EcalChannel extends BaseConditionsObject {
             return true;
         }
         final EcalChannel c = (EcalChannel) o;
-        return c.getChannelId() == getChannelId() && c.getCrate() == getCrate() && c.getSlot() == getSlot()
-                && c.getChannel() == getChannel() && c.getX() == getX() && c.getY() == getY();
+        return c.getChannelId() == this.getChannelId() && c.getCrate() == this.getCrate()
+                && c.getSlot() == this.getSlot() && c.getChannel() == this.getChannel() && c.getX() == this.getX()
+                && c.getY() == this.getY();
     }
 
     /**
@@ -429,8 +430,8 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the channel number
      */
     @Field(names = {"channel"})
-    public int getChannel() {
-        return getFieldValue("channel");
+    public Integer getChannel() {
+        return this.getFieldValue("channel");
     }
 
     /**
@@ -439,8 +440,8 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the ID of the channel
      */
     @Field(names = {"channel_id"})
-    public int getChannelId() {
-        return getFieldValue("channel_id");
+    public Integer getChannelId() {
+        return this.getFieldValue("channel_id");
     }
 
     /**
@@ -449,8 +450,8 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the crate number
      */
     @Field(names = {"crate"})
-    public int getCrate() {
-        return getFieldValue("crate");
+    public Integer getCrate() {
+        return this.getFieldValue("crate");
     }
 
     /**
@@ -459,8 +460,8 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the slot number
      */
     @Field(names = {"slot"})
-    public int getSlot() {
-        return getFieldValue("slot");
+    public Integer getSlot() {
+        return this.getFieldValue("slot");
     }
 
     /**
@@ -469,8 +470,8 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the x value
      */
     @Field(names = {"x"})
-    public int getX() {
-        return getFieldValue("x");
+    public Integer getX() {
+        return this.getFieldValue("x");
     }
 
     /**
@@ -479,7 +480,7 @@ public final class EcalChannel extends BaseConditionsObject {
      * @return the y value
      */
     @Field(names = {"y"})
-    public int getY() {
-        return getFieldValue("y");
+    public Integer getY() {
+        return this.getFieldValue("y");
     }
 }

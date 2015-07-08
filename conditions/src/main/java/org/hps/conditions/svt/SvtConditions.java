@@ -6,14 +6,12 @@ import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 
-// TODO: Move all constants to their own class
-
 /**
  * This class contains all test run SVT conditions data by readout channel. {@link SvtChannel} objects from the SVT
  * channel map can be used to lookup the conditions for individual channels.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Jeremy McCormick, SLAC
+ * @author Omar Moreno, UCSC
  */
 public final class SvtConditions extends AbstractSvtConditions {
 
@@ -117,7 +115,7 @@ public final class SvtConditions extends AbstractSvtConditions {
         for (final SvtChannel channel : this.getChannelMap()) {
 
             // Get the conditions for the channel.
-            final ChannelConstants constants = getChannelConstants(channel);
+            final ChannelConstants constants = this.getChannelConstants(channel);
             final SvtGain gain = constants.getGain();
             final SvtShapeFitParameters shapeFit = constants.getShapeFitParameters();
             final SvtCalibration calibration = constants.getCalibration();
@@ -153,7 +151,7 @@ public final class SvtConditions extends AbstractSvtConditions {
         buff.append("Printing SVT DAQ Map...");
         buff.append('\n');
         buff.append('\n');
-        buff.append(getDaqMap());
+        buff.append(this.getDaqMap());
 
         return buff.toString();
     }

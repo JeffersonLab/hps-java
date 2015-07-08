@@ -12,6 +12,7 @@ import org.hps.conditions.database.Table;
  * translation or rotation of a detector component.
  * <p>
  * The format of the keys is ABCDE where:<br>
+ * 
  * <pre>
  * A == half == [1,2]
  * B == alignment type == [1,2]
@@ -21,7 +22,7 @@ import org.hps.conditions.database.Table;
  * <p>
  * The key naming conventions are from the <a href="http://www.desy.de/~blobel/mptalks.html">Millipede</a> package.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @Table(names = "svt_alignments")
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
@@ -32,16 +33,22 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
      */
     @SuppressWarnings("serial")
     public static class SvtAlignmentConstantCollection extends BaseConditionsObjectCollection<SvtAlignmentConstant> {
-        
-        public SvtAlignmentConstant find(int id) {
-            for (SvtAlignmentConstant constant : this) {
+
+        /**
+         * Find an alignment constant by its parameter ID.
+         * 
+         * @param id the parameter ID
+         * @return the first object with matching parameter ID or <code>null</code> if not found
+         */
+        public SvtAlignmentConstant find(final int id) {
+            for (final SvtAlignmentConstant constant : this) {
                 if (constant.getParameter().equals(id)) {
                     return constant;
                 }
             }
             return null;
         }
-        
+
     };
 
     /**
@@ -49,10 +56,9 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
      *
      * @return the alignment constant's key
      */
-    @Field(names = { "parameter" })
+    @Field(names = {"parameter"})
     public Integer getParameter() {
-        //System.out.println("parameter = " + this.getFieldValues().get("parameter") + "; type = " + this.getFieldValues().get("parameter").getClass());
-        return getFieldValue("parameter");
+        return this.getFieldValue("parameter");
     }
 
     /**
@@ -60,9 +66,9 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
      *
      * @return the alignment constant's value as a double
      */
-    @Field(names = { "value" })
+    @Field(names = {"value"})
     public Double getValue() {
-        return getFieldValue("value");
+        return this.getFieldValue("value");
     }
 
     /**

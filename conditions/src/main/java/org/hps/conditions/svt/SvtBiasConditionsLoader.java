@@ -272,42 +272,36 @@ public class SvtBiasConditionsLoader {
 
     private static final void loadToConditionsDB(List<SvtBiasRunRange> ranges) {
         logger.info("Load to DB...");
-        
+
         // Create a new collection for each run
         List<Integer> runsadded = new ArrayList<Integer>();
-        
-        
-        
-        
-        for(SvtBiasRunRange range : ranges) {
+
+        for (SvtBiasRunRange range : ranges) {
             logger.info("Loading " + range.toString());
             RunData rundata = range.getRun();
-            if(runsadded.contains(rundata.getRun())) {
+            if (runsadded.contains(rundata.getRun())) {
                 logger.warning("Run " + Integer.toString(rundata.getRun()) + " was already added?");
                 throw new RuntimeException("Run " + Integer.toString(rundata.getRun()) + " was already added?");
             }
             runsadded.add(rundata.getRun());
 
-            if(range.getRanges().isEmpty()) {
+            if (range.getRanges().isEmpty()) {
                 logger.info("No bias range for run " + range.getRun().getRun());
                 continue;
             }
-            
+
+            // create a collection
+            SvtBiasConstantCollection collection = new SvtBiasConstantCollection();
+
             int collectionId = -1;
             try {
-                collectionId = MANAGER.addCollection("svt_bias_constants", "whatever that is fine","run ranges for SVT HV bias ON");
+                collectionId = MANAGER.getCollectionId(collection, "run ranges for SVT HV bias ON");
             } catch (SQLException e1) {
-               throw new RuntimeException(e1);
+                throw new RuntimeException(e1);
             }
-            
-            //create a collection
-            SvtBiasConstantCollection collection = new SvtBiasConstantCollection();
-            try {
-                collection.setCollectionId(collectionId);
-            } catch (ConditionsObjectException e1) {
-                throw new RuntimeException("cant set collection id",e1);
-            }
-            
+
+            collection.setCollectionId(collectionId);
+
             final ConditionsRecord condition = new ConditionsRecord();
             condition.setFieldValue("run_start", rundata.getRun());
             condition.setFieldValue("run_end", rundata.getRun());
@@ -315,39 +309,30 @@ public class SvtBiasConditionsLoader {
             condition.setFieldValue("table_name", "svt_bias_constants");
             condition.setFieldValue("notes", "constants from mya");
             condition.setFieldValue("created", new Date());
-            condition.setFieldValue("created_by", System.getProperty("user.name"));            
+            condition.setFieldValue("created_by", System.getProperty("user.name"));
             condition.setFieldValue("collection_id", collectionId);
-            
-            for (SvtBiasMyaRange biasRange : range.getRanges()) {
-                //create a constant and add to the collection
-                final SvtBiasConstant constant = new SvtBiasConstant();
-                constant.setFieldValue("start", biasRange.getStartDate());
-                constant.setFieldValue("end", biasRange.getEndDate());
-                constant.setFieldValue("value", biasRange.getStart().getValue());
-                collection.add(constant);
-                
-                logger.info(condition.toString());
-            }
-
 
             try {
-                try {
-                    collection.insert();
-                } catch (SQLException e) {
-                    throw new RuntimeException("cant instert collection", e);
+
+                for (SvtBiasMyaRange biasRange : range.getRanges()) {
+                    // create a constant and add to the collection
+                    final SvtBiasConstant constant = new SvtBiasConstant();
+                    constant.setFieldValue("start", biasRange.getStartDate());
+                    constant.setFieldValue("end", biasRange.getEndDate());
+                    constant.setFieldValue("value", biasRange.getStart().getValue());
+                    collection.add(constant);
+                    logger.info(condition.toString());
                 }
+                
+                // Insert collection data.
+                collection.insert();
+                
+                // Insert conditions record.
                 condition.insert();
 
-            } catch (ConditionsObjectException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            
         }
-
-
     }
-    
-   
-    
-
 }

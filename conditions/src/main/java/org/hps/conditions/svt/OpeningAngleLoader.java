@@ -14,37 +14,91 @@ import org.hps.conditions.run.RunSpreadsheet.RunMap;
 import org.hps.conditions.svt.MotorPositionLoader.MotorPositionInterval;
 import org.hps.conditions.svt.MotorPositionLoader.Side;
 
+/**
+ * @author Jeremy McCormick, SLAC
+ */
 public class OpeningAngleLoader {
 
-    private static final String TOP_FILE = "mya_svt_top.txt";
     private static final String BOT_FILE = "mya_svt_bot.txt";
-    private static final String RUN_FILE = "runs.csv";
-    private static final String OUT_FILE = "svt_opening_angles.txt";
-    
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MMMM dd YYYY HH:mm z");
-    
-    public static void main(String[] args) throws Exception {
-        
+    private static final String OUT_FILE = "svt_opening_angles.txt";
+    private static final String RUN_FILE = "runs.csv";
+
+    private static final String TOP_FILE = "mya_svt_top.txt";
+
+    /**
+     * Check if the run record looks good.
+     *
+     * @param data
+     * @return
+     */
+    private static boolean acceptRun(final RunData data) {
+        return !data.getRecord().get("to_tape").equals("JUNK")
+                && data.getRecord().get("trigger_config").trim().length() > 0
+                && !data.getRecord().get("trigger_config").contains("cosmic") && data.getStartDate() != null;
+    }
+
+    private static MotorPositionInterval findInterval(final List<MotorPositionInterval> intervals, final Date date) {
+        MotorPositionInterval interval = null;
+        final Iterator<MotorPositionInterval> it = intervals.listIterator();
+        while ((interval = it.next()) != null) {
+
+            // Start and end dates in the interval.
+            final Date startDate = interval.getStartDate();
+            final Date endDate = interval.getEndDate();
+
+            // Check if given date is within the interval.
+            if ((startDate.compareTo(date) == -1 || startDate.compareTo(date) == 0) && endDate.compareTo(date) == 1
+                    || endDate.compareTo(date) == 0) {
+                break;
+            }
+
+            // Didn't find it.
+            if (!it.hasNext()) {
+                interval = null;
+                break;
+            }
+        }
+        return interval;
+    }
+
+    private static List<MotorPositionInterval> getMotorPositionIntervals(final String path, final Side side)
+            throws Exception {
+        final MotorPositionLoader loader = new MotorPositionLoader();
+        loader.setSide(side);
+        loader.load(path);
+        return loader.findIntervals();
+    }
+
+    private static RunMap loadRunMap(final String path) {
+        final File runFile = new File(path);
+        final RunSpreadsheet runSpreadsheet = new RunSpreadsheet(runFile);
+        return runSpreadsheet.getRunMap();
+    }
+
+    public static void main(final String[] args) throws Exception {
+
         // Load top and bottom intervals from MYA dump.
-        List<MotorPositionInterval> topIntervals = getMotorPositionIntervals(TOP_FILE, Side.TOP);
-        List<MotorPositionInterval> botIntervals = getMotorPositionIntervals(BOT_FILE, Side.BOT);
-        
+        final List<MotorPositionInterval> topIntervals = getMotorPositionIntervals(TOP_FILE, Side.TOP);
+        final List<MotorPositionInterval> botIntervals = getMotorPositionIntervals(BOT_FILE, Side.BOT);
+
         // Load run map from spreadsheet.
-        RunMap runMap = loadRunMap(RUN_FILE);
-        
+        final RunMap runMap = loadRunMap(RUN_FILE);
+
         // Write out run data combined with SVT opening angle intervals.
-        PrintStream ps = new PrintStream(new FileOutputStream(OUT_FILE));
+        final PrintStream ps = new PrintStream(new FileOutputStream(OUT_FILE));
         for (final RunData data : runMap.values()) {
             if (acceptRun(data)) {
                 final MotorPositionInterval topInterval = findInterval(topIntervals, data.getStartDate());
                 final MotorPositionInterval botInterval = findInterval(botIntervals, data.getStartDate());
                 printLine(ps, data, topInterval, botInterval);
             }
-        }        
+        }
         ps.close();
     }
-    
-    private static void printLine(PrintStream ps, RunData data, MotorPositionInterval topInterval, MotorPositionInterval botInterval) {
+
+    private static void printLine(final PrintStream ps, final RunData data, final MotorPositionInterval topInterval,
+            final MotorPositionInterval botInterval) {
         ps.print("run: " + data.getRun() + " @ [" + data.getRecord().get("svt_y_position") + "], ");
         if (topInterval != null) {
             ps.print("start(top): " + DATE_FORMAT.format(topInterval.getStartDate()) + ", ");
@@ -82,52 +136,4 @@ public class OpeningAngleLoader {
         ps.println();
         ps.flush();
     }
-    
-    private static List<MotorPositionInterval> getMotorPositionIntervals(String path, Side side) throws Exception {
-        MotorPositionLoader loader = new MotorPositionLoader();
-        loader.setSide(side);
-        loader.load(path);
-        return loader.findIntervals();
-    }
-
-    /**
-     * Check if the run record looks good.
-     * 
-     * @param data
-     * @return
-     */
-    private static boolean acceptRun(RunData data) {
-        return !data.getRecord().get("to_tape").equals("JUNK") && data.getRecord().get("trigger_config").trim().length() > 0
-                && !data.getRecord().get("trigger_config").contains("cosmic") && data.getStartDate() != null;
-    }
-    
-    private static RunMap loadRunMap(String path) {
-        final File runFile = new File(path);
-        final RunSpreadsheet runSpreadsheet = new RunSpreadsheet(runFile);
-        return runSpreadsheet.getRunMap();
-    }
-
-    private static MotorPositionInterval findInterval(List<MotorPositionInterval> intervals, Date date) {
-        MotorPositionInterval interval = null;
-        Iterator<MotorPositionInterval> it = intervals.listIterator();
-        while ((interval = it.next()) != null) {
-                
-            // Start and end dates in the interval.
-            Date startDate = interval.getStartDate();
-            Date endDate = interval.getEndDate();
-
-            // Check if given date is within the interval.
-            if ((startDate.compareTo(date) == -1 || startDate.compareTo(date) == 0) && endDate.compareTo(date) == 1
-                    || endDate.compareTo(date) == 0) {
-                break;
-            }
-                
-            // Didn't find it.
-            if (!it.hasNext()) {
-                interval = null;
-                break;
-            }            
-        }
-        return interval;
-    }   
 }

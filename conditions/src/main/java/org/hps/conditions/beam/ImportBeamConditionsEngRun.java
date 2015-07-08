@@ -22,7 +22,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
  * <p>
  * The beam energy is hard-coded to 1.92 GeV for now, pending updates with better information.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class ImportBeamConditionsEngRun {
 
@@ -95,15 +95,14 @@ public final class ImportBeamConditionsEngRun {
         for (final Entry<Integer, BeamConditions> entry : beamMap.entrySet()) {
             final int run = entry.getKey();
             final BeamConditions beam = entry.getValue();
-            final int collectionId = manager.addCollection("beam", "ImportBeamConditionsEngRun created collection by "
-                    + System.getProperty("user.name"), null);
+            System.out.println(beam);
+            final BeamConditionsCollection collection = new BeamConditionsCollection();
+            final int collectionId = manager.getCollectionId(collection, null);
             final ConditionsRecord record = new ConditionsRecord(collectionId, run, run, "beam", "beam",
                     "imported from HPS_Runs.pdf", "eng_run");
             System.out.println(record);
-            System.out.println(beam);
-            final BeamConditionsCollection collection = new BeamConditionsCollection();
             collection.add(beam);
-            manager.insertCollection(collection);
+            collection.insert();
             record.insert();
         }
         manager.closeConnection();

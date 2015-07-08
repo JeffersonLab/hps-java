@@ -20,14 +20,58 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * This class checks that event processing works correctly for files that have multiple runs in them.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class RunNumberTest extends TestCase {
 
     /**
-     * Test file with a few events from each of the "good runs" of the 2012 Test Run.
+     * Simple Driver to store information about runs processed.
      */
-    private static final String URL = "http://www.lcsim.org/test/hps-java/ConditionsTest.slcio";
+    static class RunNumberDriver extends Driver {
+
+        /**
+         * Reference to conditions manager.
+         */
+        private static DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+
+        /**
+         * Number of times {@link #detectorChanged(Detector)} was called.
+         */
+        private int nDetectorChanged = 0;
+
+        /**
+         * Number of runs processed.
+         */
+        private int nRuns = 0;
+
+        /**
+         * List of run numbers processed.
+         */
+        private final List<Integer> runsProcessed = new ArrayList<Integer>();
+
+        /**
+         * Set of unique detector objects.
+         */
+        private final Set<Detector> uniqueDetectorObjects = new HashSet<Detector>();
+
+        /**
+         * Set of unique run numbers processed.
+         */
+        private final Set<Integer> uniqueRuns = new LinkedHashSet<Integer>();
+
+        /**
+         * Hook for conditions changed used to test multiple run processing.
+         */
+        @Override
+        public void detectorChanged(final Detector detector) {
+            final int run = conditionsManager.getRun();
+            this.uniqueRuns.add(run);
+            this.runsProcessed.add(run);
+            ++this.nRuns;
+            ++this.nDetectorChanged;
+            this.uniqueDetectorObjects.add(detector);
+        }
+    }
 
     /**
      * Number of runs that should be processed in the job.
@@ -35,7 +79,13 @@ public final class RunNumberTest extends TestCase {
     private static final int RUN_COUNT = 9;
 
     /**
+     * Test file with a few events from each of the "good runs" of the 2012 Test Run.
+     */
+    private static final String URL = "http://www.lcsim.org/test/hps-java/ConditionsTest.slcio";
+
+    /**
      * Run the test.
+     * 
      * @throws Exception if there is a test error
      */
     public void test() throws Exception {
@@ -61,7 +111,7 @@ public final class RunNumberTest extends TestCase {
 
         // Print out unique runs.
         System.out.println("Unique run numbers in this job ...");
-        for (int runNumber : runNumberDriver.uniqueRuns) {
+        for (final int runNumber : runNumberDriver.uniqueRuns) {
             System.out.println(runNumber);
         }
 
@@ -69,7 +119,7 @@ public final class RunNumberTest extends TestCase {
 
         // Print out runs processed.
         System.out.println("Processed runs in order ...");
-        for (int runNumber : runNumberDriver.runsProcessed) {
+        for (final int runNumber : runNumberDriver.runsProcessed) {
             System.out.println(runNumber);
         }
 
@@ -80,59 +130,11 @@ public final class RunNumberTest extends TestCase {
         assertEquals("Number of unique runs was incorrect.", RUN_COUNT, runNumberDriver.uniqueRuns.size());
 
         // Check that detectorChanged was called the correct number of times.
-        assertEquals("The detectorChanged method was called an incorrect number of times.",
-                RUN_COUNT, runNumberDriver.nDetectorChanged);
+        assertEquals("The detectorChanged method was called an incorrect number of times.", RUN_COUNT,
+                runNumberDriver.nDetectorChanged);
 
         // Check that there was a unique Detector created for each run.
-        assertEquals("The number of Detector objects created was not correct.",
-                RUN_COUNT, runNumberDriver.uniqueDetectorObjects.size());
-    }
-
-    /**
-     * Simple Driver to store information about runs processed.
-     */
-    static class RunNumberDriver extends Driver {
-
-        /**
-         * Number of runs processed.
-         */
-        private int nRuns = 0;
-
-        /**
-         * Number of times {@link #detectorChanged(Detector)} was called.
-         */
-        private int nDetectorChanged = 0;
-
-        /**
-         * List of run numbers processed.
-         */
-        private List<Integer> runsProcessed = new ArrayList<Integer>();
-
-        /**
-         * Set of unique run numbers processed.
-         */
-        private Set<Integer> uniqueRuns = new LinkedHashSet<Integer>();
-
-        /**
-         * Set of unique detector objects.
-         */
-        private Set<Detector> uniqueDetectorObjects = new HashSet<Detector>();
-
-        /**
-         * Reference to conditions manager.
-         */
-        private static DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-
-        /**
-         * Hook for conditions changed used to test multiple run processing.
-         */
-        public void detectorChanged(final Detector detector) {
-            final int run = conditionsManager.getRun();
-            uniqueRuns.add(run);
-            runsProcessed.add(run);
-            ++nRuns;
-            ++nDetectorChanged;
-            uniqueDetectorObjects.add(detector);
-        }
+        assertEquals("The number of Detector objects created was not correct.", RUN_COUNT,
+                runNumberDriver.uniqueDetectorObjects.size());
     }
 }

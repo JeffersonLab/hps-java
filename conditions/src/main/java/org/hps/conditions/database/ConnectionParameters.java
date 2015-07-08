@@ -13,7 +13,7 @@ import java.util.Properties;
 /**
  * This class encapsulates the parameters for connecting to a database, including host name, port, user and password.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class ConnectionParameters {
 
@@ -145,13 +145,13 @@ public final class ConnectionParameters {
      * @return the new <code>Connection</code> object
      */
     public Connection createConnection() {
-        final Properties connectionProperties = getConnectionProperties();
+        final Properties connectionProperties = this.getConnectionProperties();
         Connection connection = null;
         try {
-            connection = DriverManager.getConnection(getConnectionString(), connectionProperties);
-            connection.createStatement().execute("USE " + getDatabase());
+            connection = DriverManager.getConnection(this.getConnectionString(), connectionProperties);
+            connection.createStatement().execute("USE " + this.getDatabase());
         } catch (final SQLException x) {
-            throw new RuntimeException("Failed to connect to database: " + getConnectionString(), x);
+            throw new RuntimeException("Failed to connect to database: " + this.getConnectionString(), x);
         }
         return connection;
     }

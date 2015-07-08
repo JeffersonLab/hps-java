@@ -14,17 +14,19 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.ConditionsSeries;
+import org.hps.conditions.api.TableMetaData;
+import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalConditionsConverter;
 import org.hps.conditions.ecal.TestRunEcalConditionsConverter;
@@ -54,7 +56,7 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  * Differences between Test Run and Engineering Run configurations are handled automatically.
  *
  * @see org.lcsim.conditions.ConditionsManager
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("rawtypes")
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
@@ -254,7 +256,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Create the global registry of table meta data.
      */
-    private final TableRegistry tableRegistry = TableRegistry.create();
+    private final TableRegistry tableRegistry = TableRegistry.getTableRegistry();
 
     /**
      * The currently active conditions tag.
@@ -274,54 +276,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             this.registerConditionsConverter(converter);
         }
         this.addConditionsListener(this.svtSetup);
-    }
-
-    /**
-     * Add a row for a new collection and return the new collection ID assigned to it.
-     *
-     * @param tableName the name of the table
-     * @param comment an optional comment about this new collection
-     * @return the collection's ID
-     * @throws SQLException
-     */
-    public synchronized int addCollection(final String tableName, final String log, final String description)
-            throws SQLException {
-        if (tableName == null) {
-            throw new IllegalArgumentException("The tableName argument is null.");
-        }
-        final boolean opened = this.openConnection();
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        int collectionId = -1;
-        try {
-            statement = this.connection.prepareStatement(
-                    "INSERT INTO collections (table_name, log, description, created) VALUES (?, ?, ?, NOW())",
-                    Statement.RETURN_GENERATED_KEYS);
-            statement.setString(1, tableName);
-            if (log == null) {
-                statement.setNull(2, java.sql.Types.VARCHAR);
-            } else {
-                statement.setString(2, log);
-            }
-            if (description == null) {
-                statement.setNull(3, java.sql.Types.VARCHAR);
-            } else {
-                statement.setString(3, description);
-            }
-            statement.execute();
-            resultSet = statement.getGeneratedKeys();
-            resultSet.next();
-            collectionId = resultSet.getInt(1);
-        } finally {
-            if (resultSet != null) {
-                resultSet.close();
-            }
-            if (statement != null) {
-                statement.close();
-            }
-            this.closeConnection(opened);
-        }
-        return collectionId;
     }
 
     /**
@@ -355,7 +309,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         this.connection = null;
         this.isConnected = false;
-        logger.info("connection closed");
+        logger.fine("connection closed");
     }
 
     /**
@@ -435,7 +389,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         for (final ConditionsRecord record : runConditionsRecords) {
             if (record.getName().equals(name)) {
                 if (this.matchesTag(record)) {
-                    foundConditionsRecords.add(record);
+                    try {
+                        foundConditionsRecords.add(record);
+                    } catch (final ConditionsObjectException e) {
+                        throw new RuntimeException(e);
+                    }
                     logger.finer("found matching conditions record " + record.getRowId());
                 } else {
                     logger.finer("conditions record " + record.getRowId() + " rejected from non-matching tag "
@@ -478,6 +436,52 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         } else {
             logger.warning("conditions system cannot be frozen because it is not initialized yet");
         }
+    }
+
+    /**
+     * Add a row for a new collection and return the new collection ID assigned to it.
+     *
+     * @param tableName the name of the table
+     * @param comment an optional comment about this new collection
+     * @return the collection's ID
+     * @throws SQLException
+     */
+    public synchronized int getCollectionId(final ConditionsObjectCollection<?> collection, final String description)
+            throws SQLException {
+
+        final String caller = Thread.currentThread().getStackTrace()[2].getClassName();
+        final String log = "created by " + System.getProperty("user.name") + " using "
+                + caller.substring(caller.lastIndexOf('.') + 1);
+        final boolean opened = this.openConnection();
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        int collectionId = -1;
+        try {
+            statement = this.connection.prepareStatement(
+                    "INSERT INTO collections (table_name, log, description, created) VALUES (?, ?, ?, NOW())",
+                    Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, collection.getTableMetaData().getTableName());
+            statement.setString(2, log);
+            if (description == null) {
+                statement.setNull(3, java.sql.Types.VARCHAR);
+            } else {
+                statement.setString(3, description);
+            }
+            statement.execute();
+            resultSet = statement.getGeneratedKeys();
+            resultSet.next();
+            collectionId = resultSet.getInt(1);
+        } finally {
+            if (resultSet != null) {
+                resultSet.close();
+            }
+            if (statement != null) {
+                statement.close();
+            }
+            this.closeConnection(opened);
+        }
+        collection.setCollectionId(collectionId);
+        return collectionId;
     }
 
     /**
@@ -531,6 +535,18 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         final ConditionsSeriesConverter<ObjectType, CollectionType> converter = new ConditionsSeriesConverter(
                 objectType, collectionType);
         return converter.createSeries(tableName);
+    }
+
+    /**
+     * Get the JDBC connection.
+     *
+     * @return the JDBC connection
+     */
+    public Connection getConnection() {
+        if (!this.isConnected()) {
+            this.openConnection();
+        }
+        return this.connection;
     }
 
     /**
@@ -619,7 +635,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return <code>true</code> if a conditions record exists with the given name
      */
     public boolean hasConditionsRecord(final String name) {
-        return !this.findConditionsRecords(name).isEmpty();
+        return this.findConditionsRecords(name).size() != 0;
     }
 
     /**
@@ -690,90 +706,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
         // Flush logger after initialization.
         logger.getHandlers()[0].flush();
-    }
-
-    /**
-     * Insert a collection of ConditionsObjects into the database.
-     *
-     * @param collection the collection to insert
-     * @param <ObjectType> the type of the conditions object
-     * @throws SQLException if there is a database or SQL error
-     * @throws ConditionsObjectException if there is a problem inserting the object
-     */
-    public <ObjectType extends ConditionsObject> void insertCollection(
-            final ConditionsObjectCollection<ObjectType> collection) throws SQLException, ConditionsObjectException {
-
-        if (collection == null) {
-            throw new IllegalArgumentException("The collection is null.");
-        }
-        if (collection.size() == 0) {
-            throw new IllegalArgumentException("The collection is empty.");
-        }
-
-        TableMetaData tableMetaData = collection.getTableMetaData();
-        if (tableMetaData == null) {
-            final List<TableMetaData> metaDataList = this.tableRegistry.findByCollectionType(collection.getClass());
-            if (metaDataList == null) {
-                // This is a fatal error because no meta data is available for the type.
-                throw new ConditionsObjectException("Failed to find meta data for type: " + collection.getClass());
-            }
-            tableMetaData = metaDataList.get(0);
-        }
-        if (collection.getCollectionId() == -1) {
-            try {
-                collection.setCollectionId(this.addCollection(tableMetaData.getTableName(),
-                        "DatabaseConditionsManager created collection by " + System.getProperty("user.name"), null));
-            } catch (final ConditionsObjectException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        // FIXME: If collection ID is already set this should be an error!
-
-        logger.info("inserting collection with ID " + collection.getCollectionId() + " and key "
-                + tableMetaData.getKey() + " into table " + tableMetaData.getTableName());
-
-        final boolean openedConnection = this.openConnection();
-
-        PreparedStatement preparedStatement = null;
-
-        try {
-            this.connection.setAutoCommit(false);
-            logger.fine("starting insert transaction");
-            final String sql = QueryBuilder.buildPreparedInsert(tableMetaData.getTableName(), collection.iterator()
-                    .next());
-            preparedStatement = this.connection.prepareStatement(sql);
-            logger.fine("using prepared statement: " + sql);
-            final int collectionId = collection.getCollectionId();
-            for (final ConditionsObject object : collection) {
-                preparedStatement.setObject(1, collectionId);
-                int parameterIndex = 2;
-                if (object instanceof ConditionsRecord) {
-                    parameterIndex = 1;
-                }
-                for (final Entry<String, Object> entry : object.getFieldValues().entrySet()) {
-                    preparedStatement.setObject(parameterIndex, entry.getValue());
-                    ++parameterIndex;
-                }
-                preparedStatement.executeUpdate();
-            }
-            this.connection.commit();
-            logger.fine("committed transaction");
-        } catch (final Exception e) {
-            e.printStackTrace();
-            logger.warning(e.getMessage());
-            logger.warning("rolling back transaction");
-            this.connection.rollback();
-            logger.warning("transaction was rolled back");
-        } finally {
-            this.connection.setAutoCommit(true);
-        }
-
-        try {
-            preparedStatement.close();
-        } catch (final Exception e) {
-        }
-
-        this.closeConnection(openedConnection);
     }
 
     /**
@@ -897,6 +829,40 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         return this.tag.equals(recordTag);
     }
 
+    public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(
+            final Class<CollectionType> collectionType) {
+        final List<TableMetaData> tableMetaDataList = TableRegistry.getTableRegistry().findByCollectionType(
+                collectionType);
+        if (tableMetaDataList.size() > 1) {
+            throw new RuntimeException("More than one table meta data object returned for type: "
+                    + collectionType.getName());
+        }
+        final TableMetaData tableMetaData = tableMetaDataList.get(0);
+        CollectionType collection;
+        try {
+            collection = collectionType.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException("Error creating new collection.", e);
+        }
+        collection.setTableMetaData(tableMetaData);
+        collection.setConnection(this.getConnection());
+        return collection;
+    }
+
+    public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(
+            final Class<CollectionType> collectionType, final String tableName) {
+        final TableMetaData tableMetaData = TableRegistry.getTableRegistry().findByTableName(tableName);
+        CollectionType collection;
+        try {
+            collection = collectionType.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException("Error creating new collection.", e);
+        }
+        collection.setTableMetaData(tableMetaData);
+        collection.setConnection(this.getConnection());
+        return collection;
+    }
+
     /**
      * Open the database connection.
      *
@@ -926,7 +892,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             this.isConnected = true;
             openedConnection = true;
         }
-        logger.info("connection opened successfully");
+        logger.fine("connection opened successfully");
 
         // Flag to indicate whether an existing connection was used or not.
         return openedConnection;

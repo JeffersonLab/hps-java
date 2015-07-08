@@ -1,5 +1,6 @@
 package org.hps.conditions.svt;
 
+import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.xml.sax.Attributes;
@@ -9,7 +10,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * Handler for DAQ map events.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 public final class DaqMapHandler extends DefaultHandler {
 
@@ -69,7 +70,11 @@ public final class DaqMapHandler extends DefaultHandler {
      */
     public void addSvtChannels(final int febID, final int febHybridID) {
         for (int channel = 0; channel < CHANNELS_MAX; channel++) {
-            this.svtChannels.add(new SvtChannel(this.currentSvtChannelID, this.febID, this.hybridID, channel));
+            try {
+                this.svtChannels.add(new SvtChannel(this.currentSvtChannelID, this.febID, this.hybridID, channel));
+            } catch (final ConditionsObjectException e) {
+                throw new RuntimeException(e);
+            }
             this.currentSvtChannelID++;
         }
     }
@@ -99,24 +104,28 @@ public final class DaqMapHandler extends DefaultHandler {
     public void endElement(final String uri, final String localName, final String qName) throws SAXException {
 
         switch (qName) {
-        case "Hybrid":
-            this.daqMap.add(this.daqMapping);
-            this.addSvtChannels(this.febID, this.hybridID);
-            break;
-        case "Half":
-            this.daqMapping.setSvtHalf(this.content);
-            break;
-        case "Layer":
-            this.daqMapping.setLayerNumber(Integer.parseInt(this.content));
-            break;
-        case "Side":
-            this.daqMapping.setSide(this.content);
-            break;
-        case "Orientation":
-            this.daqMapping.setOrientation(this.content);
-            break;
-        default:
-            break;
+            case "Hybrid":
+                try {
+                    this.daqMap.add(this.daqMapping);
+                } catch (final ConditionsObjectException e) {
+                    throw new RuntimeException(e);
+                }
+                this.addSvtChannels(this.febID, this.hybridID);
+                break;
+            case "Half":
+                this.daqMapping.setSvtHalf(this.content);
+                break;
+            case "Layer":
+                this.daqMapping.setLayerNumber(Integer.parseInt(this.content));
+                break;
+            case "Side":
+                this.daqMapping.setSide(this.content);
+                break;
+            case "Orientation":
+                this.daqMapping.setOrientation(this.content);
+                break;
+            default:
+                break;
         }
     }
 
@@ -152,15 +161,15 @@ public final class DaqMapHandler extends DefaultHandler {
             throws SAXException {
 
         switch (qName) {
-        case "Feb":
-            this.febID = Integer.parseInt(attributes.getValue("id"));
-            break;
-        case "Hybrid":
-            this.hybridID = Integer.parseInt(attributes.getValue("id"));
-            this.daqMapping = new SvtDaqMapping(this.febID, this.hybridID);
-            break;
-        default:
-            break;
+            case "Feb":
+                this.febID = Integer.parseInt(attributes.getValue("id"));
+                break;
+            case "Hybrid":
+                this.hybridID = Integer.parseInt(attributes.getValue("id"));
+                this.daqMapping = new SvtDaqMapping(this.febID, this.hybridID);
+                break;
+            default:
+                break;
         }
     }
 

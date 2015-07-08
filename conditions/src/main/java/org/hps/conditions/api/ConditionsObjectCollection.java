@@ -1,25 +1,57 @@
 package org.hps.conditions.api;
 
-import java.sql.SQLException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Comparator;
-import java.util.Set;
-
-import org.hps.conditions.database.TableMetaData;
 
 /**
- * An interface representing a collection of conditions objects.
+ * Interface representing a collection of conditions objects.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
- * @param <ObjectType> The type of the conditions object contained in the collection.
+ * @author Jeremy McCormick, SLAC
+ * @param <ObjectType> the type of the objects
  */
-public interface ConditionsObjectCollection<ObjectType extends ConditionsObject> extends Set<ObjectType> {
+public interface ConditionsObjectCollection<ObjectType extends ConditionsObject> extends Iterable<ObjectType>,
+        DatabaseObject {
 
     /**
-     * Get the table meta data.
+     * Add an object to the collection.
      *
-     * @return the table meta data
+     * @param object the object to add to the collection
+     * @return <code>true</code> if object was added successfully
+     * @throws ConditionsObjectException if there was an error adding the object
      */
-    TableMetaData getTableMetaData();
+    boolean add(final ObjectType object) throws ConditionsObjectException;
+
+    /**
+     * Add all objects to the collection.
+     *
+     * @param collection the source collection with objects to add
+     */
+    void addAll(ConditionsObjectCollection<ObjectType> collection);
+
+    /**
+     * Clear the objects from this collection and reset its ID.
+     * <p>
+     * This has no effect on the underlying database values.
+     */
+    void clear();
+
+    /**
+     * Return <code>true</code> if collection contains this object.
+     *
+     * @param object the object to check
+     * @return <code>true</code> if the collection contains the object
+     */
+    boolean contains(Object object);
+
+    /**
+     * Get an object by index.
+     *
+     * @param index the index of the object
+     * @return the object
+     */
+    ObjectType get(final int index);
 
     /**
      * Get the collection ID.
@@ -29,82 +61,50 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
     int getCollectionId();
 
     /**
-     * Get the conditions record.
+     * Load collection from a CSV file.
      *
-     * @return the conditions record
+     * @param file the input CSV file
+     * @param delimiter the field delimiter (leave blank for default which is comma-delimited)
+     * @throws IOException if there is an error closing the reader
+     * @throws FileNotFoundException if the input file does not exist
+     * @throws ConditionsObjectException if there is an error creating a conditions object
      */
-    ConditionsRecord getConditionsRecord();
+    public void loadCsv(final File file) throws IOException, FileNotFoundException, ConditionsObjectException;
 
     /**
-     * Set the collection ID. Once set it cannot be assigned again, which will cause an exception.
+     * Set the collection ID.
      *
-     * @param collectionId the collection ID
-     * @throws ConditionsObjectException if reassignment of the ID is attempted
+     * @param collectionId the new collection ID
      */
-    void setCollectionId(int collectionId) throws ConditionsObjectException;
+    void setCollectionId(int collectionId);
 
     /**
-     * Insert all objects from the collection into the database.
+     * Get the size of the collection.
      *
-     * @throws ConditionsObjectException if there is a conditions object error
-     * @throws SQLException if there is a SQL syntax or execution error
+     * @return the size of the collection
      */
-    void insert() throws ConditionsObjectException, SQLException;
-
-    /**
-     * Select objects into this collection by collection ID.
-     *
-     * @return the number of rows selected
-     */
-    int select();
-
-    /**
-     * Delete objects in this from the database.
-     *
-     * @return the number of rows deleted
-     */
-    int delete();
-
-    /**
-     * Update rows in the database from these objects.
-     *
-     * @return the number of rows updated
-     */
-    int update();
-
-    /**
-     * Get an object by its index.
-     *
-     * @param index the index in the set
-     * @return the object at the index
-     * @throws IndexOutOfBoundsException if the index value is out of bounds
-     */
-    ObjectType get(int index);
+    int size();
 
     /**
      * Sort the collection in place.
      *
-     * @param comparator the comparator to use for sorting
+     * @param comparator the comparison operator to use for sorting
      */
-    void sort(Comparator<ObjectType> comparator);
+    void sort(final Comparator<ObjectType> comparator);
 
     /**
-     * Get a sorted list of the objects, leaving original collection in place.
+     * Get a sorted copy of the collection, leaving the original in place.
      *
-     * @param comparator the comparator to use for the sort
-     * @return a sorted list of the objects
+     * @param comparator the comparison operator to use
+     * @return the sorted copy of the collection
      */
-    BaseConditionsObjectCollection<ObjectType> sorted(Comparator<ObjectType> comparator);
+    ConditionsObjectCollection<ObjectType> sorted(final Comparator<ObjectType> comparator);
 
     /**
-     * Sort the collection in place.
-     */
-    void sort();
-
-    /**
-     * Get a new, sorted collection.
+     * Write the collection contents to a text file.
      *
-     * @return the new sorted collection
+     * @param file the output text file
+     * @param delimiter the field delimiter (leave blank for default which is comma-delimited)
      */
-    BaseConditionsObjectCollection<ObjectType> sorted();
+    void writeCsv(File file) throws IOException;
 }

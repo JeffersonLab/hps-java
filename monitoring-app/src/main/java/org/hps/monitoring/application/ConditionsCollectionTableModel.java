@@ -4,8 +4,8 @@ import javax.swing.table.DefaultTableModel;
 
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableMetaData;
 
 /**
  * This is a table model for a collection of conditions objects.
@@ -53,11 +53,8 @@ final class ConditionsCollectionTableModel extends DefaultTableModel {
         this.collection = collection;
         this.rowCount = this.collection.size();
 
-        final String tableName = collection.getConditionsRecord().getTableName();
-        final TableMetaData tableInfo = manager.findTableMetaData(tableName);
-
         // Set column names and count from table meta data.
-        this.setupColumns(tableInfo);
+        this.setupColumns(collection.getTableMetaData());
     }
 
     /**
@@ -134,7 +131,7 @@ final class ConditionsCollectionTableModel extends DefaultTableModel {
      */
     private void setupColumns(final TableMetaData tableInfo) {
 
-        final int fieldNameCount = tableInfo.getFieldNames().length;
+        final int fieldNameCount = tableInfo.getFieldNames().size();
         this.columnCount = fieldNameCount + 1;
 
         this.columnTypes = new Class<?>[this.columnCount];
@@ -143,10 +140,10 @@ final class ConditionsCollectionTableModel extends DefaultTableModel {
         this.columnNames[0] = "id";
         this.columnTypes[0] = int.class;
 
-        for (int i = 0; i < fieldNameCount; i++) {
-            final String fieldName = tableInfo.getFieldNames()[i];
-            this.columnNames[i + 1] = fieldName;
-            this.columnTypes[i + 1] = tableInfo.getFieldType(fieldName);
+        int columnNumber = 1;
+        for (String fieldName : tableInfo.getFieldNames()) {
+            this.columnNames[columnNumber + 1] = fieldName;
+            this.columnTypes[columnNumber + 1] = tableInfo.getFieldType(fieldName);
         }
     }
 }

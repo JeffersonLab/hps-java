@@ -11,8 +11,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.api.ConditionsRecord;
+import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableMetaData;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
@@ -23,7 +23,7 @@ import org.lcsim.util.log.LogUtil;
 /**
  * Command line tool used to load SVT conditions into the conditions database.
  *
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author Omar Moreno, UCSC
  */
 public final class SvtConditionsLoader {
 
@@ -119,9 +119,7 @@ public final class SvtConditionsLoader {
                 calibrations.setTableMetaData(tableMetaData);
 
                 // Set the collection ID.
-                final int collectionID = DatabaseConditionsManager.getInstance().addCollection(
-                        SvtConditionsLoader.CALIBRATIONS_TABLE_NAME,
-                        "added with SvtConditionsLoader by " + System.getProperty("user.name"), null);
+                final int collectionID = DatabaseConditionsManager.getInstance().getCollectionId(calibrations, null);
                 calibrations.setCollectionId(collectionID);
                 logger.info("Using collection ID " + collectionID);
 
@@ -159,9 +157,7 @@ public final class SvtConditionsLoader {
                 daqMapping.setTableMetaData(tableMetaData);
 
                 // Set the collection ID
-                int collectionID = DatabaseConditionsManager.getInstance().addCollection(
-                        SvtConditionsLoader.DAQ_MAP_TABLE_NAME,
-                        "added with SvtConditionsLoader by " + System.getProperty("user.name"), null);
+                int collectionID = DatabaseConditionsManager.getInstance().getCollectionId(daqMapping, null);
                 daqMapping.setCollectionId(collectionID);
                 logger.info("Using collection ID " + collectionID);
 
@@ -186,9 +182,7 @@ public final class SvtConditionsLoader {
                 svtChannels.setTableMetaData(tableMetaData);
 
                 // Set the collection ID
-                collectionID = DatabaseConditionsManager.getInstance().addCollection(
-                        SvtConditionsLoader.SVT_CHANNELS_TABLE_NAME,
-                        "added with SvtConditionsLoader by " + System.getProperty("user.name"), null);
+                collectionID = DatabaseConditionsManager.getInstance().getCollectionId(svtChannels, null);
                 svtChannels.setCollectionId(collectionID);
                 logger.info("Using collection ID " + collectionID);
 

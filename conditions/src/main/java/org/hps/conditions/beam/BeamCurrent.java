@@ -10,7 +10,7 @@ import org.hps.conditions.database.Table;
 /**
  * This class is a conditions object for integrated beam current values.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"beam_current"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
@@ -25,10 +25,11 @@ public final class BeamCurrent extends BaseConditionsObject {
 
     /**
      * Get the integrated beam current.
+     *
      * @return the integrated beam current
      */
     @Field(names = {"beam_current"})
-    public double getIntegratedBeamCurrent() {
-        return getFieldValue("beam_current");
+    public Double getIntegratedBeamCurrent() {
+        return this.getFieldValue("beam_current");
     }
 }

@@ -14,7 +14,7 @@ import org.lcsim.conditions.ConditionsManager;
 /**
  * Converter for combined Test Run SVT conditions {@link TestRunSvtConditions} object.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsConverter<TestRunSvtConditions> {
 
@@ -23,49 +23,6 @@ public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsCo
      */
     public TestRunSvtConditionsConverter() {
         this.conditions = new TestRunSvtConditions();
-    }
-
-    /**
-     * Get the Test Run {@link SvtShapeFitParametersCollection}.
-     *
-     * @param manager the conditions manager
-     * @return the Test Run {@link SvtShapeFitParametersCollection}
-     */
-    protected SvtShapeFitParametersCollection getSvtShapeFitParametersCollection(
-            final DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(SvtShapeFitParametersCollection.class,
-                "test_run_svt_shape_fit_parameters").getCachedData();
-    }
-
-    /**
-     * Get the Test Run series of {@link SvtBadChannelCollection} objects
-     *
-     * @param manager the conditions manager
-     * @return the Test Run bad channel collections
-     */
-    protected ConditionsSeries<SvtBadChannel, SvtBadChannelCollection> getSvtBadChannelSeries(
-            final DatabaseConditionsManager manager) {
-        return manager.getConditionsSeries(SvtBadChannelCollection.class, "test_run_svt_bad_channels");
-    }
-
-    /**
-     * Get the Test Run {@link SvtCalibrationCollection}.
-     *
-     * @param manager the conditions manager
-     * @return the Test Run {@link SvtCalibrationCollection}
-     */
-    protected SvtCalibrationCollection getSvtCalibrationCollection(final DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(SvtCalibrationCollection.class, "test_run_svt_calibrations").getCachedData();
-    }
-
-    /**
-     * Get the Test Run {@link SvtGainCollection}.
-     *
-     * @param manager the conditions manager
-     * @return the Test Run {@link SvtGainCollection}
-     */
-    protected SvtGainCollection getSvtGainCollection(final DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(SvtGainCollection.class, "test_run_svt_gains").getCachedData();
     }
 
     /**
@@ -85,25 +42,72 @@ public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsCo
 
         // Create the SVT conditions object to use to encapsulate SVT condition
         // collections
-        conditions.setChannelMap(channels);
+        this.conditions.setChannelMap(channels);
 
         // Get the DAQ map from the conditions database
         final TestRunSvtDaqMappingCollection daqMap = dbConditionsManager.getCachedConditions(
                 TestRunSvtDaqMappingCollection.class, "test_run_svt_daq_map").getCachedData();
-        conditions.setDaqMap(daqMap);
+        this.conditions.setDaqMap(daqMap);
 
         // Get the collection of T0 shifts from the conditions database
         final TestRunSvtT0ShiftCollection t0Shifts = dbConditionsManager.getCachedConditions(
                 TestRunSvtT0ShiftCollection.class, "test_run_svt_t0_shifts").getCachedData();
-        conditions.setT0Shifts(t0Shifts);
+        this.conditions.setT0Shifts(t0Shifts);
 
-        conditions = super.getData(manager, name);
+        this.conditions = super.getData(manager, name);
 
-        return conditions;
+        return this.conditions;
+    }
+
+    /**
+     * Get the Test Run series of {@link SvtBadChannelCollection} objects
+     *
+     * @param manager the conditions manager
+     * @return the Test Run bad channel collections
+     */
+    @Override
+    protected ConditionsSeries<SvtBadChannel, SvtBadChannelCollection> getSvtBadChannelSeries(
+            final DatabaseConditionsManager manager) {
+        return manager.getConditionsSeries(SvtBadChannelCollection.class, "test_run_svt_bad_channels");
+    }
+
+    /**
+     * Get the Test Run {@link SvtCalibrationCollection}.
+     *
+     * @param manager the conditions manager
+     * @return the Test Run {@link SvtCalibrationCollection}
+     */
+    @Override
+    protected SvtCalibrationCollection getSvtCalibrationCollection(final DatabaseConditionsManager manager) {
+        return manager.getCachedConditions(SvtCalibrationCollection.class, "test_run_svt_calibrations").getCachedData();
+    }
+
+    /**
+     * Get the Test Run {@link SvtGainCollection}.
+     *
+     * @param manager the conditions manager
+     * @return the Test Run {@link SvtGainCollection}
+     */
+    @Override
+    protected SvtGainCollection getSvtGainCollection(final DatabaseConditionsManager manager) {
+        return manager.getCachedConditions(SvtGainCollection.class, "test_run_svt_gains").getCachedData();
+    }
+
+    /**
+     * Get the Test Run {@link SvtShapeFitParametersCollection}.
+     *
+     * @param manager the conditions manager
+     * @return the Test Run {@link SvtShapeFitParametersCollection}
+     */
+    @Override
+    protected SvtShapeFitParametersCollection getSvtShapeFitParametersCollection(final DatabaseConditionsManager manager) {
+        return manager.getCachedConditions(SvtShapeFitParametersCollection.class, "test_run_svt_shape_fit_parameters")
+                .getCachedData();
     }
 
     /**
      * Get the type handled by this converter.
+     *
      * @return The type handled by this converter.
      */
     @Override

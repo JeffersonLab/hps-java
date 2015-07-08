@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunRange;
@@ -18,10 +19,10 @@ import org.hps.conditions.svt.SvtTimingConstants.SvtTimingConstantsCollection;
 /**
  * Load SVT timing constant data from the run spreadsheet and insert into the conditions database.
  * <p>
- * Be very careful about running this, because it will create many new conditions records that may already be present in the database. In fact, don't
- * run this at all without talking to me first. :-)
+ * Be very careful about running this, because it will create many new conditions records that may already be present in
+ * the database. In fact, don't run this at all without talking to me first. :-)
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 public final class SvtTimingConstantsLoader {
 
@@ -58,7 +59,11 @@ public final class SvtTimingConstantsLoader {
             timing.setFieldValue("offset_time", offsetTime);
 
             final SvtTimingConstantsCollection collection = new SvtTimingConstantsCollection();
-            collection.add(timing);
+            try {
+                collection.add(timing);
+            } catch (final ConditionsObjectException e) {
+                throw new RuntimeException(e);
+            }
             collections.add(collection);
         }
         return collections;
@@ -74,8 +79,8 @@ public final class SvtTimingConstantsLoader {
      * @param offsetTime the offset time
      * @return the matching collection or <code>null</code> if not found
      */
-    private static SvtTimingConstantsCollection findCollection(final List<SvtTimingConstantsCollection> timingConstantsList, final int offsetPhase,
-            final double offsetTime) {
+    private static SvtTimingConstantsCollection findCollection(
+            final List<SvtTimingConstantsCollection> timingConstantsList, final int offsetPhase, final double offsetTime) {
         for (final SvtTimingConstantsCollection collection : timingConstantsList) {
             if (collection.find(offsetPhase, offsetTime) != null) {
                 return collection;
@@ -102,8 +107,8 @@ public final class SvtTimingConstantsLoader {
         final List<Collection<String>> uniqueValues = RunRange.getUniqueValues(ranges);
 
         /*
-         * System.out.println("unique values ..."); for (Collection<String> collection : uniqueValues) { for (String value : collection) {
-         * System.out.print(value + " "); } System.out.println(); }
+         * System.out.println("unique values ..."); for (Collection<String> collection : uniqueValues) { for (String
+         * value : collection) { System.out.print(value + " "); } System.out.println(); }
          */
 
         // Create a new collection for each unique combination set of timing constants.
@@ -113,8 +118,7 @@ public final class SvtTimingConstantsLoader {
         for (final SvtTimingConstantsCollection collection : collections) {
             int collectionId = 0;
             try {
-                collectionId = MANAGER.addCollection("svt_timing_constants", "SVT timing constants added by " + System.getProperty("user.name"),
-                        "timing constants from run spreadsheet");
+                collectionId = MANAGER.getCollectionId(collection, "timing constants from run spreadsheet");
                 collection.setCollectionId(collectionId);
                 collection.insert();
             } catch (final Exception e) {
@@ -134,7 +138,8 @@ public final class SvtTimingConstantsLoader {
             // Find the matching timing constants collection to use.
             final SvtTimingConstantsCollection collection = findCollection(collections, offsetPhase, offsetTime);
             if (collection != null) {
-                System.out.println("offset_phase : " + collection.get(0).getOffsetPhase() + ", offset_time: " + collection.get(0).getOffsetTime());
+                System.out.println("offset_phase : " + collection.get(0).getOffsetPhase() + ", offset_time: "
+                        + collection.get(0).getOffsetTime());
             }
 
             // Create a new conditions record with the run range.
