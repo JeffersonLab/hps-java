@@ -26,16 +26,21 @@ public class StraightTrackAnalysis extends Driver {
 
     protected AIDA aida = AIDA.defaultInstance();
     private String mcSvtHitsName = "TrackerHits";
-    private String rawHitsName = "RawTrackerHitMaker_RawTrackerHits";
+//    private String rawHitsName = "RawTrackerHitMaker_RawTrackerHits";
+      private String rawHitsName = "SVTRawTrackerHits";
     private String clustersName = "StripClusterer_SiTrackerHitStrip1D";
     private final String helicalTrackMCRelationsCollectionName = "HelicalTrackMCRelations";
     private final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
     private final String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private String hthName = "HelicalTrackHits";
-    private String tracksName = "StraightTracks";
+    private String trackCollectionName = "StraightTracks";
 
     int nevents = 0;
 
+    public void setTrackCollectionName(String name){
+        this.trackCollectionName=name;
+    }
+    
     public void detectorChanged(Detector detector) {
         aida.tree().cd("/");
         IHistogram1D nSimHits = aida.histogram1D("Number of SVT Sim Hits", 25, 0, 25.0);
@@ -48,10 +53,10 @@ public class StraightTrackAnalysis extends Driver {
 
     public void process(EventHeader event) {
         nevents++;
-        if (!event.hasCollection(SimTrackerHit.class, mcSvtHitsName))
-            return;
-        List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, mcSvtHitsName);
-        aida.histogram1D("Number of SVT Sim Hits").fill(simHits.size());
+//        if (!event.hasCollection(SimTrackerHit.class, mcSvtHitsName))
+//            return;
+//        List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, mcSvtHitsName);
+//        aida.histogram1D("Number of SVT Sim Hits").fill(simHits.size());
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawHitsName);
         List<TrackerHit> clusters = event.get(TrackerHit.class, clustersName);
         List<TrackerHit> hths = event.get(TrackerHit.class, hthName);
@@ -78,7 +83,7 @@ public class StraightTrackAnalysis extends Driver {
         for (int i = 0; i < 6; i++)
             totLayers += hitInLayer[i];
         aida.histogram1D("Number of Layers Hit").fill(totLayers);
-        List<Track> tracks = event.get(Track.class, tracksName);
+        List<Track> tracks = event.get(Track.class, trackCollectionName);
         aida.histogram1D("Number of Tracks found").fill(tracks.size());
 
         //make some maps and relation tables        
@@ -122,8 +127,8 @@ public class StraightTrackAnalysis extends Driver {
 
         for (Track trk : tracks) {
 //            StraightTrack stght = (StraightTrack) trk;
-            aida.histogram1D("d0", 50, -2, 2).fill(trk.getTrackStates().get(0).getParameters()[0]);
-            aida.histogram1D("z0", 50, -2, 2).fill(trk.getTrackStates().get(0).getParameters()[3]);
+            aida.histogram1D("d0", 50, -50, 50).fill(trk.getTrackStates().get(0).getParameters()[0]);
+            aida.histogram1D("z0", 50, -50, 50).fill(trk.getTrackStates().get(0).getParameters()[3]);
             aida.histogram1D("xy slope", 50, -0.2, 0.25).fill(trk.getTrackStates().get(0).getParameters()[1]);
             aida.histogram1D("sz slope", 50, -0.25, 0.25).fill(trk.getTrackStates().get(0).getParameters()[4]);
             aida.histogram1D("track chi2 per ndf", 50, 0, 2).fill(trk.getChi2() / trk.getNDF());
