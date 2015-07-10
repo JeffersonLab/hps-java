@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,7 @@ import org.lcsim.util.log.LogUtil;
 import org.xml.sax.InputSource;
 
 /**
- * Utility class for using the <i>jcache</i> command at JLAB.
+ * Utility class for caching files from the MSS to cache disk at JLAB.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -50,7 +51,7 @@ final class JCacheManager {
          * The current status from executing the 'jcache request' command.
          */
         private String status;
-        
+
         /**
          * The xml node with request data.
          */
@@ -98,9 +99,7 @@ final class JCacheManager {
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
-            // LOGGER.finer("raw XML: " + xmlString);
             xmlString = xmlString.substring(xmlString.trim().indexOf("<jcache>"));
-            // LOGGER.finer("cleaned XML: " + xmlString);
             return buildDocument(xmlString).getRootElement();
         }
 
@@ -152,14 +151,14 @@ final class JCacheManager {
         boolean isPending() {
             return "pending".equals(this.status);
         }
-        
+
         /**
          * Return <code>true</code> if status is "failed".
          */
         boolean isFailed() {
             return "failed".equals(this.status);
         }
-        
+
         /**
          * Get the error message from the XML request.
          * 
@@ -172,7 +171,7 @@ final class JCacheManager {
                 return "";
             }
         }
-      
+
         /**
          * Run the <i>jcache request</i> command for this request ID and return the XML output.
          * 
@@ -194,7 +193,7 @@ final class JCacheManager {
             if (status != 0) {
                 throw new RuntimeException("The jcache request returned an error status: " + status);
             }
-            return this.getRequestXml(process.getInputStream());            
+            return this.getRequestXml(process.getInputStream());
         }
 
         /**
@@ -203,10 +202,10 @@ final class JCacheManager {
         void update() {
             // Request status update and get the XML from that process.
             this.xml = request();
-            
+
             // Update the status from the XML.
             this.status = this.xml.getChild("request").getChild("file").getChildText("status");
-            
+
             // Is request done or file already in cache?
             if (this.isDone() || this.isHit()) {
                 // Flag file as cached.
@@ -231,9 +230,9 @@ final class JCacheManager {
     private static Logger LOGGER = LogUtil.create(JCacheManager.class, new DefaultLogFormatter(), Level.FINE);
 
     /**
-     * Time to wait between polling of all files (~10 seconds).
+     * Time to wait between re-polling all files (30 seconds).
      */
-    private static final long POLL_WAIT_TIME = 10000;
+    private static final long POLL_WAIT_TIME = 30000;
 
     /**
      * Build an XML document from a string.
@@ -242,7 +241,7 @@ final class JCacheManager {
      * @return the XML document
      */
     private static Document buildDocument(final String xmlString) {
-        LOGGER.fine("building doc from string: " + xmlString);
+        LOGGER.fine(xmlString);
         final SAXBuilder builder = new SAXBuilder();
         Document document = null;
         try {
@@ -293,14 +292,14 @@ final class JCacheManager {
     private long maxWaitTime = DEFAULT_MAX_WAIT_TIME;
 
     /**
-     * The time when the caching operation starts.
+     * The time in milliseconds when the caching operation started.
      */
     long start = 0;
 
     /**
      * Cache a file by submitting a 'jcache submit' process.
      * <p>
-     * The resulting cache request will be registered with this manager until the {@link #clear()} method is called.
+     * The resulting cache request will be registered with this manager.
      *
      * @param file the file to cache which should be a path on the JLAB MSS (e.g. starts with '/mss')
      */
@@ -311,7 +310,7 @@ final class JCacheManager {
         }
 
         if (EvioFileUtilities.getCachedFile(file).exists()) {
-            // Assume (maybe unreasonably?!) that since the file already exists it will stay in the cache for the duration of the job.
+            // Assume that since the file already exists it will stay in the cache for the duration of the job.
             LOGGER.fine(file.getPath() + " is already on the cache disk so cache request is ignored");
         } else {
 
@@ -330,7 +329,7 @@ final class JCacheManager {
     }
 
     /**
-     * Submit cache request for every file in a list.
+     * Submit a cache request for every file in the list.
      *
      * @param files the list of files
      */
@@ -356,7 +355,8 @@ final class JCacheManager {
             // Get the cache status for a single file.
             final CacheStatus cacheStatus = entry.getValue();
 
-            LOGGER.info("checking status of " + cacheStatus.getFile().getPath() + " with req ID '" + cacheStatus.getRequestId() + "' ...");
+            LOGGER.info("checking status of " + cacheStatus.getFile().getPath() + " with req ID '"
+                    + cacheStatus.getRequestId() + "' ...");
 
             // Is this file flagged as not non-cached?
             if (!cacheStatus.isCached()) {
@@ -375,9 +375,10 @@ final class JCacheManager {
                     LOGGER.info(entry.getKey() + " is NOT cached with status " + cacheStatus.getStatus(false));
                 } else {
                     // Log that this file is now cached. It will not be checked next time.
-                    LOGGER.info(cacheStatus.getFile().getPath() + " is cached with status " + cacheStatus.getStatus(false));
+                    LOGGER.info(cacheStatus.getFile().getPath() + " is cached with status "
+                            + cacheStatus.getStatus(false));
                 }
-                
+
                 // Did the request fail?
                 if (cacheStatus.isFailed()) {
                     // Cache failure is a fatal error.
@@ -535,6 +536,11 @@ final class JCacheManager {
                 break;
             }
         }
+
+        double end = (double) (System.currentTimeMillis() - this.start);
+
+        LOGGER.info("caching took " + new DecimalFormat("#.##").format(end / 1000. / 60.) + " minutes");
+
         if (cached) {
             LOGGER.info("all files cached successfully!");
         } else {

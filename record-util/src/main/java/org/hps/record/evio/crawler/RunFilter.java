@@ -5,7 +5,7 @@ import java.io.FileFilter;
 import java.util.Set;
 
 /**
- * A filter which rejects files that have a run number not in the accept list.
+ * A filter which rejects files with run numbers not in a specified set.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -17,7 +17,7 @@ final class RunFilter implements FileFilter {
     private final Set<Integer> acceptRuns;
 
     /**
-     * Create a new <code>RunFilter</code> with a set of runs to accept.
+     * Create a new <code>RunFilter</code> with a set of run numbers to accept.
      *
      * @param acceptRuns the set of runs to accept
      */
@@ -29,7 +29,7 @@ final class RunFilter implements FileFilter {
     }
 
     /**
-     * Returns <code>true</code> if file is accepted (its run number is in the set).
+     * Returns <code>true</code> if file is accepted.
      *
      * @param file the EVIO file
      * @return <code>true</code> if file is accepted

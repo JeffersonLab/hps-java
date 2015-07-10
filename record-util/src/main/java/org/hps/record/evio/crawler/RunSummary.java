@@ -15,8 +15,8 @@ import org.hps.record.scalers.ScalerData;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * This class models the run summary information which is persisted as a row in the <i>run_log</i>
- * table of the run database.
+ * This class models the run summary information which is persisted as a row in the <i>run_log</i> table of the run
+ * database.
  * <p>
  * This information includes:
  * <ul>
@@ -40,7 +40,7 @@ public final class RunSummary {
     static {
         DATE_DISPLAY.setCalendar(new GregorianCalendar(TimeZone.getTimeZone("America/New_York")));
     }
-    
+
     /**
      * Setup logger.
      */
@@ -151,7 +151,7 @@ public final class RunSummary {
     public EvioFileList getEvioFileList() {
         return this.files;
     }
-    
+
     /**
      * Get the run number.
      *
@@ -185,12 +185,13 @@ public final class RunSummary {
      * @return the total events in the run
      */
     public int getTotalEvents() {
-        if (this.totalEvents == -1) {
-            this.totalEvents = this.files.getTotalEvents();
-        }
         return this.totalEvents;
     }
-    
+
+    void setTotalEvents(int totalEvents) {
+        this.totalEvents = totalEvents;
+    }
+
     /**
      * Get the number of seconds in the run which is the difference between the start and end times.
      * 
@@ -205,10 +206,10 @@ public final class RunSummary {
         }
         return (getEndDate().getTime() - getStartDate().getTime()) / 1000;
     }
-    
+
     /**
-     * Get the event rate (effectively the trigger rate) which is the total events divided by the number
-     * of seconds in the run.
+     * Get the event rate (effectively the trigger rate) which is the total events divided by the number of seconds in
+     * the run.
      * 
      * @return the event rate
      */
@@ -289,6 +290,11 @@ public final class RunSummary {
         this.eventTypeCounts = eventTypeCounts;
     }
 
+    /**
+     * Set the scaler data of the run.
+     * 
+     * @param scalerData the scaler data
+     */
     void setScalerData(final ScalerData scalerData) {
         this.scalerData = scalerData;
     }
@@ -316,7 +322,7 @@ public final class RunSummary {
      */
     @Override
     public String toString() {
-        return "RunSummary { run: " + this.run + ", started: " + this.getStartDate() + ", ended: " + this.getEndDate() + ", events: "
-                + this.getTotalEvents() + ", endOkay: " + endOkay + " }";
+        return "RunSummary { run: " + this.run + ", started: " + this.getStartDate() + ", ended: " + this.getEndDate()
+                + ", events: " + this.getTotalEvents() + ", endOkay: " + endOkay + " }";
     }
 }

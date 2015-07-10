@@ -16,7 +16,8 @@ import org.jlab.coda.jevio.EvioEvent;
 final class EpicsLog extends EvioEventProcessor {
 
     /**
-     * A count of how many times a given EPICS variable is found in the input, e.g. for computing the mean value across the run.
+     * A count of how many times a given EPICS variable is found in the input, e.g. for computing the mean value across
+     * the entire run.
      */
     private final Map<String, Integer> counts = new HashMap<String, Integer>();
 
@@ -80,7 +81,7 @@ final class EpicsLog extends EvioEventProcessor {
     /**
      * Update state from the current EPICS data.
      * <p>
-     * If the current data is null, this method does nothing.
+     * If the current data is <code>null</code>, this method does nothing.
      */
     private void update() {
         if (this.currentData != null) {
@@ -96,8 +97,9 @@ final class EpicsLog extends EvioEventProcessor {
                 this.counts.put(name, count);
                 final double value = this.logData.getValue(name) + this.currentData.getValue(name);
                 this.logData.setValue(name, value);
-                //System.out.println(name + " => added " + this.currentData.getValue(name) + "; total = " + value + "; mean = " + value / count);
+                // System.out.println(name + " => added " + this.currentData.getValue(name) + "; total = " + value +
+                // "; mean = " + value / count);
             }
         }
-    }       
+    }
 }

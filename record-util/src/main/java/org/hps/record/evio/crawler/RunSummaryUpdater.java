@@ -74,13 +74,13 @@ public class RunSummaryUpdater {
 
         // Delete scaler data.
         this.deleteScalerData();
-        
+
         // Delete file list.
         this.deleteFiles();
 
         // Delete run log.
         this.deleteRun();
-                
+
         LOGGER.info("deleted run " + runSummary.getRun() + " info successfully");
     }
 
@@ -94,7 +94,7 @@ public class RunSummaryUpdater {
         statement.setInt(1, this.run);
         statement.executeUpdate();
     }
-    
+
     /**
      * Delete existing EPICS data from the run_log_epics table.
      *
@@ -136,7 +136,7 @@ public class RunSummaryUpdater {
     }
 
     void insert() throws SQLException {
-        
+
         LOGGER.info("performing db insert for " + runSummary);
 
         // Turn auto-commit off as this whole method is a single transaction.
@@ -150,7 +150,8 @@ public class RunSummaryUpdater {
                 this.delete();
             } else {
                 // Rows exist but updating is disallowed which is a fatal error.
-                final RuntimeException x = new RuntimeException("Run " + runSummary.getRun() + " already exists and deleting is not allowed.");
+                final RuntimeException x = new RuntimeException("Run " + runSummary.getRun()
+                        + " already exists and deleting is not allowed.");
                 LOGGER.log(Level.SEVERE, x.getMessage(), x);
                 throw x;
             }
@@ -184,7 +185,8 @@ public class RunSummaryUpdater {
      * @throws SQLException if there is an error performing the db query
      */
     private void insertEpics() throws SQLException {
-        final PreparedStatement statement = connection.prepareStatement("INSERT INTO run_epics (run, variable_name, value) values (?, ?, ?)");
+        final PreparedStatement statement = connection
+                .prepareStatement("INSERT INTO run_epics (run, variable_name, value) values (?, ?, ?)");
         final EpicsData data = runSummary.getEpicsData();
         if (data != null) {
             for (final String variableName : data.getUsedNames()) {
@@ -254,6 +256,11 @@ public class RunSummaryUpdater {
         return rs.first();
     }
 
+    /**
+     * Set whether deletion and replacement of existing run information is allowed.
+     * 
+     * @param allowDeleteExisting <code>true</code> to allow deletion and replacement of existing information
+     */
     void setAllowDeleteExisting(final boolean allowDeleteExisting) {
         this.allowDeleteExisting = allowDeleteExisting;
     }

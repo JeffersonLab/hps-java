@@ -24,8 +24,8 @@ import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * Crawls EVIO files in a directory tree, groups the files that are found by run, and optionally performs various tasks based on the run summary
- * information that is accumulated, including printing a summary, caching the files from JLAB MSS, and updating a run database.
+ * Search for EVIO files in a directory tree, group the files that are found by run, extract meta data from these
+ * files, and optionally update a run database with the information that was found.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -51,12 +51,12 @@ public final class Crawler {
      */
     static {
         OPTIONS.addOption("a", "runs", true, "list of run numbers to accept (others will be excluded)");
-        OPTIONS.addOption("b", "min-date", true, "min date for files (example 2015-03-26 11:28:59)");
-        OPTIONS.addOption("c", "cache", false, "automatically cache files from MSS (JLAB only)");
+        OPTIONS.addOption("b", "min-date", true, "min date for a file (example \"2015-03-26 11:28:59\")");
+        OPTIONS.addOption("c", "cache", false, "automatically cache files from MSS to cache disk (JLAB only)");
         OPTIONS.addOption("C", "connection-properties", true, "database connection properties file (required)");
         OPTIONS.addOption("d", "directory", true, "root directory to start crawling (default is current dir)");
-        OPTIONS.addOption("E", "evio-processor", true, "full class name of an EvioEventProcessor to execute (can be used multiple times)");
-        OPTIONS.addOption("h", "help", false, "print help and exit");
+        OPTIONS.addOption("E", "evio-processor", true, "class name of an EvioEventProcessor to execute");
+        OPTIONS.addOption("h", "help", false, "print help and exit (overrides all other arguments)");
         OPTIONS.addOption("m", "max-files", true, "max number of files to process per run (mostly for debugging)");
         OPTIONS.addOption("p", "print", true, "set event printing interval during EVIO processing");
         OPTIONS.addOption("r", "insert", false, "insert information into the run database (not done by default)");
@@ -67,7 +67,7 @@ public final class Crawler {
     }
 
     /**
-     * Support running the crawler from the command line.
+     * Run the crawler from the command line.
      *
      * @param args the command line arguments
      */
@@ -88,24 +88,24 @@ public final class Crawler {
      * The options parser.
      */
     private final PosixParser parser = new PosixParser();
-    
+
     /**
      * Configuration options from the command line.
      */
     private CrawlerConfig config;
-    
+
     /**
-     * Parse command line options into internal configuration object.
+     * Parse command line options and create a new {@link Crawler} object from the configuration.
      *
      * @param args the command line arguments
      * @return the configured crawler object
      */
     private Crawler parse(final String args[]) {
-        
+
         LOGGER.info("parsing command line options");
-        
+
         config = new CrawlerConfig();
-        
+
         try {
             final CommandLine cl = this.parser.parse(OPTIONS, args);
 
@@ -126,12 +126,15 @@ public final class Crawler {
                 final String dbPropPath = cl.getOptionValue("C");
                 final File dbPropFile = new File(dbPropPath);
                 if (!dbPropFile.exists()) {
-                    throw new IllegalArgumentException("Connection properties file " + dbPropFile.getPath() + " does not exist.");
-                }                
-                config.setConnection(ConnectionParameters.fromProperties(dbPropFile));
+                    throw new IllegalArgumentException("Connection properties file " + dbPropFile.getPath()
+                            + " does not exist.");
+                }
+                ConnectionParameters connectionParameters = ConnectionParameters.fromProperties(dbPropFile);
+                config.setConnection(connectionParameters);
                 LOGGER.config("using " + dbPropPath + " for db connection properties");
             } else {
-                throw new RuntimeException("The -C switch providing the database connection properties file is a required argument.");
+                throw new RuntimeException(
+                        "The -C switch providing the database connection properties file is a required argument.");
             }
 
             // Root directory for file crawling.
@@ -155,17 +158,19 @@ public final class Crawler {
                     try {
                         // Create new time stamp file which will have its date updated at the end of the job.
                         LOGGER.config("creating new timestamp file " + timestampFile.getPath());
-                        timestampFile.createNewFile();                        
+                        timestampFile.createNewFile();
                     } catch (final IOException e) {
                         throw new IllegalArgumentException("Error creating timestamp file: " + timestampFile.getPath());
                     }
                 } else {
                     try {
                         // Get the date filter for files from an existing time stamp file provided by the user.
-                        Date timestamp = new Date(Files.readAttributes(config.timestampFile().toPath(), BasicFileAttributes.class).lastModifiedTime()
-                                .toMillis());
+                        Date timestamp = new Date(Files
+                                .readAttributes(config.timestampFile().toPath(), BasicFileAttributes.class)
+                                .lastModifiedTime().toMillis());
                         config.setTimestamp(timestamp);
-                        LOGGER.config("got timestamp " + timestamp + " from existing file " + config.timestampFile().getPath());
+                        LOGGER.config("got timestamp " + timestamp + " from existing file "
+                                + config.timestampFile().getPath());
                     } catch (final IOException e) {
                         throw new RuntimeException("Error getting attributes of timestamp file.", e);
                     }
@@ -226,7 +231,8 @@ public final class Crawler {
             if (cl.hasOption("b")) {
                 try {
                     if (config.timestamp() != null) {
-                        LOGGER.warning("existing timestamp from file " + config.timestamp() + " will be overridden by date from -b argument");
+                        LOGGER.warning("existing timestamp from file " + config.timestamp()
+                                + " will be overridden by date from -b argument");
                     }
                     config.setTimestamp(cl.getOptionValue("b"));
                     LOGGER.config("set timestamp to " + config.timestamp() + " from -b argument");
@@ -250,30 +256,32 @@ public final class Crawler {
         } catch (final ParseException e) {
             throw new RuntimeException("Error parsing options.", e);
         }
-        
+
         LOGGER.info("done parsing command line options");
 
         return this;
     }
 
     /**
-     * Print the usage statement for this tool to the console and exit.
+     * Print the usage statement for this tool to the console and then exit the program.
      */
     private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         help.printHelp("EvioFileCrawler", "", OPTIONS, "");
         System.exit(0);
     }
-   
+
     /**
-     * Run the full crawler job, including all configured file-processing steps, which may take a very long time!
+     * Run the full crawler job.
+     * <p>
+     * This might take quite a long time!
      *
      * @throws Exception if there is some error during the job
      */
     public void run() throws Exception {
 
         LOGGER.info("running Crawler job");
-        
+
         // Create the file visitor for crawling the root directory with the given date filter.
         final EvioFileVisitor visitor = new EvioFileVisitor(config.timestamp());
 
@@ -284,12 +292,12 @@ public final class Crawler {
         final RunLog runs = visitor.getRunLog();
 
         // Print the run numbers that were found.
-        printRunNumbers(runs);
+        runs.printRunNumbers();
 
         // Sort the files on their sequence numbers.
-        runs.sortAllFiles();
+        runs.sortFiles();
 
-        // Process all the files, performing caching from MSS if necessary. 
+        // Process all the files, performing caching from the MSS if necessary.
         RunProcessor.processRuns(this.cacheManager, runs, config);
 
         // Print the summary information after the run processing is done.
@@ -320,15 +328,6 @@ public final class Crawler {
             // Close the DB connection.
             connection.close();
         }
-    }
-
-    private void printRunNumbers(final RunLog runs) {
-        // Print the list of runs that were found.
-        final StringBuffer sb = new StringBuffer();
-        for (final Integer run : runs.getSortedRunNumbers()) {
-            sb.append(run + " ");
-        }
-        LOGGER.info("found EVIO files from runs: " + sb.toString());
     }
 
     private void walk(final EvioFileVisitor visitor) {

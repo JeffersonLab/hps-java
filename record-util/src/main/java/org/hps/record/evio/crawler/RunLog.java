@@ -11,9 +11,7 @@ import java.util.logging.Logger;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * This class contains summary information about a series of runs which are modeled with the {@link RunSummary} class.
- * <p> 
- * These can be looked up by their run number {@link #getRunSummary(int)}.
+ * This class contains information about a series of runs which each have a {@link RunSummary} object.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -30,9 +28,9 @@ final class RunLog {
     private final Map<Integer, RunSummary> runs = new LinkedHashMap<Integer, RunSummary>();
 
     /**
-     * Get a run summary by run number.
+     * Get a {@link RunSummary} by its run number.
      * <p>
-     * It will be created if it does not exist.
+     * It will be created if it does not exist already.
      *
      * @param run the run number
      * @return the <code>RunSummary</code> for the run number
@@ -44,15 +42,20 @@ final class RunLog {
         }
         return this.runs.get(run);
     }
-    
+
+    /**
+     * Get the collection of {@link RunSummary} objects.
+     * 
+     * @return the collection of {@link RunSummary} objects
+     */
     public Collection<RunSummary> getRunSummaries() {
         return this.runs.values();
     }
 
     /**
-     * Get a list of sorted run numbers in this run log.
+     * Get a list of sorted run numbers from this run log.
      * <p>
-     * This is a copy of the keys from the map so modifying it will have no effect on this class.
+     * This is a copy of the keys from the map, so modifying it will have no effect on the original.
      *
      * @return the list of sorted run numbers
      */
@@ -63,7 +66,7 @@ final class RunLog {
     }
 
     /**
-     * Print out the run summaries to <code>System.out</code>.
+     * Print out each {@link RunSummary} to <code>System.out</code>.
      */
     void printRunSummaries() {
         for (final int run : this.runs.keySet()) {
@@ -72,11 +75,24 @@ final class RunLog {
     }
 
     /**
-     * Sort all the file lists in place (by sequence number).
+     * Sort the file list for each run in place by EVIO sequence numbers.
      */
-    void sortAllFiles() {
+    void sortFiles() {
         for (final Integer run : this.runs.keySet()) {
             this.runs.get(run).sortFiles();
         }
     }
+
+    /**
+     * Print the run numbers to the log.
+     */
+    void printRunNumbers() {
+        // Print the list of runs that were found.
+        final StringBuffer sb = new StringBuffer();
+        for (final Integer run : getSortedRunNumbers()) {
+            sb.append(run + " ");
+        }
+        LOGGER.info("found EVIO files from runs: " + sb.toString());
+    }
+
 }

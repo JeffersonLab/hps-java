@@ -17,7 +17,7 @@ import java.util.Date;
 final class DateFileFilter implements FileFilter {
 
     /**
-     * The cut off time stamp.
+     * The cut off timestamp.
      */
     private final Date date;
 

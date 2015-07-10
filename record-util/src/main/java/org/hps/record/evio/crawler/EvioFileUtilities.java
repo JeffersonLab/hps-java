@@ -14,7 +14,7 @@ import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * A miscellaneous collection of EVIO file utility methods used by classes in the crawler package.
+ * A miscellaneous collection of EVIO file utility methods used by the crawler package.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -108,23 +108,33 @@ final class EvioFileUtilities {
     }
 
     /**
-     * Get the run end date which is taken either from the END event or the last physics event is the END event is not found.
+     * Get the run end date which is taken either from the END event or the last physics event if the END event is not
+     * found in the file.
      *
      * @param file the EVIO file
      * @return the run end date
      */
     static Date getRunEnd(final File file) {
-        Date date = getControlDate(file, EvioEventConstants.END_EVENT_TAG, -10);
-        if (date == null) {
+        
+        // Search for the END event in the last 10 events of the file.
+        Date endDate = getControlDate(file, EvioEventConstants.END_EVENT_TAG, -10);
+       
+        // Was the end date found from the END event?
+        if (endDate == null) {
+             
             EvioReader reader = null;
             try {
                 reader = open(file, true);
-                reader.gotoEventNumber(reader.getEventCount() - 11);
+                
+                // Search for the last physics event in the last 10 events of the file.
+                reader.gotoEventNumber(reader.getEventCount() - 10);
                 EvioEvent event = null;
                 while ((event = reader.parseNextEvent()) != null) {
                     if (EvioEventUtilities.isPhysicsEvent(event)) {
-                        if ((date = getHeadBankDate(event)) != null) {
-                            break;
+                        Date eventDate = getHeadBankDate(event);
+                        if (eventDate != null) {
+                            // This might be set multiple times but should result in the time of the last physics event.
+                            endDate = eventDate;
                         }
                     }
                 }
@@ -140,7 +150,7 @@ final class EvioFileUtilities {
                 }
             }
         }
-        return date;
+        return endDate;
     }
 
     /**
@@ -158,16 +168,22 @@ final class EvioFileUtilities {
     }
 
     /**
-     * Get the run start date from an EVIO file (should be the first in the run).
+     * Get the run start date from an EVIO file (should be the first file in the run).
      * <p>
-     * This is taken from the PRESTART event.
+     * This is taken from the PRESTART event if available or the first physics event.
      *
      * @param file the EVIO file
      * @return the run start date
      */
     static Date getRunStart(final File file) {
+        
+        // First try to find the start date in the special PRESTART event.
         Date date = getControlDate(file, EvioEventConstants.PRESTART_EVENT_TAG, 0);
+        
+        // Was start date not found from PRESTART?
         if (date == null) {
+            
+            // Read events until there is a physics event and use its time for the start date.
             EvioReader reader = null;
             try {
                 reader = open(file, true);
@@ -195,7 +211,7 @@ final class EvioFileUtilities {
     }
 
     /**
-     * Get the EVIO file sequence number (the number at the end of the file name).
+     * Get the EVIO file sequence number, which is the number at the end of the file name.
      *
      * @param file the EVIO file
      * @return the file's sequence number
@@ -207,7 +223,7 @@ final class EvioFileUtilities {
     }
 
     /**
-     * Return <code>true</code> if this is a cached file e.g. the path starts with "/cache".
+     * Return <code>true</code> if this is a file on the cache disk e.g. the path starts with "/cache".
      *
      * @param file the file
      * @return <code>true</code> if the file is a cached file
@@ -227,7 +243,7 @@ final class EvioFileUtilities {
     }
 
     /**
-     * Open an EVIO file using a <code>EvioReader</code>.
+     * Open an EVIO file using an <code>EvioReader</code> in memory mapping mode.
      *
      * @param file the EVIO file
      * @return the new <code>EvioReader</code> for the file
@@ -260,14 +276,14 @@ final class EvioFileUtilities {
     }
 
     /**
-     * Open an EVIO from a path.
+     * Open an EVIO file from a path string.
      *
-     * @param path the file path
+     * @param path the path string
      * @return the new <code>EvioReader</code> for the file
      * @throws IOException if there is an IO problem
      * @throws EvioException if there is an error reading the EVIO data
      */
     static EvioReader open(final String path) throws IOException, EvioException {
-        return open(new File(path), true);
+        return open(new File(path), false);
     }
 }
