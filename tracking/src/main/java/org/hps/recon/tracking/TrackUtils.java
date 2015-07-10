@@ -38,7 +38,6 @@ import org.lcsim.fit.helicaltrack.HitUtils;
 import org.lcsim.fit.helicaltrack.MultipleScatter;
 import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
-import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.swim.Helix;
 
@@ -915,5 +914,60 @@ public class TrackUtils {
             }
         }
         return false;
+    }
+
+    public static int getLayer(TrackerHit strip) {
+        return ((RawTrackerHit) strip.getRawHits().get(0)).getLayerNumber();
+    }
+    
+    /**
+     * Compute strip isolation, defined as the minimum distance to another strip
+     * in the same sensor. Strips are only checked if they formed valid crosses
+     * with the other strip in the cross (passing time and tolerance cuts).
+     *
+     * @param strip The strip whose isolation is being calculated.
+     * @param otherStrip The other strip in the stereo hit.
+     * @param hitToStrips
+     * @param hitToRotated
+     * @return Double_MAX_VALUE if no other strips found.
+     */
+    public static double getIsolation(TrackerHit strip, TrackerHit otherStrip, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+        double nearestDistance = Double.MAX_VALUE;
+        for (TrackerHit cross : (Set<TrackerHit>) hitToStrips.allTo(otherStrip)) {
+            for (TrackerHit crossStrip : (Set<TrackerHit>) hitToStrips.allFrom(cross)) {
+                if (crossStrip != strip && crossStrip != otherStrip) {
+                    Hep3Vector stripPosition = new BasicHep3Vector(strip.getPosition());
+                    Hep3Vector crossStripPosition = new BasicHep3Vector(crossStrip.getPosition());
+                    double distance = VecOp.sub(stripPosition, crossStripPosition).magnitude();
+//                    System.out.format("%s, %s, %s, %f\n", stripPosition, crossStripPosition, VecOp.sub(stripPosition, crossStripPosition), distance);
+                    if (distance < nearestDistance) {
+                        nearestDistance = distance;
+                    }
+                }
+            }
+        }
+        return nearestDistance;
+    }
+
+    /**
+     * Make an array with isolations for all 12 strip layers. If the track
+     * doesn't use a layer, the isolation is null; if there is no other strip
+     * hit in a layer, the isolation is Double.MAX_VALUE.
+     *
+     * @param trk
+     * @param hitToStrips
+     * @param hitToRotated
+     * @return
+     */
+    public static Double[] getIsolations(Track trk, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+        Double[] isolations = new Double[12];
+        for (TrackerHit hit : trk.getTrackerHits()) {
+            Set<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
+            TrackerHit[] strips = new TrackerHit[2];
+            htsList.toArray(strips);
+            isolations[TrackUtils.getLayer(strips[0]) - 1] = TrackUtils.getIsolation(strips[0], strips[1], hitToStrips, hitToRotated);
+            isolations[TrackUtils.getLayer(strips[1]) - 1] = TrackUtils.getIsolation(strips[1], strips[0], hitToStrips, hitToRotated);
+        }
+        return isolations;
     }
 }

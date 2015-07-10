@@ -92,6 +92,7 @@ public class V0Monitoring extends DataQualityMonitor {
     IHistogram2D VtxYVsVtxZ;
     IHistogram2D VtxXVsVtxZ;
     IHistogram2D VtxXVsVtxY;
+    IHistogram2D L1IsoVsVz;
 
     IHistogram2D pEleVspEle;
     IHistogram2D pyEleVspyEle;
@@ -174,6 +175,7 @@ public class V0Monitoring extends DataQualityMonitor {
         VtxXVsVtxZ = aida.histogram2D(plotDir + triggerType + "/" + "Vx vs Vz", 100, -10, 10, 100, -50, 80);
         VtxYVsVtxZ = aida.histogram2D(plotDir + triggerType + "/" + "Vy vs Vz", 100, -5, 5, 100, -50, 80);
         VtxXVsVtxY = aida.histogram2D(plotDir + triggerType + "/" + "Vx vs Vy", 100, -10, 10, 100, -5, 5);
+        L1IsoVsVz = aida.histogram2D(plotDir + triggerType + "/" + "L1 Isolation vs Vz", 50, -50, 80, 100, 0.0, 5.0);
         pEleVspEle = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron/P(e) vs P(e)", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
         pyEleVspyEle = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron/Py(e) vs Py(e)", 50, -0.04, 0.04, 50, -0.04, 0.04);
         pxEleVspxEle = aida.histogram2D(plotDir + triggerType + "/" + "2 Electron/Px(e) vs Px(e)", 50, -0.02, 0.06, 50, -0.02, 0.06);
@@ -261,6 +263,14 @@ public class V0Monitoring extends DataQualityMonitor {
                 pos = trks.get(0);
                 ele = trks.get(1);
             }
+            
+            Double[] eleIso = TrackUtils.getIsolations(ele.getTracks().get(0), hitToStrips, hitToRotated);
+            Double[] posIso = TrackUtils.getIsolations(pos.getTracks().get(0), hitToStrips, hitToRotated);
+            double eleL1Iso = Math.min(eleIso[0], eleIso[1]);
+            double posL1Iso = Math.min(posIso[0], posIso[1]);
+            double minL1Iso = Math.min(eleL1Iso,posL1Iso);
+            L1IsoVsVz.fill(uncVert.getPosition().z(), minL1Iso);
+            
             double pe = ele.getMomentum().magnitude();
             double pp = pos.getMomentum().magnitude();
             pEleVspPos.fill(pe, pp);

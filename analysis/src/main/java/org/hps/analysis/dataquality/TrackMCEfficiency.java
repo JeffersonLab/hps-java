@@ -25,7 +25,6 @@ import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelixParamCalculator;
 import org.lcsim.geometry.Detector;
-import org.lcsim.geometry.IDDecoder;
 
 /**
  * DQM driver for the monte carlo track efficiency; makes a bunch of efficiency
@@ -47,8 +46,6 @@ public class TrackMCEfficiency extends DataQualityMonitor {
     private String detectorFrameHitRelationsCollectionName = "HelicalTrackHitRelations";
     private String trackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private String trackCollectionName = "MatchedTracks";
-    private Detector detector = null;
-    IDDecoder dec;
     private IProfile1D peffFindable;
     private IProfile1D phieffFindable;
     private IProfile1D ctheffFindable;
@@ -93,7 +90,6 @@ public class TrackMCEfficiency extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        this.detector = detector;
         aida.tree().mkdir(plotDir);
         aida.tree().mkdir(resDir);
         aida.tree().mkdir(misidDir);
