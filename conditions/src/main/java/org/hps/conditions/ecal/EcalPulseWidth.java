@@ -34,8 +34,8 @@ public final class EcalPulseWidth extends BaseConditionsObject {
      * Get the signal pulse width.
      * @return the signal pulse width
      */
-    @Field(names = {"ecal_pulse_width"})
+    @Field(names = {"pulse_width"})
     public Double getPulseWidth() {
-        return this.getFieldValue("ecal_pulse_width");
+        return this.getFieldValue("pulse_width");
     }
 }
