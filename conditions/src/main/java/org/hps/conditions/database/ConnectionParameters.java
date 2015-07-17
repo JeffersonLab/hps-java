@@ -177,6 +177,7 @@ public final class ConnectionParameters {
      */
     public String getConnectionString() {
         return "jdbc:mysql://" + this.hostname + ":" + this.port + "/";
+        //String connectionString = "jdbc:mysql://localhost/" + database + "?user=" + user + "&password=" + password + "&useUnicode=true&characterEncoding=UTF-8";        
     }
 
     /**
@@ -222,5 +223,15 @@ public final class ConnectionParameters {
      */
     String getUser() {
         return this.user;
+    }
+    
+    /**
+     * Convert to human readable string.
+     * 
+     * @return this object converted to a string
+     */
+    public String toString() {                        
+        return "ConnectionParameters { database: " + database + ", hostname: " + hostname + ", password: " + password
+                + ", port: " + port + ", user: " + user + " }";
     }
 }
