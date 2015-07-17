@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import org.hps.record.epics.EpicsData;
 
 /**
- * Convert run database records from the <i>run_epics</i> table in to a {@link EpicsData} object.
+ * Convert run database records from the <i>run_epics</i> table into a {@link EpicsData} object.
  *
  * @author Jeremy McCormick, SLAC
  */

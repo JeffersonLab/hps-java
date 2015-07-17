@@ -378,6 +378,7 @@ public final class Crawler {
             LOGGER.config("added date filter with time stamp " + config.timestamp());
         }
 
+        // Is the accept run list not empty? (Empty means accept all runs.)
         if (!config.acceptRuns().isEmpty()) {
             // List of run numbers to accept.
             visitor.addFilter(new RunFilter(config.acceptRuns()));

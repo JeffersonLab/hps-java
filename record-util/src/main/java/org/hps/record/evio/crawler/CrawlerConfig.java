@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -26,9 +27,10 @@ final class CrawlerConfig {
     private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
-     * A list of run numbers to accept in the job.
+     * A list of run numbers to accept in the job; this default will probably get overridden but it is here to avoid
+     * null pointer exceptions. An empty list is assumed to mean "accept all runs" e.g. no run number filtering.
      */
-    private Set<Integer> acceptRuns;
+    private Set<Integer> acceptRuns = new LinkedHashSet<Integer>();
 
     /**
      * <code>true</code> if database updates are allowed meaning existing records can be deleted and replaced.
@@ -244,8 +246,9 @@ final class CrawlerConfig {
      *
      * @param maxDepth the max depth
      */
-    void setMaxDepth(final Integer maxDepth) {
+    CrawlerConfig setMaxDepth(final Integer maxDepth) {
         this.maxDepth = maxDepth;
+        return this;
     }
 
     /**
