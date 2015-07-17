@@ -16,18 +16,18 @@ import org.jlab.coda.jevio.EvioEvent;
 final class EpicsLog extends EvioEventProcessor {
 
     /**
-     * A count of how many times a given EPICS variable is found in the input, e.g. for computing the mean value across
-     * the entire run.
+     * A count of how many times a given EPICS variable is found in the input for computing the mean value across the
+     * entire run.
      */
     private final Map<String, Integer> counts = new HashMap<String, Integer>();
 
     /**
      * The current EPICS data block from the EVIO events (last one that was found).
      */
-    private EpicsData currentData;
+    private EpicsData currentEpicsData;
 
     /**
-     * The summary information for the variables from computing the mean across the whole run.
+     * The summary information for the variables computed from the mean values across the whole run.
      */
     private final EpicsData logData = new EpicsData();
 
@@ -37,17 +37,9 @@ final class EpicsLog extends EvioEventProcessor {
     private final EpicsEvioProcessor processor = new EpicsEvioProcessor();
 
     /**
-     * Reference to the run summary which will contain the EPICs information.
+     * Create an EPICs log.
      */
-    private final RunSummary runSummary;
-
-    /**
-     * Create an EPICs log pointing to a run summary.
-     * 
-     * @param runSummary the run summary
-     */
-    EpicsLog(final RunSummary runSummary) {
-        this.runSummary = runSummary;
+    EpicsLog() {
     }
 
     /**
@@ -63,9 +55,15 @@ final class EpicsLog extends EvioEventProcessor {
             final double mean = total / this.counts.get(name);
             this.logData.setValue(name, mean);
         }
+    }
 
-        // Set the EPICS data on the run summary.
-        this.runSummary.setEpicsData(this.logData);
+    /**
+     * Get the {@link org.hps.record.epics.EpicsData} which contains mean values for the run.
+     *
+     * @return the {@link org.hps.record.epics.EpicsData} for the run
+     */
+    EpicsData getEpicsData() {
+        return this.logData;
     }
 
     /**
@@ -74,7 +72,7 @@ final class EpicsLog extends EvioEventProcessor {
     @Override
     public void process(final EvioEvent evioEvent) {
         this.processor.process(evioEvent);
-        this.currentData = this.processor.getEpicsData();
+        this.currentEpicsData = this.processor.getEpicsData();
         this.update();
     }
 
@@ -84,8 +82,8 @@ final class EpicsLog extends EvioEventProcessor {
      * If the current data is <code>null</code>, this method does nothing.
      */
     private void update() {
-        if (this.currentData != null) {
-            for (final String name : this.currentData.getUsedNames()) {
+        if (this.currentEpicsData != null) {
+            for (final String name : this.currentEpicsData.getUsedNames()) {
                 if (!this.logData.getUsedNames().contains(name)) {
                     this.logData.setValue(name, 0.);
                 }
@@ -95,7 +93,7 @@ final class EpicsLog extends EvioEventProcessor {
                 int count = this.counts.get(name);
                 count += 1;
                 this.counts.put(name, count);
-                final double value = this.logData.getValue(name) + this.currentData.getValue(name);
+                final double value = this.logData.getValue(name) + this.currentEpicsData.getValue(name);
                 this.logData.setValue(name, value);
                 // System.out.println(name + " => added " + this.currentData.getValue(name) + "; total = " + value +
                 // "; mean = " + value / count);

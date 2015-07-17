@@ -24,8 +24,8 @@ import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * Search for EVIO files in a directory tree, group the files that are found by run, extract meta data from these
- * files, and optionally update a run database with the information that was found.
+ * Search for EVIO files in a directory tree, group the files that are found by run, extract meta data from these files,
+ * and optionally update a run database with the information that was found.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -64,6 +64,7 @@ public final class Crawler {
         OPTIONS.addOption("w", "max-cache-wait", true, "total time to allow for file caching (seconds)");
         OPTIONS.addOption("L", "log-level", true, "set the log level (INFO, FINE, etc.)");
         OPTIONS.addOption("u", "update", false, "allow overriding existing data in the run db (not allowed by default)");
+        OPTIONS.addOption("x", "max-depth", true, "max depth to crawl in the directory tree");
     }
 
     /**
@@ -85,14 +86,14 @@ public final class Crawler {
     private final JCacheManager cacheManager = new JCacheManager();
 
     /**
-     * The options parser.
-     */
-    private final PosixParser parser = new PosixParser();
-
-    /**
      * Configuration options from the command line.
      */
     private CrawlerConfig config;
+
+    /**
+     * The options parser.
+     */
+    private final PosixParser parser = new PosixParser();
 
     /**
      * Parse command line options and create a new {@link Crawler} object from the configuration.
@@ -129,7 +130,7 @@ public final class Crawler {
                     throw new IllegalArgumentException("Connection properties file " + dbPropFile.getPath()
                             + " does not exist.");
                 }
-                ConnectionParameters connectionParameters = ConnectionParameters.fromProperties(dbPropFile);
+                final ConnectionParameters connectionParameters = ConnectionParameters.fromProperties(dbPropFile);
                 config.setConnection(connectionParameters);
                 LOGGER.config("using " + dbPropPath + " for db connection properties");
             } else {
@@ -139,7 +140,7 @@ public final class Crawler {
 
             // Root directory for file crawling.
             if (cl.hasOption("d")) {
-                File rootDir = new File(cl.getOptionValue("d"));
+                final File rootDir = new File(cl.getOptionValue("d"));
                 if (!rootDir.exists()) {
                     throw new IllegalArgumentException("The directory does not exist.");
                 }
@@ -152,7 +153,7 @@ public final class Crawler {
 
             // Timestamp file for date filtering.
             if (cl.hasOption("t")) {
-                File timestampFile = new File(cl.getOptionValue("t"));
+                final File timestampFile = new File(cl.getOptionValue("t"));
                 config.setTimestampFile(timestampFile);
                 if (!timestampFile.exists()) {
                     try {
@@ -165,7 +166,7 @@ public final class Crawler {
                 } else {
                     try {
                         // Get the date filter for files from an existing time stamp file provided by the user.
-                        Date timestamp = new Date(Files
+                        final Date timestamp = new Date(Files
                                 .readAttributes(config.timestampFile().toPath(), BasicFileAttributes.class)
                                 .lastModifiedTime().toMillis());
                         config.setTimestamp(timestamp);
@@ -179,7 +180,7 @@ public final class Crawler {
 
             // List of one or more runs to accept in the job.
             if (cl.hasOption("a")) {
-                Set<Integer> acceptRuns = new HashSet<Integer>();
+                final Set<Integer> acceptRuns = new HashSet<Integer>();
                 for (final String runString : cl.getOptionValues("a")) {
                     final Integer acceptRun = Integer.parseInt(runString);
                     acceptRuns.add(acceptRun);
@@ -191,7 +192,7 @@ public final class Crawler {
             // Enable run log updating (off by default).
             if (cl.hasOption("r")) {
                 config.setUpdateRunLog(true);
-                LOGGER.config("updating run database is enabled");
+                LOGGER.config("inserting into run database is enabled");
             }
 
             // Enable file cache usage for running at JLAB.
@@ -202,21 +203,21 @@ public final class Crawler {
 
             // Max wait time for file caching.
             if (cl.hasOption("w")) {
-                Long waitTime = Long.parseLong(cl.getOptionValue("w")) * MILLISECONDS;
+                final Long waitTime = Long.parseLong(cl.getOptionValue("w")) * MILLISECONDS;
                 config.setWaitTime(waitTime);
                 LOGGER.config("max time for file caching set to " + config.waitTime());
             }
 
             // Max files to process per run; mostly just here for debugging purposes.
             if (cl.hasOption("m")) {
-                int maxFiles = Integer.parseInt(cl.getOptionValue("m"));
+                final int maxFiles = Integer.parseInt(cl.getOptionValue("m"));
                 config.setMaxFiles(maxFiles);
                 LOGGER.config("max files set to " + maxFiles);
             }
 
             // Event printing interval when doing EVIO event processing.
             if (cl.hasOption("p")) {
-                int eventPrintInterval = Integer.parseInt(cl.getOptionValue("p"));
+                final int eventPrintInterval = Integer.parseInt(cl.getOptionValue("p"));
                 config.setEventPrintInterval(eventPrintInterval);
                 LOGGER.config("event print interval set to " + eventPrintInterval);
             }
@@ -224,7 +225,7 @@ public final class Crawler {
             // Flag to allow replacement of existing records in the database; not allowed by default.
             if (cl.hasOption("u")) {
                 config.setAllowUpdates(true);
-                LOGGER.config("replacement of existing run log information in database is enabled");
+                LOGGER.config("deletion and replacement of existing runs in the database is enabled");
             }
 
             // User supplied timestamp string that is converted to a date for file filtering.
@@ -251,6 +252,15 @@ public final class Crawler {
                         throw new RuntimeException(e);
                     }
                 }
+            }
+
+            // Max depth to crawl.
+            if (cl.hasOption("x")) {
+                final Integer maxDepth = Integer.parseInt(cl.getOptionValue("x"));
+                if (maxDepth < 1) {
+                    throw new IllegalArgumentException("invalid -x argument for maxDepth: " + maxDepth);
+                }
+                config.setMaxDepth(maxDepth);
             }
 
         } catch (final ParseException e) {
@@ -286,7 +296,7 @@ public final class Crawler {
         final EvioFileVisitor visitor = new EvioFileVisitor(config.timestamp());
 
         // Walk the file tree using the visitor.
-        walk(visitor);
+        this.walk(visitor);
 
         // Get the list of run data created by the visitor.
         final RunLog runs = visitor.getRunLog();
@@ -303,16 +313,22 @@ public final class Crawler {
         // Print the summary information after the run processing is done.
         runs.printRunSummaries();
 
-        // Execute the database update.
-        executeRunLogUpdate(runs);
+        // Execute the run database update.
+        this.updateRunDatabase(runs);
 
         // Update the timestamp output file.
-        updateTimestamp();
+        this.updateTimestamp();
 
         LOGGER.info("Crawler job is done!");
     }
 
-    private void executeRunLogUpdate(final RunLog runs) throws SQLException {
+    /**
+     * Update the database with information found from crawling the files.
+     *
+     * @param runs the list of runs to update
+     * @throws SQLException if there is a database query error
+     */
+    private void updateRunDatabase(final RunLog runs) throws SQLException {
         // Insert the run information into the database.
         if (config.updateRunLog()) {
 
@@ -330,28 +346,11 @@ public final class Crawler {
         }
     }
 
-    private void walk(final EvioFileVisitor visitor) {
-        if (config.timestamp() != null) {
-            // Date filter from timestamp.
-            visitor.addFilter(new DateFileFilter(config.timestamp()));
-            LOGGER.config("added date filter " + config.timestamp());
-        }
-
-        if (!config.acceptRuns().isEmpty()) {
-            // List of run numbers to accept.
-            visitor.addFilter(new RunFilter(config.acceptRuns()));
-            LOGGER.config("added run number filter");
-        }
-
-        try {
-            // Walk the file tree from the root directory.
-            final EnumSet<FileVisitOption> options = EnumSet.noneOf(FileVisitOption.class);
-            Files.walkFileTree(config.rootDir().toPath(), options, Integer.MAX_VALUE, visitor);
-        } catch (final IOException e) {
-            throw new RuntimeException("Error while walking the directory tree.", e);
-        }
-    }
-
+    /**
+     * Update the timestamp file's modification date to the time when this job ended.
+     * <p>
+     * This can be then be used in subsequent crawl jobs to filter out files that have already been seen.
+     */
     private void updateTimestamp() {
         // Update the timestamp file which can be used to tell which files have been processed by their creation date.
         if (config.timestampFile() == null) {
@@ -365,5 +364,34 @@ public final class Crawler {
         }
         config.timestampFile().setLastModified(System.currentTimeMillis());
         LOGGER.config("set modified on timestamp file: " + new Date(config.timestampFile().lastModified()));
+    }
+
+    /**
+     * Walk the directory tree to find EVIO files for the runs that are being processed in the job.
+     *
+     * @param visitor the file visitor
+     */
+    private void walk(final EvioFileVisitor visitor) {
+        if (config.timestamp() != null) {
+            // Date filter from timestamp.
+            visitor.addFilter(new DateFileFilter(config.timestamp()));
+            LOGGER.config("added date filter with time stamp " + config.timestamp());
+        }
+
+        if (!config.acceptRuns().isEmpty()) {
+            // List of run numbers to accept.
+            visitor.addFilter(new RunFilter(config.acceptRuns()));
+            LOGGER.config("added run number filter");
+        } else {
+            LOGGER.config("no run number filter used");
+        }
+
+        try {
+            // Walk the file tree from the root directory.
+            final EnumSet<FileVisitOption> options = EnumSet.noneOf(FileVisitOption.class);
+            Files.walkFileTree(config.rootDir().toPath(), options, config.maxDepth(), visitor);
+        } catch (final IOException e) {
+            throw new RuntimeException("Error while walking the directory tree.", e);
+        }
     }
 }

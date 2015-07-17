@@ -14,7 +14,7 @@ import org.hps.record.evio.EvioEventProcessor;
 /**
  * Full configuration information for the {@link Crawler class}.
  * <p>
- * The setter methods use the builder pattern so method chaining them is possible.
+ * Method chaining of setters is supported.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -23,17 +23,7 @@ final class CrawlerConfig {
     /**
      * The format for input timestamps used for file filtering.
      */
-    private static final SimpleDateFormat TIMESTAMP_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    /**
-     * Default event print interval.
-     */
-    private final int DEFAULT_EVENT_PRINT_INTERVAL = 1000;
-
-    /**
-     * Interval for printing out event number while running EVIO processors.
-     */
-    private int eventPrintInterval = DEFAULT_EVENT_PRINT_INTERVAL;
+    private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
      * A list of run numbers to accept in the job.
@@ -49,6 +39,21 @@ final class CrawlerConfig {
      * The database connection parameters which must be provided by command line argument.
      */
     private ConnectionParameters connectionParameters;
+
+    /**
+     * Default event print interval.
+     */
+    private final int DEFAULT_EVENT_PRINT_INTERVAL = 1000;
+
+    /**
+     * Interval for printing out event number while running EVIO processors.
+     */
+    private int eventPrintInterval = DEFAULT_EVENT_PRINT_INTERVAL;
+
+    /**
+     * The maximum depth to crawl.
+     */
+    private Integer maxDepth = Integer.MAX_VALUE;
 
     /**
      * The maximum number of files to accept (just used for debugging purposes).
@@ -91,8 +96,17 @@ final class CrawlerConfig {
     private Long waitTime;
 
     /**
+     * Get the set of runs that will be accepted for the job.
+     *
+     * @return the list of runs that will be accepted
+     */
+    Set<Integer> acceptRuns() {
+        return acceptRuns;
+    }
+
+    /**
      * Add an {@link org.hps.record.evio.EvioEventProcessor} to the job.
-     * 
+     *
      * @param processor
      * @return this object
      */
@@ -103,177 +117,22 @@ final class CrawlerConfig {
 
     /**
      * Add an {@link org.hps.record.evio.EvioEventProcessor} to the job by its class name.
-     * 
+     *
      * @param processor the <code>EvioEventProcessor</code> to instantiate
      * @return this object
      */
     CrawlerConfig addProcessor(final String className) {
         try {
             this.processors.add(EvioEventProcessor.class.cast(Class.forName(className).newInstance()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException("Error creating EvioEventProcessor with type: " + className, e);
         }
         return this;
     }
 
     /**
-     * Set the list of run numbers that should be accepted.
-     * 
-     * @param acceptRuns the list of acceptable run numbers
-     * @return this object
-     */
-    CrawlerConfig setAcceptRuns(final Set<Integer> acceptRuns) {
-        this.acceptRuns = acceptRuns;
-        return this;
-    }
-
-    /**
-     * Set whether database updates are allowed, i.e. replacement of existing records.
-     * 
-     * @param allowUpdates <code>true</code> to allow database record deletion/updates
-     * @return this object
-     */
-    CrawlerConfig setAllowUpdates(final boolean allowUpdates) {
-        this.allowUpdates = allowUpdates;
-        return this;
-    }
-
-    /**
-     * Set the database connection parameters.
-     * 
-     * @param connectionParameters the database connection parameters
-     * @return this object
-     */
-    CrawlerConfig setConnection(final ConnectionParameters connectionParameters) {
-        this.connectionParameters = connectionParameters;
-        return this;
-    }
-
-    /**
-     * Set the maximum number of files that will be processed by the job.
-     * <p>
-     * This should only be used for debugging purposes as it results in incorrect event counts for the run.
-     * 
-     * @param maxFiles the maximum number of files to process or -1 for unlimited
-     * @return this object
-     */
-    CrawlerConfig setMaxFiles(final int maxFiles) {
-        this.maxFiles = maxFiles;
-        return this;
-    }
-
-    /**
-     * Set the root directory for the file search.
-     * 
-     * @param rootDir the root directory for the file search
-     * @return this object
-     */
-    CrawlerConfig setRootDir(File rootDir) {
-        this.rootDir = rootDir;
-        return this;
-    }
-
-    /**
-     * Set a date for filtering input files.
-     * <p>
-     * Those files created before this date will not be processed.
-     * 
-     * @param timestamp the date for filtering files
-     * @return this object
-     */
-    CrawlerConfig setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
-        return this;
-    }
-
-    /**
-     * Set a date for filtering input files using a string in the default format defined by
-     * <code>TIMESTAMP_DATE_FORMAT</code>.
-     * <p>
-     * Those files created before this date will not be processed.
-     * 
-     * @param timestamp the date string for filtering files
-     * @return this object
-     */
-    CrawlerConfig setTimestamp(String timestampString) throws ParseException {
-        TIMESTAMP_DATE_FORMAT.parse(timestampString);
-        return this;
-    }
-
-    /**
-     * Set a date for filtering files based on the modification date of a timestamp file.
-     * 
-     * @param timestampFile the timestamp file for date filtering
-     * @return this object
-     */
-    CrawlerConfig setTimestampFile(File timestampFile) {
-        this.timestampFile = timestampFile;
-        return this;
-    }
-
-    /**
-     * Set whether the run database should be updated in the job.
-     * <p>
-     * This will not allow replacement of existing run log records. The {@link #allowUpdates()} flag must be on for this
-     * be allowed.
-     * 
-     * @param updateRunLog <code>true</code> if the run database should be updated
-     * @return this object
-     */
-    CrawlerConfig setUpdateRunLog(boolean updateRunLog) {
-        this.updateRunLog = updateRunLog;
-        return this;
-    }
-
-    /**
-     * Set whether file caching using the 'jcache' program should be enabled.
-     * <p>
-     * This is only relevant for jobs run at JLAB.
-     * 
-     * @param useFileCache <code>true</code> to allow file caching
-     * @return this object
-     */
-    CrawlerConfig setUseFileCache(boolean useFileCache) {
-        this.useFileCache = useFileCache;
-        return this;
-    }
-
-    /**
-     * Set the max wait time in seconds for all file caching operations to complete.
-     * <p>
-     * If this time is exceeded then the job will fail with an error.
-     * 
-     * @param waitTime the max wait time in seconds allowed for file caching to complete
-     * @return this object
-     */
-    CrawlerConfig setWaitTime(long waitTime) {
-        this.waitTime = waitTime;
-        return this;
-    }
-
-    /**
-     * Set the interval for printing the EVIO event numbers during processing.
-     * 
-     * @param eventPrintInterval the event print interval
-     * @return this object
-     */
-    CrawlerConfig setEventPrintInterval(int eventPrintInterval) {
-        this.eventPrintInterval = eventPrintInterval;
-        return this;
-    }
-
-    /**
-     * Get the set of runs that will be accepted for the job.
-     * 
-     * @return the list of runs that will be accepted
-     */
-    Set<Integer> acceptRuns() {
-        return acceptRuns;
-    }
-
-    /**
      * Return <code>true</code> if updates/deletions of existing records in the database is allowed.
-     * 
+     *
      * @return <code>true</code> if updating/deleting records in the database is allowed
      */
     boolean allowUpdates() {
@@ -282,7 +141,7 @@ final class CrawlerConfig {
 
     /**
      * Get the database connection parameters.
-     * 
+     *
      * @return the database connection parameters
      */
     ConnectionParameters connectionParameters() {
@@ -290,8 +149,26 @@ final class CrawlerConfig {
     }
 
     /**
+     * Get the event print interval.
+     *
+     * @return the event print interval
+     */
+    int eventPrintInterval() {
+        return this.eventPrintInterval;
+    }
+
+    /**
+     * Get the max depth in the directory tree to crawl.
+     *
+     * @return the max depth
+     */
+    Integer maxDepth() {
+        return maxDepth;
+    }
+
+    /**
      * Get the maximum number of files that the job can process.
-     * 
+     *
      * @return the maximum number of files
      */
     int maxFiles() {
@@ -302,7 +179,7 @@ final class CrawlerConfig {
      * Get the list of extra event processors that will run with the job.
      * <p>
      * Required (default) processors for the job are not included here.
-     * 
+     *
      * @return the list of extra event processors
      */
     List<EvioEventProcessor> processors() {
@@ -311,7 +188,7 @@ final class CrawlerConfig {
 
     /**
      * Get the root directory for the file search.
-     * 
+     *
      * @return the root directory for the file search
      */
     File rootDir() {
@@ -319,10 +196,165 @@ final class CrawlerConfig {
     }
 
     /**
+     * Set the list of run numbers that should be accepted.
+     *
+     * @param acceptRuns the list of acceptable run numbers
+     * @return this object
+     */
+    CrawlerConfig setAcceptRuns(final Set<Integer> acceptRuns) {
+        this.acceptRuns = acceptRuns;
+        return this;
+    }
+
+    /**
+     * Set whether database updates are allowed, i.e. replacement of existing records.
+     *
+     * @param allowUpdates <code>true</code> to allow database record deletion/updates
+     * @return this object
+     */
+    CrawlerConfig setAllowUpdates(final boolean allowUpdates) {
+        this.allowUpdates = allowUpdates;
+        return this;
+    }
+
+    /**
+     * Set the database connection parameters.
+     *
+     * @param connectionParameters the database connection parameters
+     * @return this object
+     */
+    CrawlerConfig setConnection(final ConnectionParameters connectionParameters) {
+        this.connectionParameters = connectionParameters;
+        return this;
+    }
+
+    /**
+     * Set the interval for printing the EVIO event numbers during processing.
+     *
+     * @param eventPrintInterval the event print interval
+     * @return this object
+     */
+    CrawlerConfig setEventPrintInterval(final int eventPrintInterval) {
+        this.eventPrintInterval = eventPrintInterval;
+        return this;
+    }
+
+    /**
+     * Set the max depth.
+     *
+     * @param maxDepth the max depth
+     */
+    void setMaxDepth(final Integer maxDepth) {
+        this.maxDepth = maxDepth;
+    }
+
+    /**
+     * Set the maximum number of files that will be processed by the job.
+     * <p>
+     * This should only be used for debugging purposes as it results in incorrect event counts for the run.
+     *
+     * @param maxFiles the maximum number of files to process or -1 for unlimited
+     * @return this object
+     */
+    CrawlerConfig setMaxFiles(final int maxFiles) {
+        this.maxFiles = maxFiles;
+        return this;
+    }
+
+    /**
+     * Set the root directory for the file search.
+     *
+     * @param rootDir the root directory for the file search
+     * @return this object
+     */
+    CrawlerConfig setRootDir(final File rootDir) {
+        this.rootDir = rootDir;
+        return this;
+    }
+
+    /**
+     * Set a date for filtering input files.
+     * <p>
+     * Those files created before this date will not be processed.
+     *
+     * @param timestamp the date for filtering files
+     * @return this object
+     */
+    CrawlerConfig setTimestamp(final Date timestamp) {
+        this.timestamp = timestamp;
+        return this;
+    }
+
+    /**
+     * Set a date for filtering input files using a string in the default format defined by
+     * <code>TIMESTAMP_DATE_FORMAT</code>.
+     * <p>
+     * Those files created before this date will not be processed.
+     *
+     * @param timestamp the date string for filtering files
+     * @return this object
+     */
+    CrawlerConfig setTimestamp(final String timestampString) throws ParseException {
+        TIMESTAMP_FORMAT.parse(timestampString);
+        return this;
+    }
+
+    /**
+     * Set a date for filtering files based on the modification date of a timestamp file.
+     *
+     * @param timestampFile the timestamp file for date filtering
+     * @return this object
+     */
+    CrawlerConfig setTimestampFile(final File timestampFile) {
+        this.timestampFile = timestampFile;
+        return this;
+    }
+
+    /**
+     * Set whether the run database should be updated in the job.
+     * <p>
+     * This will not allow replacement of existing run log records. The {@link #allowUpdates()} flag must be on for this
+     * be allowed.
+     *
+     * @param updateRunLog <code>true</code> if the run database should be updated
+     * @return this object
+     */
+    CrawlerConfig setUpdateRunLog(final boolean updateRunLog) {
+        this.updateRunLog = updateRunLog;
+        return this;
+    }
+
+    /**
+     * Set whether file caching using the 'jcache' program should be enabled.
+     * <p>
+     * This is only relevant for jobs run at JLAB.
+     *
+     * @param useFileCache <code>true</code> to allow file caching
+     * @return this object
+     */
+    CrawlerConfig setUseFileCache(final boolean useFileCache) {
+        this.useFileCache = useFileCache;
+        return this;
+    }
+
+    /**
+     * Set the max wait time in seconds for all file caching operations to complete.
+     * <p>
+     * If this time is exceeded then the job will fail with an error.
+     *
+     * @param waitTime the max wait time in seconds allowed for file caching to complete
+     * @return this object
+     */
+    CrawlerConfig setWaitTime(final long waitTime) {
+        this.waitTime = waitTime;
+        return this;
+    }
+
+    /**
      * Get the timestamp for file filtering.
      * <p>
      * Files older than this will not be included in the job.
-     * 
+     *
      * @return the timestamp for file filtering
      */
     Date timestamp() {
@@ -331,7 +363,7 @@ final class CrawlerConfig {
 
     /**
      * Get the timestamp file using for filtering EVIO files.
-     * 
+     *
      * @return the timestamp file used for filtering EVIO files (can be null)
      */
     File timestampFile() {
@@ -340,7 +372,7 @@ final class CrawlerConfig {
 
     /**
      * Return <code>true</code> if the run database should be updated.
-     * 
+     *
      * @return <code>true</code> if the run database should be updated
      */
     boolean updateRunLog() {
@@ -349,7 +381,7 @@ final class CrawlerConfig {
 
     /**
      * Return <code>true</code> if file caching should be enabled.
-     * 
+     *
      * @return <code>true</code> if file caching should be enabled
      */
     boolean useFileCache() {
@@ -358,19 +390,10 @@ final class CrawlerConfig {
 
     /**
      * Get the max wait time in seconds to allow for file caching operations to complete.
-     * 
+     *
      * @return the max wait time in seconds to allow for file caching operations to complete
      */
     Long waitTime() {
         return waitTime;
-    }
-
-    /**
-     * Get the event print interval.
-     * 
-     * @return the event print interval
-     */
-    int eventPrintInterval() {
-        return this.eventPrintInterval;
     }
 }

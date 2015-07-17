@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventProcessor;
+import org.hps.record.run.RunSummary;
 import org.hps.record.scalers.ScalersEvioProcessor;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
@@ -35,54 +36,43 @@ final class RunProcessor {
     private static final Logger LOGGER = LogUtil.create(RunProcessor.class, new DefaultLogFormatter(), Level.FINE);
 
     /**
-     * Processor for extracting EPICS information.
-     */
-    private EpicsLog epicsLog;
-
-    /**
-     * Processor for extracting scaler data.
-     */
-    private ScalersEvioProcessor scalersProcessor;
-
-    /**
-     * Processor for extracting event type counts (sync, physics, trigger types, etc.).
-     */
-    private EventTypeLog eventTypeLog;
-
-    /**
-     * Create the processor for a single run.
+     * Process all the runs that were found.
      *
-     * @param runSummary the run summary for the run
-     * @return the run processor
+     * @param runs the run log containing the list of run summaries
+     * @throws Exception if there is an error processing one of the runs
      */
-    RunProcessor(final JCacheManager cacheManager, final RunSummary runSummary, CrawlerConfig config) {
+    static void processRuns(final JCacheManager cacheManager, final RunLog runs, final CrawlerConfig config)
+            throws Exception {
 
-        this.runSummary = runSummary;
-        this.cacheManager = cacheManager;
-
-        // EPICS processor.
-        epicsLog = new EpicsLog(runSummary);
-        addProcessor(epicsLog);
-
-        // Scaler data processor.
-        scalersProcessor = new ScalersEvioProcessor();
-        scalersProcessor.setResetEveryEvent(false);
-        addProcessor(scalersProcessor);
-
-        // Event log processor.
-        eventTypeLog = new EventTypeLog(runSummary);
-        addProcessor(eventTypeLog);
-
-        // Max files.
-        if (config.maxFiles() != -1) {
-            setMaxFiles(config.maxFiles());
+        // Configure max wait time of jcache manager.
+        if (config.waitTime() != null && config.waitTime() > 0L) {
+            cacheManager.setWaitTime(config.waitTime());
+            LOGGER.config("JCacheManager max wait time set to " + config.waitTime());
         }
 
-        // Enable file caching.
-        useFileCache(config.useFileCache());
+        // Process all of the runs that were found.
+        for (final int run : runs.getSortedRunNumbers()) {
 
-        // Set event printing interval.
-        setEventPrintInterval(config.eventPrintInterval());
+            // Get the run summary.
+            final RunSummary runSummary = runs.getRunSummary(run);
+
+            // Clear the cache manager.
+            if (config.useFileCache()) {
+                cacheManager.clear();
+            }
+
+            // Create a processor to process all the EVIO events in the run.
+            final RunProcessor runProcessor = new RunProcessor(cacheManager, runSummary, config);
+
+            // Add extra processors.
+            for (final EvioEventProcessor processor : config.processors()) {
+                runProcessor.addProcessor(processor);
+                LOGGER.config("added extra EVIO processor " + processor.getClass().getName());
+            }
+
+            // Process all of the run's files.
+            runProcessor.process();
+        }
     }
 
     /**
@@ -91,9 +81,19 @@ final class RunProcessor {
     private final JCacheManager cacheManager;
 
     /**
+     * Processor for extracting EPICS information.
+     */
+    private final EpicsLog epicsLog;
+
+    /**
      * The event printing interval when processing EVIO files.
      */
     private int eventPrintInterval = 1000;
+
+    /**
+     * Processor for extracting event type counts (sync, physics, trigger types, etc.).
+     */
+    private final EventTypeLog eventTypeLog;
 
     /**
      * Max files to read (defaults to unlimited).
@@ -111,9 +111,50 @@ final class RunProcessor {
     private final RunSummary runSummary;
 
     /**
+     * Processor for extracting scaler data.
+     */
+    private final ScalersEvioProcessor scalersProcessor;
+
+    /**
      * Set to <code>true</code> to use file caching.
      */
     private boolean useFileCache;
+
+    /**
+     * Create the processor for a single run.
+     *
+     * @param runSummary the run summary for the run
+     * @return the run processor
+     */
+    RunProcessor(final JCacheManager cacheManager, final RunSummary runSummary, final CrawlerConfig config) {
+
+        this.runSummary = runSummary;
+        this.cacheManager = cacheManager;
+
+        // EPICS processor.
+        epicsLog = new EpicsLog();
+        this.addProcessor(epicsLog);
+
+        // Scaler data processor.
+        scalersProcessor = new ScalersEvioProcessor();
+        scalersProcessor.setResetEveryEvent(false);
+        this.addProcessor(scalersProcessor);
+
+        // Event log processor.
+        eventTypeLog = new EventTypeLog();
+        this.addProcessor(eventTypeLog);
+
+        // Max files.
+        if (config.maxFiles() != -1) {
+            this.setMaxFiles(config.maxFiles());
+        }
+
+        // Enable file caching.
+        this.useFileCache(config.useFileCache());
+
+        // Set event printing interval.
+        this.setEventPrintInterval(config.eventPrintInterval());
+    }
 
     /**
      * Add a processor of EVIO events.
@@ -235,7 +276,7 @@ final class RunProcessor {
             processor.startJob();
         }
 
-        List<File> files = this.getFiles();
+        final List<File> files = this.getFiles();
 
         LOGGER.info("processing " + files.size() + " from run " + this.runSummary.getRun());
 
@@ -248,6 +289,18 @@ final class RunProcessor {
         for (final EvioEventProcessor processor : this.processors) {
             processor.endJob();
         }
+
+        // Put scaler data from EVIO processor into run summary.
+        runSummary.setScalerData(this.scalersProcessor.getScalerData());
+
+        // Set the counts of event types on the run summary.
+        runSummary.setEventTypeCounts(eventTypeLog.getEventTypeCounts());
+
+        // Set total number of physics events on the run summary from the event counter.
+        runSummary.setTotalEvents(this.eventTypeLog.getPhysicsEventCount());
+
+        // Set EpicsData for the run.
+        runSummary.setEpicsData(this.epicsLog.getEpicsData());
 
         LOGGER.info("done processing run " + this.runSummary.getRun());
     }
@@ -297,7 +350,7 @@ final class RunProcessor {
             LOGGER.info("done running EVIO processors");
 
             // Check if END event is present if this is the last file in the run.
-            if (file.equals(getFiles().get(getFiles().size() - 1))) {
+            if (file.equals(this.getFiles().get(this.getFiles().size() - 1))) {
                 final boolean endOkay = this.isEndOkay(reader);
                 this.runSummary.setEndOkay(endOkay);
                 LOGGER.info("endOkay set to " + endOkay);
@@ -307,12 +360,6 @@ final class RunProcessor {
                 this.runSummary.setEndDate(endDate);
                 LOGGER.info("found end date " + endDate);
             }
-
-            // Pull scaler data from EVIO processor into run summary.
-            runSummary.setScalerData(this.scalersProcessor.getScalerData());
-
-            // Set total number of physics events.
-            runSummary.setTotalEvents(this.eventTypeLog.getPhysicsEventCount());
 
         } finally {
             if (reader != null) {
@@ -354,44 +401,5 @@ final class RunProcessor {
     void useFileCache(final boolean cacheFiles) {
         this.useFileCache = cacheFiles;
         LOGGER.config("file caching enabled");
-    }
-
-    /**
-     * Process all the runs that were found.
-     *
-     * @param runs the run log containing the list of run summaries
-     * @throws Exception if there is an error processing one of the runs
-     */
-    static void processRuns(JCacheManager cacheManager, final RunLog runs, CrawlerConfig config) throws Exception {
-
-        // Configure max wait time of jcache manager.
-        if (config.waitTime() != null && config.waitTime() > 0L) {
-            cacheManager.setWaitTime(config.waitTime());
-            LOGGER.config("JCacheManager max wait time set to " + config.waitTime());
-        }
-
-        // Process all of the runs that were found.
-        for (final int run : runs.getSortedRunNumbers()) {
-
-            // Get the run summary.
-            RunSummary runSummary = runs.getRunSummary(run);
-
-            // Clear the cache manager.
-            if (config.useFileCache()) {
-                cacheManager.clear();
-            }
-
-            // Create a processor to process all the EVIO events in the run.
-            final RunProcessor runProcessor = new RunProcessor(cacheManager, runSummary, config);
-
-            // Add extra processors.
-            for (final EvioEventProcessor processor : config.processors()) {
-                runProcessor.addProcessor(processor);
-                LOGGER.config("added extra EVIO processor " + processor.getClass().getName());
-            }
-
-            // Process all of the run's files.
-            runProcessor.process();
-        }
     }
 }

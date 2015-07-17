@@ -1,4 +1,4 @@
-package org.hps.record.evio.crawler;
+package org.hps.record.run;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -8,11 +8,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.logging.Logger;
 
 import org.hps.record.epics.EpicsData;
+import org.hps.record.evio.crawler.EvioFileList;
 import org.hps.record.scalers.ScalerData;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * This class models the run summary information which is persisted as a row in the <i>run_log</i> table of the run
@@ -37,14 +36,15 @@ public final class RunSummary {
      * Set up date formatting to display EST (GMT-4).
      */
     private static final DateFormat DATE_DISPLAY = new SimpleDateFormat();
+
     static {
+        /**
+         * Set default time zone to East Coast (JLAB) where data was taken.
+         */
         DATE_DISPLAY.setCalendar(new GregorianCalendar(TimeZone.getTimeZone("America/New_York")));
     }
 
-    /**
-     * Setup logger.
-     */
-    private static final Logger LOGGER = LogUtil.create(RunSummary.class);
+    private Date created;
 
     /**
      * The end date of the run.
@@ -69,12 +69,17 @@ public final class RunSummary {
     /**
      * The list of EVIO files in the run.
      */
-    private final EvioFileList files = new EvioFileList();
+    private EvioFileList evioFileList = new EvioFileList();
 
     /**
      * The run number.
      */
     private final int run;
+
+    /**
+     * Flag to indicate run was okay.
+     */
+    private boolean runOkay = true;
 
     /**
      * The scaler data from the last physics event in the run.
@@ -92,11 +97,21 @@ public final class RunSummary {
     private int totalEvents = -1;
 
     /**
+     * The total number of files in the run.
+     */
+    private int totalFiles = 0;
+
+    /**
+     * Date when the run record was last updated.
+     */
+    private Date updated;
+
+    /**
      * Create a run summary.
      *
      * @param run the run number
      */
-    RunSummary(final int run) {
+    public RunSummary(final int run) {
         this.run = run;
     }
 
@@ -105,11 +120,17 @@ public final class RunSummary {
      *
      * @param file the file to add
      */
-    void addFile(final File file) {
-        this.files.add(file);
+    public void addFile(final File file) {
+        this.evioFileList.add(file);
+    }
 
-        // Total events must be recomputed.
-        this.totalEvents = -1;
+    /**
+     * Get the creation date of this run record.
+     *
+     * @return the creation date of this run record
+     */
+    public Date getCreated() {
+        return this.created;
     }
 
     /**
@@ -124,6 +145,15 @@ public final class RunSummary {
     }
 
     /**
+     * Return <code>true</code> if END event was found in the data.
+     *
+     * @return <code>true</code> if END event was in the data
+     */
+    public boolean getEndOkay() {
+        return this.endOkay;
+    }
+
+    /**
      * Get the EPICS data summary.
      * <p>
      * This is computed by taking the mean of each variable for the run.
@@ -132,6 +162,19 @@ public final class RunSummary {
      */
     public EpicsData getEpicsData() {
         return this.epics;
+    }
+
+    /**
+     * Get the event rate (effectively the trigger rate) which is the total events divided by the number of seconds in
+     * the run.
+     *
+     * @return the event rate
+     */
+    public double getEventRate() {
+        if (this.getTotalEvents() <= 0) {
+            throw new RuntimeException("Total events is zero or invalid.");
+        }
+        return (double) this.getTotalEvents() / (double) this.getTotalSeconds();
     }
 
     /**
@@ -149,7 +192,7 @@ public final class RunSummary {
      * @return the list of EVIO files in this run
      */
     public EvioFileList getEvioFileList() {
-        return this.files;
+        return this.evioFileList;
     }
 
     /**
@@ -162,8 +205,17 @@ public final class RunSummary {
     }
 
     /**
+     * Return <code>true</code> if the run was okay (no major errors or data corruption occurred).
+     *
+     * @return <code>true</code> if the run was okay
+     */
+    public boolean getRunOkay() {
+        return this.runOkay;
+    }
+
+    /**
      * Get the scaler data of this run (last event only).
-     * 
+     *
      * @return the scaler data of this run from the last event
      */
     public ScalerData getScalerData() {
@@ -188,13 +240,18 @@ public final class RunSummary {
         return this.totalEvents;
     }
 
-    void setTotalEvents(int totalEvents) {
-        this.totalEvents = totalEvents;
+    /**
+     * Get the total number of files for this run.
+     *
+     * @return the total number of files for this run
+     */
+    public int getTotalFiles() {
+        return this.totalFiles;
     }
 
     /**
      * Get the number of seconds in the run which is the difference between the start and end times.
-     * 
+     *
      * @return the total seconds in the run
      */
     public long getTotalSeconds() {
@@ -204,29 +261,16 @@ public final class RunSummary {
         if (this.getEndDate() == null) {
             throw new RuntimeException("missing end date");
         }
-        return (getEndDate().getTime() - getStartDate().getTime()) / 1000;
+        return (this.getEndDate().getTime() - this.getStartDate().getTime()) / 1000;
     }
 
     /**
-     * Get the event rate (effectively the trigger rate) which is the total events divided by the number of seconds in
-     * the run.
-     * 
-     * @return the event rate
-     */
-    public double getEventRate() {
-        if (this.getTotalEvents() <= 0) {
-            throw new RuntimeException("Total events is zero or invalid.");
-        }
-        return (double) this.getTotalEvents() / (double) this.getTotalSeconds();
-    }
-
-    /**
-     * Return <code>true</code> if END event was found in the data.
+     * Get the date when this run record was last updated.
      *
-     * @return <code>true</code> if END event was in the data
+     * @return the date when this run record was last updated
      */
-    public boolean isEndOkay() {
-        return this.endOkay;
+    public Date getUpdated() {
+        return updated;
     }
 
     /**
@@ -234,24 +278,33 @@ public final class RunSummary {
      *
      * @param ps the print stream for output
      */
-    public void printRunSummary(final PrintStream ps) {
+    public void printOut(final PrintStream ps) {
         ps.println("--------------------------------------------");
         ps.println("run: " + this.run);
-        ps.println("first file: " + this.files.first());
-        ps.println("last file: " + this.files.last());
+        ps.println("first file: " + this.evioFileList.first());
+        ps.println("last file: " + this.evioFileList.last());
         ps.println("started: " + DATE_DISPLAY.format(this.getStartDate()));
         ps.println("ended: " + DATE_DISPLAY.format(this.getEndDate()));
         ps.println("total events: " + this.getTotalEvents());
-        ps.println("end OK: " + this.isEndOkay());
+        ps.println("end OK: " + this.getEndOkay());
         ps.println("event rate: " + this.getEventRate());
         ps.println("event types");
         for (final Object key : this.eventTypeCounts.keySet()) {
             ps.println("  " + key + ": " + this.eventTypeCounts.get(key));
         }
-        ps.println(this.files.size() + " files");
-        for (final File file : this.files) {
+        ps.println(this.evioFileList.size() + " files");
+        for (final File file : this.evioFileList) {
             ps.println("  " + file.getPath());
         }
+    }
+
+    /**
+     * Set the creation date of the run record.
+     *
+     * @param created the creation date of the run record
+     */
+    public void setCreated(final Date created) {
+        this.created = created;
     }
 
     /**
@@ -259,7 +312,7 @@ public final class RunSummary {
      *
      * @param endDate the end date
      */
-    void setEndDate(final Date endDate) {
+    public void setEndDate(final Date endDate) {
         this.endDate = endDate;
     }
 
@@ -268,7 +321,7 @@ public final class RunSummary {
      *
      * @param endOkay <code>true</code> if end is okay
      */
-    void setEndOkay(final boolean endOkay) {
+    public void setEndOkay(final boolean endOkay) {
         this.endOkay = endOkay;
     }
 
@@ -277,7 +330,7 @@ public final class RunSummary {
      *
      * @param epics the EPICS data for the run
      */
-    void setEpicsData(final EpicsData epics) {
+    public void setEpicsData(final EpicsData epics) {
         this.epics = epics;
     }
 
@@ -286,16 +339,34 @@ public final class RunSummary {
      *
      * @param eventTypeCounts the event type counts for the run
      */
-    void setEventTypeCounts(final Map<Object, Integer> eventTypeCounts) {
+    public void setEventTypeCounts(final Map<Object, Integer> eventTypeCounts) {
         this.eventTypeCounts = eventTypeCounts;
     }
 
     /**
+     * Set the list of EVIO files for the run.
+     *
+     * @param evioFileList the list of EVIO files for the run
+     */
+    public void setEvioFileList(final EvioFileList evioFileList) {
+        this.evioFileList = evioFileList;
+    }
+
+    /**
+     * Set whether the run was "okay" meaning the data is usable for physics analysis.
+     *
+     * @param runOkay <code>true</code> if the run is okay
+     */
+    public void setRunOkay(final boolean runOkay) {
+        this.runOkay = runOkay;
+    }
+
+    /**
      * Set the scaler data of the run.
-     * 
+     *
      * @param scalerData the scaler data
      */
-    void setScalerData(final ScalerData scalerData) {
+    public void setScalerData(final ScalerData scalerData) {
         this.scalerData = scalerData;
     }
 
@@ -304,25 +375,54 @@ public final class RunSummary {
      *
      * @param startDate the start date of the run
      */
-    void setStartDate(final Date startDate) {
+    public void setStartDate(final Date startDate) {
         this.startDate = startDate;
+    }
+
+    /**
+     * Set the total number of physics events in the run.
+     *
+     * @param totalEvents the total number of physics events in the run
+     */
+    public void setTotalEvents(final int totalEvents) {
+        this.totalEvents = totalEvents;
+    }
+
+    /**
+     * Set the total number of EVIO files in the run.
+     *
+     * @param totalFiles the total number of EVIO files in the run
+     */
+    public void setTotalFiles(final int totalFiles) {
+        this.totalFiles = totalFiles;
+    }
+
+    /**
+     * Set the date when this run record was last updated.
+     *
+     * @param updated the date when the run record was last updated
+     */
+    public void setUpdated(final Date updated) {
+        this.updated = updated;
     }
 
     /**
      * Sort the files in the run by sequence number in place.
      */
-    void sortFiles() {
-        this.files.sort();
+    public void sortFiles() {
+        this.evioFileList.sort();
     }
 
     /**
      * Convert this object to a string.
-     * 
+     *
      * @return this object converted to a string
      */
     @Override
     public String toString() {
-        return "RunSummary { run: " + this.run + ", started: " + this.getStartDate() + ", ended: " + this.getEndDate()
-                + ", events: " + this.getTotalEvents() + ", endOkay: " + endOkay + " }";
+        return "RunSummary { run: " + this.getRun() + ", startDate: " + this.getStartDate() + ", endDate: "
+                + this.getEndDate() + ", totalEvents: " + this.getTotalEvents() + ", totalFiles: "
+                + this.getTotalFiles() + ", endOkay: " + this.getEndOkay() + ", runOkay: " + this.getRunOkay()
+                + ", updated: " + this.getUpdated() + ", created: " + this.getCreated() + " }";
     }
 }

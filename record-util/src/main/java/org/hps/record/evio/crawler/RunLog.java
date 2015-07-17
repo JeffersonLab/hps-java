@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.hps.record.run.RunSummary;
 import org.lcsim.util.log.LogUtil;
 
 /**
@@ -70,7 +71,7 @@ final class RunLog {
      */
     void printRunSummaries() {
         for (final int run : this.runs.keySet()) {
-            this.runs.get(run).printRunSummary(System.out);
+            this.runs.get(run).printOut(System.out);
         }
     }
 

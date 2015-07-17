@@ -22,6 +22,11 @@ import org.xml.sax.InputSource;
 
 /**
  * Utility class for caching files from the MSS to cache disk at JLAB.
+ * <p>
+ * This class should <b>not</b> be activated when running the crawler on the Auger batch system as it will take up a lot
+ * of job time caching files, which is part of Auger's job staging that doesn't count towards the job time.
+ * <p>
+ * It is fine to use running on an interactive <i>ifarm</i> node at JLAB.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -66,6 +71,19 @@ final class JCacheManager {
         CacheStatus(final File file, final Integer requestId) {
             this.file = file;
             this.requestId = requestId;
+        }
+
+        /**
+         * Get the error message from the XML request.
+         *
+         * @return the error message from the XML request
+         */
+        String getErrorMessage() {
+            if (this.xml.getChild("request").getChild("file").getChild("error") != null) {
+                return this.xml.getChild("request").getChild("file").getChild("error").getText();
+            } else {
+                return "";
+            }
         }
 
         /**
@@ -135,6 +153,13 @@ final class JCacheManager {
         }
 
         /**
+         * Return <code>true</code> if status is "failed".
+         */
+        boolean isFailed() {
+            return "failed".equals(this.status);
+        }
+
+        /**
          * Return <code>true</code> if status is "hit".
          *
          * @return <code>true</code> if status is "hit"
@@ -153,28 +178,8 @@ final class JCacheManager {
         }
 
         /**
-         * Return <code>true</code> if status is "failed".
-         */
-        boolean isFailed() {
-            return "failed".equals(this.status);
-        }
-
-        /**
-         * Get the error message from the XML request.
-         * 
-         * @return the error message from the XML request
-         */
-        String getErrorMessage() {
-            if (this.xml.getChild("request").getChild("file").getChild("error") != null) {
-                return this.xml.getChild("request").getChild("file").getChild("error").getText();
-            } else {
-                return "";
-            }
-        }
-
-        /**
          * Run the <i>jcache request</i> command for this request ID and return the XML output.
-         * 
+         *
          * @return the XML output from the <i>jcache request</i> command
          */
         private Element request() {
@@ -201,7 +206,7 @@ final class JCacheManager {
          */
         void update() {
             // Request status update and get the XML from that process.
-            this.xml = request();
+            this.xml = this.request();
 
             // Update the status from the XML.
             this.status = this.xml.getChild("request").getChild("file").getChildText("status");
@@ -340,60 +345,57 @@ final class JCacheManager {
     }
 
     /**
-     * Return <code>true</code> if all files registered with the manager are cached.
+     * Return <code>true</code> if all files registered with the manager have been cached.
      *
      * @return <code>true</code> if all files registered with the manager are cached
      */
     boolean checkCacheStatus() {
 
-        // Flag which will be changed to false if we find non-cached files in the loop.
+        // Flag which will be changed to false if we find files that are not cached yet.
         boolean allCached = true;
 
-        // Loop over all cache statuses and refresh/check them.
+        // Loop over all files, refresh the status, and check that they are cached.
         for (final Entry<File, CacheStatus> entry : this.cacheStatuses.entrySet()) {
 
-            // Get the cache status for a single file.
+            // Get the cache status the file.
             final CacheStatus cacheStatus = entry.getValue();
 
             LOGGER.info("checking status of " + cacheStatus.getFile().getPath() + " with req ID '"
                     + cacheStatus.getRequestId() + "' ...");
 
-            // Is this file flagged as not non-cached?
+            // Does the file's status indicate it is not cached yet?
             if (!cacheStatus.isCached()) {
 
+                // Update the cache status to see if it has changed.
                 LOGGER.info("updating status of " + cacheStatus.getFile().getPath() + " ...");
-
-                // Update the cache status to see if it changed since last check.
                 cacheStatus.update();
 
-                // Is status still non-cached after status update?
+                // Is this file's status still non-cached after the status update?
                 if (!cacheStatus.isCached()) {
 
                     // Set flag which indicates at least one file is not cached yet.
                     allCached = false;
 
                     LOGGER.info(entry.getKey() + " is NOT cached with status " + cacheStatus.getStatus(false));
-                } else {
-                    // Log that this file is now cached. It will not be checked next time.
-                    LOGGER.info(cacheStatus.getFile().getPath() + " is cached with status "
-                            + cacheStatus.getStatus(false));
-                }
 
-                // Did the request fail?
-                if (cacheStatus.isFailed()) {
+                    break;
+
+                } else if (cacheStatus.isFailed()) {
                     // Cache failure is a fatal error.
                     LOGGER.severe("cache request failed with error: " + cacheStatus.getErrorMessage());
                     throw new RuntimeException("Cache request failed.");
+                } else {
+                    // Log that this file is now cached. It will not be checked next time this method is called.
+                    LOGGER.info(cacheStatus.getFile().getPath() + " is now cached with status "
+                            + cacheStatus.getStatus(false));
                 }
-            } else {
-                LOGGER.info(cacheStatus.getFile().getPath() + " is already cached");
             }
         }
         return allCached;
     }
 
     /**
-     * Clear all cache statuses, which means files are no longer tracked by this manager.
+     * Clear the cache statuses which means the manager will no longer track any of the files that were registered.
      */
     void clear() {
         this.cacheStatuses.clear();
@@ -402,7 +404,7 @@ final class JCacheManager {
     }
 
     /**
-     * Get the request ID from a process that ran the 'jcache request' command.
+     * Parse out the request ID from the output of a 'jcache request' process.
      *
      * @param process the system process
      * @return the request ID
@@ -524,7 +526,7 @@ final class JCacheManager {
                 cached = true;
                 break;
             } else {
-                LOGGER.info(this.getUncachedCount() + " files still uncached");
+                LOGGER.info(this.getUncachedCount() + " files are not cached");
             }
 
             // Sleep for awhile before checking the cache statuses again.
@@ -537,7 +539,7 @@ final class JCacheManager {
             }
         }
 
-        double end = (double) (System.currentTimeMillis() - this.start);
+        final double end = System.currentTimeMillis() - this.start;
 
         LOGGER.info("caching took " + new DecimalFormat("#.##").format(end / 1000. / 60.) + " minutes");
 

@@ -22,11 +22,6 @@ final class EventTypeLog extends EvioEventProcessor {
     private final Map<Object, Integer> eventTypeCounts = new HashMap<Object, Integer>();
 
     /**
-     * The run summary to update.
-     */
-    private final RunSummary runSummary;
-
-    /**
      * The total number of physics events processed.
      */
     private int physicsEventCount = 0;
@@ -36,22 +31,13 @@ final class EventTypeLog extends EvioEventProcessor {
      *
      * @param runSummary the run summary
      */
-    EventTypeLog(final RunSummary runSummary) {
-        this.runSummary = runSummary;
+    EventTypeLog() {
         for (final EventTagConstant constant : EventTagConstant.values()) {
             this.eventTypeCounts.put(constant, 0);
         }
         for (final EventTagBitMask mask : EventTagBitMask.values()) {
             this.eventTypeCounts.put(mask, 0);
         }
-    }
-
-    /**
-     * End of job hook which sets the event type counts on the run summary.
-     */
-    @Override
-    public void endJob() {
-        this.runSummary.setEventTypeCounts(this.eventTypeCounts);
     }
 
     /**
@@ -65,7 +51,7 @@ final class EventTypeLog extends EvioEventProcessor {
 
     /**
      * Get the number of physics events counted.
-     * 
+     *
      * @return the number of physics events counted
      */
     int getPhysicsEventCount() {
@@ -79,7 +65,7 @@ final class EventTypeLog extends EvioEventProcessor {
      */
     @Override
     public void process(final EvioEvent event) {
-        
+
         // Increment counts for exact event tag values.
         for (final EventTagConstant constant : EventTagConstant.values()) {
             if (constant.isEventTag(event)) {
@@ -87,7 +73,7 @@ final class EventTypeLog extends EvioEventProcessor {
                 this.eventTypeCounts.put(constant, count);
             }
         }
-        
+
         // Increment counts for bit masking of tags.
         for (final EventTagBitMask mask : EventTagBitMask.values()) {
             if (mask.isEventTag(event)) {

@@ -115,23 +115,23 @@ final class EvioFileUtilities {
      * @return the run end date
      */
     static Date getRunEnd(final File file) {
-        
+
         // Search for the END event in the last 10 events of the file.
         Date endDate = getControlDate(file, EvioEventConstants.END_EVENT_TAG, -10);
-       
+
         // Was the end date found from the END event?
         if (endDate == null) {
-             
+
             EvioReader reader = null;
             try {
                 reader = open(file, true);
-                
+
                 // Search for the last physics event in the last 10 events of the file.
                 reader.gotoEventNumber(reader.getEventCount() - 10);
                 EvioEvent event = null;
                 while ((event = reader.parseNextEvent()) != null) {
                     if (EvioEventUtilities.isPhysicsEvent(event)) {
-                        Date eventDate = getHeadBankDate(event);
+                        final Date eventDate = getHeadBankDate(event);
                         if (eventDate != null) {
                             // This might be set multiple times but should result in the time of the last physics event.
                             endDate = eventDate;
@@ -176,13 +176,13 @@ final class EvioFileUtilities {
      * @return the run start date
      */
     static Date getRunStart(final File file) {
-        
+
         // First try to find the start date in the special PRESTART event.
         Date date = getControlDate(file, EvioEventConstants.PRESTART_EVENT_TAG, 0);
-        
+
         // Was start date not found from PRESTART?
         if (date == null) {
-            
+
             // Read events until there is a physics event and use its time for the start date.
             EvioReader reader = null;
             try {
@@ -271,7 +271,7 @@ final class EvioFileUtilities {
         final long start = System.currentTimeMillis();
         final EvioReader reader = new EvioReader(openFile, false, sequential);
         final long end = System.currentTimeMillis() - start;
-        LOGGER.info("opened " + openFile.getPath() + " in " + end / MILLISECONDS + " seconds");
+        LOGGER.info("opened " + openFile.getPath() + " in " + (double) end / (double) MILLISECONDS + " seconds");
         return reader;
     }
 

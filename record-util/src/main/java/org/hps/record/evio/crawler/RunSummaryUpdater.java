@@ -9,6 +9,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.record.epics.EpicsData;
+import org.hps.record.run.RunSummary;
+import org.hps.record.scalers.ScalerData;
 import org.lcsim.util.log.LogUtil;
 
 /**
@@ -65,6 +67,11 @@ public class RunSummaryUpdater {
         this.run = this.runSummary.getRun();
     }
 
+    /**
+     * Delete all information for this run from all tables in the database.
+     *
+     * @throws SQLException if there is a SQL query error
+     */
     private void delete() throws SQLException {
 
         LOGGER.info("deleting existing information for run " + runSummary.getRun());
@@ -96,17 +103,6 @@ public class RunSummaryUpdater {
     }
 
     /**
-     * Delete existing EPICS data from the run_log_epics table.
-     *
-     * @throws SQLException if there is an error performing the db query
-     */
-    private void deleteScalerData() throws SQLException {
-        final PreparedStatement statement = connection.prepareStatement("DELETE FROM run_scalers WHERE run = ?");
-        statement.setInt(1, this.run);
-        statement.executeUpdate();
-    }
-
-    /**
      * Delete the records of the files associated to this run.
      *
      * @param files the list of files
@@ -122,8 +118,6 @@ public class RunSummaryUpdater {
 
     /**
      * Delete the row for this run from the <i>runs</i> table.
-     * <p>
-     * This doesn't delete the rows from <i>run_epics</i> or <i>run_files</i>.
      *
      * @throws SQLException if there is an error executing the SQL query
      */
@@ -135,6 +129,22 @@ public class RunSummaryUpdater {
         LOGGER.info("deleted rows from runs for " + run);
     }
 
+    /**
+     * Delete existing EPICS data from the run_log_epics table.
+     *
+     * @throws SQLException if there is an error performing the db query
+     */
+    private void deleteScalerData() throws SQLException {
+        final PreparedStatement statement = connection.prepareStatement("DELETE FROM run_scalers WHERE run = ?");
+        statement.setInt(1, this.run);
+        statement.executeUpdate();
+    }
+
+    /**
+     * Insert the current {@link RunSummary} into the run database.
+     *
+     * @throws SQLException if there is a SQL query error
+     */
     void insert() throws SQLException {
 
         LOGGER.info("performing db insert for " + runSummary);
@@ -167,9 +177,7 @@ public class RunSummaryUpdater {
         this.insertEpics();
 
         // Insert scaler data.
-        if (runSummary.getScalerData() != null) {
-            new ScalerDataUpdater(connection, runSummary.getScalerData(), run).insert();
-        }
+        this.insertScalarData();
 
         // Commit the transactions for this run.
         LOGGER.info("committing transaction for run " + run);
@@ -238,9 +246,33 @@ public class RunSummaryUpdater {
         statement.setTimestamp(3, new java.sql.Timestamp(runSummary.getEndDate().getTime()));
         statement.setInt(4, runSummary.getTotalEvents());
         statement.setInt(5, runSummary.getEvioFileList().size());
-        statement.setBoolean(6, runSummary.isEndOkay());
+        statement.setBoolean(6, runSummary.getEndOkay());
         statement.executeUpdate();
         LOGGER.info("inserted run " + run + " to runs table");
+    }
+
+    /**
+     * Insert scaler data into the database.
+     * 
+     * @throws SQLException if there is a SQL query error
+     */
+    private void insertScalarData() throws SQLException {
+        final PreparedStatement statement;
+        final ScalerData scalerData = this.runSummary.getScalerData();
+        if (scalerData == null) {
+            throw new RuntimeException("scaler data is missing");
+        }
+        try {
+            statement = connection.prepareStatement("INSERT INTO run_scalers (run, idx, value) VALUES (?, ?, ?)");
+            for (int idx = 0; idx < scalerData.size(); idx++) {
+                statement.setInt(1, run);
+                statement.setInt(2, idx);
+                statement.setInt(3, scalerData.getValue(idx));
+                statement.executeUpdate();
+            }
+        } finally {
+            connection.commit();
+        }
     }
 
     /**
@@ -257,9 +289,9 @@ public class RunSummaryUpdater {
     }
 
     /**
-     * Set whether deletion and replacement of existing run information is allowed.
-     * 
-     * @param allowDeleteExisting <code>true</code> to allow deletion and replacement of existing information
+     * Set whether replacement of existing rows in the database is allowed.
+     *
+     * @param allowDeleteExisting <code>true</code> to allow replacement of existing rows
      */
     void setAllowDeleteExisting(final boolean allowDeleteExisting) {
         this.allowDeleteExisting = allowDeleteExisting;
