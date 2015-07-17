@@ -207,7 +207,25 @@ public final class EvioEventUtilities {
             evioEvent.setEventNumber(eventNumber);
         }
     }
-
+    
+    /**
+     * Get integer data from the event ID bank of an EVIO event.
+     * 
+     * @param evioEvent the input EVIO event
+     * @return the event ID integer array or <code>null</code> if not found
+     */
+    public static int[] getEventIdData(EvioEvent evioEvent) {
+        int[] eventId = null;
+        if (evioEvent.getChildCount() > 0) {
+            for (final BaseStructure bank : evioEvent.getChildrenList()) {
+                if (bank.getHeader().getTag() == EvioEventConstants.EVENTID_BANK_TAG) {
+                    eventId = bank.getIntData();
+                }
+            }
+        }
+        return eventId;
+    }
+    
     /**
      * Class should not be instantiated.
      */
