@@ -85,10 +85,8 @@ public class TridentTrackDriver extends Driver {
 			// Get the final state particles.
 			List<ReconstructedParticle> trackList = event.get(ReconstructedParticle.class, finalStateCollectionName);
 			
-			// Get the number of tracks.
-			tracksFinalState += trackList.size();
-			
 			// Store the positive and negative tracks.
+			List<ReconstructedParticle> allTrackList = new ArrayList<ReconstructedParticle>();
 			List<ReconstructedParticle> posTrackList = new ArrayList<ReconstructedParticle>();
 			List<ReconstructedParticle> negTrackList = new ArrayList<ReconstructedParticle>();
 			
@@ -99,6 +97,19 @@ public class TridentTrackDriver extends Driver {
 			
 			// Iterate over the tracks and populate the lists.
 			for(ReconstructedParticle track : trackList) {
+				// Skip instances with no raw tracks.
+				if(track.getTracks().size() == 0) { continue; }
+				
+				// Add the cluster to the all track list.
+				allTrackList.add(track);
+				
+				// Track the number of cluster tracks.
+				tracksFinalState++;
+				if(!track.getClusters().isEmpty()) {
+					tracksFinalStateCluster++;
+				}
+				
+				// Process the tracks based on charge.
 				if(track.getCharge() > 0) {
 					// Increment the counters and populate the momentum plots.
 					posTrackList.add(track);
@@ -146,15 +157,10 @@ public class TridentTrackDriver extends Driver {
 						position[HAS_CLUSTER].fill(ix, iy);
 					}
 				}
-				
-				// Track the number of cluster tracks.
-				if(!track.getClusters().isEmpty()) {
-					tracksFinalStateCluster++;
-				}
 			}
 			
 			// Populate the tracks per event plots.
-			tracks[ANY_CLUSTER].fill(trackList.size());
+			tracks[ANY_CLUSTER].fill(allTrackList.size());
 			tracks[HAS_CLUSTER].fill(allClusterTrackList.size());
 			posTracks[ANY_CLUSTER].fill(posTrackList.size());
 			posTracks[HAS_CLUSTER].fill(posClusterTrackList.size());
