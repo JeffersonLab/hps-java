@@ -29,6 +29,8 @@ public class InvariantMassPairDriver extends Driver {
 	private IHistogram2D pair2DEnergyHist = aida.histogram2D("Trident Analysis/2D Energy Distribution", 55, 0, 1.1, 55, 0, 1.1);
 	private IHistogram1D pair1MassHist = aida.histogram1D("Trident Analysis/Particle Invariant Mass (1 Hit)", 240, 0.000, 0.120);
 	private IHistogram1D pair1ModMassHist = aida.histogram1D("Trident Analysis/Particle Invariant Mass (2 Hit)", 240, 0.000, 0.120);
+	private IHistogram1D elasticElectronEnergyHist = aida.histogram1D("Trident Analysis/Trident Electron Energy", 150, 0.000, 1.500);
+	private IHistogram1D elasticPositronEnergyHist = aida.histogram1D("Trident Analysis/Trident Positron Energy", 150, 0.000, 1.500);
 	
 	@Override
 	public void startOfData() {
@@ -67,6 +69,11 @@ public class InvariantMassPairDriver extends Driver {
 	
 	@Override
 	public void process(EventHeader event) {
+		// Skip the event if there is no reconstructed particle list.
+		if(!event.hasCollection(ReconstructedParticle.class, particleCollectionName)) {
+			return;
+		}
+		
 		// Get a list of all tracks in the event.
 		List<ReconstructedParticle> trackList = event.get(ReconstructedParticle.class, particleCollectionName);
 		
@@ -166,6 +173,10 @@ public class InvariantMassPairDriver extends Driver {
 		// Populate the invariant mass plot.
 		candidateLoop:
 		for(ReconstructedParticle particle : candidateList) {
+			// Track the electron and positron momenta.
+			double electronMomentum = 0.0;
+			double positronMomentum = 0.0;
+			
 			// Check that it has component particles that meet the
 			// trident condition.
 			boolean seenPositive = false;
@@ -179,6 +190,7 @@ public class InvariantMassPairDriver extends Driver {
 					
 					// Otherwise, note that one has been seen.
 					seenNegative = true;
+					electronMomentum = track.getMomentum().magnitude();
 					
 					// Reject electrons with a momentum exceeding 900 MeV.
 					if(track.getMomentum().magnitude() > 0.900) {
@@ -194,6 +206,7 @@ public class InvariantMassPairDriver extends Driver {
 					
 					// Otherwise, note that one has been seen.
 					seenPositive = true;
+					positronMomentum = track.getMomentum().magnitude();
 				}
 				
 				// Lastly, reject any particle that produced a photon.
@@ -202,6 +215,8 @@ public class InvariantMassPairDriver extends Driver {
 			
 			// Populate the plots.
 			pair1MassHist.fill(particle.getMass());
+			elasticElectronEnergyHist.fill(electronMomentum);
+			elasticPositronEnergyHist.fill(positronMomentum);
 			if(passedPair1Mod) { pair1ModMassHist.fill(particle.getMass()); }
 		}
 	}

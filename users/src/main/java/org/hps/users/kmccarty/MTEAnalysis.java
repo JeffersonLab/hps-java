@@ -7,6 +7,7 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -18,9 +19,9 @@ public class MTEAnalysis extends Driver {
 	private String particleCollectionName = "FinalStateParticles";
 	private static final AIDA aida = AIDA.defaultInstance();
 	private IHistogram1D[] chargedTracksPlot = {
-			aida.histogram1D("MTE Analysis/Møller Event Tracks", 10, 0, 10),
-			aida.histogram1D("MTE Analysis/Trident Event Tracks", 10, 0, 10),
-			aida.histogram1D("MTE Analysis/Elastic Event Tracks", 10, 0, 10)
+			aida.histogram1D("MTE Analysis/Møller Event Tracks", 10, -0.5, 9.5),
+			aida.histogram1D("MTE Analysis/Trident Event Tracks", 10, -0.5, 9.5),
+			aida.histogram1D("MTE Analysis/Elastic Event Tracks", 10, -0.5, 9.5)
 	};
 	private IHistogram1D[] energyPlot = {
 			aida.histogram1D("MTE Analysis/Møller Energy Sum Distribution", 220, 0, 2.2),
@@ -36,16 +37,28 @@ public class MTEAnalysis extends Driver {
 			aida.histogram2D("MTE Analysis/Møller 2D Energy Distribution", 55, 0, 1.1, 55, 0, 1.1),
 			aida.histogram2D("MTE Analysis/Trident 2D Energy Distribution", 55, 0, 1.1, 55, 0, 1.1),
 	};
+	private IHistogram1D timePlot = aida.histogram1D("MTE Analysis/Track Cluster Time Distribution", 4000, 0, 400);
+	private IHistogram1D timeCoincidencePlot = aida.histogram1D("MTE Analysis/Møller Time Coincidence Distribution", 1000, 0, 100);
+	private IHistogram1D timeCoincidenceAllCutsPlot = aida.histogram1D("MTE Analysis/Møller Time Coincidence Distribution (All Møller Cuts)", 1000, 0, 100);
 	private static final int MØLLER  = 0;
 	private static final int TRIDENT = 1;
 	private static final int ELASTIC = 2;
 	private boolean verbose = false;
+	private double timeCoincidenceCut = Double.MAX_VALUE;
 	
 	@Override
 	public void process(EventHeader event) {
 		if(event.hasCollection(ReconstructedParticle.class, particleCollectionName)) {
 			// Get the list of tracks.
 			List<ReconstructedParticle> trackList = event.get(ReconstructedParticle.class, particleCollectionName);
+			
+			// Plot the time stamps of all tracks.
+			for(ReconstructedParticle track : trackList) {
+				if(track.getClusters().size() != 0) {
+					Cluster cluster = track.getClusters().get(0);
+					timePlot.fill(cluster.getCalorimeterHits().get(0).getTime());
+				}
+			}
 			
 			if(verbose) {
 				System.out.println(trackList.size() + " tracks found.");
@@ -87,7 +100,19 @@ public class MTEAnalysis extends Driver {
 				
 				// Require that the track clusters be within a certain
 				// time window of one another.
-				if(Math.abs(trackClusters[0].getCalorimeterHits().get(0).getTime() - trackClusters[1].getCalorimeterHits().get(0).getTime()) > 500) {
+				CalorimeterHit[] seeds = new CalorimeterHit[2];
+				seeds[0] = trackClusters[0].getCalorimeterHits().get(0);
+				seeds[1] = trackClusters[1].getCalorimeterHits().get(0);
+				timeCoincidencePlot.fill(Math.abs(seeds[0].getTime() - seeds[1].getTime()));
+				if(Math.abs(trackClusters[0].getCalorimeterHits().get(0).getTime() - trackClusters[1].getCalorimeterHits().get(0).getTime()) > timeCoincidenceCut) {
+					continue møllerTrackLoop;
+				}
+				
+				// Require both tracks to occur within the range of
+				// 36.5 and 49 ns.
+				if(seeds[0].getTime() < 36.5 || seeds[0].getTime() > 49) {
+					continue møllerTrackLoop;
+				} if(seeds[1].getTime() < 36.5 || seeds[1].getTime() > 49) {
 					continue møllerTrackLoop;
 				}
 				
@@ -104,6 +129,8 @@ public class MTEAnalysis extends Driver {
 				if(sum < 0.800 || sum > 1.500) {
 					continue møllerTrackLoop;
 				}
+				
+				timeCoincidenceAllCutsPlot.fill(Math.abs(seeds[0].getTime() - seeds[1].getTime()));
 				
 				// Note that this is a Møller event.
 				isMøller = true;
@@ -172,6 +199,10 @@ public class MTEAnalysis extends Driver {
 		}
 	}
 	
+	public void setTimeCoincidenceCut(double value) {
+		timeCoincidenceCut = value;
+	}
+	
 	private static final List<ReconstructedParticle[]> getTrackPairs(List<ReconstructedParticle> trackList) {
 		// Create an empty list for the pairs.
 		List<ReconstructedParticle[]> pairs = new ArrayList<ReconstructedParticle[]>();
@@ -185,18 +216,5 @@ public class MTEAnalysis extends Driver {
 		
 		// Return the list of tracks.
 		return pairs;
-	}
-	
-	private static final double getMagnitude(double[] vector) {
-		// Store the squares of each component of the vector.
-		double squareSum = 0;
-		
-		// Add the square of each vector component.
-		for(double d : vector) {
-			squareSum += d * d;
-		}
-		
-		// Return the square root of the sum.
-		return Math.sqrt(squareSum);
 	}
 }
