@@ -201,7 +201,7 @@ public class TridentTrackDriver extends Driver {
 						pair[0].getMomentum().z() + pair[1].getMomentum().z());
 				
 				energySum[HAS_CLUSTER].fill(pair[0].getEnergy() + pair[1].getEnergy());
-				momentumSum[ANY_CLUSTER].fill(pSum.magnitude());
+				momentumSum[HAS_CLUSTER].fill(pSum.magnitude());
 				energySum2D[HAS_CLUSTER].fill(pair[0].getEnergy(), pair[1].getEnergy());
 				momentumSum2D[HAS_CLUSTER].fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
 				energyMomentumDiff[HAS_CLUSTER].fill(Math.abs((pair[0].getEnergy() + pair[1].getEnergy()) - pSum.magnitude()));
