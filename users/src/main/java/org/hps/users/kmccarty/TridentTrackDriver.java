@@ -62,11 +62,11 @@ public class TridentTrackDriver extends Driver {
 		posMomentum[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Momentum (Positive)", 110, 0, 1.1);
 		negMomentum[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Momentum (Negative)", 110, 0, 1.1);
 		energySum[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Energy Sum", 55, 0, 2.2);
-		momentumSum[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/All/Momentum Sum", 55, 0, 2.2);
-		energyMomentumDiff[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/All/Energy-Momentum Difference", 55, 0, 2.2);
+		momentumSum[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Momentum Sum", 55, 0, 2.2);
+		energyMomentumDiff[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Energy-Momentum Difference", 55, 0, 2.2);
 		invariantMass[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Invariant Mass", 240, 0.000, 0.120);
 		energySum2D[HAS_CLUSTER] = aida.histogram2D("Trident Analysis/Cluster/2D Energy Sum", 55, 0, 1.1, 55, 0, 1.1);
-		momentumSum2D[HAS_CLUSTER] = aida.histogram2D("Trident Analysis/All/2D Momentum Sum", 55, 0, 1.1, 55, 0, 1.1);
+		momentumSum2D[HAS_CLUSTER] = aida.histogram2D("Trident Analysis/Cluster/2D Momentum Sum", 55, 0, 1.1, 55, 0, 1.1);
 		position[HAS_CLUSTER] = aida.histogram2D("Trident Analysis/Cluster/Track Cluster Position", 46, -23, 23, 11, -5.5, 5.5);
 	}
 	
@@ -191,7 +191,6 @@ public class TridentTrackDriver extends Driver {
 				energySum2D[ANY_CLUSTER].fill(pair[0].getEnergy(), pair[1].getEnergy());
 				momentumSum2D[ANY_CLUSTER].fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
 				energyMomentumDiff[ANY_CLUSTER].fill(Math.abs((pair[0].getEnergy() + pair[1].getEnergy()) - pSum.magnitude()));
-				System.out.println(pair[0].getMomentum().getClass().getCanonicalName());
 			}
 			
 			// Populate the cluster track pair plots.
@@ -205,7 +204,7 @@ public class TridentTrackDriver extends Driver {
 				momentumSum[ANY_CLUSTER].fill(pSum.magnitude());
 				energySum2D[HAS_CLUSTER].fill(pair[0].getEnergy(), pair[1].getEnergy());
 				momentumSum2D[HAS_CLUSTER].fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
-				energyMomentumDiff[ANY_CLUSTER].fill(Math.abs((pair[0].getEnergy() + pair[1].getEnergy()) - pSum.magnitude()));
+				energyMomentumDiff[HAS_CLUSTER].fill(Math.abs((pair[0].getEnergy() + pair[1].getEnergy()) - pSum.magnitude()));
 			}
 		}
 		
