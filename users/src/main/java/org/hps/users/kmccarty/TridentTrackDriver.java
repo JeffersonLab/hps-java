@@ -2,6 +2,8 @@ package org.hps.users.kmccarty;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,32 +32,41 @@ public class TridentTrackDriver extends Driver {
 	private IHistogram1D[] posMomentum = new IHistogram1D[2];
 	private IHistogram1D[] negMomentum = new IHistogram1D[2];
 	private IHistogram1D[] energySum = new IHistogram1D[2];
+	private IHistogram1D[] energyMomentumDiff = new IHistogram1D[2];
+	private IHistogram1D[] momentumSum = new IHistogram1D[2];
 	private IHistogram1D[] invariantMass = new IHistogram1D[2];
 	private IHistogram2D[] energySum2D = new IHistogram2D[2];
+	private IHistogram2D[] momentumSum2D = new IHistogram2D[2];
 	private IHistogram2D[] position = new IHistogram2D[2];
 	
 	@Override
 	public void startOfData() {
 		// Instantiate the "any cluster status" plots.
-		tracks[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Tracks in Event (All)", 20, 0, 20);
-		posTracks[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Tracks in Event (Positive)", 20, 0, 20);
-		negTracks[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Tracks in Event (Negative)", 20, 0, 20);
+		tracks[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Tracks in Event (All)", 7, -0.5, 6.5);
+		posTracks[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Tracks in Event (Positive)", 7, -0.5, 6.5);
+		negTracks[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Tracks in Event (Negative)", 7, -0.5, 6.5);
 		posMomentum[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Momentum (Positive)", 110, 0, 1.1);
 		negMomentum[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Momentum (Negative)", 110, 0, 1.1);
-		energySum[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Energy Sum", 220, 0, 2.2);
+		energySum[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Energy Sum", 55, 0, 2.2);
+		momentumSum[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Momentum Sum", 55, 0, 2.2);
+		energyMomentumDiff[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Energy-Momentum Difference", 55, 0, 2.2);
 		invariantMass[ANY_CLUSTER] = aida.histogram1D("Trident Analysis/All/Invariant Mass", 240, 0.000, 0.120);
 		energySum2D[ANY_CLUSTER] = aida.histogram2D("Trident Analysis/All/2D Energy Sum", 55, 0, 1.1, 55, 0, 1.1);
+		momentumSum2D[ANY_CLUSTER] = aida.histogram2D("Trident Analysis/All/2D Momentum Sum", 55, 0, 1.1, 55, 0, 1.1);
 		position[ANY_CLUSTER] = aida.histogram2D("Trident Analysis/All/Track Cluster Position", 46, -23, 23, 11, -5.5, 5.5);
 		
 		// Instantiate the "has a cluster" plots.
-		tracks[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Tracks in Event (All)", 20, 0, 20);
-		posTracks[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Tracks in Event (Positive)", 20, 0, 20);
-		negTracks[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Tracks in Event (Negative)", 20, 0, 20);
+		tracks[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Tracks in Event (All)", 7, -0.5, 6.5);
+		posTracks[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Tracks in Event (Positive)", 7, -0.5, 6.5);
+		negTracks[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Tracks in Event (Negative)", 7, -0.5, 6.5);
 		posMomentum[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Momentum (Positive)", 110, 0, 1.1);
 		negMomentum[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Momentum (Negative)", 110, 0, 1.1);
-		energySum[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Energy Sum", 220, 0, 2.2);
+		energySum[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Energy Sum", 55, 0, 2.2);
+		momentumSum[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/All/Momentum Sum", 55, 0, 2.2);
+		energyMomentumDiff[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/All/Energy-Momentum Difference", 55, 0, 2.2);
 		invariantMass[HAS_CLUSTER] = aida.histogram1D("Trident Analysis/Cluster/Invariant Mass", 240, 0.000, 0.120);
 		energySum2D[HAS_CLUSTER] = aida.histogram2D("Trident Analysis/Cluster/2D Energy Sum", 55, 0, 1.1, 55, 0, 1.1);
+		momentumSum2D[HAS_CLUSTER] = aida.histogram2D("Trident Analysis/All/2D Momentum Sum", 55, 0, 1.1, 55, 0, 1.1);
 		position[HAS_CLUSTER] = aida.histogram2D("Trident Analysis/Cluster/Track Cluster Position", 46, -23, 23, 11, -5.5, 5.5);
 	}
 	
@@ -170,14 +181,31 @@ public class TridentTrackDriver extends Driver {
 			
 			// Populate the track pair plots.
 			for(ReconstructedParticle[] pair : pairList) {
+				Hep3Vector pSum = new BasicHep3Vector(
+						pair[0].getMomentum().x() + pair[1].getMomentum().x(),
+						pair[0].getMomentum().y() + pair[1].getMomentum().y(),
+						pair[0].getMomentum().z() + pair[1].getMomentum().z());
+				
 				energySum[ANY_CLUSTER].fill(pair[0].getEnergy() + pair[1].getEnergy());
+				momentumSum[ANY_CLUSTER].fill(pSum.magnitude());
 				energySum2D[ANY_CLUSTER].fill(pair[0].getEnergy(), pair[1].getEnergy());
+				momentumSum2D[ANY_CLUSTER].fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+				energyMomentumDiff[ANY_CLUSTER].fill(Math.abs((pair[0].getEnergy() + pair[1].getEnergy()) - pSum.magnitude()));
+				System.out.println(pair[0].getMomentum().getClass().getCanonicalName());
 			}
 			
 			// Populate the cluster track pair plots.
 			for(ReconstructedParticle[] pair : pairClusterList) {
+				Hep3Vector pSum = new BasicHep3Vector(
+						pair[0].getMomentum().x() + pair[1].getMomentum().x(),
+						pair[0].getMomentum().y() + pair[1].getMomentum().y(),
+						pair[0].getMomentum().z() + pair[1].getMomentum().z());
+				
 				energySum[HAS_CLUSTER].fill(pair[0].getEnergy() + pair[1].getEnergy());
+				momentumSum[ANY_CLUSTER].fill(pSum.magnitude());
 				energySum2D[HAS_CLUSTER].fill(pair[0].getEnergy(), pair[1].getEnergy());
+				momentumSum2D[HAS_CLUSTER].fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+				energyMomentumDiff[ANY_CLUSTER].fill(Math.abs((pair[0].getEnergy() + pair[1].getEnergy()) - pSum.magnitude()));
 			}
 		}
 		
