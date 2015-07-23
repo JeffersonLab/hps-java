@@ -34,5 +34,34 @@ public final class EcalTimeWalk {
                              pars[5] * Math.pow(energy, 4);
         return time - poly1 * Math.exp(-poly2);
     }
+    
+    /*
+     * Time walk parameters for pulse fitting
+     */
+    private static final double[] par = {
+    	0.9509,
+    	-33.21,
+    	0.2614,
+    	-0.9128,
+    	0.6251
+   };
+    
+    /**
+     * Perform Time Walk Correction for Mode 1 hits using pulse fitting
+     * @param time - FADC Mode 1 hit time from pulse fitting (ns)
+     * @param energy - Pulse energy from pulse fitting (GeV)
+     * @return corrected time (ns)
+     */
+    public static final double correctTimeWalkPulseFitting(double time, double energy) {
+    	final double polyA = par[0] + par[1]*energy;
+    	final double polyB = par[2] + par[3] * energy + par[4] * Math.pow(energy, 2);
+    	return time - (Math.exp(polyA) + polyB);
+    }
+    
+    
+    
+    
+    
+    
 
 }
