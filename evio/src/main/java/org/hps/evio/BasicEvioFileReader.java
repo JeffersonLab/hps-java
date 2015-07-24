@@ -23,6 +23,7 @@ public class BasicEvioFileReader {
         Options options = new Options();
         options.addOption(new Option("q", false, "quiet - don't print event contents"));
         options.addOption(new Option("c", false, "print control events"));
+        options.addOption(new Option("s", false, "sequential read (not mem-mapped)"));
 
         // Parse the command line options.
         if (args.length == 0) {
@@ -42,6 +43,7 @@ public class BasicEvioFileReader {
 
         boolean quiet = cl.hasOption("q");
         boolean printControlEvents = cl.hasOption("c");
+        boolean seqRead = cl.hasOption("s");
 
 //        String evioFileName = args[0];
         for (String evioFileName : cl.getArgs()) {
@@ -51,7 +53,7 @@ public class BasicEvioFileReader {
             }
             System.out.println("Opened file " + evioFileName);
             try {
-                org.jlab.coda.jevio.EvioReader reader = new org.jlab.coda.jevio.EvioReader(evioFile, true, false);
+                org.jlab.coda.jevio.EvioReader reader = new org.jlab.coda.jevio.EvioReader(evioFile, true, seqRead);
                 int eventN = 1;
                 int badEvents = 0;
                 fileLoop:
