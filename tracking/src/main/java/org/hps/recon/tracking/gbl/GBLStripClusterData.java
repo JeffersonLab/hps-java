@@ -19,11 +19,11 @@ public class GBLStripClusterData implements GenericObject {
 	 * Interface enumerator to access the correct data
 	 * 
 	 */
-	private static class GBLINT {
+	public static class GBLINT {
 		public static final int ID = 0;
 		public static final int BANK_INT_SIZE = 1;
 	}
-	private static class GBLDOUBLE {
+	public static class GBLDOUBLE {
 		public static final int PATH3D = 0;
 		public static final int PATH = 1;
 		public static final int UX = 2;
