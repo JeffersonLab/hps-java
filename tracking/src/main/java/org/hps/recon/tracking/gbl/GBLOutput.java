@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.recon.tracking.gbl;
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
@@ -12,12 +8,10 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MaterialSupervisor.DetectorPlane;
@@ -29,7 +23,6 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.constants.Constants;
 import org.lcsim.detector.IDetectorElement;
-import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
@@ -59,10 +52,10 @@ public class GBLOutput {
     private int _debug = 0;
     private GBLFileIO textFile = null;
     private Hep3Vector _B;
-	private TrackerHitUtils _trackerHitUtils = new TrackerHitUtils();
-    private MaterialSupervisor _materialmanager;
-    private MultipleScattering _scattering;
-    private double _beamEnergy = 1.1; //GeV
+	private final TrackerHitUtils _trackerHitUtils = new TrackerHitUtils();
+    private final MaterialSupervisor _materialmanager;
+    private final MultipleScattering _scattering;
+    private final double _beamEnergy = 1.1; //GeV
 	private boolean AprimeEvent = false; // do extra checks
 	private boolean hasXPlanes = false;
     
@@ -87,7 +80,7 @@ public class GBLOutput {
 
     public void setDebug(int debug) {
         _debug = debug;
-        _scattering.setDebug(_debug>0?true:false);
+        _scattering.setDebug((_debug>0));
     }
     public void buildModel(Detector detector) {
         _materialmanager.buildModel(detector);
@@ -433,7 +426,7 @@ public class GBLOutput {
                 
                 //GBLDATA
                 stripData.setMeas(strip.umeas());
-                //stripData.setTrackPos(trkpos_meas);
+                stripData.setTrackPos(trkpos_meas);
                 
                 if(_debug>1) { 
                 System.out.printf("%s: rotation matrix to meas frame\n%s\n", getClass().getSimpleName(), VecOp.toString(trkToStripRot));
@@ -483,26 +476,26 @@ public class GBLOutput {
                     scatAngle = scatter.getScatterAngle().Angle();
                 }
                 else {
-                    System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n",this.getClass(),((RawTrackerHit)strip.getStrip().rawhits().get(0)).getDetectorElement().getName(),strip.origin().toString());
-                    //can be edge case where helix is outside, but close to sensor, so use hack with the sensor origin closest to hit -> FIX THIS!
-                    DetectorPlane closest = null;
-                    double dx = 999999.9;
+                    if (_debug > 0) {
+                        System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n", this.getClass(), ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
+                    }
+                    //can be edge case where helix is outside, but close to sensor, so make a new scatter point assuming the helix does pass through the sensor
+                    DetectorPlane hitPlane = null;
                     if(MaterialSupervisor.class.isInstance(_scattering.getMaterialManager())) {
                         MaterialSupervisor matSup = (MaterialSupervisor)_scattering.getMaterialManager();
+                        IDetectorElement hitElement = ((RawTrackerHit)strip.getStrip().rawhits().get(0)).getDetectorElement();
                         for(ScatteringDetectorVolume vol : matSup.getMaterialVolumes()) {
-                            DetectorPlane plane = (DetectorPlane)vol;
-                            double dx_loop = Math.abs(strip.origin().x() - plane.origin().x());
-                            if(dx_loop<dx) {
-                                dx = dx_loop;
-                                closest = plane;
+                            if (vol.getDetectorElement()==hitElement) {
+                                hitPlane = (DetectorPlane) vol;
+                                break;
                             }
                         }
-                        if(closest==null) {
-                            throw new RuntimeException("cannot find any plane that is close to strip!");
+                        if(hitPlane==null) {
+                            throw new RuntimeException("cannot find plane for hit!");
                         } else {
                             // find scatterlength
-                            double s_closest = HelixUtils.PathToXPlane(htf,closest.origin().x(), 0., 0).get(0);
-                            double X0 = closest.getMaterialTraversedInRL(HelixUtils.Direction(htf, s_closest));
+                            double s_closest = HelixUtils.PathToXPlane(htf,hitPlane.origin().x(), 0., 0).get(0);
+                            double X0 = hitPlane.getMaterialTraversedInRL(HelixUtils.Direction(htf, s_closest));
                             ScatterAngle scatterAngle = new ScatterAngle(s_closest, _scattering.msangle(htf.p(this._B.magnitude()),X0));
                             scatAngle = scatterAngle.Angle();
                         }
@@ -853,7 +846,6 @@ public class GBLOutput {
             
             }
         }
-        return;
      }
 
     private double getInvMassTracks(HelicalTrackFit htf1, HelicalTrackFit htf2) {
@@ -871,7 +863,7 @@ public class GBLOutput {
 
     
     public class PerigeeParams {
-        private BasicMatrix _params;
+        private final BasicMatrix _params;
 
         private PerigeeParams(HelicalTrackFit htf) {
             _params = GBLOutput.this.getPerParVector(htf);
