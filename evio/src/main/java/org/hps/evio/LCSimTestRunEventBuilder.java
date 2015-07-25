@@ -194,7 +194,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         ecalReader.initialize();
     }
 
-    protected class IntBankDefinition {
+    protected static class IntBankDefinition {
 
         int[] bankTags;
         Class<? extends AbstractIntData> dataClass;

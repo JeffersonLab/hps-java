@@ -9,6 +9,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.evio.LCSimTestRunEventBuilder.IntBankDefinition;
+import org.hps.recon.ecal.triggerbank.HeadBankData;
 import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.CompositeData;
@@ -23,6 +25,7 @@ public class BasicEvioFileReader {
         Options options = new Options();
         options.addOption(new Option("q", false, "quiet - don't print event contents"));
         options.addOption(new Option("c", false, "print control events"));
+        options.addOption(new Option("t", false, "print event timestamps"));
         options.addOption(new Option("s", false, "sequential read (not mem-mapped)"));
 
         // Parse the command line options.
@@ -44,6 +47,9 @@ public class BasicEvioFileReader {
         boolean quiet = cl.hasOption("q");
         boolean printControlEvents = cl.hasOption("c");
         boolean seqRead = cl.hasOption("s");
+        boolean printTimestamps = cl.hasOption("t");
+
+        IntBankDefinition headBankDefinition = new LCSimTestRunEventBuilder.IntBankDefinition(HeadBankData.class, new int[]{0x2e, 0xe10f});
 
 //        String evioFileName = args[0];
         for (String evioFileName : cl.getArgs()) {
@@ -52,6 +58,7 @@ public class BasicEvioFileReader {
                 throw new RuntimeException("File " + evioFileName + " does not exist.");
             }
             System.out.println("Opened file " + evioFileName);
+            int[] lastData = new int[]{0, 0, 0, 0, 0};
             try {
                 org.jlab.coda.jevio.EvioReader reader = new org.jlab.coda.jevio.EvioReader(evioFile, true, seqRead);
                 int eventN = 1;
@@ -85,6 +92,20 @@ public class BasicEvioFileReader {
                             Date timestamp = new Date(controlEventData[0] * 1000L);
                             System.out.println(timestamp);
                         }
+
+                        if (printTimestamps) {
+                            BaseStructure headBank = headBankDefinition.findBank(event);
+                            if (headBank != null) {
+                                int[] data = headBank.getIntData();
+                                if (data[3] != 0) {
+                                    if (lastData[3] == 0) {
+                                        System.out.print("first_head\t");
+                                        printInts(data);
+                                    }
+                                    lastData = data;
+                                }
+                            }
+                        }
                     } catch (Exception e) {
                         System.out.println("Caught Exception processing event " + eventN + " which was...");
                         e.printStackTrace();
@@ -96,11 +117,23 @@ public class BasicEvioFileReader {
                     }
                 }
                 System.out.println("There were " + badEvents + " bad events out of " + eventN + " total.");
+                if (printTimestamps) {
+                    System.out.print("last_head\t");
+                    printInts(lastData);
+                }
                 reader.close();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+//                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
+    }
+
+    private static void printInts(int[] data) {
+        for (int i = 0; i < data.length; i++) {
+            System.out.format("%d\t", data[i]);
+        }
+        System.out.println();
     }
 
     private static void printUsage(Options options) {
