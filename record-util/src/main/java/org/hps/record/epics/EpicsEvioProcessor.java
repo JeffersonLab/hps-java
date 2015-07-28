@@ -19,6 +19,9 @@ import org.lcsim.util.log.LogUtil;
  */
 public final class EpicsEvioProcessor extends EvioEventProcessor {
 
+    /**
+     * Setup class logger.
+     */
     private static final Logger LOGGER = LogUtil
             .create(EpicsEvioProcessor.class, new DefaultLogFormatter(), Level.INFO);
 
@@ -45,10 +48,7 @@ public final class EpicsEvioProcessor extends EvioEventProcessor {
     public void process(final EvioEvent evio) {
 
         // Is this an EPICS event?
-        if (!EventTagConstant.EPICS.isEventTag(evio)) {
-            LOGGER.warning("ignoring invalid event tag: " + evio.getHeader().getTag());
-        } else {
-            // Process EPICS event.
+        if (EventTagConstant.EPICS.isEventTag(evio)) {
 
             LOGGER.info("processing EPICS event " + evio.getEventNumber());
 
