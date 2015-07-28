@@ -12,17 +12,17 @@ package org.hps.conditions.ecal;
 public final class EcalChannelConstants {
 
     /**
-     * True if channel is bad and should not be used for reconstruction.
+     * <code>true</code> if channel is bad and should not be used for reconstruction.
      */
     private boolean badChannel = false;
 
     /**
-     * The channel {@link EcalCalibration} conditions.
+     * The channel's {@link EcalCalibration} conditions (pedestal and noise).
      */
     private EcalCalibration calibration = null;
 
     /**
-     * The channel {@link EcalGain} conditions.
+     * The channel {@link EcalGain} conditions (per channel gain value).
      */
     private EcalGain gain = null;
 
@@ -30,6 +30,11 @@ public final class EcalChannelConstants {
      * The channel {@link EcalTimeShift} conditions.
      */
     private EcalTimeShift timeShift = null;
+    
+    /**
+     * The channel's {@link EcalPulseWidth} conditions.
+     */
+    private EcalPulseWidth pulseWidth = null;
 
     /**
      * Class constructor, which is package protected.
@@ -38,36 +43,45 @@ public final class EcalChannelConstants {
     }
 
     /**
-     * Get the calibration.
+     * Get the channel calibration.
      *
-     * @return The calibration.
+     * @return the channel calibration
      */
     public EcalCalibration getCalibration() {
         return this.calibration;
     }
 
     /**
-     * Get the gain.
+     * Get the channel gain.
      *
-     * @return The gain.
+     * @return the channel gain
      */
     public EcalGain getGain() {
         return this.gain;
+    }
+    
+    /**
+     * Get the pulse width or <code>null</code> if it does not exist.
+     * 
+     * @return the pulse width
+     */
+    public EcalPulseWidth getPulseWidth() {
+        return this.pulseWidth;
     }
 
     /**
      * Get the time shift.
      *
-     * @return The time shift.
+     * @return the time shift
      */
     public EcalTimeShift getTimeShift() {
         return this.timeShift;
     }
 
     /**
-     * True if this is a bad channel.
+     * <code>true</code> if this is a bad channel.
      *
-     * @return True if channel is bad.
+     * @return <code>true</code> if channel is bad
      */
     public boolean isBadChannel() {
         return this.badChannel;
@@ -94,7 +108,7 @@ public final class EcalChannelConstants {
     /**
      * Set the gain.
      *
-     * @param gain the new gain object
+     * @param gain the channel gain
      */
     void setGain(final EcalGain gain) {
         this.gain = gain;
@@ -103,9 +117,18 @@ public final class EcalChannelConstants {
     /**
      * Set the time shift.
      *
-     * @param timeShift the new time shift
+     * @param timeShift the time shift
      */
     void setTimeShift(final EcalTimeShift timeShift) {
         this.timeShift = timeShift;
+    }
+    
+    /**
+     * Set the pulse width.
+     * 
+     * @param pulseWidth the pulse width
+     */
+    void setPulseWidth(final EcalPulseWidth pulseWidth) {
+        this.pulseWidth = pulseWidth;
     }
 }

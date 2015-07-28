@@ -8,6 +8,7 @@ import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.ecal.EcalChannel.ChannelId;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
+import org.hps.conditions.ecal.EcalPulseWidth.EcalPulseWidthCollection;
 import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
@@ -27,7 +28,7 @@ import org.lcsim.geometry.Detector;
  * @see EcalTimeShift
  */
 public class EcalConditionsConverter implements ConditionsConverter<EcalConditions> {
-
+    
     /**
      * Create combined ECAL conditions object containing all data for the current run.
      *
@@ -36,34 +37,29 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
      */
     @Override
     public final EcalConditions getData(final ConditionsManager manager, final String name) {
+       
+        // Get the ECal channel map from the conditions database.
+        final EcalChannelCollection channels = this.getEcalChannelCollection();
 
-        final DatabaseConditionsManager databaseConditionsManager = (DatabaseConditionsManager) manager;
-
-        // Get the ECal channel map from the conditions database
-        final EcalChannelCollection channels = this.getEcalChannelCollection(databaseConditionsManager);
-
-        // Create the ECal conditions object that will be used to encapsulate
-        // ECal conditions collections
-        final Detector detector = databaseConditionsManager.getDetectorObject();
-        final EcalConditions conditions = new EcalConditions(detector.getSubdetector(databaseConditionsManager
+        // Create the ECal conditions object that will be used to encapsulate ECal conditions collections.
+        final Detector detector = getDatabaseConditionsManager().getDetectorObject();
+        final EcalConditions conditions = new EcalConditions(detector.getSubdetector(getDatabaseConditionsManager()
                 .getEcalName()));
 
         // Set the channel map.
         conditions.setChannelCollection(channels);
 
-        // Get the ECal gains from the conditions database and add them to the
-        // conditions set
-        final EcalGainCollection gains = this.getEcalGainCollection(databaseConditionsManager);
+        // Get the ECal gains from the conditions database and add them to the conditions set
+        final EcalGainCollection gains = this.getEcalGainCollection();
         for (final EcalGain gain : gains) {
             final ChannelId channelId = new ChannelId(new int[] {gain.getChannelId()});
             final EcalChannel channel = channels.findChannel(channelId);
             conditions.getChannelConstants(channel).setGain(gain);
         }
 
+        // Get the bad channel collections and merge them together.
         final ConditionsSeries<EcalBadChannel, EcalBadChannelCollection> badChannelSeries = this
-                .getEcalBadChannelSeries(databaseConditionsManager);
-        // FIXME: How to get EcalBadChannelCollection here instead for the collection type?
-        // API of ConditionsSeries and ConditionsSeriesConverter needs to be changed!
+                .getEcalBadChannelSeries();
         for (final ConditionsObjectCollection<EcalBadChannel> badChannels : badChannelSeries) {
             for (final EcalBadChannel badChannel : badChannels) {
                 final ChannelId channelId = new ChannelId(new int[] {badChannel.getChannelId()});
@@ -72,26 +68,38 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
             }
         }
 
-        // Get the ECal calibrations from the conditions database and add them
-        // to the conditions set.
-        final EcalCalibrationCollection calibrations = this.getEcalCalibrationCollection(databaseConditionsManager);
+        // Get the ECal calibrations from the conditions database and add them to the conditions set.
+        final EcalCalibrationCollection calibrations = this.getEcalCalibrationCollection();
         for (final EcalCalibration calibration : calibrations) {
             final ChannelId channelId = new ChannelId(new int[] {calibration.getChannelId()});
             final EcalChannel channel = channels.findChannel(channelId);
             conditions.getChannelConstants(channel).setCalibration(calibration);
         }
 
-        // Get the ECal time shifts from the conditions database and add them to
-        // the conditions set.
-        if (databaseConditionsManager.hasConditionsRecord("ecal_time_shifts")) {
-            final EcalTimeShiftCollection timeShifts = this.getEcalTimeShiftCollection(databaseConditionsManager);
+        // Get the ECal time shifts from the conditions database and add them to the conditions set.
+        if (getDatabaseConditionsManager().hasConditionsRecord("ecal_time_shifts")) {
+            final EcalTimeShiftCollection timeShifts = this.getEcalTimeShiftCollection();
             for (final EcalTimeShift timeShift : timeShifts) {
                 final ChannelId channelId = new ChannelId(new int[] {timeShift.getChannelId()});
                 final EcalChannel channel = channels.findChannel(channelId);
                 conditions.getChannelConstants(channel).setTimeShift(timeShift);
             }
         } else {
-            DatabaseConditionsManager.getLogger().warning("no ecal_time_shifts collection found");
+            // If time shifts do not exist it is not a fatal error.
+            DatabaseConditionsManager.getLogger().warning("no conditions found for EcalTimeShiftCollection");
+        }
+        
+        // Set the channel pulse width if it exists in the database.
+        if (getDatabaseConditionsManager().hasConditionsRecord("ecal_pulse_widths")) {
+            final EcalPulseWidthCollection pulseWidths = this.getEcalPulseWidthCollection();
+            for (final EcalPulseWidth pulseWidth : pulseWidths) {
+                final ChannelId channelId = new ChannelId(new int[] {pulseWidth.getChannelId()});
+                final EcalChannel channel = channels.findChannel(channelId);
+                conditions.getChannelConstants(channel).setPulseWidth(pulseWidth);
+            }
+        } else {
+            // If pulse widths do not exist it is not a fatal error.
+            DatabaseConditionsManager.getLogger().warning("no conditions found for EcalPulseWidthCollection");
         }
 
         // Return the conditions object to caller.
@@ -104,9 +112,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
      * @param manager the conditions manager
      * @return the collections of ECAL bad channel objects
      */
-    protected ConditionsSeries<EcalBadChannel, EcalBadChannelCollection> getEcalBadChannelSeries(
-            final DatabaseConditionsManager manager) {
-        return manager.getConditionsSeries(EcalBadChannelCollection.class, "ecal_bad_channels");
+    protected ConditionsSeries<EcalBadChannel, EcalBadChannelCollection> getEcalBadChannelSeries() {
+        return getDatabaseConditionsManager().getConditionsSeries(EcalBadChannelCollection.class, "ecal_bad_channels");
     }
 
     /**
@@ -115,8 +122,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
      * @param manager the conditions manager
      * @return the collection of ECAL channel calibration objects
      */
-    protected EcalCalibrationCollection getEcalCalibrationCollection(final DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(EcalCalibrationCollection.class, "ecal_calibrations").getCachedData();
+    protected EcalCalibrationCollection getEcalCalibrationCollection() {
+        return getDatabaseConditionsManager().getCachedConditions(EcalCalibrationCollection.class, "ecal_calibrations").getCachedData();
     }
 
     /**
@@ -125,8 +132,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
      * @param manager the conditions manager
      * @return the default ECAL channel object collection
      */
-    protected EcalChannelCollection getEcalChannelCollection(final DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
+    protected EcalChannelCollection getEcalChannelCollection() {
+        return getDatabaseConditionsManager().getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
     }
 
     /**
@@ -135,8 +142,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
      * @param manager the conditions manager
      * @return the ECAL channel gain collection
      */
-    protected EcalGainCollection getEcalGainCollection(final DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(EcalGainCollection.class, "ecal_gains").getCachedData();
+    protected EcalGainCollection getEcalGainCollection() {
+        return getDatabaseConditionsManager().getCachedConditions(EcalGainCollection.class, "ecal_gains").getCachedData();
     }
 
     /**
@@ -145,8 +152,18 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
      * @param manager the conditions manager
      * @return the collection of ECAL time shift objects
      */
-    protected EcalTimeShiftCollection getEcalTimeShiftCollection(final DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(EcalTimeShiftCollection.class, "ecal_time_shifts").getCachedData();
+    protected EcalTimeShiftCollection getEcalTimeShiftCollection() {
+        return getDatabaseConditionsManager().getCachedConditions(EcalTimeShiftCollection.class, "ecal_time_shifts").getCachedData();
+    }
+    
+    /**
+     * Get the default {@link EcalPulseWith} collection.
+     *
+     * @param manager the conditions manager
+     * @return the collection of ECAL pulse widths
+     */
+    protected EcalPulseWidthCollection getEcalPulseWidthCollection() {
+        return getDatabaseConditionsManager().getCachedConditions(EcalPulseWidthCollection.class, "ecal_pulse_widths").getCachedData();
     }
 
     /**
@@ -157,5 +174,14 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
     @Override
     public final Class<EcalConditions> getType() {
         return EcalConditions.class;
+    }
+    
+    /**
+     * Get the current instance of the conditions manager.
+     * 
+     * @return the current instance of the conditions manager
+     */
+    protected final DatabaseConditionsManager getDatabaseConditionsManager() {
+        return DatabaseConditionsManager.getInstance();
     }
 }
