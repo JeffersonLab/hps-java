@@ -49,14 +49,10 @@ public enum EvioBankTag {
      */
     public BaseStructure findBank(final BaseStructure startBank) {
         BaseStructure foundBank = null;
-        System.out.println("findBank: " + startBank.getHeader().getTag());
         if (this.isBankTag(startBank)) {
             foundBank = startBank;
-            System.out.println("found bank: " + foundBank.getHeader().getTag());
         } else if (startBank.getChildrenList() != null) {
-            System.out.println("looking in children ...");
             for (final BaseStructure subBank : startBank.getChildrenList()) {
-                System.out.println("looking in bank: " + subBank.getHeader().getTag());
                 foundBank = this.findBank(subBank);
                 if (foundBank != null) {
                     break;
