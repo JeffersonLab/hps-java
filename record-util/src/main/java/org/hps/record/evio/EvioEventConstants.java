@@ -16,6 +16,12 @@ public final class EvioEventConstants {
      * EPICS bank tag.
      */
     public static final int EPICS_BANK_TAG = 57620;
+    
+    
+    /**
+     * Tag of bank containing the EPICS data bank.
+     */
+    public static final int EPICS_PARENT_BANK_TAG = 129;
 
     /**
      * EPICS 20 second event tag.
