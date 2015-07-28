@@ -3,9 +3,8 @@ package org.hps.record.evio;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
- * Encapsulates bit mask values for different types of physics events as described at <a
- * href="https://confluence.slac.stanford.edu/display/hpsg/EVIO+Data+Format#EVIODataFormat-EVIOEventtypes-2015DataSet"
- * >EVIO Event types</a>.
+ * Encapsulates bit mask values for different types of physics events as described at 
+ * <a href="https://confluence.slac.stanford.edu/display/hpsg/EVIO+Data+Format#EVIODataFormat-EVIOEventtypes-2015DataSet">EVIO Event types</a>.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
@@ -36,7 +35,7 @@ public enum EventTagBitMask {
     /**
      * The bit mask.
      */
-    int bitMask;
+    private int bitMask;
 
     /**
      * Constructor with bit number.
@@ -67,20 +66,20 @@ public enum EventTagBitMask {
     }
 
     /**
-     * Return <code>true</code> if the event's tag matches this one.
+     * Return <code>true</code> if the event's tag matches this mask.
      *
-     * @param event an <code>EvioEvent</code> to check
-     * @return <code>true</code> if the event's tag matches this one
+     * @param event an <code>EvioEvent</code> with tag to check against this mask
+     * @return <code>true</code> if the event's tag matches this mask
      */
     public boolean isEventTag(final EvioEvent event) {
         return isEventTag(event.getHeader().getTag());
     }
 
     /**
-     * Return <code>true</code> if the tag matches this one.
+     * Return <code>true</code> if the tag matches this mask.
      *
      * @param eventTag the event's tag from the header bank
-     * @return <code>true</code> if the tag matches this one
+     * @return <code>true</code> if the tag matches this mask
      */
     public boolean isEventTag(final int eventTag) {
         return (eventTag & this.bitMask) == 1;
