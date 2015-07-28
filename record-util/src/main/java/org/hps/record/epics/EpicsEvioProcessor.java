@@ -3,7 +3,8 @@ package org.hps.record.epics;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.record.evio.EvioEventConstants;
+import org.hps.record.evio.EventTagConstant;
+import org.hps.record.evio.EvioBankTag;
 import org.hps.record.evio.EvioEventProcessor;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
@@ -11,13 +12,15 @@ import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * This is an EVIO event processor that will read EPICS events (event tag 31) and turn them into {@link EpicsData} objects.
+ * This is an EVIO event processor that will read EPICS events (event tag 31) and turn them into {@link EpicsData}
+ * objects.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EpicsEvioProcessor extends EvioEventProcessor {
 
-    private static final Logger LOGGER = LogUtil.create(EpicsEvioProcessor.class, new DefaultLogFormatter(), Level.INFO);
+    private static final Logger LOGGER = LogUtil
+            .create(EpicsEvioProcessor.class, new DefaultLogFormatter(), Level.INFO);
 
     /**
      * The current EPICS data object.
@@ -41,28 +44,29 @@ public final class EpicsEvioProcessor extends EvioEventProcessor {
     @Override
     public void process(final EvioEvent evio) {
 
-        if (evio.getHeader().getTag() != EvioEventConstants.EPICS_EVENT_TAG) {
-            // Just silently skip these events because otherwise too many error messages might print.
-            return;
-        }
+        // Is this an EPICS event?
+        if (!EventTagConstant.EPICS.isEventTag(evio)) {
+            LOGGER.warning("ignoring invalid event tag: " + evio.getHeader().getTag());
+        } else {
+            // Process EPICS event.
 
-        LOGGER.info("processing EPICS event " + evio.getEventNumber());
+            LOGGER.info("processing EPICS event " + evio.getEventNumber());
 
-        // Find the bank with the EPICS information.
-        BaseStructure epicsBank = null;
-        final BaseStructure topBank = evio.getChildrenList().get(0);
-        for (final BaseStructure childBank : topBank.getChildrenList()) {
-            if (childBank.getHeader().getTag() == EvioEventConstants.EPICS_BANK_TAG) {
-                epicsBank = childBank;
-                LOGGER.fine("found EPICS data bank " + childBank.getHeader().getTag());
-                break;
+            // Find the bank with the EPICS data string.
+            final BaseStructure epicsBank = EvioBankTag.EPICS_STRING.findBank(evio);
+
+            // Was EPICS data found?
+            if (epicsBank != null) {
+                // Create EpicsData object from bank's string data.
+                final String epicsData = epicsBank.getStringData()[0];
+                this.data = new EpicsData();
+                this.data.fromString(epicsData);
+            } else {
+                // This is an error because the string data bank should always be present in EPICS events.
+                final RuntimeException x = new RuntimeException("No EPICS data bank found in EPICS event.");
+                LOGGER.log(Level.SEVERE, x.getMessage(), x);
+                throw x;
             }
-        }
-
-        if (epicsBank != null) {
-            final String epicsData = epicsBank.getStringData()[0];
-            this.data = new EpicsData();
-            this.data.fromString(epicsData);
         }
     }
 }
