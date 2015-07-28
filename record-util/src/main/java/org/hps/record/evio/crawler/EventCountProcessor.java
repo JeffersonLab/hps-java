@@ -14,7 +14,7 @@ import org.jlab.coda.jevio.EvioEvent;
  *
  * @author Jeremy McCormick, SLAC
  */
-final class EventTypeLog extends EvioEventProcessor {
+final class EventCountProcessor extends EvioEventProcessor {
 
     /**
      * The event tag counts for the run.
@@ -27,11 +27,16 @@ final class EventTypeLog extends EvioEventProcessor {
     private int physicsEventCount = 0;
 
     /**
+     * The total number of events processed of any type.
+     */
+    private int totalEventCount = 0;
+
+    /**
      * Create the log pointing to a run summary.
      *
      * @param runSummary the run summary
      */
-    EventTypeLog() {
+    EventCountProcessor() {
         for (final EventTagConstant constant : EventTagConstant.values()) {
             this.eventTypeCounts.put(constant, 0);
         }
@@ -45,7 +50,7 @@ final class EventTypeLog extends EvioEventProcessor {
      *
      * @return a map of event types to their counts
      */
-    Map<Object, Integer> getEventTypeCounts() {
+    Map<Object, Integer> getEventCounts() {
         return this.eventTypeCounts;
     }
 
@@ -59,6 +64,15 @@ final class EventTypeLog extends EvioEventProcessor {
     }
 
     /**
+     * Get the number of events counted of any type.
+     *
+     * @return the number of events counted
+     */
+    int getTotalEventCount() {
+        return totalEventCount;
+    }
+
+    /**
      * Process an EVIO event and add its type to the map.
      *
      * @param event the EVIO event
@@ -66,7 +80,15 @@ final class EventTypeLog extends EvioEventProcessor {
     @Override
     public void process(final EvioEvent event) {
 
-        // Increment counts for exact event tag values.
+        // Increment physics event count.
+        if (EvioEventUtilities.isPhysicsEvent(event)) {
+            ++this.physicsEventCount;
+        }
+
+        // Increment total event count.
+        ++this.totalEventCount;
+
+        // Increment counts for event tag values.
         for (final EventTagConstant constant : EventTagConstant.values()) {
             if (constant.isEventTag(event)) {
                 final int count = this.eventTypeCounts.get(constant) + 1;
@@ -74,17 +96,12 @@ final class EventTypeLog extends EvioEventProcessor {
             }
         }
 
-        // Increment counts for bit masking of tags.
+        // Increment counts for event tags with bit masks (different types of physics events).
         for (final EventTagBitMask mask : EventTagBitMask.values()) {
             if (mask.isEventTag(event)) {
                 final int count = this.eventTypeCounts.get(mask) + 1;
                 this.eventTypeCounts.put(mask, count);
             }
-        }
-
-        // Increment physics event count.
-        if (EvioEventUtilities.isPhysicsEvent(event)) {
-            ++this.physicsEventCount;
         }
     }
 }

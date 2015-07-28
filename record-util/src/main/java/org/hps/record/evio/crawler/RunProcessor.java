@@ -93,7 +93,7 @@ final class RunProcessor {
     /**
      * Processor for extracting event type counts (sync, physics, trigger types, etc.).
      */
-    private final EventTypeLog eventTypeLog;
+    private final EventCountProcessor eventCountProcessor;
 
     /**
      * Max files to read (defaults to unlimited).
@@ -141,8 +141,8 @@ final class RunProcessor {
         this.addProcessor(scalersProcessor);
 
         // Event log processor.
-        eventTypeLog = new EventTypeLog();
-        this.addProcessor(eventTypeLog);
+        eventCountProcessor = new EventCountProcessor();
+        this.addProcessor(eventCountProcessor);
 
         // Max files.
         if (config.maxFiles() != -1) {
@@ -294,10 +294,10 @@ final class RunProcessor {
         runSummary.setScalerData(this.scalersProcessor.getScalerData());
 
         // Set the counts of event types on the run summary.
-        runSummary.setEventTypeCounts(eventTypeLog.getEventTypeCounts());
+        runSummary.setEventTypeCounts(eventCountProcessor.getEventCounts());
 
-        // Set total number of physics events on the run summary from the event counter.
-        runSummary.setTotalEvents(this.eventTypeLog.getPhysicsEventCount());
+        // Set total number of events on the run summary from the event counter.
+        runSummary.setTotalEvents(this.eventCountProcessor.getTotalEventCount());
 
         // Set EpicsData for the run.
         runSummary.setEpicsData(this.epicsLog.getEpicsData());
