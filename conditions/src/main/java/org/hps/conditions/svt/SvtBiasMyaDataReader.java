@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,6 +25,7 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.hps.conditions.run.RunSpreadsheet.RunData;
 
 public class SvtBiasMyaDataReader {
 
@@ -56,49 +56,44 @@ public class SvtBiasMyaDataReader {
             throw new RuntimeException("Missing myData dump or run time file.");
         }
 
-        List<SvtBiasMyaRange> ranges = SvtBiasMyaDataReader.readMyaData(new File(cl.getArgs()[0]), 178.0, 2000);
+        List<SvtBiasMyaRange> ranges = SvtBiasMyaDataReader.readMyaData(new File(cl.getArgs()[0]), 178.0, 2000, true);
 
-//        for (SvtBiasMyaRange range : ranges) {
-//            System.out.println(range);
-//        }
         List<RunData> runData = SvtBiasMyaDataReader.readRunTable(new File(cl.getArgs()[1]));
 
-        List<SvtBiasRunRange> runRanges = new ArrayList<SvtBiasRunRange>();
-
-        Iterator<SvtBiasMyaRange> rangesIter = ranges.iterator();
-        SvtBiasMyaRange nextRange = rangesIter.next();
-
-        runLoop:
-        for (RunData data : runData) {
-
-            while (nextRange.getEnd().before(data.getStart())) {
-                nextRange = rangesIter.next();
-                if (!rangesIter.hasNext()) {
-                    break runLoop;
-                }
-            }
-            while (nextRange.getStart().before(data.getEnd())) {
-                runRanges.add(new SvtBiasRunRange(data, nextRange));
-                nextRange = rangesIter.next();
-                if (!rangesIter.hasNext()) {
-                    break runLoop;
-                }
-            }
-//            System.out.println(data);
-        }
+        List<SvtBiasRunRange> runRanges = findOverlappingRanges(runData, ranges);
 
         for (SvtBiasRunRange runRange : runRanges) {
             System.out.println(runRange);
         }
 
-//        
-//        boolean quiet = cl.hasOption("q");
-//        boolean printControlEvents = cl.hasOption("c");
-//        boolean seqRead = cl.hasOption("s");
-//
-//        SvtBiasMyaDataReader dumpReader = new SvtBiasMyaDataReader(args);
-//
-//        dumpReader.printRanges();
+    }
+
+    public static List<SvtBiasRunRange> findOverlappingRanges(List<RunData> runList, List<SvtBiasMyaRange> ranges) {
+        List<SvtBiasRunRange> runRanges = new ArrayList<SvtBiasRunRange>();
+
+        Iterator<SvtBiasMyaRange> rangesIter = ranges.iterator();
+        SvtBiasMyaRange nextRange = rangesIter.next();
+
+        for (RunData run : runList) {
+            SvtBiasRunRange runRange = new SvtBiasRunRange(run);
+            while (nextRange.getEndDate().before(run.getStartDate()) && rangesIter.hasNext()) {
+                nextRange = rangesIter.next();
+            }
+            while (nextRange.getStartDate().before(run.getEndDate())) {
+                runRange.addRange(nextRange);
+                if (nextRange.getEndDate().after(run.getEndDate())) {
+                    break;
+                }
+                if (!rangesIter.hasNext()) {
+                    break;
+                }
+                nextRange = rangesIter.next();
+            }
+            if (!runRange.getRanges().isEmpty()) {
+                runRanges.add(runRange);
+            }
+        }
+        return runRanges;
     }
 
 //    private static final SimpleDateFormat DATE_FORMAT = new RunSpreadsheet.AnotherSimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -106,61 +101,55 @@ public class SvtBiasMyaDataReader {
     public SvtBiasMyaDataReader(double biasValueOn, int endMargin) {
     }
 
-    public static List<SvtBiasMyaRange> readMyaData(File file, double biasValueOn, int endMargin) {
+    public static List<SvtBiasMyaRange> readMyaData(File file, double biasValueOn, int endMargin, boolean discardHeader) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
 
         List<SvtBiasMyaRange> ranges = new ArrayList<SvtBiasMyaRange>();
         try {
-
             BufferedReader br = new BufferedReader(new FileReader(file));
             String line;
-            System.out.println(br.readLine());
-
+            if (discardHeader) {
+                System.out.println(br.readLine()); //discard the first line
+            }
             SvtBiasMyaRange currentRange = null;
             while ((line = br.readLine()) != null) {
-                //System.out.println(line);
                 String arr[] = line.split(" +");
-                try {
 
-                    if (arr.length < 3) {
-                        throw new ParseException("this line is not correct.", 0);
-                    }
+                if (arr.length < 3) {
+                    throw new ParseException("this line is not correct.", 0);
+                }
 
-                    Date date = dateFormat.parse(arr[0] + " " + arr[1]);
-                    Double[] values = new Double[arr.length - 2];
-                    for (int i = 2; i < arr.length; i++) {
-                        if (arr[i].equals("<undefined>")) {
-                            values[i - 2] = 0.0;
-                        } else {
-                            values[i - 2] = Double.parseDouble(arr[i]);
-                        }
-                    }
-                    double biasValue = Collections.min(Arrays.asList(values));
-                    if (biasValue > biasValueOn) {
-                        if (currentRange == null) {
-                            currentRange = new SvtBiasMyaRange(date, biasValue);
-//                            System.out.format("bias on:\t%d %d %f %s\n", date.getTime(), values.length, biasValue, date.toString());
-                        }
+                Date date = dateFormat.parse(arr[0] + " " + arr[1]);
+                Double[] values = new Double[arr.length - 2];
+                for (int i = 2; i < arr.length; i++) {
+                    if (arr[i].equals("<undefined>")) {
+                        values[i - 2] = 0.0; //assume it's bad
                     } else {
-                        if (currentRange != null) {
-                            currentRange.setEnd(new Date(date.getTime() - endMargin));
-                            ranges.add(currentRange);
-                            currentRange = null;
-//                            System.out.format("bias off:\t%d %d %f %s\n", date.getTime(), values.length, biasValue, date.toString());
-                        }
+                        values[i - 2] = Double.parseDouble(arr[i]);
                     }
-//                    System.out.format("%d %d %f\n", date.getTime(), values.length, biasValue);
-//                    SvtBiasMyaEntry entry = new SvtBiasMyaEntry(file.getName(), date, value);
-//                    myaEntries.add(entry);
-                } catch (ParseException e) {
-                    e.printStackTrace();
+                }
+                double biasValue = Collections.min(Arrays.asList(values));
+                if (biasValue > biasValueOn) {
+                    if (currentRange == null) {
+                        currentRange = new SvtBiasMyaRange(date, biasValue);
+//                            System.out.format("bias on:\t%d %d %f %s\n", date.getTime(), values.length, biasValue, date.toString());
+                    }
+                } else {
+                    if (currentRange != null) {
+                        currentRange.setEndDate(new Date(date.getTime() - endMargin));
+                        ranges.add(currentRange);
+                        currentRange = null;
+//                            System.out.format("bias off:\t%d %d %f %s\n", date.getTime(), values.length, biasValue, date.toString());
+                    }
                 }
             }
             br.close();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
 
         return ranges;
@@ -210,29 +199,20 @@ public class SvtBiasMyaDataReader {
         public SvtBiasMyaRange() {
         }
 
-//        public boolean overlap(Date date_start, Date date_end) {
-//            if (date_end.before(getStartDate())) {
-//                return false;
-//            } else if (date_start.after(getEndDate())) {
-//                return false;
-//            }
-//            return true;
-//        }
-//
         public SvtBiasMyaRange(Date start, double bias) {
             this.start = start;
             this.bias = bias;
         }
 
-        public Date getEnd() {
+        public Date getEndDate() {
             return end;
         }
 
-        public void setEnd(Date end) {
+        public void setEndDate(Date end) {
             this.end = end;
         }
 
-        public Date getStart() {
+        public Date getStartDate() {
             return start;
         }
 
@@ -242,48 +222,21 @@ public class SvtBiasMyaDataReader {
         }
 
         public boolean includes(Date date) {
-            return !date.before(getStart()) && !date.after(getEnd());
-        }
-    }
-
-    public static class RunData {
-
-        private final Date start;
-        private final Date end;
-        private final int run;
-
-        public RunData(Date start, Date end, int run) {
-            this.start = start;
-            this.end = end;
-            this.run = run;
+            return !date.before(getStartDate()) && !date.after(getEndDate());
         }
 
-        public Date getStart() {
-            return start;
-        }
-
-        public Date getEnd() {
-            return end;
-        }
-
-        public int getRun() {
-            return run;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("Run %d - START: %s (%d), END: %s (%d), duration: %d", run, start.toString(), start.getTime(), end.toString(), end.getTime(), end.getTime() - start.getTime());
+        Object getValue() {
+            return bias;
         }
     }
 
     public static final class SvtBiasRunRange {
 
         private RunData run;
-        private SvtBiasMyaRange range;
+        private final List<SvtBiasMyaRange> ranges = new ArrayList<SvtBiasMyaRange>();
 
-        public SvtBiasRunRange(RunData run, SvtBiasMyaRange range) {
+        public SvtBiasRunRange(RunData run) {
             setRun(run);
-            setRange(range);
         }
 
         public RunData getRun() {
@@ -294,20 +247,31 @@ public class SvtBiasMyaDataReader {
             this.run = run;
         }
 
-        public SvtBiasMyaRange getRange() {
-            return range;
+        public List<SvtBiasMyaRange> getRanges() {
+            return ranges;
         }
 
-        public void setRange(SvtBiasMyaRange range) {
-            this.range = range;
+        public void addRange(SvtBiasMyaRange range) {
+            ranges.add(range);
+        }
+
+        public boolean includes(Date date) {
+            for (SvtBiasMyaRange r : ranges) {
+                if (date.after(r.getStartDate()) && date.before(r.getEndDate())) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
         public String toString() {
-//            StringBuffer sb = new StringBuffer();
-//            sb.append("\nRun " + run.toString() + ":");
-//            sb.append("\n" + range.toString());
-            return String.format("%s, range %s", run.toString(), range.toString());
+            StringBuilder sb = new StringBuilder();
+            sb.append("\nRun ").append(run.toString()).append(":");
+            for (SvtBiasMyaRange range : ranges) {
+                sb.append("\n").append(range.toString());
+            }
+            return sb.toString();
         }
     }
 

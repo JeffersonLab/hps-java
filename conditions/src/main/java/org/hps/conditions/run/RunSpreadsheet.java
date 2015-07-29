@@ -187,14 +187,21 @@ public final class RunSpreadsheet {
             run = parseRunNumber(this.record);
             try {
                 startDate = RunSpreadsheet.parseStartDate(this.record);
-            } catch (ParseException e) {                
+            } catch (ParseException e) {
             }
             try {
                 endDate = RunSpreadsheet.parseEndDate(this.record);
-            } catch (ParseException e) {                
+            } catch (ParseException e) {
             }
         }
-        
+
+        public RunData(Date startDate, Date endDate, int run) {
+            this.startDate = startDate;
+            this.endDate = endDate;
+            this.run = run;
+            record = null;
+        }
+
         public int getRun() {
             return run;
         }

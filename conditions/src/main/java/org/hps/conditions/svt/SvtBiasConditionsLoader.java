@@ -5,14 +5,14 @@ import hep.aida.*;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -27,9 +27,8 @@ import org.hps.conditions.run.RunSpreadsheet;
 import org.hps.conditions.run.RunSpreadsheet.RunData;
 import org.hps.conditions.run.RunSpreadsheet.RunMap;
 import org.hps.conditions.svt.SvtBiasConstant.SvtBiasConstantCollection;
-import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasMyaRange;
-import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasMyaRanges;
-import org.hps.conditions.svt.SvtBiasMyaDumpReader.SvtBiasRunRange;
+import org.hps.conditions.svt.SvtBiasMyaDataReader.SvtBiasMyaRange;
+import org.hps.conditions.svt.SvtBiasMyaDataReader.SvtBiasRunRange;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.log.LogUtil;
@@ -100,7 +99,7 @@ public class SvtBiasConditionsLoader {
      * @return <code>true</code> if valid, <code>false</code> otherwise.
      */
     private static boolean isValid(RunData data) {
-        if (data.getStartDate() == null || data.getEndDate() == null || data.getStartDate().before(new Date(99, 1, 1))) {
+        if (data.getStartDate() == null || data.getEndDate() == null || data.getStartDate().before((new GregorianCalendar(1999, 1, 1)).getTime())) {
             logger.fine("This run data is not valid: " + data.toString());
             return false;
         }
@@ -128,39 +127,22 @@ public class SvtBiasConditionsLoader {
         return runmap;
     }
 
-    public static List<SvtBiasRunRange> getBiasRunRanges(RunMap runmap,
-            SvtBiasMyaDumpReader biasMyaReader) {
-        List<SvtBiasRunRange> biasRunRanges = new ArrayList<SvtBiasRunRange>();
-        // loop over runs from CSV        
-        RunData prev = null;
-        for (Entry<Integer, RunData> entry : runmap.entrySet()) {
-            int run = entry.getKey();
-            RunData data = entry.getValue();
-            logger.fine("Processing " + run + " " + data.toString());
+    public static List<RunData> getRunListFromSpreadSheet(String path) {
+        // Load in CSV records from the exported run spreadsheet.
+        List<RunData> runList = new ArrayList<RunData>();
 
-            //check that data is ok
+        // find the run records (has converted dates and stuff) for these ranges
+        RunMap runmap = getRunMapFromSpreadSheet(path);
+
+        List<Integer> runNums = new ArrayList<Integer>(runmap.keySet());
+        Collections.sort(runNums);
+        for (Integer runNum : runNums) {
+            RunData data = runmap.get(runNum);
             if (isValid(data)) {
-                if (prev != null) {
-                    if (isValid(prev)) {
-                        if (prev.getEndDate().after(data.getStartDate())) {
-                            throw new RuntimeException("prev end date after run started?: " + prev.toString() + "   " + data.toString());
-                        } else if (prev.getStartDate().after(data.getEndDate())) {
-                            throw new RuntimeException("prev start date before run ended?: " + prev.toString() + "   " + data.toString());
-                        }
-                    }
-                }
-
-                // find the bias ranges applicable to this run
-                SvtBiasMyaRanges overlaps = biasMyaReader.findOverlappingRanges(data.getStartDate(), data.getEndDate());
-                logger.fine("Found " + overlaps.size() + " overlapping bias ranges");
-                logger.fine(overlaps.toString());
-
-                biasRunRanges.add(new SvtBiasRunRange(data, overlaps));
-                prev = data;
-
+                runList.add(data);
             }
         }
-        return biasRunRanges;
+        return runList;
     }
 
     /**
@@ -172,10 +154,10 @@ public class SvtBiasConditionsLoader {
     public static void main(String[] args) {
 
         Options options = new Options();
-        options.addOption(new Option("c", true, "CVS run file"));
+        options.addOption(new Option("c", true, "CSV run file"));
         options.addOption(new Option("m", true, "MYA dump file"));
-//        options.addOption(new Option("t", true, "run table from crawler"));
-//        options.addOption(new Option("d", true, "myaData dump file"));
+        options.addOption(new Option("t", false, "use run table format (from crawler)"));
+        options.addOption(new Option("d", false, "discard first line of MYA data (for myaData output)"));
         options.addOption(new Option("g", false, "Actually load stuff into DB"));
         options.addOption(new Option("s", false, "Show plots"));
 
@@ -187,34 +169,33 @@ public class SvtBiasConditionsLoader {
             throw new RuntimeException("Cannot parse.", e);
         }
 
-//        if (!cl.hasOption("c") || !cl.hasOption("m")) {
-//            printUsage(options);
-//            return;
-//        }
+        if (!cl.hasOption("c") || !cl.hasOption("m")) {
+            printUsage(options);
+            return;
+        }
+
         // Setup plots
         setupPlots(cl.hasOption("s"));
 
         // Load in CSV records from the exported run spreadsheet.
-        RunMap runmap = getRunMapFromSpreadSheet(cl.getOptionValue("c"));
+        List<RunData> runList = null;
+        if (cl.hasOption("t")) {
+            runList = SvtBiasMyaDataReader.readRunTable(new File(cl.getOptionValue("c")));
+        } else {
+            runList = getRunListFromSpreadSheet(cl.getOptionValue("c"));
+        }
 
         // Load MYA dump
-        SvtBiasMyaDumpReader biasMyaReader = new SvtBiasMyaDumpReader(cl.getOptionValue("m"));
-        logger.info("Got " + biasMyaReader.getRanges().size() + " bias ranges");
+        List<SvtBiasMyaRange> ranges = SvtBiasMyaDataReader.readMyaData(new File(cl.getOptionValue("m")), 178.0, 2000, cl.hasOption("d"));
+        logger.info("Got " + ranges.size() + " bias ranges");
 
-//        if (cl.hasOption("d")) {
-//            List<SvtBiasMyaDataReader.SvtBiasMyaRange> ranges = SvtBiasMyaDataReader.readMyaData(new File(cl.getOptionValue("d")), 178.0, 2000);
-//        }
-//
-//        if (cl.hasOption("t")) {
-//            List<SvtBiasMyaDataReader.RunData> runData = SvtBiasMyaDataReader.readRunTable(new File(cl.getOptionValue("t")));
-//        }
         // Combine them to run ranges when bias was on        
         // each run may have multiple bias ranges
-        List<SvtBiasRunRange> biasRunRanges = getBiasRunRanges(runmap, biasMyaReader);
+        List<SvtBiasRunRange> biasRunRanges = SvtBiasMyaDataReader.findOverlappingRanges(runList, ranges);
 
         // fill graphs
         if (cl.hasOption("s")) {
-            for (SvtBiasRunRange r : biasRunRanges) {
+            for (SvtBiasMyaDataReader.SvtBiasRunRange r : biasRunRanges) {
                 logger.info(r.toString());
                 if (r.getRun().getRun() > 5600) {//9999999999999.0) {
                     //if(dpsRuns.size()/4.0<500) {//9999999999999.0) {
@@ -224,10 +205,10 @@ public class SvtBiasConditionsLoader {
                     addPoint(dpsRuns, r.getRun().getEndDate().getTime(), 0.0);
 
                     for (SvtBiasMyaRange br : r.getRanges()) {
-                        addPoint(dpsBiasRuns, br.getStart().getDate().getTime(), 0.0);
-                        addPoint(dpsBiasRuns, br.getStart().getDate().getTime(), 0.5);
-                        addPoint(dpsBiasRuns, br.getEnd().getDate().getTime(), 0.5);
-                        addPoint(dpsBiasRuns, br.getEnd().getDate().getTime(), 0.0);
+                        addPoint(dpsBiasRuns, br.getStartDate().getTime(), 0.0);
+                        addPoint(dpsBiasRuns, br.getStartDate().getTime(), 0.5);
+                        addPoint(dpsBiasRuns, br.getEndDate().getTime(), 0.5);
+                        addPoint(dpsBiasRuns, br.getEndDate().getTime(), 0.0);
                     }
 
                 }
@@ -305,7 +286,7 @@ public class SvtBiasConditionsLoader {
                     final SvtBiasConstant constant = new SvtBiasConstant();
                     constant.setFieldValue("start", biasRange.getStartDate());
                     constant.setFieldValue("end", biasRange.getEndDate());
-                    constant.setFieldValue("value", biasRange.getStart().getValue());
+                    constant.setFieldValue("value", biasRange.getValue());
                     collection.add(constant);
                     logger.info(condition.toString());
                 }
