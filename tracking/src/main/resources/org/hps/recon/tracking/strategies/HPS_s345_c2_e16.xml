@@ -12,7 +12,7 @@
         <MaxDCA>4.0</MaxDCA>
         <MaxZ0>4.0</MaxZ0>
 
-        <MaxChisq>25.0</MaxChisq>
+        <MaxChisq>50.0</MaxChisq>
         <BadHitChisq>10.0</BadHitChisq>
 
         <!--Layers-->
