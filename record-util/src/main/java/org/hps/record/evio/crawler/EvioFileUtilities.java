@@ -271,7 +271,8 @@ final class EvioFileUtilities {
         final long start = System.currentTimeMillis();
         final EvioReader reader = new EvioReader(openFile, false, sequential);
         final long end = System.currentTimeMillis() - start;
-        LOGGER.info("opened " + openFile.getPath() + " in " + (double) end / (double) MILLISECONDS + " seconds");
+        LOGGER.info("opened " + openFile.getPath() + " in " + (double) end / (double) MILLISECONDS + " seconds in "
+                + (sequential ? "sequential" : "mmap" + " mode"));
         return reader;
     }
 
