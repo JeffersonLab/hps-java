@@ -21,7 +21,7 @@ public final class ScalerUtilities {
     /**
      * Get a specific live time measurement by index.
      *
-     * @param index The enum of the index type.
+     * @param index the enum of the index type
      * @see LiveTimeIndex
      */
     public static double getLiveTime(final ScalerData data, final LiveTimeIndex index) {
@@ -42,37 +42,37 @@ public final class ScalerUtilities {
      * This method assumes the standard scaler data structure as outlined in <a
      * href="https://jira.slac.stanford.edu/browse/HPSJAVA-470">HPSJAVA-470</a>.
      *
-     * @param data The scaler data.
-     * @return The live time measurements.
+     * @param data the scaler data
+     * @return the live time measurements
      */
     public static double[] getLiveTimes(final ScalerData data) {
 
         // [03] - gated faraday cup with "TDC" threshold
-        final int word03 = data.getValue(3);
+        final int fcupTdcGated = data.getValue(ScalerDataIndex.FCUP_TDC_GATED);
 
         // [19] - gated faraday cup with "TRG" threshold
-        final int word19 = data.getValue(19);
+        final int fcupTrgGated = data.getValue(ScalerDataIndex.FCUP_TRG_GATED);
 
         // [35] - ungated faraday cup with "TDC" threshold
-        final int word35 = data.getValue(35);
+        final int fcupTdcUngated = data.getValue(ScalerDataIndex.FCUP_TDC_UNGATED);
 
         // [51] - ungated faraday cup with "TRG" threshold
-        final int word51 = data.getValue(51);
+        final int fcupTrgUndated = data.getValue(ScalerDataIndex.FCUP_TRG_UNGATED);
 
         // [67] - gated clock
-        final int word67 = data.getValue(67);
+        final int clockGated = data.getValue(ScalerDataIndex.CLOCK_GATED);
 
         // [68] - ungated clock
-        final int word68 = data.getValue(68);
+        final int clockUngated = data.getValue(ScalerDataIndex.CLOCK_UNGATED);
 
         // [03]/[35] = FCUP TDC
-        final double fcupTdc = (double) word03 / (double) word35;
+        final double fcupTdc = (double) fcupTdcGated / (double) fcupTdcUngated;
 
         // [19]/[51] = FCUP TRG
-        final double fcupTrg = (double) word19 / (double) word51;
+        final double fcupTrg = (double) fcupTrgGated / (double) fcupTrgUndated;
 
         // [67]/[68] = CLOCK
-        final double clock = (double) word67 / (double) word68;
+        final double clock = (double) clockGated / (double) clockUngated;
 
         // Compute the live times.
         final double[] liveTimes = new double[3];
