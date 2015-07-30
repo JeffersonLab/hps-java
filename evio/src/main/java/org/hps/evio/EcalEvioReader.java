@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.DaqId;
@@ -42,7 +43,7 @@ import org.lcsim.util.log.LogUtil;
 // TODO: use a logger
 public class EcalEvioReader extends EvioReader {
     // Names of subdetectors.
-
+    
     private int bankTag = 0;
     private Class hitClass = BaseRawCalorimeterHit.class;
 
@@ -112,7 +113,7 @@ public class EcalEvioReader extends EvioReader {
             if (crateBankTag == topBankTag || crateBankTag == botBankTag) {
                 foundHits = true;
                 if (bank.getChildCount() > 0) {
-                    if (debug) {
+                    if (debug) {                        
                         System.out.println("ECal bank tag: " + header.getTag() + "; childCount: " + bank.getChildCount());
                     }
                     try {
@@ -131,7 +132,7 @@ public class EcalEvioReader extends EvioReader {
 //                            CompositeData cdata = slotBank.getCompositeData();
                                     if (slotBank.getHeader().getTag() != bankTag) {
                                         bankTag = slotBank.getHeader().getTag();
-                                        System.out.printf("ECal format tag: 0x%x\n", bankTag);
+                                        logger.info(String.format("ECal format tag: 0x%x\n", bankTag));
                                     }
                                     switch (slotBank.getHeader().getTag()) {
                                         case EventConstants.ECAL_WINDOW_BANK_TAG:
