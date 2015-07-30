@@ -9,6 +9,7 @@ import org.hps.evio.EvioToLcio;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.scalers.ScalerParameters;
+import org.hps.record.scalers.ScalerParametersIndex;
 import org.hps.test.util.TestOutputFile;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -81,6 +82,29 @@ public final class EvioToLcioTest extends TestCase {
                 emptyCollections.put(name, nEmpty);
             }
         }
+        
+        /**
+         * Check scaler parameters from event.
+         * 
+         * @param event the lcsim event
+         */
+        private void checkScalerParameters(final EventHeader event) {
+            
+            // If this is missing an exception will be thrown.
+            ScalerParameters scalerParameters = ScalerParameters.read(event);
+            
+            // Spot check scaler parameters from event after scaler data occurs in the data stream.            
+            if (event.getEventNumber() == 25000) {                
+                System.out.println();
+                System.out.println("scaler parameters for event " + event.getEventNumber() + " ...");
+                System.out.println(scalerParameters);
+                
+                // Check scaler values against answer key.
+                for (ScalerParametersIndex index : ScalerParametersIndex.values()) {
+                    assertEquals("Wrong " + index.name() + " value.", scalerParameters.getValue(index), SCALER_VALUES[index.ordinal()]);
+                }
+            }
+        }
 
         /**
          * Process events.
@@ -107,14 +131,9 @@ public final class EvioToLcioTest extends TestCase {
                 this.checkCollection(event, COLLECTION_TYPES[i], COLLECTION_NAMES[i]);
             }
 
-            // Get scaler parameters from event header (throws exception if not found).
-            //ScalerParameters scalerParameters = 
-            ScalerParameters.read(event);
-            //if (epicsData != null && scalerData != null) {
-            //System.out.println("scaler parameters ...");
-            //System.out.println(scalerParameters);
-            //}
-
+            // Check scaler parameters from event.
+            checkScalerParameters(event);
+            
             ++processedCount;
         }
     }
@@ -135,6 +154,17 @@ public final class EvioToLcioTest extends TestCase {
      * The number of empty collections that are allowed.
      */
     private static int[] ALLOWED_EMPTY = new int[] {45, 0, 0, 0};
+    
+    /**
+     * Expected scaler values after first occurrence of scaler collection in the data. 
+     */
+    private static float[] SCALER_VALUES = {
+        205.47786f,
+        206.38852f,
+        -1.726095f,
+        -0.622837f,
+        179.9981f
+    };
     
     /**
      * The number of EPICS collections that should be found.
