@@ -109,11 +109,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public static synchronized DatabaseConditionsManager getInstance() {
 
-        logger.finest("getting conditions manager instance");
-
         // Is there no manager installed yet?
         if (!ConditionsManager.isSetup() || !(ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager)) {
-            logger.finest("creating new DatabaseConditionsManager");
+            logger.finest("creating new DatabaseConditionsManager instance");
             // Create a new instance if necessary, which will install it globally as the default.
             new DatabaseConditionsManager();
         }
@@ -121,12 +119,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         // Get the instance back from the default conditions system and check that the type is correct now.
         final ConditionsManager manager = ConditionsManager.defaultInstance();
         if (!(manager instanceof DatabaseConditionsManager)) {
-            logger.severe("default conditions manager has wrong type");
+            logger.severe("default conditions manager has wrong type: " + manager.getClass());
             throw new RuntimeException("Default conditions manager has the wrong type: "
                     + ConditionsManager.defaultInstance().getClass().getName());
         }
-
-        logger.finest("returning conditions manager instance");
 
         return (DatabaseConditionsManager) manager;
     }
