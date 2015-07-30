@@ -21,6 +21,8 @@ public class StripSingleFeeDriver extends Driver
 
     private double _energyCut = 0.85;
     private int _nHitsOnTrack = 6;
+    
+    private int _numberOfEventsWritten = 0;
 
     /**
      *
@@ -41,6 +43,11 @@ public class StripSingleFeeDriver extends Driver
                     skipEvent = false;
                 }
             }
+        }
+        if (skipEvent) {
+            throw new Driver.NextEventException();
+        } else {
+            _numberOfEventsWritten++;
         }
     }
 
@@ -63,5 +70,11 @@ public class StripSingleFeeDriver extends Driver
     {
         _nHitsOnTrack = cut;
     }
+    
+    @Override
+    protected void endOfData()
+    {
+        System.out.println("Wrote " + _numberOfEventsWritten + " events");
+    }    
 
 }
