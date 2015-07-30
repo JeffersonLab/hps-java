@@ -69,4 +69,11 @@ public final class EpicsEvioProcessor extends EvioEventProcessor {
             }
         }
     }
+    
+    /**
+     * Reset the current <code>EpicsData</code> object to <code>null</code>.
+     */
+    public void reset() {
+        this.data = null;
+    }
 }
