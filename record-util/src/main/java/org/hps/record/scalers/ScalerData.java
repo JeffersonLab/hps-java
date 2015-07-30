@@ -7,8 +7,8 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 
 /**
- * This class encapsulates EVIO scaler data which is simply an array of integer values. The exact meaning of each of these integer words is defined
- * externally to this class.
+ * This class encapsulates EVIO scaler data which is simply an array of integer values. The exact meaning of each of
+ * these integer words is defined externally to this class.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
@@ -38,7 +38,7 @@ public final class ScalerData {
     public static ScalerData read(final EventHeader event, final String collectionName) {
         ScalerData data = null;
         if (event.hasCollection(GenericObject.class, collectionName)) {
-            System.out.println("ScalerData - found collection");
+            //System.out.println("ScalerData - found collection");
             final List<GenericObject> objects = event.get(GenericObject.class, collectionName);
             data = new ScalerData();
             data.fromGenericObject(objects.get(0));
@@ -88,6 +88,15 @@ public final class ScalerData {
     public Integer getValue(final int index) {
         return this.data[index];
     }
+    
+    /**
+     * Get the value using a {@link ScalerDataIndex} enum.
+     * 
+     * @return the value at the index
+     */
+    public Integer getValue(ScalerDataIndex scalarDataIndex) {
+        return this.data[scalarDataIndex.index()];
+    }
 
     /**
      * Get the number of scalers.
@@ -109,7 +118,8 @@ public final class ScalerData {
     }
 
     /**
-     * Convert this object to a readable string, which is a list of integer values enclosed in braces and separated by commas.
+     * Convert this object to a readable string, which is a list of integer values enclosed in braces and separated by
+     * commas.
      *
      * @return this object converted to a string
      */
