@@ -221,6 +221,10 @@ public final class RunSpreadsheet {
         public CSVRecord getRecord() {
             return record;
         }
+        
+        public boolean isJunk() {
+            return "JUNK".compareToIgnoreCase(record.get("to_tape")) == 0;
+        }
     }
     
     @SuppressWarnings("serial")
