@@ -12,8 +12,9 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 
 /**
- * This is an API for reading and writing EPICS data to LCIO events, as well as parsing the data from a CDATA section within an EVIO
- * string data bank. The {@link #read(EventHeader)} method should be used to create one of these objects from an LCIO event.
+ * This is an API for reading and writing EPICS data to LCIO events, as well as parsing the data from a CDATA section
+ * within an EVIO string data bank. The {@link #read(EventHeader)} method should be used to create one of these objects
+ * from an LCIO event.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
@@ -82,12 +83,12 @@ public final class EpicsData {
     /**
      * Get the static list of all available EPICs variable names.
      * <p>
-     * This could be different than the variable names which were actually written into the collection header. For this, instead use the method
-     * {@link #getUsedNames()}.
+     * This could be different than the variable names which were actually written into the collection header. For this,
+     * instead use the method {@link #getKeys()}.
      *
      * @return the set of default EPICS variable names
      */
-    public static Set<String> getDefaultNames() {
+    public static Set<String> getDefaultKeys() {
         return DESCRIPTIONS.keySet();
     };
 
@@ -104,8 +105,8 @@ public final class EpicsData {
      * <p>
      * Read data into this object from an LCIO event using the default collection name.
      * <p>
-     * This is the primary method for users to read the EPICS data into their Drivers in the {@link org.lcsim.util.Driver#process(EventHeader)}
-     * method.
+     * This is the primary method for users to read the EPICS data into their Drivers in the
+     * {@link org.lcsim.util.Driver#process(EventHeader)} method.
      *
      * @param event the LCIO event
      * @return the EPICS data from the event
@@ -141,7 +142,8 @@ public final class EpicsData {
     private final Map<String, Double> dataMap = new LinkedHashMap<String, Double>();
 
     /**
-     * Given a list of names, read the double values from the {@link org.lcsim.event.GenericObject} into the data map of this object.
+     * Given a list of names, read the double values from the {@link org.lcsim.event.GenericObject} into the data map of
+     * this object.
      *
      * @param object the <code>GenericObject</code> with the data values
      * @param names The list of names.
@@ -174,11 +176,12 @@ public final class EpicsData {
     /**
      * Get the list of EPICS variables used by this object.
      * <p>
-     * This could potentially be different than the list of default names from {@link #getDefaultNames()} but it will usually be the same.
+     * This could potentially be different than the list of default names from {@link #getDefaultKeys()} but it will
+     * usually be the same.
      *
      * @return the list of used EPICS variable names
      */
-    public Set<String> getUsedNames() {
+    public Set<String> getKeys() {
         return this.dataMap.keySet();
     }
 
@@ -189,6 +192,15 @@ public final class EpicsData {
      */
     public Double getValue(final String name) {
         return this.dataMap.get(name);
+    }
+
+    /**
+     * Return <code>true</code> if the data has the given key.
+     *
+     * @return <code>true</code> if data has the given key
+     */
+    public boolean hasKey(final String key) {
+        return this.getKeys().contains(key);
     }
 
     /**
@@ -233,7 +245,8 @@ public final class EpicsData {
     }
 
     /**
-     * Write this object's data into a <code>GenericObject</code> collection in the LCIO event using the default collection name.
+     * Write this object's data into a <code>GenericObject</code> collection in the LCIO event using the default
+     * collection name.
      *
      * @param event the LCIO event
      */

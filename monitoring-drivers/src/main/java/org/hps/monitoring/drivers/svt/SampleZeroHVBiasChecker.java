@@ -226,7 +226,7 @@ public class SampleZeroHVBiasChecker extends Driver {
 
         if (epicsData != null) {
             logger.info(epicsData.toString());
-            if (epicsData.getUsedNames().contains("SVT:bias:top:0:v_sens")) {
+            if (epicsData.getKeys().contains("SVT:bias:top:0:v_sens")) {
 
                 epicsBiasValue = epicsData.getValue("SVT:bias:top:0:v_sens");
                 logger.info("epicsBiasValue = " + Double.toString(epicsBiasValue));

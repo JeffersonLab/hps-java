@@ -197,7 +197,7 @@ public class RunSummaryUpdater {
                 .prepareStatement("INSERT INTO run_epics (run, variable_name, value) values (?, ?, ?)");
         final EpicsData data = runSummary.getEpicsData();
         if (data != null) {
-            for (final String variableName : data.getUsedNames()) {
+            for (final String variableName : data.getKeys()) {
                 statement.setInt(1, this.run);
                 statement.setString(2, variableName);
                 statement.setDouble(3, data.getValue(variableName));

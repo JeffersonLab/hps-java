@@ -50,7 +50,7 @@ final class EpicsLog extends EvioEventProcessor {
         System.out.println(this.logData);
 
         // Compute means for all EPICS variables.
-        for (final String name : this.logData.getUsedNames()) {
+        for (final String name : this.logData.getKeys()) {
             final double total = this.logData.getValue(name);
             final double mean = total / this.counts.get(name);
             this.logData.setValue(name, mean);
@@ -83,8 +83,8 @@ final class EpicsLog extends EvioEventProcessor {
      */
     private void update() {
         if (this.currentEpicsData != null) {
-            for (final String name : this.currentEpicsData.getUsedNames()) {
-                if (!this.logData.getUsedNames().contains(name)) {
+            for (final String name : this.currentEpicsData.getKeys()) {
+                if (!this.logData.getKeys().contains(name)) {
                     this.logData.setValue(name, 0.);
                 }
                 if (!this.counts.keySet().contains(name)) {
