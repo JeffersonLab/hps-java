@@ -12,7 +12,6 @@ import org.hps.recon.ecal.triggerbank.TDCData;
 import org.hps.recon.ecal.triggerbank.TIData;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsEvioProcessor;
-import org.hps.record.evio.EventTagBitMask;
 import org.hps.record.evio.EvioEventUtilities;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.scalers.ScalerParameters;
@@ -31,25 +30,42 @@ import org.lcsim.util.log.LogUtil;
  * Additionally, this builder will write DAQ config information, EPICS control data, and scalar bank data into the
  * output LCSim events if these banks are present in the EVIO data.
  *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * @author Sho Uemura, SLAC
+ * @author Jeremy McCormick, SLAC
  */
 public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
+    /**
+     * Setup logger.
+     */
     private static final Logger LOGGER = LogUtil.create(LCSimEngRunEventBuilder.class, new DefaultLogFormatter(),
             Level.INFO);
 
-    private EpicsData epicsData;
-
+    /**
+     * EVIO processor for extracting EPICS data.
+     */
     private final EpicsEvioProcessor epicsProcessor = new EpicsEvioProcessor();
+    
+    /**
+     * Scaler parameters for lcsim event parameters.
+     */
+    private ScalerParameters scalerParameters = new ScalerParameters();
 
-    private ScalerData scalerData;
-
+    /**
+     * EVIO processor for extracting scaler data.
+     */
     private final ScalersEvioProcessor scalerProcessor = new ScalersEvioProcessor();
 
+    /**
+     * Reads trigger config.
+     */
     private TriggerConfigEvioReader triggerConfigReader = null;
 
+    /**
+     * Class constructor.
+     */
     public LCSimEngRunEventBuilder() {
+        // FIXME: Is this the best place for doing all this stuff???
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
         ecalReader.setRfBankTag(0x2e);
@@ -66,15 +82,10 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     }
 
     /**
-     * Create and cache an {@link org.hps.record.epics.EpicsData} object.
-     *
-     * @param evioEvent The EVIO event data.
+     * Get the time from the TI data.
+     * 
+     * @param triggerList the TI data list
      */
-    private void createEpicsData(final EvioEvent evioEvent) {
-        epicsProcessor.process(evioEvent);
-        epicsData = epicsProcessor.getEpicsData();
-    }
-
     @Override
     protected long getTime(final List<AbstractIntData> triggerList) {
         for (final AbstractIntData data : triggerList) {
@@ -86,6 +97,11 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         return 0;
     }
 
+    /**
+     * Make an lcsim event from EVIO data.
+     * 
+     * @param evioEvent the input EVIO event
+     */
     @Override
     public EventHeader makeLCSimEvent(final EvioEvent evioEvent) {
 
@@ -123,15 +139,17 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Write scalers into the event, if they exist in the EVIO data.
         this.writeScalerData(evioEvent, lcsimEvent);
 
-        // Write scaler parameters into every event header.
-        if (EventTagBitMask.SYNC.isEventTag(evioEvent)) {
-            LOGGER.fine("event " + evioEvent.getEventNumber() + " is a sync event");
-        }
-        this.writeScalerParameters(lcsimEvent);
+        // Write out current ScalerParameters to event header.
+        this.scalerParameters.write(lcsimEvent);
 
         return lcsimEvent;
     }
 
+    /**
+     * Pre-read an EVIO event.
+     * 
+     * @param evioEvent the EVIO event
+     */
     @Override
     public void readEvioEvent(final EvioEvent evioEvent) {
         super.readEvioEvent(evioEvent);
@@ -139,7 +157,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Create EPICS data if this is an EPICS control event.
         if (EvioEventUtilities.isEpicsEvent(evioEvent)) {
             LOGGER.fine("creating data from EPICS event");
-            this.createEpicsData(evioEvent);
+            epicsProcessor.process(evioEvent);
         }
     }
 
@@ -149,9 +167,21 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
      * @param lcsimEvent the lcsim event
      */
     private void writeEpicsData(final EventHeader lcsimEvent) {
-        if (epicsProcessor.getEpicsData() != null) {
+        
+        // Get EpicsData from processor that was already activated (usually it is null).
+        EpicsData epicsData = epicsProcessor.getEpicsData();
+        
+        // Was new EpicsData created?
+        if (epicsData != null) {
             LOGGER.fine("writing EPICS data to lcsim event " + lcsimEvent.getEventNumber());
-            epicsProcessor.getEpicsData().write(lcsimEvent);
+            
+            // Write to the collection in the lcsim event.
+            epicsData.write(lcsimEvent);            
+            
+            // Update the ScalerParameters.
+            scalerParameters.readEpicsData(epicsData);
+            
+            // Reset the processor.
             epicsProcessor.reset();
         }
     }
@@ -164,10 +194,14 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
      */
     private void writeScalerData(final EvioEvent evioEvent, final EventHeader lcsimEvent) {
 
-        // Find scaler data in EVIO.
+        // Activate the EVIO scalers processor.
         scalerProcessor.process(evioEvent);
 
-        if (scalerProcessor.getScalerData() != null) {
+        // Get ScalerData from the processor.
+        ScalerData scalerData = scalerProcessor.getScalerData();
+        
+        // Was new ScalerData created?
+        if (scalerData != null) {
 
             LOGGER.fine("writing scaler data to lcsim event " + lcsimEvent.getEventNumber() + " from EVIO event "
                     + evioEvent.getEventNumber());
@@ -175,24 +209,8 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             // Write the current scalar data to the event.
             scalerProcessor.getScalerData().write(lcsimEvent);
 
-            // Save the current scaler data for writing to lcsim event header.
-            scalerData = scalerProcessor.getScalerData();
-        }
-    }
-
-    /**
-     * Write {@link org.hps.record.scalers.ScalerParameters} into the event.
-     *
-     * @param lcsimEvent the lcsim event
-     */
-    private void writeScalerParameters(final EventHeader lcsimEvent) {
-        final ScalerParameters scalerParameters = new ScalerParameters();
-        if (epicsData != null) {
-            scalerParameters.readEpicsData(epicsData);
-        }
-        if (scalerData != null) {
+            // Update current ScalerParameters.
             scalerParameters.readScalerData(scalerData);
         }
-        scalerParameters.write(lcsimEvent);
-    }
+    }  
 }
