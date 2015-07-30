@@ -83,6 +83,7 @@ public final class ConditionsObjectUtilities {
         final TableMetaData tableInfo = TableRegistry.getTableRegistry().findByTableName(tableName);
         final ConditionsObjectCollection<?> collection = tableInfo.newCollection();
         collection.setConnection(MANAGER.getConnection());
+        collection.setTableMetaData(tableInfo);
         return collection;
     }
 
@@ -97,6 +98,7 @@ public final class ConditionsObjectUtilities {
         final TableMetaData tableInfo = TableRegistry.getTableRegistry().findByTableName(tableName);
         final ConditionsObject object = tableInfo.newObject();
         object.setConnection(MANAGER.getConnection());
+        object.setTableMetaData(tableInfo);
         return object;
     }
 
