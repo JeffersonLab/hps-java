@@ -2,6 +2,7 @@ package org.hps.monitoring.drivers.svt;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
@@ -19,15 +20,12 @@ import java.util.logging.Logger;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunSpreadsheet;
-import org.hps.conditions.run.RunSpreadsheet.RunMap;
 import org.hps.conditions.svt.SvtBiasConditionsLoader;
 import org.hps.conditions.svt.SvtBiasConstant;
 import org.hps.conditions.svt.SvtBiasConstant.SvtBiasConstantCollection;
 import org.hps.conditions.svt.SvtBiasMyaDataReader;
 import org.hps.conditions.svt.SvtBiasMyaDataReader.SvtBiasMyaRange;
 import org.hps.conditions.svt.SvtBiasMyaDataReader.SvtBiasRunRange;
-import static org.hps.conditions.svt.SvtBiasMyaDataReader.findOverlappingRanges;
-import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.recon.ecal.triggerbank.AbstractIntData;
 import org.hps.recon.ecal.triggerbank.HeadBankData;
 import org.hps.record.epics.EpicsData;
@@ -66,6 +64,9 @@ public class SampleZeroHVBiasChecker extends Driver {
     private boolean useRunTableFormat = false;
     private boolean discardMyaDataHeader = false;
     private boolean debug = false;
+    private boolean dropSmallHitEvents = true;
+    private double eventNumRange = 1e6;
+    private int timeRange = 200;
 
     List<HpsSiSensor> sensors;
     private Map<HpsSiSensor, IHistogram1D> hists_rawadc;
@@ -75,11 +76,19 @@ public class SampleZeroHVBiasChecker extends Driver {
     private final Map<HpsSiSensor, IHistogram1D> hists_hitCounts = new HashMap<HpsSiSensor, IHistogram1D>();
     private final Map<HpsSiSensor, IHistogram1D> hists_hitCountsON = new HashMap<HpsSiSensor, IHistogram1D>();
     private final Map<HpsSiSensor, IHistogram1D> hists_hitCountsOFF = new HashMap<HpsSiSensor, IHistogram1D>();
-    private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
-    private String triggerBankCollectionName = "TriggerBank";
+    private IHistogram1D allHitCount;
+    private IHistogram1D allHitCountON;
+    private IHistogram1D allHitCountOFF;
+    private IHistogram2D allHitCountVsNum;
+    private IHistogram2D numVsTime;
+    private IHistogram2D allHitCountVsTime;
+    private IHistogram2D biasVsTime;
+    private final String rawTrackerHitCollectionName = "SVTRawTrackerHits";
+    private final String triggerBankCollectionName = "TriggerBank";
     private static final String subdetectorName = "Tracker";
     List<SvtBiasRunRange> runRanges;
     SvtBiasRunRange runRange = null;
+    private Date firstDate = null;
     private Date eventDate = null;
     private int eventCount = 0;
     FileWriter fWriter;
@@ -91,6 +100,7 @@ public class SampleZeroHVBiasChecker extends Driver {
     private double epicsBiasValue = -1;
     private boolean hvOnEpics = false;
     private boolean hvOn = false;
+    private boolean hvOnConditions = false;
     private EpicsData epicsData = null;
     private int eventCountEpicsDisagree = 0;
     SvtBiasConstantCollection svtBiasConstants = null;
@@ -123,6 +133,18 @@ public class SampleZeroHVBiasChecker extends Driver {
         this.debug = debug;
     }
 
+    public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
+        this.dropSmallHitEvents = dropSmallHitEvents;
+    }
+
+    public void setEventNumRange(double eventNumRange) {
+        this.eventNumRange = eventNumRange;
+    }
+
+    public void setTimeRange(int timeRange) {
+        this.timeRange = timeRange;
+    }
+
     @Override
     protected void detectorChanged(Detector detector) {
 
@@ -135,7 +157,15 @@ public class SampleZeroHVBiasChecker extends Driver {
             logger.info("col_svt_bias_constants name collection wasn't found");
         }
 
-//        svtBiasConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtBiasConstant.SvtBiasConstantCollection.class, "svt_bias").getCachedData();
+//                ConditionsRecordCollection col_svt_align_constants = DatabaseConditionsManager.getInstance().findConditionsRecords("svt_alignments");
+//        if (col_svt_align_constants == null) {
+//            logger.info("svt_alignments collection wasn't found");
+//        }
+//        col_svt_align_constants.
+        svtBiasConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtBiasConstant.SvtBiasConstantCollection.class, "svt_bias_constants").getCachedData();
+        System.out.println(svtBiasConstants.size());
+
+//                timingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
         try {
             fWriter = new FileWriter(fileName);
         } catch (IOException e) {
@@ -162,6 +192,12 @@ public class SampleZeroHVBiasChecker extends Driver {
         plotter3.createRegions(6, 6);
         plotter4 = plotterFactory.create("Pedestal subtracted zero Sample ADC MaxSample>4 OFF");
         plotter4.createRegions(6, 6);
+
+        allHitCount = AIDA.defaultInstance().histogram1D("all hit count", 200, 0, 200);
+        allHitCountON = AIDA.defaultInstance().histogram1D("all hit count ON", 200, 0, 200);
+        allHitCountOFF = AIDA.defaultInstance().histogram1D("all hit count OFF", 200, 0, 200);
+        allHitCountVsTime = AIDA.defaultInstance().histogram2D("all hit count vs. elapsed time", timeRange, 0, timeRange, 200, 0, 200);
+        biasVsTime = AIDA.defaultInstance().histogram2D("bias vs. elapsed time", timeRange, 0, timeRange, 200, 0, 200);
 
         for (HpsSiSensor sensor : sensors) {
             AIDA aida = AIDA.defaultInstance();
@@ -221,6 +257,13 @@ public class SampleZeroHVBiasChecker extends Driver {
     @Override
     public void process(EventHeader event) {
 
+        if (allHitCountVsNum == null) {
+            allHitCountVsNum = AIDA.defaultInstance().histogram2D("all hit count vs. event num", 1000, event.getEventNumber(), event.getEventNumber() + eventNumRange, 50, 0, 200);
+        }
+        if (numVsTime == null) {
+            numVsTime = AIDA.defaultInstance().histogram2D("event num vs. elapsed time", timeRange, 0, timeRange, 1000, event.getEventNumber(), event.getEventNumber() + eventNumRange);
+        }
+
         // Read EPICS data if available
         epicsData = EpicsData.read(event);
 
@@ -244,10 +287,31 @@ public class SampleZeroHVBiasChecker extends Driver {
         // It comes in on block level so not every event has it, use the latest one throughout a block
         Date newEventDate = getEventTimeStamp(event);
         if (newEventDate != null) {
+            if (firstDate == null) {
+                firstDate = newEventDate;
+            }
+            hvOnConditions = svtBiasConstants.find(newEventDate) != null;
             if (eventDate == null || !eventDate.equals(newEventDate)) {
                 System.out.format("event %d with new timestamp %s\n", event.getEventNumber(), newEventDate.toString());
+                System.out.println("hvOn is " + (hvOn ? "ON" : "OFF") + " hvOnEpics " + (hvOnEpics ? "ON" : "OFF") + " hvOnConditions " + (hvOnConditions ? "ON" : "OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + newEventDate.toString() + " epoch " + newEventDate.getTime());
+                // check what the DB has
+                if (svtBiasConstants != null) {
+                    logger.info("there are " + svtBiasConstants.size() + " constants to search");
+                    for (SvtBiasConstant constant : svtBiasConstants) {
+                        logger.info("start " + constant.getStart().toString() + " end " + constant.getEnd() + " value " + constant.getValue());
+                    }
+
+                    SvtBiasConstant constant = svtBiasConstants.find(newEventDate);
+
+                    logger.info(constant == null ? "No constant found!" : ("Found constant " + "start " + constant.getStart().toString() + " end " + constant.getEnd() + " value " + constant.getValue()));
+
+                }
             }
             eventDate = newEventDate;
+        }
+        if (eventDate != null) {
+            numVsTime.fill((eventDate.getTime() - firstDate.getTime()) / 1000, event.getEventNumber());
+            biasVsTime.fill((eventDate.getTime() - firstDate.getTime()) / 1000, epicsBiasValue);
         }
 
         // only do this analysis where there is a date availabe.
@@ -257,19 +321,6 @@ public class SampleZeroHVBiasChecker extends Driver {
             }
 
             eventCount++;
-
-            // check what the DB has
-            if (svtBiasConstants != null) {
-                logger.info("there are " + svtBiasConstants.size() + " constants to search");
-                for (SvtBiasConstant constant : svtBiasConstants) {
-                    logger.info("start " + constant.getStart().toString() + " end " + constant.getEnd() + " value " + constant.getValue());
-                }
-
-                SvtBiasConstant constant = svtBiasConstants.find(eventDate);
-
-                logger.info(constant == null ? "No constant found!" : ("Found constant " + "start " + constant.getStart().toString() + " end " + constant.getEnd() + " value " + constant.getValue()));
-
-            }
 
             if (runRange == null) {
                 for (SvtBiasRunRange r : runRanges) {
@@ -283,7 +334,9 @@ public class SampleZeroHVBiasChecker extends Driver {
 
             // print the cases where epics and run range do not agree
             if (hvOn != hvOnEpics && epicsBiasValue > 0.) {
-                logger.warning("hvOn is " + (hvOn ? "ON" : "OFF") + " hvOnEpics " + (hvOnEpics ? "ON" : "OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
+                if (debug) {
+                    logger.warning("hvOn is " + (hvOn ? "ON" : "OFF") + " hvOnEpics " + (hvOnEpics ? "ON" : "OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
+                }
                 pWriter.println("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn ? "YES" : "NO"));
                 eventCountEpicsDisagree++;
             }
@@ -332,6 +385,20 @@ public class SampleZeroHVBiasChecker extends Driver {
                     }
                 }
 
+                allHitCount.fill(rawTrackerHits.size());
+
+//                if (dropSmallHitEvents && SvtPlotUtils.countSmallHits(rawTrackerHits) > 3) {
+//                    return;
+//                }
+                if (hvOn) {
+                    allHitCountON.fill(rawTrackerHits.size());
+                } else {
+                    allHitCountOFF.fill(rawTrackerHits.size());
+                }
+                allHitCountVsNum.fill(event.getEventNumber(), rawTrackerHits.size());
+                if (eventDate != null) {
+                    allHitCountVsTime.fill((eventDate.getTime() - firstDate.getTime()) / 1000, rawTrackerHits.size());
+                }
                 for (HpsSiSensor sensor : sensors) {
                     Integer count = hitCountMap.get(sensor);
                     if (count == null) {

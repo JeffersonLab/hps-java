@@ -16,12 +16,6 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -31,34 +25,19 @@ public class SvtBiasMyaDataReader {
 
     public static void main(String[] args) {
 
-        Options options = new Options();
-        options.addOption(new Option("q", false, "quiet - don't print event contents"));
-        options.addOption(new Option("c", false, "print control events"));
-        options.addOption(new Option("s", false, "sequential read (not mem-mapped)"));
-
         // Parse the command line options.
         if (args.length == 0) {
             System.out.println("SvtBiasMyaDataReader <myaData dump> <run time table - tab separated>");
-            final HelpFormatter help = new HelpFormatter();
-            help.printHelp(" ", options);
             System.exit(1);
         }
 
-        final CommandLineParser parser = new PosixParser();
-        CommandLine cl = null;
-        try {
-            cl = parser.parse(options, args);
-        } catch (final org.apache.commons.cli.ParseException e) {
-            throw new RuntimeException("Problem parsing command line options.", e);
-        }
-
-        if (cl.getArgs().length != 2) {
+        if (args.length != 2) {
             throw new RuntimeException("Missing myData dump or run time file.");
         }
 
-        List<SvtBiasMyaRange> ranges = SvtBiasMyaDataReader.readMyaData(new File(cl.getArgs()[0]), 178.0, 2000, true);
+        List<SvtBiasMyaRange> ranges = SvtBiasMyaDataReader.readMyaData(new File(args[0]), 178.0, 2000, true);
 
-        List<RunData> runData = SvtBiasMyaDataReader.readRunTable(new File(cl.getArgs()[1]));
+        List<RunData> runData = SvtBiasMyaDataReader.readRunTable(new File(args[1]));
 
         List<SvtBiasRunRange> runRanges = findOverlappingRanges(runData, ranges);
 
@@ -96,11 +75,6 @@ public class SvtBiasMyaDataReader {
         return runRanges;
     }
 
-//    private static final SimpleDateFormat DATE_FORMAT = new RunSpreadsheet.AnotherSimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    //private static final TimeZone timeZone = TimeZone.getTimeZone("EST");
-    public SvtBiasMyaDataReader(double biasValueOn, int endMargin) {
-    }
-
     public static List<SvtBiasMyaRange> readMyaData(File file, double biasValueOn, int endMargin, boolean discardHeader) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
@@ -110,7 +84,7 @@ public class SvtBiasMyaDataReader {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String line;
             if (discardHeader) {
-                System.out.println(br.readLine()); //discard the first line
+                System.out.println("myaData header: " + br.readLine()); //discard the first line
             }
             SvtBiasMyaRange currentRange = null;
             while ((line = br.readLine()) != null) {
