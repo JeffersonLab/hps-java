@@ -29,6 +29,8 @@ import org.hps.conditions.run.RunSpreadsheet.RunMap;
 import org.hps.conditions.svt.SvtBiasConstant.SvtBiasConstantCollection;
 import org.hps.conditions.svt.SvtBiasMyaDataReader.SvtBiasMyaRange;
 import org.hps.conditions.svt.SvtBiasMyaDataReader.SvtBiasRunRange;
+import org.hps.conditions.svt.SvtMotorMyaDataReader.SvtPositionMyaRange;
+import org.hps.conditions.svt.SvtMotorMyaDataReader.SvtPositionRunRange;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.log.LogUtil;
@@ -60,19 +62,23 @@ public class SvtBiasConditionsLoader {
     private static final AIDA aida = AIDA.defaultInstance();
     static IDataPointSet dpsRuns = null;
     static IDataPointSet dpsBiasRuns = null;
+    static IDataPointSet dpsPositionRuns = null;
 
     private static void setupPlots(boolean show) {
         IDataPointSetFactory dpsf = aida.analysisFactory().createDataPointSetFactory(aida.tree());
         dpsRuns = dpsf.create("dpsRuns", "Run intervals", 2);
         dpsBiasRuns = dpsf.create("dpsBiasRuns", "Bias ON intervals associated with runs", 2);
+        dpsPositionRuns = dpsf.create("dpsPositionRuns", "Position stable intervals associated with runs", 2);
         IPlotter plotter = aida.analysisFactory().createPlotterFactory().create("Bias run ranges");
         IPlotterStyle plotterStyle = aida.analysisFactory().createPlotterFactory().createPlotterStyle();
         plotterStyle.xAxisStyle().setParameter("type", "date");
-        plotter.createRegions(1, 3);
+        plotter.createRegions(1, 4);
         plotter.region(0).plot(dpsRuns, plotterStyle);
         plotter.region(1).plot(dpsBiasRuns, plotterStyle);
-        plotter.region(2).plot(dpsRuns, plotterStyle);
-        plotter.region(2).plot(dpsBiasRuns, plotterStyle, "mode=overlay");
+        plotter.region(2).plot(dpsPositionRuns, plotterStyle);
+        plotter.region(3).plot(dpsRuns, plotterStyle);
+        plotter.region(3).plot(dpsBiasRuns, plotterStyle, "mode=overlay");
+        plotter.region(3).plot(dpsPositionRuns, plotterStyle, "mode=overlay");
         if (show) {
             plotter.show();
         }
@@ -155,8 +161,9 @@ public class SvtBiasConditionsLoader {
 
         Options options = new Options();
         options.addOption(new Option("c", true, "CSV run file"));
-        options.addOption(new Option("m", true, "MYA dump file"));
-        options.addOption(new Option("t", false, "use run table format (from crawler)"));
+        options.addOption(new Option("m", true, "MYA dump file for bias"));
+        options.addOption(new Option("p", true, "MYA dump file for motor positions"));
+        options.addOption(new Option("t", false, "use run table format (from crawler) for bias"));
         options.addOption(new Option("d", false, "discard first line of MYA data (for myaData output)"));
         options.addOption(new Option("g", false, "Actually load stuff into DB"));
         options.addOption(new Option("s", false, "Show plots"));
@@ -169,7 +176,7 @@ public class SvtBiasConditionsLoader {
             throw new RuntimeException("Cannot parse.", e);
         }
 
-        if (!cl.hasOption("c") || !cl.hasOption("m")) {
+        if (!cl.hasOption("c") || !cl.hasOption("m") || !cl.hasOption("p")) {
             printUsage(options);
             return;
         }
@@ -178,7 +185,7 @@ public class SvtBiasConditionsLoader {
         setupPlots(cl.hasOption("s"));
 
         // Load in CSV records from the exported run spreadsheet.
-        List<RunData> runList = null;
+        List<RunData> runList;
         if (cl.hasOption("t")) {
             runList = SvtBiasMyaDataReader.readRunTable(new File(cl.getOptionValue("c")));
         } else {
@@ -186,16 +193,20 @@ public class SvtBiasConditionsLoader {
         }
 
         // Load MYA dump
-        List<SvtBiasMyaRange> ranges = SvtBiasMyaDataReader.readMyaData(new File(cl.getOptionValue("m")), 178.0, 2000, cl.hasOption("d"));
-        logger.info("Got " + ranges.size() + " bias ranges");
+        List<SvtBiasMyaRange> biasRanges = SvtBiasMyaDataReader.readMyaData(new File(cl.getOptionValue("m")), 178.0, 2000, cl.hasOption("d"));
+        logger.info("Got " + biasRanges.size() + " bias ranges");
+
+        List<SvtPositionMyaRange> positionRanges = SvtMotorMyaDataReader.readMyaData(new File(cl.getOptionValue("p")), 1000, 10000);
+        logger.info("Got " + positionRanges.size() + " position ranges");
 
         // Combine them to run ranges when bias was on        
         // each run may have multiple bias ranges
-        List<SvtBiasRunRange> biasRunRanges = SvtBiasMyaDataReader.findOverlappingRanges(runList, ranges);
+        List<SvtBiasRunRange> biasRunRanges = SvtBiasMyaDataReader.findOverlappingRanges(runList, biasRanges);
+        List<SvtPositionRunRange> positionRunRanges = SvtMotorMyaDataReader.findOverlappingRanges(runList, positionRanges);
 
         // fill graphs
         if (cl.hasOption("s")) {
-            for (SvtBiasMyaDataReader.SvtBiasRunRange r : biasRunRanges) {
+            for (SvtBiasRunRange r : biasRunRanges) {
                 logger.info(r.toString());
                 if (r.getRun().getRun() > 5600) {//9999999999999.0) {
                     //if(dpsRuns.size()/4.0<500) {//9999999999999.0) {
@@ -206,13 +217,24 @@ public class SvtBiasConditionsLoader {
 
                     for (SvtBiasMyaRange br : r.getRanges()) {
                         addPoint(dpsBiasRuns, br.getStartDate().getTime(), 0.0);
-                        addPoint(dpsBiasRuns, br.getStartDate().getTime(), 0.5);
-                        addPoint(dpsBiasRuns, br.getEndDate().getTime(), 0.5);
+                        addPoint(dpsBiasRuns, br.getStartDate().getTime(), 0.3);
+                        addPoint(dpsBiasRuns, br.getEndDate().getTime(), 0.3);
                         addPoint(dpsBiasRuns, br.getEndDate().getTime(), 0.0);
                     }
-
                 }
+            }
 
+            for (SvtPositionRunRange r : positionRunRanges) {
+                logger.info(r.toString());
+                if (r.getRun().getRun() > 5600) {//9999999999999.0) {
+                    //if(dpsRuns.size()/4.0<500) {//9999999999999.0) {
+                    for (SvtPositionMyaRange br : r.getRanges()) {
+                        addPoint(dpsPositionRuns, br.getStartDate().getTime(), 0.0);
+                        addPoint(dpsPositionRuns, br.getStartDate().getTime(), 0.5 + 100 * Math.max(br.getTop(), br.getBottom()));
+                        addPoint(dpsPositionRuns, br.getEndDate().getTime(), 0.5 + 100 * Math.max(br.getTop(), br.getBottom()));
+                        addPoint(dpsPositionRuns, br.getEndDate().getTime(), 0.0);
+                    }
+                }
             }
         }
 
