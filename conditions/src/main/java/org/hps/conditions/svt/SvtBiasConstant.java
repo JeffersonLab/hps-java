@@ -13,7 +13,7 @@ import org.hps.conditions.database.Table;
  * 
  * Encapsulates an SVT bias constant, which is range in time where bias was ON.
  * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ * @author Per Hansson Adrian, SLAC
  */
 @Table(names  = "svt_bias_constants")
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
@@ -34,7 +34,7 @@ public final class SvtBiasConstant extends BaseConditionsObject {
          */
         public SvtBiasConstant find(Date date) {
             for (SvtBiasConstant constant : this) {
-                if(date.after(constant.getStart()) && date.before(constant.getEnd())) {
+                if(date.getTime() >= constant.getStart() && date.getTime() <= constant.getEnd()) {
                     return constant;
                 }
             }
@@ -44,22 +44,22 @@ public final class SvtBiasConstant extends BaseConditionsObject {
     
     
     /**
-     * The start date. 
+     * The start date as a Unix timestamp in milliseconds (GMT). 
      * 
-     * @return the start date
+     * @return the start date as a Unix timestamp
      */
     @Field(names = {"start"})
-    public Date getStart() {
+    public Long getStart() {
         return getFieldValue("start");
     }
 
     /**
-     * The end date. 
+     * The end date as a Unix timestamp in milliseconds (GMT). 
      * 
-     * @return the end date
+     * @return the end date as a Unix timestamp
      */
     @Field(names = {"end"})
-    public Date getEnd() {
+    public Long getEnd() {
         return getFieldValue("end");
     }
 
