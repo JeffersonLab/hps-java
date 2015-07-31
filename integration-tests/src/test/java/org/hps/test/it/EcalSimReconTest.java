@@ -53,27 +53,28 @@ public class EcalSimReconTest extends TestCase {
     /**
      * Acceptable delta of high cluster mean energy in GeV.
      */
-    private static final double HIGH_CLUS_DELTA_E = 0.02;
+    private static final double HIGH_CLUS_DELTA_E = 0.05;
     
     /**
      * Expected mean time of primary cluster in nanoseconds.
      */
-    private static final double CLUS_MEAN_T = 150;   
+    private static final double CLUS_MEAN_T = 58.6;   
     
     /**
      * Acceptable delta of cluster time in nanoseconds.
      */    
-    private static final double CLUS_DELTA_T = 10;
+    private static final double CLUS_DELTA_T = 5;
     
     /**
      * Expected number of triggers.
      */
-    private static final int TRIGGERS = 650;
+    private static final int TRIGGERS = 880;
     
     /**
      * Acceptable delta of trigger count.
      */
-    private static final int TRIGGER_DELTA = 3;
+    private static final int TRIGGER_DELTA = 5;
+
     
     /**
      * Run the test.
@@ -157,7 +158,7 @@ public class EcalSimReconTest extends TestCase {
          * Process events and fill histograms from cluster collection.
          */
         public void process(EventHeader event) {
-            List<Cluster> clusters = event.get(Cluster.class, "EcalClusters");
+            List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
             clusCountH1D.fill(clusters.size());
             for (Cluster cluster : clusters) {
                 clusEnergyH1D.fill(cluster.getEnergy());
