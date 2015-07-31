@@ -1020,12 +1020,18 @@ public class TrackUtils {
                     Hep3Vector stripPosition = new BasicHep3Vector(strip.getPosition());
                     Hep3Vector crossStripPosition = new BasicHep3Vector(crossStrip.getPosition());
                     double distance = VecOp.sub(stripPosition, crossStripPosition).magnitude();
+                    if (Math.abs(stripPosition.y()) > Math.abs(crossStripPosition.y())) {
+                        distance = -distance;
+                    }
+                    System.out.format("%s, %s, %s, %f\n", stripPosition, crossStripPosition, VecOp.sub(stripPosition, crossStripPosition), distance);
 //                    if (distance<=0.0601) continue; //hack to avoid counting adjacent strips that didn't get clustered together
 //                    if (distance<0.1) System.out.format("%d, %d, %f\n",strip.getRawHits().size(),crossStrip.getRawHits().size(), distance);
 //                    if (distance < 0.1) {
 //                        System.out.format("%s, %s, %s, %f\n", stripPosition, crossStripPosition, VecOp.sub(stripPosition, crossStripPosition), distance);
 //                    }
-                    nearestDistance = Math.min(nearestDistance, distance);
+                    if (Math.abs(distance) < Math.abs(nearestDistance)) {
+                        nearestDistance = distance;
+                    }
                 }
             }
         }
