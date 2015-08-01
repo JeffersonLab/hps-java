@@ -37,15 +37,17 @@ public class TrackDataDriver extends Driver {
 
     public TrackDataDriver() {
     }
-    
+
     public void setTrackCollectionName(String name) {
-        this.trackCollectionName=name;
+        this.trackCollectionName = name;
     }
 
     protected void process(EventHeader event) {
 
         // If the event doesn't contain a collection of tracks, skip it.
-        if (!event.hasCollection(Track.class, trackCollectionName)) return;
+        if (!event.hasCollection(Track.class, trackCollectionName)) {
+            return;
+        }
 
         // Get the collection of tracks from the event
         List<Track> tracks = event.get(Track.class, trackCollectionName);
@@ -56,15 +58,18 @@ public class TrackDataDriver extends Driver {
         BaseRelationalTable hthToRotatedHth = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         hthToRotatedHth.addRelations(rotatedHthToHthRelations);
 
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+
         List<HelicalTrackHit> rotatedHths = event.get(HelicalTrackHit.class, rotatedHthCollectionName);
 
         // Create a container that will be used to store all TrackData objects.
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
-       
+
         // Create a container that will be used to store all LCRelations between
         // a TrackData object and the corresponding Track
         List<LCRelation> trackDataRelations = new ArrayList<LCRelation>();
-        
+
         // Create a collection to hold the track residuals
         List<TrackResidualsData> trackResidualsCollection = new ArrayList<TrackResidualsData>();
 
@@ -73,11 +78,11 @@ public class TrackDataDriver extends Driver {
 
         double xResidual = 0;
         double yResidual = 0;
-        
+
         float totalT0 = 0;
         float totalHits = 0;
         float trackTime = 0;
-        
+
         int trackerVolume = -1;
 
         boolean isFirstHit = true;
@@ -154,23 +159,26 @@ public class TrackDataDriver extends Driver {
 
             // The track time is the mean t0 of hits on a track
             trackTime = totalT0 / totalHits;
+            Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated);
 
-            double l1Isolation = 99999999.0;
-            double l2Isolation = 99999999.0;
-            // Loop over all stereo hits comprising a track
-            for (TrackerHit stereoHit : track.getTrackerHits()) {
-                // Loop over the clusters comprising the stereo hit
-                for (HelicalTrackStrip cluster : ((HelicalTrackCross) stereoHit).getStrips()) {
-//                    System.out.println(cluster.layer());
-                    if (cluster.layer() == 1) {
-                        l1Isolation = getNearestDistance(cluster, rotatedHths);
-                    } else if (cluster.layer() == 2) {
-                        l2Isolation = getNearestDistance(cluster, rotatedHths);
-                    }
-                }
+//            double l1Isolation = 99999999.0;
+//            double l2Isolation = 99999999.0;
+//            // Loop over all stereo hits comprising a track
+//            for (TrackerHit stereoHit : track.getTrackerHits()) {
+//                // Loop over the clusters comprising the stereo hit
+//                for (HelicalTrackStrip cluster : ((HelicalTrackCross) stereoHit).getStrips()) {
+////                    System.out.println(cluster.layer());
+//                    if (cluster.layer() == 1) {
+//                        l1Isolation = getNearestDistance(cluster, rotatedHths);
+//                    } else if (cluster.layer() == 2) {
+//                        l2Isolation = getNearestDistance(cluster, rotatedHths);
+//                    }
+//                }
+//            }
+            double qualityArray[] = new double[isolations.length];
+            for (int i = 0; i < isolations.length; i++) {
+                qualityArray[i] = isolations[i] == null ? -99999999.0 : isolations[i];
             }
-
-            double qualityArray[] = {l1Isolation, l2Isolation};
             TrackData trackData = new TrackData(trackerVolume, trackTime, qualityArray);
             trackDataCollection.add(trackData);
             trackDataRelations.add(new BaseLCRelation(trackData, track));
@@ -185,37 +193,37 @@ public class TrackDataDriver extends Driver {
         event.put(trackResidualsCollectionName, trackResidualsCollection, TrackResidualsData.class, 0);
         event.put(trackResidualsRelationsColName, trackToTrackResidualsRelations, LCRelation.class, 0);
     }
-
-    private static Double getNearestDistance(HelicalTrackStrip cl, List<HelicalTrackHit> toththits) {
-        Hep3Vector corigin = cl.origin();
-        Hep3Vector uvec = VecOp.mult(cl.umeas(), cl.u());
-        Hep3Vector clvec = VecOp.add(corigin, uvec);
-        int layer = cl.layer();
-//        HelicalTrackStrip nearest = null;
-//        Hep3Vector nearestvec = null;
-        Double mindist = 99999999.0;
-        for (HelicalTrackHit hth : toththits) {
-            HelicalTrackCross cross = (HelicalTrackCross) hth;
-            for (HelicalTrackStrip str : cross.getStrips()) {
-                if (layer == str.layer() && str != cl) {
-                    Hep3Vector strorigin = str.origin();
-                    Hep3Vector struvec = VecOp.mult(str.umeas(), str.u());
-                    Hep3Vector strvec = VecOp.add(strorigin, struvec);
-                    double origindist = VecOp.sub(corigin, strorigin).magnitude();
-                    double dist = VecOp.sub(clvec, strvec).magnitude();
-                    if (origindist == 0.0 && dist != 0.0 && dist < Math.abs(mindist)) {
-                        mindist = VecOp.sub(clvec, strvec).magnitude();
-                        if (Math.abs(clvec.z()) > Math.abs(strvec.z())) {
-                            mindist = -mindist;
-                        }
-//                        nearest = str;
-//                        nearestvec = strvec;
-                    }
-                }
-            }
-        }
-//        System.out.println(clvec);
-//        System.out.println(nearestvec);
-        return mindist;
-    }
+//
+//    private static Double getNearestDistance(HelicalTrackStrip cl, List<HelicalTrackHit> toththits) {
+//        Hep3Vector corigin = cl.origin();
+//        Hep3Vector uvec = VecOp.mult(cl.umeas(), cl.u());
+//        Hep3Vector clvec = VecOp.add(corigin, uvec);
+//        int layer = cl.layer();
+////        HelicalTrackStrip nearest = null;
+////        Hep3Vector nearestvec = null;
+//        Double mindist = 99999999.0;
+//        for (HelicalTrackHit hth : toththits) {
+//            HelicalTrackCross cross = (HelicalTrackCross) hth;
+//            for (HelicalTrackStrip str : cross.getStrips()) {
+//                if (layer == str.layer() && str != cl) {
+//                    Hep3Vector strorigin = str.origin();
+//                    Hep3Vector struvec = VecOp.mult(str.umeas(), str.u());
+//                    Hep3Vector strvec = VecOp.add(strorigin, struvec);
+//                    double origindist = VecOp.sub(corigin, strorigin).magnitude();
+//                    double dist = VecOp.sub(clvec, strvec).magnitude();
+//                    if (origindist == 0.0 && dist != 0.0 && dist < Math.abs(mindist)) {
+//                        mindist = VecOp.sub(clvec, strvec).magnitude();
+//                        if (Math.abs(clvec.z()) > Math.abs(strvec.z())) {
+//                            mindist = -mindist;
+//                        }
+////                        nearest = str;
+////                        nearestvec = strvec;
+//                    }
+//                }
+//            }
+//        }
+////        System.out.println(clvec);
+////        System.out.println(nearestvec);
+//        return mindist;
+//    }
 }

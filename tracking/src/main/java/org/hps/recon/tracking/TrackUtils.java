@@ -996,7 +996,7 @@ public class TrackUtils {
      * @return Double_MAX_VALUE if no other strips found.
      */
     public static double getIsolation(TrackerHit strip, TrackerHit otherStrip, RelationalTable hitToStrips, RelationalTable hitToRotated) {
-        double nearestDistance = Double.MAX_VALUE;
+        double nearestDistance = 99999999.0;
         for (TrackerHit cross : (Set<TrackerHit>) hitToStrips.allTo(otherStrip)) {
             for (TrackerHit crossStrip : (Set<TrackerHit>) hitToStrips.allFrom(cross)) {
                 if (crossStrip != strip && crossStrip != otherStrip) {
@@ -1023,7 +1023,7 @@ public class TrackUtils {
                     if (Math.abs(stripPosition.y()) > Math.abs(crossStripPosition.y())) {
                         distance = -distance;
                     }
-                    System.out.format("%s, %s, %s, %f\n", stripPosition, crossStripPosition, VecOp.sub(stripPosition, crossStripPosition), distance);
+//                    System.out.format("%s, %s, %s, %f\n", stripPosition, crossStripPosition, VecOp.sub(stripPosition, crossStripPosition), distance);
 //                    if (distance<=0.0601) continue; //hack to avoid counting adjacent strips that didn't get clustered together
 //                    if (distance<0.1) System.out.format("%d, %d, %f\n",strip.getRawHits().size(),crossStrip.getRawHits().size(), distance);
 //                    if (distance < 0.1) {
