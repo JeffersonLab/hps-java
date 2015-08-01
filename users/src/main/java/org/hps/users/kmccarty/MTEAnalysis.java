@@ -5,17 +5,24 @@ import hep.aida.IHistogram2D;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.TIData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 public class MTEAnalysis extends Driver {
 	// Define track LCIO information.
+	private String bankCollectionName = "TriggerBank";
 	private String particleCollectionName = "FinalStateParticles";
 	private static final AIDA aida = AIDA.defaultInstance();
 	private IHistogram1D[] chargedTracksPlot = {
@@ -40,11 +47,76 @@ public class MTEAnalysis extends Driver {
 	private IHistogram1D timePlot = aida.histogram1D("MTE Analysis/Track Cluster Time Distribution", 4000, 0, 400);
 	private IHistogram1D timeCoincidencePlot = aida.histogram1D("MTE Analysis/Møller Time Coincidence Distribution", 1000, 0, 100);
 	private IHistogram1D timeCoincidenceAllCutsPlot = aida.histogram1D("MTE Analysis/Møller Time Coincidence Distribution (All Møller Cuts)", 1000, 0, 100);
+	private TriggerPlotsModule allPlots = new TriggerPlotsModule("All");
+	private TriggerPlotsModule møllerPlots = new TriggerPlotsModule("Møller");
+	private TriggerPlotsModule tridentPlots = new TriggerPlotsModule("Trident");
+	private TriggerPlotsModule elasticPlots = new TriggerPlotsModule("Elastic");
 	private static final int MØLLER  = 0;
 	private static final int TRIDENT = 1;
 	private static final int ELASTIC = 2;
 	private boolean verbose = false;
+	private boolean excludeNoTrackEvents = false;
 	private double timeCoincidenceCut = Double.MAX_VALUE;
+	private Map<String, Integer> møllerBitMap = new HashMap<String, Integer>();
+	private Map<String, Integer> tridentBitMap = new HashMap<String, Integer>();
+	private Map<String, Integer> elasticBitMap = new HashMap<String, Integer>();
+	private int møllerEvents = 0;
+	private int tridentEvents = 0;
+	private int elasticEvents = 0;
+	
+	@Override
+	public void startOfData() {
+		for(int s0 = 0; s0 <= 1; s0++) {
+			for(int s1 = 0; s1 <= 1; s1++) {
+				for(int p0 = 0; p0 <= 1; p0++) {
+					for(int p1 = 0; p1 <= 1; p1++) {
+						for(int pulser = 0; pulser <=1; pulser++) {
+							// Set each "trigger bit."
+							boolean s0bit = (s0 == 1);
+							boolean s1bit = (s1 == 1);
+							boolean p0bit = (p0 == 1);
+							boolean p1bit = (p1 == 1);
+							boolean pulserBit = (p1 == 1);
+							
+							// Generate the bit string.
+							String bitString = getBitString(s0bit, s1bit, p0bit, p1bit, pulserBit);
+							
+							// Set a default value of zero for this bit combination.
+							møllerBitMap.put(bitString, 1);
+							tridentBitMap.put(bitString, 1);
+							elasticBitMap.put(bitString, 1);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	@Override
+	public void endOfData() {
+		System.out.println("Møller  Events :: " + møllerEvents);
+		System.out.println("Trident Events :: " + tridentEvents);
+		System.out.println("Elastic Events :: " + elasticEvents);
+		
+		System.out.println("Plsr\tS0\tS1\tP0\tP1\tMøller");
+		for(Entry<String, Integer> entry : møllerBitMap.entrySet()) {
+			System.out.println(entry.getKey() + "\t" + entry.getValue());
+		}
+		
+		System.out.println("Plsr\tS0\tS1\tP0\tP1\tTrident");
+		for(Entry<String, Integer> entry : tridentBitMap.entrySet()) {
+			System.out.println(entry.getKey() + "\t" + entry.getValue());
+		}
+		
+		System.out.println("Plsr\tS0\tS1\tP0\tP1\tElastic");
+		for(Entry<String, Integer> entry : elasticBitMap.entrySet()) {
+			System.out.println(entry.getKey() + "\t" + entry.getValue());
+		}
+	}
+	
+	private static final String getBitString(boolean s0, boolean s1, boolean p0, boolean p1, boolean pulser) {
+		return String.format("%d\t%d\t%d\t%d\t%d", (pulser ? 1 : 0), (s0 ? 1 : 0), (s1 ? 1 : 0), (p0 ? 1 : 0), (p1 ? 1 : 0));
+	}
 	
 	@Override
 	public void process(EventHeader event) {
@@ -68,6 +140,29 @@ public class MTEAnalysis extends Driver {
 				}
 			}
 			
+			// Populate the all cluster plots.
+			List<Cluster> topClusters = new ArrayList<Cluster>();
+			List<Cluster> botClusters = new ArrayList<Cluster>();
+			List<Cluster> clusters = event.get(Cluster.class, "EcalClusters");
+			for(Cluster cluster : clusters) {
+				allPlots.addCluster(cluster);
+				if(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") > 0) { topClusters.add(cluster); }
+				else { botClusters.add(cluster); }
+			}
+			
+			// Make cluster pairs.
+			List<Cluster[]> clusterPairs = new ArrayList<Cluster[]>();
+			for(Cluster topCluster : topClusters) {
+				for(Cluster botCluster : botClusters) {
+					clusterPairs.add(new Cluster[] { topCluster, botCluster });
+				}
+			}
+			
+			// Populate the all cluster pair plots.
+			for(Cluster[] pair : clusterPairs) {
+				allPlots.addClusterPair(pair);
+			}
+			
 			// Check each of the event-type conditions.
 			boolean isMøller = false;
 			boolean isTrident = false;
@@ -81,6 +176,12 @@ public class MTEAnalysis extends Driver {
 			// within a certain band of the beam energy.
 			møllerTrackLoop:
 			for(ReconstructedParticle[] pair : pairList) {
+				// If trackless events are to be excluded, then require
+				// that each "track" have a real track.
+				if(excludeNoTrackEvents && (pair[0].getTracks().isEmpty() || pair[1].getTracks().isEmpty())) {
+					continue møllerTrackLoop;
+				}
+				
 				// Both tracks are required to be negatively charged.
 				if(pair[0].getCharge() >= 0 || pair[1].getCharge() >= 0) {
 					continue møllerTrackLoop;
@@ -137,6 +238,7 @@ public class MTEAnalysis extends Driver {
 				
 				// Populate the Møller plots.
 				energyPlot[MØLLER].fill(sum);
+				møllerPlots.addClusterPair(trackClusters);
 				electronPlot[MØLLER].fill(pair[0].getMomentum().magnitude());
 				electronPlot[MØLLER].fill(pair[1].getMomentum().magnitude());
 				energy2DPlot[MØLLER].fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
@@ -145,23 +247,64 @@ public class MTEAnalysis extends Driver {
 			// Check the elastic condition. Elastic events should be
 			// negatively and have an energy approximately equal to
 			// the beam energy.
+			elasticTrackLoop:
 			for(ReconstructedParticle track : trackList) {
+				// If trackless events are to be excluded, then require
+				// that the "track" has a real track.
+				if(excludeNoTrackEvents && track.getTracks().isEmpty()) {
+					continue elasticTrackLoop;
+				}
+				
+				// Check the elastic condition.
 				if(track.getCharge() < 0 && track.getMomentum().magnitude() >= 0.900) {
 					isElastic = true;
 					energyPlot[ELASTIC].fill(track.getMomentum().magnitude());
+					if(!track.getClusters().isEmpty()) {
+						elasticPlots.addCluster(track.getClusters().get(0));
+					}
 				}
 			}
 			
 			// Check the trident condition. Tridents are events that
 			// contain both one positive and one negative track.
+			tridentTrackLoop:
 			for(ReconstructedParticle[] pair : pairList) {
-				if((pair[0].getCharge() < 0 && pair[1].getCharge() > 0) ||
-						pair[0].getCharge() > 0 && pair[1].getCharge() < 0) {
+				// If trackless events are to be excluded, then require
+				// that each "track" have a real track.
+				if(excludeNoTrackEvents && (pair[0].getTracks().isEmpty() || pair[1].getTracks().isEmpty())) {
+					continue tridentTrackLoop;
+				}
+				
+				// Check the trident condition.
+				if((pair[0].getCharge() < 0 && pair[1].getCharge() > 0) || pair[0].getCharge() > 0 && pair[1].getCharge() < 0) {
+					// Both tracks must have clusters associated with them.
+					Cluster[] trackClusters = new Cluster[2];
+					for(int i = 0; i < 2; i++) {
+						// Disallow tracks with no associated clusters.
+						if(pair[i].getClusters().size() == 0) {
+							continue tridentTrackLoop;
+						}
+						
+						// Store the first cluster associated with the track.
+						trackClusters[i] = pair[i].getClusters().get(0);
+					}
+					
+					// Require that the track clusters be within a certain
+					// time window of one another.
+					CalorimeterHit[] seeds = new CalorimeterHit[2];
+					seeds[0] = trackClusters[0].getCalorimeterHits().get(0);
+					seeds[1] = trackClusters[1].getCalorimeterHits().get(0);
+					timeCoincidencePlot.fill(Math.abs(seeds[0].getTime() - seeds[1].getTime()));
+					if(Math.abs(trackClusters[0].getCalorimeterHits().get(0).getTime() - trackClusters[1].getCalorimeterHits().get(0).getTime()) > timeCoincidenceCut) {
+						continue tridentTrackLoop;
+					}
+					
 					// Require that the energy of the electron is below
 					// 900 MeV.
 					if((pair[0].getCharge() < 0 && pair[0].getMomentum().magnitude() < 0.900)
 							|| (pair[1].getCharge() < 0 && pair[1].getMomentum().magnitude() < 0.900)) {
 						isTrident = true;
+						tridentPlots.addClusterPair(trackClusters);
 						if(pair[0].getCharge() > 0) {
 							positronPlot.fill(pair[1].getMomentum().magnitude());
 							electronPlot[TRIDENT].fill(pair[0].getMomentum().magnitude());
@@ -185,22 +328,60 @@ public class MTEAnalysis extends Driver {
 			// Get the number of charged tracks in the event.
 			int tracks = 0;
 			for(ReconstructedParticle track : trackList) {
-				if(track.getCharge() != 0) { tracks++; }
+				if(track.getCharge() != 0) {
+					if(excludeNoTrackEvents && !track.getTracks().isEmpty()) {
+						tracks++;
+					} else { tracks++; }
+				}
 			}
 			
-			// Add the result to the appropriate plots.
+			// Get the TI bits.
+			String bitString = null;
+			List<GenericObject> bankList = event.get(GenericObject.class, bankCollectionName);
+			for(GenericObject obj : bankList) {
+				if(AbstractIntData.getTag(obj) == TIData.BANK_TAG) {
+					TIData tiBank = new TIData(obj);
+					bitString = getBitString(tiBank.isPulserTrigger(), tiBank.isSingle0Trigger(),
+							tiBank.isSingle1Trigger(), tiBank.isPair0Trigger(), tiBank.isPair1Trigger());
+				}
+			}
+			if(bitString == null) {
+				System.out.println("No TI data found!!");
+			}
+			
+			// Add the result to the appropriate plots and increment
+			// the appropriate trigger bit combination.
 			if(isMøller) {
+				møllerEvents++;
 				chargedTracksPlot[MØLLER].fill(tracks);
+				
+				Integer val = møllerBitMap.get(bitString);
+				if(val == null) { møllerBitMap.put(bitString, 1); }
+				else { møllerBitMap.put(bitString, val + 1); }
 			} else if(isTrident) {
+				tridentEvents++;
 				chargedTracksPlot[TRIDENT].fill(tracks);
+				
+				Integer val = tridentBitMap.get(bitString);
+				if(val == null) { tridentBitMap.put(bitString, 1); }
+				else { tridentBitMap.put(bitString, val + 1); }
 			} else if(isElastic) {
+				elasticEvents++;
 				chargedTracksPlot[ELASTIC].fill(tracks);
+				
+				Integer val = elasticBitMap.get(bitString);
+				if(val == null) { elasticBitMap.put(bitString, 1); }
+				else { elasticBitMap.put(bitString, val + 1); }
 			}
 		}
 	}
 	
 	public void setTimeCoincidenceCut(double value) {
 		timeCoincidenceCut = value;
+	}
+	
+	public void setExcludeNoTrackEvents(boolean state) {
+		excludeNoTrackEvents = state;
 	}
 	
 	private static final List<ReconstructedParticle[]> getTrackPairs(List<ReconstructedParticle> trackList) {

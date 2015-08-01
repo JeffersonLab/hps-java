@@ -8,6 +8,7 @@ import hep.physics.vec.Hep3Vector;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.util.Driver;
@@ -109,6 +110,10 @@ public class TridentTrackDriver extends Driver {
 					tracksFinalStateCluster++;
 				}
 				
+				// Process the track position plots.
+				Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track.getTracks().get(0), 1394.5);
+				position[ANY_CLUSTER].fill(trackPosAtEcal.x(), trackPosAtEcal.y());
+				
 				// Process the tracks based on charge.
 				if(track.getCharge() > 0) {
 					// Increment the counters and populate the momentum plots.
@@ -124,9 +129,9 @@ public class TridentTrackDriver extends Driver {
 						posMomentum[HAS_CLUSTER].fill(track.getMomentum().magnitude());
 						
 						// Populate the cluster position plot.
-						int ix = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
-						int iy = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
-						position[HAS_CLUSTER].fill(ix, iy);
+						//int ix = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+						//int iy = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
+						position[HAS_CLUSTER].fill(trackPosAtEcal.x(), trackPosAtEcal.y());
 					}
 				} else if(track.getCharge() < 0) {
 					// Increment the counters and populate the momentum plots.
@@ -142,9 +147,9 @@ public class TridentTrackDriver extends Driver {
 						negMomentum[HAS_CLUSTER].fill(track.getMomentum().magnitude());
 						
 						// Populate the cluster position plot.
-						int ix = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
-						int iy = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
-						position[HAS_CLUSTER].fill(ix, iy);
+						//int ix = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+						//int iy = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
+						position[HAS_CLUSTER].fill(trackPosAtEcal.x(), trackPosAtEcal.y());
 					}
 				} else {
 					if(track.getClusters().size() > 0) {
@@ -152,9 +157,9 @@ public class TridentTrackDriver extends Driver {
 						allClusterTrackList.add(track);
 						
 						// Populate the cluster position plot.
-						int ix = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
-						int iy = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
-						position[HAS_CLUSTER].fill(ix, iy);
+						//int ix = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+						//int iy = track.getClusters().get(0).getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
+						position[HAS_CLUSTER].fill(trackPosAtEcal.x(), trackPosAtEcal.y());
 					}
 				}
 			}
