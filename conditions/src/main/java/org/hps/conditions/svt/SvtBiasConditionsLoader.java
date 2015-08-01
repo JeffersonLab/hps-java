@@ -21,7 +21,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.api.ConditionsRecord;
-import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunRange;
 import org.hps.conditions.run.RunSpreadsheet;
@@ -34,7 +33,6 @@ import org.hps.conditions.svt.SvtMotorMyaDataReader.SvtPositionMyaRange;
 import org.hps.conditions.svt.SvtMotorMyaDataReader.SvtPositionRunRange;
 import org.hps.conditions.svt.SvtMotorPosition.SvtMotorPositionCollection;
 import org.hps.util.BasicLogFormatter;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.log.LogUtil;
 
@@ -305,7 +303,7 @@ public class SvtBiasConditionsLoader {
             final ConditionsRecord condition = new ConditionsRecord();
             condition.setFieldValue("run_start", rundata.getRun());
             condition.setFieldValue("run_end", rundata.getRun());
-            condition.setFieldValue("name", "svt_bias");
+            condition.setFieldValue("name", "svt_bias_constants");
             condition.setFieldValue("table_name", "svt_bias_constants");
             condition.setFieldValue("notes", "constants from mya");
             condition.setFieldValue("created", new Date());
@@ -313,6 +311,7 @@ public class SvtBiasConditionsLoader {
             condition.setFieldValue("collection_id", collectionId);
             condition.setTableMetaData(MANAGER.findTableMetaData("conditions"));
             condition.setConnection(MANAGER.getConnection());
+            logger.info(condition.toString());
 
             try {
 
@@ -323,7 +322,6 @@ public class SvtBiasConditionsLoader {
                     constant.setFieldValue("end", biasRange.getEndDate().getTime());
                     constant.setFieldValue("value", biasRange.getValue());
                     collection.add(constant);
-                    logger.info(condition.toString());
                 }
 
                 // Insert collection data.
@@ -385,6 +383,7 @@ public class SvtBiasConditionsLoader {
             condition.setFieldValue("collection_id", collectionId);
             condition.setTableMetaData(MANAGER.findTableMetaData("conditions"));
             condition.setConnection(MANAGER.getConnection());
+            logger.info(condition.toString());
 
             try {
 
@@ -396,7 +395,6 @@ public class SvtBiasConditionsLoader {
                     constant.setFieldValue("top", positionRange.getTop());
                     constant.setFieldValue("bottom", positionRange.getBottom());
                     collection.add(constant);
-                    logger.info(condition.toString());
                 }
 
                 // Insert collection data.

@@ -148,22 +148,13 @@ public class SampleZeroHVBiasChecker extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
 
-        ConditionsRecordCollection col_svt_bias = DatabaseConditionsManager.getInstance().findConditionsRecords("svt_bias");
-        if (col_svt_bias == null) {
-            logger.info("svt_bias name collection wasn't found");
-        }
-        ConditionsRecordCollection col_svt_bias_constants = DatabaseConditionsManager.getInstance().findConditionsRecords("svt_bias_constants");
-        if (col_svt_bias_constants == null) {
-            logger.info("col_svt_bias_constants name collection wasn't found");
-        }
-
 //                ConditionsRecordCollection col_svt_align_constants = DatabaseConditionsManager.getInstance().findConditionsRecords("svt_alignments");
 //        if (col_svt_align_constants == null) {
 //            logger.info("svt_alignments collection wasn't found");
 //        }
 //        col_svt_align_constants.
         svtBiasConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtBiasConstant.SvtBiasConstantCollection.class, "svt_bias_constants").getCachedData();
-        System.out.println(svtBiasConstants.size());
+        System.out.println("found " + svtBiasConstants.size() + " bias ON ranges");
 
 //                timingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
         try {
@@ -298,12 +289,12 @@ public class SampleZeroHVBiasChecker extends Driver {
                 if (svtBiasConstants != null) {
                     logger.info("there are " + svtBiasConstants.size() + " constants to search");
                     for (SvtBiasConstant constant : svtBiasConstants) {
-                        logger.info("start " + constant.getStart().toString() + " end " + constant.getEnd() + " value " + constant.getValue());
+                        logger.info("start " + constant.getStart() + " end " + constant.getEnd() + " value " + constant.getValue());
                     }
 
                     SvtBiasConstant constant = svtBiasConstants.find(newEventDate);
 
-                    logger.info(constant == null ? "No constant found!" : ("Found constant " + "start " + constant.getStart().toString() + " end " + constant.getEnd() + " value " + constant.getValue()));
+                    logger.info(constant == null ? "No constant found!" : ("Found constant " + "start " + constant.getStart() + " end " + constant.getEnd() + " value " + constant.getValue()));
 
                 }
             }
