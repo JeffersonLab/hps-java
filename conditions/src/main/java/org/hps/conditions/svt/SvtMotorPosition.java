@@ -16,7 +16,7 @@ public class SvtMotorPosition extends BaseConditionsObject {
     /**
      * Collection implementation.
      */
-    public class SvtMotorPositionCollection extends BaseConditionsObjectCollection<SvtMotorPosition> {        
+    public static class SvtMotorPositionCollection extends BaseConditionsObjectCollection<SvtMotorPosition> {        
     }
     
     /**

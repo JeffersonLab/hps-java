@@ -21,6 +21,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.api.ConditionsRecord;
+import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunRange;
 import org.hps.conditions.run.RunSpreadsheet;
@@ -31,7 +32,9 @@ import org.hps.conditions.svt.SvtBiasMyaDataReader.SvtBiasMyaRange;
 import org.hps.conditions.svt.SvtBiasMyaDataReader.SvtBiasRunRange;
 import org.hps.conditions.svt.SvtMotorMyaDataReader.SvtPositionMyaRange;
 import org.hps.conditions.svt.SvtMotorMyaDataReader.SvtPositionRunRange;
+import org.hps.conditions.svt.SvtMotorPosition.SvtMotorPositionCollection;
 import org.hps.util.BasicLogFormatter;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.log.LogUtil;
 
@@ -176,7 +179,7 @@ public class SvtBiasConditionsLoader {
             throw new RuntimeException("Cannot parse.", e);
         }
 
-        if (!cl.hasOption("c") || !cl.hasOption("m") || !cl.hasOption("p")) {
+        if (!cl.hasOption("c") || (!cl.hasOption("m") && !cl.hasOption("p"))) {
             printUsage(options);
             return;
         }
@@ -192,47 +195,55 @@ public class SvtBiasConditionsLoader {
             runList = getRunListFromSpreadSheet(cl.getOptionValue("c"));
         }
 
+        List<SvtBiasRunRange> biasRunRanges = null;
+        List<SvtPositionRunRange> positionRunRanges = null;
         // Load MYA dump
-        List<SvtBiasMyaRange> biasRanges = SvtBiasMyaDataReader.readMyaData(new File(cl.getOptionValue("m")), 178.0, 2000, cl.hasOption("d"));
-        logger.info("Got " + biasRanges.size() + " bias ranges");
+        if (cl.hasOption("m")) {
+            List<SvtBiasMyaRange> biasRanges = SvtBiasMyaDataReader.readMyaData(new File(cl.getOptionValue("m")), 178.0, 2000, cl.hasOption("d"));
+            logger.info("Got " + biasRanges.size() + " bias ranges");
+            biasRunRanges = SvtBiasMyaDataReader.findOverlappingRanges(runList, biasRanges);
+        }
 
-        List<SvtPositionMyaRange> positionRanges = SvtMotorMyaDataReader.readMyaData(new File(cl.getOptionValue("p")), 1000, 10000);
-        logger.info("Got " + positionRanges.size() + " position ranges");
+        if (cl.hasOption("p")) {
+            List<SvtPositionMyaRange> positionRanges = SvtMotorMyaDataReader.readMyaData(new File(cl.getOptionValue("p")), 1000, 10000);
+            logger.info("Got " + positionRanges.size() + " position ranges");
+            positionRunRanges = SvtMotorMyaDataReader.findOverlappingRanges(runList, positionRanges);
+        }
 
         // Combine them to run ranges when bias was on        
         // each run may have multiple bias ranges
-        List<SvtBiasRunRange> biasRunRanges = SvtBiasMyaDataReader.findOverlappingRanges(runList, biasRanges);
-        List<SvtPositionRunRange> positionRunRanges = SvtMotorMyaDataReader.findOverlappingRanges(runList, positionRanges);
-
         // fill graphs
         if (cl.hasOption("s")) {
-            for (SvtBiasRunRange r : biasRunRanges) {
-                logger.info(r.toString());
-                if (r.getRun().getRun() > 5600) {//9999999999999.0) {
-                    //if(dpsRuns.size()/4.0<500) {//9999999999999.0) {
-                    addPoint(dpsRuns, r.getRun().getStartDate().getTime(), 0.0);
-                    addPoint(dpsRuns, r.getRun().getStartDate().getTime(), 1.0);
-                    addPoint(dpsRuns, r.getRun().getEndDate().getTime(), 1.0);
-                    addPoint(dpsRuns, r.getRun().getEndDate().getTime(), 0.0);
+            if (cl.hasOption("m")) {
+                for (SvtBiasRunRange r : biasRunRanges) {
+                    logger.info(r.toString());
+                    if (r.getRun().getRun() > 5600) {//9999999999999.0) {
+                        //if(dpsRuns.size()/4.0<500) {//9999999999999.0) {
+                        addPoint(dpsRuns, r.getRun().getStartDate().getTime(), 0.0);
+                        addPoint(dpsRuns, r.getRun().getStartDate().getTime(), 1.0);
+                        addPoint(dpsRuns, r.getRun().getEndDate().getTime(), 1.0);
+                        addPoint(dpsRuns, r.getRun().getEndDate().getTime(), 0.0);
 
-                    for (SvtBiasMyaRange br : r.getRanges()) {
-                        addPoint(dpsBiasRuns, br.getStartDate().getTime(), 0.0);
-                        addPoint(dpsBiasRuns, br.getStartDate().getTime(), 0.3);
-                        addPoint(dpsBiasRuns, br.getEndDate().getTime(), 0.3);
-                        addPoint(dpsBiasRuns, br.getEndDate().getTime(), 0.0);
+                        for (SvtBiasMyaRange br : r.getRanges()) {
+                            addPoint(dpsBiasRuns, br.getStartDate().getTime(), 0.0);
+                            addPoint(dpsBiasRuns, br.getStartDate().getTime(), 0.3);
+                            addPoint(dpsBiasRuns, br.getEndDate().getTime(), 0.3);
+                            addPoint(dpsBiasRuns, br.getEndDate().getTime(), 0.0);
+                        }
                     }
                 }
             }
-
-            for (SvtPositionRunRange r : positionRunRanges) {
-                logger.info(r.toString());
-                if (r.getRun().getRun() > 5600) {//9999999999999.0) {
-                    //if(dpsRuns.size()/4.0<500) {//9999999999999.0) {
-                    for (SvtPositionMyaRange br : r.getRanges()) {
-                        addPoint(dpsPositionRuns, br.getStartDate().getTime(), 0.0);
-                        addPoint(dpsPositionRuns, br.getStartDate().getTime(), 0.5 + 100 * Math.max(br.getTop(), br.getBottom()));
-                        addPoint(dpsPositionRuns, br.getEndDate().getTime(), 0.5 + 100 * Math.max(br.getTop(), br.getBottom()));
-                        addPoint(dpsPositionRuns, br.getEndDate().getTime(), 0.0);
+            if (cl.hasOption("p")) {
+                for (SvtPositionRunRange r : positionRunRanges) {
+                    logger.info(r.toString());
+                    if (r.getRun().getRun() > 5600) {//9999999999999.0) {
+                        //if(dpsRuns.size()/4.0<500) {//9999999999999.0) {
+                        for (SvtPositionMyaRange br : r.getRanges()) {
+                            addPoint(dpsPositionRuns, br.getStartDate().getTime(), 0.0);
+                            addPoint(dpsPositionRuns, br.getStartDate().getTime(), 0.5 + 100 * Math.max(br.getTop(), br.getBottom()));
+                            addPoint(dpsPositionRuns, br.getEndDate().getTime(), 0.5 + 100 * Math.max(br.getTop(), br.getBottom()));
+                            addPoint(dpsPositionRuns, br.getEndDate().getTime(), 0.0);
+                        }
                     }
                 }
             }
@@ -240,7 +251,12 @@ public class SvtBiasConditionsLoader {
 
         // load to DB
         if (cl.hasOption("g")) {
-            loadToConditionsDB(biasRunRanges);
+            if (cl.hasOption("m")) {
+                loadBiasesToConditionsDB(biasRunRanges);
+            }
+            if (cl.hasOption("p")) {
+                loadPositionsToConditionsDB(positionRunRanges);
+            }
         }
     }
 
@@ -250,16 +266,7 @@ public class SvtBiasConditionsLoader {
 
     }
 
-    private static SvtBiasConstantCollection findCollection(final List<SvtBiasConstantCollection> list, Date date) {
-        for (SvtBiasConstantCollection collection : list) {
-            if (collection.find(date) != null) {
-                return collection;
-            }
-        }
-        return null;
-    }
-
-    private static void loadToConditionsDB(List<SvtBiasRunRange> ranges) {
+    private static void loadBiasesToConditionsDB(List<SvtBiasRunRange> ranges) {
         logger.info("Load to DB...");
 
         // Create a new collection for each run
@@ -282,6 +289,10 @@ public class SvtBiasConditionsLoader {
             // create a collection
             SvtBiasConstantCollection collection = new SvtBiasConstantCollection();
 
+            // Set the table meta data
+            collection.setTableMetaData(MANAGER.findTableMetaData("svt_bias_constants"));
+            collection.setConnection(MANAGER.getConnection());
+
             int collectionId = -1;
             try {
                 collectionId = MANAGER.getCollectionId(collection, "run ranges for SVT HV bias ON");
@@ -300,15 +311,90 @@ public class SvtBiasConditionsLoader {
             condition.setFieldValue("created", new Date());
             condition.setFieldValue("created_by", System.getProperty("user.name"));
             condition.setFieldValue("collection_id", collectionId);
+            condition.setTableMetaData(MANAGER.findTableMetaData("conditions"));
+            condition.setConnection(MANAGER.getConnection());
 
             try {
 
                 for (SvtBiasMyaRange biasRange : range.getRanges()) {
                     // create a constant and add to the collection
                     final SvtBiasConstant constant = new SvtBiasConstant();
-                    constant.setFieldValue("start", biasRange.getStartDate());
-                    constant.setFieldValue("end", biasRange.getEndDate());
+                    constant.setFieldValue("start", biasRange.getStartDate().getTime());
+                    constant.setFieldValue("end", biasRange.getEndDate().getTime());
                     constant.setFieldValue("value", biasRange.getValue());
+                    collection.add(constant);
+                    logger.info(condition.toString());
+                }
+
+                // Insert collection data.
+                collection.insert();
+
+                // Insert conditions record.
+                condition.insert();
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private static void loadPositionsToConditionsDB(List<SvtPositionRunRange> ranges) {
+        logger.info("Load to DB...");
+
+        // Create a new collection for each run
+        List<Integer> runsadded = new ArrayList<Integer>();
+
+        for (SvtPositionRunRange range : ranges) {
+            logger.info("Loading " + range.toString());
+            RunData rundata = range.getRun();
+            if (runsadded.contains(rundata.getRun())) {
+                logger.warning("Run " + Integer.toString(rundata.getRun()) + " was already added?");
+                throw new RuntimeException("Run " + Integer.toString(rundata.getRun()) + " was already added?");
+            }
+            runsadded.add(rundata.getRun());
+
+            if (range.getRanges().isEmpty()) {
+                logger.info("No position range for run " + range.getRun().getRun());
+                continue;
+            }
+
+            // create a collection
+            SvtMotorPositionCollection collection = new SvtMotorPositionCollection();
+
+            // Set the table meta data
+            collection.setTableMetaData(MANAGER.findTableMetaData("svt_motor_positions"));
+            collection.setConnection(MANAGER.getConnection());
+
+            int collectionId = -1;
+            try {
+                collectionId = MANAGER.getCollectionId(collection, "run ranges for SVT positions");
+            } catch (SQLException e1) {
+                throw new RuntimeException(e1);
+            }
+
+            collection.setCollectionId(collectionId);
+
+            final ConditionsRecord condition = new ConditionsRecord();
+            condition.setFieldValue("run_start", rundata.getRun());
+            condition.setFieldValue("run_end", rundata.getRun());
+            condition.setFieldValue("name", "svt_motor_positions");
+            condition.setFieldValue("table_name", "svt_motor_positions");
+            condition.setFieldValue("notes", "constants from mya");
+            condition.setFieldValue("created", new Date());
+            condition.setFieldValue("created_by", System.getProperty("user.name"));
+            condition.setFieldValue("collection_id", collectionId);
+            condition.setTableMetaData(MANAGER.findTableMetaData("conditions"));
+            condition.setConnection(MANAGER.getConnection());
+
+            try {
+
+                for (SvtPositionMyaRange positionRange : range.getRanges()) {
+                    // create a constant and add to the collection
+                    final SvtMotorPosition constant = new SvtMotorPosition();
+                    constant.setFieldValue("start", positionRange.getStartDate().getTime());
+                    constant.setFieldValue("end", positionRange.getEndDate().getTime());
+                    constant.setFieldValue("top", positionRange.getTop());
+                    constant.setFieldValue("bottom", positionRange.getBottom());
                     collection.add(constant);
                     logger.info(condition.toString());
                 }
