@@ -218,34 +218,34 @@ public class Vector extends Matrix implements java.io.Serializable
 //    {
 //        this.timesEquals(s);
 //    }
-//
-//    /**
-//     * Vector inner product.
-//     *
-//     * Computes the inner product of two vectors of the same dimension.
-//     *
-//     * @param vec second vector
-//     *
-//     * @return inner product of this vector and argument
-//     *
-//     * @exception IllegalArgumentException dimensions must agree
-//     */
-//    public double innerProd(Vector vec) throws IllegalArgumentException
-//    {
-//        int N;      // vector dimensions
-//        int n;      // coordinate index
-//        double dblSum; // running sum
-//        N = vec.getSize();
-//        if (this.getSize() != N) {
-//            throw new IllegalArgumentException("Vector#innerProd() - unequal dimensions.");
-//        }
-//        dblSum = 0.0;
-//        for (n = 0; n < N; n++) {
-//            dblSum += this.get(n) * vec.get(n);
-//        }
-//        return dblSum;
-//    }
-//
+
+    /**
+     * Vector inner product.
+     *
+     * Computes the inner product of two vectors of the same dimension.
+     *
+     * @param vec second vector
+     *
+     * @return inner product of this vector and argument
+     *
+     * @exception IllegalArgumentException dimensions must agree
+     */
+    public double dot(Vector vec) throws IllegalArgumentException
+    {
+        int N;      // vector dimensions
+        int n;      // coordinate index
+        double dblSum; // running sum
+        N = vec.getSize();
+        if (this.getSize() != N) {
+            throw new IllegalArgumentException("Vector#innerProd() - unequal dimensions.");
+        }
+        dblSum = 0.0;
+        for (n = 0; n < N; n++) {
+            dblSum += this.get(n) * vec.get(n);
+        }
+        return dblSum;
+    }
+
 //    /**
 //     *
 //     * Vector outer product - computes the tensor product of two vector objects.
