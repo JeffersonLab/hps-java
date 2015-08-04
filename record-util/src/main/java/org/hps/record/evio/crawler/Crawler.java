@@ -308,7 +308,7 @@ public final class Crawler {
         runs.sortFiles();
 
         // Process all the files, performing caching from the MSS if necessary.
-        RunProcessor.processRuns(this.cacheManager, runs, config);
+        RunProcessor.processAllRuns(this.cacheManager, runs, config);
 
         // Print the summary information after the run processing is done.
         runs.printRunSummaries();

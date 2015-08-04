@@ -299,7 +299,7 @@ final class JCacheManager {
     /**
      * The time in milliseconds when the caching operation started.
      */
-    long start = 0;
+    private long start = 0;
 
     /**
      * Cache a file by submitting a 'jcache submit' process.
@@ -357,7 +357,7 @@ final class JCacheManager {
         // Loop over all files, refresh the status, and check that they are cached.
         for (final Entry<File, CacheStatus> entry : this.cacheStatuses.entrySet()) {
 
-            // Get the cache status the file.
+            // Get the cache status of the file.
             final CacheStatus cacheStatus = entry.getValue();
 
             LOGGER.info("checking status of " + cacheStatus.getFile().getPath() + " with req ID '"

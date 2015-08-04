@@ -239,11 +239,11 @@ public class RunSummaryUpdater {
      */
     private void insertRun() throws SQLException {
         final PreparedStatement statement = connection
-                .prepareStatement("INSERT INTO runs (run, start_date, end_date, nevents, nfiles, end_ok, created) VALUES(?, ?, ?, ?, ?, ?, NOW())");
+                .prepareStatement("INSERT INTO runs (run, start_time_utc, end_time_utc, nevents, nfiles, end_ok, created) VALUES(?, ?, ?, ?, ?, ?, NOW())");
         LOGGER.info("preparing to insert run " + run + " into runs table ..");
         statement.setInt(1, run);
-        statement.setTimestamp(2, new java.sql.Timestamp(runSummary.getStartDate().getTime()));
-        statement.setTimestamp(3, new java.sql.Timestamp(runSummary.getEndDate().getTime()));
+        statement.setLong(2, runSummary.getStartTimeUtc());
+        statement.setLong(3, runSummary.getEndTimeUtc());
         statement.setInt(4, runSummary.getTotalEvents());
         statement.setInt(5, runSummary.getEvioFileList().size());
         statement.setBoolean(6, runSummary.getEndOkay());
@@ -253,7 +253,7 @@ public class RunSummaryUpdater {
 
     /**
      * Insert scaler data into the database.
-     * 
+     *
      * @throws SQLException if there is a SQL query error
      */
     private void insertScalarData() throws SQLException {

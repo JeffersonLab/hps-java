@@ -36,6 +36,6 @@ final class RunFilter implements FileFilter {
      */
     @Override
     public boolean accept(final File file) {
-        return this.acceptRuns.contains(EvioFileUtilities.getRunFromName(file));
+        return this.acceptRuns.contains(EvioFileUtilities.getRun(file));
     }
 }

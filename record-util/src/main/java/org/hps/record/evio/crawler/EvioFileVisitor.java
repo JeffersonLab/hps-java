@@ -99,10 +99,10 @@ final class EvioFileVisitor extends SimpleFileVisitor<Path> {
         if (this.accept(file)) {
 
             // Get the run number from the file name.
-            final Integer run = EvioFileUtilities.getRunFromName(file);
+            final Integer run = EvioFileUtilities.getRun(file);
 
             // Get the sequence number from the file name.
-            final Integer seq = EvioFileUtilities.getSequenceNumber(file);
+            final Integer seq = EvioFileUtilities.getSequence(file);
 
             LOGGER.info("accepted file " + file.getPath() + " with run " + run + " and seq " + seq);
 

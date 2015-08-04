@@ -2,7 +2,6 @@ package org.hps.record.evio.crawler;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 import java.util.logging.Logger;
 
 import org.hps.record.evio.EvioEventConstants;
@@ -48,44 +47,50 @@ final class EvioFileUtilities {
     }
 
     /**
-     * Get the date from the control bank of an EVIO event.
+     * Get the end date
      *
-     * @param file the EVIO file
-     * @param eventTag the event tag on the bank
-     * @param gotoEvent an event to start the scanning
-     * @return the control bank date or null if not found
+     * @param evioReader the <code>EvioReader</code>
+     * @return the run end date
      */
-    static Date getControlDate(final File file, final int eventTag, final int gotoEvent) {
-        Date date = null;
-        EvioReader reader = null;
+    static Long getEndTimestamp(final EvioReader evioReader) {
+
+        // Date endDate = null;
+        Long timestamp = null;
+
         try {
-            reader = open(file, true);
-            EvioEvent event;
-            if (gotoEvent > 0) {
-                reader.gotoEventNumber(gotoEvent);
-            } else if (gotoEvent < 0) {
-                reader.gotoEventNumber(reader.getEventCount() + gotoEvent);
-            }
-            while ((event = reader.parseNextEvent()) != null) {
-                if (event.getHeader().getTag() == eventTag) {
-                    final int[] data = EvioEventUtilities.getControlEventData(event);
-                    final long seconds = data[0];
-                    date = new Date(seconds * MILLISECONDS);
-                    break;
+            // Search for the last physics event in the last 5 events of the file.
+            System.out.println("going to event " + (evioReader.getEventCount() - 5) + " / "
+                    + evioReader.getEventCount() + " to find end date");
+            evioReader.gotoEventNumber(evioReader.getEventCount() - 5);
+            EvioEvent evioEvent = null;
+            EvioEvent lastPhysicsEvent = null;
+
+            // Find last physics event.
+            while ((evioEvent = evioReader.parseNextEvent()) != null) {
+                if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
+                    lastPhysicsEvent = evioEvent;
                 }
             }
+
+            // If there is no physics event found this is an error.
+            if (lastPhysicsEvent == null) {
+                throw new RuntimeException("No physics event found.");
+            }
+
+            // Get the timestamp from the head bank of the physics event.
+            LOGGER.info("getting head bank date from " + lastPhysicsEvent.getEventNumber());
+            final Long eventTimestamp = getHeadBankTimestamp(lastPhysicsEvent);
+            if (eventTimestamp != null) {
+                LOGGER.info("found end timestamp " + eventTimestamp);
+                timestamp = eventTimestamp;
+            } else {
+                throw new RuntimeException("No timestamp found in head bank.");
+            }
+
         } catch (EvioException | IOException e) {
             throw new RuntimeException(e);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
-        return date;
+        return timestamp;
     }
 
     /**
@@ -94,63 +99,18 @@ final class EvioFileUtilities {
      * @param event the EVIO file
      * @return the date from the head bank or null if not found
      */
-    static Date getHeadBankDate(final EvioEvent event) {
-        Date date = null;
+    static Long getHeadBankTimestamp(final EvioEvent event) {
+        // Date date = null;
+        Long timestamp = null;
         final BaseStructure headBank = EvioEventUtilities.getHeadBank(event);
         if (headBank != null) {
             final int[] data = headBank.getIntData();
             final long time = data[3];
             if (time != 0L) {
-                date = new Date(time * MILLISECONDS);
+                timestamp = time * MILLISECONDS;
             }
         }
-        return date;
-    }
-
-    /**
-     * Get the run end date which is taken either from the END event or the last physics event if the END event is not
-     * found in the file.
-     *
-     * @param file the EVIO file
-     * @return the run end date
-     */
-    static Date getRunEnd(final File file) {
-
-        // Search for the END event in the last 10 events of the file.
-        Date endDate = getControlDate(file, EvioEventConstants.END_EVENT_TAG, -10);
-
-        // Was the end date found from the END event?
-        if (endDate == null) {
-
-            EvioReader reader = null;
-            try {
-                reader = open(file, true);
-
-                // Search for the last physics event in the last 10 events of the file.
-                reader.gotoEventNumber(reader.getEventCount() - 10);
-                EvioEvent event = null;
-                while ((event = reader.parseNextEvent()) != null) {
-                    if (EvioEventUtilities.isPhysicsEvent(event)) {
-                        final Date eventDate = getHeadBankDate(event);
-                        if (eventDate != null) {
-                            // This might be set multiple times but should result in the time of the last physics event.
-                            endDate = eventDate;
-                        }
-                    }
-                }
-            } catch (EvioException | IOException e) {
-                throw new RuntimeException(e);
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        return endDate;
+        return timestamp;
     }
 
     /**
@@ -160,54 +120,11 @@ final class EvioFileUtilities {
      * @return the run number
      * @throws Exception if there is a problem parsing out the run number
      */
-    static Integer getRunFromName(final File file) {
+    static Integer getRun(final File file) {
         final String name = file.getName();
         final int startIndex = name.lastIndexOf("_") + 1;
         final int endIndex = name.indexOf(".");
         return Integer.parseInt(name.substring(startIndex, endIndex));
-    }
-
-    /**
-     * Get the run start date from an EVIO file (should be the first file in the run).
-     * <p>
-     * This is taken from the PRESTART event if available or the first physics event.
-     *
-     * @param file the EVIO file
-     * @return the run start date
-     */
-    static Date getRunStart(final File file) {
-
-        // First try to find the start date in the special PRESTART event.
-        Date date = getControlDate(file, EvioEventConstants.PRESTART_EVENT_TAG, 0);
-
-        // Was start date not found from PRESTART?
-        if (date == null) {
-
-            // Read events until there is a physics event and use its time for the start date.
-            EvioReader reader = null;
-            try {
-                reader = open(file, true);
-                EvioEvent event = null;
-                while ((event = reader.parseNextEvent()) != null) {
-                    if (EvioEventUtilities.isPhysicsEvent(event)) {
-                        if ((date = getHeadBankDate(event)) != null) {
-                            break;
-                        }
-                    }
-                }
-            } catch (EvioException | IOException e) {
-                throw new RuntimeException(e);
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        return date;
     }
 
     /**
@@ -217,9 +134,65 @@ final class EvioFileUtilities {
      * @return the file's sequence number
      * @throws Exception if there is an error parsing out the sequence number
      */
-    static Integer getSequenceNumber(final File file) {
+    static Integer getSequence(final File file) {
         final String name = file.getName();
         return Integer.parseInt(name.substring(name.lastIndexOf(".") + 1));
+    }
+
+    /**
+     * Get the start date from the first physics event.
+     *
+     * @param evioReader the <code>EvioReader</code>
+     * @return the run start date
+     */
+    static Long getStartTimestamp(final EvioReader evioReader) {
+
+        Long timestamp = null;
+
+        // Read events until there is a physics event and return its timestamp.
+        try {
+            EvioEvent event = null;
+            while ((event = evioReader.parseNextEvent()) != null) {
+                if (EvioEventUtilities.isPhysicsEvent(event)) {
+                    if ((timestamp = getHeadBankTimestamp(event)) != null) {
+                        break;
+                    }
+                }
+            }
+        } catch (EvioException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        return timestamp;
+    }
+
+    /**
+     * Get the date from the control bank of an EVIO event.
+     *
+     * @param file the EVIO file
+     * @param eventTag the event tag on the bank
+     * @param gotoEvent an event to start the scanning
+     * @return the control bank date or null if not found
+     */
+    static Long getTimestamp(final EvioReader evioReader, final int eventTag, final int gotoEvent) {
+        Long timestamp = null;
+        try {
+            EvioEvent evioEvent;
+            if (gotoEvent > 0) {
+                evioReader.gotoEventNumber(gotoEvent);
+            } else if (gotoEvent < 0) {
+                evioReader.gotoEventNumber(evioReader.getEventCount() + gotoEvent);
+            }
+            while ((evioEvent = evioReader.parseNextEvent()) != null) {
+                if (evioEvent.getHeader().getTag() == eventTag) {
+                    final int[] data = EvioEventUtilities.getControlEventData(evioEvent);
+                    timestamp = (long) (data[0] * MILLISECONDS);
+                    break;
+                }
+            }
+        } catch (EvioException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        return timestamp;
     }
 
     /**
@@ -230,6 +203,33 @@ final class EvioFileUtilities {
      */
     static boolean isCachedFile(final File file) {
         return file.getPath().startsWith("/cache");
+    }
+
+    /**
+     * Return <code>true</code> if a valid CODA <i>END</i> event can be located in the <code>EvioReader</code>'s current
+     * file.
+     *
+     * @param reader the EVIO reader
+     * @return <code>true</code> if valid END event is located
+     * @throws Exception if there are IO problems using the reader
+     */
+    static boolean isEndOkay(final EvioReader reader) throws Exception {
+        LOGGER.info("checking is END okay ...");
+
+        boolean endOkay = false;
+
+        // Go to second to last event for searching.
+        reader.gotoEventNumber(reader.getEventCount() - 2);
+
+        // Look for END event.
+        EvioEvent event = null;
+        while ((event = reader.parseNextEvent()) != null) {
+            if (event.getHeader().getTag() == EvioEventConstants.END_EVENT_TAG) {
+                endOkay = true;
+                break;
+            }
+        }
+        return endOkay;
     }
 
     /**
@@ -286,5 +286,11 @@ final class EvioFileUtilities {
      */
     static EvioReader open(final String path) throws IOException, EvioException {
         return open(new File(path), false);
+    }
+
+    /**
+     * Present class instantiation.
+     */
+    private EvioFileUtilities() {
     }
 }

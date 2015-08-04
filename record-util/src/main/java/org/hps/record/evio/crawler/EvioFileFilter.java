@@ -21,7 +21,7 @@ final class EvioFileFilter implements FileFilter {
         final boolean isEvio = pathname.getName().contains(".evio");
         boolean hasSeqNum = false;
         try {
-            EvioFileUtilities.getSequenceNumber(pathname);
+            EvioFileUtilities.getSequence(pathname);
             hasSeqNum = true;
         } catch (final Exception e) {
         }

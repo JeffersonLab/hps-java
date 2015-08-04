@@ -3,7 +3,6 @@ package org.hps.record.evio.crawler;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,13 +40,12 @@ final class RunProcessor {
      * @param runs the run log containing the list of run summaries
      * @throws Exception if there is an error processing one of the runs
      */
-    static void processRuns(final JCacheManager cacheManager, final RunLog runs, final CrawlerConfig config)
+    static void processAllRuns(final JCacheManager cacheManager, final RunLog runs, final CrawlerConfig config)
             throws Exception {
 
-        // Configure max wait time of jcache manager.
+        // Configure the max wait time for file caching operations.
         if (config.waitTime() != null && config.waitTime() > 0L) {
             cacheManager.setWaitTime(config.waitTime());
-            LOGGER.config("JCacheManager max wait time set to " + config.waitTime());
         }
 
         // Process all of the runs that were found.
@@ -71,7 +69,7 @@ final class RunProcessor {
             }
 
             // Process all of the run's files.
-            runProcessor.process();
+            runProcessor.processRun();
         }
     }
 
@@ -86,17 +84,17 @@ final class RunProcessor {
     private final EpicsLog epicsLog;
 
     /**
-     * The event printing interval when processing EVIO files.
-     */
-    private int eventPrintInterval = 1000;
-
-    /**
      * Processor for extracting event type counts (sync, physics, trigger types, etc.).
      */
     private final EventCountProcessor eventCountProcessor;
 
     /**
-     * Max files to read (defaults to unlimited).
+     * The event printing interval when processing EVIO files.
+     */
+    private int eventPrintInterval = 1000;
+
+    /**
+     * Max total files to read (default is unlimited).
      */
     private int maxFiles = -1;
 
@@ -189,15 +187,55 @@ final class RunProcessor {
     }
 
     /**
-     * Get the event count from the current <code>EvioReader</code>.
+     * Find the end date in the EVIO events.
      *
-     * @param reader the current <code>EvioReader</code>
-     * @return the event count
-     * @throws IOException if there is a generic IO error
-     * @throws EvioException if there is an EVIO related error
+     * @param evioReader the open <code>EvioReader</code>
      */
-    Integer computeEventCount(final EvioReader reader) throws IOException, EvioException {
-        return reader.getEventCount();
+    private void findEndDate(final EvioReader evioReader) {
+
+        // Try to get end date from END event.
+        Long endTimestamp = EvioFileUtilities.getTimestamp(evioReader, EvioEventConstants.END_EVENT_TAG, -5);
+
+        if (endTimestamp != null) {
+            // Flag end okay for the run.
+            this.runSummary.setEndOkay(true);
+        } else {
+            // Try to find the end date from the last physics event.
+            endTimestamp = EvioFileUtilities.getEndTimestamp(evioReader);
+            this.runSummary.setEndOkay(false);
+        }
+
+        if (endTimestamp == null) {
+            // Not finding the end date is a fatal error.
+            throw new RuntimeException("Failed to find end date.");
+        }
+
+        LOGGER.info("found end timestamp " + endTimestamp);
+        this.runSummary.setEndTimeUtc(endTimestamp);
+    }
+
+    /**
+     * Find the start date in the EVIO events.
+     *
+     * @param evioReader the open <code>EvioReader</code>
+     */
+    private void findStartDate(final EvioReader evioReader) {
+
+        // First try to find the start date in the PRESTART event.
+        Long startTimestamp = EvioFileUtilities.getTimestamp(evioReader, EvioEventConstants.PRESTART_EVENT_TAG, 0);
+
+        if (startTimestamp == null) {
+            // Search for start date in first physics event.
+            startTimestamp = EvioFileUtilities.getStartTimestamp(evioReader);
+        }
+
+        if (startTimestamp == null) {
+            // Not finding the start date is a fatal error.
+            throw new RuntimeException("Failed to find start date.");
+        }
+
+        LOGGER.fine("got run start " + startTimestamp);
+        this.runSummary.setStartTimeUtc(startTimestamp);
     }
 
     /**
@@ -228,41 +266,103 @@ final class RunProcessor {
     }
 
     /**
-     * Return <code>true</code> if a valid CODA <i>END</i> event can be located in the <code>EvioReader</code>'s current
-     * file.
+     * Return <code>true</code> if the file is the first one in the list for the run.
      *
-     * @param reader the EVIO reader
-     * @return <code>true</code> if valid END event is located
-     * @throws Exception if there are IO problems using the reader
+     * @param file the EVIO <code>File</code>
+     * @return <code>true</code> if the file is the first one in the list for the run
      */
-    boolean isEndOkay(final EvioReader reader) throws Exception {
-        LOGGER.info("checking is END okay ...");
-
-        boolean endOkay = false;
-
-        // Go to second to last event for searching.
-        reader.gotoEventNumber(reader.getEventCount() - 2);
-
-        // Look for END event.
-        EvioEvent event = null;
-        while ((event = reader.parseNextEvent()) != null) {
-            if (event.getHeader().getTag() == EvioEventConstants.END_EVENT_TAG) {
-                endOkay = true;
-                break;
-            }
-        }
-        return endOkay;
+    private boolean isFirstFile(final File file) {
+        return file.equals(this.runSummary.getEvioFileList().first());
     }
 
     /**
-     * Process the run by executing the registered {@link org.hps.record.evio.EvioEventProcessor}s and performing
-     * special tasks such as the extraction of start and end dates.
+     * Return <code>true</code> if the file is the last one in the list for the run.
+     *
+     * @param file the EVIO <code>File</code>
+     * @return <code>true</code> if the file is the last one in the list for the run
+     */
+    private boolean isLastFile(final File file) {
+        return file.equals(this.getFiles().get(this.getFiles().size() - 1));
+    }
+
+    /**
+     * Process events using the list of EVIO processors.
+     *
+     * @param evioReader the open <code>EvioReader</code>
+     * @throws IOException if there is a file IO error
+     * @throws EvioException if there is an EVIO error
+     * @throws Exception if there is some other error
+     */
+    private void processEvents(final EvioReader evioReader) throws IOException, EvioException, Exception {
+        LOGGER.finer("running EVIO processors ...");
+        evioReader.gotoEventNumber(0);
+        int nProcessed = 0;
+        if (!this.processors.isEmpty()) {
+            EvioEvent event = null;
+            while ((event = evioReader.parseNextEvent()) != null) {
+                for (final EvioEventProcessor processor : this.processors) {
+                    processor.process(event);
+                }
+                ++nProcessed;
+                if (nProcessed % this.eventPrintInterval == 0) {
+                    LOGGER.finer("processed " + nProcessed + " EVIO events");
+                }
+            }
+            LOGGER.info("done running EVIO processors");
+        }
+    }
+
+    /**
+     * Process a single EVIO file from the run.
+     *
+     * @param file the EVIO file
+     * @throws EvioException if there is an EVIO error
+     * @throws IOException if there is some kind of IO error
+     * @throws Exception if there is a generic error thrown by event processing
+     */
+    private void processFile(final File file) throws EvioException, IOException, Exception {
+
+        LOGGER.fine("processing file " + file.getPath() + " ...");
+
+        EvioReader evioReader = null;
+        try {
+
+            // Open file for reading (flag should be true for sequential or false for mem map).
+            evioReader = EvioFileUtilities.open(file, true);
+
+            // If this is the first file then get the start date.
+            if (this.isFirstFile(file)) {
+                LOGGER.fine("getting run start from first file " + file.getPath() + " ...");
+                this.findStartDate(evioReader);
+            }
+
+            // Go back to the first event and process the events using the list of EVIO processors.
+            this.processEvents(evioReader);
+
+            // Find end date from last file in the run.
+            if (this.isLastFile(file)) {
+                LOGGER.fine("getting run end from last file " + file.getPath() + " ...");
+                this.findEndDate(evioReader);
+            }
+
+        } finally {
+            // Close the EvioReader for the current file.
+            if (evioReader != null) {
+                evioReader.close();
+            }
+        }
+        LOGGER.fine("done processing " + file.getPath());
+    }
+
+    /**
+     * Process the run by executing the registered {@link org.hps.record.evio.EvioEventProcessor}s extracting the start
+     * and end dates.
      * <p>
      * This method will also activate file caching, if enabled by the {@link #useFileCache} option.
      *
      * @throws Exception if there is an error processing a file
      */
-    void process() throws Exception {
+    void processRun() throws Exception {
 
         LOGGER.info("processing run " + this.runSummary.getRun() + " ...");
 
@@ -276,16 +376,18 @@ final class RunProcessor {
             processor.startJob();
         }
 
+        // Get the list of files, limited by max files setting.
         final List<File> files = this.getFiles();
 
         LOGGER.info("processing " + files.size() + " from run " + this.runSummary.getRun());
 
         // Process all the files.
         for (final File file : files) {
-            this.process(file);
+            this.processFile(file);
         }
 
         // Run the end job hooks.
+        LOGGER.info("running end of job hooks on EVIO processors ...");
         for (final EvioEventProcessor processor : this.processors) {
             processor.endJob();
         }
@@ -303,70 +405,6 @@ final class RunProcessor {
         runSummary.setEpicsData(this.epicsLog.getEpicsData());
 
         LOGGER.info("done processing run " + this.runSummary.getRun());
-    }
-
-    /**
-     * Process a single EVIO file from the run.
-     *
-     * @param file the EVIO file
-     * @throws EvioException if there is an EVIO error
-     * @throws IOException if there is some kind of IO error
-     * @throws Exception if there is a generic error thrown by event processing
-     */
-    private void process(final File file) throws EvioException, IOException, Exception {
-        LOGGER.fine("processing " + file.getPath() + " ...");
-
-        EvioReader reader = null;
-        try {
-            // Open with wrapper method which will use the cached file path if necessary.
-            LOGGER.fine("opening " + file.getPath() + " for reading ...");
-            reader = EvioFileUtilities.open(file, true);
-            LOGGER.fine("done opening " + file.getPath());
-
-            // If this is the first file then get the start date.
-            if (file.equals(this.runSummary.getEvioFileList().first())) {
-                LOGGER.fine("getting run start ...");
-                final Date runStart = EvioFileUtilities.getRunStart(file);
-                LOGGER.fine("got run start " + runStart);
-                this.runSummary.setStartDate(runStart);
-            }
-
-            // Process the events using the EVIO processors.
-            LOGGER.info("running EVIO processors ...");
-            reader.gotoEventNumber(0);
-            int nProcessed = 0;
-            if (!this.processors.isEmpty()) {
-                EvioEvent event = null;
-                while ((event = reader.parseNextEvent()) != null) {
-                    for (final EvioEventProcessor processor : this.processors) {
-                        processor.process(event);
-                        ++nProcessed;
-                        if (nProcessed % this.eventPrintInterval == 0) {
-                            LOGGER.finer("processed " + nProcessed + " EVIO events");
-                        }
-                    }
-                }
-            }
-            LOGGER.info("done running EVIO processors");
-
-            // Check if END event is present if this is the last file in the run.
-            if (file.equals(this.getFiles().get(this.getFiles().size() - 1))) {
-                final boolean endOkay = this.isEndOkay(reader);
-                this.runSummary.setEndOkay(endOkay);
-                LOGGER.info("endOkay set to " + endOkay);
-
-                LOGGER.info("getting end date ...");
-                final Date endDate = EvioFileUtilities.getRunEnd(file);
-                this.runSummary.setEndDate(endDate);
-                LOGGER.info("found end date " + endDate);
-            }
-
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-        }
-        LOGGER.fine("done processing " + file.getPath());
     }
 
     /**
