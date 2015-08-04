@@ -3,12 +3,18 @@ package org.hps.record.epics;
 import org.lcsim.event.GenericObject;
 
 /**
- * This is an implementation of GenericObject for reading and writing EPICS data. There is no functionality here intended for ends users. Instead, the
- * EPICS data should be accessed using {@link EpicsData#read(org.lcsim.event.EventHeader)} to create the data object from input event data.
+ * This is an implementation of GenericObject for reading and writing EPICS data. There is no functionality here
+ * intended for ends users. Instead, the EPICS data should be accessed using
+ * {@link EpicsData#read(org.lcsim.event.EventHeader)} to create the data object from input event data.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 final class EpicsGenericObject implements GenericObject {
+
+    /**
+     * The header information.
+     */
+    private int[] headerData;
 
     /**
      * The names of the EPICS variables.
@@ -37,7 +43,7 @@ final class EpicsGenericObject implements GenericObject {
 
     @Override
     public int getIntVal(final int index) {
-        return 0;
+        return headerData[index];
     }
 
     /**
@@ -76,7 +82,7 @@ final class EpicsGenericObject implements GenericObject {
 
     @Override
     public int getNInt() {
-        return 0;
+        return this.headerData.length;
     }
 
     /**
@@ -85,6 +91,15 @@ final class EpicsGenericObject implements GenericObject {
     @Override
     public boolean isFixedSize() {
         return false;
+    }
+
+    /**
+     * Set the header data.
+     *
+     * @param data the header data array
+     */
+    void setHeaderData(final int[] headerData) {
+        this.headerData = headerData;
     }
 
     /**

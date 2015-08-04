@@ -17,7 +17,7 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public final class EpicsEvioProcessor extends EvioEventProcessor {
+public class EpicsEvioProcessor extends EvioEventProcessor {
 
     /**
      * Setup class logger.
@@ -55,12 +55,22 @@ public final class EpicsEvioProcessor extends EvioEventProcessor {
             // Find the bank with the EPICS data string.
             final BaseStructure epicsBank = EvioBankTag.EPICS_STRING.findBank(evio);
 
-            // Was EPICS data found?
+            // Was EPICS data found in the event?
             if (epicsBank != null) {
+
                 // Create EpicsData object from bank's string data.
-                final String epicsData = epicsBank.getStringData()[0];
-                this.data = new EpicsData();
-                this.data.fromString(epicsData);
+                this.data = new EpicsData(epicsBank.getStringData()[0]);
+
+                // Find the header information in the event.
+                final BaseStructure headerBank = EvioBankTag.EPICS_HEADER.findBank(evio);
+
+                if (headerBank != null) {
+                    // Set the header object.
+                    this.data.setEpicsHeader(EpicsHeader.fromEvio(headerBank.getIntData()));
+                } else {
+                    LOGGER.warning("No EPICS header bank found in event.");
+                }
+
             } else {
                 // This is an error because the string data bank should always be present in EPICS events.
                 final RuntimeException x = new RuntimeException("No EPICS data bank found in EPICS event.");
@@ -69,7 +79,7 @@ public final class EpicsEvioProcessor extends EvioEventProcessor {
             }
         }
     }
-    
+
     /**
      * Reset the current <code>EpicsData</code> object to <code>null</code>.
      */
