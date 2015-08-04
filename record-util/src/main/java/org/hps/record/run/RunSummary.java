@@ -20,26 +20,30 @@ import org.hps.record.scalers.ScalerData;
  * This information includes:
  * <ul>
  * <li>run number</li>
- * <li>start date</li>
- * <li>end date</li>
- * <li>total number of events across all files in the run</li>
- * <li>number of files found belonging to the run</li>
- * <li>whether the EVIO END event was found</li>
- * <li>whether the run is considered good</li>
+ * <li>start time (UTC)</li>
+ * <li>end time (UTC)</li>
+ * <li>total number of events in the run</li>
+ * <li>number of EVIO files in the run</li>
+ * <li>whether the END event was found indicating that the DAQ did not crash</li>
+ * <li>whether the run is considered good (all <code>true</code> for now)</li>
+ * <li>list of EVIO files in the run</li>
  * </ul>
+ * There are also associated {@link org.hps.record.epics.EpicsData} and {@link org.hps.record.scalers.ScalerData}
+ * objects representing the EPICS and scaler data summaries for the run. The EPICS data is averaged over the whole run
+ * while the scalers are from the last scaler data bank that was found.
  *
  * @author Jeremy McCormick, SLAC
  */
 public final class RunSummary {
 
     /**
-     * Set up date formatting to display EST (GMT-4).
+     * Default date display format.
      */
     private static final DateFormat DATE_DISPLAY = new SimpleDateFormat();
 
     static {
         /**
-         * Set default time zone to East Coast (JLAB) where data was taken.
+         * Set default time zone for display to East Coast (JLAB) where data was taken.
          */
         DATE_DISPLAY.setCalendar(new GregorianCalendar(TimeZone.getTimeZone("America/New_York")));
     }
@@ -47,14 +51,14 @@ public final class RunSummary {
     private Date created;
 
     /**
-     * The end date of the run.
-     */
-    private Date endDate;
-
-    /**
      * This is <code>true</code> if the END event is found in the data.
      */
     private boolean endOkay;
+
+    /**
+     * The run end time in UTC (milliseconds).
+     */
+    private long endTimeUtc;
 
     /**
      * The combined EPICS information for the run (uses the mean values for each variable).
@@ -87,9 +91,9 @@ public final class RunSummary {
     private ScalerData scalerData;
 
     /**
-     * The start date of the run.
+     * The run start time in UTC (milliseconds).
      */
-    private Date startDate;
+    private long startTimeUtc;
 
     /**
      * The total events found in the run across all files.
@@ -134,14 +138,12 @@ public final class RunSummary {
     }
 
     /**
-     * Get the date when the run ended.
-     * <p>
-     * This will be extracted from the EVIO END event. If there is no END record it will be the last event time.
+     * Get the end date.
      *
-     * @return the date when the run ended
+     * @return the end date
      */
     public Date getEndDate() {
-        return this.endDate;
+        return new Date(this.endTimeUtc);
     }
 
     /**
@@ -151,6 +153,15 @@ public final class RunSummary {
      */
     public boolean getEndOkay() {
         return this.endOkay;
+    }
+
+    /**
+     * Get the end time in UTC (milliseconds)
+     *
+     * @return the end time in milliseconds
+     */
+    public long getEndTimeUtc() {
+        return this.endTimeUtc;
     }
 
     /**
@@ -223,12 +234,21 @@ public final class RunSummary {
     }
 
     /**
-     * Get the start date of the run.
+     * Get the start date.
      *
-     * @return the start date of the run
+     * @return the start date
      */
     public Date getStartDate() {
-        return this.startDate;
+        return new Date(this.startTimeUtc);
+    }
+
+    /**
+     * Get the run start time in UTC (milliseconds).
+     *
+     * @return the start time in milliseconds
+     */
+    public long getStartTimeUtc() {
+        return this.startTimeUtc;
     }
 
     /**
@@ -255,13 +275,7 @@ public final class RunSummary {
      * @return the total seconds in the run
      */
     public long getTotalSeconds() {
-        if (this.getStartDate() == null) {
-            throw new RuntimeException("missing start date");
-        }
-        if (this.getEndDate() == null) {
-            throw new RuntimeException("missing end date");
-        }
-        return (this.getEndDate().getTime() - this.getStartDate().getTime()) / 1000;
+        return (this.endTimeUtc - this.startTimeUtc) / 1000;
     }
 
     /**
@@ -308,21 +322,21 @@ public final class RunSummary {
     }
 
     /**
-     * Set the end date.
-     *
-     * @param endDate the end date
-     */
-    public void setEndDate(final Date endDate) {
-        this.endDate = endDate;
-    }
-
-    /**
      * Set if end is okay.
      *
      * @param endOkay <code>true</code> if end is okay
      */
     public void setEndOkay(final boolean endOkay) {
         this.endOkay = endOkay;
+    }
+
+    /**
+     * Set the end date.
+     *
+     * @param endDate the end date
+     */
+    public void setEndTimeUtc(final long endTimeUtc) {
+        this.endTimeUtc = endTimeUtc;
     }
 
     /**
@@ -375,8 +389,8 @@ public final class RunSummary {
      *
      * @param startDate the start date of the run
      */
-    public void setStartDate(final Date startDate) {
-        this.startDate = startDate;
+    public void setStartTimeUtc(final long startTimeUtc) {
+        this.startTimeUtc = startTimeUtc;
     }
 
     /**
@@ -420,8 +434,8 @@ public final class RunSummary {
      */
     @Override
     public String toString() {
-        return "RunSummary { run: " + this.getRun() + ", startDate: " + this.getStartDate() + ", endDate: "
-                + this.getEndDate() + ", totalEvents: " + this.getTotalEvents() + ", totalFiles: "
+        return "RunSummary { run: " + this.getRun() + ", startTimeUtc: " + this.getStartTimeUtc() + ", endTimeUtc: "
+                + this.getEndTimeUtc() + ", totalEvents: " + this.getTotalEvents() + ", totalFiles: "
                 + this.getTotalFiles() + ", endOkay: " + this.getEndOkay() + ", runOkay: " + this.getRunOkay()
                 + ", updated: " + this.getUpdated() + ", created: " + this.getCreated() + " }";
     }

@@ -73,6 +73,14 @@ public final class RunManager implements ConditionsListener {
      */
     private RunSummary runSummary = null;
 
+    void closeConnection() {
+        try {
+            this.connection.close();
+        } catch (final SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Load new run information when conditions have changed.
      */
@@ -175,14 +183,11 @@ public final class RunManager implements ConditionsListener {
     }
 
     /**
-     * Set the run number.
-     * <p>
-     * This is public in order for the class to be usable without the conditions system but it should not be called
-     * within a standard lcsim job as it resets the global state of the RunManager.
+     * Set the run number and load the applicable {@link RunSummary} from the db.
      *
      * @param run the run number
      */
-    public synchronized void setRun(final int run) {
+    synchronized void setRun(final int run) {
 
         if (run < 0) {
             throw new IllegalArgumentException("invalid run number: " + run);

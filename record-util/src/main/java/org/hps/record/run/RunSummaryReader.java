@@ -18,7 +18,7 @@ public class RunSummaryReader extends AbstractRunDatabaseReader<RunSummary> {
     /**
      * The SQL SELECT query string.
      */
-    private final String SELECT_SQL = "SELECT run, start_date, end_date, nevents, nfiles, end_ok, run_ok, updated, created FROM runs WHERE run = ?";
+    private final String SELECT_SQL = "SELECT run, start_time_utc, end_time_utc, nevents, nfiles, end_ok, run_ok, updated, created FROM runs WHERE run = ?";
 
     /**
      * Read data from the database and convert to a {@link RunSummary} object.
@@ -42,8 +42,8 @@ public class RunSummaryReader extends AbstractRunDatabaseReader<RunSummary> {
             }
 
             final RunSummary runSummary = new RunSummary(this.getRun());
-            runSummary.setStartDate(resultSet.getTimestamp("start_date"));
-            runSummary.setEndDate(resultSet.getTimestamp("end_date"));
+            runSummary.setStartTimeUtc(resultSet.getLong("start_time_utc"));
+            runSummary.setEndTimeUtc(resultSet.getLong("end_time_utc"));
             runSummary.setTotalEvents(resultSet.getInt("nevents"));
             runSummary.setTotalFiles(resultSet.getInt("nfiles"));
             runSummary.setEndOkay(resultSet.getBoolean("end_ok"));
