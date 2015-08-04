@@ -11,6 +11,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.evio.LCSimTestRunEventBuilder.IntBankDefinition;
 import org.hps.recon.ecal.triggerbank.HeadBankData;
+import org.hps.recon.ecal.triggerbank.TIData;
 import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.CompositeData;
@@ -50,6 +51,7 @@ public class BasicEvioFileReader {
         boolean printTimestamps = cl.hasOption("t");
 
         IntBankDefinition headBankDefinition = new LCSimTestRunEventBuilder.IntBankDefinition(HeadBankData.class, new int[]{0x2e, 0xe10f});
+        IntBankDefinition tiBankDefinition = new LCSimTestRunEventBuilder.IntBankDefinition(TIData.class, new int[]{0x2e, 0xe10a});
 
 //        String evioFileName = args[0];
         for (String evioFileName : cl.getArgs()) {
@@ -58,11 +60,13 @@ public class BasicEvioFileReader {
                 throw new RuntimeException("File " + evioFileName + " does not exist.");
             }
             System.out.println("Opened file " + evioFileName);
-            int[] lastData = new int[]{0, 0, 0, 0, 0};
             try {
                 org.jlab.coda.jevio.EvioReader reader = new org.jlab.coda.jevio.EvioReader(evioFile, true, seqRead);
                 int eventN = 1;
                 int badEvents = 0;
+                int[] lastData = new int[]{0, 0, 0, 0, 0};
+                long minDelta = 0, maxDelta = 0;
+                long lastTI = 0;
                 fileLoop:
                 while (true) {
                     if (!quiet) {
@@ -94,15 +98,35 @@ public class BasicEvioFileReader {
                         }
 
                         if (printTimestamps) {
+                            int thisTimestamp = 0;
                             BaseStructure headBank = headBankDefinition.findBank(event);
                             if (headBank != null) {
                                 int[] data = headBank.getIntData();
+                                thisTimestamp = data[3];
                                 if (data[3] != 0) {
                                     if (lastData[3] == 0) {
                                         System.out.print("first_head\t");
                                         printInts(data);
                                     }
                                     lastData = data;
+                                }
+                            }
+                            BaseStructure tiBank = tiBankDefinition.findBank(event);
+                            if (tiBank != null) {
+                                TIData tiData = new TIData(tiBank.getIntData());
+                                if (lastTI == 0) {
+                                    System.out.format("first_TItime\t%d\n", tiData.getTime());
+                                }
+                                lastTI = tiData.getTime();
+                                if (thisTimestamp != 0) {
+                                    long delta = thisTimestamp * 1000000000L - tiData.getTime();
+                                    if (minDelta == 0 || minDelta > delta) {
+                                        minDelta = delta;
+                                    }
+                                    if (maxDelta == 0 || maxDelta < delta) {
+                                        maxDelta = delta;
+                                    }
+//                                    System.out.format("%d %d %d %d %d %d\n", thisTimestamp, tiData.getTime(), delta, minDelta, maxDelta, maxDelta-minDelta);
                                 }
                             }
                         }
@@ -120,6 +144,8 @@ public class BasicEvioFileReader {
                 if (printTimestamps) {
                     System.out.print("last_head\t");
                     printInts(lastData);
+                    System.out.format("last_TItime\t%d\n", lastTI);
+                    System.out.format("ti_offset\t%d\t%d\t%d\n", minDelta, maxDelta, maxDelta - minDelta);
                 }
                 reader.close();
             } catch (Exception e) {

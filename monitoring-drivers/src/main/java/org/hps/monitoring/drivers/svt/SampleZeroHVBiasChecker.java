@@ -99,8 +99,9 @@ public class SampleZeroHVBiasChecker extends Driver {
     private String myaDumpPath;
     private double epicsBiasValue = -1;
     private boolean hvOnEpics = false;
-    private boolean hvOn = false;
+    private boolean hvOnMya = false;
     private boolean hvOnConditions = false;
+    private boolean hvOnEventFlag = false;
     private EpicsData epicsData = null;
     private int eventCountEpicsDisagree = 0;
     SvtBiasConstantCollection svtBiasConstants = null;
@@ -248,6 +249,19 @@ public class SampleZeroHVBiasChecker extends Driver {
     @Override
     public void process(EventHeader event) {
 
+        Map<String, int[]> params = event.getIntegerParameters();
+
+        int[] biasGood = params.get("svt_bias_good");
+//        int[] positionGood = params.get("svt_position_good");
+//        int[] burstmodeNoiseGood = params.get("svt_burstmode_noise_good");
+
+//        System.out.format("%d %d %d\n", biasGood[0], positionGood[0], burstmodeNoiseGood[0]);
+        if (biasGood == null) {
+            hvOnEventFlag = false;
+        } else {
+            hvOnEventFlag = biasGood[0] == 1;
+        }
+
         if (allHitCountVsNum == null) {
             allHitCountVsNum = AIDA.defaultInstance().histogram2D("all hit count vs. event num", 1000, event.getEventNumber(), event.getEventNumber() + eventNumRange, 50, 0, 200);
         }
@@ -267,8 +281,9 @@ public class SampleZeroHVBiasChecker extends Driver {
 
                 if (epicsBiasValue > 178.0) {
                     hvOnEpics = true;
+                } else {
+                    hvOnEpics = false;
                 }
-
             }
         } else {
             logger.fine("no epics information in this event");
@@ -284,7 +299,7 @@ public class SampleZeroHVBiasChecker extends Driver {
             hvOnConditions = svtBiasConstants.find(newEventDate) != null;
             if (eventDate == null || !eventDate.equals(newEventDate)) {
                 System.out.format("event %d with new timestamp %s\n", event.getEventNumber(), newEventDate.toString());
-                System.out.println("hvOn is " + (hvOn ? "ON" : "OFF") + " hvOnEpics " + (hvOnEpics ? "ON" : "OFF") + " hvOnConditions " + (hvOnConditions ? "ON" : "OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + newEventDate.toString() + " epoch " + newEventDate.getTime());
+                System.out.println("hvOnMya is " + (hvOnMya ? "ON" : "OFF") + " hvOnEpics " + (hvOnEpics ? "ON" : "OFF") + " hvOnConditions " + (hvOnConditions ? "ON" : "OFF") + " hvOnEventFlag " + (hvOnEventFlag ? "ON" : "OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + newEventDate.toString() + " epoch " + newEventDate.getTime());
                 // check what the DB has
                 if (svtBiasConstants != null) {
                     logger.info("there are " + svtBiasConstants.size() + " constants to search");
@@ -321,23 +336,23 @@ public class SampleZeroHVBiasChecker extends Driver {
                 }
             }
 
-            hvOn = runRange.includes(eventDate);
+            hvOnMya = runRange.includes(eventDate);
 
             // print the cases where epics and run range do not agree
-            if (hvOn != hvOnEpics && epicsBiasValue > 0.) {
+            if (hvOnMya != hvOnEpics && epicsBiasValue > 0.) {
                 if (debug) {
-                    logger.warning("hvOn is " + (hvOn ? "ON" : "OFF") + " hvOnEpics " + (hvOnEpics ? "ON" : "OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
+                    logger.warning("hvOnMya is " + (hvOnMya ? "ON" : "OFF") + " hvOnEpics " + (hvOnEpics ? "ON" : "OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOnMya ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
                 }
-                pWriter.println("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn ? "YES" : "NO"));
+                pWriter.println("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOnMya ? "YES" : "NO"));
                 eventCountEpicsDisagree++;
             }
 
             // print the cases where the HV is OFF
-            if (!hvOn) {
+            if (!hvOnMya) {
                 if (debug) {
-                    logger.info("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
+                    logger.info("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOnMya " + (hvOnMya ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
                 }
-                pWriter.println("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOn ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
+                pWriter.println("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOnMya " + (hvOnMya ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
                 eventCountHvOff++;
             }
             if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
@@ -368,7 +383,7 @@ public class SampleZeroHVBiasChecker extends Driver {
                     }
                     if (maxSample >= 4) {
                         hists_rawadcnoise.get(sensor).fill(hit.getADCValues()[0] - pedestal);
-                        if (hvOn) {
+                        if (hvOnMya) {
                             hists_rawadcnoiseON.get(sensor).fill(hit.getADCValues()[0] - pedestal);
                         } else {
                             hists_rawadcnoiseOFF.get(sensor).fill(hit.getADCValues()[0] - pedestal);
@@ -381,7 +396,7 @@ public class SampleZeroHVBiasChecker extends Driver {
 //                if (dropSmallHitEvents && SvtPlotUtils.countSmallHits(rawTrackerHits) > 3) {
 //                    return;
 //                }
-                if (hvOn) {
+                if (hvOnMya) {
                     allHitCountON.fill(rawTrackerHits.size());
                 } else {
                     allHitCountOFF.fill(rawTrackerHits.size());
@@ -396,7 +411,7 @@ public class SampleZeroHVBiasChecker extends Driver {
                         count = 0;
                     }
                     hists_hitCounts.get(sensor).fill(count);
-                    if (hvOn) {
+                    if (hvOnMya) {
                         hists_hitCountsON.get(sensor).fill(count);
                     } else {
                         hists_hitCountsOFF.get(sensor).fill(count);
