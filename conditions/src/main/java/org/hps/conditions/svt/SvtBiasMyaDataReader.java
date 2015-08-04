@@ -76,7 +76,7 @@ public class SvtBiasMyaDataReader {
     }
 
     public static List<SvtBiasMyaRange> readMyaData(File file, double biasValueOn, int endMargin, boolean discardHeader) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
 
         List<SvtBiasMyaRange> ranges = new ArrayList<SvtBiasMyaRange>();

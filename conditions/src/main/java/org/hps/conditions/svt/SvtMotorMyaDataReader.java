@@ -57,7 +57,7 @@ public class SvtMotorMyaDataReader {
     }
 
     public static List<SvtPositionMyaRange> readMyaData(File file, int endMargin, double minDwellTime) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
 
         List<SvtPositionMyaRange> ranges = new ArrayList<SvtPositionMyaRange>();

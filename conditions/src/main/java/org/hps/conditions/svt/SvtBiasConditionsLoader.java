@@ -203,7 +203,7 @@ public class SvtBiasConditionsLoader {
         }
 
         if (cl.hasOption("p")) {
-            List<SvtPositionMyaRange> positionRanges = SvtMotorMyaDataReader.readMyaData(new File(cl.getOptionValue("p")), 1000, 10000);
+            List<SvtPositionMyaRange> positionRanges = SvtMotorMyaDataReader.readMyaData(new File(cl.getOptionValue("p")), 200, 10000);
             logger.info("Got " + positionRanges.size() + " position ranges");
             positionRunRanges = SvtMotorMyaDataReader.findOverlappingRanges(runList, positionRanges);
         }

@@ -85,11 +85,11 @@ public class SvtEventFlagger {
         for (final SvtAlignmentConstant constant : alignmentConstants) {
             switch (constant.getParameter()) {
                 case 13100:
-                    System.out.format("nominal top angle: %f\n", constant.getValue());
+//                    System.out.format("nominal top angle: %f\n", constant.getValue());
                     nominalAngleTop = constant.getValue();
                     break;
                 case 23100:
-                    System.out.format("nominal bottom angle: %f\n", constant.getValue());
+//                    System.out.format("nominal bottom angle: %f\n", constant.getValue());
                     nominalAngleBottom = -constant.getValue();
                     break;
             }
