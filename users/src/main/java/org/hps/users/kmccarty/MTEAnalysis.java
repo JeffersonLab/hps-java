@@ -30,6 +30,11 @@ public class MTEAnalysis extends Driver {
 			aida.histogram1D("MTE Analysis/Trident Event Tracks", 10, -0.5, 9.5),
 			aida.histogram1D("MTE Analysis/Elastic Event Tracks", 10, -0.5, 9.5)
 	};
+	private IHistogram1D[] clusterCountPlot = {
+			aida.histogram1D("MTE Analysis/Møller Event Clusters", 10, -0.5, 9.5),
+			aida.histogram1D("MTE Analysis/Trident Event Clusters", 10, -0.5, 9.5),
+			aida.histogram1D("MTE Analysis/Elastic Event Clusters", 10, -0.5, 9.5)
+	};
 	private IHistogram1D[] energyPlot = {
 			aida.histogram1D("MTE Analysis/Møller Energy Sum Distribution", 220, 0, 2.2),
 			aida.histogram1D("MTE Analysis/Trident Energy Sum Distribution", 220, 0, 2.2),
@@ -354,6 +359,7 @@ public class MTEAnalysis extends Driver {
 			if(isMøller) {
 				møllerEvents++;
 				chargedTracksPlot[MØLLER].fill(tracks);
+				clusterCountPlot[MØLLER].fill(clusters.size());
 				
 				Integer val = møllerBitMap.get(bitString);
 				if(val == null) { møllerBitMap.put(bitString, 1); }
@@ -361,6 +367,7 @@ public class MTEAnalysis extends Driver {
 			} else if(isTrident) {
 				tridentEvents++;
 				chargedTracksPlot[TRIDENT].fill(tracks);
+				clusterCountPlot[TRIDENT].fill(clusters.size());
 				
 				Integer val = tridentBitMap.get(bitString);
 				if(val == null) { tridentBitMap.put(bitString, 1); }
@@ -368,6 +375,7 @@ public class MTEAnalysis extends Driver {
 			} else if(isElastic) {
 				elasticEvents++;
 				chargedTracksPlot[ELASTIC].fill(tracks);
+				clusterCountPlot[ELASTIC].fill(clusters.size());
 				
 				Integer val = elasticBitMap.get(bitString);
 				if(val == null) { elasticBitMap.put(bitString, 1); }
