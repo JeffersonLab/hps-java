@@ -22,6 +22,9 @@ public class ParticleMCAnalysisDriver extends Driver {
 	private IHistogram1D allPlot = aida.histogram1D("MC Analysis/Electron Energy Distribution", 110, 0, 2.2);
 	private IHistogram1D electronPlot = aida.histogram1D("MC Analysis/Electron Energy Distribution", 110, 0, 2.2);
 	private IHistogram1D positronPlot = aida.histogram1D("MC Analysis/Positron Energy Distribution", 110, 0, 2.2);
+	private IHistogram1D momentumXPlot = aida.histogram1D("MC Analysis/Particle x-Momentum Distribution", 110, 0.0, 1.1);
+	private IHistogram1D momentumYPlot = aida.histogram1D("MC Analysis/Particle y-Momentum Distribution", 110, 0.0, 1.1);
+	private IHistogram1D momentumZPlot = aida.histogram1D("MC Analysis/Particle z-Momentum Distribution", 110, 0.0, 1.1);
 	private IHistogram1D anglePlot = aida.histogram1D("MC Analysis/Positron\\Electron Pair Angle Distribution", 90, 0, 180);
 	private IHistogram1D momentumSumPlot = aida.histogram1D("MC Analysis/Positron\\Electron Momentum Sum Distribution", 220, 0, 2.2);
 	private IHistogram2D momentumPlot = aida.histogram2D("MC Analysis/Particle Momentum Distribution", 110, 0.0, 1.1, 110, 0.0, 1.1);
@@ -56,6 +59,11 @@ public class ParticleMCAnalysisDriver extends Driver {
 				if(particle.getCharge() > 0) {
 					chargedParticles++;
 				}
+				
+				// Get the particle momentum in each direction.
+				momentumXPlot.fill(particle.getMomentum().x());
+				momentumYPlot.fill(particle.getMomentum().y());
+				momentumZPlot.fill(particle.getMomentum().z());
 				
 				// Populate the general momentum plot.
 				allPlot.fill(particle.getMomentum().magnitude());
@@ -96,7 +104,8 @@ public class ParticleMCAnalysisDriver extends Driver {
 		// Calculate the sum of the sum of the vector components, squared.
 		double sum = 0;
 		for(int i = 0; i < 3; i++) {
-			sum += ((v1.v()[i] + v2.v()[i]) * (v1.v()[i] + v2.v()[i]));
+			double elementSum = v1.v()[i] + v2.v()[i];
+			sum += (elementSum * elementSum);
 		}
 		
 		// Return the square root of the sum.
