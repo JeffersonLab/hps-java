@@ -1,16 +1,22 @@
 package org.hps.conditions.svt;
 
 import hep.aida.*;
-
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
@@ -167,6 +173,7 @@ public class SvtBiasConditionsLoader {
         options.addOption(new Option("t", false, "use run table format (from crawler) for bias"));
         options.addOption(new Option("d", false, "discard first line of MYA data (for myaData output)"));
         options.addOption(new Option("g", false, "Actually load stuff into DB"));
+        options.addOption(new Option("b", true, "beam current file"));
         options.addOption(new Option("s", false, "Show plots"));
 
         final CommandLineParser parser = new PosixParser();
@@ -245,6 +252,10 @@ public class SvtBiasConditionsLoader {
                     }
                 }
             }
+        }
+
+        if (cl.hasOption("b") && cl.hasOption("m") && cl.hasOption("p")) {
+            readBeamData(new File(cl.getOptionValue("b")), runList, positionRunRanges, biasRunRanges);
         }
 
         // load to DB
@@ -406,6 +417,99 @@ public class SvtBiasConditionsLoader {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    private static void readBeamData(File file, List<RunData> runList, List<SvtPositionRunRange> positionRanges, List<SvtBiasRunRange> biasRanges) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+
+        Map<Integer, SvtPositionRunRange> positionRangeMap = new HashMap<Integer, SvtPositionRunRange>();
+        for (SvtPositionRunRange range : positionRanges) {
+            positionRangeMap.put(range.getRun().getRun(), range);
+        }
+        Map<Integer, SvtBiasRunRange> biasRangeMap = new HashMap<Integer, SvtBiasRunRange>();
+        for (SvtBiasRunRange range : biasRanges) {
+            biasRangeMap.put(range.getRun().getRun(), range);
+        }
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+            System.out.println("myaData header: " + br.readLine()); //discard the first line
+
+            for (RunData run : runList) {
+                double totalCharge = 0;
+                double totalChargeWithBias = 0;
+                double totalChargeWithBiasAtNominal = 0;
+                double totalChargeWithBiasAt1pt5 = 0;
+                Date lastDate = null;
+
+                while ((line = br.readLine()) != null) {
+                    String arr[] = line.split(" +");
+
+                    if (arr.length != 3) {
+                        throw new java.text.ParseException("this line is not correct.", 0);
+                    }
+                    Date date = dateFormat.parse(arr[0] + " " + arr[1]);
+                    if (date.after(run.getEndDate())) {
+                        break;
+                    }
+                    if (date.before(run.getStartDate())) {
+                        continue;
+                    }
+
+                    double current;
+                    if (arr[2].equals("<undefined>")) {
+                        current = 0;
+                    } else {
+                        current = Double.parseDouble(arr[2]);
+                    }
+
+                    if (date.after(run.getStartDate())) {
+                        if (lastDate != null) {
+                            double dt = (date.getTime() - lastDate.getTime()) / 1000.0;
+                            double dq = dt * current; // nC
+
+                            totalCharge += dq;
+                            SvtBiasRunRange biasRunRange = biasRangeMap.get(run.getRun());
+                            if (biasRunRange != null) {
+                                for (SvtBiasMyaRange biasRange : biasRunRange.getRanges()) {
+                                    if (biasRange.includes(date)) {
+                                        totalChargeWithBias += dq;
+
+                                        SvtPositionRunRange positionRunRange = positionRangeMap.get(run.getRun());
+                                        if (positionRunRange != null) {
+                                            for (SvtPositionMyaRange positionRange : positionRunRange.getRanges()) {
+                                                if (positionRange.includes(date)) {
+                                                    if (Math.abs(positionRange.getBottom()) < 0.0001 && Math.abs(positionRange.getTop()) < 0.0001) {
+                                                        totalChargeWithBiasAtNominal += dq;
+                                                    } else if (Math.abs(positionRange.getBottom() - 0.0033) < 0.0001 && Math.abs(positionRange.getTop() - 0.0031) < 0.0001) {
+                                                        totalChargeWithBiasAt1pt5 += dq;
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                    lastDate = date;
+                }
+
+                System.out.format("run\t%d\ttotalQ\t%.0f\ttotalQBias\t%.0f\tfracBias\t%f\ttotalQNom\t%.0f\tfracNom\t%f\ttotalQ1pt5\t%.0f\tfrac1pt5\t%f\n", run.getRun(), totalCharge, totalChargeWithBias, totalChargeWithBias / totalCharge, totalChargeWithBiasAtNominal, totalChargeWithBiasAtNominal / totalCharge, totalChargeWithBiasAt1pt5, totalChargeWithBiasAt1pt5 / totalCharge);
+            }
+            br.close();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (java.text.ParseException e) {
+            throw new RuntimeException(e);
         }
     }
 }
