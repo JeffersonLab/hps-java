@@ -43,7 +43,7 @@
             <readoutThreshold>12</readoutThreshold>
             <triggerThreshold>12</triggerThreshold>    
             <readoutWindow>50</readoutWindow>
-            <readoutLatency>74</readoutLatency>
+            <readoutLatency>77</readoutLatency>
             <mode>1</mode>
         </driver>
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
@@ -78,6 +78,7 @@
             <clusterEnergyLowThreshold>0.400</clusterEnergyLowThreshold>
             <clusterEnergyHighThreshold>1.100</clusterEnergyHighThreshold>
             <prescale>1</prescale>
+            <delay>3</delay>
             <outputFileName>${outputFile}.triggers.singles1</outputFileName>
             <!--<verbose>true</verbose>-->
         </driver>                                    

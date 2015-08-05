@@ -162,8 +162,8 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
         if (useTimingConditions) {
             SvtTimingConstants timingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
-            readoutOffset = 4 * timingConstants.getOffsetPhase();
-            readoutLatency = 236.0 + timingConstants.getOffsetTime();
+            readoutOffset = 4 * (timingConstants.getOffsetPhase() + 3);
+            readoutLatency = 248.0 + timingConstants.getOffsetTime();
         }
     }
 
