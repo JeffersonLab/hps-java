@@ -25,10 +25,13 @@ public class ParticleMCAnalysisDriver extends Driver {
 	private IHistogram1D momentumXPlot = aida.histogram1D("MC Analysis/Particle x-Momentum Distribution", 110, 0.0, 1.1);
 	private IHistogram1D momentumYPlot = aida.histogram1D("MC Analysis/Particle y-Momentum Distribution", 110, 0.0, 1.1);
 	private IHistogram1D momentumZPlot = aida.histogram1D("MC Analysis/Particle z-Momentum Distribution", 110, 0.0, 1.1);
-	private IHistogram1D anglePlot = aida.histogram1D("MC Analysis/Positron\\Electron Pair Angle Distribution", 90, 0, 180);
-	private IHistogram1D momentumSumPlot = aida.histogram1D("MC Analysis/Positron\\Electron Momentum Sum Distribution", 220, 0, 2.2);
-	private IHistogram2D momentumPlot = aida.histogram2D("MC Analysis/Particle Momentum Distribution", 110, 0.0, 1.1, 110, 0.0, 1.1);
-	private IHistogram2D momentumSum2DPlot = aida.histogram2D("MC Analysis/Positron\\Electron 2D Momentum Distribution", 55, 0, 1.1, 55, 0, 1.1);
+	private IHistogram1D epAnglePlot = aida.histogram1D("MC Analysis/Positron\\Electron Pair Angle Distribution", 90, 0, 180);
+	private IHistogram1D eeAnglePlot = aida.histogram1D("MC Analysis/Electron\\Electron Pair Angle Distribution", 90, 0, 180);
+	private IHistogram1D epMomentumSumPlot = aida.histogram1D("MC Analysis/Positron\\Electron Momentum Sum Distribution", 220, 0, 2.2);
+	private IHistogram1D eeMomentumSumPlot = aida.histogram1D("MC Analysis/Electron\\Electron Momentum Sum Distribution", 220, 0, 2.2);
+	private IHistogram2D momentumPlot = aida.histogram2D("MC Analysis/Particle Momentum Distribution", 100, 0.0, 0.40, 110, 0.0, 0.40);
+	private IHistogram2D epMomentumSum2DPlot = aida.histogram2D("MC Analysis/Positron\\Electron 2D Momentum Distribution", 55, 0, 1.1, 55, 0, 1.1);
+	private IHistogram2D eeMomentumSum2DPlot = aida.histogram2D("MC Analysis/Electron\\Electron 2D Momentum Distribution", 55, 0, 1.1, 55, 0, 1.1);
 	
 	@Override
 	public void process(EventHeader event) {
@@ -85,18 +88,33 @@ public class ParticleMCAnalysisDriver extends Driver {
 		chargedTracksPlot.fill(chargedParticles);
 		
 		// Form all electron/positron pairs.
-		List<MCParticle[]> pairList = new ArrayList<MCParticle[]>();
+		List<MCParticle[]> epPairList = new ArrayList<MCParticle[]>();
 		for(MCParticle electron : electronList) {
 			for(MCParticle positron : positronList) {
-				pairList.add(new MCParticle[] { electron, positron });
+				epPairList.add(new MCParticle[] { electron, positron });
 			}
 		}
 		
-		// Plot the positron/electron pair distributions.
-		for(MCParticle[] pair : pairList) {
-			anglePlot.fill(getVectorAngle(pair[0].getMomentum(), pair[1].getMomentum()));
-			momentumSumPlot.fill(getVectorSum(pair[0].getMomentum(), pair[1].getMomentum()));
-			momentumSum2DPlot.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+		// Populate the positron/electron pair plots.
+		for(MCParticle[] pair : epPairList) {
+			epAnglePlot.fill(getVectorAngle(pair[0].getMomentum(), pair[1].getMomentum()));
+			epMomentumSumPlot.fill(getVectorSum(pair[0].getMomentum(), pair[1].getMomentum()));
+			epMomentumSum2DPlot.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+		}
+		
+		// Form all electron/electron pairs.
+		List<MCParticle[]> eePairList = new ArrayList<MCParticle[]>();
+		for(int i = 0; i < electronList.size(); i++) {
+			for(int j = i + 1; j < electronList.size(); j++) {
+				eePairList.add(new MCParticle[] { electronList.get(i), electronList.get(j) });
+			}
+		}
+		
+		// Populate the electron/electron pair plots.
+		for(MCParticle[] pair : epPairList) {
+			eeAnglePlot.fill(getVectorAngle(pair[0].getMomentum(), pair[1].getMomentum()));
+			eeMomentumSumPlot.fill(getVectorSum(pair[0].getMomentum(), pair[1].getMomentum()));
+			eeMomentumSum2DPlot.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
 		}
 	}
 	
