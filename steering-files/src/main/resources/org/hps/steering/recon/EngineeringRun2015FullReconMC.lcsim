@@ -87,9 +87,9 @@
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
-            <hitEnergyThreshold>0.01</hitEnergyThreshold>
-            <seedEnergyThreshold>0.100</seedEnergyThreshold> 
-            <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
+            <hitEnergyThreshold>0.0075</hitEnergyThreshold>
+            <seedEnergyThreshold>0.050</seedEnergyThreshold> 
+            <clusterEnergyThreshold>0.100</clusterEnergyThreshold>
             <minTime>0.0</minTime>
             <timeWindow>25.0</timeWindow>
             <useTimeCut>true</useTimeCut>
