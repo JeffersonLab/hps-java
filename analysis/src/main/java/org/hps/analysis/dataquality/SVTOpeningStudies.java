@@ -77,7 +77,9 @@ public class SVTOpeningStudies extends DataQualityMonitor {
     double rangeZ0 = 10;
 
     double pcut = 0.8;
-
+    boolean onlyFEEStubs=false;
+      
+    
     private final String plotDir = "SVTOpening/";
 
     public SVTOpeningStudies() {
@@ -87,6 +89,10 @@ public class SVTOpeningStudies extends DataQualityMonitor {
         this.outputPlots = output;
     }
 
+     public void setOnlyFEEStubs(boolean onlyFEE) {
+        this.onlyFEEStubs = onlyFEE;
+    }
+    
     public void setHelicalTrackHitCollectionName(String helicalTrackHitCollectionName) {
         this.helicalTrackHitCollectionName = helicalTrackHitCollectionName;
     }
@@ -197,7 +203,7 @@ public class SVTOpeningStudies extends DataQualityMonitor {
         for (Track trk46 : l4to6tracksTop) {
             TrackState ts46 = trk46.getTrackStates().get(0);
             for (Track trk13 : l1to3tracksTop)
-                if (trk46.getMomentum()[0] > pcut && trk13.getMomentum()[0] > pcut) {
+                if (!onlyFEEStubs||(trk46.getMomentum()[0] > pcut && trk13.getMomentum()[0] > pcut)) {
                     TrackState ts13 = trk13.getTrackStates().get(0);
                     deld0Top.fill(ts46.getD0() - ts13.getD0());
                     delphiTop.fill(Math.sin(ts46.getPhi()) - Math.sin(ts13.getPhi()));
@@ -211,7 +217,7 @@ public class SVTOpeningStudies extends DataQualityMonitor {
         for (Track trk46 : l4to6tracksBot) {
             TrackState ts46 = trk46.getTrackStates().get(0);
             for (Track trk13 : l1to3tracksBot)
-                if (trk46.getMomentum()[0] > pcut && trk13.getMomentum()[0] > pcut) {
+                if (!onlyFEEStubs||(trk46.getMomentum()[0] > pcut && trk13.getMomentum()[0] > pcut)) {
                     TrackState ts13 = trk13.getTrackStates().get(0);
                     deld0Bot.fill(ts46.getD0() - ts13.getD0());
                     delphiBot.fill(Math.sin(ts46.getPhi()) - Math.sin(ts13.getPhi()));

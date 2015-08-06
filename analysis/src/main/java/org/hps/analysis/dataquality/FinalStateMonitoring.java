@@ -56,7 +56,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     double sumEoverP = 0.0;
     private final String plotDir = "FinalStateParticles/";
     double beamEnergy = 1.05; //GeV
-    double maxFactor = 2.5;
+    double maxFactor = 1.5;
     double feeMomentumCut = 0.8; //GeV
 
     IHistogram1D elePx;
