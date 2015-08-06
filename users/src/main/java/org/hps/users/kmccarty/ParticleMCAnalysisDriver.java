@@ -111,7 +111,7 @@ public class ParticleMCAnalysisDriver extends Driver {
 		}
 		
 		// Populate the electron/electron pair plots.
-		for(MCParticle[] pair : epPairList) {
+		for(MCParticle[] pair : eePairList) {
 			eeAnglePlot.fill(getVectorAngle(pair[0].getMomentum(), pair[1].getMomentum()));
 			eeMomentumSumPlot.fill(getVectorSum(pair[0].getMomentum(), pair[1].getMomentum()));
 			eeMomentumSum2DPlot.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
