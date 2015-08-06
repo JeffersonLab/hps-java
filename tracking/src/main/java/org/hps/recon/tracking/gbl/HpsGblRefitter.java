@@ -101,8 +101,8 @@ public class HpsGblRefitter extends Driver
     @Override
     protected void process(EventHeader event)
     {
-        Hep3Vector bfieldvec = event.getDetector().getFieldMap().getField(new BasicHep3Vector(0., 0., 1.));
-        
+//        Hep3Vector bfieldvec = event.getDetector().getFieldMap().getField(new BasicHep3Vector(0., 0., 1.));
+        Hep3Vector bfieldvec = event.getDetector().getFieldMap().getField(new BasicHep3Vector(0., 0., 500.));//mg...get the b-field in the middle of the magnet
         double bfield = bfieldvec.y();
         //double bfac = 0.0002998 * bfield;
         double bfac = Constants.fieldConversion * bfield;
