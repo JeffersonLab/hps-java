@@ -15,7 +15,9 @@
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
-        <driver name="ReconParticle" /> 
+        <driver name="CopyCluster" />
+        <driver name="ReconParticle" />         
+        <driver name="TrackDataDriver" />      
         <driver name="TrackingMonitoringSingles1DQM" /> 
         <driver name="FinalStateDQMSingles1"/>
         <driver name="AidaSaveDriver"/>     
@@ -28,28 +30,31 @@
         </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
        
-        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
-        </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">
             <debug>false</debug>
             <dxCut>50</dxCut>
             <dyCut>50</dyCut>
         </driver>  
         
-         <driver name="StraightTrackReconDriver" type="org.hps.recon.tracking.straighttracks.StraightTrackReconDriver">
+        <driver name="StraightTrackReconDriver" type="org.hps.recon.tracking.straighttracks.StraightTrackReconDriver">
             <debug>false</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-StraightTracks.xml</strategyResource>
             <trackCollectionName>MatchedTracks</trackCollectionName>
         </driver>
         
         <driver name="StraightTrackAnalysis" type="org.hps.users.mgraham.StraightTrackAnalysis">
-             <trackCollectionName>MatchedTracks</trackCollectionName>
+            <trackCollectionName>MatchedTracks</trackCollectionName>
         </driver>
         
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+            <storeHits>true</storeHits>
+        </driver>    
         
         <!-- EngineeringRun2015FullRecon from Sho --> 
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-             <fitAlgorithm>Pileup</fitAlgorithm>
+            <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctTimeOffset>true</correctTimeOffset>
             <correctT0Shift>true</correctT0Shift>
@@ -204,6 +209,6 @@
             <!-- seedMinEnergy -->
             <cuts>0.100</cuts>
         </driver>      
-
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
     </drivers>
 </lcsim>
