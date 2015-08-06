@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
-<!-- 
-  Offline reconstruction for 2015 (engineering run with SVT+ECal) data.
-  @author Sho Uemura <meeg@slac.stanford.edu>
--->
+    <!-- 
+      Offline reconstruction for 2015 (engineering run with SVT+ECal) data.
+      @author Sho Uemura <meeg@slac.stanford.edu>
+    -->
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
@@ -17,8 +17,8 @@
         <driver name="GTPOnlineClusterer" />
         <driver name="CopyCluster" />
         <driver name="ReconParticle" />  
-        <driver name="TrackDataDriver" />              
-        <!--<driver name="GBLDriver"/>--> 
+        <driver name="TrackDataDriver" />
+        <driver name="GBLOutputDriver"/>              
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -53,12 +53,12 @@
             <strategyResource>HPS-Full.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>8.0</rmsTimeCut>
-        </driver>        
-        <driver name="GBLDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
+        </driver>                
+        <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
             <debug>0</debug>
             <isMC>false</isMC>
-            <gblFileName></gblFileName>
-        </driver>
+            <gblFileName>${outputFile}.gbl</gblFileName>
+        </driver>    
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
             <minLookbackEvents>5</minLookbackEvents>
@@ -101,7 +101,7 @@
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
-    		<storeHits>true</storeHits>
+            <storeHits>true</storeHits>
         </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">  
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
@@ -113,6 +113,6 @@
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
-        </driver>
+        </driver>       
     </drivers>
 </lcsim>
