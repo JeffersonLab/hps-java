@@ -20,62 +20,85 @@ import org.lcsim.event.Cluster;
  * called without initializing an instance of the module.<br/>
  * <br/>
  * Both <code>Cluster</code> objects and <code>SSPCluster</code> objects
- * are supported.
- * 
+ * are supported, except for the seed energy cut, as this value is not
+ * present in <code>SSPCluster</code> objects.<br/>
+ * <br/>
+ * This module supports the following cuts:
+ * <ul><li>Seed Energy Lower Bound</li>
+ * <li>Seed Energy Lower Bound</li>
+ * <li>Seed Energy Upper Bound</li>
+ * <li>Cluster Total Energy Upper Bound</li>
+ * <li>Cluster Total Energy Lower Bound</li>
+ * <li>Cluster Hit Count Lower Bound</li>
+ * <li>Pair Energy Sum Upper Bound</li>
+ * <li>Pair Energy Sum Lower Bound</li>
+ * <li>Pair Energy Difference Upper Bound</li>
+ * <li>Pair Energy Slope Lower Bound</li>
+ * <li>Pair Coplanarity Upper Bound</li>
+ * <li>Pair Time Coincidence Upper Bound</li></ul>
  * @author Kyle McCarty <mccarty@jlab.org>
  * @see Cluster
  * @see SSPCluster
  */
 public final class TriggerModule {
-	// The calorimeter mid-plane, defined by the photon beam position
-	// (30.52 mrad) at the calorimeter face (z = 1393 mm).
+	/** The calorimeter mid-plane, defined by the photon beam position
+	* (30.52 mrad) at the calorimeter face (z = 1393 mm). */
     private static final double ORIGIN_X = 1393.0 * Math.tan(0.03052);
     
-    // Trigger module property names.
     /** The value of the parameter "F" in the energy slope equation
-     * <code>E_low GeV + R_min mm * F GeV/mm</code>. */
+     * <code>E_low GeV + R_min mm * F GeV/mm</code>. Units are in GeV
+     * / mm. */
     public static final String PAIR_ENERGY_SLOPE_F = "pairEnergySlopeF";
     /** The lower bound for the pair energy sum cut. The sum of the
-     * energies of two clusters must exceed this value to pass the cut. */
+     * energies of two clusters must exceed this value to pass the cut.
+     * Units are in GeV. */
     public static final String PAIR_ENERGY_SUM_LOW = "pairEnergySumLow";
     /** The upper bound for the pair energy sum cut. The sum of the
-     * energies of two clusters must be below this value to pass the cut. */
+     * energies of two clusters must be below this value to pass the
+     * cut. Units are in GeV. */
     public static final String PAIR_ENERGY_SUM_HIGH = "pairEnergySumHigh";
     /** The threshold for the cluster hit count cut. Clusters must have
      * this many hits or more to pass the cut. */
     public static final String CLUSTER_HIT_COUNT_LOW = "clusterHitCountLow";
     /** The threshold for the energy slope cut. The value of the energy
-     * slope equation must exceed this value to pass the cut. */
+     * slope equation must exceed this value to pass the cut. Units are
+     * in GeV. */
     public static final String PAIR_ENERGY_SLOPE_LOW = "pairEnergySlopeLow";
     /** The bound for the coplanarity cut. The coplanarity angle for
-     * the cluster pair must be below this value to pass the cut. */
+     * the cluster pair must be below this value to pass the cut. Units
+     * are in degrees. */
     public static final String PAIR_COPLANARITY_HIGH = "pairCoplanarityHigh";
     /** The lower bound for the cluster seed energy cut. The seed energy
-     * of a cluster must exceed this value to pass the cut. */
+     * of a cluster must exceed this value to pass the cut. Units are in
+     * GeV. */
     public static final String CLUSTER_SEED_ENERGY_LOW = "clusterSeedEnergyLow";
     /** The upper bound for the cluster seed energy cut. The seed energy
-     * of a cluster must be below this value to pass the cut. */
+     * of a cluster must be below this value to pass the cut. Units are
+     * in GeV. */
     public static final String CLUSTER_SEED_ENERGY_HIGH = "clusterSeedEnergyHigh";
     /** The lower bound for the cluster total energy cut. The energy
      * of a cluster must exceed this value to pass the cut. */
     public static final String CLUSTER_TOTAL_ENERGY_LOW = "clusterTotalEnergyLow";
     /** The upper bound for the cluster total energy cut. The energy
-     * of a cluster must be below this value to pass the cut. */
+     * of a cluster must be below this value to pass the cut. Units are
+     * in GeV. */
     public static final String CLUSTER_TOTAL_ENERGY_HIGH = "clusterTotalEnergyHigh";
     /** The bound for the pair energy difference cut. The absolute value
      * of the difference between the energies of the cluster pair must
-     * be below this value to pass the cut. */
+     * be below this value to pass the cut. Units are in GeV. */
     public static final String PAIR_ENERGY_DIFFERENCE_HIGH = "pairEnergyDifferenceHigh";
     /** The maximum amount of time by which two clusters are allowed
-     * to be separated. */
+     * to be separated. Units are in ns. */
     public static final String PAIR_TIME_COINCIDENCE = "pairTimeCoincidence";
     
-    // Trigger cut settings map.
+    /** Stores each of the cut values used by the module. Map keys are
+     * defined as publicly-accessible static variables in the class. */
     private final Map<String, Double> cuts = new HashMap<String, Double>(11);
     
     /**
-     * Creates an <code>SSPTriggerModule</code> that accepts all single
-     * cluster and cluster pair events.
+     * Creates a default <code>TriggerModule</code>. The cuts are
+     * defined such that all physical clusters (i.e. with energy
+     * above zero) will be accepted.
      */
     public TriggerModule() {
     	// Set the cluster singles cuts to accept all values by default.
@@ -98,21 +121,21 @@ public final class TriggerModule {
     }
     
     /**
-     * Creates an <code>SSPTriggerModule</code> that uses the default
-     * cut values specified by the argument array. The array should be
-     * of size 11. Values are applied in the order:
+     * Creates a <code>TriggerModule</code> with trigger cuts defined
+     * by the argument array. The order of the cut value arguments are
+     * as follows:
      * <ul>
-     * <li>Cluster Hit Count Lower Bound</li>
-     * <li>Cluster Seed Energy Lower Bound</li>
-     * <li>Cluster Seed Energy Upper Bound</li>
-     * <li>Cluster Seed Total Lower Bound</li>
-     * <li>Cluster Seed Total Upper Bound</li>
-     * <li>Pair Energy Sum Lower Bound</li>
-     * <li>Pair Energy Sum Upper Bound</li>
-     * <li>Pair Energy Difference Upper Bound</li>
-     * <li>Pair Energy Slope Lower Bound</li>
-     * <li>Pair Coplanarity Upper Bound</li>
-     * <li>Pair Energy Slope Parameter F</li>
+     * <li>Cluster Hit Count Lower Bound (Hits)</li>
+     * <li>Cluster Seed Energy Lower Bound (GeV)</li>
+     * <li>Cluster Seed Energy Upper Bound (GeV)</li>
+     * <li>Cluster Seed Total Lower Bound (GeV)</li>
+     * <li>Cluster Seed Total Upper Bound (GeV)</li>
+     * <li>Pair Energy Sum Lower Bound (GeV)</li>
+     * <li>Pair Energy Sum Upper Bound (GeV)</li>
+     * <li>Pair Energy Difference Upper Bound (GeV)</li>
+     * <li>Pair Energy Slope Lower Bound (GeV)</li>
+     * <li>Pair Coplanarity Upper Bound (Degrees)</li>
+     * <li>Pair Energy Slope Parameter F (GeV / mm)</li>
      * </ul>
      */
     public TriggerModule(double... cutValues) {
@@ -139,9 +162,11 @@ public final class TriggerModule {
     
     /**
      * Gets the value of the requested cut, if it exists.
-     * @param cut - The identifier of the cut.
+     * @param cut - The identifier of the cut. This can be obtained
+     * through the publicly-accessible static identifiers in this class.
      * @return Returns the cut value as a <code>double</code>.
-     * @throws IllegalArgumentException Occurs if the cut does not exist.
+     * @throws IllegalArgumentException Occurs if the cut identifier
+     * specified in the argument is not valid.
      */
     public double getCutValue(String cut) throws IllegalArgumentException {
     	// Try to get the indicated cut.
@@ -156,8 +181,9 @@ public final class TriggerModule {
     
     /**
      * Loads triggers settings from the DAQ configuration for a singles
-     * trigger. Pair trigger settings will be set to accept all possible
-     * values, while singles trigger settings will
+     * trigger. Singles trigger cuts will be set to match those defined
+     * in the configuration object, while pair trigger cuts will be set
+     * to accept all possible clusters.
      * @param config - The DAQ configuration settings.
      */
     public void loadDAQConfiguration(SinglesTriggerConfig config) {
@@ -205,11 +231,14 @@ public final class TriggerModule {
     }
     
     /**
-     * Sets the value of the indicated cut to a new value.
+     * Sets the value of the cut specified by the identifier given in
+     * the argument to the specified value.
      * @param cut - The identifier of the cut to which the new value
-     * should be assigned.
+     * should be assigned. These can be obtained as publicly-accessible
+     * static variables from this class.
      * @param value - The new cut value.
-     * @throws IllegalArgumentException Occurs if the cut does not exist.
+     * @throws IllegalArgumentException Occurs if the argument cut
+     * identifier is not valid.
      */
     public void setCutValue(String cut, double value) throws IllegalArgumentException {
     	// Make sure that the cut exists. If it does, change it to the
@@ -230,6 +259,7 @@ public final class TriggerModule {
 	 * @param cutValues - A string representing the cuts values. This
 	 * must be formatted in the style of "Emin Emax Nmin ...".
 	 */
+    // TODO: Specify in JavaDoc what the order of these arguments is.
 	public void setCutValues(boolean isSingles, String cutValues) {
 		// Make sure that the string is not null.
 		if(cutValues == null) {
@@ -283,8 +313,8 @@ public final class TriggerModule {
 	}
     
     /**
-     * Checks whether the argument cluster possesses the minimum
-     * allowed hits.
+     * Checks whether a cluster passes the cluster hit count cut. This
+     * is defined as <code>N_hits >= CLUSTER_HIT_COUNT_LOW</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -294,8 +324,8 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks whether the argument cluster possesses the minimum
-     * allowed hits.
+     * Checks whether a cluster passes the cluster hit count cut. This
+     * is defined as <code>N_hits >= CLUSTER_HIT_COUNT_LOW</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -305,8 +335,9 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks whether the argument cluster seed hit falls within the
-     * allowed seed hit energy range.
+     * Checks whether a cluster passes the seed energy cut. This is
+     * defined as <code>CLUSTER_SEED_ENERGY_LOW <= E_seed <=
+     * CLUSTER_SEED_ENERGY_HIGH</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -316,8 +347,8 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks whether the argument cluster seed hit falls below the
-     * allowed seed hit energy upper bound.
+     * Checks whether a cluster passes the seed energy upper bound cut.
+     * This is defined as <code>E_seed <= CLUSTER_SEED_ENERGY_HIGH</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -327,8 +358,8 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks whether the argument cluster seed hit falls above the
-     * allowed seed hit energy lower bound.
+     * Checks whether a cluster passes the seed energy lower bound cut.
+     * This is defined as <code>CLUSTER_SEED_ENERGY_LOW <= E_seed</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -338,8 +369,9 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks whether the argument cluster falls within the allowed
-     * cluster total energy range.
+     * Checks whether a cluster passes the cluster total energy cut.
+     * This is defined as <code>CLUSTER_TOTAL_ENERGY_LOW <= E_cluster
+     * <= CLUSTER_TOTAL_ENERGY_HIGH</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -349,8 +381,9 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks whether the argument cluster falls below the allowed
-     * cluster total energy upper bound.
+     * Checks whether a cluster passes the cluster total energy upper
+     * bound cut. This is defined as <code>E_cluster <=
+     * CLUSTER_TOTAL_ENERGY_HIGH</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -360,8 +393,9 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks whether the argument cluster falls above the allowed
-     * cluster total energy lower bound.
+     * Checks whether a cluster passes the cluster total energy lower
+     * bound cut. This is defined as <code>CLUSTER_TOTAL_ENERGY_LOW <=
+     * E_cluster</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -371,8 +405,9 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks whether the argument cluster falls within the allowed
-     * cluster total energy range.
+     * Checks whether a cluster passes the cluster total energy cut.
+     * This is defined as <code>CLUSTER_TOTAL_ENERGY_LOW <= E_cluster
+     * <= CLUSTER_TOTAL_ENERGY_HIGH</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -382,8 +417,9 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks whether the argument cluster falls below the allowed
-     * cluster total energy upper bound.
+     * Checks whether a cluster passes the cluster total energy upper
+     * bound cut. This is defined as <code>E_cluster <=
+     * CLUSTER_TOTAL_ENERGY_HIGH</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -393,8 +429,9 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks whether the argument cluster falls above the allowed
-     * cluster total energy lower bound.
+     * Checks whether a cluster passes the cluster total energy lower
+     * bound cut. This is defined as <code>CLUSTER_TOTAL_ENERGY_LOW <=
+     * E_cluster</code>.
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -409,6 +446,7 @@ public final class TriggerModule {
      * be calculated.
      * @return Returns displacement of the cluster.
      */
+    // TODO: What defines cluster distance?
     public static double getClusterDistance(Cluster cluster) {
     	// Get the variables from the cluster.
     	double x = getClusterX(cluster);
@@ -419,12 +457,23 @@ public final class TriggerModule {
     }
     
     /**
-     * Gets the size of a cluster.
+     * Gets the number of hits in a cluster, as used in the cluster
+     * hit count cut.
      * @param cluster - The cluster for which to obtain the size.
      * @return Returns the size as an <code>int</code>.
      */
     public static final double getClusterHitCount(Cluster cluster) {
     	return cluster.getCalorimeterHits().size();
+    }
+    
+    /**
+     * Gets the number of hits in a cluster, as used in the cluster
+     * hit count cut.
+     * @param cluster - The cluster for which to obtain the size.
+     * @return Returns the size as an <code>int</code>.
+     */
+    public static final double getClusterHitCount(SSPCluster cluster) {
+    	return cluster.getHitCount();
     }
     
     /**
@@ -442,12 +491,23 @@ public final class TriggerModule {
     }
     
     /**
-     * Gets the time-stamp of a cluster.
+     * Gets the time-stamp of a cluster, as used in the time-coincidence
+     * cut.
      * @param cluster - The cluster for which to obtain the time.
      * @return Returns the time as a <code>double</code>.
      */
     public static final double getClusterTime(Cluster cluster) {
     	return getClusterSeedHit(cluster).getTime();
+    }
+    
+    /**
+     * Gets the time-stamp of a cluster, as used in the time-coincidence
+     * cut.
+     * @param cluster - The cluster for which to obtain the time.
+     * @return Returns the time as a <code>double</code>.
+     */
+    public static final double getClusterTime(SSPCluster cluster) {
+    	return cluster.getTime();
     }
     
     /**
@@ -471,12 +531,21 @@ public final class TriggerModule {
     }
     
     /**
-     * Gets the x-index of a cluster.
+     * Gets the x-index of a cluster's
      * @param cluster - The cluster for which to obtain the index.
      * @return Returns the index as an <code>int</code>.
      */
     public static final int getClusterXIndex(Cluster cluster) {
     	return getClusterSeedHit(cluster).getIdentifierFieldValue("ix");
+    }
+    
+    /**
+     * Gets the x-index of a cluster's
+     * @param cluster - The cluster for which to obtain the index.
+     * @return Returns the index as an <code>int</code>.
+     */
+    public static final int getClusterXIndex(SSPCluster cluster) {
+    	return cluster.getXIndex();
     }
     
     /**
@@ -509,6 +578,15 @@ public final class TriggerModule {
     }
     
     /**
+     * Gets the y-index of a cluster.
+     * @param cluster - The cluster for which to obtain the index.
+     * @return Returns the index as an <code>int</code>.
+     */
+    public static final int getClusterYIndex(SSPCluster cluster) {
+    	return cluster.getYIndex();
+    }
+    
+    /**
      * Gets the z-position of a cluster in millimeters in the hardware
      * coordinate system.
      * @param cluster - The cluster of which to get the z-position.
@@ -529,27 +607,30 @@ public final class TriggerModule {
     }
     
     /**
-     * Gets the value used for the cluster total energy cut.
+     * Gets the value used for the cluster total energy cut. This is
+     * the energy of the entire cluster.
      * @param cluster - The cluster from which the value should be
      * derived.
-     * @return Returns the energy of the entire cluster in GeV.
+     * @return Returns the cluster energy in GeV.
      */
     public static double getValueClusterTotalEnergy(Cluster cluster) {
         return cluster.getEnergy();
     }
     
     /**
-     * Gets the value used for the cluster total energy cut.
+     * Gets the value used for the cluster total energy cut. This is
+     * the energy of the entire cluster.
      * @param cluster - The cluster from which the value should be
      * derived.
-     * @return Returns the energy of the entire cluster in GeV.
+     * @return Returns the cluster energy in GeV.
      */
     public static double getValueClusterTotalEnergy(SSPCluster cluster) {
         return cluster.getEnergy();
     }
     
     /**
-     * Gets the value used for the cluster hit count cut.
+     * Gets the value used for the cluster hit count cut. This is the
+     * total number of hits included in the cluster.
      * @param cluster - The cluster from which the value should be
      * derived.
      * @return Returns the number of hits in the cluster.
@@ -559,7 +640,8 @@ public final class TriggerModule {
     }
     
     /**
-     * Gets the value used for the cluster hit count cut.
+     * Gets the value used for the cluster hit count cut. This is the
+     * total number of hits included in the cluster.
      * @param cluster - The cluster from which the value should be
      * derived.
      * @return Returns the number of hits in the cluster.
@@ -587,14 +669,15 @@ public final class TriggerModule {
     public static double getValueCoplanarity(Cluster[] clusterPair) {
     	// Get the variables used by the calculation.
     	double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
-    	double z[] = { getClusterZ(clusterPair[0]), getClusterZ(clusterPair[1]) };
+    	double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
     	
     	// Return the calculated value.
-    	return getValueCoplanarity(x, z);
+    	return getValueCoplanarity(x, y);
     }
     
     /**
-     * Calculates the value used by the coplanarity cut.
+     * Calculates the value used by the coplanarity cut. A value of zero
+     * represents clusters in the same plane.
      * @param clusterPair - The cluster pair from which the value should
      * be calculated.
      * @return Returns the cut value.
@@ -602,10 +685,10 @@ public final class TriggerModule {
     public static double getValueCoplanarity(SSPCluster[] clusterPair) {
     	// Get the variables used by the calculation.
     	double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
-    	double z[] = { getClusterZ(clusterPair[0]), getClusterZ(clusterPair[1]) };
+    	double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
     	
     	// Return the calculated value.
-    	return getValueCoplanarity(x, z);
+    	return getValueCoplanarity(x, y);
     }
     
     /**
@@ -667,10 +750,10 @@ public final class TriggerModule {
     	// Get the variables used by the calculation.
     	double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
     	double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
-    	double z[] = { getClusterZ(clusterPair[0]), getClusterZ(clusterPair[1]) };
+    	double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
     	
     	// Perform the calculation.
-    	return getValueEnergySlope(energy, x, z, energySlopeParamF);
+    	return getValueEnergySlope(energy, x, y, energySlopeParamF);
     }
     
     /**
@@ -685,10 +768,10 @@ public final class TriggerModule {
     	// Get the variables used by the calculation.
     	double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
     	double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
-    	double z[] = { getClusterZ(clusterPair[0]), getClusterZ(clusterPair[1]) };
+    	double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
     	
     	// Perform the calculation.
-    	return getValueEnergySlope(energy, x, z, energySlopeParamF);
+    	return getValueEnergySlope(energy, x, y, energySlopeParamF);
     }
     
     /**
@@ -773,7 +856,7 @@ public final class TriggerModule {
     
     /**
      * Checks if a cluster pair is coplanar to the beam within a given
-     * angle.
+     * angle. This is defined as <code>θ <= PAIR_COPLANARITY_HIGH</code>.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -784,7 +867,7 @@ public final class TriggerModule {
     
     /**
      * Checks if a cluster pair is coplanar to the beam within a given
-     * angle.
+     * angle. This is defined as <code>θ <= PAIR_COPLANARITY_HIGH</code>.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -795,7 +878,8 @@ public final class TriggerModule {
     
     /**
      * Checks if the energy difference between the clusters making up
-     * a cluster pair is below an energy difference threshold.
+     * a cluster pair is below an energy difference threshold. This is
+     * defined as <code>|E_1 - E_2| <= PAIR_ENERGY_DIFFERENCE_HIGH</code>.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -806,7 +890,8 @@ public final class TriggerModule {
     
     /**
      * Checks if the energy difference between the clusters making up
-     * a cluster pair is below an energy difference threshold.
+     * a cluster pair is below an energy difference threshold. This is
+     * defined as <code>|E_1 - E_2| <= PAIR_ENERGY_DIFFERENCE_HIGH</code>.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -818,7 +903,7 @@ public final class TriggerModule {
     /**
      * Requires that the distance from the beam of the lowest energy
      * cluster in a cluster pair satisfies the following:<br/>
-     * <code>E_low + R_min * F < [ Threshold ]</code>
+     * <code>E_low + R_min * F >= PAIR_ENERGY_SLOPE_LOW</code>
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -830,7 +915,7 @@ public final class TriggerModule {
     /**
      * Requires that the distance from the beam of the lowest energy
      * cluster in a cluster pair satisfies the following:<br/>
-     * <code>E_low + R_min * F < [ Threshold ]</code>
+     * <code>E_low + R_min * F >= PAIR_ENERGY_SLOPE_LOW</code>
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -841,7 +926,9 @@ public final class TriggerModule {
     
     /**
      * Checks if the sum of the energies of the clusters making up a
-     * cluster pair is within an energy sum threshold.
+     * cluster pair is within an energy sum threshold. This is defined
+     * as <code>PAIR_ENERGY_SUM_LOW <= E_1 + E_2 <=
+     * PAIR_ENERGY_SUM_HIGH</code>.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -853,6 +940,7 @@ public final class TriggerModule {
     /**
      * Checks if the sum of the energies of the clusters making up a
      * cluster pair is below the energy sum upper bound threshold.
+     * This is defined as <code>E_1 + E_2 <= PAIR_ENERGY_SUM_HIGH</code>.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -864,6 +952,7 @@ public final class TriggerModule {
     /**
      * Checks if the sum of the energies of the clusters making up a
      * cluster pair is above the energy sum lower bound threshold.
+     * This is defined as <code>PAIR_ENERGY_SUM_LOW <= E_1 + E_2</code>.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -874,7 +963,9 @@ public final class TriggerModule {
     
     /**
      * Checks if the sum of the energies of clusters making up a cluster
-     * pair is below an energy sum threshold.
+     * pair is below an energy sum threshold. This is defined
+     * as <code>PAIR_ENERGY_SUM_LOW <= E_1 + E_2 <=
+     * PAIR_ENERGY_SUM_HIGH</code>.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -886,6 +977,7 @@ public final class TriggerModule {
     /**
      * Checks if the sum of the energies of the clusters making up a
      * cluster pair is below the energy sum upper bound threshold.
+     * This is defined as <code>E_1 + E_2 <= PAIR_ENERGY_SUM_HIGH</code>.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -897,6 +989,7 @@ public final class TriggerModule {
     /**
      * Checks if the sum of the energies of the clusters making up a
      * cluster pair is above the energy sum lower bound threshold.
+     * This is defined as <code>PAIR_ENERGY_SUM_LOW <= E_1 + E_2</code>.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -907,7 +1000,8 @@ public final class TriggerModule {
     
     /**
      * Checks if the absolute difference between the times between
-     * two clusters is below the time coincidence cut.
+     * two clusters is below the time coincidence cut. This is defined
+     * as <code>|t_1 - t_2| <= PAIR_TIME_COINCIDENCE</code>.
      * @param clusterPair - The cluster pair to check.
      * @return <code>true</code> if the energy sum passes
      * the cut and <code>false</code> if it does not.
@@ -918,7 +1012,8 @@ public final class TriggerModule {
     
     /**
      * Checks if the absolute difference between the times between
-     * two clusters is below the time coincidence cut.
+     * two clusters is below the time coincidence cut. This is defined
+     * as <code>|t_1 - t_2| <= PAIR_TIME_COINCIDENCE</code>.
      * @param clusterPair - The cluster pair to check.
      * @return <code>true</code> if the energy sum passes
      * the cut and <code>false</code> if it does not.
@@ -1018,9 +1113,8 @@ public final class TriggerModule {
      * Gets the mapped position used by the SSP for a specific crystal.
      * @param ix - The crystal x-index.
      * @param iy - The crystal y-index.
-     * @return Returns the crystal position as a <double</code> array
-     * where the coordinates are ordered from the lowest to highest
-     * index as x, y, z.
+     * @return Returns the crystal position as a <code>double</code>
+     * array of form { x, y, z }.
      * @throws IndexOutOfBoundsException Occurs if in either of the
      * cases where <code>ix == 0</code> or <code>|ix| > 23</code> for
      * the x-index and either of the cases where <code>iy == 0</code>
@@ -1034,9 +1128,13 @@ public final class TriggerModule {
 			throw new IndexOutOfBoundsException(String.format("Value \"%d\" is invalid for field y-index.", iy));
 		}
 		
-		// Return the mapped position.
-		if(ix < 1) { return position[5 - iy][22 - ix]; }
-		else { return position[5 - iy][23 - ix]; }
+		// Get the position map.
+		double posMap[];
+		if(ix < 1) { posMap = position[5 - iy][22 - ix]; }
+		else { posMap = position[5 - iy][23 - ix]; }
+		
+		// Return the corrected mapped position.
+		return new double[] { posMap[0], posMap[2], posMap[1] };
 	}
     
     /**
@@ -1047,11 +1145,11 @@ public final class TriggerModule {
      * second clusters' y-positions.
      * @return Returns the cluster pair's coplanarity.
      */
-    private static double getValueCoplanarity(double[] x, double z[]) {
+    private static double getValueCoplanarity(double[] x, double y[]) {
         // Get the cluster angles.
         int[] clusterAngle = new int[2];
         for(int i = 0; i < 2; i++) {
-        	clusterAngle[i] = (int) Math.round(Math.atan(x[i] / z[i]) * 180.0 / Math.PI);
+        	clusterAngle[i] = (int) Math.round(Math.atan(x[i] / y[i]) * 180.0 / Math.PI);
         }
         
         // Calculate the coplanarity cut value.
@@ -1098,7 +1196,7 @@ public final class TriggerModule {
      * energy slope equation E_low + R_min * F.
      * @return Returns the cut value.
      */
-    private static double getValueEnergySlope(double energy[], double x[], double z[], double energySlopeParamF) {
+    private static double getValueEnergySlope(double energy[], double x[], double y[], double energySlopeParamF) {
     	// Determine which cluster is the lower-energy cluster.
     	int lei = energy[0] < energy[1] ? 0 : 1;
     	
@@ -1107,7 +1205,7 @@ public final class TriggerModule {
         double slopeParamE = energy[lei];
         
         // Get the low energy cluster radial distance.
-        double slopeParamR = Math.sqrt((x[lei] * x[lei]) + (z[lei] * z[lei]));
+        double slopeParamR = Math.sqrt((x[lei] * x[lei]) + (y[lei] * y[lei]));
         
         // Calculate the energy slope.
         return slopeParamE + slopeParamR * energySlopeParamF;
@@ -1242,7 +1340,10 @@ public final class TriggerModule {
      * the hardware SSP position mappings for each crystal. Note that
      * ix in the array goes from -22 (representing ix = 23) up to 25
      * (representing ix = 23) and uses array index x = 0 as a valid
-     * parameter, while ix skips zero.
+     * parameter, while ix skips zero.<br/>
+     * <br/>
+     * Note that in this table, position[][] = { x, z, y } by in the
+     * coordinate system employed by the rest of the class.
      */
 	private static final double[][][] position = {
 		{	{ -340.003,   97.065,   87.845 }, { -324.283,   97.450,   87.875 }, { -308.648,   97.810,   87.900 },

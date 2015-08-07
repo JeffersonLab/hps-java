@@ -1,24 +1,36 @@
 package org.hps.recon.ecal.cluster;
 
 /**
- * Class <code>GTPClusterDriver</code> instantiates an instance of
- * the clustering algorithm framework for the Monte Carlo version
- * of the GTP algorithm. This version assumes that events are equal
- * to 2 ns beam bunches. The class also allows the seed energy threshold
- * and cluster window to be set as well as whether or not the algorithm
- * should employ an asymmetric time window and write out verbose debug
- * text.
+ * Class <code>GTPClusterDriver</code> is an implementation of the
+ * <code>ClusterDriver</code> class that defines employs the readout
+ * variant of the GTP hardware clustering algorithm. Specifics on the
+ * behavior of this algorithm can be found in its documentation.<br/>
+ * <br/>
+ * <code>GTPClusterDriver</code> allows for all of the variable settings
+ * used by the GTP algorithm to be defined. It also can be set to
+ * "verbose" mode, where it will output detailed information on each
+ * event and the cluster forming process. This is disabled by default,
+ * but can be enabled for debugging purposes.<br/>
+ * <br/>
+ * <code>GTPClusterDriver</code> is designed to read from Monte Carlo
+ * data organized into 2-ns beam bunches. It can not be used for hardware
+ * readout data, or Monte Carlo formatted in this style. For this data,
+ * the <code>GTPOnlineClusterer</code> should be employed instead.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @see GTPClusterer
  */
 public class GTPClusterDriver extends ClusterDriver {
-    // The GTP clustering algorithm.
+	/** An instance of the clustering algorithm object for producing
+	 * cluster objects. */
     private final GTPClusterer gtp;
     
     /**
-     * Instantiates a new <code>GTPClusterer</code>.
+     * Instantiates a new <code>GTPClusterer</code>, which will produce
+     * clusters using the GTP algorithm in the 2-ns beam bunch scheme.
+     * It will, by default, use a 50 MeV seed energy cut with +/- 2 a
+     * clock-cycle verification and inclusion window.
      */
     public GTPClusterDriver() {
         clusterer = ClustererFactory.create("GTPClusterer");
@@ -27,66 +39,77 @@ public class GTPClusterDriver extends ClusterDriver {
     }
     
     /**
-     * Sets whether hits should be added to a cluster from the entire
-     * cluster window or just the "future" hits, plus one clock-cycle
-     * of "past" hits as a safety buffer to account for time uncertainty.
-     * 
-     * @param limitClusterRange - <code>true</code> indicates that
-     * the asymmetric clustering window should be used and <code>
-     * false</code> that the symmetric window should be used.
+     * Sets whether the behavior of the hit inclusion window with respect
+     * to the hit verification window. If set to <code>false</code>,
+     * both windows will be identical in size. Otherwise, the inclusion
+     * window will be equal in size after the seed hit, but encompass
+     * only one clock-cycle before the seed hit. This should be replaced
+     * by the method <code>setAsymmetricWindow</code>.
+     * @param limitClusterRange - <code>true</code> indicates that the
+     * asymmetric window should be used and <code>false</code> that it
+     * should not.
      */
     @Deprecated
     public void setLimitClusterRange(boolean limitClusterRange) {
-        gtp.setLimitClusterRange(limitClusterRange);
+        gtp.setAsymmetricWindow(limitClusterRange);
     }
     
     /**
-     * Sets the number of clock-cycles (4 ns) before and after a hit
-     * in which the hit must be the maximum energy hit in its 3 x 3
-     * window in order to be considered a seed hit and form a cluster.
+     * Sets the size of the hit verification temporal window. Note
+     * that this defines the size of the window in one direction, so
+     * the full time window will be <code>(2 * clusterWindow) + 1</code>
+     * clock-cycles in length. (i.e., it will be a length of
+     * <code>clusterWindow</code> before the seed hit, a length of
+     * <code>clusterWindow</code> after the seed hit, plus the cycle
+     * that includes the seed hit.) Time length is in clock-cycles.
      * @param clusterWindow - The number of clock-cycles around the
-     * hit in one direction; i.e. a value of 1 indicates that the full
-     * window will include the current clock-cycle, plus one cycle both
-     * before and after the current cycle. This gives a total number
-     * of cycles equal to (2 * clusterWindow) + 1.
+     * hit in one direction.
      */
     public void setClusterWindow(int clusterWindow) {
         gtp.getCuts().setValue("clusterWindow", clusterWindow);
     }
     
     /**
-     * Sets the minimum energy needed for a seed hit to form a cluster.
-     * @param seedEnergyThreshold - The minimum seed energy in GeV.
+     * Sets the minimum seed energy needed for a hit to be considered
+     * for forming a cluster. This is the seed energy lower bound trigger
+     * cut and is in units of GeV.
+     * @param seedEnergyThreshold - The minimum cluster seed energy in
+     * GeV.
      */
     public void setSeedEnergyThreshold(double seedEnergyThreshold) {
         gtp.getCuts().setValue("seedEnergyThreshold", seedEnergyThreshold);
     }
     
     /**
-     * Sets whether the clustering algorithm should use an asymmetric
-     * clustering window. The asymmetric window will include hits in
-     * a cluster that are present within the full time window ahead of
-     * the seed hit, but only one clock-cycle behind it. This is to
-     * allow for variation in hit timing with respect to the seed due
-     * to jitter in the hardware.
+     * Sets whether the behavior of the hit inclusion window with respect
+     * to the hit verification window. If set to <code>false</code>,
+     * both windows will be identical in size. Otherwise, the inclusion
+     * window will be equal in size after the seed hit, but encompass
+     * only one clock-cycle before the seed hit.
      * @param asymmetricWindow - <code>true</code> indicates that the
      * asymmetric window should be used and <code>false</code> that it
      * should not.
      */
     public void setAsymmetricWindow(boolean asymmetricWindow) {
-        gtp.setLimitClusterRange(asymmetricWindow);
+        gtp.setAsymmetricWindow(asymmetricWindow);
     }
     
     /**
      * Sets whether the clustering algorithm should output diagnostic
      * text or not.
-     * @param verbose <code>true</code> indicates that the driver should
+     * @param verbose - <code>true</code> indicates that the driver should
      * output diagnostic text and <code>false</code> that it should not.
      */
     public void setVerbose(boolean verbose) {
         gtp.setVerbose(verbose);
     }
     
+    /**
+     * Defines whether the output of this clusterer should be persisted
+     * to LCIO or not. By default, this 
+     * @param state - <code>true</code> indicates that clusters will
+     * be persisted, and <code>false</code> that they will not.
+     */
     @Override
     public void setWriteClusterCollection(boolean state) {
     	// Set the flag as appropriate with the superclass.

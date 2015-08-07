@@ -7,7 +7,14 @@ import org.lcsim.util.log.LogUtil;
 
 /**
  * Class <code>SSPCluster</code> stores all of the information on 
- * clusters that is reported by the SSP.
+ * clusters that is reported by the SSP. SSP clusters store:
+ * <ul><li>Cluster center x-index</li>
+ * <li>Cluster center y-index</li>
+ * <li>Cluster total energy</li>
+ * <li>Cluster hit count</li>
+ * <li>Cluster time</li></ul>
+ * <code>SSPCluster</code> does not support the ability to track
+ * individual hits that are part of a cluster.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */

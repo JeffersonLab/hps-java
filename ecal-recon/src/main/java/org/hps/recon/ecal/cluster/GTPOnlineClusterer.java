@@ -16,74 +16,115 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Class <code>GTPOnlineClusterer</code> is an implementation of the
- * GTP clustering algorithm for EVIO readout data for use in either
- * online reconstruction/diagnostics or for general analysis of EVIO
- * readout data.<br/>
+ * abstract class <code>AbstractClusterer</code> that is responsible
+ * for producing clusters using the GTP algorithm employed by the
+ * hardware.<br/>
  * <br/>
- * The GTP algorithm searches the set of hits in a readout event and
- * compares them to select those that are a maximum in their 3x3 window
- * and across a period of time that can be set. Hits that are maxima
- * are declared "cluster seeds" and a cluster is created from them.
- * All hits within the clustering window of the seed time are then
- * added to the cluster and it is written to the event stream.<br/>
+ * The GTP algorithm produces clusters by finding hits representing
+ * local spatiotemporal energy maxima and forming a cluster from the
+ * hits within the aforementioned spatiotemporal window. A given hit
+ * is first checked to see if it exceeds some minimum energy threshold
+ * (referred to as the "seed energy threshold"). If this is the case,
+ * the algorithm looks at all hits that occurred in the same crystal as
+ * the comparison hit, or any crystal directly adjacent to it, within
+ * a programmable time window. If the hit exceeds all hits meeting these
+ * criteria in energy, the hit is considered the “seed hit” of a cluster.
+ * Then, all hits within the 3x3 spatial window which occur in the time
+ * window are added to a <code>Cluster</code> object.<br/>
  * <br/>
- * The GTP algorithm uses three time windows. THe verification window
- * is the time around the seed hit in which it is required to have more
- * energy than any other hits in the 3x3 spatial window surrounding it.
- * This is always symmetric. The other two windows combined define the
- * clustering window. The clustering window is composed of a window
- * before and a window after the seed time. These may be defined using
- * different values. The window after should be as long or longer than
- * the window before to make physical sense. The verification window is
- * then defined as the larger of the two constituents of the clustering
- * window. This is required for clustering to be consistent.
+ * Note that the algorithm employs two distinct temporal windows. The
+ * first is the “verification” window. This is used to check that the
+ * potential seed hit is a local maximum in energy, and is required to
+ * be symmetric (i.e. as long before the seed time as after it) to ensure
+ * consistency. The second temporal window is the “inclusion” window,
+ * which determines which hits are included in the cluster. The inclusion
+ * window can be asymmetric, but can not exceed the verification window
+ * in length. As an example, one could choose a 12 ns verification window,
+ * meaning that the algorithm would 12 ns before and after the seed hit
+ * to check that it has the highest energy, but use a 4 ns/12 ns inclusion
+ * window, meaning that the algorithm would only include hits in 3x3
+ * spatial window up to 4 ns before and up to 12 ns after the seed hit
+ * in the cluster. Due to the way the hardware processes hits, the higher
+ * energy parts of a cluster always occur first in time, so it is not
+ * necessarily desirable to include hits significantly before the seed.
+ * It is however, necessary to verify a hit’s status as a maximum across
+ * the full time window to ensure consistency in cluster formation.
+ * <code>GTPOnlineClusterer</code> automatically selects the larger of
+ * the two inclusion window parts as the verification window length.<br/>
+ * <br/>
+ * <code>GTPOnlineClusterer</code> requires as input a collection of
+ * <code>CalorimeterHit</code> objects representing the event hits. It
+ * will then produce a collection of <code>Cluster</code> objects
+ * representing the GTP algorithm output. It also produces a series of
+ * distribution plots under the “GTP(O) Cluster Plots” header. It is
+ * designed to be run on readout events, either from the hardware or
+ * Monte Carlo that has been processed through the readout simulation.
+ * If the input data is formatted into constant-time beam bunches, the
+ * sister class <code>GTPClusterer</code> should be used instead.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
+ * @see Cluster
+ * @see CalorimeterHit
+ * @see AbstractClusterer
+ * @see GTPClusterer
  */
 public class GTPOnlineClusterer extends AbstractClusterer {
-    
-    // The size of the temporal window in nanoseconds. By default,
-    // this is 1 clock-cycle before and 3 clock-cycles after.
+	/**
+	 * The length of the temporal window for inclusing clusters that
+	 * occur before the seed hit.
+	 */
     private double timeBefore = 4;
+    
+    /**
+     * The length of the temporal window for including clusters that
+     * occur after the seed hit.
+     */
     private double timeAfter = 12;
+    
+    /**
+     * The length of the temporal window for verifying that a hit is
+     * a local maximum in energy. This length represents both halves
+     * of the verification window, so the full length would be defined
+     * by <code>timeWindow * 2 + 4</code> ns.
+     */
     private double timeWindow = 12;
-
-    // Cluster formation energy thresholds. Currently, the hardware
-    // only supports a lower bound seed energy. Units are in GeV.
+    
+    /**
+     * The minimum energy a hit must have to be considered for cluster
+     * seed formation. Units are in GeV.
+     */
     private double seedThreshold = 0.050;
     
-    // Internal variables.
+    /**
+     * Controls whether or not verbose diagnostic information is output.
+     */
     private boolean verbose = false;
     
     // Diagnostic plots.
     private AIDA aida = AIDA.defaultInstance();
-    IHistogram1D hitEnergy = aida.histogram1D("GTP(O) Cluster Plots :: Hit Energy Distribution", 256, -1.0, 2.2);
-    IHistogram1D clusterSeedEnergy = aida.histogram1D("GTP(O) Cluster Plots :: Cluster Seed Energy Distribution", 176, 0.0, 2.2);
-    IHistogram1D clusterHitCount = aida.histogram1D("GTP(O) Cluster Plots :: Cluster Hit Count Distribution", 9, 1, 10);
-    IHistogram1D clusterTotalEnergy = aida.histogram1D("GTP(O) Cluster Plots :: Cluster Total Energy Distribution", 176, 0.0, 2.2);
-    IHistogram2D hitDistribution = aida.histogram2D("GTP(O) Cluster Plots :: Hit Distribution", 46, -23, 23, 11, -5.5, 5.5);
-    IHistogram2D clusterDistribution = aida.histogram2D("GTP(O) Cluster Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
-    IHistogram1D energyDistribution = aida.histogram1D("GTP(O) Cluster Plots :: Percent Negative Energy Distribution", 100, 0.0, 1.0);
+    private IHistogram1D hitEnergy = aida.histogram1D("GTP(O) Cluster Plot/Hit Energy Distribution", 256, -1.0, 2.2);
+    private IHistogram1D clusterSeedEnergy = aida.histogram1D("GTP(O) Cluster Plots/Cluster Seed Energy Distribution", 176, 0.0, 2.2);
+    private IHistogram1D clusterHitCount = aida.histogram1D("GTP(O) Cluster Plots/Cluster Hit Count Distribution", 9, 1, 10);
+    private IHistogram1D clusterTotalEnergy = aida.histogram1D("GTP(O) Cluster Plots/Cluster Total Energy Distribution", 176, 0.0, 2.2);
+    private IHistogram2D hitDistribution = aida.histogram2D("GTP(O) Cluster Plots/Hit Distribution", 46, -23, 23, 11, -5.5, 5.5);
+    private IHistogram2D clusterDistribution = aida.histogram2D("GTP(O) Cluster Plots/Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
+    private IHistogram1D energyDistribution = aida.histogram1D("GTP(O) Cluster Plots/Percent Negative Energy Distribution", 100, 0.0, 1.0);
     
     /**
      * Instantiates a new instance of a readout GTP clustering algorithm.
+     * This will use the default seed energy threshold of 50 MeV.
      */
     GTPOnlineClusterer() {
         super(new String[] { "seedThreshold" }, new double[] { 0.050 });
     }
     
     /**
-     * Gets any relevant cuts from the superclass and sets the local
-     * clusterer variables accordingly. 
-     */
-    public void initialize() {
-        seedThreshold = getCuts().getValue("seedThreshold");
-    }
-    
-    /**
-     * Reads in hits and processes them into clusters as per the GTP
-     * clustering algorithm implemented in the hardware.
+     * Processes the argument <code>CalorimeterHit</code> collection and
+     * forms a collection of <code>Cluster</code> objects according to
+     * the GTP clustering algorithm.
      * @param event - The object containing event data.
+     * @param hitList - A list of <code>CalorimeterHit</code> objects
+     * from which clusters should be formed.
      */
     @Override
     public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hitList) {
@@ -95,6 +136,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     		System.out.println("=== GTP Readout Clusterer ============================================");
     		System.out.println("======================================================================");
     		
+    		// Sort the hits by x-index and then by y-index.
         	Collections.sort(hitList, new Comparator<CalorimeterHit>() {
 				@Override
 				public int compare(CalorimeterHit firstHit, CalorimeterHit secondHit) {
@@ -106,6 +148,8 @@ public class GTPOnlineClusterer extends AbstractClusterer {
 					}
 				}
         	});
+        	
+        	// Print the hit collection.
         	System.out.println("Event Hit Collection:");
             for(CalorimeterHit hit : hitList) {
                 int ix = hit.getIdentifierFieldValue("ix");
@@ -155,7 +199,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 protoCluster.setPosition(seed.getDetectorElement().getGeometry().getPosition().v());
                 protoCluster.setNeedsPropertyCalculation(false);
                 
-                // Iterate over the other hits and if the are within
+                // Iterate over the other hits and if they are within
                 // the clustering spatiotemporal window, compare their
                 // energies.
                 hitLoop:
@@ -217,16 +261,18 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         
         // VERBOSE :: Print out all the clusters in the event.
         if(verbose) {
+        	// Print the clusters.
         	System.out.println("Event Cluster Collection:");
             for(Cluster cluster : clusterList) {
+            	// Output basic cluster positional and energy data.
                 CalorimeterHit seedHit = cluster.getCalorimeterHits().get(0);
                 int ix = seedHit.getIdentifierFieldValue("ix");
                 int iy = seedHit.getIdentifierFieldValue("iy");
                 double energy = cluster.getEnergy();
                 double time = seedHit.getTime();
-                
                 System.out.printf("\tCluster --> %6.3f GeV at (%3d, %3d) and at t = %.2f%n", energy, ix, iy, time);
                 
+                // Output the cluster hit collection.
                 for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
                     int hix = hit.getIdentifierFieldValue("ix");
                     int hiy = hit.getIdentifierFieldValue("iy");
@@ -241,16 +287,125 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         // VERBOSE :: Print a new line.
         if(verbose) { System.out.println(); }
         
+        // Return the list of clusters.
         return clusterList;
     }
     
     /**
-     * Checks whether the hit <code>hit</code> keeps the hit <code>seed
-     * </code> from meeting the criteria for being a seed hit. Note that
-     * this does not check to see if the two hits are within the valid
-     * spatiotemporal window of one another.
+     * Gets the type of cluster produced by this clusterer.
+     * @return Returns the cluster type as a <code>ClusterType</code>
+     * enumerable.
+     */
+    @Override
+    public ClusterType getClusterType() {
+        return ClusterType.GTP_ONLINE;
+    }
+    
+    /**
+     * Gets the seed energy lower bound threshold in units of GeV.
+     * @return Returns the threshold as a <code>double</code>.
+     */
+    public double getSeedLowThreshold() { return seedThreshold; }
+    
+    /**
+     * Gets the number of nanoseconds before the seed hit time that
+     * the clusterer will look to include hits when a cluster is formed.
+     * @return Returns the time window as a <code>double</code>.
+     */
+    public double getWindowBefore() { return timeBefore; }
+    
+    /**
+     * Gets the number of nanoseconds after the seed hit time that
+     * the clusterer will look to include hits when a cluster is formed.
+     * @return Returns the time window as a <code>double</code>.
+     */
+    public double getWindowAfter() { return timeAfter; }
+    
+    /**
+     * Sets up the clusterer parameters so that it is ready to be used.
+     * This should be run before the cluster formation.
+     */
+    @Override
+    public void initialize() {
+        seedThreshold = getCuts().getValue("seedThreshold");
+    }
+    
+    /**
+     * Returns whether the clusterer will output verbose diagnostic
+     * information.
+     * @return Returns <code>true</code> if the clusterer will output
+     * diagnostic information and <code>false</code> otherwise.
+     */
+    boolean isVerbose() { return verbose; }
+    
+    /**
+     * Sets the minimum energy a hit must have before it will be
+     * considered for cluster formation.
+     * @param seedThreshold - The seed threshold in GeV.
+     */
+    void setSeedLowThreshold(double seedThreshold) {
+        this.seedThreshold = seedThreshold;
+    }
+    
+    /**
+     * Sets whether the clusterer should output diagnostic text or not.
+     * @param verbose - <code>true</code> indicates that the clusterer
+     * should output diagnostic text and <code>false</code> that it
+     * should not.
+     */
+    void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+    
+    /**
+     * Sets the number of clock-cycles to include in the clustering
+     * window before the seed hit. One clock-cycle is four nanoseconds.
+     * Note that the larger of this time and the time defined in method
+     * <code>setWindowAfter</code> will be the verification window size.
+     * @param cyclesBefore - The length of the clustering window before
+     * the seed hit in clock cycles.
+     */
+    void setWindowBefore(int cyclesBefore) {
+    	// The cluster window can not be negative.
+    	if(cyclesBefore < 0) { cyclesBefore = 0; }
+    	
+    	// Convert the window to nanoseconds and set the two time
+    	// windows appropriately.
+        timeBefore = cyclesBefore * 4;
+        timeWindow = Math.max(timeBefore, timeAfter);
+    }
+    
+    /**
+     * Sets the number of clock-cycles to include in the clustering
+     * window after the seed hit. One clock-cycle is four nanoseconds.
+     * Note that the larger of this time and the time defined in method
+     * <code>setWindowBefore</code> will be the verification window size.
+     * @param cyclesAfter - The length of the clustering window after
+     * the seed hit in clock cycles.
+     */
+    void setWindowAfter(int cyclesAfter) {
+    	// The cluster window can not be negative.
+    	if(cyclesAfter < 0) { cyclesAfter = 0; }
+    	
+    	// Convert the window to nanoseconds and set the two time
+    	// windows appropriately.
+        timeAfter = cyclesAfter * 4;
+        timeWindow = Math.max(timeBefore, timeAfter);
+    }
+    
+    /**
+     * Compares the argument <code>CalorimeterHit</code> <code>hit</code>
+     * against the <code>CalorimeterHit</code> <code>seed</code> to see
+     * if <code>seed</code> meets the criteria for a seed hit given the
+     * presence of <code>hit</code>, which is assumed to be located in
+     * the appropriate spatiotemporal window.<br/>
+     * <br/>
+     * Note that it is the responsibility of the calling method to
+     * ascertain whether the two <code>CalorimeterHit</code> objects
+     * are actually within the proper spatial and temporal windows of
+     * one another.
      * @param seed - The potential seed hit.
-     * @param hit - The hit to compare with the seed.
+     * @param hit - The hit with which to compare the seed.
      * @return Returns <code>true</code> if either the two hits are the
      * same hit or if the hit does not invalidate the potential seed.
      * Returns <code>false</code> otherwise.
@@ -303,10 +458,12 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     }
     
     /**
-     * Checks whether the hit <code>hit</code> falls within the spatial
-     * window of the hit <code>Seed</code>. This is defined as within
-     * 1 index of the seed's x-index and similarly for the seed's
-     * y-index. 
+     * Checks whether the <code>CalorimeterHit</code> <code>hit</code>
+     * is within the 3x3 spatial window of <code>CalorimeterHit</code>
+     * <code>seed</code>. This is defined as <code>seed</code> having
+     * an x-index within +/-1 of the x-index of <code>hit</code> and
+     * similarly for the y-index. Allowance is made for the fact that
+     * the x-indices go from -1 to 1 and skip zero.
      * @param seed - The seed hit.
      * @param hit - The comparison hit.
      * @return Returns <code>true</code> if either both hits are the
@@ -353,9 +510,9 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     }
     
     /**
-     * Checks whether the hit <code>hit</code> is within the temporal
-     * window of the hit <code>seed</code> for the purpose of seed
-     * verification.
+     * Checks whether <code>CalorimeterHit</code> <code>hit</code> is
+     * within the verification temporal window for potential seed hit
+     * <code>seed</code>.
      * @param seed - The seed hit.
      * @param hit - The comparison hit.
      * @return Returns <code>true</code> if the comparison hit is within
@@ -373,9 +530,9 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     }
     
     /**
-     * Checks whether the hit <code>hit</code> is within the temporal
-     * window of the hit <code>seed</code> for the purpose of adding
-     * a hit to a cluster.
+     * Checks whether <code>CalorimeterHit</code> <code>hit</code> is
+     * within the inclusion temporal window for potential seed hit
+     * <code>seed</code>.
      * @param seed - The seed hit.
      * @param hit - The comparison hit.
      * @return Returns <code>true</code> if the comparison hit is within
@@ -397,87 +554,11 @@ public class GTPOnlineClusterer extends AbstractClusterer {
             return (hitTime - seedTime) <= timeAfter;
         }
         
-        // If the times are the same, the are within the window.
+        // If the times are the same, they are within the window.
         if(hitTime == seedTime) { return true; }
         
         // Otherwise, one or both times is undefined and should not be
         // treated as within time.
         else { return false; }
-    }
-    
-    /**
-     * Gets the seed energy lower bound threshold in units of GeV.
-     * @return Returns the seed energy lower bound threshold.
-     */
-    public double getSeedLowThreshold() { return seedThreshold; }
-    
-    /**
-     * Gets the number of nanoseconds before the seed hit time the
-     * clusterer will look to verify the seed hit.
-     * @return Returns the size of the time window before the seed
-     * hit time.
-     */
-    public double getWindowBefore() { return timeBefore; }
-    
-    /**
-     * Gets the number of nanoseconds after the seed hit time the
-     * clusterer will look to verify the seed hit.
-     * @return Returns the size of the time window after the seed
-     * hit time.
-     */
-    public double getWindowAfter() { return timeAfter; }
-    
-    /**
-     * Returns whether the clusterer will output verbose diagnostic
-     * information.
-     * @return Returns <code>true</code> if the clusterer will output
-     * diagnostic information and <code>false</code> otherwise.
-     */
-    public boolean isVerbose() { return verbose; }
-    
-    /**
-     * Sets the minimum energy a hit must have before it will be
-     * considered for cluster formation.
-     * @param seedThreshold - The seed threshold in GeV.
-     */
-    public void setSeedLowThreshold(double seedThreshold) {
-        this.seedThreshold = seedThreshold;
-    }
-    
-    /**
-     * Sets the number of clock-cycles to include in the clustering
-     * window before the seed hit. One clock-cycle is four nanoseconds.
-     * @param cyclesBefore - The length of the clustering window before
-     * the seed hit in clock cycles.
-     */
-    public void setWindowBefore(int cyclesBefore) {
-        timeBefore = cyclesBefore * 4;
-        timeWindow = Math.max(timeBefore, timeAfter);
-    }
-    
-    /**
-     * Sets the number of clock-cycles to include in the clustering
-     * window after the seed hit. One clock-cycle is four nanoseconds.
-     * @param cyclesAfter - The length of the clustering window after
-     * the seed hit in clock cycles.
-     */
-    public void setWindowAfter(int cyclesAfter) {
-        timeAfter = cyclesAfter * 4;
-        timeWindow = Math.max(timeBefore, timeAfter);
-    }
-    
-    /**
-     * Sets whether the clusterer should output diagnostic text or not.
-     * @param verbose - <code>true</code> indicates that the clusterer
-     * should output diagnostic text and <code>false</code> that it
-     * should not.
-     */
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
-    
-    @Override
-    public ClusterType getClusterType() {
-        return ClusterType.GTP_ONLINE;
     }
 }

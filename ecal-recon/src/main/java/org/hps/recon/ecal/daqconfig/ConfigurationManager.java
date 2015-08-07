@@ -10,7 +10,7 @@ import java.util.List;
  * the DAQ configuration that can be parsed from EVIO files. It works
  * in conjunction with the <code>DAQConfigDriver</code>, which obtains
  * the configuration parser object when available and passes it to this
- * manager, and <code>TriggerConfig</code>, which parses the EVIO data.
+ * manager, and <code>EvioDAQParser</code>, which parses the EVIO data.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  * @see DAQConfigDriver
