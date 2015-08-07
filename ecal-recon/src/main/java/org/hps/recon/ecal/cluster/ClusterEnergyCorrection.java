@@ -15,19 +15,21 @@ import org.lcsim.event.base.BaseCluster;
 public final class ClusterEnergyCorrection {
         
     // Variables for electron energy corrections.
-    static final double ELECTRON_ENERGY_A = -0.0027;
-    static final double ELECTRON_ENERGY_B = -0.06;
-    static final double ELECTRON_ENERGY_C = 0.95;
+    //Updated with recent monte carlo --7AUG15 HS. 
+    //Old values from 2014-2015 commented out to right.
+    static final double ELECTRON_ENERGY_A = 0.01004;//-0.0027;
+    static final double ELECTRON_ENERGY_B = -0.122;//-0.06;
+    static final double ELECTRON_ENERGY_C = 0.9646;//0.95;
     
     // Variables for positron energy corrections.
-    static final double POSITRON_ENERGY_A = -0.0096;
-    static final double POSITRON_ENERGY_B = -0.042;
-    static final double POSITRON_ENERGY_C = 0.94;
+    static final double POSITRON_ENERGY_A = 0.00711;//-0.0096;
+    static final double POSITRON_ENERGY_B = -0.1154;//-0.042;
+    static final double POSITRON_ENERGY_C = 0.9614;//0.94;
     
     // Variables for photon energy corrections.
-    static final double PHOTON_ENERGY_A = 0.0015;
-    static final double PHOTON_ENERGY_B = -0.047;
-    static final double PHOTON_ENERGY_C = 0.94;
+    static final double PHOTON_ENERGY_A = 0.007595;//0.0015;
+    static final double PHOTON_ENERGY_B = -0.09766;//-0.047;
+    static final double PHOTON_ENERGY_C = 0.9512;//0.94;
           
     /**
      * Calculate the corrected energy for the cluster.
