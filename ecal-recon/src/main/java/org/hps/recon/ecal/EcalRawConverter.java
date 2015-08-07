@@ -498,6 +498,15 @@ public class EcalRawConverter {
                 time = EcalTimeWalk.correctTimeWalk(time,energy);
             }
             
+            // do time-walk correction, pulse-fitting only:
+            if (useFit && fitQuality>0 && useTimeWalkCorrection && mode7) {
+                time = EcalTimeWalk.correctTimeWalkPulseFitting(time,energy);
+
+            }
+          
+            time -= findChannel(cellID).getTimeShift().getTimeShift();
+
+            
             newHits.add(CalorimeterHitUtilities.create(energy,time,cellID));
         }
         
