@@ -48,7 +48,7 @@ public class EcalSimReconTest extends TestCase {
     /**
      * Expected mean of high cluster energy in GeV.
      */
-    private static final double HIGH_CLUS_MEAN_E = 1.00;
+    private static final double HIGH_CLUS_MEAN_E = 1.05;
     
     /**
      * Acceptable delta of high cluster mean energy in GeV.
