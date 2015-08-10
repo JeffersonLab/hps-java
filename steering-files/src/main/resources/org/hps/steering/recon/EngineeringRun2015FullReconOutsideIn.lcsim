@@ -17,7 +17,7 @@
         <driver name="GTPOnlineClusterer" />
         <driver name="ReconParticle" />  
         <driver name="TrackDataDriver" />              
-        <!--<driver name="GBLDriver"/>--> 
+        <driver name="GBLDriver"/> 
         <driver name="LCIOWriter"/>
 
         <driver name="CleanupDriver"/>
