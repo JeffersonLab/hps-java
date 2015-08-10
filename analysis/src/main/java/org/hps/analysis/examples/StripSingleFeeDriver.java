@@ -20,6 +20,7 @@ import org.lcsim.util.Driver;
 public class StripSingleFeeDriver extends Driver
 {
 
+    private boolean _writeRunAndEventNumbers = false;
     private double _energyCut = 0.85;
     private int _nHitsOnTrack = 6;
     private int _nReconstructedParticles = 1;
@@ -50,6 +51,10 @@ public class StripSingleFeeDriver extends Driver
         if (skipEvent) {
             throw new Driver.NextEventException();
         } else {
+            if(_writeRunAndEventNumbers)
+            {
+                System.out.println(event.getRunNumber()+" "+event.getEventNumber());
+            }
             _numberOfEventsWritten++;
         }
     }
@@ -81,6 +86,15 @@ public class StripSingleFeeDriver extends Driver
     public void setNumberOfReconstructedParticles(int cut)
     {
       _nReconstructedParticles = cut;  
+    }
+    
+    /**
+     * Write out run and event numbers of events passing the cuts if desired
+     * @param b
+     */
+    public void setWriteRunAndEventNumbers(boolean b)
+    {
+        _writeRunAndEventNumbers = b;
     }
 
     @Override
