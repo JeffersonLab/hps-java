@@ -47,6 +47,8 @@ public class EcalRawConverterDriver extends Driver {
         converter = new EcalRawConverter();
     }
 
+    public void setGainFile(String filename) { converter.gainFileName=filename; }
+    
     /*
      * Set to <code>true</code> to use pulse fitting instead of arithmetic integration:<br/>
      */

@@ -4,7 +4,11 @@ import hep.aida.IFitResult;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -51,6 +55,42 @@ import org.lcsim.geometry.Detector;
  */
 public class EcalRawConverter {
 
+	private Map<Integer,Double> gainFileGains = new HashMap<Integer,Double>();
+	public String gainFileName = null;
+
+	private void readGainFile() {
+		gainFileGains.clear();
+		System.out.println("Reading ECal Gains from:  "+gainFileName);
+		File file = new File(gainFileName);
+		try {
+			FileReader reader = new FileReader(file);
+			char[] chars = new char[(int) file.length()];
+			reader.read(chars);
+			String content = new String(chars);
+			reader.close();
+			String lines[]=content.split("\n");
+			int nlines = 0;
+			for (String line : lines) {
+				String columns[] = line.split(" ");
+				if (nlines++ > 0) {
+					final int channelid = Integer.valueOf(columns[0]);
+					final double gain = Double.valueOf(columns[1]);
+					if (gainFileGains.containsKey(channelid)) {
+						System.err.println("Duplicate Entries in ECal Gain File.");
+						System.exit(2);
+					}
+					gainFileGains.put(channelid,gain);
+				}
+			}
+			if (nlines != 442+1) {
+				System.err.println("Invalid Gain File.");
+				System.exit(3);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
     private boolean useTimeWalkCorrection = false;
     private boolean useRunningPedestal = false;
     private boolean constantGain = false;
@@ -574,7 +614,12 @@ public class EcalRawConverter {
         if(useDAQConfig) {
         	//float gain = ConfigurationManager.getInstance().getFADCConfig().getGain(ecalConditions.getChannelCollection().findGeometric(cellID));
         	return config.getGain(cellID) * adcSum * EcalUtils.MeV;
-        }  else if(use2014Gain) {
+        }
+        else if (gainFileName!=null) {
+            //System.err.println(findChannelId(cellID)+" "+gainFileGains.get(findChannelId(cellID)));
+            return gainFileGains.get(findChannelId(cellID)) * adcSum * EcalUtils.MeV; //gain is defined as MeV/integrated ADC
+        }
+        else if(use2014Gain) {
             if (constantGain) {
                 return adcSum * EcalUtils.gainFactor * EcalUtils.ecalReadoutPeriod;
             } else {
@@ -598,6 +643,7 @@ public class EcalRawConverter {
         // ECAL combined conditions object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         pulseFitter.setDetector(detector);
+        if (gainFileName != null) readGainFile();
     }
 
     /**
@@ -608,6 +654,9 @@ public class EcalRawConverter {
      */
     public EcalChannelConstants findChannel(long cellID) {
         return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
+    }
+    public Integer findChannelId(long cellID) {
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getChannelId();
     }
     
 }
