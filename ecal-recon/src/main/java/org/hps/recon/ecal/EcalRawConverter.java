@@ -529,6 +529,7 @@ public class EcalRawConverter {
         if (useTimeWalkCorrection) {
            time = EcalTimeWalk.correctTimeWalk(time,rawEnergy);
         }
+        time -= findChannel(hit.getCellID()).getTimeShift().getTimeShift();
         return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
     }
 
@@ -540,7 +541,8 @@ public class EcalRawConverter {
         long id = hit.getCellID();
         double pedestal = getPulsePedestal(event,id,windowSamples,(int)time/nsPerSample);
         double adcSum = hit.getAmplitude() - pedestal;
-        double rawEnergy = adcToEnergy(adcSum, id);        
+        double rawEnergy = adcToEnergy(adcSum, id);       
+        time -= findChannel(hit.getCellID()).getTimeShift().getTimeShift();
         return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
     }
 
@@ -560,6 +562,7 @@ public class EcalRawConverter {
         } else {
             amplitude = (int) Math.round((hit.getRawEnergy() / EcalUtils.MeV) / channelData.getGain().getGain() + pedestal);
         }
+        time += findChannel(id).getTimeShift().getTimeShift();
         RawCalorimeterHit h = new BaseRawCalorimeterHit(id, amplitude, time);
         return h;
     }
