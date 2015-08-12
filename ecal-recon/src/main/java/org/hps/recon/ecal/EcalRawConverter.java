@@ -188,6 +188,7 @@ public class EcalRawConverter {
 			}
     	});
     }
+    
   
     public void setUseFit(boolean useFit) { this.useFit=useFit; }
     public void setFixShapeParameter(boolean fix) { pulseFitter.fixShapeParameter=fix; }
