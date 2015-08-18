@@ -117,7 +117,7 @@ public void startOfData(){
 } 
     @Override
     public void process (EventHeader event){
-        
+        /*
           if (event.hasCollection(GenericObject.class, "TriggerBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
             for (GenericObject data : triggerList)
@@ -129,7 +129,7 @@ public void startOfData(){
                 }
         } else //if (debug)
             System.out.println(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
-  
+      */
         
         //here it writes the GTP clusters info
         if(event.hasCollection(Cluster.class,"EcalClustersGTP"))
