@@ -14,7 +14,6 @@ import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsEvioProcessor;
 import org.hps.record.evio.EvioEventUtilities;
 import org.hps.record.scalers.ScalerData;
-import org.hps.record.scalers.ScalerParameters;
 import org.hps.record.scalers.ScalersEvioProcessor;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
@@ -23,15 +22,13 @@ import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * This is the {@link org.hps.record.LCSimEventBuilder} implementation for the
- * Engineering Run and the Commissioning Run for converting EVIO to LCIO events.
+ * This is the {@link org.hps.record.LCSimEventBuilder} implementation for the Engineering Run and the Commissioning Run
+ * for converting EVIO to LCIO events.
  * <p>
- * It has several modifications from the Test Run builder including different
- * values for certain bank tags.
+ * It has several modifications from the Test Run builder including different values for certain bank tags.
  * <p>
- * Additionally, this builder will write DAQ config information, EPICS control
- * data, and scalar bank data into the output LCSim events if these banks are
- * present in the EVIO data.
+ * Additionally, this builder will write DAQ config information, EPICS control data, and scalar bank data into the
+ * output LCSim events if these banks are present in the EVIO data.
  *
  * @author Sho Uemura, SLAC
  * @author Jeremy McCormick, SLAC
@@ -50,19 +47,9 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     private final EpicsEvioProcessor epicsProcessor = new EpicsEvioProcessor();
 
     /**
-     * Scaler parameters for lcsim event parameters.
-     */
-    private ScalerParameters scalerParameters = new ScalerParameters();
-
-    /**
      * EVIO processor for extracting scaler data.
      */
     private final ScalersEvioProcessor scalerProcessor = new ScalersEvioProcessor();
-
-    /**
-     * Reads trigger config.
-     */
-    private TriggerConfigEvioReader triggerConfigReader = null;
 
     /**
      * Writes event flags describing the SVT state.
@@ -70,10 +57,14 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     private final SvtEventFlagger svtEventFlagger;
 
     /**
+     * Reads trigger config.
+     */
+    private TriggerConfigEvioReader triggerConfigReader = null;
+
+    /**
      * Class constructor.
      */
     public LCSimEngRunEventBuilder() {
-        // FIXME: Is this the best place for doing all this stuff???
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
         ecalReader.setRfBankTag(0x2e);
@@ -81,13 +72,19 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         sspCrateBankTag = 0x2E; // A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
         intBanks = new ArrayList<IntBankDefinition>();
-        intBanks.add(new IntBankDefinition(SSPData.class, new int[]{sspCrateBankTag, sspBankTag}));
-        intBanks.add(new IntBankDefinition(TIData.class, new int[]{sspCrateBankTag, 0xe10a}));
-        intBanks.add(new IntBankDefinition(HeadBankData.class, new int[]{sspCrateBankTag, 0xe10f}));
-        intBanks.add(new IntBankDefinition(TDCData.class, new int[]{0x3a, 0xe107}));
+        intBanks.add(new IntBankDefinition(SSPData.class, new int[] {sspCrateBankTag, sspBankTag}));
+        intBanks.add(new IntBankDefinition(TIData.class, new int[] {sspCrateBankTag, 0xe10a}));
+        intBanks.add(new IntBankDefinition(HeadBankData.class, new int[] {sspCrateBankTag, 0xe10f}));
+        intBanks.add(new IntBankDefinition(TDCData.class, new int[] {0x3a, 0xe107}));
         // ecalReader = new ECalEvioReader(0x25, 0x27);
         triggerConfigReader = new TriggerConfigEvioReader();
         svtEventFlagger = new SvtEventFlagger();
+    }
+
+    @Override
+    public void conditionsChanged(final ConditionsEvent conditionsEvent) {
+        super.conditionsChanged(conditionsEvent);
+        svtEventFlagger.initialize();
     }
 
     /**
@@ -148,9 +145,6 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Write scalers into the event, if they exist in the EVIO data.
         this.writeScalerData(evioEvent, lcsimEvent);
 
-        // Write out current ScalerParameters to event header.
-        this.scalerParameters.write(lcsimEvent);
-
         this.svtEventFlagger.writeFlags(lcsimEvent);
 
         return lcsimEvent;
@@ -180,7 +174,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     private void writeEpicsData(final EventHeader lcsimEvent) {
 
         // Get EpicsData from processor that was already activated (usually it is null).
-        EpicsData epicsData = epicsProcessor.getEpicsData();
+        final EpicsData epicsData = epicsProcessor.getEpicsData();
 
         // Was new EpicsData created?
         if (epicsData != null) {
@@ -188,9 +182,6 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
             // Write to the collection in the lcsim event.
             epicsData.write(lcsimEvent);
-
-            // Update the ScalerParameters.
-            scalerParameters.readEpicsData(epicsData);
 
             // Reset the processor.
             epicsProcessor.reset();
@@ -209,7 +200,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         scalerProcessor.process(evioEvent);
 
         // Get ScalerData from the processor.
-        ScalerData scalerData = scalerProcessor.getScalerData();
+        final ScalerData scalerData = scalerProcessor.getCurrentScalerData();
 
         // Was new ScalerData created?
         if (scalerData != null) {
@@ -218,16 +209,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
                     + evioEvent.getEventNumber());
 
             // Write the current scalar data to the event.
-            scalerProcessor.getScalerData().write(lcsimEvent);
-
-            // Update current ScalerParameters.
-            scalerParameters.readScalerData(scalerData);
+            scalerProcessor.getCurrentScalerData().write(lcsimEvent);
         }
-    }
-
-    @Override
-    public void conditionsChanged(ConditionsEvent conditionsEvent) {
-        super.conditionsChanged(conditionsEvent);
-        svtEventFlagger.initialize();
     }
 }

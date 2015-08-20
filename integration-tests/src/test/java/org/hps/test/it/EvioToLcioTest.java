@@ -1,15 +1,16 @@
 package org.hps.test.it;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import junit.framework.TestCase;
 
 import org.hps.evio.EvioToLcio;
+import org.hps.record.epics.Epics2sVariables;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
-import org.hps.record.scalers.ScalerParameters;
-import org.hps.record.scalers.ScalerParametersIndex;
 import org.hps.test.util.TestOutputFile;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -78,31 +79,38 @@ public final class EvioToLcioTest extends TestCase {
                     nEmpty = 0;
                 }
                 ++nEmpty;
-                //System.out.println(name + " is empty in event " + event.getEventNumber());
+                // System.out.println(name + " is empty in event " + event.getEventNumber());
                 emptyCollections.put(name, nEmpty);
             }
         }
-        
-        /**
-         * Check scaler parameters from event.
-         * 
-         * @param event the lcsim event
-         */
-        private void checkScalerParameters(final EventHeader event) {
-            
-            // If this is missing an exception will be thrown.
-            ScalerParameters scalerParameters = ScalerParameters.read(event);
-            
-            // Spot check scaler parameters from event after scaler data occurs in the data stream.            
-            if (event.getEventNumber() == 25000) {                
-                System.out.println();
-                System.out.println("scaler parameters for event " + event.getEventNumber() + " ...");
-                System.out.println(scalerParameters);
-                
-                // Check scaler values against answer key.
-                for (ScalerParametersIndex index : ScalerParametersIndex.values()) {
-                    assertEquals("Wrong " + index.name() + " value.", scalerParameters.getValue(index), SCALER_VALUES[index.ordinal()]);
+
+        private void checkCollections(final EventHeader event) {
+            for (int i = 0; i < COLLECTION_NAMES.length; i++) {
+                this.checkCollection(event, COLLECTION_TYPES[i], COLLECTION_NAMES[i]);
+            }
+        }
+
+        private void checkEpicsData(final EventHeader event) {
+            final EpicsData epicsData = EpicsData.read(event);
+            if (epicsData != null) {
+                if (epicsData.getEpicsHeader() == null) {
+                    throw new RuntimeException("The EpicsData header is null.");
                 }
+                for (final String variableName : Epics2sVariables.getVariables().keySet()) {
+                    if (!EXCLUDED_EPICS_VARIABLES.contains(variableName)) {
+                        if (!epicsData.getKeys().contains(variableName)) {
+                            throw new RuntimeException("EpicsData is missing key: " + variableName);
+                        }
+                    }
+                }
+                ++epicsDataCount;
+            }
+        }
+
+        private void checkScalarData(final EventHeader event) {
+            final ScalerData scalerData = ScalerData.read(event);
+            if (scalerData != null) {
+                ++scalerDataCount;
             }
         }
 
@@ -114,77 +122,69 @@ public final class EvioToLcioTest extends TestCase {
         @Override
         public void process(final EventHeader event) {
 
-            // Find EPICS data.
-            final EpicsData epicsData = EpicsData.read(event);
-            if (epicsData != null) {
-                ++epicsDataCount;
-            }
+            // Find and check EPICS data.
+            this.checkEpicsData(event);
 
             // Find scaler data.
-            final ScalerData scalerData = ScalerData.read(event);
-            if (scalerData != null) {
-                ++scalerDataCount;
-            }
+            this.checkScalarData(event);
 
             // Check for presence of required collections and that they are non-empty.
-            for (int i = 0; i < COLLECTION_NAMES.length; i++) {
-                this.checkCollection(event, COLLECTION_TYPES[i], COLLECTION_NAMES[i]);
-            }
+            this.checkCollections(event);
 
-            // Check scaler parameters from event.
-            checkScalerParameters(event);
-            
             ++processedCount;
         }
     }
 
     /**
+     * The number of empty collections that are allowed.
+     */
+    private static int[] ALLOWED_EMPTY = new int[] {45, 0, 0, 0};
+
+    /**
      * Names of collections to check.
      */
     private static String[] COLLECTION_NAMES = new String[] {"EcalReadoutHits", "FADCGenericHits", "SVTRawTrackerHits",
-        "TriggerBank"};
+    "TriggerBank"};
 
     /**
      * Classes of collections.
      */
     private static Class<?>[] COLLECTION_TYPES = new Class<?>[] {RawTrackerHit.class, GenericObject.class,
             RawTrackerHit.class, GenericObject.class};
-    
-    /**
-     * The number of empty collections that are allowed.
-     */
-    private static int[] ALLOWED_EMPTY = new int[] {45, 0, 0, 0};
-    
-    /**
-     * Expected scaler values after first occurrence of scaler collection in the data. 
-     */
-    private static float[] SCALER_VALUES = {
-        205.47786f,
-        206.38852f,
-        -1.726095f,
-        -0.622837f,
-        179.9981f
-    };
-    
+
     /**
      * The number of EPICS collections that should be found.
      */
     private static int EPICS_DATA_COUNT = 7;
-    
+
     /**
-     * The number of scaler data collections that should be found.
+     * List of EPICS variables that are not expected to be present in this data.
      */
-    private static int SCALER_DATA_COUNT = 3;
-    
+    private static List<String> EXCLUDED_EPICS_VARIABLES = new ArrayList<String>();
+
+    /**
+     * The default input file (large file at SLAC so the pom.xml file excludes this test on non-SLAC hosts).
+     */
+    private static final String INPUT_FILE = "/nfs/slac/g/hps3/data/engrun/evio/hps_005772.evio.0";
+
     /**
      * The number of events that should be processed.
      */
     private static int PROCESSED_COUNT = 251823;
 
     /**
-     * The default input file (large file at SLAC so the pom.xml file excludes this test on non-SLAC hosts).
+     * The number of scaler data collections that should be found.
      */
-    private static final String INPUT_FILE = "/nfs/slac/g/hps3/data/engrun/evio/hps_005772.evio.0";
+    private static int SCALER_DATA_COUNT = 3;
+
+    /**
+     * Expected scaler values after first occurrence of scaler collection in the data.
+     */
+    private static float[] SCALER_VALUES = {205.47786f, 206.38852f, -1.726095f, -0.622837f, 179.9981f};
+
+    static {
+        EXCLUDED_EPICS_VARIABLES.add("VCG2C21 2C21");
+    }
 
     /**
      * Run the test.
@@ -204,7 +204,7 @@ public final class EvioToLcioTest extends TestCase {
         System.out.println("Done running EvioToLcio!");
 
         // Read in the LCIO file and run the CheckDriver on it.
-        System.out.println("Checking LCIO output ...");        
+        System.out.println("Checking LCIO output ...");
         final LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(outputFile);
         final CheckDriver checkDriver = new CheckDriver();
@@ -212,9 +212,9 @@ public final class EvioToLcioTest extends TestCase {
         loop.loop(-1);
 
         // Check for correct number of events processed by loop.
-        System.out.println("Loop processed " + loop.getTotalCountableConsumed() + " events.");        
+        System.out.println("Loop processed " + loop.getTotalCountableConsumed() + " events.");
         assertEquals("Loop processed wrong number of events.", PROCESSED_COUNT, loop.getTotalCountableConsumed());
-        
+
         // Check that the Driver saw the correct number of events.
         System.out.println("CheckDriver processed " + checkDriver.processedCount + " events.");
         assertEquals("Driver saw wrong number of events.", PROCESSED_COUNT, checkDriver.processedCount);
