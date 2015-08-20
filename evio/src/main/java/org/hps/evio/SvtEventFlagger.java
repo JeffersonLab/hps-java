@@ -6,12 +6,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtAlignmentConstant;
 import org.hps.conditions.svt.SvtBiasConstant;
 import org.hps.conditions.svt.SvtMotorPosition;
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.HeadBankData;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.HeadBankData;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;

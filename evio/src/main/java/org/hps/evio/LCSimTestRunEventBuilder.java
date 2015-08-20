@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventUtilities;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TestRunTriggerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;

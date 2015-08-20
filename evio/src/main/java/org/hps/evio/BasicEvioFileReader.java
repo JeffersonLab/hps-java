@@ -2,6 +2,7 @@ package org.hps.evio;
 
 import java.io.File;
 import java.util.Date;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -10,9 +11,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.evio.LCSimTestRunEventBuilder.IntBankDefinition;
-import org.hps.recon.ecal.triggerbank.HeadBankData;
-import org.hps.recon.ecal.triggerbank.TIData;
 import org.hps.record.evio.EvioEventUtilities;
+import org.hps.record.triggerbank.HeadBankData;
+import org.hps.record.triggerbank.TIData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.DataType;
