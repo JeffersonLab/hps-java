@@ -1,4 +1,4 @@
-package org.hps.record.evio.crawler;
+package org.hps.record.evio;
 
 import java.io.File;
 import java.util.Comparator;
@@ -8,7 +8,7 @@ import java.util.Comparator;
  *
  * @author Jeremy McCormick, SLAC
  */
-final class EvioFileSequenceComparator implements Comparator<File> {
+public final class EvioFileSequenceComparator implements Comparator<File> {
 
     /**
      * Compare two EVIO files by their sequence numbers.
@@ -17,8 +17,8 @@ final class EvioFileSequenceComparator implements Comparator<File> {
      */
     @Override
     public int compare(final File o1, final File o2) {
-        final Integer sequenceNumber1 = EvioFileUtilities.getSequence(o1);
-        final Integer sequenceNumber2 = EvioFileUtilities.getSequence(o2);
+        final Integer sequenceNumber1 = EvioFileUtilities.getSequenceFromName(o1);
+        final Integer sequenceNumber2 = EvioFileUtilities.getSequenceFromName(o2);
         return sequenceNumber1.compareTo(sequenceNumber2);
     }
 }

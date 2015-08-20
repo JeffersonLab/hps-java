@@ -1,7 +1,7 @@
 package org.hps.record.epics;
 
 /**
- * Representation of EPICs header data (run, sequence, time stamp).
+ * Representation of EPICs header data from the EVIO bank (run, sequence, time stamp).
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -31,14 +31,15 @@ public final class EpicsHeader {
     private final int sequence;
 
     /**
-     * The time stamp in seconds (Unix).
+     * The unix time in seconds.
      */
     private final int timestamp;
 
     /**
      * Class constructor.
      * <p>
-     * The data array should be length 3 and usually will come from the int data of a <code>GenericObject</code>.
+     * The data array should be length 3 and usually will come from the int data of a <code>GenericObject</code>. In
+     * order, it should contain the run, sequence and timestamp values.
      *
      * @param data the header data with length 3
      */
@@ -74,7 +75,7 @@ public final class EpicsHeader {
      *
      * @return the time stamp
      */
-    public int getTimeStamp() {
+    public int getTimestamp() {
         return timestamp;
     }
 }

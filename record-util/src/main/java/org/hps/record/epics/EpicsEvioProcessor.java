@@ -50,7 +50,7 @@ public class EpicsEvioProcessor extends EvioEventProcessor {
         // Is this an EPICS event?
         if (EventTagConstant.EPICS.isEventTag(evio)) {
 
-            LOGGER.info("processing EPICS event " + evio.getEventNumber());
+            LOGGER.fine("processing EPICS event " + evio.getEventNumber());
 
             // Find the bank with the EPICS data string.
             final BaseStructure epicsBank = EvioBankTag.EPICS_STRING.findBank(evio);
@@ -73,7 +73,7 @@ public class EpicsEvioProcessor extends EvioEventProcessor {
 
             } else {
                 // This is an error because the string data bank should always be present in EPICS events.
-                final RuntimeException x = new RuntimeException("No EPICS data bank found in EPICS event.");
+                final RuntimeException x = new RuntimeException("No data bank found in EPICS event.");
                 LOGGER.log(Level.SEVERE, x.getMessage(), x);
                 throw x;
             }

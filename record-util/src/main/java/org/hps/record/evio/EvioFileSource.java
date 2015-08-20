@@ -12,12 +12,12 @@ import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 
 /**
- * A basic implementation of an <tt>AbstractRecordSource</tt> for supplying <tt>EvioEvent</tt> objects to a loop from
- * EVIO files.
+ * A basic implementation of an <tt>AbstractRecordSource</tt> for supplying <tt>EvioEvent</tt> objects to a loop from a
+ * list of EVIO files.
  * <p>
  * Unlike the LCIO record source, it has no rewind or indexing capabilities.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class EvioFileSource extends AbstractRecordSource {
 
@@ -48,7 +48,7 @@ public final class EvioFileSource extends AbstractRecordSource {
      */
     public EvioFileSource(final File file) {
         this.files.add(file);
-        openReader();
+        this.openReader();
     }
 
     /**
@@ -58,7 +58,7 @@ public final class EvioFileSource extends AbstractRecordSource {
      */
     public EvioFileSource(final List<File> files) {
         this.files.addAll(files);
-        openReader();
+        this.openReader();
     }
 
     /**
@@ -89,6 +89,15 @@ public final class EvioFileSource extends AbstractRecordSource {
     @Override
     public Object getCurrentRecord() throws IOException {
         return this.currentEvent;
+    }
+
+    /**
+     * Get the list of files.
+     *
+     * @return the list of files
+     */
+    public List<File> getFiles() {
+        return this.files;
     }
 
     /**
@@ -130,10 +139,10 @@ public final class EvioFileSource extends AbstractRecordSource {
                 throw new IOException(e);
             }
             if (this.currentEvent == null) {
-                closeReader();
+                this.closeReader();
                 this.fileIndex++;
-                if (!endOfFiles()) {
-                    openReader();
+                if (!this.endOfFiles()) {
+                    this.openReader();
                     continue;
                 } else {
                     throw new NoSuchRecordException();
@@ -151,7 +160,7 @@ public final class EvioFileSource extends AbstractRecordSource {
     private void openReader() {
         try {
             System.out.println("Opening reader for file " + this.files.get(this.fileIndex) + " ...");
-            this.reader = new EvioReader(this.files.get(this.fileIndex), false,true);
+            this.reader = new EvioReader(this.files.get(this.fileIndex), false, true);
             System.out.println("Done opening file.");
         } catch (EvioException | IOException e) {
             throw new RuntimeException(e);
@@ -167,4 +176,5 @@ public final class EvioFileSource extends AbstractRecordSource {
     public boolean supportsNext() {
         return true;
     }
+
 }

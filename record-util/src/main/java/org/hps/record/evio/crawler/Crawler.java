@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -20,6 +21,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.database.ConnectionParameters;
+import org.hps.record.run.RunSummary;
+import org.hps.record.run.RunSummaryDaoImpl;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
@@ -50,20 +53,20 @@ public final class Crawler {
      * Statically define the command options.
      */
     static {
-        OPTIONS.addOption("a", "runs", true, "list of run numbers to accept (others will be excluded)");
+        // TODO: add -f argument with file name to include; others would be excluded if they do not match
         OPTIONS.addOption("b", "min-date", true, "min date for a file (example \"2015-03-26 11:28:59\")");
         OPTIONS.addOption("c", "cache", false, "automatically cache files from MSS to cache disk (JLAB only)");
         OPTIONS.addOption("C", "connection-properties", true, "database connection properties file (required)");
         OPTIONS.addOption("d", "directory", true, "root directory to start crawling (default is current dir)");
         OPTIONS.addOption("E", "evio-processor", true, "class name of an EvioEventProcessor to execute");
         OPTIONS.addOption("h", "help", false, "print help and exit (overrides all other arguments)");
-        OPTIONS.addOption("m", "max-files", true, "max number of files to process per run (mostly for debugging)");
-        OPTIONS.addOption("p", "print", true, "set event printing interval during EVIO processing");
-        OPTIONS.addOption("r", "insert", false, "insert information into the run database (not done by default)");
+        OPTIONS.addOption("i", "insert", false, "insert information into the run database (not done by default)");
+        OPTIONS.addOption("L", "log-level", true, "set the log level (INFO, FINE, etc.)");
+        OPTIONS.addOption("r", "run", true, "add a run number to accept (when used others will be excluded)");
         OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name");
         OPTIONS.addOption("w", "max-cache-wait", true, "total time to allow for file caching (seconds)");
-        OPTIONS.addOption("L", "log-level", true, "set the log level (INFO, FINE, etc.)");
-        OPTIONS.addOption("u", "update", false, "allow overriding existing data in the run db (not allowed by default)");
+        OPTIONS.addOption("u", "update", false,
+                "allow replacement of existing data in the run db (not allowed by default)");
         OPTIONS.addOption("x", "max-depth", true, "max depth to crawl in the directory tree");
     }
 
@@ -179,9 +182,9 @@ public final class Crawler {
             }
 
             // List of one or more runs to accept in the job.
-            if (cl.hasOption("a")) {
+            if (cl.hasOption("r")) {
                 final Set<Integer> acceptRuns = new HashSet<Integer>();
-                for (final String runString : cl.getOptionValues("a")) {
+                for (final String runString : cl.getOptionValues("r")) {
                     final Integer acceptRun = Integer.parseInt(runString);
                     acceptRuns.add(acceptRun);
                     LOGGER.config("added run filter " + acceptRun);
@@ -189,7 +192,7 @@ public final class Crawler {
                 config.setAcceptRuns(acceptRuns);
             }
 
-            // Enable run log updating (off by default).
+            // Enable updating of run database.
             if (cl.hasOption("r")) {
                 config.setUpdateRunLog(true);
                 LOGGER.config("inserting into run database is enabled");
@@ -208,21 +211,7 @@ public final class Crawler {
                 LOGGER.config("max time for file caching set to " + config.waitTime());
             }
 
-            // Max files to process per run; mostly just here for debugging purposes.
-            if (cl.hasOption("m")) {
-                final int maxFiles = Integer.parseInt(cl.getOptionValue("m"));
-                config.setMaxFiles(maxFiles);
-                LOGGER.config("max files set to " + maxFiles);
-            }
-
-            // Event printing interval when doing EVIO event processing.
-            if (cl.hasOption("p")) {
-                final int eventPrintInterval = Integer.parseInt(cl.getOptionValue("p"));
-                config.setEventPrintInterval(eventPrintInterval);
-                LOGGER.config("event print interval set to " + eventPrintInterval);
-            }
-
-            // Flag to allow replacement of existing records in the database; not allowed by default.
+            // Allow deletion and replacement of records in run database.
             if (cl.hasOption("u")) {
                 config.setAllowUpdates(true);
                 LOGGER.config("deletion and replacement of existing runs in the database is enabled");
@@ -267,7 +256,13 @@ public final class Crawler {
             throw new RuntimeException("Error parsing options.", e);
         }
 
+        // Configure the max wait time for file caching operations.
+        if (config.waitTime() != null && config.waitTime() > 0L) {
+            cacheManager.setWaitTime(config.waitTime());
+        }
+
         LOGGER.info("done parsing command line options");
+        LOGGER.getHandlers()[0].flush();
 
         return this;
     }
@@ -293,31 +288,32 @@ public final class Crawler {
         LOGGER.info("running Crawler job");
 
         // Create the file visitor for crawling the root directory with the given date filter.
+        LOGGER.info("creating file visitor");
+        LOGGER.getHandlers()[0].flush();
         final EvioFileVisitor visitor = new EvioFileVisitor(config.timestamp());
 
         // Walk the file tree using the visitor.
+        LOGGER.info("walking the dir tree");
+        LOGGER.getHandlers()[0].flush();
         this.walk(visitor);
 
         // Get the list of run data created by the visitor.
-        final RunLog runs = visitor.getRunLog();
-
-        // Print the run numbers that were found.
-        runs.printRunNumbers();
-
-        // Sort the files on their sequence numbers.
-        runs.sortFiles();
+        final RunSummaryMap runs = visitor.getRunMap();
 
         // Process all the files, performing caching from the MSS if necessary.
+        LOGGER.info("processing all runs");
         RunProcessor.processAllRuns(this.cacheManager, runs, config);
-
-        // Print the summary information after the run processing is done.
-        runs.printRunSummaries();
+        LOGGER.getHandlers()[0].flush();
 
         // Execute the run database update.
+        LOGGER.info("updating run database");
         this.updateRunDatabase(runs);
+        LOGGER.getHandlers()[0].flush();
 
         // Update the timestamp output file.
+        LOGGER.info("updating the timestamp");
         this.updateTimestamp();
+        LOGGER.getHandlers()[0].flush();
 
         LOGGER.info("Crawler job is done!");
     }
@@ -328,21 +324,26 @@ public final class Crawler {
      * @param runs the list of runs to update
      * @throws SQLException if there is a database query error
      */
-    private void updateRunDatabase(final RunLog runs) throws SQLException {
+    private void updateRunDatabase(final RunSummaryMap runs) throws SQLException {
         // Insert the run information into the database.
         if (config.updateRunLog()) {
+
+            LOGGER.info("updating run database");
 
             // Open a DB connection.
             final Connection connection = config.connectionParameters().createConnection();
 
-            // Create and configure RunLogUpdater which updates the run log for all runs found in the crawl job.
-            final RunLogUpdater runUpdater = new RunLogUpdater(connection, runs, config.allowUpdates());
-
-            // Update the DB.
-            runUpdater.insert();
+            // Insert all run summaries into the database.
+            new RunSummaryDaoImpl(connection).insertFullRunSummaries(new ArrayList<RunSummary>(runs.getRunSummaries()),
+                    config.allowUpdates());
 
             // Close the DB connection.
             connection.close();
+
+            LOGGER.info("done updating run database");
+
+        } else {
+            LOGGER.info("run database will not be updated");
         }
     }
 

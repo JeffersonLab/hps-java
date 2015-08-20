@@ -16,29 +16,16 @@ public final class EvioEventConstants {
      * EPICS bank tag.
      */
     public static final int EPICS_BANK_TAG = 57620;
-    
-    
-    /**
-     * Tag of bank containing the EPICS data bank.
-     */
-    public static final int EPICS_PARENT_BANK_TAG = 129;
-
-    /**
-     * EPICS 20 second event tag.
-     */
-    // FIXME: This is unused and not handled in event processing.
-    public static final int EPICS_BANK_TAG_20s = -1;
-
-    /**
-     * EPICS 2 second event tag.
-     */
-    // FIXME: This is unused and not handled in event processing.
-    public static final int EPICS_BANK_TAG_2s = -1;
 
     /**
      * EPICS event tag.
      */
     public static final int EPICS_EVENT_TAG = 31;
+
+    /**
+     * Tag of bank containing the EPICS data bank.
+     */
+    public static final int EPICS_PARENT_BANK_TAG = 129;
 
     /**
      * Event ID bank tag.
@@ -58,7 +45,6 @@ public final class EvioEventConstants {
     /**
      * Pause event tag.
      */
-    // FIXME: Not generally handled or used in event processing.
     public static final int PAUSE_EVENT_TAG = 19;
 
     /**

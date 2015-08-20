@@ -15,6 +15,11 @@ import org.lcsim.event.GenericObject;
 public final class ScalerData {
 
     /**
+     * Fixed array size of scaler data in the EVIO bank.
+     */
+    public static final int ARRAY_SIZE = 72;
+
+    /**
      * Default name of scaler data collection in LCSim events.
      */
     private static final String DEFAULT_COLLECTION_NAME = "ScalerData";
@@ -38,10 +43,11 @@ public final class ScalerData {
     public static ScalerData read(final EventHeader event, final String collectionName) {
         ScalerData data = null;
         if (event.hasCollection(GenericObject.class, collectionName)) {
-            //System.out.println("ScalerData - found collection");
+            // System.out.println("ScalerData - found collection");
             final List<GenericObject> objects = event.get(GenericObject.class, collectionName);
             data = new ScalerData();
             data.fromGenericObject(objects.get(0));
+            data.setEventId(event.getEventNumber());
         }
         return data;
     }
@@ -50,6 +56,11 @@ public final class ScalerData {
      * The scaler data values.
      */
     private int[] data;
+
+    /**
+     * The event ID of the data.
+     */
+    private Integer eventId;
 
     /**
      * This is the no argument constructor which is for package internal use only.
@@ -62,9 +73,10 @@ public final class ScalerData {
      *
      * @param data the scaler data
      */
-    public ScalerData(final int[] data) {
+    public ScalerData(final int[] data, final int eventId) {
         this.data = new int[data.length];
         System.arraycopy(data, 0, this.data, 0, data.length);
+        this.eventId = eventId;
     }
 
     /**
@@ -80,6 +92,18 @@ public final class ScalerData {
     }
 
     /**
+     * Get the event ID of the scaler data.
+     * <p>
+     * This information is not persisted to the LCIO.
+     *
+     * @return the event ID of the scaler data
+     */
+    public Integer getEventId() {
+        // Null value will be returned here to indicate not set.
+        return this.eventId;
+    }
+
+    /**
      * Get the scaler data value at the index.
      *
      * @param index the scaler data index
@@ -88,14 +112,23 @@ public final class ScalerData {
     public Integer getValue(final int index) {
         return this.data[index];
     }
-    
+
     /**
      * Get the value using a {@link ScalerDataIndex} enum.
-     * 
+     *
      * @return the value at the index
      */
-    public Integer getValue(ScalerDataIndex scalarDataIndex) {
+    public Integer getValue(final ScalerDataIndex scalarDataIndex) {
         return this.data[scalarDataIndex.index()];
+    }
+
+    /**
+     * Set the event ID of the scaler data.
+     *
+     * @param eventId the event ID of the scaler data
+     */
+    void setEventId(final int eventId) {
+        this.eventId = eventId;
     }
 
     /**
@@ -154,5 +187,5 @@ public final class ScalerData {
         final List<GenericObject> collection = new ArrayList<GenericObject>();
         collection.add(this.toGenericObject());
         event.put(collectionName, collection, GenericObject.class, 0);
-    }
+    }    
 }

@@ -1,12 +1,8 @@
-package org.hps.record.evio.crawler;
+package org.hps.record.evio;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hps.record.evio.EventTagBitMask;
-import org.hps.record.evio.EventTagConstant;
-import org.hps.record.evio.EvioEventProcessor;
-import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**

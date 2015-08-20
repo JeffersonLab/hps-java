@@ -4,13 +4,16 @@ import java.io.File;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
 import org.hps.record.epics.EpicsData;
-import org.hps.record.evio.crawler.EvioFileList;
+import org.hps.record.evio.EvioFileSequenceComparator;
 import org.hps.record.scalers.ScalerData;
 
 /**
@@ -26,11 +29,10 @@ import org.hps.record.scalers.ScalerData;
  * <li>number of EVIO files in the run</li>
  * <li>whether the END event was found indicating that the DAQ did not crash</li>
  * <li>whether the run is considered good (all <code>true</code> for now)</li>
- * <li>list of EVIO files in the run</li>
  * </ul>
- * There are also associated {@link org.hps.record.epics.EpicsData} and {@link org.hps.record.scalers.ScalerData}
- * objects representing the EPICS and scaler data summaries for the run. The EPICS data is averaged over the whole run
- * while the scalers are from the last scaler data bank that was found.
+ * <p>
+ * It also references several complex objects including lists of {@link org.hps.record.epics.EpicsData} and
+ * {@link org.hps.record.scalers.ScalerData} for the run, as well as a list of EVIO files.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -48,6 +50,9 @@ public final class RunSummary {
         DATE_DISPLAY.setCalendar(new GregorianCalendar(TimeZone.getTimeZone("America/New_York")));
     }
 
+    /**
+     * Date this record was created.
+     */
     private Date created;
 
     /**
@@ -61,9 +66,9 @@ public final class RunSummary {
     private long endTimeUtc;
 
     /**
-     * The combined EPICS information for the run (uses the mean values for each variable).
+     * The EPICS data from the run.
      */
-    private EpicsData epics;
+    private List<EpicsData> epicsDataList;
 
     /**
      * The counts of different types of events that were found.
@@ -73,7 +78,7 @@ public final class RunSummary {
     /**
      * The list of EVIO files in the run.
      */
-    private EvioFileList evioFileList = new EvioFileList();
+    private List<File> evioFileList = new ArrayList<File>();
 
     /**
      * The run number.
@@ -86,9 +91,9 @@ public final class RunSummary {
     private boolean runOkay = true;
 
     /**
-     * The scaler data from the last physics event in the run.
+     * The scaler data for the run.
      */
-    private ScalerData scalerData;
+    private List<ScalerData> scalerDataList;
 
     /**
      * The run start time in UTC (milliseconds).
@@ -165,14 +170,12 @@ public final class RunSummary {
     }
 
     /**
-     * Get the EPICS data summary.
-     * <p>
-     * This is computed by taking the mean of each variable for the run.
+     * Get the EPICS data from the run.
      *
-     * @return the EPICS data summary
+     * @return the EPICS data from the run
      */
-    public EpicsData getEpicsData() {
-        return this.epics;
+    public List<EpicsData> getEpicsDataSet() {
+        return this.epicsDataList;
     }
 
     /**
@@ -202,7 +205,7 @@ public final class RunSummary {
      *
      * @return the list of EVIO files in this run
      */
-    public EvioFileList getEvioFileList() {
+    public List<File> getEvioFileList() {
         return this.evioFileList;
     }
 
@@ -225,12 +228,12 @@ public final class RunSummary {
     }
 
     /**
-     * Get the scaler data of this run (last event only).
+     * Get the scaler data of this run.
      *
-     * @return the scaler data of this run from the last event
+     * @return the scaler data of this run
      */
-    public ScalerData getScalerData() {
-        return this.scalerData;
+    public List<ScalerData> getScalerData() {
+        return this.scalerDataList;
     }
 
     /**
@@ -295,8 +298,8 @@ public final class RunSummary {
     public void printOut(final PrintStream ps) {
         ps.println("--------------------------------------------");
         ps.println("run: " + this.run);
-        ps.println("first file: " + this.evioFileList.first());
-        ps.println("last file: " + this.evioFileList.last());
+        ps.println("first file: " + this.evioFileList.get(0));
+        ps.println("last file: " + this.evioFileList.get(evioFileList.size() - 1));
         ps.println("started: " + DATE_DISPLAY.format(this.getStartDate()));
         ps.println("ended: " + DATE_DISPLAY.format(this.getEndDate()));
         ps.println("total events: " + this.getTotalEvents());
@@ -333,7 +336,7 @@ public final class RunSummary {
     /**
      * Set the end date.
      *
-     * @param endDate the end date
+     * @param endTimeUtc the end date
      */
     public void setEndTimeUtc(final long endTimeUtc) {
         this.endTimeUtc = endTimeUtc;
@@ -344,8 +347,8 @@ public final class RunSummary {
      *
      * @param epics the EPICS data for the run
      */
-    public void setEpicsData(final EpicsData epics) {
-        this.epics = epics;
+    public void setEpicsData(final List<EpicsData> epicsDataList) {
+        this.epicsDataList = epicsDataList;
     }
 
     /**
@@ -362,7 +365,7 @@ public final class RunSummary {
      *
      * @param evioFileList the list of EVIO files for the run
      */
-    public void setEvioFileList(final EvioFileList evioFileList) {
+    public void setEvioFileList(final List<File> evioFileList) {
         this.evioFileList = evioFileList;
     }
 
@@ -380,14 +383,14 @@ public final class RunSummary {
      *
      * @param scalerData the scaler data
      */
-    public void setScalerData(final ScalerData scalerData) {
-        this.scalerData = scalerData;
+    public void setScalerData(final List<ScalerData> scalerDataList) {
+        this.scalerDataList = scalerDataList;
     }
 
     /**
      * Set the start date of the run.
      *
-     * @param startDate the start date of the run
+     * @param startTimeUtc the start date of the run
      */
     public void setStartTimeUtc(final long startTimeUtc) {
         this.startTimeUtc = startTimeUtc;
@@ -424,7 +427,7 @@ public final class RunSummary {
      * Sort the files in the run by sequence number in place.
      */
     public void sortFiles() {
-        this.evioFileList.sort();
+        Collections.sort(this.evioFileList, new EvioFileSequenceComparator());
     }
 
     /**

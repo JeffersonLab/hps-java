@@ -36,11 +36,23 @@ final class EpicsGenericObject implements GenericObject {
         return this.values[index];
     }
 
+    /**
+     * Dummy implementation.
+     *
+     * @param index the array index
+     * @return always returns 0
+     */
     @Override
     public float getFloatVal(final int index) {
         return 0;
     }
 
+    /**
+     * Get an int value which is used to store the EPICS header information.
+     *
+     * @param index the array index
+     * @return the int value at <code>index</code>
+     */
     @Override
     public int getIntVal(final int index) {
         return headerData[index];
@@ -75,11 +87,21 @@ final class EpicsGenericObject implements GenericObject {
         return this.values.length;
     }
 
+    /**
+     * Dummy implementation.
+     *
+     * @return always returns 0
+     */
     @Override
     public int getNFloat() {
         return 0;
     }
 
+    /**
+     * Get the number of int values which is the length of the data header.
+     *
+     * @return the number of int values
+     */
     @Override
     public int getNInt() {
         return this.headerData.length;

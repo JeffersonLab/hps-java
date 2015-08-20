@@ -13,7 +13,7 @@ import org.hps.conditions.database.ConnectionParameters;
 import org.hps.record.evio.EvioEventProcessor;
 
 /**
- * Full configuration information for the {@link Crawler class}.
+ * Full configuration information for the {@link Crawler} class.
  * <p>
  * Method chaining of setters is supported.
  *
@@ -38,19 +38,9 @@ final class CrawlerConfig {
     private boolean allowUpdates = false;
 
     /**
-     * The database connection parameters which must be provided by command line argument.
+     * The database connection parameters which must be provided by a command line argument.
      */
     private ConnectionParameters connectionParameters;
-
-    /**
-     * Default event print interval.
-     */
-    private final int DEFAULT_EVENT_PRINT_INTERVAL = 1000;
-
-    /**
-     * Interval for printing out event number while running EVIO processors.
-     */
-    private int eventPrintInterval = DEFAULT_EVENT_PRINT_INTERVAL;
 
     /**
      * The maximum depth to crawl.
@@ -151,15 +141,6 @@ final class CrawlerConfig {
     }
 
     /**
-     * Get the event print interval.
-     *
-     * @return the event print interval
-     */
-    int eventPrintInterval() {
-        return this.eventPrintInterval;
-    }
-
-    /**
      * Get the max depth in the directory tree to crawl.
      *
      * @return the max depth
@@ -227,17 +208,6 @@ final class CrawlerConfig {
      */
     CrawlerConfig setConnection(final ConnectionParameters connectionParameters) {
         this.connectionParameters = connectionParameters;
-        return this;
-    }
-
-    /**
-     * Set the interval for printing the EVIO event numbers during processing.
-     *
-     * @param eventPrintInterval the event print interval
-     * @return this object
-     */
-    CrawlerConfig setEventPrintInterval(final int eventPrintInterval) {
-        this.eventPrintInterval = eventPrintInterval;
         return this;
     }
 

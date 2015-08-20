@@ -12,11 +12,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.record.evio.EvioFileFilter;
+import org.hps.record.evio.EvioFileUtilities;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * A file visitor that crawls directories for EVIO files and returns the information as a {@link RunLog}.
+ * A file visitor that crawls directories for EVIO files and returns the information as a {@link RunSummaryMap}.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -35,8 +37,8 @@ final class EvioFileVisitor extends SimpleFileVisitor<Path> {
     /**
      * The run log containing information about files from each run.
      */
-    private final RunLog runs = new RunLog();
-
+    private final RunSummaryMap runs = new RunSummaryMap();
+    
     /**
      * Create a new file visitor.
      *
@@ -83,7 +85,7 @@ final class EvioFileVisitor extends SimpleFileVisitor<Path> {
      *
      * @return the run log
      */
-    RunLog getRunLog() {
+    RunSummaryMap getRunMap() {
         return this.runs;
     }
 
@@ -99,10 +101,10 @@ final class EvioFileVisitor extends SimpleFileVisitor<Path> {
         if (this.accept(file)) {
 
             // Get the run number from the file name.
-            final Integer run = EvioFileUtilities.getRun(file);
+            final Integer run = EvioFileUtilities.getRunFromName(file);
 
             // Get the sequence number from the file name.
-            final Integer seq = EvioFileUtilities.getSequence(file);
+            final Integer seq = EvioFileUtilities.getSequenceFromName(file);
 
             LOGGER.info("accepted file " + file.getPath() + " with run " + run + " and seq " + seq);
 

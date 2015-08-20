@@ -42,66 +42,6 @@ public final class EpicsData {
     private static final String EPICS_VARIABLE_NAMES = "EPICS_VARIABLE_NAMES";
 
     /**
-     * This map contains the list of EPICS keys and their descriptions from the<br/>
-     * <a href="https://confluence.slac.stanford.edu/display/hpsg/EVIO+Data+Format">EVIO Data Format Confluence Page</a>
-     */
-    private final static Map<String, String> VARIABLES = new HashMap<String, String>();
-
-    /**
-     * List of possible EPICS keys.
-     */
-    static {
-        VARIABLES.put("MBSY2C_energy", "Beam energy according to Hall B BSY dipole string");
-        VARIABLES.put("PSPECIRBCK", "Pair Spectrometer Current Readback");
-        VARIABLES.put("HPS:LS450_2:FIELD", "Frascati probe field");
-        VARIABLES.put("HPS:LS450_1:FIELD", "Pair Spectrometer probe field");
-        VARIABLES.put("MTIRBCK", "Frascati Current Readback");
-        VARIABLES.put("VCG2C21 2C21", "Vacuum gauge pressure");
-        VARIABLES.put("VCG2C21A", "2C21A Vacuum gauge pressure");
-        VARIABLES.put("VCG2C24A", "2C24A Vacuum gauge pressure");
-        VARIABLES.put("VCG2H00A", "2H00 Vacuum gauge pressure");
-        VARIABLES.put("VCG2H01A", "2H01 Vacuum gauge pressure");
-        VARIABLES.put("VCG2H02A", "2H02 Vacuum gauge pressure");
-        VARIABLES.put("scaler_calc1", "Faraday cup current");
-        VARIABLES.put("scalerS12b", "HPS-Left beam halo count");
-        VARIABLES.put("scalerS13b", "HPS-Right beam halo count");
-        VARIABLES.put("scalerS14b", "HPS-Top beam halo count");
-        VARIABLES.put("scalerS15b", "HPS-SC beam halo count");
-        VARIABLES.put("hallb_IPM2C21A_XPOS", "Beam position X at 2C21");
-        VARIABLES.put("hallb_IPM2C21A_YPOS", "Beam position Y at 2C21");
-        VARIABLES.put("hallb_IPM2C21A_CUR", "Current at 2C21");
-        VARIABLES.put("hallb_IPM2C24A_XPOS", "Beam position X at 2C24");
-        VARIABLES.put("hallb_IPM2C24A_YPOS", "Beam position Y at 2C24");
-        VARIABLES.put("hallb_IPM2C24A_CUR", "Current at 2C24");
-        VARIABLES.put("hallb_IPM2H00_XPOS", "Beam position X at 2H00");
-        VARIABLES.put("hallb_IPM2H00_YPOS", "Beam position Y at 2H00");
-        VARIABLES.put("hallb_IPM2H00_CUR", "Current at 2H00");
-        VARIABLES.put("hallb_IPM2H02_YPOS", "Beam position X at 2H02");
-        VARIABLES.put("hallb_IPM2H02_XPOS", "Beam position Y at 2H02");
-    }
-
-    /**
-     * Get the description of a named EPICS variable.
-     *
-     * @param name the name of the variable
-     */
-    public static String getVariableDescription(final String name) {
-        return VARIABLES.get(name);
-    }
-
-    /**
-     * Get the static list of all available EPICs variable names.
-     * <p>
-     * This could be different than the variable names which were actually written into the collection header. For this,
-     * instead use the method {@link #getKeys()} method.
-     *
-     * @return the set of default EPICS variable names
-     */
-    public static Set<String> getVariableNames() {
-        return VARIABLES.keySet();
-    };
-
-    /**
      * <p>
      * Read data into this object from an LCIO event using the default collection name.
      * <p>
@@ -109,7 +49,7 @@ public final class EpicsData {
      * {@link org.lcsim.util.Driver#process(EventHeader)} method.
      *
      * @param event the LCIO event
-     * @return the EPICS data from the event
+     * @return the EPICS data from the event or null if none exists
      */
     public static EpicsData read(final EventHeader event) {
         if (event.hasCollection(GenericObject.class, EpicsData.DEFAULT_COLLECTION_NAME)) {
@@ -210,9 +150,6 @@ public final class EpicsData {
 
     /**
      * Get the list of EPICS variables used by this object.
-     * <p>
-     * This could potentially be different than the list of default names from {@link #getVariableNames()} as not all
-     * variables are included in every EPICS event.
      *
      * @return the list of used EPICS variable names
      */
@@ -243,14 +180,15 @@ public final class EpicsData {
      *
      * @param epicsHeader the {@link EpicsHeader} object
      */
-    void setEpicsHeader(final EpicsHeader epicsHeader) {
+    public void setEpicsHeader(final EpicsHeader epicsHeader) {
         this.epicsHeader = epicsHeader;
     }
 
     /**
-     * Set a double value by name.
+     * Set a variable's value.
      *
-     * @return the value from the key
+     * @param name the name of the variable
+     * @param value the new value of the variable
      */
     public void setValue(final String name, final double value) {
         this.dataMap.put(name, value);
@@ -268,7 +206,7 @@ public final class EpicsData {
 
         newObject.setKeys(new String[this.dataMap.size()]);
         newObject.setValues(new double[this.dataMap.size()]);
-        
+
         int index = 0;
         for (final String key : this.dataMap.keySet()) {
             newObject.setKey(index, key);
@@ -278,10 +216,8 @@ public final class EpicsData {
 
         // Write header information into the object's int array.
         if (epicsHeader != null) {
-            final int[] headerData = new int[] {
-                    epicsHeader.getRun(), 
-                    epicsHeader.getSequence(),
-                    epicsHeader.getTimeStamp()};
+            final int[] headerData = new int[] {epicsHeader.getRun(), epicsHeader.getSequence(),
+                    epicsHeader.getTimestamp()};
             newObject.setHeaderData(headerData);
         }
         return newObject;
