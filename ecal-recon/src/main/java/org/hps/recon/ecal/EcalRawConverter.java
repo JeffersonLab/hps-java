@@ -44,12 +44,12 @@ public class EcalRawConverter {
 	/**
 	 * If true, time walk correction is performed. 
 	 */
-    private boolean useTimeWalkCorrection = false;
+    private boolean useTimeWalkCorrection = true;
     
     /**
      * If true, running pedestal is used.
      */
-    private boolean useRunningPedestal = false;
+    private boolean useRunningPedestal = true;
     
     /**
      * If true, use a single gain factor for all channels.
@@ -68,7 +68,7 @@ public class EcalRawConverter {
      * 
      * If false, it is the currently used convention:  E(GeV) = GAIN * ADC 
      */
-    private boolean use2014Gain = true;
+    private boolean use2014Gain = false;
     
     /**
      * If true, use the DAQ configuration from EVIO to set EcalRawConverter parameters.
@@ -87,7 +87,7 @@ public class EcalRawConverter {
      * Whether to use pulse fitting (EcalPulseFitter) to extract pulse energy time.
      * Only applicable to Mode-1 data.
      */
-    private boolean useFit = false;
+    private boolean useFit = true;
     
     /**
      * The pulse fitter class.
@@ -138,7 +138,7 @@ public class EcalRawConverter {
      * Perform Mode-7 algorithm, else Mode-3.
      * Only applicable to Mode-1 data.
      */
-    private boolean mode7 = false;
+    private boolean mode7 = true;
 
 
     private EcalConditions ecalConditions = null;

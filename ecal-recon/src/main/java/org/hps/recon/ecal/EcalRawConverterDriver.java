@@ -52,7 +52,7 @@ public class EcalRawConverterDriver extends Driver {
     private final String ecalReadoutName = "EcalHits";
 
     /*
-     * Output relation between ecalCollectionName and Mode-7 pedestal for that hit
+     * Output relation between ecalCollectionName and Mode-7 pedestals
      */
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
 
@@ -107,7 +107,7 @@ public class EcalRawConverterDriver extends Driver {
      * 
      * This is poorly named.
      */
-    private boolean emulateFirmware = false;
+    private boolean emulateFirmware = true;
     
     public EcalRawConverterDriver() {
         converter = new EcalRawConverter();
@@ -440,7 +440,7 @@ public class EcalRawConverterDriver extends Driver {
     	}
     	
         final int SYSTEM_TRIGGER = 0;
-        final int SYSTEM_TRACKER = 1;
+//        final int SYSTEM_TRACKER = 1;
         final int SYSTEM_ECAL = 2;
 
         double timeOffset = 0.0;
