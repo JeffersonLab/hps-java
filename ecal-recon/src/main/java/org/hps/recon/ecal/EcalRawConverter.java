@@ -22,44 +22,76 @@ import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
 
 /**
- * This class is used to convert {@link org.lcsim.event.RawCalorimeterHit}
- * and {@link org.lcsim.event.RawTrackerHit} to {@link org.lcsim.event.CalorimeterHit}
- * objects with energy information.
+ * This class is used to convert between {@link org.lcsim.event.RawCalorimeterHit}
+ * or {@link org.lcsim.event.RawTrackerHit}, objects with ADC/sample information,
+ * and {@link org.lcsim.event.CalorimeterHit}, an object with energy+time information.
+ * 
+ * At minimum this involves pedestal subtraction/addition and gain scaling.
+ *
+ * Knows how to deal with Mode-1/3/7 FADC readout formats.
+ * Can perform Mode-3/7 firmware algorithms on Mode-1 data.
+ * Can alternatively call pulse-fitting on Mode-1 data.
+ *
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  * @author Nathan Baltzell <baltzell@jlab.org>
  * @author Holly Szumila <hvanc001@odu.edu>
  *
- * baltzell: May 2015:  Pulse Fitting. (default behavior unchanged)
- *
- * baltzell:  Early 2015:  (default behavior is still unchanged)
- *
- * Implemented conversion of Mode-1 to Mode-3.
- * 
- * Now using NSA/NSB for pedestal subtraction instead of integralWindow, to allow
- * treating all FADC Modes uniformly.  (New) NSA+NSB == (Old) integralWindow*4(ns) 
- * 
- * Pedestal subtracting clipped pulses more correctly for all Modes.
- * 
- * Implemented finding multiple peaks for Mode-1.
- * 
- * Implemented conversion of Mode-1 to Mode-7 with high-resolution timing.
- * Only some of the special cases in the firmware for when this algorithm fails due
- * to bad pulses (e.g. clipping) are already implemented.  Not yet writing Mode-7's
- * min/max to data stream. 
  */
 public class EcalRawConverter {
 
+	/**
+	 * If true, time walk correction is performed. 
+	 */
     private boolean useTimeWalkCorrection = false;
+    
+    /**
+     * If true, running pedestal is used.
+     */
     private boolean useRunningPedestal = false;
+    
+    /**
+     * If true, use a single gain factor for all channels.
+     * Else, use 442 gains from the conditions system. 
+     */
     private boolean constantGain = false;
+    
+    /**
+     * A single gain factor for all channels (only used if constantGain=true)
+     */
     private double gain;
+    
+    /**
+     * If true, the relationship between ADC and GeV is a convention that
+     * includes readoutPeriod and a global scaling factor.
+     * 
+     * If false, it is the currently used convention:  E(GeV) = GAIN * ADC 
+     */
     private boolean use2014Gain = true;
+    
+    /**
+     * If true, use the DAQ configuration from EVIO to set EcalRawConverter parameters.
+     * This should be removed to a standalone EcalRawConverter solely for trigger emulation.
+     */
     private boolean useDAQConfig = false;
+    
+    /**
+     * The DAQ configuration from EVIO used to set EcalRawConverter parameters
+     * if useDAQConfig=true.  This should be removed to a standalone EcalRawConverter
+     * solely for trigger emulation.
+     */
     private FADCConfig config = null;
-
+    
+    /**
+     * Whether to use pulse fitting (EcalPulseFitter) to extract pulse energy time.
+     * Only applicable to Mode-1 data.
+     */
     private boolean useFit = false;
+    
+    /**
+     * The pulse fitter class.
+     */
     private EcalPulseFitter pulseFitter = new EcalPulseFitter();
     
     /**
@@ -93,23 +125,29 @@ public class EcalRawConverter {
      * 
      * A non-positive number disables pulse-clipped pedestals and reverts to
      * the old behavior which assumed integration range was constant.
-     * 
      */
     private int windowSamples = -1;
     
     /**
      * The maximum number of peaks to be searched for.
+     * This is applicable only to Mode-1 data.
      */
     private int nPeak = 3;
    
     /**
-     * Convert Mode-1 into Mode-7, else Mode-3.
+     * Perform Mode-7 algorithm, else Mode-3.
+     * Only applicable to Mode-1 data.
      */
     private boolean mode7 = false;
 
 
     private EcalConditions ecalConditions = null;
 
+    /**
+     * Currently sets up a listener for DAQ configuration from EVIO.
+     * This should be removed to a standalone ECalRawConverter solely
+     * for trigger emulation.
+     */
     public EcalRawConverter() {
     	// Track changes in the DAQ configuration.
     	ConfigurationManager.addActionListener(new ActionListener() {
@@ -149,24 +187,43 @@ public class EcalRawConverter {
     	});
     }
     
-  
+ 
     public void setUseFit(boolean useFit) { this.useFit=useFit; }
     public void setFixShapeParameter(boolean fix) { pulseFitter.fixShapeParameter=fix; }
     public void setGlobalFixedPulseWidth(double width) { 
         pulseFitter.globalThreePoleWidth=width; 
         pulseFitter.fixShapeParameter=true;
     }
+    
+    /**
+     * Pulses with threshold crossing earlier than this will not be fit.
+     */
     public void setFitThresholdTimeLo(int sample) { pulseFitter.threshRange[0]=sample; }
+    /**
+     * Pulses with threshold crossing time greater than this will not be fit.
+     */
     public void setFitThresholdTimeHi(int sample) { pulseFitter.threshRange[1]=sample; }
+    /**
+     * Tell Minuit to limit pulse time parameter in fit to be greater than this. 
+     */
     public void setFitLimitTimeLo(int sample) { pulseFitter.t0limits[0]=sample; }
+    /**
+     * Tell Minuit to limit pulse time parameter in fit to be less than this. 
+     */
     public void setFitLimitTimeHi(int sample) { pulseFitter.t0limits[1]=sample; }
     
     
 
+    /**
+     * Set threshold for pulse finding.  Units = ADC
+     */
     public void setLeadingEdgeThreshold(double thresh) {
         leadingEdgeThreshold=thresh;
     }
     
+    /**
+     * Set number of samples after threshold crossing for pulse integration range.
+     */
     public void setNSA(int nsa) {
         if (NSA%nsPerSample !=0 || NSA<0) {
             throw new RuntimeException("NSA must be multiples of 4ns and non-negative.");
@@ -174,17 +231,29 @@ public class EcalRawConverter {
         NSA=nsa;
     }
     
+    /**
+     * Set number of samples before threshold crossing for pulse integration range.
+     */
     public void setNSB(int nsb) {
         if (NSB%nsPerSample !=0 || NSB<0) {
             throw new RuntimeException("NSB must be multiples of 4ns and non-negative.");
         }
         NSB=nsb;
     }
-    
+   
+    /**
+     * Set number of samples in readout window.  
+     * 
+     * Used for pedestal subtraction for clipped pulses.
+     * This is ignored for Mode-1 raw data, since Mode-1 knows its number of samples. 
+     */
     public void setWindowSamples(int windowSamples) {
         this.windowSamples=windowSamples;
     }
-    
+   
+    /**
+     * Set maximum number of pulses to search for in Mode-1 data.
+     */
     public void setNPeak(int nPeak) {
         if (nPeak<1 || nPeak>3) {
             throw new RuntimeException("Npeak must be 1, 2, or 3.");
@@ -192,28 +261,57 @@ public class EcalRawConverter {
         this.nPeak=nPeak;
     }
     
+    /**
+     * Set Mode-7 emulation on/off.  If off, falls back to Mode-3.  
+     */
     public void setMode7(boolean mode7)
     {
         this.mode7=mode7;
     }
 
+    /**
+     * Set global gain value and turn on constant gain.
+     * The 442 gains from the conditions system will be ignored.
+     */
     public void setGain(double gain) {
         constantGain = true;
         this.gain = gain;
     }
 
+    /**
+     * Chooses which ADC --> Energy convention is used.
+     * 
+     * If true, the relationship between ADC and GeV is a convention that
+     * includes readoutPeriod and a global scaling factor.
+     * 
+     * If false, it is the currently used convention:  E(GeV) = GAIN * ADC 
+     */
     public void setUse2014Gain(boolean use2014Gain) {
         this.use2014Gain = use2014Gain;
     }
 
+    /**
+     * Enables using running pedestals calculated on the fly from previous events.
+     * If false, uses 442 fixed pedestals from the conditions system. 
+     * 
+     * Only applies to FADC Mode-1/7 input data formats.  
+     */
     public void setUseRunningPedestal(boolean useRunningPedestal) {
         this.useRunningPedestal=useRunningPedestal;
     }
 
+    /**
+     * Set whether to use timewalk corrections. 
+     */
     public void setUseTimeWalkCorrection(boolean useTimeWalkCorrection) {
         this.useTimeWalkCorrection=useTimeWalkCorrection;
     }
     
+    /**
+     * Set whether to use DAQ configuration read from EVIO to set EcalRawConverter parameters.
+     * This should be removed to a standalone EcalRawCongverterDriver solely
+     * for trigger emulation.
+     */
     public void setUseDAQConfig(boolean state) {
     	useDAQConfig = state;
     }
@@ -221,7 +319,7 @@ public class EcalRawConverter {
 
 
     /**
-     * This should probably be deprecated.  It just integrates the entire window.
+     * Integrate the entire window.  Return pedestal-subtracted integral.
      */
     public int sumADC(RawTrackerHit hit) {
         EcalChannelConstants channelData = findChannel(hit.getCellID());
@@ -337,7 +435,7 @@ public class EcalRawConverter {
         
         // mode-7's max pulse height:
         double maxADC=0;
-        int sampleMaxADC=0;
+        //int sampleMaxADC=0;
         
         // mode-3/7's pulse integral:
         double sumADC = 0;
@@ -355,7 +453,7 @@ public class EcalRawConverter {
         //if (jj>firstSample && jj<samples.length-5) { // The "5" here is a firmware constant.
         for (int jj=thresholdCrossing; jj<samples.length-5; jj++) { // The "5" here is a firmware constant.
             if (samples[jj+1]<samples[jj]){ 
-                sampleMaxADC=jj;
+                //sampleMaxADC=jj;
                 maxADC=samples[jj];
                 break;                
             }
@@ -391,8 +489,8 @@ public class EcalRawConverter {
                     final int t1 = t0 + 1;
                     final int a0 = samples[t0];
                     final int a1 = samples[t1];
-                    final double slope = (a1 - a0); // units = ADC/sample
-                    final double yint = a1 - slope * t1;  // units = ADC 
+                    //final double slope = (a1 - a0); // units = ADC/sample
+                    //final double yint = a1 - slope * t1;  // units = ADC 
                     pulseTime = ((halfMax - a0)/(a1-a0) + t0)* nsPerSample;
                 }
             }
@@ -482,8 +580,8 @@ public class EcalRawConverter {
             final double[] data = convertWaveformToPulse(hit, thresholdCrossing, mode7);
             double time = data[0];
             double sum = data[1];
-            final double min = data[2]; // TODO: stick min and max in a GenericObject with an 
-            final double max = data[3]; // LCRelation to finish mode-7 emulation
+//            final double min = data[2]; // TODO: stick min and max in a GenericObject with an 
+//            final double max = data[3]; // LCRelation to finish mode-7 emulation
             final double fitQuality = data[4];
             
             if (!useFit || fitQuality<=0) {

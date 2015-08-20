@@ -18,29 +18,95 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * baltzell June 2015: removed outdated javadoc comments in the class header
- */
+ * This class is used to convert between collections of {@link org.lcsim.event.RawCalorimeterHit}
+ * and {@link org.lcsim.event.RawTrackerHit}, objects with ADC/sample information, and
+ * collections of {@link org.lcsim.event.CalorimeterHit}, objects with energy/time information.
+ * 
+ * org.hps.recon.ecal.EcalRawConverter is called to do most of the lower level work.
+ *
+ *
+*/
 public class EcalRawConverterDriver extends Driver {
 
     // To import database conditions
     private EcalConditions ecalConditions = null;
 
     private EcalRawConverter converter = null;
+    /**
+     * Input collection name (unless runBackwards=true, then it's output).
+     * Can be a {@link org.lcsim.event.RawTrackerHit} or {@link org.lcsim.event.RawCalorimeterHit}
+     * These have ADC and sample time information.
+     */
     private String rawCollectionName = "EcalReadoutHits";
-    private final String ecalReadoutName = "EcalHits";
+    
+    /**
+     * Output collection name (unless runBackwards=true, then it's input).
+     * Always a {@link org.lcsim.event.CalorimeterHit}
+     * This has energy (GeV) and ns time information.
+     */
     private String ecalCollectionName = "EcalCalHits";
 
+    /**
+     * ecalCollectionName "type" (must match detector-data) 
+     */
+    private final String ecalReadoutName = "EcalHits";
+
+    /*
+     * Output relation between ecalCollectionName and Mode-7 pedestal for that hit
+     */
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
 
     private boolean debug = false;
+    
+    /**
+     * Hit threshold in GeV.  Anything less will not be put into LCIO. 
+     */
     private double threshold = Double.NEGATIVE_INFINITY;
+    
+    /**
+     * Whether to reject bad crystals. 
+     */
     private boolean applyBadCrystalMap = true;
+    
+    /**
+     * Whether to reject bad FADC channels.
+     */
     private boolean dropBadFADC = false;
+    
+    /**
+     * If true, convert ecalCollectionName to rawCollectionName (GeV to ADC).
+     * Else, convert rawCollectionName to ecalCollectionName (ADC to GeV).
+     */
     private boolean runBackwards = false;
+  
+    /**
+     * 
+     */
     private boolean useTimestamps = false;
+    
+    /**
+     * 
+     */
     private boolean useTruthTime = false;
+    
+    /**
+     * Whether to use DAQ config read from EVIO for EcalRawConverter parameters.
+     * Should be completely removed to a standalone class soilely for trigger emulation.
+     */
     private boolean useDAQConfig = false;
 
+    /**
+     * Whether to perform "firmware algorithm" on Mode-1 data.
+     * 
+     * If so, this includes finding a threshold crossing, extracting
+     * a pulse time, and integrating over some configurable sample
+     * range inside the window to extract pulse integral.
+     * 
+     * If not, it simply integrates the entire window and makes
+     * no attempt at extracting pulse time.
+     * 
+     * This is poorly named.
+     */
     private boolean emulateFirmware = false;
     
     public EcalRawConverterDriver() {
