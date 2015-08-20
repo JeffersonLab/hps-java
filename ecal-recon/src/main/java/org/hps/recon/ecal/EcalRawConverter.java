@@ -62,12 +62,12 @@ public class EcalRawConverter {
     private boolean useFit = false;
     private EcalPulseFitter pulseFitter = new EcalPulseFitter();
     
-    /*
+    /**
      * The time for one FADC sample (units = ns).
      */
     private static final int nsPerSample = 4;
     
-    /*
+    /**
      * The leading-edge threshold, relative to pedestal, for pulse-finding and
      * time determination.  Units = ADC.  Used to convert mode-1 readout into
      * mode-3/7 used by clustering.
@@ -76,7 +76,7 @@ public class EcalRawConverter {
      */
     private double leadingEdgeThreshold = 12;
     
-    /*
+    /**
      * Integration range after (NSA) and before (NSB) threshold crossing.  Units=ns,
      * same as the DAQ configuration files.  These must be multiples of 4 ns.  Used
      * for pulse integration in Mode-1, and pedestal subtraction in all modes.
@@ -86,7 +86,7 @@ public class EcalRawConverter {
     private int NSB = 20;
     private int NSA = 100;
   
-    /*
+    /**
      * The number of samples in the FADC readout window.  Needed in order to
      * properly pedestal-correct clipped pulses for Mode-3/7.  Ignored for
      * mode-1 input, since it already knows its number of samples.
@@ -97,12 +97,12 @@ public class EcalRawConverter {
      */
     private int windowSamples = -1;
     
-    /*
+    /**
      * The maximum number of peaks to be searched for.
      */
     private int nPeak = 3;
    
-    /*
+    /**
      * Convert Mode-1 into Mode-7, else Mode-3.
      */
     private boolean mode7 = false;
@@ -220,7 +220,7 @@ public class EcalRawConverter {
     
 
 
-    /*
+    /**
      * This should probably be deprecated.  It just integrates the entire window.
      */
     public int sumADC(RawTrackerHit hit) {
@@ -241,7 +241,7 @@ public class EcalRawConverter {
         return sum;
     }
 
-    /*
+    /**
      * This should probably be deprecated.  HitDtoA(EventHeader,RawTrackerHit)
      * has the same functionality if NSA+NSB > windowSamples, with the exception
      * that that one also finds pulse time instead of this one's always reporting zero.
@@ -253,7 +253,7 @@ public class EcalRawConverter {
         return CalorimeterHitUtilities.create(rawEnergy, time, id);
     }
 
-    /*
+    /**
      * Get pedestal for a single ADC sample.
      * Choose whether to use static pedestal from database or running pedestal from mode-7.
      */
@@ -282,7 +282,7 @@ public class EcalRawConverter {
         return findChannel(cellID).getCalibration().getPedestal();
     }
 
-    /*
+    /**
      * Get pedestal for entire pulse integral.  Account for clipping if
      * windowSamples is greater than zero.
      */
@@ -305,7 +305,7 @@ public class EcalRawConverter {
     }
    
     
-    /*
+    /**
      * Emulate the FADC250 firmware in conversion of Mode-1 waveform to a Mode-3/7 pulse,
      * given a time for threshold crossing.
      */
@@ -416,7 +416,7 @@ public class EcalRawConverter {
     }
    
     
-    /*
+    /**
      * This HitDtoA is for emulating the conversion of Mode-1 readout (RawTrackerHit)
      * into what EcalRawConverter would have created from a Mode-3 or Mode-7 readout.
      * Clustering classes will read the resulting CalorimeterHits same as if they were
@@ -514,7 +514,7 @@ public class EcalRawConverter {
         return newHits;
     }
 
-    /*
+    /**
      * This HitDtoA is for Mode-3 data.  A time-walk correction can be applied.
      */
     public CalorimeterHit HitDtoA(EventHeader event,RawCalorimeterHit hit, double timeOffset) {
@@ -533,7 +533,7 @@ public class EcalRawConverter {
         return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
     }
 
-    /*
+    /**
      * This HitDtoA is exclusively for Mode-7 data, hence the GenericObject parameter.
      */
     public CalorimeterHit HitDtoA(EventHeader event,RawCalorimeterHit hit, GenericObject mode7Data, double timeOffset) {
@@ -546,7 +546,7 @@ public class EcalRawConverter {
         return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
     }
 
-    /*
+    /**
      * This converts a corrected pulse integral (pedestal-subtracted and gain-scaled)
      * back into raw pulse integral with units ADC.
      */
@@ -567,7 +567,7 @@ public class EcalRawConverter {
         return h;
     }
 
-    /*
+    /**
      * return energy (units of GeV) corresponding to the ADC sum and crystal ID
      */
     private double adcToEnergy(double adcSum, long cellID) {
