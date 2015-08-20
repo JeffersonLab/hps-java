@@ -1,11 +1,11 @@
-package org.hps.recon.ecal.triggerbank;
+package org.hps.record.triggerbank;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import org.hps.recon.ecal.daqconfig.PairTriggerConfig;
-import org.hps.recon.ecal.daqconfig.SinglesTriggerConfig;
+import org.hps.record.daqconfig.PairTriggerConfig;
+import org.hps.record.daqconfig.SinglesTriggerConfig;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 

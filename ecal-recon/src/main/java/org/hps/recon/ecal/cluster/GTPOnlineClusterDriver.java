@@ -3,8 +3,8 @@ package org.hps.recon.ecal.cluster;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import org.hps.recon.ecal.daqconfig.ConfigurationManager;
-import org.hps.recon.ecal.daqconfig.GTPConfig;
+import org.hps.record.daqconfig.ConfigurationManager;
+import org.hps.record.daqconfig.GTPConfig;
 import org.lcsim.event.EventHeader;
 
 /**
@@ -36,7 +36,7 @@ import org.lcsim.event.EventHeader;
  * @author Kyle McCarty <mccarty@jlab.org>
  * @see GTPOnlineClusterer
  * @see ConfigurationManager
- * @see org.hps.recon.ecal.daqconfig.DAQConfigDriver
+ * @see org.hps.record.daqconfig.DAQConfigDriver
  */
 public class GTPOnlineClusterDriver extends ClusterDriver {
 	/** An instance of the clustering algorithm object for producing
@@ -86,7 +86,7 @@ public class GTPOnlineClusterDriver extends ClusterDriver {
      * static class has received a DAQ configuration from the event
      * stream and is initialized. Driver <code>DAQConfigDriver</code>
      * must be in the driver chain for this to occur.
-     * @see org.hps.recon.ecal.daqconfig.DAQConfigDriver
+     * @see org.hps.record.daqconfig.DAQConfigDriver
      */
     @Override
     public void process(EventHeader event) {
@@ -165,7 +165,7 @@ public class GTPOnlineClusterDriver extends ClusterDriver {
      * of the driver chain, then no clusters will ever be created.
      * @param state - <code>true</code> means that DAQ configuration
      * will be used and <code>false</code> that it will not.
-     * @see org.hps.recon.ecal.daqconfig.DAQConfigDriver
+     * @see org.hps.record.daqconfig.DAQConfigDriver
      */
     public void setUseDAQConfig(boolean state) {
     	useDAQConfig = state;

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
+import org.hps.record.triggerbank.TestRunTriggerData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOWriter;
 

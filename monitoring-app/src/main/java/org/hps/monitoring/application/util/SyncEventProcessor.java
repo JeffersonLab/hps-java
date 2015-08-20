@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.hps.evio.TriggerConfigEvioReader;
-import org.hps.recon.ecal.daqconfig.ConfigurationManager;
-import org.hps.recon.ecal.daqconfig.EvioDAQParser;
+import org.hps.record.daqconfig.ConfigurationManager;
+import org.hps.record.daqconfig.EvioDAQParser;
 import org.hps.record.et.EtEventProcessor;
 import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.et.EtEvent;
@@ -19,8 +19,8 @@ import org.lcsim.event.base.BaseLCSimEvent;
  * which have an event type in which bits 6 and 7 are set to 1.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
- * @see org.hps.recon.ecal.daqconfig.ConfigurationManager
- * @see org.hps.recon.ecal.daqconfig.EvioDAQParser
+ * @see org.hps.record.daqconfig.ConfigurationManager
+ * @see org.hps.record.daqconfig.EvioDAQParser
  */
 // FIXME: This class is currently unused.
 public final class SyncEventProcessor extends EtEventProcessor {

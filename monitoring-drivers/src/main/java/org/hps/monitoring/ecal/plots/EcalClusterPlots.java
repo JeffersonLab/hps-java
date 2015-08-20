@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.apache.commons.math.stat.StatUtils;
 import org.hps.recon.ecal.EcalUtils;
-import org.hps.recon.ecal.triggerbank.TriggerModule;
+import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;

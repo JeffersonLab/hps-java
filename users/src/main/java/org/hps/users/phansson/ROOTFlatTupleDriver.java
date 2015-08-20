@@ -21,8 +21,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
 import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.EventQuality;
 import org.hps.recon.tracking.HPSTrack;
@@ -31,6 +29,8 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.TwoParticleVertexer;
 import org.hps.recon.vertexing.TwoTrackFringeVertexer;
 import org.hps.recon.vertexing.TwoTrackVertexer;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TestRunTriggerData;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;

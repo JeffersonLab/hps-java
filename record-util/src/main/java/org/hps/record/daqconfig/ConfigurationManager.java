@@ -1,4 +1,4 @@
-package org.hps.recon.ecal.daqconfig;
+package org.hps.record.daqconfig;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

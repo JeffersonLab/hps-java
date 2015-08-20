@@ -23,13 +23,13 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.hps.recon.ecal.triggerbank.SSPCluster;
-import org.hps.recon.ecal.triggerbank.SSPData;
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.SSPSinglesTrigger;
-import org.hps.recon.ecal.triggerbank.TIData;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.SSPCluster;
+import org.hps.record.triggerbank.SSPData;
+import org.hps.record.triggerbank.SSPSinglesTrigger;
+import org.hps.record.triggerbank.TIData;
 
 /**
  *  Monitoring driver that will be used when 'timing in' the SVT.

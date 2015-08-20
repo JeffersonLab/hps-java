@@ -1,4 +1,4 @@
-package org.hps.recon.ecal.triggerbank;
+package org.hps.record.triggerbank;
 
 /**
  * Class <code>SSPTriggerFactory</code> builds <code>SSPTrigger<code>

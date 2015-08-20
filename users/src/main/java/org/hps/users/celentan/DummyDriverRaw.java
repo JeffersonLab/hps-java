@@ -5,8 +5,8 @@ import java.util.List;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.SSPData;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.SSPData;
 import org.lcsim.event.GenericObject;
 
 public class DummyDriverRaw extends Driver {

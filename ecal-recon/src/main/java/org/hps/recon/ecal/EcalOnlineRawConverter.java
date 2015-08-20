@@ -5,8 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-import org.hps.recon.ecal.daqconfig.ConfigurationManager;
-import org.hps.recon.ecal.daqconfig.FADCConfig;
+import org.hps.record.daqconfig.ConfigurationManager;
+import org.hps.record.daqconfig.FADCConfig;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;

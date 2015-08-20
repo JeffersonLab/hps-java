@@ -2,10 +2,12 @@ package org.hps.users.mgraham;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.TIData;
+
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TIData;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;

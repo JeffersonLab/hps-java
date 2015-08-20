@@ -8,9 +8,9 @@ import hep.aida.IPlotterFactory;
 import java.util.List;
 
 import org.hps.recon.ecal.EcalUtils;
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.SSPData;
-import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.SSPData;
+import org.hps.record.triggerbank.TestRunTriggerData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;

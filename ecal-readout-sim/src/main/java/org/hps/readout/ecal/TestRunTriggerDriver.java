@@ -3,7 +3,7 @@ package org.hps.readout.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
+import org.hps.record.triggerbank.TestRunTriggerData;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 

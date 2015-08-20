@@ -1,4 +1,4 @@
-package org.hps.recon.ecal.daqconfig;
+package org.hps.record.daqconfig;
 
 /**
  * Class <code>LBOCutConfig</code> is an implementation of the abstract

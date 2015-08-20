@@ -1,8 +1,8 @@
 package org.hps.analysis.trigger.event;
 
 import org.hps.analysis.trigger.util.Trigger;
-import org.hps.recon.ecal.triggerbank.SSPCluster;
-import org.hps.recon.ecal.triggerbank.TriggerModule;
+import org.hps.record.triggerbank.SSPCluster;
+import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.util.aida.AIDA;
 

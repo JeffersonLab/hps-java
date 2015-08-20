@@ -7,7 +7,7 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.ecal.triggerbank.TriggerModule;
+import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;

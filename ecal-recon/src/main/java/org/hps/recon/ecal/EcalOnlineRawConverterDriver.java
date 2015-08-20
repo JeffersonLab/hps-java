@@ -3,7 +3,7 @@ package org.hps.recon.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.ecal.daqconfig.ConfigurationManager;
+import org.hps.record.daqconfig.ConfigurationManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;

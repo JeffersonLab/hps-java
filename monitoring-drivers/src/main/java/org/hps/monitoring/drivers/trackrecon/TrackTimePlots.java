@@ -9,10 +9,11 @@ import hep.aida.ref.plotter.style.registry.IStyleStore;
 import hep.aida.ref.plotter.style.registry.StyleRegistry;
 
 import java.util.List;
+
 import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
 
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TestRunTriggerData;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;

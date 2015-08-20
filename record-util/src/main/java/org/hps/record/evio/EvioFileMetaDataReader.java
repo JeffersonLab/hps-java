@@ -125,6 +125,8 @@ public class EvioFileMetaDataReader {
             if (eventIdData != null) {
                 endEvent = eventIdData[0];
                 LOGGER.info("set end event " + endEvent);
+            } else {
+                throw new IllegalStateException("Missing last event ID data in " + evioFile.getPath());
             }
         } catch (EvioException | IOException e) {
             throw new RuntimeException(e);

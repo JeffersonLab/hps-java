@@ -3,7 +3,7 @@ package org.hps.users.kmccarty;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 
-import org.hps.recon.ecal.triggerbank.TriggerModule;
+import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.util.aida.AIDA;
 

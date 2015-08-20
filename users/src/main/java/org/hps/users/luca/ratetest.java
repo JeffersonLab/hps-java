@@ -9,8 +9,10 @@ package org.hps.users.luca;
 
 
 import org.lcsim.util.Driver;
+
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -22,11 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
-
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.TIData;
-
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;

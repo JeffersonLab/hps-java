@@ -2,12 +2,13 @@ package org.hps.users.meeg;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.FADCGenericHit;
-import org.hps.recon.ecal.triggerbank.AbstractIntData;
-import org.hps.recon.ecal.triggerbank.TDCData;
-import org.hps.recon.ecal.triggerbank.TDCData.TDCHit;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TDCData;
+import org.hps.record.triggerbank.TDCData.TDCHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;

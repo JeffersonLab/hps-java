@@ -2,11 +2,13 @@ package org.hps.readout.ecal;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import org.hps.recon.ecal.triggerbank.TriggerModule;
+
+import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.aida.AIDA;

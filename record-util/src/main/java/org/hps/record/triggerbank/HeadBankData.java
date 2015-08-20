@@ -1,4 +1,4 @@
-package org.hps.recon.ecal.triggerbank;
+package org.hps.record.triggerbank;
 
 import java.util.Date;
 import org.lcsim.event.GenericObject;

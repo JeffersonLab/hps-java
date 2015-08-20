@@ -9,8 +9,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.recon.ecal.daqconfig.ConfigurationManager;
-import org.hps.recon.ecal.daqconfig.FADCConfig;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -21,6 +19,8 @@ import org.lcsim.geometry.Detector;
 import org.hps.recon.ecal.EcalUtils;
 import org.hps.recon.ecal.EcalTimeWalk;
 import org.hps.recon.ecal.CalorimeterHitUtilities;
+import org.hps.record.daqconfig.ConfigurationManager;
+import org.hps.record.daqconfig.FADCConfig;
 
 /**
  * This class is used to convert {@link org.lcsim.event.RawCalorimeterHit}

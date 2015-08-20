@@ -1,6 +1,6 @@
 package org.hps.analysis.trigger.util;
 
-import org.hps.recon.ecal.triggerbank.TriggerModule;
+import org.hps.record.triggerbank.TriggerModule;
 
 public class SinglesTrigger<E> extends Trigger<E> {
 	// Define the supported trigger cuts.

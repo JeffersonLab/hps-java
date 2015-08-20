@@ -4,6 +4,7 @@ import hep.aida.IFitResult;
 //import hep.aida.IHistogram1D;
 //import hep.aida.IHistogram2D;
 
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileWriter;
@@ -19,8 +20,8 @@ import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.CalorimeterHitUtilities;
 import org.hps.recon.ecal.EcalTimeWalk;
 import org.hps.recon.ecal.EcalUtils;
-import org.hps.recon.ecal.daqconfig.ConfigurationManager;
-import org.hps.recon.ecal.daqconfig.FADCConfig;
+import org.hps.record.daqconfig.ConfigurationManager;
+import org.hps.record.daqconfig.FADCConfig;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;

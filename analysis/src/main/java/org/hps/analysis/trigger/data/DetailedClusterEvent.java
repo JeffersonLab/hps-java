@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.analysis.trigger.util.TriggerDiagnosticUtil;
-import org.hps.recon.ecal.triggerbank.SSPCluster;
+import org.hps.record.triggerbank.SSPCluster;
 import org.lcsim.event.Cluster;
 
 public class DetailedClusterEvent extends ClusterEvent {

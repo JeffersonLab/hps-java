@@ -2,6 +2,7 @@ package org.hps.job;
 
 import org.hps.conditions.ConditionsDriver;
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.record.run.RunManager;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 
@@ -24,6 +25,11 @@ public class JobManager extends JobControlManager {
     }
 
     /**
+     * Flag to enable the run database in a job (enabled by default).
+     */
+    private boolean enableRunDatabase = false;
+
+    /**
      * Class constructor.
      */
     public JobManager() {
@@ -36,7 +42,8 @@ public class JobManager extends JobControlManager {
             // Just don't print info if not accessible (running in test case?).
         }
 
-        // Always want to reset conditions system before starting the job.
+        // Always want to reset the conditions system before starting the job.
+        // FIXME: Should this happen in the run method instead?
         DatabaseConditionsManager.resetInstance();
     }
 
@@ -49,7 +56,13 @@ public class JobManager extends JobControlManager {
     public final boolean run() {
 
         // Setup the conditions if there is a ConditionsDriver present.
-        setupConditions();
+        this.setupConditions();
+
+        // Is usage of run database enabled?
+        if (this.enableRunDatabase) {
+            // Enable the run database.
+            this.setupRunManager();
+        }
 
         // Run the job.
         final boolean result = super.run();
@@ -58,6 +71,15 @@ public class JobManager extends JobControlManager {
         DatabaseConditionsManager.getInstance().closeConnection();
 
         return result;
+    }
+
+    /**
+     * Enable the run database.
+     *
+     * @param enableRunDatabase <code>true</code> to enable run database
+     */
+    public void setEnableRunDatabase(final boolean enableRunDatabase) {
+        this.enableRunDatabase = enableRunDatabase;
     }
 
     /**
@@ -76,5 +98,13 @@ public class JobManager extends JobControlManager {
         if (conditionsDriver != null) {
             conditionsDriver.initialize();
         }
+    }
+
+    /**
+     * Set the {@link org.hps.record.run.RunManager} for accessing the run database.
+     */
+    private void setupRunManager() {
+        final RunManager runManager = RunManager.getRunManager();
+        DatabaseConditionsManager.getInstance().addConditionsListener(runManager);
     }
 }
