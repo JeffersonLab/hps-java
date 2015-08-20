@@ -8,8 +8,8 @@ import hep.aida.IFitter;
 import hep.aida.IFunction;
 import hep.aida.IFunctionFactory;
 
-import java.io.FileWriter;
-import java.io.IOException;
+//import java.io.FileWriter;
+//import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,32 +20,53 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.aida.AIDA;
 
+/**
+ * Fit ECal FADC Mode-1 waveform with a "3-pole" function for extraction of
+ * pulse integral and time.
+ * 
+ * Called from EcalRawConverter.  Uses Ecal3PoleFunction.
+ * 
+ * Limits are placed on pulse characteristics to avoid wasting time fitting
+ * pulses near the edge of the window.  Width parameter can be free or fixed.
+ * Pedestal parameter is initialized from samples before threshold crossing.
+ */
 public class EcalPulseFitter {
 
-    public int debug = 0;
-    public String fitFileName = null;
+    private EcalConditions ecalConditions = null;
+    
+    /**
+     * If this is false, the width will be a free parameter in the fit:
+     */
     public boolean fixShapeParameter = true;
 
-    private final static int nsPerSample=4;
-    private FileWriter fitFileWriter = null;
-    private EcalConditions ecalConditions = null;
-
-    // don't bother fitting pulses with threshold crossing outside this sample range:
+    /**
+     * don't bother fitting pulses with threshold crossing outside this sample range:
+     */
     public int threshRange[]={7,20}; // (28 ns <--> 80 ns)
     
-    // restrict fit's time0 parameter to this range:  (units=samples)
+    /**
+     * restrict fit's time0 parameter to this range:  (units=samples)
+     */
     public int t0limits[]={1,30};
     
-    // fit sample range relative to threshold crossing:
+    /**
+     * fit sample range relative to threshold crossing 
+     */
     private final static int fitRange[]={-10,15};
-    
-    // sample range relative to threshold crossing used to initialize pedestal fit parameter:
+   
+    /**
+     * sample range relative to threshold crossing used to initialize pedestal fit parameter:
+     */
     private final static int pedRange[]={-10,-5};
 
-    // if this is positive, it will override individual widths:
+    /**
+     * if this is positive, it will override individual widths and use one global width (units = samples)
+     */
     public double globalThreePoleWidth=-999;
 
-    // these are 442 channels' widths, measured from 2015 data:
+    /**
+     * 442 channels' widths, measured from 2015 data (units = samples)
+     */
     private final static double threePoleWidths[]={
       2.44057,2.40057,2.53389,2.32095,2.44267,2.43631,2.40292,2.46911,2.36032,2.42132,2.41473,2.43864,2.37710,2.43278,2.49126,2.41739,2.40560,
       2.42042,2.51278,2.46731,2.42647,2.35636,2.55308,2.47517,2.38748,2.48324,2.53726,2.54780,2.50771,2.45188,2.35011,2.35110,2.37575,2.37649,
@@ -75,49 +96,32 @@ public class EcalPulseFitter {
       2.38524,2.39403,2.42442,2.56829,2.56063,2.58340,2.42897,2.58796,2.56262,2.53480,2.43707,2.38258,2.46584,2.40596,2.42590,2.48281,2.47800
     };
 
+    // Stuff for debugging:
+    //public int debug = 0;
+    //public String fitFileName = null;
+    //private FileWriter fitFileWriter = null;
+
     AIDA aida = AIDA.defaultInstance();
     IAnalysisFactory analysisFactory = aida.analysisFactory();
     IFunctionFactory functionFactory = analysisFactory.createFunctionFactory(null);
     IFitFactory fitFactory = analysisFactory.createFitFactory();
     IFitter fitter=fitFactory.createFitter();
     IFunction fitFcn3Pole=new Ecal3PoleFunction();
-    IFunction fitFcnLinear=functionFactory.createFunctionFromScript("fitFcnLinear",1,"p0+x[0]*p1","p0,p1","",null);
     IDataPointSet fitData=aida.analysisFactory().createDataPointSetFactory(null).create("ADC DataPointSet", 2);
 
-    public IFitResult fitLeadingEdge(RawTrackerHit hit,int threshCross) {
-        
-        final short samples[] = hit.getADCValues();
-        final double noise = findChannel(hit.getCellID()).getCalibration().getNoise();
-        
-        int imaxADC=0;
-        for (int ii=threshCross; ii<samples.length-1; ii++) 
-        {
-            if (ii<0) continue;
-            if (ii>=samples.length) break;
-            if (samples[ii+1] < samples[ii]) {
-                imaxADC=ii;
-                break;
-            }
-        }
-        fitData.clear();
-        int nFitPoints=0;
-        for (int ii=threshCross-1; ii<imaxADC-1; ii++) {
-            fitData.addPoint();
-            fitData.point(nFitPoints).coordinate(0).setValue(ii);
-            fitData.point(nFitPoints).coordinate(1).setValue(samples[ii]);
-            fitData.point(nFitPoints).coordinate(1).setErrorMinus(noise);
-            fitData.point(nFitPoints).coordinate(1).setErrorPlus(noise);
-            nFitPoints++;
-        }
-       
-        if (nFitPoints<2) return null;
-
-        return fitter.fit(fitData,fitFcnLinear);
-    }
-    
+   
+    /**
+     * Perform and return "3-pole" fit of ECAL raw waveform.
+     * 
+     * @param hit the RawTrackerHit (Mode-1 FADC ECal readout) to be fit
+     * @param threshCross the sample of threshold crossing, used to initialize fit parameters
+     * @param maxADC the ADC at pulse maximum, used to initialize fit parameters
+     * 
+     * @return fit result, which can be null if fit fails or certain conditions are not met. 
+     */
     public IFitResult fitPulse(RawTrackerHit hit,int threshCross,double maxADC) {
        
-        if (debug>0) System.err.println("FITTING.....................................................");
+        //if (debug>0) System.err.println("FITTING.....................................................");
     
         final short samples[] = hit.getADCValues();
         final double noise = findChannel(hit.getCellID()).getCalibration().getNoise();
@@ -151,7 +155,7 @@ public class EcalPulseFitter {
         {
             if (ii<0) continue;
             if (ii>=samples.length) break;
-            if (debug>0) System.err.print(ii+":"+samples[ii]+" ");
+            //if (debug>0) System.err.print(ii+":"+samples[ii]+" ");
 //            if (samples[ii] > maxADC) maxADC=samples[ii];
             if (iPeakADC<0 && ii<samples.length-1 && samples[ii+1] < samples[ii]) {
                 iPeakADC=ii;
@@ -164,13 +168,13 @@ public class EcalPulseFitter {
             fitData.point(nFitPoints).coordinate(1).setErrorPlus(noise);
             nFitPoints++;
         }
-        if (debug>0) System.err.print("\n");
+        //if (debug>0) System.err.print("\n");
        
         // don't bother trying to fit:
         if (nFitPoints < 10) return null;
         if (maxADC < ped) return null;
         
-        if (debug>0) System.err.println("------- "+ped+" "+threshCross+" "+maxADC);
+        //if (debug>0) System.err.println("------- "+ped+" "+threshCross+" "+maxADC);
 
         final double pulseIntegral = sumADC-ped*nFitPoints;
  
@@ -188,20 +192,27 @@ public class EcalPulseFitter {
         fitter.fitParameterSettings("integral").setBounds(0,999999);
         if (fixShapeParameter) fitter.fitParameterSettings("width").setFixed(true);
 
+        /*
         if (debug>0) {
             System.err.println(String.format("A= %8.2f",fitFcn3Pole.parameter("integral")));
             System.err.println(String.format("T= %8.2f",fitFcn3Pole.parameter("time0")*4));
             System.err.println(String.format("P= %8.2f",fitFcn3Pole.parameter("pedestal")));
             System.err.println(String.format("S= %8.2f",fitFcn3Pole.parameter("width")));
-        } else Logger.getLogger("org.freehep.math.minuit").setLevel(Level.OFF);
+        } else
+        */
+        
+        // did this because something else was turning it back on every event
+        // once that thing stops doing that, this can be removed.
+        Logger.getLogger("org.freehep.math.minuit").setLevel(Level.OFF);
 
         IFitResult fitResult = fitter.fit(fitData,fitFcn3Pole);
-        writeFit(samples,fitResult,cid);
-       
+
+/*       
         if (debug>0) {
+            writeFit(samples,fitResult,cid);
             final double P = fitResult.fittedParameter("pedestal");
             final double I = fitResult.fittedParameter("integral");
-            final double T = fitResult.fittedParameter("time0")*nsPerSample;
+            final double T = fitResult.fittedParameter("time0")*4; // 4 ns per sample
             final double S = fitResult.fittedParameter("width");
             final double Q = fitResult.quality();
             final double E[] = fitResult.errors();
@@ -213,8 +224,9 @@ public class EcalPulseFitter {
             System.err.println(String.format("M = %8.2f",maxADC-P));
             System.err.println(String.format("Q = %8.2f",Q));
         }
-       
-        /*
+*/
+        
+/*
         // now fit just leading edge:
         IFitResult timeResult = null;
         if (doTimeFit) {
@@ -225,12 +237,23 @@ public class EcalPulseFitter {
             fitter.fit(fitData,fitFcn3Pole);
         }
         IFitResult fitResults[] = {fitResult,timeResult};
-        */
+*/
         
         return fitResult;
     }
 
+    public void setDetector(Detector detector) {
+        // ECAL combined conditions object.
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+    }
     
+    public EcalChannelConstants findChannel(long cellID) {
+        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
+    }
+
+    
+    
+/*    
     public void writeFit(short samples[],IFitResult fit,final int cid) {
         if (fitFileName == null) return;
         if (fitFileWriter == null) {
@@ -262,13 +285,43 @@ public class EcalPulseFitter {
         }
         return ped;
     }
-    public void setDetector(Detector detector) {
-        // ECAL combined conditions object.
-        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+*/
+    
+
+    
+/*
+    public IFitResult fitLeadingEdge(RawTrackerHit hit,int threshCross) {
+        
+        IFunction fitFcnLinear=functionFactory.createFunctionFromScript("fitFcnLinear",1,"p0+x[0]*p1","p0,p1","",null);
+        final short samples[] = hit.getADCValues();
+        final double noise = findChannel(hit.getCellID()).getCalibration().getNoise();
+        
+        int imaxADC=0;
+        for (int ii=threshCross; ii<samples.length-1; ii++) 
+        {
+            if (ii<0) continue;
+            if (ii>=samples.length) break;
+            if (samples[ii+1] < samples[ii]) {
+                imaxADC=ii;
+                break;
+            }
+        }
+        fitData.clear();
+        int nFitPoints=0;
+        for (int ii=threshCross-1; ii<imaxADC-1; ii++) {
+            fitData.addPoint();
+            fitData.point(nFitPoints).coordinate(0).setValue(ii);
+            fitData.point(nFitPoints).coordinate(1).setValue(samples[ii]);
+            fitData.point(nFitPoints).coordinate(1).setErrorMinus(noise);
+            fitData.point(nFitPoints).coordinate(1).setErrorPlus(noise);
+            nFitPoints++;
+        }
+       
+        if (nFitPoints<2) return null;
+
+        return fitter.fit(fitData,fitFcnLinear);
     }
-    public EcalChannelConstants findChannel(long cellID) {
-        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
-    }
+*/
     
     
 }

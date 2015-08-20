@@ -2,13 +2,11 @@ package org.hps.recon.ecal;
 
 import hep.aida.ref.function.AbstractIFunction;
 
-/*
- * 
+/**
  * "3-Pole Function:"   x**2 * exp(-x/tau)
  * 
  * Here x is time, and we have pedestal and time offsets, and it's normalized:
  * PEDESTAL + INTEGRAL / WIDTH^3 / 2 * (TIME-TIME0)**2 * exp(-(TIME-TIME0)/WIDTH)
- * 
  */
 
 public class Ecal3PoleFunction extends AbstractIFunction {
