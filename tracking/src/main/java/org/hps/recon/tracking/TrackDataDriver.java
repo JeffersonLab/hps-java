@@ -35,6 +35,7 @@ public class TrackDataDriver extends Driver {
     String rotatedHthCollectionName = "RotatedHelicalTrackHits";
     String trackResidualsRelationsColName = "TrackResidualsRelations";
 
+    /** Default constructor */
     public TrackDataDriver() {
     }
 
@@ -44,13 +45,22 @@ public class TrackDataDriver extends Driver {
 
     protected void process(EventHeader event) {
 
+        // Check if the event contains a collection of the type Track.  If it 
+        // doesn't skip the event.
+        if (!event.hasCollection(Track.class)) return;
+        
         // If the event doesn't contain a collection of tracks, skip it.
-        if (!event.hasCollection(Track.class, trackCollectionName)) {
-            return;
-        }
+        //if (!event.hasCollection(Track.class, trackCollectionName)) {
+        //    return;
+        //}
 
+        // Get all collections of the type Track from the event.  This is 
+        // required since the event contains a track collection for each of the
+        // different tracking strategies.
+        List<List<Track>> trackCollections = event.get(Track.class);
+        
         // Get the collection of tracks from the event
-        List<Track> tracks = event.get(Track.class, trackCollectionName);
+        //List<Track> tracks = event.get(Track.class, trackCollectionName);
 
         // Get the collection of LCRelations relating RotatedHelicalTrackHits to
         // HelicalTrackHits
@@ -98,6 +108,9 @@ public class TrackDataDriver extends Driver {
         List<Integer> sensorLayers = new ArrayList<Integer>();
         List<Integer> stereoLayers = new ArrayList<Integer>();
 
+        // Loop over each of the track collections retrieved from the event
+        for (List<Track> tracks : trackCollections) { 
+        
         // Loop over all the tracks in the event
         for (Track track : tracks) {
 
@@ -187,7 +200,7 @@ public class TrackDataDriver extends Driver {
             trackResidualsCollection.add(trackResiduals);
             trackToTrackResidualsRelations.add(new BaseLCRelation(trackResiduals, track));
         }
-
+        }
         event.put(TrackData.TRACK_DATA_COLLECTION, trackDataCollection, TrackTimeData.class, 0);
         event.put(TrackData.TRACK_DATA_RELATION_COLLECTION, trackDataRelations, LCRelation.class, 0);
         event.put(trackResidualsCollectionName, trackResidualsCollection, TrackResidualsData.class, 0);
