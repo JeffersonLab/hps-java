@@ -40,6 +40,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
      * @param helix
      * @return a list of ScatterAngle.
      */
+    @Override
     public List<ScatterAngle> FindScatters(HelicalTrackFit helix) {
         if (_debug)
             System.out.printf("\n%s: FindScatters() for helix:\n%s\n", this.getClass().getSimpleName(), helix.toString());
@@ -226,19 +227,13 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("%s: take step %f to get intercept position in sensor frame %s (det: %s trk: %s)\n", this.getClass().getSimpleName(), delta_w, pos_int, pos_int_det.toString(), pos_int_trk.toString());
 
         // check if it's inside the sensor
-        Inside result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_int);
-        Inside result_inside_module = plane.getSensor().getGeometry().getDetectorElement().getParent().getGeometry().inside(pos_int_det);
-
-        if (this._debug)
+        Inside result_inside = null;
+        Inside result_inside_module = null;
+        if (_debug) {
+            result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_int);
+            result_inside_module = plane.getSensor().getGeometry().getDetectorElement().getParent().getGeometry().inside(pos_int_det);
             System.out.printf("%s: Inside result sensor: %s module: %s\n", this.getClass().getSimpleName(), result_inside.toString(), result_inside_module.toString());
-
-        boolean isInsideSolid = false;
-        if (result_inside.equals(Inside.INSIDE) || result_inside.equals(Inside.SURFACE))
-            isInsideSolid = true;
-
-        boolean isInsideSolidModule = false;
-        if (result_inside_module.equals(Inside.INSIDE) || result_inside_module.equals(Inside.SURFACE))
-            isInsideSolidModule = true;
+        }
 
         boolean isInside = true;
         if (Math.abs(pos_int.x()) > plane.getMeasuredDimension() / 2.0) {
@@ -252,7 +247,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
                 System.out.printf("%s: intercept is outside in v\n", this.getClass().getSimpleName());
             isInside = false;
         }
-
+        
         if (!isInside)
             return null;
 
@@ -261,15 +256,29 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
 
         // Check if it's inside sensor and module and if it contradicts the manual calculation
         // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module 
-        if (!isInsideSolid) {
-            if (_debug)
-                System.out.printf("%s: manual calculation says inside sensor, inside solid says outside -> contradiction \n", this.getClass().getSimpleName());
-            if (isInsideSolidModule) {
-                if (_debug)
-                    System.out.printf("%s: this intercept is outside sensor but inside module\n", this.getClass().getSimpleName());
-            } else
-                if (_debug)
+        if (_debug) {
+            boolean isInsideSolid = false;
+            if (result_inside.equals(Inside.INSIDE) || result_inside.equals(Inside.SURFACE)) {
+                isInsideSolid = true;
+            }
+
+            boolean isInsideSolidModule = false;
+            if (result_inside_module.equals(Inside.INSIDE) || result_inside_module.equals(Inside.SURFACE)) {
+                isInsideSolidModule = true;
+            }
+
+            if (!isInsideSolid) {
+                if (_debug) {
+                    System.out.printf("%s: manual calculation says inside sensor, inside solid says outside -> contradiction \n", this.getClass().getSimpleName());
+                }
+                if (isInsideSolidModule) {
+                    if (_debug) {
+                        System.out.printf("%s: this intercept is outside sensor but inside module\n", this.getClass().getSimpleName());
+                    }
+                } else if (_debug) {
                     System.out.printf("%s: warning: this intercept at %s, in sensor frame %s, (sensor origin at %s ) is outside sensor and module!\n", this.getClass().getSimpleName(), pos_int_trk.toString(), pos_int.toString(), plane.origin().toString());
+                }
+            }
         }
 
         // TODO Catch special cases where the incidental iteration procedure seem to fail 
@@ -302,22 +311,12 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         if (this._debug)
             System.out.printf("%s: found iterative helix intercept in sensor coordinates at %s\n", this.getClass().getSimpleName(), pos_iter_sensor.toString());
 
-        result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_iter_sensor);
-        result_inside_module = plane.getSensor().getGeometry().getDetectorElement().getParent().getGeometry().inside(pos_iter_det);
-
-        if (this._debug)
+        if (_debug) {
+            result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_iter_sensor);
+            result_inside_module = plane.getSensor().getGeometry().getDetectorElement().getParent().getGeometry().inside(pos_iter_det);
             System.out.printf("%s: Inside result sensor: %s module: %s\n", this.getClass().getSimpleName(), result_inside.toString(), result_inside_module.toString());
-
-        isInsideSolid = false;
-
-        if (result_inside.equals(Inside.INSIDE) || result_inside.equals(Inside.SURFACE))
-            isInsideSolid = true;
-
-        isInsideSolidModule = false;
-
-        if (result_inside_module.equals(Inside.INSIDE) || result_inside_module.equals(Inside.SURFACE))
-            isInsideSolidModule = true;
-
+        }
+        
         isInside = true;
         if (Math.abs(pos_iter_sensor.x()) > plane.getMeasuredDimension() / 2.0) {
             if (this._debug)
@@ -331,18 +330,32 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             isInside = false;
         }
 
+        if (_debug) {
+            boolean isInsideSolid = false;
+            if (result_inside.equals(Inside.INSIDE) || result_inside.equals(Inside.SURFACE)) {
+                isInsideSolid = true;
+            }
+
+            boolean isInsideSolidModule = false;
+            if (result_inside_module.equals(Inside.INSIDE) || result_inside_module.equals(Inside.SURFACE)) {
+                isInsideSolidModule = true;
+            }
+
         // Check if it's inside sensor and module and if it contradicts the manual calculation
-        // For now: trust manual calculation and output warning if it's outside BOTH sensor AND
-        // module -> FIX THIS!?
-        if (!isInsideSolid) {
-            if (_debug)
-                System.out.printf("%s: manual iterative calculation says inside sensor, inside solid says outside -> contradiction \n", this.getClass().getSimpleName());
-            if (isInsideSolidModule) {
-                if (_debug)
-                    System.out.printf("%s: this iterative intercept is outside sensor but inside module\n", this.getClass().getSimpleName());
-            } else
-                if (_debug)
+            // For now: trust manual calculation and output warning if it's outside BOTH sensor AND
+            // module -> FIX THIS!?
+            if (!isInsideSolid) {
+                if (_debug) {
+                    System.out.printf("%s: manual iterative calculation says inside sensor, inside solid says outside -> contradiction \n", this.getClass().getSimpleName());
+                }
+                if (isInsideSolidModule) {
+                    if (_debug) {
+                        System.out.printf("%s: this iterative intercept is outside sensor but inside module\n", this.getClass().getSimpleName());
+                    }
+                } else if (_debug) {
                     System.out.printf("%s: warning: this iterative intercept %s, sensor frame %s, (sensor origin %s ) is outside sensor and module!\n", this.getClass().getSimpleName(), pos_iter_trk.toString(), pos_iter_sensor.toString(), plane.origin().toString());
+                }
+            }
         }
 
         if (!isInside)
