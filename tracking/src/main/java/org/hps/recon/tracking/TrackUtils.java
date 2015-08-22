@@ -139,19 +139,29 @@ public class TrackUtils {
      * @return point at intercept
      */
     public static Hep3Vector getHelixPlaneIntercept(HelicalTrackFit helfit, Hep3Vector unit_vec_normal_to_plane, Hep3Vector point_on_plane, double bfield) {
+        return getHelixPlaneIntercept(helfit,unit_vec_normal_to_plane,point_on_plane,bfield,0);
+    }
+
+    public static Hep3Vector getHelixPlaneIntercept(HelicalTrackFit helfit, Hep3Vector unit_vec_normal_to_plane, Hep3Vector point_on_plane, double bfield, double initial_s) {
         boolean debug = false;
         //Hep3Vector B = new BasicHep3Vector(0, 0, -1);
         //WTrack wtrack = new WTrack(helfit, -1.0*bfield); //
         Hep3Vector B = new BasicHep3Vector(0, 0, 1);
         WTrack wtrack = new WTrack(helfit, bfield); //
+        if (initial_s!=0)
+            wtrack.setTrackParameters(wtrack.getHelixParametersAtPathLength(initial_s, B));
         if (debug) {
             System.out.printf("getHelixPlaneIntercept:find intercept between plane defined by point on plane %s, unit vec %s, bfield %.3f, h=%s and WTrack \n%s \n", point_on_plane.toString(), unit_vec_normal_to_plane.toString(), bfield, B.toString(), wtrack.toString());
         }
-        Hep3Vector intercept_point = wtrack.getHelixAndPlaneIntercept(point_on_plane, unit_vec_normal_to_plane, B);
-        if (debug) {
-            System.out.printf("getHelixPlaneIntercept: found intercept point at %s\n", intercept_point.toString());
+        try {
+            Hep3Vector intercept_point = wtrack.getHelixAndPlaneIntercept(point_on_plane, unit_vec_normal_to_plane, B);
+            if (debug) {
+                System.out.printf("getHelixPlaneIntercept: found intercept point at %s\n", intercept_point.toString());
+            }
+            return intercept_point;
+        } catch (RuntimeException e) {
+            return null;
         }
-        return intercept_point;
     }
 
     /**

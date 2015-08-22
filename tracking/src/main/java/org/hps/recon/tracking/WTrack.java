@@ -230,7 +230,7 @@ public class WTrack {
      * @param h - magnetic field unit vector
      * @return track parameters
      */
-    private double[] getHelixParametersAtPathLength(double s, Hep3Vector h) {
+    public double[] getHelixParametersAtPathLength(double s, Hep3Vector h) {
         
 
         // Find track parameters at that path length
