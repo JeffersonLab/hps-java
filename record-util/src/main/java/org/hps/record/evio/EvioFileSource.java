@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.freehep.record.source.AbstractRecordSource;
 import org.freehep.record.source.NoSuchRecordException;
+import org.hps.record.AbstractRecordQueue;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
@@ -19,7 +19,7 @@ import org.jlab.coda.jevio.EvioReader;
  *
  * @author Jeremy McCormick, SLAC
  */
-public final class EvioFileSource extends AbstractRecordSource {
+public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
 
     /**
      * The current event.

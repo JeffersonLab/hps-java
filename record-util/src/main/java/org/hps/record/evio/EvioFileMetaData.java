@@ -306,8 +306,8 @@ public final class EvioFileMetaData {
      */
     @Override
     public String toString() {
-        return "EvioFileMetaData { evioFile: " + this.evioFile + ", startDate: " + this.startDate + "endDate: "
-                + this.endDate + "badEventCount: " + this.badEventCount + ", byteCount: " + this.byteCount
+        return "EvioFileMetaData { evioFile: " + this.evioFile + ", startDate: " + this.startDate + ", endDate: "
+                + this.endDate + ", badEventCount: " + this.badEventCount + ", byteCount: " + this.byteCount
                 + ", eventCount: " + this.eventCount + ", hasPrestart: " + this.hasPrestart + ", hasEnd: "
                 + this.hasEnd + ", run: " + this.run + ", fileNumber: " + sequence + ", startEvent:  "
                 + this.startEvent + ", endEvent: " + endEvent + " }";

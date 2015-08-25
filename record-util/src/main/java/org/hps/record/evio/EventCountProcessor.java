@@ -71,13 +71,13 @@ final class EventCountProcessor extends EvioEventProcessor {
     /**
      * Process an EVIO event and add its type to the map.
      *
-     * @param event the EVIO event
+     * @param evioEvent the EVIO event
      */
     @Override
-    public void process(final EvioEvent event) {
+    public void process(final EvioEvent evioEvent) {
 
         // Increment physics event count.
-        if (EvioEventUtilities.isPhysicsEvent(event)) {
+        if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
             ++this.physicsEventCount;
         }
 
@@ -86,7 +86,7 @@ final class EventCountProcessor extends EvioEventProcessor {
 
         // Increment counts for event tag values.
         for (final EventTagConstant constant : EventTagConstant.values()) {
-            if (constant.isEventTag(event)) {
+            if (constant.equals(evioEvent)) {
                 final int count = this.eventTypeCounts.get(constant) + 1;
                 this.eventTypeCounts.put(constant, count);
             }
@@ -94,7 +94,7 @@ final class EventCountProcessor extends EvioEventProcessor {
 
         // Increment counts for event tags with bit masks (different types of physics events).
         for (final EventTagBitMask mask : EventTagBitMask.values()) {
-            if (mask.isEventTag(event)) {
+            if (mask.isEventTag(evioEvent)) {
                 final int count = this.eventTypeCounts.get(mask) + 1;
                 this.eventTypeCounts.put(mask, count);
             }

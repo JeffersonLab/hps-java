@@ -56,6 +56,11 @@ public final class RunSummary {
     private Date created;
 
     /**
+     * End date of run.
+     */
+    private Date endDate;
+
+    /**
      * This is <code>true</code> if the END event is found in the data.
      */
     private boolean endOkay;
@@ -96,9 +101,9 @@ public final class RunSummary {
     private List<ScalerData> scalerDataList;
 
     /**
-     * The run start time in UTC (milliseconds).
+     * Start date of run.
      */
-    private long startTimeUtc;
+    private Date startDate;
 
     /**
      * The total events found in the run across all files.
@@ -148,7 +153,7 @@ public final class RunSummary {
      * @return the end date
      */
     public Date getEndDate() {
-        return new Date(this.endTimeUtc);
+        return endDate;
     }
 
     /**
@@ -158,15 +163,6 @@ public final class RunSummary {
      */
     public boolean getEndOkay() {
         return this.endOkay;
-    }
-
-    /**
-     * Get the end time in UTC (milliseconds)
-     *
-     * @return the end time in milliseconds
-     */
-    public long getEndTimeUtc() {
-        return this.endTimeUtc;
     }
 
     /**
@@ -242,16 +238,7 @@ public final class RunSummary {
      * @return the start date
      */
     public Date getStartDate() {
-        return new Date(this.startTimeUtc);
-    }
-
-    /**
-     * Get the run start time in UTC (milliseconds).
-     *
-     * @return the start time in milliseconds
-     */
-    public long getStartTimeUtc() {
-        return this.startTimeUtc;
+        return startDate;
     }
 
     /**
@@ -278,7 +265,7 @@ public final class RunSummary {
      * @return the total seconds in the run
      */
     public long getTotalSeconds() {
-        return (this.endTimeUtc - this.startTimeUtc) / 1000;
+        return (endDate.getTime() - startDate.getTime()) / 1000;
     }
 
     /**
@@ -322,6 +309,15 @@ public final class RunSummary {
      */
     public void setCreated(final Date created) {
         this.created = created;
+    }
+
+    /**
+     * Set the start date.
+     *
+     * @param startDate the start date
+     */
+    public void setEndDate(final Date endDate) {
+        this.endDate = endDate;
     }
 
     /**
@@ -388,12 +384,12 @@ public final class RunSummary {
     }
 
     /**
-     * Set the start date of the run.
+     * Set the start date.
      *
-     * @param startTimeUtc the start date of the run
+     * @param startDate the start date
      */
-    public void setStartTimeUtc(final long startTimeUtc) {
-        this.startTimeUtc = startTimeUtc;
+    public void setStartDate(final Date startDate) {
+        this.startDate = startDate;
     }
 
     /**
@@ -437,9 +433,9 @@ public final class RunSummary {
      */
     @Override
     public String toString() {
-        return "RunSummary { run: " + this.getRun() + ", startTimeUtc: " + this.getStartTimeUtc() + ", endTimeUtc: "
-                + this.getEndTimeUtc() + ", totalEvents: " + this.getTotalEvents() + ", totalFiles: "
-                + this.getTotalFiles() + ", endOkay: " + this.getEndOkay() + ", runOkay: " + this.getRunOkay()
-                + ", updated: " + this.getUpdated() + ", created: " + this.getCreated() + " }";
+        return "RunSummary { run: " + this.getRun() + ", startDate: " + DATE_DISPLAY.format(this.getStartDate())
+                + ", endDate: " + DATE_DISPLAY.format(this.getEndDate()) + ", totalEvents: " + this.getTotalEvents()
+                + ", totalFiles: " + this.getTotalFiles() + ", endOkay: " + this.getEndOkay() + ", runOkay: "
+                + this.getRunOkay() + ", updated: " + this.getUpdated() + ", created: " + this.getCreated() + " }";
     }
 }

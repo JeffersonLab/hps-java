@@ -58,4 +58,12 @@ public enum EventTagConstant {
     public int tag() {
         return this.tag;
     }
+    
+    public boolean equals(final int tag) {
+        return tag == this.tag;
+    }
+    
+    public boolean equals(final EvioEvent evioEvent) {
+        return evioEvent.getHeader().getTag() == this.tag;
+    }
 }

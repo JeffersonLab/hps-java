@@ -5,7 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,7 +34,7 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
         /**
          * Insert a record for a run.
          */
-        private static final String INSERT = "INSERT INTO runs (run, start_time_utc, end_time_utc, nevents, nfiles, end_ok, created) VALUES(?, ?, ?, ?, ?, ?, NOW())";
+        private static final String INSERT = "INSERT INTO runs (run, start_date, end_date, nevents, nfiles, end_ok, created) VALUES(?, ?, ?, ?, ?, ?, NOW())";
         /**
          * Select all records.
          */
@@ -39,12 +42,17 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
         /**
          * Select record by run number.
          */
-        private static final String SELECT_RUN = "SELECT run, start_time_utc, end_time_utc, nevents, nfiles, end_ok, run_ok, updated, created FROM runs WHERE run = ?";
+        private static final String SELECT_RUN = "SELECT run, start_date, end_date, nevents, nfiles, end_ok, run_ok, updated, created FROM runs WHERE run = ?";
         /**
          * Update information for a run.
          */
-        private static final String UPDATE_RUN = "UPDATE runs SET start_time_utc, end_time_utc, nevents, nfiles, end_ok, run_ok WHERE run = ?";
+        private static final String UPDATE_RUN = "UPDATE runs SET start_date, end_date, nevents, nfiles, end_ok, run_ok WHERE run = ?";
     }
+
+    /**
+     * Eastern time zone.
+     */
+    private static Calendar CALENDAR = new GregorianCalendar(TimeZone.getTimeZone("America/New_York"));
 
     /**
      * Setup class logging.
@@ -203,8 +211,8 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
             final ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 final RunSummary runSummary = new RunSummary(resultSet.getInt("run"));
-                runSummary.setStartTimeUtc(resultSet.getLong("start_time_utc"));
-                runSummary.setEndTimeUtc(resultSet.getLong("end_time_utc"));
+                runSummary.setStartDate(resultSet.getTimestamp("start_date"));
+                runSummary.setEndDate(resultSet.getTimestamp("end_date"));
                 runSummary.setTotalEvents(resultSet.getInt("nevents"));
                 runSummary.setTotalFiles(resultSet.getInt("nfiles"));
                 runSummary.setEndOkay(resultSet.getBoolean("end_ok"));
@@ -246,8 +254,8 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
             }
 
             runSummary = new RunSummary(run);
-            runSummary.setStartTimeUtc(resultSet.getLong("start_time_utc"));
-            runSummary.setEndTimeUtc(resultSet.getLong("end_time_utc"));
+            runSummary.setStartDate(resultSet.getTimestamp("start_date"));
+            runSummary.setEndDate(resultSet.getTimestamp("end_date"));
             runSummary.setTotalEvents(resultSet.getInt("nevents"));
             runSummary.setTotalFiles(resultSet.getInt("nfiles"));
             runSummary.setEndOkay(resultSet.getBoolean("end_ok"));
@@ -385,8 +393,8 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
         try {
             preparedStatement = connection.prepareStatement(RunSummaryQuery.INSERT);
             preparedStatement.setInt(1, runSummary.getRun());
-            preparedStatement.setLong(2, runSummary.getStartTimeUtc());
-            preparedStatement.setLong(3, runSummary.getEndTimeUtc());
+            preparedStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getStartDate().getTime()), CALENDAR);
+            preparedStatement.setTimestamp(3, new java.sql.Timestamp(runSummary.getEndDate().getTime()), CALENDAR);
             preparedStatement.setInt(4, runSummary.getTotalEvents());
             preparedStatement.setInt(5, runSummary.getEvioFileList().size());
             preparedStatement.setBoolean(6, runSummary.getEndOkay());
@@ -465,8 +473,8 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
         PreparedStatement preparedStatement = null;
         try {
             preparedStatement = connection.prepareStatement(RunSummaryQuery.UPDATE_RUN);
-            preparedStatement.setLong(1, runSummary.getStartTimeUtc());
-            preparedStatement.setLong(2, runSummary.getEndTimeUtc());
+            preparedStatement.setTimestamp(1, new java.sql.Timestamp(runSummary.getStartDate().getTime()), CALENDAR);
+            preparedStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getEndDate().getTime()), CALENDAR);
             preparedStatement.setInt(3, runSummary.getTotalEvents());
             preparedStatement.setInt(4, runSummary.getEvioFileList().size());
             preparedStatement.setBoolean(5, runSummary.getEndOkay());

@@ -42,18 +42,18 @@ public class EpicsEvioProcessor extends EvioEventProcessor {
     /**
      * Process EVIO data and create a {@link EpicsData} if EPICS data bank exists in the event.
      *
-     * @param evio the <code>EvioEvent</code> that possibly has EPICS data
+     * @param evioEvent the <code>EvioEvent</code> that possibly has EPICS data
      */
     @Override
-    public void process(final EvioEvent evio) {
+    public void process(final EvioEvent evioEvent) {
 
         // Is this an EPICS event?
-        if (EventTagConstant.EPICS.isEventTag(evio)) {
+        if (EventTagConstant.EPICS.equals(evioEvent)) {
 
-            LOGGER.fine("processing EPICS event " + evio.getEventNumber());
+            LOGGER.fine("processing EPICS event " + evioEvent.getEventNumber());
 
             // Find the bank with the EPICS data string.
-            final BaseStructure epicsBank = EvioBankTag.EPICS_STRING.findBank(evio);
+            final BaseStructure epicsBank = EvioBankTag.EPICS_STRING.findBank(evioEvent);
 
             // Was EPICS data found in the event?
             if (epicsBank != null) {
@@ -62,7 +62,7 @@ public class EpicsEvioProcessor extends EvioEventProcessor {
                 this.data = new EpicsData(epicsBank.getStringData()[0]);
 
                 // Find the header information in the event.
-                final BaseStructure headerBank = EvioBankTag.EPICS_HEADER.findBank(evio);
+                final BaseStructure headerBank = EvioBankTag.EPICS_HEADER.findBank(evioEvent);
 
                 if (headerBank != null) {
                     // Set the header object.

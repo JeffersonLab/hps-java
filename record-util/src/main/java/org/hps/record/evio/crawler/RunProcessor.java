@@ -170,11 +170,11 @@ final class RunProcessor {
 
         // Get run start date.
         LOGGER.info("setting run start date");
-        this.setRunStartDate();
+        this.processFirstFile();
 
         // Get run end date.
         LOGGER.info("setting run end date");
-        this.setRunEndDate();
+        this.processLastFile();
 
         // Update run summary from processors.
         LOGGER.info("updating run summary");
@@ -186,41 +186,50 @@ final class RunProcessor {
     /**
      * Set the run end date by getting meta data from the last file and copying it to the run summary.
      */
-    private void setRunEndDate() {
+    private void processLastFile() {
         final File lastEvioFile = runSummary.getEvioFileList().get(runSummary.getEvioFileList().size() - 1);
         LOGGER.info("getting meta data for " + lastEvioFile.getPath());
         final EvioFileMetaDataReader metaDataReader = new EvioFileMetaDataReader();
         final EvioFileMetaData metaData = metaDataReader.getMetaData(lastEvioFile);
         LOGGER.info(metaData.toString());
+        if (metaData.getEndDate() == null) {
+            throw new IllegalStateException("The end date is not set in the EVIO file meta data from "
+                    + lastEvioFile.getPath());
+        }
         LOGGER.info("setting unix end time to " + metaData.getEndDate().getTime() + " from meta data");
-        runSummary.setEndTimeUtc(metaData.getEndDate().getTime());
+        runSummary.setEndDate(metaData.getEndDate());
         runSummary.setEndOkay(metaData.hasEnd());
     }
 
     /**
      * Set the run start date by getting meta data from the first file and copying it to the run summary.
      */
-    private void setRunStartDate() {
+    private void processFirstFile() {
         final File firstEvioFile = runSummary.getEvioFileList().get(0);
         LOGGER.info("getting meta data for " + firstEvioFile.getPath());
         final EvioFileMetaDataReader metaDataReader = new EvioFileMetaDataReader();
         final EvioFileMetaData metaData = metaDataReader.getMetaData(firstEvioFile);
         LOGGER.info(metaData.toString());
+        if (metaData.getStartDate() == null) {
+            throw new IllegalStateException("The start date is not set in the EVIO file meta data from "
+                    + firstEvioFile.getPath());
+        }
         LOGGER.info("setting unix start time to " + metaData.getStartDate().getTime() + " from meta data");
-        runSummary.setStartTimeUtc(metaData.getStartDate().getTime());
+        runSummary.setStartDate(metaData.getStartDate());
     }
 
     /**
      * Update the current run summary by copying data to it from the EVIO processors.
      */
     private void updateRunSummary() {
-        // Put scaler data from EVIO processor into run summary.
-        runSummary.setScalerData(this.scalersProcessor.getScalerData());
 
-        // Set total number of events on the run summary from the event counter.
+        // Set total number of events from the event loop.
         runSummary.setTotalEvents((int) evioLoop.getTotalCountableConsumed());
 
-        // Set EpicsData for the run.
+        // Add scaler data from the scalers EVIO processor.
+        runSummary.setScalerData(this.scalersProcessor.getScalerData());
+
+        // Add EPICS data from the EPICS EVIO processor.
         runSummary.setEpicsData(this.epicsLog.getEpicsData());
     }
 
