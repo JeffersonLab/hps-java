@@ -437,18 +437,23 @@ public class SvtBiasConditionsLoader {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String line;
             System.out.println("myaData header: " + br.readLine()); //discard the first line
+            System.out.println("run\ttotalQ\ttotalQBias\tfracBias\ttotalQNom\tfracNom\ttotalQ1pt5\tfrac1pt5\ttotalGatedQ\ttotalGatedQBias\tfracGatedBias\ttotalGatedQNom\tfracGatedNom\ttotalGatedQ1pt5\tfracGated1pt5");
 
             for (RunData run : runList) {
                 double totalCharge = 0;
                 double totalChargeWithBias = 0;
                 double totalChargeWithBiasAtNominal = 0;
                 double totalChargeWithBiasAt1pt5 = 0;
+                double totalGatedCharge = 0;
+                double totalGatedChargeWithBias = 0;
+                double totalGatedChargeWithBiasAtNominal = 0;
+                double totalGatedChargeWithBiasAt1pt5 = 0;
                 Date lastDate = null;
 
                 while ((line = br.readLine()) != null) {
                     String arr[] = line.split(" +");
 
-                    if (arr.length != 3) {
+                    if (arr.length != 4) {
                         throw new java.text.ParseException("this line is not correct.", 0);
                     }
                     Date date = dateFormat.parse(arr[0] + " " + arr[1]);
@@ -459,24 +464,32 @@ public class SvtBiasConditionsLoader {
                         continue;
                     }
 
-                    double current;
+                    double current, livetime;
                     if (arr[2].equals("<undefined>")) {
                         current = 0;
                     } else {
                         current = Double.parseDouble(arr[2]);
+                    }
+                    if (arr[3].equals("<undefined>")) {
+                        livetime = 0;
+                    } else {
+                        livetime = Math.min(100.0, Math.max(0.0, Double.parseDouble(arr[3]))) / 100.0;
                     }
 
                     if (date.after(run.getStartDate())) {
                         if (lastDate != null) {
                             double dt = (date.getTime() - lastDate.getTime()) / 1000.0;
                             double dq = dt * current; // nC
+                            double dqGated = dt * current * livetime; // nC
 
                             totalCharge += dq;
+                            totalGatedCharge += dqGated;
                             SvtBiasRunRange biasRunRange = biasRangeMap.get(run.getRun());
                             if (biasRunRange != null) {
                                 for (SvtBiasMyaRange biasRange : biasRunRange.getRanges()) {
                                     if (biasRange.includes(date)) {
                                         totalChargeWithBias += dq;
+                                        totalGatedChargeWithBias += dqGated;
 
                                         SvtPositionRunRange positionRunRange = positionRangeMap.get(run.getRun());
                                         if (positionRunRange != null) {
@@ -484,8 +497,10 @@ public class SvtBiasConditionsLoader {
                                                 if (positionRange.includes(date)) {
                                                     if (Math.abs(positionRange.getBottom()) < 0.0001 && Math.abs(positionRange.getTop()) < 0.0001) {
                                                         totalChargeWithBiasAtNominal += dq;
+                                                        totalGatedChargeWithBiasAtNominal += dqGated;
                                                     } else if (Math.abs(positionRange.getBottom() - 0.0033) < 0.0001 && Math.abs(positionRange.getTop() - 0.0031) < 0.0001) {
                                                         totalChargeWithBiasAt1pt5 += dq;
+                                                        totalGatedChargeWithBiasAt1pt5 += dqGated;
                                                     }
                                                     break;
                                                 }
@@ -501,8 +516,8 @@ public class SvtBiasConditionsLoader {
                     }
                     lastDate = date;
                 }
-
-                System.out.format("run\t%d\ttotalQ\t%.0f\ttotalQBias\t%.0f\tfracBias\t%f\ttotalQNom\t%.0f\tfracNom\t%f\ttotalQ1pt5\t%.0f\tfrac1pt5\t%f\n", run.getRun(), totalCharge, totalChargeWithBias, totalChargeWithBias / totalCharge, totalChargeWithBiasAtNominal, totalChargeWithBiasAtNominal / totalCharge, totalChargeWithBiasAt1pt5, totalChargeWithBiasAt1pt5 / totalCharge);
+//                System.out.format("run\t%d\ttotalQ\t%.0f\ttotalQBias\t%.0f\tfracBias\t%f\ttotalQNom\t%.0f\tfracNom\t%f\ttotalQ1pt5\t%.0f\tfrac1pt5\t%f\ttotalGatedQ\t%.0f\ttotalGatedQBias\t%.0f\tfracGatedBias\t%f\ttotalGatedQNom\t%.0f\tfracGatedNom\t%f\ttotalGatedQ1pt5\t%.0f\tfracGated1pt5\t%f\n", run.getRun(), totalCharge, totalChargeWithBias, totalChargeWithBias / totalCharge, totalChargeWithBiasAtNominal, totalChargeWithBiasAtNominal / totalCharge, totalChargeWithBiasAt1pt5, totalChargeWithBiasAt1pt5 / totalCharge, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBias / totalGatedCharge, totalGatedChargeWithBiasAtNominal, totalGatedChargeWithBiasAtNominal / totalGatedCharge, totalGatedChargeWithBiasAt1pt5, totalGatedChargeWithBiasAt1pt5 / totalGatedCharge);
+                System.out.format("%d\t%.0f\t%.0f\t%f\t%.0f\t%f\t%.0f\t%f\t%.0f\t%.0f\t%f\t%.0f\t%f\t%.0f\t%f\n", run.getRun(), totalCharge, totalChargeWithBias, totalChargeWithBias / totalCharge, totalChargeWithBiasAtNominal, totalChargeWithBiasAtNominal / totalCharge, totalChargeWithBiasAt1pt5, totalChargeWithBiasAt1pt5 / totalCharge, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBias / totalGatedCharge, totalGatedChargeWithBiasAtNominal, totalGatedChargeWithBiasAtNominal / totalGatedCharge, totalGatedChargeWithBiasAt1pt5, totalGatedChargeWithBiasAt1pt5 / totalGatedCharge);
             }
             br.close();
 
