@@ -36,19 +36,19 @@ public class TrackClusterMatcher {
     boolean enablePlots = false; 
 
     /**
-     * These cuts are set at +/- 3 sigma extracted from Gaussian fits to the 
+     * These cuts are set at +/- 4 sigma extracted from Gaussian fits to the 
      * track-cluster residual distributions.  The data used to determine these
-     * limits is run 5772, singles1 triggers. 
+     * limits is a pass 2 test file using run 5772, singles1 triggers. 
      */
-    private double topClusterTrackMatchDeltaXLow = -7.61; // mm 
-    private double topClusterTrackMatchDeltaXHigh = 12.; // mm 
-    private double bottomClusterTrackMatchDeltaXLow = -13.75; // mm 
-    private double bottomClusterTrackMatchDeltaXHigh = 6.0; // mm 
+    private double topClusterTrackMatchDeltaXLow = -17; // mm 
+    private double topClusterTrackMatchDeltaXHigh = 20.; // mm 
+    private double bottomClusterTrackMatchDeltaXLow = -23; // mm 
+    private double bottomClusterTrackMatchDeltaXHigh = 15; // mm 
 
-    private double topClusterTrackMatchDeltaYLow = -14; // mm 
-    private double topClusterTrackMatchDeltaYHigh = 14; // mm 
-    private double bottomClusterTrackMatchDeltaYLow = -14; // mm 
-    private double bottomClusterTrackMatchDeltaYHigh = 14; // mm 
+    private double topClusterTrackMatchDeltaYLow = -20; // mm 
+    private double topClusterTrackMatchDeltaYHigh = 20; // mm 
+    private double bottomClusterTrackMatchDeltaYLow = -22.5; // mm 
+    private double bottomClusterTrackMatchDeltaYHigh = 22.5; // mm 
 
     /** Constructor */
     public TrackClusterMatcher() {};
@@ -231,16 +231,16 @@ public class TrackClusterMatcher {
    
         //--- Bottom ---//
         plots1D.put("Ecal cluster x - track x @ Ecal - bottom - all", 
-            histogramFactory.createHistogram1D("Ecal cluster x - track x @ Ecal - top - all", 200, -200, 200));
+            histogramFactory.createHistogram1D("Ecal cluster x - track x @ Ecal - bottom - all", 200, -200, 200));
 
         plots2D.put("Ecal cluster x v track x @ Ecal - bottom - all", 
-            histogramFactory.createHistogram2D("Ecal cluster x v track x @ Ecal - top - all", 200, -200, 200, 200, -200, 200));
+            histogramFactory.createHistogram2D("Ecal cluster x v track x @ Ecal - bottom - all", 200, -200, 200, 200, -200, 200));
         
         plots1D.put("Ecal cluster y - track y @ Ecal - bottom - all", 
-            histogramFactory.createHistogram1D("Ecal cluster y - track y @ Ecal - top - all", 100, -100, 100));
+            histogramFactory.createHistogram1D("Ecal cluster y - track y @ Ecal - bottom - all", 100, -100, 100));
 
         plots2D.put("Ecal cluster y v track y @ Ecal - bottom - all", 
-            histogramFactory.createHistogram2D("Ecal cluster y v track  @ Ecal - top - all", 100, -100, 100, 100, -100, 100));
+            histogramFactory.createHistogram2D("Ecal cluster y v track  @ Ecal - bottom - all", 100, -100, 100, 100, -100, 100));
 
         //--- Matched tracks ---//
         //----------------------//
@@ -260,16 +260,16 @@ public class TrackClusterMatcher {
    
         //--- Bottom ---//
         plots1D.put("Ecal cluster x - track x @ Ecal - bottom - matched", 
-            histogramFactory.createHistogram1D("Ecal cluster x - track x @ Ecal - top - matched", 200, -200, 200));
+            histogramFactory.createHistogram1D("Ecal cluster x - track x @ Ecal - bottom - matched", 200, -200, 200));
 
         plots2D.put("Ecal cluster x v track x @ Ecal - bottom - matched", 
-            histogramFactory.createHistogram2D("Ecal cluster x v track x @ Ecal - top - matched", 200, -200, 200, 200, -200, 200));
+            histogramFactory.createHistogram2D("Ecal cluster x v track x @ Ecal - bottom - matched", 200, -200, 200, 200, -200, 200));
         
         plots1D.put("Ecal cluster y - track y @ Ecal - bottom - matched", 
-            histogramFactory.createHistogram1D("Ecal cluster y - track y @ Ecal - top - matched", 100, -100, 100));
+            histogramFactory.createHistogram1D("Ecal cluster y - track y @ Ecal - bottom - matched", 100, -100, 100));
 
         plots2D.put("Ecal cluster y v track y @ Ecal - bottom - matched", 
-            histogramFactory.createHistogram2D("Ecal cluster y v track  @ Ecal - top - matched", 100, -100, 100, 100, -100, 100));
+            histogramFactory.createHistogram2D("Ecal cluster y v track  @ Ecal - bottom - matched", 100, -100, 100, 100, -100, 100));
         
     }
     
