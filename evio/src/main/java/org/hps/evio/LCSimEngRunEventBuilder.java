@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsEvioProcessor;
 import org.hps.record.evio.EvioEventUtilities;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.scalers.ScalersEvioProcessor;
 import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.hps.record.triggerbank.HeadBankData;
 import org.hps.record.triggerbank.SSPData;
 import org.hps.record.triggerbank.TDCData;

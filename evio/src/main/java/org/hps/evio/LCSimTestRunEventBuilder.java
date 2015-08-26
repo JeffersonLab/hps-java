@@ -5,11 +5,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventUtilities;
 import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.hps.record.triggerbank.TestRunTriggerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
@@ -172,13 +172,13 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
             BaseStructure bank = def.findBank(evioEvent);
             if (bank != null) { //returns null if no banks found
                 try {
-                    AbstractIntData data = (AbstractIntData) def.dataClass.getConstructor(int[].class).newInstance(bank.getIntData());
+                    AbstractIntData data = (AbstractIntData) def.getDataClass().getConstructor(int[].class).newInstance(bank.getIntData());
                     triggerList.add(data);
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                 }
             } else {
-                LOGGER.finest("No trigger bank found of type " + def.dataClass.getSimpleName());
+                LOGGER.finest("No trigger bank found of type " + def.getDataClass().getSimpleName());
             }
         }
         return triggerList;
@@ -192,38 +192,5 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
     @Override
     public void conditionsChanged(ConditionsEvent conditionsEvent) {
         ecalReader.initialize();
-    }
-
-    protected static class IntBankDefinition {
-
-        int[] bankTags;
-        Class<? extends AbstractIntData> dataClass;
-
-        public IntBankDefinition(Class<? extends AbstractIntData> dataClass, int[] bankTags) {
-            this.bankTags = bankTags;
-            this.dataClass = dataClass;
-        }
-
-        public BaseStructure findBank(EvioEvent evioEvent) {
-            BaseStructure currentBank = evioEvent;
-            searchLoop:
-            for (int bankTag : bankTags) {
-                if (currentBank.getChildCount() > 0) {
-                    for (BaseStructure childBank : currentBank.getChildrenList()) {
-                        if (childBank.getHeader().getTag() == bankTag) { 
-                            // Found a bank with the right tag; step inside this bank and continue searching.
-                            currentBank = childBank;
-                            continue searchLoop;
-                        }
-                    }
-                    // Didn't find a bank with the right tag so stop.
-                    return null; 
-                } else { 
-                    // Bank has no children so stop.
-                    return null;
-                }
-            }
-            return currentBank; // matched every tag, so this is the bank we want
-        }
     }
 }

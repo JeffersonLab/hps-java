@@ -17,8 +17,8 @@ import org.hps.record.evio.EvioFileSequenceComparator;
 import org.hps.record.scalers.ScalerData;
 
 /**
- * This class models the run summary information which is persisted as a row in the <i>run_log</i> table of the run
- * database.
+ * This class models the run summary information which is persisted as a row in
+ * the <i>run_log</i> table of the run database.
  * <p>
  * This information includes:
  * <ul>
@@ -27,12 +27,15 @@ import org.hps.record.scalers.ScalerData;
  * <li>end time (UTC)</li>
  * <li>total number of events in the run</li>
  * <li>number of EVIO files in the run</li>
- * <li>whether the END event was found indicating that the DAQ did not crash</li>
+ * <li>whether the END event was found indicating that the DAQ did not
+ * crash</li>
  * <li>whether the run is considered good (all <code>true</code> for now)</li>
  * </ul>
  * <p>
- * It also references several complex objects including lists of {@link org.hps.record.epics.EpicsData} and
- * {@link org.hps.record.scalers.ScalerData} for the run, as well as a list of EVIO files.
+ * It also references several complex objects including lists of
+ * {@link org.hps.record.epics.EpicsData} and
+ * {@link org.hps.record.scalers.ScalerData} for the run, as well as a list of
+ * EVIO files.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -45,7 +48,8 @@ public final class RunSummary {
 
     static {
         /**
-         * Set default time zone for display to East Coast (JLAB) where data was taken.
+         * Set default time zone for display to East Coast (JLAB) where data was
+         * taken.
          */
         DATE_DISPLAY.setCalendar(new GregorianCalendar(TimeZone.getTimeZone("America/New_York")));
     }
@@ -99,6 +103,11 @@ public final class RunSummary {
      * The scaler data for the run.
      */
     private List<ScalerData> scalerDataList;
+
+    /**
+     * The trigger data for the run.
+     */
+    private TriggerConfig triggerConfig;
 
     /**
      * Start date of run.
@@ -175,8 +184,8 @@ public final class RunSummary {
     }
 
     /**
-     * Get the event rate (effectively the trigger rate) which is the total events divided by the number of seconds in
-     * the run.
+     * Get the event rate (effectively the trigger rate) which is the total
+     * events divided by the number of seconds in the run.
      *
      * @return the event rate
      */
@@ -215,7 +224,8 @@ public final class RunSummary {
     }
 
     /**
-     * Return <code>true</code> if the run was okay (no major errors or data corruption occurred).
+     * Return <code>true</code> if the run was okay (no major errors or data
+     * corruption occurred).
      *
      * @return <code>true</code> if the run was okay
      */
@@ -230,6 +240,15 @@ public final class RunSummary {
      */
     public List<ScalerData> getScalerData() {
         return this.scalerDataList;
+    }
+
+    /**
+     * Get the trigger config of this run.
+     *
+     * @return the trigger config of this run
+     */
+    public TriggerConfig getTriggerConfig() {
+        return triggerConfig;
     }
 
     /**
@@ -260,7 +279,8 @@ public final class RunSummary {
     }
 
     /**
-     * Get the number of seconds in the run which is the difference between the start and end times.
+     * Get the number of seconds in the run which is the difference between the
+     * start and end times.
      *
      * @return the total seconds in the run
      */
@@ -366,7 +386,8 @@ public final class RunSummary {
     }
 
     /**
-     * Set whether the run was "okay" meaning the data is usable for physics analysis.
+     * Set whether the run was "okay" meaning the data is usable for physics
+     * analysis.
      *
      * @param runOkay <code>true</code> if the run is okay
      */
@@ -381,6 +402,15 @@ public final class RunSummary {
      */
     public void setScalerData(final List<ScalerData> scalerDataList) {
         this.scalerDataList = scalerDataList;
+    }
+
+    /**
+     * Set the trigger config of the run.
+     *
+     * @param triggerConfig the trigger config
+     */
+    public void setTriggerConfig(final TriggerConfig triggerConfig) {
+        this.triggerConfig = triggerConfig;
     }
 
     /**

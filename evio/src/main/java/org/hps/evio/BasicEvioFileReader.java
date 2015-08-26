@@ -2,7 +2,6 @@ package org.hps.evio;
 
 import java.io.File;
 import java.util.Date;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -10,8 +9,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.hps.evio.LCSimTestRunEventBuilder.IntBankDefinition;
 import org.hps.record.evio.EvioEventUtilities;
+import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.hps.record.triggerbank.HeadBankData;
 import org.hps.record.triggerbank.TIData;
 import org.jlab.coda.jevio.BaseStructure;
@@ -51,8 +50,8 @@ public class BasicEvioFileReader {
         boolean seqRead = cl.hasOption("s");
         boolean printTimestamps = cl.hasOption("t");
 
-        IntBankDefinition headBankDefinition = new LCSimTestRunEventBuilder.IntBankDefinition(HeadBankData.class, new int[]{0x2e, 0xe10f});
-        IntBankDefinition tiBankDefinition = new LCSimTestRunEventBuilder.IntBankDefinition(TIData.class, new int[]{0x2e, 0xe10a});
+        IntBankDefinition headBankDefinition = new IntBankDefinition(HeadBankData.class, new int[]{0x2e, 0xe10f});
+        IntBankDefinition tiBankDefinition = new IntBankDefinition(TIData.class, new int[]{0x2e, 0xe10a});
 
 //        String evioFileName = args[0];
         for (String evioFileName : cl.getArgs()) {

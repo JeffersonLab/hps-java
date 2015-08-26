@@ -3,7 +3,6 @@ package org.hps.record.evio.crawler;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.hps.record.epics.EpicsRunProcessor;
 import org.hps.record.evio.EvioFileMetaData;
 import org.hps.record.evio.EvioFileMetaDataReader;
@@ -11,14 +10,16 @@ import org.hps.record.evio.EvioFileSource;
 import org.hps.record.evio.EvioLoop;
 import org.hps.record.run.RunSummary;
 import org.hps.record.scalers.ScalersEvioProcessor;
+import org.hps.record.triggerbank.TriggerEvioProcessor;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * Processes EVIO files from a run in order to extract various meta data information including start and end dates.
+ * Processes EVIO files from a run in order to extract various meta data
+ * information including start and end dates.
  * <p>
- * This class is a wrapper for activating different sub-tasks, including optionally caching all files from the JLAB MSS
- * to the cache disk.
+ * This class is a wrapper for activating different sub-tasks, including
+ * optionally caching all files from the JLAB MSS to the cache disk.
  * <p>
  * There is also a list of processors which is run on all events from the run.
  *
@@ -90,6 +91,11 @@ final class RunProcessor {
     private final ScalersEvioProcessor scalersProcessor;
 
     /**
+     * Processor for extracting trigger config.
+     */
+    private final TriggerEvioProcessor triggerProcessor;
+
+    /**
      * Set to <code>true</code> to use file caching.
      */
     private boolean useFileCache;
@@ -118,6 +124,9 @@ final class RunProcessor {
         scalersProcessor = new ScalersEvioProcessor();
         scalersProcessor.setResetEveryEvent(false);
         evioLoop.addEvioEventProcessor(scalersProcessor);
+        
+        triggerProcessor = new TriggerEvioProcessor();
+        evioLoop.addEvioEventProcessor(triggerProcessor);
 
         // Set whether file caching from MSS is enabled.
         this.useFileCache(config.useFileCache());
@@ -126,8 +135,9 @@ final class RunProcessor {
     /**
      * Cache all files and wait for the operation to complete.
      * <p>
-     * Potentially, this operation can take a very long time. This can be managed using the
-     * {@link JCacheManager#setWaitTime(long)} method to set a timeout.
+     * Potentially, this operation can take a very long time. This can be
+     * managed using the {@link JCacheManager#setWaitTime(long)} method to set a
+     * timeout.
      */
     private void cacheFiles() {
 
@@ -146,10 +156,12 @@ final class RunProcessor {
     }
 
     /**
-     * Process the run by executing the registered {@link org.hps.record.evio.EvioEventProcessor}s and extracting the
-     * start and end dates.
+     * Process the run by executing the registered
+     * {@link org.hps.record.evio.EvioEventProcessor}s and extracting the start
+     * and end dates.
      * <p>
-     * This method will also execute file caching from MSS, if enabled by the {@link #useFileCache} option.
+     * This method will also execute file caching from MSS, if enabled by the
+     * {@link #useFileCache} option.
      *
      * @throws Exception if there is an error processing a file
      */
@@ -184,7 +196,8 @@ final class RunProcessor {
     }
 
     /**
-     * Set the run end date by getting meta data from the last file and copying it to the run summary.
+     * Set the run end date by getting meta data from the last file and copying
+     * it to the run summary.
      */
     private void processLastFile() {
         final File lastEvioFile = runSummary.getEvioFileList().get(runSummary.getEvioFileList().size() - 1);
@@ -202,7 +215,8 @@ final class RunProcessor {
     }
 
     /**
-     * Set the run start date by getting meta data from the first file and copying it to the run summary.
+     * Set the run start date by getting meta data from the first file and
+     * copying it to the run summary.
      */
     private void processFirstFile() {
         final File firstEvioFile = runSummary.getEvioFileList().get(0);
@@ -219,7 +233,8 @@ final class RunProcessor {
     }
 
     /**
-     * Update the current run summary by copying data to it from the EVIO processors.
+     * Update the current run summary by copying data to it from the EVIO
+     * processors.
      */
     private void updateRunSummary() {
 
@@ -231,13 +246,17 @@ final class RunProcessor {
 
         // Add EPICS data from the EPICS EVIO processor.
         runSummary.setEpicsData(this.epicsLog.getEpicsData());
+        
+        // Add trigger config from the trigger EVIO processor.
+        runSummary.setTriggerConfig(this.triggerProcessor.getTriggerConfig());
     }
 
     /**
-     * Set whether or not to use the file caching, which copies files from the JLAB MSS to the cache disk.
+     * Set whether or not to use the file caching, which copies files from the
+     * JLAB MSS to the cache disk.
      * <p>
-     * Since EVIO data files at JLAB are primarily kept on the MSS, running without this option enabled there will
-     * likely cause the job to fail.
+     * Since EVIO data files at JLAB are primarily kept on the MSS, running
+     * without this option enabled there will likely cause the job to fail.
      *
      * @param cacheFiles <code>true</code> to enabled file caching
      */
