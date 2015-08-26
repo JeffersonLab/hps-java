@@ -12,7 +12,8 @@ import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterType;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.utils.TrackClusterMatcher;
+
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -27,12 +28,14 @@ import org.lcsim.util.Driver;
  * Driver framework for generating reconstructed particles and matching clusters
  * and tracks.
  *
- * @author Mathew Graham <mgraham@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
+ * @author Mathew Graham <mgraham@slac.stanford.edu>
  */
 public abstract class ReconParticleDriver extends Driver {
 
+    /** Utility used to determine if a track and cluster are matched */
+    TrackClusterMatcher matcher = new TrackClusterMatcher(); 
+    
     /**
      * Sets the name of the LCIO collection for beam spot constrained V0
      * candidate particles.
@@ -82,26 +85,6 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setDebug(boolean debug) {
         this.debug = debug;
-    }
-
-    /**
-     * Sets the maximum allowed separation distance between a matched cluster
-     * and track pair.
-     *
-     * @param dxCut - The maximum separation distance in the x-direction.
-     */
-    public void setDxCut(double dxCut) {
-        this.dxCut = dxCut;
-    }
-
-    /**
-     * Sets the maximum allowed separation distance between a matched cluster
-     * and track pair.
-     *
-     * @param dyCut - The maximum separation distance in the y-direction.
-     */
-    public void setDyCut(double dyCut) {
-        this.dyCut = dyCut;
     }
 
     /**
@@ -177,6 +160,8 @@ public abstract class ReconParticleDriver extends Driver {
      */
     @Override
     protected void detectorChanged(Detector detector) {
+        //matcher.enablePlots(true);
+        
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 1.);
         bField = detector.getFieldMap().getField(ip).y();
@@ -254,7 +239,7 @@ public abstract class ReconParticleDriver extends Driver {
             clusterLoop:
             for (Cluster cluster : unmatchedClusters) {
                 // Check if the cluster and track are a valid match.
-                if (isMatch(cluster, track)) {
+                if (matcher.isMatch(cluster, track)) {
                     // Store the matched cluster.
                     matchedCluster = cluster;
 
@@ -492,105 +477,21 @@ public abstract class ReconParticleDriver extends Driver {
         }
     }
 
-    /**
-     * Determines if a cluster is a potential match for a given track. If it is,
-     * returns the distance between the extrapolation of the track to the
-     * z-position of the cluster and the cluster position. Otherwise, returns
-     * <code>null</code> to indicate that the pair is not a valid match.
-     *
-     * @param cluster - The cluster to check.
-     * @param track - The track to check.
-     * @return Returns the distance between the cluster and extrapolated track
-     * position in millimeters as a <code>Double</code> if the pair is a
-     * potential match. Returns <code>null</code> otherwise.
-     */
-    private boolean isMatch(Cluster cluster, Track track) {
-        // Get the position of the cluster and extrapolate the position
-        // of the track at the z-position of the cluster.
-
-        // Removed reading of "corrected" position from HPSEcalClusterIC here.  --JM 
-        Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
-        Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
-
-        // TODO: There are some track whose extrapolated coordinates
-        //       are NaN. The problem seems to be that the y-coordinate
-        //       of the extrapolated helix is found to be non-real. This
-        //       needs to be fixed.
-        // There is an issue with track extrapolation that sometimes
-        // yields NaN for extrapolated track parameters. Tracks with
-        // this issue are not usable and thusly the check should be
-        // skipped.
-        if (Double.isNaN(trackPosAtEcal.x()) || Double.isNaN(trackPosAtEcal.y())) {
-            // VERBOSE :: Indicate the reason for the match failing.
-            printDebug("\tFailure :: Track extrapolation error.");
-
-            // Return false to indicate that the pair do not match.
-            return false;
-        }
-
-        // VERBOSE :: Output the position of the extrapolated track
-        //            and the cluster.
-        printDebug("\tCluster Position :: " + clusterPosition.toString());
-        printDebug("\tTrack Position   :: " + trackPosAtEcal.toString());
-
-        // If one of either the cluster or extrapolated track fall on
-        // one volume of the detector and the other is in the other
-        // volume, then they can not be a match. (i.e. both parts of
-        // the pair must be on the top or bottom of the detector.)
-        if (clusterPosition.y() * trackPosAtEcal.y() < 0) {
-            // VERBOSE :: Indicate the reason for the match failing.
-            printDebug("\tFailure :: Cluster/Track pair in opposite volumes.");
-
-            // Return false to indicate that the pair do not match.
-            return false;
-        }
-
-        // Check to make sure that the x and y displacements between
-        // the extrapolated track position and cluster position are
-        // within the allowed bounds. If they are not, this pair is
-        // not a match.
-        if (Math.abs(trackPosAtEcal.x() - clusterPosition.x()) > dxCut) {
-            // VERBOSE :: Indicate the reason for the match failing.
-            printDebug("\tFailure :: Pair x-displacement exceeds allowed threshold.");
-
-            // Return false to indicate that the pair do not match.
-            return false;
-        }
-
-        if (Math.abs(trackPosAtEcal.y() - clusterPosition.y()) > dyCut) {
-            // VERBOSE :: Indicate the reason for the match failing.
-            printDebug("\tFailure :: Pair y-displacement exceeds allowed threshold.");
-
-            // Return false to indicate that the pair do not match.
-            return false;
-        }
-
-        // VERBOSE :: Indicate the reason for the match failing.
-        printDebug("\tSuccess :: Cluster/track pair match!.");
-
-        // A pair that has reached this point is a potential match.
-        // Return true to indicate a match.
-        return true;
+    @Override
+    protected void endOfData() { 
+        //matcher.saveHistograms();
     }
 
     // ==============================================================
     // ==== Class Variables =========================================
     // ==============================================================
     // Local variables.
-    /**
-     * The maximum separation distance in the x-direction beyond which a cluster
-     * and track will be rejected for pairing.
-     */
-    private double dxCut = 20.0;
-    /**
-     * The maximum separation distance in the y-direction beyond which a cluster
-     * and track will be rejected for pairing.
-     */
-    private double dyCut = 20.0;
+    
     /**
      * Indicates whether debug text should be output or not.
      */
     private boolean debug = false;
+    
     /**
      * The simple name of the class used for debug print statements.
      */
