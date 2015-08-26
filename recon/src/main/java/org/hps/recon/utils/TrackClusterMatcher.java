@@ -51,7 +51,7 @@ public class TrackClusterMatcher {
     private double bottomClusterTrackMatchDeltaYHigh = 14; // mm 
 
     /** Constructor */
-    TrackClusterMatcher() {};
+    public TrackClusterMatcher() {};
 
     /**
      * Enable/disable booking, filling of Ecal cluster and extrapolated track 
