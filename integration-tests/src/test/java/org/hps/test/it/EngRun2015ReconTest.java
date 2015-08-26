@@ -1,4 +1,4 @@
-package org.hps;
+package org.hps.test.it;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,37 +18,24 @@ import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
- * Test to run the standard reconstruction on Engineering Run 2015 EVIO data.
- * Full energy electron candidate events were selected from pass1 output.
- * The current test runs the default reconstruction over the evio file
- * then analyzes the output lcio file.
- * The current checks are minimal and need to be improved.
+ * Test to run the standard reconstruction on Engineering Run 2015 EVIO data. Full energy electron candidate events were
+ * selected from pass1 output. The current test runs the default reconstruction over the evio file then analyzes the
+ * output lcio file. The current checks are minimal and need to be improved.
  *
  * @author Norman A Graf
  */
-public class EngRun2015ReconTest extends TestCase
-{
+public class EngRun2015ReconTest extends TestCase {
 
     final static String fileLocation = "http://www.lcsim.org/test/hps-java/run5772_pass1_stripOneFee_1000Events.evio";
 
-    public void testEngRun2015Recon() throws Exception
-    {
+    public void testEngRun2015Recon() throws Exception {
         System.out.println("Caching file...");
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(new URL(fileLocation));
         File outputFile = new TestOutputFile("EngRun2015ReconTest");
-        String args[] = {
-            "-r",
-            "-x",
-            "/org/hps/steering/recon/EngineeringRun2015FullReconGbl2.lcsim",
-            "-d",
-            "HPS-EngRun2015-Nominal-v2",
-            "-D",
-            "outputFile=" + outputFile.getPath(),
-            inputFile.getPath(),
-            "-n",
-            "1000"
-        };
+        String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullReconGbl2.lcsim", "-d",
+                "HPS-EngRun2015-Nominal-v2", "-D", "outputFile=" + outputFile.getPath(), inputFile.getPath(), "-n",
+                "1000"};
         System.out.println("Running EngRun2015ReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
         EvioToLcio.main(args);
@@ -67,13 +54,12 @@ public class EngRun2015ReconTest extends TestCase
         System.out.println("Done!");
     }
 
-    static class ReconCheckDriver extends Driver
-    {
+    static class ReconCheckDriver extends Driver {
+
         int nFail;
         int nProcessed;
 
-        public void process(EventHeader event)
-        {
+        public void process(EventHeader event) {
             boolean fail = false;
             List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, "FinalStateParticles");
             int nrp = rps.size();
@@ -111,13 +97,12 @@ public class EngRun2015ReconTest extends TestCase
             if (fail) {
                 nFail++;
             }
-            //TODO add checks on quality of output (chi2, p, E, E/p matching, position matching, etc.)
+            // TODO add checks on quality of output (chi2, p, E, E/p matching, position matching, etc.)
         }
 
-        public void endOfData()
-        {
+        public void endOfData() {
             System.out.println(nFail + " of " + nProcessed + " events failed");
-            assertEquals("Expected no events to fail",nFail, 0);
+            assertEquals("Expected no events to fail", nFail, 0);
         }
     }
 }
