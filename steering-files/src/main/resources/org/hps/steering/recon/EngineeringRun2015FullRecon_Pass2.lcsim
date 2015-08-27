@@ -26,7 +26,6 @@
             name of the tracks found with this strategy will be "MatchedTracks".
         -->
         <driver name="TrackReconSeed345Conf2Extd16"/>
-        <driver name="ReconParticleSeed345Conf2Ext16" />  
         <!-- 
             Will run track finding algorithm using layers 456 as a seed, 
             layer 3 to confirm and layers 2 and 1 to extend.  The collection
@@ -34,7 +33,6 @@
             "Tracks_s456_c3_e21"
         -->
         <driver name="TrackReconSeed456Conf3Extd21"/>
-        <driver name="ReconParticleSeed456Conf3Ext21" />  
         <!-- 
             Will run track finding algorithm using layers 123 as a seed, 
             layer 4 to confirm and layers 5 and 6 to extend.  The collection
@@ -42,7 +40,6 @@
             "Tracks_s123_c4_e56"
         -->
         <driver name="TrackReconSeed123Conf4Extd56"/>
-        <driver name="ReconParticleSeed123Conf4Ext56" />  
         <!-- 
             Will run track finding algorithm using layers 123 as a seed, 
             layer 5 to confirm and layers 4 and 6 to extend.  The collection
@@ -50,8 +47,12 @@
             "Tracks_s123_c5_e46"
         --> 
         <driver name="TrackReconSeed123Conf5Extd46"/>
-        <driver name="ReconParticleSeed123Conf5Ext46" />  
+        <!-- 
+            TrackDataDriver needs to be run before ReconParticleDriver so the
+            ReconstructedParticle types are properly set.
+         -->
         <driver name="TrackDataDriver" />
+        <driver name="ReconParticleDriver" />   
         <driver name="GBLOutputDriver"/>              
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
@@ -155,63 +156,14 @@
             <strategyResource>HPS_s123_c5_e46.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>8.0</rmsTimeCut>
-        </driver>                
+        </driver>             
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
+        <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" />  
         <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
             <debug>0</debug>
             <isMC>false</isMC>
             <gblFileName>${outputFile}.gbl</gblFileName>
         </driver>   
-        
-        <!-- Final state particles and vertexing --> 
-        <driver name="ReconParticleSeed345Conf2Ext16" type="org.hps.recon.particle.HpsReconParticleDriver">  
-            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>       
-            <trackCollectionName>MatchedTracks</trackCollectionName>
-            <finalStateParticlesColName>FinalStateParticles</finalStateParticlesColName>
-            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates</unconstrainedV0CandidatesColName> 
-            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates</beamConV0CandidatesColName>
-            <targetConV0CandidatesColName>TargetConstrainedV0Candidates</targetConV0CandidatesColName>
-            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices</unconstrainedV0VerticesColName> 
-            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices</beamConV0VerticesColName>
-            <targetConV0VerticesColName>TargetConstrainedV0Verteces</targetConV0VerticesColName>
-        </driver>
-
-        <driver name="ReconParticleSeed456Conf3Ext21" type="org.hps.recon.particle.HpsReconParticleDriver">  
-            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>       
-            <trackCollectionName>Tracks_s456_c3_e21</trackCollectionName>
-            <finalStateParticlesColName>FinalStateParticles_s456_c3_e21</finalStateParticlesColName>
-            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_s456_c3_e21</unconstrainedV0CandidatesColName> 
-            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_s456_c3_e21</beamConV0CandidatesColName>
-            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_s456_c3_e21</targetConV0CandidatesColName>
-            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_s456_c3_e21</unconstrainedV0VerticesColName> 
-            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_s456_c3_e21</beamConV0VerticesColName>
-            <targetConV0VerticesColName>TargetConstrainedV0Verteces_s456_c3_e21</targetConV0VerticesColName>
-        </driver>
-
-        <driver name="ReconParticleSeed123Conf4Ext56" type="org.hps.recon.particle.HpsReconParticleDriver">  
-            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>       
-            <trackCollectionName>Tracks_s123_c4_e56</trackCollectionName>
-            <finalStateParticlesColName>FinalStateParticles_s123_c4_e56</finalStateParticlesColName>
-            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_s123_c4_e56</unconstrainedV0CandidatesColName> 
-            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_s123_c4_e56</beamConV0CandidatesColName>
-            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_s123_c4_e56</targetConV0CandidatesColName>
-            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_s123_c4_e56</unconstrainedV0VerticesColName> 
-            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_s123_c4_e56</beamConV0VerticesColName>
-            <targetConV0VerticesColName>TargetConstrainedV0Verteces_s123_c4_e56</targetConV0VerticesColName>
-        </driver>
-
-        <driver name="ReconParticleSeed123Conf5Ext46" type="org.hps.recon.particle.HpsReconParticleDriver">  
-            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>       
-            <trackCollectionName>Tracks_s123_c5_e46</trackCollectionName>
-            <finalStateParticlesColName>FinalStateParticles_s123_c5_e46</finalStateParticlesColName>
-            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_s123_c5_e46</unconstrainedV0CandidatesColName> 
-            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_s123_c5_e46</beamConV0CandidatesColName>
-            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_s123_c5_e46</targetConV0CandidatesColName>
-            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_s123_c5_e46</unconstrainedV0VerticesColName> 
-            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_s123_c5_e46</beamConV0VerticesColName>
-            <targetConV0VerticesColName>TargetConstrainedV0Verteces_s123_c5_e46</targetConV0VerticesColName>
-        </driver>
-
-        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
