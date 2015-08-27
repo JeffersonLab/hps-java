@@ -2,7 +2,8 @@ package org.hps.recon.tracking;
 
 /**
  * Enum constants for different {@link Track}s based on what tracking
- * strategy was used.
+ * strategy was used.  The type is defined by comparing the tracking strategy
+ * name to the name of all the enum constants.
  *  
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
@@ -12,14 +13,26 @@ public enum TrackType {
     //       enum constants should be simply added to the end of the list.
     
     /** Enum values corresponding to different tracking strategies */
-    /** Seed 123, confirm 4, extend 56 */
-    S123_C4_E56(1000),
-    /** Seed 123, confirm 5, extend 46 */
-    S123_C5_E46(1001),
+    /** 
+     * This is the default TrackType value set by the reconstruction. It  
+     * represents the following track finding algorithms for the first
+     * two passes:
+     * 
+     * pass 1 - Seed 123, confirm 4, extend 56
+     * pass 2 - Seed 345, confirm 2, extend 16
+     * 
+     * For pass 3? and beyond, this should no longer be needed since multiple 
+     * versions of the same track will no longer exist.
+     */
+    MATCHED_TRACKS(1),
     /** Seed 345, confirm 2, extend 16 */
-    S345_C2_E16(1003),
+    S345_C2_E16(2),
     /** Seed 456, confirm 3, extend 21 */
-    S456_C3_E21(1004); 
+    S456_C3_E21(3), 
+    /** Seed 123, confirm 4, extend 56 */
+    S123_C4_E56(4),
+    /** Seed 123, confirm 5, extend 46 */
+    S123_C5_E46(5);
     
     private int type; 
    
