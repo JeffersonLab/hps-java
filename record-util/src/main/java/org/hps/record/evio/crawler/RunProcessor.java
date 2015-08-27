@@ -11,10 +11,11 @@ import org.hps.record.evio.EvioFileMetaDataReader;
 import org.hps.record.evio.EvioFileSequenceComparator;
 import org.hps.record.evio.EvioFileSource;
 import org.hps.record.evio.EvioLoop;
-import org.hps.record.run.RunSummaryImpl;
 import org.hps.record.scalers.ScalersEvioProcessor;
 import org.hps.record.triggerbank.TiTimeOffsetEvioProcessor;
 import org.hps.record.triggerbank.TriggerConfigInt;
+import org.hps.record.triggerbank.TriggerConfigVariable;
+import org.hps.rundb.RunSummaryImpl;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
@@ -210,18 +211,26 @@ final class RunProcessor {
      */
     private void updateRunSummary() {
 
+        LOGGER.info("setting total events " + evioLoop.getTotalCountableConsumed());
         // Set total number of events from the event loop.
         runSummary.setTotalEvents((int) evioLoop.getTotalCountableConsumed());
 
         // Add scaler data from the scalers EVIO processor.
+        LOGGER.info("adding " + this.scalersProcessor.getScalerData().size() + " scaler data objects");
         runSummary.setScalerData(this.scalersProcessor.getScalerData());
 
         // Add EPICS data from the EPICS EVIO processor.
+        LOGGER.info("adding " + this.epicsProcessor.getEpicsData().size() + " EPICS data objects");
         runSummary.setEpicsData(this.epicsProcessor.getEpicsData());
 
         // Add trigger config from the trigger time processor.
+        LOGGER.info("updating trigger config");
         TriggerConfigInt triggerConfig = new TriggerConfigInt();
         this.triggerTimeProcessor.updateTriggerConfig(triggerConfig);
+        LOGGER.info("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET.name()));
+        System.out.println("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET.name()));
         runSummary.setTriggerConfigInt(triggerConfig);
+        
+        LOGGER.getHandlers()[0].flush();
     }  
 }

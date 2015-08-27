@@ -1,4 +1,4 @@
-package org.hps.record.run;
+package org.hps.rundb;
 
 import java.io.File;
 import java.text.DateFormat;

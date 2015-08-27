@@ -1,4 +1,4 @@
-package org.hps.record.run;
+package org.hps.rundb;
 
 import org.hps.record.triggerbank.TriggerConfigInt;
 

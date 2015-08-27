@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import org.hps.record.run.RunSummary;
-import org.hps.record.run.RunSummaryImpl;
+import org.hps.rundb.RunSummary;
+import org.hps.rundb.RunSummaryImpl;
 import org.lcsim.util.log.LogUtil;
 
 /**

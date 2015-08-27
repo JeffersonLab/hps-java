@@ -21,9 +21,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.database.ConnectionParameters;
-import org.hps.record.run.RunSummary;
-import org.hps.record.run.RunSummaryDaoImpl;
-import org.hps.record.run.RunSummaryImpl;
+import org.hps.rundb.RunSummary;
+import org.hps.rundb.RunSummaryDaoImpl;
+import org.hps.rundb.RunSummaryImpl;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
