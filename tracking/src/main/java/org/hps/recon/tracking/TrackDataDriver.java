@@ -17,6 +17,7 @@ import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
+import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 
 /**
@@ -108,6 +109,23 @@ public final class TrackDataDriver extends Driver {
             // Loop over all the tracks in the event
             for (Track track : tracks) {
 
+                //
+                // Set the TrackType of the track based on the tracking 
+                // strategy that was used to find it.
+                //
+                
+                // Get the name of the strategy used to find this track
+                SeedTrack seedTrack = (SeedTrack) track; 
+                String strategyName = seedTrack.getStrategy().getName();
+               
+                // If a TrackType is associated with this strategy, set it.
+                // Otherwise, just move on and stick with the default value
+                // of zero.
+                TrackType trackType = TrackType.getType(strategyName);
+                if (trackType != null) { 
+                    seedTrack.setTrackType(trackType.getType());
+                }
+                
                 totalT0 = 0;
                 totalHits = 0;
                 t0Residuals.clear();
