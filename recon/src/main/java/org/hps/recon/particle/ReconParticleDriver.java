@@ -7,13 +7,14 @@ import hep.physics.vec.HepLorentzVector;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hps.recon.ecal.cluster.ClusterType;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.utils.TrackClusterMatcher;
-
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -198,19 +199,24 @@ public abstract class ReconParticleDriver extends Driver {
 
         // Create a list of unmatched clusters. A cluster should be
         // removed from the list if a matching track is found.
-        //List<Cluster> unmatchedClusters = new ArrayList<Cluster>(clusters);
-        java.util.Set<Cluster> unmatchedClusters = new java.util.HashSet<Cluster>(clusters);
+        Set<Cluster> unmatchedClusters = new HashSet<Cluster>(clusters);
 
         // Iterate over all of the tracks and generate reconstructed
         // particles for each one. If possible, match a cluster to the
         // track as well.
         for (Track track : tracks) {
+            
             // Create a reconstructed particle to represent the track.
             ReconstructedParticle particle = new BaseReconstructedParticle();
             HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0);
 
             // Store the track in the particle.
             particle.addTrack(track);
+            
+            // Set the type of the particle.  This is used to identify
+            // the tracking strategy used in finding the track associated with
+            // this particle.
+            ((BaseReconstructedParticle) particle).setType(track.getType());
 
             // Store the momentum derived from the track in the particle.
             Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
@@ -343,32 +349,34 @@ public abstract class ReconParticleDriver extends Driver {
      */
     @Override
     protected void process(EventHeader event) {
-        // All events are required to contain calorimeter clusters. If
+        
+        // All events are required to contain Ecal clusters. If
         // the event lacks these, then it should be skipped.
-        if (!event.hasCollection(Cluster.class, ecalClustersCollectionName)) {
-            return;
-        }
+        if (!event.hasCollection(Cluster.class, ecalClustersCollectionName)) return;
 
         // VERBOSE :: Note that a new event is being read.
         printDebug("\nProcessing Event...");
 
-        // Otherwise, get the list of calorimeter clusters.
+        // Get the list of Ecal clusters from an event.
         List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
 
         // VERBOSE :: Output the number of clusters in the event.
         printDebug("Clusters :: " + clusters.size());
-
-        // Get the set of tracks from the event. If no such collection
-        // exists, initialize an empty list instead.
-        List<Track> tracks;
-        if (event.hasCollection(Track.class, trackCollectionName)) {
-            tracks = event.get(Track.class, trackCollectionName);
+        
+        // Get all collections of the type Track from the event. This is
+        // required in case an event contains different track collection
+        // for each of the different tracking strategies.  If the event
+        // doesn't contain any track collections, intialize an empty 
+        // collection and add it to the list of collections.  This is 
+        // needed in order to create final state particles from the the 
+        // Ecal clusters in the event.
+        List<List<Track>> trackCollections;
+        if (event.hasCollection(Track.class)) {
+            trackCollections = event.get(Track.class);
         } else {
-            tracks = new ArrayList<Track>(0);
+            trackCollections = new ArrayList<List<Track>>(0);
+            trackCollections.add(new ArrayList<Track>(0));
         }
-
-        // VERBOSE :: Output the number of tracks in the event.
-        printDebug("Tracks :: " + tracks.size());
 
         // Instantiate new lists to store reconstructed particles and
         // V0 candidate particles and vertices.
@@ -382,13 +390,16 @@ public abstract class ReconParticleDriver extends Driver {
         beamConV0Vertices = new ArrayList<Vertex>();
         targetConV0Vertices = new ArrayList<Vertex>();
 
-        // Generate the reconstructed particles.
-        finalStateParticles = makeReconstructedParticles(clusters, tracks);
+        // Loop through all of the track collections present in the event and 
+        // create final state particles.
+        for (List<Track> tracks : trackCollections) { 
+            finalStateParticles.addAll(makeReconstructedParticles(clusters, tracks));
+        }
 
         // VERBOSE :: Output the number of reconstructed particles.
         printDebug("Final State Particles :: " + finalStateParticles.size());
 
-        // Store the reconstructed particles collection.
+        // Add the final state ReconstructedParticles to the event
         event.put(finalStateParticlesColName, finalStateParticles, ReconstructedParticle.class, 0);
 
         // Separate the reconstructed particles into electrons and
