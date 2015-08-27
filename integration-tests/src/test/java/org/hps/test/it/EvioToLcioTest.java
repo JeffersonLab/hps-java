@@ -8,7 +8,6 @@ import java.util.Map;
 import junit.framework.TestCase;
 
 import org.hps.evio.EvioToLcio;
-import org.hps.record.epics.Epics2sVariables;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
 import org.hps.test.util.TestOutputFile;
@@ -96,13 +95,15 @@ public final class EvioToLcioTest extends TestCase {
                 if (epicsData.getEpicsHeader() == null) {
                     throw new RuntimeException("The EpicsData header is null.");
                 }
-                for (final String variableName : Epics2sVariables.getVariables().keySet()) {
+                /*
+                for (final String variableName : Epics1sVariables.getVariables().keySet()) {
                     if (!EXCLUDED_EPICS_VARIABLES.contains(variableName)) {
                         if (!epicsData.getKeys().contains(variableName)) {
                             throw new RuntimeException("EpicsData is missing key: " + variableName);
                         }
                     }
                 }
+                */
                 ++epicsDataCount;
             }
         }
