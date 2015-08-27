@@ -1,29 +1,20 @@
 package org.hps.datacat;
 
+/**
+ * Constants for the HPS datacat.
+ * 
+ * @author Jeremy McCormick, SLAC
+ */
+final class DatacatConstants {
 
-public class DatacatConstants {
-
+    /**
+     * The root directory in the catalog for HPS folders.
+     */
     public static final String ROOT_DIR = "HPS";
         
-    public static final String BASE_URL = "http://localhost:8080/datacat-v0.4-SNAPSHOT";
-    
-    public static final String SLAC_SITE = "SLAC";
-    
-    public static final String JLAB_SITE = "JLAB";
-    
-    public static final String EVIO_FORMAT = "EVIO";
-    
-    public static final String LCIO_FORMAT = "LCIO";
-    
-    public static final String ROOT_FORMAT = "ROOT";
-    
-    public static final String AIDA_FORMAT = "AIDA";
-    
-    public static final String DQM_TYPE = "DQM";
-    
-    public static final String RAW_TYPE = "RAW";
-    
-    public static final String RECON_TYPE = "RECON";
-    
-    public static final String DST_TYPE = "DST";        
+    /**
+     * The base URL of the datacat server.
+     */
+    // FIXME: This needs to be more easily configurable and not hard-coded.
+    public static final String BASE_URL = "http://localhost:8080/datacat-v0.4-SNAPSHOT";            
 }
