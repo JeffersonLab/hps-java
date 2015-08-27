@@ -78,6 +78,11 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
      * The database API for scaler data.
      */
     private ScalerDataDao scalerDataDao = null;
+    
+    /**
+     * The database API for integer trigger config.
+     */
+    private TriggerConfigIntDao triggerConfigIntDao = null;
 
     /**
      * Create a new DAO object for run summary information.
@@ -95,6 +100,7 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
         epicsDataDao = new EpicsDataDaoImpl(this.connection);
         scalerDataDao = new ScalerDataDaoImpl(this.connection);
         evioFilesDao = new EvioFilesDaoImpl(this.connection);
+        triggerConfigIntDao = new TriggerConfigIntDaoImpl(this.connection);
     }
 
     /**
@@ -104,17 +110,23 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
      */
     @Override
     public void deleteFullRunSummary(final RunSummary runSummary) {
+        
+        int run = runSummary.getRun();
+        
         // Delete EPICS log.
-        epicsDataDao.deleteEpicsData(runSummary.getRun());
+        this.epicsDataDao.deleteEpicsData(run);
 
         // Delete scaler data.
-        scalerDataDao.deleteScalerData(runSummary.getRun());
+        this.scalerDataDao.deleteScalerData(run);
 
         // Delete file list.
-        evioFilesDao.deleteEvioFiles(runSummary.getRun());
+        this.evioFilesDao.deleteEvioFiles(run);
+        
+        // Delete trigger config.
+        this.triggerConfigIntDao.deleteTriggerConfigInt(run);
 
         // Finally delete the run summary information.
-        this.deleteRunSummary(runSummary.getRun());
+        this.deleteRunSummary(run);
     }
 
     /**
@@ -210,7 +222,7 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
             statement = this.connection.prepareStatement(RunSummaryQuery.SELECT_ALL);
             final ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                final RunSummary runSummary = new RunSummary(resultSet.getInt("run"));
+                final RunSummaryImpl runSummary = new RunSummaryImpl(resultSet.getInt("run"));
                 runSummary.setStartDate(resultSet.getTimestamp("start_date"));
                 runSummary.setEndDate(resultSet.getTimestamp("end_date"));
                 runSummary.setTotalEvents(resultSet.getInt("nevents"));
@@ -244,7 +256,7 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
     @Override
     public RunSummary getRunSummary(final int run) {
         PreparedStatement statement = null;
-        RunSummary runSummary = null;
+        RunSummaryImpl runSummary = null;
         try {
             statement = this.connection.prepareStatement(RunSummaryQuery.SELECT_RUN);
             statement.setInt(1, run);
@@ -253,7 +265,7 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
                 throw new IllegalArgumentException("No record exists for run " + run + " in database.");
             }
 
-            runSummary = new RunSummary(run);
+            runSummary = new RunSummaryImpl(run);
             runSummary.setStartDate(resultSet.getTimestamp("start_date"));
             runSummary.setEndDate(resultSet.getTimestamp("end_date"));
             runSummary.setTotalEvents(resultSet.getInt("nevents"));
@@ -370,16 +382,21 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
         this.insertRunSummary(runSummary);
 
         // Insert list of files.
-        LOGGER.info("inserting EVIO " + runSummary.getEvioFileList().size() + " files");
-        evioFilesDao.insertEvioFiles(runSummary.getEvioFileList(), runSummary.getRun());
+        LOGGER.info("inserting EVIO " + runSummary.getEvioFiles().size() + " files");
+        evioFilesDao.insertEvioFiles(runSummary.getEvioFiles(), runSummary.getRun());
 
         // Insert EPICS data.
-        LOGGER.info("inserting " + runSummary.getEpicsDataSet().size() + " EPICS records");
-        epicsDataDao.insertEpicsData(runSummary.getEpicsDataSet());
+        LOGGER.info("inserting " + runSummary.getEpicsData().size() + " EPICS records");
+        epicsDataDao.insertEpicsData(runSummary.getEpicsData());
 
         // Insert scaler data.
         LOGGER.info("inserting " + runSummary.getScalerData().size() + " scaler data records");
         scalerDataDao.insertScalerData(runSummary.getScalerData(), runSummary.getRun());
+        
+        // Insert trigger config.
+        LOGGER.info("inserting " + runSummary.getTriggerConfigInt().size() + " trigger config variables");
+        triggerConfigIntDao.insertTriggerConfigInt(runSummary.getTriggerConfigInt(), runSummary.getRun());
+        
     }
 
     /**
@@ -396,7 +413,7 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
             preparedStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getStartDate().getTime()), CALENDAR);
             preparedStatement.setTimestamp(3, new java.sql.Timestamp(runSummary.getEndDate().getTime()), CALENDAR);
             preparedStatement.setInt(4, runSummary.getTotalEvents());
-            preparedStatement.setInt(5, runSummary.getEvioFileList().size());
+            preparedStatement.setInt(5, runSummary.getEvioFiles().size());
             preparedStatement.setBoolean(6, runSummary.getEndOkay());
             preparedStatement.executeUpdate();
         } catch (final SQLException e) {
@@ -422,7 +439,7 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
     public RunSummary readFullRunSummary(final int run) {
 
         // Read main run summary but not referenced objects.
-        final RunSummary runSummary = this.getRunSummary(run);
+        final RunSummaryImpl runSummary = (RunSummaryImpl) this.getRunSummary(run);
 
         // Read EPICS data and set on RunSummary.
         runSummary.setEpicsData(epicsDataDao.getEpicsData(run));
@@ -431,7 +448,10 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
         runSummary.setScalerData(scalerDataDao.getScalerData(run));
 
         // Read EVIO file list and set on RunSummary.
-        runSummary.setEvioFileList(evioFilesDao.getEvioFiles(run));
+        runSummary.setEvioFiles(evioFilesDao.getEvioFiles(run));
+        
+        // Read trigger config.
+        runSummary.setTriggerConfigInt(triggerConfigIntDao.getTriggerConfigInt(run));
 
         return runSummary;
     }
@@ -476,7 +496,7 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
             preparedStatement.setTimestamp(1, new java.sql.Timestamp(runSummary.getStartDate().getTime()), CALENDAR);
             preparedStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getEndDate().getTime()), CALENDAR);
             preparedStatement.setInt(3, runSummary.getTotalEvents());
-            preparedStatement.setInt(4, runSummary.getEvioFileList().size());
+            preparedStatement.setInt(4, runSummary.getEvioFiles().size());
             preparedStatement.setBoolean(5, runSummary.getEndOkay());
             preparedStatement.setBoolean(6, runSummary.getRunOkay());
             preparedStatement.setInt(7, runSummary.getRun());

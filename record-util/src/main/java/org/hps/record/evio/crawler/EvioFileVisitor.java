@@ -110,6 +110,7 @@ final class EvioFileVisitor extends SimpleFileVisitor<Path> {
 
             // Add this file to the file list for the run.
             this.runs.getRunSummary(run).addFile(file);
+            
         } else {
             // File was rejected by one of the filters.
             LOGGER.finer("rejected file " + file.getPath());

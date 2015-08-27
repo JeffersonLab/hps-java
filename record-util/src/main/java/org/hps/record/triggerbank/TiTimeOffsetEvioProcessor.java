@@ -1,24 +1,23 @@
 package org.hps.record.triggerbank;
 
 import org.hps.record.evio.EvioEventProcessor;
-import org.hps.record.run.TriggerConfig;
 import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
- *
+ * Extract trigger time offset from EVIO data.
+ * 
  * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
-public class TriggerEvioProcessor extends EvioEventProcessor {
+public class TiTimeOffsetEvioProcessor extends EvioEventProcessor {
 
     private final IntBankDefinition headBankDefinition;
     private final IntBankDefinition tiBankDefinition;
     private long minOffset = 0;
     private long maxOffset = 0;
 
-    public TriggerEvioProcessor() {
+    public TiTimeOffsetEvioProcessor() {
         headBankDefinition = new IntBankDefinition(HeadBankData.class, new int[]{0x2e, 0xe10f});
         tiBankDefinition = new IntBankDefinition(TIData.class, new int[]{0x2e, 0xe10a});
     }
@@ -42,15 +41,13 @@ public class TriggerEvioProcessor extends EvioEventProcessor {
             }
         }
     }
-
-    public TriggerConfig getTriggerConfig() {
-        TriggerConfig triggerConfig = new TriggerConfig();
+    
+    public void updateTriggerConfig(TriggerConfigInt triggerConfig) {
         long offsetRange = maxOffset - minOffset;
         if (offsetRange > 0.99 * 1e9 && offsetRange < 1.01 * 1e9) {
-            triggerConfig.setTiTimeOffset(minOffset);
+            triggerConfig.put(TriggerConfigVariable.TI_TIME_OFFSET.name(), minOffset);
         } else {
-            triggerConfig.setTiTimeOffset(0);
+            triggerConfig.put(TriggerConfigVariable.TI_TIME_OFFSET.name(), 0L);
         }
-        return triggerConfig;
     }
 }

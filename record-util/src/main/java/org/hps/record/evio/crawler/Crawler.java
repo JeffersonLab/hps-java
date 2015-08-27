@@ -23,6 +23,7 @@ import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.database.ConnectionParameters;
 import org.hps.record.run.RunSummary;
 import org.hps.record.run.RunSummaryDaoImpl;
+import org.hps.record.run.RunSummaryImpl;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
@@ -53,7 +54,6 @@ public final class Crawler {
      * Statically define the command options.
      */
     static {
-        // TODO: add -f argument with file name to include; others would be excluded if they do not match
         OPTIONS.addOption("b", "min-date", true, "min date for a file (example \"2015-03-26 11:28:59\")");
         OPTIONS.addOption("c", "cache", false, "automatically cache files from MSS to cache disk (JLAB only)");
         OPTIONS.addOption("C", "connection-properties", true, "database connection properties file (required)");
@@ -65,8 +65,7 @@ public final class Crawler {
         OPTIONS.addOption("r", "run", true, "add a run number to accept (when used others will be excluded)");
         OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name");
         OPTIONS.addOption("w", "max-cache-wait", true, "total time to allow for file caching (seconds)");
-        OPTIONS.addOption("u", "update", false,
-                "allow replacement of existing data in the run db (not allowed by default)");
+        OPTIONS.addOption("u", "update", false, "allow replacement of existing data in the run db (not allowed by default)");
         OPTIONS.addOption("x", "max-depth", true, "max depth to crawl in the directory tree");
     }
 
@@ -278,8 +277,6 @@ public final class Crawler {
 
     /**
      * Run the full crawler job.
-     * <p>
-     * This might take quite a long time!
      *
      * @throws Exception if there is some error during the job
      */
@@ -302,12 +299,12 @@ public final class Crawler {
 
         // Process all the files, performing caching from the MSS if necessary.
         LOGGER.info("processing all runs");
-        RunProcessor.processAllRuns(this.cacheManager, runs, config);
+        processRuns(this.cacheManager, runs, config.useFileCache());
         LOGGER.getHandlers()[0].flush();
 
         // Execute the run database update.
         LOGGER.info("updating run database");
-        this.updateRunDatabase(runs);
+        this.updateRunDatabase(runs);       
         LOGGER.getHandlers()[0].flush();
 
         // Update the timestamp output file.
@@ -333,7 +330,7 @@ public final class Crawler {
             // Open a DB connection.
             final Connection connection = config.connectionParameters().createConnection();
 
-            // Insert all run summaries into the database.
+            // Insert all run summaries into the database.            
             new RunSummaryDaoImpl(connection).insertFullRunSummaries(new ArrayList<RunSummary>(runs.getRunSummaries()),
                     config.allowUpdates());
 
@@ -396,4 +393,33 @@ public final class Crawler {
             throw new RuntimeException("Error while walking the directory tree.", e);
         }
     }
+    
+    /**
+     * Process all the runs that were found.
+     *
+     * @param runs the run log containing the list of run summaries
+     * @throws Exception if there is an error processing one of the runs
+     */
+    static void processRuns(JCacheManager cacheManager, final RunSummaryMap runs, boolean useFileCache) 
+            throws Exception {
+
+        // Process all of the runs that were found.
+        for (final RunSummary runSummary : runs.getRunSummaries()) {
+
+            // Clear the cache manager.
+            if (useFileCache) {
+                LOGGER.info("clearing file cache");
+                cacheManager.clear();
+            }
+
+            // Create a processor to process all the EVIO events in the run.
+            LOGGER.info("creating run processor for " + runSummary.getRun());
+            final RunProcessor runProcessor = new RunProcessor(cacheManager, (RunSummaryImpl) runSummary, useFileCache);
+
+            // Process all of the files from the run.
+            LOGGER.info("processing run " + runSummary.getRun());
+            runProcessor.processRun();
+        }
+    }
+    
 }

@@ -49,7 +49,7 @@ public enum EvioBankTag {
      */
     public BaseStructure findBank(final BaseStructure startBank) {
         BaseStructure foundBank = null;
-        if (this.isBankTag(startBank)) {
+        if (this.equals(startBank)) {
             foundBank = startBank;
         } else if (startBank.getChildrenList() != null) {
             for (final BaseStructure subBank : startBank.getChildrenList()) {
@@ -77,7 +77,7 @@ public enum EvioBankTag {
      * @param bank the EVIO data bank
      * @return <code>true</code> if bank's tag matches this one
      */
-    public boolean isBankTag(final BaseStructure bank) {
+    public boolean equals(final BaseStructure bank) {
         return bank.getHeader().getTag() == bankTag;
     }
 
@@ -87,7 +87,7 @@ public enum EvioBankTag {
      * @param bankTag the bank tag value
      * @return <code>true</code> if the bank tag value matches this one
      */
-    public boolean isBankTag(final int bankTag) {
+    public boolean equals(final int bankTag) {
         return bankTag == this.getBankTag();
     }
 }
