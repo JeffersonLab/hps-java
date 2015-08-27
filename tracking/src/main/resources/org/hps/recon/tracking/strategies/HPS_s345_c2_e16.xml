@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <StrategyList xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://lcsim.org/recon/tracking/seedtracker/strategybuilder/strategies.xsd">
     <TargetDetector>HPS-Full</TargetDetector>
-    <Strategy name="Seed 345, Comfirm 2, Extend 16">
+    <Strategy name="S345_C2_E16">
         
         <!--Cutoffs-->
         
