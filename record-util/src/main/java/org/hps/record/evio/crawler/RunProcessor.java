@@ -35,7 +35,7 @@ final class RunProcessor {
      * Setup logger.
      */
     private static final Logger LOGGER = LogUtil.create(RunProcessor.class, new DefaultLogFormatter(), Level.FINE);
-    
+
     /**
      * The cache manager.
      */
@@ -74,7 +74,7 @@ final class RunProcessor {
     /**
      * Set to <code>true</code> to use file caching.
      */
-    private boolean useFileCache;
+    private final boolean useFileCache;
 
     /**
      * Create a run processor.
@@ -82,14 +82,14 @@ final class RunProcessor {
      * @param runSummary the run summary object for the run
      * @return the run processor
      */
-    RunProcessor(final JCacheManager cacheManager, final RunSummaryImpl runSummary, boolean useFileCache) {
+    RunProcessor(final JCacheManager cacheManager, final RunSummaryImpl runSummary, final boolean useFileCache) {
 
         this.runSummary = runSummary;
         this.cacheManager = cacheManager;
 
         // Set whether file caching from MSS is enabled.
         this.useFileCache = useFileCache;
-        
+
         // Sort the list of EVIO files.
         Collections.sort(runSummary.getEvioFiles(), new EvioFileSequenceComparator());
 
@@ -106,7 +106,7 @@ final class RunProcessor {
         scalersProcessor.setResetEveryEvent(false);
         evioLoop.addEvioEventProcessor(scalersProcessor);
 
-        // Add processor for extracting TI time offset. 
+        // Add processor for extracting TI time offset.
         triggerTimeProcessor = new TiTimeOffsetEvioProcessor();
         evioLoop.addEvioEventProcessor(triggerTimeProcessor);
     }
@@ -131,6 +131,41 @@ final class RunProcessor {
         }
 
         LOGGER.info("done caching files from run " + this.runSummary.getRun());
+    }
+
+    /**
+     * Extract meta data from first file in run.
+     */
+    private void processFirstFile() {
+        final File firstEvioFile = runSummary.getEvioFiles().get(0);
+        LOGGER.info("getting meta data for " + firstEvioFile.getPath());
+        final EvioFileMetaDataReader metaDataReader = new EvioFileMetaDataReader();
+        final EvioFileMetaData metaData = metaDataReader.getMetaData(firstEvioFile);
+        LOGGER.info(metaData.toString());
+        if (metaData.getStartDate() == null) {
+            throw new IllegalStateException("The start date is not set in the EVIO file meta data from "
+                    + firstEvioFile.getPath());
+        }
+        LOGGER.info("setting unix start time to " + metaData.getStartDate().getTime() + " from meta data");
+        runSummary.setStartDate(metaData.getStartDate());
+    }
+
+    /**
+     * Extract meta data from last file in run.
+     */
+    private void processLastFile() {
+        final File lastEvioFile = runSummary.getEvioFiles().get(runSummary.getEvioFiles().size() - 1);
+        LOGGER.info("getting meta data for " + lastEvioFile.getPath());
+        final EvioFileMetaDataReader metaDataReader = new EvioFileMetaDataReader();
+        final EvioFileMetaData metaData = metaDataReader.getMetaData(lastEvioFile);
+        LOGGER.info(metaData.toString());
+        if (metaData.getEndDate() == null) {
+            throw new IllegalStateException("The end date is not set in the EVIO file meta data from "
+                    + lastEvioFile.getPath());
+        }
+        LOGGER.info("setting unix end time to " + metaData.getEndDate().getTime() + " from meta data");
+        runSummary.setEndDate(metaData.getEndDate());
+        runSummary.setEndOkay(metaData.hasEnd());
     }
 
     /**
@@ -172,41 +207,6 @@ final class RunProcessor {
     }
 
     /**
-     * Extract meta data from last file in run.
-     */
-    private void processLastFile() {
-        final File lastEvioFile = runSummary.getEvioFiles().get(runSummary.getEvioFiles().size() - 1);
-        LOGGER.info("getting meta data for " + lastEvioFile.getPath());
-        final EvioFileMetaDataReader metaDataReader = new EvioFileMetaDataReader();
-        final EvioFileMetaData metaData = metaDataReader.getMetaData(lastEvioFile);
-        LOGGER.info(metaData.toString());
-        if (metaData.getEndDate() == null) {
-            throw new IllegalStateException("The end date is not set in the EVIO file meta data from "
-                    + lastEvioFile.getPath());
-        }
-        LOGGER.info("setting unix end time to " + metaData.getEndDate().getTime() + " from meta data");
-        runSummary.setEndDate(metaData.getEndDate());
-        runSummary.setEndOkay(metaData.hasEnd());
-    }
-
-    /**
-     * Extract meta data from first file in run.
-     */
-    private void processFirstFile() {
-        final File firstEvioFile = runSummary.getEvioFiles().get(0);
-        LOGGER.info("getting meta data for " + firstEvioFile.getPath());
-        final EvioFileMetaDataReader metaDataReader = new EvioFileMetaDataReader();
-        final EvioFileMetaData metaData = metaDataReader.getMetaData(firstEvioFile);
-        LOGGER.info(metaData.toString());
-        if (metaData.getStartDate() == null) {
-            throw new IllegalStateException("The start date is not set in the EVIO file meta data from "
-                    + firstEvioFile.getPath());
-        }
-        LOGGER.info("setting unix start time to " + metaData.getStartDate().getTime() + " from meta data");
-        runSummary.setStartDate(metaData.getStartDate());
-    }
-
-    /**
      * Update the current run summary by copying data to it from the EVIO processors and the event loop.
      */
     private void updateRunSummary() {
@@ -225,12 +225,12 @@ final class RunProcessor {
 
         // Add trigger config from the trigger time processor.
         LOGGER.info("updating trigger config");
-        TriggerConfig triggerConfig = new TriggerConfig();
+        final TriggerConfig triggerConfig = new TriggerConfig();
         this.triggerTimeProcessor.updateTriggerConfig(triggerConfig);
-        LOGGER.info("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET.name()));
-        System.out.println("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET.name()));
+        LOGGER.info("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET));
+        System.out.println("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET));
         runSummary.setTriggerConfigInt(triggerConfig);
-        
+
         LOGGER.getHandlers()[0].flush();
-    }  
+    }
 }

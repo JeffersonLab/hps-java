@@ -348,7 +348,7 @@ final class CrawlerConfig {
      *
      * @return <code>true</code> if the run database should be updated
      */
-    boolean updateRunLog() {
+    boolean updateRunDatabase() {
         return updateRunLog;
     }
 
