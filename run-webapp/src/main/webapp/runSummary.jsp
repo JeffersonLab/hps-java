@@ -1,4 +1,4 @@
-<%@ page contentType="text/html" import="java.util.*,org.hps.record.run.RunSummary,java.text.SimpleDateFormat"%>
+<%@ page contentType="text/html" import="java.util.*,org.hps.rundb.*,java.text.SimpleDateFormat"%>
 <!DOCTYPE html>
 <html>
 <link rel="stylesheet" href="css/style.css" />
@@ -7,24 +7,24 @@
     <hr />
     <%
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
         RunSummary runSummary = (RunSummary) request.getAttribute("RunSummary"); 
     %>
-    <p>run: <%= runSummary.getRun() %></p>
-    <p>start: <%= dateFormat.format(runSummary.getStartDate()) %></p>
-    <p>end: <%= dateFormat.format(runSummary.getEndDate()) %></p>
-    <p>events: <%= runSummary.getTotalEvents() %></p>
-    <p>files: <%= runSummary.getTotalFiles() %></p>
-    <p>end okay: <%= runSummary.getEndOkay() %></p>
-    <p>run okay: <%= runSummary.getRunOkay() %></p>
-    <p>updated: <%= dateFormat.format(runSummary.getUpdated()) %></p>
-    <p>created: <%= dateFormat.format(runSummary.getCreated()) %></p>	
+    <p><b>run:</b> <%= runSummary.getRun() %></p>
+    <p><b>start:</b> <%= dateFormat.format(runSummary.getStartDate()) %></p>
+    <p><b>end:</b> <%= dateFormat.format(runSummary.getEndDate()) %></p>
+    <p><b>events:</b> <%= runSummary.getTotalEvents() %></p>
+    <p><b>files:</b> <%= runSummary.getTotalFiles() %></p>
+    <p><b>end okay:</b> <%= runSummary.getEndOkay() %></p>
+    <p><b>run okay:</b> <%= runSummary.getRunOkay() %></p>
+    <p><b>updated:</b> <%= dateFormat.format(runSummary.getUpdated()) %></p>
+    <p><b>created:</b> <%= dateFormat.format(runSummary.getCreated()) %></p>
     <hr/>	
     <p>
-        <a href="epics?run=<%= runSummary.getRun() %>&epicsBankType=2s">EPICS 2s Data</a>        
+        <a href="epics?run=<%= runSummary.getRun() %>&epicsBankType=<%= EpicsType.EPICS_1S %>">EPICS 1s Data</a>        
     </p>		
     <p>
-        <a href="epics?run=<%= runSummary.getRun() %>&epicsBankType=20s">EPICS 20s Data</a>
+        <a href="epics?run=<%= runSummary.getRun() %>&epicsBankType=<%= EpicsType.EPICS_10S %>">EPICS 10s Data</a>
     </p>
     <p>
         <a href="scalers?run=<%= runSummary.getRun() %>">Scaler Data</a>

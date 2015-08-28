@@ -1,4 +1,4 @@
-package org.hps.run.web;
+package org.hps.runweb;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -11,11 +11,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import org.hps.record.run.ScalerDataDao;
-import org.hps.record.run.ScalerDataDaoImpl;
 import org.hps.record.scalers.ScalerData;
+import org.hps.rundb.RunDatabaseDaoFactory;
+import org.hps.rundb.ScalerDataDao;
 
 /**
+ * Setup session state for JSP that shows a run's scaler data.
+ *
  * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("serial")
@@ -50,14 +52,14 @@ public class ScalerDataServlet extends HttpServlet {
      */
     @Override
     public void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException,
-            IOException {
+    IOException {
         if (!request.getParameterMap().containsKey("run")) {
             throw new RuntimeException("Missing required run parameter.");
         }
         final Integer run = Integer.parseInt(request.getParameterValues("run")[0]);
         List<ScalerData> scalerDataList = null;
         try (Connection connection = this.dataSource.getConnection()) {
-            final ScalerDataDao scalarDataDao = new ScalerDataDaoImpl(connection);
+            final ScalerDataDao scalarDataDao = new RunDatabaseDaoFactory(connection).createScalerDataDao();
             scalerDataList = scalarDataDao.getScalerData(run);
         } catch (final Exception e) {
             throw new RuntimeException(e);

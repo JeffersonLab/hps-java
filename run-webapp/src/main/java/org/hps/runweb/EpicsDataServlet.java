@@ -1,4 +1,4 @@
-package org.hps.run.web;
+package org.hps.runweb;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -13,10 +13,15 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
 import org.hps.record.epics.EpicsData;
-import org.hps.record.run.EpicsDataDao;
-import org.hps.record.run.EpicsDataDaoImpl;
+import org.hps.rundb.EpicsDataDao;
+import org.hps.rundb.EpicsType;
+import org.hps.rundb.EpicsVariable;
+import org.hps.rundb.EpicsVariableDao;
+import org.hps.rundb.RunDatabaseDaoFactory;
 
 /**
+ * Setup session state for JSP that shows a run's EPICS data.
+ *
  * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("serial")
@@ -39,19 +44,24 @@ public class EpicsDataServlet extends HttpServlet {
         Connection connection = null;
         List<EpicsData> epicsDataList = null;
 
-        String epicsBankType = "2s";
+        EpicsType epicsType = EpicsType.EPICS_1S;
         if (request.getParameterMap().containsKey("epicsBankType")) {
-            epicsBankType = request.getParameter("epicsBankType");
-            if (!epicsBankType.equals("2s") && !epicsBankType.equals("20s")) {
-                throw new IllegalArgumentException("bad epics bank type: " + epicsBankType);
-            }
+            epicsType = EpicsType.valueOf(request.getParameter("epicsBankType"));
         }
 
-        // List<String> variableNames = null;
+        List<EpicsVariable> epicsVariables = null;
+
         try {
             connection = dataSource.getConnection();
-            epicsDataDao = new EpicsDataDaoImpl(connection);
-            epicsDataList = epicsDataDao.getEpicsData(run);
+
+            final RunDatabaseDaoFactory dbFactory = new RunDatabaseDaoFactory(connection);
+
+            epicsDataDao = dbFactory.createEpicsDataDao();
+            epicsDataList = epicsDataDao.getEpicsData(epicsType, run);
+
+            final EpicsVariableDao epicsVariableDao = dbFactory.createEpicsVariableDao();
+            epicsVariables = epicsVariableDao.getEpicsVariables(epicsType);
+
         } catch (final SQLException e) {
             throw new IllegalStateException("Failed to setup data source connection.", e);
         } finally {
@@ -64,7 +74,8 @@ public class EpicsDataServlet extends HttpServlet {
             }
         }
         request.setAttribute("EpicsDataList", epicsDataList);
-        request.setAttribute("EpicsBankType", epicsBankType);
+        request.setAttribute("EpicsType", epicsType);
+        request.setAttribute("EpicsVariables", epicsVariables);
         final RequestDispatcher dispatcher = this.getServletContext().getRequestDispatcher("/runEpics.jsp");
         dispatcher.forward(request, response);
     }

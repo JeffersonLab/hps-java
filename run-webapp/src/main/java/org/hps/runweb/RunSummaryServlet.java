@@ -1,4 +1,4 @@
-package org.hps.run.web;
+package org.hps.runweb;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -10,12 +10,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import org.hps.record.run.RunManager;
-import org.hps.record.run.RunSummary;
+import org.hps.rundb.RunManager;
+import org.hps.rundb.RunSummary;
 
 /**
+ * Setup state for JSP that shows run summary.
+ *
  * @author Jeremy McCormick, SLAC
  */
+@SuppressWarnings("serial")
 public class RunSummaryServlet extends HttpServlet {
 
     /**

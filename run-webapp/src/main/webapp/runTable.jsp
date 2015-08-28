@@ -1,4 +1,4 @@
-<%@ page contentType="text/html" import="java.util.*,org.hps.record.run.RunSummary,java.text.SimpleDateFormat"%>
+<%@ page contentType="text/html" import="java.util.*,org.hps.rundb.RunSummary,java.text.SimpleDateFormat"%>
 <!DOCTYPE html>
 <html>
 
@@ -28,8 +28,8 @@
 		<thead>
 			<tr>
 				<th>Run</th>
-				<th>Start Time UTC</th>
-				<th>End Time UTC</th>
+				<th>Start Date</th>
+				<th>End Date</th>
 				<th>Events</th>
 				<th>Files</th>
 				<th>End Okay</th>

@@ -1,4 +1,4 @@
-package org.hps.run.web;
+package org.hps.runweb;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -13,13 +13,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import org.hps.record.run.RunSummary;
-import org.hps.record.run.RunSummaryDao;
-import org.hps.record.run.RunSummaryDaoImpl;
+import org.hps.rundb.RunDatabaseDaoFactory;
+import org.hps.rundb.RunSummary;
+import org.hps.rundb.RunSummaryDao;
 
 /**
- * Loads the list of {@link org.hps.record.run.RunSummary} objects to setup state for the <code>runTable.jsp</code>
- * page.
+ * Loads the list of {@link org.hps.rundb.RunSummary} objects to setup state for the <code>runTable.jsp</code> page.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -55,7 +54,7 @@ public final class RunsServlet extends HttpServlet {
      */
     @Override
     public void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException,
-    IOException {
+            IOException {
 
         final List<RunSummary> runSummaries = this.getRunSummaries();
         request.setAttribute(RUN_SUMMARIES_ATTRIBUTE, runSummaries);
@@ -73,7 +72,7 @@ public final class RunsServlet extends HttpServlet {
         Connection connection = null;
         try {
             connection = this.dataSource.getConnection();
-            final RunSummaryDao runSummaryDao = new RunSummaryDaoImpl(connection);
+            final RunSummaryDao runSummaryDao = new RunDatabaseDaoFactory(connection).createRunSummaryDao();
 
             // This does a shallow read of all run summaries but does not load their complex state.
             runSummaries = runSummaryDao.getRunSummaries();

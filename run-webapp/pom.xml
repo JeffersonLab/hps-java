@@ -35,6 +35,7 @@
         </dependency>        
     </dependencies>
     <build>
+        <defaultGoal>war:war tomcat7:redeploy</defaultGoal>
         <finalName>hps-run-webapp</finalName>
         <plugins>
             <plugin>
