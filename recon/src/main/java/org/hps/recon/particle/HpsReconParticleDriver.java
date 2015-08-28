@@ -56,6 +56,11 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // on the pairs.
         for(ReconstructedParticle positron : positrons) {
             for(ReconstructedParticle electron : electrons) {
+               
+                // Only vertex particles that are of the same type. This is
+                // only needed when using multiple track collections.  
+                if (positron.getType() != electron.getType()) continue;
+                
                 // Get the tracks associated with the electron and
                 // the positron.
                 Track electronTrack = electron.getTracks().get(0); 
@@ -156,12 +161,16 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      * from the child particles and vertex given as an argument.
      */
     private ReconstructedParticle makeReconstructedParticle(ReconstructedParticle electron, ReconstructedParticle positron, BilliorVertex vtxFit){
+        
         // Create a new reconstructed particle to represent the V0
         // candidate and populate it with the electron and positron.
         ReconstructedParticle candidate = new BaseReconstructedParticle();
         ((BaseReconstructedParticle) candidate).setStartVertex(vtxFit);
         candidate.addParticle(electron);
         candidate.addParticle(positron);
+       
+        // Set the type of the V0 particle.  This will only be needed for pass 2.
+        ((BaseReconstructedParticle) candidate).setType(electron.getType());
         
         // TODO: The calculation of the total fitted momentum should be
         //       done within BilloirVertex.
@@ -169,10 +178,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // with the reconstructed candidate particle.
         ((BaseReconstructedParticle) candidate).setMass(vtxFit.getParameters().get("invMass"));
         Hep3Vector fittedMomentum = new BasicHep3Vector(vtxFit.getParameters().get("p1X"), 
-                                                           vtxFit.getParameters().get("p1Y"), 
+                                                        vtxFit.getParameters().get("p1Y"), 
                                                         vtxFit.getParameters().get("p1Z"));
         fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFit.getParameters().get("p2X"), 
-                                                                          vtxFit.getParameters().get("p2Y"),
+                                                                       vtxFit.getParameters().get("p2Y"),
                                                                        vtxFit.getParameters().get("p2Z")));
         fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
         HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
@@ -185,6 +194,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         
         // Add the ReconstructedParticle to the vertex.
         vtxFit.setAssociatedParticle(candidate);
+        
+        // Set the vertex position as the reference point of the V0 particle
+        ((BaseReconstructedParticle) candidate).setReferencePoint(vtxFit.getPosition());
         
         // Return the V0 candidate.
         return candidate;
