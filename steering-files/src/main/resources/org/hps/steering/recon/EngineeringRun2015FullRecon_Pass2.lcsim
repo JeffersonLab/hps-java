@@ -25,7 +25,7 @@
             layer 2 to confirm and layers 1 and 6 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
         -->
-        <driver name="TrackReconSeed345Conf2Extd16"/>
+        <driver name="TrackReconSeed345Conf2Extd16"/>       
         <!-- 
             Will run track finding algorithm using layers 456 as a seed, 
             layer 3 to confirm and layers 2 and 1 to extend.  The collection
@@ -52,8 +52,8 @@
             ReconstructedParticle types are properly set.
          -->
         <driver name="TrackDataDriver" />
+        <driver name="GBLOutputDriver" />
         <driver name="ReconParticleDriver" />   
-        <driver name="GBLOutputDriver"/>              
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -159,11 +159,7 @@
         </driver>             
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" />  
-        <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
-            <debug>0</debug>
-            <isMC>false</isMC>
-            <gblFileName>${outputFile}.gbl</gblFileName>
-        </driver>   
+        <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver"/>      
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>

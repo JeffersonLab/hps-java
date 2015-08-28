@@ -13,17 +13,46 @@
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
-        <driver name="HelicalTrackHitDriver"/>
-        <driver name="TrackerReconDriver"/>
+        <driver name="HelicalTrackHitDriver"/>     
+        <!-- 
+            Will run track finding algorithm using layers 345 as a seed, 
+            layer 2 to confirm and layers 1 and 6 to extend. The collection
+            name of the tracks found with this strategy will be "MatchedTracks".
+        -->
+        <driver name="TrackReconSeed345Conf2Extd16"/>       
+        <!-- 
+            Will run track finding algorithm using layers 456 as a seed, 
+            layer 3 to confirm and layers 2 and 1 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s456_c3_e21"
+        -->
+        <driver name="TrackReconSeed456Conf3Extd21"/>
+        <!-- 
+            Will run track finding algorithm using layers 123 as a seed, 
+            layer 4 to confirm and layers 5 and 6 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s123_c4_e56"
+        -->
+        <driver name="TrackReconSeed123Conf4Extd56"/>
+        <!-- 
+            Will run track finding algorithm using layers 123 as a seed, 
+            layer 5 to confirm and layers 4 and 6 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s123_c5_e46"
+        --> 
+        <driver name="TrackReconSeed123Conf5Extd46"/>
+        <!-- 
+            TrackDataDriver needs to be run before ReconParticleDriver so the
+            ReconstructedParticle types are properly set.
+         -->
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
         <driver name="GTPOnlineClusterer" />
         <driver name="CopyCluster" />
         <driver name="ReconParticle" />  
         <driver name="TrackDataDriver" />              
-        <driver name="GBLDriver"/>
+        <driver name="GBLOutputDriver"/>
         <driver name="LCIOWriter"/>
-
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
@@ -57,17 +86,34 @@
             <debug>false</debug>
             <clusterTimeCut>12.0</clusterTimeCut>
             <maxDt>16.0</maxDt>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
         </driver>
-        <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
-            <strategyResource>HPS-Full.xml</strategyResource>
+          <!-- SVT Track finding -->
+        <driver name="TrackReconSeed345Conf2Extd16" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>MatchedTracks</trackCollectionName>
+            <strategyResource>HPS_s345_c2_e16.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>8.0</rmsTimeCut>
-        </driver>        
-        <driver name="GBLDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
-            <debug>0</debug>
-            <isMC>false</isMC>
-            <gblFileName></gblFileName>
-        </driver>
+        </driver>                
+        <driver name="TrackReconSeed456Conf3Extd21" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s456_c3_e21</trackCollectionName>
+            <strategyResource>HPS_s456_c3_e21.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>                
+        <driver name="TrackReconSeed123Conf4Extd56" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s123_c4_e56</trackCollectionName>
+            <strategyResource>HPS_s123_c4_e56.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>                
+        <driver name="TrackReconSeed123Conf5Extd46" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s123_c5_e46</trackCollectionName>
+            <strategyResource>HPS_s123_c5_e46.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>       
+        <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver"/>             
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
