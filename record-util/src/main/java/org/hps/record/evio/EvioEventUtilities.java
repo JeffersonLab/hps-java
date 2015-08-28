@@ -83,6 +83,16 @@ public final class EvioEventUtilities {
         }
         return null;
     }
+    
+    /**
+     * Get the head bank int data.
+     * 
+     * @param evioEvent the EVIO event
+     * @return the head bank int data
+     */
+    public static int[] getHeadBankData(final EvioEvent evioEvent) {
+        return getHeadBank(evioEvent).getIntData();
+    }
 
     /**
      * Get the run number from an EVIO event.
