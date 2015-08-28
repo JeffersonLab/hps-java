@@ -5,7 +5,7 @@ package org.hps.record.scalers;
  * <p>
  * Currently this is used only for computing live time measurements from standard scaler data.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class ScalerUtilities {
 

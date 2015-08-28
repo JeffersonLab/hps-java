@@ -1,16 +1,19 @@
 package org.hps.record.scalers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.GenericObject;
 
 /**
  * This class encapsulates EVIO scaler data which is simply an array of integer values. The exact meaning of each of
  * these integer words is defined externally to this class.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 public final class ScalerData {
 
@@ -23,6 +26,21 @@ public final class ScalerData {
      * Default name of scaler data collection in LCSim events.
      */
     private static final String DEFAULT_COLLECTION_NAME = "ScalerData";
+
+    /**
+     * Dummy float parameters to make LCIO persistency work.
+     */
+    private static final Map<String, float[]> DUMMY_FLOAT_MAP = new HashMap<String, float[]>();
+
+    /**
+     * Dummy int parameters to make LCIO persistency work.
+     */
+    private static final Map<String, String[]> DUMMY_STRING_MAP = new HashMap<String, String[]>();
+
+    /**
+     * Name of timestamp field in collection parameters.
+     */
+    private static final String TIMESTAMP = "TIMESTAMP";
 
     /**
      * Create a new <code>ScalerData</code> object from an LCIO event, using the default collection name.
@@ -43,11 +61,22 @@ public final class ScalerData {
     public static ScalerData read(final EventHeader event, final String collectionName) {
         ScalerData data = null;
         if (event.hasCollection(GenericObject.class, collectionName)) {
-            // System.out.println("ScalerData - found collection");
+
+            // Read from generic object.
             final List<GenericObject> objects = event.get(GenericObject.class, collectionName);
             data = new ScalerData();
             data.fromGenericObject(objects.get(0));
-            data.setEventId(event.getEventNumber());
+
+            // Set event ID.
+            data.eventId = event.getEventNumber();
+
+            // Read timestamp.
+            final LCMetaData metadata = event.getMetaData(objects);
+            try {
+                data.timestamp = metadata.getIntegerParameters().get(TIMESTAMP)[0];
+            } catch (final Exception e) {
+                throw new RuntimeException("Scaler data is missing timestamp parameter.", e);
+            }
         }
         return data;
     }
@@ -63,6 +92,11 @@ public final class ScalerData {
     private Integer eventId;
 
     /**
+     * The timestamp of the scaler event.
+     */
+    private Integer timestamp;
+
+    /**
      * This is the no argument constructor which is for package internal use only.
      */
     ScalerData() {
@@ -73,10 +107,11 @@ public final class ScalerData {
      *
      * @param data the scaler data
      */
-    public ScalerData(final int[] data, final int eventId) {
+    public ScalerData(final int[] data, final int eventId, final int timestamp) {
         this.data = new int[data.length];
         System.arraycopy(data, 0, this.data, 0, data.length);
         this.eventId = eventId;
+        this.timestamp = timestamp;
     }
 
     /**
@@ -101,6 +136,15 @@ public final class ScalerData {
     public Integer getEventId() {
         // Null value will be returned here to indicate not set.
         return this.eventId;
+    }
+
+    /**
+     * Get the scaler data's Unix timestamp.
+     *
+     * @return the scaler data's Unix timestamp
+     */
+    public int getTimestamp() {
+        return this.timestamp;
     }
 
     /**
@@ -184,8 +228,17 @@ public final class ScalerData {
      * @param collectionName the name of the output collection
      */
     private void write(final EventHeader event, final String collectionName) {
+
+        // Create generic object collection.
         final List<GenericObject> collection = new ArrayList<GenericObject>();
         collection.add(this.toGenericObject());
-        event.put(collectionName, collection, GenericObject.class, 0);
-    }    
+
+        // Add collection parameter with timestamp.
+        final Map<String, int[]> timestampParameter = new HashMap<String, int[]>();
+        timestampParameter.put(TIMESTAMP, new int[] {timestamp});
+
+        // Put collection into event.
+        event.put(collectionName, collection, GenericObject.class, 0, timestampParameter, DUMMY_FLOAT_MAP,
+                DUMMY_STRING_MAP);
+    }
 }

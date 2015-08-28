@@ -6,7 +6,7 @@ import org.lcsim.event.GenericObject;
  * This is the LCIO {@link org.lcsim.event.GenericObject} binding for EVIO scaler data. This should not be used
  * directly. Rather the {@link ScalerData} class should be used for loading data from LCIO events.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author Jeremy McCormick, SLAC
  */
 final class ScalersGenericObject implements GenericObject {
 
