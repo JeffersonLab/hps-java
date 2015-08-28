@@ -36,17 +36,17 @@ final class TriggerConfigDaoImpl implements TriggerConfigDao {
      */
     @Override
     public void deleteTriggerConfigInt(final int run) {
-        PreparedStatement preparedStatement = null;
+        PreparedStatement deleteTriggerConfig = null;
         try {
-            preparedStatement = connection.prepareStatement("DELETE FROM trigger_config WHERE run = ?");
-            preparedStatement.setInt(1, run);
-            preparedStatement.executeUpdate();
+            deleteTriggerConfig = connection.prepareStatement("DELETE FROM trigger_config WHERE run = ?");
+            deleteTriggerConfig.setInt(1, run);
+            deleteTriggerConfig.executeUpdate();
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            if (preparedStatement != null) {
+            if (deleteTriggerConfig != null) {
                 try {
-                    preparedStatement.close();
+                    deleteTriggerConfig.close();
                 } catch (final SQLException e) {
                     e.printStackTrace();
                 }
@@ -63,11 +63,12 @@ final class TriggerConfigDaoImpl implements TriggerConfigDao {
      */
     @Override
     public TriggerConfig getTriggerConfig(final int run) {
-        PreparedStatement preparedStatement = null;
+        PreparedStatement selectTriggerConfig = null;
         final TriggerConfig triggerConfig = new TriggerConfig();
         try {
-            preparedStatement = connection.prepareStatement("SELECT * FROM trigger_config WHERE run = ?");
-            final ResultSet resultSet = preparedStatement.executeQuery();
+            selectTriggerConfig = connection.prepareStatement("SELECT * FROM trigger_config WHERE run = ?");
+            selectTriggerConfig.setInt(1, run);
+            final ResultSet resultSet = selectTriggerConfig.executeQuery();
             if (resultSet.next()) {
                 triggerConfig.put(TriggerConfigVariable.TI_TIME_OFFSET,
                         resultSet.getLong(TriggerConfigVariable.TI_TIME_OFFSET.getColumnName()));
@@ -76,7 +77,7 @@ final class TriggerConfigDaoImpl implements TriggerConfigDao {
             throw new RuntimeException(e);
         } finally {
             try {
-                preparedStatement.close();
+                selectTriggerConfig.close();
             } catch (final SQLException e) {
                 e.printStackTrace();
             }
@@ -93,18 +94,19 @@ final class TriggerConfigDaoImpl implements TriggerConfigDao {
     @Override
     public void insertTriggerConfig(final TriggerConfig triggerConfig, final int run) {
 
-        PreparedStatement preparedStatement = null;
+        PreparedStatement insertTriggerConfig = null;
         try {
-            preparedStatement = connection.prepareStatement("INSERT INTO trigger_config ( "
-                    + TriggerConfigVariable.TI_TIME_OFFSET.getColumnName() + " ) VALUES (?)");
-            preparedStatement.setLong(1, triggerConfig.getTiTimeOffset());
-            preparedStatement.executeUpdate();
+            insertTriggerConfig = connection.prepareStatement("INSERT INTO trigger_config ( run, "
+                    + TriggerConfigVariable.TI_TIME_OFFSET.getColumnName() + " ) VALUES (?, ?)");
+            insertTriggerConfig.setInt(1, run);
+            insertTriggerConfig.setLong(2, triggerConfig.getTiTimeOffset());
+            insertTriggerConfig.executeUpdate();
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            if (preparedStatement != null) {
+            if (insertTriggerConfig != null) {
                 try {
-                    preparedStatement.close();
+                    insertTriggerConfig.close();
                 } catch (final SQLException e) {
                     e.printStackTrace();
                 }
