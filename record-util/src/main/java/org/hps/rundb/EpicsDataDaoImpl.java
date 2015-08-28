@@ -140,31 +140,24 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
         PreparedStatement selectHeader = null;
         PreparedStatement selectEpicsData = null;
         try {
-            selectHeader = connection.prepareStatement("SELECT * FROM epics_headers WHERE run = ?");
-            selectHeader.setInt(1, run);
-            final ResultSet headerResultSet = selectHeader.executeQuery();
-            selectEpicsData = connection.prepareStatement("SELECT * FROM " + epicsType.getTableName()
-                    + " WHERE epics_header_id = ?");
             final List<EpicsVariable> variables = epicsVariableDao.getEpicsVariables(epicsType);
-            while (headerResultSet.next()) {
-                final int headerId = headerResultSet.getInt("id");
-                final int headerRun = headerResultSet.getInt("run");
-                final int sequence = headerResultSet.getInt("sequence");
-                final int timestamp = headerResultSet.getInt("timestamp");
-                selectEpicsData.setInt(1, headerId);
-                final ResultSet epicsDataResult = selectEpicsData.executeQuery();
-                if (epicsDataResult.next()) {
-                    final EpicsHeader header = new EpicsHeader(new int[] {headerRun, sequence, timestamp});
-                    final EpicsData epicsData = new EpicsData();
-                    epicsData.setEpicsHeader(header);
-                    for (final EpicsVariable variable : variables) {
-                        final double value = epicsDataResult.getDouble(variable.getColumnName());
-                        epicsData.setValue(variable.getVariableName(), value);
-                    }
-                    epicsDataList.add(epicsData);
-                } else {
-                    throw new SQLException("Getting EPICS data failed; no data for header ID.");
+            selectEpicsData = connection.prepareStatement("SELECT * FROM " + epicsType.getTableName() 
+                    + " LEFT JOIN epics_headers ON " + epicsType.getTableName() + ".epics_header_id = epics_headers.id"
+                    + " WHERE epics_headers.run = ?");
+            selectEpicsData.setInt(1, run);
+            ResultSet resultSet = selectEpicsData.executeQuery();
+            while (resultSet.next()) {
+                EpicsData epicsData = new EpicsData();
+                final int headerRun = resultSet.getInt("epics_headers.run");
+                final int sequence = resultSet.getInt("epics_headers.sequence");
+                final int timestamp = resultSet.getInt("epics_headers.timestamp");
+                final EpicsHeader header = new EpicsHeader(new int[] {headerRun, sequence, timestamp});
+                epicsData.setEpicsHeader(header);
+                for (final EpicsVariable variable : variables) {
+                    final double value = resultSet.getDouble(variable.getColumnName());
+                    epicsData.setValue(variable.getVariableName(), value);
                 }
+                epicsDataList.add(epicsData);
             }
         } catch (final SQLException e) {
             throw new RuntimeException(e);
@@ -184,7 +177,6 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                 }
             }
         }
-
         return epicsDataList;
     }
 
