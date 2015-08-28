@@ -64,7 +64,7 @@ public class ReconClusterer extends AbstractClusterer {
     double minTime = 0.0;
 
     // Maximum time cut window range. Units in ns.
-    double timeWindow = 25.0;
+    double timeWindow = 8.0;
 
     // Make a map for quick calculation of the x-y position of crystal face
     Map<Point, double[]> correctedPositionMap = new HashMap<Point, double[]>();
@@ -73,7 +73,7 @@ public class ReconClusterer extends AbstractClusterer {
 
     ReconClusterer() {
         super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "timeWindow" }, 
-                new double[] { 0.0075, 0.1, 0.3, 0.0, 25.0 });
+                new double[] { 0.0075, 0.05, 0.1, 0.0, 8.0 });
     }
 
     void setUseTimeCut(boolean useTimeCut) {
