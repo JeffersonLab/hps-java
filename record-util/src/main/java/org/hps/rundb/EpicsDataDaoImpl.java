@@ -200,7 +200,6 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
         if (epicsDataList.isEmpty()) {
             throw new IllegalArgumentException("The EPICS data list is empty.");
         }
-        System.out.println("inserting " + epicsDataList.size() + " EPICS records");
         PreparedStatement insertHeaderStatement = null;
         try {
             insertHeaderStatement = connection.prepareStatement(
@@ -233,7 +232,12 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                 insertStatement.setInt(1, headerId);
                 int parameterIndex = 2;
                 for (final EpicsVariable variable : variables) {
-                    insertStatement.setDouble(parameterIndex, epicsData.getValue(variable.getVariableName()));
+                    final String variableName = variable.getVariableName();
+                    double value = 0;
+                    if (epicsData.hasKey(variableName)) {
+                        value = epicsData.getValue(variableName);
+                    }
+                    insertStatement.setDouble(parameterIndex, value);
                     ++parameterIndex;
                 }
                 final int dataRowsCreated = insertStatement.executeUpdate();
