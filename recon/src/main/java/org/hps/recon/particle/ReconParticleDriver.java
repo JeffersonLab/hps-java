@@ -14,6 +14,7 @@ import java.util.Set;
 import org.hps.recon.ecal.cluster.ClusterType;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.tracking.TrackType;
 import org.hps.recon.utils.TrackClusterMatcher;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -201,6 +202,18 @@ public abstract class ReconParticleDriver extends Driver {
         // removed from the list if a matching track is found.
         Set<Cluster> unmatchedClusters = new HashSet<Cluster>(clusters);
 
+        //
+        // WARNING: This is a hack that will be used to avoid correcting the 
+        //          Ecal clusters more than once.  It should only be used 
+        //          for pass 2!
+        
+        // Only apply corrections to Ecal clusters when the TrackType of the 
+        // current collection is set to the default i.e. MATCHED_TRACKS. If
+        // the event doesn't contain any tracks, just set the TrackType to
+        // MATCHED_TRACKS so the photon corrections are applied.
+        int currentTrackType = TrackType.MATCHED_TRACKS.getType();
+        if (tracks.size() != 0) currentTrackType = tracks.get(0).getType();
+        
         // Iterate over all of the tracks and generate reconstructed
         // particles for each one. If possible, match a cluster to the
         // track as well.
@@ -258,7 +271,8 @@ public abstract class ReconParticleDriver extends Driver {
             // If a cluster was found that matches the track...
             if (matchedCluster != null) {
 
-                if (matchedCluster.getType() == ClusterType.RECON.getType()) {
+                if (matchedCluster.getType() == ClusterType.RECON.getType() 
+                                && currentTrackType == TrackType.MATCHED_TRACKS.getType()) {
                     int pid = particle.getParticleIDUsed().getPDG();
                     // Is cluster from an electron or positron?
                     if (pid == -11 || pid == 11) {
@@ -286,7 +300,9 @@ public abstract class ReconParticleDriver extends Driver {
 
         // If any cluster remain unmatched after the tracks are finished,
         // they should be processed into additional reconstructed particles.
-        if (!unmatchedClusters.isEmpty()) // Iterate over the remaining unmatched clusters.
+       
+        // NOTE: For pass2, only add clusters that haven't been matched to tracks of type MATCHED_TRACKS
+        if (!unmatchedClusters.isEmpty() && currentTrackType == TrackType.MATCHED_TRACKS.getType()) // Iterate over the remaining unmatched clusters.
         {
             for (Cluster unmatchedCluster : unmatchedClusters) {
                 // Create a reconstructed particle to represent the unmatched cluster.
@@ -296,7 +312,10 @@ public abstract class ReconParticleDriver extends Driver {
                 ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(22, 0, 0, 0));
                 
                 // apply cluster corrections
-                if (unmatchedCluster.getType() == ClusterType.RECON.getType()) {
+                // NOTE: For pass2, only apply corrections when the TrackType is equal to 
+                //       MATCHED_TRACKS.
+                if (unmatchedCluster.getType() == ClusterType.RECON.getType()
+                                && currentTrackType == TrackType.MATCHED_TRACKS.getType()) {
                     int pid = particle.getParticleIDUsed().getPDG();
                     // If not electron....
                     if (pid != 11) {
@@ -305,6 +324,7 @@ public abstract class ReconParticleDriver extends Driver {
                         ClusterUtilities.applyCorrections(unmatchedCluster);
                     }
                 }
+                
                 //get energy and direction from the cluster
                 Hep3Vector p = new BasicHep3Vector(unmatchedCluster.getPosition());
                 double e = unmatchedCluster.getEnergy();
