@@ -25,7 +25,7 @@ public class JobManager extends JobControlManager {
     }
 
     /**
-     * Flag to enable the run database in a job (enabled by default).
+     * Flag to enable the run database in a job (disabled by default).
      */
     private boolean enableRunDatabase = false;
 
@@ -101,7 +101,7 @@ public class JobManager extends JobControlManager {
     }
 
     /**
-     * Set the {@link org.hps.record.run.RunManager} for accessing the run database.
+     * Set the {@link org.hps.rundb.RunManager} for accessing the run database.
      */
     private void setupRunManager() {
         final RunManager runManager = RunManager.getRunManager();
