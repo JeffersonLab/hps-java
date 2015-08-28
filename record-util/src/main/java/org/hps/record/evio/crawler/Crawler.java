@@ -55,8 +55,8 @@ public final class Crawler {
      */
     static {
         OPTIONS.addOption("b", "min-date", true, "min date for a file (example \"2015-03-26 11:28:59\")");
-        OPTIONS.addOption("c", "cache", false, "automatically cache files from MSS to cache disk (JLAB only)");
-        OPTIONS.addOption("C", "connection-properties", true, "database connection properties file (required)");
+        OPTIONS.addOption("C", "cache", false, "automatically cache files from MSS to cache disk (JLAB only)");
+        OPTIONS.addOption("p", "connection-properties", true, "database connection properties file (required)");
         OPTIONS.addOption("d", "directory", true, "root directory to start crawling (default is current dir)");
         OPTIONS.addOption("E", "evio-processor", true, "class name of an EvioEventProcessor to execute");
         OPTIONS.addOption("h", "help", false, "print help and exit (overrides all other arguments)");
@@ -65,8 +65,7 @@ public final class Crawler {
         OPTIONS.addOption("r", "run", true, "add a run number to accept (when used others will be excluded)");
         OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name");
         OPTIONS.addOption("w", "max-cache-wait", true, "total time to allow for file caching (seconds)");
-        OPTIONS.addOption("u", "update", false,
-                "allow replacement of existing data in the run db (not allowed by default)");
+        OPTIONS.addOption("u", "update", false, "allow replacement of existing data in the run db (off by default)");
         OPTIONS.addOption("x", "max-depth", true, "max depth to crawl in the directory tree");
     }
 
@@ -154,8 +153,8 @@ public final class Crawler {
             }
 
             // Database connection properties file (this is not optional).
-            if (cl.hasOption("C")) {
-                final String dbPropPath = cl.getOptionValue("C");
+            if (cl.hasOption("p")) {
+                final String dbPropPath = cl.getOptionValue("p");
                 final File dbPropFile = new File(dbPropPath);
                 if (!dbPropFile.exists()) {
                     throw new IllegalArgumentException("Connection properties file " + dbPropFile.getPath()
@@ -166,7 +165,7 @@ public final class Crawler {
                 LOGGER.config("using " + dbPropPath + " for db connection properties");
             } else {
                 throw new RuntimeException(
-                        "The -C switch providing the database connection properties file is a required argument.");
+                        "The -p switch providing the database connection properties file is a required argument.");
             }
 
             // Root directory for file crawling.
@@ -221,13 +220,13 @@ public final class Crawler {
             }
 
             // Enable updating of run database.
-            if (cl.hasOption("r")) {
+            if (cl.hasOption("i")) {
                 config.setUpdateRunLog(true);
                 LOGGER.config("inserting into run database is enabled");
             }
 
             // Enable file cache usage for running at JLAB.
-            if (cl.hasOption("c")) {
+            if (cl.hasOption("C")) {
                 config.setUseFileCache(true);
                 LOGGER.config("file cache is enabled");
             }
@@ -352,9 +351,9 @@ public final class Crawler {
      */
     private void updateRunDatabase(final RunSummaryMap runs) throws SQLException {
         // Insert the run information into the database.
-        if (config.updateRunLog()) {
+        if (config.updateRunDatabase()) {
 
-            LOGGER.info("updating run database");
+            LOGGER.info("updating run database is enabled");
 
             // Open a DB connection.
             final Connection connection = config.connectionParameters().createConnection();
@@ -371,7 +370,7 @@ public final class Crawler {
             LOGGER.info("done updating run database");
 
         } else {
-            LOGGER.info("run database will not be updated");
+            LOGGER.info("updating run database is not enabled");
         }
     }
 
