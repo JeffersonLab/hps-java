@@ -3,7 +3,7 @@ package org.hps.rundb;
 import java.util.List;
 
 /**
- * Data Access Object (DAO) API for managing run summary information in the run database.
+ * Database API for managing basic run summary information in the run database.
  *
  * @author Jeremy McCormick, SLAC
  */

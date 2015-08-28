@@ -14,7 +14,7 @@ import org.hps.record.scalers.ScalerData;
  *
  * @author Jeremy McCormick, SLAC
  */
-public class ScalerDataDaoImpl implements ScalerDataDao {
+final class ScalerDataDaoImpl implements ScalerDataDao {
 
     /**
      * SQL query strings.

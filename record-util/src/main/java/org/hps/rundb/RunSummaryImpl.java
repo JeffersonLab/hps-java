@@ -11,7 +11,7 @@ import java.util.TimeZone;
 
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
-import org.hps.record.triggerbank.TriggerConfigInt;
+import org.hps.record.triggerbank.TriggerConfig;
 
 /**
  * Implementation of {@link RunSummary} for retrieving information from the run database.
@@ -76,7 +76,7 @@ public final class RunSummaryImpl implements RunSummary {
     /**
      * The trigger data for the run.
      */
-    private TriggerConfigInt triggerConfigInt;
+    private TriggerConfig triggerConfigInt;
 
     /**
      * Start date of run.
@@ -207,7 +207,7 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @return the trigger config of this run
      */
-    public TriggerConfigInt getTriggerConfigInt() {
+    public TriggerConfig getTriggerConfigInt() {
         return triggerConfigInt;
     }
 
@@ -326,7 +326,7 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param triggerConfig the trigger config
      */
-    public void setTriggerConfigInt(final TriggerConfigInt triggerConfigInt) {
+    public void setTriggerConfigInt(final TriggerConfig triggerConfigInt) {
         this.triggerConfigInt = triggerConfigInt;
     }
 

@@ -12,40 +12,20 @@ import org.hps.record.epics.EpicsData;
 public interface EpicsDataDao {
 
     /**
-     * Delete EPICS data from the database.
-     *
-     * @param epicsData the EPICS data to delete
-     */
-    void deleteEpicsData(EpicsData epicsData);
-
-    /**
      * Delete all EPICS data for a run from the database.
      *
      * @param run the run number
      */
-    void deleteEpicsData(int run);
-
-    /**
-     * Get all the EPICS data in the database.
-     *
-     * @return the list of EPICS data
-     */
-    List<EpicsData> getAllEpicsData();
+    public void deleteEpicsData(EpicsType epicsType, final int run);
 
     /**
      * Get EPICS data by run.
      *
      * @param run the run number
+     * @param epicsType the type of EPICS data (1s or 10s)
      * @return the EPICS data
      */
-    List<EpicsData> getEpicsData(int run);
-
-    /**
-     * Get the list of unique variables names used in the database records.
-     *
-     * @return the list of unique variable names
-     */
-    List<String> getVariableNames();
+    List<EpicsData> getEpicsData(EpicsType epicsType, int run);
 
     /**
      * Insert a list of EPICS data into the database.
@@ -54,12 +34,5 @@ public interface EpicsDataDao {
      *
      * @param epicsDataList the list of EPICS data
      */
-    void insertEpicsData(List<EpicsData> epicsDataList);
-
-    /**
-     * Updates EPICS data in the database.
-     *
-     * @param epicsData the EPICS data to update
-     */
-    void updateEpicsData(EpicsData epicsData);
+    void insertEpicsData(List<EpicsData> epicsDataList);   
 }

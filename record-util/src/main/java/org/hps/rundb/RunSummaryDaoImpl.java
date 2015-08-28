@@ -12,6 +12,7 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.record.epics.EpicsData;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
@@ -20,7 +21,7 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author Jeremy McCormick, SLAC
  */
-public class RunSummaryDaoImpl implements RunSummaryDao {
+final class RunSummaryDaoImpl implements RunSummaryDao {
 
     /**
      * SQL query strings.
@@ -78,11 +79,11 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
      * The database API for scaler data.
      */
     private ScalerDataDao scalerDataDao = null;
-    
+
     /**
      * The database API for integer trigger config.
      */
-    private TriggerConfigIntDao triggerConfigIntDao = null;
+    private TriggerConfigDao triggerConfigIntDao = null;
 
     /**
      * Create a new DAO object for run summary information.
@@ -100,7 +101,7 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
         epicsDataDao = new EpicsDataDaoImpl(this.connection);
         scalerDataDao = new ScalerDataDaoImpl(this.connection);
         evioFilesDao = new EvioFilesDaoImpl(this.connection);
-        triggerConfigIntDao = new TriggerConfigIntDaoImpl(this.connection);
+        triggerConfigIntDao = new TriggerConfigDaoImpl(this.connection);
     }
 
     /**
@@ -110,18 +111,19 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
      */
     @Override
     public void deleteFullRunSummary(final RunSummary runSummary) {
-        
-        int run = runSummary.getRun();
-        
+
+        final int run = runSummary.getRun();
+
         // Delete EPICS log.
-        this.epicsDataDao.deleteEpicsData(run);
+        this.epicsDataDao.deleteEpicsData(EpicsType.EPICS_1S, run);
+        this.epicsDataDao.deleteEpicsData(EpicsType.EPICS_10S, run);
 
         // Delete scaler data.
         this.scalerDataDao.deleteScalerData(run);
 
         // Delete file list.
         this.evioFilesDao.deleteEvioFiles(run);
-        
+
         // Delete trigger config.
         this.triggerConfigIntDao.deleteTriggerConfigInt(run);
 
@@ -392,11 +394,11 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
         // Insert scaler data.
         LOGGER.info("inserting " + runSummary.getScalerData().size() + " scaler data records");
         scalerDataDao.insertScalerData(runSummary.getScalerData(), runSummary.getRun());
-        
+
         // Insert trigger config.
         LOGGER.info("inserting " + runSummary.getTriggerConfigInt().size() + " trigger config variables");
-        triggerConfigIntDao.insertTriggerConfigInt(runSummary.getTriggerConfigInt(), runSummary.getRun());
-        
+        triggerConfigIntDao.insertTriggerConfig(runSummary.getTriggerConfigInt(), runSummary.getRun());
+
     }
 
     /**
@@ -442,16 +444,19 @@ public class RunSummaryDaoImpl implements RunSummaryDao {
         final RunSummaryImpl runSummary = (RunSummaryImpl) this.getRunSummary(run);
 
         // Read EPICS data and set on RunSummary.
-        runSummary.setEpicsData(epicsDataDao.getEpicsData(run));
+        final List<EpicsData> epicsDataList = new ArrayList<EpicsData>();
+        epicsDataList.addAll(epicsDataDao.getEpicsData(EpicsType.EPICS_1S, run));
+        epicsDataList.addAll(epicsDataDao.getEpicsData(EpicsType.EPICS_10S, run));
+        runSummary.setEpicsData(epicsDataList);
 
         // Read scaler data and set on RunSummary.
         runSummary.setScalerData(scalerDataDao.getScalerData(run));
 
         // Read EVIO file list and set on RunSummary.
         runSummary.setEvioFiles(evioFilesDao.getEvioFiles(run));
-        
+
         // Read trigger config.
-        runSummary.setTriggerConfigInt(triggerConfigIntDao.getTriggerConfigInt(run));
+        runSummary.setTriggerConfigInt(triggerConfigIntDao.getTriggerConfig(run));
 
         return runSummary;
     }

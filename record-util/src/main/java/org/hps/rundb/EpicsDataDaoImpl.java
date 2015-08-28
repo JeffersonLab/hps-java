@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsHeader;
@@ -16,47 +18,17 @@ import org.hps.record.epics.EpicsHeader;
  *
  * @author Jeremy McCormick, SLAC
  */
-public class EpicsDataDaoImpl implements EpicsDataDao {
-
-    /**
-     * SQL data query strings.
-     */
-    private static class EpicsDataQuery {
-
-        /**
-         * Delete by run number.
-         */
-        private static final String DELETE_BY_RUN = "DELETE FROM run_epics WHERE run = ?";
-        /**
-         * Delete by run and sequence number.
-         */
-        private static final String DELETE_RUN_AND_SEQUENCE = "DELETE FROM run_epics WHERE run = ? and sequence = ?";
-        /**
-         * Insert a record.
-         */
-        private static final String INSERT = "INSERT INTO run_epics (run, sequence, timestamp, variable_name, value) VALUES (?, ?, ?, ?, ?)";
-        /**
-         * Select all records.
-         */
-        private static final String SELECT_ALL = "SELECT * FROM run_epics ORDER BY run, sequence";
-        /**
-         * Select by run number.
-         */
-        private static final String SELECT_RUN = "SELECT * FROM run_epics WHERE run = ? ORDER BY `sequence`";
-        /**
-         * Select unique variable names.
-         */
-        private static final String SELECT_VARIABLE_NAMES = "SELECT DISTINCT(variable_name) FROM run_epics ORDER BY variable_name";
-        /**
-         * Update a record.
-         */
-        private static final String UPDATE = "UPDATE run_epics SET run = ?, sequence = ?, timestamp = ?, variable_name = ?, value = ? WHERE run = ? and sequence = ? and variable_name = ?";
-    }
+final class EpicsDataDaoImpl implements EpicsDataDao {
 
     /**
      * The database connection.
      */
     private final Connection connection;
+
+    /**
+     * The database interface to get EPICS variable information.
+     */
+    private final EpicsVariableDao epicsVariableDao;
 
     /**
      * Create a new DAO implementation for EPICS data.
@@ -68,37 +40,30 @@ public class EpicsDataDaoImpl implements EpicsDataDao {
             throw new IllegalArgumentException("The connection is null.");
         }
         this.connection = connection;
+        this.epicsVariableDao = new EpicsVariableDaoImpl(this.connection);
     }
 
     /**
-     * Delete the record for this EPICS data object using its run and sequence number.
+     * Create SQL insert string for the EPICS type.
      *
-     * @param run the run number
-     * @throws IllegalArgumentException if the EPICS data is missing a header object
+     * @param epicsType the EPICS type
+     * @return the SQL insert string for the type
      */
-    @Override
-    public void deleteEpicsData(final EpicsData epicsData) {
-        PreparedStatement preparedStatement = null;
-        try {
-            final EpicsHeader epicsHeader = epicsData.getEpicsHeader();
-            if (epicsHeader == null) {
-                throw new IllegalArgumentException("The EPICS data is missing header information.");
-            }
-            preparedStatement = connection.prepareStatement(EpicsDataQuery.DELETE_RUN_AND_SEQUENCE);
-            preparedStatement.setInt(1, epicsHeader.getRun());
-            preparedStatement.setInt(2, epicsHeader.getSequence());
-            preparedStatement.executeUpdate();
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (final SQLException e) {
-                    e.printStackTrace();
-                }
-            }
+    private String createInsertSql(final EpicsType epicsType) {
+        final StringBuffer sb = new StringBuffer();
+        sb.append("INSERT INTO " + epicsType.getTableName() + " ( epics_header_id, ");
+        final List<EpicsVariable> variables = epicsVariableDao.getEpicsVariables(epicsType);
+        for (final EpicsVariable variable : variables) {
+            sb.append(variable.getColumnName() + ", ");
         }
+        sb.setLength(sb.length() - 2);
+        sb.append(" ) VALUES ( ?, ");
+        for (int i = 0; i < variables.size(); i++) {
+            sb.append("?, ");
+        }
+        sb.setLength(sb.length() - 2);
+        sb.append(" )");
+        return sb.toString();
     }
 
     /**
@@ -107,173 +72,120 @@ public class EpicsDataDaoImpl implements EpicsDataDao {
      * @param run the run number
      */
     @Override
-    public void deleteEpicsData(final int run) {
-        PreparedStatement preparedStatement = null;
+    public void deleteEpicsData(final EpicsType epicsType, final int run) {
+        PreparedStatement selectHeaderIds = null;
+        PreparedStatement deleteEpicsData = null;
+        PreparedStatement deleteHeader = null;
         try {
-            preparedStatement = connection.prepareStatement(EpicsDataQuery.DELETE_BY_RUN);
-            preparedStatement.setInt(1, run);
-            preparedStatement.executeUpdate();
+            selectHeaderIds = connection.prepareStatement("SELECT id FROM epics_headers WHERE run = ?");
+            selectHeaderIds.setInt(1, run);
+            final ResultSet headerResultSet = selectHeaderIds.executeQuery();
+            deleteEpicsData = connection.prepareStatement("DELETE FROM " + epicsType.getTableName()
+                    + " WHERE epics_header_id = ?");
+            deleteHeader = connection.prepareStatement("DELETE FROM epics_headers WHERE id = ?");
+            final Set<Integer> headerIds = new HashSet<Integer>();
+            while (headerResultSet.next()) {
+                headerIds.add(headerResultSet.getInt("id"));
+            }
+            for (final Integer headerId : headerIds) {
+                deleteEpicsData.setInt(1, headerId);
+                int rowsAffected = deleteEpicsData.executeUpdate();
+                if (rowsAffected == 0) {
+                    throw new SQLException("Deletion of EPICS data failed; no rows affect.");
+                }
+                deleteHeader.setInt(1, headerId);
+                rowsAffected = deleteHeader.executeUpdate();
+                if (rowsAffected == 0) {
+                    throw new SQLException("Deletion of EPICS header failed; no rows affect.");
+                }
+            }
+
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            if (preparedStatement != null) {
+            if (selectHeaderIds != null) {
                 try {
-                    preparedStatement.close();
+                    selectHeaderIds.close();
+                } catch (final SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (deleteEpicsData != null) {
+                try {
+                    deleteEpicsData.close();
+                } catch (final SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (deleteHeader != null) {
+                try {
+                    deleteHeader.close();
                 } catch (final SQLException e) {
                     e.printStackTrace();
                 }
             }
         }
-    }
-
-    /**
-     * Get all the EPICS data in the database.
-     *
-     * @return the list of EPICS data
-     */
-    @Override
-    public List<EpicsData> getAllEpicsData() {
-        PreparedStatement preparedStatement = null;
-        final List<EpicsData> epicsDataList = new ArrayList<EpicsData>();
-        try {
-            preparedStatement = connection.prepareStatement(EpicsDataQuery.SELECT_ALL);
-            final ResultSet resultSet = preparedStatement.executeQuery();
-            Integer currentRun = null;
-            Integer currentSequence = null;
-            EpicsData epicsData = new EpicsData();
-            while (resultSet.next()) {
-                if (currentRun == null) {
-                    currentRun = resultSet.getInt("run");
-                }
-                if (currentSequence == null) {
-                    currentSequence = resultSet.getInt("sequence");
-                }
-                final int run = resultSet.getInt("run");
-                final int sequence = resultSet.getInt("sequence");
-                final int timestamp = resultSet.getInt("timestamp");
-                final String variableName = resultSet.getString("variable_name");
-                final double value = resultSet.getDouble("value");
-                if (currentRun != run || currentSequence != sequence) {
-                    epicsDataList.add(epicsData);
-                    epicsData = new EpicsData();
-                    final EpicsHeader epicsHeader = new EpicsHeader(new int[] {run, sequence, timestamp});
-                    epicsData.setEpicsHeader(epicsHeader);
-                }
-                epicsData.setValue(variableName, value);
-            }
-            epicsDataList.add(epicsData);
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-            } catch (final SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return epicsDataList;
     }
 
     /**
      * Get EPICS data by run.
      *
      * @param run the run number
+     * @param epicsType the type of EPICS data (1s or 10s)
      * @return the EPICS data
      */
     @Override
-    public List<EpicsData> getEpicsData(final int run) {
-        PreparedStatement preparedStatement = null;
+    public List<EpicsData> getEpicsData(final EpicsType epicsType, final int run) {
         final List<EpicsData> epicsDataList = new ArrayList<EpicsData>();
+        PreparedStatement selectHeader = null;
+        PreparedStatement selectEpicsData = null;
         try {
-            preparedStatement = connection.prepareStatement(EpicsDataQuery.SELECT_RUN);
-            preparedStatement.setInt(1, run);
-            final ResultSet resultSet = preparedStatement.executeQuery();
-            Integer currentSequence = null;
-            EpicsData epicsData = new EpicsData();
-            EpicsHeader epicsHeader = null;
-            while (resultSet.next()) {
-
-                // Get record data.
-                final int sequence = resultSet.getInt("sequence");
-                final int timestamp = resultSet.getInt("timestamp");
-                final String variableName = resultSet.getString("variable_name");
-                final double value = resultSet.getDouble("value");
-
-                // Get sequence first time.
-                if (currentSequence == null) {
-                    currentSequence = resultSet.getInt("sequence");
-                }
-
-                // Create EPICS header.
-                epicsHeader = new EpicsHeader(new int[] {run, sequence, timestamp});
-
-                // First time need to set header here.
-                if (epicsData.getEpicsHeader() == null) {
-                    epicsData.setEpicsHeader(epicsHeader);
-                }
-
-                // New sequence number occurred.
-                if (currentSequence != sequence) {
-
-                    // Add the EPICS data to the list.
+            selectHeader = connection.prepareStatement("SELECT * FROM epics_headers WHERE run = ?");
+            selectHeader.setInt(1, run);
+            final ResultSet headerResultSet = selectHeader.executeQuery();
+            selectEpicsData = connection.prepareStatement("SELECT * FROM " + epicsType.getTableName()
+                    + " WHERE epics_header_id = ?");
+            final List<EpicsVariable> variables = epicsVariableDao.getEpicsVariables(epicsType);
+            while (headerResultSet.next()) {
+                final int headerId = headerResultSet.getInt("id");
+                final int headerRun = headerResultSet.getInt("run");
+                final int sequence = headerResultSet.getInt("sequence");
+                final int timestamp = headerResultSet.getInt("timestamp");
+                selectEpicsData.setInt(1, headerId);
+                final ResultSet epicsDataResult = selectEpicsData.executeQuery();
+                if (epicsDataResult.next()) {
+                    final EpicsHeader header = new EpicsHeader(new int[] {headerRun, sequence, timestamp});
+                    final EpicsData epicsData = new EpicsData();
+                    epicsData.setEpicsHeader(header);
+                    for (final EpicsVariable variable : variables) {
+                        final double value = epicsDataResult.getDouble(variable.getColumnName());
+                        epicsData.setValue(variable.getVariableName(), value);
+                    }
                     epicsDataList.add(epicsData);
-
-                    // Use the new sequence number.
-                    currentSequence = sequence;
-
-                    // Create new EPICS data.
-                    epicsData = new EpicsData();
-
-                    // Set header from current record.
-                    epicsData.setEpicsHeader(epicsHeader);
+                } else {
+                    throw new SQLException("Getting EPICS data failed; no data for header ID.");
                 }
-
-                // Set the value of the variable from the current record.
-                epicsData.setValue(variableName, value);
-            }
-
-            // Add the last object which will not happen inside the loop.
-            epicsDataList.add(epicsData);
-
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-            } catch (final SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return epicsDataList;
-    }
-
-    /**
-     * Get the list of unique variables names used in the database records.
-     *
-     * @return the list of unique variable names
-     */
-    @Override
-    public List<String> getVariableNames() {
-        final List<String> variableNames = new ArrayList<String>();
-        Statement statement = null;
-        try {
-            statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(EpicsDataQuery.SELECT_VARIABLE_NAMES);
-            while (resultSet.next()) {
-                variableNames.add(resultSet.getString(1));
             }
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            if (statement != null) {
+            if (selectHeader != null) {
                 try {
-                    statement.close();
+                    selectHeader.close();
+                } catch (final SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (selectEpicsData != null) {
+                try {
+                    selectEpicsData.close();
                 } catch (final SQLException e) {
                     e.printStackTrace();
                 }
             }
         }
-        return variableNames;
+
+        return epicsDataList;
     }
 
     /**
@@ -286,76 +198,59 @@ public class EpicsDataDaoImpl implements EpicsDataDao {
     @Override
     public void insertEpicsData(final List<EpicsData> epicsDataList) {
         if (epicsDataList.isEmpty()) {
-            throw new IllegalStateException("The EPICS data list is empty.");
+            throw new IllegalArgumentException("The EPICS data list is empty.");
         }
-        PreparedStatement preparedStatement = null;
+        System.out.println("inserting " + epicsDataList.size() + " EPICS records");
+        PreparedStatement insertHeaderStatement = null;
         try {
-            preparedStatement = connection.prepareStatement(EpicsDataQuery.INSERT);
+            insertHeaderStatement = connection.prepareStatement(
+                    "INSERT INTO epics_headers (run, sequence, timestamp) VALUES (?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS);
             for (final EpicsData epicsData : epicsDataList) {
                 final EpicsHeader epicsHeader = epicsData.getEpicsHeader();
                 if (epicsHeader == null) {
-                    throw new IllegalArgumentException("The EPICS data is missing header information.");
+                    throw new IllegalArgumentException("The EPICS data is missing a header.");
                 }
-                for (final String variableName : epicsData.getKeys()) {
-                    preparedStatement.setInt(1, epicsData.getEpicsHeader().getRun());
-                    preparedStatement.setInt(2, epicsData.getEpicsHeader().getSequence());
-                    preparedStatement.setInt(3, epicsData.getEpicsHeader().getTimestamp());
-                    preparedStatement.setString(4, variableName);
-                    preparedStatement.setDouble(5, epicsData.getValue(variableName));
-                    preparedStatement.executeUpdate();
+                insertHeaderStatement.setInt(1, epicsHeader.getRun());
+                insertHeaderStatement.setInt(2, epicsHeader.getSequence());
+                insertHeaderStatement.setInt(3, epicsHeader.getTimestamp());
+                final int rowsCreated = insertHeaderStatement.executeUpdate();
+                if (rowsCreated == 0) {
+                    throw new SQLException("Creation of EPICS header record failed; no rows affected.");
                 }
+                int headerId = 0;
+                try (ResultSet generatedKeys = insertHeaderStatement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        headerId = generatedKeys.getInt(1);
+                    } else {
+                        throw new SQLException("Creation of EPICS header record failed; no ID obtained.");
+                    }
+                }
+                final EpicsType epicsType = EpicsType.getEpicsType(epicsData);
+                final String insertSql = this.createInsertSql(epicsType);
+                final List<EpicsVariable> variables = epicsVariableDao.getEpicsVariables(epicsType);
+                final PreparedStatement insertStatement = connection.prepareStatement(insertSql);
+                insertStatement.setInt(1, headerId);
+                int parameterIndex = 2;
+                for (final EpicsVariable variable : variables) {
+                    insertStatement.setDouble(parameterIndex, epicsData.getValue(variable.getVariableName()));
+                    ++parameterIndex;
+                }
+                final int dataRowsCreated = insertStatement.executeUpdate();
+                if (dataRowsCreated == 0) {
+                    throw new SQLException("Creation of EPICS data failed; no rows affected.");
+                }
+                insertStatement.close();
             }
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            if (preparedStatement != null) {
+            if (insertHeaderStatement != null) {
                 try {
-                    preparedStatement.close();
+                    insertHeaderStatement.close();
                 } catch (final SQLException e) {
                     e.printStackTrace();
                 }
-            }
-        }
-    }
-
-    /**
-     * Updates EPICS data in the database.
-     *
-     * @param epicsData the EPICS data to update
-     */
-    @Override
-    public void updateEpicsData(final EpicsData epicsData) {
-        PreparedStatement preparedStatement = null;
-        try {
-            preparedStatement = connection.prepareStatement(EpicsDataQuery.UPDATE);
-            final int run = epicsData.getEpicsHeader().getRun();
-            final int sequence = epicsData.getEpicsHeader().getSequence();
-            final int timestamp = epicsData.getEpicsHeader().getTimestamp();
-            for (final String variableName : epicsData.getKeys()) {
-                preparedStatement.setInt(1, run);
-                preparedStatement.setInt(2, sequence);
-                preparedStatement.setInt(3, timestamp);
-                preparedStatement.setString(4, variableName);
-                preparedStatement.setDouble(5, epicsData.getValue(variableName));
-                preparedStatement.setInt(6, run);
-                preparedStatement.setInt(7, sequence);
-                preparedStatement.setString(8, variableName);
-                preparedStatement.executeUpdate();
-            }
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                if (preparedStatement != null) {
-                    preparedStatement.close();
-                }
-            } catch (final SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                connection.setAutoCommit(true);
-            } catch (final SQLException e) {
-                e.printStackTrace();
             }
         }
     }

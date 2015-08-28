@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementation of database operations for EVIO files in the run database.
+ * Implementation of database interface for EVIO files in the run database.
  *
  * @author Jeremy McCormick, SLAC
  */
-public class EvioFilesDaoImpl implements EvioFilesDao {
+final class EvioFilesDaoImpl implements EvioFilesDao {
 
     /**
      * SQL query strings.

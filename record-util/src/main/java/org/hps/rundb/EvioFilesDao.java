@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Database Access Object (DAO) interface to EVIO files in the run database.
+ * Database interface to EVIO files in the run database.
  *
  * @author Jeremy McCormick, SLAC
  */

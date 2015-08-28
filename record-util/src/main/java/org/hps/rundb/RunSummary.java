@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
-import org.hps.record.triggerbank.TriggerConfigInt;
+import org.hps.record.triggerbank.TriggerConfig;
 
 /**
  * This is an API for accessing run summary information which is persisted as a row in the <i>runs</i> table of the run
@@ -104,7 +104,7 @@ public interface RunSummary {
      *
      * @return the trigger config int values
      */
-    TriggerConfigInt getTriggerConfigInt();
+    TriggerConfig getTriggerConfigInt();
 
     /**
      * Get the start date.
