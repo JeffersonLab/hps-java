@@ -67,7 +67,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private int readoutLatency = 100;
     private int readoutWindow = 100;
     private int numSamplesBefore = 5;
-    private int numSamplesAfter = 30;
+    private int numSamplesAfter = 25;
     private int coincidenceWindow = 2;
     private String ecalReadoutCollectionName = "EcalReadoutHits";
     private int mode = ECAL_PULSE_INTEGRAL_MODE;
@@ -76,7 +76,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private double scaleFactor = 1;
     private double fixedGain = -1;
     private boolean constantTriggerWindow = true;
-    private boolean addNoise = false;
+    private boolean addNoise = true;
     private double pePerMeV = 32.8;
     private boolean use2014Gain = false;
     private PulseShape pulseShape = PulseShape.ThreePole;
