@@ -59,10 +59,25 @@ public class EcalSimReconTest extends TestCase {
         private final IHistogram1D clusTimeH1D = aida.histogram1D("Cluster Time", 500, -0.5, 499.5);
         
         /**
+         * Cluster X position.
+         */
+        private final IHistogram1D clusPosX = aida.histogram1D("Pos X", 750, -300, 350);
+        
+        /**
+         * Cluster Y position.
+         */
+        private final IHistogram1D clusPosY = aida.histogram1D("Pos Y", 180, -90, 90);
+        
+        /**
+         * Cluster Z position.
+         */
+        private final IHistogram1D clusPosZ = aida.histogram1D("Pos Z", 100, 1393, 1397);
+        
+        /**
          * Number of clusters found.
          */
         private int clusterCount;
-
+        
         /**
          * Save histograms and perform checks on statistics.
          */
@@ -111,7 +126,25 @@ public class EcalSimReconTest extends TestCase {
                 clusEnergyH1D.fill(cluster.getEnergy());
                 if (cluster.getEnergy() == 0) {
                     throw new RuntimeException("Cluster has 0. energy.");
-                }                
+                }
+                if (cluster.getCalorimeterHits().size() == 0) {
+                    throw new RuntimeException("Cluster has no hits.");
+                }
+                
+                double[] position = cluster.getPosition();
+                double x = position[0];
+                double y = position[1];
+                double z = position[2];
+                
+                clusPosX.fill(x);
+                clusPosY.fill(y);
+                clusPosZ.fill(z);
+                
+                // Rough checks that cluster position looks reasonable.
+                TestCase.assertTrue("Pos X " + x + " is out of range.", x > -280. && x < 350.);
+                TestCase.assertTrue("Pos Y " + y + " is out of range.", y > -84. && y < 83.);
+                TestCase.assertTrue("Pos Y " + y + " is in beam gap.", !(y > -25. && y < 25.));
+                TestCase.assertTrue("Pos Z" + z + " is out of range", z > 1393 && z < 1396.2);
             }
 
             final Cluster highClus = ClusterUtilities.findHighestEnergyCluster(clusters);
