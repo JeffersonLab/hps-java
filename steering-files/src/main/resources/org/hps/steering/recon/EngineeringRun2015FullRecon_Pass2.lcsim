@@ -12,7 +12,6 @@
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
-        <driver name="GTPOnlineClusterer" />
         <driver name="CopyCluster" />
         <driver name="EventMarkerDriver"/>
         <!-- SVT reconstruction drivers -->
@@ -65,47 +64,17 @@
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
-            <minLookbackEvents>5</minLookbackEvents>
-            <maxLookbackEvents>40</maxLookbackEvents>
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
-            <use2014Gain>false</use2014Gain>
-            <useTimestamps>false</useTimestamps>
-            <useTruthTime>false</useTruthTime>
-            <useRunningPedestal>true</useRunningPedestal>
-            <useTimeWalkCorrection>false</useTimeWalkCorrection>
-            <emulateFirmware>true</emulateFirmware>
-            <emulateMode7>true</emulateMode7>
-            <leadingEdgeThreshold>12</leadingEdgeThreshold>
-            <nsa>100</nsa>
-            <nsb>20</nsb>
-            <nPeak>3</nPeak>
-            <useFit>true</useFit>
-            <fixShapeParameter>true</fixShapeParameter>
-        </driver>       
+        </driver>             
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
-            <hitEnergyThreshold>0.0075</hitEnergyThreshold>
-            <seedEnergyThreshold>0.050</seedEnergyThreshold> 
-            <clusterEnergyThreshold>0.100</clusterEnergyThreshold>
-            <minTime>0.0</minTime>
-            <timeWindow>25.0</timeWindow>
-            <useTimeCut>true</useTimeCut>
-            <writeRejectedHitCollection>false</writeRejectedHitCollection>
-        </driver>
-        <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
-            <logLevel>WARNING</logLevel>
-            <clustererName>GTPOnlineClusterer</clustererName>
-            <outputClusterCollectionName>EcalClustersGTP</outputClusterCollectionName>
-            <!-- seedMinEnergy -->
-            <cuts>0.100</cuts>
         </driver> 
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
-            <storeHits>true</storeHits>
         </driver>
         
         <!-- SVT reconstruction drivers -->
