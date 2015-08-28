@@ -51,14 +51,14 @@ public class ReconClusterer extends AbstractClusterer {
 
     // Minimum energy threshold for seed hits; if seed hit is below
     // cluster is excluded from output. Units in GeV.
-    double seedEnergyThreshold = 0.1;
+    double seedEnergyThreshold = 0.05;
 
     // Minimum energy threshold for cluster hits; if total cluster
     // energy is below, the cluster is excluded. Units in GeV.
-    double clusterEnergyThreshold = 0.3;
+    double clusterEnergyThreshold = 0.1;
 
     // Apply time cut to hits
-    boolean useTimeCut = false;
+    boolean useTimeCut = true;
 
     // Minimum time cut window range. Units in ns.
     double minTime = 0.0;
