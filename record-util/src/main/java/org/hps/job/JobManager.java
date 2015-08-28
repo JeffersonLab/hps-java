@@ -2,7 +2,7 @@ package org.hps.job;
 
 import org.hps.conditions.ConditionsDriver;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.record.run.RunManager;
+import org.hps.rundb.RunManager;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 
