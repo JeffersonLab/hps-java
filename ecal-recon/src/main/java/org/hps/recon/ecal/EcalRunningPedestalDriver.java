@@ -38,11 +38,11 @@ public class EcalRunningPedestalDriver extends Driver {
 
     // minimum number of readouts for running averages:
     // (if not satisfied, use pedestals from database)
-    private int minLookbackEvents = 10;
+    private int minLookbackEvents = 5;
 
     // maximum number of readouts for running averages:
     // (if too many, discard the oldest ones)
-    private int maxLookbackEvents = 100;
+    private int maxLookbackEvents = 40;
 
     // oldest allowed time for running averages:
     // (discard older readouts ; negative = no time limit)
