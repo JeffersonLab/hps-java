@@ -13,7 +13,7 @@ import org.hps.record.evio.EvioFileSource;
 import org.hps.record.evio.EvioLoop;
 import org.hps.record.scalers.ScalersEvioProcessor;
 import org.hps.record.triggerbank.TiTimeOffsetEvioProcessor;
-import org.hps.record.triggerbank.TriggerConfigInt;
+import org.hps.record.triggerbank.TriggerConfig;
 import org.hps.record.triggerbank.TriggerConfigVariable;
 import org.hps.rundb.RunSummaryImpl;
 import org.lcsim.util.log.DefaultLogFormatter;
@@ -225,7 +225,7 @@ final class RunProcessor {
 
         // Add trigger config from the trigger time processor.
         LOGGER.info("updating trigger config");
-        TriggerConfigInt triggerConfig = new TriggerConfigInt();
+        TriggerConfig triggerConfig = new TriggerConfig();
         this.triggerTimeProcessor.updateTriggerConfig(triggerConfig);
         LOGGER.info("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET.name()));
         System.out.println("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET.name()));
