@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.record.scalers.ScalerData;
+import org.hps.record.scalers.ScalerDataIndex;
 
 /**
  * Implementation of database API for {@link org.hps.record.scalers.ScalerData} in the run database.
@@ -22,17 +23,30 @@ final class ScalerDataDaoImpl implements ScalerDataDao {
     private static final class ScalerDataQuery {
 
         /**
-         * Delete by run.
-         */
-        private static final String DELETE_RUN = "DELETE FROM run_scalers WHERE run = ?";
-        /**
          * Insert a record.
          */
-        private static final String INSERT = "INSERT INTO run_scalers (run, event, idx, value) VALUES (?, ?, ?, ?)";
-        /**
-         * Select by run.
-         */
-        private static final String SELECT_RUN = "SELECT event, idx, value FROM run_scalers WHERE run = ? ORDER BY event, idx";
+        private static final String INSERT = createInsertSql();
+    }
+
+    /**
+     * Create insert SQL for scaler data.
+     *
+     * @return the SQL insert string
+     */
+    private static String createInsertSql() {
+        final StringBuffer sb = new StringBuffer();
+        sb.append("INSERT INTO scalers ( run, event, timestamp, ");
+        for (final ScalerDataIndex index : ScalerDataIndex.values()) {
+            sb.append(index.name().toLowerCase() + ", ");
+        }
+        sb.setLength(sb.length() - 2);
+        sb.append(" ) VALUES ( ?, ?, ?, ");
+        for (int i = 0; i < ScalerDataIndex.values().length; i++) {
+            sb.append("?, ");
+        }
+        sb.setLength(sb.length() - 2);
+        sb.append(" )");
+        return sb.toString();
     }
 
     /**
@@ -61,7 +75,7 @@ final class ScalerDataDaoImpl implements ScalerDataDao {
     public void deleteScalerData(final int run) {
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = connection.prepareStatement(ScalerDataQuery.DELETE_RUN);
+            preparedStatement = connection.prepareStatement("DELETE FROM scalers WHERE run = ?");
             preparedStatement.setInt(1, run);
             preparedStatement.executeUpdate();
         } catch (final SQLException e) {
@@ -85,48 +99,28 @@ final class ScalerDataDaoImpl implements ScalerDataDao {
      */
     @Override
     public List<ScalerData> getScalerData(final int run) {
-        PreparedStatement preparedStatement = null;
+        PreparedStatement selectScalers = null;
         final List<ScalerData> scalerDataList = new ArrayList<ScalerData>();
         try {
-            preparedStatement = this.connection.prepareStatement(ScalerDataQuery.SELECT_RUN);
-            preparedStatement.setInt(1, run);
-            final ResultSet resultSet = preparedStatement.executeQuery();
-
-            int[] scalerArray = new int[ScalerData.ARRAY_SIZE];
-            int event = 0;
-
+            selectScalers = this.connection.prepareStatement("SELECT * FROM scalers WHERE run = ? ORDER BY event");
+            selectScalers.setInt(1, run);
+            final ResultSet resultSet = selectScalers.executeQuery();
             while (resultSet.next()) {
-
-                // Get record data.
-                event = resultSet.getInt("event");
-                final int idx = resultSet.getInt("idx");
-                final int value = resultSet.getInt("value");
-
-                // Is this the start of a new scaler data set and not the first one?
-                if (idx == 0 && resultSet.getRow() > 1) {
-                    // Create new scaler data object and add to list.
-                    final ScalerData scalerData = new ScalerData(scalerArray, event);
-                    scalerDataList.add(scalerData);
-
-                    // Reset the data array for next object.
-                    scalerArray = new int[ScalerData.ARRAY_SIZE];
+                final int[] data = new int[ScalerData.ARRAY_SIZE];
+                for (final ScalerDataIndex index : ScalerDataIndex.values()) {
+                    data[index.index()] = resultSet.getInt(index.name().toLowerCase());
                 }
-
-                // Set value by index.
-                scalerArray[idx] = value;
+                final int event = resultSet.getInt("event");
+                final int timestamp = resultSet.getInt("timestamp");
+                final ScalerData scalerData = new ScalerData(data, event, timestamp);
+                scalerDataList.add(scalerData);
             }
-
-            // Add the last object which will not happen inside the loop.
-            if (scalerArray != null) {
-                scalerDataList.add(new ScalerData(scalerArray, event));
-            }
-
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            if (preparedStatement != null) {
+            if (selectScalers != null) {
                 try {
-                    preparedStatement.close();
+                    selectScalers.close();
                 } catch (final SQLException e) {
                     e.printStackTrace();
                 }
@@ -143,29 +137,29 @@ final class ScalerDataDaoImpl implements ScalerDataDao {
      */
     @Override
     public void insertScalerData(final List<ScalerData> scalerDataList, final int run) {
-        PreparedStatement preparedStatement = null;
+        PreparedStatement insertScalers = null;
         try {
-            preparedStatement = this.connection.prepareStatement(ScalerDataQuery.INSERT);
+            insertScalers = this.connection.prepareStatement(ScalerDataQuery.INSERT);
             for (final ScalerData scalerData : scalerDataList) {
-                final int size = scalerData.size();
-                final Integer event = scalerData.getEventId();
-                if (event == null) {
-                    throw new IllegalStateException("The scaler data is missing the event ID.");
+                insertScalers.setInt(1, run);
+                insertScalers.setInt(2, scalerData.getEventId());
+                insertScalers.setInt(3, scalerData.getTimestamp());
+                int parameterIndex = 4;
+                for (final ScalerDataIndex index : ScalerDataIndex.values()) {
+                    insertScalers.setInt(parameterIndex, scalerData.getValue(index));
+                    ++parameterIndex;
                 }
-                for (int i = 0; i < size; i++) {
-                    preparedStatement.setInt(1, run);
-                    preparedStatement.setInt(2, event);
-                    preparedStatement.setInt(3, i);
-                    preparedStatement.setInt(4, scalerData.getValue(i));
-                    preparedStatement.executeUpdate();
+                final int rowsAffected = insertScalers.executeUpdate();
+                if (rowsAffected == 0) {
+                    throw new SQLException("Creation of scalers failed; no rows affected.");
                 }
             }
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            if (preparedStatement != null) {
+            if (insertScalers != null) {
                 try {
-                    preparedStatement.close();
+                    insertScalers.close();
                 } catch (final SQLException e) {
                     e.printStackTrace();
                 }
