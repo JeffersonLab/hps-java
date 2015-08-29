@@ -41,7 +41,7 @@ public class MakeGblTracks {
      * Creates a new instance of MakeTracks.
      */
     public MakeGblTracks() {
-         //logger = Logger.getLogger(getClass().getName());
+        //logger = Logger.getLogger(getClass().getName());
         //logger.setUseParentHandlers(false);
         //Handler handler = new StreamHandler(System.out, new SimpleFormatter());
         //logger.addHandler(handler);
@@ -149,13 +149,15 @@ public class MakeGblTracks {
     private double[] getGblCorrectedHelixParameters(HelicalTrackFit helix, FittedGblTrajectory traj, double bfield) {
 
         // get seed helix parameters
-        double d0 = helix.dca();
+        double d0 = -1.0 * helix.dca(); // correct for different sign convention of d0 in curvilinear frame
         double z0 = helix.z0();
         double phi0 = helix.phi0();
         double lambda = Math.atan(helix.slope());
-        double p = helix.p(bfield);
-        double q = traj.get_seed().getCharge();
+        double p = helix.p(Math.abs(bfield));
+        double q = Math.signum(helix.R());
         double qOverP = q / p;
+
+        logger.info(String.format("original helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f", helix.dca(), helix.z0(), helix.curvature(), helix.slope(), helix.phi0(), helix.p(Math.abs(bfield))));
 
         // get corrections from GBL fit
         Vector locPar = new Vector(5);
@@ -175,8 +177,8 @@ public class MakeGblTracks {
         Hep3Vector corrPer = VecOp.mult(clToPerPrj, new BasicHep3Vector(xTCorr, yTCorr, 0.0));
 
         //d0
-        double d0_corr = -1.0 * corrPer.y(); // correct for different sign convention of d0 in curvilinear frame
-        double d0_gbl = d0 + d0_corr;
+        double d0_corr = corrPer.y();
+        double dca_gbl = -1.0 * (d0 + d0_corr);
 
         //z0
         double z0_corr = corrPer.z();
@@ -194,12 +196,14 @@ public class MakeGblTracks {
         double pt_gbl = Math.abs(1.0 / qOverP_gbl) * Math.sin((Math.PI / 2.0 - lambda_gbl));
         double C_gbl = Constants.fieldConversion * bfield / pt_gbl;
         //make sure sign is not changed
-        C_gbl = Math.signum(helix.curvature()) * Math.abs(C_gbl);
+        C_gbl = Math.signum(qOverP_gbl) * Math.abs(C_gbl);
 
-        logger.info("qOverP=" + qOverP + " qOverPCorr=" + qOverPCorr + " qOverP_gbl=" + qOverP_gbl + " ==> pGbl=" + 1.0 / qOverP_gbl);
+        logger.info("qOverP=" + qOverP + " qOverPCorr=" + qOverPCorr + " qOverP_gbl=" + qOverP_gbl + " ==> pGbl=" + 1.0 / qOverP_gbl + " C_gbl=" + C_gbl);
+
+        logger.info(String.format("corrected helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f", dca_gbl, z0_gbl, C_gbl, slope_gbl, phi0_gbl, Math.abs(1 / qOverP_gbl)));
 
         double parameters_gbl[] = new double[5];
-        parameters_gbl[HelicalTrackFit.dcaIndex] = d0_gbl;
+        parameters_gbl[HelicalTrackFit.dcaIndex] = dca_gbl;
         parameters_gbl[HelicalTrackFit.z0Index] = z0_gbl;
         parameters_gbl[HelicalTrackFit.curvatureIndex] = C_gbl;
         parameters_gbl[HelicalTrackFit.slopeIndex] = slope_gbl;

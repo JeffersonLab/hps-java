@@ -831,7 +831,7 @@ public class GBLOutput {
     private BasicMatrix getPerParVector(HelicalTrackFit htf) {
         BasicMatrix perPar = new BasicMatrix(1, 5);
         if (htf != null) {
-            double kappa = -1.0 * Math.signum(htf.R()) * Constants.fieldConversion * this._B.z() / htf.pT(Math.abs(_B.z()));
+            double kappa = -1.0 * Math.signum(_B.z()) / htf.R();
             double theta = Math.PI / 2.0 - Math.atan(htf.slope());
             perPar.setElement(0, 0, kappa);
             perPar.setElement(0, 1, theta);
@@ -929,11 +929,9 @@ public class GBLOutput {
             double yT = vecCl.y();
             //double zT = vecCl.z();
 
-            Hep3Vector T = HelixUtils.Direction(htf, 0.);
-            Hep3Vector p = VecOp.mult(htf.p(Math.abs(_B.z())), T);
             double lambda = Math.atan(htf.slope());
             double q = Math.signum(htf.R());
-            double qOverP = q / p.magnitude();
+            double qOverP = q / htf.p(Math.abs(_B.z()));
             double phi = htf.phi0();
 
             _params.setElement(0, 0, qOverP);
@@ -941,7 +939,6 @@ public class GBLOutput {
             _params.setElement(0, 2, phi);
             _params.setElement(0, 3, xT);
             _params.setElement(0, 4, yT);
-
         }
 
         public BasicMatrix getParams() {
