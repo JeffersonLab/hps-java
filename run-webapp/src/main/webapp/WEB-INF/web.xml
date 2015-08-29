@@ -22,7 +22,7 @@
             
     <servlet>
         <servlet-name>RunsServlet</servlet-name>
-        <servlet-class>org.hps.runweb.RunsServlet</servlet-class>
+        <servlet-class>org.hps.run.webapp.RunsServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -34,7 +34,7 @@
     
     <servlet>
         <servlet-name>RunSummaryServlet</servlet-name>
-        <servlet-class>org.hps.runweb.RunSummaryServlet</servlet-class>
+        <servlet-class>org.hps.run.webapp.RunSummaryServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -46,7 +46,7 @@
     
     <servlet>
         <servlet-name>EpicsDataServlet</servlet-name>
-        <servlet-class>org.hps.runweb.EpicsDataServlet</servlet-class>
+        <servlet-class>org.hps.run.webapp.EpicsDataServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -58,7 +58,7 @@
     
     <servlet>
         <servlet-name>ScalerDataServlet</servlet-name>
-        <servlet-class>org.hps.runweb.ScalerDataServlet</servlet-class>
+        <servlet-class>org.hps.run.webapp.ScalerDataServlet</servlet-class>
     </servlet>
     
     <servlet-mapping>

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html" import="java.util.*,org.hps.rundb.RunSummary,java.text.SimpleDateFormat"%>
+<%@ page contentType="text/html" import="java.util.*,org.hps.run.database.RunSummary,java.text.SimpleDateFormat"%>
 <!DOCTYPE html>
 <html>
 

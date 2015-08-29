@@ -1,4 +1,4 @@
-package org.hps.runweb;
+package org.hps.run.webapp;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
