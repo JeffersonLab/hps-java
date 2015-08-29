@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
 import org.hps.record.scalers.ScalerData;
-import org.hps.rundb.RunDatabaseDaoFactory;
-import org.hps.rundb.ScalerDataDao;
+import org.hps.run.database.RunDatabaseDaoFactory;
+import org.hps.run.database.ScalerDataDao;
 
 /**
  * Setup session state for JSP that shows a run's scaler data.

@@ -128,9 +128,7 @@
     <modules>
         <module>analysis</module>
         <module>conditions</module>
-<!--        
-        <module>datacat</module>
--->        
+        <module>crawler</module>
         <module>detector-data</module>
         <module>detector-model</module>
         <module>distribution</module>
@@ -146,6 +144,7 @@
         <module>plugin</module>
         <module>recon</module>
         <module>record-util</module>
+        <module>run-database</module>
         <module>steering-files</module>
         <module>tracking</module>
         <module>users</module>

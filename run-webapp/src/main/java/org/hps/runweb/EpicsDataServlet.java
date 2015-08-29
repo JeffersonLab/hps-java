@@ -13,11 +13,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
 import org.hps.record.epics.EpicsData;
-import org.hps.rundb.EpicsDataDao;
-import org.hps.rundb.EpicsType;
-import org.hps.rundb.EpicsVariable;
-import org.hps.rundb.EpicsVariableDao;
-import org.hps.rundb.RunDatabaseDaoFactory;
+import org.hps.run.database.EpicsDataDao;
+import org.hps.run.database.EpicsType;
+import org.hps.run.database.EpicsVariable;
+import org.hps.run.database.EpicsVariableDao;
+import org.hps.run.database.RunDatabaseDaoFactory;
 
 /**
  * Setup session state for JSP that shows a run's EPICS data.

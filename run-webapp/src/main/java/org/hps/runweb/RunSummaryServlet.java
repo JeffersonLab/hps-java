@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import org.hps.rundb.RunManager;
-import org.hps.rundb.RunSummary;
+import org.hps.run.database.RunManager;
+import org.hps.run.database.RunSummary;
 
 /**
  * Setup state for JSP that shows run summary.

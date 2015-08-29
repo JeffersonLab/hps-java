@@ -88,5 +88,13 @@
             <groupId>org.hps</groupId>
             <artifactId>hps-detector-model</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-run-database</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-crawler</artifactId>
+        </dependency>
     </dependencies>
 </project>

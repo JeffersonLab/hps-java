@@ -13,12 +13,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import org.hps.rundb.RunDatabaseDaoFactory;
-import org.hps.rundb.RunSummary;
-import org.hps.rundb.RunSummaryDao;
+import org.hps.run.database.RunDatabaseDaoFactory;
+import org.hps.run.database.RunSummary;
+import org.hps.run.database.RunSummaryDao;
 
 /**
- * Loads the list of {@link org.hps.rundb.RunSummary} objects to setup state for the <code>runTable.jsp</code> page.
+ * Loads the list of {@link org.hps.run.database.RunSummary} objects to setup state for the <code>runTable.jsp</code> page.
  *
  * @author Jeremy McCormick, SLAC
  */
