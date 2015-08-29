@@ -128,9 +128,7 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
                         }
                     } else if (property.equals(ConfigurationModel.PROCESSING_STAGE_PROPERTY)) {
                         JobSettingsPanel.this.processingStageComboBox.setSelectedItem(evt.getNewValue());
-                    } else if (property.equals(ConfigurationModel.AIDA_SERVER_NAME_PROPERTY)) {
-                        JobSettingsPanel.this.aidaServerNameField.setText((String) evt.getNewValue());
-                    }
+                    } 
                 } finally {
                     JobSettingsPanel.this.getConfigurationModel().addPropertyChangeListener(this);
                 }
@@ -149,11 +147,6 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
      * The package where steering resources must be located.
      */
     private static final String STEERING_PACKAGE = "org/hps/steering/monitoring/";
-
-    /**
-     * Field for name of remote AIDA server.
-     */
-    private final JTextField aidaServerNameField;
 
     /**
      * Combo box for selecting a conditions system tag.
@@ -332,9 +325,6 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
 
         this.logFileNameField = this.addField("Log File Name", "", "Full path to log file", 50, false);
         this.logFileNameField.setEditable(false);
-
-        this.aidaServerNameField = this.addField("AIDA Server Name", "", "Name of AIDA server", 30, true);
-        this.aidaServerNameField.addPropertyChangeListener("value", this);
     }
 
     /**
@@ -487,8 +477,6 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
             } else if (source == this.maxEventsField) {
                 this.getConfigurationModel().setMaxEvents(Long.parseLong(this.maxEventsField.getText()));
                 // System.out.println("setMaxEvents - " + configurationModel.getMaxEvents());
-            } else if (source == this.aidaServerNameField) {
-                this.getConfigurationModel().setAIDAServerName(this.aidaServerNameField.getText());
             } else if (evt.getPropertyName().equals(ConfigurationModel.LOG_TO_FILE_PROPERTY)) {
                 // This is getting the log to file prop change from the ConfigurationModel to update a read only
                 // component.

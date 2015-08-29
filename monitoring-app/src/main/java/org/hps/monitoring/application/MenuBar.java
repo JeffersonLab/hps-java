@@ -85,12 +85,7 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
      * Menu with list of recent files (10 max).
      */
     private final JMenu recentFilesMenu;
-
-    /**
-     * Menu item for activating the remote AIDA server.
-     */
-    private final JMenuItem serverItem;
-
+  
     /**
      * Menu item for opening the settings dialog window.
      */
@@ -220,14 +215,6 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
         this.logItem.setToolTipText("Redirect System.out to a file instead of terminal");
         toolsMenu.add(this.logItem);
 
-        this.serverItem = new JMenuItem("Start AIDA Server ...");
-        this.serverItem.setMnemonic(KeyEvent.VK_A);
-        this.serverItem.setActionCommand(Commands.START_AIDA_SERVER);
-        this.serverItem.setEnabled(true);
-        this.serverItem.setToolTipText("Start AIDA RMI Server");
-        this.serverItem.addActionListener(listener);
-        toolsMenu.add(this.serverItem);
-
         final JMenu windowMenu = new JMenu("Window");
         windowMenu.setMnemonic(KeyEvent.VK_W);
         add(windowMenu);
@@ -331,23 +318,5 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
             this.recentFilesMenu.add(recentFileItem);
             ++fileMnemonic;
         }
-    }
-
-    /**
-     * Set state for AIDA server started.
-     */
-    void startAIDAServer() {
-        this.serverItem.setActionCommand(Commands.STOP_AIDA_SERVER);
-        this.serverItem.setText("Stop AIDA Server");
-        this.serverItem.setToolTipText("Stop the remote AIDA server");
-    }
-
-    /**
-     * Set state for AIDA server stopped.
-     */
-    void stopAIDAServer() {
-        this.serverItem.setActionCommand(Commands.START_AIDA_SERVER);
-        this.serverItem.setText("Start AIDA Server");
-        this.serverItem.setToolTipText("Start the remote AIDA server");
     }
 }

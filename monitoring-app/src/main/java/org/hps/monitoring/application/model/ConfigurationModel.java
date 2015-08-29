@@ -17,11 +17,6 @@ import org.jlab.coda.et.enums.Mode;
 public final class ConfigurationModel extends AbstractModel {
 
     /**
-     * Name of AIDA server.
-     */
-    public static final String AIDA_SERVER_NAME_PROPERTY = "AIDAServerName";
-
-    /**
      * ET blocking setting.
      */
     public static final String BLOCKING_PROPERTY = "Blocking";
@@ -252,15 +247,6 @@ public final class ConfigurationModel extends AbstractModel {
     @Override
     public void fireModelChanged() {
         this.firePropertiesChanged(this.configuration.getKeys());
-    }
-
-    /**
-     * Get the AIDA server name.
-     *
-     * @return the AIDA server name
-     */
-    public String getAIDAServerName() {
-        return this.configuration.get(AIDA_SERVER_NAME_PROPERTY);
     }
 
     /**
@@ -656,17 +642,6 @@ public final class ConfigurationModel extends AbstractModel {
                 this.firePropertyChange(property, oldValue, null);
             }
         }
-    }
-
-    /**
-     * Set the name of the AIDA server.
-     *
-     * @param aidaServerName the name of the AIDA server
-     */
-    public void setAIDAServerName(final String aidaServerName) {
-        final String oldValue = this.getAIDAServerName();
-        this.configuration.set(AIDA_SERVER_NAME_PROPERTY, aidaServerName);
-        this.firePropertyChange(AIDA_SERVER_NAME_PROPERTY, oldValue, this.getAIDAServerName());
     }
 
     /**

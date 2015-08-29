@@ -41,7 +41,6 @@ import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.ConnectionStatus;
 import org.hps.monitoring.application.model.ConnectionStatusModel;
 import org.hps.monitoring.application.model.RunModel;
-import org.hps.monitoring.application.util.AIDAServer;
 import org.hps.monitoring.application.util.DialogUtil;
 import org.hps.monitoring.application.util.ErrorHandler;
 import org.hps.monitoring.application.util.EvioFileFilter;
@@ -226,11 +225,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     private final RunModel runModel = new RunModel();
 
     /**
-     * A remote AIDA server instance.
-     */
-    private final AIDAServer server = new AIDAServer("hps-monitoring-app");
-
-    /**
      * The handler for putting messages into the log table.
      */
     private MonitoringApplicationStreamHandler streamHandler;
@@ -376,11 +370,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             chooseLogFile();
         } else if (Commands.LOG_TO_TERMINAL.equals(command)) {
             logToTerminal();
-        } else if (Commands.START_AIDA_SERVER.equals(command)) {
-            startAIDAServer();
-        } else if (Commands.STOP_AIDA_SERVER.equals(command)) {
-            stopAIDAServer();
-        }
+        } 
     }
 
     /**
@@ -936,27 +926,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     private void showSettingsDialog() {
         this.frame.getSettingsDialog().setVisible(true);
     }
-
-    /**
-     * Start the AIDA server instance.
-     */
-    private void startAIDAServer() {
-        if (this.configurationModel.hasValidProperty(ConfigurationModel.AIDA_SERVER_NAME_PROPERTY)) {
-            this.server.setName(this.configurationModel.getAIDAServerName());
-        }
-        final boolean started = this.server.start();
-        if (started) {
-            this.frame.getApplicationMenu().startAIDAServer();
-            LOGGER.info("AIDA server started at " + this.server.getName());
-            DialogUtil
-                    .showInfoDialog(this.frame, "AIDA Server Started", "The remote AIDA server started successfully.");
-        } else {
-            LOGGER.warning("AIDA server failed to start");
-            DialogUtil.showErrorDialog(this.frame, "Failed to Start AIDA Server",
-                    "The remote AIDA server failed to start.");
-        }
-    }
-
+   
     /**
      * Start a new monitoring session.
      */
@@ -1021,16 +991,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
 
             LOGGER.severe("failed to start new session");
         }
-    }
-
-    /**
-     * Stop the AIDA server instance.
-     */
-    private void stopAIDAServer() {
-        this.server.disconnect();
-        this.frame.getApplicationMenu().stopAIDAServer();
-        LOGGER.info("AIDA server was stopped");
-        DialogUtil.showInfoDialog(this.frame, "AIDA Server Stopped", "The AIDA server was stopped.");
     }
 
     /**
