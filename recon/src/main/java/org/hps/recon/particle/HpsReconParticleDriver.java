@@ -184,8 +184,17 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                                                                        vtxFit.getParameters().get("p2Y"),
                                                                        vtxFit.getParameters().get("p2Z")));
         fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
-        HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
-        ((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
+        
+        // If both the electron and positron have an associated Ecal cluster,
+        // calculate the total energy and assign it to the V0 particle
+        double v0Energy = 0;
+        if (!electron.getClusters().isEmpty() && !positron.getClusters().isEmpty()) { 
+            v0Energy += electron.getClusters().get(0).getEnergy();
+            v0Energy += positron.getClusters().get(0).getEnergy();
+        }
+        
+        HepLorentzVector fourVector = new BasicHepLorentzVector(v0Energy, fittedMomentum); 
+        //((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
         ((BaseReconstructedParticle) candidate).set4Vector(fourVector);
         
         // VERBOSE :: Output the fitted momentum data.
