@@ -7,7 +7,9 @@ import hep.physics.vec.HepLorentzVector;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -90,8 +92,6 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      */
     protected List<Vertex> targetConMollerVertices;
 
-    
-    
     /**
      * Represents a type of constraint for vertex fitting.
      * 
@@ -123,7 +123,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         unconstrainedMollerVertices = new ArrayList<Vertex>();
         beamConMollerVertices = new ArrayList<Vertex>();
         targetConMollerVertices = new ArrayList<Vertex>();
-        
+       
         super.process(event);
         
         event.put(unconstrainedMollerCandidatesColName, unconstrainedMollerCandidates, ReconstructedParticle.class, 0);
@@ -162,19 +162,27 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         
         // Iterate over the collection of electrons and create e-e- pairs 
         for (int firstElectronN = 0; firstElectronN < electrons.size(); firstElectronN++) { 
+            ReconstructedParticle firstElectron = electrons.get(firstElectronN);
+            
             for (int secondElectronN = firstElectronN + 1; secondElectronN < electrons.size(); secondElectronN++) {
                
+                ReconstructedParticle secondElectron = electrons.get(secondElectronN);
+              
+                // Don't vertex the same particles.  This is needed when making
+                // Moller candidates.
+                if (firstElectron == secondElectron) continue;
+                
                 // Only vertex particles that are of the same type. This is
                 // only needed when using multiple track collections and 
                 // should be removed once all strategies are combined into one.
-                if (electrons.get(firstElectronN).getType() != electrons.get(secondElectronN).getType()) continue;
-            
-                // Don't vertex the same particles.  This is needed when making
-                // Moller candidates.
-                if (electrons.get(firstElectronN) == electrons.get(secondElectronN)) continue;
-           
+                if (firstElectron.getType() != secondElectron.getType()) continue;
+                
+                // Require the the mollers are in opposite volumes
+                if (firstElectron.getTracks().get(0).getTrackStates().get(0).getTanLambda()
+                                *secondElectron.getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0) continue;
+                
                 // Make Moller candidates
-                this.makeMollerCandidates(electrons.get(firstElectronN), electrons.get(secondElectronN));
+                this.makeMollerCandidates(firstElectron, secondElectron);
             }
         }
     }
