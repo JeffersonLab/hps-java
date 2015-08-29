@@ -103,6 +103,9 @@ public class MakeGblTracks {
 
             //  Set the SeedCandidate this track is based on
             trk.setSeedCandidate(trackseed);
+            
+            // Set the track type.
+            trk.setTrackType(seedTrack.getType());
 
             // Check the track - hook for plugging in external constraint
             //if ((_trackCheck != null) && (! _trackCheck.checkTrack(trk))) continue;
