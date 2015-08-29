@@ -9,12 +9,13 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
+import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
-
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
@@ -25,9 +26,72 @@ import org.hps.recon.vertexing.BilliorVertexer;
  * V0 candidates and does vertex fits.
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
  */
 public class HpsReconParticleDriver extends ReconParticleDriver {
+  
+    /**
+     * LCIO collection name for Moller candidate particles generated without
+     * constraints.
+     */
+    protected String unconstrainedMollerCandidatesColName = "UnconstrainedMollerCandidates";
+    /**
+     * LCIO collection name for Moller candidate particles generated with beam spot
+     * constraints.
+     */
+    protected String beamConMollerCandidatesColName = "BeamspotConstrainedMollerCandidates"; ;
+    /**
+     * LCIO collection name for Moller candidate particles generated with target
+     * constraints.
+     */
+    protected String targetConMollerCandidatesColName = "TargetConstrainedMollerCandidates";
+    /**
+     * LCIO collection name for Moller candidate vertices generated without
+     * constraints.
+     */
+    protected String unconstrainedMollerVerticesColName = "UnconstrainedMollerVertices";
+    /**
+     * LCIO collection name for Moller candidate vertices generated with beam spot
+     * constraints.
+     */
+    protected String beamConMollerVerticesColName = "BeamspotConstrainedMollerVertices";
+    /**
+     * LCIO collection name for Moller candidate vertices generated with target
+     * constraints.
+     */
+    protected String targetConMollerVerticesColName = "TargetConstrainedMollerVertices";
+   
+    /**
+     * Stores reconstructed Moller candidate particles generated without
+     * constraints.
+     */
+    protected List<ReconstructedParticle> unconstrainedMollerCandidates;
+    /**
+     * Stores reconstructed Moller candidate particles generated with beam spot
+     * constraints.
+     */
+    protected List<ReconstructedParticle> beamConMollerCandidates;
+    /**
+     * Stores reconstructed Moller candidate particles generated with target
+     * constraints.
+     */
+    protected List<ReconstructedParticle> targetConMollerCandidates;
+    /**
+     * Stores reconstructed Moller candidate vertices generated without constraints.
+     */
+    protected List<Vertex> unconstrainedMollerVertices;
+    /**
+     * Stores reconstructed Moller candidate vertices generated with beam spot
+     * constraints.
+     */
+    protected List<Vertex> beamConMollerVertices;
+    /**
+     * Stores reconstructed Moller candidate vertices generated with target
+     * constraints.
+     */
+    protected List<Vertex> targetConMollerVertices;
+
+    
+    
     /**
      * Represents a type of constraint for vertex fitting.
      * 
@@ -41,7 +105,35 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         /** Represents a fit with target constraints. */
         TARGET_CONSTRAINED
     }
+
     
+    /**
+     * Processes the track and cluster collections in the event into
+     * reconstructed particles and V0 candidate particles and vertices. These
+     * reconstructed particles are then stored in the event.
+     *
+     * @param event - The event to process.
+     */
+    @Override
+    protected void process(EventHeader event) {
+        
+        unconstrainedMollerCandidates = new ArrayList<ReconstructedParticle>();
+        beamConMollerCandidates = new ArrayList<ReconstructedParticle>();
+        targetConMollerCandidates = new ArrayList<ReconstructedParticle>();
+        unconstrainedMollerVertices = new ArrayList<Vertex>();
+        beamConMollerVertices = new ArrayList<Vertex>();
+        targetConMollerVertices = new ArrayList<Vertex>();
+        
+        super.process(event);
+        
+        event.put(unconstrainedMollerCandidatesColName, unconstrainedMollerCandidates, ReconstructedParticle.class, 0);
+        event.put(beamConMollerCandidatesColName, beamConMollerCandidates, ReconstructedParticle.class, 0);
+        event.put(targetConMollerCandidatesColName, targetConMollerCandidates, ReconstructedParticle.class, 0);
+        event.put(unconstrainedMollerVerticesColName, unconstrainedMollerVertices, Vertex.class, 0);
+        event.put(beamConMollerVerticesColName, beamConMollerVertices, Vertex.class, 0);
+        event.put(targetConMollerVerticesColName, targetConMollerVertices, Vertex.class, 0);
+    }
+        
     /**
      * Creates reconstructed V0 candidate particles and vertices for
      * electron positron pairs using no constraints, beam constraints,
@@ -52,47 +144,37 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      */
     @Override
     protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
+        
         // Iterate over the positrons and electrons to perform vertexing
         // on the pairs.
         for(ReconstructedParticle positron : positrons) {
             for(ReconstructedParticle electron : electrons) {
                
                 // Only vertex particles that are of the same type. This is
-                // only needed when using multiple track collections.  
+                // only needed when using multiple track collections and 
+                // should be removed once all strategies are combined into one.
                 if (positron.getType() != electron.getType()) continue;
                 
-                // Get the tracks associated with the electron and
-                // the positron.
-                Track electronTrack = electron.getTracks().get(0); 
-                Track positronTrack = positron.getTracks().get(0); 
-                
-                // Covert the tracks to BilliorTracks.
-                BilliorTrack electronBTrack = toBilliorTrack(electronTrack); 
-                BilliorTrack positronBTrack = toBilliorTrack(positronTrack);
-                
-                // Create candidate particles for each constraint.
-                for(Constraint constraint : Constraint.values()) {
-                    // Generate a candidate vertex and particle.
-                    BilliorVertex vtxFit = fitVertex(constraint, electronBTrack, positronBTrack);
-                    ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, vtxFit); 
-                    
-                    // Add the candidate vertex and particle to the
-                    // appropriate LCIO collection.
-                    switch(constraint){
-                        case UNCONSTRAINED: 
-                            unconstrainedV0Vertices.add(vtxFit);
-                            unconstrainedV0Candidates.add(candidate); 
-                            break;
-                        case BS_CONSTRAINED:
-                            beamConV0Vertices.add(vtxFit);
-                            beamConV0Candidates.add(candidate);
-                            break;
-                        case TARGET_CONSTRAINED:
-                            targetConV0Vertices.add(vtxFit);
-                            targetConV0Candidates.add(candidate);
-                            break;
-                    }
-                }
+                // Make V0 candidates
+                this.makeV0Candidates(electron, positron);
+            }
+        }
+        
+        // Iterate over the collection of electrons and create e-e- pairs 
+        for (int firstElectronN = 0; firstElectronN < electrons.size(); firstElectronN++) { 
+            for (int secondElectronN = firstElectronN + 1; secondElectronN < electrons.size(); secondElectronN++) {
+               
+                // Only vertex particles that are of the same type. This is
+                // only needed when using multiple track collections and 
+                // should be removed once all strategies are combined into one.
+                if (electrons.get(firstElectronN).getType() != electrons.get(secondElectronN).getType()) continue;
+            
+                // Don't vertex the same particles.  This is needed when making
+                // Moller candidates.
+                if (electrons.get(firstElectronN) == electrons.get(secondElectronN)) continue;
+           
+                // Make Moller candidates
+                this.makeMollerCandidates(electrons.get(firstElectronN), electrons.get(secondElectronN));
             }
         }
     }
@@ -107,7 +189,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // them to the default names.
         if(unconstrainedV0CandidatesColName == null) { unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates"; }
         if(beamConV0CandidatesColName == null) { beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates"; }
-        if(targetConV0CandidatesColName == null) { targetConV0CandidatesColName = "TargetConstrainedV0Candidates";     }
+        if(targetConV0CandidatesColName == null) { targetConV0CandidatesColName = "TargetConstrainedV0Candidates"; }
         if(unconstrainedV0VerticesColName == null) { unconstrainedV0VerticesColName = "UnconstrainedV0Vertices"; }
         if(beamConV0VerticesColName == null) { beamConV0VerticesColName = "BeamspotConstrainedV0Vertices"; }
         if(targetConV0VerticesColName == null) { targetConV0VerticesColName = "TargetConstrainedV0Vertices"; }
@@ -149,6 +231,84 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         
         // Find and return a vertex based on the tracks.
         return vtxFitter.fitVertex(billiorTracks);
+    }
+    
+    /**
+     * 
+     */
+    private void makeV0Candidates(ReconstructedParticle electron, ReconstructedParticle positron) { 
+
+        // Covert the tracks to BilliorTracks.
+        BilliorTrack electronBTrack = toBilliorTrack(electron.getTracks().get(0)); 
+        BilliorTrack positronBTrack = toBilliorTrack(positron.getTracks().get(0));
+
+        // Create candidate particles for each constraint.
+        for(Constraint constraint : Constraint.values()) {
+            
+            // Generate a candidate vertex and particle.
+            BilliorVertex vtxFit = fitVertex(constraint, electronBTrack, positronBTrack);
+            ReconstructedParticle candidate = this.makeReconstructedParticle(electron, positron, vtxFit); 
+            
+            // Add the candidate vertex and particle to the
+            // appropriate LCIO collection.
+            switch(constraint){
+            
+                case UNCONSTRAINED: 
+                    unconstrainedV0Vertices.add(vtxFit);
+                    unconstrainedV0Candidates.add(candidate); 
+                    break;
+                
+                case BS_CONSTRAINED:
+                    beamConV0Vertices.add(vtxFit);
+                    beamConV0Candidates.add(candidate);
+                    break;
+                
+                case TARGET_CONSTRAINED:
+                    targetConV0Vertices.add(vtxFit);
+                    targetConV0Candidates.add(candidate);
+                    break;
+                
+            }
+        }
+    }
+    
+    /**
+     * 
+     */
+    private void makeMollerCandidates(ReconstructedParticle firstElectron, ReconstructedParticle secondElectron) { 
+
+        // Covert the tracks to BilliorTracks.
+        BilliorTrack firstElectronBTrack = toBilliorTrack(firstElectron.getTracks().get(0)); 
+        BilliorTrack secondElectronBTrack = toBilliorTrack(secondElectron.getTracks().get(0));
+
+        // Create candidate particles for each constraint.
+        for(Constraint constraint : Constraint.values()) {
+            
+            // Generate a candidate vertex and particle.
+            BilliorVertex vtxFit = fitVertex(constraint, firstElectronBTrack, secondElectronBTrack);
+            ReconstructedParticle candidate = this.makeReconstructedParticle(firstElectron, secondElectron, vtxFit); 
+            
+            // Add the candidate vertex and particle to the
+            // appropriate LCIO collection.
+            switch(constraint){
+            
+                case UNCONSTRAINED: 
+                    unconstrainedMollerVertices.add(vtxFit);
+                    unconstrainedMollerCandidates.add(candidate); 
+                    break;
+                
+                case BS_CONSTRAINED:
+                    beamConMollerVertices.add(vtxFit);
+                    beamConMollerCandidates.add(candidate);
+                    break;
+                
+                case TARGET_CONSTRAINED:
+                    targetConMollerVertices.add(vtxFit);
+                    targetConMollerCandidates.add(candidate);
+                    break;
+                
+            }
+        }
     }
     
     /**
@@ -196,6 +356,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         HepLorentzVector fourVector = new BasicHepLorentzVector(v0Energy, fittedMomentum); 
         //((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
         ((BaseReconstructedParticle) candidate).set4Vector(fourVector);
+        
+        // Set the charge of the particle
+        double particleCharge = electron.getCharge() + positron.getCharge();
+       ((BaseReconstructedParticle) candidate).setCharge(particleCharge);
         
         // VERBOSE :: Output the fitted momentum data.
         printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
