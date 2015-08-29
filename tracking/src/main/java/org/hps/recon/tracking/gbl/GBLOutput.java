@@ -477,29 +477,7 @@ public class GBLOutput {
                     if (_debug > 0) {
                         System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n", this.getClass(), ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
                     }
-                    //can be edge case where helix is outside, but close to sensor, so make a new scatter point assuming the helix does pass through the sensor
-                    DetectorPlane hitPlane = null;
-                    if (MaterialSupervisor.class.isInstance(_scattering.getMaterialManager())) {
-                        MaterialSupervisor matSup = (MaterialSupervisor) _scattering.getMaterialManager();
-                        IDetectorElement hitElement = ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement();
-                        for (ScatteringDetectorVolume vol : matSup.getMaterialVolumes()) {
-                            if (vol.getDetectorElement() == hitElement) {
-                                hitPlane = (DetectorPlane) vol;
-                                break;
-                            }
-                        }
-                        if (hitPlane == null) {
-                            throw new RuntimeException("cannot find plane for hit!");
-                        } else {
-                            // find scatterlength
-                            double s_closest = HelixUtils.PathToXPlane(htf, hitPlane.origin().x(), 0., 0).get(0);
-                            double X0 = hitPlane.getMaterialTraversedInRL(HelixUtils.Direction(htf, s_closest));
-                            ScatterAngle scatterAngle = new ScatterAngle(s_closest, _scattering.msangle(htf.p(this._B.magnitude()), X0));
-                            scatAngle = scatterAngle.Angle();
-                        }
-                    } else {
-                        throw new UnsupportedOperationException("Should not happen. This problem is only solved with the MaterialSupervisor.");
-                    }
+                    scatAngle = GblUtils.estimateScatter(strip, htf, _scattering, _B.magnitude());
                 }
 
                 //print scatterer to file

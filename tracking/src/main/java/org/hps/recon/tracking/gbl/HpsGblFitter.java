@@ -7,7 +7,6 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -24,6 +23,7 @@ import org.hps.recon.tracking.MultipleScattering.ScatterPoints;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.constants.Constants;
+import org.lcsim.detector.IDetectorElement;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
@@ -39,7 +39,7 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
  * Class to running GBL on HPS track.
  *
  * @author phansson
- * 
+ *
  * @version $Id:
  *
  */
@@ -66,14 +66,14 @@ public class HpsGblFitter {
     }
 
     public HpsGblFitter(double Bz, MultipleScattering scattering, boolean isMCFlag) {
-        System.out.printf("%s: Constructor\n",getClass().getSimpleName());
+        System.out.printf("%s: Constructor\n", getClass().getSimpleName());
         isMC = isMCFlag;
         _B = Bz;
         _bfac = Bz * Constants.fieldConversion;
         _trackHitUtils = new TrackerHitUtils();
         _scattering = scattering;
-        System.out.printf("%s: b-field set to %f (%f)\n",getClass().getSimpleName(), _B, _bfac);
-        System.out.printf("%s: Constructor end\n",getClass().getSimpleName());
+        System.out.printf("%s: b-field set to %f (%f)\n", getClass().getSimpleName(), _B, _bfac);
+        System.out.printf("%s: Constructor end\n", getClass().getSimpleName());
     }
 
     public void setMilleBinary(MilleBinary mille) {
@@ -110,17 +110,16 @@ public class HpsGblFitter {
         // The msCov below holds the MS errors
         // This is for testing purposes only.
         boolean useUncorrMS = false;
-        BasicMatrix msCov = GblUtils.getInstance().zeroMatrix(5, 5);
+//        BasicMatrix msCov = GblUtils.getInstance().zeroMatrix(5, 5);
 
         // Vector of the strip clusters used for the GBL fit
         List<GblPoint> listOfPoints = new ArrayList<GblPoint>();
 
         // Store the projection from local to measurement frame for each strip cluster
         // need to use pointer for TMatrix here?
-        Map<Integer, Matrix> proL2m_list = new HashMap<Integer, Matrix>();
+//        Map<Integer, Matrix> proL2m_list = new HashMap<Integer, Matrix>();
         // Save the association between strip cluster and label	
-        Map<HelicalTrackStrip, Integer> stripLabelMap = new HashMap<HelicalTrackStrip, Integer>();
-
+//        Map<HelicalTrackStrip, Integer> stripLabelMap = new HashMap<HelicalTrackStrip, Integer>();
         //start trajectory at refence point (s=0) - this point has no measurement
         GblPoint ref_point = new GblPoint(jacPointToPoint);
         listOfPoints.add(ref_point);
@@ -306,33 +305,10 @@ public class HpsGblFitter {
             if (scatter != null) {
                 scatAngle = scatter.getScatterAngle().Angle();
             } else {
-                System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n", this.getClass(), ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
-                //can be edge case where helix is outside, but close to sensor, so use hack with the sensor origin closest to hit
-                //TODO check if this really makes sense to do
-                DetectorPlane closest = null;
-                double dx = 999999.9;
-                if (MaterialSupervisor.class.isInstance(_scattering.getMaterialManager())) {
-                    MaterialSupervisor matSup = (MaterialSupervisor) _scattering.getMaterialManager();
-                    for (ScatteringDetectorVolume vol : matSup.getMaterialVolumes()) {
-                        DetectorPlane plane = (DetectorPlane) vol;
-                        double dx_loop = Math.abs(strip.origin().x() - plane.origin().x());
-                        if (dx_loop < dx) {
-                            dx = dx_loop;
-                            closest = plane;
-                        }
-                    }
-                    if (closest == null) {
-                        throw new RuntimeException("cannot find any plane that is close to strip!");
-                    } else {
-                        // find scatterlength
-                        double s_closest = HelixUtils.PathToXPlane(htf, closest.origin().x(), 0., 0).get(0);
-                        double X0 = closest.getMaterialTraversedInRL(HelixUtils.Direction(htf, s_closest));
-                        ScatterAngle scatterAngle = new ScatterAngle(s_closest, _scattering.msangle(htf.p(Math.abs(_B)), X0));
-                        scatAngle = scatterAngle.Angle();
-                    }
-                } else {
-                    throw new UnsupportedOperationException("Should not happen. This problem is only solved with the MaterialSupervisor.");
+                if (_debug) {
+                    System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n", this.getClass(), ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
                 }
+                scatAngle = GblUtils.estimateScatter(strip, htf, _scattering, _B);
             }
 
             // Scattering angle in the curvilinear frame
@@ -357,8 +333,8 @@ public class HpsGblFitter {
             int iLabel = listOfPoints.size();
 
             // Update MS covariance matrix 
-            msCov.setElement(1, 1, msCov.e(1, 1) + scatErr.e(0, 0) * scatErr.e(0, 0));
-            msCov.setElement(2, 2, msCov.e(2, 2) + scatErr.e(0, 1) * scatErr.e(0, 1));
+//            msCov.setElement(1, 1, msCov.e(1, 1) + scatErr.e(0, 0) * scatErr.e(0, 0));
+//            msCov.setElement(2, 2, msCov.e(2, 2) + scatErr.e(0, 1) * scatErr.e(0, 1));
 
             /*
 
@@ -407,21 +383,19 @@ public class HpsGblFitter {
         }
 
         // print the trajectory
-        if(_debug)
-        {
+        if (_debug) {
             System.out.println(" Gbl Trajectory ");
             _traj.printPoints(4);
         }
         // fit trajectory
         _traj.fit(m_chi2, m_ndf, m_lost_weight);
-        
+
         //cng
 //        System.out.println("fitting the traectory...");
 //        double[] retDVals = new double[2];
 //        int[] retIVals = new int[1];
 //        int success = _traj.fit(retDVals, retIVals, "");
         //cng
-
         if (_debug) {
             System.out.printf("%s:  Chi2  Fit: %f , %d , %d\n", this.getClass().getSimpleName(), m_chi2, m_ndf, m_lost_weight);
         }
