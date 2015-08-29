@@ -53,11 +53,12 @@ public class HpsGblRefitter extends Driver
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
     private boolean writeMilleBinary = false;
     
-    private MakeGblTracks _makeTracks = null;
+    private final MakeGblTracks _makeTracks;
 
     public void setDebug(boolean debug)
     {
         _debug = debug;
+        _makeTracks.setDebug(debug);
     }
 
     public void setMilleBinaryFileName(String filename)
@@ -73,6 +74,7 @@ public class HpsGblRefitter extends Driver
     public HpsGblRefitter()
     {
         _makeTracks = new MakeGblTracks();
+        _makeTracks.setDebug(_debug);
         logger.setLevel(Level.WARNING);
         System.out.println("level " + logger.getLevel().toString());
     }

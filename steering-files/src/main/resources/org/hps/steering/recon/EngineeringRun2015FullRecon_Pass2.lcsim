@@ -52,6 +52,7 @@
          -->
         <driver name="TrackDataDriver" />
         <driver name="GBLOutputDriver" />
+        <driver name="GBLRefitterDriver" />
         <driver name="ReconParticleDriver" />   
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
@@ -129,6 +130,7 @@
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" />  
         <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver"/>      
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.HpsGblRefitter"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>

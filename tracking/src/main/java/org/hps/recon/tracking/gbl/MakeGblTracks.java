@@ -54,6 +54,14 @@ public class MakeGblTracks {
 
     }
 
+    public void setDebug(boolean debug) {
+        if (debug) {
+            logger.setLevel(Level.INFO);
+        } else {
+            logger.setLevel(Level.OFF);
+        }
+    }
+
     /**
      * Process a Gbl track and store it into the event
      *
@@ -103,7 +111,7 @@ public class MakeGblTracks {
 
             //  Set the SeedCandidate this track is based on
             trk.setSeedCandidate(trackseed);
-            
+
             // Set the track type.
             trk.setTrackType(seedTrack.getType());
 
