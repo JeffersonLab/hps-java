@@ -51,9 +51,9 @@
             ReconstructedParticle types are properly set.
          -->
         <driver name="TrackDataDriver" />
+        <driver name="ReconParticleDriver" />   
         <driver name="GBLOutputDriver" />
         <driver name="GBLRefitterDriver" />
-        <driver name="ReconParticleDriver" />   
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -128,7 +128,9 @@
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>             
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
-        <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" />  
+        <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
+        </driver>  
         <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver"/>      
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.HpsGblRefitter"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
