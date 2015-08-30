@@ -8,8 +8,15 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
+    
         <driver name="ConditionsDriver"/>
         <driver name="EventMarkerDriver"/>
+        <!-- Ecal reconstruction drivers -->        
+        <driver name="EcalRawConverter" />
+        <driver name="ReconClusterer" />
+        <driver name="GTPOnlineClusterer" />
+        <driver name="CopyCluster" />
+        <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
@@ -45,13 +52,10 @@
             TrackDataDriver needs to be run before ReconParticleDriver so the
             ReconstructedParticle types are properly set.
          -->
-        <driver name="EcalRawConverter" />
-        <driver name="ReconClusterer" />
-        <driver name="GTPOnlineClusterer" />
-        <driver name="CopyCluster" />
-        <driver name="ReconParticle" />  
         <driver name="TrackDataDriver" />              
+        <driver name="ReconParticle" />  
         <driver name="GBLOutputDriver"/>
+        <driver name="GBLRefitterDriver" />
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -114,6 +118,7 @@
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>       
         <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver"/>             
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.HpsGblRefitter"/>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
