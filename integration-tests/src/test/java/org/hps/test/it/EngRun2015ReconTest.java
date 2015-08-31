@@ -33,7 +33,7 @@ public class EngRun2015ReconTest extends TestCase {
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(new URL(fileLocation));
         File outputFile = new TestOutputFile("EngRun2015ReconTest");
-        String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullReconGbl2.lcsim", "-d",
+        String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullRecon_Pass2.lcsim", "-d",
                 "HPS-EngRun2015-Nominal-v2", "-D", "outputFile=" + outputFile.getPath(), inputFile.getPath(), "-n",
                 "1000"};
         System.out.println("Running EngRun2015ReconTest.main ...");
