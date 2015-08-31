@@ -1,4 +1,4 @@
-package org.hps.datacat;
+package org.hps.datacat.client;
 
 /**
  * Factory class for providing user access to interfaces with protected implementation classes.

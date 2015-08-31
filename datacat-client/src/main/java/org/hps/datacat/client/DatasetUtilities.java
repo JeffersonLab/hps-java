@@ -1,4 +1,4 @@
-package org.hps.datacat;
+package org.hps.datacat.client;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package org.hps.datacat;
+package org.hps.datacat.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

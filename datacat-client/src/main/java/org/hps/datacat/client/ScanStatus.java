@@ -1,4 +1,4 @@
-package org.hps.datacat;
+package org.hps.datacat.client;
 
 
 public enum ScanStatus {

@@ -129,6 +129,7 @@
         <module>analysis</module>
         <module>conditions</module>
         <module>crawler</module>
+        <module>datacat-client</module>
         <module>detector-data</module>
         <module>detector-model</module>
         <module>distribution</module>
