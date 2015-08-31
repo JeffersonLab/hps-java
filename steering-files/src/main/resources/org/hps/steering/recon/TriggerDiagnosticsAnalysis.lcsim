@@ -25,7 +25,7 @@
             <tag>pass0</tag>
         </driver>
         
-        <driver name="DAQConfig" type="org.hps.recon.ecal.daqconfig.DAQConfigDriver"/>
+        <driver name="DAQConfig" type="org.hps.record.daqconfig.DAQConfigDriver"/>
         
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
