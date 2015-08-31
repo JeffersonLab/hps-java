@@ -19,5 +19,9 @@
             <groupId>org.hps</groupId>
             <artifactId>hps-record-util</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-datacat-client</artifactId>
+        </dependency>
     </dependencies>
 </project>
