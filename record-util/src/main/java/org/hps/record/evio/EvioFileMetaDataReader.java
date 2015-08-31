@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
@@ -25,6 +24,9 @@ public class EvioFileMetaDataReader {
      */
     private static Logger LOGGER = LogUtil.create(EvioFileMetaDataReader.class, new DefaultLogFormatter(), Level.ALL);
 
+    /**
+     * Convert from seconds to millis.
+     */
     final static int MILLIS = 1000;
 
     /**
@@ -47,11 +49,11 @@ public class EvioFileMetaDataReader {
         int byteCount = 0;
         boolean hasPrestart = false;
         boolean hasEnd = false;
-        int[] headBankData = null;
         int[] eventIdData = null;
         Integer run = null;
         Integer endEvent = null;
         Integer startEvent = null;
+        Long lastTimestamp = null;
 
         int nPhysicsEventsProcessed = 0;
 
@@ -66,6 +68,7 @@ public class EvioFileMetaDataReader {
                 try {
                     evioEvent = evioReader.parseNextEvent();
                     if (evioEvent == null) {
+                        LOGGER.info("done reading events");
                         break;
                     }
                 } catch (final Exception e) {
@@ -86,7 +89,7 @@ public class EvioFileMetaDataReader {
                         LOGGER.info("set run to " + run);
                     }
                 } else if (EventTagConstant.END.equals(evioEvent)) {
-                    LOGGER.info("found END");
+                    LOGGER.info("found END event");
                     hasEnd = true;
                     final int[] controlEventData = EvioEventUtilities.getControlEventData(evioEvent);
                     final long timestamp = controlEventData[0] * 1000L;
@@ -97,12 +100,12 @@ public class EvioFileMetaDataReader {
                         LOGGER.info("set run to " + run);
                     }
                 } else if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
-                    // LOGGER.info("physics event " + evioEvent.getEventNumber());
-                    final BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
-                    headBankData = headBank.getIntData();
+                    final int[] headBankData = EvioEventUtilities.getHeadBankData(evioEvent);
                     if (startDate == null) {
-                        startDate = new Date(headBankData[3] * 1000);
-                        LOGGER.info("set start date to " + endDate + " from physics event");
+                        if (headBankData[3] != 0) {
+                            startDate = new Date(headBankData[3] * 1000L);
+                            LOGGER.info("set start date to " + startDate + " from physics event");
+                        }
                     }
                     if (run == null) {
                         run = headBankData[1];
@@ -113,6 +116,9 @@ public class EvioFileMetaDataReader {
                         startEvent = eventIdData[0];
                         LOGGER.info("set start event " + startEvent);
                     }
+                    if (headBankData[3] != 0) {
+                        lastTimestamp = headBankData[3] * 1000L;
+                    }
                     ++nPhysicsEventsProcessed;
                 }
                 LOGGER.getHandlers()[0].flush();
@@ -121,10 +127,8 @@ public class EvioFileMetaDataReader {
             LOGGER.info("processed " + nPhysicsEventsProcessed + " in " + evioFile.getPath());
 
             if (endDate == null) {
-                if (headBankData != null) {
-                    endDate = new Date(headBankData[3] * 1000);
-                    LOGGER.info("set end date to " + endDate + " from last head bank");
-                }
+                endDate = new Date(lastTimestamp);
+                LOGGER.info("set end date to " + endDate + " from last timestamp " + lastTimestamp);
             }
             if (eventIdData != null) {
                 endEvent = eventIdData[0];
@@ -133,7 +137,7 @@ public class EvioFileMetaDataReader {
         } catch (EvioException | IOException e) {
             throw new RuntimeException(e);
         }
-
+                
         metaData.setStartDate(startDate);
         metaData.setEndDate(endDate);
         metaData.setBadEventCount(badEventCount);
@@ -143,12 +147,8 @@ public class EvioFileMetaDataReader {
         metaData.setHasEnd(hasEnd);
         metaData.setRun(run);
         metaData.setSequence(fileNumber);
-        if (endEvent != null) {
-            metaData.setEndEvent(endEvent);
-        }
-        if (startEvent != null) {
-            metaData.setStartEvent(startEvent);
-        }
+        metaData.setEndEvent(endEvent);        
+        metaData.setStartEvent(startEvent);
 
         return metaData;
     }

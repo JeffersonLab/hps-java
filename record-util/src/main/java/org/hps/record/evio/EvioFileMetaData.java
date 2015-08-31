@@ -2,6 +2,8 @@ package org.hps.record.evio;
 
 import java.io.File;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Meta data that can be extracted from EVIO files.
@@ -311,5 +313,29 @@ public final class EvioFileMetaData {
                 + ", eventCount: " + this.eventCount + ", hasPrestart: " + this.hasPrestart + ", hasEnd: "
                 + this.hasEnd + ", run: " + this.run + ", fileNumber: " + sequence + ", startEvent:  "
                 + this.startEvent + ", endEvent: " + endEvent + " }";
+    }
+    
+    /**
+     * Convert data to a map with names and values (int, float or string).
+     * 
+     * @return the metadata converted to a map
+     */
+    public Map<String, Object> toMap() {
+        Map<String, Object> metadataMap = new HashMap<String, Object>();
+        metadataMap.put("badEventCount", badEventCount);
+        metadataMap.put("size", byteCount);
+        metadataMap.put("endDate", endDate.getTime());
+        metadataMap.put("endEvent", endEvent);
+        metadataMap.put("endDate", endDate.getTime());
+        metadataMap.put("endEvent", endEvent);
+        metadataMap.put("eventCount", eventCount);
+        metadataMap.put("evioFile", evioFile.getPath());
+        metadataMap.put("hasEnd", hasEnd ? 1 : 0);
+        metadataMap.put("hasPrestart", hasPrestart ? 1 : 0);
+        metadataMap.put("run", run);
+        metadataMap.put("fileNumber", sequence);
+        metadataMap.put("startDate", startDate.getTime());
+        metadataMap.put("startEvent", startEvent);
+        return metadataMap;
     }
 }
