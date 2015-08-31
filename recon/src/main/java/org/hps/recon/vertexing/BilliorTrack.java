@@ -14,6 +14,8 @@ import hep.physics.matrix.MutableMatrix;
 import hep.physics.matrix.SymmetricMatrix;
 import java.util.Map;
 import org.lcsim.constants.Constants;
+import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.MultipleScatter;
@@ -84,7 +86,20 @@ public class BilliorTrack {
         _msmap = helix.ScatterMap();
     }
 
-    public double[] convertParsToBillior(double[] helixpars) {
+      public BilliorTrack(Track track) {
+         TrackState ts=track.getTrackStates().get(0);
+        double[] helixparameters = ts.getParameters();
+        _parameters = convertParsToBillior(helixparameters);
+        SymmetricMatrix helixcovmatrix = new SymmetricMatrix(3,ts.getCovMatrix(),true);
+        _covmatrix = convertCovarianceToBillior(helixcovmatrix, helixparameters);
+        _chisq[0]= track.getChi2();
+        _nhchisq = 0.;
+        _ndf[0] = track.getNDF();
+//        _smap = helix.PathMap();
+//        _msmap = helix.ScatterMap();
+    }
+    
+    private double[] convertParsToBillior(double[] helixpars) {
         double[] billior = {0, 0, 0, 0, 0};
         billior[0] = -helixpars[0];
         billior[1] = helixpars[3];
@@ -95,7 +110,7 @@ public class BilliorTrack {
 
     }
 
-    public Matrix convertCovarianceToBillior(SymmetricMatrix helixcov, double[] helixpars) {
+    private Matrix convertCovarianceToBillior(SymmetricMatrix helixcov, double[] helixpars) {
         BasicMatrix deriv = new BasicMatrix(5, 5);
 
         deriv.setElement(epsIndex, HelicalTrackFit.dcaIndex, -1);
