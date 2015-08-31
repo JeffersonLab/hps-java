@@ -15,6 +15,19 @@
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/datacat-client/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/datacat-client/</developerConnection>
     </scm>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>org/hps/record/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <dependencies>
         <dependency>
             <groupId>org.json</groupId>
