@@ -24,6 +24,13 @@ import org.apache.http.util.EntityUtils;
  */
 final class HttpUtilities {
 
+    /**
+     * Do an HTTP POST.
+     * 
+     * @param urlLocation the URL location
+     * @param data the data to stream to the server
+     * @return the HTTP response code
+     */
     static int doPost(String urlLocation, String data) {
         int responseCode = 0;
         try {
@@ -48,11 +55,17 @@ final class HttpUtilities {
         return responseCode;
     }
     
+    /**
+     * Do an HTTP get and return the output from the server in a <code>StringBuffer</code>.
+     * 
+     * @param urlLocation the URL location
+     * @param stringBuffer the string buffer with the server output
+     * @return the HTTP response
+     */
     static int doGet(String urlLocation, StringBuffer stringBuffer) {
         HttpURLConnection connection = null;
         int response = 0;
         try {
-            //System.out.println("doGet: " + urlLocation);
             connection = (HttpURLConnection) new URL(urlLocation).openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -72,7 +85,13 @@ final class HttpUtilities {
         return response;
     }    
     
-    
+    /**
+     * Do an HTTP patch.
+     * 
+     * @param urlLocation the URL location
+     * @param data the data to stream to the server
+     * @return the HTTP response code
+     */
     static int doPatch(String urlLocation, String data) {
         int responseCode = 0;        
         CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -87,12 +106,12 @@ final class HttpUtilities {
                                     ContentType.APPLICATION_JSON);
             httpPatch.setEntity(entity);            
             CloseableHttpResponse response = httpClient.execute(httpPatch);
-            System.out.println("status: " + response.getStatusLine());
             try {
                 EntityUtils.consume(response.getEntity());
             } finally {
                 response.close();
-            }            
+            }
+            responseCode = response.getStatusLine().getStatusCode();
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         } catch(IOException e) {
@@ -107,12 +126,16 @@ final class HttpUtilities {
         return responseCode;
     }    
     
-    
-    static int doDelete(String fullUrl) {
+    /**
+     * Do an HTTP DELETE.
+     * 
+     * @param urlLocation the URL location
+     * @return the HTTP response code
+     */
+    static int doDelete(String urlLocation) {
         int responseCode = 0;
         try {
-            URL url = new URL(fullUrl);
-            System.out.println("deleting url: " + fullUrl);
+            URL url = new URL(urlLocation);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoOutput(true);
             connection.setRequestMethod("DELETE");
@@ -124,6 +147,7 @@ final class HttpUtilities {
         return responseCode;
     }
     
+    /*
     static URL createURL(String... chunks) {
         if (chunks.length == 0) {
             throw new IllegalArgumentException("No arguments provided.");
@@ -138,4 +162,5 @@ final class HttpUtilities {
             throw new IllegalArgumentException("Bad URL string: " + urlString);
         }
     }
+    */
 }

@@ -6,6 +6,12 @@ package org.hps.datacat.client;
  *
  */
 public enum DatasetSite {
+    /** 
+     * SLAC site. 
+     */
     SLAC,
+    /** 
+     * JLAB site. 
+     */
     JLAB;
 }

@@ -2,6 +2,7 @@ package org.hps.datacat.client;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Interface to the SLAC SRS datacat system via HTTP/REST calls.
@@ -19,9 +20,16 @@ public interface DatacatClient {
      * @param site the site of the file 
      * @param fileFormat the file format
      * @param name the name of the dataset
+     * @param metadata metadata to assign to the dataset
      * @return the HTTP status code from the request
      */
-    int addDataset(String folder, DatasetDataType dataType, String resource, DatasetSite site, DatasetFileFormat fileFormat, String name);
+    int addDataset(String folder, 
+            DatasetDataType dataType,
+            String resource,
+            DatasetSite site,
+            DatasetFileFormat fileFormat,
+            String name,
+            Map<String, Object> metadata);
             
     /**
      * Create a folder in the data catalog.
@@ -70,10 +78,10 @@ public interface DatacatClient {
      * @param query the query to execute
      * @return the HTTP status code from the request
      */
-    List<Dataset> findDatasets(String folder, String query);
+    List<Dataset> findDatasets(String folder, String query, Set<String> showMetadata);
     
     // TODO: method to get dataset from path
-    // to get all metadata need site
+    // to get all metadata need the site in query
     // http://localhost:8080/datacat-v0.4-SNAPSHOT/r/path.json/HPS/derp/herp01;s=SLAC 
     // use HTTP GET 
     // Dataset getDataSet(String path);

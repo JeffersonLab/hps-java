@@ -23,6 +23,7 @@ final class DatasetImpl implements Dataset {
     private DatasetFileFormat fileFormat;
     private List<DatasetLocation> locations = new ArrayList<DatasetLocation>();
     private Date created;
+    private DatasetMetadata metadata;
     
     private static final SimpleDateFormat DATE_PARSER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     
@@ -46,7 +47,10 @@ final class DatasetImpl implements Dataset {
         JSONArray locationsArray = jsonObject.getJSONArray("locations");
         for (int i = 0; i < locationsArray.length(); i++) {
             this.locations.add(new DatasetLocationImpl(locationsArray.getJSONObject(i)));
-        }        
+        }
+        if (jsonObject.has("metadata")) {
+            metadata = new DatasetMetadataImpl(jsonObject.getJSONArray("metadata"));
+        }
     }
     
     @Override
@@ -78,4 +82,13 @@ final class DatasetImpl implements Dataset {
     public Date getCreated() {
         return this.created;
     }
+    
+    @Override
+    public DatasetMetadata getMetadata() {
+        return this.metadata;
+    }
+    
+    public String toString() {
+        return "Dataset { name: " + name + ", path:" + path + ", " + "dataType: " + dataType.name() + "fileFormat: " + fileFormat.name() + ", created: " + created + " }"; 
+    }    
 }

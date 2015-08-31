@@ -7,11 +7,18 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
+ * Dataset utilities.
  * 
  * @author Jeremy McCormick, SLAC
  */
 final class DatasetUtilities {
     
+    /**
+     * Create {@link Dataset} objects from JSON search results.
+     * 
+     * @param searchResults the JSON search results
+     * @return the list of {@link Dataset} objects
+     */
     static List<Dataset> getDatasetsFromSearch(JSONObject searchResults) {
         List<Dataset> datasets = new ArrayList<Dataset>();
         JSONArray resultsArray = searchResults.getJSONArray("results");
@@ -19,5 +26,12 @@ final class DatasetUtilities {
             datasets.add(new DatasetImpl(resultsArray.getJSONObject(i)));
         }
         return datasets;
+    }
+    
+    /**
+     * No class instantiation.
+     */
+    private DatasetUtilities() {
+        throw new RuntimeException("Do not instantiate this class.");
     }
 }
