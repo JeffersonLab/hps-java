@@ -292,6 +292,12 @@ public class GBLOutput {
 
                 //Find intercept point with sensor in tracking frame
                 Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(htf, strip, Math.abs(_B.z()));
+                if (trkpos == null) {
+                    if (_debug > 0) {
+                        System.out.println("Can't find track intercept; use sensor origin");
+                    }
+                    trkpos = strip.origin();
+                }
                 Hep3Vector trkposTruth = htfTruth != null ? TrackUtils.getHelixPlaneIntercept(htfTruth, strip, Math.abs(_B.z())) : new BasicHep3Vector(-999999.9, -999999.9, -999999.9);
                 if (textFile != null) {
                     textFile.printStripTrackPos(trkpos);
