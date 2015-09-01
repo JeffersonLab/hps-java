@@ -263,29 +263,33 @@ public class V0Monitoring extends DataQualityMonitor {
                 pos = trks.get(0);
                 ele = trks.get(1);
             }
-            
-            Double[] eleIso = TrackUtils.getIsolations(ele.getTracks().get(0), hitToStrips, hitToRotated);
-            Double[] posIso = TrackUtils.getIsolations(pos.getTracks().get(0), hitToStrips, hitToRotated);
-            double eleL1Iso = Math.min(eleIso[0], eleIso[1]);
-            double posL1Iso = Math.min(posIso[0], posIso[1]);
-            double minL1Iso = Math.min(eleL1Iso,posL1Iso);
-            L1IsoVsVz.fill(uncVert.getPosition().z(), minL1Iso);
-            
-            double pe = ele.getMomentum().magnitude();
-            double pp = pos.getMomentum().magnitude();
-            pEleVspPos.fill(pe, pp);
-            pxEleVspxPos.fill(ele.getMomentum().x(), pos.getMomentum().x());
-            pyEleVspyPos.fill(ele.getMomentum().y(), pos.getMomentum().y());
-            if (pe < v0MaxPCut && pp < v0MaxPCut && (pe + pp) > v0ESumMinCut && (pe + pp) < v0ESumMaxCut)//enrich radiative-like events
-            {
-                pEleVspPosWithCut.fill(pe, pp);
+            if (trks.get(0).getCharge() < 0 && trks.get(1).getCharge() > 0) {
+
+                Double[] eleIso = TrackUtils.getIsolations(ele.getTracks().get(0), hitToStrips, hitToRotated);
+                Double[] posIso = TrackUtils.getIsolations(pos.getTracks().get(0), hitToStrips, hitToRotated);
+                if (eleIso[0] != null && posIso[0] != null) {
+                    double eleL1Iso = Math.min(eleIso[0], eleIso[1]);
+                    double posL1Iso = Math.min(posIso[0], posIso[1]);
+                    double minL1Iso = Math.min(eleL1Iso, posL1Iso);
+                    L1IsoVsVz.fill(uncVert.getPosition().z(), minL1Iso);
+                }
+
+                double pe = ele.getMomentum().magnitude();
+                double pp = pos.getMomentum().magnitude();
+                pEleVspPos.fill(pe, pp);
+                pxEleVspxPos.fill(ele.getMomentum().x(), pos.getMomentum().x());
+                pyEleVspyPos.fill(ele.getMomentum().y(), pos.getMomentum().y());
+                if (pe < v0MaxPCut && pp < v0MaxPCut && (pe + pp) > v0ESumMinCut && (pe + pp) < v0ESumMaxCut)//enrich radiative-like events
+                {
+                    pEleVspPosWithCut.fill(pe, pp);
+                }
             }
 
             double eleT = TrackUtils.getTrackTime(ele.getTracks().get(0), hitToStrips, hitToRotated);
             double posT = TrackUtils.getTrackTime(pos.getTracks().get(0), hitToStrips, hitToRotated);
             double meanT = (eleT + posT) / 2.0;
             v0Time.fill(meanT);
-            v0Dt.fill(eleT-posT);
+            v0Dt.fill(eleT - posT);
             trigTimeV0Time.fill(meanT, event.getTimeStamp() % 24);
             trigTime.fill(event.getTimeStamp() % 24);
         }
