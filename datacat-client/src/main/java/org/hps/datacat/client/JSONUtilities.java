@@ -1,5 +1,6 @@
 package org.hps.datacat.client;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -20,21 +21,37 @@ final class JSONUtilities {
      * @return the created JSON dataset object
      */
     static JSONObject createJSONDataset(Map<String, Object> parameters, Map<String, Object> metadata) {
+        
         JSONObject dataset = new JSONObject();
         dataset.put("dataType", parameters.get("dataType"));
         dataset.put("versionId", "new");
-        JSONObject location = new JSONObject();
-        location.put("resource", parameters.get("resource"));
-        location.put("site", parameters.get("site"));
-        JSONArray array = new JSONArray();
-        array.put(location);
-        dataset.put("locations", array);                
+        dataset.put("resource", parameters.get("resource"));
+        dataset.put("site", parameters.get("site"));
         dataset.put("fileFormat", parameters.get("fileFormat"));
         dataset.put("name", parameters.get("name"));
-        if (metadata != null) {
-            JSONArray jsonMetadata = createJSONMetadataArray(metadata);
+        
+        Map<String, Object> metadataCopy = new HashMap<String, Object>();
+        metadataCopy.putAll(metadata);
+        
+        // This metadata needs to be set at the top-level and not in versionMetadata.
+        if (metadataCopy.containsKey("runMin")) {
+            dataset.put("runMin", metadataCopy.get("runMin"));
+            metadataCopy.remove("runMin");
+        }
+        if (metadataCopy.containsKey("runMax")) {
+            dataset.put("runMax", metadataCopy.get("runMax"));
+            metadataCopy.remove("runMax");
+        }
+        if (metadataCopy.containsKey("eventCount")) {
+            dataset.put("eventCount", metadataCopy.get("eventCount"));
+            metadataCopy.remove("eventCount");
+        }
+        
+        if (metadata != null && metadata.size() != 0) {
+            JSONArray jsonMetadata = createJSONMetadataArray(metadataCopy);
             dataset.put("versionMetadata", jsonMetadata);
         }
+        
         return dataset;
     }
     
@@ -62,7 +79,6 @@ final class JSONUtilities {
         JSONArray array = new JSONArray();
         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
             JSONObject metadataObject = new JSONObject();
-            metadataObject.put(entry.getKey(), entry.getValue());
             metadataObject.put("key", entry.getKey());
             Object rawValue = entry.getValue();
             if (rawValue instanceof String) {
