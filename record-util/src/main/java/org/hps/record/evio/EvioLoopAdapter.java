@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import org.freehep.record.loop.AbstractLoopListener;
 import org.freehep.record.loop.LoopEvent;
+import org.freehep.record.loop.LoopListener;
 import org.freehep.record.loop.RecordEvent;
 import org.freehep.record.loop.RecordListener;
 import org.jlab.coda.jevio.EvioEvent;
@@ -18,7 +19,7 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author Jeremy McCormick, SLAC
  */
-public final class EvioLoopAdapter extends AbstractLoopListener implements RecordListener {
+public final class EvioLoopAdapter extends AbstractLoopListener implements RecordListener, LoopListener {
 
     /**
      * Setup class logger.
@@ -52,7 +53,7 @@ public final class EvioLoopAdapter extends AbstractLoopListener implements Recor
      */
     @Override
     protected void finish(final LoopEvent event) {
-        LOGGER.info("executing finish hook");
+        LOGGER.info("finish");
         for (final EvioEventProcessor processor : processors) {
             processor.endJob();
         }
@@ -88,7 +89,7 @@ public final class EvioLoopAdapter extends AbstractLoopListener implements Recor
      */
     @Override
     protected void start(final LoopEvent event) {
-        LOGGER.info("executing start hook");
+        LOGGER.info("start");
         for (final EvioEventProcessor processor : processors) {
             processor.startJob();
         }
