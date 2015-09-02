@@ -43,6 +43,13 @@ final class CrawlerConfig {
     private ConnectionParameters connectionParameters;
 
     /**
+     * The name of the folder in the data catalog for inserting data (under "/HPS" root folder).
+     * <p>
+     * Default provided for Eng Run 2015 data.
+     */
+    private String datacatFolder = null;
+
+    /**
      * The maximum depth to crawl.
      */
     private Integer maxDepth = Integer.MAX_VALUE;
@@ -71,6 +78,11 @@ final class CrawlerConfig {
      * A file to use for getting the timestamp date.
      */
     private File timestampFile = null;
+
+    /**
+     * <code>true</code> if the data catalog should be updated (off by default).
+     */
+    private boolean updateDatacat = false;
 
     /**
      * <code>true</code> if the run database should be updated from results of the job.
@@ -141,6 +153,15 @@ final class CrawlerConfig {
     }
 
     /**
+     * Get the data catalog folder.
+     *
+     * @return the data catalog folder
+     */
+    String datacatFolder() {
+        return this.datacatFolder;
+    }
+
+    /**
      * Get the max depth in the directory tree to crawl.
      *
      * @return the max depth
@@ -208,6 +229,16 @@ final class CrawlerConfig {
      */
     CrawlerConfig setConnection(final ConnectionParameters connectionParameters) {
         this.connectionParameters = connectionParameters;
+        return this;
+    }
+
+    /**
+     * Set the data catalog folder.
+     *
+     * @param datacatFolder the data catalog folder
+     */
+    CrawlerConfig setDatacatFolder(final String datacatFolder) {
+        this.datacatFolder = datacatFolder;
         return this;
     }
 
@@ -284,6 +315,16 @@ final class CrawlerConfig {
     }
 
     /**
+     * Set to <code>true</code> to update data catalog.
+     *
+     * @param updateDatacat <code>true</code> to update data catalog
+     */
+    CrawlerConfig setUpdateDatacat(final boolean updateDatacat) {
+        this.updateDatacat = updateDatacat;
+        return this;
+    }
+
+    /**
      * Set whether the run database should be updated in the job.
      * <p>
      * This will not allow replacement of existing run log records. The {@link #allowUpdates()} flag must be on for this
@@ -341,6 +382,15 @@ final class CrawlerConfig {
      */
     File timestampFile() {
         return timestampFile;
+    }
+
+    /**
+     * Get whether data catalog should be updated or not.
+     *
+     * @return <code>true</code> if data catalog should be update
+     */
+    boolean updateDatacat() {
+        return this.updateDatacat;
     }
 
     /**

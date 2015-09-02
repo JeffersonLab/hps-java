@@ -1,13 +1,13 @@
 package org.hps.crawler;
 
-import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.record.epics.EpicsRunProcessor;
-import org.hps.record.evio.EvioFileMetaData;
-import org.hps.record.evio.EvioFileMetaDataReader;
+import org.hps.record.evio.EvioFileMetadata;
+import org.hps.record.evio.EvioFileMetadataAdapter;
 import org.hps.record.evio.EvioFileSequenceComparator;
 import org.hps.record.evio.EvioFileSource;
 import org.hps.record.evio.EvioLoop;
@@ -35,11 +35,6 @@ final class RunProcessor {
      * Setup logger.
      */
     private static final Logger LOGGER = LogUtil.create(RunProcessor.class, new DefaultLogFormatter(), Level.FINE);
-
-    /**
-     * The cache manager.
-     */
-    private final JCacheManager cacheManager;
 
     /**
      * Processor for extracting EPICS information.
@@ -70,11 +65,11 @@ final class RunProcessor {
      * Processor for extracting TI time offset.
      */
     private final TiTimeOffsetEvioProcessor triggerTimeProcessor;
-
+    
     /**
-     * Set to <code>true</code> to use file caching.
+     * Record loop adapter for getting file metadata.
      */
-    private final boolean useFileCache;
+    private final EvioFileMetadataAdapter metadataAdapter = new EvioFileMetadataAdapter();
 
     /**
      * Create a run processor.
@@ -82,13 +77,9 @@ final class RunProcessor {
      * @param runSummary the run summary object for the run
      * @return the run processor
      */
-    RunProcessor(final JCacheManager cacheManager, final RunSummaryImpl runSummary, final boolean useFileCache) {
+    RunProcessor(final RunSummaryImpl runSummary) {
 
         this.runSummary = runSummary;
-        this.cacheManager = cacheManager;
-
-        // Set whether file caching from MSS is enabled.
-        this.useFileCache = useFileCache;
 
         // Sort the list of EVIO files.
         Collections.sort(runSummary.getEvioFiles(), new EvioFileSequenceComparator());
@@ -109,63 +100,46 @@ final class RunProcessor {
         // Add processor for extracting TI time offset.
         triggerTimeProcessor = new TiTimeOffsetEvioProcessor();
         evioLoop.addEvioEventProcessor(triggerTimeProcessor);
-    }
-
-    /**
-     * Cache all files and wait for the operation to complete.
-     * <p>
-     * Potentially, this operation can take a very long time. This can be managed using the
-     * {@link JCacheManager#setWaitTime(long)} method to set a timeout.
-     */
-    private void cacheFiles() {
-
-        LOGGER.info("caching files from run " + this.runSummary.getRun());
-
-        // Cache all the files and wait for the operation to complete.
-        this.cacheManager.cache(this.runSummary.getEvioFiles());
-        final boolean cached = this.cacheManager.waitForCache();
-
-        // If the files weren't cached then die.
-        if (!cached) {
-            throw new RuntimeException("The cache process did not complete in time.");
-        }
-
-        LOGGER.info("done caching files from run " + this.runSummary.getRun());
+        
+        // Add file metadata processor.
+        evioLoop.addRecordListener(metadataAdapter);
+        evioLoop.addLoopListener(metadataAdapter);
     }
 
     /**
      * Extract meta data from first file in run.
      */
-    private void processFirstFile() {
-        final File firstEvioFile = runSummary.getEvioFiles().get(0);
-        LOGGER.info("getting meta data for " + firstEvioFile.getPath());
-        final EvioFileMetaDataReader metaDataReader = new EvioFileMetaDataReader();
-        final EvioFileMetaData metaData = metaDataReader.getMetaData(firstEvioFile);
-        LOGGER.info(metaData.toString());
-        if (metaData.getStartDate() == null) {
-            throw new IllegalStateException("The start date is not set in the EVIO file meta data from "
-                    + firstEvioFile.getPath());
+    private void processFirstFile() {        
+        final EvioFileMetadata metadata = metadataAdapter.getEvioFileMetadata().get(0);
+        if (metadata == null) {
+            throw new IllegalStateException("No meta data exists for first file.");
         }
-        LOGGER.info("setting unix start time to " + metaData.getStartDate().getTime() + " from meta data");
-        runSummary.setStartDate(metaData.getStartDate());
+        LOGGER.info("first file metadata: " + metadata.toString());
+        if (metadata.getStartDate() == null) {
+            throw new IllegalStateException("The start date is not set in the metadata.");
+        }
+        LOGGER.info("setting unix start time to " + metadata.getStartDate().getTime() + " from meta data");
+        runSummary.setStartDate(metadata.getStartDate());
     }
 
     /**
      * Extract meta data from last file in run.
      */
     private void processLastFile() {
-        final File lastEvioFile = runSummary.getEvioFiles().get(runSummary.getEvioFiles().size() - 1);
-        LOGGER.info("getting meta data for " + lastEvioFile.getPath());
-        final EvioFileMetaDataReader metaDataReader = new EvioFileMetaDataReader();
-        final EvioFileMetaData metaData = metaDataReader.getMetaData(lastEvioFile);
-        LOGGER.info(metaData.toString());
-        if (metaData.getEndDate() == null) {
-            throw new IllegalStateException("The end date is not set in the EVIO file meta data from "
-                    + lastEvioFile.getPath());
+        LOGGER.info("looking for " + runSummary.getEvioFiles().get(runSummary.getEvioFiles().size() - 1).getPath() + " metadata");
+        LOGGER.getHandlers()[0].flush();
+        final EvioFileMetadata metadata = this.metadataAdapter.getEvioFileMetadata().get(this.metadataAdapter.getEvioFileMetadata().size() - 1);
+        if (metadata == null) {
+            throw new IllegalStateException("Failed to find metadata for last file.");
         }
-        LOGGER.info("setting unix end time to " + metaData.getEndDate().getTime() + " from meta data");
-        runSummary.setEndDate(metaData.getEndDate());
-        runSummary.setEndOkay(metaData.hasEnd());
+        LOGGER.info("last file metadata: " + metadata.toString());
+        if (metadata.getEndDate() == null) {
+            throw new IllegalStateException("The end date is not set in the metadata.");
+        }
+        LOGGER.info("setting unix end time to " + metadata.getEndDate().getTime() + " from meta data");
+        runSummary.setEndDate(metadata.getEndDate());
+        LOGGER.info("setting has END to " + metadata.hasEnd());
+        runSummary.setEndOkay(metadata.hasEnd());
     }
 
     /**
@@ -181,21 +155,18 @@ final class RunProcessor {
         LOGGER.info("processing " + this.runSummary.getEvioFiles().size() + " files from run "
                 + this.runSummary.getRun());
 
-        // Cache files from MSS if this is enabled.
-        if (this.useFileCache) {
-            LOGGER.info("caching files from MSS");
-            this.cacheFiles();
-        }
-
         // Run processors over all files.
         LOGGER.info("looping over all events");
         evioLoop.loop(-1);
+                
+        LOGGER.info("got " + metadataAdapter.getEvioFileMetadata().size() + " metadata objects from loop");
+        LOGGER.getHandlers()[0].flush();
 
-        // Get run start date.
+        // Set start date from first file.
         LOGGER.info("processing first file");
         this.processFirstFile();
 
-        // Get run end date.
+        // Set end date from last file.
         LOGGER.info("processing last file");
         this.processLastFile();
 
@@ -203,7 +174,7 @@ final class RunProcessor {
         LOGGER.info("updating run summary");
         this.updateRunSummary();
 
-        LOGGER.info("done processing run " + this.runSummary.getRun());
+        LOGGER.info("run processor done with run " + this.runSummary.getRun());
     }
 
     /**
@@ -211,8 +182,8 @@ final class RunProcessor {
      */
     private void updateRunSummary() {
 
-        LOGGER.info("setting total events " + evioLoop.getTotalCountableConsumed());
         // Set total number of events from the event loop.
+        LOGGER.info("setting total events " + evioLoop.getTotalCountableConsumed());
         runSummary.setTotalEvents((int) evioLoop.getTotalCountableConsumed());
 
         // Add scaler data from the scalers EVIO processor.
@@ -231,5 +202,14 @@ final class RunProcessor {
         runSummary.setTriggerConfigInt(triggerConfig);
 
         LOGGER.getHandlers()[0].flush();
+    }        
+    
+    /**
+     * Get list of metadata created by processing the files.
+     * 
+     * @return the list of metadata
+     */
+    List<EvioFileMetadata> getEvioFileMetaData() {
+        return this.metadataAdapter.getEvioFileMetadata();
     }
 }

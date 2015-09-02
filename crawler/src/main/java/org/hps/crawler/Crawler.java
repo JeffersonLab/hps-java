@@ -7,10 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,8 +21,10 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.database.ConnectionParameters;
+import org.hps.record.evio.EvioFileMetadata;
 import org.hps.run.database.RunDatabaseDaoFactory;
 import org.hps.run.database.RunSummary;
+import org.hps.run.database.RunSummaryDao;
 import org.hps.run.database.RunSummaryImpl;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
@@ -55,18 +57,19 @@ public final class Crawler {
      */
     static {
         OPTIONS.addOption("b", "min-date", true, "min date for a file (example \"2015-03-26 11:28:59\")");
-        OPTIONS.addOption("C", "cache", false, "automatically cache files from MSS to cache disk (JLAB only)");
+        OPTIONS.addOption("c", "datacat", true, "update the data catalog using the specified folder (off by default)");
+        OPTIONS.addOption("C", "cache", false, "cache files from MSS (JLAB only and not for batch farm use!)");
         OPTIONS.addOption("p", "connection-properties", true, "database connection properties file (required)");
         OPTIONS.addOption("d", "directory", true, "root directory to start crawling (default is current dir)");
         OPTIONS.addOption("E", "evio-processor", true, "class name of an EvioEventProcessor to execute");
         OPTIONS.addOption("h", "help", false, "print help and exit (overrides all other arguments)");
         OPTIONS.addOption("i", "insert", false, "insert information into the run database (not done by default)");
         OPTIONS.addOption("L", "log-level", true, "set the log level (INFO, FINE, etc.)");
-        OPTIONS.addOption("r", "run", true, "add a run number to accept (when used others will be excluded)");
+        OPTIONS.addOption("r", "run", true, "add a run number to accept (others will be excluded)");
         OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name");
-        OPTIONS.addOption("w", "max-cache-wait", true, "total time to allow for file caching (seconds)");
+        OPTIONS.addOption("w", "max-cache-wait", true, "time per run allowed for file caching in seconds");
         OPTIONS.addOption("u", "update", false, "allow replacement of existing data in the run db (off by default)");
-        OPTIONS.addOption("x", "max-depth", true, "max depth to crawl in the directory tree");
+        OPTIONS.addOption("x", "max-depth", true, "max depth to crawl");
     }
 
     /**
@@ -88,26 +91,21 @@ public final class Crawler {
      * @param runs the run log containing the list of run summaries
      * @throws Exception if there is an error processing one of the runs
      */
-    static void processRuns(final JCacheManager cacheManager, final RunSummaryMap runs, final boolean useFileCache)
-            throws Exception {
+    static RunProcessor processRun(final RunSummary runSummary) throws Exception {
 
-        // Process all of the runs that were found.
-        for (final RunSummary runSummary : runs.getRunSummaries()) {
+        LOGGER.info("processing run" + runSummary.getRun());
 
-            // Clear the cache manager.
-            if (useFileCache) {
-                LOGGER.info("clearing file cache");
-                cacheManager.clear();
-            }
+        // Create a processor to process all the EVIO events in the run.
+        LOGGER.info("creating run processor for " + runSummary.getRun());
+        final RunProcessor runProcessor = new RunProcessor((RunSummaryImpl) runSummary);
 
-            // Create a processor to process all the EVIO events in the run.
-            LOGGER.info("creating run processor for " + runSummary.getRun());
-            final RunProcessor runProcessor = new RunProcessor(cacheManager, (RunSummaryImpl) runSummary, useFileCache);
+        // Process all of the files from the run.
+        LOGGER.info("processing run " + runSummary.getRun());
+        runProcessor.processRun();
 
-            // Process all of the files from the run.
-            LOGGER.info("processing run " + runSummary.getRun());
-            runProcessor.processRun();
-        }
+        LOGGER.getHandlers()[0].flush();
+        
+        return runProcessor;
     }
 
     /**
@@ -124,6 +122,35 @@ public final class Crawler {
      * The options parser.
      */
     private final PosixParser parser = new PosixParser();
+
+    /**
+     * Cache all files and wait for the operation to complete.
+     * <p>
+     * Potentially, this operation can take a very long time. This can be managed using the
+     * {@link JCacheManager#setWaitTime(long)} method to set a timeout.
+     */
+    private void cacheFiles(final RunSummary runSummary) {
+        if (this.config.useFileCache()) {
+
+            LOGGER.info("caching files for run " + runSummary.getRun());
+
+            // Cache all the files and wait for the operation to complete.
+            this.cacheManager.cache(runSummary.getEvioFiles());
+            final boolean cached = this.cacheManager.waitForCache();
+
+            // If the files weren't cached then die.
+            if (!cached) {
+                throw new RuntimeException("The cache process did not complete in time.");
+            }
+
+            LOGGER.info("done caching files from run " + runSummary.getRun());
+
+        } else {
+            LOGGER.info("file caching disabled");
+        }
+
+        LOGGER.getHandlers()[0].flush();
+    }
 
     /**
      * Parse command line options and create a new {@link Crawler} object from the configuration.
@@ -263,6 +290,7 @@ public final class Crawler {
                 final String[] classNames = cl.getOptionValues("E");
                 for (final String className : classNames) {
                     try {
+                        LOGGER.config("adding extra EVIO processor " + className);
                         config.addProcessor(className);
                     } catch (final Exception e) {
                         throw new RuntimeException(e);
@@ -277,6 +305,18 @@ public final class Crawler {
                     throw new IllegalArgumentException("invalid -x argument for maxDepth: " + maxDepth);
                 }
                 config.setMaxDepth(maxDepth);
+                LOGGER.config("set max depth to " + maxDepth);
+            }
+
+            // Update data catalog.
+            if (cl.hasOption("c")) {
+                final String datacatFolder = cl.getOptionValue("c");
+                if (datacatFolder == null) {
+                    throw new IllegalArgumentException("missing -c argument with data catalog folder");
+                }
+                LOGGER.config("using data catalog folder " + datacatFolder);
+                config.setDatacatFolder(datacatFolder);
+                config.setUpdateDatacat(true);
             }
 
         } catch (final ParseException e) {
@@ -310,37 +350,59 @@ public final class Crawler {
      */
     public void run() throws Exception {
 
-        LOGGER.info("running Crawler job");
+        LOGGER.info("starting Crawler job");
 
         // Create the file visitor for crawling the root directory with the given date filter.
-        LOGGER.info("creating file visitor");
-        LOGGER.getHandlers()[0].flush();
         final EvioFileVisitor visitor = new EvioFileVisitor(config.timestamp());
 
         // Walk the file tree using the visitor.
-        LOGGER.info("walking the dir tree");
-        LOGGER.getHandlers()[0].flush();
         this.walk(visitor);
 
         // Get the list of run data created by the visitor.
-        final RunSummaryMap runs = visitor.getRunMap();
+        final RunSummaryMap runMap = visitor.getRunMap();
 
-        // Process all the files, performing caching from the MSS if necessary.
-        LOGGER.info("processing all runs");
-        processRuns(this.cacheManager, runs, config.useFileCache());
-        LOGGER.getHandlers()[0].flush();
+        // Process all runs that were found.        
+        for (RunSummary runSummary : runMap.getRunSummaries()) {
+        
+            if (runSummary == null) {
+                throw new IllegalArgumentException("The run summary is null for some weird reason.");
+            }
+            
+            LOGGER.info("starting full processing of run " + runSummary.getRun());
+            
+            // Cache files from MSS.
+            this.cacheFiles(runSummary);
 
-        // Execute the run database update.
-        LOGGER.info("updating run database");
-        this.updateRunDatabase(runs);
-        LOGGER.getHandlers()[0].flush();
+            // Process the run's files.
+            RunProcessor runProcessor = processRun(runSummary);
+                        
+            // Execute the run database update.
+            this.updateRunDatabase(runSummary);
+
+            // Update the data catalog.
+            this.updateDatacat(runProcessor.getEvioFileMetaData());
+            
+            LOGGER.info("completed full processing of run " + runSummary);
+        }       
 
         // Update the timestamp output file.
-        LOGGER.info("updating the timestamp");
         this.updateTimestamp();
-        LOGGER.getHandlers()[0].flush();
 
         LOGGER.info("Crawler job is done!");
+    }
+
+    /**
+     * Update the data catalog.
+     *
+     * @param runMap the map of run information including the EVIO file list
+     */
+    private void updateDatacat(List<EvioFileMetadata> metadataList) {
+        if (this.config.updateDatacat()) {            
+            EvioDatacatUtilities.addEvioFiles(metadataList, config.datacatFolder());
+            LOGGER.info("done updating data catalog");
+        } else {
+            LOGGER.info("updating data catalog is disabled");
+        }
     }
 
     /**
@@ -349,20 +411,33 @@ public final class Crawler {
      * @param runs the list of runs to update
      * @throws SQLException if there is a database query error
      */
-    private void updateRunDatabase(final RunSummaryMap runs) throws SQLException {
+    private void updateRunDatabase(final RunSummary runSummary) throws SQLException {
         // Insert the run information into the database.
         if (config.updateRunDatabase()) {
 
-            LOGGER.info("updating run database is enabled");
+            LOGGER.info("updating run database for run " + runSummary.getRun());
 
             // Open a DB connection.
             final Connection connection = config.connectionParameters().createConnection();
 
+            // Create factory for interfacing to run database.
             final RunDatabaseDaoFactory dbFactory = new RunDatabaseDaoFactory(connection);
 
-            // Insert all run summaries into the database.
-            dbFactory.createRunSummaryDao().insertFullRunSummaries(new ArrayList<RunSummary>(runs.getRunSummaries()),
-                    config.allowUpdates());
+            // Create object for updating run info in the database.
+            final RunSummaryDao runSummaryDao = dbFactory.createRunSummaryDao();
+            
+            // Delete existing run summary if necessary.
+            if (runSummaryDao.runSummaryExists(runSummary.getRun())) {
+                if (this.config.allowUpdates()) {
+                    LOGGER.info("deleting existing information for run " + runSummary.getRun());
+                    runSummaryDao.deleteFullRunSummary(runSummary);
+                } else {
+                    throw new RuntimeException("Run " + runSummary.getRun() + " exists in database and deletion is not enabled.");
+                }
+            }
+            
+            // Insert run summary into database.
+            runSummaryDao.insertFullRunSummary(runSummary);
 
             // Close the DB connection.
             connection.close();
@@ -370,28 +445,32 @@ public final class Crawler {
             LOGGER.info("done updating run database");
 
         } else {
-            LOGGER.info("updating run database is not enabled");
+            LOGGER.info("updating run database is disabled");
         }
+
+        LOGGER.getHandlers()[0].flush();
     }
 
     /**
      * Update the timestamp file's modification date to the time when this job ended.
      * <p>
-     * This can be then be used in subsequent crawl jobs to filter out files that have already been seen.
+     * This can be then be used in subsequent crawl jobs to filter out files that have already been processed.
      */
     private void updateTimestamp() {
-        // Update the timestamp file which can be used to tell which files have been processed by their creation date.
         if (config.timestampFile() == null) {
+
+            LOGGER.info("creating default timestamp file");
+
             config.setTimestampFile(new File("timestamp"));
             try {
                 config.timestampFile().createNewFile();
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
-            LOGGER.config("created new timestamp file: " + config.timestampFile().getPath());
         }
         config.timestampFile().setLastModified(System.currentTimeMillis());
-        LOGGER.config("set modified on timestamp file: " + new Date(config.timestampFile().lastModified()));
+        LOGGER.info("touching timestamp file " + config.timestampFile().getPath());
+        LOGGER.info("set modified on timestamp file: " + new Date(config.timestampFile().lastModified()));
     }
 
     /**
