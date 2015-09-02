@@ -160,7 +160,7 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
     private void openReader() {
         try {
             System.out.println("Opening reader for file " + this.files.get(this.fileIndex) + " ...");
-            this.reader = new EvioReader(this.files.get(this.fileIndex), false, true);
+            this.reader = EvioFileUtilities.open(this.files.get(this.fileIndex), true);
             System.out.println("Done opening file.");
         } catch (EvioException | IOException e) {
             throw new RuntimeException(e);
