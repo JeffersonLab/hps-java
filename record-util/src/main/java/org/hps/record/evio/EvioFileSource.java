@@ -176,5 +176,14 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
     public boolean supportsNext() {
         return true;
     }
+    
+    /**
+     * Get the current file being processed.
+     * 
+     * @return the current file
+     */
+    File getCurrentFile() {
+        return this.files.get(this.fileIndex);
+    }
 
 }
