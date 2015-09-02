@@ -57,15 +57,6 @@ public final class RunDatabaseDaoFactory {
     }
 
     /**
-     * Get the EVIO files DAO.
-     *
-     * @return the EVIO files DAO
-     */
-    public EvioFilesDao createEvioFilesDao() {
-        return new EvioFilesDaoImpl(connection);
-    }
-
-    /**
      * Get the run summary DAO.
      *
      * @return the run summary DAO

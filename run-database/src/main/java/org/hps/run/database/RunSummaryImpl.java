@@ -373,9 +373,17 @@ public final class RunSummaryImpl implements RunSummary {
      */
     @Override
     public String toString() {
-        return "RunSummary { run: " + this.getRun() + ", startDate: " + DATE_DISPLAY.format(this.getStartDate())
-                + ", endDate: " + DATE_DISPLAY.format(this.getEndDate()) + ", totalEvents: " + this.getTotalEvents()
-                + ", totalFiles: " + this.getTotalFiles() + ", endOkay: " + this.getEndOkay() + ", runOkay: "
-                + this.getRunOkay() + ", updated: " + this.getUpdated() + ", created: " + this.getCreated() + " }";
-    }        
+        return "RunSummary { " 
+                + "run: " + this.getRun() 
+                + ", startDate: " + (this.getStartDate() != null ? DATE_DISPLAY.format(this.getStartDate()) : null)
+                + ", endDate: " + (this.getEndDate() != null ? DATE_DISPLAY.format(this.getEndDate()) : null) 
+                + ", totalEvents: " + this.getTotalEvents()
+                + ", totalFiles: " + this.getTotalFiles() 
+                + ", endOkay: " + this.getEndOkay() 
+                + ", runOkay: "
+                + this.getRunOkay() 
+                + ", updated: " + this.getUpdated() 
+                + ", created: " + this.getCreated() 
+                + " }";
+    }
 }

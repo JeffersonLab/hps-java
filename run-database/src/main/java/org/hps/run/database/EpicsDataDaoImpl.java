@@ -9,9 +9,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsHeader;
+import org.hps.record.epics.EpicsRunProcessor;
+import org.lcsim.util.log.DefaultLogFormatter;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * Implementation of database operations for EPICS data.
@@ -20,6 +25,12 @@ import org.hps.record.epics.EpicsHeader;
  */
 final class EpicsDataDaoImpl implements EpicsDataDao {
 
+    /**
+     * Setup class logger.
+     */
+    private static final Logger LOGGER = LogUtil
+            .create(EpicsDataDaoImpl.class, new DefaultLogFormatter(), Level.INFO);
+    
     /**
      * The database connection.
      */
@@ -232,10 +243,12 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                     insertStatement.setDouble(parameterIndex, value);
                     ++parameterIndex;
                 }
-                final int dataRowsCreated = insertStatement.executeUpdate();
+                final int dataRowsCreated = insertStatement.executeUpdate();                
                 if (dataRowsCreated == 0) {
                     throw new SQLException("Creation of EPICS data failed; no rows affected.");
                 }
+                LOGGER.info("inserted EPICS data with run " + epicsHeader.getRun() + ", seq " + epicsHeader.getSequence() + "timestamp " 
+                        + epicsHeader.getTimestamp());
                 insertStatement.close();
             }
         } catch (final SQLException e) {

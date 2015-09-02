@@ -71,11 +71,6 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
     private EpicsDataDao epicsDataDao = null;
 
     /**
-     * The database API for EVIO file information.
-     */
-    private EvioFilesDao evioFilesDao = null;
-
-    /**
      * The database API for scaler data.
      */
     private ScalerDataDao scalerDataDao = null;
@@ -100,7 +95,6 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         // Setup DAO API objects for managing complex object state.
         epicsDataDao = new EpicsDataDaoImpl(this.connection);
         scalerDataDao = new ScalerDataDaoImpl(this.connection);
-        evioFilesDao = new EvioFilesDaoImpl(this.connection);
         triggerConfigIntDao = new TriggerConfigDaoImpl(this.connection);
     }
 
@@ -120,9 +114,6 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
 
         // Delete scaler data.
         this.scalerDataDao.deleteScalerData(run);
-
-        // Delete file list.
-        this.evioFilesDao.deleteEvioFiles(run);
 
         // Delete trigger config.
         this.triggerConfigIntDao.deleteTriggerConfigInt(run);
@@ -383,10 +374,6 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         // Insert basic run log info.
         this.insertRunSummary(runSummary);
 
-        // Insert list of files.
-        LOGGER.info("inserting EVIO " + runSummary.getEvioFiles().size() + " files");
-        evioFilesDao.insertEvioFiles(runSummary.getEvioFiles(), runSummary.getRun());
-
         // Insert EPICS data.
         LOGGER.info("inserting " + runSummary.getEpicsData().size() + " EPICS records");
         epicsDataDao.insertEpicsData(runSummary.getEpicsData());
@@ -451,9 +438,6 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
 
         // Read scaler data and set on RunSummary.
         runSummary.setScalerData(scalerDataDao.getScalerData(run));
-
-        // Read EVIO file list and set on RunSummary.
-        runSummary.setEvioFiles(evioFilesDao.getEvioFiles(run));
 
         // Read trigger config.
         runSummary.setTriggerConfigInt(triggerConfigIntDao.getTriggerConfig(run));
