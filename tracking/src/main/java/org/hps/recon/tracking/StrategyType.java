@@ -7,7 +7,7 @@ package org.hps.recon.tracking;
  *  
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public enum TrackType {
+public enum StrategyType {
    
     // NOTE: The values of these enums should never be changed.  Any additional
     //       enum constants should be simply added to the end of the list.
@@ -37,7 +37,7 @@ public enum TrackType {
     private int type; 
    
     /** Constructor */
-    TrackType(int type) { 
+    StrategyType(int type) { 
         this.type = type; 
     }
    
@@ -51,29 +51,29 @@ public enum TrackType {
     }
     
     /**
-     * Returns the {@link TrackType} with the specified name.  If a 
-     * {@link TrackType} with that name doesn't exist, it returns null.
+     * Returns the {@link StrategyType} with the specified name.  If a 
+     * {@link StrategyType} with that name doesn't exist, it returns null.
      * 
-     * @param name The name of the TrackType enum constant to return
-     * @return The TrackType enum constant of the given name or null if it 
-     *         doesn't exist. 
+     * @param name The name of the StrategyType enum constant to return
+     * @return The {@link StrategyType} enum constant of the given name or
+     *         null if it doesn't exist. 
      */
-    public static TrackType getType(String name) {
-        for (TrackType trackType : values()) {
-            if (trackType.name().equals(name)) return trackType;
+    public static StrategyType getType(String name) {
+        for (StrategyType strategyType : values()) {
+            if (strategyType.name().equals(name)) return strategyType;
         }
         return null;
     }
  
     /**
-     * Returns true if the specified {@link TrackType} is equal to this enum
+     * Returns true if the specified {@link StrategyType} is equal to this enum
      * constant.
      * 
-     * @param trackType enum constant to check
-     * @return true if the specified {@link TrackType} is equal to this enum
+     * @param strategyType enum constant to check
+     * @return true if the specified {@link StrategyType} is equal to this enum
      *         constant
      */
-    public boolean equals(TrackType trackType) { 
-        return trackType.getType() == getType(); 
+    public boolean equals(StrategyType strategyType) { 
+        return strategyType.getType() == getType(); 
     }
 }
