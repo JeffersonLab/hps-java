@@ -5,7 +5,7 @@ package org.hps.datacat.client;
  * 
  * @author Jeremy McCormick, SLAC
  */
-public class DatacatFactory {
+public class DatacatClientFactory {
         
     /**
      * Create a datacat client.
