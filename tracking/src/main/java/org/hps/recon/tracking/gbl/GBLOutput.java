@@ -160,8 +160,8 @@ public class GBLOutput {
         // Use the truth helix as the initial track for GBL?
         //htf = htfTruth;
         // Get perigee parameters to curvilinear frame
-        PerigeeParams perPar = new PerigeeParams(htf);
-        PerigeeParams perParTruth = new PerigeeParams(htfTruth);
+        PerigeeParams perPar = new PerigeeParams(htf, _B.z());
+        PerigeeParams perParTruth = new PerigeeParams(htfTruth, _B.z());
         if (textFile != null) {
             textFile.printPerTrackParam(perPar);
             textFile.printPerTrackParamTruth(perParTruth);
@@ -171,9 +171,9 @@ public class GBLOutput {
         gtd.setPerigeeTrackParameters(perPar);
 
         // Get curvilinear parameters
-        ClParams clPar = new ClParams(htf);
-        ClParams clParTruth = new ClParams(htfTruth);
         if (textFile != null) {
+            ClParams clPar = new ClParams(htf, _B.z());
+            ClParams clParTruth = new ClParams(htfTruth, _B.z());
             textFile.printClTrackParam(clPar);
             textFile.printClTrackParamTruth(clParTruth);
 
@@ -812,27 +812,27 @@ public class GBLOutput {
         return Math.sqrt(Math.pow(E1 + E2, 2) - VecOp.add(p1vec, p2vec).magnitudeSquared());
     }
 
-    private BasicMatrix getPerParVector(HelicalTrackFit htf) {
+    private static BasicMatrix getPerParVector(HelicalTrackFit htf, double B) {
         BasicMatrix perPar = new BasicMatrix(1, 5);
         if (htf != null) {
-            double kappa = -1.0 * Math.signum(_B.z()) / htf.R();
+            double kappa = -1.0 * Math.signum(B) / htf.R();
             double theta = Math.PI / 2.0 - Math.atan(htf.slope());
             perPar.setElement(0, 0, kappa);
             perPar.setElement(0, 1, theta);
             perPar.setElement(0, 2, htf.phi0());
-            perPar.setElement(0, 3, htf.dca());
+            perPar.setElement(0, 3, -1.0 * htf.dca());
             perPar.setElement(0, 4, htf.z0());
         }
         return perPar;
 
     }
 
-    public class PerigeeParams {
+    public static class PerigeeParams {
 
         private final BasicMatrix _params;
 
-        private PerigeeParams(HelicalTrackFit htf) {
-            _params = GBLOutput.this.getPerParVector(htf);
+        public PerigeeParams(HelicalTrackFit htf, double B) {
+            _params = getPerParVector(htf, B);
         }
 
         public BasicMatrix getParams() {
@@ -867,7 +867,7 @@ public class GBLOutput {
      * @param htf input helix to find the track direction
      * @return 3x3 projection matrix
      */
-    Hep3Matrix getPerToClPrj(HelicalTrackFit htf) {
+    static Hep3Matrix getPerToClPrj(HelicalTrackFit htf) {
         Hep3Vector Z = new BasicHep3Vector(0, 0, 1);
         Hep3Vector T = HelixUtils.Direction(htf, 0.);
         Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
@@ -890,17 +890,17 @@ public class GBLOutput {
 
     }
 
-    public class ClParams {
+    public static class ClParams {
 
         private BasicMatrix _params = new BasicMatrix(1, 5);
 
-        private ClParams(HelicalTrackFit htf) {
+        public ClParams(HelicalTrackFit htf, double B) {
 
             if (htf == null) {
                 return;
             }
 
-            Hep3Matrix perToClPrj = GBLOutput.this.getPerToClPrj(htf);
+            Hep3Matrix perToClPrj = getPerToClPrj(htf);
 
             double d0 = -1 * htf.dca(); //sign convention for curvilinear frame
             double z0 = htf.z0();
@@ -915,7 +915,7 @@ public class GBLOutput {
 
             double lambda = Math.atan(htf.slope());
             double q = Math.signum(htf.R());
-            double qOverP = q / htf.p(Math.abs(_B.z()));
+            double qOverP = q / htf.p(Math.abs(B));
             double phi = htf.phi0();
 
             _params.setElement(0, 0, qOverP);
