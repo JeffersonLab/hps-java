@@ -1,5 +1,8 @@
 package org.hps.recon.tracking;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Enum constants for different {@link Track}s based on what tracking
  * strategy was used.  The type is defined by comparing the tracking strategy
@@ -35,7 +38,21 @@ public enum StrategyType {
     S123_C5_E46(5);
     
     private int type; 
+ 
+    /** Map from an enum constant value to an enum constant */
+    private static Map<Integer, StrategyType> typeValueMap = new HashMap<Integer, StrategyType>();
+    
+    /** Map from an enum constant name to an enum constant */
+    private static Map<String, StrategyType> typeNameMap = new HashMap<String, StrategyType>();
    
+    /** Static block used to fill all maps */
+    static { 
+        for (StrategyType strategyType : StrategyType.values()) { 
+            typeValueMap.put(strategyType.getType(), strategyType);
+            typeNameMap.put(strategyType.name(), strategyType);
+        }
+    }
+    
     /** Constructor */
     StrategyType(int type) { 
         this.type = type; 
@@ -59,10 +76,21 @@ public enum StrategyType {
      *         null if it doesn't exist. 
      */
     public static StrategyType getType(String name) {
-        for (StrategyType strategyType : values()) {
-            if (strategyType.name().equals(name)) return strategyType;
-        }
-        return null;
+        return typeNameMap.get(name);
+    }
+    
+    /**
+     * Returns the {@link StrategyType} with the specified type value. If a 
+     * {@link StrategyType} with that type value doesn't exist, it returns 
+     * null.
+     * 
+     * @param typeValue The type value of the StrategyType enum constant to 
+     *        return
+     * @return The {@link StrategyType} enum constant with the given type 
+     *         value or null if it doesn't exist.
+     */
+    public static StrategyType getType(int typeValue) { 
+        return typeValueMap.get(typeValue);
     }
  
     /**
