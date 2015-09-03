@@ -1039,7 +1039,7 @@ public class TrackUtils {
      * @param debugOk
      * @return
      */
-    public TrackState extrapolateTrackUsingFieldMap(Track track, double start, double zFinal, double step, FieldMap bmap, boolean debugOk) {
+    public static TrackState extrapolateTrackUsingFieldMap(Track track, double start, double zFinal, double step, FieldMap bmap, boolean debugOk) {
         Trajectory _trajectory;
         double startFringe = start;
         HelicalTrackFit helix = getHTF(track);
@@ -1159,23 +1159,23 @@ public class TrackUtils {
         return ts;
     }
 
-    public double calculatePhi(double x, double y, double xc, double yc, double sign) {
+    public static double calculatePhi(double x, double y, double xc, double yc, double sign) {
         return Math.atan2(y - yc, x - xc) - sign * Math.PI / 2;
     }
 
-    public double calculatePhi(double px, double py) {
+    public static double calculatePhi(double px, double py) {
         return Math.atan2(py, px);
     }
 
-    public double calculateLambda(double pz, double p) {
+    public static double calculateLambda(double pz, double p) {
         return Math.atan2(pz, p);
     }
 
-    public double calculateCurvature(double p, double q, double B) {
+    public static double calculateCurvature(double p, double q, double B) {
         return q * B / p;
     }
 
-    public Trajectory getTrajectory(Hep3Vector p0, org.lcsim.spacegeom.SpacePoint r0, double q, double B) {
+    public static Trajectory getTrajectory(Hep3Vector p0, org.lcsim.spacegeom.SpacePoint r0, double q, double B) {
         SpaceVector p = new CartesianVector(p0.v());
         double phi = Math.atan2(p.y(), p.x());
         double lambda = Math.atan2(p.z(), p.rxy());
