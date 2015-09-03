@@ -34,7 +34,12 @@ public final class TrackType {
     }
    
     /**
-     * Track type encoder.  
+     * Track type encoder.  The strategy (S) and GBL flag (G) are packed as 
+     * follows:
+     * 
+     * Note that Z denotes zero
+     * 
+     * ZZZZZZZZZZZZZZZZZZZZZZZZZZGSSSSS
      * 
      * @param strategyType The StrategyType associated with the tracking 
      *                     tracking strategy of interest.
@@ -44,7 +49,7 @@ public final class TrackType {
     private static int encodeType(StrategyType strategyType, boolean isGblTrack) { 
        
         int type = strategyType.getType();
-        if (isGblTrack) type = (type ^ (1 << 7));
+        if (isGblTrack) type = (type ^ (1 << 6));
         
         return type; 
     }
