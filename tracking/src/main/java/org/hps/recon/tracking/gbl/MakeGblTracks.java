@@ -1,7 +1,6 @@
 package org.hps.recon.tracking.gbl;
 
 import hep.physics.matrix.SymmetricMatrix;
-import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
@@ -15,8 +14,6 @@ import java.util.logging.Logger;
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.StrategyType;
 import org.hps.recon.tracking.TrackType;
-import org.hps.recon.tracking.gbl.GBLOutput.ClParams;
-import org.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
@@ -122,7 +119,7 @@ public class MakeGblTracks {
             // If it is, set the track type with the GBL flag set to true.
             // Otherwise, just move on and stick with the default value.
             StrategyType strategyType = StrategyType.getType(seedTrack.getType());
-            if (strategyType != null) { 
+            if (strategyType != null) {
                 trk.setTrackType(TrackType.getType(strategyType, true));
             }
 
@@ -144,8 +141,6 @@ public class MakeGblTracks {
         // Put the tracks back into the event and exit
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(_TrkCollectionName, tracks, Track.class, flag);
-
-        return;
     }
 
     /**
@@ -219,48 +214,46 @@ public class MakeGblTracks {
         logger.info(String.format("corrected helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f", dca_gbl, z0_gbl, C_gbl, slope_gbl, phi0_gbl, Math.abs(1 / qOverP_gbl)));
 
         // Strandlie, Wittek, NIMA 566, 2006
-        Matrix covariance_gbl = new SymMatrix(5);
+        Matrix covariance_gbl = new Matrix(5, 5);
         //helpers
         double Bz = Constants.fieldConversion * Math.abs(bfield); // TODO sign convention and should it be it scaled from Telsa?
-        double p = Math.abs(1/qOverP_gbl);
+        double p = Math.abs(1 / qOverP_gbl);
         double q = Math.signum(qOverP_gbl);
         double tanLambda = Math.tan(lambda_gbl);
         double cosLambda = Math.cos(lambda_gbl);
-        Hep3Vector B = new BasicHep3Vector(0,0,1); // TODO sign convention?
-        Hep3Vector H = VecOp.mult(1/bfield, B);
+        Hep3Vector B = new BasicHep3Vector(0, 0, 1); // TODO sign convention?
+        Hep3Vector H = VecOp.mult(1 / bfield, B);
         Hep3Vector T = HelixUtils.Direction(helix, 0.);
         Hep3Vector HcrossT = VecOp.cross(H, T);
         double alpha = HcrossT.magnitude(); // this should be Bvec cross TrackDir/|B|
-        double Q = Math.abs(bfield)*q/p;
+        double Q = Math.abs(bfield) * q / p;
         Hep3Vector Z = new BasicHep3Vector(0, 0, 1);
         Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
         Hep3Vector K = Z;
         Hep3Vector U = VecOp.mult(-1, J);
         Hep3Vector V = VecOp.cross(T, U);
         Hep3Vector I = VecOp.cross(J, K);
-        Hep3Vector N = VecOp.mult(1/alpha,VecOp.cross(H, T));
+        Hep3Vector N = VecOp.mult(1 / alpha, VecOp.cross(H, T));
         double UdotI = VecOp.dot(U, I);
         double NdotV = VecOp.dot(N, V);
         double NdotU = VecOp.dot(N, U);
         double TdotI = VecOp.dot(T, I);
         double VdotI = VecOp.dot(V, I);
         double VdotK = VecOp.dot(V, K);
-        covariance_gbl.set(HelicalTrackFit.curvatureIndex,FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(), -1*Bz/cosLambda);        
-        covariance_gbl.set(HelicalTrackFit.curvatureIndex,FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), -1*q*Bz*tanLambda/(p*cosLambda));
-        covariance_gbl.set(HelicalTrackFit.curvatureIndex,FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), 0);
-        covariance_gbl.set(HelicalTrackFit.curvatureIndex,FittedGblTrajectory.GBLPARIDX.XT.getValue(),q*Bz*alpha*Q*tanLambda*UdotI*NdotV/(p*cosLambda*TdotI));
-        covariance_gbl.set(HelicalTrackFit.curvatureIndex,FittedGblTrajectory.GBLPARIDX.YT.getValue(), q*Bz*alpha*Q*tanLambda*VdotI*NdotV/(p*cosLambda*TdotI));
-        covariance_gbl.set(HelicalTrackFit.slopeIndex,FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), -1);
-        covariance_gbl.set(HelicalTrackFit.slopeIndex,FittedGblTrajectory.GBLPARIDX.XT.getValue(), alpha*Q*UdotI*NdotV/TdotI);
-        covariance_gbl.set(HelicalTrackFit.slopeIndex,FittedGblTrajectory.GBLPARIDX.YT.getValue(), alpha*Q*VdotI*NdotV/TdotI);
-        covariance_gbl.set(HelicalTrackFit.phi0Index,FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), 1);
-        covariance_gbl.set(HelicalTrackFit.phi0Index,FittedGblTrajectory.GBLPARIDX.XT.getValue(), -alpha*Q*UdotI*NdotU/(cosLambda*TdotI));
-        covariance_gbl.set(HelicalTrackFit.phi0Index,FittedGblTrajectory.GBLPARIDX.YT.getValue(), -alpha*Q*VdotI*NdotU/(cosLambda*TdotI));
-        covariance_gbl.set(HelicalTrackFit.dcaIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), VdotK/TdotI);
-        covariance_gbl.set(HelicalTrackFit.z0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), -1/TdotI);
-        
-        
-        
+        covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(), -1 * Bz / cosLambda);
+        covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), -1 * q * Bz * tanLambda / (p * cosLambda));
+        covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), 0);
+        covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), q * Bz * alpha * Q * tanLambda * UdotI * NdotV / (p * cosLambda * TdotI));
+        covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YT.getValue(), q * Bz * alpha * Q * tanLambda * VdotI * NdotV / (p * cosLambda * TdotI));
+        covariance_gbl.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), -1);
+        covariance_gbl.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), alpha * Q * UdotI * NdotV / TdotI);
+        covariance_gbl.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YT.getValue(), alpha * Q * VdotI * NdotV / TdotI);
+        covariance_gbl.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), 1);
+        covariance_gbl.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.XT.getValue(), -alpha * Q * UdotI * NdotU / (cosLambda * TdotI));
+        covariance_gbl.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), -alpha * Q * VdotI * NdotU / (cosLambda * TdotI));
+        covariance_gbl.set(HelicalTrackFit.dcaIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), VdotK / TdotI);
+        covariance_gbl.set(HelicalTrackFit.z0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), -1 / TdotI);
+
         // Sho's magic
         Matrix jacobian = new Matrix(5, 5);
         jacobian.set(HelicalTrackFit.dcaIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), -clToPerPrj.e(1, 0));
@@ -271,6 +264,10 @@ public class MakeGblTracks {
         jacobian.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), Math.pow(Math.cos(lambda_gbl), -2.0));
         jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(), Constants.fieldConversion * Math.abs(bfield) / Math.cos(lambda_gbl));
         jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), Constants.fieldConversion * Math.abs(bfield) * qOverP_gbl * Math.tan(lambda_gbl) / Math.cos(lambda_gbl));
+
+//        covariance_gbl.print(10, 8);
+//
+//        jacobian.print(10, 8);
 
         Matrix helixCovariance = jacobian.times(locCov.times(jacobian.transpose()));
         SymmetricMatrix cov = new SymmetricMatrix(5);
