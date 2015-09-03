@@ -5,11 +5,15 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.math3.util.Pair;
+import org.hps.recon.tracking.StrategyType;
+import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.gbl.GBLOutput.ClParams;
 import org.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
@@ -112,8 +116,13 @@ public class MakeGblTracks {
             //  Set the SeedCandidate this track is based on
             trk.setSeedCandidate(trackseed);
 
-            // Set the track type.
-            trk.setTrackType(seedTrack.getType());
+            // Check if a StrategyType is associated with this strategy.
+            // If it is, set the track type with the GBL flag set to true.
+            // Otherwise, just move on and stick with the default value.
+            StrategyType strategyType = StrategyType.getType(seedTrack.getType());
+            if (strategyType != null) { 
+                trk.setTrackType(TrackType.getType(strategyType, true));
+            }
 
             // Check the track - hook for plugging in external constraint
             //if ((_trackCheck != null) && (! _trackCheck.checkTrack(trk))) continue;

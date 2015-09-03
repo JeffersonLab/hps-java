@@ -118,13 +118,13 @@ public final class TrackDataDriver extends Driver {
                 SeedTrack seedTrack = (SeedTrack) track; 
                 String strategyName = seedTrack.getStrategy().getName();
                
-                // If a TrackType is associated with this strategy, set it.
-                // Otherwise, just move on and stick with the default value
-                // of zero.
-                //TrackType trackType = TrackType.getType(strategyName);
-                //if (trackType != null) { 
-                //    seedTrack.setTrackType(trackType.getType());
-                //}
+                // Check if a StrategyType is associated with this strategy. 
+                // If it is, set the track type.  Otherwise, just move on 
+                // and stick with the default value of zero.
+                StrategyType strategyType = StrategyType.getType(strategyName);
+                if (strategyType != null) { 
+                    seedTrack.setTrackType(TrackType.getType(strategyType));
+                }
                 
                 totalT0 = 0;
                 totalHits = 0;
