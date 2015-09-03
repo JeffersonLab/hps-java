@@ -23,6 +23,7 @@ import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.database.ConnectionParameters;
 import org.hps.record.evio.EvioFileMetadata;
 import org.hps.run.database.RunDatabaseDaoFactory;
+import org.hps.run.database.RunManager;
 import org.hps.run.database.RunSummary;
 import org.hps.run.database.RunSummaryDao;
 import org.hps.run.database.RunSummaryImpl;
@@ -421,7 +422,9 @@ public final class Crawler {
             final Connection connection = config.connectionParameters().createConnection();
 
             // Create factory for interfacing to run database.
-            final RunDatabaseDaoFactory dbFactory = new RunDatabaseDaoFactory(connection);
+            RunManager runManager = new RunManager();
+            runManager.setConnection(connection);
+            final RunDatabaseDaoFactory dbFactory = runManager.getDaoFactory();
 
             // Create object for updating run info in the database.
             final RunSummaryDao runSummaryDao = dbFactory.createRunSummaryDao();
