@@ -10,7 +10,7 @@
         <driver name="Skimmer" type="org.hps.recon.filtering.PulserTriggerFilterDriver">
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-            <outputFilePath>pulserTriggerSkim.slcio</outputFilePath>
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
     </drivers>   
 </lcsim>

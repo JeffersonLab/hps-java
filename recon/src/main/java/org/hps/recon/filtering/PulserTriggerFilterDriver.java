@@ -4,6 +4,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.util.Driver;
 import org.hps.record.epics.EpicsData;
+import org.hps.record.scalers.ScalerData;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 
@@ -14,11 +15,14 @@ public class PulserTriggerFilterDriver extends Driver
     // 1. keep all events with EPICS data (could also use event tag = 31):
     if (EpicsData.read(event) != null) return;
 
-    // 2. drop event if it doesn't have a TriggerBank
+    // 2. keep all events with Scaler data:
+    if (ScalerData.read(event) != null) return;
+
+    // 3. drop event if it doesn't have a TriggerBank
     if (!event.hasCollection(GenericObject.class,"TriggerBank"))
       throw new Driver.NextEventException();
   
-    // 3. keep event if it was from a Pulser trigger:
+    // 4. keep event if it was from a Pulser trigger:
     for (GenericObject gob : event.get(GenericObject.class,"TriggerBank"))
     {
       if (!(AbstractIntData.getTag(gob) == TIData.BANK_TAG)) continue;
@@ -26,7 +30,7 @@ public class PulserTriggerFilterDriver extends Driver
       if (tid.isPulserTrigger()) return;
     }
     
-    // 4. Else, drop event:
+    // 5. Else, drop event:
     throw new Driver.NextEventException();
   }
 }
