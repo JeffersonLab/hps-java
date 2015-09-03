@@ -24,7 +24,7 @@ public final class RunDatabaseDaoFactory {
      *
      * @param connection the database connection
      */
-    public RunDatabaseDaoFactory(final Connection connection) {
+    RunDatabaseDaoFactory(final Connection connection) {
         if (connection == null) {
             throw new IllegalArgumentException("The connection is null.");
         }

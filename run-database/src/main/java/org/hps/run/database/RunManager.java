@@ -184,4 +184,13 @@ public final class RunManager implements ConditionsListener {
         // Close the database connection.
         this.closeConnection();
     }
+    
+    /**
+     * Get the database connection.
+     * 
+     * @return the database connection
+     */
+    public RunDatabaseDaoFactory getDaoFactory() {
+        return new RunDatabaseDaoFactory(this.connection);
+    }
 }
