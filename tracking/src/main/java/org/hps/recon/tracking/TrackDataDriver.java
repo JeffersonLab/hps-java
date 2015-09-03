@@ -10,6 +10,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.RelationalTable;
@@ -17,25 +18,87 @@ import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
+import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.FieldMap;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 
 /**
- * Driver used to persist additional {@link Track} information via a {@link GenericObject}.
+ * Driver used to persist additional {@link Track} information via a
+ * {@link GenericObject}.
  *
  * @author <a href="mailto:moreno1@ucsc.edu">Omar Moreno</a>
  * @author <a href="meeg@slac.stanford.edu">Sho Uemura</a>
  */
 public final class TrackDataDriver extends Driver {
 
+    /** The B field map */
+    FieldMap bFieldMap = null;
+    
     /** Collection Names */
-    private String trackResidualsCollectionName = "TrackResiduals";
-    private String rotatedHthRelationsColName = "RotatedHelicalTrackHitRelations";
-    private String rotatedHthCollectionName = "RotatedHelicalTrackHits";
-    private String trackResidualsRelationsColName = "TrackResidualsRelations";
+    
+    /** Collection name of TrackResidualData objects */
+    private static final String TRK_RESIDUALS_COL_NAME = "TrackResiduals";
+    
+    /** 
+     * Collection name of LCRelations between a Track and Rotated 
+     * HelicalTrackHits 
+     */
+    private static final String ROTATED_HTH_REL_COL_NAME = "RotatedHelicalTrackHitRelations";
+    
+    /** Collection name of Rotated HelicalTrackHits */
+    private static final String ROTATED_HTH_COL_NAME = "RotatedHelicalTrackHits";
+    
+    /** 
+     * Collection name of LCRelations between a Track and  TrackResidualsData
+     * objects.
+     */
+    private static final String TRK_RESIDUALS_REL_COL_NAME = "TrackResidualsRelations";
 
+    /** 
+     * Name of the constant denoting the position of the Ecal face in the 
+     * compact description.
+     */
+    private static final String ECAL_POSITION_CONSTANT_NAME = "ecal_dface";
+   
+    /** Position of the Ecal face */
+    private double ecalPosition = 0; // mm
+   
+    /** Z position to start extrapolation from */
+    double extStartPos = 700; // mm
+   
+    /** The extrapolation step size */ 
+    double stepSize = 5.0; // mm
+    
     /** Default constructor */
     public TrackDataDriver() {
+    }
+   
+    /**
+     * Set the position along Z where the extrapolation of a track should
+     * begin.
+     * 
+     * @param extStartPoint Position along Z where the extrapolation should 
+     *                      begin
+     */
+    void setExtrapolationStartPosition(double extStartPos) { 
+        this.extStartPos = extStartPos; 
+    }
+    
+    /**
+     * Method called by the framework when a new {@link Detector} geometry is
+     * loaded. This method is called at the beginning of every run and 
+     * provides access to the {@link Detector} object itself.
+     * 
+     * @param detector LCSim {@link Detector} geometry 
+     */     
+    protected void detectorChanged(Detector detector) { 
+       
+        // Get the field map from the detector object
+        bFieldMap = detector.getFieldMap(); 
+        
+        // Get the position of the Ecal from the compact description
+        ecalPosition = detector.getConstants().get(ECAL_POSITION_CONSTANT_NAME).getValue();
     }
    
     /**
@@ -57,7 +120,7 @@ public final class TrackDataDriver extends Driver {
 
         // Get the collection of LCRelations relating RotatedHelicalTrackHits to
         // HelicalTrackHits
-        List<LCRelation> rotatedHthToHthRelations = event.get(LCRelation.class, rotatedHthRelationsColName);
+        List<LCRelation> rotatedHthToHthRelations = event.get(LCRelation.class, ROTATED_HTH_REL_COL_NAME);
         BaseRelationalTable hthToRotatedHth = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE,
                         RelationalTable.Weighting.UNWEIGHTED);
         hthToRotatedHth.addRelations(rotatedHthToHthRelations);
@@ -65,7 +128,7 @@ public final class TrackDataDriver extends Driver {
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
-        List<HelicalTrackHit> rotatedHths = event.get(HelicalTrackHit.class, rotatedHthCollectionName);
+        List<HelicalTrackHit> rotatedHths = event.get(HelicalTrackHit.class, ROTATED_HTH_COL_NAME);
 
         // Create a container that will be used to store all TrackData objects.
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
@@ -190,6 +253,16 @@ public final class TrackDataDriver extends Driver {
                     }
                 }
 
+                //
+                // Add a track state that contains the extrapolated track position and 
+                // parameters at the face of the Ecal.
+                //
+                
+                // Extrapolate the track to the face of the Ecal and get the TrackState
+                TrackState state 
+                    = TrackUtils.extrapolateTrackUsingFieldMap(track, extStartPos, ecalPosition, stepSize, bFieldMap, false);
+                track.getTrackStates().add(state);
+                
                 // The track time is the mean t0 of hits on a track
                 trackTime = totalT0 / totalHits;
              
@@ -217,7 +290,7 @@ public final class TrackDataDriver extends Driver {
         // Add all collections to the event
         event.put(TrackData.TRACK_DATA_COLLECTION, trackDataCollection, TrackTimeData.class, 0);
         event.put(TrackData.TRACK_DATA_RELATION_COLLECTION, trackDataRelations, LCRelation.class, 0);
-        event.put(trackResidualsCollectionName, trackResidualsCollection, TrackResidualsData.class, 0);
-        event.put(trackResidualsRelationsColName, trackToTrackResidualsRelations, LCRelation.class, 0);
+        event.put(TRK_RESIDUALS_COL_NAME, trackResidualsCollection, TrackResidualsData.class, 0);
+        event.put(TRK_RESIDUALS_REL_COL_NAME, trackToTrackResidualsRelations, LCRelation.class, 0);
     }
 }
