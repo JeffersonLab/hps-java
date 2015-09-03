@@ -58,7 +58,7 @@
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
-            <strategyResource>HPS-Full.xml</strategyResource>
+            <strategyResource>HPS_s345_c2_e16.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>        
