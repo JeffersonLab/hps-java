@@ -383,8 +383,8 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         scalerDataDao.insertScalerData(runSummary.getScalerData(), runSummary.getRun());
 
         // Insert trigger config.
-        LOGGER.info("inserting " + runSummary.getTriggerConfigInt().size() + " trigger config variables");
-        triggerConfigIntDao.insertTriggerConfig(runSummary.getTriggerConfigInt(), runSummary.getRun());
+        LOGGER.info("inserting " + runSummary.getTriggerConfig().size() + " trigger config variables");
+        triggerConfigIntDao.insertTriggerConfig(runSummary.getTriggerConfig(), runSummary.getRun());
 
     }
 

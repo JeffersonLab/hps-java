@@ -104,7 +104,7 @@ public interface RunSummary {
      *
      * @return the trigger config int values
      */
-    TriggerConfig getTriggerConfigInt();
+    TriggerConfig getTriggerConfig();
 
     /**
      * Get the start date.

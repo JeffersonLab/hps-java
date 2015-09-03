@@ -207,7 +207,7 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @return the trigger config of this run
      */
-    public TriggerConfig getTriggerConfigInt() {
+    public TriggerConfig getTriggerConfig() {
         return triggerConfigInt;
     }
 
