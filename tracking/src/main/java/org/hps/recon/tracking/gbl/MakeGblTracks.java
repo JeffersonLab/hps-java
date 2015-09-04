@@ -39,7 +39,7 @@ import org.lcsim.util.log.LogUtil;
  */
 public class MakeGblTracks {
 
-    private String _TrkCollectionName = "GblTracks";
+    private String _TrkCollectionName = "GBLTracks";
     private static Logger logger = LogUtil.create(MakeGblTracks.class, new BasicLogFormatter());
 
     /**
