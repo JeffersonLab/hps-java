@@ -66,4 +66,24 @@ public enum EventTagConstant {
     public boolean equals(final EvioEvent evioEvent) {
         return evioEvent.getHeader().getTag() == this.tag;
     }
+    
+    public static EventTagConstant getEventTag(EvioEvent evioEvent) {
+        final int eventTag = evioEvent.getHeader().getTag();
+        if (END.equals(eventTag)) {
+            return END;
+        } else if (EPICS.equals(eventTag)) {
+            return EPICS;
+        } else if (GO.equals(eventTag)) {
+            return GO;
+        } else if (PAUSE.equals(eventTag)) {
+            return PAUSE;
+        } else if (PHYSICS_OLD.equals(eventTag)) {
+            return PHYSICS_OLD;
+        } else if (PRESTART.equals(eventTag)) {
+            return PRESTART;
+        } else if (SYNC.equals(eventTag)) {
+            return SYNC;
+        }
+        return null;
+    }    
 }

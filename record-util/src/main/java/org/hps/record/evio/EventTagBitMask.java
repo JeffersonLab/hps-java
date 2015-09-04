@@ -1,5 +1,8 @@
 package org.hps.record.evio;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
@@ -71,8 +74,8 @@ public enum EventTagBitMask {
      * @param event an <code>EvioEvent</code> with tag to check against this mask
      * @return <code>true</code> if the event's tag matches this mask
      */
-    public boolean isEventTag(final EvioEvent event) {
-        return isEventTag(event.getHeader().getTag());
+    public boolean equals(final EvioEvent event) {
+        return equals(event.getHeader().getTag());
     }
 
     /**
@@ -81,7 +84,29 @@ public enum EventTagBitMask {
      * @param eventTag the event's tag from the header bank
      * @return <code>true</code> if the tag matches this mask
      */
-    public boolean isEventTag(final int eventTag) {
+    public boolean equals(final int eventTag) {
         return (eventTag & this.bitMask) == 1;
+    }
+    
+    public static Set<EventTagBitMask> getEventTagBitMasks(EvioEvent evioEvent) {
+        Set<EventTagBitMask> bitMasks = new HashSet<EventTagBitMask>();
+        if (LED_COSMIC.equals(evioEvent)) {
+            bitMasks.add(LED_COSMIC);
+        } if (PAIRS0.equals(evioEvent)) {
+            bitMasks.add(PAIRS0);
+        } if (PAIRS1.equals(evioEvent)) {
+            bitMasks.add(PAIRS1);
+        } if (PHYSICS.equals(evioEvent)) {
+            bitMasks.add(PHYSICS);
+        } if (PULSER.equals(evioEvent)) {
+            bitMasks.add(PULSER);
+        } if (SINGLE0.equals(evioEvent)) {
+            bitMasks.add(SINGLE0);
+        } if (SINGLE1.equals(evioEvent)) {
+            bitMasks.add(SINGLE1);
+        } if (SYNC.equals(evioEvent)) {
+            bitMasks.add(SYNC);
+        }
+        return bitMasks;
     }
 }

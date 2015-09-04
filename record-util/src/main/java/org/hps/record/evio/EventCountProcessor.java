@@ -94,7 +94,7 @@ final class EventCountProcessor extends EvioEventProcessor {
 
         // Increment counts for event tags with bit masks (different types of physics events).
         for (final EventTagBitMask mask : EventTagBitMask.values()) {
-            if (mask.isEventTag(evioEvent)) {
+            if (mask.equals(evioEvent)) {
                 final int count = this.eventTypeCounts.get(mask) + 1;
                 this.eventTypeCounts.put(mask, count);
             }
