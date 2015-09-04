@@ -30,26 +30,8 @@
                     <reuseForks>false</reuseForks>
                     <excludes>
                         <exclude>org/hps/**.java</exclude>
-<!--
-                        <exclude>org/hps/EcalReadoutSimTest.java</exclude>
-                        <exclude>org/hps/EtSystemTest.java</exclude>
-                        <exclude>org/hps/DataQualityMonitorTest.java</exclude>
-                        <exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
-                        <exclude>org/hps/HPSTracker2014GeometryTrackReconTest.java</exclude>
-                        <exclude>org/hps/MCFilteredReconTest.java</exclude>
-                        <exclude>org/hps/MockDataReconTest.java</exclude>
-                        <exclude>org/hps/ReadoutToEvioTest.java</exclude>
-                        <exclude>org/hps/ReadoutToLcioTest.java</exclude>
-                        <exclude>org/hps/SimpleSvtReadoutTest.java</exclude>
-                        <exclude>org/hps/TestRunReadoutToEvioTest.java</exclude>
-                        <exclude>org/hps/ReadoutNoPileupTest.java</exclude>
-                        <exclude>org/hps/SteeringFilesTest.java</exclude>
-                        <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
-                        <exclude>org/hps/TestRunReconTest.java</exclude>
-                        <exclude>org/hps/test/it/EcalSimReconTest.java</exclude>
--->
+                        <exclude>org/hps/test/it/EngRun2015ReconTest.java</exclude>
                     </excludes>
-<!--                    <redirectTestOutputToFile>true</redirectTestOutputToFile> -->
                     <trimStackTrace>false</trimStackTrace>
                 </configuration>
             </plugin>
