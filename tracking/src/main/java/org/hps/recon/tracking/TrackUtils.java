@@ -940,10 +940,15 @@ public class TrackUtils {
         return meanTime;
     }
 
+    public static List<TrackerHit> getStripHits(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+        List<TrackerHit> hits = new ArrayList<TrackerHit>();
+        for (TrackerHit hit : track.getTrackerHits())
+            hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
+        return hits;
+    }
+
     public static boolean hasSharedStrips(Track track1, Track track2, RelationalTable hitToStrips, RelationalTable hitToRotated) {
-        Set<TrackerHit> track1hits = new HashSet<TrackerHit>();
-        for (TrackerHit hit : track1.getTrackerHits())
-            track1hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
+        Set<TrackerHit> track1hits = new HashSet<TrackerHit>(getStripHits(track1, hitToStrips, hitToRotated));
         for (TrackerHit hit : track2.getTrackerHits())
             for (TrackerHit hts : (Set<TrackerHit>) hitToStrips.allFrom(hitToRotated.from(hit)))
                 if (track1hits.contains(hts))

@@ -17,20 +17,10 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
  */
 public class GblUtils {
 
-    private static GblUtils INSTANCE = null;
-
     private GblUtils() {
     }
 
-    public static GblUtils getInstance() {
-        if (INSTANCE == null) {
-            return new GblUtils();
-        } else {
-            return INSTANCE;
-        }
-    }
-
-    public BasicMatrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
+    public static BasicMatrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
         /*
          Simple jacobian: quadratic in arc length difference.
          using lambda phi as directions
@@ -68,7 +58,7 @@ public class GblUtils {
         return mat;
     }
 
-    public BasicMatrix unitMatrix(int rows, int cols) {
+    public static BasicMatrix unitMatrix(int rows, int cols) {
         BasicMatrix mat = new BasicMatrix(rows, cols);
         for (int row = 0; row != mat.getNRows(); row++) {
             for (int col = 0; col != mat.getNColumns(); col++) {
@@ -82,7 +72,7 @@ public class GblUtils {
         return mat;
     }
 
-    public BasicMatrix zeroMatrix(int rows, int cols) {
+    public static BasicMatrix zeroMatrix(int rows, int cols) {
         BasicMatrix mat = new BasicMatrix(rows, cols);
         for (int row = 0; row != mat.getNRows(); row++) {
             for (int col = 0; col != mat.getNColumns(); col++) {

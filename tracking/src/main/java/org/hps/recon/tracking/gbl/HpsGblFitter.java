@@ -10,20 +10,15 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.hps.recon.tracking.MaterialSupervisor;
-import org.hps.recon.tracking.MaterialSupervisor.DetectorPlane;
-import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.MultipleScattering.ScatterPoint;
 import org.hps.recon.tracking.MultipleScattering.ScatterPoints;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.constants.Constants;
-import org.lcsim.detector.IDetectorElement;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
@@ -31,7 +26,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.fit.helicaltrack.HelixUtils;
-import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
@@ -45,7 +39,7 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
  */
 public class HpsGblFitter {
 
-    private boolean _debug = true;
+    private final boolean _debug = true;
     private double _B = 0.;
     private double _bfac = 0.;
     private boolean isMC = false;
@@ -104,7 +98,7 @@ public class HpsGblFitter {
         // path length along trajectory
         double s = 0.;
         // jacobian to transport errors between points along the path
-        BasicMatrix jacPointToPoint = GblUtils.getInstance().unitMatrix(5, 5);
+        BasicMatrix jacPointToPoint = GblUtils.unitMatrix(5, 5);
         // Option to use uncorrelated  MS errors
         // This is similar to what is done in lcsim seedtracker
         // The msCov below holds the MS errors
@@ -139,6 +133,7 @@ public class HpsGblFitter {
         // TODO use actual path length and not layer id!
         //Collections.sort(stripClusters, new HelicalTrackStripComparer());
         Collections.sort(stripClusters, new Comparator<HelicalTrackStrip>() {
+            @Override
             public int compare(HelicalTrackStrip o1, HelicalTrackStrip o2) {
                 return o1.layer() < o2.layer() ? -1 : o1.layer() > o2.layer() ? 1 : 0;
             }
@@ -268,7 +263,7 @@ public class HpsGblFitter {
             }
 
             //Find the Jacobian to be able to propagate the covariance matrix to this strip position
-            jacPointToPoint = GblUtils.getInstance().gblSimpleJacobianLambdaPhi(step, cosLambda, Math.abs(_bfac));
+            jacPointToPoint = GblUtils.gblSimpleJacobianLambdaPhi(step, cosLambda, Math.abs(_bfac));
 
             if (_debug) {
                 System.out.printf("%s: jacPointToPoint \n%s\n", this.getClass().getSimpleName(), jacPointToPoint.toString());
@@ -296,7 +291,7 @@ public class HpsGblFitter {
 
             //Add scatterer in curvilinear frame to the point
             // no direction in this frame as it moves along the track
-            BasicMatrix scat = GblUtils.getInstance().zeroMatrix(0, 2);
+            BasicMatrix scat = GblUtils.zeroMatrix(0, 2);
 
             // find scattering angle
             ScatterPoint scatter = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
@@ -421,6 +416,7 @@ public class HpsGblFitter {
 
     public static class HelicalTrackStripComparer implements Comparator<HelicalTrackStrip> {
 
+        @Override
         public int compare(HelicalTrackStrip o1, HelicalTrackStrip o2) {
             // TODO Change this to path length!?
             return compare(o1.layer(), o2.layer());

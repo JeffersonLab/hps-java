@@ -2,20 +2,24 @@ package org.hps.recon.tracking.gbl;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.hps.recon.tracking.EventQuality;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.MyLCRelation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
@@ -23,8 +27,7 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * This driver class is used to
- * 1) write lcio collection of GBL info objects OR
+ * This driver class is used to 1) write lcio collection of GBL info objects OR
  * 2) write GBL info into a unstructures text-based output
  *
  * It uses a helper class that does the actual work. We will port GBL to java
@@ -37,13 +40,13 @@ import org.lcsim.util.aida.AIDA;
  */
 public class GBLOutputDriver extends Driver {
 
-    private AIDA aida = AIDA.defaultInstance();
+    private final AIDA aida = AIDA.defaultInstance();
     int nevt = 0;
     GBLOutput gbl = null;
     TruthResiduals truthRes = null;
     private String gblFileName = "";
     private String outputPlotFileName = "";
-    private String MCParticleCollectionName = "MCParticle";   
+    private final String MCParticleCollectionName = "MCParticle";
     private int _debug = 0;
     private boolean isMC = false;
     private int totalTracks = 0;
@@ -72,46 +75,63 @@ public class GBLOutputDriver extends Driver {
     }
 
     @Override
-    public void process(EventHeader event) {      
+    public void process(EventHeader event) {
         // Check if the event contains a collection of the type Track. If it
         // doesn't skip the event.
-        if (!event.hasCollection(Track.class))
+        if (!event.hasCollection(Track.class)) {
             return;
+        }
 
         // Get all collections of the type Track from the event. This is
         // required since the event contains a track collection for each of the
         // different tracking strategies.
         List<List<Track>> trackCollections = event.get(Track.class);
-        if (_debug > 0)
+        if (_debug > 0) {
             System.out.printf("%s: Event %d has %d tracks\n", this.getClass().getSimpleName(), event.getEventNumber(), trackCollections.size());
+        }
 
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
-        if (_debug > 0)
+        if (_debug > 0) {
             System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", stripHits.size());
+        }
 
         List<MCParticle> mcParticles = new ArrayList<MCParticle>();
-        if (event.hasCollection(MCParticle.class, this.MCParticleCollectionName))
+        if (event.hasCollection(MCParticle.class, this.MCParticleCollectionName)) {
             mcParticles = event.get(MCParticle.class, this.MCParticleCollectionName);
+        }
 
         List<SimTrackerHit> simTrackerHits = new ArrayList<SimTrackerHit>();
-        if (event.hasCollection(SimTrackerHit.class, "TrackerHits"))
+        if (event.hasCollection(SimTrackerHit.class, "TrackerHits")) {
             simTrackerHits = event.get(SimTrackerHit.class, "TrackerHits");
+        }
 
-        if (isMC)
-            if (truthRes != null)
+        if (isMC) {
+            if (truthRes != null) {
                 truthRes.processSim(mcParticles, simTrackerHits);
+            }
+        }
+
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
         // Loop over each of the track collections retrieved from the event
-         List<Track> selected_tracks = new ArrayList<Track>();
-        for (List<Track> tracklist : trackCollections) {           
+        Map<Set<TrackerHit>, List<Track>> hitsToTracksMap = new HashMap<Set<TrackerHit>, List<Track>>();
+        for (List<Track> tracklist : trackCollections) {
             for (Track trk : tracklist) {
                 totalTracks++;
                 if (TrackUtils.isGoodTrack(trk, tracklist, EventQuality.Quality.NONE)) {
-                    if (_debug > 0)
-                        System.out.printf("%s: Track failed selection\n", this.getClass().getSimpleName());
-                    selected_tracks.add(trk);
+                    Set<TrackerHit> trackHits = new HashSet<TrackerHit>(TrackUtils.getStripHits(trk, hitToStrips, hitToRotated));
+                    List<Track> matchingTracks = hitsToTracksMap.get(trackHits);
+                    if (matchingTracks == null) {
+                        matchingTracks = new ArrayList<Track>();
+                        hitsToTracksMap.put(trackHits, matchingTracks);
+                    }
+                    matchingTracks.add(trk);
+                } else if (_debug > 0) {
+                    System.out.printf("%s: Track failed selection\n", this.getClass().getSimpleName());
                 }
             }
         }
+
         // GBLData 
         // containers and data
         List<GBLEventData> gblEventData = new ArrayList<GBLEventData>();
@@ -125,9 +145,13 @@ public class GBLOutputDriver extends Driver {
         gbl.printNewEvent(iEvent, gbl.get_B().z());
 
         iTrack = 0;
-        for (Track trk : selected_tracks) {
-            if (_debug > 0)
+
+        for (List<Track> matchingTracks : hitsToTracksMap.values()) {
+            Track trk = matchingTracks.get(0);//arbitrarily pick one track to use to generate GBL data
+
+            if (_debug > 0) {
                 System.out.printf("%s: Print GBL output for this track\n", this.getClass().getSimpleName());
+            }
 
             //GBLDATA
             GBLTrackData gblTrackData = new GBLTrackData(iTrack);
@@ -139,7 +163,9 @@ public class GBLOutputDriver extends Driver {
 
             //GBLDATA
             //add relation to normal track object
-            trackToGBLTrackRelationListAll.add(new MyLCRelation(trk, gblTrackData));
+            for (Track matchingTrack : matchingTracks) {
+                trackToGBLTrackRelationListAll.add(new MyLCRelation(matchingTrack, gblTrackData));
+            }
             // add strip clusters to lists
             for (GBLStripClusterData gblStripClusterData : gblStripDataList) {
                 // add all strip clusters from this track to output list
@@ -153,12 +179,12 @@ public class GBLOutputDriver extends Driver {
             totalTracksProcessed++;
             ++iTrack;
         }
-    
-        event.put("GBLEventData" , gblEventData, GBLEventData.class, 0);
-        event.put("GBLTrackData" , gblTrackDataList, GBLTrackData.class, 0);
-        event.put("GBLStripClusterData" , gblStripDataListAll, GBLStripClusterData.class, 0);
-        event.put("GBLTrackToStripData" , gblTrackToStripClusterRelationListAll, LCRelation.class, 0);
-        event.put("TrackToGBLTrack" , trackToGBLTrackRelationListAll, LCRelation.class, 0);
+
+        event.put("GBLEventData", gblEventData, GBLEventData.class, 0);
+        event.put("GBLTrackData", gblTrackDataList, GBLTrackData.class, 0);
+        event.put("GBLStripClusterData", gblStripDataListAll, GBLStripClusterData.class, 0);
+        event.put("GBLTrackToStripData", gblTrackToStripClusterRelationListAll, LCRelation.class, 0);
+        event.put("TrackToGBLTrack", trackToGBLTrackRelationListAll, LCRelation.class, 0);
 
         ++iEvent;
 
@@ -166,18 +192,20 @@ public class GBLOutputDriver extends Driver {
 
     @Override
     public void endOfData() {
-        if (gbl != null)
+        if (gbl != null) {
             gbl.close();
+        }
 
-        if (!"".equals(outputPlotFileName))
+        if (!"".equals(outputPlotFileName)) {
             try {
                 aida.saveAs(outputPlotFileName);
             } catch (IOException ex) {
                 Logger.getLogger(GBLOutputDriver.class.getName()).log(Level.SEVERE, "Couldn't save aida plots to file " + outputPlotFileName, ex);
             }
+        }
         System.out.println(this.getClass().getSimpleName() + ": Total Number of Events           = " + iEvent);
         System.out.println(this.getClass().getSimpleName() + ": Total Number of Tracks           = " + totalTracks);
-        System.out.println(this.getClass().getSimpleName() + ": Total Number of Tracks Processed = " + totalTracksProcessed);
+        System.out.println(this.getClass().getSimpleName() + ": Total Number of Unique Tracks Processed = " + totalTracksProcessed);
 
     }
 

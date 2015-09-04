@@ -15,14 +15,11 @@ import java.util.List;
 import java.util.Map;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
-import org.hps.recon.tracking.MaterialSupervisor.DetectorPlane;
-import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.MultipleScattering.ScatterPoint;
 import org.hps.recon.tracking.MultipleScattering.ScatterPoints;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
-import org.lcsim.constants.Constants;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.MCParticle;
@@ -38,7 +35,6 @@ import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
-import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
@@ -197,13 +193,6 @@ public class GBLOutput {
             }
         }
 
-        //GBLDATA
-        for (int row = 0; row < perToClPrj.getNRows(); ++row) {
-            for (int col = 0; col < perToClPrj.getNColumns(); ++col) {
-                gtd.setPrjPerToCl(row, col, perToClPrj.e(row, col));
-            }
-        }
-
         // print chi2 of fit
         if (textFile != null) {
             textFile.printChi2(htf.chisq(), htf.ndf());
@@ -226,8 +215,7 @@ public class GBLOutput {
         }
 
         // dummy cov matrix for CL parameters
-        BasicMatrix clCov = new BasicMatrix(5, 5);
-        initUnit(clCov);
+        BasicMatrix clCov = GblUtils.unitMatrix(5, 5);
         clCov = (BasicMatrix) MatrixOp.mult(0.1 * 0.1, clCov);
 
         if (textFile != null) {
@@ -657,26 +645,6 @@ public class GBLOutput {
 //        return j;
 //
 //    }
-    private void initUnit(BasicMatrix mat) {
-        for (int row = 0; row != mat.getNRows(); row++) {
-            for (int col = 0; col != mat.getNColumns(); col++) {
-                if (row != col) {
-                    mat.setElement(row, col, 0);
-                } else {
-                    mat.setElement(row, col, 1);
-                }
-            }
-        }
-    }
-
-    private void initZero(BasicMatrix mat) {
-        for (int row = 0; row != mat.getNRows(); row++) {
-            for (int col = 0; col != mat.getNColumns(); col++) {
-                mat.setElement(row, col, 0);
-            }
-        }
-    }
-
     /**
      * Transform MCParticle into a Helix object. Note that it produces the helix
      * parameters at nominal x=0 and assumes that there is no field at x<0
@@ -723,13 +691,13 @@ public class GBLOutput {
         p.setElement(0, 0, perPar.getD0());
         p.setElement(0, 1, perPar.getPhi());
         p.setElement(0, 2, perPar.getKappa());
-        p.setElement(0, 0, perPar.getZ0());
+        p.setElement(0, 3, perPar.getZ0());
         p.setElement(0, 4, Math.tan(Math.PI / 2.0 - perPar.getTheta()));
         BasicMatrix pt = new BasicMatrix(1, 5);
         pt.setElement(0, 0, perParTruth.getD0());
         pt.setElement(0, 1, perParTruth.getPhi());
         pt.setElement(0, 2, perParTruth.getKappa());
-        pt.setElement(0, 0, perParTruth.getZ0());
+        pt.setElement(0, 3, perParTruth.getZ0());
         pt.setElement(0, 4, Math.tan(Math.PI / 2.0 - perParTruth.getTheta()));
         Matrix error_matrix = MatrixOp.inverse(covariance);
         BasicMatrix res = (BasicMatrix) MatrixOp.sub(p, pt);
@@ -887,6 +855,28 @@ public class GBLOutput {
         trans.setElement(2, 1, VecOp.dot(J, T));
         trans.setElement(2, 2, VecOp.dot(K, T));
         return trans;
+        
+        /*
+                Hep3Vector B = new BasicHep3Vector(0, 0, 1); // TODO sign convention?
+        Hep3Vector H = VecOp.mult(1 / bfield, B);
+        Hep3Vector T = HelixUtils.Direction(helix, 0.);
+        Hep3Vector HcrossT = VecOp.cross(H, T);
+        double alpha = HcrossT.magnitude(); // this should be Bvec cross TrackDir/|B|
+        double Q = Math.abs(bfield) * q / p;
+        Hep3Vector Z = new BasicHep3Vector(0, 0, 1);
+        Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
+        Hep3Vector K = Z;
+        Hep3Vector U = VecOp.mult(-1, J);
+        Hep3Vector V = VecOp.cross(T, U);
+        Hep3Vector I = VecOp.cross(J, K);
+        Hep3Vector N = VecOp.mult(1 / alpha, VecOp.cross(H, T)); //-cross(T,H)/alpha = -cross(T,Z) = -J
+        double UdotI = VecOp.dot(U, I); // 0,0
+        double NdotV = VecOp.dot(N, V); // 1,1?
+        double NdotU = VecOp.dot(N, U); // 0,1?
+        double TdotI = VecOp.dot(T, I); // 2,0
+        double VdotI = VecOp.dot(V, I); // 1,0
+        double VdotK = VecOp.dot(V, K); // 1,2
+*/
 
     }
 
