@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,10 +22,9 @@ import java.util.logging.Logger;
 import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
-import org.hps.conditions.api.ConditionsObjectException;
-import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.ConditionsSeries;
+import org.hps.conditions.api.ConditionsTag.ConditionsTagCollection;
 import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.ecal.EcalConditions;
@@ -64,7 +64,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Name of system property that can be used to specify custom database connection parameters.
      */
-    private static final String CONNECTION_PROPERTY = "org.hps.conditions.connection.file";
+    private static final String CONNECTION_PROPERTY_FILE = "org.hps.conditions.connection.file";
+    
+    /**
+     * Connection property resource.
+     */
+    private static final String CONNECTION_PROPERTY_RESOURCE = "org.hps.conditions.connection.resource";
 
     /**
      * The default XML config.
@@ -255,22 +260,47 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private final TableRegistry tableRegistry = TableRegistry.getTableRegistry();
 
     /**
-     * The currently active conditions tag.
+     * The currently active conditions tag (empty collection means no tag is active).
      */
-    private String tag = null;
-
+    private ConditionsTagCollection conditionsTagCollection = new ConditionsTagCollection();
+    
+    /**
+     * The current set of conditions for the run.
+     */
+    private ConditionsRecordCollection conditionsRecordCollection = null;
+    
+    /**
+     * The currently applied conditions tags.
+     */
+    private Set<String> tags = new HashSet<String>();
+    
     /**
      * Class constructor. Calling this will automatically register this manager as the global default.
      */
     private DatabaseConditionsManager() {
+        
+        // Register detector conditions converter.
         this.registerConditionsConverter(new DetectorConditionsConverter());
-        this.setupConnectionFromSystemProperty();
+        
+        // Setup connection from system property pointing to a file, if it was set.
+        this.setupConnectionSystemPropertyFile();
+        
+        // Setup connection from system property pointing to a resource, if it was set.
+        this.setupConnectionSystemPropertyResource();
+        
+        // Register default conditions manager.
         ConditionsManager.setDefaultConditionsManager(this);
+        
+        // Set run to invalid number.
         this.setRun(-1);
+        
+        // Register conditions converters.
         for (final AbstractConditionsObjectConverter converter : this.converters.values()) {
             // logger.fine("registering converter for " + converter.getType());
             this.registerConditionsConverter(converter);
         }
+        
+        // Add the SVT detector setup object as a listener.
         this.addConditionsListener(this.svtSetup);
     }
 
@@ -378,27 +408,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the set of matching conditions records
      */
     public ConditionsRecordCollection findConditionsRecords(final String name) {
-        final ConditionsRecordCollection runConditionsRecords = this.getCachedConditions(
-                ConditionsRecordCollection.class, "conditions").getCachedData();
-        logger.fine("searching for conditions with name " + name + " in " + runConditionsRecords.size() + " records");
-        final ConditionsRecordCollection foundConditionsRecords = new ConditionsRecordCollection();
-        for (final ConditionsRecord record : runConditionsRecords) {
-            if (record.getName().equals(name)) {
-                if (this.matchesTag(record)) {
-                    try {
-                        foundConditionsRecords.add(record);
-                    } catch (final ConditionsObjectException e) {
-                        throw new RuntimeException(e);
-                    }
-                    logger.finer("found matching conditions record " + record.getRowId());
-                } else {
-                    logger.finer("conditions record " + record.getRowId() + " rejected from non-matching tag "
-                            + record.getTag());
-                }
-            }
-        }
-        logger.fine("found " + foundConditionsRecords.size() + " conditions records matching tag " + this.tag);
-        return foundConditionsRecords;
+        return getConditionsRecords().findByKey(name);
     }
 
     /**
@@ -479,31 +489,30 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         collection.setCollectionId(collectionId);
         return collectionId;
     }
-
+    
     /**
-     * Get a list of all the {@link ConditionsRecord} objects.
-     *
-     * @return the list of all the {@link ConditionsRecord} objects
+     * Get the list of conditions records for the run, filtered by the current set of active tags.
+     * 
+     * @return the list of conditions records for the run
      */
-    // FIXME: This should use a cache that is created during initialization, rather than look these up every time.
     public ConditionsRecordCollection getConditionsRecords() {
-        logger.finer("getting conditions records ...");
-        final ConditionsRecordCollection conditionsRecords = new ConditionsRecordCollection();
-        for (final TableMetaData tableMetaData : this.tableRegistry.values()) {
-            try {
-                final ConditionsRecordCollection foundConditionsRecords = this.findConditionsRecords(tableMetaData
-                        .getKey());
-                logger.finer("found " + foundConditionsRecords.size() + " collections with name "
-                        + tableMetaData.getKey());
-                conditionsRecords.addAll(foundConditionsRecords);
-            } catch (final Exception e) {
-                e.printStackTrace();
-                logger.warning(e.getMessage());
+        if (this.run == -1 || this.detectorName == null) {
+            throw new IllegalStateException("Conditions system is not initialized.");
+        } 
+        // If the collection is null then the new conditions records need to be retrieved from the database.
+        if (this.conditionsRecordCollection == null) {
+            
+            // Get the collection of conditions that are applicable for the current run.
+            this.conditionsRecordCollection =  
+                    this.getCachedConditions(ConditionsRecordCollection.class, "conditions").getCachedData();
+            
+            // If there is one or more tags enabled then filter the collection by the tag names.
+            if (this.conditionsTagCollection.size() > 0) {
+                this.conditionsRecordCollection = 
+                        this.conditionsTagCollection.filter(this.conditionsRecordCollection);
             }
         }
-        logger.finer("found " + conditionsRecords + " conditions records");
-        logger.getHandlers()[0].flush();
-        return conditionsRecords;
+        return this.conditionsRecordCollection;
     }
 
     /**
@@ -671,11 +680,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
         // Open the database connection.
         this.openConnection();
-
+        
+        // Reset the conditions records to trigger a re-caching.
+        this.conditionsRecordCollection = null;
+        
         // Call the super class's setDetector method to construct the detector object and activate conditions listeners.
         logger.fine("activating default conditions manager");
         super.setDetector(detectorName, runNumber);
-
+        
         // Should all conditions sets be cached?
         if (this.cacheAllConditions) {
             // Cache the conditions sets of all registered converters.
@@ -807,24 +819,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Return <code>true</code> if the conditions record matches the current tag
-     *
-     * @param record the conditions record
-     * @return <code>true</code> if conditions record matches the currently used tag
+     * Create a new collection with the given type.
+     * 
+     * @param collectionType the collection type
+     * @return the new collection
      */
-    private boolean matchesTag(final ConditionsRecord record) {
-        if (this.tag == null) {
-            // If there is no tag set then all records pass.
-            return true;
-        }
-        final String recordTag = record.getTag();
-        if (recordTag == null) {
-            // If there is a tag set but the record has no tag, it is rejected.
-            return false;
-        }
-        return this.tag.equals(recordTag);
-    }
-
     public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(
             final Class<CollectionType> collectionType) {
         final List<TableMetaData> tableMetaDataList = TableRegistry.getTableRegistry().findByCollectionType(
@@ -845,6 +844,13 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         return collection;
     }
 
+    /**
+     * Create a new collection with the given type and table name.
+     * 
+     * @param collectionType the collection type
+     * @param tableName the table name
+     * @return the new collection
+     */
     public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(
             final Class<CollectionType> collectionType, final String tableName) {
         final TableMetaData tableMetaData = TableRegistry.getTableRegistry().findByTableName(tableName);
@@ -1040,31 +1046,69 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Set a tag used to filter the accessible conditions records
+     * Add a tag used to filter the accessible conditions records.
+     * <p>
+     * Multiple tags are OR'd together.
      *
      * @param tag the tag value used to filter returned conditions records
      */
-    public void setTag(final String tag) {
-        this.tag = tag;
-        logger.info("using conditions tag: " + tag);
+    public void addTag(final String tag) {
+        if (!this.tags.contains(tag)) {
+            logger.info("adding tag " + tag);
+            ConditionsTagCollection addConditionsTagCollection = this.getCachedConditions(ConditionsTagCollection.class, tag).getCachedData();
+            logger.info("adding conditions tag " + tag + " with " + conditionsTagCollection.size() + " records");
+            this.conditionsTagCollection.addAll(addConditionsTagCollection);                    
+        } else {
+            logger.warning("tag " + tag + " is already added");
+        }
+    }
+    
+    /**
+     * Add one or more tags for filtering records.
+     * 
+     * @param tags the <code>Set</code> of tags to add
+     */
+    public void addTags(final Set<String> tags) {
+        for (String tag : tags) {
+            this.addTag(tag);
+        }
+    }
+    
+    /**
+     * Clear the tags used to filter the {@link org.hps.conditons.api.ConditionsRecord}s.
+     */
+    public void clearTags() {
+        this.tags.clear();
+        this.conditionsTagCollection.clear();
     }
 
     /**
      * Setup the database connection from a file specified by a Java system property setting. This could be overridden
      * by subsequent API calls to {@link #setConnectionProperties(File)} or {@link #setConnectionResource(String)}.
      */
-    private void setupConnectionFromSystemProperty() {
-        final String systemPropertiesConnectionPath = (String) System.getProperties().get(CONNECTION_PROPERTY);
+    private void setupConnectionSystemPropertyFile() {
+        final String systemPropertiesConnectionPath = (String) System.getProperties().get(CONNECTION_PROPERTY_FILE);
         if (systemPropertiesConnectionPath != null) {
             final File f = new File(systemPropertiesConnectionPath);
             if (!f.exists()) {
-                throw new RuntimeException("Connection properties file from " + CONNECTION_PROPERTY
+                throw new RuntimeException("Connection properties file from " + CONNECTION_PROPERTY_FILE
                         + " does not exist.");
             }
             this.setConnectionProperties(f);
-            logger.info("connection setup from system property " + CONNECTION_PROPERTY + " = "
+            logger.info("connection setup from system property " + CONNECTION_PROPERTY_FILE + " = "
                     + systemPropertiesConnectionPath);
-        }
+        }                              
+    }
+    
+    /**
+     * Setup the database connection from a file specified by a Java system property setting. This could be overridden
+     * by subsequent API calls to {@link #setConnectionProperties(File)} or {@link #setConnectionResource(String)}.
+     */
+    private void setupConnectionSystemPropertyResource() {
+        final String systemPropertiesConnectionResource = (String) System.getProperties().get(CONNECTION_PROPERTY_RESOURCE);
+        if (systemPropertiesConnectionResource != null) {
+            this.setConnectionResource(systemPropertiesConnectionResource);
+        } 
     }
 
     /**

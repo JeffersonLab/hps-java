@@ -6,6 +6,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.Parser;
 import org.apache.commons.cli.PosixParser;
+import org.hps.conditions.database.DatabaseConditionsManager;
 
 /**
  * This is the API that sub-commands such as 'load' or 'print' must implement in the conditions command line interface.
@@ -107,5 +108,13 @@ abstract class AbstractCommand {
     protected final void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         help.printHelp(this.getName(), this.getOptions());
+    }
+    
+    /**
+     * Convenience method for getting the conditions manager.
+     * @return the conditions manager
+     */
+    public DatabaseConditionsManager getManager() {
+        return DatabaseConditionsManager.getInstance();
     }
 }

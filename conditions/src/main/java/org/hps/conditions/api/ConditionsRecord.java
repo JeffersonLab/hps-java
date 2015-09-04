@@ -358,9 +358,11 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Get the string tag associated with these conditions.
      *
+     * @deprecated Use the {@link ConditionsTag} class instead.
      * @return The string tag.
      */
     @Field(names = {"tag"})
+    @Deprecated
     public String getTag() {
         return this.getFieldValue("tag");
     }

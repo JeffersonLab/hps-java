@@ -202,7 +202,7 @@ public final class CommandLineTool {
         // User specified tag of conditions records.
         if (commandLine.hasOption("t")) {
             final String tag = commandLine.getOptionValue("t");
-            this.conditionsManager.setTag(tag);
+            this.conditionsManager.addTag(tag);
             LOGGER.config("using tag " + tag);
         }
 

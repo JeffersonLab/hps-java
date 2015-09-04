@@ -220,7 +220,7 @@ public final class EngRunConditionsTest extends TestCase {
 
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         DatabaseConditionsManager.getLogger().setLevel(Level.ALL);
-        manager.setTag("pass0");
+        manager.addTag("pass0");
         manager.setXmlConfig("/org/hps/conditions/config/conditions_database_engrun.xml");
 
         final FileCache cache = new FileCache();

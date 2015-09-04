@@ -262,9 +262,16 @@ public final class TableMetaData {
         buff.append('\n');
         return buff.toString();
     }
+    
+    /**
+     * Method for removing a field that was found using the automatic introspection methods.
+     */
+    void removeField(String fieldName) {
+        fieldNames.remove(fieldName);
+        fieldTypes.remove(fieldName);
+    }
 
-    // TODO: add methods for getting SQL strings for PreparedStatements; can be setup once at initialization time for
-    // each table
+    // TODO: add methods for getting SQL strings for PreparedStatements; can be setup once at initialization time for each table
     // String getSelectStatement();
     // String getInsertStatement();
     // String getUpdateStatement();

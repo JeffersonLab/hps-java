@@ -1,9 +1,9 @@
 package org.hps.conditions.cli;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,54 +12,81 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
-import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.api.ConditionsTag;
+import org.hps.conditions.api.ConditionsTag.ConditionsTagCollection;
 import org.hps.conditions.api.DatabaseObjectException;
 import org.hps.conditions.api.TableMetaData;
-import org.hps.conditions.database.DatabaseConditionsManager;
-import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
+import org.hps.conditions.api.TableRegistry;
+import org.hps.conditions.database.MultipleCollectionsAction;
+import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
  * Create a conditions system tag.
+ * <p>
+ * The tag groups together conditions records from the <i>conditions</i> database table with a run validity range that 
+ * is between a specified starting and ending run.
+ * <p>
+ * Tagging will not disambiguate overlapping conditions, which is done at run-time based on the current run number.
  *
  * @author Jeremy McCormick, SLAC
  */
-public class TagCommand extends AbstractCommand {
+final class TagCommand extends AbstractCommand {
 
     /**
-     * The default detector name (dummy detector).
+     * Setup the logger.
      */
-    private static final String DETECTOR_NAME = "HPS-dummy-detector";
-
-    /**
-     * Setup logger.
-     */
-    private static final Logger LOGGER = LogUtil.create(TagCommand.class);
-
+    private static final Logger LOGGER = LogUtil.create(TagCommand.class, new DefaultLogFormatter(), Level.ALL);
+    
     /**
      * Defines command options.
      */
     private static Options OPTIONS = new Options();
 
     /**
-     * Define command options.
+     * Define all command options.
      */
     static {
         OPTIONS.addOption(new Option("h", false, "Show help for tag command"));
-        OPTIONS.addOption(new Option("r", true, "List of run numbers to scan (at least one must be provided)"));
-        OPTIONS.getOption("r").setArgs(Option.UNLIMITED_VALUES);
-        OPTIONS.getOption("r").setRequired(true);
-        OPTIONS.addOption(new Option("t", true, "The new conditions tag"));
+        OPTIONS.addOption(new Option("t", true, "Conditions tag name"));
+        OPTIONS.addOption(new Option("s", true, "Starting run number (required)"));
+        OPTIONS.getOption("s").setRequired(true);
+        OPTIONS.addOption(new Option("e", true, "Ending run number (default is unlimited)"));
         OPTIONS.getOption("t").setRequired(true);
-        OPTIONS.addOption(new Option("f", false, "Don't prompt before making tag (careful!)"));
+        OPTIONS.addOption(new Option("m", true,
+                "MultipleCollectionsAction to use for disambiguation (default is LAST_CREATED)"));
+        OPTIONS.addOption(new Option("d", false, "Don't prompt before making tag (be careful!)"));
     }
 
     /**
      * Class constructor.
      */
     TagCommand() {
-        super("tag", "Tag a set of collections by copying their conditions records", OPTIONS);
+        super("tag", "Tag a set of conditions records to group them together", OPTIONS);
+    }
+
+    /**
+     * Create the collection with the records for creating a new conditions "tag".
+     *
+     * @param tagConditionsRecordCollection the tag record collection
+     * @param tagName the tag name
+     * @return the tag record collection
+     */
+    private ConditionsTagCollection createConditionsTagCollection(
+            final ConditionsRecordCollection tagConditionsRecordCollection, final String tagName) {
+        final ConditionsTagCollection conditionsTagCollection = new ConditionsTagCollection();
+        conditionsTagCollection.setConnection(this.getManager().getConnection());
+        conditionsTagCollection.setTableMetaData(TableRegistry.getTableRegistry().findByTableName("conditions_tags"));
+        for (final ConditionsRecord conditionsRecord : tagConditionsRecordCollection) {
+            final ConditionsTag conditionsTag = new ConditionsTag(conditionsRecord.getRowId(), tagName);
+            try {
+                conditionsTagCollection.add(conditionsTag);
+            } catch (final ConditionsObjectException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return conditionsTagCollection;
     }
 
     /**
@@ -70,108 +97,154 @@ public class TagCommand extends AbstractCommand {
 
         final CommandLine commandLine = this.parse(arguments);
 
-        final Set<Integer> runNumbers = new LinkedHashSet<Integer>();
-        if (commandLine.getOptionValues("r") == null) {
-            throw new RuntimeException("Missing -r argument with list of run numbers.");
-        }
-        for (final String value : commandLine.getOptionValues("r")) {
-            runNumbers.add(Integer.parseInt(value));
-        }
-        if (runNumbers.size() == 0) {
-            throw new RuntimeException("At least one run number must be provided with the -r switch.");
-        }
-
-        final String newTag;
+        // New tag name.
+        final String tagName;
         if (commandLine.hasOption("t")) {
-            newTag = commandLine.getOptionValue("t");
+            tagName = commandLine.getOptionValue("t");
+            LOGGER.info("tag name set to " + tagName);
         } else {
             throw new RuntimeException("Missing required -t argument with the tag name.");
         }
 
-        boolean dontPrompt = false;
-        if (commandLine.hasOption("f")) {
-            dontPrompt = true;
+        // Starting run number (required).
+        int runStart = -1;
+        if (commandLine.hasOption("s")) {
+            runStart = Integer.parseInt(commandLine.getOptionValue("s"));
+            LOGGER.config("run start set to " + runStart);
+        } else {
+            throw new RuntimeException("missing require -s argument with starting run number");
         }
 
-        final ConditionsRecordCollection tagRecords = new ConditionsRecordCollection();
-        final Set<Integer> addedIds = new HashSet<Integer>();
-
-        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        manager.setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");
-        manager.setLogLevel(Level.ALL);
-
-        // Scan through all the runs between the start and end run, inclusive.
-        for (final Integer run : runNumbers) {
-            try {
-                // Setup the conditions manager with the run number.
-                manager.setDetector(TagCommand.DETECTOR_NAME, run);
-            } catch (final ConditionsNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-
-            // The unique conditions keys from this run.
-            final Set<String> keys = manager.getConditionsRecords().getConditionsKeys();
-
-            // Scan through all the unique keys.
-            for (final String key : keys) {
-
-                // Get the table meta data for the key.
-                final TableMetaData tableMetaData = manager.findTableMetaData(key);
-
-                // Get the ConditionsRecord from the collection.
-                final ConditionsRecordCollection records = manager.findConditionsRecords(key);
-                records.sortByUpdated();
-                final ConditionsRecord record = records.get(records.size() - 1);
-
-                manager.getCachedConditions(tableMetaData.getCollectionClass(), tableMetaData.getTableName())
-                        .getCachedData();
-
-                // Is this record already part of the new tag?
-                if (!addedIds.contains(record.getRowId())) {
-                    // Create a new record copied from the old one.
-                    final ConditionsRecord newRecord = new ConditionsRecord(record);
-
-                    // Set the tag value.
-                    newRecord.setFieldValue("tag", newTag);
-
-                    // Add the record to the tag.
-                    try {
-                        tagRecords.add(newRecord);
-                    } catch (final ConditionsObjectException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    // Flag the record's ID as used so it is only added once.
-                    addedIds.add(record.getRowId());
-                }
-            }
+        // Ending run number (max integer is default).
+        int runEnd = Integer.MAX_VALUE;
+        if (commandLine.hasOption("e")) {
+            runEnd = Integer.parseInt(commandLine.getOptionValue("e"));
+            LOGGER.config("run end set to " + runEnd);
         }
 
-        // Print out all the records that were found.
-        LOGGER.info("found ConditionsRecords for tag " + newTag + " ...");
-        for (final ConditionsRecord record : tagRecords) {
-            LOGGER.info(record.toString());
+        // Run end must be greater than or equal to run start.
+        if (runEnd < runStart) {
+            throw new IllegalArgumentException("runEnd < runStart");
         }
 
-        // Prompt user to verify with console input.
-        boolean makeTag = true;
-        if (!dontPrompt) {
-            LOGGER.info("Create conditions tag " + newTag + " in database?  (Y/N)");
+        // Action for disambiguating overlapping collections (default is to use the most recent creation date).
+        MultipleCollectionsAction multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED;
+        if (commandLine.hasOption("m")) {
+            multipleCollectionsAction = MultipleCollectionsAction
+                    .valueOf(commandLine.getOptionValue("m").toUpperCase());
+        }
+        LOGGER.config("multiple collections action set tco " + multipleCollectionsAction);
+
+        // Whether to prompt before tagging (default is yes).
+        boolean promptBeforeTagging = true;
+        if (commandLine.hasOption("d")) {
+            promptBeforeTagging = false;
+        }
+        LOGGER.config("prompt before tagging: " + promptBeforeTagging);
+
+        // Conditions system configuration.
+        this.getManager().setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");
+        this.getManager().setLogLevel(Level.ALL);
+
+        // Find all the applicable conditions records by their run number ranges.
+        ConditionsRecordCollection tagConditionsRecordCollection = this.findConditionsRecords(runStart, runEnd);
+
+        LOGGER.info("found " + tagConditionsRecordCollection.size() + " conditions records for the tag");
+
+        // Build the collection of tag records to insert into the database.
+        final ConditionsTagCollection conditionsTagCollection = this.createConditionsTagCollection(
+                tagConditionsRecordCollection, tagName);
+
+        LOGGER.info("created " + conditionsTagCollection.size() + " tag records ..." + '\n' + conditionsTagCollection);
+
+        LOGGER.getHandlers()[0].flush();
+
+        // Prompt user to verify tag creation.
+        boolean createTag = true;
+        if (promptBeforeTagging) {
+            System.out.println("Create conditions tag '" + tagName + "' in the database?  (Y/N)");
             final String line = System.console().readLine();
             if (!line.equals("Y")) {
-                makeTag = false;
+                createTag = false;
             }
         }
 
-        // Create the tag in the database if user verified or force option was present.
-        if (makeTag) {
+        // Create the tag.
+        if (createTag) {
             try {
-                tagRecords.setConnection(manager.getConnection());
-                tagRecords.setTableMetaData(TableRegistry.getTableRegistry().findByTableName("conditions"));
-                tagRecords.insert();
+                LOGGER.info("creating tag " + tagName + " in the database ...");
+                conditionsTagCollection.insert();
             } catch (DatabaseObjectException | SQLException e) {
                 throw new RuntimeException(e);
             }
+        } else {
+            LOGGER.warning("user aborted tag operation!");
         }
+
+        LOGGER.info("done!");
+    }
+   
+    /**
+     * Find all the conditions records that are applicable for the given run range.
+     * <p>
+     * Overlapping run numbers in conditions with the same key are not disambiguated.
+     * This must be done in the user's job at runtime; usually the most recently created 
+     * conditions record will be used if multiple one's are applicable to the current run.
+     *
+     * @param runStart the start run
+     * @param runEnd the end run (must be greater than or equal to <code>runStart</code>)
+     * @return the conditions records that fall in the run range
+     */
+    private ConditionsRecordCollection findConditionsRecords(final int runStart, final int runEnd) {
+        if (runStart > runEnd) {
+            throw new IllegalArgumentException("runStart > runEnd");
+        }
+        if (runStart < 0) {
+            throw new IllegalArgumentException("invalid runStart: " + runStart);
+        }
+        if (runEnd < 0) {
+            throw new IllegalArgumentException("invalid runEnd: " + runEnd);
+        }
+        final Connection connection = this.getManager().getConnection();
+        final ConditionsRecordCollection conditionsRecordCollection = new ConditionsRecordCollection();
+        final TableMetaData tableMetaData = TableRegistry.getTableRegistry().findByTableName("conditions");
+        PreparedStatement statement = null;
+        try {
+            /*
+             * SQL statement handles 3 cases: 
+             * 1) condition's run_start in range 
+             * 2) condition's run_end in range 
+             * 3) condition's run_start and run_end enclose the range
+             */
+            statement = connection
+                    .prepareStatement("SELECT id FROM conditions WHERE (run_start >= ? and run_start <= ?) or (run_end >= ? and run_end <= ?)"
+                            + " or (run_start <= ? and run_end >= ?)");
+            statement.setInt(1, runStart);
+            statement.setInt(2, runEnd);
+            statement.setInt(3, runStart);
+            statement.setInt(4, runEnd);
+            statement.setInt(5, runStart);
+            statement.setInt(6, runEnd);
+
+            final ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                final ConditionsRecord record = new ConditionsRecord();
+                record.setConnection(connection);
+                record.setTableMetaData(tableMetaData);
+                record.select(resultSet.getInt(1));
+                conditionsRecordCollection.add(record);
+            }
+        } catch (DatabaseObjectException | ConditionsObjectException | SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+            } catch (final SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return conditionsRecordCollection;
     }
 }

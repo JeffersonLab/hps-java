@@ -41,7 +41,6 @@ final class AddCommand extends AbstractCommand {
         OPTIONS.getOption("t").setRequired(true);
         OPTIONS.addOption("c", true, "collection ID (required)");
         OPTIONS.getOption("c").setRequired(true);
-        OPTIONS.addOption("T", true, "tag value (optional)");
         OPTIONS.addOption("u", true, "user name (optional)");
         OPTIONS.addOption("m", true, "notes about this conditions set (optional)");
     }
@@ -67,7 +66,7 @@ final class AddCommand extends AbstractCommand {
      * @return the new conditions record
      */
     private ConditionsRecord createConditionsRecord(final int runStart, final int runEnd, final String tableName,
-            final String name, final int collectionId, final String createdBy, final String tag, final String notes) {
+            final String name, final int collectionId, final String createdBy, final String notes) {
         final ConditionsRecord conditionsRecord = new ConditionsRecord();
         final FieldValuesMap fieldValues = new FieldValuesMap();
         fieldValues.setValue("run_start", runStart);
@@ -76,9 +75,6 @@ final class AddCommand extends AbstractCommand {
         fieldValues.setValue("name", name);
         fieldValues.setValue("collection_id", collectionId);
         fieldValues.setValue("created_by", createdBy);
-        if (tag != null) {
-            fieldValues.setValue("tag", tag);
-        }
         if (notes != null) {
             fieldValues.setValue("notes", notes);
         }
@@ -134,12 +130,6 @@ final class AddCommand extends AbstractCommand {
             createdBy = commandLine.getOptionValue("u");
         }
 
-        // Tag to assign (optional).
-        String tag = null;
-        if (commandLine.hasOption("T")) {
-            tag = commandLine.getOptionValue("T");
-        }
-
         // Notes (optional).
         String notes = null;
         if (commandLine.hasOption("m")) {
@@ -148,7 +138,7 @@ final class AddCommand extends AbstractCommand {
 
         // Create the conditions record to insert.
         final ConditionsRecord conditionsRecord = this.createConditionsRecord(runStart, runEnd, tableName, name,
-                collectionId, createdBy, tag, notes);
+                collectionId, createdBy, notes);
         LOGGER.info("inserting conditions record ..." + '\n' + conditionsRecord);
         try {
             boolean createdConnection = false;

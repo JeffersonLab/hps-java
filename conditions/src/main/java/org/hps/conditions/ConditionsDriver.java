@@ -75,7 +75,7 @@ public class ConditionsDriver extends Driver {
 
         if (this.tag != null) {
             // Set a tag for filtering ConditionsRecord objects.
-            conditionsManager.setTag(this.tag);
+            conditionsManager.addTag(this.tag);
         }
         if (this.detectorName != null) {
             // The manager can only be initialized here if there is a user supplied detector name.

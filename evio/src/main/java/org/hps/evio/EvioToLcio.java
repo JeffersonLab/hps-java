@@ -404,10 +404,13 @@ public class EvioToLcio {
             LOGGER.config("User set run number to " + runNumber + " with command option.");
         }
 
-        // Set the conditions system tag.
+        // Add conditions system tag filters.
         if (cl.hasOption("t")) {
-            final String tag = cl.getOptionValue("t");
-            DatabaseConditionsManager.getInstance().setTag(tag);
+            final String[] tags = cl.getOptionValues("t");
+            for (String tag : tags) {
+                LOGGER.config("adding conditions tag " + tag);
+                DatabaseConditionsManager.getInstance().addTag(tag);
+            }
         }
 
         // Is there a run number from the command line options?
