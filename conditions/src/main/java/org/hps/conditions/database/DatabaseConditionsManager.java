@@ -88,8 +88,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Initialize the logger.
      */
-    private static Logger logger = LogUtil.create(DatabaseConditionsManager.class.getName(), new DefaultLogFormatter(),
-            Level.FINE);
+    private static Logger LOGGER = LogUtil.create(DatabaseConditionsManager.class.getName(), new DefaultLogFormatter(), Level.CONFIG);
 
     /**
      * The Test Run XML config.
@@ -115,7 +114,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
         // Is there no manager installed yet?
         if (!ConditionsManager.isSetup() || !(ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager)) {
-            logger.finest("creating new DatabaseConditionsManager instance");
+            LOGGER.finest("creating new DatabaseConditionsManager instance");
             // Create a new instance if necessary, which will install it globally as the default.
             DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
 
@@ -126,7 +125,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         // Get the instance back from the default conditions system and check that the type is correct now.
         final ConditionsManager manager = ConditionsManager.defaultInstance();
         if (!(manager instanceof DatabaseConditionsManager)) {
-            logger.severe("default conditions manager has wrong type: " + manager.getClass());
+            LOGGER.severe("default conditions manager has wrong type: " + manager.getClass());
             throw new RuntimeException("Default conditions manager has the wrong type: "
                     + ConditionsManager.defaultInstance().getClass().getName());
         }
@@ -140,7 +139,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the Logger for this class
      */
     public static Logger getLogger() {
-        return logger;
+        return LOGGER;
     }
 
     /**
@@ -157,7 +156,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Reset the global static instance of the conditions manager to a new object.
      */
     public static synchronized void resetInstance() {
-        logger.finest("DatabaseConditionsManager instance is being reset");
+        LOGGER.finest("DatabaseConditionsManager instance is being reset");
         
         // Create a new instance if necessary, which will install it globally as the default.
         DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
@@ -287,15 +286,15 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     protected DatabaseConditionsManager() {
         
         // Register detector conditions converter.
-        logger.config("registering detector converter");
+        LOGGER.config("registering detector converter");
         this.registerConditionsConverter(new DetectorConditionsConverter());
         
         // Setup connection from system property pointing to a file, if it was set.
-        logger.config("checking for file connection system property");
+        LOGGER.config("checking for file connection system property");
         this.setupConnectionSystemPropertyFile();
         
         // Setup connection from system property pointing to a resource, if it was set.
-        logger.config("checking for resource connection system property");
+        LOGGER.config("checking for resource connection system property");
         this.setupConnectionSystemPropertyResource();
                 
         // Set run to invalid number.
@@ -303,12 +302,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         
         // Register conditions converters.
         for (final AbstractConditionsObjectConverter converter : this.converters.values()) {
-            logger.config("registering converter for " + converter.getType());
+            LOGGER.config("registering converter for " + converter.getType());
             this.registerConditionsConverter(converter);
         }
         
         // Add the SVT detector setup object as a listener.
-        logger.config("adding SVT setup");
+        LOGGER.config("adding SVT setup");
         this.addConditionsListener(this.svtSetup);
     }
 
@@ -318,11 +317,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private void cacheConditionsSets() {
         for (final TableMetaData meta : this.tableRegistry.values()) {
             try {
-                logger.fine("caching conditions " + meta.getKey() + " with type "
+                LOGGER.fine("caching conditions " + meta.getKey() + " with type "
                         + meta.getCollectionClass().getCanonicalName());
                 this.getCachedConditions(meta.getCollectionClass(), meta.getKey());
             } catch (final Exception e) {
-                logger.warning("could not cache conditions " + meta.getKey());
+                LOGGER.warning("could not cache conditions " + meta.getKey());
             }
         }
     }
@@ -331,7 +330,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Close the database connection.
      */
     public synchronized void closeConnection() {
-        logger.fine("closing connection");
+        LOGGER.fine("closing connection");
         if (this.connection != null) {
             try {
                 if (!this.connection.isClosed()) {
@@ -343,7 +342,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         this.connection = null;
         this.isConnected = false;
-        logger.fine("connection closed");
+        LOGGER.fine("connection closed");
     }
 
     /**
@@ -400,11 +399,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             try {
                 in.close();
             } catch (final IOException e) {
-                logger.warning(e.getMessage());
+                LOGGER.warning(e.getMessage());
             }
             this.isConfigured = true;
         } else {
-            logger.warning("System is already configured, so call to configure is ignored!");
+            LOGGER.warning("System is already configured, so call to configure is ignored!");
         }
     }
 
@@ -436,9 +435,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public synchronized void freeze() {
         if (this.getDetector() != null && this.getRun() != -1) {
             this.isFrozen = true;
-            logger.config("conditions system is frozen");
+            LOGGER.config("conditions system is frozen");
         } else {
-            logger.warning("conditions system cannot be frozen because it is not initialized yet");
+            LOGGER.warning("conditions system cannot be frozen because it is not initialized yet");
         }
     }
 
@@ -603,7 +602,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the set of available conditions tags
      */
     public Set<String> getTags() {
-        logger.fine("getting list of available conditions tags");
+        LOGGER.fine("getting list of available conditions tags");
         final boolean openedConnection = this.openConnection();
         final Set<String> tags = new LinkedHashSet<String>();
         final ResultSet rs = this
@@ -618,7 +617,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         try {
             rs.close();
         } catch (final SQLException e) {
-            logger.log(Level.WARNING, "error closing ResultSet", e);
+            LOGGER.log(Level.WARNING, "error closing ResultSet", e);
         }
         final StringBuffer sb = new StringBuffer();
         sb.append("found unique conditions tags: ");
@@ -626,7 +625,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             sb.append(tag + " ");
         }
         sb.setLength(sb.length() - 1);
-        logger.fine(sb.toString());
+        LOGGER.fine(sb.toString());
         this.closeConnection(openedConnection);
         return tags;
     }
@@ -652,7 +651,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     private void initialize(final String detectorName, final int runNumber) throws ConditionsNotFoundException {
         
-        logger.config("initializing with detector " + detectorName + " and run " + runNumber);
+        LOGGER.config("initializing with detector " + detectorName + " and run " + runNumber);
                 
         // Clear the conditions cache.
         this.clearCache();
@@ -672,11 +671,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
 
         // Register the converters for this initialization.
-        logger.fine("registering converters");
+        LOGGER.fine("registering converters");
         this.registerConverters();
 
         // Enable or disable the setup of the SVT detector.
-        logger.fine("enabling SVT setup: " + this.setupSvtDetector);
+        LOGGER.fine("enabling SVT setup: " + this.setupSvtDetector);
         this.svtSetup.setEnabled(this.setupSvtDetector);
 
         // Open the database connection.
@@ -686,18 +685,18 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         this.conditionsRecordCollection = null;
         
         // Call the super class's setDetector method to construct the detector object and activate conditions listeners.
-        logger.fine("activating default conditions manager");
+        LOGGER.fine("activating default conditions manager");
         super.setDetector(detectorName, runNumber);
         
         // Should all conditions sets be cached?
         if (this.cacheAllConditions) {
             // Cache the conditions sets of all registered converters.
-            logger.fine("caching all conditions sets ...");
+            LOGGER.fine("caching all conditions sets ...");
             this.cacheConditionsSets();
         }
 
         if (this.closeConnectionAfterInitialize) {
-            logger.fine("closing connection after initialization");
+            LOGGER.fine("closing connection after initialization");
             // Close the connection.
             this.closeConnection();
         }
@@ -706,15 +705,15 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         if (this.freezeAfterInitialize) {
             // Freeze the conditions system so subsequent updates will be ignored.
             this.freeze();
-            logger.config("system was frozen after initialization");
+            LOGGER.config("system was frozen after initialization");
         }
 
         this.isInitialized = true;
 
-        logger.info("conditions system initialized successfully");
+        LOGGER.info("conditions system initialized successfully");
 
         // Flush logger after initialization.
-        logger.getHandlers()[0].flush();
+        LOGGER.getHandlers()[0].flush();
     }
 
     /**
@@ -769,7 +768,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         Element element = node.getChild("setupSvtDetector");
         if (element != null) {
             this.setupSvtDetector = Boolean.parseBoolean(element.getText());
-            logger.config("setupSvtDetector = " + this.setupSvtDetector);
+            LOGGER.config("setupSvtDetector = " + this.setupSvtDetector);
         }
 
         element = node.getChild("ecalName");
@@ -785,19 +784,19 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         element = node.getChild("freezeAfterInitialize");
         if (element != null) {
             this.freezeAfterInitialize = Boolean.parseBoolean(element.getText());
-            logger.config("freezeAfterInitialize = " + this.freezeAfterInitialize);
+            LOGGER.config("freezeAfterInitialize = " + this.freezeAfterInitialize);
         }
 
         element = node.getChild("cacheAllCondition");
         if (element != null) {
             this.cacheAllConditions = Boolean.parseBoolean(element.getText());
-            logger.config("cacheAllConditions = " + this.cacheAllConditions);
+            LOGGER.config("cacheAllConditions = " + this.cacheAllConditions);
         }
 
         element = node.getChild("isTestRun");
         if (element != null) {
             this.isTestRun = Boolean.parseBoolean(element.getText());
-            logger.config("isTestRun = " + this.isTestRun);
+            LOGGER.config("isTestRun = " + this.isTestRun);
         }
 
         element = node.getChild("logLevel");
@@ -808,14 +807,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         element = node.getChild("closeConnectionAfterInitialize");
         if (element != null) {
             this.closeConnectionAfterInitialize = Boolean.parseBoolean(element.getText());
-            logger.config("closeConnectionAfterInitialize = " + this.closeConnectionAfterInitialize);
+            LOGGER.config("closeConnectionAfterInitialize = " + this.closeConnectionAfterInitialize);
         }
 
         element = node.getChild("loginTimeout");
         if (element != null) {
             final Integer timeout = Integer.parseInt(element.getText());
             DriverManager.setLoginTimeout(timeout);
-            logger.config("loginTimeout = " + timeout);
+            LOGGER.config("loginTimeout = " + timeout);
         }
     }
 
@@ -882,7 +881,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
             if (!this.loggedConnectionParameters) {
                 // Print out detailed info to the log on first connection within the job.
-                logger.info("opening connection ... " + '\n' + "connection: "
+                LOGGER.info("opening connection ... " + '\n' + "connection: "
                         + this.connectionParameters.getConnectionString() + '\n' + "host: "
                         + this.connectionParameters.getHostname() + '\n' + "port: "
                         + this.connectionParameters.getPort() + '\n' + "user: " + this.connectionParameters.getUser()
@@ -919,12 +918,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             // Load Test Run specific converters.
             this.svtConverter = new TestRunSvtConditionsConverter();
             this.ecalConverter = new TestRunEcalConditionsConverter();
-            logger.config("registering Test Run conditions converters");
+            LOGGER.config("registering Test Run conditions converters");
         } else {
             // Load the default converters.
             this.svtConverter = new SvtConditionsConverter();
             this.ecalConverter = new EcalConditionsConverter();
-            logger.config("registering default conditions converters");
+            LOGGER.config("registering default conditions converters");
         }
         this.registerConditionsConverter(this.svtConverter);
         this.registerConditionsConverter(this.ecalConverter);
@@ -938,7 +937,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @throws RuntimeException if there is a query error
      */
     ResultSet selectQuery(final String query) {
-        logger.fine("executing SQL select query ..." + '\n' + query);
+        LOGGER.fine("executing SQL select query ..." + '\n' + query);
         ResultSet result = null;
         Statement statement = null;
         try {
@@ -965,7 +964,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param file the properties file
      */
     public void setConnectionProperties(final File file) {
-        logger.config("setting connection properties file " + file.getPath());
+        LOGGER.config("setting connection properties file " + file.getPath());
         if (!file.exists()) {
             throw new IllegalArgumentException("The connection properties file does not exist: "
                     + this.connectionPropertiesFile.getPath());
@@ -979,7 +978,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param resource the classpath resource location
      */
     public void setConnectionResource(final String resource) {
-        logger.config("setting connection resource " + resource);
+        LOGGER.config("setting connection resource " + resource);
         this.connectionParameters = ConnectionParameters.fromResource(resource);
     }
 
@@ -991,7 +990,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public synchronized void setDetector(final String detectorName, final int runNumber)
             throws ConditionsNotFoundException {
 
-        logger.finest("setDetector " + detectorName + " with run number " + runNumber);
+        LOGGER.finest("setDetector " + detectorName + " with run number " + runNumber);
 
         if (detectorName == null) {
             throw new IllegalArgumentException("The detectorName argument is null.");
@@ -999,10 +998,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
         if (!this.isInitialized || !detectorName.equals(this.getDetector()) || runNumber != this.getRun()) {
             if (!this.isFrozen) {
-                logger.info("new detector " + detectorName + " and run #" + runNumber);
+                LOGGER.info("new detector " + detectorName + " and run #" + runNumber);
                 this.initialize(detectorName, runNumber);
             } else {
-                logger.finest("Conditions changed but will be ignored because manager is frozen.");
+                LOGGER.finest("Conditions changed but will be ignored because manager is frozen.");
             }
         }
     }
@@ -1017,7 +1016,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             throw new IllegalArgumentException("The ecalName is null");
         }
         this.ecalName = ecalName;
-        logger.info("ECAL name set to " + ecalName);
+        LOGGER.info("ECAL name set to " + ecalName);
     }
 
     /**
@@ -1026,9 +1025,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param level the new log level
      */
     public void setLogLevel(final Level level) {
-        logger.config("setting log level to " + level);
-        logger.setLevel(level);
-        logger.getHandlers()[0].setLevel(level);
+        LOGGER.config("setting log level to " + level);
+        LOGGER.setLevel(level);
+        LOGGER.getHandlers()[0].setLevel(level);
         this.svtSetup.setLogLevel(level);
     }
 
@@ -1042,7 +1041,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             throw new IllegalArgumentException("The svtName is null");
         }
         this.svtName = svtName;
-        logger.info("SVT name set to " + this.ecalName);
+        LOGGER.info("SVT name set to " + this.ecalName);
     }
 
     /**
@@ -1054,12 +1053,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public void addTag(final String tag) {
         if (!this.tags.contains(tag)) {
-            logger.info("adding tag " + tag);
+            LOGGER.info("adding tag " + tag);
             ConditionsTagCollection addConditionsTagCollection = this.getCachedConditions(ConditionsTagCollection.class, tag).getCachedData();
-            logger.info("adding conditions tag " + tag + " with " + conditionsTagCollection.size() + " records");
+            LOGGER.info("adding conditions tag " + tag + " with " + conditionsTagCollection.size() + " records");
             this.conditionsTagCollection.addAll(addConditionsTagCollection);                    
         } else {
-            logger.warning("tag " + tag + " is already added");
+            LOGGER.warning("tag " + tag + " is already added");
         }
     }
     
@@ -1095,7 +1094,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                         + " does not exist.");
             }
             this.setConnectionProperties(f);
-            logger.info("connection setup from system property " + CONNECTION_PROPERTY_FILE + " = "
+            LOGGER.info("connection setup from system property " + CONNECTION_PROPERTY_FILE + " = "
                     + systemPropertiesConnectionPath);
         }                              
     }
@@ -1117,7 +1116,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param file the XML file
      */
     public void setXmlConfig(final File file) {
-        logger.config("setting XML config from file " + file.getPath());
+        LOGGER.config("setting XML config from file " + file.getPath());
         if (!file.exists()) {
             throw new IllegalArgumentException("The config file does not exist: " + file.getPath());
         }
@@ -1134,7 +1133,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param resource the embedded XML resource
      */
     public void setXmlConfig(final String resource) {
-        logger.config("setting XML config from resource " + resource);
+        LOGGER.config("setting XML config from resource " + resource);
         final InputStream is = this.getClass().getResourceAsStream(resource);
         this.configure(is);
     }
@@ -1144,6 +1143,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public synchronized void unfreeze() {
         this.isFrozen = false;
-        logger.info("conditions system unfrozen");
+        LOGGER.info("conditions system unfrozen");
     }    
 }
