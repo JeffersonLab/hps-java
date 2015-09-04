@@ -27,5 +27,14 @@ public class RecordProcessingException extends RuntimeException {
     public RecordProcessingException(final String message, final Throwable x) {
         super(message, x);
     }
+    
+    /**
+     * Class constructor.
+     *
+     * @param x cause of the error
+     */
+    public RecordProcessingException(final Throwable x) {
+        super(x);
+    }
 
 }
