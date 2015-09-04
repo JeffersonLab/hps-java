@@ -609,7 +609,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         final boolean openedConnection = this.openConnection();
         final Set<String> tags = new LinkedHashSet<String>();
         final ResultSet rs = this
-                .selectQuery("select distinct(tag) from conditions where tag is not null order by tag");
+                .selectQuery("select distinct(tag) from conditions_tags where tag is not null order by tag");
         try {
             while (rs.next()) {
                 tags.add(rs.getString(1));
