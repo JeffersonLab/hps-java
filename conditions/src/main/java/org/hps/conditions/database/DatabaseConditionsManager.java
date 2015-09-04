@@ -11,7 +11,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -118,7 +117,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         if (!ConditionsManager.isSetup() || !(ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager)) {
             logger.finest("creating new DatabaseConditionsManager instance");
             // Create a new instance if necessary, which will install it globally as the default.
-            new DatabaseConditionsManager();
+            DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
+
+            // Register default conditions manager.
+            ConditionsManager.setDefaultConditionsManager(dbManager);
         }
 
         // Get the instance back from the default conditions system and check that the type is correct now.
@@ -156,7 +158,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public static synchronized void resetInstance() {
         logger.finest("DatabaseConditionsManager instance is being reset");
-        new DatabaseConditionsManager();
+        
+        // Create a new instance if necessary, which will install it globally as the default.
+        DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
+
+        // Register default conditions manager.
+        ConditionsManager.setDefaultConditionsManager(dbManager);
     }
 
     /**
@@ -277,30 +284,31 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Class constructor. Calling this will automatically register this manager as the global default.
      */
-    private DatabaseConditionsManager() {
+    protected DatabaseConditionsManager() {
         
         // Register detector conditions converter.
+        logger.config("registering detector converter");
         this.registerConditionsConverter(new DetectorConditionsConverter());
         
         // Setup connection from system property pointing to a file, if it was set.
+        logger.config("checking for file connection system property");
         this.setupConnectionSystemPropertyFile();
         
         // Setup connection from system property pointing to a resource, if it was set.
+        logger.config("checking for resource connection system property");
         this.setupConnectionSystemPropertyResource();
-        
-        // Register default conditions manager.
-        ConditionsManager.setDefaultConditionsManager(this);
-        
+                
         // Set run to invalid number.
         this.setRun(-1);
         
         // Register conditions converters.
         for (final AbstractConditionsObjectConverter converter : this.converters.values()) {
-            // logger.fine("registering converter for " + converter.getType());
+            logger.config("registering converter for " + converter.getType());
             this.registerConditionsConverter(converter);
         }
         
         // Add the SVT detector setup object as a listener.
+        logger.config("adding SVT setup");
         this.addConditionsListener(this.svtSetup);
     }
 
@@ -410,17 +418,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public ConditionsRecordCollection findConditionsRecords(final String name) {
         return getConditionsRecords().findByKey(name);
     }
-
-    /**
-     * Find table information from the collection type.
-     *
-     * @param type the collection type
-     * @return the table information or <code>null</code> if does not exist
-     */
-    public List<TableMetaData> findTableMetaData(final Class<?> type) {
-        return this.tableRegistry.findByCollectionType(type);
-    }
-
+  
     /**
      * Find table information from the name.
      *
@@ -653,8 +651,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @throws ConditionsNotFoundException if there is a conditions system error
      */
     private void initialize(final String detectorName, final int runNumber) throws ConditionsNotFoundException {
-
+        
         logger.config("initializing with detector " + detectorName + " and run " + runNumber);
+                
+        // Clear the conditions cache.
+        this.clearCache();
 
         // Is not configured yet?
         if (!this.isConfigured) {
@@ -894,7 +895,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             this.isConnected = true;
             openedConnection = true;
         }
-        logger.fine("connection opened successfully");
 
         // Flag to indicate whether an existing connection was used or not.
         return openedConnection;
@@ -1145,33 +1145,5 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public synchronized void unfreeze() {
         this.isFrozen = false;
         logger.info("conditions system unfrozen");
-    }
-
-    /**
-     * Perform a SQL query with an update command like INSERT, DELETE or UPDATE.
-     *
-     * @param query the SQL query string
-     * @return the keys of the rows affected
-     */
-    public List<Integer> updateQuery(final String query) {
-        final boolean openedConnection = this.openConnection();
-        logger.fine("executing SQL update query ..." + '\n' + query);
-        final List<Integer> keys = new ArrayList<Integer>();
-        Statement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = this.connection.createStatement();
-            statement.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
-            resultSet = statement.getGeneratedKeys();
-            while (resultSet.next()) {
-                final int key = resultSet.getInt(1);
-                keys.add(key);
-            }
-        } catch (final SQLException x) {
-            throw new RuntimeException("Error in SQL query: " + query, x);
-        }
-        DatabaseUtilities.cleanup(resultSet);
-        this.closeConnection(openedConnection);
-        return keys;
-    }
+    }    
 }
