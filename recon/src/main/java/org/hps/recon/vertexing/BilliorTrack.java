@@ -90,7 +90,7 @@ public class BilliorTrack {
          TrackState ts=track.getTrackStates().get(0);
         double[] helixparameters = ts.getParameters();
         _parameters = convertParsToBillior(helixparameters);
-        SymmetricMatrix helixcovmatrix = new SymmetricMatrix(3,ts.getCovMatrix(),true);
+        SymmetricMatrix helixcovmatrix = new SymmetricMatrix(5,ts.getCovMatrix(),true);
         _covmatrix = convertCovarianceToBillior(helixcovmatrix, helixparameters);
         _chisq[0]= track.getChi2();
         _nhchisq = 0.;

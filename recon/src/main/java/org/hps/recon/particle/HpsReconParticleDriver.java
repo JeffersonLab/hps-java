@@ -19,6 +19,7 @@ import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.tracking.TrackType;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
@@ -150,10 +151,14 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         for(ReconstructedParticle positron : positrons) {
             for(ReconstructedParticle electron : electrons) {
                
-                // Only vertex particles that are of the same type. This is
-                // only needed when using multiple track collections and 
-                // should be removed once all strategies are combined into one.
-                if (positron.getType() != electron.getType()) continue;
+                // Don't vertex a GBL track with a SeedTrack.
+                if (TrackType.isGBL(positron.getType()) != TrackType.isGBL(electron.getType())) {
+                    continue;
+                }
+                // Only vertex two particles if at least one strategy found both tracks. Take out this check once we reduce the number of tracks.
+                if ((positron.getType() & electron.getType() & 0x1f) == 0) {
+                    continue;
+                }
                 
                 // Make V0 candidates
                 this.makeV0Candidates(electron, positron);
@@ -172,11 +177,16 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                 // Moller candidates.
                 if (firstElectron == secondElectron) continue;
                 
-                // Only vertex particles that are of the same type. This is
-                // only needed when using multiple track collections and 
-                // should be removed once all strategies are combined into one.
-                if (firstElectron.getType() != secondElectron.getType()) continue;
-                
+                // Don't vertex a GBL track with a SeedTrack.
+                if (TrackType.isGBL(firstElectron.getType()) != TrackType.isGBL(secondElectron.getType())) {
+                    continue;
+                }
+
+                // Only vertex two particles if at least one strategy found both tracks. Take out this check once we reduce the number of tracks.
+                if ((firstElectron.getType() & secondElectron.getType() & 0x1f) == 0) {
+                    continue;
+                }
+
                 // Require the the mollers are in opposite volumes
                 if (firstElectron.getTracks().get(0).getTrackStates().get(0).getTanLambda()
                                 *secondElectron.getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0) continue;
@@ -391,10 +401,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      * </code> object.
      */
     private BilliorTrack toBilliorTrack(Track track) {
-        // Convert the track to a helical track fit.
-        HelicalTrackFit trackFit = ((SeedTrack) track).getSeedCandidate().getHelix();
-        
         // Generate and return the billior track.
-        return new BilliorTrack(trackFit);
+        return new BilliorTrack(track);
     }
 }
