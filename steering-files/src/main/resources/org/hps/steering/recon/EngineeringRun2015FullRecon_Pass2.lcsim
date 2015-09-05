@@ -47,19 +47,20 @@
         --> 
         <driver name="TrackReconSeed123Conf5Extd46"/>
         <!-- 
-            TrackDataDriver needs to be run before ReconParticleDriver so the
-            ReconstructedParticle types are properly set.
-         -->
-        <driver name="TrackDataDriver" />
-        <driver name="ReconParticleDriver" />   
+           TrackDataDriver needs to be run before ReconParticleDriver so the
+           ReconstructedParticle types are properly set.
+        -->
+        <driver name="MergeTrackCollections"/>
         <driver name="GBLOutputDriver" />
         <driver name="GBLRefitterDriver" />
+        <driver name="TrackDataDriver" />
+        <driver name="ReconParticleDriver" />   
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
+            <eventInterval>1</eventInterval>
         </driver>        
 
         <!-- Ecal reconstruction drivers -->
@@ -104,7 +105,7 @@
         </driver>
         <!-- SVT Track finding -->
         <driver name="TrackReconSeed345Conf2Extd16" type="org.hps.recon.tracking.TrackerReconDriver">
-            <trackCollectionName>MatchedTracks</trackCollectionName>
+            <trackCollectionName>Tracks_s345_c2_e16</trackCollectionName>
             <strategyResource>HPS_s345_c2_e16.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>8.0</rmsTimeCut>
@@ -127,6 +128,7 @@
             <debug>false</debug>
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>             
+        <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        

@@ -52,10 +52,11 @@
             TrackDataDriver needs to be run before ReconParticleDriver so the
             ReconstructedParticle types are properly set.
          -->
-        <driver name="TrackDataDriver" />              
-        <driver name="ReconParticle" />  
-        <driver name="GBLOutputDriver"/>
+        <driver name="MergeTrackCollections"/>
+        <driver name="GBLOutputDriver" />
         <driver name="GBLRefitterDriver" />
+        <driver name="TrackDataDriver" />
+        <driver name="ReconParticleDriver" />   
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -94,7 +95,7 @@
         </driver>
           <!-- SVT Track finding -->
         <driver name="TrackReconSeed345Conf2Extd16" type="org.hps.recon.tracking.TrackerReconDriver">
-            <trackCollectionName>MatchedTracks</trackCollectionName>
+            <trackCollectionName>Tracks_s345_c2_e16</trackCollectionName>
             <strategyResource>HPS_s345_c2_e16.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>8.0</rmsTimeCut>
@@ -117,6 +118,7 @@
             <debug>false</debug>
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>       
+        <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
         <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver"/>             
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.HpsGblRefitter"/>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">

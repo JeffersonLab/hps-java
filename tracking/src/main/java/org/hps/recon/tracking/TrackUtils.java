@@ -780,7 +780,7 @@ public class TrackUtils {
         if (track.getClass().isInstance(SeedTrack.class))
             return ((SeedTrack) track).getSeedCandidate().getHelix();
         else
-            return getHTF(track.getTrackStates().get(0).getParameters());
+            return getHTF(track.getTrackStates().get(0));
     }
 
     public static HelicalTrackFit getHTF(double par[]) {
@@ -788,6 +788,13 @@ public class TrackUtils {
         SymmetricMatrix cov = new SymmetricMatrix(5);
         for (int i = 0; i < cov.getNRows(); ++i)
             cov.setElement(i, i, 1.);
+        HelicalTrackFit htf = new HelicalTrackFit(par, cov, new double[2], new int[2], null, null);
+        return htf;
+    }
+
+    public static HelicalTrackFit getHTF(TrackState state) {
+        double par[] = state.getParameters();
+        SymmetricMatrix cov = new SymmetricMatrix(5, state.getCovMatrix(), true);
         HelicalTrackFit htf = new HelicalTrackFit(par, cov, new double[2], new int[2], null, null);
         return htf;
     }

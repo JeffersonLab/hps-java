@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hps.recon.tracking.EventQuality;
+import org.hps.recon.tracking.StrategyType;
+import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
@@ -22,7 +24,9 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.MyLCRelation;
 import org.lcsim.geometry.Detector;
+import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -47,6 +51,7 @@ public class GBLOutputDriver extends Driver {
     private String gblFileName = "";
     private String outputPlotFileName = "";
     private final String MCParticleCollectionName = "MCParticle";
+    private String trackCollectionName = "MatchedTracks";
     private int _debug = 0;
     private boolean isMC = false;
     private int totalTracks = 0;
@@ -76,18 +81,14 @@ public class GBLOutputDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        // Check if the event contains a collection of the type Track. If it
-        // doesn't skip the event.
-        if (!event.hasCollection(Track.class)) {
+        List<Track> tracklist = null;
+        if (event.hasCollection(Track.class, trackCollectionName)) {
+            tracklist = event.get(Track.class, trackCollectionName);
+            if (_debug > 0) {
+                System.out.printf("%s: Event %d has %d tracks\n", this.getClass().getSimpleName(), event.getEventNumber(), tracklist.size());
+            }
+        } else {
             return;
-        }
-
-        // Get all collections of the type Track from the event. This is
-        // required since the event contains a track collection for each of the
-        // different tracking strategies.
-        List<List<Track>> trackCollections = event.get(Track.class);
-        if (_debug > 0) {
-            System.out.printf("%s: Event %d has %d tracks\n", this.getClass().getSimpleName(), event.getEventNumber(), trackCollections.size());
         }
 
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
@@ -111,27 +112,6 @@ public class GBLOutputDriver extends Driver {
             }
         }
 
-        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
-        // Loop over each of the track collections retrieved from the event
-        Map<Set<TrackerHit>, List<Track>> hitsToTracksMap = new HashMap<Set<TrackerHit>, List<Track>>();
-        for (List<Track> tracklist : trackCollections) {
-            for (Track trk : tracklist) {
-                totalTracks++;
-                if (TrackUtils.isGoodTrack(trk, tracklist, EventQuality.Quality.NONE)) {
-                    Set<TrackerHit> trackHits = new HashSet<TrackerHit>(TrackUtils.getStripHits(trk, hitToStrips, hitToRotated));
-                    List<Track> matchingTracks = hitsToTracksMap.get(trackHits);
-                    if (matchingTracks == null) {
-                        matchingTracks = new ArrayList<Track>();
-                        hitsToTracksMap.put(trackHits, matchingTracks);
-                    }
-                    matchingTracks.add(trk);
-                } else if (_debug > 0) {
-                    System.out.printf("%s: Track failed selection\n", this.getClass().getSimpleName());
-                }
-            }
-        }
-
         // GBLData 
         // containers and data
         List<GBLEventData> gblEventData = new ArrayList<GBLEventData>();
@@ -146,38 +126,41 @@ public class GBLOutputDriver extends Driver {
 
         iTrack = 0;
 
-        for (List<Track> matchingTracks : hitsToTracksMap.values()) {
-            Track trk = matchingTracks.get(0);//arbitrarily pick one track to use to generate GBL data
+        // Loop over each of the track collections retrieved from the event
+        for (Track trk : tracklist) {
+            totalTracks++;
 
-            if (_debug > 0) {
-                System.out.printf("%s: Print GBL output for this track\n", this.getClass().getSimpleName());
+            if (TrackUtils.isGoodTrack(trk, tracklist, EventQuality.Quality.NONE)) {
+                if (_debug > 0) {
+                    System.out.printf("%s: Print GBL output for this track\n", this.getClass().getSimpleName());
+                }
+
+                //GBLDATA
+                GBLTrackData gblTrackData = new GBLTrackData(iTrack);
+                gblTrackDataList.add(gblTrackData);
+
+                //print to text file
+                gbl.printTrackID(iTrack);
+                gbl.printGBL(trk, stripHits, gblTrackData, gblStripDataList, mcParticles, simTrackerHits, this.isMC);
+
+                //GBLDATA
+                //add relation to normal track object
+                trackToGBLTrackRelationListAll.add(new MyLCRelation(trk, gblTrackData));
+                // add strip clusters to lists
+                for (GBLStripClusterData gblStripClusterData : gblStripDataList) {
+                    // add all strip clusters from this track to output list
+                    gblStripDataListAll.add(gblStripClusterData);
+                    // add LC relations between cluster and track
+                    gblTrackToStripClusterRelationListAll.add(new MyLCRelation(gblTrackData, gblStripClusterData));
+                }
+                // clear list of strips for next track
+                gblStripDataList.clear();
+
+                totalTracksProcessed++;
+                ++iTrack;
+            } else if (_debug > 0) {
+                System.out.printf("%s: Track failed selection\n", this.getClass().getSimpleName());
             }
-
-            //GBLDATA
-            GBLTrackData gblTrackData = new GBLTrackData(iTrack);
-            gblTrackDataList.add(gblTrackData);
-
-            //print to text file
-            gbl.printTrackID(iTrack);
-            gbl.printGBL(trk, stripHits, gblTrackData, gblStripDataList, mcParticles, simTrackerHits, this.isMC);
-
-            //GBLDATA
-            //add relation to normal track object
-            for (Track matchingTrack : matchingTracks) {
-                trackToGBLTrackRelationListAll.add(new MyLCRelation(matchingTrack, gblTrackData));
-            }
-            // add strip clusters to lists
-            for (GBLStripClusterData gblStripClusterData : gblStripDataList) {
-                // add all strip clusters from this track to output list
-                gblStripDataListAll.add(gblStripClusterData);
-                // add LC relations between cluster and track
-                gblTrackToStripClusterRelationListAll.add(new MyLCRelation(gblTrackData, gblStripClusterData));
-            }
-            // clear list of strips for next track
-            gblStripDataList.clear();
-
-            totalTracksProcessed++;
-            ++iTrack;
         }
 
         event.put("GBLEventData", gblEventData, GBLEventData.class, 0);
@@ -205,7 +188,7 @@ public class GBLOutputDriver extends Driver {
         }
         System.out.println(this.getClass().getSimpleName() + ": Total Number of Events           = " + iEvent);
         System.out.println(this.getClass().getSimpleName() + ": Total Number of Tracks           = " + totalTracks);
-        System.out.println(this.getClass().getSimpleName() + ": Total Number of Unique Tracks Processed = " + totalTracksProcessed);
+        System.out.println(this.getClass().getSimpleName() + ": Total Number of Tracks Processed = " + totalTracksProcessed);
 
     }
 

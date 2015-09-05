@@ -172,23 +172,6 @@ public final class TrackDataDriver extends Driver {
             // Loop over all the tracks in the event
             for (Track track : tracks) {
 
-                //
-                // Set the TrackType of the track based on the tracking 
-                // strategy that was used to find it.
-                //
-                
-                // Get the name of the strategy used to find this track
-                SeedTrack seedTrack = (SeedTrack) track; 
-                String strategyName = seedTrack.getStrategy().getName();
-               
-                // Check if a StrategyType is associated with this strategy. 
-                // If it is, set the track type.  Otherwise, just move on 
-                // and stick with the default value of zero.
-                StrategyType strategyType = StrategyType.getType(strategyName);
-                if (strategyType != null) { 
-                    seedTrack.setTrackType(TrackType.getType(strategyType));
-                }
-                
                 totalT0 = 0;
                 totalHits = 0;
                 t0Residuals.clear();
