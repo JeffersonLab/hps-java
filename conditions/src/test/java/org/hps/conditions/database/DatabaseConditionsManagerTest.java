@@ -47,7 +47,7 @@ public class DatabaseConditionsManagerTest extends TestCase {
         TestCase.assertTrue("The manager should be connected.", manager.isConnected());        
         TestCase.assertNotNull("The connection is null.", manager.getConnection());
         
-        // Turn of SVT detector setup becaues some classes are not available from this module.
+        // Turn off SVT detector setup becaues some classes are not available from this module.
         manager.setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");    
         
         // Initialize the conditions system.
