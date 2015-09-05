@@ -126,7 +126,7 @@ public final class ResourceUtil {
      */
     // FIXME: This method probably does not belong in this class.
     public static String[] getConditionsTags() {
-        return DatabaseConditionsManager.getInstance().getTags().toArray(new String[] {});
+        return DatabaseConditionsManager.getInstance().getAvailableTags().toArray(new String[] {});
     }
 
     /**
