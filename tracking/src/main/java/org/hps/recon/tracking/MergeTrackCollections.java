@@ -15,6 +15,9 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 
 /**
+ * Read all track collections in the event, deduplicate tracks with the same hit
+ * content, and put the resulting list of unique tracks in a new collection.
+ * Remove the original track collections (this behavior can be disabled).
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: $
@@ -82,13 +85,13 @@ public class MergeTrackCollections extends Driver {
             deduplicatedTracks.add(trk);
         }
 
-        int flag = 1 << LCIOConstants.TRBIT_HITS;
-        event.put(outputCollectionName, deduplicatedTracks, Track.class, flag);
-
         if (removeCollections) {
             for (List<Track> tracklist : trackCollections) {
                 event.remove(event.getMetaData(tracklist).getName());
             }
         }
+
+        int flag = 1 << LCIOConstants.TRBIT_HITS;
+        event.put(outputCollectionName, deduplicatedTracks, Track.class, flag);
     }
 }
