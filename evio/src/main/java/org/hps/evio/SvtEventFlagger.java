@@ -13,6 +13,7 @@ import org.hps.conditions.svt.SvtBiasConstant;
 import org.hps.conditions.svt.SvtMotorPosition;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.HeadBankData;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -78,24 +79,30 @@ public class SvtEventFlagger {
     }
 
     public void initialize() {
-        svtBiasConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtBiasConstant.SvtBiasConstantCollection.class, "svt_bias_constants").getCachedData();
-        svtPositionConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtMotorPosition.SvtMotorPositionCollection.class, "svt_motor_positions").getCachedData();
-
-        SvtAlignmentConstant.SvtAlignmentConstantCollection alignmentConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtAlignmentConstant.SvtAlignmentConstantCollection.class, "svt_alignments").getCachedData();
-
-        for (final SvtAlignmentConstant constant : alignmentConstants) {
-            switch (constant.getParameter()) {
-                case 13100:
-//                    System.out.format("nominal top angle: %f\n", constant.getValue());
-                    nominalAngleTop = constant.getValue();
-                    break;
-                case 23100:
-//                    System.out.format("nominal bottom angle: %f\n", constant.getValue());
-                    nominalAngleBottom = -constant.getValue();
-                    break;
-            }
+        try {
+            svtBiasConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtBiasConstant.SvtBiasConstantCollection.class, "svt_bias_constants").getCachedData();
+        } catch (ConditionsManager.ConditionsSetNotFoundException e) {
+            svtBiasConstants = null;
         }
+        try {
+            svtPositionConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtMotorPosition.SvtMotorPositionCollection.class, "svt_motor_positions").getCachedData();
+            SvtAlignmentConstant.SvtAlignmentConstantCollection alignmentConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtAlignmentConstant.SvtAlignmentConstantCollection.class, "svt_alignments").getCachedData();
 
+            for (final SvtAlignmentConstant constant : alignmentConstants) {
+                switch (constant.getParameter()) {
+                    case 13100:
+//                    System.out.format("nominal top angle: %f\n", constant.getValue());
+                        nominalAngleTop = constant.getValue();
+                        break;
+                    case 23100:
+//                    System.out.format("nominal bottom angle: %f\n", constant.getValue());
+                        nominalAngleBottom = -constant.getValue();
+                        break;
+                }
+            }
+        } catch (ConditionsManager.ConditionsSetNotFoundException e) {
+            svtPositionConstants = null;
+        }
     }
 
     private static boolean isBurstmodeNoiseGood(EventHeader event) {
