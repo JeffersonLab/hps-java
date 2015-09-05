@@ -11,6 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -114,7 +116,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
         // Is there no manager installed yet?
         if (!ConditionsManager.isSetup() || !(ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager)) {
-            LOGGER.finest("creating new DatabaseConditionsManager instance");
+            
             // Create a new instance if necessary, which will install it globally as the default.
             DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
 
@@ -125,7 +127,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         // Get the instance back from the default conditions system and check that the type is correct now.
         final ConditionsManager manager = ConditionsManager.defaultInstance();
         if (!(manager instanceof DatabaseConditionsManager)) {
-            LOGGER.severe("default conditions manager has wrong type: " + manager.getClass());
             throw new RuntimeException("Default conditions manager has the wrong type: "
                     + ConditionsManager.defaultInstance().getClass().getName());
         }
@@ -156,13 +157,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Reset the global static instance of the conditions manager to a new object.
      */
     public static synchronized void resetInstance() {
-        LOGGER.finest("DatabaseConditionsManager instance is being reset");
-        
+                        
         // Create a new instance if necessary, which will install it globally as the default.
         DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
 
         // Register default conditions manager.
         ConditionsManager.setDefaultConditionsManager(dbManager);
+        
+        LOGGER.info("DatabaseConditionsManager instance is reset");
     }
 
     /**
@@ -286,15 +288,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     protected DatabaseConditionsManager() {
         
         // Register detector conditions converter.
-        LOGGER.config("registering detector converter");
         this.registerConditionsConverter(new DetectorConditionsConverter());
         
         // Setup connection from system property pointing to a file, if it was set.
-        LOGGER.config("checking for file connection system property");
         this.setupConnectionSystemPropertyFile();
         
         // Setup connection from system property pointing to a resource, if it was set.
-        LOGGER.config("checking for resource connection system property");
         this.setupConnectionSystemPropertyResource();
                 
         // Set run to invalid number.
@@ -302,12 +301,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         
         // Register conditions converters.
         for (final AbstractConditionsObjectConverter converter : this.converters.values()) {
-            LOGGER.config("registering converter for " + converter.getType());
             this.registerConditionsConverter(converter);
         }
         
         // Add the SVT detector setup object as a listener.
-        LOGGER.config("adding SVT setup");
         this.addConditionsListener(this.svtSetup);
     }
 
@@ -595,13 +592,22 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public SvtConditions getSvtConditions() {
         return this.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
     }
+    
+    /**
+     * Get the currently active conditions tags.
+     * 
+     * @return the currently active conditions tags
+     */
+    public Collection<String> getActiveTags() {
+        return Collections.unmodifiableCollection(this.tags);
+    }
 
     /**
      * Get the set of available conditions tags from the conditions table
      *
      * @return the set of available conditions tags
      */
-    public Set<String> getTags() {
+    public Set<String> getAvailableTags() {
         LOGGER.fine("getting list of available conditions tags");
         final boolean openedConnection = this.openConnection();
         final Set<String> tags = new LinkedHashSet<String>();
@@ -655,10 +661,15 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 
         // Clear the conditions cache.
         this.clearCache();
+                
+        // Set flag if run number is from Test Run 2012 data.
+        if (isTestRun(runNumber)) {
+            this.isTestRun = true;
+        }
 
         // Is not configured yet?
         if (!this.isConfigured) {
-            if (isTestRun(runNumber)) {
+            if (isTestRun()) {
                 // This looks like the Test Run so use the custom configuration for it.
                 this.setXmlConfig(DatabaseConditionsManager.TEST_RUN_CONFIG);
             } else if (runNumber > TEST_RUN_MAX_RUN) {
@@ -671,11 +682,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
 
         // Register the converters for this initialization.
-        LOGGER.fine("registering converters");
         this.registerConverters();
 
         // Enable or disable the setup of the SVT detector.
-        LOGGER.fine("enabling SVT setup: " + this.setupSvtDetector);
+        LOGGER.fine("SVT setup enabled: " + this.setupSvtDetector);
         this.svtSetup.setEnabled(this.setupSvtDetector);
 
         // Open the database connection.
@@ -691,7 +701,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         // Should all conditions sets be cached?
         if (this.cacheAllConditions) {
             // Cache the conditions sets of all registered converters.
-            LOGGER.fine("caching all conditions sets ...");
+            LOGGER.fine("caching conditions sets");
             this.cacheConditionsSets();
         }
 
@@ -774,11 +784,13 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         element = node.getChild("ecalName");
         if (element != null) {
             this.setEcalName(element.getText());
+            LOGGER.config("ecalName = " + this.getEcalName());
         }
 
         element = node.getChild("svtName");
         if (element != null) {
             this.setSvtName(element.getText());
+            LOGGER.config("svtName = " + this.svtName);
         }
 
         element = node.getChild("freezeAfterInitialize");
@@ -1054,9 +1066,13 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public void addTag(final String tag) {
         if (!this.tags.contains(tag)) {
             LOGGER.info("adding tag " + tag);
-            ConditionsTagCollection addConditionsTagCollection = this.getCachedConditions(ConditionsTagCollection.class, tag).getCachedData();
+            ConditionsTagCollection findConditionsTag = this.getCachedConditions(ConditionsTagCollection.class, tag).getCachedData();
+            if (findConditionsTag.size() == 0) {
+                throw new IllegalArgumentException("The tag " + tag + " does not exist in the database.");
+            }
             LOGGER.info("adding conditions tag " + tag + " with " + conditionsTagCollection.size() + " records");
-            this.conditionsTagCollection.addAll(addConditionsTagCollection);                    
+            this.conditionsTagCollection.addAll(findConditionsTag);
+            this.tags.add(tag);
         } else {
             LOGGER.warning("tag " + tag + " is already added");
         }
