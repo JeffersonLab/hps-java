@@ -60,7 +60,7 @@
     </execute>    
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
+            <eventInterval>1000</eventInterval>
         </driver>        
 
         <!-- Ecal reconstruction drivers -->
