@@ -66,6 +66,9 @@ public class SvtAlignmentFilter extends EventReconFilter {
             }
         }
 
+        // skip event if there are no selected tracks at this point
+        if(selectedTracks.size()==0) skipEvent();
+        
         // remove old track collection
         event.remove("MatchedTracks");
         
