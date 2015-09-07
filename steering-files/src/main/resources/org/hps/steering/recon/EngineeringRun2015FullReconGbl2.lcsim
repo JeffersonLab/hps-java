@@ -10,25 +10,27 @@
         <numberOfEvents>-1</numberOfEvents>
     </control>
     <execute>
+        <driver name="CleanupDriver"/>
         <driver name="EventMarkerDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
-        <driver name="HelicalTrackHitDriver"/>
-        <driver name="TrackerReconDriver"/>
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="TrackerReconDriver"/>
         <driver name="GTPOnlineClusterer" />
         <driver name="CopyCluster" />
         <driver name="ReconParticle" />  
         <driver name="TrackDataDriver" />              
+        <driver name="AlignmentFilterDriver"/>
         <!--<driver name="GBLDriver"/>--> 
         <driver name="GBLOutputDriver"/>
         <driver name="TrackingReconstructionPlots"/>
         <driver name="LCIOWriter"/>
          <driver name="AidaSaveDriverRoot" /> 
-        <driver name="CleanupDriver"/>
+ <!--       <driver name="CleanupDriver"/>-->
     </execute>    
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
@@ -134,6 +136,8 @@
         </driver>
         <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+        <driver name="AlignmentFilterDriver" type="org.hps.recon.filtering.SvtAlignmentFilter">
         </driver>
         
     </drivers>
