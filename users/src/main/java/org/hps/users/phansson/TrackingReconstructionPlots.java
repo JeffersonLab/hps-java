@@ -94,6 +94,8 @@ public class TrackingReconstructionPlots extends Driver {
     IPlotter plotter7;
     IPlotter plotter8;
     IPlotter plotter88;
+    IPlotter plotter888;
+    IPlotter plotter8888;
     IPlotter plotter9;
     IPlotter top1;
     IPlotter top2;
@@ -923,6 +925,35 @@ public class TrackingReconstructionPlots extends Driver {
         }
 
         if(showPlots) plotter9.show();
+        
+        
+        plotter888 = fac.createPlotterFactory().create("HPS Strip Hit Isolation");
+        plotter888.setTitle("Strip Hit Isolation");
+        //plotterFrame.addPlotter(plotter88);
+        plotter888.setStyle(style8);
+        plotter888.createRegions(6, 6);
+        i=0;
+        for(SiSensor sensor : sensors) {
+            IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip hits iso", 50, 0, 5);
+            plotter888.region(i).plot(resX);
+            i++;
+        }
+
+        if(showPlots) plotter888.show();
+        
+        plotter8888 = fac.createPlotterFactory().create("HPS Strip Hit On Track Isolation");
+        plotter8888.setTitle("Strip Hit On Track Isolation");
+        //plotterFrame.addPlotter(plotter88);
+        plotter8888.setStyle(style8);
+        plotter8888.createRegions(6, 6);
+        i=0;
+        for(SiSensor sensor : sensors) {
+            IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip hits iso on track", 50, 0, 5);
+            plotter8888.region(i).plot(resX);
+            i++;
+        }
+
+        if(showPlots) plotter8888.show();
 
 
     }
@@ -958,6 +989,7 @@ public class TrackingReconstructionPlots extends Driver {
         List<SiTrackerHitStrip1D> stripClusters = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
         //System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", stripHits.size());
         Map<HpsSiSensor, Integer> stripHits = new HashMap<HpsSiSensor, Integer>();
+        Map<HpsSiSensor, Double> stripHitsIso = new HashMap<HpsSiSensor, Double>();
         for (SiTrackerHitStrip1D stripHit : stripClusters) {
             HpsSiSensor sensor = (HpsSiSensor) stripHit.getRawHits().get(0).getDetectorElement();
             int n;
@@ -968,11 +1000,38 @@ public class TrackingReconstructionPlots extends Driver {
             }
             n++;
             stripHits.put(sensor, n);
+            
+            // calculate isolation to other strip clusters
+            
+            SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+            
+            double stripIsoMin = 9999.9;
+            for (SiTrackerHitStrip1D stripHitOther : stripClusters) {
+                logger.fine(stripHit.getPositionAsVector().toString() + " c.f. " + stripHitOther.getPositionAsVector().toString());
+                
+                if(stripHitOther.equals(stripHit)) {
+                    continue;
+                }
+                
+                HpsSiSensor sensorOther = (HpsSiSensor) stripHitOther.getRawHits().get(0).getDetectorElement();
+                //System.out.println(sensor.getName() + " c.f. " + sensorOther.getName());
+                if(sensorOther.equals(sensor)) {
+                    SiTrackerHitStrip1D localOther = stripHitOther.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+                    double d = Math.abs(local.getPosition()[0] - localOther.getPosition()[0]);
+                    //System.out.println(sensor.getName() + " d " + Double.toString(d));
+                    if (d < stripIsoMin && d > 0) {
+                        stripIsoMin = d;
+                    }
+                }
+            }
+            stripHitsIso.put(sensor, stripIsoMin);
         }
         
         for(Map.Entry<HpsSiSensor,Integer> sensor : stripHits.entrySet()) {
             aida.histogram1D(sensor.getKey().getName() + " strip hits").fill(sensor.getValue());
+            aida.histogram1D(sensor.getKey().getName() + " strip hits iso").fill(stripHitsIso.get(sensor.getKey()));
         }
+        
         
         
         
@@ -1147,6 +1206,7 @@ public class TrackingReconstructionPlots extends Driver {
             }
             List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
             Map<HpsSiSensor, Integer> stripHitsOnTrack = new HashMap<HpsSiSensor, Integer>();
+            Map<HpsSiSensor, Double> stripHitsIsoOnTrack = new HashMap<HpsSiSensor, Double>();
             
             for (TrackerHit hit : hitsOnTrack) {
 
@@ -1165,15 +1225,28 @@ public class TrackingReconstructionPlots extends Driver {
                     else isTopLayer=false;
                     HelicalTrackStripGbl stripGbl = new HelicalTrackStripGbl(strip, true);
                     Map<String, Double> stripResiduals = TrackUtils.calculateLocalTrackHitResiduals(helicalTrackFit, stripGbl, 0.,0.,_bfield);
-                    logger.info("Sensor " + sensor.getName() + " ures = " + stripResiduals.get("ures"));
+                    logger.fine("Sensor " + sensor.getName() + " ures = " + stripResiduals.get("ures"));
                     aida.histogram1D(sensor.getName() + " strip residual (mm)").fill(stripResiduals.get("ures"));
                     
+                    
+                    // calculate isolation to other strip clusters
+                    double stripIsoMin = 9999.9;
+                    for (SiTrackerHitStrip1D stripHit : stripClusters) {
+                        if (stripHit.getRawHits().get(0).getDetectorElement().getName().equals(sensor.getName())) {
+                            SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+                            double d = Math.abs(strip.umeas() - local.getPosition()[0]);
+                            if (d < stripIsoMin && d > 0) {
+                                stripIsoMin = d;
+                            }
+                        }
+                    }
 
                     if(stripHitsOnTrack.containsKey(sensor)) {
                         stripHitsOnTrack.put(sensor, stripHitsOnTrack.get(sensor) + 1);
                     } else {
                         stripHitsOnTrack.put(sensor, 1);
                     }
+                    stripHitsIsoOnTrack.put(sensor, stripIsoMin);
                 }
                 
                 
@@ -1291,6 +1364,7 @@ public class TrackingReconstructionPlots extends Driver {
             
             for(Map.Entry<HpsSiSensor,Integer> sensor : stripHitsOnTrack.entrySet()) {
                 aida.histogram1D(sensor.getKey().getName() + " strip hits on track").fill(sensor.getValue());
+                aida.histogram1D(sensor.getKey().getName() + " strip hits iso on track").fill(stripHitsIsoOnTrack.get(sensor.getKey()));
             }
             
             
@@ -1320,11 +1394,6 @@ public class TrackingReconstructionPlots extends Driver {
                         aida.histogram2D("Y ECal Vs Track").fill(clust.getPosition()[1], posAtEcal.y());
 
                         if (isTop == 0) {
-                            aida.histogram1D("Tracks matched Top").fill(1);
-                            if(trk.getTrackStates().get(0).getMomentum()[0] > 0.8){
-                                aida.histogram1D("Tracks matched Top (Pz>0.8)").fill(1);
-                            }
-
                             aida.histogram2D("Top Energy Vs Momentum").fill(clust.getEnergy(), trk.getTrackStates().get(0).getMomentum()[0] );
                             //                    aida.histogram2D("Top Energy Vs Momentum").fill(posAtEcal.y(), trk.getTrackStates().get(0).getMomentum()[0]);
                             aida.histogram1D("Top Energy Over Momentum").fill(clust.getEnergy() / (trk.getTrackStates().get(0).getMomentum()[0]));
@@ -1335,10 +1404,6 @@ public class TrackingReconstructionPlots extends Driver {
                             aida.histogram2D("Top X ECal Vs Track").fill(clust.getPosition()[0], posAtEcal.x());
                             aida.histogram2D("Top Y ECal Vs Track").fill(clust.getPosition()[1], posAtEcal.y());
                         } else {
-                            aida.histogram1D("Tracks matched Bottom").fill(1);
-                            if(trk.getTrackStates().get(0).getMomentum()[0] > 0.8){
-                                aida.histogram1D("Tracks matched Bottom (Pz>0.8)").fill(1);
-                            }
                             aida.histogram2D("Bottom Energy Vs Momentum").fill(clust.getEnergy(), trk.getTrackStates().get(0).getMomentum()[0] );
                             aida.histogram1D("Bottom Energy Over Momentum").fill(clust.getEnergy() / (trk.getTrackStates().get(0).getMomentum()[0]));
                             aida.histogram1D("Bottom deltaX").fill(clust.getPosition()[0] - posAtEcal.x());
@@ -1352,7 +1417,7 @@ public class TrackingReconstructionPlots extends Driver {
                 } 
             }
 
-            if (clust != null) {
+            if (clust == null) {
                 aida.histogram1D("Tracks matched").fill(0);
                 if(trk.getTrackStates().get(0).getMomentum()[0] > 0.8){
                     aida.histogram1D("Tracks matched (Pz>0.8)").fill(0);
