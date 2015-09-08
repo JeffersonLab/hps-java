@@ -244,9 +244,9 @@ public class TrackUtils {
 
         Hep3Vector trackPosition;
         double dz;
-        if (z >= BeamlineConstants.DIPOLE_EDGE_TESTRUN) {
-            trackPosition = extrapolateHelixToXPlane(track, BeamlineConstants.DIPOLE_EDGE_TESTRUN);
-            dz = z - BeamlineConstants.DIPOLE_EDGE_TESTRUN;
+        if (z >= BeamlineConstants.DIPOLE_EDGE_ENG_RUN) {
+            trackPosition = extrapolateHelixToXPlane(track, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
+            dz = z - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
         } else if (z <= BeamlineConstants.DIPOLE_EDGELOW_TESTRUN) {
             trackPosition = extrapolateHelixToXPlane(track, BeamlineConstants.DIPOLE_EDGELOW_TESTRUN);
             dz = z - trackPosition.x();
