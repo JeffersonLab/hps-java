@@ -497,7 +497,7 @@ public class BilliorVertexer {
         BasicMatrix Vk = new BasicMatrix(3, 3);
         Vk.setElement(0, 0, _beamSize[0] * _beamSize[0]);
         Vk.setElement(1, 1, _beamSize[1] * _beamSize[1]);
-        Vk.setElement(2, 2, _beamSize[2] * _beamSize[1]);
+        Vk.setElement(2, 2, _beamSize[2] * _beamSize[2]);
 
         //now do the matrix operations to get the constrained parameters
         BasicMatrix Hkt = (BasicMatrix) MatrixOp.transposed(Hk);
@@ -654,7 +654,7 @@ public class BilliorVertexer {
         BasicMatrix Vk = new BasicMatrix(3, 3);
         Vk.setElement(0, 0, _beamSize[0] * _beamSize[0]);
         Vk.setElement(1, 1, _beamSize[1] * _beamSize[1]);
-        Vk.setElement(2, 2, _beamSize[2] * _beamSize[1]);
+        Vk.setElement(2, 2, _beamSize[2] * _beamSize[2]);
 
         //now do the matrix operations to get the constrained parameters
         BasicMatrix Hkt = (BasicMatrix) MatrixOp.transposed(Hk);
