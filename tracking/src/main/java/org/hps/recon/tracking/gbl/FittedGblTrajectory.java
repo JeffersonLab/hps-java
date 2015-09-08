@@ -10,7 +10,7 @@ import org.lcsim.event.Track;
  */
 public class FittedGblTrajectory {
     public static enum GBLPARIDX {
-        QOVERP(0),XTPRIME(1),YTPRIME(2),XT(3),YT(4);
+        QOVERP(0),YTPRIME(1),XTPRIME(2),XT(3),YT(4);
         private int _value;
         private GBLPARIDX(int value) {
             _value = value;

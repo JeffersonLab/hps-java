@@ -5,12 +5,10 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.StrategyType;
 import org.hps.recon.tracking.TrackType;
@@ -22,6 +20,7 @@ import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseTrack;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
@@ -88,8 +87,8 @@ public class MakeGblTracks {
             SeedTrack seedTrack = (SeedTrack) fittedTraj.get_seed();
             SeedCandidate trackseed = seedTrack.getSeedCandidate();
 
-            //  Create a new SeedTrack (SeedTrack extends BaseTrack)
-            SeedTrack trk = new SeedTrack();
+            //  Create a new BaeTrack
+            BaseTrack trk = new BaseTrack();
 
             //  Add the hits to the track
             for (HelicalTrackHit hit : trackseed.getHits()) {
@@ -110,10 +109,10 @@ public class MakeGblTracks {
             trk.setRefPointIsDCA(true);
 
             //      Set the strategy used to find this track
-            trk.setStratetgy(trackseed.getSeedStrategy());
+//            trk.setStratetgy(trackseed.getSeedStrategy());
 
             //  Set the SeedCandidate this track is based on
-            trk.setSeedCandidate(trackseed);
+//            trk.setSeedCandidate(trackseed);
 
             // Add the GBL flag to the track type.
             trk.setTrackType(TrackType.setGBL(seedTrack.getType(), true));
@@ -121,7 +120,7 @@ public class MakeGblTracks {
             // Check the track - hook for plugging in external constraint
             //if ((_trackCheck != null) && (! _trackCheck.checkTrack(trk))) continue;
             //  Add the track to the list of tracks
-            tracks.add((Track) trk);
+            tracks.add(trk);
             logger.info(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helix.chisqtot(), helix.ndf()[0] + helix.ndf()[1], trk.getChi2(), trk.getNDF()));
             if (logger.getLevel().intValue() <= Level.INFO.intValue()) {
                 for (int i = 0; i < 5; ++i) {

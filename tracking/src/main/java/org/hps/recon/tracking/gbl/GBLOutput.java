@@ -908,35 +908,35 @@ public class GBLOutput {
             double qOverP = q / htf.p(Math.abs(B));
             double phi = htf.phi0();
 
-            _params.setElement(0, 0, qOverP);
-            _params.setElement(0, 1, lambda);
-            _params.setElement(0, 2, phi);
-            _params.setElement(0, 3, xT);
-            _params.setElement(0, 4, yT);
+            _params.setElement(0, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(), qOverP);
+            _params.setElement(0, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), lambda);
+            _params.setElement(0, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), phi);
+            _params.setElement(0, FittedGblTrajectory.GBLPARIDX.XT.getValue(), xT);
+            _params.setElement(0, FittedGblTrajectory.GBLPARIDX.YT.getValue(), yT);
         }
 
         public BasicMatrix getParams() {
             return _params;
         }
 
-        double getLambda() {
-            return _params.e(0, 1);
+        double getQoverP() {
+            return _params.e(0, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue());
         }
 
-        double getQoverP() {
-            return _params.e(0, 0);
+        double getLambda() {
+            return _params.e(0, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
         }
 
         double getPhi() {
-            return _params.e(0, 2);
+            return _params.e(0, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());
         }
 
         double getXt() {
-            return _params.e(0, 3);
+            return _params.e(0, FittedGblTrajectory.GBLPARIDX.XT.getValue());
         }
 
         double getYt() {
-            return _params.e(0, 4);
+            return _params.e(0, FittedGblTrajectory.GBLPARIDX.YT.getValue());
         }
 
     }
