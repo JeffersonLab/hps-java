@@ -788,7 +788,7 @@ public class GBLOutput {
             perPar.setElement(0, 0, kappa);
             perPar.setElement(0, 1, theta);
             perPar.setElement(0, 2, htf.phi0());
-            perPar.setElement(0, 3, -1.0 * htf.dca());
+            perPar.setElement(0, 3, htf.dca());
             perPar.setElement(0, 4, htf.z0());
         }
         return perPar;
