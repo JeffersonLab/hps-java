@@ -243,7 +243,7 @@ public final class TrackDataDriver extends Driver {
                 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 TrackState state 
-                    = TrackUtils.extrapolateTrackUsingFieldMap(track, extStartPos, ecalPosition, stepSize, bFieldMap, false);
+                    = TrackUtils.extrapolateTrackUsingFieldMap(track, extStartPos, ecalPosition, stepSize, bFieldMap);
                 track.getTrackStates().add(state);
                 
                 // The track time is the mean t0 of hits on a track
