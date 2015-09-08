@@ -14,5 +14,7 @@ public final class BeamlineConstants {
     public static final double DIPOLE_EDGELOW_TESTRUN = 0.; // 452.2 - 462.2; //
                                                             // mm
     public static final double HARP_POSITION_TESTRUN = -674.062; // mm
-
+    
+    public static final double DIPOLE_EDGE_ENG_RUN = 457.2 + 1080/2; 
+    
 }
