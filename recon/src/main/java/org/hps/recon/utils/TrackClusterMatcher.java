@@ -10,13 +10,15 @@ import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
-
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import org.lcsim.event.Cluster;
 import org.lcsim.event.Track;
-
+import org.lcsim.geometry.FieldMap;
+import org.lcsim.recon.tracking.seedtracker.TrackState;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 
 /**
@@ -26,6 +28,9 @@ import org.hps.recon.tracking.TrackUtils;
  */
 public class TrackClusterMatcher {
 
+    /** The B field map */
+    FieldMap bFieldMap = null;
+    
     // Plotting
     private ITree tree; 
     private IHistogramFactory histogramFactory; 
@@ -50,6 +55,12 @@ public class TrackClusterMatcher {
     private double bottomClusterTrackMatchDeltaYLow = -22.5; // mm 
     private double bottomClusterTrackMatchDeltaYHigh = 22.5; // mm 
 
+    /** Z position to start extrapolation from */
+    double extStartPos = 700; // mm
+   
+    /** The extrapolation step size */ 
+    double stepSize = 5.; // mm
+    
     /** Constructor */
     public TrackClusterMatcher() {};
 
@@ -62,6 +73,10 @@ public class TrackClusterMatcher {
     public void enablePlots(boolean enablePlots) { 
         this.enablePlots = enablePlots;
         if (enablePlots == true) this.bookHistograms();
+    }
+   
+    public void setBFieldMap(FieldMap bFieldMap) { 
+        this.bFieldMap = bFieldMap; 
     }
     
     /**
@@ -135,15 +150,26 @@ public class TrackClusterMatcher {
 
         // Get the cluster position
         Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
-
+        //System.out.println("Cluster Position: " + clusterPosition.toString());
+        
         // Extrapolate the track to the Ecal cluster position
         // TODO: At some point, this needs to use the fringe field
         Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
-
+        //Hep3Vector trackPosAtEcal 
+        //    = new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(track, this.extStartPos, clusterPosition.z(), this.stepSize, bFieldMap).getReferencePoint());
+        //trackPosAtEcal = CoordinateTransformations.transformVectorToDetector(trackPosAtEcal);
+        //System.out.println("Track position at Ecal: " + trackPosAtEcal.toString());
+       
+        
+        //TrackState trackStateAtEcal = (TrackState) track.getTrackStates().get(1);
+        
         // Calculate the difference between the cluster position at the Ecal and
         // the track in both the x and y directions
         double deltaX = clusterPosition.x() - trackPosAtEcal.x(); 
         double deltaY = clusterPosition.y() - trackPosAtEcal.y();
+        
+        //System.out.println("delta X: " + deltaX);
+        //System.out.println("delta Y: " + deltaY);
         
         if (enablePlots) {
             if (track.getTrackStates().get(0).getTanLambda() > 0) { 
