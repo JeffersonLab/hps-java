@@ -106,7 +106,9 @@ public class TridentMonitoring extends DataQualityMonitor {
     protected void detectorChanged(Detector detector) {
         System.out.println("TridentMonitoring::detectorChanged  Setting up the plotter");
         aida.tree().cd("/");
-
+        String trkType = "SeedTrack/";
+        if (isGBL)
+            trkType = "GBLTrack/";
         /*  V0 Quantities   */
         /*  Mass, vertex, chi^2 of fit */
         /* beamspot constrained */
@@ -122,54 +124,48 @@ public class TridentMonitoring extends DataQualityMonitor {
 //        IHistogram1D tarconVy = aida.histogram1D(plotDir +  triggerType + "/"+ triggerType + "/"+"Target Constrained Vy (mm)", 50, -1, 1);
 //        IHistogram1D tarconVz = aida.histogram1D(plotDir +  triggerType + "/"+ triggerType + "/"+"Target Constrained Vz (mm)", 50, -10, 10);
 //        IHistogram1D tarconChi2 = aida.histogram1D(plotDir +  triggerType + "/"+ triggerType + "/"+"Target Constrained Chi2", 25, 0, 25);
-        pyEleVspyPos = aida.histogram2D(plotDir + triggerType + "/" + "Py(e) vs Py(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
-        pxEleVspxPos = aida.histogram2D(plotDir + triggerType + "/" + "Px(e) vs Px(p)", 50, -0.02, 0.06, 50, -0.02, 0.06);
-        trackTimeDiff = aida.histogram1D(plotDir + triggerType + "/" + "Track time difference", 100, -10, 10);
-        trackTime2D = aida.histogram2D(plotDir + triggerType + "/" + "Track time vs. track time", 100, -10, 10, 100, -10, 10);
-        vertexMassMomentum = aida.histogram2D(plotDir + triggerType + "/" + "Vertex mass vs. vertex momentum", 100, 0, 1.1, 100, 0, 0.1);
-        vertexedTrackMomentum2D = aida.histogram2D(plotDir + triggerType + "/" + "Positron vs. electron momentum", 100, 0, 1.1, 100, 0, 1.1);
-        vertexedTrackMomentum2DRad = aida.histogram2D(plotDir + triggerType + "/" + "Positron vs. electron momentum: Radiative", 100, 0, 1.1, 100, 0, 1.1);
-        vertexPxPy = aida.histogram2D(plotDir + triggerType + "/" + "Vertex Py vs. Px", 100, -0.02, 0.06, 100, -0.04, 0.04);
-        goodVertexMass = aida.histogram1D(plotDir + triggerType + "/" + "Good vertex mass", 100, 0, 0.11);
-        deltaP = aida.histogram1D(plotDir + triggerType + "/" + "Positron - electron momentum", 100, -1., 1.0);
-        deltaPRad = aida.histogram1D(plotDir + triggerType + "/" + "Positron - electron momentum", 100, -1., 1.0);
-        sumP = aida.histogram1D(plotDir + triggerType + "/" + "Positron + electron momentum", 100, 0.2, 1.25);
-        vertexX = aida.histogram1D(plotDir + triggerType + "/" + "Vertex X Position (mm)", 100, -v0VxMax, v0VxMax);
-        vertexY = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Y Position (mm)", 100, -v0VyMax, v0VyMax);
-        vertexZ = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Z Position (mm)", 100, -v0VzMax, v0VzMax);
-        vertexPx = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Px (GeV)", 100, -0.1, 0.1);
-        vertexPy = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Py (GeV)", 100, -0.1, 0.1);
-        vertexPz = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Pz (GeV)", 100, 0.0, v0PzMax);
-        vertexU = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Px over Ptot (GeV)", 100, -0.1, 0.1);
-        vertexV = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Py over Ptot (GeV)", 100, -0.1, 0.1);
-//        vertexW = aida.histogram1D(plotDir + triggerType + "/" + "Vertex Pz overPtot (GeV)", 100, 0.95, 1.0);
-        vertexVZ = aida.histogram2D(plotDir + triggerType + "/" + "Vertex Py over Ptot vs. Z", 100, -v0VzMax, v0VzMax, 100, -0.1, 0.1);
-        vertexZY = aida.histogram2D(plotDir + triggerType + "/" + "Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
+        pyEleVspyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Py(e) vs Py(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+        pxEleVspxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Px(e) vs Px(p)", 50, -0.02, 0.06, 50, -0.02, 0.06);
+        trackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Track time difference", 100, -10, 10);
+        trackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Track time vs. track time", 100, -10, 10, 100, -10, 10);
+        vertexMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex mass vs. vertex momentum", 100, 0, 1.1, 100, 0, 0.1);
+        vertexedTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Positron vs. electron momentum", 100, 0, 1.1, 100, 0, 1.1);
+        vertexedTrackMomentum2DRad = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Positron vs. electron momentum: Radiative", 100, 0, 1.1, 100, 0, 1.1);
+        vertexPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Py vs. Px", 100, -0.02, 0.06, 100, -0.04, 0.04);
+        goodVertexMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Good vertex mass", 100, 0, 0.11);
+        deltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Positron - electron momentum", 100, -1., 1.0);
+        deltaPRad = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Positron - electron momentum", 100, -1., 1.0);
+        sumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Positron + electron momentum", 100, 0.2, 1.25);
+        vertexX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex X Position (mm)", 100, -v0VxMax, v0VxMax);
+        vertexY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Y Position (mm)", 100, -v0VyMax, v0VyMax);
+        vertexZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Z Position (mm)", 100, -v0VzMax, v0VzMax);
+        vertexPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Px (GeV)", 100, -0.1, 0.1);
+        vertexPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Py (GeV)", 100, -0.1, 0.1);
+        vertexPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Pz (GeV)", 100, 0.0, v0PzMax);
+        vertexU = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Px over Ptot (GeV)", 100, -0.1, 0.1);
+        vertexV = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Py over Ptot (GeV)", 100, -0.1, 0.1);
+//        vertexW = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Vertex Pz overPtot (GeV)", 100, 0.95, 1.0);
+        vertexVZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Py over Ptot vs. Z", 100, -v0VzMax, v0VzMax, 100, -0.1, 0.1);
+        vertexZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
     }
 
     @Override
     public void process(EventHeader event) {
         /*  make sure everything is there */
-        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
             return;
-        }
-        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
+        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName))
             return;
-        }
-        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName)) {
+        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName))
             return;
-        }
-        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName)) {
+        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName))
             return;
-        }
-        if (!event.hasCollection(Track.class, trackListName)) {
+        if (!event.hasCollection(Track.class, trackListName))
             return;
-        }
 
         //check to see if this event is from the correct trigger (or "all");
-        if (!matchTrigger(event)) {
+        if (!matchTrigger(event))
             return;
-        }
 
         nRecoEvents++;
 
@@ -178,19 +174,15 @@ public class TridentMonitoring extends DataQualityMonitor {
 
         List<Track> trks = event.get(Track.class, trackListName);
         int ntracks = trks.size();
-        if (ntracks > nTrkMax || ntracks < 2) {
+        if (ntracks > nTrkMax || ntracks < 2)
             return;
-        }
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         int npos = 0;
-        for (ReconstructedParticle fsp : fspList) {
-            if (fsp.getCharge() > 0) {
+        for (ReconstructedParticle fsp : fspList)
+            if (fsp.getCharge() > 0)
                 npos++;
-            }
-        }
-        if (npos < 1 || npos > nPosMax) {
+        if (npos < 1 || npos > nPosMax)
             return;
-        }
 
         nPassBasicCuts++;//passed some basic event-level cuts...
 
@@ -200,50 +192,39 @@ public class TridentMonitoring extends DataQualityMonitor {
 //  v0 & vertex-quality cuts
 //            Hep3Vector v0Mom = uncV0.getMomentum();
             Hep3Vector v0Mom = VecOp.add(uncV0.getParticles().get(1).getMomentum(), uncV0.getParticles().get(0).getMomentum());
-            if (v0Mom.z() > v0PzMax || v0Mom.z() < v0PzMin) {
+            if (v0Mom.z() > v0PzMax || v0Mom.z() < v0PzMin)
                 continue;
-            }
-            if (Math.abs(v0Mom.y()) > v0PyMax) {
+            if (Math.abs(v0Mom.y()) > v0PyMax)
                 continue;
-            }
-            if (Math.abs(v0Mom.x()) > v0PxMax) {
+            if (Math.abs(v0Mom.x()) > v0PxMax)
                 continue;
-            }
             Hep3Vector v0Vtx = uncVert.getPosition();
-            if (Math.abs(v0Vtx.z()) > v0VzMax) {
+            if (Math.abs(v0Vtx.z()) > v0VzMax)
                 continue;
-            }
-            if (Math.abs(v0Vtx.y()) > v0VyMax) {
+            if (Math.abs(v0Vtx.y()) > v0VyMax)
                 continue;
-            }
-            if (Math.abs(v0Vtx.x()) > v0VxMax) {
+            if (Math.abs(v0Vtx.x()) > v0VxMax)
                 continue;
-            }
 
             List<Track> tracks = new ArrayList<Track>();
             ReconstructedParticle electron = null, positron = null;
             for (ReconstructedParticle particle : uncV0.getParticles()) //                tracks.addAll(particle.getTracks());  //add add electron first, then positron...down below
-            {
-                if (particle.getCharge() > 0) {
+            
+                if (particle.getCharge() > 0)
                     positron = particle;
-                } else if (particle.getCharge() < 0) {
+                else if (particle.getCharge() < 0)
                     electron = particle;
-                } else {
+                else
                     throw new RuntimeException("expected only electron and positron in vertex, got something with charge 0");
-                }
-            }
-            if (electron == null || positron == null) {
+            if (electron == null || positron == null)
                 throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
-            }
             tracks.add(electron.getTracks().get(0));
             tracks.add(positron.getTracks().get(0));
-            if (tracks.size() != 2) {
+            if (tracks.size() != 2)
                 throw new RuntimeException("expected two tracks in vertex, got " + tracks.size());
-            }
             List<Double> trackTimes = new ArrayList<Double>();
-            for (Track track : tracks) {
+            for (Track track : tracks)
                 trackTimes.add(TrackUtils.getTrackTime(track, hitToStrips, hitToRotated));
-            }
             trackTime2D.fill(trackTimes.get(0), trackTimes.get(1));
             trackTimeDiff.fill(trackTimes.get(0) - trackTimes.get(1));
             boolean trackTimeDiffCut = Math.abs(trackTimes.get(0) - trackTimes.get(1)) < trkTimeDiff;
@@ -270,10 +251,10 @@ public class TridentMonitoring extends DataQualityMonitor {
                     vertexPx.fill(uncV0.getMomentum().x());
                     vertexPy.fill(uncV0.getMomentum().y());
                     vertexPz.fill(uncV0.getMomentum().z());
-                    vertexU.fill(uncV0.getMomentum().x()/uncV0.getMomentum().magnitude());
-                    vertexV.fill(uncV0.getMomentum().y()/uncV0.getMomentum().magnitude());
+                    vertexU.fill(uncV0.getMomentum().x() / uncV0.getMomentum().magnitude());
+                    vertexV.fill(uncV0.getMomentum().y() / uncV0.getMomentum().magnitude());
 //                    vertexW.fill(uncV0.getMomentum().z()/uncV0.getMomentum().magnitude());
-                    vertexVZ.fill(v0Vtx.z(), uncV0.getMomentum().y()/uncV0.getMomentum().magnitude());
+                    vertexVZ.fill(v0Vtx.z(), uncV0.getMomentum().y() / uncV0.getMomentum().magnitude());
                     vertexZY.fill(v0Vtx.y(), v0Vtx.z());
                 }
             }
@@ -284,9 +265,8 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMData() {
         System.out.println("TridentMonitoring::printDQMData");
-        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
+        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet())
             System.out.println(entry.getKey() + " = " + entry.getValue());
-        }
         System.out.println("*******************************");
     }
 
@@ -305,9 +285,8 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMStrings() {
         for (int i = 0; i < 9; i++)//TODO:  do this in a smarter way...loop over the map
-        {
+        
             System.out.println("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
-        }
     }
 
     IFitResult fitVertexPosition(IHistogram1D h1d, IFitter fitter, double[] init, String range) {

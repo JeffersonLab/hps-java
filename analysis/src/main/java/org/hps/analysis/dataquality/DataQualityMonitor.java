@@ -37,9 +37,14 @@ public class DataQualityMonitor extends Driver {
     protected String outputPlotDir = "DQMOutputPlots/";
 
     String triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
+    boolean isGBL = false;
 
     public void setTriggerType(String type) {
         this.triggerType = type;
+    }
+
+    public void setIsGBL(boolean isgbl) {
+        this.isGBL = isgbl;
     }
 
     public void setRecoVersion(String recoVersion) {
@@ -171,6 +176,10 @@ public class DataQualityMonitor extends Driver {
         }
     }
 
+    public String getTriggerType() {
+        return triggerType;
+    }
+
     public boolean matchTriggerType(TIData triggerData) {
         if (triggerType.contentEquals("") || triggerType.contentEquals("all"))
             return true;
@@ -203,7 +212,6 @@ public class DataQualityMonitor extends Driver {
 
     //override this method to do something interesting   
     //like print the DQM data log file
-
     public void printDQMData() {
     }
 
@@ -212,4 +220,5 @@ public class DataQualityMonitor extends Driver {
     //format for making the db column headers
     public void printDQMStrings() {
     }
+
 }

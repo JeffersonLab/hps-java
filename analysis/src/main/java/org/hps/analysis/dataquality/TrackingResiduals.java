@@ -132,7 +132,7 @@ public class TrackingResiduals extends DataQualityMonitor {
         for (GenericObject gblSCD : gblSCDList) {
             double umeas = gblSCD.getDoubleVal(GBLStripClusterData.GBLDOUBLE.UMEAS);//TODO:  implement generic methods into GBLStripClusterData so this isn't hard coded
             double utrk = gblSCD.getDoubleVal(GBLStripClusterData.GBLDOUBLE.TPOSU);//implement generic methods into GBLStripClusterData so this isn't hard coded
-//            double vtrk = gblSCD.getDoubleVal(GBLStripClusterData.GBLDOUBLE.TPOSV);//implement generic methods into GBLStripClusterData so this isn't hard coded
+            double vtrk = gblSCD.getDoubleVal(GBLStripClusterData.GBLDOUBLE.TPOSV);//implement generic methods into GBLStripClusterData so this isn't hard coded
             double resid = umeas - utrk;
             double tanlambda = gblSCD.getDoubleVal(GBLStripClusterData.GBLDOUBLE.TLAMBDA);//use the slope as a proxy for the top/bottom half of tracker
 
