@@ -84,6 +84,16 @@ public final class TrackDataDriver extends Driver {
     void setExtrapolationStartPosition(double extStartPos) { 
         this.extStartPos = extStartPos; 
     }
+   
+    /**
+     * Set the extrapolation length between iterations through the magnetic 
+     * field.
+     * 
+     * @param stepSize The extrapolation length between iterations in mm. 
+     */
+    void setStepSize(double stepSize) { 
+        this.stepSize = stepSize; 
+    }
     
     /**
      * Method called by the framework when a new {@link Detector} geometry is
