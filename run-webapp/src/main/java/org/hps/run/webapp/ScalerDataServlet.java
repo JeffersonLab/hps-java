@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 
 import org.hps.record.scalers.ScalerData;
 import org.hps.run.database.RunDatabaseDaoFactory;
+import org.hps.run.database.RunManager;
 import org.hps.run.database.ScalerDataDao;
 
 /**
@@ -59,7 +60,7 @@ public class ScalerDataServlet extends HttpServlet {
         final Integer run = Integer.parseInt(request.getParameterValues("run")[0]);
         List<ScalerData> scalerDataList = null;
         try (Connection connection = this.dataSource.getConnection()) {
-            final ScalerDataDao scalarDataDao = new RunDatabaseDaoFactory(connection).createScalerDataDao();
+            final ScalerDataDao scalarDataDao = new RunManager(connection).createDaoFactory().createScalerDataDao();
             scalerDataList = scalarDataDao.getScalerData(run);
         } catch (final Exception e) {
             throw new RuntimeException(e);

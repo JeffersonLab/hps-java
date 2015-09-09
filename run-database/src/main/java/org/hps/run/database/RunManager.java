@@ -66,6 +66,21 @@ public final class RunManager implements ConditionsListener {
      * The {@link RunSummary} for the current run.
      */
     private RunSummary runSummary = null;
+    
+    /**
+     * Class constructor.
+     * 
+     * @param connection the database connection
+     */
+    public RunManager(Connection connection) {
+        this.connection = connection;
+    }
+    
+    /**
+     * Class constructor.
+     */
+    public RunManager() {
+    }
 
     /**
      * Close the database connection.
@@ -190,7 +205,7 @@ public final class RunManager implements ConditionsListener {
      * 
      * @return the database connection
      */
-    public RunDatabaseDaoFactory getDaoFactory() {
+    public RunDatabaseDaoFactory createDaoFactory() {
         openConnection();
         return new RunDatabaseDaoFactory(this.connection);
     }

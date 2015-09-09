@@ -424,7 +424,7 @@ public final class Crawler {
             // Create factory for interfacing to run database.
             RunManager runManager = new RunManager();
             runManager.setConnection(connection);
-            final RunDatabaseDaoFactory dbFactory = runManager.getDaoFactory();
+            final RunDatabaseDaoFactory dbFactory = runManager.createDaoFactory();
 
             // Create object for updating run info in the database.
             final RunSummaryDao runSummaryDao = dbFactory.createRunSummaryDao();

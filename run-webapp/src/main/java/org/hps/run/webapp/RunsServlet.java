@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import org.hps.run.database.RunDatabaseDaoFactory;
+import org.hps.run.database.RunManager;
 import org.hps.run.database.RunSummary;
 import org.hps.run.database.RunSummaryDao;
 
@@ -72,7 +72,7 @@ public final class RunsServlet extends HttpServlet {
         Connection connection = null;
         try {
             connection = this.dataSource.getConnection();
-            final RunSummaryDao runSummaryDao = new RunDatabaseDaoFactory(connection).createRunSummaryDao();
+            final RunSummaryDao runSummaryDao = new RunManager(connection).createDaoFactory().createRunSummaryDao();
 
             // This does a shallow read of all run summaries but does not load their complex state.
             runSummaries = runSummaryDao.getRunSummaries();

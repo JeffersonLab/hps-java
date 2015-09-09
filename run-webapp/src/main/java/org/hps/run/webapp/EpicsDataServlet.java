@@ -18,6 +18,7 @@ import org.hps.run.database.EpicsType;
 import org.hps.run.database.EpicsVariable;
 import org.hps.run.database.EpicsVariableDao;
 import org.hps.run.database.RunDatabaseDaoFactory;
+import org.hps.run.database.RunManager;
 
 /**
  * Setup session state for JSP that shows a run's EPICS data.
@@ -54,7 +55,7 @@ public class EpicsDataServlet extends HttpServlet {
         try {
             connection = dataSource.getConnection();
 
-            final RunDatabaseDaoFactory dbFactory = new RunDatabaseDaoFactory(connection);
+            final RunDatabaseDaoFactory dbFactory = new RunManager(connection).createDaoFactory();
 
             epicsDataDao = dbFactory.createEpicsDataDao();
             epicsDataList = epicsDataDao.getEpicsData(epicsType, run);
