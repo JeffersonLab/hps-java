@@ -27,6 +27,7 @@ public class StripGoldenEventsDriver extends Driver
         boolean skipEvent = false;
         if (event.hasCollection(ReconstructedParticle.class, "UnconstrainedV0Candidates")) {
             List<ReconstructedParticle> vertices = event.get(ReconstructedParticle.class, "UnconstrainedV0Candidates");
+	    //System.out.println("Thete are: "+vertices.size()+" Unconstrained V0 candidates");
             if (vertices.size() > 1 || vertices.isEmpty()) {
                 skipEvent = true;
             } else {
@@ -37,12 +38,14 @@ public class StripGoldenEventsDriver extends Driver
                     List<Track> trks = rp.getTracks();
                     // require each track to have six hits
                     if (trks.get(0).getTrackerHits().size() != 6) {
+			//System.out.println("Thete are: "+trks.get(0).getTrackerHits().size()+" hits on Track");
                         skipEvent = true;
                     }
                 }
                 // require no other tracks in the event
                 if (event.get(Track.class, "MatchedTracks").size() > 2) {
                     skipEvent = true;
+		    //System.out.println("Thete are: "+event.get(Track.class, "MatchedTracks").size()+" Matched tracks");
                 }
                 // require no other clusters in the event
                 if (event.get(Cluster.class, "EcalClustersGTP").size() > 2) {

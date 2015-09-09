@@ -94,6 +94,7 @@ public class StripMollerEventsDriver extends Driver
                             skipEvent = false;
                         }
                     }
+		    //System.out.println("Thete are: "+event.get(Track.class, "MatchedTracks").size()+" Matched tracks");
                 }
             }
         }
