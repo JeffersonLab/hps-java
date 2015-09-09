@@ -15,9 +15,8 @@ import hep.physics.vec.Hep3Vector;
 
 import org.lcsim.event.Cluster;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.geometry.FieldMap;
-import org.lcsim.recon.tracking.seedtracker.TrackState;
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 
@@ -40,6 +39,12 @@ public class TrackClusterMatcher {
     /** Flag used to determine if plots are enabled/disabled */
     boolean enablePlots = false; 
 
+    /** 
+     * Flag used to determine whether the analytic or field map extrapolator
+     * should be used. 
+     */
+    boolean useAnalyticExtrapolator = false; 
+    
     /**
      * These cuts are set at +/- 4 sigma extracted from Gaussian fits to the 
      * track-cluster residual distributions.  The data used to determine these
@@ -60,6 +65,9 @@ public class TrackClusterMatcher {
    
     /** The extrapolation step size */ 
     double stepSize = 5.; // mm
+   
+    /** Constant denoting the index of the {@link TrackState} at the Ecal */
+    private static final int ECAL_TRACK_STATE_INDEX = 1;  
     
     /** Constructor */
     public TrackClusterMatcher() {};
@@ -68,15 +76,32 @@ public class TrackClusterMatcher {
      * Enable/disable booking, filling of Ecal cluster and extrapolated track 
      * position plots.
      * 
-     * @param enablePlots : true to enable, false to disable
+     * @param enablePlots true to enable, false to disable
      */
     public void enablePlots(boolean enablePlots) { 
         this.enablePlots = enablePlots;
         if (enablePlots == true) this.bookHistograms();
     }
-   
+  
+    /**
+     * Set the 3D field map to be used by the extrapolator.
+     * 
+     * @param bFieldMap The {@link FieldMap} object containing a mapping to the
+     *                  3D field map.
+     */
     public void setBFieldMap(FieldMap bFieldMap) { 
         this.bFieldMap = bFieldMap; 
+    }
+   
+    /**
+     * Use the analytic track extrapolator i.e. the no fringe extrapolator.
+     * The field map extrapolator is used by default. 
+     * 
+     * @param useAnalyticExtrapolator Set to true to use the analytic 
+     *                                extrapolator, false otherwise. 
+     */
+    public void setUseAnalyticExtrapolator(boolean useAnalyticExtrapolator) { 
+        this.useAnalyticExtrapolator = useAnalyticExtrapolator; 
     }
     
     /**
@@ -153,15 +178,19 @@ public class TrackClusterMatcher {
         //System.out.println("Cluster Position: " + clusterPosition.toString());
         
         // Extrapolate the track to the Ecal cluster position
-        // TODO: At some point, this needs to use the fringe field
-        Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
-        //Hep3Vector trackPosAtEcal 
-        //    = new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(track, this.extStartPos, clusterPosition.z(), this.stepSize, bFieldMap).getReferencePoint());
-        //trackPosAtEcal = CoordinateTransformations.transformVectorToDetector(trackPosAtEcal);
+        Hep3Vector trackPosAtEcal = null;
+        if (this.useAnalyticExtrapolator) {
+            //System.out.println("Using analytic field extrapolator."); 
+            trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
+        } else {
+            //System.out.println("Using field map extrapolator"); 
+            TrackState trackStateAtEcal = (TrackState) track.getTrackStates().get(this.ECAL_TRACK_STATE_INDEX);
+            trackPosAtEcal = new BasicHep3Vector(trackStateAtEcal.getReferencePoint()); 
+            trackPosAtEcal = CoordinateTransformations.transformVectorToDetector(trackPosAtEcal);
+        }
         //System.out.println("Track position at Ecal: " + trackPosAtEcal.toString());
        
         
-        //TrackState trackStateAtEcal = (TrackState) track.getTrackStates().get(1);
         
         // Calculate the difference between the cluster position at the Ecal and
         // the track in both the x and y directions
