@@ -21,6 +21,7 @@
         <driver name="TrackingResidualsDQM"/>  
         <driver name="FinalStateDQM"/>  
         <driver name="V0DQM"/>  
+          <driver name="TridentMonitoring"/>
         <driver name="AidaSaveDriver"/> 
         <driver name="CleanupDriver" />
     </execute>
@@ -85,6 +86,9 @@
         <outputPlots>v0recon</outputPlots>
         </driver>      
 
+      <driver name="TridentMonitoring" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>all</triggerType>
+        </driver>
 
         <driver name="TrackingDQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
             <overwriteDB>false</overwriteDB>
