@@ -36,6 +36,8 @@ public abstract class ReconParticleDriver extends Driver {
     /** Utility used to determine if a track and cluster are matched */
     TrackClusterMatcher matcher = new TrackClusterMatcher(); 
     
+    String[] trackCollectionNames = null;
+    
     /**
      * Sets the name of the LCIO collection for beam spot constrained V0
      * candidate particles.
@@ -152,6 +154,15 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setUnconstrainedV0VerticesColName(String unconstrainedV0VerticesColName) {
         this.unconstrainedV0VerticesColName = unconstrainedV0VerticesColName;
+    }
+
+    /**
+     * Set the names of the LCIO track collections used as input.
+     *
+     * @param trackCollectionNames Array of collection names. If not set, use all Track collections in the event.
+     */
+    public void setTrackCollectionNames(String[] trackCollectionNames) {
+        this.trackCollectionNames = trackCollectionNames;
     }
 
     /**
@@ -365,12 +376,19 @@ public abstract class ReconParticleDriver extends Driver {
         // collection and add it to the list of collections.  This is 
         // needed in order to create final state particles from the the 
         // Ecal clusters in the event.
-        List<List<Track>> trackCollections;
-        if (event.hasCollection(Track.class)) {
-            trackCollections = event.get(Track.class);
+        List<List<Track>> trackCollections = new ArrayList<List<Track>>();
+        if (trackCollectionNames != null) {
+            for (String collectionName : trackCollectionNames) {
+                if (event.hasCollection(Track.class, collectionName)) {
+                    trackCollections.add(event.get(Track.class, collectionName));
+                }
+            }
         } else {
-            trackCollections = new ArrayList<List<Track>>(0);
-            trackCollections.add(new ArrayList<Track>(0));
+            if (event.hasCollection(Track.class)) {
+                trackCollections = event.get(Track.class);
+            } else {
+                trackCollections.add(new ArrayList<Track>(0));
+            }
         }
 
         // Instantiate new lists to store reconstructed particles and
