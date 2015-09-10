@@ -17,8 +17,7 @@ import org.lcsim.event.ReconstructedParticle;
  *
  * @version $Id:
  */
-public class MollerCandidateFilter extends EventReconFilter
-{
+public class MollerCandidateFilter extends EventReconFilter {
 
     private String _mollerCandidateCollectionName = "TargetConstrainedMollerCandidates";
     private double _mollerMomentumSumMin = 0.85;
@@ -26,9 +25,10 @@ public class MollerCandidateFilter extends EventReconFilter
     private double _fullEnergyCut = 0.85;
     private double _clusterTimingCut = 2.5;
 
+    private boolean _tight = false;
+
     @Override
-    protected void process(EventHeader event)
-    {
+    protected void process(EventHeader event) {
         incrementEventProcessed();
         if (!event.hasCollection(ReconstructedParticle.class, _mollerCandidateCollectionName)) {
             skipEvent();
@@ -36,6 +36,13 @@ public class MollerCandidateFilter extends EventReconFilter
         List<ReconstructedParticle> mollerCandidates = event.get(ReconstructedParticle.class, _mollerCandidateCollectionName);
         if (mollerCandidates.size() == 0) {
             skipEvent();
+        }
+
+        // tight requires ONLY ONE real vertex fit 
+        if (_tight) {
+            if (mollerCandidates.size() != 2) {
+                skipEvent();
+            }
         }
 
         for (ReconstructedParticle rp : mollerCandidates) {
@@ -89,8 +96,7 @@ public class MollerCandidateFilter extends EventReconFilter
      *
      * @param d
      */
-    public void setClusterTimingCut(double d)
-    {
+    public void setClusterTimingCut(double d) {
         _clusterTimingCut = d;
     }
 
@@ -99,8 +105,7 @@ public class MollerCandidateFilter extends EventReconFilter
      *
      * @param s
      */
-    public void setMollerCandidateCollectionName(String s)
-    {
+    public void setMollerCandidateCollectionName(String s) {
         _mollerCandidateCollectionName = s;
     }
 
@@ -109,8 +114,7 @@ public class MollerCandidateFilter extends EventReconFilter
      *
      * @param d
      */
-    public void setMollerMomentumSumMin(double d)
-    {
+    public void setMollerMomentumSumMin(double d) {
         _mollerMomentumSumMin = d;
     }
 
@@ -119,8 +123,7 @@ public class MollerCandidateFilter extends EventReconFilter
      *
      * @param d
      */
-    public void setMollerMomentumSumMax(double d)
-    {
+    public void setMollerMomentumSumMax(double d) {
         _mollerMomentumSumMax = d;
     }
 
@@ -130,8 +133,17 @@ public class MollerCandidateFilter extends EventReconFilter
      *
      * @param d
      */
-    public void setMollerMomentumMax(double d)
-    {
+    public void setMollerMomentumMax(double d) {
         _fullEnergyCut = d;
+    }
+    
+    /**
+     * Setting a tight constraint requires one and only one candidate in the event
+     * 
+     * @param b
+     */
+    public void setTightConstraint(boolean b)
+    {
+        _tight = b;
     }
 }
