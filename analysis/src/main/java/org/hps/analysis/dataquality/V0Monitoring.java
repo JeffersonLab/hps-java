@@ -153,7 +153,7 @@ public class V0Monitoring extends DataQualityMonitor {
         unconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Chi2", 25, 0, 25);
         /* beamspot constrained */
         bsconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Mass (GeV)", 100, 0, 0.200);
-        bsconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/"  + "Vx (mm)", 50, -10, 10);
+        bsconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vx (mm)", 50, -10, 10);
         bsconVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vy (mm)", 50, -10, 10);
         bsconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vz (mm)", 50, -50, 50);
         bsconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Chi2", 25, 0, 25);
@@ -167,7 +167,7 @@ public class V0Monitoring extends DataQualityMonitor {
         nV0 = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Number of V0 per event", 10, 0, 10);
         v0Time = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "V0 mean time", 100, -25, 25);
         v0Dt = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "V0 time difference", 100, -25, 25);
-        trigTimeV0Time = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra  + "/" + "Trigger phase vs. V0 mean time", 100, -25, 25, 6, 0, 24);
+        trigTimeV0Time = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Trigger phase vs. V0 mean time", 100, -25, 25, 6, 0, 24);
         trigTime = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Trigger phase", 6, 0, 24);
 
         pEleVspPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(e) vs P(p)", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
@@ -229,7 +229,8 @@ public class V0Monitoring extends DataQualityMonitor {
 
         List<ReconstructedParticle> unonstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
         for (ReconstructedParticle uncV0 : unonstrainedV0List) {
-
+            if (isGBL ^ uncV0.getType() < 32)//XOR!!!!
+                continue;
             Vertex uncVert = uncV0.getStartVertex();
             unconVx.fill(uncVert.getPosition().x());
             unconVy.fill(uncVert.getPosition().y());
