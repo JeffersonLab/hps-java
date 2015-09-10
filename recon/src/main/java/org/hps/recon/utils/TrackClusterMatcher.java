@@ -48,17 +48,17 @@ public class TrackClusterMatcher {
     /**
      * These cuts are set at +/- 4 sigma extracted from Gaussian fits to the 
      * track-cluster residual distributions.  The data used to determine these
-     * limits is a pass 2 test file using run 5772, singles1 triggers. 
+     * limits is a pass 2 test file (t2.6) using run 5772. 
      */
-    private double topClusterTrackMatchDeltaXLow = -17; // mm 
-    private double topClusterTrackMatchDeltaXHigh = 20.; // mm 
-    private double bottomClusterTrackMatchDeltaXLow = -23; // mm 
-    private double bottomClusterTrackMatchDeltaXHigh = 15; // mm 
+    private double topClusterTrackMatchDeltaXLow = -14.5; // mm 
+    private double topClusterTrackMatchDeltaXHigh = 23.5; // mm 
+    private double bottomClusterTrackMatchDeltaXLow = -19.5; // mm 
+    private double bottomClusterTrackMatchDeltaXHigh = 16.5; // mm 
 
-    private double topClusterTrackMatchDeltaYLow = -20; // mm 
-    private double topClusterTrackMatchDeltaYHigh = 20; // mm 
-    private double bottomClusterTrackMatchDeltaYLow = -22.5; // mm 
-    private double bottomClusterTrackMatchDeltaYHigh = 22.5; // mm 
+    private double topClusterTrackMatchDeltaYLow = -21.5; // mm 
+    private double topClusterTrackMatchDeltaYHigh = 28; // mm 
+    private double bottomClusterTrackMatchDeltaYLow = -28; // mm 
+    private double bottomClusterTrackMatchDeltaYHigh = 24; // mm 
 
     /** Z position to start extrapolation from */
     double extStartPos = 700; // mm
