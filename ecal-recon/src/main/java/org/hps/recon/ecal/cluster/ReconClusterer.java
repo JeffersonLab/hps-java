@@ -64,7 +64,7 @@ public class ReconClusterer extends AbstractClusterer {
     double minTime = 0.0;
 
     // Maximum time cut window range. Units in ns.
-    double timeWindow = 8.0;
+    double timeWindow = 6.0;
 
     // Make a map for quick calculation of the x-y position of crystal face
     Map<Point, double[]> correctedPositionMap = new HashMap<Point, double[]>();
@@ -73,7 +73,7 @@ public class ReconClusterer extends AbstractClusterer {
 
     ReconClusterer() {
         super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "timeWindow" }, 
-                new double[] { 0.0075, 0.05, 0.1, 0.0, 8.0 });
+                new double[] { 0.0075, 0.05, 0.1, 0.0, 6.0 });
     }
 
     void setUseTimeCut(boolean useTimeCut) {
@@ -383,10 +383,16 @@ public class ReconClusterer extends AbstractClusterer {
             
             // Consider time cut-is this hit in same time window as seed?
             if (useTimeCut){
-            	if(Math.abs(ihit.getTime() - iseed.getTime()) < timeWindow)
+            	if(ihit.getCorrectedEnergy() < 0.1 && (Math.abs(ihit.getTime() - iseed.getTime()) < timeWindow))
             	{	
             		icluster.addHit(ihit);
             	}
+            
+            	else if (ihit.getCorrectedEnergy() > 0.1 && (Math.abs(ihit.getTime() - iseed.getTime()) < 2.0))
+            	{
+            		icluster.addHit(ihit);
+            	}
+            	
             } // end of using time cut
             else {icluster.addHit(ihit);}           
         }
@@ -400,15 +406,29 @@ public class ReconClusterer extends AbstractClusterer {
             boolean inTimeWithA = false;
             boolean inTimeWithB = false;
         	// In time window with seedA?
-            if (Math.abs(commHit.getKey().getTime() - seedA.getTime()) < timeWindow){
-            	inTimeWithA = true;
+            if (commHit.getKey().getCorrectedEnergy() < 0.1){
+            	if (Math.abs(commHit.getKey().getTime() - seedA.getTime()) < timeWindow){
+            		inTimeWithA = true;
+            	}	
+            
+            	// In time window with seedB?
+            	if (Math.abs(commHit.getKey().getTime() - seedB.getTime()) < timeWindow){
+            		inTimeWithB = true;
+            	}
             }
             
-            // In time window with seedB?
-            if (Math.abs(commHit.getKey().getTime() - seedB.getTime()) < timeWindow){
-            	inTimeWithB = true;
+            else if (commHit.getKey().getCorrectedEnergy() > 0.1)
+            {
+            	if (Math.abs(commHit.getKey().getTime() - seedA.getTime()) < 2.0){
+            		inTimeWithA = true;
+            	}	
+            
+            	// In time window with seedB?
+            	if (Math.abs(commHit.getKey().getTime() - seedB.getTime()) < 2.0){
+            		inTimeWithB = true;
+            	}	
             }
-                    	
+                         	
             double eclusterA = seedToCluster.get(seedA).getEnergy();
             double eclusterB = seedToCluster.get(seedB).getEnergy();
             double fractionA = eclusterA / (eclusterA + eclusterB);
