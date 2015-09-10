@@ -87,8 +87,8 @@ public class MollerCandidateFilter extends EventReconFilter {
             if (abs(t1 - t2) > _clusterTimingCut) {
                 skipEvent();
             }
-            incrementEventPassed();
         }
+        incrementEventPassed();
     }
 
     /**
@@ -136,14 +136,14 @@ public class MollerCandidateFilter extends EventReconFilter {
     public void setMollerMomentumMax(double d) {
         _fullEnergyCut = d;
     }
-    
+
     /**
-     * Setting a tight constraint requires one and only one candidate in the event
-     * 
+     * Setting a tight constraint requires one and only one candidate in the
+     * event
+     *
      * @param b
      */
-    public void setTightConstraint(boolean b)
-    {
+    public void setTightConstraint(boolean b) {
         _tight = b;
     }
 }
