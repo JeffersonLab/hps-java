@@ -501,7 +501,7 @@ public abstract class ReconParticleDriver extends Driver {
 
     @Override
     protected void endOfData() { 
-        matcher.saveHistograms();
+        //matcher.saveHistograms();
     }
 
     // ==============================================================
