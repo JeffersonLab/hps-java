@@ -104,7 +104,7 @@ public class EcalSimReconTest extends TestCase {
 
             // Check high cluster time mean.
             TestCase.assertEquals("High cluster mean time does not match.", CLUS_MEAN_T, 
-                    clusTimeH1D.mean(), 0.3);
+                    clusTimeH1D.mean(), 0.03);
             
             // Check mean number of clusters per event.
             TestCase.assertEquals("Mean number of clusters per event does not match.", CLUS_COUNT_MEAN,
