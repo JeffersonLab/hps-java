@@ -48,7 +48,6 @@ import org.lcsim.spacegeom.SpaceVector;
 import org.lcsim.util.swim.Helix;
 import org.lcsim.util.swim.Line;
 import org.lcsim.util.swim.Trajectory;
-
 import org.hps.recon.tracking.EventQuality.Quality;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
 
@@ -81,6 +80,11 @@ public class TrackUtils {
     public static Hep3Vector extrapolateHelixToXPlane(Track track, double x) {
         return extrapolateHelixToXPlane(getHTF(track), x);
     }
+    
+    public static Hep3Vector extrapolateHelixToXPlane(TrackState track, double x) {
+        return extrapolateHelixToXPlane(getHTF(track), x);
+    }
+    
 
     /**
      * Extrapolate helix to a position along the x-axis. Re-use HelixUtils.
@@ -1043,6 +1047,24 @@ public class TrackUtils {
         return isolations;
     }
    
+    
+    
+    /**
+     * Backward compatibility function for {@code extrapolateTrackUsingFieldMap}.
+     */
+    public static TrackState extrapolateTrackUsingFieldMap(Track track, double startPositionX, double endPositionX, double stepSize, FieldMap fieldMap) { 
+        TrackState stateAtIP = null;
+        for( TrackState state: track.getTrackStates()) {
+            if( state.getLocation() == TrackState.AtIP )
+                stateAtIP = state;
+        }
+        if( stateAtIP == null )
+            throw new RuntimeException("No track state at IP was found so this function shouldn't be used.");
+        
+        // Extrapolate this track state
+        return extrapolateTrackUsingFieldMap(stateAtIP, startPositionX, endPositionX, stepSize, fieldMap);
+    }
+    
     /**
      * Iteratively extrapolates a track to a specified value of x 
      * (z in detector frame) using the full 3D field map.
@@ -1059,7 +1081,7 @@ public class TrackUtils {
      *         that the "Tracking" frame is used for the reference point 
      *         coordinate system.
      */
-    public static TrackState extrapolateTrackUsingFieldMap(Track track, double startPositionX, double endPositionX, double stepSize, FieldMap fieldMap) { 
+    public static TrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPositionX, double stepSize, FieldMap fieldMap) { 
 
         // Start by extrapolating the track to the approximate point where the
         // fringe field begins.
@@ -1090,7 +1112,7 @@ public class TrackUtils {
         //System.out.println("Track momentum vector: " + currentMomentum.toString());
 
         // Get the charge of the track.
-        double q = Math.signum(track.getTrackStates().get(0).getOmega());
+        double q = Math.signum(track.getOmega());
         // HACK: LCSim doesn't deal well with negative fields so they are 
         //       turned to positive for tracking purposes.  As a result, 
         //       the charge calculated using the B-field, will be wrong
@@ -1153,8 +1175,8 @@ public class TrackUtils {
        // Create a track state at the extrapolation point
        TrackState trackState = new BaseTrackState(trackParameters, 
                currentPosition.v(), 
-               track.getTrackStates().get(0).getCovMatrix(), 
-               TrackState.AtOther, 
+               track.getCovMatrix(), 
+               TrackState.AtCalorimeter, 
                bFieldY);
        
        return trackState;
