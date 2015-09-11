@@ -9,6 +9,31 @@ import org.lcsim.event.Track;
  * 
  */
 public class FittedGblTrajectory {
+    public enum GBLPOINT {
+        IP(0), LAST(1), VERTEX(2);
+        private int numVal;
+        GBLPOINT(int numVal) {
+            this.numVal = numVal;
+        }
+        public int getNumVal() {
+            return numVal;
+        }
+        public String toString() {
+            String s;
+            switch (numVal) {
+                case 0: s = "VERTEX";
+                        break;
+                case 1: s = "LAST";
+                        break;
+                default:
+                    s = "";
+            }
+            if( s.isEmpty() )
+                throw new RuntimeException("This value " + Integer.toString(numVal) +  " is not valid.");
+            return "GblPoint: " + s;
+        }
+        
+    }
     public static enum GBLPARIDX {
         QOVERP(0),YTPRIME(1),XTPRIME(2),XT(3),YT(4);
         private int _value;

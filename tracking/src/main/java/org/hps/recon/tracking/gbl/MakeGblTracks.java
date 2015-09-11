@@ -5,10 +5,12 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.StrategyType;
 import org.hps.recon.tracking.TrackType;
@@ -19,8 +21,10 @@ import org.hps.util.BasicLogFormatter;
 import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseTrack;
+import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
@@ -39,31 +43,19 @@ import org.lcsim.util.log.LogUtil;
 public class MakeGblTracks {
 
     private String _TrkCollectionName = "GBLTracks";
-    private static Logger logger = LogUtil.create(MakeGblTracks.class, new BasicLogFormatter());
+    private static Logger logger = LogUtil.create(MakeGblTracks.class, new BasicLogFormatter(), Level.INFO);
 
     /**
      * Creates a new instance of MakeTracks.
      */
     public MakeGblTracks() {
-        //logger = Logger.getLogger(getClass().getName());
-        //logger.setUseParentHandlers(false);
-        //Handler handler = new StreamHandler(System.out, new SimpleFormatter());
-        //logger.addHandler(handler);
-        logger.setLevel(Level.INFO);
-//        try {
-//            logger.addHandler(new FileHandler(MakeGblTracks.class.getSimpleName()+".log"));
-//        } catch (SecurityException | IOException e) {
-//            e.printStackTrace();
-//        }
-
     }
 
     public void setDebug(boolean debug) {
-        if (debug) {
+        if (debug) 
             logger.setLevel(Level.INFO);
-        } else {
+        else 
             logger.setLevel(Level.OFF);
-        }
     }
 
     /**
@@ -87,7 +79,7 @@ public class MakeGblTracks {
             SeedTrack seedTrack = (SeedTrack) fittedTraj.get_seed();
             SeedCandidate trackseed = seedTrack.getSeedCandidate();
 
-            //  Create a new BaeTrack
+            //  Create a new SeedTrack
             BaseTrack trk = new BaseTrack();
 
             //  Add the hits to the track
@@ -95,30 +87,26 @@ public class MakeGblTracks {
                 trk.addHit((TrackerHit) hit);
             }
 
-            //  Retrieve the helix and save the relevant bits of helix info
+            //  Retrieve the helix
             HelicalTrackFit helix = trackseed.getHelix();
-            Pair<double[], SymmetricMatrix> correctedHelixParams = getGblCorrectedHelixParameters(helix, fittedTraj, bfield);
-            trk.setTrackParameters(correctedHelixParams.getFirst(), bfield); // Sets first TrackState.
-            trk.setCovarianceMatrix(correctedHelixParams.getSecond()); // Modifies first TrackState.
+            
+            // Set state at vertex
+            Pair<double[], SymmetricMatrix> correctedHelixParams = getGblCorrectedHelixParameters(helix, fittedTraj, bfield, FittedGblTrajectory.GBLPOINT.IP);
+            TrackState stateVertex = new BaseTrackState(correctedHelixParams.getFirst(), ref, correctedHelixParams.getSecond().asPackedArray(true), TrackState.AtIP, bfield);
+            trk.getTrackStates().add(stateVertex);
+            
+            // Set state at last point
+            Pair<double[], SymmetricMatrix> correctedHelixParamsLast = getGblCorrectedHelixParameters(helix, fittedTraj, bfield, FittedGblTrajectory.GBLPOINT.LAST);
+            TrackState stateLast = new BaseTrackState(correctedHelixParamsLast.getFirst(), ref, correctedHelixParamsLast.getSecond().asPackedArray(true), TrackState.AtLastHit, bfield);
+            trk.getTrackStates().add(stateLast);
+            
+            // Set other info needed
             trk.setChisq(fittedTraj.get_chi2());
             trk.setNDF(fittedTraj.get_ndf());
-
-            //  Flag that the fit was successful and set the reference point
             trk.setFitSuccess(true);
-            trk.setReferencePoint(ref); // Modifies first TrackState.
             trk.setRefPointIsDCA(true);
-
-            //      Set the strategy used to find this track
-//            trk.setStratetgy(trackseed.getSeedStrategy());
-
-            //  Set the SeedCandidate this track is based on
-//            trk.setSeedCandidate(trackseed);
-
-            // Add the GBL flag to the track type.
             trk.setTrackType(TrackType.setGBL(seedTrack.getType(), true));
-
-            // Check the track - hook for plugging in external constraint
-            //if ((_trackCheck != null) && (! _trackCheck.checkTrack(trk))) continue;
+            
             //  Add the track to the list of tracks
             tracks.add(trk);
             logger.info(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helix.chisqtot(), helix.ndf()[0] + helix.ndf()[1], trk.getChi2(), trk.getNDF()));
@@ -137,37 +125,40 @@ public class MakeGblTracks {
         event.put(_TrkCollectionName, tracks, Track.class, flag);
     }
 
+    
     /**
-     * Compute the updated helix parameters and covariance matrix.
+     * Compute the updated helix parameters and covariance matrix at a given point along the trajectory.
      *
      * @param helix - original seed track
      * @param traj - fitted GBL trajectory
+     * @param point - the point along the track where the result is computed.
      * @return corrected parameters.
      */
-    private Pair<double[], SymmetricMatrix> getGblCorrectedHelixParameters(HelicalTrackFit helix, FittedGblTrajectory traj, double bfield) {
+    private Pair<double[], SymmetricMatrix> getGblCorrectedHelixParameters(HelicalTrackFit helix, FittedGblTrajectory traj, double bfield, FittedGblTrajectory.GBLPOINT point) {
 
         // get seed helix parameters
-//        double p = helix.p(Math.abs(bfield));
-//        double q = Math.signum(helix.R());
-//        double qOverP = q / p;
-//        ClParams clParams = new ClParams(helix, bfield);
-//        PerigeeParams perParams = new PerigeeParams(helix, bfield);
         double qOverP = helix.curvature() / (Constants.fieldConversion * Math.abs(bfield) * Math.sqrt(1 + Math.pow(helix.slope(), 2)));
         double d0 = -1.0 * helix.dca(); // correct for different sign convention of d0 in perigee frame
         double z0 = helix.z0();
         double phi0 = helix.phi0();
         double lambda = Math.atan(helix.slope());
 
-//        System.out.println("clParams: " + clParams.getParams());
-//        System.out.println("perParams: " + perParams.getParams());
-//        System.out.format("converted params: qOverP %f, d0 %f, z0 %f, phi0 %f, lambda %f\n", qOverP, d0, z0, phi0, lambda);
+        logger.info("GblPoint: " + point.toString() + "( " + point.name() + ")");
         logger.info(String.format("original helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f", helix.dca(), helix.z0(), helix.curvature(), helix.slope(), helix.phi0(), helix.p(Math.abs(bfield))));
         logger.info("original helix covariance:\n" + helix.covariance());
 
         // get corrections from GBL fit
         Vector locPar = new Vector(5);
         SymMatrix locCov = new SymMatrix(5);
-        traj.get_traj().getResults(1, locPar, locCov); // vertex point
+        int pointIndex;
+        if( point.compareTo( FittedGblTrajectory.GBLPOINT.IP) == 0 )
+            pointIndex = 1;
+        else if (point.compareTo(FittedGblTrajectory.GBLPOINT.LAST) == 0) 
+            pointIndex = traj.get_traj().getNumPoints();
+        else 
+            throw new RuntimeException("This GBLPOINT " + point.toString() + "( " + point.name() + ") is not valid");
+        
+        traj.get_traj().getResults(pointIndex, locPar, locCov); // vertex point
 //        locCov.print(10, 8);
         double qOverPCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.QOVERP.getValue());
         double xTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());

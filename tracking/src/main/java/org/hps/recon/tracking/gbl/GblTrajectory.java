@@ -24,8 +24,6 @@ import org.hps.recon.tracking.gbl.matrix.Vector;
 public class GblTrajectory
 {
 
-    private boolean debug = true;
-
     public GblTrajectory(List<GblPoint> listOfPoints)
     {
         this(listOfPoints, true, true, true);
