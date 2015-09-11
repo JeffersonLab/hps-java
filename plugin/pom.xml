@@ -44,6 +44,10 @@
                             <name>org.jlab.coda:*</name>
                             <value>https://coda.jlab.org/maven/</value>
                         </property>
+                        <property>
+                            <name>com.loox:*</name>
+                            <value>https://coda.jlab.org/maven/</value>
+                        </property>
                     </urls>
                     <redirectUrls>
                         <property>
@@ -64,6 +68,7 @@
                             <goal>process-descriptor</goal>
                         </goals>
                     </execution>
+
                 </executions>
             </plugin>
         </plugins>
