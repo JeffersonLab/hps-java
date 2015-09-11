@@ -3,10 +3,7 @@ package org.hps.readout.svt;
 /**
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: HPSSVTConstants.java,v 1.7 2013/04/25 22:11:14 meeg Exp $
- *
  */
-
 public class HPSSVTConstants {
 
     public static final int SVT_TOTAL_FPGAS = 7;

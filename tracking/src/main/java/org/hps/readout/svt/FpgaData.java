@@ -29,7 +29,6 @@ import org.lcsim.event.GenericObject;
  * temperature in celsius
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: FpgaData.java,v 1.3 2012/08/16 01:06:30 meeg Exp $
  */
 public class FpgaData implements GenericObject {
 
