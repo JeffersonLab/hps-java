@@ -7,18 +7,16 @@ import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
-import hep.aida.ref.AnalysisFactory;
 
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TIData;
+import org.hps.analysis.trigger.util.TriggerDecisionCalculator;
+import org.hps.analysis.trigger.util.TriggerDecisionCalculator.TriggerType;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -30,14 +28,18 @@ import org.lcsim.util.log.LogUtil;
  */
 public class TriggerTurnOnDriver extends Driver {
 
-    private static Logger logger = LogUtil.create(TriggerTurnOnDriver.class, new BasicLogFormatter(), Level.INFO);
-    private String triggerBankCollectionName = "TriggerBank";
-    private String ecalClusterCollectionName = "EcalClusters";
+    private static Logger logger = LogUtil.create(TriggerTurnOnDriver.class, new BasicLogFormatter(), Level.FINE);
+    private final String triggerBankCollectionName = "TriggerBank";
+    private final String ecalClusterCollectionName = "EcalClustersCorr";
     IPlotter plotter;
+    IPlotter plotter2;
     private AIDA aida = AIDA.defaultInstance();
     IHistogram1D clusterE_Random;
     IHistogram1D clusterE_RandomSingles1;
-    IHistogram1D trigEff;
+    IHistogram1D clusterEOne_Random;
+    IHistogram1D clusterEOne_RandomSingles1;
+    IHistogram1D clusterE_RandomSingles1_trigEff;
+    IHistogram1D clusterEOne_RandomSingles1_trigEff;
     private boolean showPlots = true;
     private int nEventsProcessed = 0;
     
@@ -52,114 +54,95 @@ public class TriggerTurnOnDriver extends Driver {
         
         aida.tree().cd("/");
         IAnalysisFactory fac = aida.analysisFactory();
-        plotter = fac.createPlotterFactory().create("HPS Tracking Plots");
-        plotter.setTitle("Momentum");
+
+        plotter = fac.createPlotterFactory().create("Trigger Efficiency");
         IPlotterStyle style = plotter.style();
         style.dataStyle().fillStyle().setColor("yellow");
         style.dataStyle().errorBarStyle().setVisible(false);
         plotter.createRegions(2, 2);
-        //plotterFrame.addPlotter(plotter);
-
-        clusterE_Random = aida.histogram1D("Cluster E rndm", 50, 0., 1.5);
-        clusterE_RandomSingles1 = aida.histogram1D("Cluster E rndm+singles1", 50, 0., 1.5);
-        trigEff = aida.histogram1D("trigEff", 50, 0., 1.5);
-
+        clusterE_Random = aida.histogram1D("clusterE_Random", 50, 0., 1.5);
+        clusterE_RandomSingles1 = aida.histogram1D("clusterE_RandomSingles1", 50, 0., 1.5);
+        plotter.setTitle("Cluster E efficiency");
         plotter.region(0).plot(clusterE_Random);
-
         plotter.region(1).plot(clusterE_RandomSingles1);
-        
-        plotter.region(2).plot(trigEff);
-
         if(showPlots) plotter.show();
+        
+        plotter2 = fac.createPlotterFactory().create("Trigger Efficiency One");
+        plotter2.createRegions(2, 2);
+        clusterEOne_Random = aida.histogram1D("clusterEOne_Random", 50, 0., 1.5);
+        clusterEOne_RandomSingles1 = aida.histogram1D("clusterEOne_RandomSingles1", 50, 0., 1.5);
+        plotter2.region(0).plot(clusterEOne_Random);
+        plotter2.region(1).plot(clusterEOne_RandomSingles1);
+        if(showPlots) plotter2.show();
         
     }
     
     @Override
     protected void process(EventHeader event) {
 
-        // Get the list of trigger banks from the event
-        List<GenericObject> triggerBanks = event.get(GenericObject.class, triggerBankCollectionName);
+        
+        TriggerDecisionCalculator triggerDecisions = new TriggerDecisionCalculator(event);
+        
+        if(!triggerDecisions.passed(TriggerType.PULSER))
+            return;
+        
+        logger.fine("pulser trigger fired");
 
-        boolean isRandomTriggerEvent = false;
-        boolean isSingles1TriggerEvent = false;
+        if(triggerDecisions.passed(TriggerType.SINGLES1))
+            logger.fine("Singles1 trigger fired");
+        
+        if(triggerDecisions.passed(TriggerType.SINGLES1_SIM))
+            logger.fine("Sim Singles1 trigger fired");
+        
+        
+        List<Cluster> clusters = null;
+        Cluster clusterEMax = null;
+        
+        if(event.hasCollection(Cluster.class , ecalClusterCollectionName)) 
+            clusters = event.get(Cluster.class, ecalClusterCollectionName);
 
-        // Loop through the collection of banks and get the TI banks.
-        for (GenericObject triggerBank : triggerBanks) {
-
-            // If the bank contains TI data, process it
-            if (AbstractIntData.getTag(triggerBank) == TIData.BANK_TAG) {
-
-                TIData tiData = new TIData(triggerBank);
-
-                if(tiData.isPulserTrigger()) {
-                    isRandomTriggerEvent = true;
-                } else if(tiData.isSingle1Trigger()) {
-                    isSingles1TriggerEvent = true;
+        if(clusters != null) {
+            for(Cluster cluster : clusters) {
+                if(clusterEMax != null) {
+                    if(cluster.getEnergy() > clusterEMax.getEnergy()) 
+                        clusterEMax = cluster;
+                } else {
+                    clusterEMax = cluster;
                 }
             }
         }
 
-
-        if(isRandomTriggerEvent) {
-
-            logger.info("Random trigger fired");
-
-            // find offline ecal clusters -> denominator
-            // count how often the singles1trigger fired for a given offline cluster (vs E, x, y)
-
-            if(event.hasCollection(Cluster.class , ecalClusterCollectionName)) {
-
-
-                List<Cluster> clusters = event.get(Cluster.class, ecalClusterCollectionName);
-
-                for(Cluster cluster : clusters) {
-
-                    clusterE_Random.fill(cluster.getEnergy());
-                    nEventsProcessed++;
-
-                }
-
-
+        // fill denominator
+        if(clusterEMax!=null) {
+            clusterE_Random.fill(clusterEMax.getEnergy());
+            if(clusters.size() == 1) {
+                clusterEOne_Random.fill(clusterEMax.getEnergy());
             }
-
-        } else if(isSingles1TriggerEvent) {
-
-            logger.info("Singles1 trigger fired");
         }
-        
-        
-        if (isRandomTriggerEvent && isSingles1TriggerEvent) {
-            
-            logger.info("Eureka. They both fired.");
-            if(event.hasCollection(Cluster.class , ecalClusterCollectionName)) {
 
-
-                List<Cluster> clusters = event.get(Cluster.class, ecalClusterCollectionName);
-
-                for(Cluster cluster : clusters) {
-
-                    clusterE_RandomSingles1.fill(cluster.getEnergy());
-
-                }
-
-
+        // fill numerator
+        if (triggerDecisions.passed(TriggerType.SINGLES1_SIM)) {
+            logger.fine("Eureka. They both fired.");
+            if(clusterEMax != null) {
+                clusterE_RandomSingles1.fill(clusterEMax.getEnergy());
+                if(clusters.size() == 1) 
+                    clusterEOne_RandomSingles1.fill(clusterEMax.getEnergy());
             }
-            
-            
         }
 
+        nEventsProcessed++;
         
-        if(nEventsProcessed % 10 == 0 ) {
-            trigEff = aida.histogramFactory().divide("trigEff", clusterE_RandomSingles1, clusterE_Random);
-        }
-
 
     }
     
     @Override
     protected void endOfData() {
+        clusterE_RandomSingles1_trigEff = aida.histogramFactory().divide("trigEff", clusterE_RandomSingles1, clusterE_Random);
+        clusterEOne_RandomSingles1_trigEff = aida.histogramFactory().divide("trigEffEone", clusterEOne_RandomSingles1, clusterEOne_Random);
+        logger.info("entries in clusterE_RandomSingles1_trigEff: " + Integer.toString(clusterE_RandomSingles1_trigEff.allEntries()));
+        plotter.region(2).plot(clusterE_RandomSingles1_trigEff);
+        plotter2.region(2).plot(clusterEOne_RandomSingles1_trigEff);
         
-
     }
 
 }
