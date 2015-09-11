@@ -4,7 +4,10 @@ import hep.physics.vec.Hep3Vector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.hps.util.BasicLogFormatter;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
@@ -22,6 +25,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * Driver used to persist additional {@link Track} information via a
@@ -32,6 +36,10 @@ import org.lcsim.util.Driver;
  */
 public final class TrackDataDriver extends Driver {
 
+    /** logger **/
+    private static Logger logger  = LogUtil.create(TrackDataDriver.class.getSimpleName(), new BasicLogFormatter(), Level.WARNING);
+    
+    
     /** The B field map */
     FieldMap bFieldMap = null;
     
@@ -178,6 +186,8 @@ public final class TrackDataDriver extends Driver {
 
         // Loop over each of the track collections retrieved from the event
         for (List<Track> tracks : trackCollections) {
+            
+            
 
             // Loop over all the tracks in the event
             for (Track track : tracks) {
@@ -250,11 +260,40 @@ public final class TrackDataDriver extends Driver {
                 // Add a track state that contains the extrapolated track position and 
                 // parameters at the face of the Ecal.
                 //
-                
+                logger.info("Extrapolating track with type " + Integer.toString(track.getType()) );
+
                 // Extrapolate the track to the face of the Ecal and get the TrackState
-                TrackState state 
-                    = TrackUtils.extrapolateTrackUsingFieldMap(track, extStartPos, ecalPosition, stepSize, bFieldMap);
-                track.getTrackStates().add(state);
+                if( TrackType.isGBL(track.getType())) {
+                    TrackState stateLast = null;
+                    TrackState stateIP = null;
+                    for(int ist= 0; ist < track.getTrackStates().size(); ist++) {
+                        if( track.getTrackStates().get(ist).getLocation() == TrackState.AtLastHit ) 
+                            stateLast = track.getTrackStates().get(ist);
+                        if( track.getTrackStates().get(ist).getLocation() == TrackState.AtIP ) 
+                            stateIP = track.getTrackStates().get(ist);
+                    }
+                    if( stateLast == null)
+                        throw new RuntimeException("last hit track state for GBL track was not found");
+                    TrackState stateEcal = TrackUtils.extrapolateTrackUsingFieldMap(stateLast, extStartPos, ecalPosition, stepSize, bFieldMap);
+                    track.getTrackStates().add(stateEcal);
+                    //if( stateIP == null)
+                    //    throw new RuntimeException("IP track state for GBL track was not found");
+                    //TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, ecalPosition, stepSize, bFieldMap);
+                    //track.getTrackStates().add(stateEcalIP);
+                   
+                } else {
+                    logger.info("Extrapolate seed track to ECal from vertex");
+                    TrackState state = TrackUtils.extrapolateTrackUsingFieldMap(track, extStartPos, ecalPosition, stepSize, bFieldMap);
+                    track.getTrackStates().add(state);
+                }
+                
+                logger.info(Integer.toString(track.getTrackStates().size()) +  " track states for this track at this point:");
+                for(TrackState state : track.getTrackStates()) {
+                    String s = "type " + Integer.toString(track.getType()) + " location " + Integer.toString(state.getLocation()) + " refPoint (" + state.getReferencePoint()[0] + " " + state.getReferencePoint()[1] + " " + state.getReferencePoint()[2] + ") " + " params: ";
+                    for(int i=0;i<5;++i) s += String.format(" %f", state.getParameter(i));
+                    logger.info(s);
+                }
+                
                 
                 // The track time is the mean t0 of hits on a track
                 trackTime = totalT0 / totalHits;
