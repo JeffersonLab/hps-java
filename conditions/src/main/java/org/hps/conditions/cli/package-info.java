@@ -1,5 +1,5 @@
 /**
- * Command line interface to the conditions system.
+ * Command line interface to the conditions system
  *
  * @author Jeremy McCormick, SLAC
  */

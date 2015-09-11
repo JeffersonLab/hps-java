@@ -1,4 +1,6 @@
 /**
+ * Monitoring application GUI implemented in Swing framework
+ * <p>
  * The Monitoring Application is a flexible framework for monitoring the event processing chain of the HPS experiment in
  * an online environment. It implements the conversion of ET byte buffers to EVIO and then the building of LCIO events
  * from the raw EVIO data.

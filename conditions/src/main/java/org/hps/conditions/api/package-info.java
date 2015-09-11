@@ -1,5 +1,5 @@
 /**
- * Interfaces, abstract classes and implementations of the conditions system API for HPS.
+ * User interface to the database conditions system
  *
  * @author Jeremy McCormick, SLAC
  * @see ConditionsObject
