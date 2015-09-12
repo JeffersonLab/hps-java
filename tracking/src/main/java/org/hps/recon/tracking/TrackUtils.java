@@ -100,38 +100,39 @@ public class TrackUtils {
 
     // ==========================================================================
     // Helper functions for track parameters and commonly used derived variables
+    
+    // first set are there for backwards comp.
+    
     public static double getPhi(Track track, Hep3Vector position) {
-        double x = Math.sin(getPhi0(track)) - (1 / getR(track)) * (position.x() - getX0(track));
-        double y = Math.cos(getPhi0(track)) + (1 / getR(track)) * (position.y() - getY0(track));
-        return Math.atan2(x, y);
+        return getPhi(track.getTrackStates().get(0), position);
     }
 
     public static double getX0(Track track) {
-        return -1 * getDoca(track) * Math.sin(getPhi0(track));
+        return getX0(track.getTrackStates().get(0));
     }
 
     public static double getR(Track track) {
-        return 1.0 / track.getTrackStates().get(0).getOmega();
+        return getR(track.getTrackStates().get(0));
     }
 
     public static double getY0(Track track) {
-        return getDoca(track) * Math.cos(getPhi0(track));
+        return getY0(track.getTrackStates().get(0));
     }
 
     public static double getDoca(Track track) {
-        return track.getTrackStates().get(0).getD0();
+        return getDoca(track.getTrackStates().get(0));
     }
 
     public static double getPhi0(Track track) {
-        return track.getTrackStates().get(0).getPhi();
+        return getPhi0(track.getTrackStates().get(0));
     }
 
     public static double getZ0(Track track) {
-        return track.getTrackStates().get(0).getZ0();
+        return getZ0(track.getTrackStates().get(0));
     }
 
     public static double getTanLambda(Track track) {
-        return track.getTrackStates().get(0).getTanLambda();
+        return getTanLambda(track.getTrackStates().get(0));
     }
 
     public static double getSinTheta(Track track) {
@@ -139,6 +140,48 @@ public class TrackUtils {
     }
 
     public static double getCosTheta(Track track) {
+        return getTanLambda(track) / Math.sqrt(1 + Math.pow(getTanLambda(track), 2));
+    }
+    
+    public static double getPhi(TrackState track, Hep3Vector position) {
+        double x = Math.sin(getPhi0(track)) - (1 / getR(track)) * (position.x() - getX0(track));
+        double y = Math.cos(getPhi0(track)) + (1 / getR(track)) * (position.y() - getY0(track));
+        return Math.atan2(x, y);
+    }
+    
+    public static double getX0(TrackState track) {
+        return -1 * getDoca(track) * Math.sin(getPhi0(track));
+    }
+
+    public static double getR(TrackState track) {
+        return 1.0 / track.getOmega();
+    }
+
+    public static double getY0(TrackState track) {
+        return getDoca(track) * Math.cos(getPhi0(track));
+    }
+
+    public static double getDoca(TrackState track) {
+        return track.getD0();
+    }
+
+    public static double getPhi0(TrackState track) {
+        return track.getPhi();
+    }
+
+    public static double getZ0(TrackState track) {
+        return track.getZ0();
+    }
+
+    public static double getTanLambda(TrackState track) {
+        return track.getTanLambda();
+    }
+
+    public static double getSinTheta(TrackState track) {
+        return 1 / Math.sqrt(1 + Math.pow(getTanLambda(track), 2));
+    }
+
+    public static double getCosTheta(TrackState track) {
         return getTanLambda(track) / Math.sqrt(1 + Math.pow(getTanLambda(track), 2));
     }
 
@@ -235,16 +278,24 @@ public class TrackUtils {
     }
 
     /**
-     * Extrapolate track to given position.
+     * Extrapolate track to given position. For backwards compatibility.
      *
-     * @param helix - to be extrapolated
+     * @param track - to be extrapolated
      * @param z
-     * @param useMap
-     * @param track - position along the x-axis of the helix in lcsim
-     * coordiantes
      * @return
      */
     public static Hep3Vector extrapolateTrack(Track track, double z) {
+        return extrapolateTrack(track.getTrackStates().get(0),z);
+    }
+    
+    /**
+     * Extrapolate track to given position.
+     *
+     * @param track - to be extrapolated
+     * @param z
+     * @return
+     */
+    public static Hep3Vector extrapolateTrack(TrackState track, double z) {
 
         Hep3Vector trackPosition;
         double dz;
