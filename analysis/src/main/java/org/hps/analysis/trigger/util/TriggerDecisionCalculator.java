@@ -77,7 +77,7 @@ public class TriggerDecisionCalculator {
         
     
         
-        final double ENERGY_CUT_LOW[] = {0.5,0.0}; 
+        final double ENERGY_CUT_LOW[] = {0.0,0.4}; 
         final double ENERGY_CUT_HIGH[] = {8.191,8.191}; 
         final int HIT_COUNT_CUT_LOW[] = {0,0}; 
         final boolean singlesCutsEnabled_ENERGY_MIN[] = {true,true};
