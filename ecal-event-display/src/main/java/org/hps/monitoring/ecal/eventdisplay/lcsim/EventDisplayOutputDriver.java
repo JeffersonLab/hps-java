@@ -20,7 +20,7 @@ import org.lcsim.util.Driver;
 public class EventDisplayOutputDriver extends Driver {
     private FileWriter writer;
     private int eventNum = 0;
-    private String ecalCollectionName = "EcalHits";
+    private String ecalCollectionName = "EcalCalHits";
     private String clusterCollectionName = "EcalClusters";
     private String outputFileName = "cluster-hit.txt";
     private boolean ignoreEmptyEvents = true;
@@ -93,7 +93,7 @@ public class EventDisplayOutputDriver extends Driver {
                     // Get the x/y coordinates for the current hit.
                     int ix = hit.getIdentifierFieldValue("ix");
                     int iy = hit.getIdentifierFieldValue("iy");
-                    double energy = hit.getRawEnergy();
+                    double energy = hit.getCorrectedEnergy();
                     double time = hit.getTime();
                     
                     // Write the hit to the output file.
