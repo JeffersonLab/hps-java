@@ -81,7 +81,7 @@ public class SvtEventFlagger {
     public void initialize() {
         try {
             svtBiasConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtBiasConstant.SvtBiasConstantCollection.class, "svt_bias_constants").getCachedData();
-        } catch (ConditionsManager.ConditionsSetNotFoundException e) {
+        } catch (Exception e) {
             svtBiasConstants = null;
         }
         try {
@@ -100,7 +100,7 @@ public class SvtEventFlagger {
                         break;
                 }
             }
-        } catch (ConditionsManager.ConditionsSetNotFoundException e) {
+        } catch (Exception e) {
             svtPositionConstants = null;
         }
     }
