@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
-//import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.util.Driver;
 
 /**
@@ -28,8 +27,6 @@ public class EventDisplayOutputDriver extends Driver {
     private boolean outputClusters = true;
     
     /**
-     * <b>endOfData</b><br/><br/>
-     * <code>public void <b>endOfData</b>()</code><br/><br/>
      * Closes the output file after all events have been processed.
      */
     public void endOfData() {
@@ -43,8 +40,6 @@ public class EventDisplayOutputDriver extends Driver {
     }
     
     /**
-     * <b>process</b><br/><br/>
-     * <code>public void <b>process</b>(EventHeader event)</code><br/><br/>
      * Writes the event to the output file if it matches the the output
      * conditions selected for the driver.
      */
@@ -137,8 +132,6 @@ public class EventDisplayOutputDriver extends Driver {
     }
     
     /**
-     * <b>startOfData</b><br/><br/>
-     * <code>public void <b>startOfData</b>()</code><br/><br/>
      * Opens the output file and clears it if it already exists.
      */
     public void startOfData() {
@@ -154,8 +147,6 @@ public class EventDisplayOutputDriver extends Driver {
     }
     
     /**
-     * <b>setEcalCollectionName</b><br/><br/>
-     * <code>public void <b>setEcalCollectionName</b>(String ecalCollectionName)</code><br/><br/>
      * Sets the name of the LCIO collection containing hits.
      * @param ecalCollectionName - The LCIO hit collection name.
      */
@@ -164,8 +155,6 @@ public class EventDisplayOutputDriver extends Driver {
     }
     
     /**
-     * <b>setClusterCollectionName</b><br/><br/>
-     * <code>public void <b>setClusterCollectionName</b>(String clusterCollectionName)</code><br/><br/>
      * Sets the name of the LCIO collection containing clusters.
      * @param clusterCollectionName - The LCIO cluster collection name.
      */
@@ -174,8 +163,6 @@ public class EventDisplayOutputDriver extends Driver {
     }
     
     /**
-     * <b>setIgnoreEmptyEvents</b><br/><br/>
-     * <code>public void <b>setIgnoreEmptyEvents</b></code><br/><br/>
      * Sets whether events with no hits should be output.
      * @param ignoreEmptyEvents - <code>true</code> indicates that
      * events without hits will be skipped while <code>false</code>
@@ -186,8 +173,6 @@ public class EventDisplayOutputDriver extends Driver {
     }
     
     /**
-     * <b>setIgnoreNoClusterEvents</b><br/><br/>
-     * <code>public void <b>setIgnoreNoClusterEvents</b></code><br/><br/>
      * Sets whether events with no clusters should be output.
      * @param ignoreNoClusterEvents - <code>true</code> indicates that
      * events without clusters will be skipped while <code>false</code>
@@ -198,8 +183,6 @@ public class EventDisplayOutputDriver extends Driver {
     }
     
     /**
-     * <b>setOutputFileName</b><br/><br/>
-     * <code>public void <b>setOutputFileName</b></code><br/><br/>
      * Sets the name of the output file containing the event data.
      * @param outputFileName - The name of the output file.
      */
@@ -208,8 +191,6 @@ public class EventDisplayOutputDriver extends Driver {
     }
     
     /**
-     * <b>setOutputClusters</b><br/><br/>
-     * <code>public void <b>setOutputClusters</b></code><br/><br/>
      * Sets whether clusters should be output to data file,
      * @param outputClusters - <code>true</code> indicates that clusters
      * will be written and <code>false</code> that they will not.

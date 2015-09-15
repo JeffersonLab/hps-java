@@ -131,14 +131,19 @@ public final class TextManager implements EventManager {
                 double clusterEnergy = Double.NaN;
                 if(st.hasMoreTokens()) { clusterEnergy = Double.parseDouble(st.nextToken()); }
                 
+                // Get the cluster time, if it is defined.
+                double clusterTime = Double.NaN;
+                if(st.hasMoreTokens()) { clusterTime = Double.parseDouble(st.nextToken()); }
+                
                 // Add a new cluster.
-                clusterList.add(new Cluster(ix, iy, clusterEnergy));
+                clusterList.add(new Cluster(ix, iy, clusterEnergy, clusterTime));
             }
             
             // If this is a calorimeter hit, add a new calorimeter hit object.
             else if (name.compareTo("EcalHit") == 0) {
                 double energy = Double.parseDouble(st.nextToken());
-                hitList.add(new EcalHit(ix, iy, energy));
+                double time = Double.parseDouble(st.nextToken());
+                hitList.add(new EcalHit(ix, iy, energy, time));
             }
             
             // If this is a cluster component hit, add it to the last cluster.

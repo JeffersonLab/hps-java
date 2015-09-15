@@ -87,14 +87,12 @@ public class PEventViewer extends PassiveViewer {
 
             // Add component hits to the calorimeter panel.
             for (final Point ch : cluster.getComponentHits()) {
-                this.ecalPanel.addAssociation(new Association(clusterCenter, toPanelPoint(ch),
-                        HIGHLIGHT_CLUSTER_COMPONENT));
+                this.ecalPanel.addAssociation(new Association(clusterCenter, toPanelPoint(ch), HIGHLIGHT_CLUSTER_COMPONENT));
             }
 
             // Add shared hits to the calorimeter panel.
             for (final Point sh : cluster.getSharedHits()) {
-                this.ecalPanel
-                        .addAssociation(new Association(clusterCenter, toPanelPoint(sh), HIGHLIGHT_CLUSTER_SHARED));
+                this.ecalPanel.addAssociation(new Association(clusterCenter, toPanelPoint(sh), HIGHLIGHT_CLUSTER_SHARED));
             }
         }
 

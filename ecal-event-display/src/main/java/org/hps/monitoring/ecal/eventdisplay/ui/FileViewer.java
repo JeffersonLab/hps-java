@@ -44,13 +44,14 @@ public class FileViewer extends Viewer {
     private HashMap<Point, Cluster> clusterMap = new HashMap<Point, Cluster>();
     
     // Additional status display field names for this data type.
-    private static final String[] fieldNames = { "Event Number", "Shared Hits", "Component Hits", "Cluster Energy" };
+    private static final String[] fieldNames = { "Event Number", "Shared Hits", "Component Hits", "Cluster Energy", "Cluster Time" };
     
     // Indices for the field values.
-    private static final int EVENT_NUMBER = 0;
-    private static final int SHARED_HITS = 1;
+    private static final int EVENT_NUMBER   = 0;
+    private static final int SHARED_HITS    = 1;
     private static final int COMPONENT_HITS = 2;
     private static final int CLUSTER_ENERGY = 3;
+    private static final int CLUSTER_TIME   = 4;
     
     /**
      * Constructs a new <code>Viewer</code> for displaying data read
@@ -77,7 +78,7 @@ public class FileViewer extends Viewer {
         fileChooser = new JFileChooser(new File("D:\\cygwin64\\home\\Kyle\\background\\compiled\\output\\")); 
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Text Files", "txt"));
-        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("LCIO Files", "lcio", "slcio"));
+        //fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("LCIO Files", "lcio", "slcio"));
         
         // Add an open file option to the file menu.
         JMenuItem menuOpen = new JMenuItem("Open File", KeyEvent.VK_O);
@@ -160,6 +161,16 @@ public class FileViewer extends Viewer {
                 }
                 else { energy = "---"; }
                 setStatusField(fieldNames[CLUSTER_ENERGY], energy);
+                
+                // Format the cluster time, or account for it if it
+                // doesn't exist.
+                String time;
+                if(activeCluster.getClusterTime() != Double.NaN) {
+                    DecimalFormat formatter = new DecimalFormat("0.####E0");
+                    time = formatter.format(activeCluster.getClusterEnergy());
+                }
+                else { time = "---"; }
+                setStatusField(fieldNames[CLUSTER_TIME], time);
             }
         }
         // Otherwise, clear the field values.

@@ -63,7 +63,7 @@ public abstract class Viewer extends JFrame {
     private final JRadioButtonMenuItem[] menuScaling;
     
     // The default field names.
-    private static final String[] defaultFields = { "x Index", "y Index", "Cell Value" };
+    private static final String[] defaultFields = { "x Index", "y Index", "Energy" };
     
     // The default crystal color.
     private static final Color DEFAULT_CRYSTAL_COLOR = Color.GRAY;
