@@ -6,7 +6,7 @@ import javax.sql.DataSource;
 
 public final class DatabaseUtilities {
 
-    private static String DATASOURCE_CONTEXT = "java:comp/env/jdbc/hps_run_db_dev";
+    private static String DATASOURCE_CONTEXT = "java:comp/env/jdbc/hps_run_db";
     
     public static DataSource getDataSource() {
         DataSource dataSource = null;
