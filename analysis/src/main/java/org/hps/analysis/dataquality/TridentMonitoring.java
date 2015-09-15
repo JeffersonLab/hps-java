@@ -11,6 +11,7 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -197,7 +198,7 @@ public class TridentMonitoring extends DataQualityMonitor {
         ReconstructedParticle bestCandidate = new BaseReconstructedParticle();
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
-        if (!(isGBL ^ uncV0.getType() < 32))//XOR!!!!
+            if (isGBL != TrackType.isGBL(uncV0.getType()))
                 continue;
             Vertex uncVert = uncV0.getStartVertex();
 //  v0 & vertex-quality cuts

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
@@ -229,7 +230,7 @@ public class V0Monitoring extends DataQualityMonitor {
 
         List<ReconstructedParticle> unonstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
         for (ReconstructedParticle uncV0 : unonstrainedV0List) {
-            if (!(isGBL ^ uncV0.getType() < 32))//XOR!!!!
+            if (isGBL != TrackType.isGBL(uncV0.getType()))
                 continue;
             Vertex uncVert = uncV0.getStartVertex();
             unconVx.fill(uncVert.getPosition().x());

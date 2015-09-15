@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -170,7 +171,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
             if (debug) {
                 System.out.println("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = " + fsPart.getMomentum().x());
             }
-          if (!(isGBL ^ fsPart.getType() < 32))//XOR!!!!
+          if (isGBL != TrackType.isGBL(fsPart.getType()))
                 continue;
             // Extrapolate the track to the Ecal cluster position
             boolean isPhoton = false;
