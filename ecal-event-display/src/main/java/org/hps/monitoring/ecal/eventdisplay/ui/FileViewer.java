@@ -42,16 +42,18 @@ public class FileViewer extends Viewer {
     
     // Map cluster location to a cluster object.
     private HashMap<Point, Cluster> clusterMap = new HashMap<Point, Cluster>();
+    private HashMap<Point, Double> crystalTimeMap = new HashMap<Point, Double>();
     
     // Additional status display field names for this data type.
-    private static final String[] fieldNames = { "Event Number", "Shared Hits", "Component Hits", "Cluster Energy", "Cluster Time" };
+    private static final String[] fieldNames = { "Event Number", "Shared Hits", "Component Hits", "Hit Time", "Cluster Energy", "Cluster Time" };
     
     // Indices for the field values.
     private static final int EVENT_NUMBER   = 0;
     private static final int SHARED_HITS    = 1;
     private static final int COMPONENT_HITS = 2;
-    private static final int CLUSTER_ENERGY = 3;
-    private static final int CLUSTER_TIME   = 4;
+    private static final int HIT_TIME       = 3;
+    private static final int CLUSTER_ENERGY = 4;
+    private static final int CLUSTER_TIME   = 5;
     
     /**
      * Constructs a new <code>Viewer</code> for displaying data read
@@ -159,18 +161,26 @@ public class FileViewer extends Viewer {
                     DecimalFormat formatter = new DecimalFormat("0.####E0");
                     energy = formatter.format(activeCluster.getClusterEnergy());
                 }
-                else { energy = "---"; }
+                else { energy = ResizableFieldPanel.NULL_VALUE; }
                 setStatusField(fieldNames[CLUSTER_ENERGY], energy);
                 
                 // Format the cluster time, or account for it if it
                 // doesn't exist.
                 String time;
                 if(activeCluster.getClusterTime() != Double.NaN) {
-                    DecimalFormat formatter = new DecimalFormat("0.####E0");
-                    time = formatter.format(activeCluster.getClusterEnergy());
+                    time = Double.toString(activeCluster.getClusterTime());
                 }
-                else { time = "---"; }
+                else { time = ResizableFieldPanel.NULL_VALUE; }
                 setStatusField(fieldNames[CLUSTER_TIME], time);
+            }
+            
+            // If there is a hit time associated with this point, it should
+            // be displayed.
+            Double hitTime = crystalTimeMap.get(crystal);
+            if(hitTime != null) {
+            	setStatusField(fieldNames[HIT_TIME], Double.toString(hitTime));
+            } else {
+            	setStatusField(fieldNames[HIT_TIME], ResizableFieldPanel.NULL_VALUE);
             }
         }
         // Otherwise, clear the field values.
@@ -243,6 +253,12 @@ public class FileViewer extends Viewer {
         // Load the cluster map.
         clusterMap.clear();
         for(Cluster c : em.getClusters()) { clusterMap.put(toPanelPoint(c.getClusterCenter()), c); }
+        
+        // Load hit time map.
+        crystalTimeMap.clear();
+        for(EcalHit hit : em.getHits()) {
+        	crystalTimeMap.put(new Point(toPanelX(hit.getX()), toPanelY(hit.getY())), hit.getTime());
+        }
         
         // Display it.
         displayEvent(em.getHits(), em.getClusters());
