@@ -170,7 +170,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
             if (debug) {
                 System.out.println("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = " + fsPart.getMomentum().x());
             }
-            if(isGBL^fsPart.getType()<32)//XOR!!!!
+          if (!(isGBL ^ fsPart.getType() < 32))//XOR!!!!
                 continue;
             // Extrapolate the track to the Ecal cluster position
             boolean isPhoton = false;

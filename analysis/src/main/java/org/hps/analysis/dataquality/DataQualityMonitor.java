@@ -37,7 +37,7 @@ public class DataQualityMonitor extends Driver {
     protected String outputPlotDir = "DQMOutputPlots/";
 
     String triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
-    boolean isGBL = false;
+    public boolean isGBL = false;
 
     public void setTriggerType(String type) {
         this.triggerType = type;

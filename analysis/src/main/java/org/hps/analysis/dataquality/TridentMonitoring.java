@@ -197,7 +197,7 @@ public class TridentMonitoring extends DataQualityMonitor {
         ReconstructedParticle bestCandidate = new BaseReconstructedParticle();
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
-            if (isGBL ^ uncV0.getType() < 32)//XOR!!!!
+        if (!(isGBL ^ uncV0.getType() < 32))//XOR!!!!
                 continue;
             Vertex uncVert = uncV0.getStartVertex();
 //  v0 & vertex-quality cuts

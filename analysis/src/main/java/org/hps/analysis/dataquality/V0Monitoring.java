@@ -229,7 +229,7 @@ public class V0Monitoring extends DataQualityMonitor {
 
         List<ReconstructedParticle> unonstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
         for (ReconstructedParticle uncV0 : unonstrainedV0List) {
-            if (isGBL ^ uncV0.getType() < 32)//XOR!!!!
+            if (!(isGBL ^ uncV0.getType() < 32))//XOR!!!!
                 continue;
             Vertex uncVert = uncV0.getStartVertex();
             unconVx.fill(uncVert.getPosition().x());
