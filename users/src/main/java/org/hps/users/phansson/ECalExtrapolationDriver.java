@@ -12,15 +12,19 @@ import hep.physics.vec.Hep3Vector;
 
 import java.util.List;
 
+import javax.swing.text.DefaultEditorKit.PasteAction;
+
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -75,6 +79,10 @@ public class ECalExtrapolationDriver extends Driver {
     for(List<Track> tracks : trackCollections) {
         
         for (Track track : tracks) {
+            
+            if(track.getTrackerHits().size() != 6) 
+                continue;
+            
 
             if(TrackType.isGBL(track.getType())) {
 
@@ -85,11 +93,11 @@ public class ECalExtrapolationDriver extends Driver {
                     if (state.getLocation() == TrackState.AtIP) stateIP = state;
                 }
 
+                
                 // find last 3D hit
                 Hep3Vector lastStereoHitPosition = null;
-                Hep3Vector stereoHitPosition = null;
                 for (TrackerHit rotatedStereoHit : track.getTrackerHits()) {
-                    stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
+                    Hep3Vector stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
                     if(lastStereoHitPosition != null) {
                         if(lastStereoHitPosition.x() < stereoHitPosition.x() )
                             lastStereoHitPosition = stereoHitPosition;
@@ -97,18 +105,51 @@ public class ECalExtrapolationDriver extends Driver {
                         lastStereoHitPosition = stereoHitPosition;
                     }
                 }
+                
+                /*
+                for (TrackerHit rotatedStereoHit : track.getTrackerHits()) {
+                    Hep3Vector stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
+                    RawTrackerHit rawhit = (RawTrackerHit) rotatedStereoHit.getRawHits().get(0);
+                    HpsSiSensor sensor = (HpsSiSensor) rawhit.getDetectorElement();
+                    int layer = HPSTrackerBuilder.getLayerFromVolumeName(sensor.getName());
+                    if(layer == 4) {
+                        if(HPSTrackerBuilder.isTopFromName(sensor.getName())) {
+                            if(HPSTrackerBuilder.isAxialFromName(sensor.getName())) {
+                                lastStereoHitPosition = stereoHitPosition;
+                                System.out.printf("\"Last hit\": %s %s: layer %d %s\n", stereoHitPosition.toString(), sensor.getName(), sensor.getLayerNumber(), sensor.isAxial()?"axial":"stereo");
+                                
+                                break;
+                            }
+                        } else {
+                            if(!HPSTrackerBuilder.isAxialFromName(sensor.getName())) {
+                                lastStereoHitPosition = stereoHitPosition;
+                                System.out.printf("\"Last hit\": %s %s: layer %d %s\n", stereoHitPosition.toString(), sensor.getName(), sensor.getLayerNumber(), sensor.isAxial()?"axial":"stereo");
+                                break;
+                            }
+                        }
+                    }
+                }
+                */
+                
+                if( lastStereoHitPosition == null) 
+                    throw new RuntimeException("No last hit found!");
+
+                //System.out.printf("\"Last hit position found\": %s \n",lastStereoHitPosition.toString());
+                
+                Hep3Vector trackPositionIP = TrackUtils.extrapolateTrack(stateIP, lastStereoHitPosition.x());
+                Hep3Vector trackPositionLast = TrackUtils.extrapolateTrack(stateLast, lastStereoHitPosition.x());
+
+                double xResidualIP = trackPositionIP.x() - lastStereoHitPosition.y();
+                double yResidualIP = trackPositionIP.y() - lastStereoHitPosition.z();
+
+                double xResidualLast = trackPositionLast.x() - lastStereoHitPosition.y();
+                double yResidualLast = trackPositionLast.y() - lastStereoHitPosition.z();
 
                 //System.out.printf("Found last stereo hit at %s\n",lastStereoHitPosition.toString());
+                //System.out.printf("trackPositionIP   %s\n",trackPositionIP.toString());
+                //System.out.printf("trackPositionLast %s\n",trackPositionLast.toString());
 
-                Hep3Vector trackPositionIP = TrackUtils.extrapolateTrack(stateIP, stereoHitPosition.x());
-                Hep3Vector trackPositionLast = TrackUtils.extrapolateTrack(stateLast, stereoHitPosition.x());
-
-                double xResidualIP = trackPositionIP.x() - stereoHitPosition.y();
-                double yResidualIP = trackPositionIP.y() - stereoHitPosition.z();
-
-                double xResidualLast = trackPositionLast.x() - stereoHitPosition.y();
-                double yResidualLast = trackPositionLast.y() - stereoHitPosition.z();
-
+                
                 res_IP_Y.fill(yResidualIP);
                 res_IP_X.fill(xResidualIP);
                 res_Last_Y.fill(yResidualLast);
