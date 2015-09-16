@@ -104,17 +104,17 @@
         <constant name="dZ0_bot" value="0.04" />
                                 -->
 
-        <!-- Global Millepede tweak parameters (mixed constraints)-->
-        <constant name="dOmega_top" value="0.4e-5" />
-        <constant name="dLambda_top" value="0.148e-3" />
-        <constant name="dPhi_top" value="1.44e-3" />
-        <constant name="dD0_top" value="0.064" />
-        <constant name="dZ0_top" value="-0.122" />
-        <constant name="dOmega_bot" value="2.5e-5" />
-        <constant name="dLambda_bot" value="-0.065e-3" />
-        <constant name="dPhi_bot" value="18.753e-3" />
-        <constant name="dD0_bot" value="-6.83" />
-        <constant name="dZ0_bot" value="0.039" />
+        <!-- Global Millepede tweak parameters (mixed constraints: FEE momentum set at 1.05 GeV, top and bottom must agree on d0 and z0)-->
+        <constant name="dOmega_top" value="4e-06" />
+        <constant name="dLambda_top" value="0.000237368375145" />
+        <constant name="dPhi_top" value="0.000581084829307" />
+        <constant name="dD0_top" value="0.622163643926" />
+        <constant name="dZ0_top" value="-0.183211761644" />
+        <constant name="dOmega_bot" value="2.5e-05" />
+        <constant name="dLambda_bot" value="-0.000181541707685" />
+        <constant name="dPhi_bot" value="0.0171848562935" />
+        <constant name="dD0_bot" value="-5.87783635607" />
+        <constant name="dZ0_bot" value="0.116788238356" />
         
         <!-- Global Millepede tweak parameters (external constraints)-->
         <!--
