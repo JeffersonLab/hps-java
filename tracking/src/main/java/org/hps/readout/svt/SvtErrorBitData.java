@@ -3,8 +3,6 @@
  */
 package org.hps.readout.svt;
 
-import javassist.NotFoundException;
-
 import org.lcsim.event.GenericObject;
 
 /**
