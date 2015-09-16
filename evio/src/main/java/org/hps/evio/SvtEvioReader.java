@@ -4,12 +4,12 @@ import java.util.List;
 
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
-
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
-
+import org.hps.readout.svt.SvtErrorBitData;
+import org.hps.readout.svt.SvtHeaderData;
 import org.hps.util.Pair;
 
 /**
@@ -19,7 +19,7 @@ import org.hps.util.Pair;
  *  @data February 03, 2015
  *
  */
-public final class SvtEvioReader extends AbstractSvtEvioReader {
+public class SvtEvioReader extends AbstractSvtEvioReader {
 
     //-----------------//
     //--- Constants ---//
@@ -205,5 +205,27 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
          
         //logger.fine("Channel: " + SvtEvioUtils.getPhysicalChannelNumber(data));
         return makeHit(data, SvtEvioUtils.getPhysicalChannelNumber(data));
+    }
+
+    @Override
+    protected SvtErrorBitData extractErrorBit(int[] multisample) {
+        return null;
+    }
+
+    @Override
+    protected void addErrorBitsToEvent(List<SvtErrorBitData> errorBits,
+            EventHeader lcsimEvent) {
+       //do nothing here
+    }
+
+    @Override
+    protected SvtHeaderData extractSvtHeader(int num, int[] data) {
+        return null;
+    }
+
+    @Override
+    protected void addSvtHeadersToEvents(List<SvtHeaderData> headers,
+            EventHeader lcsimEvent) {
+      //do nothing here
     }
 }

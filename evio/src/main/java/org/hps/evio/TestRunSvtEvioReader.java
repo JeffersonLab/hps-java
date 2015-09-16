@@ -2,10 +2,13 @@ package org.hps.evio;
 
 import java.util.List;
 
+import org.hps.readout.svt.SvtErrorBitData;
+import org.hps.readout.svt.SvtHeaderData;
 import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
+import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 
@@ -162,4 +165,32 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
         //this.printDebug("Channel: " + SvtEvioUtils.getTestRunChannelNumber(data));
         return makeHit(data, SvtEvioUtils.getTestRunChannelNumber(data));
     }
+
+    @Override
+    protected SvtErrorBitData extractErrorBit(int[] multisample) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    protected void addErrorBitsToEvent(List<SvtErrorBitData> errorBits,
+            EventHeader lcsimEvent) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    protected SvtHeaderData extractSvtHeader(int num, int[] data) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    protected void addSvtHeadersToEvents(List<SvtHeaderData> headers,
+            EventHeader lcsimEvent) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    
 }

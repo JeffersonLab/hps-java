@@ -68,7 +68,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
         ecalReader.setRfBankTag(0x2e);
-        svtReader = new SvtEvioReader();
+        svtReader = new EnhancedSvtEvioReader();
         sspCrateBankTag = 0x2E; // A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
         intBanks = new ArrayList<IntBankDefinition>();
@@ -138,7 +138,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Error making SVT hits.", e);
         }
-
+        
         // Write the current EPICS data into this event.
         this.writeEpicsData(lcsimEvent);
 

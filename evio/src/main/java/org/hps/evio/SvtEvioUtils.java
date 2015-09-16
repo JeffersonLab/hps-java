@@ -158,7 +158,40 @@ public class SvtEvioUtils {
         if (((data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 29) & ENG_RUN_APV_TAIL_MASK) == 1) return true;
         return false;
     }
-   
+    
+    public static int getSvtHeader(int[] data) {
+        return data[0];
+    }
+    
+    public static int getSvtDataType(int header) {
+        return (header >> 24);
+    }
+    
+    public static int getSvtDataEventCounter(int header) {
+        return (header & 0xFFFFFF);
+    }
+    
+    public static int getSvtTail(int[] data) {
+        return data[data.length-1];
+    }
+    
+    public static int getSvtTailOFErrorBit(int tail) {
+        return (tail >> 27);
+    }
+
+    public static int getSvtTailSyncErrorBit(int tail) {
+        return (tail >> 26) & 0x1;
+    }
+
+    public static int getSvtTailMultisampleCount(int tail) {
+        return tail & 0xFFF;
+    }
+
+    public static int getSvtTailMultisampleSkipCount(int tail) {
+        return (tail >> 12) & 0xFFF;
+    }
+
+    
     /**
      *  Extract the error bit of the samples.
      *
