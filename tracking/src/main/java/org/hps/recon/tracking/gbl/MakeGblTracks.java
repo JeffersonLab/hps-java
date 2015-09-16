@@ -12,7 +12,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.math3.util.Pair;
-import org.hps.recon.tracking.StrategyType;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
@@ -27,7 +26,6 @@ import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
-import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
@@ -89,9 +87,11 @@ public class MakeGblTracks {
 
             //  Retrieve the helix
             HelicalTrackFit helix = trackseed.getHelix();
-            
             // Set state at vertex
             Pair<double[], SymmetricMatrix> correctedHelixParams = getGblCorrectedHelixParameters(helix, fittedTraj, bfield, FittedGblTrajectory.GBLPOINT.IP);
+            trk.setTrackParameters(correctedHelixParams.getFirst(), bfield);// hack to set the track charge
+            trk.getTrackStates().clear();
+
             TrackState stateVertex = new BaseTrackState(correctedHelixParams.getFirst(), ref, correctedHelixParams.getSecond().asPackedArray(true), TrackState.AtIP, bfield);
             trk.getTrackStates().add(stateVertex);
             
