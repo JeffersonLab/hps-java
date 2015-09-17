@@ -79,10 +79,11 @@ double[] Ymin={38.83,45.81,52.95,60.00,67.01,74.04};
 double[] Xmax={-23.59,-23.1,-22.61,-22.11,-21.62,-21.13};
 double[] Xmin={-30.1,-30.59,-31.08,-31.58,-32.07,-32.57};
 */
-double[] Ymax={45.91,53.95,59.98,67.04,74.05,81.18};
-double[] Ymin={38.84, 45.91,53.95,59.98,67.04,74.05};
-double[] Xmax={-13.25,-12.75,-12.26,-11.77,-11.27,-10.78};
-double[] Xmin={-19.75,-20.24,-20.74,-21.23,-21.72,-22.22};
+//e=1.05
+double[] Ymax={45.81,53.75,60.76,66.97,74.05,80.08};
+double[] Ymin={38.84,45.81,53.75,60.76,66.97,74.05};
+double[] Xmax={-16.036,-15.543,-15.05,-14.556,-14.062,-16.568};
+double[] Xmin={-22.54,-23.33,-23.53,-24.02,-24.514,-25.008};
 
 
 int[] countertop=new int[6];
@@ -220,7 +221,7 @@ double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
 */
 
 //e cuts 5072
-
+/*
 double[] ecuttopmin={0.45,0.6,0.6,0.7,0.7,0.75};
 double[] ecuttopmax={0.8,0.9,0.9,0.9,1,1};
 
@@ -233,7 +234,21 @@ double[] cryecuttopmax={1.8,1.8,1.8,2,2};
 
 double[] cryecutbotmax={2,2,1.9,1.9,2};
 double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
+*/
+//e cuts 5772
 
+double[] ecuttopmin={0.6,0.6,0.6,0.6,0.6,0.6};
+double[] ecuttopmax={1,1,1,1,1,1};
+
+double[] ecutbotmin= {0.6,0.6,0.6,0.6,0.6,0.6};
+double[] ecutbotmax={1,1,1,1,1,1};
+
+
+double[] cryecuttopmin={1.38,1.38,1.52,1.6,1.6};
+double[] cryecuttopmax={1.8,1.8,1.8,2,2};
+
+double[] cryecutbotmax={2,2,1.9,1.9,2};
+double[] cryecutbotmin= {1.38,1.38,1.5,1.65,1.55};
 
 // e cut 5181
 /*
@@ -431,14 +446,14 @@ System.out.println("theta = " + theta + "\n");
     	}
      */ //nathans code for trigger end
      
-     
+    
      
   if (event.hasCollection(GenericObject.class, "TriggerBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
             for (GenericObject data : triggerList)
                 if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
                     TIData triggerData = new TIData(data);
-                    if (!triggerData.isSingle1Trigger())//only process singles0 triggers...
+                    if (!triggerData.isSingle1Trigger())//only process singles1 triggers...
 
                         return;
                 }
@@ -448,10 +463,10 @@ System.out.println("theta = " + theta + "\n");
      for(int i=0;i<6;i++){
     if(countertop[i]==0){timei[i]=timef;}}
         
-    if(event.hasCollection(Cluster.class,"EcalClusters")){
+    if(event.hasCollection(Cluster.class,"EcalClustersGTP")){
         
         
-        List<Cluster> clusters= event.get(Cluster.class,"EcalClusters");
+        List<Cluster> clusters= event.get(Cluster.class,"EcalClustersGTP");
         
          for(Cluster cluster : clusters){
          
@@ -467,7 +482,7 @@ System.out.println("theta = " + theta + "\n");
          
          //if(cryy==1){verpos[0]=posY;}
          //da qui righe e colonne
-        /* 
+         
         if(cryx==-5||cryx==-6){
             
             for(int i=0;i<5;i++){
@@ -489,7 +504,7 @@ System.out.println("theta = " + theta + "\n");
                     }
                 }
             }
-        } */
+        } 
         
         
         ///da qui bin angolari 
