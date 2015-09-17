@@ -7,7 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Dataset utilities.
+ * Dataset utilities for the crawler.
  * 
  * @author Jeremy McCormick, SLAC
  */

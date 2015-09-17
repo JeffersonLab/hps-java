@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -19,50 +18,39 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 /**
- * 
  * @author Jeremy McCormick, SLAC
  */
 final class HttpUtilities {
 
     /**
-     * Do an HTTP POST.
-     * 
+     * Do an HTTP DELETE.
+     *
      * @param urlLocation the URL location
-     * @param data the data to stream to the server
      * @return the HTTP response code
      */
-    static int doPost(String urlLocation, String data) {
+    static int doDelete(final String urlLocation) {
         int responseCode = 0;
         try {
-            URL url = new URL(urlLocation);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
+            final URL url = new URL(urlLocation);
+            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoOutput(true);
-            if (data != null) {
-                OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
-                out.write(data);
-                out.close();
-            }
-            System.out.println("url: " + urlLocation);
-            System.out.println("data: " + data);
-            System.out.println("response: " + connection.getResponseCode());
-            System.out.println("message: " + connection.getResponseMessage());
+            connection.setRequestMethod("DELETE");
+            connection.connect();
             responseCode = connection.getResponseCode();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
         return responseCode;
     }
-    
+
     /**
      * Do an HTTP get and return the output from the server in a <code>StringBuffer</code>.
-     * 
+     *
      * @param urlLocation the URL location
      * @param stringBuffer the string buffer with the server output
      * @return the HTTP response
      */
-    static int doGet(String urlLocation, StringBuffer stringBuffer) {
+    static int doGet(final String urlLocation, final StringBuffer stringBuffer) {
         HttpURLConnection connection = null;
         int response = 0;
         try {
@@ -73,94 +61,83 @@ final class HttpUtilities {
             connection.setDoInput(true);
             connection.connect();
             if (stringBuffer != null) {
-                String output = IOUtils.toString(connection.getInputStream(), "UTF-8");            
+                final String output = IOUtils.toString(connection.getInputStream(), "UTF-8");
                 stringBuffer.append(output);
             }
             response = connection.getResponseCode();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         } finally {
             connection.disconnect();
         }
         return response;
-    }    
-    
+    }
+
     /**
      * Do an HTTP patch.
-     * 
+     *
      * @param urlLocation the URL location
      * @param data the data to stream to the server
      * @return the HTTP response code
      */
-    static int doPatch(String urlLocation, String data) {
-        int responseCode = 0;        
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+    static int doPatch(final String urlLocation, final String data) {
+        int responseCode = 0;
+        final CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPatch httpPatch = null;
         try {
-            httpPatch = new HttpPatch(new URI(urlLocation));            
-            InputStreamEntity entity = 
-                    new InputStreamEntity(
-                            new ByteArrayInputStream(
-                                    data.getBytes("UTF-8")), 
-                                    -1, 
-                                    ContentType.APPLICATION_JSON);
-            httpPatch.setEntity(entity);            
-            CloseableHttpResponse response = httpClient.execute(httpPatch);
+            httpPatch = new HttpPatch(new URI(urlLocation));
+            final InputStreamEntity entity = new InputStreamEntity(new ByteArrayInputStream(data.getBytes("UTF-8")),
+                    -1, ContentType.APPLICATION_JSON);
+            httpPatch.setEntity(entity);
+            final CloseableHttpResponse response = httpClient.execute(httpPatch);
             try {
                 EntityUtils.consume(response.getEntity());
             } finally {
                 response.close();
             }
             responseCode = response.getStatusLine().getStatusCode();
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new IllegalArgumentException(e);
-        } catch(IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         } finally {
             try {
                 httpClient.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
-        }                   
+        }
         return responseCode;
-    }    
-    
+    }
+
     /**
-     * Do an HTTP DELETE.
-     * 
+     * Do an HTTP POST.
+     *
      * @param urlLocation the URL location
+     * @param data the data to stream to the server
      * @return the HTTP response code
      */
-    static int doDelete(String urlLocation) {
+    static int doPost(final String urlLocation, final String data) {
         int responseCode = 0;
         try {
-            URL url = new URL(urlLocation);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            final URL url = new URL(urlLocation);
+            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
-            connection.setRequestMethod("DELETE");
-            connection.connect();
+            if (data != null) {
+                final OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
+                out.write(data);
+                out.close();
+            }
+            System.out.println("url: " + urlLocation);
+            System.out.println("data: " + data);
+            System.out.println("response: " + connection.getResponseCode());
+            System.out.println("message: " + connection.getResponseMessage());
             responseCode = connection.getResponseCode();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
         return responseCode;
-    }
-    
-    /*
-    static URL createURL(String... chunks) {
-        if (chunks.length == 0) {
-            throw new IllegalArgumentException("No arguments provided.");
-        }
-        String urlString = "";
-        for (String chunk : chunks) {
-            urlString += chunk;
-        }
-        try {
-            return new URL(urlString);
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Bad URL string: " + urlString);
-        }
-    }
-    */
+    }   
 }

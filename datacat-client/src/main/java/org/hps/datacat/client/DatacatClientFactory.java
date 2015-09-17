@@ -1,11 +1,11 @@
 package org.hps.datacat.client;
 
 /**
- * Factory class for providing user access to interfaces with protected implementation classes.
+ * Factory class for providing user access to interfaces that have protected implementations.
  * 
  * @author Jeremy McCormick, SLAC
  */
-public class DatacatClientFactory {
+public final class DatacatClientFactory {
         
     /**
      * Create a datacat client.

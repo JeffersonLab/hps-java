@@ -4,9 +4,10 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * Representation of a dataset in the data catalog.
+ * 
  * 
  * @author Jeremy McCormick, SLAC
- *
  */
 public interface Dataset {
     
@@ -18,7 +19,7 @@ public interface Dataset {
     String getName();
     
     /**
-     * Get the path of the dataset e.g. "/HPS/folder/dataset01".
+     * Get the logical path of the dataset e.g. "/HPS/folder/dataset01".
      * 
      * @return the path of the dataset
      */

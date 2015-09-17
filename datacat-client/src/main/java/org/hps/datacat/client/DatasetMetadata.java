@@ -1,8 +1,7 @@
 package org.hps.datacat.client;
 
-
 /**
- * Dataset metadata which is keys and values that are double, integer or string.
+ * Dataset metadata which is string keys and values that are double, integer or string.
  * 
  * @author Jeremy McCormick, SLAC
  */

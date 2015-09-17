@@ -15,6 +15,6 @@ final class DatacatConstants {
     /**
      * The base URL of the datacat server.
      */
-    // FIXME: This needs to be more easily configurable and not hard-coded.
+    // FIXME: Development server location.
     public static final String BASE_URL = "http://localhost:8080/datacat-v0.4-SNAPSHOT";            
 }
