@@ -15,7 +15,7 @@
         </driver>        
        
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-            <writeOnlyCollections>SvtErrorBits SvtHeaders</writeOnlyCollections>
+            <writeOnlyCollections>SvtHeaders</writeOnlyCollections>
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
 
