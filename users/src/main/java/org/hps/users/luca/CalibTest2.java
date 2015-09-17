@@ -29,10 +29,10 @@ String outputFileName2 = "coulombelectronsStopped.txt";*/
 private AIDA aida = AIDA.defaultInstance();
    
 
-    IHistogram1D eneMCallPlot = aida.histogram1D("All MCParticles Energy", 300, 0.0, 3);
-    IHistogram1D eneEminusPlot = aida.histogram1D("All electrons Energy", 300, 0.0, 3);
-     IHistogram1D eneCoulombEPlot = aida.histogram1D("Coulomb Electrons", 300, 0.0, 3);
-     IHistogram1D ParticleIdPlot = aida.histogram1D("ParticleId", 100,-50, 50);
+    IHistogram1D eneMCallPlot = aida.histogram1D("All MCParticles Energy", 300, 0.0, 1.1);
+    IHistogram1D eneEminusPlot = aida.histogram1D("All electrons Energy", 300, 0.0, 1.1);
+     IHistogram1D eneCoulombEPlot = aida.histogram1D("Coulomb Electrons", 300, 0.0, 1.1);
+     IHistogram1D ParticleIdPlot = aida.histogram1D("ParticleId", 400,-200, 200);
 /*public void setOutputFileName(String outputFileName){
 this.outputFileName = outputFileName;
 }*/
@@ -77,7 +77,7 @@ catch(IOException e){
       eneMCallPlot.fill(particle.getEnergy());
       if(particle.getPDGID()==11)
       {eneEminusPlot.fill(particle.getEnergy());}
-      if(particle.getPDGID()==11 && particle.getEnergy()>2.150)
+      if(particle.getPDGID()==11 && particle.getEnergy()>0.8)
       {eneCoulombEPlot.fill(particle.getEnergy());}
     
       
