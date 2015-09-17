@@ -26,7 +26,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class FeeCalibHistCreatorSim extends Driver {
     
-    double energyThreshold=0.5;
+    double energyThreshold=0.65;
     protected String clusterCollectionName = "GTPEcalClusters";
     //create the writer to write the gains on txt
    
@@ -73,8 +73,8 @@ public void startOfData(){
         
         
         //here it writes the GTP clusters info
-        if(event.hasCollection(Cluster.class,"EcalClustersGTP"))
-        {List<Cluster> clusters= event.get(Cluster.class,"EcalClustersGTP");
+        if(event.hasCollection(Cluster.class,"EcalClustersCorr"))
+        {List<Cluster> clusters= event.get(Cluster.class,"EcalClustersCorr");
          for(Cluster cluster : clusters){
            int idBack;
            
