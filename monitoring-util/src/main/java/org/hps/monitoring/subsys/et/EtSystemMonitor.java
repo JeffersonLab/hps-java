@@ -12,6 +12,8 @@ import org.jlab.coda.et.EtEvent;
 
 /**
  * This is a class for monitoring the ET system.
+ * 
+ * @author Jeremy McCormick, SLAC
  */
 public final class EtSystemMonitor extends EtEventProcessor {
 

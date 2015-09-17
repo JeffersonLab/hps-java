@@ -11,7 +11,10 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Example Driver for plotting a sub-system's data using a strip chart.
+ * 
+ * @author Jeremy McCormick, SLAC
  */
+//FIXME: This class doesn't belong in this package because it is not a sub-system monitor.
 public class EcalStripChartTestDriver extends Driver {
 
     int eventInterval = 1000;

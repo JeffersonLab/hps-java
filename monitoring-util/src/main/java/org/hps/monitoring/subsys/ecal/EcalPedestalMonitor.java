@@ -19,11 +19,12 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/*
+/**
  * Reads output of org.hps.recon.ecal.RunningPedestalDriver and makes strip charts.
  * 
- * Baltzell
+ * @author Nathan Baltzell, JLAB
  */
+// FIXME: This class doesn't belong in this package because it is not a sub-system monitor.
 public class EcalPedestalMonitor extends Driver {
 
     static final int REFRESH_RATE = 10*1000; // units = ms
