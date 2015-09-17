@@ -2,15 +2,14 @@ package org.hps.evio;
 
 import java.util.List;
 
+import org.hps.readout.svt.SvtHeaderDataInfo;
+import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
-import org.hps.readout.svt.SvtErrorBitData;
-import org.hps.readout.svt.SvtHeaderData;
-import org.hps.util.Pair;
 
 /**
  *  SVT EVIO reader used to convert SVT bank integer data to LCIO objects.
@@ -208,24 +207,13 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     }
 
     @Override
-    protected SvtErrorBitData extractErrorBit(int[] multisample) {
-        return null;
+    protected SvtHeaderDataInfo extractSvtHeader(int num, int[] data) {
+        // Extract the header information
+        int svtHeader = SvtEvioUtils.getSvtHeader(data);
+        // Extract the tail information
+        int svtTail = SvtEvioUtils.getSvtTail(data);
+        return new SvtHeaderDataInfo(num, svtHeader, svtTail);
     }
 
-    @Override
-    protected void addErrorBitsToEvent(List<SvtErrorBitData> errorBits,
-            EventHeader lcsimEvent) {
-       //do nothing here
-    }
-
-    @Override
-    protected SvtHeaderData extractSvtHeader(int num, int[] data) {
-        return null;
-    }
-
-    @Override
-    protected void addSvtHeadersToEvents(List<SvtHeaderData> headers,
-            EventHeader lcsimEvent) {
-      //do nothing here
-    }
+    
 }

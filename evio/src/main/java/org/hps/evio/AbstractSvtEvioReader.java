@@ -7,36 +7,37 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.readout.svt.SvtHeaderDataInfo;
+import org.hps.util.Pair;
+import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.IEvioFilter;
 import org.jlab.coda.jevio.IEvioStructure;
 import org.jlab.coda.jevio.StructureFinder;
-import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.StructureType;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOUtil;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
-import org.hps.readout.svt.SvtErrorBitData;
-import org.hps.readout.svt.SvtHeaderData;
-import org.hps.util.Pair;
 
 /**
  * Abstract SVT EVIO reader used to convert SVT bank sample blocks to
  * {@link RawTrackerHit}s.
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
+ * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  * @date November 20, 2014
  *
  */
 public abstract class AbstractSvtEvioReader extends EvioReader {
     
+    public static final String SVT_HEADER_COLLECTION_NAME = "SvtHeaders";
+
     
     // Initialize the logger
     protected static Logger logger = LogUtil.create(AbstractSvtEvioReader.class.getName(), 
@@ -57,8 +58,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
     // Collections and names
     private static final String SVT_HIT_COLLECTION_NAME = "SVTRawTrackerHits";
     List<RawTrackerHit> rawHits = new ArrayList<RawTrackerHit>();
-    List<SvtErrorBitData> errorBits = new ArrayList<SvtErrorBitData>();
-    List<SvtHeaderData> headers = new ArrayList<SvtHeaderData>();
+    List<SvtHeaderDataInfo> headers = new ArrayList<SvtHeaderDataInfo>();
 
     // Constants
     private static final String SUBDETECTOR_NAME = "Tracker";
@@ -185,9 +185,6 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         // Clear the list of raw tracker hits
         rawHits.clear();
         
-        // Clear the list of error bits
-        errorBits.clear();
-        
         // Clear the list of headers
         headers.clear();
 
@@ -232,32 +229,36 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                 }
                 
                 // extract header and tail information
-                SvtHeaderData headerData = this.extractSvtHeader(dataBank.getHeader().getNumber(), data);
-                if(headerData != null) {
-                    // Check that the multisample count is consistent
-                    if( sampleCount != headerData.getMultisampleCount()*4)
-                        throw new RuntimeException("multisample count is not consistent with bank size.");
-                    // Add to list
-                    headers.add(headerData);
-                }
-
+                SvtHeaderDataInfo headerData = this.extractSvtHeader(dataBank.getHeader().getNumber(), data);
+                    
+                // Check that the multisample count is consistent
+                if( sampleCount != SvtEvioUtils.getSvtTailMultisampleCount(headerData.getTail())*4)
+                    throw new RuntimeException("multisample count is not consistent with bank size.");
+                
+                // Add header to list
+                headers.add(headerData);
+                
+                
+                // create array for the apv headers of known length
+                int multisampleHeaders[] = new int[sampleCount/4];
+                
                 // Loop through all of the samples and make hits
                 for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
 
                     int[] samples = new int[4];
                     System.arraycopy(data, this.getDataHeaderLength() + samplesN, samples, 0, samples.length);
                     
-                    // Extract error bit
-                    if( SvtEvioUtils.isApvHeader(samples) ) {
-                        SvtErrorBitData errorBitData = this.extractErrorBit( samples );
-                        if(errorBitData != null)
-                            errorBits.add(errorBitData);
-                    }
+                    // Extract multisample header
+                    if( SvtEvioUtils.isApvHeader(samples) ) 
+                        multisampleHeaders[samplesN/4] = SvtEvioUtils.getApvHeaderWord(samples);
                     
                     // If a set of samples is associated with an APV header or tail, skip it
                     if (!this.isValidSampleSet(samples)) continue;
                     rawHits.add(this.makeHit(samples));
                 }
+                
+                // add multisample headers to header data object
+                headerData.setMultisampleHeaders(multisampleHeaders);
             }
         }
         
@@ -268,50 +269,29 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         // Add the collection of raw hits to the LCSim event
         lcsimEvent.put(SVT_HIT_COLLECTION_NAME, rawHits, RawTrackerHit.class, flag, READOUT_NAME);
 
-        // Add error bits to the event
-        this.addErrorBitsToEvent(errorBits, lcsimEvent);
-        
         // Add SVT header data to the event
         this.addSvtHeadersToEvents(headers, lcsimEvent);
         
         return true;
     }
 
-    /**
-     *  Make a {@link GenericObject} containing the error bits from the SVT data.
-     * 
-     *  @param multisample : multisample from the SVT
-     *  @param errorBits : List of {@link SvtErrorBitData} to store it.
-     */
-    protected abstract SvtErrorBitData extractErrorBit(int[] multisample);
-
     
     /**
-     * 
-     * Add {@link SvtErrorBitData} list to the event.
-     * 
-     * @param errorBits: collection to add
-     * @param lcsimEvent: the event to store it.
-     */
-    protected abstract void addErrorBitsToEvent(List<SvtErrorBitData> errorBits, EventHeader lcsimEvent);    
-    
-    
-    /**
-     * Extract the header information and store it in a {@link SvtHeaderData} object.
+     * Extract the header information and store it in a {@link SvtHeaderDataInfo} object.
      * @param num - bank num (ROC id)
      * @param data - SVT data block.
-     * @return the {@link SvtHeaderData}.
+     * @return the {@link SvtHeaderDataInfo}.
      */
-    protected abstract SvtHeaderData extractSvtHeader(int num, int[] data);
+    protected abstract SvtHeaderDataInfo extractSvtHeader(int num, int[] data);
     
     
-    /**
-     * Add {@link SvtHeaderData} list to the event.
-     * @param headers - list to add.
-     * @param lcsimEvent - event to add to.
-     */
-    protected abstract void addSvtHeadersToEvents(List<SvtHeaderData> headers, EventHeader lcsimEvent);
-    
+    protected void addSvtHeadersToEvents(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) {
+        // Turn on 64-bit cell ID.
+        int flag = LCIOUtil.bitSet(0, 31, true);
+        // Add the collection of raw hits to the LCSim event
+        lcsimEvent.put(SVT_HEADER_COLLECTION_NAME, headers, SvtHeaderDataInfo.class, flag);
+
+    }
     
     /**
      *  Make a {@link RawTrackerHit} from a set of samples.

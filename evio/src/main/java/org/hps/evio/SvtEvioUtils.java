@@ -1,5 +1,7 @@
 package org.hps.evio;
 
+import org.apache.commons.math3.analysis.function.Rint;
+
 /**
  *  A set of static utility methods used to decode SVT data.
  * 
@@ -146,6 +148,18 @@ public class SvtEvioUtils {
         if (((data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 30) & ENG_RUN_APV_HEADER_MASK) == 1) return true;
         return false;
     }
+    
+    /**
+     * Get the multisample header word.
+     * @param multisample
+     * @return the header word
+     */
+    public static int getApvHeaderWord(int[] multisample) {
+        if( !isApvHeader(multisample) )
+            throw new RuntimeException("Need ApvHeader multisample in order to extract the header word.");
+        return multisample[ENG_RUN_SAMPLE_HEADER_INDEX];
+    }
+    
     
     /**
      *  Check if the samples are APV tails
