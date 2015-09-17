@@ -6,38 +6,24 @@ package org.hps.readout.svt;
 import org.lcsim.event.GenericObject;
 
 /**
+ * Helper class to extract SVT header data from {@SvtHeaderDataInfo}.
+ * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  */
-public class SvtHeaderData implements GenericObject {
+public class SvtHeaderData {
 
-    private final int num;
-    private final int eventCount;
-    private final int overflowError;
-    private final int syncError;
-    private final int skipCount;
-    private final int multisampleCount;
+    public SvtHeaderData() {}
     
+
     
-    /**
-     * 
-     */
-    public SvtHeaderData(int num, int eventCount, int overflowError, int syncError, int skipCount, int multisampleCount) {
-        this.eventCount = eventCount;
-        this.num = num;
-        this.syncError = syncError;
-        this.overflowError = overflowError;
-        this.skipCount = skipCount;
-        this.multisampleCount = multisampleCount;
+    public static int getNum(SvtHeaderDataInfo data) {
+        return data.getNum();
     }
 
-    
-    public int getNum() {
-        return this.num;
-    }
-
-    public int getEventCount() {
-        return this.eventCount;
+    /*
+    public static int getEventCount(SvtHeaderDataInfo data) {
+        return 
     }
 
     public int getOverflowError() {
@@ -120,7 +106,7 @@ public class SvtHeaderData implements GenericObject {
     public boolean isFixedSize() {
         return true;
     }
-    
+    */
     
 
 }
