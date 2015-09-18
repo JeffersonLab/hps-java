@@ -3,7 +3,6 @@
  */
 package org.hps.readout.svt;
 
-import org.freehep.graphicsio.swf.SWFAction.GetMember;
 import org.lcsim.event.GenericObject;
 
 /**
@@ -75,25 +74,18 @@ public class SvtHeaderDataInfo implements GenericObject {
 
     @Override
     public int getIntVal(int index) {
-        int value;
         switch (index) {
             case 0:
-                value = getNum();
-                break;
+                return getNum();
             case 1:
-                value = getHeader();
-                break;
+                return getHeader();
             case 2:
-                value = getTail();
-                break;
+                return getTail();
             default:
                 if( (index-3) >= getMultisampleHeaders().length )
                     throw new RuntimeException("Invalid index " + Integer.toString(index));
-                else
-                    value = getMultisampleHeader(index -3);
-                break;
+                return getMultisampleHeader(index -3);
         }
-        return value;
     }
 
 
@@ -112,6 +104,22 @@ public class SvtHeaderDataInfo implements GenericObject {
     @Override
     public boolean isFixedSize() {
         return true;
+    }
+
+    public static int getNum(GenericObject header) {
+        return header.getIntVal(0);
+    }
+
+    public static int getHeader(GenericObject header) {
+        return header.getIntVal(1);
+    }
+
+    public static int getTail(GenericObject header2) {
+        return header2.getIntVal(2);
+    }
+
+    public static int getMultisample(int iMultiSample, GenericObject header) {
+        return header.getIntVal(iMultiSample+3);
     }
     
     
