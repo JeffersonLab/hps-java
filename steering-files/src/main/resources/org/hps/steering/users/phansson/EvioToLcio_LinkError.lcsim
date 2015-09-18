@@ -6,19 +6,25 @@
     -->
     <execute>
         <driver name="EventMarkerDriver"/> 
-        <driver name="LCIOWriter"/>
+        <driver name="LinkErrorDriver"/>
+        <!--<driver name="LCIOWriter"/>-->
+        <driver name="AidaSaveDriverRoot" /> 
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>100</eventInterval>
-        </driver>        
+        </driver>      
+        
+        <driver name="LinkErrorDriver" type="org.hps.users.phansson.SvtHeaderAnalysisDriver"/>  
        
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <writeOnlyCollections>SvtHeaders</writeOnlyCollections>
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
-
+        <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>    
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         
 
