@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-Proposal2014-v8-1pt1" />
-    <generator name="GeomConverter" version="1.0" file="detectors/HPS-Proposal2014-v8-1pt1/compact.xml" checksum="1525037852" />
+    <generator name="GeomConverter" version="1.0" file="./detectors/HPS-Proposal2014-v8-1pt1/compact.xml" checksum="1525037852" />
     <author name="NONE" />
     <comment>HPS detector for 2014 proposal @ 1.1GeV</comment>
   </header>
