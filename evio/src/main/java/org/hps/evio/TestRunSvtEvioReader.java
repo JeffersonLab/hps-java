@@ -2,14 +2,11 @@ package org.hps.evio;
 
 import java.util.List;
 
-import org.hps.readout.svt.SvtErrorBitData;
-import org.hps.readout.svt.SvtHeaderData;
 import org.hps.readout.svt.SvtHeaderDataInfo;
 import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
-import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 
