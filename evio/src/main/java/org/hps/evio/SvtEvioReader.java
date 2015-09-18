@@ -25,8 +25,8 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     //-----------------//
     private static final int DATA_HEADER_LENGTH = 1;
     private static final int DATA_TAIL_LENGTH = 1; 
-    private static final int MIN_ROC_BANK_TAG = 51;
-    private static final int MAX_ROC_BANK_TAG = 66;
+    public static final int MIN_ROC_BANK_TAG = 51;
+    public static final int MAX_ROC_BANK_TAG = 66;
     private static final int ROC_BANK_NUMBER = 0; 
     
     /**
@@ -155,7 +155,7 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
      * @return true if the samples are valid, false otherwise
      */
     protected boolean isValidSampleSet(int[] data) {
-        return !(SvtEvioUtils.isApvHeader(data) || SvtEvioUtils.isApvTail(data));        
+        return !(SvtEvioUtils.isMultisampleHeader(data) || SvtEvioUtils.isMultisampleTail(data));        
     }
    
     /**

@@ -1,6 +1,5 @@
 package org.hps.evio;
 
-import org.apache.commons.math3.analysis.function.Rint;
 
 /**
  *  A set of static utility methods used to decode SVT data.
@@ -141,21 +140,21 @@ public class SvtEvioUtils {
      *  Check if the samples are APV headers
      *  
      * 
-     *  @param data : sample block of data
+     *  @param multisample : sample block of data
      *  @return true if the samples belong to APV headers, false otherwise
      */
-    public static boolean isApvHeader(int[] data) {
-        if (((data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 30) & ENG_RUN_APV_HEADER_MASK) == 1) return true;
+    public static boolean isMultisampleHeader(int[] multisample) {
+        if (((multisample[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 30) & ENG_RUN_APV_HEADER_MASK) == 1) return true;
         return false;
     }
     
     /**
      * Get the multisample header word.
-     * @param multisample
+     * @param multisample - block of data
      * @return the header word
      */
-    public static int getApvHeaderWord(int[] multisample) {
-        if( !isApvHeader(multisample) )
+    public static int getMultisampleHeaderWord(int[] multisample) {
+        if( !isMultisampleHeader(multisample) )
             throw new RuntimeException("Need ApvHeader multisample in order to extract the header word.");
         return multisample[ENG_RUN_SAMPLE_HEADER_INDEX];
     }
@@ -165,11 +164,11 @@ public class SvtEvioUtils {
      *  Check if the samples are APV tails
      *  
      * 
-     *  @param data : sample block of data
+     *  @param multisample : sample block of data
      *  @return true if the samples belong to APV tails, false otherwise
      */
-    public static boolean isApvTail(int[] data) {
-        if (((data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 29) & ENG_RUN_APV_TAIL_MASK) == 1) return true;
+    public static boolean isMultisampleTail(int[] multisample) {
+        if (((multisample[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 29) & ENG_RUN_APV_TAIL_MASK) == 1) return true;
         return false;
     }
     
@@ -207,13 +206,23 @@ public class SvtEvioUtils {
 
     
     /**
-     *  Extract the error bit of the samples.
+     *  Extract the error bit from a multisample.
      *
-     *  @param data : sample block of data
+     *  @param multisample : multisample of data
      *  @return value of the error bit.  This is non-zero if there is an error.
      */
-    public static int getErrorBit(int[] data) { 
-        return (data[3] >>> 28) & ENG_RUN_ERROR_BIT_MASK; 
+    public static int getMultisampleErrorBit(int[] multisample) { 
+        return (getMultisampleHeaderWord(multisample) >>> 28) & ENG_RUN_ERROR_BIT_MASK; 
+    }
+    
+    /**
+     *  Extract the error bit from the multisample header.
+     *
+     *  @param data : multisample of data
+     *  @return value of the error bit.  This is non-zero if there is an error.
+     */
+    public static int getErrorBitFromMultisampleHeader(int multisampleHeader) { 
+        return (multisampleHeader >>> 28) & ENG_RUN_ERROR_BIT_MASK; 
     }
 
     /**
