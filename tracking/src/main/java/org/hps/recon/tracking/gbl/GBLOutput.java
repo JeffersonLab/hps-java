@@ -27,12 +27,14 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.fit.helicaltrack.HelicalTrack3DHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
@@ -55,6 +57,8 @@ public class GBLOutput {
     private final double _beamEnergy = 1.1; //GeV
     private boolean AprimeEvent = false; // do extra checks
     private boolean hasXPlanes = false;
+    private boolean _addBeamspot = false;
+    private double beamTilt = 0.03052;
 
     /**
      * Constructor
@@ -65,9 +69,8 @@ public class GBLOutput {
      */
     GBLOutput(String outputFileName, Hep3Vector bfield) {
         //System.out.printf("name \"%s\" \n", outputFileName);
-        if (!outputFileName.equalsIgnoreCase("")) {
+        if (!outputFileName.equalsIgnoreCase(""))
             textFile = new GBLFileIO(outputFileName);
-        }
         _materialmanager = new MaterialSupervisor();
         _scattering = new MultipleScattering(_materialmanager);
         _B = CoordinateTransformations.transformVectorToTracking(bfield);
@@ -83,22 +86,23 @@ public class GBLOutput {
         _materialmanager.buildModel(detector);
     }
 
+    public void setAddBeamspot(boolean add) {
+        this._addBeamspot = add;
+    }
+
     void printNewEvent(int eventNumber, double Bz) {
-        if (textFile != null) {
+        if (textFile != null)
             textFile.printEventInfo(eventNumber, Bz);
-        }
     }
 
     void printTrackID(int iTrack) {
-        if (textFile != null) {
+        if (textFile != null)
             textFile.printTrackID(iTrack);
-        }
     }
 
     void close() {
-        if (textFile != null) {
+        if (textFile != null)
             textFile.closeFile();
-        }
     }
 
     void setAPrimeEventFlag(boolean flag) {
@@ -139,15 +143,11 @@ public class GBLOutput {
                 System.out.printf("%s: WARNING!! no truth particle found in event!\n", this.getClass().getSimpleName());
                 this.printMCParticles(mcParticles);
                 //System.exit(1);
-            } else {
-                if (_debug > 0) {
-                    System.out.printf("%s: truth particle (pdgif %d ) found in event!\n", this.getClass().getSimpleName(), mcp.getPDGID());
-                }
-            }
+            } else if (_debug > 0)
+                System.out.printf("%s: truth particle (pdgif %d ) found in event!\n", this.getClass().getSimpleName(), mcp.getPDGID());
 
-            if (AprimeEvent) {
+            if (AprimeEvent)
                 checkAprimeTruth(mcp, mcParticles);
-            }
         }
 
         // Get track parameters from MC particle 
@@ -182,45 +182,37 @@ public class GBLOutput {
         // find the projection from the I,J,K to U,V,T curvilinear coordinates
         Hep3Matrix perToClPrj = getPerToClPrj(htf);
 
-        if (textFile != null) {
+        if (textFile != null)
             textFile.printPerToClPrj(perToClPrj);
-        }
 
         //GBLDATA
-        for (int row = 0; row < perToClPrj.getNRows(); ++row) {
-            for (int col = 0; col < perToClPrj.getNColumns(); ++col) {
+        for (int row = 0; row < perToClPrj.getNRows(); ++row)
+            for (int col = 0; col < perToClPrj.getNColumns(); ++col)
                 gtd.setPrjPerToCl(row, col, perToClPrj.e(row, col));
-            }
-        }
 
         // print chi2 of fit
-        if (textFile != null) {
+        if (textFile != null)
             textFile.printChi2(htf.chisq(), htf.ndf());
-        }
 
         // build map of layer to SimTrackerHits that belongs to the MC particle
         Map<Integer, SimTrackerHit> simHitsLayerMap = new HashMap<Integer, SimTrackerHit>();
-        for (SimTrackerHit sh : simTrackerHits) {
+        for (SimTrackerHit sh : simTrackerHits)
             if (sh.getMCParticle() == mcp) {
                 int layer = sh.getIdentifierFieldValue("layer");
-                if (!simHitsLayerMap.containsKey(layer) || (sh.getPathLength() < simHitsLayerMap.get(layer).getPathLength())) {
+                if (!simHitsLayerMap.containsKey(layer) || (sh.getPathLength() < simHitsLayerMap.get(layer).getPathLength()))
                     simHitsLayerMap.put(layer, sh);
-                }
             }
-        }
 
         // covariance matrix from the fit
-        if (textFile != null) {
+        if (textFile != null)
             textFile.printPerTrackCov(htf);
-        }
 
         // dummy cov matrix for CL parameters
         BasicMatrix clCov = GblUtils.unitMatrix(5, 5);
         clCov = (BasicMatrix) MatrixOp.mult(0.1 * 0.1, clCov);
 
-        if (textFile != null) {
+        if (textFile != null)
             textFile.printCLTrackCov(clCov);
-        }
 
         if (_debug > 0) {
             System.out.printf("%s: perPar covariance matrix\n%s\n", this.getClass().getSimpleName(), htf.covariance().toString());
@@ -228,9 +220,8 @@ public class GBLOutput {
             System.out.printf("%s: truth perPar chi2 %f\n", this.getClass().getSimpleName(), chi2_truth);
         }
 
-        if (_debug > 0) {
+        if (_debug > 0)
             System.out.printf("%d hits\n", hits.size());
-        }
 
         int istrip = 0;
         for (int ihit = 0; ihit != hits.size(); ++ihit) {
@@ -245,21 +236,18 @@ public class GBLOutput {
                 // find Millepede layer definition from DetectorElement
                 IDetectorElement de = ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement();
                 HpsSiSensor sensor;
-                if (de instanceof HpsSiSensor) {
+                if (de instanceof HpsSiSensor)
                     sensor = (HpsSiSensor) de;
-                } else {
+                else
                     throw new ClassCastException("Detector element " + de.getName() + " couldn't be casted to " + HpsSiSensor.class.getName());
-                }
 
                 int millepedeId = sensor.getMillepedeId();
 
-                if (_debug > 0) {
+                if (_debug > 0)
                     System.out.printf("%s: layer %d millepede %d (DE=\"%s\", origin %s) \n", this.getClass().getSimpleName(), strip.layer(), millepedeId, sensor.getName(), strip.origin().toString());
-                }
 
-                if (textFile != null) {
+                if (textFile != null)
                     textFile.printStrip(istrip, millepedeId, de.getName());
-                }
 
                 //GBLDATA
                 GBLStripClusterData stripData = new GBLStripClusterData(millepedeId);
@@ -269,27 +257,23 @@ public class GBLOutput {
                 //Center of the sensor
                 Hep3Vector origin = strip.origin();
 
-                if (textFile != null) {
+                if (textFile != null)
                     textFile.printOrigin(origin);
-                }
 
                 // associated 3D position of the crossing of this and it's stereo partner sensor
-                if (textFile != null) {
+                if (textFile != null)
                     textFile.printHitPos3D(hit.getCorrectedPosition());
-                }
 
                 //Find intercept point with sensor in tracking frame
                 Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(htf, strip, Math.abs(_B.z()));
                 if (trkpos == null) {
-                    if (_debug > 0) {
+                    if (_debug > 0)
                         System.out.println("Can't find track intercept; use sensor origin");
-                    }
                     trkpos = strip.origin();
                 }
                 Hep3Vector trkposTruth = htfTruth != null ? TrackUtils.getHelixPlaneIntercept(htfTruth, strip, Math.abs(_B.z())) : new BasicHep3Vector(-999999.9, -999999.9, -999999.9);
-                if (textFile != null) {
+                if (textFile != null)
                     textFile.printStripTrackPos(trkpos);
-                }
                 if (_debug > 0) {
                     System.out.printf("trkpos at intercept [%.10f %.10f %.10f]\n", trkpos.x(), trkpos.y(), trkpos.z());
                     System.out.printf("trkposTruth at intercept %s\n", trkposTruth != null ? trkposTruth.toString() : "no truth track");
@@ -303,9 +287,8 @@ public class GBLOutput {
                         System.out.printf("WARNING trkposDiff mag = %.10f [%.10f %.10f %.10f]\n", trkposDiff.magnitude(), trkposDiff.x(), trkposDiff.y(), trkposDiff.z());
                         System.exit(1);
                     }
-                    if (_debug > 0) {
+                    if (_debug > 0)
                         System.out.printf("trkposXPlaneIter at intercept [%.10f %.10f %.10f]\n", trkposXPlaneIter.x(), trkposXPlaneIter.y(), trkposXPlaneIter.z());
-                    }
                 }
 
                 // Find the sim tracker hit for this layer
@@ -315,25 +298,22 @@ public class GBLOutput {
                     if (simHit == null) {
                         System.out.printf("%s: no sim hit for strip hit at layer %d\n", this.getClass().getSimpleName(), strip.layer());
                         System.out.printf("%s: it as %d mc particles associated with it:\n", this.getClass().getSimpleName(), hit.getMCParticles().size());
-                        for (MCParticle particle : hit.getMCParticles()) {
+                        for (MCParticle particle : hit.getMCParticles())
                             System.out.printf("%s: %d p %s \n", this.getClass().getSimpleName(), particle.getPDGID(), particle.getMomentum().toString());
-                        }
                         System.out.printf("%s: these are sim hits in the event:\n", this.getClass().getSimpleName());
-                        for (SimTrackerHit simhit : simTrackerHits) {
+                        for (SimTrackerHit simhit : simTrackerHits)
                             System.out.printf("%s sim hit at %s with MC particle pdgid %d with p %s \n", this.getClass().getSimpleName(), simhit.getPositionVec().toString(), simhit.getMCParticle().getPDGID(), simhit.getMCParticle().getMomentum().toString());
-                        }
                         //System.out.printf("%s: these are all the MC particles in the event:\n",this.getClass().getSimpleName());
                         //System.exit(1);
                     }
 
-                    if (_debug > 0) {
+                    if (_debug > 0)
                         if (htfTruth != null && simHit != null) {
                             double s_truthSimHit = HelixUtils.PathToXPlane(htfTruth, simHit.getPositionVec().z(), 0, 0).get(0);
                             Hep3Vector trkposTruthSimHit = HelixUtils.PointOnHelix(htfTruth, s_truthSimHit);
                             Hep3Vector resTruthSimHit = VecOp.sub(CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec()), trkposTruthSimHit);
                             System.out.printf("TruthSimHit residual %s for layer %d\n", resTruthSimHit.toString(), strip.layer());
                         }
-                    }
                 }
 
                 //path length to intercept
@@ -376,24 +356,20 @@ public class GBLOutput {
 
                 // calculate isolation to other strip clusters
                 double stripIsoMin = 9999.9;
-                for (SiTrackerHitStrip1D stripHit : stripHits) {
+                for (SiTrackerHitStrip1D stripHit : stripHits)
                     if (stripHit.getRawHits().get(0).getDetectorElement().getName().equals(de.getName())) {
                         SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
                         double d = Math.abs(strip.umeas() - local.getPosition()[0]);
-                        if (d < stripIsoMin && d > 0) {
+                        if (d < stripIsoMin && d > 0)
                             stripIsoMin = d;
-                        }
                     }
-                }
 
-                if (_debug > 0) {
+                if (_debug > 0)
                     System.out.printf("%s: stripIsoMin = %f \n", this.getClass().getSimpleName(), stripIsoMin);
-                }
 
                 // Add isolation to text file output
-                if (textFile != null) {
+                if (textFile != null)
                     textFile.printStripIso(stripIsoMin);
-                }
 
                 //Print residual in measurement system
                 // start by find the distance vector between the center and the track position
@@ -411,9 +387,8 @@ public class GBLOutput {
                 Hep3Vector m_meas = new BasicHep3Vector(strip.umeas(), 0., 0.);
                 Hep3Vector res_err_meas = new BasicHep3Vector(strip.du(), (strip.vmax() - strip.vmin()) / Math.sqrt(12), 10.0 / Math.sqrt(12));
 
-                if (textFile != null) {
+                if (textFile != null)
                     textFile.printStripMeas(m_meas.x());
-                }
 
                 //if(textFile != null) {
                 //    textFile.printStripTrackPosMeasFrame(trkpos_meas);
@@ -440,50 +415,293 @@ public class GBLOutput {
                 //GBLDATA
                 stripData.setMeasErr(res_err_meas.x());
 
-                if (_debug > 0) {
+                if (_debug > 0)
                     System.out.printf("layer %d millePedeId %d uRes %.10f\n", strip.layer(), millepedeId, res_meas.x());
-                }
 
                 // sim hit residual
                 if (simHit != null) {
                     Hep3Vector simHitPos = CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec());
-                    if (_debug > 0) {
+                    if (_debug > 0)
                         System.out.printf("simHitPos  %s\n", simHitPos.toString());
-                    }
                     Hep3Vector vdiffSimHit = VecOp.sub(simHitPos, trkpos);
                     Hep3Vector simHitPos_meas = VecOp.mult(trkToStripRot, vdiffSimHit);
-                    if (textFile != null) {
+                    if (textFile != null)
                         textFile.printStripMeasResSimHit(simHitPos_meas.x(), res_err_meas.x());
-                    }
-                } else {
-                    if (textFile != null) {
-                        textFile.printStripMeasResSimHit(-999999.9, -999999.9);
-                    }
-                }
+                } else if (textFile != null)
+                    textFile.printStripMeasResSimHit(-999999.9, -999999.9);
 
                 // find scattering angle
                 ScatterPoint scatter = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
                 double scatAngle;
 
-                if (scatter != null) {
+                if (scatter != null)
                     scatAngle = scatter.getScatterAngle().Angle();
-                } else {
-                    if (_debug > 0) {
+                else {
+                    if (_debug > 0)
                         System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n", this.getClass(), ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
-                    }
                     scatAngle = GblUtils.estimateScatter(strip, htf, _scattering, _B.magnitude());
                 }
 
                 //print scatterer to file
-                if (textFile != null) {
+                if (textFile != null)
                     textFile.printStripScat(scatAngle);
-                }
 
                 //GBLDATA
                 stripData.setScatterAngle(scatAngle);
 
                 ++istrip;
             }
+        }
+
+        if (_addBeamspot)
+            addBeamspotToHitList(htf, stripClusterDataList, istrip, htfTruth);
+
+    }
+
+    /**
+     * Make a pair of HelicalTrackStrips from the beam spot
+     *
+     */
+    private List<HelicalTrackStrip> makeHelicalTrackStripsFromBeamSpot() {
+        Hep3Vector pos = new BasicHep3Vector(0, 0, 0);//hardcode for now....
+        SymmetricMatrix cov = new SymmetricMatrix(3);
+        double beamTilt = 0.03052; //hardcode for now...
+        double time = 0;
+        int lyr = 0;
+        BarrelEndcapFlag be = BarrelEndcapFlag.BARREL;
+        //  note...the "x" and "y" here refer to the JLAB frame
+        Hep3Vector u_x = new BasicHep3Vector(Math.sin(beamTilt), Math.cos(beamTilt), 0);
+        Hep3Vector v_x = new BasicHep3Vector(0, 0, 1);
+        Hep3Vector u_y = new BasicHep3Vector(0, 0, 1);
+        Hep3Vector v_y = new BasicHep3Vector(Math.sin(beamTilt), -Math.cos(beamTilt), 0);
+        double umeas_x = 0;
+        double umeas_y = 0;
+        double du_x = 0.2; // beamspot in x...hardcode for now...should get this from the event eventually
+        double du_y = 0.04; // beamspot in y...hardcode for now...should get this from the event eventually
+
+        double vmin = -666;
+        double vmax = 666;
+
+        HelicalTrackStrip hitx = new HelicalTrackStrip(pos, u_x, v_x,
+                umeas_x, du_x, vmin, vmax, 0.0, time,
+                null, "BeamSpot", lyr, be);
+        HelicalTrackStrip hity = new HelicalTrackStrip(pos, u_y, v_y,
+                umeas_y, du_y, vmin, vmax, 0.0, time,
+                null, "BeamSpot", lyr, be);
+
+        List<HelicalTrackStrip> htsList = new ArrayList<HelicalTrackStrip>();
+        htsList.add(hitx);
+        htsList.add(hity);
+        return htsList;
+
+    }
+
+    private void addBeamspotToHitList(HelicalTrackFit htf, List<GBLStripClusterData> stripClusterDataList, int istrip, HelicalTrackFit htfTruth) {
+
+        Hep3Vector targetNormal = new BasicHep3Vector(Math.cos(beamTilt), Math.sin(beamTilt), 0);
+ int millepedeId = 665; 
+        List<HelicalTrackStrip> beamspotStrips = makeHelicalTrackStripsFromBeamSpot();
+        for (HelicalTrackStrip stripOld : beamspotStrips) {
+            HelicalTrackStripGbl strip = new HelicalTrackStripGbl(stripOld, false);
+
+            // find Millepede layer definition from DetectorElement
+//            IDetectorElement de = ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement();
+//            HpsSiSensor sensor;
+//            if (de instanceof HpsSiSensor)
+//                sensor = (HpsSiSensor) de;
+//            else
+//                throw new ClassCastException("Detector element " + de.getName() + " couldn't be casted to " + HpsSiSensor.class.getName());
+//            int millepedeId = sensor.getMillepedeId();
+           
+             millepedeId ++; 
+            if (_debug > 0)
+                System.out.printf("%s: layer %d millepede %d (DE=\"%s\", origin %s) \n", this.getClass().getSimpleName(), strip.layer(), millepedeId, "BeamSpot", strip.origin().toString());
+
+            if (textFile != null)
+                textFile.printStrip(istrip, millepedeId, "BeamSpot");
+
+            //GBLDATA
+            GBLStripClusterData stripData = new GBLStripClusterData(millepedeId);
+            //Add to output list
+            stripClusterDataList.add(stripData);
+
+            //Center of the sensor
+            Hep3Vector origin = strip.origin();
+
+            if (textFile != null)
+                textFile.printOrigin(origin);
+
+            // associated 3D position of beamspot on target
+            if (textFile != null)
+                textFile.printHitPos3D(new BasicHep3Vector(0, 0, 0));
+
+            //Find intercept point with sensor in tracking frame
+//            Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(htf, strip, Math.abs(_B.z()));
+            Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(htf, strip.w(), strip.origin(), Math.abs(_B.z()));
+            if (trkpos == null) {
+                if (_debug > 0)
+                    System.out.println("Can't find track intercept; use sensor origin");
+                trkpos = strip.origin();
+            }
+            Hep3Vector trkposTruth = htfTruth != null ? TrackUtils.getHelixPlaneIntercept(htfTruth, strip.w(), strip.origin(), Math.abs(_B.z())) : new BasicHep3Vector(-999999.9, -999999.9, -999999.9);
+            if (textFile != null)
+                textFile.printStripTrackPos(trkpos);
+            if (_debug > 0) {
+                System.out.printf("trkpos at intercept [%.10f %.10f %.10f]\n", trkpos.x(), trkpos.y(), trkpos.z());
+                System.out.printf("trkposTruth at intercept %s\n", trkposTruth != null ? trkposTruth.toString() : "no truth track");
+            }
+
+            // cross-check intercept point
+            if (hasXPlanes) {
+                Hep3Vector trkposXPlaneIter = TrackUtils.getHelixPlanePositionIter(htf, strip.origin(), strip.w(), 1.0e-8);
+                Hep3Vector trkposDiff = VecOp.sub(trkposXPlaneIter, trkpos);
+                if (trkposDiff.magnitude() > 1.0e-7) {
+                    System.out.printf("WARNING trkposDiff mag = %.10f [%.10f %.10f %.10f]\n", trkposDiff.magnitude(), trkposDiff.x(), trkposDiff.y(), trkposDiff.z());
+                    System.exit(1);
+                }
+                if (_debug > 0)
+                    System.out.printf("trkposXPlaneIter at intercept [%.10f %.10f %.10f]\n", trkposXPlaneIter.x(), trkposXPlaneIter.y(), trkposXPlaneIter.z());
+            }
+
+//        // Find the sim tracker hit for this layer
+//        SimTrackerHit simHit = simHitsLayerMap.get(strip.layer());
+//
+//        if (isMC) {
+//            if (simHit == null) {
+//                System.out.printf("%s: no sim hit for strip hit at layer %d\n", this.getClass().getSimpleName(), strip.layer());
+//                System.out.printf("%s: it as %d mc particles associated with it:\n", this.getClass().getSimpleName(), hit.getMCParticles().size());
+//                for (MCParticle particle : hit.getMCParticles())
+//                    System.out.printf("%s: %d p %s \n", this.getClass().getSimpleName(), particle.getPDGID(), particle.getMomentum().toString());
+//                System.out.printf("%s: these are sim hits in the event:\n", this.getClass().getSimpleName());
+//                for (SimTrackerHit simhit : simTrackerHits)
+//                    System.out.printf("%s sim hit at %s with MC particle pdgid %d with p %s \n", this.getClass().getSimpleName(), simhit.getPositionVec().toString(), simhit.getMCParticle().getPDGID(), simhit.getMCParticle().getMomentum().toString());
+//                        //System.out.printf("%s: these are all the MC particles in the event:\n",this.getClass().getSimpleName());
+//                //System.exit(1);
+//            }
+//
+//            if (_debug > 0)
+//                if (htfTruth != null && simHit != null) {
+//                    double s_truthSimHit = HelixUtils.PathToXPlane(htfTruth, simHit.getPositionVec().z(), 0, 0).get(0);
+//                    Hep3Vector trkposTruthSimHit = HelixUtils.PointOnHelix(htfTruth, s_truthSimHit);
+//                    Hep3Vector resTruthSimHit = VecOp.sub(CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec()), trkposTruthSimHit);
+//                    System.out.printf("TruthSimHit residual %s for layer %d\n", resTruthSimHit.toString(), strip.layer());
+//                }
+//        }
+            //path length to intercept         
+            double s = HelixUtils.PathToXPlane(htf, trkpos.x(), 0, 0).get(0);
+            double s3D = s / Math.cos(Math.atan(htf.slope()));
+            if (textFile != null) {
+                textFile.printStripPathLen(s);
+                textFile.printStripPathLen3D(s3D);
+            }
+
+            //GBLDATA
+            stripData.setPath(s);
+            stripData.setPath3D(s3D);
+            //
+            //print stereo angle in YZ plane
+            if (textFile != null) {
+                textFile.printMeasDir(strip.u());
+                textFile.printNonMeasDir(strip.v());
+                textFile.printNormalDir(targetNormal);
+            }
+
+            //GBLDATA
+            stripData.setU(strip.u());
+            stripData.setV(strip.v());
+            stripData.setW(strip.w());
+
+            //Print track direction at intercept
+            Hep3Vector tDir = HelixUtils.Direction(htf, s);
+            double phi = htf.phi0() - s / htf.R();
+            double lambda = Math.atan(htf.slope());
+            if (textFile != null) {
+                textFile.printStripTrackDir(Math.sin(phi), Math.sin(lambda));
+                textFile.printStripTrackDirFull(tDir);
+            }
+
+            //GBLDATA
+            stripData.setTrackDir(tDir);
+            stripData.setTrackPhi(phi);
+            stripData.setTrackLambda(lambda);
+
+            // calculate isolation to other strip clusters
+            double stripIsoMin = 9999.9;
+//            for (SiTrackerHitStrip1D stripHit : stripHits)
+//                if (stripHit.getRawHits().get(0).getDetectorElement().getName().equals(de.getName())) {
+//                    SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+//                    double d = Math.abs(strip.umeas() - local.getPosition()[0]);
+//                    if (d < stripIsoMin && d > 0)
+//                        stripIsoMin = d;
+//                }
+
+            if (_debug > 0)
+                System.out.printf("%s: stripIsoMin = %f \n", this.getClass().getSimpleName(), stripIsoMin);
+
+            // Add isolation to text file output
+            if (textFile != null)
+                textFile.printStripIso(stripIsoMin);
+
+            //Print residual in measurement system
+            // start by find the distance vector between the center and the track position
+            Hep3Vector vdiffTrk = VecOp.sub(trkpos, origin);
+            Hep3Vector vdiffTrkTruth = htfTruth != null ? VecOp.sub(trkposTruth, origin) : null;
+
+            // then find the rotation from tracking to measurement frame
+//            Hep3Matrix trkToStripRot = _trackerHitUtils.getTrackToStripRotation(strip.getStrip());
+            Hep3Matrix trkToBeamSpot = new BasicHep3Matrix(Math.cos(beamTilt),Math.sin(beamTilt),0,
+                                                           -Math.sin(beamTilt),Math.cos(beamTilt),0,
+                                                           0,0,1);
+            // then rotate that vector into the measurement frame to get the predicted measurement position
+            Hep3Vector trkpos_meas = VecOp.mult(trkToBeamSpot, vdiffTrk);
+            Hep3Vector trkposTruth_meas = vdiffTrkTruth != null ? VecOp.mult(trkToBeamSpot, vdiffTrkTruth) : null;
+
+            // hit measurement and uncertainty in measurement frame
+            Hep3Vector m_meas = new BasicHep3Vector(strip.umeas(), 0., 0.);
+            Hep3Vector res_err_meas = new BasicHep3Vector(strip.du(), (strip.vmax() - strip.vmin()) / Math.sqrt(12), 10.0 / Math.sqrt(12));
+
+            if (textFile != null)
+                textFile.printStripMeas(m_meas.x());
+
+            //if(textFile != null) {
+            //    textFile.printStripTrackPosMeasFrame(trkpos_meas);
+            //}
+            //GBLDATA
+            stripData.setMeas(strip.umeas());
+            stripData.setTrackPos(trkpos_meas);
+
+            if (_debug > 1) {
+                System.out.printf("%s: rotation matrix to meas frame\n%s\n", getClass().getSimpleName(), VecOp.toString(trkToBeamSpot));
+                System.out.printf("%s: tPosGlobal %s origin %s\n", getClass().getSimpleName(), trkpos.toString(), origin.toString());
+                System.out.printf("%s: tDiff %s\n", getClass().getSimpleName(), vdiffTrk.toString());
+                System.out.printf("%s: tPosMeas %s\n", getClass().getSimpleName(), trkpos_meas.toString());
+            }
+
+            // residual in measurement frame
+            Hep3Vector res_meas = VecOp.sub(m_meas, trkpos_meas);
+            Hep3Vector resTruth_meas = trkposTruth_meas != null ? VecOp.sub(m_meas, trkposTruth_meas) : null;
+            if (textFile != null) {
+                textFile.printStripMeasRes(res_meas.x(), res_err_meas.x());
+                textFile.printStripMeasResTruth(resTruth_meas != null ? resTruth_meas.x() : -9999999.9, res_err_meas.x());
+            }
+
+            //GBLDATA
+            stripData.setMeasErr(res_err_meas.x());
+
+            if (_debug > 0)
+                System.out.printf("layer %d millePedeId %d uRes %.10f\n", strip.layer(), millepedeId, res_meas.x());
+
+//          
+            double scatAngle = 0.0001;
+
+            //print scatterer to file
+            if (textFile != null)
+                textFile.printStripScat(scatAngle);
+
+            //GBLDATA
+            stripData.setScatterAngle(scatAngle);
+
+            ++istrip;
         }
     }
 
@@ -500,21 +718,16 @@ public class GBLOutput {
         // cross-check
         if (!mcp_pair.contains(mcp)) {
             boolean hasBeamElectronParent = false;
-            for (MCParticle parent : mcp.getParents()) {
-                if (parent.getGeneratorStatus() != MCParticle.FINAL_STATE && parent.getPDGID() == 11 && parent.getMomentum().y() == 0.0 && Math.abs(parent.getMomentum().magnitude() - _beamEnergy) < 0.01) {
+            for (MCParticle parent : mcp.getParents())
+                if (parent.getGeneratorStatus() != MCParticle.FINAL_STATE && parent.getPDGID() == 11 && parent.getMomentum().y() == 0.0 && Math.abs(parent.getMomentum().magnitude() - _beamEnergy) < 0.01)
                     hasBeamElectronParent = true;
-                }
-            }
             if (!hasBeamElectronParent) {
                 System.out.printf("%s: the matched MC particle is not an A' daughter and not a the recoil electrons!?\n", this.getClass().getSimpleName());
                 System.out.printf("%s: %s %d p %s org %s\n", this.getClass().getSimpleName(), mcp.getGeneratorStatus() == MCParticle.FINAL_STATE ? "F" : "I", mcp.getPDGID(), mcp.getMomentum().toString(), mcp.getOrigin().toString());
                 printMCParticles(mcParticles);
                 System.exit(1);
-            } else {
-                if (_debug > 0) {
-                    System.out.printf("%s: the matched MC particle is the recoil electron\n", this.getClass().getSimpleName());
-                }
-            }
+            } else if (_debug > 0)
+                System.out.printf("%s: the matched MC particle is the recoil electron\n", this.getClass().getSimpleName());
         }
     }
 
@@ -523,22 +736,19 @@ public class GBLOutput {
 
         Map<MCParticle, Integer> particlesOnTrack = new HashMap<MCParticle, Integer>();
 
-        if (debug) {
+        if (debug)
             System.out.printf("getmatched mc particle from %d tracker hits on the track \n", track.getTrackerHits().size());
-        }
 
         for (TrackerHit hit : track.getTrackerHits()) {
             List<MCParticle> mcps = ((HelicalTrackHit) hit).getMCParticles();
-            if (mcps == null) {
+            if (mcps == null)
                 System.out.printf("%s: warning, this hit (layer %d pos=%s) has no mc particles.\n", this.getClass().getSimpleName(), ((HelicalTrackHit) hit).Layer(), ((HelicalTrackHit) hit).getCorrectedPosition().toString());
-            } else {
-                if (debug) {
+            else {
+                if (debug)
                     System.out.printf("%s: this hit (layer %d pos=%s) has %d mc particles.\n", this.getClass().getSimpleName(), ((HelicalTrackHit) hit).Layer(), ((HelicalTrackHit) hit).getCorrectedPosition().toString(), mcps.size());
-                }
                 for (MCParticle mcp : mcps) {
-                    if (!particlesOnTrack.containsKey(mcp)) {
+                    if (!particlesOnTrack.containsKey(mcp))
                         particlesOnTrack.put(mcp, 0);
-                    }
                     int c = particlesOnTrack.get(mcp);
                     particlesOnTrack.put(mcp, c + 1);
                 }
@@ -547,29 +757,23 @@ public class GBLOutput {
         if (debug) {
             System.out.printf("Track p=[ %f, %f, %f] \n", track.getTrackStates().get(0).getMomentum()[0], track.getTrackStates().get(0).getMomentum()[1], track.getTrackStates().get(0).getMomentum()[1]);
             System.out.printf("FOund %d particles\n", particlesOnTrack.size());
-            for (Map.Entry<MCParticle, Integer> entry : particlesOnTrack.entrySet()) {
+            for (Map.Entry<MCParticle, Integer> entry : particlesOnTrack.entrySet())
                 System.out.printf("%d hits assigned to %d p=%s \n", entry.getValue(), entry.getKey().getPDGID(), entry.getKey().getMomentum().toString());
-            }
         }
         Map.Entry<MCParticle, Integer> maxEntry = null;
-        for (Map.Entry<MCParticle, Integer> entry : particlesOnTrack.entrySet()) {
-            if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
-                maxEntry = entry;
-            }
-            //if ( maxEntry != null ) {
-            //    if(entry.getValue().compareTo(maxEntry.getValue()) < 0) continue;
-            //}
-            //maxEntry = entry;
-        }
-        if (debug) {
-            if (maxEntry != null) {
+        for (Map.Entry<MCParticle, Integer> entry : particlesOnTrack.entrySet())
+            if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0)
+                maxEntry = entry; //if ( maxEntry != null ) {
+        //    if(entry.getValue().compareTo(maxEntry.getValue()) < 0) continue;
+        //}
+        //maxEntry = entry;
+        if (debug)
+            if (maxEntry != null)
                 System.out.printf("Matched particle with pdgId=%d and mom %s to track with charge %d and momentum [%f %f %f]\n",
                         maxEntry.getKey().getPDGID(), maxEntry.getKey().getMomentum().toString(),
                         track.getCharge(), track.getTrackStates().get(0).getMomentum()[0], track.getTrackStates().get(0).getMomentum()[1], track.getTrackStates().get(0).getMomentum()[2]);
-            } else {
+            else
                 System.out.printf("No truth particle found on this track\n");
-            }
-        }
         return maxEntry == null ? null : maxEntry.getKey();
     }
 
@@ -702,27 +906,22 @@ public class GBLOutput {
         Matrix error_matrix = MatrixOp.inverse(covariance);
         BasicMatrix res = (BasicMatrix) MatrixOp.sub(p, pt);
         BasicMatrix chi2 = (BasicMatrix) MatrixOp.mult(res, MatrixOp.mult(error_matrix, MatrixOp.transposed(res)));
-        if (chi2.getNColumns() != 1 || chi2.getNRows() != 1) {
+        if (chi2.getNColumns() != 1 || chi2.getNRows() != 1)
             throw new RuntimeException("matrix dim is screwed up!");
-        }
         return chi2.e(0, 0);
     }
 
     private List<MCParticle> getAprimeDecayProducts(List<MCParticle> mcParticles) {
         List<MCParticle> pair = new ArrayList<MCParticle>();
         for (MCParticle mcp : mcParticles) {
-            if (mcp.getGeneratorStatus() != MCParticle.FINAL_STATE) {
+            if (mcp.getGeneratorStatus() != MCParticle.FINAL_STATE)
                 continue;
-            }
             boolean hasAprimeParent = false;
-            for (MCParticle parent : mcp.getParents()) {
-                if (Math.abs(parent.getPDGID()) == 622) {
+            for (MCParticle parent : mcp.getParents())
+                if (Math.abs(parent.getPDGID()) == 622)
                     hasAprimeParent = true;
-                }
-            }
-            if (hasAprimeParent) {
+            if (hasAprimeParent)
                 pair.add(mcp);
-            }
         }
         if (pair.size() != 2) {
             System.out.printf("%s: ERROR this event has %d mcp with 622 as parent!!??  \n", this.getClass().getSimpleName(), pair.size());
@@ -747,9 +946,8 @@ public class GBLOutput {
         System.out.printf("%s: printMCParticles \n", this.getClass().getSimpleName());
         System.out.printf("%s: %d mc particles \n", this.getClass().getSimpleName(), mcParticles.size());
         for (MCParticle mcp : mcParticles) {
-            if (mcp.getGeneratorStatus() != MCParticle.FINAL_STATE) {
+            if (mcp.getGeneratorStatus() != MCParticle.FINAL_STATE)
                 continue;
-            }
             System.out.printf("\n%s: (%s) %d  p %s org %s  %s \n", this.getClass().getSimpleName(),
                     mcp.getGeneratorStatus() == MCParticle.FINAL_STATE ? "F" : "I", mcp.getPDGID(), mcp.getMomentum().toString(), mcp.getOrigin().toString(),
                     mcp.getParents().size() > 0 ? "parents:" : "");
@@ -757,11 +955,10 @@ public class GBLOutput {
                 System.out.printf("%s:       (%s) %d  p %s org %s %s \n", this.getClass().getSimpleName(),
                         parent.getGeneratorStatus() == MCParticle.FINAL_STATE ? "F" : "I", parent.getPDGID(), parent.getMomentum().toString(), parent.getOrigin().toString(),
                         parent.getParents().size() > 0 ? "parents:" : "");
-                for (MCParticle grparent : parent.getParents()) {
+                for (MCParticle grparent : parent.getParents())
                     System.out.printf("%s:            (%s) %d  p %s org %s  %s \n", this.getClass().getSimpleName(),
                             grparent.getGeneratorStatus() == MCParticle.FINAL_STATE ? "F" : "I", grparent.getPDGID(), grparent.getMomentum().toString(), grparent.getOrigin().toString(),
                             grparent.getParents().size() > 0 ? "parents:" : "");
-                }
 
             }
         }
@@ -855,29 +1052,28 @@ public class GBLOutput {
         trans.setElement(2, 1, VecOp.dot(J, T));
         trans.setElement(2, 2, VecOp.dot(K, T));
         return trans;
-        
-        /*
-                Hep3Vector B = new BasicHep3Vector(0, 0, 1); // TODO sign convention?
-        Hep3Vector H = VecOp.mult(1 / bfield, B);
-        Hep3Vector T = HelixUtils.Direction(helix, 0.);
-        Hep3Vector HcrossT = VecOp.cross(H, T);
-        double alpha = HcrossT.magnitude(); // this should be Bvec cross TrackDir/|B|
-        double Q = Math.abs(bfield) * q / p;
-        Hep3Vector Z = new BasicHep3Vector(0, 0, 1);
-        Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
-        Hep3Vector K = Z;
-        Hep3Vector U = VecOp.mult(-1, J);
-        Hep3Vector V = VecOp.cross(T, U);
-        Hep3Vector I = VecOp.cross(J, K);
-        Hep3Vector N = VecOp.mult(1 / alpha, VecOp.cross(H, T)); //-cross(T,H)/alpha = -cross(T,Z) = -J
-        double UdotI = VecOp.dot(U, I); // 0,0
-        double NdotV = VecOp.dot(N, V); // 1,1?
-        double NdotU = VecOp.dot(N, U); // 0,1?
-        double TdotI = VecOp.dot(T, I); // 2,0
-        double VdotI = VecOp.dot(V, I); // 1,0
-        double VdotK = VecOp.dot(V, K); // 1,2
-*/
 
+        /*
+         Hep3Vector B = new BasicHep3Vector(0, 0, 1); // TODO sign convention?
+         Hep3Vector H = VecOp.mult(1 / bfield, B);
+         Hep3Vector T = HelixUtils.Direction(helix, 0.);
+         Hep3Vector HcrossT = VecOp.cross(H, T);
+         double alpha = HcrossT.magnitude(); // this should be Bvec cross TrackDir/|B|
+         double Q = Math.abs(bfield) * q / p;
+         Hep3Vector Z = new BasicHep3Vector(0, 0, 1);
+         Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
+         Hep3Vector K = Z;
+         Hep3Vector U = VecOp.mult(-1, J);
+         Hep3Vector V = VecOp.cross(T, U);
+         Hep3Vector I = VecOp.cross(J, K);
+         Hep3Vector N = VecOp.mult(1 / alpha, VecOp.cross(H, T)); //-cross(T,H)/alpha = -cross(T,Z) = -J
+         double UdotI = VecOp.dot(U, I); // 0,0
+         double NdotV = VecOp.dot(N, V); // 1,1?
+         double NdotU = VecOp.dot(N, U); // 0,1?
+         double TdotI = VecOp.dot(T, I); // 2,0
+         double VdotI = VecOp.dot(V, I); // 1,0
+         double VdotK = VecOp.dot(V, K); // 1,2
+         */
     }
 
     public static class ClParams {
@@ -886,9 +1082,8 @@ public class GBLOutput {
 
         public ClParams(HelicalTrackFit htf, double B) {
 
-            if (htf == null) {
+            if (htf == null)
                 return;
-            }
 
             Hep3Matrix perToClPrj = getPerToClPrj(htf);
 

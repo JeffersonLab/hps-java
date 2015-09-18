@@ -58,6 +58,7 @@ public class GBLOutputDriver extends Driver {
     private int totalTracksProcessed = 0;
     private int iTrack = 0;
     private int iEvent = 0;
+    private boolean _addBeamspot=false;
 
     public GBLOutputDriver() {
     }
@@ -72,6 +73,7 @@ public class GBLOutputDriver extends Driver {
         gbl.buildModel(detector);
         gbl.setAPrimeEventFlag(false);
         gbl.setXPlaneFlag(false);
+        gbl.setAddBeamspot(_addBeamspot);
 
         //Create the class that makes residual plots for cross-checking
         //truthRes = new TruthResiduals(bfield);
@@ -208,4 +210,8 @@ public class GBLOutputDriver extends Driver {
         this.isMC = isMC;
     }
 
+    public void setAddBeamspot(boolean add){
+        this._addBeamspot=add;
+    }
+    
 }

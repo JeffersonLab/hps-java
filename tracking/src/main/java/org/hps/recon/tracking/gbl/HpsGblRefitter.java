@@ -212,6 +212,9 @@ public class HpsGblRefitter extends Driver {
         int n_strips = hits.size();
         for (int istrip = 0; istrip != n_strips; ++istrip) {
             GBLStripClusterData strip = hits.get(istrip);
+            //MG--9/18/2015--beamspot has Id=666/667...don't include it in the GBL fit
+            if(strip.getId()>99)
+                continue;
             if (_debug) {
                 System.out.println("HpsGblFitter: Processing strip " + istrip + " with id/layer " + strip.getId());
             }
