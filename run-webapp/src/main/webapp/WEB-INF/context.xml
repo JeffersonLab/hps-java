@@ -25,9 +25,11 @@
     <!-- url: The JDBC connection url for connecting to your MySQL database.
          -->
 
+<!--
   <Resource name="jdbc/hps_run_db" auth="Container" type="javax.sql.DataSource"
                maxActive="100" maxIdle="30" maxWait="10000"
                username="hpsuser" password="darkphoton" driverClassName="com.mysql.jdbc.Driver"
                url="jdbc:mysql://hpsdb.jlab.org/hps_run_db"/>
+-->
 
 </Context>

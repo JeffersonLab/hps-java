@@ -13,7 +13,7 @@ public final class DatabaseUtilities {
         try {
             dataSource = (DataSource) new InitialContext().lookup(DATASOURCE_CONTEXT);
         } catch (final NamingException e) {
-            throw new RuntimeException("Error creating data source.");
+            throw new RuntimeException("Error creating data source.", e);
         }
         if (dataSource == null) {
             throw new IllegalStateException("Data source not found");
