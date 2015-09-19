@@ -21,7 +21,7 @@ public class EcalSinglesFilter extends EventReconFilter {
     private int minSize = 3;
     private int maxSize = 7;
     private double minT = 42.0;
-    private double maxT = 59.0;
+    private double maxT = 49.0;
     private double minE = 0.7;
     private double maxE = 1.05;
 

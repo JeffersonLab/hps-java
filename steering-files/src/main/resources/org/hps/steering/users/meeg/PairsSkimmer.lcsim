@@ -11,8 +11,8 @@
         
         <driver name="ReconParticleCleanupDriver"/>   
         
-        <driver name="SVTSmallHitsFilter"/>   
-        <driver name="EcalPairsFilter"/>   
+        <driver name="EventFlagFilter"/>   
+        <!--<driver name="EcalPairsFilter"/>-->   
         <driver name="CollectionSizeFilter"/>   
 
         <driver name="LCIOWriter"/>
@@ -26,9 +26,13 @@
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
 
-        <driver name="ReconParticleCleanupDriver" type="org.hps.users.meeg.ReconParticleCleanupDriver"/>
+        <driver name="ReconParticleCleanupDriver" type="org.hps.users.meeg.ReconParticleCleanupDriver">
+            <maxTrackDt>5.0</maxTrackDt>
+        </driver>
 
-        <driver name="SVTSmallHitsFilter" type="org.hps.recon.filtering.SVTSmallHitsFilter"/>
+        <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter">
+            <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good</flagNames>
+        </driver>
         <driver name="EcalPairsFilter" type="org.hps.recon.filtering.EcalPairsFilter"/>
         <driver name="CollectionSizeFilter" type="org.hps.recon.filtering.CollectionSizeFilter">
             <collectionName>UnconstrainedV0Candidates</collectionName>
