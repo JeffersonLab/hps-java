@@ -242,7 +242,7 @@ public class TridentMonitoring extends DataQualityMonitor {
                 continue;
             nPassTimeCuts++;
 
-            if (electron.getMomentum().y() * positron.getMomentum().y() < 0)
+            if (electron.getMomentum().y() * positron.getMomentum().y() > 0)
                 continue;
             boolean pMinCut = electron.getMomentum().magnitude() > minPCut && positron.getMomentum().magnitude() > minPCut;
             if (!pMinCut)
