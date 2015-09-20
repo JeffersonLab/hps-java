@@ -110,7 +110,7 @@ public class SvtHeaderAnalysisDriver extends Driver {
                 logger.fine("found multisample header error bit: " + multisampleErrorBit);
                 if( multisampleErrorBit != 0) multisampleErrorBits++;
             }
-            rceMultisampleErrorCount.fill(roc, multisampleErrorBits);
+            rceMultisampleErrorCount.fill(roc, multisampleErrorBits > 0 ? 1 : 0);
                     
             if( syncError > 0) NrceSyncErrorCountN++;
             if( oFError > 0 ) NrceOFErrorCount++;
