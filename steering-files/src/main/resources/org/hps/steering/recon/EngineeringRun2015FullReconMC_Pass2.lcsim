@@ -141,7 +141,7 @@
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
         </driver>       
-        <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver"> 
+        <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver"> 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>         
             <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
         </driver>
