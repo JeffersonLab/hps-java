@@ -40,6 +40,10 @@ public class SvtHeaderAnalysisDriver extends Driver {
     private IHistogram2D rceSkipCount;
     private IHistogram2D rceMultisampleErrorCount;
     //private Map< Integer, Map< String, IHistogram1D> > histError = new HashMap< Integer, Map<String, IHistogram1D >>();
+    private int NrceSyncErrorCountN = 0;
+    private int NrceOFErrorCount = 0;
+    private int NrceSkipCount = 0;
+    private int NrceMultisampleErrorCount = 0;
     IPlotter plotter;
     
     /**
@@ -108,6 +112,13 @@ public class SvtHeaderAnalysisDriver extends Driver {
             }
             rceMultisampleErrorCount.fill(roc, multisampleErrorBits);
                     
+            if( syncError > 0) NrceSyncErrorCountN++;
+            if( oFError > 0 ) NrceOFErrorCount++;
+            if( skipCount > 0 ) NrceSkipCount++;
+            if( multisampleErrorBits > 0 ) NrceMultisampleErrorCount++;
+            
+            
+            
         }
         
         
@@ -116,6 +127,11 @@ public class SvtHeaderAnalysisDriver extends Driver {
     
     @Override
     protected void endOfData() {
+        
+        logger.info("NrceSyncErrorCountN " + NrceSyncErrorCountN);
+        logger.info("NrceOFErrorCount " + NrceOFErrorCount);
+        logger.info("NrceSkipCount " + NrceSkipCount);
+        logger.info("NrceMultisampleErrorCount " + NrceMultisampleErrorCount);
         
     }
     
