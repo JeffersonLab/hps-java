@@ -71,34 +71,68 @@ public class SvtEvioUtils {
     
     /**
      *  Extract and return the front end board (FEB) ID associated with the
-     *  samples
+     *  multisample
      *  
-     *  @param data : sample block of data
+     *  @param multisample : a header multisample 
      *  @return A FEB ID in the range 0-10
      */
-    public static int getFebID(int[] data) { 
-        return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 8) & FEB_MASK; 
+    public static int getFebIDFromMultisample(int[] multisample) { 
+        return getFebIDFromMultisampleTail(getMultisampleTailWord(multisample));
+    }
+
+    /**
+     *  Extract and return the front end board (FEB) ID associated with the
+     *  multisample tail
+     *  
+     *  @param data : a multisample header
+     *  @return A FEB ID in the range 0-10
+     */
+    public static int getFebIDFromMultisampleTail(int multisampleTail) { 
+        return (multisampleTail >>> 8) & FEB_MASK; 
+    }
+
+    
+    /**
+     *  Extract and return the front end board (FEB) hybrid ID associated with 
+     *  the multisample
+     *
+     *  @param multisample : a header multisample
+     *  @return A FEB hybrid ID in the range 0-3
+     */
+    public static int getFebHybridIDFromMultisample(int[] multisample) { 
+        return getFebHybridIDFromMultisampleTail(getMultisampleTailWord(multisample));
     }
     
     /**
      *  Extract and return the front end board (FEB) hybrid ID associated with 
-     *  the samples
+     *  the multisample tail 
      *
-     *  @param data : sample block of data
+     *  @param multisample : a  multisample tail
      *  @return A FEB hybrid ID in the range 0-3
      */
-    public static int getFebHybridID(int[] data) { 
-        return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 26) & FEB_HYBRID_MASK; 
+    public static int getFebHybridIDFromMultisampleTail(int multisampleTail) { 
+        return (multisampleTail >>> 26) & FEB_HYBRID_MASK; 
     }
+    
 
     /**
-     *  Extract and return the APV ID associated with the samples.
+     *  Extract and return the APV ID associated with the multisample.
      *  
-     *  @param data : sample block of data
+     *  @param multisample : a multisample of data
      *  @return An APV ID in the range of 0-4
      */
-    public static int getApv(int[] data) { 
-        return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 23) & ENG_RUN_APV_MASK; 
+    public static int getApvFromMultiSample(int[] multisample) { 
+        return getApvFromMultisampleTail(getMultisampleTailWord(multisample)); 
+    }
+    
+    /**
+     * Extract and return the APV ID from the multisample tail.
+     * @param multisampleTail - tail word of a multisample
+     * @return the apv id in the range of 0-4
+     */
+    public static int getApvFromMultisampleTail(int multisampleTail) {
+        return (multisampleTail >>> 23) & ENG_RUN_APV_MASK; 
+        
     }
     
     /**
@@ -124,7 +158,7 @@ public class SvtEvioUtils {
         int channel = SvtEvioUtils.getChannelNumber(data);
         
         // Extract the APV ID from the data
-        int apv = SvtEvioUtils.getApv(data);
+        int apv = SvtEvioUtils.getApvFromMultiSample(data);
     
         // Get the physical channel number
         int physicalChannel = (APV25_PER_HYBRID - apv - 1) * CHANNELS_PER_APV25 + channel;
@@ -149,13 +183,11 @@ public class SvtEvioUtils {
     }
     
     /**
-     * Get the multisample header word.
-     * @param multisample - block of data
-     * @return the header word
+     * Get the multisample tail word from a multisample.
+     * @param multisample - multisample of  data
+     * @return the tail word
      */
-    public static int getMultisampleHeaderWord(int[] multisample) {
-        if( !isMultisampleHeader(multisample) )
-            throw new RuntimeException("Need ApvHeader multisample in order to extract the header word.");
+    public static int getMultisampleTailWord(int[] multisample) {
         return multisample[ENG_RUN_SAMPLE_HEADER_INDEX];
     }
     
@@ -212,7 +244,9 @@ public class SvtEvioUtils {
      *  @return value of the error bit.  This is non-zero if there is an error.
      */
     public static int getMultisampleErrorBit(int[] multisample) { 
-        return (getMultisampleHeaderWord(multisample) >>> 28) & ENG_RUN_ERROR_BIT_MASK; 
+        if( !isMultisampleHeader(multisample) )
+            throw new RuntimeException("Need ApvHeader multisample in order to extract the error bit from the tail word.");
+        return (getMultisampleTailWord(multisample) >>> 28) & ENG_RUN_ERROR_BIT_MASK; 
     }
     
     /**

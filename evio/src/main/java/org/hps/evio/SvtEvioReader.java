@@ -117,8 +117,8 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
         //          + " Hybrid ID: " + SvtEvioUtils.getFebHybridID(data));
         
         Pair<Integer, Integer> daqPair 
-            = new Pair<Integer, Integer>(SvtEvioUtils.getFebID(data), 
-                                         SvtEvioUtils.getFebHybridID(data));
+            = new Pair<Integer, Integer>(SvtEvioUtils.getFebIDFromMultisample(data), 
+                                         SvtEvioUtils.getFebHybridIDFromMultisample(data));
         
         return daqPairToSensor.get(daqPair);
     }

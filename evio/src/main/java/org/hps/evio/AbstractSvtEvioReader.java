@@ -250,7 +250,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                     
                     // Extract multisample header
                     if( SvtEvioUtils.isMultisampleHeader(samples) ) 
-                        multisampleHeaders[samplesN/4] = SvtEvioUtils.getMultisampleHeaderWord(samples);
+                        multisampleHeaders[samplesN/4] = SvtEvioUtils.getMultisampleTailWord(samples);
                     
                     // If a set of samples is associated with an APV header or tail, skip it
                     if (!this.isValidSampleSet(samples)) continue;
