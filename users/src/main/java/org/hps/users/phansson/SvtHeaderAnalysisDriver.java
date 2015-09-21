@@ -108,10 +108,16 @@ public class SvtHeaderAnalysisDriver extends Driver {
                 logger.fine("found multisample header: " + Integer.toHexString(multisampleHeader));
                 int multisampleErrorBit = SvtEvioUtils.getErrorBitFromMultisampleHeader(multisampleHeader);
                 logger.fine("found multisample header error bit: " + multisampleErrorBit);
-                if( multisampleErrorBit != 0) multisampleErrorBits++;
+                if( multisampleErrorBit != 0) {
+                    multisampleErrorBits++;
+                    logger.info("multisample header error: run " + event.getRunNumber() + " event " + event.getEventNumber() 
+                            + " roc " + roc + " feb " + SvtEvioUtils.getFebIDFromMultisampleTail(multisampleHeader) 
+                            + " hybrid " + SvtEvioUtils.getFebHybridIDFromMultisampleTail(multisampleHeader)  
+                            + " apv " + SvtEvioUtils.getApvFromMultisampleTail(multisampleHeader));
+                }
             }
             rceMultisampleErrorCount.fill(roc, multisampleErrorBits > 0 ? 1 : 0);
-                    
+            if(multisampleErrorBits > 0) logger.info("multisampleErrorBits " + multisampleErrorBits);
             if( syncError > 0) NrceSyncErrorCountN++;
             if( oFError > 0 ) NrceOFErrorCount++;
             if( skipCount > 0 ) NrceSkipCount++;
