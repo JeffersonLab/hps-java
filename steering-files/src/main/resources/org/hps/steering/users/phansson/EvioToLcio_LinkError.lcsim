@@ -13,10 +13,13 @@
     </execute>    
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
+            <eventInterval>10000</eventInterval>
         </driver>      
         
-        <driver name="LinkErrorDriver" type="org.hps.users.phansson.SvtHeaderAnalysisDriver"/>  
+        <driver name="LinkErrorDriver" type="org.hps.users.phansson.SvtHeaderAnalysisDriver">
+            <logFileName>${outputFile}.log</logFileName>
+            <showPlots>False</showPlots>
+        </driver>  
        
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <writeOnlyCollections>SvtHeaders</writeOnlyCollections>

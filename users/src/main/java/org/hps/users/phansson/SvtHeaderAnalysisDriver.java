@@ -3,13 +3,14 @@
  */
 package org.hps.users.phansson;
 
-import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 
-import java.util.HashMap;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,23 +41,45 @@ public class SvtHeaderAnalysisDriver extends Driver {
     private IHistogram2D rceSkipCount;
     private IHistogram2D rceMultisampleErrorCount;
     //private Map< Integer, Map< String, IHistogram1D> > histError = new HashMap< Integer, Map<String, IHistogram1D >>();
-    private int NrceSyncErrorCountN = 0;
-    private int NrceOFErrorCount = 0;
-    private int NrceSkipCount = 0;
-    private int NrceMultisampleErrorCount = 0;
+    private int nRceSyncErrorCountN = 0;
+    private int nRceOFErrorCount = 0;
+    private int nRceSkipCount = 0;
+    private int nRceMultisampleErrorCount = 0;
+    private int nRceSvtHeaders = 0;
     IPlotter plotter;
+
+    private String logFileName = "dummy.log";
+    FileWriter fileWriter; 
+    PrintWriter printWriter;
+
+    private boolean showPlots = false;
     
     /**
      * 
      */
     public SvtHeaderAnalysisDriver() {
-        // TODO Auto-generated constructor stub
+         
     }
     
+    public void setLogFileName(String name) {
+        this.logFileName = name;
+    }
+    
+    public void setShowPlots(boolean show) {
+        this.showPlots = show;
+    }
     
     @Override
     protected void detectorChanged(Detector detector) {
         
+        FileHandler fh;
+        try {
+            fh = new FileHandler(logFileName);
+            logger.addHandler(fh);
+            fh.setFormatter(new BasicLogFormatter());
+        } catch (SecurityException | IOException e1) {
+            e1.printStackTrace();
+        }
         
         plotter = aida.analysisFactory().createPlotterFactory().create("rceSyncError");
         plotter.createRegions(2, 2);
@@ -70,14 +93,15 @@ public class SvtHeaderAnalysisDriver extends Driver {
         plotter.region(1).plot(rceOFErrorCount);
         plotter.region(2).plot(rceSkipCount);
         plotter.region(3).plot(rceMultisampleErrorCount);
+        if(showPlots ) plotter.show();
         
-        plotter.show();
+        
     }
     
     
     @Override
     protected void process(EventHeader event) {
-        
+    
         if( !event.hasCollection(GenericObject.class, HeaderCollectionName) ) 
             return;
         
@@ -117,11 +141,11 @@ public class SvtHeaderAnalysisDriver extends Driver {
                 }
             }
             rceMultisampleErrorCount.fill(roc, multisampleErrorBits > 0 ? 1 : 0);
-            if(multisampleErrorBits > 0) logger.info("multisampleErrorBits " + multisampleErrorBits);
-            if( syncError > 0) NrceSyncErrorCountN++;
-            if( oFError > 0 ) NrceOFErrorCount++;
-            if( skipCount > 0 ) NrceSkipCount++;
-            if( multisampleErrorBits > 0 ) NrceMultisampleErrorCount++;
+            if( syncError > 0) nRceSyncErrorCountN++;
+            if( oFError > 0 ) nRceOFErrorCount++;
+            if( skipCount > 0 ) nRceSkipCount++;
+            if( multisampleErrorBits > 0 ) nRceMultisampleErrorCount++;
+            nRceSvtHeaders++;
             
             
             
@@ -134,10 +158,11 @@ public class SvtHeaderAnalysisDriver extends Driver {
     @Override
     protected void endOfData() {
         
-        logger.info("NrceSyncErrorCountN " + NrceSyncErrorCountN);
-        logger.info("NrceOFErrorCount " + NrceOFErrorCount);
-        logger.info("NrceSkipCount " + NrceSkipCount);
-        logger.info("NrceMultisampleErrorCount " + NrceMultisampleErrorCount);
+        logger.info("nRceSvtHeaders " + nRceSvtHeaders);
+        logger.info("nRceSyncErrorCountN " + nRceSyncErrorCountN);
+        logger.info("nRceOFErrorCount " + nRceOFErrorCount);
+        logger.info("nRceSkipCount " + nRceSkipCount);
+        logger.info("nRceMultisampleErrorCount " + nRceMultisampleErrorCount);
         
     }
     
