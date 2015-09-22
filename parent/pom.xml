@@ -12,7 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-        <lcsimVersion>3.1.4</lcsimVersion>
+        <lcsimVersion>3.1.5-SNAPSHOT</lcsimVersion>
         <skipSite>false</skipSite>
         <skipPlugin>false</skipPlugin>
     </properties>
@@ -22,6 +22,17 @@
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/parent/</developerConnection>
     </scm>
     <repositories>
+        <repository>
+            <id>maven-central-repo</id>
+            <name>Maven repository</name>
+            <url>http://repo1.maven.org/maven2/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
         <repository>
             <id>freehep-repo-public</id>
             <name>FreeHEP Maven Public</name>
@@ -36,17 +47,6 @@
             <id>jlab-coda-repo-public</id>
             <name>JLAB CODA Maven Repository</name>
             <url>https://coda.jlab.org/maven/</url>
-        </repository>
-        <repository>
-            <id>maven-central-repo</id>
-            <name>Maven repository</name>
-            <url>http://repo1.maven.org/maven2/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
         </repository>
     </repositories>
     <pluginRepositories>
