@@ -71,9 +71,6 @@ public class BilliorTrack {
     //z position when the particle is at the dca error
     private double z0error;
 
-    public BilliorTrack() {
-    }
-
     public BilliorTrack(HelicalTrackFit helix) {
         double[] helixparameters = helix.parameters();
         _parameters = convertParsToBillior(helixparameters);

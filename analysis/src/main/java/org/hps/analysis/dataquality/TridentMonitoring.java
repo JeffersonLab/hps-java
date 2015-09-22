@@ -6,6 +6,7 @@ import hep.aida.IFitResult;
 import hep.aida.IFitter;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 import java.util.ArrayList;
@@ -18,7 +19,6 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
-import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
 
 /**
@@ -31,6 +31,8 @@ import org.lcsim.geometry.Detector;
 public class TridentMonitoring extends DataQualityMonitor {
 
     private double ebeam = 1.05;
+    private BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
+
     String finalStateParticlesColName = "FinalStateParticles";
     String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
     String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
@@ -47,6 +49,7 @@ public class TridentMonitoring extends DataQualityMonitor {
     IHistogram2D pxEleVspxPos;
     IHistogram2D vertexPxPy;
     IHistogram1D goodVertexMass;
+    IHistogram2D goodVertexZVsMass;
     IHistogram1D vertexX;
     IHistogram1D vertexY;
     IHistogram1D vertexZ;
@@ -108,10 +111,13 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     protected void detectorChanged(Detector detector) {
         System.out.println("TridentMonitoring::detectorChanged  Setting up the plotter");
+        beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
+
         aida.tree().cd("/");
         String trkType = "SeedTrack/";
-        if (isGBL)
+        if (isGBL) {
             trkType = "GBLTrack/";
+        }
         /*  V0 Quantities   */
         /*  Mass, vertex, chi^2 of fit */
         /* beamspot constrained */
@@ -128,14 +134,15 @@ public class TridentMonitoring extends DataQualityMonitor {
 //        IHistogram1D tarconVz = aida.histogram1D(plotDir +  triggerType + "/"+ triggerType + "/"+"Target Constrained Vz (mm)", 50, -10, 10);
 //        IHistogram1D tarconChi2 = aida.histogram1D(plotDir +  triggerType + "/"+ triggerType + "/"+"Target Constrained Chi2", 25, 0, 25);
         pyEleVspyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Py(e) vs Py(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
-        pxEleVspxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Px(e) vs Px(p)", 50, -0.02, 0.06, 50, -0.02, 0.06);
+        pxEleVspxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Px(e) vs Px(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
         trackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Track time difference", 100, -10, 10);
         trackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Track time vs. track time", 100, -10, 10, 100, -10, 10);
         vertexMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex mass vs. vertex momentum", 100, 0, 1.1, 100, 0, 0.1);
         vertexedTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Positron vs. electron momentum", 100, 0, 1.1, 100, 0, 1.1);
         vertexedTrackMomentum2DRad = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Positron vs. electron momentum: Radiative", 100, 0, 1.1, 100, 0, 1.1);
-        vertexPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Py vs. Px", 100, -0.02, 0.06, 100, -0.04, 0.04);
+        vertexPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Py vs. Px", 100, -0.04, 0.04, 100, -0.04, 0.04);
         goodVertexMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Good vertex mass", 100, 0, 0.11);
+        goodVertexZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Good vertex Z vs. mass", 100, 0, 0.11, 100, -v0VzMax, v0VzMax);
         nCand = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Number of Trident Candidates", 5, 0, 4);
         deltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Positron - electron momentum", 100, -1., 1.0);
         deltaPRad = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Positron - electron momentum", 100, -1., 1.0);
@@ -156,20 +163,26 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     public void process(EventHeader event) {
         /*  make sure everything is there */
-        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
-        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName))
+        }
+        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
             return;
-        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName))
+        }
+        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName)) {
             return;
-        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName))
+        }
+        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName)) {
             return;
-        if (!event.hasCollection(Track.class, trackListName))
+        }
+        if (!event.hasCollection(Track.class, trackListName)) {
             return;
+        }
 
         //check to see if this event is from the correct trigger (or "all");
-        if (!matchTrigger(event))
+        if (!matchTrigger(event)) {
             return;
+        }
 
         nRecoEvents++;
 
@@ -178,127 +191,157 @@ public class TridentMonitoring extends DataQualityMonitor {
 
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         int npos = 0;
-        int ntrk=0;
-        for (ReconstructedParticle fsp : fspList){
-             if (isGBL ^ fsp.getType() < 32)//XOR!!!!
+        int ntrk = 0;
+        for (ReconstructedParticle fsp : fspList) {
+            if (isGBL != TrackType.isGBL(fsp.getType())) {
                 continue;
-            if (fsp.getCharge()!=0)
+            }
+            if (fsp.getCharge() != 0) {
                 ntrk++;
-            if (fsp.getCharge() > 0)
-                npos++;            
+            }
+            if (fsp.getCharge() > 0) {
+                npos++;
+            }
         }
-        if (ntrk < 2 || ntrk > nTrkMax)
+        if (ntrk < 2 || ntrk > nTrkMax) {
             return;
-        if (npos < 1 || npos > nPosMax)
+        }
+        if (npos < 1 || npos > nPosMax) {
             return;
+        }
 
         nPassBasicCuts++;//passed some basic event-level cuts...
 
         List<ReconstructedParticle> candidateList = new ArrayList<>();
-        ReconstructedParticle bestCandidate = new BaseReconstructedParticle();
+        ReconstructedParticle bestCandidate;
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
-            if (isGBL != TrackType.isGBL(uncV0.getType()))
+            if (isGBL != TrackType.isGBL(uncV0.getType())) {
                 continue;
+            }
             Vertex uncVert = uncV0.getStartVertex();
 //  v0 & vertex-quality cuts
-            Hep3Vector v0Mom = VecOp.add(uncV0.getParticles().get(1).getMomentum(), uncV0.getParticles().get(0).getMomentum());
-            if (v0Mom.z() > v0PzMax || v0Mom.z() < v0PzMin)
+            Hep3Vector v0MomRot = VecOp.mult(beamAxisRotation, uncV0.getMomentum());
+            if (v0MomRot.z() > v0PzMax || v0MomRot.z() < v0PzMin) {
                 continue;
-            if (Math.abs(v0Mom.y()) > v0PyMax)
+            }
+            if (Math.abs(v0MomRot.y()) > v0PyMax) {
                 continue;
-            if (Math.abs(v0Mom.x()) > v0PxMax)
+            }
+            if (Math.abs(v0MomRot.x()) > v0PxMax) {
                 continue;
+            }
             Hep3Vector v0Vtx = uncVert.getPosition();
-            if (Math.abs(v0Vtx.z()) > v0VzMax)
+            if (Math.abs(v0Vtx.z()) > v0VzMax) {
                 continue;
-            if (Math.abs(v0Vtx.y()) > v0VyMax)
+            }
+            if (Math.abs(v0Vtx.y()) > v0VyMax) {
                 continue;
-            if (Math.abs(v0Vtx.x()) > v0VxMax)
+            }
+            if (Math.abs(v0Vtx.x()) > v0VxMax) {
                 continue;
+            }
             nPassV0Cuts++;
             List<Track> tracks = new ArrayList<Track>();
             ReconstructedParticle electron = null, positron = null;
             for (ReconstructedParticle particle : uncV0.getParticles()) //                tracks.addAll(particle.getTracks());  //add add electron first, then positron...down below
-
-                if (particle.getCharge() > 0)
+            {
+                if (particle.getCharge() > 0) {
                     positron = particle;
-                else if (particle.getCharge() < 0)
+                } else if (particle.getCharge() < 0) {
                     electron = particle;
-                else
+                } else {
                     throw new RuntimeException("expected only electron and positron in vertex, got something with charge 0");
-            if (electron == null || positron == null)
+                }
+            }
+            if (electron == null || positron == null) {
                 throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
+            }
             tracks.add(electron.getTracks().get(0));
             tracks.add(positron.getTracks().get(0));
-            if (tracks.size() != 2)
+            if (tracks.size() != 2) {
                 throw new RuntimeException("expected two tracks in vertex, got " + tracks.size());
+            }
             List<Double> trackTimes = new ArrayList<Double>();
-            for (Track track : tracks)
+            for (Track track : tracks) {
                 trackTimes.add(TrackUtils.getTrackTime(track, hitToStrips, hitToRotated));
+            }
             boolean trackTimeDiffCut = Math.abs(trackTimes.get(0) - trackTimes.get(1)) < trkTimeDiff;
 
-            if (!trackTimeDiffCut)
+            if (!trackTimeDiffCut) {
                 continue;
+            }
             nPassTimeCuts++;
 
-            if (electron.getMomentum().y() * positron.getMomentum().y() > 0)
+            if (electron.getMomentum().y() * positron.getMomentum().y() > 0) {
                 continue;
+            }
             boolean pMinCut = electron.getMomentum().magnitude() > minPCut && positron.getMomentum().magnitude() > minPCut;
-            if (!pMinCut)
+            if (!pMinCut) {
                 continue;
+            }
             boolean pMaxCut = electron.getMomentum().magnitude() < beamPCut && positron.getMomentum().magnitude() < beamPCut;
-            if (!pMaxCut)
+            if (!pMaxCut) {
                 continue;
+            }
             nPassTrkCuts++;
 
             candidateList.add(uncV0);
         }
 
         nCand.fill(candidateList.size());
-        if(candidateList.size()==0)
+        if (candidateList.isEmpty()) {
             return;
+        }
         // pick the best candidate...for now just pick a random one. 
         bestCandidate = candidateList.get((int) (Math.random() * candidateList.size()));
 
         //fill some stuff: 
         ReconstructedParticle electron = null, positron = null;
         for (ReconstructedParticle particle : bestCandidate.getParticles()) //                tracks.addAll(particle.getTracks());  //add add electron first, then positron...down below
-
-            if (particle.getCharge() > 0)
+        {
+            if (particle.getCharge() > 0) {
                 positron = particle;
-            else if (particle.getCharge() < 0)
+            } else if (particle.getCharge() < 0) {
                 electron = particle;
-            else
+            } else {
                 throw new RuntimeException("expected only electron and positron in vertex, got something with charge 0");
-        if (electron == null || positron == null)
+            }
+        }
+        if (electron == null || positron == null) {
             throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
+        }
 
         double tEle = TrackUtils.getTrackTime(electron.getTracks().get(0), hitToStrips, hitToRotated);
         double tPos = TrackUtils.getTrackTime(positron.getTracks().get(0), hitToStrips, hitToRotated);
+        Hep3Vector pBestV0Rot = VecOp.mult(beamAxisRotation, bestCandidate.getMomentum());
+        Hep3Vector pEleRot = VecOp.mult(beamAxisRotation, electron.getMomentum());
+        Hep3Vector pPosRot = VecOp.mult(beamAxisRotation, positron.getMomentum());
+
         trackTime2D.fill(tEle, tPos);
         trackTimeDiff.fill(tEle - tPos);
         vertexMassMomentum.fill(bestCandidate.getMomentum().magnitude(), bestCandidate.getMass());
         vertexedTrackMomentum2D.fill(electron.getMomentum().magnitude(), positron.getMomentum().magnitude());
-        pyEleVspyPos.fill(electron.getMomentum().y(), positron.getMomentum().y());
-        pxEleVspxPos.fill(electron.getMomentum().x(), positron.getMomentum().x());
+        pyEleVspyPos.fill(pEleRot.y(), pPosRot.y());
+        pxEleVspxPos.fill(pEleRot.x(), pPosRot.x());
         sumP.fill(bestCandidate.getMomentum().magnitude());
         deltaP.fill(positron.getMomentum().magnitude() - electron.getMomentum().magnitude());
 
-        vertexPxPy.fill(bestCandidate.getMomentum().x(), bestCandidate.getMomentum().y());
+        vertexPxPy.fill(pBestV0Rot.x(), pBestV0Rot.y());
         goodVertexMass.fill(bestCandidate.getMass());
         Vertex uncVert = bestCandidate.getStartVertex();
         Hep3Vector v0Vtx = uncVert.getPosition();
+        goodVertexZVsMass.fill(bestCandidate.getMass(), v0Vtx.z());
         vertexX.fill(v0Vtx.x());
         vertexY.fill(v0Vtx.y());
         vertexZ.fill(v0Vtx.z());
-        vertexPx.fill(bestCandidate.getMomentum().x());
-        vertexPy.fill(bestCandidate.getMomentum().y());
-        vertexPz.fill(bestCandidate.getMomentum().z());
-        vertexU.fill(bestCandidate.getMomentum().x() / bestCandidate.getMomentum().magnitude());
-        vertexV.fill(bestCandidate.getMomentum().y() / bestCandidate.getMomentum().magnitude());
+        vertexPx.fill(pBestV0Rot.x());
+        vertexPy.fill(pBestV0Rot.y());
+        vertexPz.fill(pBestV0Rot.z());
+        vertexU.fill(pBestV0Rot.x() / pBestV0Rot.magnitude());
+        vertexV.fill(pBestV0Rot.y() / pBestV0Rot.magnitude());
 //                    vertexW.fill(bestCandidate.getMomentum().z()/bestCandidate.getMomentum().magnitude());
-        vertexVZ.fill(v0Vtx.z(), bestCandidate.getMomentum().y() / bestCandidate.getMomentum().magnitude());
+        vertexVZ.fill(v0Vtx.z(), pBestV0Rot.y() / pBestV0Rot.magnitude());
         vertexZY.fill(v0Vtx.y(), v0Vtx.z());
         if (bestCandidate.getMomentum().magnitude() > radCut) {
             vertexedTrackMomentum2DRad.fill(electron.getMomentum().magnitude(), positron.getMomentum().magnitude());
@@ -310,8 +353,9 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMData() {
         System.out.println("TridentMonitoring::printDQMData");
-        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet())
+        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
             System.out.println(entry.getKey() + " = " + entry.getValue());
+        }
         System.out.println("*******************************");
 
         System.out.println("TridentMonitoring::Tridend Selection Summary");
@@ -341,8 +385,9 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMStrings() {
         for (int i = 0; i < 9; i++)//TODO:  do this in a smarter way...loop over the map
-
+        {
             System.out.println("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
+        }
     }
 
     IFitResult fitVertexPosition(IHistogram1D h1d, IFitter fitter, double[] init, String range) {

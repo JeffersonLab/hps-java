@@ -17,7 +17,7 @@ import org.lcsim.event.EventHeader;
 public class EcalPairsFilter extends EventReconFilter {
 
     private String clusterCollectionName = "EcalClusters";
-    private double maxDt = 5.0;
+    private double maxDt = 2.5;
 
     public void setClusterCollectionName(String clusterCollectionName) {
         this.clusterCollectionName = clusterCollectionName;
