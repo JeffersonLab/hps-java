@@ -64,6 +64,7 @@ public class V0Monitoring extends DataQualityMonitor {
     IHistogram1D unconVz;
     IHistogram1D unconChi2;
     IHistogram2D unconVzVsChi2;
+    IHistogram2D unconChi2VsTrkChi2;
     /* beamspot constrained */
 
     IHistogram1D nV0;
@@ -79,6 +80,7 @@ public class V0Monitoring extends DataQualityMonitor {
     IHistogram1D bsconVz;
     IHistogram1D bsconChi2;
     IHistogram2D bsconVzVsChi2;
+    IHistogram2D bsconChi2VsTrkChi2;
     /* target constrained */
     IHistogram1D tarconMass;
     IHistogram1D tarconVx;
@@ -86,6 +88,7 @@ public class V0Monitoring extends DataQualityMonitor {
     IHistogram1D tarconVz;
     IHistogram1D tarconChi2;
     IHistogram2D tarconVzVsChi2;
+    IHistogram2D tarconChi2VsTrkChi2;
 
     IHistogram2D pEleVspPos;
     IHistogram2D pEleVspPosWithCut;
@@ -169,6 +172,7 @@ public class V0Monitoring extends DataQualityMonitor {
         unconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Vz (mm)", 50, -50, 50);
         unconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Chi2", 25, 0, 25);
         unconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
+        unconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
         /* beamspot constrained */
         bsconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Mass (GeV)", 100, 0, 0.200);
         bsconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vx (mm)", 50, -10, 10);
@@ -176,6 +180,7 @@ public class V0Monitoring extends DataQualityMonitor {
         bsconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vz (mm)", 50, -50, 50);
         bsconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Chi2", 25, 0, 25);
         bsconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
+        bsconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
         /* target constrained */
         tarconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Mass (GeV)", 100, 0, 0.200);
         tarconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Vx (mm)", 50, -1, 1);
@@ -183,6 +188,7 @@ public class V0Monitoring extends DataQualityMonitor {
         tarconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Vz (mm)", 50, -10, 10);
         tarconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Chi2", 25, 0, 25);
         tarconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
+        tarconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
 
         nV0 = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Number of V0 per event", 10, 0, 10);
         v0Time = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "V0 mean time", 100, -25, 25);
@@ -274,6 +280,7 @@ public class V0Monitoring extends DataQualityMonitor {
             unconMass.fill(uncV0.getMass());
             unconChi2.fill(uncVert.getChi2());
             unconVzVsChi2.fill(uncVert.getChi2(), uncVert.getPosition().z());
+            unconChi2VsTrkChi2.fill(uncV0.getParticles().get(0).getTracks().get(0).getChi2() + uncV0.getParticles().get(1).getTracks().get(0).getChi2(), uncVert.getChi2());
 
             VtxZVsMass.fill(uncV0.getMass(), uncVert.getPosition().z());
             VtxXVsVtxZ.fill(uncVert.getPosition().x(), uncVert.getPosition().z());
@@ -306,7 +313,7 @@ public class V0Monitoring extends DataQualityMonitor {
                 ele = trks.get(1);
             }
             if (ele.getCharge() < 0 && pos.getCharge() > 0) {
-                VtxZVsTrkChi2.fill(ele.getTracks().get(0).getChi2() + pos.getTracks().get(0).getChi2(), uncVert.getPosition().z());
+                VtxZVsTrkChi2.fill(uncV0.getParticles().get(0).getTracks().get(0).getChi2() + uncV0.getParticles().get(1).getTracks().get(0).getChi2(), uncVert.getPosition().z());
 
                 Double[] eleIso = TrackUtils.getIsolations(ele.getTracks().get(0), hitToStrips, hitToRotated);
                 Double[] posIso = TrackUtils.getIsolations(pos.getTracks().get(0), hitToStrips, hitToRotated);
@@ -354,6 +361,7 @@ public class V0Monitoring extends DataQualityMonitor {
             bsconMass.fill(bsV0.getMass());
             bsconChi2.fill(bsVert.getChi2());
             bsconVzVsChi2.fill(bsVert.getChi2(), bsVert.getPosition().z());
+            bsconChi2VsTrkChi2.fill(bsV0.getParticles().get(0).getTracks().get(0).getChi2() + bsV0.getParticles().get(1).getTracks().get(0).getChi2(), bsVert.getChi2());
             sumMass += bsV0.getMass();
             sumVx += bsVert.getPosition().x();
             sumVy += bsVert.getPosition().y();
@@ -373,6 +381,7 @@ public class V0Monitoring extends DataQualityMonitor {
             tarconMass.fill(tarV0.getMass());
             tarconChi2.fill(tarVert.getChi2());
             tarconVzVsChi2.fill(tarVert.getChi2(), tarVert.getPosition().z());
+            tarconChi2VsTrkChi2.fill(tarV0.getParticles().get(0).getTracks().get(0).getChi2() + tarV0.getParticles().get(1).getTracks().get(0).getChi2(), tarVert.getChi2());
         }
         List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         if (debug) {
