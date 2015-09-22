@@ -5,7 +5,8 @@ import java.io.IOException;
 import org.hps.users.kmccarty.plots.FormattedPlot1D;
 import org.hps.users.kmccarty.plots.FormattedPlot2D;
 import org.hps.users.kmccarty.plots.PlotFormatModule;
-import org.hps.users.kmccarty.PlotsFormatter.ColorStyle;
+import org.hps.users.kmccarty.plots.PlotsFormatter;
+import org.hps.users.kmccarty.plots.PlotsFormatter.ColorStyle;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;

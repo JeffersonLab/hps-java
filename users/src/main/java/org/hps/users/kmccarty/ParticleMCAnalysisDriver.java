@@ -19,9 +19,9 @@ public class ParticleMCAnalysisDriver extends Driver {
 	// Declare plots.
 	private AIDA aida = AIDA.defaultInstance();
 	private IHistogram1D chargedTracksPlot = aida.histogram1D("MC Analysis/Event Tracks", 10, -0.5, 9.5);
-	private IHistogram1D allPlot = aida.histogram1D("MC Analysis/Electron Energy Distribution", 110, 0, 2.2);
-	private IHistogram1D electronPlot = aida.histogram1D("MC Analysis/Electron Energy Distribution", 110, 0, 2.2);
-	private IHistogram1D positronPlot = aida.histogram1D("MC Analysis/Positron Energy Distribution", 110, 0, 2.2);
+	private IHistogram1D allPlot = aida.histogram1D("MC Analysis/Electron Energy Distribution", 110, 0, 1.1);
+	private IHistogram1D electronPlot = aida.histogram1D("MC Analysis/Electron Energy Distribution", 110, 0, 1.1);
+	private IHistogram1D positronPlot = aida.histogram1D("MC Analysis/Positron Energy Distribution", 110, 0, 1.1);
 	private IHistogram1D momentumXPlot = aida.histogram1D("MC Analysis/Particle x-Momentum Distribution", 110, 0.0, 1.1);
 	private IHistogram1D momentumYPlot = aida.histogram1D("MC Analysis/Particle y-Momentum Distribution", 110, 0.0, 1.1);
 	private IHistogram1D momentumZPlot = aida.histogram1D("MC Analysis/Particle z-Momentum Distribution", 110, 0.0, 1.1);

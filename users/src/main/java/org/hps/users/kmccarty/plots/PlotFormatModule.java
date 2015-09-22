@@ -7,9 +7,9 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.ref.plotter.PlotterRegion;
 
-import org.hps.users.kmccarty.PlotsFormatter;
-import org.hps.users.kmccarty.PlotsFormatter.ColorStyle;
+import org.hps.users.kmccarty.plots.PlotsFormatter.ColorStyle;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,8 +60,13 @@ public class PlotFormatModule {
 			plotter.createRegions(1);
 			plotter.region(0).plot(plot);
 			
-			// Format the axis labels.
+			// Set the axis range.
 			PlotterRegion region = (PlotterRegion) plotter.region(0);
+			if(formattedPlot.definesAxisRange()) {
+				region.getPlot().getXAxis().setMax(formattedPlot.getAxisRange());
+			}
+			
+			// Format the axis labels.
 			region.getPlot().setTitle(formattedPlot.getPlotName());
 			region.getPlot().getXAxis().setLabel(formattedPlot.getXAxisName());
 			region.getPlot().getYAxis().setLabel(formattedPlot.getYAxisName());
@@ -89,12 +94,18 @@ public class PlotFormatModule {
 			plotter.createRegions(1);
 			plotter.region(0).plot(plot);
 			
-			// Format the axis labels.
+			// Set the axis range.
 			PlotterRegion region = (PlotterRegion) plotter.region(0);
+			if(formattedPlot.definesXAxisRange()) {
+				region.getPlot().getXAxis().setMax(formattedPlot.getXAxisRange());
+			} if(formattedPlot.definesYAxisRange()) {
+				region.getPlot().getYAxis().setMax(formattedPlot.getYAxisRange());
+			}
+			
+			// Format the axis labels.
 			region.getPlot().setTitle(formattedPlot.getPlotName());
 			region.getPlot().getXAxis().setLabel(formattedPlot.getXAxisName());
 			region.getPlot().getYAxis().setLabel(formattedPlot.getYAxisName());
-			
 			
 			// Format the fonts and general plot presentation.
 			PlotsFormatter.setDefault2DStyle(region, formattedPlot.isLogarithmic());
@@ -106,7 +117,11 @@ public class PlotFormatModule {
 			// If the file path is null, display the plots. Otherwise,
 			// save them to the destination folder.
 			if(filePath == null) { plotter.show(); }
-			else { plotter.writeToFile(filePath + formattedPlot.getPlotName() + ".png"); }
+			else {
+				File plotFile = new File(filePath + formattedPlot.getPlotName() + ".png");
+				if(plotFile.exists()) { plotFile.delete(); }
+				plotter.writeToFile(filePath + formattedPlot.getPlotName() + ".png");
+			}
 		}
 	}
 }

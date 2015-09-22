@@ -52,6 +52,9 @@ public class MTEAnalysis extends Driver {
 	private IHistogram1D timePlot = aida.histogram1D("MTE Analysis/Track Cluster Time Distribution", 4000, 0, 400);
 	private IHistogram1D timeCoincidencePlot = aida.histogram1D("MTE Analysis/Møller Time Coincidence Distribution", 1000, 0, 100);
 	private IHistogram1D timeCoincidenceAllCutsPlot = aida.histogram1D("MTE Analysis/Møller Time Coincidence Distribution (All Møller Cuts)", 1000, 0, 100);
+	private IHistogram1D negTrackCount = aida.histogram1D("MTE Analysis/All Negative Tracks", 10, -0.5, 9.5);
+	private IHistogram1D posTrackCount = aida.histogram1D("MTE Analysis/All Positive Event Tracks", 10, -0.5, 9.5);
+	private IHistogram1D chargedTrackCount = aida.histogram1D("MTE Analysis/All Event Event Tracks", 10, -0.5, 9.5);
 	private TriggerPlotsModule allPlots = new TriggerPlotsModule("All");
 	private TriggerPlotsModule møllerPlots = new TriggerPlotsModule("Møller");
 	private TriggerPlotsModule tridentPlots = new TriggerPlotsModule("Trident");
@@ -68,6 +71,12 @@ public class MTEAnalysis extends Driver {
 	private int møllerEvents = 0;
 	private int tridentEvents = 0;
 	private int elasticEvents = 0;
+	private int totalEvents = 0;
+	private int pair1Events = 0;
+	private int pair0Events = 0;
+	private int singles1Events = 0;
+	private int singles0Events = 0;
+	private int pulserEvents = 0;
 	
 	@Override
 	public void startOfData() {
@@ -99,9 +108,15 @@ public class MTEAnalysis extends Driver {
 	
 	@Override
 	public void endOfData() {
-		System.out.println("Møller  Events :: " + møllerEvents);
-		System.out.println("Trident Events :: " + tridentEvents);
-		System.out.println("Elastic Events :: " + elasticEvents);
+		System.out.println("Møller  Events   :: " + møllerEvents);
+		System.out.println("Trident Events   :: " + tridentEvents);
+		System.out.println("Elastic Events   :: " + elasticEvents);
+		System.out.println("Total Events     :: " + totalEvents);
+		System.out.println("Pair 1 Events    :: " + pair1Events);
+		System.out.println("Pair 0 Events    :: " + pair0Events);
+		System.out.println("Singles 1 Events :: " + singles1Events);
+		System.out.println("Singles 0 Events :: " + singles0Events);
+		System.out.println("Pulser Events    :: " + pulserEvents);
 		
 		System.out.println("Plsr\tS0\tS1\tP0\tP1\tMøller");
 		for(Entry<String, Integer> entry : møllerBitMap.entrySet()) {
@@ -236,7 +251,7 @@ public class MTEAnalysis extends Driver {
 					continue møllerTrackLoop;
 				}
 				
-				timeCoincidenceAllCutsPlot.fill(Math.abs(seeds[0].getTime() - seeds[1].getTime()));
+				//timeCoincidenceAllCutsPlot.fill(Math.abs(seeds[0].getTime() - seeds[1].getTime()));
 				
 				// Note that this is a Møller event.
 				isMøller = true;
@@ -283,6 +298,7 @@ public class MTEAnalysis extends Driver {
 				// Check the trident condition.
 				if((pair[0].getCharge() < 0 && pair[1].getCharge() > 0) || pair[0].getCharge() > 0 && pair[1].getCharge() < 0) {
 					// Both tracks must have clusters associated with them.
+					/*
 					Cluster[] trackClusters = new Cluster[2];
 					for(int i = 0; i < 2; i++) {
 						// Disallow tracks with no associated clusters.
@@ -303,13 +319,14 @@ public class MTEAnalysis extends Driver {
 					if(Math.abs(trackClusters[0].getCalorimeterHits().get(0).getTime() - trackClusters[1].getCalorimeterHits().get(0).getTime()) > timeCoincidenceCut) {
 						continue tridentTrackLoop;
 					}
+					*/
 					
 					// Require that the energy of the electron is below
 					// 900 MeV.
-					if((pair[0].getCharge() < 0 && pair[0].getMomentum().magnitude() < 0.900)
-							|| (pair[1].getCharge() < 0 && pair[1].getMomentum().magnitude() < 0.900)) {
+					//if((pair[0].getCharge() < 0 && pair[0].getMomentum().magnitude() < 0.900)
+					//		|| (pair[1].getCharge() < 0 && pair[1].getMomentum().magnitude() < 0.900)) {
 						isTrident = true;
-						tridentPlots.addClusterPair(trackClusters);
+						//tridentPlots.addClusterPair(trackClusters);
 						if(pair[0].getCharge() > 0) {
 							positronPlot.fill(pair[1].getMomentum().magnitude());
 							electronPlot[TRIDENT].fill(pair[0].getMomentum().magnitude());
@@ -319,7 +336,7 @@ public class MTEAnalysis extends Driver {
 						}
 						energyPlot[TRIDENT].fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
 						energy2DPlot[TRIDENT].fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
-					}
+					//}
 				}
 			}
 			
@@ -330,29 +347,55 @@ public class MTEAnalysis extends Driver {
 				System.out.println();
 			}
 			
-			// Get the number of charged tracks in the event.
-			int tracks = 0;
-			for(ReconstructedParticle track : trackList) {
-				if(track.getCharge() != 0) {
-					if(excludeNoTrackEvents && !track.getTracks().isEmpty()) {
-						tracks++;
-					} else { tracks++; }
-				}
-			}
-			
 			// Get the TI bits.
 			String bitString = null;
+			TIData tiBank = null;
 			List<GenericObject> bankList = event.get(GenericObject.class, bankCollectionName);
 			for(GenericObject obj : bankList) {
 				if(AbstractIntData.getTag(obj) == TIData.BANK_TAG) {
-					TIData tiBank = new TIData(obj);
+					tiBank = new TIData(obj);
 					bitString = getBitString(tiBank.isPulserTrigger(), tiBank.isSingle0Trigger(),
 							tiBank.isSingle1Trigger(), tiBank.isPair0Trigger(), tiBank.isPair1Trigger());
+					
+					if(tiBank.isPair1Trigger()) {
+						pair1Events++;
+					} else if(tiBank.isPair0Trigger()) {
+						pair0Events++;
+					} else if(tiBank.isSingle1Trigger()) {
+						singles1Events++;
+					} else if(tiBank.isSingle0Trigger()) {
+						singles0Events++;
+					} else if(tiBank.isPulserTrigger()) {
+						pulserEvents++;
+					}
 				}
 			}
 			if(bitString == null) {
 				System.out.println("No TI data found!!");
 			}
+			
+			// Get the number of charged tracks in the event.
+			int tracks = 0;
+			int posTracks = 0;
+			int negTracks = 0;
+			for(ReconstructedParticle track : trackList) {
+				if(track.getCharge() != 0 && tiBank.isPulserTrigger()) {
+					if(excludeNoTrackEvents && !track.getTracks().isEmpty()) {
+						tracks++;
+						if(track.getCharge() > 0) { posTracks++; }
+						else { negTracks++; }
+					} else {
+						tracks++;
+						if(track.getCharge() > 0) { posTracks++; }
+						else { negTracks++; }
+					}
+				}
+			}
+			
+			// Populate the "all tracks" plots.
+			posTrackCount.fill(posTracks);
+			negTrackCount.fill(negTracks);
+			chargedTrackCount.fill(tracks);
 			
 			// Add the result to the appropriate plots and increment
 			// the appropriate trigger bit combination.
@@ -381,6 +424,7 @@ public class MTEAnalysis extends Driver {
 				if(val == null) { elasticBitMap.put(bitString, 1); }
 				else { elasticBitMap.put(bitString, val + 1); }
 			}
+			totalEvents++;
 		}
 	}
 	
