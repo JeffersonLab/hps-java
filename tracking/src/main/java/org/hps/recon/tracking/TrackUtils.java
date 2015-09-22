@@ -1272,4 +1272,12 @@ public class TrackUtils {
             return new Line(r0, phi, lambda);
     }
 
+    public static TrackState getTrackStateAtECal(Track trk) {
+        for (TrackState state : trk.getTrackStates()) {
+            if (state.getLocation() == TrackState.AtCalorimeter) {
+                return state;
+            }
+        }
+        return null;
+    }
 }
