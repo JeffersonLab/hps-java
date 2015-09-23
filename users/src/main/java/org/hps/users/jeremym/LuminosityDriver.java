@@ -1,7 +1,4 @@
-package org.hps.users.jeremym;
-
-import java.util.ArrayList;
-import java.util.List;
+  package org.hps.users.jeremym;
 
 import org.hps.record.epics.EpicsData;
 import org.lcsim.event.EventHeader;
@@ -27,49 +24,35 @@ public class LuminosityDriver extends Driver {
     private static final String EPICS_VARIABLE = "scaler_calc1";
 
     /**
+     * Conversion from scaler counts to charge.
+     */
+    private final double SCALER_COUNTS_TO_CHARGE = 905.937;
+    
+    /**
      * Calculate the luminosity in coulomb given a list of EPICS data.
      *
      * @param epicsData the list of EPICS data
      * @return the calculated luminosity
      */
-    private static double calculateLuminosity(final List<EpicsData> epicsDataList) {
-        if (epicsDataList.isEmpty()) {
-            throw new RuntimeException("The EPICS data list is empty.");
-        }
-        double integratedLuminosity = 0;
-        for (int i = 0; i < epicsDataList.size(); i++) {
-            if (i != epicsDataList.size() - 1) {
-
-                // Get a pair of EPICS records.
-                final EpicsData epicsDataStart = epicsDataList.get(i);
-                final EpicsData epicsDataEnd = epicsDataList.get(i + 1);
-
-                // Calculate elapsed time between the EPICS events.
-                int timeLength = epicsDataEnd.getEpicsHeader().getTimestamp()
-                        - epicsDataStart.getEpicsHeader().getTimestamp();
-
-                if (timeLength == 0) {
-                    // Force at least 1 second time resolution.
-                    timeLength = 1;
-                }
-
-                // Get average current over the time period.
-                final double averageCurrent = (epicsDataStart.getValue(EPICS_VARIABLE) + epicsDataEnd
-                        .getValue(EPICS_VARIABLE)) / 2.;
-
-                // Add the current for the time period to the integrated luminosity total.
-                integratedLuminosity += timeLength * averageCurrent;
-            }
-        }
-        // Convert from nano coulomb to coulomb.
-        integratedLuminosity *= 10e-9;
-        return integratedLuminosity;
+    private double calculateLuminosity() {      
+        double scalerCount = lastEpicsData.getValue(EPICS_VARIABLE) -firstEpicsData.getValue(EPICS_VARIABLE);
+        return SCALER_COUNTS_TO_CHARGE * scalerCount;
     }
 
     /**
-     * The list of EPICS data accumulated during the job.
+     * First EPICS data bank.
      */
-    private final List<EpicsData> epicsDataList = new ArrayList<EpicsData>();
+    private EpicsData firstEpicsData = null;
+
+    /**
+     * Last EPICS data bank.
+     */
+    private EpicsData lastEpicsData = null;
+    
+    /**
+     * Current bank used for getting the last bank in {@link #endOfData()}.
+     */
+    private EpicsData currentEpicsData = null;
 
     /**
      * The final measurement of integrated
@@ -81,10 +64,8 @@ public class LuminosityDriver extends Driver {
      */
     @Override
     public void endOfData() {
-        if (epicsDataList.isEmpty()) {
-            throw new RuntimeException("The EPICS data list is empty.");
-        }
-        luminosity = calculateLuminosity(this.epicsDataList);
+        lastEpicsData = currentEpicsData;
+        luminosity = calculateLuminosity();
     }
 
     /**
@@ -108,7 +89,10 @@ public class LuminosityDriver extends Driver {
             if (epicsData.hasKey(EPICS_VARIABLE)) {
                 System.out.println("adding EPICS data with timestamp " + epicsData.getEpicsHeader().getTimestamp()
                         + " and Faraday cup current " + epicsData.getValue(EPICS_VARIABLE));
-                epicsDataList.add(epicsData);
+                if (firstEpicsData == null) {
+                    firstEpicsData = epicsData;
+                }
+                currentEpicsData = epicsData;
             }
         }
     }
