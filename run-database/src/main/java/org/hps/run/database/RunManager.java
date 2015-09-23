@@ -85,7 +85,7 @@ public final class RunManager implements ConditionsListener {
     /**
      * Close the database connection.
      */
-    private void closeConnection() {
+    public void closeConnection() {
         if (!(this.connection == null)) {
             try {
                 if (!this.connection.isClosed()) {
@@ -120,6 +120,7 @@ public final class RunManager implements ConditionsListener {
      * @return the complete list of run numbers
      */
     List<Integer> getRuns() {
+        openConnection();
         return new RunSummaryDaoImpl(this.connection).getRuns();
     }
 
