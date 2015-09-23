@@ -9,14 +9,18 @@ import hep.aida.IPlotter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.analysis.trigger.util.TriggerDataUtils;
 import org.hps.evio.SvtEvioReader;
 import org.hps.evio.SvtEvioUtils;
 import org.hps.readout.svt.SvtHeaderDataInfo;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.HeadBankData;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -35,7 +39,8 @@ public class SvtHeaderAnalysisDriver extends Driver {
     
     private final String HeaderCollectionName = "SvtHeaders"; 
     private final Logger logger = LogUtil.create(SvtHeaderAnalysisDriver.class.getSimpleName(), new BasicLogFormatter(), Level.INFO);
-    //private final int nROC = 14;
+    private int nEventsProcessed = 0;
+    private Date eventDate = new Date(0);
     private IHistogram2D rceSyncErrorCount;
     private IHistogram2D rceOFErrorCount;
     private IHistogram2D rceSkipCount;
@@ -53,6 +58,7 @@ public class SvtHeaderAnalysisDriver extends Driver {
     PrintWriter printWriter;
 
     private boolean showPlots = false;
+    private final String triggerBankCollectionName = "TriggerBank";
     
     /**
      * 
@@ -101,6 +107,19 @@ public class SvtHeaderAnalysisDriver extends Driver {
     
     @Override
     protected void process(EventHeader event) {
+        
+        if(event.hasCollection(GenericObject.class, triggerBankCollectionName)) {
+            Date currentEventDate = TriggerDataUtils.getEventTimeStamp(event, triggerBankCollectionName);
+            if( currentEventDate == null) {
+                logger.info("Couldn't get event date from trigger bank for processed " + nEventsProcessed);
+                //  throw new RuntimeException("Couldn't get event date from trigger bank!");
+            } else {
+                eventDate = currentEventDate;
+            }
+        }
+        // log start of run
+        if( nEventsProcessed == 0 )
+            logger.info("startOfRun: run " + event.getRunNumber() + " event " + event.getEventNumber() + " processed " + nEventsProcessed +  " date " + eventDate.toString());
     
         if( !event.hasCollection(GenericObject.class, HeaderCollectionName) ) 
             return;
@@ -112,34 +131,57 @@ public class SvtHeaderAnalysisDriver extends Driver {
         for(GenericObject header : headers ) {
             logger.fine("nint " + header.getNInt());
             int roc = SvtHeaderDataInfo.getNum(header);
+            
+            // find the errors in the header
             int syncError = SvtEvioUtils.getSvtTailSyncErrorBit(SvtHeaderDataInfo.getTail(header));
             int oFError = SvtEvioUtils.getSvtTailOFErrorBit(SvtHeaderDataInfo.getTail(header));
             int skipCount = SvtEvioUtils.getSvtTailMultisampleSkipCount(SvtHeaderDataInfo.getTail(header));
-            //int eventNr = SvtEvioUtils.getSvtDataEventCounter( SvtHeaderDataInfo.getHeader(header) );
-             
-            if( syncError != 0 && syncError != 1)
-                throw new RuntimeException("invalid value for error bit " + syncError);
-            rceSyncErrorCount.fill(roc, syncError);
-            rceOFErrorCount.fill(roc, oFError);
-            rceSkipCount.fill(roc, skipCount);
+            
+            // check bits
+            checkBitValueRange(oFError);
+            checkBitValueRange(syncError);
+            
+            // print header errors to log
+            if( syncError != 0) {
+                logger.info("syncError: run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + " processed " + nEventsProcessed +  " date " + eventDate.toString()
+                            + " roc " + roc);
+            }            
+            if( oFError != 0) {
+                logger.info("oFError: run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + " processed " + nEventsProcessed +  " date " + eventDate.toString()
+                            + " roc " + roc);
+            }  
+            for(int i=0; i < skipCount; ++i) {
+                if( oFError != 0) {
+                    logger.info("skipCount: run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + " processed " + nEventsProcessed +  " date " + eventDate.toString()
+                                + " roc " + roc);
+                }
+            }
+           
             
             
+            // Check for multisample tail error bit
             int nMultisamples = SvtEvioUtils.getSvtTailMultisampleCount(SvtHeaderDataInfo.getTail(header));
             logger.fine(nMultisamples + " multisamples");
             int multisampleErrorBits = 0;
             for(int iMultisample = 0; iMultisample != nMultisamples; ++iMultisample) {
                 int multisampleHeader = SvtHeaderDataInfo.getMultisample(iMultisample, header);
-                logger.fine("found multisample header: " + Integer.toHexString(multisampleHeader));
+                logger.fine("found multisample tail: " + Integer.toHexString(multisampleHeader));
                 int multisampleErrorBit = SvtEvioUtils.getErrorBitFromMultisampleHeader(multisampleHeader);
-                logger.fine("found multisample header error bit: " + multisampleErrorBit);
+                checkBitValueRange(multisampleErrorBit);
+                logger.fine("found multisample tail error bit: " + multisampleErrorBit);
                 if( multisampleErrorBit != 0) {
                     multisampleErrorBits++;
-                    logger.info("multisample header error: run " + event.getRunNumber() + " event " + event.getEventNumber() 
+                    logger.info("multisample tail error: run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + eventDate.toString() 
                             + " roc " + roc + " feb " + SvtEvioUtils.getFebIDFromMultisampleTail(multisampleHeader) 
                             + " hybrid " + SvtEvioUtils.getFebHybridIDFromMultisampleTail(multisampleHeader)  
                             + " apv " + SvtEvioUtils.getApvFromMultisampleTail(multisampleHeader));
                 }
             }
+            
+            // keep track how many headers have errors
+            rceSyncErrorCount.fill(roc, syncError);
+            rceOFErrorCount.fill(roc, oFError);
+            rceSkipCount.fill(roc, skipCount);
             rceMultisampleErrorCount.fill(roc, multisampleErrorBits > 0 ? 1 : 0);
             if( syncError > 0) nRceSyncErrorCountN++;
             if( oFError > 0 ) nRceOFErrorCount++;
@@ -152,12 +194,17 @@ public class SvtHeaderAnalysisDriver extends Driver {
         }
         
         
-        
+        nEventsProcessed++;
+    }
+    
+    private void checkBitValueRange(int val) {
+        if( val != 0 && val != 1)
+            throw new RuntimeException("invalid value for error bit " + val);
     }
     
     @Override
     protected void endOfData() {
-        
+        logger.info("endOfData: processed " + nEventsProcessed +  " date " + eventDate.toString());
         logger.info("nRceSvtHeaders " + nRceSvtHeaders);
         logger.info("nRceSyncErrorCountN " + nRceSyncErrorCountN);
         logger.info("nRceOFErrorCount " + nRceOFErrorCount);
