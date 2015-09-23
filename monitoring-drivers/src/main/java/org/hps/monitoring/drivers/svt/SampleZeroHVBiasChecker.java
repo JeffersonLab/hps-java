@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.analysis.trigger.util.TriggerDataUtils;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunSpreadsheet;
@@ -293,7 +294,7 @@ public class SampleZeroHVBiasChecker extends Driver {
 
         // Read the timestamp for the event
         // It comes in on block level so not every event has it, use the latest one throughout a block
-        Date newEventDate = getEventTimeStamp(event);
+        Date newEventDate = TriggerDataUtils.getEventTimeStamp(event, triggerBankCollectionName);
         if (newEventDate != null) {
             if (firstDate == null) {
                 firstDate = newEventDate;
