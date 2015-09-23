@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsEvioProcessor;
 import org.hps.record.evio.EvioEventUtilities;
@@ -16,7 +17,6 @@ import org.hps.record.triggerbank.SSPData;
 import org.hps.record.triggerbank.TDCData;
 import org.hps.record.triggerbank.TIData;
 import org.hps.run.database.RunManager;
-import org.hps.run.database.RunSummary;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.event.EventHeader;
@@ -69,7 +69,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
      * Modulus of TI timestamp offset (units of nanoseconds).
      */
     private final long timestampCycle = 24 * 6 * 35;
-
+    
     /**
      * Class constructor.
      */
@@ -104,10 +104,10 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     @Override
     protected long getTime(final List<AbstractIntData> triggerList) {
         long tiTimeOffset = 0;
-        RunSummary runSummary = RunManager.getRunManager().getRunSummary();
-        if (runSummary != null) {
-            tiTimeOffset = runSummary.getTriggerConfig().getTiTimeOffset();
+        if (RunManager.getRunManager().runExists()) {
+            tiTimeOffset = RunManager.getRunManager().getTriggerConfig().getTiTimeOffset();
             tiTimeOffset = (tiTimeOffset / timestampCycle) * timestampCycle;
+            System.out.println("tiTimeOffset: " + tiTimeOffset);
         }
 
         for (final AbstractIntData data : triggerList) {
@@ -132,11 +132,11 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         if (!EvioEventUtilities.isPhysicsEvent(evioEvent)) {
             throw new RuntimeException("Not a physics event: event tag " + evioEvent.getHeader().getTag());
         }
-
+        
         // Create a new LCSimEvent.
         final EventHeader lcsimEvent = this.getEventData(evioEvent);
         LOGGER.finest("created new LCSim event " + lcsimEvent.getEventNumber());
-
+        
         // Put DAQ Configuration info into lcsimEvent.
         triggerConfigReader.getDAQConfig(evioEvent, lcsimEvent);
 
