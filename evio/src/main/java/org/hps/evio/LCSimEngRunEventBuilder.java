@@ -135,8 +135,12 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Make SVT RawTrackerHits.
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);
+        } catch (final SvtEvioHeaderException e) {
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT.",e);
+        } catch (final SvtEvioReaderException e) {
+            LOGGER.log(Level.SEVERE, "Error making SVT hits.",e);
         } catch (final Exception e) {
-            LOGGER.log(Level.SEVERE, "Error making SVT hits.", e);
+            LOGGER.log(Level.SEVERE, "Error making SVT hits. Don't think I should be able to get here?", e);
         }
         
         // Write the current EPICS data into this event.

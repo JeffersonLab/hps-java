@@ -24,9 +24,10 @@ public abstract class EvioReader {
 	 * 	@param event : The EVIO event to read the raw data from
 	 * 	@param lcsimEvent : The LCSim event to write the collections to
 	 * 	@return True if the appropriate EVIO bank is found, false otherwise	
+	 * @throws Exception 
 	 * 
 	 */
-	abstract boolean makeHits(EvioEvent event, EventHeader lcsimEvent);
+	abstract boolean makeHits(EvioEvent event, EventHeader lcsimEvent) throws Exception;
 
 	/**
 	 *	Set the hit collection name.

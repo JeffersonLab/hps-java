@@ -140,8 +140,9 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
      *  @param event - EVIO event to process
      *  @param lcsimEvent - LCSim event to put collections into 
      *  @return true if the EVIO was processed successfully, false otherwise 
+     * @throws SvtEvioReaderException 
      */
-    public boolean processEvent(EvioEvent event, EventHeader lcsimEvent) {
+    public boolean processEvent(EvioEvent event, EventHeader lcsimEvent) throws SvtEvioReaderException {
         return this.makeHits(event, lcsimEvent);
     }
 
@@ -153,8 +154,9 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
      *  @param event - EVIO event to process
      *  @param lcsimEvent - LCSim event to put collections into 
      *  @return true if the raw hits were created successfully, false otherwise 
+     * @throws SvtEvioReaderException 
      */
-    public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
+    public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) throws SvtEvioReaderException {
 
         logger.fine("Physics Event: " + event.toString());
         
@@ -197,8 +199,8 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
             
             // If the ROC bank doesn't contain any data, raise an exception
             if (rocBank.getChildCount() == 0) { 
-                throw new RuntimeException("[ " + this.getClass().getSimpleName() 
-                        + " ]: SVT bank doesn't contain any data banks.");
+                throw new SvtEvioReaderException("[ " + this.getClass().getSimpleName() 
+                                + " ]: SVT bank doesn't contain any data banks.");
             }
             
             // Get the data banks containing the SVT samples.  
@@ -223,13 +225,17 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                         - this.getDataTailLength();
                 logger.fine("Total number of  samples: " + sampleCount);
                 if (sampleCount % 4 != 0) {
-                    throw new RuntimeException("[ "
+                    throw new SvtEvioReaderException("[ "
                             + this.getClass().getSimpleName()
                             + " ]: Size of samples array is not divisible by 4");
                 }
                 
                 // extract header and tail information
                 SvtHeaderDataInfo headerData = this.extractSvtHeader(dataBank.getHeader().getNumber(), data);
+                
+                // Check the integrity of the SVT header data
+                this.checkSvtHeaderData(headerData);
+                
                     
                 // Check that the multisample count is consistent
                 if( sampleCount != SvtEvioUtils.getSvtTailMultisampleCount(headerData.getTail())*4)
@@ -271,11 +277,19 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 
         // Add SVT header data to the event
         this.addSvtHeadersToEvents(headers, lcsimEvent);
+
         
+
         return true;
     }
 
     
+    /**
+     * Check if the SVT headers are as expected.
+     * @param headers - list of headers to check
+     */
+    protected abstract void checkSvtHeaderData(SvtHeaderDataInfo header) throws SvtEvioHeaderException;
+
     /**
      * Extract the header information and store it in a {@link SvtHeaderDataInfo} object.
      * @param num - bank num (ROC id)

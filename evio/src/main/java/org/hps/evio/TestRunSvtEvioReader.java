@@ -170,6 +170,13 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
         return null;
     }
 
+    @Override
+    protected void checkSvtHeaderData(SvtHeaderDataInfo header)
+            throws SvtEvioHeaderException {
+        // TODO Auto-generated method stub
+        
+    }
+
  
 
     

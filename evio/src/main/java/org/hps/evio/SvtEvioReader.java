@@ -164,9 +164,10 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
      *  @param event - EVIO event to process
      *  @param lcsimEvent - LCSim event to put collections into 
      *  @return true if the EVIO was processed successfully, false otherwise 
+     * @throws SvtEvioReaderException 
      */
     @Override
-    public boolean processEvent(EvioEvent event, EventHeader lcsimEvent) {
+    public boolean processEvent(EvioEvent event, EventHeader lcsimEvent) throws SvtEvioReaderException {
         
         // Make RawTrackerHits.  This will also search for and store banks containing
         // the configuration of the SVT.
@@ -213,6 +214,20 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
         // Extract the tail information
         int svtTail = SvtEvioUtils.getSvtTail(data);
         return new SvtHeaderDataInfo(num, svtHeader, svtTail);
+    }
+
+    @Override
+    protected void checkSvtHeaderData(SvtHeaderDataInfo header) throws SvtEvioHeaderException {
+        int tail = header.getTail();
+        if( SvtEvioUtils.getSvtTailSyncErrorBit(tail) != 0) {
+            throw new SvtEvioHeaderException("This header had a SyncError");
+        }
+        else if( SvtEvioUtils.getSvtTailOFErrorBit(tail) != 0) {
+            throw new SvtEvioHeaderException("This header had a OverFlowError");
+        }
+        else if( SvtEvioUtils.getSvtTailMultisampleSkipCount(tail) != 0) {
+            throw new SvtEvioHeaderException("This header had a skipCount " + SvtEvioUtils.getSvtTailMultisampleSkipCount(tail));
+        }
     }
 
     
