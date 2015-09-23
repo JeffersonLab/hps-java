@@ -7,7 +7,7 @@ import org.hps.record.triggerbank.TriggerConfig;
  * 
  * @author Jeremy McCormick, SLAC
  */
-public interface TriggerConfigDao {
+interface TriggerConfigDao {
    
     /**
      * Get the trigger config by run.

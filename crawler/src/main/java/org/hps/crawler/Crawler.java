@@ -23,11 +23,9 @@ import org.hps.conditions.database.ConnectionParameters;
 import org.hps.datacat.client.DatacatClient;
 import org.hps.datacat.client.DatacatClientFactory;
 import org.hps.datacat.client.DatasetFileFormat;
-import org.hps.run.database.RunDatabaseDaoFactory;
 import org.hps.run.database.RunManager;
 import org.hps.run.database.RunProcessor;
 import org.hps.run.database.RunSummary;
-import org.hps.run.database.RunSummaryDao;
 import org.hps.run.database.RunSummaryImpl;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
@@ -558,29 +556,21 @@ public final class Crawler {
         final Connection connection = config.connectionParameters().createConnection();
 
         // Create factory for interfacing to run database.
-        final RunManager runManager = new RunManager();
-        runManager.setConnection(connection);
-        final RunDatabaseDaoFactory dbFactory = runManager.createDaoFactory();
-
-        // Create object for updating run info in the database.
-        final RunSummaryDao runSummaryDao = dbFactory.createRunSummaryDao();
+        final RunManager runManager = new RunManager(connection);
+        runManager.setRun(runSummary.getRun());
 
         // Delete existing run summary if necessary.
-        if (runSummaryDao.runSummaryExists(runSummary.getRun())) {
+        if (runManager.runExists()) {
             if (this.config.features.contains(CrawlerFeature.RUNDB_UPDATE)) {
                 LOGGER.info("deleting existing information for run " + runSummary.getRun());
-                runSummaryDao.deleteFullRunSummary(runSummary);
-            } else {
-                throw new RuntimeException("Run " + runSummary.getRun()
-                        + " exists in database and deletion is not enabled.");
+                runManager.deleteRun();
             }
+        } else {
+            throw new RuntimeException("Run " + runSummary.getRun()
+                    + " exists in database and deletion is not enabled.");
         }
-
-        // Insert run summary into database.
-        runSummaryDao.insertFullRunSummary(runSummary);
-
-        // Close the DB connection.
-        connection.close();
+    
+        runManager.closeConnection();
 
         LOGGER.info("done updating run database");
 

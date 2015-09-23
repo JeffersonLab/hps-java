@@ -9,7 +9,7 @@ import org.hps.record.epics.EpicsData;
  *
  * @author Jeremy McCormick, SLAC
  */
-public interface EpicsDataDao {
+interface EpicsDataDao {
 
     /**
      * Delete all EPICS data for a run from the database.

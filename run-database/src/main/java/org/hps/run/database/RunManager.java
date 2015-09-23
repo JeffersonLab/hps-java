@@ -7,6 +7,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.ConnectionParameters;
+import org.hps.record.epics.EpicsData;
+import org.hps.record.scalers.ScalerData;
+import org.hps.record.triggerbank.TriggerConfig;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.util.log.DefaultLogFormatter;
@@ -18,7 +21,7 @@ import org.lcsim.util.log.LogUtil;
  * @author Jeremy McCormick, SLAC
  */
 public final class RunManager implements ConditionsListener {
-
+   
     /**
      * The default connection parameters for read-only access to the run database.
      */
@@ -60,12 +63,12 @@ public final class RunManager implements ConditionsListener {
     /**
      * The run number; the -1 value indicates that this has not been set externally yet.
      */
-    private int run = -1;
+    private Integer run = null;
 
     /**
-     * The {@link RunSummary} for the current run.
+     * Factory for creating database API objects.
      */
-    private RunSummary runSummary = null;
+    private RunDatabaseDaoFactory factory;
     
     /**
      * Class constructor.
@@ -74,31 +77,36 @@ public final class RunManager implements ConditionsListener {
      */
     public RunManager(Connection connection) {
         this.connection = connection;
+        openConnection();
+        factory = new RunDatabaseDaoFactory(this.connection);
     }
     
     /**
-     * Class constructor.
+     * Class constructor using default connection parameters.
      */
     public RunManager() {
+        this.connection = DEFAULT_CONNECTION_PARAMETERS.createConnection();
+        openConnection();
+        factory = new RunDatabaseDaoFactory(this.connection);
     }
 
     /**
      * Close the database connection.
      */
     public void closeConnection() {
-        if (!(this.connection == null)) {
-            try {
-                if (!this.connection.isClosed()) {
-                    this.connection.close();
-                }
-            } catch (final SQLException e) {
-                e.printStackTrace();
+        try {
+            if (!this.connection.isClosed()) {
+                this.connection.close();
             }
-        }
+        } catch (final SQLException e) {
+            e.printStackTrace();
+        }        
     }
 
     /**
      * Load new run information when conditions have changed.
+     * 
+     * @param conditionsEvent the event with new conditions information
      */
     @Override
     public synchronized void conditionsChanged(final ConditionsEvent conditionsEvent) {
@@ -119,18 +127,9 @@ public final class RunManager implements ConditionsListener {
      *
      * @return the complete list of run numbers
      */
-    List<Integer> getRuns() {
+    public List<Integer> getRuns() {
         openConnection();
         return new RunSummaryDaoImpl(this.connection).getRuns();
-    }
-
-    /**
-     * Get the current {@link RunSummary}.
-     *
-     * @return the current {@link RunSummary} or <code>null</code> if it is not set
-     */
-    public RunSummary getRunSummary() {
-        return this.runSummary;
     }
 
     /**
@@ -138,10 +137,10 @@ public final class RunManager implements ConditionsListener {
      * <p>
      * This method does nothing if the connection is already open.
      */
-    private void openConnection() {
+    public void openConnection() {
         try {
-            if (this.connection == null || this.connection.isClosed()) {
-                LOGGER.info("creating database connection");
+            if (this.connection.isClosed()) {
+                LOGGER.info("creating new database connection");
                 this.connection = connectionParameters.createConnection();
             } else {
                 LOGGER.warning("connection already open");
@@ -152,66 +151,116 @@ public final class RunManager implements ConditionsListener {
     }
 
     /**
-     * Set the connection externally if using a database other than the default one at JLAB.
-     *
-     * @param connection the database connection
-     */
-    public void setConnection(final Connection connection) {
-        this.connection = connection;
-    }
-
-    /**
      * Set the run number and then load the applicable {@link RunSummary} from the database.
      *
      * @param run the run number
      */
-    public synchronized void setRun(final int run) {
+    public void setRun(final int run) {
+        this.run = run;
+    }
+    
+    /**
+     * Get the run summary for the current run not including its sub-objects like scaler data.
+     * 
+     * @return the run summary for the current run
+     */
+    public RunSummary getRunSummary() {
+        checkRunNumber();
+        return factory.createRunSummaryDao().getRunSummary(this.run);
+    }
+    
+    /**
+     * Get the full run summary for the current run including scaler data, etc.
+     * 
+     * @return the full run summary for the current run
+     */
+    public RunSummary getFullRunSummary() {
+        checkRunNumber();
+        return factory.createRunSummaryDao().readFullRunSummary(this.run);
+    }
+    
+    /**
+     * Get the trigger config for the current run.
+     * 
+     * @return the trigger config for the current run
+     */
+    public TriggerConfig getTriggerConfig() {
+        checkRunNumber();
+        return factory.createTriggerConfigDao().getTriggerConfig(run);
+    }
+    
+    /**
+     * Get the EPICS data for the current run.
+     * 
+     * @param epicsType the type of EPICS data
+     * @return the EPICS data for the current run
+     */
+    public List<EpicsData> getEpicsData(EpicsType epicsType) {
+        checkRunNumber();
+        return factory.createEpicsDataDao().getEpicsData(epicsType, this.run);
+    }
+    
+    /**
+     * Get the scaler data for the current run.
+     * 
+     * @return the scaler data for the current run
+     */
+    public List<ScalerData> getScalerData() {
+        checkRunNumber();
+        return factory.createScalerDataDao().getScalerData(run);
+    }
+    
+    /**
+     * Update the database with information found from crawling the files.
+     *
+     * @param runs the list of runs to update
+     * @throws SQLException if there is a database query error
+     */
+    public void insertRun(final RunSummary runSummary) throws SQLException {
         // Don't do anything if the run number has already been set.
         if (run == this.run) {
             return;
         }
 
-        // Check if run number is valid.
-        if (run < 0) {
-            throw new IllegalArgumentException("invalid run number: " + run);
-        }
+        LOGGER.info("updating run database for run " + runSummary.getRun());
 
-        // Setup the database connection.
-        this.openConnection();
+        // Create object for updating run info in the database.
+        final RunSummaryDao runSummaryDao = factory.createRunSummaryDao();
 
-        // Initialize database interface.
-        final RunSummaryDao runSummaryDao = new RunSummaryDaoImpl(this.connection);
+        // Insert run summary into database.
+        runSummaryDao.insertFullRunSummary(runSummary);
 
-        // Set the current run number.
-        this.run = run;
-
-        // Does the current run exist in the database?
-        if (runSummaryDao.runSummaryExists(this.getRun())) {
-            LOGGER.info("run " + run + " found in database");
-            try {
-                // Read the records from the database and convert into complex Java object.
-                this.runSummary = runSummaryDao.readFullRunSummary(this.getRun());
-            } catch (final Exception e) {
-                // There was some unknown error when reading in the run records.
-                LOGGER.log(Level.SEVERE, "Error reading from run database.", e);
-                throw new RuntimeException(e);
-            }
-        } else {
-            // Run is not in the database.
-            LOGGER.warning("run database record does not exist for run " + run);
-        }
-
-        // Close the database connection.
-        this.closeConnection();
+        LOGGER.info("done updating run database");
     }
     
     /**
-     * Get the database connection.
+     * Delete a run from the database.
      * 
-     * @return the database connection
+     * @param run the run number
      */
-    public RunDatabaseDaoFactory createDaoFactory() {
-        openConnection();
-        return new RunDatabaseDaoFactory(this.connection);
+    public void deleteRun() {
+        // Create object for updating run info in the database.
+        final RunSummaryDao runSummaryDao = factory.createRunSummaryDao();
+
+        // Delete run from the database.
+        runSummaryDao.deleteFullRun(run);
     }
+    
+    /**
+     * Return <code>true</code> if the run exists in the database.
+     * 
+     * @return <code>true</code> if the run exists in the database
+     */
+    public boolean runExists() {
+        return factory.createRunSummaryDao().runSummaryExists(this.run);
+    }
+        
+    /**
+     * Check if the run number has been set.
+     */
+    private void checkRunNumber() {
+        if (this.run == null) {
+            throw new IllegalStateException("The run number was not set.");
+        }
+    }          
 }

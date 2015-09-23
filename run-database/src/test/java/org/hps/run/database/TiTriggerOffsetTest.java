@@ -18,10 +18,10 @@ public class TiTriggerOffsetTest extends TestCase {
      */
     public void testAllRuns() {
         RunManager runManager = new RunManager();
-        List<Integer> runs = runManager.getRuns();
-        TriggerConfigDao triggerConfigDao = runManager.createDaoFactory().createTriggerConfigDao();
+        List<Integer> runs = runManager.getRuns();  
         for (Integer run : runs) {
-            TriggerConfig triggerConfig = triggerConfigDao.getTriggerConfig(run);
+            runManager.setRun(run);
+            TriggerConfig triggerConfig = runManager.getTriggerConfig();
             Long tiTimeOffset = triggerConfig.getTiTimeOffset();
             System.out.println("run " + run + " tiTriggerOffset = " + tiTimeOffset);
         }
@@ -33,8 +33,8 @@ public class TiTriggerOffsetTest extends TestCase {
     public void testSingleRun() {
         int run = 5772;
         RunManager runManager = new RunManager();
-        TriggerConfigDao triggerConfigDao = runManager.createDaoFactory().createTriggerConfigDao();
-        TriggerConfig triggerConfig = triggerConfigDao.getTriggerConfig(run);
+        runManager.setRun(run);
+        TriggerConfig triggerConfig = runManager.getTriggerConfig();
         Long tiTimeOffset = triggerConfig.getTiTimeOffset();
         System.out.println("run " + run + " tiTriggerOffset = " + tiTimeOffset);
     }

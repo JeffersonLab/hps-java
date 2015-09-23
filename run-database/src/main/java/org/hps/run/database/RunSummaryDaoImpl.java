@@ -85,7 +85,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
      *
      * @param connection the database connection
      */
-    public RunSummaryDaoImpl(final Connection connection) {
+    RunSummaryDaoImpl(final Connection connection) {
         // Set the connection.
         if (connection == null) {
             throw new IllegalArgumentException("The connection is null.");
@@ -99,14 +99,12 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
     }
 
     /**
-     * Delete a run summary from the database including its referenced objects such as EPICS data.
+     * Delete a run from the database including its referenced objects such as EPICS data.
      *
      * @param runSummary the run summary to delete
      */
     @Override
-    public void deleteFullRunSummary(final RunSummary runSummary) {
-
-        final int run = runSummary.getRun();
+    public void deleteFullRun(int run) {
 
         // Delete EPICS log.
         this.epicsDataDao.deleteEpicsData(EpicsType.EPICS_1S, run);
@@ -320,7 +318,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
                 if (deleteExisting) {
                     LOGGER.info("deleting existing run summary");
                     // Delete the existing rows.
-                    this.deleteFullRunSummary(runSummary);
+                    this.deleteFullRun(runSummary.getRun());
                 } else {
                     // Rows exist but updating is disallowed which is a fatal error.
                     throw new IllegalStateException("Run " + runSummary.getRun()

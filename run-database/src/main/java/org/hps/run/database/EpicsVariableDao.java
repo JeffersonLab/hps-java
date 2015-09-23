@@ -7,7 +7,7 @@ import java.util.List;
  * 
  * @author Jeremy McCormick, SLAC
  */
-public interface EpicsVariableDao {
+interface EpicsVariableDao {
 
     /**
      * Get the full list of EPICs variables.

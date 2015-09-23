@@ -7,14 +7,14 @@ import java.util.List;
  *
  * @author Jeremy McCormick, SLAC
  */
-public interface RunSummaryDao {
+interface RunSummaryDao {
 
     /**
      * Delete a run summary from the database including its referenced objects such as EPICS data.
      *
      * @param runSummary the run summary to delete
      */
-    void deleteFullRunSummary(RunSummary runSummary);
+    void deleteFullRun(int run);
 
     /**
      * Delete a run summary by run number.

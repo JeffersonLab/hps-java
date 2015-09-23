@@ -12,7 +12,7 @@ import java.sql.SQLException;
  * @see EpicsDataDao
  * @see EpicsVariableDao
  */
-public final class RunDatabaseDaoFactory {
+final class RunDatabaseDaoFactory {
 
     /**
      * The database connection.
@@ -43,7 +43,7 @@ public final class RunDatabaseDaoFactory {
      *
      * @return the EPICS DAO
      */
-    public EpicsDataDao createEpicsDataDao() {
+    EpicsDataDao createEpicsDataDao() {
         return new EpicsDataDaoImpl(connection);
     }
 
@@ -52,7 +52,7 @@ public final class RunDatabaseDaoFactory {
      *
      * @return the EPICS variable DAO
      */
-    public EpicsVariableDao createEpicsVariableDao() {
+    EpicsVariableDao createEpicsVariableDao() {
         return new EpicsVariableDaoImpl(connection);
     }
 
@@ -61,7 +61,7 @@ public final class RunDatabaseDaoFactory {
      *
      * @return the run summary DAO
      */
-    public RunSummaryDao createRunSummaryDao() {
+    RunSummaryDao createRunSummaryDao() {
         return new RunSummaryDaoImpl(connection);
     }
 
@@ -70,7 +70,7 @@ public final class RunDatabaseDaoFactory {
      *
      * @return the scaler data DAO
      */
-    public ScalerDataDao createScalerDataDao() {
+    ScalerDataDao createScalerDataDao() {
         return new ScalerDataDaoImpl(connection);
     }
 
@@ -79,7 +79,7 @@ public final class RunDatabaseDaoFactory {
      *
      * @return the trigger config DAO
      */
-    public TriggerConfigDao createTriggerConfigDao() {
+    TriggerConfigDao createTriggerConfigDao() {
         return new TriggerConfigDaoImpl(connection);
     }
 }

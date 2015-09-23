@@ -9,7 +9,7 @@ import org.hps.record.scalers.ScalerData;
  *
  * @author Jeremy McCormick, SLAC
  */
-public interface ScalerDataDao {
+interface ScalerDataDao {
 
     /**
      * Delete scaler data for the run.
