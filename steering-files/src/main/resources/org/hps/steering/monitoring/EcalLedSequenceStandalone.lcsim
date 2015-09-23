@@ -29,8 +29,7 @@
             <useRunningPedestal>true</useRunningPedestal>
             <useTimeWalkCorrection>true</useTimeWalkCorrection>
         </driver>       
-        
-          <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
+        <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
             <inputCollection>EcalCalHits</inputCollection>
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
             <inputClusterCollection>EcalClusters</inputClusterCollection>
@@ -44,14 +43,14 @@
            <doFullAnalysis>false</doFullAnalysis>
            <skipMin>0.25</skipMin>
            <skipInitial>0.05</skipInitial>    
-           <useRawEnergy>true</useRawEnergy>
+           <useRawEnergy>false</useRawEnergy>
            <energyCut>1</energyCut>
            <nEventsMin>300</nEventsMin>
            <evnMinDraw>0.</evnMinDraw>
            <evnMaxDraw>20000.</evnMaxDraw>
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>LedSequenceMonitorOut.aida</outputFileName>
+            <outputFileName>${outputFile}</outputFileName>
         </driver>
 	</drivers>
 </lcsim>
