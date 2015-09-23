@@ -29,7 +29,6 @@ import org.lcsim.util.log.LogUtil;
 public class TriggerTurnOnDriver extends Driver {
 
     private static Logger logger = LogUtil.create(TriggerTurnOnDriver.class, new BasicLogFormatter(), Level.FINE);
-    private final String triggerBankCollectionName = "TriggerBank";
     private final String ecalClusterCollectionName = "EcalClustersCorr";
     IPlotter plotter;
     IPlotter plotter2;
@@ -40,7 +39,7 @@ public class TriggerTurnOnDriver extends Driver {
     IHistogram1D clusterEOne_RandomSingles1;
     IHistogram1D clusterE_RandomSingles1_trigEff;
     IHistogram1D clusterEOne_RandomSingles1_trigEff;
-    private boolean showPlots = true;
+    private boolean showPlots = false;
     private int nEventsProcessed = 0;
     
     /**
@@ -137,6 +136,7 @@ public class TriggerTurnOnDriver extends Driver {
     
     @Override
     protected void endOfData() {
+        logger.info("Processed " + nEventsProcessed);
         clusterE_RandomSingles1_trigEff = aida.histogramFactory().divide("trigEff", clusterE_RandomSingles1, clusterE_Random);
         clusterEOne_RandomSingles1_trigEff = aida.histogramFactory().divide("trigEffEone", clusterEOne_RandomSingles1, clusterEOne_Random);
         logger.info("entries in clusterE_RandomSingles1_trigEff: " + Integer.toString(clusterE_RandomSingles1_trigEff.allEntries()));
