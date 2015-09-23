@@ -21,6 +21,22 @@ import org.lcsim.util.log.LogUtil;
  * @author Jeremy McCormick, SLAC
  */
 public final class RunManager implements ConditionsListener {
+    
+    /**
+     * Simple class for caching data.
+     */
+    private class DataCache {
+        TriggerConfig triggerConfig;
+        List<EpicsData> epicsData;
+        List<ScalerData> scalerData;
+        RunSummary runSummary;
+        RunSummary fullRunSummary;
+    }
+    
+    /**
+     * The data cache of run information.
+     */
+    private DataCache dataCache;
    
     /**
      * The default connection parameters for read-only access to the run database.
@@ -156,7 +172,17 @@ public final class RunManager implements ConditionsListener {
      * @param run the run number
      */
     public void setRun(final int run) {
-        this.run = run;
+        
+        if (this.run == null || run != this.run) {
+        
+            LOGGER.info("setting new run " + run);
+            
+            // Set the run number.
+            this.run = run;
+        
+            // Reset the data cache.
+            this.dataCache = new DataCache();
+        } 
     }
     
     /**
@@ -166,7 +192,10 @@ public final class RunManager implements ConditionsListener {
      */
     public RunSummary getRunSummary() {
         checkRunNumber();
-        return factory.createRunSummaryDao().getRunSummary(this.run);
+        if (this.dataCache.runSummary == null) {
+            this.dataCache.runSummary = factory.createRunSummaryDao().getRunSummary(this.run);
+        }
+        return this.dataCache.runSummary;
     }
     
     /**
@@ -176,7 +205,10 @@ public final class RunManager implements ConditionsListener {
      */
     public RunSummary getFullRunSummary() {
         checkRunNumber();
-        return factory.createRunSummaryDao().readFullRunSummary(this.run);
+        if (this.dataCache.fullRunSummary == null) {
+            this.dataCache.fullRunSummary = factory.createRunSummaryDao().readFullRunSummary(this.run);
+        }
+        return this.dataCache.fullRunSummary;
     }
     
     /**
@@ -186,7 +218,11 @@ public final class RunManager implements ConditionsListener {
      */
     public TriggerConfig getTriggerConfig() {
         checkRunNumber();
-        return factory.createTriggerConfigDao().getTriggerConfig(run);
+        if (this.dataCache.triggerConfig == null) {
+            LOGGER.info("loading trigger config for run " + this.run);
+            this.dataCache.triggerConfig = factory.createTriggerConfigDao().getTriggerConfig(run);
+        }
+        return this.dataCache.triggerConfig;
     }
     
     /**
@@ -197,7 +233,11 @@ public final class RunManager implements ConditionsListener {
      */
     public List<EpicsData> getEpicsData(EpicsType epicsType) {
         checkRunNumber();
-        return factory.createEpicsDataDao().getEpicsData(epicsType, this.run);
+        if (this.dataCache.epicsData == null) {
+            LOGGER.info("loading EPICS data for run " + this.run);
+            this.dataCache.epicsData = factory.createEpicsDataDao().getEpicsData(epicsType, this.run);
+        }
+        return this.dataCache.epicsData;
     }
     
     /**
@@ -207,7 +247,11 @@ public final class RunManager implements ConditionsListener {
      */
     public List<ScalerData> getScalerData() {
         checkRunNumber();
-        return factory.createScalerDataDao().getScalerData(run);
+        if (this.dataCache.scalerData == null) {
+            LOGGER.info("loading scaler data for run " + this.run);
+            this.dataCache.scalerData = factory.createScalerDataDao().getScalerData(run);
+        }
+        return this.dataCache.scalerData;
     }
     
     /**
@@ -217,11 +261,6 @@ public final class RunManager implements ConditionsListener {
      * @throws SQLException if there is a database query error
      */
     public void insertRun(final RunSummary runSummary) throws SQLException {
-        // Don't do anything if the run number has already been set.
-        if (run == this.run) {
-            return;
-        }
-
         LOGGER.info("updating run database for run " + runSummary.getRun());
 
         // Create object for updating run info in the database.
