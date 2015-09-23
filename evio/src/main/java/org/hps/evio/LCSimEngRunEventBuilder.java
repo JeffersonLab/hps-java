@@ -107,7 +107,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         if (RunManager.getRunManager().runExists()) {
             tiTimeOffset = RunManager.getRunManager().getTriggerConfig().getTiTimeOffset();
             tiTimeOffset = (tiTimeOffset / timestampCycle) * timestampCycle;
-            System.out.println("tiTimeOffset: " + tiTimeOffset);
+            //System.out.println("tiTimeOffset: " + tiTimeOffset);
         }
 
         for (final AbstractIntData data : triggerList) {
