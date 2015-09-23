@@ -1,10 +1,12 @@
-package org.hps.crawler;
+package org.hps.run.database;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.datacat.client.DatasetFileFormat;
 import org.hps.record.epics.EpicsRunProcessor;
 import org.hps.record.evio.EvioFileMetadata;
 import org.hps.record.evio.EvioFileMetadataAdapter;
@@ -15,21 +17,15 @@ import org.hps.record.scalers.ScalersEvioProcessor;
 import org.hps.record.triggerbank.TiTimeOffsetEvioProcessor;
 import org.hps.record.triggerbank.TriggerConfig;
 import org.hps.record.triggerbank.TriggerConfigVariable;
-import org.hps.run.database.RunSummaryImpl;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * Processes EVIO files from a run in order to extract various meta data information including start and end dates.
- * <p>
- * This class is a wrapper for activating different sub-tasks, including optionally caching all files from the JLAB MSS
- * to the cache disk.
- * <p>
- * There is also a list of processors which is run on all events from the run.
+ * Processes EVIO files from a run and extracts meta data for updating the run database.
  *
  * @author Jeremy McCormick, SLAC
  */
-final class RunProcessor {
+public final class RunProcessor {
 
     /**
      * Setup logger.
@@ -39,7 +35,7 @@ final class RunProcessor {
     /**
      * Processor for extracting EPICS information.
      */
-    private final EpicsRunProcessor epicsProcessor;
+    private EpicsRunProcessor epicsProcessor;
 
     /**
      * The data source with the list of EVIO files to process.
@@ -52,64 +48,75 @@ final class RunProcessor {
     private final EvioLoop evioLoop = new EvioLoop();
 
     /**
-     * The run summary information updated by running this processor.
-     */
-    private final RunSummaryImpl runSummary;
-
-    /**
      * Processor for extracting scaler data.
      */
-    private final ScalersEvioProcessor scalersProcessor;
+    private ScalersEvioProcessor scalersProcessor;
 
     /**
      * Processor for extracting TI time offset.
      */
-    private final TiTimeOffsetEvioProcessor triggerTimeProcessor;
+    private TiTimeOffsetEvioProcessor triggerTimeProcessor;
     
     /**
      * Record loop adapter for getting file metadata.
      */
     private final EvioFileMetadataAdapter metadataAdapter = new EvioFileMetadataAdapter();
-
+    
+    /**
+     * The run summary for the run.
+     */
+    private RunSummaryImpl runSummary;
+    
     /**
      * Create a run processor.
      *
      * @param runSummary the run summary object for the run
      * @return the run processor
      */
-    RunProcessor(final RunSummaryImpl runSummary) {
-
+    public RunProcessor(RunSummaryImpl runSummary) {
+        
         this.runSummary = runSummary;
+        
+        List<File> evioFiles = runSummary.getFiles(DatasetFileFormat.EVIO);
+        if (evioFiles == null || evioFiles.isEmpty()) {
+            throw new IllegalArgumentException("No EVIO files found in file set.");
+        }
 
         // Sort the list of EVIO files.
-        Collections.sort(runSummary.getEvioFiles(), new EvioFileSequenceComparator());
+        Collections.sort(runSummary.getFiles(DatasetFileFormat.EVIO), new EvioFileSequenceComparator());
 
         // Setup record loop.
-        evioFileSource = new EvioFileSource(runSummary.getEvioFiles());
-        evioLoop.setEvioFileSource(evioFileSource);
-
-        // Add EPICS processor.
-        epicsProcessor = new EpicsRunProcessor();
-        evioLoop.addEvioEventProcessor(epicsProcessor);
-
-        // Add scaler data processor.
-        scalersProcessor = new ScalersEvioProcessor();
-        scalersProcessor.setResetEveryEvent(false);
-        evioLoop.addEvioEventProcessor(scalersProcessor);
-
-        // Add processor for extracting TI time offset.
-        triggerTimeProcessor = new TiTimeOffsetEvioProcessor();
-        evioLoop.addEvioEventProcessor(triggerTimeProcessor);
+        evioFileSource = new EvioFileSource(evioFiles);
+        evioLoop.setEvioFileSource(evioFileSource);       
         
         // Add file metadata processor.
         evioLoop.addRecordListener(metadataAdapter);
         evioLoop.addLoopListener(metadataAdapter);
     }
+    
+    public void addEpicsProcessor() {
+        // Add EPICS processor.
+        this.epicsProcessor = new EpicsRunProcessor();
+        evioLoop.addEvioEventProcessor(epicsProcessor);
+    }
+    
+    public void addScalerProcessor() {
+        // Add scaler data processor.
+        scalersProcessor = new ScalersEvioProcessor();
+        scalersProcessor.setResetEveryEvent(false);
+        evioLoop.addEvioEventProcessor(scalersProcessor);
+    }
+    
+    public void addTriggerTimeProcessor() {
+        // Add processor for extracting TI time offset.
+        triggerTimeProcessor = new TiTimeOffsetEvioProcessor();
+        evioLoop.addEvioEventProcessor(triggerTimeProcessor);
+    }
 
     /**
      * Extract meta data from first file in run.
      */
-    private void processFirstFile() {        
+    private void processFirstFile() {
         final EvioFileMetadata metadata = metadataAdapter.getEvioFileMetadata().get(0);
         if (metadata == null) {
             throw new IllegalStateException("No meta data exists for first file.");
@@ -150,7 +157,7 @@ final class RunProcessor {
      *
      * @throws Exception if there is an error processing a file
      */
-    void processRun() throws Exception {
+    public void processRun() throws Exception {
 
         LOGGER.info("processing " + this.runSummary.getEvioFiles().size() + " files from run "
                 + this.runSummary.getRun());
@@ -186,20 +193,26 @@ final class RunProcessor {
         LOGGER.info("setting total events " + evioLoop.getTotalCountableConsumed());
         runSummary.setTotalEvents((int) evioLoop.getTotalCountableConsumed());
 
-        // Add scaler data from the scalers EVIO processor.
-        LOGGER.info("adding " + this.scalersProcessor.getScalerData().size() + " scaler data objects");
-        runSummary.setScalerData(this.scalersProcessor.getScalerData());
+        if (scalersProcessor != null) {
+            // Add scaler data from the scalers EVIO processor.
+            LOGGER.info("adding " + this.scalersProcessor.getScalerData().size() + " scaler data objects");
+            runSummary.setScalerData(this.scalersProcessor.getScalerData());
+        }
 
-        // Add EPICS data from the EPICS EVIO processor.
-        LOGGER.info("adding " + this.epicsProcessor.getEpicsData().size() + " EPICS data objects");
-        runSummary.setEpicsData(this.epicsProcessor.getEpicsData());
+        if (epicsProcessor != null) {
+            // Add EPICS data from the EPICS EVIO processor.
+            LOGGER.info("adding " + this.epicsProcessor.getEpicsData().size() + " EPICS data objects");
+            runSummary.setEpicsData(this.epicsProcessor.getEpicsData());
+        }
 
-        // Add trigger config from the trigger time processor.
-        LOGGER.info("updating trigger config");
-        final TriggerConfig triggerConfig = new TriggerConfig();
-        this.triggerTimeProcessor.updateTriggerConfig(triggerConfig);
-        LOGGER.info("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET));
-        runSummary.setTriggerConfigInt(triggerConfig);
+        if (triggerTimeProcessor != null) {
+            // Add trigger config from the trigger time processor.
+            LOGGER.info("updating trigger config");
+            final TriggerConfig triggerConfig = new TriggerConfig();
+            this.triggerTimeProcessor.updateTriggerConfig(triggerConfig);
+            LOGGER.info("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET));
+            runSummary.setTriggerConfig(triggerConfig);
+        }
 
         LOGGER.getHandlers()[0].flush();
     }        
@@ -209,7 +222,7 @@ final class RunProcessor {
      * 
      * @return the list of metadata
      */
-    List<EvioFileMetadata> getEvioFileMetaData() {
+    public List<EvioFileMetadata> getEvioFileMetaData() {
         return this.metadataAdapter.getEvioFileMetadata();
     }
 }

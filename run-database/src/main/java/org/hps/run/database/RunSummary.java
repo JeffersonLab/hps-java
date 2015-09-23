@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 
+import org.hps.datacat.client.DatasetFileFormat;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.triggerbank.TriggerConfig;
@@ -121,7 +122,7 @@ public interface RunSummary {
     int getTotalEvents();
 
     /**
-     * Get the total number of files for this run.
+     * Get the total number of EVIO files for this run.
      *
      * @return the total number of files for this run
      */
@@ -140,4 +141,13 @@ public interface RunSummary {
      * @return the date when this run record was last updated
      */
     Date getUpdated();
+    
+    /**
+     * Get a list of files in the run by format (EVIO, LCIO etc.).
+     * 
+     * @param format the file format
+     * @return the list of files with the given format
+     */
+    // FIXME: This should be removed from the run summary interface.
+    public List<File> getFiles(DatasetFileFormat format);
 }

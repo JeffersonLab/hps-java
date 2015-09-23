@@ -6,9 +6,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
+import org.hps.datacat.client.DatasetFileFormat;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.triggerbank.TriggerConfig;
@@ -54,11 +57,6 @@ public final class RunSummaryImpl implements RunSummary {
     private List<EpicsData> epicsDataList;
 
     /**
-     * The list of EVIO files in the run.
-     */
-    private List<File> evioFileList = new ArrayList<File>();
-
-    /**
      * The run number.
      */
     private final int run;
@@ -76,7 +74,7 @@ public final class RunSummaryImpl implements RunSummary {
     /**
      * The trigger data for the run.
      */
-    private TriggerConfig triggerConfigInt;
+    private TriggerConfig triggerConfig;
 
     /**
      * Start date of run.
@@ -97,6 +95,11 @@ public final class RunSummaryImpl implements RunSummary {
      * Date when the run record was last updated.
      */
     private Date updated;
+    
+    /**
+     * Lists of files indexed by their format.
+     */
+    private Map<DatasetFileFormat, List<File>> fileMap = new HashMap<DatasetFileFormat, List<File>>();
 
     /**
      * Create a run summary.
@@ -112,8 +115,8 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param file the file to add
      */
-    public void addFile(final File file) {
-        this.evioFileList.add(file);
+    public void addEvioFile(final File file) {
+        this.getEvioFiles().add(file);
     }
 
     /**
@@ -171,7 +174,7 @@ public final class RunSummaryImpl implements RunSummary {
      * @return the list of EVIO files in this run
      */
     public List<File> getEvioFiles() {
-        return this.evioFileList;
+        return this.fileMap.get(DatasetFileFormat.EVIO);
     }
 
     /**
@@ -208,7 +211,7 @@ public final class RunSummaryImpl implements RunSummary {
      * @return the trigger config of this run
      */
     public TriggerConfig getTriggerConfig() {
-        return triggerConfigInt;
+        return triggerConfig;
     }
 
     /**
@@ -271,7 +274,7 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param startDate the start date
      */
-    public void setEndDate(final Date endDate) {
+    void setEndDate(final Date endDate) {
         this.endDate = endDate;
     }
 
@@ -280,7 +283,7 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param endOkay <code>true</code> if end is okay
      */
-    public void setEndOkay(final boolean endOkay) {
+    void setEndOkay(final boolean endOkay) {
         this.endOkay = endOkay;
     }
    
@@ -289,26 +292,17 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param epics the EPICS data for the run
      */
-    public void setEpicsData(final List<EpicsData> epicsDataList) {
+    void setEpicsData(final List<EpicsData> epicsDataList) {
         this.epicsDataList = epicsDataList;
     }
-
-    /**
-     * Set the list of EVIO files for the run.
-     *
-     * @param evioFileList the list of EVIO files for the run
-     */
-    public void setEvioFiles(final List<File> evioFileList) {
-        this.evioFileList = evioFileList;
-    }
-
+    
     /**
      * Set whether the run was "okay" meaning the data is usable for physics
      * analysis.
      *
      * @param runOkay <code>true</code> if the run is okay
      */
-    public void setRunOkay(final boolean runOkay) {
+    void setRunOkay(final boolean runOkay) {
         this.runOkay = runOkay;
     }
 
@@ -317,7 +311,7 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param scalerData the scaler data
      */
-    public void setScalerData(final List<ScalerData> scalerDataList) {
+    void setScalerData(final List<ScalerData> scalerDataList) {
         this.scalerDataList = scalerDataList;
     }
 
@@ -326,8 +320,8 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param triggerConfig the trigger config
      */
-    public void setTriggerConfigInt(final TriggerConfig triggerConfigInt) {
-        this.triggerConfigInt = triggerConfigInt;
+    void setTriggerConfig(final TriggerConfig triggerConfig) {
+        this.triggerConfig = triggerConfig;
     }
 
     /**
@@ -335,7 +329,7 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param startDate the start date
      */
-    public void setStartDate(final Date startDate) {
+    void setStartDate(final Date startDate) {
         this.startDate = startDate;
     }
 
@@ -344,7 +338,7 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param totalEvents the total number of physics events in the run
      */
-    public void setTotalEvents(final int totalEvents) {
+    void setTotalEvents(final int totalEvents) {
         this.totalEvents = totalEvents;
     }
 
@@ -353,7 +347,7 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param totalFiles the total number of EVIO files in the run
      */
-    public void setTotalFiles(final int totalFiles) {
+    void setTotalFiles(final int totalFiles) {
         this.totalFiles = totalFiles;
     }
 
@@ -362,8 +356,37 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param updated the date when the run record was last updated
      */
-    public void setUpdated(final Date updated) {
+    void setUpdated(final Date updated) {
         this.updated = updated;
+    }
+    
+    /**
+     * Add a file associated with this run.
+     * <p>
+     * This is public because it is called by the file crawler.
+     * 
+     * @param file a file associated with this run
+     */
+    // FIXME: This should be removed from the run summary interface.
+    public void addFile(DatasetFileFormat format, File file) {
+        List<File> files = this.fileMap.get(file);
+        if (files == null) {
+            this.fileMap.put(format, new ArrayList<File>());
+        }
+        this.fileMap.get(format).add(file);
+    }
+    
+    /**
+     * Get a list of files in the run by format (EVIO, LCIO etc.).
+     * 
+     * @param format the file format
+     * @return the list of files with the given format
+     */
+    public List<File> getFiles(DatasetFileFormat format) {
+        if (!this.fileMap.containsKey(format)) {
+            this.fileMap.put(format, new ArrayList<File>());
+        }
+        return this.fileMap.get(format);
     }
 
     /**

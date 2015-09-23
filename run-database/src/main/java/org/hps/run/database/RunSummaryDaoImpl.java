@@ -371,21 +371,36 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
     @Override
     public void insertFullRunSummary(final RunSummary runSummary) {
 
+        if (runSummary == null) {
+            throw new IllegalArgumentException("The run summary is null.");
+        }
+        
         // Insert basic run log info.
         this.insertRunSummary(runSummary);
 
         // Insert EPICS data.
-        LOGGER.info("inserting " + runSummary.getEpicsData().size() + " EPICS records");
-        epicsDataDao.insertEpicsData(runSummary.getEpicsData());
+        if (runSummary.getEpicsData() != null && !runSummary.getEpicsData().isEmpty()) {
+            LOGGER.info("inserting " + runSummary.getEpicsData().size() + " EPICS records");
+            epicsDataDao.insertEpicsData(runSummary.getEpicsData());
+        } else {
+            LOGGER.warning("no EPICS data to insert");
+        }
 
         // Insert scaler data.
-        LOGGER.info("inserting " + runSummary.getScalerData().size() + " scaler data records");
-        scalerDataDao.insertScalerData(runSummary.getScalerData(), runSummary.getRun());
+        if (runSummary.getScalerData() != null && !runSummary.getScalerData().isEmpty()) {
+            LOGGER.info("inserting " + runSummary.getScalerData().size() + " scaler data records");
+            scalerDataDao.insertScalerData(runSummary.getScalerData(), runSummary.getRun());
+        } else {
+            LOGGER.warning("no scaler data to insert");
+        }
 
         // Insert trigger config.
-        LOGGER.info("inserting " + runSummary.getTriggerConfig().size() + " trigger config variables");
-        triggerConfigIntDao.insertTriggerConfig(runSummary.getTriggerConfig(), runSummary.getRun());
-
+        if (runSummary.getTriggerConfig() != null && !runSummary.getTriggerConfig().isEmpty()) {
+            LOGGER.info("inserting " + runSummary.getTriggerConfig().size() + " trigger config variables");
+            triggerConfigIntDao.insertTriggerConfig(runSummary.getTriggerConfig(), runSummary.getRun());
+        } else {
+            LOGGER.warning("no trigger config to insert");
+        }
     }
 
     /**
@@ -440,7 +455,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         runSummary.setScalerData(scalerDataDao.getScalerData(run));
 
         // Read trigger config.
-        runSummary.setTriggerConfigInt(triggerConfigIntDao.getTriggerConfig(run));
+        runSummary.setTriggerConfig(triggerConfigIntDao.getTriggerConfig(run));
 
         return runSummary;
     }

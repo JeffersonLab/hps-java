@@ -4,12 +4,16 @@ import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.hps.conditions.database.ConnectionParameters;
+import org.hps.datacat.client.DatasetFileFormat;
+import org.hps.datacat.client.DatasetSite;
 import org.hps.record.evio.EvioEventProcessor;
 
 /**
@@ -50,6 +54,21 @@ final class CrawlerConfig {
     private String datacatFolder = null;
 
     /**
+     * Set whether extraction of metadata from files is enabled.
+     */
+    private boolean enableMetadata;
+
+    /**
+     * Set of features enabled in this configuration.
+     */
+    Set<CrawlerFeature> features = new HashSet<CrawlerFeature>();
+
+    /**
+     * Set of file formats for filtering files.
+     */
+    Set<DatasetFileFormat> formats = new HashSet<DatasetFileFormat>();
+
+    /**
      * The maximum depth to crawl.
      */
     private Integer maxDepth = Integer.MAX_VALUE;
@@ -68,6 +87,11 @@ final class CrawlerConfig {
      * The root directory to search for files, which defaults to the current directory.
      */
     private File rootDir = new File(System.getProperty("user.dir"));
+
+    /**
+     * The dataset site for the datacat.
+     */
+    private DatasetSite site;
 
     /**
      * A timestamp to use for filtering input files on their creation date.
@@ -106,6 +130,44 @@ final class CrawlerConfig {
      */
     Set<Integer> acceptRuns() {
         return acceptRuns;
+    }
+
+    /**
+     * Add the default set of features.
+     */
+    CrawlerConfig addDefaultFeatures() {
+        final List<CrawlerFeature> defaultFeatures = Arrays.asList(CrawlerFeature.values());
+        this.features.addAll(defaultFeatures);
+        return this;
+    }
+
+    /**
+     * Add the default file formats.
+     */
+    CrawlerConfig addDefaultFileFormats() {
+        final List<DatasetFileFormat> defaultFormats = Arrays.asList(DatasetFileFormat.values());
+        this.formats.addAll(defaultFormats);
+        return this;
+    }
+
+    /**
+     * Add a feature to enable it.
+     *
+     * @return this object
+     */
+    CrawlerConfig addFeature(final CrawlerFeature feature) {
+        this.features.add(feature);
+        return this;
+    }
+
+    /**
+     * Add a file format for filtering.
+     *
+     * @param format the file format
+     */
+    CrawlerConfig addFileFormat(final DatasetFileFormat format) {
+        this.formats.add(format);
+        return this;
     }
 
     /**
@@ -162,6 +224,42 @@ final class CrawlerConfig {
     }
 
     /**
+     * Get the dataset site.
+     *
+     * @return the dataset site
+     */
+    DatasetSite datasetSite() {
+        return this.site;
+    }
+
+    /**
+     * Return <code>true</code> if metadata extraction from files is enabled.
+     *
+     * @return <code>true</code> if metadata extraction is enabled
+     */
+    boolean enableMetaData() {
+        return this.enableMetadata;
+    }
+
+    /**
+     * Get the set of enabled features.
+     *
+     * @return the set of enabled features
+     */
+    Set<CrawlerFeature> getFeatures() {
+        return this.features;
+    }
+
+    /**
+     * Get the file formats for filtering.
+     *
+     * @return the file formats for filtering
+     */
+    Set<DatasetFileFormat> getFileFormats() {
+        return this.formats;
+    }
+
+    /**
      * Get the max depth in the directory tree to crawl.
      *
      * @return the max depth
@@ -188,6 +286,16 @@ final class CrawlerConfig {
      */
     List<EvioEventProcessor> processors() {
         return processors;
+    }
+
+    /**
+     * Remove a feature to disable it.
+     *
+     * @return this object
+     */
+    CrawlerConfig removeFeature(final CrawlerFeature feature) {
+        this.features.remove(feature);
+        return this;
     }
 
     /**
@@ -239,6 +347,26 @@ final class CrawlerConfig {
      */
     CrawlerConfig setDatacatFolder(final String datacatFolder) {
         this.datacatFolder = datacatFolder;
+        return this;
+    }
+
+    /**
+     * Set the dataset site.
+     *
+     * @return this object
+     */
+    void setDatasetSite(final DatasetSite site) {
+        this.site = site;
+    }
+
+    /**
+     * Set whether metadata extraction is enabled.
+     *
+     * @param enableMetadata <code>true</code> to enable metadata
+     * @return this object
+     */
+    CrawlerConfig setEnableMetadata(final boolean enableMetadata) {
+        this.enableMetadata = enableMetadata;
         return this;
     }
 

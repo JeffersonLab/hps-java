@@ -7,27 +7,28 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.record.evio.EvioFileFilter;
-import org.hps.record.evio.EvioFileUtilities;
+import org.hps.datacat.client.DatasetFileFormat;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
  * A file visitor that crawls directories for EVIO files and returns the information as a {@link RunSummaryMap}.
+ * <p>
+ * The {@link #addFilter(FileFilter)} method can be used to add a file filter.  Paths must pass all filters to
+ * be accepted.
  *
  * @author Jeremy McCormick, SLAC
  */
-final class EvioFileVisitor extends SimpleFileVisitor<Path> {
+final class CrawlerFileVisitor extends SimpleFileVisitor<Path> {
 
     /**
      * Setup logger.
      */
-    private static final Logger LOGGER = LogUtil.create(EvioFileVisitor.class, new DefaultLogFormatter(), Level.FINE);
+    private static final Logger LOGGER = LogUtil.create(CrawlerFileVisitor.class, new DefaultLogFormatter(), Level.FINE);
 
     /**
      * A list of file filters to apply.
@@ -37,6 +38,7 @@ final class EvioFileVisitor extends SimpleFileVisitor<Path> {
     /**
      * The run log containing information about files from each run.
      */
+    // FIXME: This should be replaced by a map of run summary to file set.
     private final RunSummaryMap runs = new RunSummaryMap();
     
     /**
@@ -44,12 +46,7 @@ final class EvioFileVisitor extends SimpleFileVisitor<Path> {
      *
      * @param timestamp the timestamp which is used for date filtering
      */
-    EvioFileVisitor(final Date timestamp) {
-        this.addFilter(new EvioFileFilter());
-        if (timestamp != null) {
-            // Add date filter if timestamp is supplied.
-            this.addFilter(new DateFileFilter(timestamp));
-        }
+    CrawlerFileVisitor() {
     }
 
     /**
@@ -97,23 +94,25 @@ final class EvioFileVisitor extends SimpleFileVisitor<Path> {
      */
     @Override
     public FileVisitResult visitFile(final Path path, final BasicFileAttributes attrs) {
+                
         final File file = path.toFile();
-        if (this.accept(file)) {
+        
+        if (this.accept(file)) {            
 
             // Get the run number from the file name.
-            final Integer run = EvioFileUtilities.getRunFromName(file);
+            final Integer run = CrawlerFileUtilities.getRunFromFileName(file);
 
-            // Get the sequence number from the file name.
-            final Integer seq = EvioFileUtilities.getSequenceFromName(file);
+            // Get the file format.
+            DatasetFileFormat format = DatacatUtilities.getFileFormat(file);
 
-            LOGGER.info("accepted file " + file.getPath() + " with run " + run + " and seq " + seq);
-
-            // Add this file to the file list for the run.
-            this.runs.getRunSummary(run).addFile(file);
+            LOGGER.info("accepted file " + file.getPath() + " with run " + run);
+            
+            // Add file to run summary.
+            this.runs.getRunSummary(run).addFile(format, file);
             
         } else {
             // File was rejected by one of the filters.
-            LOGGER.finer("rejected file " + file.getPath());
+            LOGGER.info("file " + file.getPath() + " was rejected");
         }
         // Always continue crawling.
         return FileVisitResult.CONTINUE;
