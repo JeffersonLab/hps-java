@@ -166,6 +166,10 @@ public final class RunManager implements ConditionsListener {
      * @param run the run number
      */
     public synchronized void setRun(final int run) {
+        // Don't do anything if the run number has already been set.
+        if (run == this.run) {
+            return;
+        }
 
         // Check if run number is valid.
         if (run < 0) {

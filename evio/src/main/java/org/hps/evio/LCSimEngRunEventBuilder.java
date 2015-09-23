@@ -15,6 +15,8 @@ import org.hps.record.triggerbank.HeadBankData;
 import org.hps.record.triggerbank.SSPData;
 import org.hps.record.triggerbank.TDCData;
 import org.hps.record.triggerbank.TIData;
+import org.hps.run.database.RunManager;
+import org.hps.run.database.RunSummary;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.event.EventHeader;
@@ -22,13 +24,15 @@ import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * This is the {@link org.hps.record.LCSimEventBuilder} implementation for the Engineering Run and the Commissioning Run
- * for converting EVIO to LCIO events.
+ * This is the {@link org.hps.record.LCSimEventBuilder} implementation for the
+ * Engineering Run and the Commissioning Run for converting EVIO to LCIO events.
  * <p>
- * It has several modifications from the Test Run builder including different values for certain bank tags.
+ * It has several modifications from the Test Run builder including different
+ * values for certain bank tags.
  * <p>
- * Additionally, this builder will write DAQ config information, EPICS control data, and scalar bank data into the
- * output LCSim events if these banks are present in the EVIO data.
+ * Additionally, this builder will write DAQ config information, EPICS control
+ * data, and scalar bank data into the output LCSim events if these banks are
+ * present in the EVIO data.
  *
  * @author Sho Uemura, SLAC
  * @author Jeremy McCormick, SLAC
@@ -62,6 +66,11 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     private TriggerConfigEvioReader triggerConfigReader = null;
 
     /**
+     * Modulus of TI timestamp offset (units of nanoseconds).
+     */
+    private final long timestampCycle = 24 * 6 * 35;
+
+    /**
      * Class constructor.
      */
     public LCSimEngRunEventBuilder() {
@@ -72,10 +81,10 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         sspCrateBankTag = 0x2E; // A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
         intBanks = new ArrayList<IntBankDefinition>();
-        intBanks.add(new IntBankDefinition(SSPData.class, new int[] {sspCrateBankTag, sspBankTag}));
-        intBanks.add(new IntBankDefinition(TIData.class, new int[] {sspCrateBankTag, 0xe10a}));
-        intBanks.add(new IntBankDefinition(HeadBankData.class, new int[] {sspCrateBankTag, 0xe10f}));
-        intBanks.add(new IntBankDefinition(TDCData.class, new int[] {0x3a, 0xe107}));
+        intBanks.add(new IntBankDefinition(SSPData.class, new int[]{sspCrateBankTag, sspBankTag}));
+        intBanks.add(new IntBankDefinition(TIData.class, new int[]{sspCrateBankTag, 0xe10a}));
+        intBanks.add(new IntBankDefinition(HeadBankData.class, new int[]{sspCrateBankTag, 0xe10f}));
+        intBanks.add(new IntBankDefinition(TDCData.class, new int[]{0x3a, 0xe107}));
         // ecalReader = new ECalEvioReader(0x25, 0x27);
         triggerConfigReader = new TriggerConfigEvioReader();
         svtEventFlagger = new SvtEventFlagger();
@@ -94,10 +103,17 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
      */
     @Override
     protected long getTime(final List<AbstractIntData> triggerList) {
+        long tiTimeOffset = 0;
+        RunSummary runSummary = RunManager.getRunManager().getRunSummary();
+        if (runSummary != null) {
+            tiTimeOffset = runSummary.getTriggerConfig().getTiTimeOffset();
+            tiTimeOffset = (tiTimeOffset / timestampCycle) * timestampCycle;
+        }
+
         for (final AbstractIntData data : triggerList) {
             if (data instanceof TIData) {
                 final TIData tiData = (TIData) data;
-                return tiData.getTime();
+                return tiData.getTime() + tiTimeOffset;
             }
         }
         return 0;
@@ -136,13 +152,13 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);
         } catch (final SvtEvioHeaderException e) {
-            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT.",e);
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT.", e);
         } catch (final SvtEvioReaderException e) {
-            LOGGER.log(Level.SEVERE, "Error making SVT hits.",e);
+            LOGGER.log(Level.SEVERE, "Error making SVT hits.", e);
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Error making SVT hits. Don't think I should be able to get here?", e);
         }
-        
+
         // Write the current EPICS data into this event.
         this.writeEpicsData(lcsimEvent);
 

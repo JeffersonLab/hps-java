@@ -18,15 +18,8 @@ public class HeadBankData extends AbstractIntData {
     public static final int UNIX_TIME = 3;
     public static final int EVENT_TYPE = 4;
 
-    public static int lastGoodTime = 0;
-
     public HeadBankData(int[] bank) {
         super(bank);
-        if (this.bank[UNIX_TIME] == 0) { //if the timestamp is 0, use the most recent nonzero timestamp
-            this.bank[UNIX_TIME] = lastGoodTime;
-        } else if (this.bank[UNIX_TIME] >= lastGoodTime) { //if the timestamp goes down, the event is out of sequence - keep the timestamp for this event, but don't apply it to later events
-            lastGoodTime = this.bank[UNIX_TIME];
-        }
         decodeData();
     }
 

@@ -28,6 +28,7 @@ import org.hps.job.JobManager;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventQueue;
 import org.hps.record.evio.EvioEventUtilities;
+import org.hps.run.database.RunManager;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
@@ -41,7 +42,8 @@ import org.lcsim.util.log.LogUtil;
 
 /**
  * <p>
- * This class converts EVIO to LCIO, performing an LCSim job in the same session. The processed events are then (optionally) written to disk using an
+ * This class converts EVIO to LCIO, performing an LCSim job in the same
+ * session. The processed events are then (optionally) written to disk using an
  * LCIOWriter.
  * <p>
  * To run this class from the command line:<br>
@@ -52,19 +54,24 @@ import org.lcsim.util.log.LogUtil;
  * <p>
  * Extra arguments are treated as paths to EVIO files.
  * <p>
- * This class attempts to automatically configure itself for Test Run or Engineering Run based on the run numbers in the EVIO file. It will use an
- * appropriate default detector unless one is given on the command line, and it will also use the correct event builder. It will not handle jobs
- * correctly with files from both the Test and Engineering Run, so don't do this!
+ * This class attempts to automatically configure itself for Test Run or
+ * Engineering Run based on the run numbers in the EVIO file. It will use an
+ * appropriate default detector unless one is given on the command line, and it
+ * will also use the correct event builder. It will not handle jobs correctly
+ * with files from both the Test and Engineering Run, so don't do this!
  * <p>
  * The conditions system can be initialized in one of three ways.<br/>
  * <ol>
- * <li>user specified run number in which case the conditions system is frozen for the rest of the job</li>
+ * <li>user specified run number in which case the conditions system is frozen
+ * for the rest of the job</li>
  * <li>run number from an EVIO pre start event</li>
  * <li>run number from a header bank in an event</li>
  * </ol>
  * <p>
- * In the case where a file has no pre start event and there are header banks present, the "-m" command line option can be used to buffer a number of
- * EVIO events. If there is a head bank found while adding these events to queue, the conditions system will be initialized from it.
+ * In the case where a file has no pre start event and there are header banks
+ * present, the "-m" command line option can be used to buffer a number of EVIO
+ * events. If there is a head bank found while adding these events to queue, the
+ * conditions system will be initialized from it.
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Sho Uemura <meeg@slac.stanford.edu>
@@ -72,7 +79,8 @@ import org.lcsim.util.log.LogUtil;
 public class EvioToLcio {
 
     /**
-     * The default steering resource, which basically does nothing except print event numbers.
+     * The default steering resource, which basically does nothing except print
+     * event numbers.
      */
     private static final String DEFAULT_STEERING_RESOURCE = "/org/hps/steering/EventMarker.lcsim";
 
@@ -101,7 +109,7 @@ public class EvioToLcio {
      */
     private LCSimEventBuilder eventBuilder = null;
 
-    /** 
+    /**
      * The command line options which will be defined in the constructor.
      */
     private Options options = null;
@@ -112,7 +120,8 @@ public class EvioToLcio {
     private Integer runNumber = null;
 
     /**
-     * The default constructor, which defines command line arguments and sets the default log level.
+     * The default constructor, which defines command line arguments and sets
+     * the default log level.
      */
     protected EvioToLcio() {
         LOGGER.config("initializing EVIO to LCIO converter ...");
@@ -135,8 +144,9 @@ public class EvioToLcio {
     }
 
     /**
-     * Buffer up to <code>maxBufferSize</code> events in the <code>eventQueue</code>. This method will also initialize the conditions system using a
-     * run number if a header bank is found.
+     * Buffer up to <code>maxBufferSize</code> events in the
+     * <code>eventQueue</code>. This method will also initialize the conditions
+     * system using a run number if a header bank is found.
      *
      * @param reader the EVIO reader
      * @param eventQueue the event queue
@@ -170,25 +180,24 @@ public class EvioToLcio {
                     continue;
                 }
 
-                // Is conditions system not frozen?
-                if (!DatabaseConditionsManager.getInstance().isFrozen()) {
+                // Get head bank from event.
+                final BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
 
-                    // Get head bank from event.
-                    final BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
+                // Is head bank available in this event?
+                if (headBank != null) {
 
-                    // Is head bank available in this event?
-                    if (headBank != null) {
+                    // Get the run number from the head bank.
+                    runNumber = headBank.getIntData()[1];
+                    LOGGER.finer("got head bank with run number " + runNumber);
 
-                        // Get the run number from the head bank.
-                        runNumber = headBank.getIntData()[1];
-                        LOGGER.finer("got head bank with run number " + runNumber);
-
+                    // Is conditions system not frozen?
+                    if (!DatabaseConditionsManager.getInstance().isFrozen()) {
                         // Check if the conditions system needs to be updated from the head bank.
                         this.checkConditions(runNumber, false);
-                        
-                    } else {
-                        LOGGER.finest("event " + evioEvent.getEventNumber() + " does not have a head bank");
                     }
+                    RunManager.getRunManager().setRun(runNumber);
+                } else {
+                    LOGGER.finest("event " + evioEvent.getEventNumber() + " does not have a head bank");
                 }
             }
         }
@@ -196,7 +205,8 @@ public class EvioToLcio {
     }
 
     /**
-     * Check if the conditions system and event builder need to be initialized or updated given a run number.
+     * Check if the conditions system and event builder need to be initialized
+     * or updated given a run number.
      *
      * @param runNumber The run number.
      * @param freeze True to freeze conditions system after it is setup.
@@ -234,8 +244,10 @@ public class EvioToLcio {
     }
 
     /**
-     * This method will execute the EVIO to LCIO conversion and optionally process the events with LCSim Drivers from a steering file. Then the
-     * resultant LCIO events will be written to disk if this option is enabled in the command line arguments.
+     * This method will execute the EVIO to LCIO conversion and optionally
+     * process the events with LCSim Drivers from a steering file. Then the
+     * resultant LCIO events will be written to disk if this option is enabled
+     * in the command line arguments.
      *
      * @param args The command line arguments.
      */
@@ -442,7 +454,8 @@ public class EvioToLcio {
 
         // Loop over the input EVIO files.
         EvioReader reader = null;
-        fileLoop: for (final String evioFileName : evioFileList) {
+        fileLoop:
+        for (final String evioFileName : evioFileList) {
 
             // Get the next EVIO input file.
             final File evioFile = new File(evioFileName);
@@ -463,7 +476,8 @@ public class EvioToLcio {
 
             // Loop over events.
             final EvioEventQueue eventQueue = new EvioEventQueue(-1L, maxBufferSize);
-            eventLoop: for (;;) {
+            eventLoop:
+            for (;;) {
 
                 // Buffer the EVIO events into the queue.
                 this.bufferEvents(reader, eventQueue, maxBufferSize);
@@ -475,7 +489,8 @@ public class EvioToLcio {
                 }
 
                 // Loop over the EVIO events in the buffer until it is empty.
-                recordLoop: while (eventQueue.hasNext()) {
+                recordLoop:
+                while (eventQueue.hasNext()) {
 
                     // Read and parse the next EVIO event.
                     EvioEvent evioEvent = null;
@@ -565,7 +580,7 @@ public class EvioToLcio {
 
                         // Write out this LCIO event.
                         if (writer != null) {
-                            try {                                
+                            try {
                                 writer.write(lcioEvent);
                                 writer.flush();
                                 LOGGER.finest("wrote LCSim event " + lcioEvent.getEventNumber());
@@ -629,10 +644,13 @@ public class EvioToLcio {
     }
 
     /**
-     * Setup the LCSimEventBuilder based on the current detector name and run number.
+     * Setup the LCSimEventBuilder based on the current detector name and run
+     * number.
      *
-     * @param detectorName The detector name to be assigned to the event builder.
-     * @param runNumber The run number which determines which event builder to use.
+     * @param detectorName The detector name to be assigned to the event
+     * builder.
+     * @param runNumber The run number which determines which event builder to
+     * use.
      * @return The LCSimEventBuilder for the Test Run or Engineering Run.
      */
     private void setupEventBuilder(final int runNumber) {
