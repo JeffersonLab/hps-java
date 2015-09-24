@@ -32,77 +32,91 @@ public class TridentMonitoring extends DataQualityMonitor {
 
     private double ebeam = 1.05;
     private BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
+    private static final int nCuts = 6;
+    private static final int PASS = 0;
+    private static final int FAIL = 1;
 
-    String finalStateParticlesColName = "FinalStateParticles";
-    String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
-    String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
-    String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
-    String trackListName = "MatchedTracks";
-    String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
+    private String finalStateParticlesColName = "FinalStateParticles";
+    private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
+    private String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
+    private String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
+    private String trackListName = "MatchedTracks";
+    private String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
 
     private final String plotDir = "TridentMonitoring/";
-    IHistogram2D trackTime2D;
-    IHistogram1D trackTimeDiff;
-    IHistogram2D vertexMassMomentum;
-    IHistogram2D vertexedTrackMomentum2D;
-    IHistogram2D pyEleVspyPos;
-    IHistogram2D pxEleVspxPos;
-    IHistogram2D vertexPxPy;
-    IHistogram1D goodVertexMass;
-    IHistogram2D goodVertexZVsMass;
-    IHistogram1D vertexX;
-    IHistogram1D vertexY;
-    IHistogram1D vertexZ;
-    IHistogram1D vertexPx;
-    IHistogram1D vertexPy;
-    IHistogram1D vertexPz;
-    IHistogram1D vertexU;
-    IHistogram1D vertexV;
-    IHistogram1D nCand;
+    private IHistogram2D trackTime2D;
+    private IHistogram1D trackTimeDiff;
+    private IHistogram2D vertexMassMomentum;
+    private IHistogram2D vertexedTrackMomentum2D;
+    private IHistogram2D pyEleVspyPos;
+    private IHistogram2D pxEleVspxPos;
+    private IHistogram2D vertexPxPy;
+    private IHistogram1D goodVertexMass;
+    private IHistogram2D goodVertexZVsMass;
+    private IHistogram1D vertexX;
+    private IHistogram1D vertexY;
+    private IHistogram1D vertexZ;
+    private IHistogram1D vertexPx;
+    private IHistogram1D vertexPy;
+    private IHistogram1D vertexPz;
+    private IHistogram1D vertexU;
+    private IHistogram1D vertexV;
+    private IHistogram1D nCand;
 //    IHistogram1D vertexW;
-    IHistogram2D vertexVZ;
-    IHistogram2D vertexZY;
+//    IHistogram2D vertexVZ;
+    private IHistogram2D vertexZY;
 
-    IHistogram1D deltaP;
-    IHistogram1D deltaPRad;
-    IHistogram1D sumP;
-    IHistogram2D vertexedTrackMomentum2DRad;
+    private IHistogram1D[][] cutVertexMass = new IHistogram1D[nCuts][2];
+    private IHistogram1D[][] cutVertexZ = new IHistogram1D[nCuts][2];
+    private IHistogram2D[][] cutVertexZVsMass = new IHistogram2D[nCuts][2];
+
+    private IHistogram1D deltaP;
+    private IHistogram1D deltaPRad;
+    private IHistogram1D sumP;
+    private IHistogram2D vertexedTrackMomentum2DRad;
 
     //clean up event first
-    int nTrkMax = 5;
-    int nPosMax = 1;
+    private int nTrkMax = 5;
+    private int nPosMax = 1;
+
+    private double maxChi2SeedTrack = 7.0;
+    private double maxChi2GBLTrack = 15.0;
+    private double maxVertChi2 = 7.0;
 
     //v0 cuts   
-    double v0Chi2 = 10;
-    double v0PzMax = 1.25 * ebeam;//GeV 
-    double v0PzMin = 0.1;// GeV
-    double v0PyMax = 0.2;//GeV absolute value
-    double v0PxMax = 0.2;//GeV absolute value
-    double v0VzMax = 25.0;// mm from target...someday make mass dependent
-    double v0VyMax = 1.0;// mm from target...someday make mass dependent
-    double v0VxMax = 2.0;// mm from target...someday make mass dependent
+    private double v0PzMax = 1.25 * ebeam;//GeV 
+    private double v0PzMin = 0.1;// GeV
+    private double v0PyMax = 0.2;//GeV absolute value
+    private double v0PxMax = 0.2;//GeV absolute value
+    private double v0VzMax = 50.0;// mm from target...someday make mass dependent
+    private double v0VyMax = 1.0;// mm from target...someday make mass dependent
+    private double v0VxMax = 2.0;// mm from target...someday make mass dependent
     //  track quality cuts
-    double trkChi2 = 10;
-    double beamPCut = 0.9;
-    double minPCut = 0.05;
-    double trkPyMax = 0.2;
-    double trkPxMax = 0.2;
-    double radCut = 0.8 * ebeam;
-    double trkTimeDiff = 16.0;
+    private double beamPCut = 0.85;
+    private double minPCut = 0.05;
+    private double trkPyMax = 0.2;
+    private double trkPxMax = 0.2;
+    private double radCut = 0.8 * ebeam;
+    private double trkTimeDiff = 16.0;
+    
+    private double l1IsoMin = 1.0;
 //cluster matching
-    boolean reqCluster = false;
-    int nClustMax = 3;
-    double eneLossFactor = 0.7; //average E/p roughly
-    double eneOverPCut = 0.3; //|(E/p)_meas - (E/p)_mean|<eneOverPCut
+    private boolean reqCluster = false;
+    private int nClustMax = 3;
+    private double eneLossFactor = 0.7; //average E/p roughly
+    private double eneOverPCut = 0.3; //|(E/p)_meas - (E/p)_mean|<eneOverPCut
 
 //counters
-    float nRecoEvents = 0;
-    float nPassBasicCuts = 0;
-    float nPassV0Cuts = 0;
-    float nPassTrkCuts = 0;
-    float nPassTimeCuts = 0;
+    private float nRecoEvents = 0;
+    private float nPassBasicCuts = 0;
+    private float nPassTrkQualityCuts = 0;
+    private float nPassV0QualityCuts = 0;
+    private float nPassV0Cuts = 0;
+    private float nPassTrkCuts = 0;
+    private float nPassTimeCuts = 0;
+    private float nPassIsoCuts = 0;
 
-    float nPassClusterCuts = 0;
+    private float nPassClusterCuts = 0;
 
     public void setEbeam(double ebeam) {
         this.ebeam = ebeam;
@@ -110,7 +124,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        System.out.println("TridentMonitoring::detectorChanged  Setting up the plotter");
+        System.out.println("TridendMonitoring::detectorChanged  Setting up the plotter");
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
 
         aida.tree().cd("/");
@@ -156,12 +170,24 @@ public class TridentMonitoring extends DataQualityMonitor {
         vertexU = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Px over Ptot (GeV)", 100, -0.1, 0.1);
         vertexV = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Py over Ptot (GeV)", 100, -0.1, 0.1);
 //        vertexW = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Vertex Pz overPtot (GeV)", 100, 0.95, 1.0);
-        vertexVZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Py over Ptot vs. Z", 100, -v0VzMax, v0VzMax, 100, -0.1, 0.1);
+//        vertexVZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Py over Ptot vs. Z", 100, -v0VzMax, v0VzMax, 100, -0.1, 0.1);
         vertexZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
+
+        for (int i = 0; i < nCuts; i++) {
+            for (int pass = 0; pass < 2; pass++) {
+                cutVertexZ[i][pass] = aida.histogram1D(String.format("%s%s%s/cut%d/%s: Vertex Z position (mm)", plotDir, trkType, triggerType, i, pass == PASS ? "pass" : "fail"),
+                        100, -v0VzMax, v0VzMax);
+                cutVertexMass[i][pass] = aida.histogram1D(String.format("%s%s%s/cut%d/%s: Vertex mass (GeV)", plotDir, trkType, triggerType, i, pass == PASS ? "pass" : "fail"),
+                        100, 0, 0.1 * ebeam);
+                cutVertexZVsMass[i][pass] = aida.histogram2D(String.format("%s%s%s/cut%d/%s: Vertex Z vs. mass", plotDir, trkType, triggerType, i, pass == PASS ? "pass" : "fail"),
+                        100, 0, 0.1 * ebeam, 100, -v0VzMax, v0VzMax);
+            }
+        }
     }
 
     @Override
-    public void process(EventHeader event) {
+    public void process(EventHeader event
+    ) {
         /*  make sure everything is there */
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
@@ -213,7 +239,7 @@ public class TridentMonitoring extends DataQualityMonitor {
         nPassBasicCuts++;//passed some basic event-level cuts...
 
         List<ReconstructedParticle> candidateList = new ArrayList<>();
-        ReconstructedParticle bestCandidate;
+        List<ReconstructedParticle> vertCandidateList = new ArrayList<>();
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             if (isGBL != TrackType.isGBL(uncV0.getType())) {
@@ -222,26 +248,8 @@ public class TridentMonitoring extends DataQualityMonitor {
             Vertex uncVert = uncV0.getStartVertex();
 //  v0 & vertex-quality cuts
             Hep3Vector v0MomRot = VecOp.mult(beamAxisRotation, uncV0.getMomentum());
-            if (v0MomRot.z() > v0PzMax || v0MomRot.z() < v0PzMin) {
-                continue;
-            }
-            if (Math.abs(v0MomRot.y()) > v0PyMax) {
-                continue;
-            }
-            if (Math.abs(v0MomRot.x()) > v0PxMax) {
-                continue;
-            }
-            Hep3Vector v0Vtx = uncVert.getPosition();
-            if (Math.abs(v0Vtx.z()) > v0VzMax) {
-                continue;
-            }
-            if (Math.abs(v0Vtx.y()) > v0VyMax) {
-                continue;
-            }
-            if (Math.abs(v0Vtx.x()) > v0VxMax) {
-                continue;
-            }
-            nPassV0Cuts++;
+            Hep3Vector v0Vtx = VecOp.mult(beamAxisRotation, uncVert.getPosition());
+
             List<Track> tracks = new ArrayList<Track>();
             ReconstructedParticle electron = null, positron = null;
             for (ReconstructedParticle particle : uncV0.getParticles()) //                tracks.addAll(particle.getTracks());  //add add electron first, then positron...down below
@@ -266,27 +274,103 @@ public class TridentMonitoring extends DataQualityMonitor {
             for (Track track : tracks) {
                 trackTimes.add(TrackUtils.getTrackTime(track, hitToStrips, hitToRotated));
             }
+
+            Double[] eleIso = TrackUtils.getIsolations(electron.getTracks().get(0), hitToStrips, hitToRotated);
+            Double[] posIso = TrackUtils.getIsolations(positron.getTracks().get(0), hitToStrips, hitToRotated);
+            double minL1Iso = -9999;
+            if (eleIso[0] != null && posIso[0] != null) {
+                double eleL1Iso = Math.min(Math.abs(eleIso[0]), Math.abs(eleIso[1]));
+                double posL1Iso = Math.min(Math.abs(posIso[0]), Math.abs(posIso[1]));
+                minL1Iso = Math.min(eleL1Iso, posL1Iso);
+//                    VtxZVsL1Iso.fill(minL1Iso, uncVert.getPosition().z());
+            }
+
+            int cutNum = 0;
+            boolean trackQualityCut = Math.max(tracks.get(0).getChi2(), tracks.get(1).getChi2()) < (isGBL ? maxChi2GBLTrack : maxChi2SeedTrack);
+            if (!trackQualityCut) {
+                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
+                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
+                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
+                continue;
+            }
+            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
+            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
+            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            cutNum++;
+            nPassTrkQualityCuts++;
+
+            boolean v0QualityCut = uncVert.getChi2() < maxVertChi2;
+            if (!v0QualityCut) {
+                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
+                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
+                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
+                continue;
+            }
+            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
+            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
+            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            cutNum++;
+            nPassV0QualityCuts++;
+
+            boolean vertexMomentumCut = v0MomRot.z() < v0PzMax && v0MomRot.z() > v0PzMin && Math.abs(v0MomRot.x()) < v0PxMax && Math.abs(v0MomRot.y()) < v0PyMax;
+            boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0VxMax && Math.abs(v0Vtx.y()) < v0VyMax && Math.abs(v0Vtx.z()) < v0VzMax;
+            if (!vertexMomentumCut || !vertexPositionCut) {
+                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
+                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
+                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
+                continue;
+            }
+            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
+            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
+            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            cutNum++;
+            nPassV0Cuts++;
+
             boolean trackTimeDiffCut = Math.abs(trackTimes.get(0) - trackTimes.get(1)) < trkTimeDiff;
 
             if (!trackTimeDiffCut) {
+                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
+                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
+                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
                 continue;
             }
+            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
+            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
+            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            cutNum++;
             nPassTimeCuts++;
 
-            if (electron.getMomentum().y() * positron.getMomentum().y() > 0) {
-                continue;
-            }
+            boolean topBottomCut = electron.getMomentum().y() * positron.getMomentum().y() < 0;
             boolean pMinCut = electron.getMomentum().magnitude() > minPCut && positron.getMomentum().magnitude() > minPCut;
-            if (!pMinCut) {
-                continue;
-            }
             boolean pMaxCut = electron.getMomentum().magnitude() < beamPCut && positron.getMomentum().magnitude() < beamPCut;
-            if (!pMaxCut) {
+            if (!topBottomCut || !pMaxCut || !pMinCut) {
+                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
+                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
+                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
                 continue;
             }
+            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
+            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
+            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            cutNum++;
             nPassTrkCuts++;
 
             candidateList.add(uncV0);
+
+            boolean isoCut = minL1Iso > l1IsoMin;
+            if (!isoCut) {
+                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
+                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
+                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
+                continue;
+            }
+            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
+            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
+            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            cutNum++;
+            nPassIsoCuts++;
+            
+            vertCandidateList.add(uncV0);
         }
 
         nCand.fill(candidateList.size());
@@ -294,7 +378,7 @@ public class TridentMonitoring extends DataQualityMonitor {
             return;
         }
         // pick the best candidate...for now just pick a random one. 
-        bestCandidate = candidateList.get((int) (Math.random() * candidateList.size()));
+        ReconstructedParticle bestCandidate = candidateList.get((int) (Math.random() * candidateList.size()));
 
         //fill some stuff: 
         ReconstructedParticle electron = null, positron = null;
@@ -330,7 +414,7 @@ public class TridentMonitoring extends DataQualityMonitor {
         vertexPxPy.fill(pBestV0Rot.x(), pBestV0Rot.y());
         goodVertexMass.fill(bestCandidate.getMass());
         Vertex uncVert = bestCandidate.getStartVertex();
-        Hep3Vector v0Vtx = uncVert.getPosition();
+        Hep3Vector v0Vtx = VecOp.mult(beamAxisRotation, uncVert.getPosition());
         goodVertexZVsMass.fill(bestCandidate.getMass(), v0Vtx.z());
         vertexX.fill(v0Vtx.x());
         vertexY.fill(v0Vtx.y());
@@ -341,7 +425,7 @@ public class TridentMonitoring extends DataQualityMonitor {
         vertexU.fill(pBestV0Rot.x() / pBestV0Rot.magnitude());
         vertexV.fill(pBestV0Rot.y() / pBestV0Rot.magnitude());
 //                    vertexW.fill(bestCandidate.getMomentum().z()/bestCandidate.getMomentum().magnitude());
-        vertexVZ.fill(v0Vtx.z(), pBestV0Rot.y() / pBestV0Rot.magnitude());
+//        vertexVZ.fill(v0Vtx.z(), pBestV0Rot.y() / pBestV0Rot.magnitude());
         vertexZY.fill(v0Vtx.y(), v0Vtx.z());
         if (bestCandidate.getMomentum().magnitude() > radCut) {
             vertexedTrackMomentum2DRad.fill(electron.getMomentum().magnitude(), positron.getMomentum().magnitude());
@@ -352,21 +436,27 @@ public class TridentMonitoring extends DataQualityMonitor {
 
     @Override
     public void printDQMData() {
-        System.out.println("TridentMonitoring::printDQMData");
+        System.out.println("TridendMonitoring::printDQMData");
         for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
             System.out.println(entry.getKey() + " = " + entry.getValue());
         }
         System.out.println("*******************************");
 
-        System.out.println("TridentMonitoring::Tridend Selection Summary");
+        System.out.println("TridendMonitoring::Tridend Selection Summary");
 
-        System.out.println("\t\t\tTrident Selection Summary");
+        System.out.println("\t\t\tTridend Selection Summary");
         System.out.println("******************************************************************************************");
         System.out.println("Number of Events:\t\t" + nRecoEvents + "\t\t\t" + (nRecoEvents) / nRecoEvents + "\t\t\t" + nRecoEvents / nRecoEvents);
         System.out.println("N(particle) Cuts:\t\t" + nPassBasicCuts + "\t\t\t" + nPassBasicCuts / nRecoEvents + "\t\t\t" + nPassBasicCuts / nRecoEvents);
-        System.out.println("V0 Vertex   Cuts:\t\t" + nPassV0Cuts + "\t\t\t" + nPassV0Cuts / nPassBasicCuts + "\t\t\t" + nPassV0Cuts / nRecoEvents);
-        System.out.println("Timing    Cuts:\t\t" + nPassTimeCuts + "\t\t\t" + nPassTimeCuts / nPassV0Cuts + "\t\t\t" + nPassTimeCuts / nRecoEvents);
+        System.out.println("Trk Quality Cuts:\t\t" + nPassTrkQualityCuts + "\t\t\t" + nPassTrkQualityCuts / nPassBasicCuts + "\t\t\t" + nPassTrkQualityCuts / nRecoEvents);
+        System.out.println("V0 Quality  Cuts:\t\t" + nPassV0QualityCuts + "\t\t\t" + nPassV0QualityCuts / nPassTrkQualityCuts + "\t\t\t" + nPassV0QualityCuts / nRecoEvents);
+        System.out.println("V0 Vertex   Cuts:\t\t" + nPassV0Cuts + "\t\t\t" + nPassV0Cuts / nPassV0QualityCuts + "\t\t\t" + nPassV0Cuts / nRecoEvents);
+        System.out.println("Timing      Cuts:\t\t" + nPassTimeCuts + "\t\t\t" + nPassTimeCuts / nPassV0Cuts + "\t\t\t" + nPassTimeCuts / nRecoEvents);
         System.out.println("Tracking    Cuts:\t\t" + nPassTrkCuts + "\t\t\t" + nPassTrkCuts / nPassTimeCuts + "\t\t\t" + nPassTrkCuts / nRecoEvents);
+        
+        System.out.println("\t\t\tVertex Selection Summary");
+        System.out.println("******************************************************************************************");
+        System.out.println("Isolation   Cuts:\t\t" + nPassIsoCuts + "\t\t\t" + nPassIsoCuts / nPassTrkCuts + "\t\t\t" + nPassIsoCuts / nRecoEvents);
         System.out.println("******************************************************************************************");
     }
 
@@ -390,7 +480,8 @@ public class TridentMonitoring extends DataQualityMonitor {
         }
     }
 
-    IFitResult fitVertexPosition(IHistogram1D h1d, IFitter fitter, double[] init, String range) {
+    IFitResult fitVertexPosition(IHistogram1D h1d, IFitter fitter, double[] init, String range
+    ) {
         return fitter.fit(h1d, "g+p1", init, range);
     }
 

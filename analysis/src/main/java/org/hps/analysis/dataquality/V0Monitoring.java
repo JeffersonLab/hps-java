@@ -138,7 +138,7 @@ public class V0Monitoring extends DataQualityMonitor {
     private final String plotDir = "V0Monitoring/";
 
     double beamEnergy = 1.05; //GeV
-    private BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
+    private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
 
     double maxFactor = 1.25;
     double feeMomentumCut = 0.8; //GeV
@@ -265,25 +265,26 @@ public class V0Monitoring extends DataQualityMonitor {
                 continue;
             Vertex uncVert = uncV0.getStartVertex();
             Hep3Vector pVtxRot = VecOp.mult(beamAxisRotation, uncV0.getMomentum());
+            Hep3Vector vtxPosRot = VecOp.mult(beamAxisRotation, uncVert.getPosition());
             double theta = Math.acos(pVtxRot.z() / pVtxRot.magnitude());
             double phi = Math.atan2(pVtxRot.y(), pVtxRot.x());
-            unconVx.fill(uncVert.getPosition().x());
-            unconVy.fill(uncVert.getPosition().y());
-            unconVz.fill(uncVert.getPosition().z());
+            unconVx.fill(vtxPosRot.x());
+            unconVy.fill(vtxPosRot.y());
+            unconVz.fill(vtxPosRot.z());
             unconMass.fill(uncV0.getMass());
             unconChi2.fill(uncVert.getChi2());
-            unconVzVsChi2.fill(uncVert.getChi2(), uncVert.getPosition().z());
-            unconChi2VsTrkChi2.fill(uncV0.getParticles().get(0).getTracks().get(0).getChi2() + uncV0.getParticles().get(1).getTracks().get(0).getChi2(), uncVert.getChi2());
+            unconVzVsChi2.fill(uncVert.getChi2(), vtxPosRot.z());
+            unconChi2VsTrkChi2.fill(Math.max(uncV0.getParticles().get(0).getTracks().get(0).getChi2(), uncV0.getParticles().get(1).getTracks().get(0).getChi2()), uncVert.getChi2());
 
-            VtxZVsMass.fill(uncV0.getMass(), uncVert.getPosition().z());
-            VtxXVsVtxZ.fill(uncVert.getPosition().x(), uncVert.getPosition().z());
-            VtxYVsVtxZ.fill(uncVert.getPosition().y(), uncVert.getPosition().z());
-            VtxXVsVtxY.fill(uncVert.getPosition().x(), uncVert.getPosition().y());
-            VtxXVsVtxPx.fill(pVtxRot.x(), uncVert.getPosition().x());
-            VtxYVsVtxPy.fill(pVtxRot.y(), uncVert.getPosition().y());
-            VtxZVsVtxPx.fill(pVtxRot.x(), uncVert.getPosition().z());
-            VtxZVsVtxPy.fill(pVtxRot.y(), uncVert.getPosition().z());
-            VtxZVsVtxPz.fill(pVtxRot.z(), uncVert.getPosition().z());
+            VtxZVsMass.fill(uncV0.getMass(), vtxPosRot.z());
+            VtxXVsVtxZ.fill(vtxPosRot.x(), vtxPosRot.z());
+            VtxYVsVtxZ.fill(vtxPosRot.y(), vtxPosRot.z());
+            VtxXVsVtxY.fill(vtxPosRot.x(), vtxPosRot.y());
+            VtxXVsVtxPx.fill(pVtxRot.x(), vtxPosRot.x());
+            VtxYVsVtxPy.fill(pVtxRot.y(), vtxPosRot.y());
+            VtxZVsVtxPx.fill(pVtxRot.x(), vtxPosRot.z());
+            VtxZVsVtxPy.fill(pVtxRot.y(), vtxPosRot.z());
+            VtxZVsVtxPz.fill(pVtxRot.z(), vtxPosRot.z());
 
             //this always has 2 tracks. 
             List<ReconstructedParticle> trks = uncV0.getParticles();
@@ -306,7 +307,7 @@ public class V0Monitoring extends DataQualityMonitor {
                 ele = trks.get(1);
             }
             if (ele.getCharge() < 0 && pos.getCharge() > 0) {
-                VtxZVsTrkChi2.fill(uncV0.getParticles().get(0).getTracks().get(0).getChi2() + uncV0.getParticles().get(1).getTracks().get(0).getChi2(), uncVert.getPosition().z());
+                VtxZVsTrkChi2.fill(Math.max(uncV0.getParticles().get(0).getTracks().get(0).getChi2(), uncV0.getParticles().get(1).getTracks().get(0).getChi2()), uncVert.getPosition().z());
 
                 Double[] eleIso = TrackUtils.getIsolations(ele.getTracks().get(0), hitToStrips, hitToRotated);
                 Double[] posIso = TrackUtils.getIsolations(pos.getTracks().get(0), hitToStrips, hitToRotated);
@@ -347,17 +348,18 @@ public class V0Monitoring extends DataQualityMonitor {
                 continue;
             nTotV0++;
             Vertex bsVert = bsV0.getStartVertex();
-            bsconVx.fill(bsVert.getPosition().x());
-            bsconVy.fill(bsVert.getPosition().y());
-            bsconVz.fill(bsVert.getPosition().z());
+            Hep3Vector vtxPosRot = VecOp.mult(beamAxisRotation, bsVert.getPosition());
+            bsconVx.fill(vtxPosRot.x());
+            bsconVy.fill(vtxPosRot.y());
+            bsconVz.fill(vtxPosRot.z());
             bsconMass.fill(bsV0.getMass());
             bsconChi2.fill(bsVert.getChi2());
-            bsconVzVsChi2.fill(bsVert.getChi2(), bsVert.getPosition().z());
-            bsconChi2VsTrkChi2.fill(bsV0.getParticles().get(0).getTracks().get(0).getChi2() + bsV0.getParticles().get(1).getTracks().get(0).getChi2(), bsVert.getChi2());
+            bsconVzVsChi2.fill(bsVert.getChi2(), vtxPosRot.z());
+            bsconChi2VsTrkChi2.fill(Math.max(bsV0.getParticles().get(0).getTracks().get(0).getChi2(), bsV0.getParticles().get(1).getTracks().get(0).getChi2()), bsVert.getChi2());
             sumMass += bsV0.getMass();
-            sumVx += bsVert.getPosition().x();
-            sumVy += bsVert.getPosition().y();
-            sumVz += bsVert.getPosition().z();
+            sumVx += vtxPosRot.x();
+            sumVy += vtxPosRot.y();
+            sumVz += vtxPosRot.z();
             sumChi2 += bsVert.getChi2();
         }
 
@@ -368,13 +370,14 @@ public class V0Monitoring extends DataQualityMonitor {
                 continue;
 
             Vertex tarVert = tarV0.getStartVertex();
-            tarconVx.fill(tarVert.getPosition().x());
-            tarconVy.fill(tarVert.getPosition().y());
-            tarconVz.fill(tarVert.getPosition().z());
+            Hep3Vector vtxPosRot = VecOp.mult(beamAxisRotation, tarVert.getPosition());
+            tarconVx.fill(vtxPosRot.x());
+            tarconVy.fill(vtxPosRot.y());
+            tarconVz.fill(vtxPosRot.z());
             tarconMass.fill(tarV0.getMass());
             tarconChi2.fill(tarVert.getChi2());
-            tarconVzVsChi2.fill(tarVert.getChi2(), tarVert.getPosition().z());
-            tarconChi2VsTrkChi2.fill(tarV0.getParticles().get(0).getTracks().get(0).getChi2() + tarV0.getParticles().get(1).getTracks().get(0).getChi2(), tarVert.getChi2());
+            tarconVzVsChi2.fill(tarVert.getChi2(), vtxPosRot.z());
+            tarconChi2VsTrkChi2.fill(Math.max(tarV0.getParticles().get(0).getTracks().get(0).getChi2(), tarV0.getParticles().get(1).getTracks().get(0).getChi2()), tarVert.getChi2());
         }
         List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         if (debug)
