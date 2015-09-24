@@ -30,7 +30,6 @@
                     <reuseForks>false</reuseForks>
                     <excludes>
                         <exclude>org/hps/**.java</exclude>
-                        <exclude>org/hps/test/it/EngRun2015ReconTest.java</exclude>
                     </excludes>
                     <trimStackTrace>false</trimStackTrace>
                 </configuration>
