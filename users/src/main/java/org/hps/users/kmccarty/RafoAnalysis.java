@@ -46,18 +46,18 @@ public class RafoAnalysis extends Driver {
 	private IHistogram2D t1TimeEnergyAll               = aida.histogram2D("Tier 1/Cluster Time vs. Cluster Energy",                                55, 0, 1.1,  25, 0, 100);
 	private IHistogram2D t1TimeEnergyFiducial          = aida.histogram2D("Tier 1/Cluster Time vs. Cluster Energy (Fiducial Region)",              55, 0, 1.1,  25, 0, 100);
 
-	private IHistogram1D t2TimeCoincidenceAll          = aida.histogram1D("Tier 1/Time Coincidence",                    45, 0.0, 15.0);
-	private IHistogram1D t2TimeCoincidenceFiducial     = aida.histogram1D("Tier 1/Time Coincidence (Fiducial Region)",  45, 0.0, 15.0);
-	private IHistogram1D t2EnergySumAll                = aida.histogram1D("Tier 1/Energy Sum",                         110, 0.0,  1.1);
-	private IHistogram1D t2EnergySumFiducial           = aida.histogram1D("Tier 1/Energy Sum (Fiducial Region)",       110, 0.0,  1.1);
-	private IHistogram2D t2EnergySum2DAll              = aida.histogram2D("Tier 1/Top Cluster Energy vs. Bottom Cluster Energy",                   55, 0, 1.1, 55, 0, 1.1);
-	private IHistogram2D t2EnergySum2DFiducial         = aida.histogram2D("Tier 1/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 55, 0, 1.1, 55, 0, 1.1);
-	private IHistogram2D t2SumCoplanarityAll           = aida.histogram2D("Tier 1/Hardware Coplanarity vs. Energy Sum",                            55, 0, 1.1, 165, 0, 230);
-	private IHistogram2D t2SumCoplanarityFiducial      = aida.histogram2D("Tier 1/Hardware Coplanarity vs. Energy Sum (Fiducial Region)",          55, 0, 1.1, 165, 0, 230);
-	private IHistogram2D t2SumCoplanarityCalcAll       = aida.histogram2D("Tier 1/Calculated Coplanarity vs. Energy Sum",                          55, 0, 1.1, 165, 0, 230);
-	private IHistogram2D t2SumCoplanarityCalcFiducial  = aida.histogram2D("Tier 1/Calculated Coplanarity vs. Energy Sum (Fiducial Region)",        55, 0, 1.1, 165, 0, 230);
-	private IHistogram2D t2TimeEnergyAll               = aida.histogram2D("Tier 1/Cluster Time vs. Cluster Energy",                                55, 0, 1.1,  25, 0, 100);
-	private IHistogram2D t2TimeEnergyFiducial          = aida.histogram2D("Tier 1/Cluster Time vs. Cluster Energy (Fiducial Region)",              55, 0, 1.1,  25, 0, 100);
+	private IHistogram1D t2TimeCoincidenceAll          = aida.histogram1D("Tier 2/Time Coincidence",                    45, 0.0, 15.0);
+	private IHistogram1D t2TimeCoincidenceFiducial     = aida.histogram1D("Tier 2/Time Coincidence (Fiducial Region)",  45, 0.0, 15.0);
+	private IHistogram1D t2EnergySumAll                = aida.histogram1D("Tier 2/Energy Sum",                         110, 0.0,  1.1);
+	private IHistogram1D t2EnergySumFiducial           = aida.histogram1D("Tier 2/Energy Sum (Fiducial Region)",       110, 0.0,  1.1);
+	private IHistogram2D t2EnergySum2DAll              = aida.histogram2D("Tier 2/Top Cluster Energy vs. Bottom Cluster Energy",                   55, 0, 1.1, 55, 0, 1.1);
+	private IHistogram2D t2EnergySum2DFiducial         = aida.histogram2D("Tier 2/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 55, 0, 1.1, 55, 0, 1.1);
+	private IHistogram2D t2SumCoplanarityAll           = aida.histogram2D("Tier 2/Hardware Coplanarity vs. Energy Sum",                            55, 0, 1.1, 165, 0, 230);
+	private IHistogram2D t2SumCoplanarityFiducial      = aida.histogram2D("Tier 2/Hardware Coplanarity vs. Energy Sum (Fiducial Region)",          55, 0, 1.1, 165, 0, 230);
+	private IHistogram2D t2SumCoplanarityCalcAll       = aida.histogram2D("Tier 2/Calculated Coplanarity vs. Energy Sum",                          55, 0, 1.1, 165, 0, 230);
+	private IHistogram2D t2SumCoplanarityCalcFiducial  = aida.histogram2D("Tier 2/Calculated Coplanarity vs. Energy Sum (Fiducial Region)",        55, 0, 1.1, 165, 0, 230);
+	private IHistogram2D t2TimeEnergyAll               = aida.histogram2D("Tier 2/Cluster Time vs. Cluster Energy",                                55, 0, 1.1,  25, 0, 100);
+	private IHistogram2D t2TimeEnergyFiducial          = aida.histogram2D("Tier 2/Cluster Time vs. Cluster Energy (Fiducial Region)",              55, 0, 1.1,  25, 0, 100);
 	
 	private int t0Events = 0;
 	private int t1Events = 0;
