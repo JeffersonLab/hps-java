@@ -3,7 +3,6 @@ package org.hps.crawler;
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -14,7 +13,6 @@ import java.util.Set;
 import org.hps.conditions.database.ConnectionParameters;
 import org.hps.datacat.client.DatasetFileFormat;
 import org.hps.datacat.client.DatasetSite;
-import org.hps.record.evio.EvioEventProcessor;
 
 /**
  * Full configuration information for the {@link Crawler} class.
@@ -37,11 +35,6 @@ final class CrawlerConfig {
     private Set<Integer> acceptRuns = new LinkedHashSet<Integer>();
 
     /**
-     * <code>true</code> if database updates are allowed meaning existing records can be deleted and replaced.
-     */
-    private boolean allowUpdates = false;
-
-    /**
      * The database connection parameters which must be provided by a command line argument.
      */
     private ConnectionParameters connectionParameters;
@@ -59,11 +52,6 @@ final class CrawlerConfig {
     private boolean enableMetadata;
 
     /**
-     * Set of features enabled in this configuration.
-     */
-    Set<CrawlerFeature> features = new HashSet<CrawlerFeature>();
-
-    /**
      * Set of file formats for filtering files.
      */
     Set<DatasetFileFormat> formats = new HashSet<DatasetFileFormat>();
@@ -72,16 +60,6 @@ final class CrawlerConfig {
      * The maximum depth to crawl.
      */
     private Integer maxDepth = Integer.MAX_VALUE;
-
-    /**
-     * The maximum number of files to accept (just used for debugging purposes).
-     */
-    private int maxFiles = -1;
-
-    /**
-     * A list of extra {@link org.hps.record.evio.EvioEventProcessor}s to run with the job.
-     */
-    private final List<EvioEventProcessor> processors = new ArrayList<EvioEventProcessor>();
 
     /**
      * The root directory to search for files, which defaults to the current directory.
@@ -104,41 +82,12 @@ final class CrawlerConfig {
     private File timestampFile = null;
 
     /**
-     * <code>true</code> if the data catalog should be updated (off by default).
-     */
-    private boolean updateDatacat = false;
-
-    /**
-     * <code>true</code> if the run database should be updated from results of the job.
-     */
-    private boolean updateRunLog = false;
-
-    /**
-     * <code>true</code> if file caching should be used to move files to the cache disk from tape at JLAB.
-     */
-    private boolean useFileCache = false;
-
-    /**
-     * The maximum wait time in milliseconds to allow for file caching operations.
-     */
-    private Long waitTime;
-
-    /**
      * Get the set of runs that will be accepted for the job.
      *
      * @return the list of runs that will be accepted
      */
     Set<Integer> acceptRuns() {
         return acceptRuns;
-    }
-
-    /**
-     * Add the default set of features.
-     */
-    CrawlerConfig addDefaultFeatures() {
-        final List<CrawlerFeature> defaultFeatures = Arrays.asList(CrawlerFeature.values());
-        this.features.addAll(defaultFeatures);
-        return this;
     }
 
     /**
@@ -151,16 +100,6 @@ final class CrawlerConfig {
     }
 
     /**
-     * Add a feature to enable it.
-     *
-     * @return this object
-     */
-    CrawlerConfig addFeature(final CrawlerFeature feature) {
-        this.features.add(feature);
-        return this;
-    }
-
-    /**
      * Add a file format for filtering.
      *
      * @param format the file format
@@ -169,42 +108,7 @@ final class CrawlerConfig {
         this.formats.add(format);
         return this;
     }
-
-    /**
-     * Add an {@link org.hps.record.evio.EvioEventProcessor} to the job.
-     *
-     * @param processor
-     * @return this object
-     */
-    CrawlerConfig addProcessor(final EvioEventProcessor processor) {
-        this.processors.add(processor);
-        return this;
-    }
-
-    /**
-     * Add an {@link org.hps.record.evio.EvioEventProcessor} to the job by its class name.
-     *
-     * @param processor the <code>EvioEventProcessor</code> to instantiate
-     * @return this object
-     */
-    CrawlerConfig addProcessor(final String className) {
-        try {
-            this.processors.add(EvioEventProcessor.class.cast(Class.forName(className).newInstance()));
-        } catch (final Exception e) {
-            throw new RuntimeException("Error creating EvioEventProcessor with type: " + className, e);
-        }
-        return this;
-    }
-
-    /**
-     * Return <code>true</code> if updates/deletions of existing records in the database is allowed.
-     *
-     * @return <code>true</code> if updating/deleting records in the database is allowed
-     */
-    boolean allowUpdates() {
-        return allowUpdates;
-    }
-
+    
     /**
      * Get the database connection parameters.
      *
@@ -242,15 +146,6 @@ final class CrawlerConfig {
     }
 
     /**
-     * Get the set of enabled features.
-     *
-     * @return the set of enabled features
-     */
-    Set<CrawlerFeature> getFeatures() {
-        return this.features;
-    }
-
-    /**
      * Get the file formats for filtering.
      *
      * @return the file formats for filtering
@@ -267,37 +162,7 @@ final class CrawlerConfig {
     Integer maxDepth() {
         return maxDepth;
     }
-
-    /**
-     * Get the maximum number of files that the job can process.
-     *
-     * @return the maximum number of files
-     */
-    int maxFiles() {
-        return maxFiles;
-    }
-
-    /**
-     * Get the list of extra event processors that will run with the job.
-     * <p>
-     * Required (default) processors for the job are not included here.
-     *
-     * @return the list of extra event processors
-     */
-    List<EvioEventProcessor> processors() {
-        return processors;
-    }
-
-    /**
-     * Remove a feature to disable it.
-     *
-     * @return this object
-     */
-    CrawlerConfig removeFeature(final CrawlerFeature feature) {
-        this.features.remove(feature);
-        return this;
-    }
-
+  
     /**
      * Get the root directory for the file search.
      *
@@ -315,17 +180,6 @@ final class CrawlerConfig {
      */
     CrawlerConfig setAcceptRuns(final Set<Integer> acceptRuns) {
         this.acceptRuns = acceptRuns;
-        return this;
-    }
-
-    /**
-     * Set whether database updates are allowed, i.e. replacement of existing records.
-     *
-     * @param allowUpdates <code>true</code> to allow database record deletion/updates
-     * @return this object
-     */
-    CrawlerConfig setAllowUpdates(final boolean allowUpdates) {
-        this.allowUpdates = allowUpdates;
         return this;
     }
 
@@ -381,19 +235,6 @@ final class CrawlerConfig {
     }
 
     /**
-     * Set the maximum number of files that will be processed by the job.
-     * <p>
-     * This should only be used for debugging purposes as it results in incorrect event counts for the run.
-     *
-     * @param maxFiles the maximum number of files to process or -1 for unlimited
-     * @return this object
-     */
-    CrawlerConfig setMaxFiles(final int maxFiles) {
-        this.maxFiles = maxFiles;
-        return this;
-    }
-
-    /**
      * Set the root directory for the file search.
      *
      * @param rootDir the root directory for the file search
@@ -443,56 +284,6 @@ final class CrawlerConfig {
     }
 
     /**
-     * Set to <code>true</code> to update data catalog.
-     *
-     * @param updateDatacat <code>true</code> to update data catalog
-     */
-    CrawlerConfig setUpdateDatacat(final boolean updateDatacat) {
-        this.updateDatacat = updateDatacat;
-        return this;
-    }
-
-    /**
-     * Set whether the run database should be updated in the job.
-     * <p>
-     * This will not allow replacement of existing run log records. The {@link #allowUpdates()} flag must be on for this
-     * be allowed.
-     *
-     * @param updateRunLog <code>true</code> if the run database should be updated
-     * @return this object
-     */
-    CrawlerConfig setUpdateRunLog(final boolean updateRunLog) {
-        this.updateRunLog = updateRunLog;
-        return this;
-    }
-
-    /**
-     * Set whether file caching using the 'jcache' program should be enabled.
-     * <p>
-     * This is only relevant for jobs run at JLAB.
-     *
-     * @param useFileCache <code>true</code> to allow file caching
-     * @return this object
-     */
-    CrawlerConfig setUseFileCache(final boolean useFileCache) {
-        this.useFileCache = useFileCache;
-        return this;
-    }
-
-    /**
-     * Set the max wait time in seconds for all file caching operations to complete.
-     * <p>
-     * If this time is exceeded then the job will fail with an error.
-     *
-     * @param waitTime the max wait time in seconds allowed for file caching to complete
-     * @return this object
-     */
-    CrawlerConfig setWaitTime(final long waitTime) {
-        this.waitTime = waitTime;
-        return this;
-    }
-
-    /**
      * Get the timestamp for file filtering.
      * <p>
      * Files older than this will not be included in the job.
@@ -510,41 +301,5 @@ final class CrawlerConfig {
      */
     File timestampFile() {
         return timestampFile;
-    }
-
-    /**
-     * Get whether data catalog should be updated or not.
-     *
-     * @return <code>true</code> if data catalog should be update
-     */
-    boolean updateDatacat() {
-        return this.updateDatacat;
-    }
-
-    /**
-     * Return <code>true</code> if the run database should be updated.
-     *
-     * @return <code>true</code> if the run database should be updated
-     */
-    boolean updateRunDatabase() {
-        return updateRunLog;
-    }
-
-    /**
-     * Return <code>true</code> if file caching should be enabled.
-     *
-     * @return <code>true</code> if file caching should be enabled
-     */
-    boolean useFileCache() {
-        return useFileCache;
-    }
-
-    /**
-     * Get the max wait time in seconds to allow for file caching operations to complete.
-     *
-     * @return the max wait time in seconds to allow for file caching operations to complete
-     */
-    Long waitTime() {
-        return waitTime;
     }
 }

@@ -116,7 +116,7 @@ public class DatacatCrawler {
     /**
      * Setup the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(Crawler.class, new DefaultLogFormatter(), Level.CONFIG);
+    private static final Logger LOGGER = LogUtil.create(DatacatCrawler.class, new DefaultLogFormatter(), Level.CONFIG);
 
     /**
      * Command line options for the crawler.
