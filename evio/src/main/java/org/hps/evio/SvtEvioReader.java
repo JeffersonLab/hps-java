@@ -10,6 +10,7 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
+import org.lcsim.lcio.LCIOUtil;
 
 /**
  *  SVT EVIO reader used to convert SVT bank integer data to LCIO objects.
@@ -208,27 +209,39 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     }
 
     @Override
-    protected SvtHeaderDataInfo extractSvtHeader(int num, int[] data) {
-        // Extract the header information
-        int svtHeader = SvtEvioUtils.getSvtHeader(data);
-        // Extract the tail information
-        int svtTail = SvtEvioUtils.getSvtTail(data);
-        return new SvtHeaderDataInfo(num, svtHeader, svtTail);
+    protected void addSvtHeadersToEvents(List<SvtHeaderDataInfo> headers,
+            EventHeader lcsimEvent) {
+     
+    }
+    
+    @Override
+    protected void checkSvtHeaderData(SvtHeaderDataInfo header)
+            throws SvtEvioHeaderException {
     }
 
     @Override
-    protected void checkSvtHeaderData(SvtHeaderDataInfo header) throws SvtEvioHeaderException {
-        int tail = header.getTail();
-        if( SvtEvioUtils.getSvtTailSyncErrorBit(tail) != 0) {
-            throw new SvtEvioHeaderException("This header had a SyncError");
-        }
-        else if( SvtEvioUtils.getSvtTailOFErrorBit(tail) != 0) {
-            throw new SvtEvioHeaderException("This header had a OverFlowError");
-        }
-        else if( SvtEvioUtils.getSvtTailMultisampleSkipCount(tail) != 0) {
-            throw new SvtEvioHeaderException("This header had a skipCount " + SvtEvioUtils.getSvtTailMultisampleSkipCount(tail));
-        }
+    protected SvtHeaderDataInfo extractSvtHeader(int num, int[] data) {
+       return null;
+    }
+    
+    @Override
+    protected void checkSvtSampleCount(int sampleCount,
+            SvtHeaderDataInfo headerData) throws SvtEvioHeaderException {
+    }
+    
+    @Override
+    protected void setMultiSampleHeaders(SvtHeaderDataInfo headerData,
+            int[] multisampleHeaders) {
+        // TODO Auto-generated method stub
+        
     }
 
+    @Override
+    protected void extractMultisampleTail(int[] multisample, int index,
+            int[] multisampleHeaders) {
+        // TODO Auto-generated method stub
+        
+    }
+    
     
 }

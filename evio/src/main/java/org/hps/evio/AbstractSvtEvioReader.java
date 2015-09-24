@@ -236,10 +236,8 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                 // Check the integrity of the SVT header data
                 this.checkSvtHeaderData(headerData);
                 
-                    
                 // Check that the multisample count is consistent
-                if( sampleCount != SvtEvioUtils.getSvtTailMultisampleCount(headerData.getTail())*4)
-                    throw new RuntimeException("multisample count is not consistent with bank size.");
+                this.checkSvtSampleCount(sampleCount, headerData);
                 
                 // Add header to list
                 headers.add(headerData);
@@ -255,8 +253,9 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                     System.arraycopy(data, this.getDataHeaderLength() + samplesN, samples, 0, samples.length);
                     
                     // Extract multisample header
-                    if( SvtEvioUtils.isMultisampleHeader(samples) ) 
-                        multisampleHeaders[samplesN/4] = SvtEvioUtils.getMultisampleTailWord(samples);
+                    this.extractMultisampleTail(samples, samplesN/4, multisampleHeaders);
+                    //if( SvtEvioUtils.isMultisampleHeader(samples) ) 
+                    //    multisampleHeaders[samplesN/4] = SvtEvioUtils.getMultisampleTailWord(samples);
                     
                     // If a set of samples is associated with an APV header or tail, skip it
                     if (!this.isValidSampleSet(samples)) continue;
@@ -264,7 +263,8 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                 }
                 
                 // add multisample headers to header data object
-                headerData.setMultisampleHeaders(multisampleHeaders);
+                this.setMultiSampleHeaders(headerData, multisampleHeaders);
+                //headerData.setMultisampleHeaders(multisampleHeaders);
             }
         }
         
@@ -283,7 +283,14 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         return true;
     }
 
+    protected abstract void setMultiSampleHeaders(SvtHeaderDataInfo headerData, int[] multisampleHeaders);
     
+    protected abstract void extractMultisampleTail(int[] multisample, int index, int[] multisampleHeaders);
+    
+   
+    
+    protected abstract void checkSvtSampleCount(int sampleCount, SvtHeaderDataInfo headerData) throws SvtEvioHeaderException;
+
     /**
      * Check if the SVT headers are as expected.
      * @param headers - list of headers to check
@@ -299,13 +306,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
     protected abstract SvtHeaderDataInfo extractSvtHeader(int num, int[] data);
     
     
-    protected void addSvtHeadersToEvents(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) {
-        // Turn on 64-bit cell ID.
-        int flag = LCIOUtil.bitSet(0, 31, true);
-        // Add the collection of raw hits to the LCSim event
-        lcsimEvent.put(SVT_HEADER_COLLECTION_NAME, headers, SvtHeaderDataInfo.class, flag);
-
-    }
+    protected abstract void addSvtHeadersToEvents(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent);
     
     /**
      *  Make a {@link RawTrackerHit} from a set of samples.

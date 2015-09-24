@@ -7,6 +7,7 @@ import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
+import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 
@@ -176,6 +177,36 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
         // TODO Auto-generated method stub
         
     }
+
+    @Override
+    protected void addSvtHeadersToEvents(List<SvtHeaderDataInfo> headers,
+            EventHeader lcsimEvent) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    protected void checkSvtSampleCount(int sampleCount,
+            SvtHeaderDataInfo headerData) throws SvtEvioHeaderException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    protected void setMultiSampleHeaders(SvtHeaderDataInfo headerData,
+            int[] multisampleHeaders) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    protected void extractMultisampleTail(int[] multisample, int index,
+            int[] multisampleHeaders) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    
 
  
 

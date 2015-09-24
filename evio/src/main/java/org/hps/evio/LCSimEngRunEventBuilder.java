@@ -77,7 +77,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
         ecalReader.setRfBankTag(0x2e);
-        svtReader = new SvtEvioReader();
+        svtReader = new AugmentedSvtEvioReader(); 
         sspCrateBankTag = 0x2E; // A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
         intBanks = new ArrayList<IntBankDefinition>();
