@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsHeader;
-import org.hps.record.epics.EpicsRunProcessor;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
