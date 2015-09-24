@@ -59,8 +59,8 @@ public class MTEAnalysis extends Driver {
 	private IHistogram1D posTrackCount = aida.histogram1D("MTE Analysis/All Positive Event Tracks", 10, -0.5, 9.5);
 	private IHistogram1D chargedTrackCount = aida.histogram1D("MTE Analysis/All Event Event Tracks", 10, -0.5, 9.5);
 	
-	private IHistogram1D trTimeCoincidenceAll          = aida.histogram1D("Trident/Time Coincidence",                    45, 0.0, 15.0);
-	private IHistogram1D trTimeCoincidenceFiducial     = aida.histogram1D("Trident/Time Coincidence (Fiducial Region)",  45, 0.0, 15.0);
+	private IHistogram1D trTimeCoincidenceAll          = aida.histogram1D("Trident/Time Coincidence",                   150, 0.0, 15.0);
+	private IHistogram1D trTimeCoincidenceFiducial     = aida.histogram1D("Trident/Time Coincidence (Fiducial Region)", 150, 0.0, 15.0);
 	private IHistogram1D trEnergySumAll                = aida.histogram1D("Trident/Energy Sum",                         220, 0.0,  1.1);
 	private IHistogram1D trEnergySumFiducial           = aida.histogram1D("Trident/Energy Sum (Fiducial Region)",       220, 0.0,  1.1);
 	private IHistogram2D trEnergySum2DAll              = aida.histogram2D("Trident/Top Cluster Energy vs. Bottom Cluster Energy",                   220, 0, 1.1, 220, 0, 1.1);
