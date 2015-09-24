@@ -20,6 +20,19 @@ public class RafoAnalysis extends Driver {
 	private String particleCollectionName = "FinalStateParticles";
 	
 	private AIDA aida = AIDA.defaultInstance();
+	private IHistogram1D t0TimeCoincidenceAll          = aida.histogram1D("Tier 0/Time Coincidence",                    45, 0.0, 15.0);
+	private IHistogram1D t0TimeCoincidenceFiducial     = aida.histogram1D("Tier 0/Time Coincidence (Fiducial Region)",  45, 0.0, 15.0);
+	private IHistogram1D t0EnergySumAll                = aida.histogram1D("Tier 0/Energy Sum",                         110, 0.0,  1.1);
+	private IHistogram1D t0EnergySumFiducial           = aida.histogram1D("Tier 0/Energy Sum (Fiducial Region)",       110, 0.0,  1.1);
+	private IHistogram2D t0EnergySum2DAll              = aida.histogram2D("Tier 0/Top Cluster Energy vs. Bottom Cluster Energy",                   55, 0, 1.1, 55, 0, 1.1);
+	private IHistogram2D t0EnergySum2DFiducial         = aida.histogram2D("Tier 0/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 55, 0, 1.1, 55, 0, 1.1);
+	private IHistogram2D t0SumCoplanarityAll           = aida.histogram2D("Tier 0/Hardware Coplanarity vs. Energy Sum",                            55, 0, 1.1, 165, 0, 230);
+	private IHistogram2D t0SumCoplanarityFiducial      = aida.histogram2D("Tier 0/Hardware Coplanarity vs. Energy Sum (Fiducial Region)",          55, 0, 1.1, 165, 0, 230);
+	private IHistogram2D t0SumCoplanarityCalcAll       = aida.histogram2D("Tier 0/Calculated Coplanarity vs. Energy Sum",                          55, 0, 1.1, 165, 0, 230);
+	private IHistogram2D t0SumCoplanarityCalcFiducial  = aida.histogram2D("Tier 0/Calculated Coplanarity vs. Energy Sum (Fiducial Region)",        55, 0, 1.1, 165, 0, 230);
+	private IHistogram2D t0TimeEnergyAll               = aida.histogram2D("Tier 0/Cluster Time vs. Cluster Energy",                                55, 0, 1.1,  25, 0, 100);
+	private IHistogram2D t0TimeEnergyFiducial          = aida.histogram2D("Tier 0/Cluster Time vs. Cluster Energy (Fiducial Region)",              55, 0, 1.1,  25, 0, 100);
+	
 	private IHistogram1D t1TimeCoincidenceAll          = aida.histogram1D("Tier 1/Time Coincidence",                    45, 0.0, 15.0);
 	private IHistogram1D t1TimeCoincidenceFiducial     = aida.histogram1D("Tier 1/Time Coincidence (Fiducial Region)",  45, 0.0, 15.0);
 	private IHistogram1D t1EnergySumAll                = aida.histogram1D("Tier 1/Energy Sum",                         110, 0.0,  1.1);
@@ -46,8 +59,32 @@ public class RafoAnalysis extends Driver {
 	private IHistogram2D t2TimeEnergyAll               = aida.histogram2D("Tier 1/Cluster Time vs. Cluster Energy",                                55, 0, 1.1,  25, 0, 100);
 	private IHistogram2D t2TimeEnergyFiducial          = aida.histogram2D("Tier 1/Cluster Time vs. Cluster Energy (Fiducial Region)",              55, 0, 1.1,  25, 0, 100);
 	
+	private int t0Events = 0;
+	private int t1Events = 0;
+	private int t2Events = 0;
+	
+	@Override
+	public void endOfData() {
+		System.out.printf("Tier 0 Events: %d%n", t0Events);
+		System.out.printf("Tier 1 Events: %d%n", t1Events);
+		System.out.printf("Tier 2 Events: %d%n", t2Events);
+	}
+	
 	@Override
 	public void process(EventHeader event) {
+		// Check whether the SVT was active in this event.
+		final String[] flagNames = { "svt_bias_good", "svt_burstmode_noise_good", "svt_position_good" };
+		boolean svtGood = true;
+        for(int i = 0; i < flagNames.length; i++) {
+            int[] flag = event.getIntegerParameters().get(flagNames[i]);
+            if(flag == null || flag[0] == 0) {
+                svtGood = false;
+            }
+        }
+		
+        // If the SVT is not properly running, skip the event.
+        if(!svtGood) { return; }
+        
 		// Get the list of particles, if it exists.
 		List<ReconstructedParticle> trackList = null;
 		if(event.hasCollection(ReconstructedParticle.class, particleCollectionName)) {
@@ -107,8 +144,59 @@ public class RafoAnalysis extends Driver {
 			}
 		}
 		
+		// Populate the tier 0 analysis plot.
+		if(true) {
+			// Increment the number of tier 1 events found.
+			t0Events++;
+			
+			// Track which clusters have already been added to the
+			// singles plot so that there are no repeats.
+			Set<Cluster> plotSet = new HashSet<Cluster>(clusterList.size());
+			Set<Cluster> plotFiducial = new HashSet<Cluster>(clusterList.size());
+			
+			for(Cluster[] pair : pairList) {
+				// Fill the all pairs plots.
+				double pairEnergy = pair[0].getEnergy() + pair[1].getEnergy();
+				t0EnergySumAll.fill(pairEnergy);
+				t0EnergySum2DAll.fill(pair[1].getEnergy(), pair[0].getEnergy());
+				t0TimeCoincidenceAll.fill(TriggerModule.getValueTimeCoincidence(pair));
+				t0SumCoplanarityCalcAll.fill(pairEnergy, getCalculatedCoplanarity(pair));
+				t0SumCoplanarityAll.fill(pairEnergy, TriggerModule.getValueCoplanarity(pair));
+				
+				// Fill the singles plots.
+				if(!plotSet.contains(pair[0])) {
+					plotSet.add(pair[0]);
+					t0TimeEnergyAll.fill(pair[0].getEnergy(), TriggerModule.getClusterTime(pair[0]));
+				} if(!plotSet.contains(pair[1])) {
+					plotSet.add(pair[1]);
+					t0TimeEnergyAll.fill(pair[1].getEnergy(), TriggerModule.getClusterTime(pair[1]));
+				}
+				
+				// Fill the fiducial plots if appropriate.
+				if(inFiducialRegion(pair[0]) && inFiducialRegion(pair[1])) {
+					t0EnergySumFiducial.fill(pairEnergy);
+					t0EnergySum2DFiducial.fill(pair[1].getEnergy(), pair[0].getEnergy());
+					t0TimeCoincidenceFiducial.fill(TriggerModule.getValueTimeCoincidence(pair));
+					t0SumCoplanarityCalcFiducial.fill(pairEnergy, getCalculatedCoplanarity(pair));
+					t0SumCoplanarityFiducial.fill(pairEnergy, TriggerModule.getValueCoplanarity(pair));
+				}
+				
+				// Fill the singles fiducial plots if appropriate.
+				if(!plotFiducial.contains(pair[0]) && inFiducialRegion(pair[0])) {
+					plotFiducial.add(pair[0]);
+					t0TimeEnergyFiducial.fill(pair[0].getEnergy(), TriggerModule.getClusterTime(pair[0]));
+				} if(!plotFiducial.contains(pair[1]) && inFiducialRegion(pair[1])) {
+					plotFiducial.add(pair[1]);
+					t0TimeEnergyFiducial.fill(pair[1].getEnergy(), TriggerModule.getClusterTime(pair[1]));
+				}
+			}
+		}
+		
 		// Populate the tier 1 analysis plots, if the conditions were met.
 		if(t1Passed) {
+			// Increment the number of tier 1 events found.
+			t1Events++;
+			
 			// Track which clusters have already been added to the
 			// singles plot so that there are no repeats.
 			Set<Cluster> plotSet = new HashSet<Cluster>(clusterList.size());
@@ -154,6 +242,9 @@ public class RafoAnalysis extends Driver {
 		
 		// Populate the tier 2 analysis plots, if the conditions were met.
 		if(t2Passed) {
+			// Increment the number of tier 2 events found.
+			t2Events++;
+			
 			// Track which clusters have already been added to the
 			// singles plot so that there are no repeats.
 			Set<Cluster> plotSet = new HashSet<Cluster>(clusterList.size());
@@ -204,19 +295,15 @@ public class RafoAnalysis extends Driver {
 		final double ORIGIN_X = 42.52;
 		double x[] = { pair[0].getPosition()[0], pair[1].getPosition()[0] };
 		double y[] = { pair[0].getPosition()[1], pair[1].getPosition()[1] };
-		//double x[] = { TriggerModule.getClusterSeedHit(pair[0]).getPosition()[0], TriggerModule.getClusterSeedHit(pair[1]).getPosition()[0] };
-		//double y[] = { TriggerModule.getClusterSeedHit(pair[0]).getPosition()[0], TriggerModule.getClusterSeedHit(pair[1]).getPosition()[0] };
 		
         // Get the cluster angles.
         double[] clusterAngle = new double[2];
         for(int i = 0; i < 2; i++) {
         	clusterAngle[i] = Math.atan2(y[i], x[i] - ORIGIN_X) * 180 / Math.PI;
         	if(clusterAngle[i] <= 0) { clusterAngle[i] += 360; }
-        	//clusterAngle[i] = (Math.toDegrees(Math.atan2(y[i], x[i] - ORIGIN_X)) + 180.0) % 180.0;
         }
         
         // Calculate the coplanarity cut value.
-        //return Math.abs(clusterAngle[1] - clusterAngle[0]);
         double clusterDiff = clusterAngle[0] - clusterAngle[1];
         return clusterDiff > 0 ? clusterDiff : clusterDiff + 360;
 	}
