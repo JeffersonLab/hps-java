@@ -9,6 +9,7 @@ import java.util.List;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.SSPCluster;
 import org.hps.record.triggerbank.SSPData;
+import org.hps.record.triggerbank.SSPSinglesTrigger;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -20,7 +21,7 @@ import org.lcsim.event.GenericObject;
 public class TriggerDecisionCalculator {
 
     public enum TriggerType {
-        SINGLES0, SINGLES1, PAIR0, PAIR1, SINGLES1_SIM, PULSER
+        SINGLES0, SINGLES1, PAIR0, PAIR1, SINGLES1_SIM, PULSER, SINGLES1_RESULTS
     }
 
     private List<TriggerType> passedTriggers = new ArrayList<TriggerType>();
@@ -46,10 +47,29 @@ public class TriggerDecisionCalculator {
         for (GenericObject triggerBank : triggerBanks) {
             if(AbstractIntData.getTag(triggerBank) == SSPData.BANK_TAG) {
                 SSPData sspBank = new SSPData(triggerBank);
+                
+                // recompute the decision for singles1
                 List<SSPCluster> sspClusters = sspBank.getClusters();
                 List<List<SinglesTrigger<SSPCluster>>> singleTriggers = constructSinglesTriggersFromSSP(sspClusters);
                 if( singleTriggers.get(1).size() > 0 )
                     passedTriggers.add(TriggerType.SINGLES1_SIM);
+                
+                // "use trigger results objects"
+                List<SSPSinglesTrigger> triggerResults = sspBank.getSinglesTriggers();
+                boolean passedSingles1 = false;
+                resultLoop:
+                for(SSPSinglesTrigger result : triggerResults) {
+                    // Check if this is a singles 1 trigger result.
+                    if(result.isSecondTrigger()) {
+                        // Check if the all the cuts passed.
+                        if(result.passCutEnergyMin() && result.passCutEnergyMax() && result.passCutHitCount()) {
+                            passedSingles1 = true;
+                            break resultLoop;
+                        }
+                    }
+                }
+                if(passedSingles1)
+                    passedTriggers.add(TriggerType.SINGLES1_RESULTS);
             } 
             else if (AbstractIntData.getTag(triggerBank) == TIData.BANK_TAG) {
                 TIData tiData = new TIData(triggerBank);

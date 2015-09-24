@@ -32,9 +32,9 @@ import org.lcsim.util.log.LogUtil;
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>, Matt Solt <mrsolt@slac.stanford.edu>
  *
  */
-public class TriggerTurnOnDriver extends Driver {
-
-    private static Logger logger = LogUtil.create(TriggerTurnOnDriver.class, new BasicLogFormatter(), Level.FINE);
+public class TriggerTurnOnSSPDriver extends Driver {
+    
+    private static Logger logger = LogUtil.create(TriggerTurnOnSSPDriver.class, new BasicLogFormatter(), Level.FINE);
     private final String ecalClusterCollectionName = "EcalClustersCorr";
     IPlotter plotter;
     IPlotter plotter2;
@@ -61,7 +61,7 @@ public class TriggerTurnOnDriver extends Driver {
     /**
      * 
      */
-    public TriggerTurnOnDriver() {
+    public TriggerTurnOnSSPDriver() {
     }
     
     @Override
@@ -70,37 +70,37 @@ public class TriggerTurnOnDriver extends Driver {
         aida.tree().cd("/");
         IAnalysisFactory fac = aida.analysisFactory();
 
-        plotter = fac.createPlotterFactory().create("Trigger Efficiency");
+        plotter = fac.createPlotterFactory().create("Trigger efficiency SSP");
         IPlotterStyle style = plotter.style();
         style.dataStyle().fillStyle().setColor("yellow");
         style.dataStyle().errorBarStyle().setVisible(false);
         plotter.createRegions(1, 3);
-        clusterE_Random = aida.histogram1D("clusterE_Random", 50, 0., 1.3);
-        clusterE_RandomSingles1 = aida.histogram1D("clusterE_RandomSingles1", 50, 0., 1.3);
+        clusterE_Random = aida.histogram1D("SSP_clusterE_Random", 50, 0., 1.3);
+        clusterE_RandomSingles1 = aida.histogram1D("SSP_clusterE_RandomSingles1", 50, 0., 1.3);
         plotter.setTitle("Cluster E efficiency");
         plotter.region(0).plot(clusterE_Random);
         plotter.region(1).plot(clusterE_RandomSingles1);
         if(showPlots) plotter.show();
         
-        plotter2 = fac.createPlotterFactory().create("Trigger Efficiency One");
+        plotter2 = fac.createPlotterFactory().create("Trigger efficiency One SSP");
         plotter2.createRegions(1, 3);
-        clusterEOne_Random = aida.histogram1D("clusterEOne_Random", 50, 0., 1.3);
-        clusterEOne_RandomSingles1 = aida.histogram1D("clusterEOne_RandomSingles1", 50, 0., 1.3);
+        clusterEOne_Random = aida.histogram1D("SSP_clusterEOne_Random", 50, 0., 1.3);
+        clusterEOne_RandomSingles1 = aida.histogram1D("SSP_clusterEOne_RandomSingles1", 50, 0., 1.3);
         plotter2.region(0).plot(clusterEOne_Random);
         plotter2.region(1).plot(clusterEOne_RandomSingles1);
         if(showPlots) plotter2.show();
         
-        plotter3 = fac.createPlotterFactory().create("Cluster energy One ThetaY");
+        plotter3 = fac.createPlotterFactory().create("Cluster energy One ThetaY SSP");
         plotter3.createRegions(2, 5);
-        plotter33 = fac.createPlotterFactory().create("Cluster energy One ThetaY");
+        plotter33 = fac.createPlotterFactory().create("Cluster energy One ThetaY SSP");
         plotter33.createRegions(2, 5);
-        plotter333 = fac.createPlotterFactory().create("Trigger Efficiency One ThetaY");
+        plotter333 = fac.createPlotterFactory().create("Trigger efficiency One ThetaY SSP");
         plotter333.createRegions(2, 5);
         int r = 0;
         for(int i=0; i<2; ++i) {
             for( int y=1; y<6; ++y) {
-                clusterEOne_Random_thetaY[i][y-1] = aida.histogram1D("clusterEOne_Random_thetaY" + y + (i==0?"top":"bottom") , 50, 0., 1.3);
-                clusterEOne_RandomSingles1_thetaY[i][y-1] = aida.histogram1D("clusterEOne_RandomSingles1_thetaY" + y + (i==0?"top":"bottom") , 50, 0., 1.3);
+                clusterEOne_Random_thetaY[i][y-1] = aida.histogram1D("SSP_clusterEOne_Random_thetaY" + y + (i==0?"top":"bottom") , 50, 0., 1.3);
+                clusterEOne_RandomSingles1_thetaY[i][y-1] = aida.histogram1D("SSP_clusterEOne_RandomSingles1_thetaY" + y + (i==0?"top":"bottom") , 50, 0., 1.3);
                 plotter3.region(r).plot(clusterEOne_Random_thetaY[i][y-1]);
                 plotter33.region(r).plot(clusterEOne_RandomSingles1_thetaY[i][y-1]);
                 r++;
@@ -137,14 +137,15 @@ public class TriggerTurnOnDriver extends Driver {
         }
         
         
-        List<Cluster> clusters = null;
-        Cluster clusterEMax = null;
         
-        if(event.hasCollection(Cluster.class , ecalClusterCollectionName)) 
-            clusters = event.get(Cluster.class, ecalClusterCollectionName);
+        List<SSPCluster> clusters = null;
+        SSPCluster clusterEMax = null;
+        
+        clusters = this.getSingles1SSPClusters(event);
+        
 
         if(clusters != null) {
-            for(Cluster cluster : clusters) {
+            for(SSPCluster cluster : clusters) {
                 if(clusterEMax != null) {
                     if(cluster.getEnergy() > clusterEMax.getEnergy()) 
                         clusterEMax = cluster;
@@ -159,7 +160,7 @@ public class TriggerTurnOnDriver extends Driver {
             clusterE_Random.fill(clusterEMax.getEnergy());
             if(clusters.size() == 1) {
                 clusterEOne_Random.fill(clusterEMax.getEnergy());
-                int clusterPosIdy = clusterEMax.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
+                int clusterPosIdy = clusterEMax.getYIndex();
                 if( Math.abs(clusterPosIdy) > 5 ) 
                     throw new RuntimeException("invalid crystal position " + clusterPosIdy);
                 int half = clusterPosIdy > 0 ? 0 : 1;
@@ -175,7 +176,7 @@ public class TriggerTurnOnDriver extends Driver {
                 clusterE_RandomSingles1.fill(clusterEMax.getEnergy());
                 if(clusters.size() == 1) 
                     clusterEOne_RandomSingles1.fill(clusterEMax.getEnergy());
-                    int clusterPosIdy = clusterEMax.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
+                    int clusterPosIdy = clusterEMax.getYIndex();
                     int half = clusterPosIdy > 0 ? 0 : 1;
                     clusterEOne_RandomSingles1_thetaY[half][Math.abs(clusterPosIdy)-1].fill(clusterEMax.getEnergy());
 
