@@ -380,7 +380,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
             double sinphi0 = Math.sin(trk.getTrackStates().get(0).getPhi());
             double omega = trk.getTrackStates().get(0).getOmega();
             double lambda = trk.getTrackStates().get(0).getTanLambda();
-            double z0 = trk.getTrackStates().get(0).getZ0();
+            double z0 = trk.getTrackStates().get(0).getZ0();            
             trkChi2.fill(trk.getChi2());
             nHits.fill(trk.getTrackerHits().size());
             trackNhitsVsChi2.fill(trk.getChi2(), trk.getTrackerHits().size());

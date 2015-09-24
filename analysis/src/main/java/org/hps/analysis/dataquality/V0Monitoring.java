@@ -160,9 +160,8 @@ public class V0Monitoring extends DataQualityMonitor {
         aida.tree().cd("/");
         String xtra = "Extras";
         String trkType = "SeedTrack/";
-        if (isGBL) {
+        if (isGBL)
             trkType = "GBLTrack/";
-        }
         /*  V0 Quantities   */
         /*  Mass, vertex, chi^2 of fit */
         /*  unconstrained */
@@ -242,23 +241,18 @@ public class V0Monitoring extends DataQualityMonitor {
     @Override
     public void process(EventHeader event) {
         /*  make sure everything is there */
-        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
             return;
-        }
-        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
+        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName))
             return;
-        }
-        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName)) {
+        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName))
             return;
-        }
-        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName)) {
+        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName))
             return;
-        }
 
         //check to see if this event is from the correct trigger (or "all");
-        if (!matchTrigger(event)) {
+        if (!matchTrigger(event))
             return;
-        }
 
         nRecoEvents++;
 
@@ -267,9 +261,8 @@ public class V0Monitoring extends DataQualityMonitor {
 
         List<ReconstructedParticle> unonstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
         for (ReconstructedParticle uncV0 : unonstrainedV0List) {
-            if (isGBL != TrackType.isGBL(uncV0.getType())) {
+            if (isGBL != TrackType.isGBL(uncV0.getType()))
                 continue;
-            }
             Vertex uncVert = uncV0.getStartVertex();
             Hep3Vector pVtxRot = VecOp.mult(beamAxisRotation, uncV0.getMomentum());
             double theta = Math.acos(pVtxRot.z() / pVtxRot.magnitude());
@@ -333,9 +326,8 @@ public class V0Monitoring extends DataQualityMonitor {
                 pxEleVspxPos.fill(pEleRot.x(), pPosRot.x());
                 pyEleVspyPos.fill(pEleRot.y(), pPosRot.y());
                 if (pe < v0MaxPCut && pp < v0MaxPCut && (pe + pp) > v0ESumMinCut && (pe + pp) < v0ESumMaxCut)//enrich radiative-like events
-                {
+                
                     pEleVspPosWithCut.fill(pe, pp);
-                }
             }
 
             double eleT = TrackUtils.getTrackTime(ele.getTracks().get(0), hitToStrips, hitToRotated);
@@ -350,9 +342,9 @@ public class V0Monitoring extends DataQualityMonitor {
         List<ReconstructedParticle> beamConstrainedV0List = event.get(ReconstructedParticle.class, beamConV0CandidatesColName);
         nV0.fill(beamConstrainedV0List.size());
         for (ReconstructedParticle bsV0 : beamConstrainedV0List) {
-            if (isGBL != TrackType.isGBL(bsV0.getType())) {
+
+            if (isGBL != TrackType.isGBL(bsV0.getType()))
                 continue;
-            }
             nTotV0++;
             Vertex bsVert = bsV0.getStartVertex();
             bsconVx.fill(bsVert.getPosition().x());
@@ -371,9 +363,10 @@ public class V0Monitoring extends DataQualityMonitor {
 
         List<ReconstructedParticle> targetConstrainedV0List = event.get(ReconstructedParticle.class, targetV0ConCandidatesColName);
         for (ReconstructedParticle tarV0 : targetConstrainedV0List) {
-            if (isGBL != TrackType.isGBL(tarV0.getType())) {
+
+            if (isGBL != TrackType.isGBL(tarV0.getType()))
                 continue;
-            }
+
             Vertex tarVert = tarV0.getStartVertex();
             tarconVx.fill(tarVert.getPosition().x());
             tarconVy.fill(tarVert.getPosition().y());
@@ -384,32 +377,27 @@ public class V0Monitoring extends DataQualityMonitor {
             tarconChi2VsTrkChi2.fill(tarV0.getParticles().get(0).getTracks().get(0).getChi2() + tarV0.getParticles().get(1).getTracks().get(0).getChi2(), tarVert.getChi2());
         }
         List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class, finalStateParticlesColName);
-        if (debug) {
+        if (debug)
             System.out.println("This events has " + finalStateParticles.size() + " final state particles");
-        }
 
         ReconstructedParticle ele1 = null;
         ReconstructedParticle ele2 = null;
         int sumCharge = 0;
         int numChargedParticles = 0;
         for (ReconstructedParticle fsPart : finalStateParticles) {
-            if (isGBL != TrackType.isGBL(fsPart.getType())) {
+            if (isGBL != TrackType.isGBL(fsPart.getType()))
                 continue;
-            }
-            if (debug) {
+            if (debug)
                 System.out.println("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = " + fsPart.getMomentum().x());
-            }
             double charge = fsPart.getCharge();
             sumCharge += charge;
             if (charge != 0) {
                 numChargedParticles++;
-                if (charge < 1) {
-                    if (ele1 == null) {
+                if (charge < 1)
+                    if (ele1 == null)
                         ele1 = fsPart;
-                    } else if (!hasSharedStrips(ele1, fsPart, hitToStrips, hitToRotated)) {
+                    else if (!hasSharedStrips(ele1, fsPart, hitToStrips, hitToRotated))
                         ele2 = fsPart;
-                    }
-                }
             }
         }
         sumChargeHisto.fill(sumCharge);
@@ -480,9 +468,8 @@ public class V0Monitoring extends DataQualityMonitor {
     @Override
     public void printDQMData() {
         System.out.println("V0Monitoring::printDQMData");
-        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
+        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet())
             System.out.println(entry.getKey() + " = " + entry.getValue());
-        }
         System.out.println("*******************************");
     }
 
@@ -507,9 +494,8 @@ public class V0Monitoring extends DataQualityMonitor {
             double[] parsVy = resVy.fittedParameters();
             double[] parsVz = resVz.fittedParameters();
 
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 5; i++)
                 System.out.println("Vertex Fit Parameters:  " + resVx.fittedParameterNames()[i] + " = " + parsVx[i] + "; " + parsVy[i] + "; " + parsVz[i]);
-            }
 
             IPlotter plotter = analysisFactory.createPlotterFactory().create("Vertex Position");
             plotter.createRegions(1, 3);
@@ -523,13 +509,12 @@ public class V0Monitoring extends DataQualityMonitor {
             plotter.region(1).plot(resVy.fittedFunction());
             plotter.region(2).plot(bsconVz);
             plotter.region(2).plot(resVz.fittedFunction());
-            if (outputPlots) {
+            if (outputPlots)
                 try {
                     plotter.writeToFile(outputPlotDir + "vertex.png");
                 } catch (IOException ex) {
                     Logger.getLogger(V0Monitoring.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            }
 
 //        monitoredQuantityMap.put(fpQuantNames[2], sumVx / nTotV0);
 //        monitoredQuantityMap.put(fpQuantNames[3], sumVy / nTotV0);
@@ -550,9 +535,7 @@ public class V0Monitoring extends DataQualityMonitor {
     @Override
     public void printDQMStrings() {
         for (int i = 0; i < 9; i++)//TODO:  do this in a smarter way...loop over the map
-        {
             System.out.println("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
-        }
     }
 
     IFitResult fitVertexPosition(IHistogram1D h1d, IFitter fitter, double[] init, String range
