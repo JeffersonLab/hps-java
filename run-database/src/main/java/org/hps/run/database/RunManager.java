@@ -301,5 +301,14 @@ public final class RunManager implements ConditionsListener {
         if (this.run == null) {
             throw new IllegalStateException("The run number was not set.");
         }
-    }          
+    }    
+    
+    /**
+     * Return the database connection.
+     * 
+     * @return the database connection
+     */
+    Connection getConnection() {
+        return this.connection;
+    }
 }
