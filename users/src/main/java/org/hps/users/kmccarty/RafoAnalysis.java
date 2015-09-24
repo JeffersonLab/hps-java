@@ -16,6 +16,7 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 public class RafoAnalysis extends Driver {
+	private boolean useGoodSVT = false;
 	private String clusterCollectionName = "EcalClusters";
 	private String particleCollectionName = "FinalStateParticles";
 	
@@ -83,7 +84,7 @@ public class RafoAnalysis extends Driver {
         }
 		
         // If the SVT is not properly running, skip the event.
-        //if(!svtGood) { return; }
+        if(!svtGood && useGoodSVT) { return; }
         
 		// Get the list of particles, if it exists.
 		List<ReconstructedParticle> trackList = null;
@@ -392,5 +393,9 @@ public class RafoAnalysis extends Driver {
 		
 		// Return the resulting cluster pairs.
 		return pairList;
+	}
+	
+	public void setUseGoodSVT(boolean state) {
+		useGoodSVT = state;
 	}
 }
