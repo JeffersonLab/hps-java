@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-EngRun2015-Nominal-v1-1">
-        <comment>HPS detector for 2015 Engineering Run with tracker closed
-                  this detector uses the box dipole at -0.25T for 1 GeV running.
-               Millepede aligned: 1) float L2_tu, 2) float L2_tu, L4_tu, L5_tu
+    <info name="HPS-EngRun2015-Nominal-v1">
+        <comment>HPS detector for 2015 Engineering Run with tracker fully open
+                  this detector uses the box dipole at -0.25T for 1 GeV running                   
         </comment>
     </info>
-    
 
     <define>
     
