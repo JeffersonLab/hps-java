@@ -259,7 +259,7 @@ public class RunDatabaseCommandLine {
     private List<File> getEvioFiles(int run) {
         DatacatClient datacatClient = new DatacatClientFactory().createClient();
         Set<String> metadata = new HashSet<String>();
-        List<Dataset> datasets = datacatClient.findDatasets("data/raw", "dataFormat eq 'EVIO' AND dataType eq 'RAW' AND runMin eq " + run, metadata);
+        List<Dataset> datasets = datacatClient.findDatasets("data/raw", "fileFormat eq 'EVIO' AND dataType eq 'RAW' AND runMin eq " + run, metadata);
         if (datasets.isEmpty()) {
             throw new IllegalStateException("No EVIO datasets for run " + run + " were found in the data catalog.");
         }
