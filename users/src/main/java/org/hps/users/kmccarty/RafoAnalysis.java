@@ -352,10 +352,15 @@ public class RafoAnalysis extends Driver {
 		List<ReconstructedParticle> topList = new ArrayList<ReconstructedParticle>();
 		List<ReconstructedParticle> botList = new ArrayList<ReconstructedParticle>();
 		for(ReconstructedParticle track : tracks) {
-			if(track.getMomentum().y() > 0.0) {
-				topList.add(track);
-			} else {
-				botList.add(track);
+			// Make sure that the track actually contains tracks.
+			if(track.getTracks().size() > 0) {
+				// Use the tan(Λ) to differentiate "top" and "bottom"
+				// tracks from one another.
+				if(track.getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0) {
+					topList.add(track);
+				} else {
+					botList.add(track);
+				}
 			}
 		}
 		

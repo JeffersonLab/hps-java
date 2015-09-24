@@ -6,12 +6,15 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
+import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -55,6 +58,20 @@ public class MTEAnalysis extends Driver {
 	private IHistogram1D negTrackCount = aida.histogram1D("MTE Analysis/All Negative Tracks", 10, -0.5, 9.5);
 	private IHistogram1D posTrackCount = aida.histogram1D("MTE Analysis/All Positive Event Tracks", 10, -0.5, 9.5);
 	private IHistogram1D chargedTrackCount = aida.histogram1D("MTE Analysis/All Event Event Tracks", 10, -0.5, 9.5);
+	
+	private IHistogram1D trTimeCoincidenceAll          = aida.histogram1D("Trident/Time Coincidence",                    45, 0.0, 15.0);
+	private IHistogram1D trTimeCoincidenceFiducial     = aida.histogram1D("Trident/Time Coincidence (Fiducial Region)",  45, 0.0, 15.0);
+	private IHistogram1D trEnergySumAll                = aida.histogram1D("Trident/Energy Sum",                         220, 0.0,  1.1);
+	private IHistogram1D trEnergySumFiducial           = aida.histogram1D("Trident/Energy Sum (Fiducial Region)",       220, 0.0,  1.1);
+	private IHistogram2D trEnergySum2DAll              = aida.histogram2D("Trident/Top Cluster Energy vs. Bottom Cluster Energy",                   220, 0, 1.1, 220, 0, 1.1);
+	private IHistogram2D trEnergySum2DFiducial         = aida.histogram2D("Trident/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 220, 0, 1.1, 220, 0, 1.1);
+	private IHistogram2D trSumCoplanarityAll           = aida.histogram2D("Trident/Hardware Coplanarity vs. Energy Sum",                            220, 0, 1.1, 115, 0, 230);
+	private IHistogram2D trSumCoplanarityFiducial      = aida.histogram2D("Trident/Hardware Coplanarity vs. Energy Sum (Fiducial Region)",          220, 0, 1.1, 115, 0, 230);
+	private IHistogram2D trSumCoplanarityCalcAll       = aida.histogram2D("Trident/Calculated Coplanarity vs. Energy Sum",                          220, 0, 1.1, 115, 0, 230);
+	private IHistogram2D trSumCoplanarityCalcFiducial  = aida.histogram2D("Trident/Calculated Coplanarity vs. Energy Sum (Fiducial Region)",        220, 0, 1.1, 115, 0, 230);
+	private IHistogram2D trTimeEnergyAll               = aida.histogram2D("Trident/Cluster Time vs. Cluster Energy",                                220, 0, 1.1, 100, 0, 100);
+	private IHistogram2D trTimeEnergyFiducial          = aida.histogram2D("Trident/Cluster Time vs. Cluster Energy (Fiducial Region)",              220, 0, 1.1, 100, 0, 100);
+	
 	private TriggerPlotsModule allPlots = new TriggerPlotsModule("All");
 	private TriggerPlotsModule møllerPlots = new TriggerPlotsModule("Møller");
 	private TriggerPlotsModule tridentPlots = new TriggerPlotsModule("Trident");
@@ -298,7 +315,6 @@ public class MTEAnalysis extends Driver {
 				// Check the trident condition.
 				if((pair[0].getCharge() < 0 && pair[1].getCharge() > 0) || pair[0].getCharge() > 0 && pair[1].getCharge() < 0) {
 					// Both tracks must have clusters associated with them.
-					/*
 					Cluster[] trackClusters = new Cluster[2];
 					for(int i = 0; i < 2; i++) {
 						// Disallow tracks with no associated clusters.
@@ -319,14 +335,12 @@ public class MTEAnalysis extends Driver {
 					if(Math.abs(trackClusters[0].getCalorimeterHits().get(0).getTime() - trackClusters[1].getCalorimeterHits().get(0).getTime()) > timeCoincidenceCut) {
 						continue tridentTrackLoop;
 					}
-					*/
 					
 					// Require that the energy of the electron is below
 					// 900 MeV.
-					//if((pair[0].getCharge() < 0 && pair[0].getMomentum().magnitude() < 0.900)
-					//		|| (pair[1].getCharge() < 0 && pair[1].getMomentum().magnitude() < 0.900)) {
+					if((pair[0].getCharge() < 0 && pair[0].getMomentum().magnitude() < 0.900) || (pair[1].getCharge() < 0 && pair[1].getMomentum().magnitude() < 0.900)) {
 						isTrident = true;
-						//tridentPlots.addClusterPair(trackClusters);
+						tridentPlots.addClusterPair(trackClusters);
 						if(pair[0].getCharge() > 0) {
 							positronPlot.fill(pair[1].getMomentum().magnitude());
 							electronPlot[TRIDENT].fill(pair[0].getMomentum().magnitude());
@@ -336,7 +350,47 @@ public class MTEAnalysis extends Driver {
 						}
 						energyPlot[TRIDENT].fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
 						energy2DPlot[TRIDENT].fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
-					//}
+						
+						// Track which clusters have already been added to the
+						// singles plot so that there are no repeats.
+						Set<Cluster> plotSet = new HashSet<Cluster>();
+						Set<Cluster> plotFiducial = new HashSet<Cluster>();
+						
+						// Fill the all pairs plots.
+						double pairEnergy = trackClusters[0].getEnergy() + trackClusters[1].getEnergy();
+						trEnergySumAll.fill(pairEnergy);
+						trEnergySum2DAll.fill(trackClusters[1].getEnergy(), trackClusters[0].getEnergy());
+						trTimeCoincidenceAll.fill(TriggerModule.getValueTimeCoincidence(trackClusters));
+						trSumCoplanarityCalcAll.fill(pairEnergy, getCalculatedCoplanarity(trackClusters));
+						trSumCoplanarityAll.fill(pairEnergy, TriggerModule.getValueCoplanarity(trackClusters));
+						
+						// Fill the singles plots.
+						if(!plotSet.contains(trackClusters[0])) {
+							plotSet.add(trackClusters[0]);
+							trTimeEnergyAll.fill(trackClusters[0].getEnergy(), TriggerModule.getClusterTime(trackClusters[0]));
+						} if(!plotSet.contains(trackClusters[1])) {
+							plotSet.add(trackClusters[1]);
+							trTimeEnergyAll.fill(trackClusters[1].getEnergy(), TriggerModule.getClusterTime(trackClusters[1]));
+						}
+						
+						// Fill the fiducial plots if appropriate.
+						if(inFiducialRegion(trackClusters[0]) && inFiducialRegion(trackClusters[1])) {
+							trEnergySumFiducial.fill(pairEnergy);
+							trEnergySum2DFiducial.fill(trackClusters[1].getEnergy(), trackClusters[0].getEnergy());
+							trTimeCoincidenceFiducial.fill(TriggerModule.getValueTimeCoincidence(trackClusters));
+							trSumCoplanarityCalcFiducial.fill(pairEnergy, getCalculatedCoplanarity(trackClusters));
+							trSumCoplanarityFiducial.fill(pairEnergy, TriggerModule.getValueCoplanarity(trackClusters));
+						}
+						
+						// Fill the singles fiducial plots if appropriate.
+						if(!plotFiducial.contains(trackClusters[0]) && inFiducialRegion(trackClusters[0])) {
+							plotFiducial.add(trackClusters[0]);
+							trTimeEnergyFiducial.fill(trackClusters[0].getEnergy(), TriggerModule.getClusterTime(trackClusters[0]));
+						} if(!plotFiducial.contains(trackClusters[1]) && inFiducialRegion(trackClusters[1])) {
+							plotFiducial.add(trackClusters[1]);
+							trTimeEnergyFiducial.fill(trackClusters[1].getEnergy(), TriggerModule.getClusterTime(trackClusters[1]));
+						}
+					}
 				}
 			}
 			
@@ -428,12 +482,69 @@ public class MTEAnalysis extends Driver {
 		}
 	}
 	
+	private static final double getCalculatedCoplanarity(Cluster[] pair) {
+		// Define the x- and y-coordinates of the clusters as well as
+		// calorimeter center.
+		final double ORIGIN_X = 42.52;
+		double x[] = { pair[0].getPosition()[0], pair[1].getPosition()[0] };
+		double y[] = { pair[0].getPosition()[1], pair[1].getPosition()[1] };
+		
+        // Get the cluster angles.
+        double[] clusterAngle = new double[2];
+        for(int i = 0; i < 2; i++) {
+        	clusterAngle[i] = Math.atan2(y[i], x[i] - ORIGIN_X) * 180 / Math.PI;
+        	if(clusterAngle[i] <= 0) { clusterAngle[i] += 360; }
+        }
+        
+        // Calculate the coplanarity cut value.
+        double clusterDiff = clusterAngle[0] - clusterAngle[1];
+        return clusterDiff > 0 ? clusterDiff : clusterDiff + 360;
+	}
+	
 	public void setTimeCoincidenceCut(double value) {
 		timeCoincidenceCut = value;
 	}
 	
 	public void setExcludeNoTrackEvents(boolean state) {
 		excludeNoTrackEvents = state;
+	}
+	
+	private static final boolean inFiducialRegion(Cluster cluster) {
+		// Get the x and y indices for the cluster.
+		int ix   = TriggerModule.getClusterXIndex(cluster);
+		int absx = Math.abs(TriggerModule.getClusterXIndex(cluster));
+		int absy = Math.abs(TriggerModule.getClusterYIndex(cluster));
+		
+		// Check if the cluster is on the top or the bottom of the
+		// calorimeter, as defined by |y| == 5. This is an edge cluster
+		// and is not in the fiducial region.
+		if(absy == 5) {
+			return false;
+		}
+		
+		// Check if the cluster is on the extreme left or right side
+		// of the calorimeter, as defined by |x| == 23. This is also
+		// and edge cluster is not in the fiducial region.
+		if(absx == 23) {
+			return false;
+		}
+		
+		// Check if the cluster is along the beam gap, as defined by
+		// |y| == 1. This is an internal edge cluster and is not in the
+		// fiducial region.
+		if(absy == 1) {
+			return false;
+		}
+		
+		// Lastly, check if the cluster falls along the beam hole, as
+		// defined by clusters with -11 <= x <= -1 and |y| == 2. This
+		// is not the fiducial region.
+		if(absy == 2 && ix <= -1 && ix >= -11) {
+			return false;
+		}
+		
+		// If all checks fail, the cluster is in the fiducial region.
+		return true;
 	}
 	
 	private static final List<ReconstructedParticle[]> getTrackPairs(List<ReconstructedParticle> trackList) {
