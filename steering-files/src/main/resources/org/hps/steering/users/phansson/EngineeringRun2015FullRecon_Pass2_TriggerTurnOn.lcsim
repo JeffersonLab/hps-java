@@ -7,7 +7,7 @@
       @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
     -->
     <execute>
-        
+        <!--<driver name="TimerDriver1"/>-->
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
@@ -15,6 +15,7 @@
         <driver name="CopyCluster" />
         <driver name="EventMarkerDriver"/>
         <driver name="TriggerTurnOnDriver"/>
+        <driver name="TriggerTurnOnSSPDriver"/>
         <driver name="LCIOWriter"/>
         <driver name="AidaSaveDriver"/> 
         <driver name="CleanupDriver"/>
@@ -40,6 +41,7 @@
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
         </driver>
         <driver name="TriggerTurnOnDriver" type="org.hps.analysis.trigger.TriggerTurnOnDriver"/>
+        <driver name="TriggerTurnOnSSPDriver" type="org.hps.analysis.trigger.TriggerTurnOnSSPDriver"/>
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
@@ -103,6 +105,7 @@
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
-        </driver>       
+        </driver>  
+        <driver name="TimerDriver1" type="org.hps.util.TimerDriver"/>     
     </drivers>
 </lcsim>
