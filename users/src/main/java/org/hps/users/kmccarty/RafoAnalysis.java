@@ -202,17 +202,23 @@ public class RafoAnalysis extends Driver {
 		// Define the x- and y-coordinates of the clusters as well as
 		// calorimeter center.
 		final double ORIGIN_X = 42.52;
-		double x[] = { TriggerModule.getClusterSeedHit(pair[0]).getPosition()[0], TriggerModule.getClusterSeedHit(pair[1]).getPosition()[0] };
-		double y[] = { TriggerModule.getClusterSeedHit(pair[0]).getPosition()[0], TriggerModule.getClusterSeedHit(pair[1]).getPosition()[0] };
+		double x[] = { pair[0].getPosition()[0], pair[1].getPosition()[0] };
+		double y[] = { pair[0].getPosition()[1], pair[1].getPosition()[1] };
+		//double x[] = { TriggerModule.getClusterSeedHit(pair[0]).getPosition()[0], TriggerModule.getClusterSeedHit(pair[1]).getPosition()[0] };
+		//double y[] = { TriggerModule.getClusterSeedHit(pair[0]).getPosition()[0], TriggerModule.getClusterSeedHit(pair[1]).getPosition()[0] };
 		
         // Get the cluster angles.
         double[] clusterAngle = new double[2];
         for(int i = 0; i < 2; i++) {
-            clusterAngle[i] = (Math.toDegrees(Math.atan2(y[i], x[i] - ORIGIN_X)) + 180.0) % 180.0;
+        	clusterAngle[i] = Math.atan2(y[i], x[i] - ORIGIN_X) * 180 / Math.PI;
+        	if(clusterAngle[i] <= 0) { clusterAngle[i] += 360; }
+        	//clusterAngle[i] = (Math.toDegrees(Math.atan2(y[i], x[i] - ORIGIN_X)) + 180.0) % 180.0;
         }
         
         // Calculate the coplanarity cut value.
-        return Math.abs(clusterAngle[1] - clusterAngle[0]);
+        //return Math.abs(clusterAngle[1] - clusterAngle[0]);
+        double clusterDiff = clusterAngle[0] - clusterAngle[1];
+        return clusterDiff > 0 ? clusterDiff : clusterDiff + 360;
 	}
 	
 	private static final boolean inFiducialRegion(Cluster cluster) {
