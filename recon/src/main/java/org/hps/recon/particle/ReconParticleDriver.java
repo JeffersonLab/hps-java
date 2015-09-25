@@ -33,11 +33,18 @@ import org.lcsim.util.Driver;
  */
 public abstract class ReconParticleDriver extends Driver {
 
-    /** Utility used to determine if a track and cluster are matched */
-    TrackClusterMatcher matcher = new TrackClusterMatcher(); 
-    
+    /**
+     * Utility used to determine if a track and cluster are matched
+     */
+    TrackClusterMatcher matcher = new TrackClusterMatcher();
+
     String[] trackCollectionNames = null;
-    
+
+    public static final int ELECTRON = 0;
+    public static final int POSITRON = 1;
+    public static final int MOLLER_TOP = 0;
+    public static final int MOLLER_BOT = 1;
+
     /**
      * Sets the name of the LCIO collection for beam spot constrained V0
      * candidate particles.
@@ -159,7 +166,8 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Set the names of the LCIO track collections used as input.
      *
-     * @param trackCollectionNames Array of collection names. If not set, use all Track collections in the event.
+     * @param trackCollectionNames Array of collection names. If not set, use
+     * all Track collections in the event.
      */
     public void setTrackCollectionNames(String[] trackCollectionNames) {
         this.trackCollectionNames = trackCollectionNames;
@@ -172,16 +180,16 @@ public abstract class ReconParticleDriver extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
         matcher.enablePlots(false);
-        
+
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 1.);
         bField = detector.getFieldMap().getField(ip).y();
         if (bField < 0) {
             flipSign = -1;
         }
-       
+
         matcher.setBFieldMap(detector.getFieldMap());
-        
+
     }
 
     /**
@@ -207,36 +215,36 @@ public abstract class ReconParticleDriver extends Driver {
      * data.
      */
     protected List<ReconstructedParticle> makeReconstructedParticles(List<Cluster> clusters, List<List<Track>> trackCollections) {
-        
+
         // Create a list in which to store reconstructed particles.
         List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
 
         // Create a list of unmatched clusters. A cluster should be
         // removed from the list if a matching track is found.
         Set<Cluster> unmatchedClusters = new HashSet<Cluster>(clusters);
-        
+
         // Loop through all of the track collections and try to match every
         // track to a cluster.  Allow a cluster to be matched to multiple 
         // tracks and use a probability (to be coded later) to determine what 
         // the best match is.
         // TODO: At some point, pull this out to it's own method
-        for (List<Track> tracks : trackCollections) { 
-            for (Track track : tracks) { 
-                
+        for (List<Track> tracks : trackCollections) {
+            for (Track track : tracks) {
+
                 // Create a reconstructed particle to represent the track.
                 ReconstructedParticle particle = new BaseReconstructedParticle();
-            
+
                 // Store the track in the particle.
                 particle.addTrack(track);
-                
+
                 // Set the type of the particle.  This is used to identify
                 // the tracking strategy used in finding the track associated with
                 // this particle.
                 ((BaseReconstructedParticle) particle).setType(track.getType());
-               
+
                 // Derive the charge of the particle from the track.
                 ((BaseReconstructedParticle) particle).setCharge(track.getCharge() * flipSign);
-                
+
                 // Extrapolate the particle ID from the track. Positively
                 // charged particles are assumed to be positrons and those
                 // with negative charges are assumed to be electrons.
@@ -245,16 +253,16 @@ public abstract class ReconParticleDriver extends Driver {
                 } else if (particle.getCharge() < 0) {
                     ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
                 }
-          
+
                 Cluster matchedCluster = null;
-                
+
                 // Track the best matching cluster for the track.
                 // TODO: This should find the best match not just the first match.
                 clusterLoop:
                 for (Cluster cluster : clusters) {
                     // Check if the cluster and track are a valid match.
                     if (matcher.isMatch(cluster, track)) {
-                        
+
                         // Store the matched cluster.
                         matchedCluster = cluster;
 
@@ -263,35 +271,39 @@ public abstract class ReconParticleDriver extends Driver {
                         break clusterLoop;
                     }
                 }
-                
+
                 // If a cluster was found that matches the track...
                 if (matchedCluster != null) {
                     particle.addCluster(matchedCluster);
-                   
+
                     int pid = particle.getParticleIDUsed().getPDG();
-                    if (Math.abs(pid) == 11) ((BaseCluster) matchedCluster).setParticleId(pid);
-                    
+                    if (Math.abs(pid) == 11) {
+                        ((BaseCluster) matchedCluster).setParticleId(pid);
+                    }
+
                     unmatchedClusters.remove(matchedCluster);
                 }
-            
+
                 // Add the particle to the list of reconstructed particles.
                 particles.add(particle);
             }
         }
-        
+
         // Iterate over the remaining unmatched clusters.
-        if (!unmatchedClusters.isEmpty())  { 
+        if (!unmatchedClusters.isEmpty()) {
             for (Cluster unmatchedCluster : unmatchedClusters) {
-            
+
                 // Create a reconstructed particle to represent the unmatched cluster.
                 ReconstructedParticle particle = new BaseReconstructedParticle();
-                
+
                 // The particle is assumed to be a photon, since it did not leave a track.
                 ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(22, 0, 0, 0));
-                
+
                 int pid = particle.getParticleIDUsed().getPDG();
-                if (Math.abs(pid) != 11) ((BaseCluster) unmatchedCluster).setParticleId(pid);
-                
+                if (Math.abs(pid) != 11) {
+                    ((BaseCluster) unmatchedCluster).setParticleId(pid);
+                }
+
                 // Add the cluster to the particle.
                 particle.addCluster(unmatchedCluster);
 
@@ -302,33 +314,33 @@ public abstract class ReconParticleDriver extends Driver {
                 particles.add(particle);
             }
         }
-        
+
         // Apply the corrections to the Ecal clusters
-        for (Cluster cluster : clusters) { 
-            if (cluster.getParticleId() != 0) { 
+        for (Cluster cluster : clusters) {
+            if (cluster.getParticleId() != 0) {
                 ClusterUtilities.applyCorrections(cluster);
             }
         }
-       
-        for (ReconstructedParticle particle : particles) { 
+
+        for (ReconstructedParticle particle : particles) {
             double clusterEnergy = 0;
-            Hep3Vector momentum = null; 
-            
-            if (!particle.getClusters().isEmpty()) { 
+            Hep3Vector momentum = null;
+
+            if (!particle.getClusters().isEmpty()) {
                 clusterEnergy = particle.getClusters().get(0).getEnergy();
             }
-            
+
             if (!particle.getTracks().isEmpty()) {
                 momentum = new BasicHep3Vector(particle.getTracks().get(0).getTrackStates().get(0).getMomentum());
                 momentum = CoordinateTransformations.transformVectorToDetector(momentum);
-            } else if (!particle.getClusters().isEmpty()) { 
+            } else if (!particle.getClusters().isEmpty()) {
                 momentum = new BasicHep3Vector(particle.getClusters().get(0).getPosition());
                 momentum = VecOp.mult(clusterEnergy, VecOp.unit(momentum));
             }
             HepLorentzVector fourVector = new BasicHepLorentzVector(clusterEnergy, momentum);
             ((BaseReconstructedParticle) particle).set4Vector(fourVector);
         }
-        
+
         // Return the list of reconstructed particles.
         return particles;
     }
@@ -355,10 +367,12 @@ public abstract class ReconParticleDriver extends Driver {
      */
     @Override
     protected void process(EventHeader event) {
-        
+
         // All events are required to contain Ecal clusters. If
         // the event lacks these, then it should be skipped.
-        if (!event.hasCollection(Cluster.class, ecalClustersCollectionName)) return;
+        if (!event.hasCollection(Cluster.class, ecalClustersCollectionName)) {
+            return;
+        }
 
         // VERBOSE :: Note that a new event is being read.
         printDebug("\nProcessing Event...");
@@ -368,7 +382,7 @@ public abstract class ReconParticleDriver extends Driver {
 
         // VERBOSE :: Output the number of clusters in the event.
         printDebug("Clusters :: " + clusters.size());
-        
+
         // Get all collections of the type Track from the event. This is
         // required in case an event contains different track collection
         // for each of the different tracking strategies.  If the event
@@ -406,7 +420,7 @@ public abstract class ReconParticleDriver extends Driver {
         // Loop through all of the track collections present in the event and 
         // create final state particles.
         finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections));
-        
+
         // VERBOSE :: Output the number of reconstructed particles.
         printDebug("Final State Particles :: " + finalStateParticles.size());
 
@@ -500,7 +514,7 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     @Override
-    protected void endOfData() { 
+    protected void endOfData() {
         //matcher.saveHistograms();
     }
 
@@ -508,12 +522,11 @@ public abstract class ReconParticleDriver extends Driver {
     // ==== Class Variables =========================================
     // ==============================================================
     // Local variables.
-    
     /**
      * Indicates whether debug text should be output or not.
      */
     private boolean debug = false;
-    
+
     /**
      * The simple name of the class used for debug print statements.
      */
