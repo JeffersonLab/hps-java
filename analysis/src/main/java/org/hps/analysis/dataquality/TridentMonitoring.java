@@ -12,6 +12,8 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
@@ -32,7 +34,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 
     private double ebeam = 1.05;
     private BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
-    private static final int nCuts = 6;
+    private static final int nCuts = 8;
     private static final int PASS = 0;
     private static final int FAIL = 1;
 
@@ -98,7 +100,8 @@ public class TridentMonitoring extends DataQualityMonitor {
     private double trkPxMax = 0.2;
     private double radCut = 0.8 * ebeam;
     private double trkTimeDiff = 16.0;
-    
+    private double clusterTimeDiffCut = 2.5;
+
     private double l1IsoMin = 1.0;
 //cluster matching
     private boolean reqCluster = false;
@@ -112,8 +115,10 @@ public class TridentMonitoring extends DataQualityMonitor {
     private float nPassTrkQualityCuts = 0;
     private float nPassV0QualityCuts = 0;
     private float nPassV0Cuts = 0;
-    private float nPassTrkCuts = 0;
     private float nPassTimeCuts = 0;
+    private float nPassTrkCuts = 0;
+    private float nPassClusterMatchCuts = 0;
+    private float nPassFrontHitsCuts = 0;
     private float nPassIsoCuts = 0;
 
     private float nPassClusterCuts = 0;
@@ -251,19 +256,10 @@ public class TridentMonitoring extends DataQualityMonitor {
             Hep3Vector v0Vtx = VecOp.mult(beamAxisRotation, uncVert.getPosition());
 
             List<Track> tracks = new ArrayList<Track>();
-            ReconstructedParticle electron = null, positron = null;
-            for (ReconstructedParticle particle : uncV0.getParticles()) //                tracks.addAll(particle.getTracks());  //add add electron first, then positron...down below
-            {
-                if (particle.getCharge() > 0) {
-                    positron = particle;
-                } else if (particle.getCharge() < 0) {
-                    electron = particle;
-                } else {
-                    throw new RuntimeException("expected only electron and positron in vertex, got something with charge 0");
-                }
-            }
-            if (electron == null || positron == null) {
-                throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
+            ReconstructedParticle electron = uncV0.getParticles().get(ReconParticleDriver.ELECTRON);
+            ReconstructedParticle positron = uncV0.getParticles().get(ReconParticleDriver.POSITRON);
+            if (!(electron.getCharge() < 0 && positron.getCharge() > 0)) {
+                throw new RuntimeException("incorrect charge on v0 daughters");
             }
             tracks.add(electron.getTracks().get(0));
             tracks.add(positron.getTracks().get(0));
@@ -355,7 +351,34 @@ public class TridentMonitoring extends DataQualityMonitor {
             cutNum++;
             nPassTrkCuts++;
 
+            boolean clusterMatchCut = !electron.getClusters().isEmpty() && !positron.getClusters().isEmpty();
+            boolean clusterTimeCut = clusterMatchCut && Math.abs(ClusterUtilities.getSeedHitTime(electron.getClusters().get(0)) - ClusterUtilities.getSeedHitTime(positron.getClusters().get(0))) < clusterTimeDiffCut;
+            if (!clusterMatchCut || !clusterTimeCut) {
+                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
+                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
+                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
+                continue;
+            }
+            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
+            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
+            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            cutNum++;
+            nPassClusterMatchCuts++;
+
             candidateList.add(uncV0);
+
+            boolean frontHitsCut = eleIso[0] != null && posIso[0] != null && eleIso[2] != null && posIso[2] != null;
+            if (!frontHitsCut) {
+                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
+                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
+                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
+                continue;
+            }
+            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
+            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
+            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            cutNum++;
+            nPassFrontHitsCuts++;
 
             boolean isoCut = minL1Iso > l1IsoMin;
             if (!isoCut) {
@@ -369,7 +392,7 @@ public class TridentMonitoring extends DataQualityMonitor {
             cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
             cutNum++;
             nPassIsoCuts++;
-            
+
             vertCandidateList.add(uncV0);
         }
 
@@ -453,10 +476,12 @@ public class TridentMonitoring extends DataQualityMonitor {
         System.out.println("V0 Vertex   Cuts:\t\t" + nPassV0Cuts + "\t\t\t" + nPassV0Cuts / nPassV0QualityCuts + "\t\t\t" + nPassV0Cuts / nRecoEvents);
         System.out.println("Timing      Cuts:\t\t" + nPassTimeCuts + "\t\t\t" + nPassTimeCuts / nPassV0Cuts + "\t\t\t" + nPassTimeCuts / nRecoEvents);
         System.out.println("Tracking    Cuts:\t\t" + nPassTrkCuts + "\t\t\t" + nPassTrkCuts / nPassTimeCuts + "\t\t\t" + nPassTrkCuts / nRecoEvents);
-        
+        System.out.println("Cluster    Cuts:\t\t" + nPassClusterMatchCuts + "\t\t\t" + nPassClusterMatchCuts / nPassTrkCuts + "\t\t\t" + nPassClusterMatchCuts / nRecoEvents);
+
         System.out.println("\t\t\tVertex Selection Summary");
         System.out.println("******************************************************************************************");
-        System.out.println("Isolation   Cuts:\t\t" + nPassIsoCuts + "\t\t\t" + nPassIsoCuts / nPassTrkCuts + "\t\t\t" + nPassIsoCuts / nRecoEvents);
+        System.out.println("Front Hits  Cuts:\t\t" + nPassFrontHitsCuts + "\t\t\t" + nPassFrontHitsCuts / nPassClusterMatchCuts + "\t\t\t" + nPassFrontHitsCuts / nRecoEvents);
+        System.out.println("Isolation   Cuts:\t\t" + nPassIsoCuts + "\t\t\t" + nPassIsoCuts / nPassFrontHitsCuts + "\t\t\t" + nPassIsoCuts / nRecoEvents);
         System.out.println("******************************************************************************************");
     }
 
