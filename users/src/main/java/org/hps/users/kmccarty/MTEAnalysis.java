@@ -27,6 +27,7 @@ public class MTEAnalysis extends Driver {
 	// Define track LCIO information.
 	private String bankCollectionName = "TriggerBank";
 	private String particleCollectionName = "FinalStateParticles";
+	private boolean useGoodSVT = true;
 	private static final AIDA aida = AIDA.defaultInstance();
 	private IHistogram1D[] chargedTracksPlot = {
 			aida.histogram1D("MTE Analysis/Møller Event Tracks", 10, -0.5, 9.5),
@@ -157,6 +158,19 @@ public class MTEAnalysis extends Driver {
 	
 	@Override
 	public void process(EventHeader event) {
+		// Check whether the SVT was active in this event.
+		final String[] flagNames = { "svt_bias_good", "svt_burstmode_noise_good", "svt_position_good" };
+		boolean svtGood = true;
+        for(int i = 0; i < flagNames.length; i++) {
+            int[] flag = event.getIntegerParameters().get(flagNames[i]);
+            if(flag == null || flag[0] == 0) {
+                svtGood = false;
+            }
+        }
+		
+        // If the SVT is not properly running, skip the event.
+        if(!svtGood && useGoodSVT) { return; }
+		
 		if(event.hasCollection(ReconstructedParticle.class, particleCollectionName)) {
 			// Get the list of tracks.
 			List<ReconstructedParticle> trackList = event.get(ReconstructedParticle.class, particleCollectionName);
@@ -180,7 +194,7 @@ public class MTEAnalysis extends Driver {
 			// Populate the all cluster plots.
 			List<Cluster> topClusters = new ArrayList<Cluster>();
 			List<Cluster> botClusters = new ArrayList<Cluster>();
-			List<Cluster> clusters = event.get(Cluster.class, "EcalClusters");
+			List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
 			for(Cluster cluster : clusters) {
 				allPlots.addCluster(cluster);
 				if(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") > 0) { topClusters.add(cluster); }
@@ -507,6 +521,10 @@ public class MTEAnalysis extends Driver {
 	
 	public void setExcludeNoTrackEvents(boolean state) {
 		excludeNoTrackEvents = state;
+	}
+	
+	public void setUseGoodSVT(boolean state) {
+		useGoodSVT = state;
 	}
 	
 	private static final boolean inFiducialRegion(Cluster cluster) {
