@@ -158,7 +158,7 @@ public class TridentMonitoring extends DataQualityMonitor {
         trackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Track time difference", 100, -10, 10);
         trackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Track time vs. track time", 100, -10, 10, 100, -10, 10);
         vertexMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex mass vs. vertex momentum", 100, 0, 1.1, 100, 0, 0.1);
-        vertexZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Z vs. vertex momentum", 100, -v0VzMax, v0VzMax, 100, 0, 0.1);
+        vertexZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Z vs. vertex momentum", 100, 0, 0.1, 100, -v0VzMax, v0VzMax);
         vertexedTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Positron vs. electron momentum", 100, 0, 1.1, 100, 0, 1.1);
         vertexedTrackMomentum2DRad = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Positron vs. electron momentum: radiative", 100, 0, 1.1, 100, 0, 1.1);
         vertexPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Py vs. Px", 100, -0.04, 0.04, 100, -0.04, 0.04);
