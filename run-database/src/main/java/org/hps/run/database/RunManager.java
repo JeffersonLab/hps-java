@@ -26,6 +26,7 @@ public final class RunManager implements ConditionsListener {
      * Simple class for caching data.
      */
     private class DataCache {
+        Boolean runExists;
         TriggerConfig triggerConfig;
         List<EpicsData> epicsData;
         List<ScalerData> scalerData;
@@ -144,7 +145,6 @@ public final class RunManager implements ConditionsListener {
      * @return the complete list of run numbers
      */
     public List<Integer> getRuns() {
-        openConnection();
         return new RunSummaryDaoImpl(this.connection).getRuns();
     }
 
@@ -292,7 +292,10 @@ public final class RunManager implements ConditionsListener {
      */
     public boolean runExists() {
         checkRunNumber();
-        return this.getRunSummary() != null;
+        if (this.dataCache.runExists == null) {
+            this.dataCache.runExists = factory.createRunSummaryDao().runSummaryExists(run);
+        }
+        return this.dataCache.runExists;
     }
         
     /**
