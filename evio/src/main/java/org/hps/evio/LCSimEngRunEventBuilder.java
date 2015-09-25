@@ -114,7 +114,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
                 return tiData.getTime() + tiTimeOffset;
             }
         }
-        return tiTimeOffset;
+        return 0;
     }
 
     /**
