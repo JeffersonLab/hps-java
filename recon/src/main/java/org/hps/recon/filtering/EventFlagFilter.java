@@ -3,14 +3,15 @@ package org.hps.recon.filtering;
 import org.lcsim.event.EventHeader;
 
 /**
- * Accept only events where all of the specified flags have a value of 1.
+ * Accept only events where all of the specified flags exist and have a value of
+ * 1.
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: $
  */
 public class EventFlagFilter extends EventReconFilter {
 
-    String[] flagNames = null;
+    String[] flagNames = {"svt_bias_good", "svt_position_good", "svt_burstmode_noise_good"};
 
     public void setFlagNames(String[] flagNames) {
         this.flagNames = flagNames;
