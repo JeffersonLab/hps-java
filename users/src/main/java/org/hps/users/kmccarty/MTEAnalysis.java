@@ -27,7 +27,6 @@ public class MTEAnalysis extends Driver {
 	// Define track LCIO information.
 	private String bankCollectionName = "TriggerBank";
 	private String particleCollectionName = "FinalStateParticles";
-	private boolean useGoodSVT = true;
 	private static final AIDA aida = AIDA.defaultInstance();
 	private IHistogram1D[] chargedTracksPlot = {
 			aida.histogram1D("MTE Analysis/Møller Event Tracks", 10, -0.5, 9.5),
@@ -64,14 +63,14 @@ public class MTEAnalysis extends Driver {
 	private IHistogram1D trTimeCoincidenceFiducial     = aida.histogram1D("Trident/Time Coincidence (Fiducial Region)", 150, 0.0, 15.0);
 	private IHistogram1D trEnergySumAll                = aida.histogram1D("Trident/Energy Sum",                         220, 0.0,  1.1);
 	private IHistogram1D trEnergySumFiducial           = aida.histogram1D("Trident/Energy Sum (Fiducial Region)",       220, 0.0,  1.1);
-	private IHistogram2D trEnergySum2DAll              = aida.histogram2D("Trident/Top Cluster Energy vs. Bottom Cluster Energy",                   220, 0, 1.1, 220, 0, 1.1);
-	private IHistogram2D trEnergySum2DFiducial         = aida.histogram2D("Trident/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 220, 0, 1.1, 220, 0, 1.1);
-	private IHistogram2D trSumCoplanarityAll           = aida.histogram2D("Trident/Hardware Coplanarity vs. Energy Sum",                            220, 0, 1.1, 115, 0, 230);
-	private IHistogram2D trSumCoplanarityFiducial      = aida.histogram2D("Trident/Hardware Coplanarity vs. Energy Sum (Fiducial Region)",          220, 0, 1.1, 115, 0, 230);
-	private IHistogram2D trSumCoplanarityCalcAll       = aida.histogram2D("Trident/Calculated Coplanarity vs. Energy Sum",                          220, 0, 1.1, 115, 0, 230);
-	private IHistogram2D trSumCoplanarityCalcFiducial  = aida.histogram2D("Trident/Calculated Coplanarity vs. Energy Sum (Fiducial Region)",        220, 0, 1.1, 115, 0, 230);
-	private IHistogram2D trTimeEnergyAll               = aida.histogram2D("Trident/Cluster Time vs. Cluster Energy",                                220, 0, 1.1, 100, 0, 100);
-	private IHistogram2D trTimeEnergyFiducial          = aida.histogram2D("Trident/Cluster Time vs. Cluster Energy (Fiducial Region)",              220, 0, 1.1, 100, 0, 100);
+	private IHistogram2D trEnergySum2DAll              = aida.histogram2D("Trident/Top Cluster Energy vs. Bottom Cluster Energy",                   220, 0, 1.1, 220,   0, 1.1);
+	private IHistogram2D trEnergySum2DFiducial         = aida.histogram2D("Trident/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 220, 0, 1.1, 220,   0, 1.1);
+	private IHistogram2D trSumCoplanarityAll           = aida.histogram2D("Trident/Hardware Coplanarity vs. Energy Sum",                            220, 0, 1.1, 115,   0, 180);
+	private IHistogram2D trSumCoplanarityFiducial      = aida.histogram2D("Trident/Hardware Coplanarity vs. Energy Sum (Fiducial Region)",          220, 0, 1.1, 115,   0, 180);
+	private IHistogram2D trSumCoplanarityCalcAll       = aida.histogram2D("Trident/Calculated Coplanarity vs. Energy Sum",                          220, 0, 1.1, 115, 130, 230);
+	private IHistogram2D trSumCoplanarityCalcFiducial  = aida.histogram2D("Trident/Calculated Coplanarity vs. Energy Sum (Fiducial Region)",        220, 0, 1.1, 115, 130, 230);
+	private IHistogram2D trTimeEnergyAll               = aida.histogram2D("Trident/Cluster Time vs. Cluster Energy",                                220, 0, 1.1, 100,   0, 100);
+	private IHistogram2D trTimeEnergyFiducial          = aida.histogram2D("Trident/Cluster Time vs. Cluster Energy (Fiducial Region)",              220, 0, 1.1, 100,   0, 100);
 	
 	private TriggerPlotsModule allPlots = new TriggerPlotsModule("All");
 	private TriggerPlotsModule møllerPlots = new TriggerPlotsModule("Møller");
@@ -158,19 +157,6 @@ public class MTEAnalysis extends Driver {
 	
 	@Override
 	public void process(EventHeader event) {
-		// Check whether the SVT was active in this event.
-		final String[] flagNames = { "svt_bias_good", "svt_burstmode_noise_good", "svt_position_good" };
-		boolean svtGood = true;
-        for(int i = 0; i < flagNames.length; i++) {
-            int[] flag = event.getIntegerParameters().get(flagNames[i]);
-            if(flag == null || flag[0] == 0) {
-                svtGood = false;
-            }
-        }
-		
-        // If the SVT is not properly running, skip the event.
-        if(!svtGood && useGoodSVT) { return; }
-		
 		if(event.hasCollection(ReconstructedParticle.class, particleCollectionName)) {
 			// Get the list of tracks.
 			List<ReconstructedParticle> trackList = event.get(ReconstructedParticle.class, particleCollectionName);
@@ -194,7 +180,7 @@ public class MTEAnalysis extends Driver {
 			// Populate the all cluster plots.
 			List<Cluster> topClusters = new ArrayList<Cluster>();
 			List<Cluster> botClusters = new ArrayList<Cluster>();
-			List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
+			List<Cluster> clusters = event.get(Cluster.class, "EcalClusters");
 			for(Cluster cluster : clusters) {
 				allPlots.addCluster(cluster);
 				if(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") > 0) { topClusters.add(cluster); }
@@ -521,10 +507,6 @@ public class MTEAnalysis extends Driver {
 	
 	public void setExcludeNoTrackEvents(boolean state) {
 		excludeNoTrackEvents = state;
-	}
-	
-	public void setUseGoodSVT(boolean state) {
-		useGoodSVT = state;
 	}
 	
 	private static final boolean inFiducialRegion(Cluster cluster) {
