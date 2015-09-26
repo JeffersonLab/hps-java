@@ -25,6 +25,7 @@ import org.lcsim.util.aida.AIDA;
 
 public class MTEAnalysis extends Driver {
 	// Define track LCIO information.
+	private boolean skipBadSVT = true;
 	private String bankCollectionName = "TriggerBank";
 	private String particleCollectionName = "FinalStateParticles";
 	private static final AIDA aida = AIDA.defaultInstance();
@@ -157,6 +158,21 @@ public class MTEAnalysis extends Driver {
 	
 	@Override
 	public void process(EventHeader event) {
+		// Check whether the SVT was active in this event.
+		final String[] flagNames = { "svt_bias_good", "svt_burstmode_noise_good", "svt_position_good" };
+		boolean svtGood = true;
+        for(int i = 0; i < flagNames.length; i++) {
+            int[] flag = event.getIntegerParameters().get(flagNames[i]);
+            if(flag == null || flag[0] == 0) {
+                svtGood = false;
+            }
+        }
+        
+        // If the SVT was bad, then skip the event.
+        if(!svtGood && skipBadSVT) {
+        	return;
+        }
+        
 		if(event.hasCollection(ReconstructedParticle.class, particleCollectionName)) {
 			// Get the list of tracks.
 			List<ReconstructedParticle> trackList = event.get(ReconstructedParticle.class, particleCollectionName);
@@ -507,6 +523,10 @@ public class MTEAnalysis extends Driver {
 	
 	public void setExcludeNoTrackEvents(boolean state) {
 		excludeNoTrackEvents = state;
+	}
+	
+	public void setSkipBadSVT(boolean state) {
+		skipBadSVT = state;
 	}
 	
 	private static final boolean inFiducialRegion(Cluster cluster) {
