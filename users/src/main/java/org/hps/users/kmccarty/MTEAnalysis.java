@@ -344,6 +344,11 @@ public class MTEAnalysis extends Driver {
 					trackClusters[i] = pair[i].getClusters().get(0);
 				}
 				
+				// Make sure that the clusters are not the same.
+				if(trackClusters[0] == trackClusters[1]) {
+					continue tridentTrackLoop;
+				}
+				
 				// Require that the track clusters be within a certain
 				// time window of one another.
 				CalorimeterHit[] seeds = new CalorimeterHit[2];
@@ -356,58 +361,64 @@ public class MTEAnalysis extends Driver {
 				
 				// Require that the energy of the electron is below
 				// 900 MeV.
-				if((pair[0].getCharge() < 0 && pair[0].getMomentum().magnitude() < 0.900) || (pair[1].getCharge() < 0 && pair[1].getMomentum().magnitude() < 0.900)) {
-					isTrident = true;
-					tridentPlots.addClusterPair(trackClusters);
-					if(pair[0].getCharge() > 0) {
-						positronPlot.fill(pair[1].getMomentum().magnitude());
-						electronPlot[TRIDENT].fill(pair[0].getMomentum().magnitude());
-					} else {
-						positronPlot.fill(pair[0].getMomentum().magnitude());
-						electronPlot[TRIDENT].fill(pair[1].getMomentum().magnitude());
-					}
-					energyPlot[TRIDENT].fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
-					energy2DPlot[TRIDENT].fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
-					
-					// Track which clusters have already been added to the
-					// singles plot so that there are no repeats.
-					Set<Cluster> plotSet = new HashSet<Cluster>();
-					Set<Cluster> plotFiducial = new HashSet<Cluster>();
-					
-					// Fill the all pairs plots.
-					double pairEnergy = trackClusters[0].getEnergy() + trackClusters[1].getEnergy();
-					trEnergySumAll.fill(pairEnergy);
-					trEnergySum2DAll.fill(trackClusters[1].getEnergy(), trackClusters[0].getEnergy());
-					trTimeCoincidenceAll.fill(TriggerModule.getValueTimeCoincidence(trackClusters));
-					trSumCoplanarityCalcAll.fill(pairEnergy, getCalculatedCoplanarity(trackClusters));
-					trSumCoplanarityAll.fill(pairEnergy, TriggerModule.getValueCoplanarity(trackClusters));
-					
-					// Fill the singles plots.
-					if(!plotSet.contains(trackClusters[0])) {
-						plotSet.add(trackClusters[0]);
-						trTimeEnergyAll.fill(trackClusters[0].getEnergy(), TriggerModule.getClusterTime(trackClusters[0]));
-					} if(!plotSet.contains(trackClusters[1])) {
-						plotSet.add(trackClusters[1]);
-						trTimeEnergyAll.fill(trackClusters[1].getEnergy(), TriggerModule.getClusterTime(trackClusters[1]));
-					}
-					
-					// Fill the fiducial plots if appropriate.
-					if(inFiducialRegion(trackClusters[0]) && inFiducialRegion(trackClusters[1])) {
-						trEnergySumFiducial.fill(pairEnergy);
-						trEnergySum2DFiducial.fill(trackClusters[1].getEnergy(), trackClusters[0].getEnergy());
-						trTimeCoincidenceFiducial.fill(TriggerModule.getValueTimeCoincidence(trackClusters));
-						trSumCoplanarityCalcFiducial.fill(pairEnergy, getCalculatedCoplanarity(trackClusters));
-						trSumCoplanarityFiducial.fill(pairEnergy, TriggerModule.getValueCoplanarity(trackClusters));
-					}
-					
-					// Fill the singles fiducial plots if appropriate.
-					if(!plotFiducial.contains(trackClusters[0]) && inFiducialRegion(trackClusters[0])) {
-						plotFiducial.add(trackClusters[0]);
-						trTimeEnergyFiducial.fill(trackClusters[0].getEnergy(), TriggerModule.getClusterTime(trackClusters[0]));
-					} if(!plotFiducial.contains(trackClusters[1]) && inFiducialRegion(trackClusters[1])) {
-						plotFiducial.add(trackClusters[1]);
-						trTimeEnergyFiducial.fill(trackClusters[1].getEnergy(), TriggerModule.getClusterTime(trackClusters[1]));
-					}
+				boolean electronNotElastic = (pair[0].getCharge() < 0 && pair[0].getMomentum().magnitude() < 0.900)
+						|| (pair[1].getCharge() < 0 && pair[1].getMomentum().magnitude() < 0.900);
+				if(!electronNotElastic) {
+					continue tridentTrackLoop;
+				}
+				
+				// If all tests are passed, this is a trident. Note
+				// this and populate the trident plots.
+				isTrident = true;
+				tridentPlots.addClusterPair(trackClusters);
+				if(pair[0].getCharge() > 0) {
+					positronPlot.fill(pair[1].getMomentum().magnitude());
+					electronPlot[TRIDENT].fill(pair[0].getMomentum().magnitude());
+				} else {
+					positronPlot.fill(pair[0].getMomentum().magnitude());
+					electronPlot[TRIDENT].fill(pair[1].getMomentum().magnitude());
+				}
+				energyPlot[TRIDENT].fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
+				energy2DPlot[TRIDENT].fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+				
+				// Track which clusters have already been added to the
+				// singles plot so that there are no repeats.
+				Set<Cluster> plotSet = new HashSet<Cluster>();
+				Set<Cluster> plotFiducial = new HashSet<Cluster>();
+				
+				// Fill the all pairs plots.
+				double pairEnergy = trackClusters[0].getEnergy() + trackClusters[1].getEnergy();
+				trEnergySumAll.fill(pairEnergy);
+				trEnergySum2DAll.fill(trackClusters[1].getEnergy(), trackClusters[0].getEnergy());
+				trTimeCoincidenceAll.fill(TriggerModule.getValueTimeCoincidence(trackClusters));
+				trSumCoplanarityCalcAll.fill(pairEnergy, getCalculatedCoplanarity(trackClusters));
+				trSumCoplanarityAll.fill(pairEnergy, TriggerModule.getValueCoplanarity(trackClusters));
+				
+				// Fill the singles plots.
+				if(!plotSet.contains(trackClusters[0])) {
+					plotSet.add(trackClusters[0]);
+					trTimeEnergyAll.fill(trackClusters[0].getEnergy(), TriggerModule.getClusterTime(trackClusters[0]));
+				} if(!plotSet.contains(trackClusters[1])) {
+					plotSet.add(trackClusters[1]);
+					trTimeEnergyAll.fill(trackClusters[1].getEnergy(), TriggerModule.getClusterTime(trackClusters[1]));
+				}
+				
+				// Fill the fiducial plots if appropriate.
+				if(inFiducialRegion(trackClusters[0]) && inFiducialRegion(trackClusters[1])) {
+					trEnergySumFiducial.fill(pairEnergy);
+					trEnergySum2DFiducial.fill(trackClusters[1].getEnergy(), trackClusters[0].getEnergy());
+					trTimeCoincidenceFiducial.fill(TriggerModule.getValueTimeCoincidence(trackClusters));
+					trSumCoplanarityCalcFiducial.fill(pairEnergy, getCalculatedCoplanarity(trackClusters));
+					trSumCoplanarityFiducial.fill(pairEnergy, TriggerModule.getValueCoplanarity(trackClusters));
+				}
+				
+				// Fill the singles fiducial plots if appropriate.
+				if(!plotFiducial.contains(trackClusters[0]) && inFiducialRegion(trackClusters[0])) {
+					plotFiducial.add(trackClusters[0]);
+					trTimeEnergyFiducial.fill(trackClusters[0].getEnergy(), TriggerModule.getClusterTime(trackClusters[0]));
+				} if(!plotFiducial.contains(trackClusters[1]) && inFiducialRegion(trackClusters[1])) {
+					plotFiducial.add(trackClusters[1]);
+					trTimeEnergyFiducial.fill(trackClusters[1].getEnergy(), TriggerModule.getClusterTime(trackClusters[1]));
 				}
 			}
 			
