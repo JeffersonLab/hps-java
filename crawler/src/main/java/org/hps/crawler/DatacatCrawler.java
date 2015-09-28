@@ -13,8 +13,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -142,6 +144,7 @@ public class DatacatCrawler {
         OPTIONS.addOption("h", "help", false, "print help and exit (overrides all other arguments)");
         OPTIONS.addOption("o", "format", true, "add a file format for filtering: " + AVAILABLE_FORMATS);
         OPTIONS.addOption("m", "metadata", false, "create metadata for datasets");
+        OPTIONS.addOption("r", "run", true, "add a run number to accept");
         OPTIONS.addOption("s", "site", true, "datacat site");
         OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name");
         OPTIONS.addOption("x", "max-depth", true, "max depth to crawl");
@@ -304,6 +307,15 @@ public class DatacatCrawler {
                 throw new RuntimeException("The -f argument with the datacat folder is required.");
             }
 
+            // List of run numbers.
+            if (cl.hasOption("r")) {
+                Set<Integer> acceptRuns = new HashSet<Integer>();
+                for (String arg : cl.getOptionValues("r")) {
+                    acceptRuns.add(Integer.parseInt(arg));                
+                }
+                config.setAcceptRuns(acceptRuns);
+            }
+
         } catch (final ParseException e) {
             throw new RuntimeException("Error parsing options.", e);
         }
@@ -350,6 +362,11 @@ public class DatacatCrawler {
         }
         visitor.addFilter(new FileFormatFilter(config.getFileFormats()));
 
+        // Run number filter.
+        if (!config.acceptRuns().isEmpty()) {
+            visitor.addFilter(new RunFilter(config.acceptRuns()));
+        }
+
         // Walk the file tree using the visitor.
         this.walk(visitor);
 
@@ -388,21 +405,6 @@ public class DatacatCrawler {
      * @param visitor the file visitor
      */
     private void walk(final DatacatFileVisitor visitor) {
-        if (config.timestamp() != null) {
-            // Date filter from timestamp.
-            visitor.addFilter(new DateFileFilter(config.timestamp()));
-            LOGGER.config("added date filter with time stamp " + config.timestamp());
-        }
-
-        // Is the accept run list not empty? (Empty means accept all runs.)
-        if (!config.acceptRuns().isEmpty()) {
-            // List of run numbers to accept.
-            visitor.addFilter(new RunFilter(config.acceptRuns()));
-            LOGGER.config("added run number filter");
-        } else {
-            LOGGER.config("no run number filter will be used");
-        }
-
         try {
             // Walk the file tree from the root directory.
             final EnumSet<FileVisitOption> options = EnumSet.noneOf(FileVisitOption.class);

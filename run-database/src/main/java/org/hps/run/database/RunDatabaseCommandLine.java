@@ -3,8 +3,11 @@ package org.hps.run.database;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +21,7 @@ import org.hps.conditions.database.ConnectionParameters;
 import org.hps.datacat.client.DatacatClient;
 import org.hps.datacat.client.DatacatClientFactory;
 import org.hps.datacat.client.Dataset;
+import org.hps.datacat.client.DatasetMetadata;
 import org.hps.record.evio.EvioFileUtilities;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
@@ -169,17 +173,31 @@ public class RunDatabaseCommandLine {
         int run = runManager.getRun();
         
         // Get the list of EVIO files for the run using a data catalog query.
-        List<File> files = getEvioFiles(run);        
+        Map<File, Dataset> fileDatasets = getEvioFiles(run);   
+        List<File> files = new ArrayList<File>(fileDatasets.keySet());     
         EvioFileUtilities.sortBySequence(files);
         
         // Process the run's files to get information.
         RunSummaryImpl runSummary = new RunSummaryImpl(run);        
-        RunProcessor runProcessor = this.createEvioRunProcessor(runSummary);
+        RunProcessor runProcessor = this.createEvioRunProcessor(runSummary, files);
         try {
             runProcessor.processRun();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        // Set start date.
+        Dataset firstDataset = fileDatasets.get(files.get(0));
+        DatasetMetadata metadata = firstDataset.getMetadata();
+        Date startDate = new Date(metadata.getInteger("startTimestamp"));
+        runSummary.setStartDate(startDate);
+
+        // Set end date.
+        Dataset lastDataset = fileDatasets.get(files.get(files.size() - 1));
+        metadata = lastDataset.getMetadata();
+        Date endDate = new Date(metadata.getInteger("endTimestamp"));
+        runSummary.setEndDate(endDate);
+        runSummary.setEndOkay(metadata.getInteger("hasEnd") == 0 ? false : true);
 
         // Delete existing run.
         if (runExists) {
@@ -233,9 +251,9 @@ public class RunDatabaseCommandLine {
      *
      * @return the run processor
      */
-    private RunProcessor createEvioRunProcessor(final RunSummaryImpl runSummary) {
+    private RunProcessor createEvioRunProcessor(final RunSummaryImpl runSummary, List<File> files) {
 
-        final RunProcessor runProcessor = new RunProcessor(runSummary);
+        final RunProcessor runProcessor = new RunProcessor(runSummary, files);
 
         if (features.contains(Feature.EPICS)) {
             runProcessor.addEpicsProcessor();
@@ -256,16 +274,23 @@ public class RunDatabaseCommandLine {
      * @param run the run number
      * @return the list of EVIO files from the run
      */
-    private List<File> getEvioFiles(int run) {
+    private Map<File, Dataset> getEvioFiles(int run) {
         DatacatClient datacatClient = new DatacatClientFactory().createClient();
         Set<String> metadata = new HashSet<String>();
+        Map<File, Dataset> files = new HashMap<File, Dataset>();
+        metadata.add("runMin");
+        metadata.add("eventCount");
+        metadata.add("fileNumber");
+        metadata.add("endTimestamp");
+        metadata.add("startTimestamp");
+        metadata.add("hasEnd");
+        metadata.add("hasPrestart");
         List<Dataset> datasets = datacatClient.findDatasets("data/raw", "fileFormat eq 'EVIO' AND dataType eq 'RAW' AND runMin eq " + run, metadata);
         if (datasets.isEmpty()) {
             throw new IllegalStateException("No EVIO datasets for run " + run + " were found in the data catalog.");
         }
-        List<File> files = new ArrayList<File>();
         for (Dataset dataset : datasets) {
-            files.add(new File(dataset.getLocations().get(0).getResource()));
+            files.put(new File(dataset.getLocations().get(0).getResource()), dataset);
         }
         return files;
     }

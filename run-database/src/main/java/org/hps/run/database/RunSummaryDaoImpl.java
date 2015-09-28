@@ -415,7 +415,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             preparedStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getStartDate().getTime()), CALENDAR);
             preparedStatement.setTimestamp(3, new java.sql.Timestamp(runSummary.getEndDate().getTime()), CALENDAR);
             preparedStatement.setInt(4, runSummary.getTotalEvents());
-            preparedStatement.setInt(5, runSummary.getEvioFiles().size());
+            preparedStatement.setInt(5, runSummary.getTotalFiles());
             preparedStatement.setBoolean(6, runSummary.getEndOkay());
             preparedStatement.executeUpdate();
         } catch (final SQLException e) {
@@ -498,7 +498,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             preparedStatement.setTimestamp(1, new java.sql.Timestamp(runSummary.getStartDate().getTime()), CALENDAR);
             preparedStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getEndDate().getTime()), CALENDAR);
             preparedStatement.setInt(3, runSummary.getTotalEvents());
-            preparedStatement.setInt(4, runSummary.getEvioFiles().size());
+            preparedStatement.setInt(4, runSummary.getTotalFiles());
             preparedStatement.setBoolean(5, runSummary.getEndOkay());
             preparedStatement.setBoolean(6, runSummary.getRunOkay());
             preparedStatement.setInt(7, runSummary.getRun());

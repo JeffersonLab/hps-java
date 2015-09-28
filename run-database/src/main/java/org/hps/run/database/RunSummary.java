@@ -73,13 +73,6 @@ public interface RunSummary {
     double getEventRate();
 
     /**
-     * Get the list of EVIO files in this run.
-     *
-     * @return the list of EVIO files in this run
-     */
-    List<File> getEvioFiles();
-
-    /**
      * Get the run number.
      *
      * @return the run number
@@ -141,13 +134,4 @@ public interface RunSummary {
      * @return the date when this run record was last updated
      */
     Date getUpdated();
-    
-    /**
-     * Get a list of files in the run by format (EVIO, LCIO etc.).
-     * 
-     * @param format the file format
-     * @return the list of files with the given format
-     */
-    // FIXME: This should be removed from the run summary interface.
-    public List<File> getFiles(DatasetFileFormat format);
 }

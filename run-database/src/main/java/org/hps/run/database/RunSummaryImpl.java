@@ -97,26 +97,12 @@ public final class RunSummaryImpl implements RunSummary {
     private Date updated;
     
     /**
-     * Lists of files indexed by their format.
-     */
-    private Map<DatasetFileFormat, List<File>> fileMap = new HashMap<DatasetFileFormat, List<File>>();
-
-    /**
      * Create a run summary.
      *
      * @param run the run number
      */
     public RunSummaryImpl(final int run) {
         this.run = run;
-    }
-
-    /**
-     * Add an EVIO file from this run to the list.
-     *
-     * @param file the file to add
-     */
-    public void addEvioFile(final File file) {
-        this.getEvioFiles().add(file);
     }
 
     /**
@@ -166,15 +152,6 @@ public final class RunSummaryImpl implements RunSummary {
             throw new RuntimeException("Total events is zero or invalid.");
         }
         return (double) this.getTotalEvents() / (double) this.getTotalSeconds();
-    }
-
-    /**
-     * Get the list of EVIO files in this run.
-     *
-     * @return the list of EVIO files in this run
-     */
-    public List<File> getEvioFiles() {
-        return this.fileMap.get(DatasetFileFormat.EVIO);
     }
 
     /**
@@ -360,35 +337,6 @@ public final class RunSummaryImpl implements RunSummary {
         this.updated = updated;
     }
     
-    /**
-     * Add a file associated with this run.
-     * <p>
-     * This is public because it is called by the file crawler.
-     * 
-     * @param file a file associated with this run
-     */
-    // FIXME: This should be removed from the run summary interface.
-    public void addFile(DatasetFileFormat format, File file) {
-        List<File> files = this.fileMap.get(file);
-        if (files == null) {
-            this.fileMap.put(format, new ArrayList<File>());
-        }
-        this.fileMap.get(format).add(file);
-    }
-    
-    /**
-     * Get a list of files in the run by format (EVIO, LCIO etc.).
-     * 
-     * @param format the file format
-     * @return the list of files with the given format
-     */
-    public List<File> getFiles(DatasetFileFormat format) {
-        if (!this.fileMap.containsKey(format)) {
-            this.fileMap.put(format, new ArrayList<File>());
-        }
-        return this.fileMap.get(format);
-    }
-
     /**
      * Convert this object to a string.
      *
