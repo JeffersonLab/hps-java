@@ -34,7 +34,7 @@ import org.lcsim.util.log.LogUtil;
  */
 public class TriggerTurnOnDriver extends Driver {
 
-    private static Logger logger = LogUtil.create(TriggerTurnOnDriver.class, new BasicLogFormatter(), Level.FINE);
+    private static Logger logger = LogUtil.create(TriggerTurnOnDriver.class, new BasicLogFormatter(), Level.INFO);
     private final String ecalClusterCollectionName = "EcalClustersCorr";
     IPlotter plotter;
     IPlotter plotter2;
@@ -163,22 +163,25 @@ public class TriggerTurnOnDriver extends Driver {
                 if( Math.abs(clusterPosIdy) > 5 ) 
                     throw new RuntimeException("invalid crystal position " + clusterPosIdy);
                 int half = clusterPosIdy > 0 ? 0 : 1;
-                clusterEOne_Random_thetaY[half][Math.abs(clusterPosIdy)-1].fill(clusterEMax.getEnergy());
-                
+                int ypos = Math.abs(clusterPosIdy)-1;
+                clusterEOne_Random_thetaY[half][ypos].fill(clusterEMax.getEnergy());
             }
         }
+
+
 
         // fill numerator
         if (triggerDecisions.passed(TriggerType.SINGLES1_SIM)) {
             logger.fine("Eureka. They both fired.");
             if(clusterEMax != null) {
                 clusterE_RandomSingles1.fill(clusterEMax.getEnergy());
-                if(clusters.size() == 1) 
+                if(clusters.size() == 1) {
                     clusterEOne_RandomSingles1.fill(clusterEMax.getEnergy());
                     int clusterPosIdy = clusterEMax.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
                     int half = clusterPosIdy > 0 ? 0 : 1;
-                    clusterEOne_RandomSingles1_thetaY[half][Math.abs(clusterPosIdy)-1].fill(clusterEMax.getEnergy());
-
+                    int ypos = Math.abs(clusterPosIdy)-1;
+                    clusterEOne_RandomSingles1_thetaY[half][ypos].fill(clusterEMax.getEnergy());
+                }
             }
         }
 
@@ -196,14 +199,13 @@ public class TriggerTurnOnDriver extends Driver {
         int r = 0;
         for(int i=0;i<2;++i) {
             for(int y=0;y<5;++y) {
-                clusterEOne_RandomSingles1_thetaY_trigEff[i][y] = aida.histogramFactory().divide("trigEffEone", clusterEOne_Random_thetaY[i][y], clusterEOne_RandomSingles1_thetaY[i][y]);
-                plotter333.region(r);
+                clusterEOne_RandomSingles1_thetaY_trigEff[i][y] = aida.histogramFactory().divide("trigEffEone_" + (i==0?"top":"bottom") + "_" + y, clusterEOne_RandomSingles1_thetaY[i][y], clusterEOne_Random_thetaY[i][y]);
+                plotter333.region(r).plot(clusterEOne_RandomSingles1_thetaY_trigEff[i][y]);
                 r++;
             }
         }
         logger.info("entries in clusterE_RandomSingles1_trigEff: " + Integer.toString(clusterE_RandomSingles1_trigEff.allEntries()));
         plotter.region(2).plot(clusterE_RandomSingles1_trigEff);
-        plotter2.region(2).plot(clusterEOne_RandomSingles1_trigEff);
         plotter2.region(2).plot(clusterEOne_RandomSingles1_trigEff);
         
     }
