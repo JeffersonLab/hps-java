@@ -1,0 +1,25 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <control>
+        <verbose>false</verbose>
+        <printDriverStatistics>true</printDriverStatistics>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="FEEskim"/>
+        <driver name="Writer"/>
+    </execute>
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>
+        <!-- Driver to find FEE events -->
+       <driver name="FEEskim" type="org.hps.recon.filtering.FEEFilterDriver">
+        </driver>
+        <!-- Driver to write output slcio file -->
+        <driver name="Writer" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+    </drivers>
+</lcsim>
