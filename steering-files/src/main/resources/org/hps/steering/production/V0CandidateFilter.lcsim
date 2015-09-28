@@ -1,0 +1,37 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <control>
+        <verbose>false</verbose>
+        <printDriverStatistics>true</printDriverStatistics>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="StripEvent"/>
+        <driver name="Writer"/>
+    </execute>
+    <drivers>
+        <!-- Driver to give some feedback on progress -->
+        <driver name="EventMarkerDriver"
+                type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>
+        <!-- Driver to strip events -->
+       <driver name="StripEvent"
+                type="org.hps.recon.filtering.V0CandidateFilter">
+              <!-- Name of the V0 Candidate Collection of ReconstructedParticles -->
+              <v0CandidateCollectionName>TargetConstrainedV0Candidates</v0CandidateCollectionName>
+              <!-- Maximum momentum of each electron [GeV], used to remove full energy electrons -->
+              <v0MomentumMax>0.85</v0MomentumMax>
+              <!-- Maximum difference in the ECal cluster times [ns]-->
+              <clusterTimingCut>2.5</clusterTimingCut>
+              <!-- A tight selection requires one and only one real V0 vertex --> 
+              <tightConstraint>false</tightConstraint>
+        </driver>
+        <!-- Driver to write output slcio file -->
+        <driver name="Writer"
+                type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+    </drivers>
+</lcsim>
