@@ -21,8 +21,6 @@
                 type="org.hps.recon.filtering.V0CandidateFilter">
               <!-- Name of the V0 Candidate Collection of ReconstructedParticles -->
               <v0CandidateCollectionName>TargetConstrainedV0Candidates</v0CandidateCollectionName>
-              <!-- Maximum momentum of each electron [GeV], used to remove full energy electrons -->
-              <v0MomentumMax>0.85</v0MomentumMax>
               <!-- Maximum difference in the ECal cluster times [ns]-->
               <clusterTimingCut>2.5</clusterTimingCut>
               <!-- A tight selection requires one and only one real V0 vertex --> 

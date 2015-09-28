@@ -18,7 +18,6 @@ import org.lcsim.event.ReconstructedParticle;
 public class V0CandidateFilter extends EventReconFilter {
 
     private String _V0CandidateCollectionName = "TargetConstrainedV0Candidates";
-    private double _fullEnergyCut = 0.85;
     private double _clusterTimingCut = 2.5;
 
     private boolean _tight = false;
@@ -59,15 +58,6 @@ public class V0CandidateFilter extends EventReconFilter {
             if (e2.getClusters().size() == 0) {
                 skipEvent();
             }
-            // remove full energy electrons
-            double p1 = e1.getMomentum().magnitude();
-            if (p1 > _fullEnergyCut) {
-                skipEvent();
-            }
-            double p2 = e2.getMomentum().magnitude();
-            if (p2 > _fullEnergyCut) {
-                skipEvent();
-            }
 
             // calorimeter cluster timing cut
             // first CalorimeterHit in the list is the seed crystal
@@ -97,16 +87,6 @@ public class V0CandidateFilter extends EventReconFilter {
      */
     public void setV0CandidateCollectionName(String s) {
         _V0CandidateCollectionName = s;
-    }
-
-    /**
-     * Maximum value for each of two electron momenta (removes full energy
-     * electrons) [GeV]
-     *
-     * @param d
-     */
-    public void setV0MomentumMax(double d) {
-        _fullEnergyCut = d;
     }
 
     /**
