@@ -43,7 +43,7 @@ final class DatasetMetadataImpl implements DatasetMetadata {
             } else if (type.equals("decimal")) {
                 value = jsonObject.getDouble("value");
             } else if (type.equals("integer")) {
-                value = jsonObject.getInt("value");
+                value = jsonObject.getLong("value");
             } else {
                 throw new IllegalArgumentException("Unknown type: " + type);
             }
@@ -59,21 +59,21 @@ final class DatasetMetadataImpl implements DatasetMetadata {
      * @return the double value
      */
     @Override
-    public double getDouble(String key) {
+    public Double getDouble(String key) {
         return Double.class.cast(metadataMap.get(key));
     }
 
     /**
-     * Get an integer value. 
+     * Get a long value. 
      * 
      * @param key the key name
-     * @return the integer value
+     * @return the long value
      */
     @Override
-    public int getInteger(String key) {
-        return Integer.class.cast(metadataMap.get(key));
+    public Long getLong(String key) {
+        return Long.class.cast(metadataMap.get(key));
     }
-
+      
     /**
      * Get a string value.
      * 

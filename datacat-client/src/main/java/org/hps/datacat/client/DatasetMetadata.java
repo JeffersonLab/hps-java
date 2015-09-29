@@ -13,16 +13,16 @@ public interface DatasetMetadata {
      * @param key the key name
      * @return the double value
      */
-    double getDouble(String key);
+    Double getDouble(String key);
        
     /**
-     * Get an integer value. 
+     * Get a long value. 
      * 
      * @param key the key name
-     * @return the integer value
+     * @return the long value
      */
-    int getInteger(String key);
-    
+    Long getLong(String key);
+          
     /**
      * Get a string value.
      * 
