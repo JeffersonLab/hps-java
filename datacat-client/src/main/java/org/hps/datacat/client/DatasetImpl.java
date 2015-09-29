@@ -55,7 +55,7 @@ final class DatasetImpl implements Dataset {
     /**
      * Parser for reading in dates from JSON.
      */
-    private static final SimpleDateFormat DATE_PARSER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private static final SimpleDateFormat DATE_PARSER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     
     /**
      * Create a new dataset from JSON.
