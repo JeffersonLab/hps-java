@@ -54,30 +54,30 @@ public class EcalSimReconTest extends TestCase {
         private final IHistogram1D clusHighEnergyH1D = aida.histogram1D("Cluster Highest Energy", 100, -0.5, 9.5);
 
         /**
-         * First hit time in highest energy cluster.
-         */
-        private final IHistogram1D clusTimeH1D = aida.histogram1D("Cluster Time", 500, -0.5, 499.5);
-        
-        /**
          * Cluster X position.
          */
         private final IHistogram1D clusPosX = aida.histogram1D("Pos X", 750, -300, 350);
-        
+
         /**
          * Cluster Y position.
          */
         private final IHistogram1D clusPosY = aida.histogram1D("Pos Y", 180, -90, 90);
-        
+
         /**
          * Cluster Z position.
          */
         private final IHistogram1D clusPosZ = aida.histogram1D("Pos Z", 100, 1393, 1397);
-        
+
         /**
          * Number of clusters found.
          */
         private int clusterCount;
-        
+
+        /**
+         * First hit time in highest energy cluster.
+         */
+        private final IHistogram1D clusTimeH1D = aida.histogram1D("Cluster Time", 500, -0.5, 499.5);
+
         /**
          * Save histograms and perform checks on statistics.
          */
@@ -99,17 +99,16 @@ public class EcalSimReconTest extends TestCase {
             }
 
             // Check high cluster energy mean.
-            TestCase.assertEquals("High cluster energy does not match.", CLUS_HIGH_MEAN_E, 
-                    clusHighEnergyH1D.mean(), 0.0004);
+            TestCase.assertEquals("High cluster energy does not match.", CLUS_HIGH_MEAN_E, clusHighEnergyH1D.mean(),
+                    0.0005);
 
             // Check high cluster time mean.
-            TestCase.assertEquals("High cluster mean time does not match.", CLUS_MEAN_T, 
-                    clusTimeH1D.mean(), 0.03);
-            
+            TestCase.assertEquals("High cluster mean time does not match.", CLUS_MEAN_T, clusTimeH1D.mean(), 0.03);
+
             // Check mean number of clusters per event.
             TestCase.assertEquals("Mean number of clusters per event does not match.", CLUS_COUNT_MEAN,
                     clusCountH1D.mean(), 0.002);
-            
+
             // Check total number of clusters.
             TestCase.assertEquals("Number of clusters does not match.", CLUS_COUNT, clusterCount, 1);
         }
@@ -130,16 +129,16 @@ public class EcalSimReconTest extends TestCase {
                 if (cluster.getCalorimeterHits().size() == 0) {
                     throw new RuntimeException("Cluster has no hits.");
                 }
-                
-                double[] position = cluster.getPosition();
-                double x = position[0];
-                double y = position[1];
-                double z = position[2];
-                
+
+                final double[] position = cluster.getPosition();
+                final double x = position[0];
+                final double y = position[1];
+                final double z = position[2];
+
                 clusPosX.fill(x);
                 clusPosY.fill(y);
                 clusPosZ.fill(z);
-                
+
                 // Rough checks that cluster position looks reasonable.
                 TestCase.assertTrue("Pos X " + x + " is out of range.", x > -280. && x < 350.);
                 TestCase.assertTrue("Pos Y " + y + " is out of range.", y > -84. && y < 83.);
@@ -154,25 +153,25 @@ public class EcalSimReconTest extends TestCase {
     }
 
     /**
-     * Expected mean time of primary cluster in nanoseconds.
+     * Expected total number of clusters.
      */
-    private static final double CLUS_MEAN_T = 58.89;
+    private static final int CLUS_COUNT = 2549;
+
+    /**
+     * Expected mean number of clusters per event.
+     */
+    private static final double CLUS_COUNT_MEAN = 2.95;
 
     /**
      * Expected mean of high cluster energy in GeV.
      */
     private static final double CLUS_HIGH_MEAN_E = 1.071;
-    
+
     /**
-     * Expected mean number of clusters per event.     
+     * Expected mean time of primary cluster in nanoseconds.
      */
-    private static final double CLUS_COUNT_MEAN = 2.95;
-    
-    /**
-     * Expected total number of clusters.
-     */
-    private static final int CLUS_COUNT = 2549;
-  
+    private static final double CLUS_MEAN_T = 58.89;
+
     /**
      * Steering resource file for running reconstruction.
      */
@@ -182,7 +181,7 @@ public class EcalSimReconTest extends TestCase {
      * Run number for conditions system.
      */
     private static final Integer RUN = 5000;
-    
+
     /**
      * Run the test.
      *
@@ -192,10 +191,10 @@ public class EcalSimReconTest extends TestCase {
 
         // Get the input events file.
         final File readoutFile = TestFileUrl.getInputFile(EcalSimReconTest.class, "readout.slcio");
-       
+
         // Run the recon on the readout output.
         final File reconFile = new TestOutputFile(EcalSimReconTest.class, "recon.slcio");
-        JobManager job = new JobManager();
+        final JobManager job = new JobManager();
         job.addInputFile(readoutFile);
         job.addVariableDefinition("detector", "HPS-EngRun2015-Nominal-v1");
         job.addVariableDefinition("outputFile", reconFile.getPath().replace(".slcio", ""));
