@@ -16,25 +16,28 @@ import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
- 
+
 /**
  * Reads metadata from EVIO files.
- * 
+ *
  * @author Jeremy McCormick, SLAC
  */
 public class EvioMetadataReader implements FileMetadataReader {
-    
+
+    /**
+     * Class logger.
+     */
     private static Logger LOGGER = LogUtil.create(EvioMetadataReader.class, new DefaultLogFormatter(), Level.ALL);
-   
+
     /**
      * Get the EVIO file metadata.
-     * 
+     *
      * @param file the EVIO file
      * @return the metadata map of key and value pairs
      */
     @Override
-    public Map<String, Object> getMetadata(File file) throws IOException {
-      
+    public Map<String, Object> getMetadata(final File file) throws IOException {
+
         Date startDate = null;
         Date endDate = null;
         int badEventCount = 0;
@@ -47,18 +50,18 @@ public class EvioMetadataReader implements FileMetadataReader {
         Integer endEvent = null;
         Integer startEvent = null;
         Long lastTimestamp = null;
-        
+
         EvioReader evioReader = null;
         try {
             evioReader = EvioFileUtilities.open(file, false);
-        } catch (EvioException e) {
+        } catch (final EvioException e) {
             throw new IOException(e);
         }
-        
-        int fileNumber = EvioFileUtilities.getSequenceFromName(file);
-        
+
+        final int fileNumber = EvioFileUtilities.getSequenceFromName(file);
+
         EvioEvent evioEvent = null;
-        
+
         while (true) {
             try {
                 evioEvent = evioReader.parseNextEvent();
@@ -114,22 +117,22 @@ public class EvioMetadataReader implements FileMetadataReader {
                 }
                 ++eventCount;
             }
-        }    
-        
+        }
+
         // Set end date from last valid timestamp.
         if (endDate == null) {
             endDate = new Date(lastTimestamp);
             LOGGER.info("set end date to " + endDate + " from last timestamp " + lastTimestamp);
         }
-        
+
         // Set end event number.
         if (eventIdData != null) {
             endEvent = eventIdData[0];
             LOGGER.info("set end event " + endEvent);
         }
-        
-        Map<String, Object> metaDataMap = new HashMap<String, Object>();
-        
+
+        final Map<String, Object> metaDataMap = new HashMap<String, Object>();
+
         metaDataMap.put("runMin", run);
         metaDataMap.put("runMax", run);
         metaDataMap.put("eventCount", eventCount);
@@ -142,7 +145,7 @@ public class EvioMetadataReader implements FileMetadataReader {
         metaDataMap.put("endEvent", endEvent);
         metaDataMap.put("hasEnd", hasEnd ? 1 : 0);
         metaDataMap.put("hasPrestart", hasPrestart ? 1 : 0);
-        
+
         return metaDataMap;
-    }                             
+    }
 }

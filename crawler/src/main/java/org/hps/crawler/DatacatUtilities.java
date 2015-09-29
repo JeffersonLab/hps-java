@@ -17,6 +17,9 @@ import org.hps.datacat.client.DatasetSite;
  */
 class DatacatUtilities {
 
+    /**
+     * Static map of strings to dataset file formats.
+     */
     static Map<String, DatasetFileFormat> formatMap = new HashMap<String, DatasetFileFormat>();
     static {
         for (final DatasetFileFormat format : DatasetFileFormat.values()) {
@@ -24,6 +27,14 @@ class DatacatUtilities {
         }
     }
 
+    /**
+     * Add a file to the data catalog.
+     *
+     * @param datacatClient the data catalog client
+     * @param folder the target folder in the data catalog
+     * @param file the file with the full path
+     * @param metadata the file's meta data
+     */
     static void addFile(final DatacatClient datacatClient, final String folder, final File file,
             final Map<String, Object> metadata) {
         final DatasetFileFormat fileFormat = DatacatUtilities.getFileFormat(file);
@@ -52,12 +63,19 @@ class DatacatUtilities {
         return response;
     }
 
+    /**
+     * Create metadata for a file.
+     *
+     * @param file the file
+     * @return the metadata for the file
+     */
     static Map<String, Object> createMetadata(final File file) {
         final DatasetFileFormat fileFormat = DatacatUtilities.getFileFormat(file);
         final DatasetDataType dataType = DatacatUtilities.getDataType(file);
         final FileMetadataReader reader = DatacatUtilities.getFileMetaDataReader(fileFormat, dataType);
         if (reader == null) {
-            throw new RuntimeException("No metadata reader found for format " + fileFormat.name() + " and type " + dataType.name() + ".");
+            throw new RuntimeException("No metadata reader found for format " + fileFormat.name() + " and type "
+                    + dataType.name() + ".");
         }
         Map<String, Object> metadata;
         try {
@@ -68,6 +86,12 @@ class DatacatUtilities {
         return metadata;
     }
 
+    /**
+     * Get the data type for a file.
+     *
+     * @param file the file
+     * @return the file's data type
+     */
     static DatasetDataType getDataType(final File file) {
         final DatasetFileFormat fileFormat = getFileFormat(file);
         DatasetDataType dataType = null;
@@ -79,7 +103,6 @@ class DatacatUtilities {
         } else if (fileFormat.equals(DatasetFileFormat.LCIO)) {
             dataType = DatasetDataType.RECON;
         } else if (fileFormat.equals(DatasetFileFormat.ROOT)) {
-            // FIXME: This should probably open the file and determine what it contains.
             if (file.getName().contains("_dqm")) {
                 dataType = DatasetDataType.DQM;
             } else if (file.getName().contains("_dst")) {
@@ -94,6 +117,12 @@ class DatacatUtilities {
         return dataType;
     }
 
+    /**
+     * Get the file format of a file.
+     *
+     * @param pathname the file
+     * @return the file format of the file
+     */
     static DatasetFileFormat getFileFormat(final File pathname) {
         String name = pathname.getName();
         if (name.contains(DatasetFileFormat.EVIO.extension()) && !name.endsWith(DatasetFileFormat.EVIO.extension())) {
@@ -103,6 +132,13 @@ class DatacatUtilities {
         return formatMap.get(extension);
     }
 
+    /**
+     * Get a metadata reader for a given combination of file format and data type.
+     *
+     * @param fileFormat the file format
+     * @param dataType the data type
+     * @return the file metadata reader
+     */
     static FileMetadataReader getFileMetaDataReader(final DatasetFileFormat fileFormat, final DatasetDataType dataType) {
         FileMetadataReader reader = null;
         if (fileFormat.equals(DatasetFileFormat.LCIO)) {
@@ -111,19 +147,20 @@ class DatacatUtilities {
             reader = new EvioMetadataReader();
         } else if (fileFormat.equals(DatasetFileFormat.ROOT) && dataType.equals(DatasetDataType.DST)) {
             reader = new RootDstMetadataReader();
+        } else if (fileFormat.equals(DatasetFileFormat.ROOT) && dataType.equals(DatasetDataType.DQM)) {
+            reader = new RootDqmMetadataReader();
+        } else if (fileFormat.equals(DatasetFileFormat.AIDA)) {
+            reader = new AidaMetadataReader();
         }
         return reader;
     }
 
-    static String getFolder(final String rootDir, final File file) {
-        String stripDir = rootDir;
-        if (!stripDir.endsWith("/")) {
-            stripDir += "/";
-        }
-        final String folder = file.getParentFile().getPath().replace(stripDir, "");
-        return folder;
-    }
-
+    /**
+     * Strip the file number from an EVIO file name.
+     *
+     * @param name the EVIO file name
+     * @return the file name stripped of the file number
+     */
     static String stripEvioFileNumber(final String name) {
         String strippedName = name;
         if (!name.endsWith(DatasetFileFormat.EVIO.extension())) {

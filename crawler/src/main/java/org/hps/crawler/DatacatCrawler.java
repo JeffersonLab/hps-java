@@ -152,7 +152,7 @@ public class DatacatCrawler {
 
     /**
      * Main method.
-     * 
+     *
      * @param args the command line arguments
      */
     public static void main(final String[] args) {
@@ -309,9 +309,9 @@ public class DatacatCrawler {
 
             // List of run numbers.
             if (cl.hasOption("r")) {
-                Set<Integer> acceptRuns = new HashSet<Integer>();
-                for (String arg : cl.getOptionValues("r")) {
-                    acceptRuns.add(Integer.parseInt(arg));                
+                final Set<Integer> acceptRuns = new HashSet<Integer>();
+                for (final String arg : cl.getOptionValues("r")) {
+                    acceptRuns.add(Integer.parseInt(arg));
                 }
                 config.setAcceptRuns(acceptRuns);
             }

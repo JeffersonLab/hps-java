@@ -108,7 +108,7 @@ final class CrawlerConfig {
         this.formats.add(format);
         return this;
     }
-    
+
     /**
      * Get the database connection parameters.
      *
@@ -162,7 +162,7 @@ final class CrawlerConfig {
     Integer maxDepth() {
         return maxDepth;
     }
-  
+
     /**
      * Get the root directory for the file search.
      *
