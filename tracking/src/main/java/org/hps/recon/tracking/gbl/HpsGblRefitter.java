@@ -158,12 +158,16 @@ public class HpsGblRefitter extends Driver {
         int trackNum = 0;
         logger.info("Trying to fit " + stripsGblMap.size() + " tracks");
         for (GBLTrackData t : stripsGblMap.keySet()) {
-            FittedGblTrajectory traj = fit(stripsGblMap.get(t), bfac);
+            FittedGblTrajectory traj = fit(stripsGblMap.get(t), bfac, _debug);
             ++trackNum;
             if (traj != null) {
                 logger.info("GBL fit successful");
                 if (_debug) {
                     System.out.printf("%s: GBL fit successful.\n", getClass().getSimpleName());
+                }
+                // write to MP binary file
+                if (writeMilleBinary) {
+                    traj.get_traj().milleOut(mille);
                 }
                 traj.set_seed(gblToSeedMap.get(t));
                 traj.set_track_data(t);
@@ -190,7 +194,7 @@ public class HpsGblRefitter extends Driver {
 
     }
 
-    private FittedGblTrajectory fit(List<GBLStripClusterData> hits, double bfac) {
+    private static FittedGblTrajectory fit(List<GBLStripClusterData> hits, double bfac, boolean debug) {
         // path length along trajectory
         double s = 0.;
 
@@ -213,14 +217,15 @@ public class HpsGblRefitter extends Driver {
         for (int istrip = 0; istrip != n_strips; ++istrip) {
             GBLStripClusterData strip = hits.get(istrip);
             //MG--9/18/2015--beamspot has Id=666/667...don't include it in the GBL fit
-            if(strip.getId()>99)
+            if (strip.getId() > 99) {
                 continue;
-            if (_debug) {
+            }
+            if (debug) {
                 System.out.println("HpsGblFitter: Processing strip " + istrip + " with id/layer " + strip.getId());
             }
             // Path length step for this cluster
             double step = strip.getPath3D() - s;
-            if (_debug) {
+            if (debug) {
                 System.out.println("HpsGblFitter: " + "Path length step " + step + " from " + s + " to " + strip.getPath3D());
             }
 
@@ -237,13 +242,13 @@ public class HpsGblRefitter extends Driver {
             mDir.set(1, 0, v.x());
             mDir.set(1, 1, v.y());
             mDir.set(1, 2, v.z());
-            if (_debug) {
+            if (debug) {
                 System.out.println("HpsGblFitter: " + "mDir");
                 mDir.print(4, 6);
             }
             Matrix mDirT = mDir.copy().transpose();
 
-            if (_debug) {
+            if (debug) {
                 System.out.println("HpsGblFitter: " + "mDirT");
                 mDirT.print(4, 6);
             }
@@ -254,7 +259,7 @@ public class HpsGblRefitter extends Driver {
             double sinPhi = sin(strip.getTrackPhi());//->GetPhi());
             double cosPhi = sqrt(1.0 - sinPhi * sinPhi);
 
-            if (_debug) {
+            if (debug) {
                 System.out.println("HpsGblFitter: " + "Track direction sinLambda=" + sinLambda + " sinPhi=" + sinPhi);
             }
 
@@ -268,7 +273,7 @@ public class HpsGblRefitter extends Driver {
             uvDir.set(1, 1, -sinLambda * sinPhi);
             uvDir.set(1, 2, cosLambda);
 
-            if (_debug) {
+            if (debug) {
                 System.out.println("HpsGblFitter: " + "uvDir");
                 uvDir.print(6, 4);
             }
@@ -281,7 +286,7 @@ public class HpsGblRefitter extends Driver {
             proL2m = proL2m.inverse();
             proL2m_list.put(strip.getId(), proL2m.copy()); // is a copy needed or is that just a C++/root thing?
 
-            if (_debug) {
+            if (debug) {
                 System.out.println("HpsGblFitter: " + "proM2l:");
                 proM2l.print(4, 6);
                 System.out.println("HpsGblFitter: " + "proL2m:");
@@ -305,7 +310,7 @@ public class HpsGblRefitter extends Driver {
             measPrec.set(0, 1.0 / (measErr.get(0) * measErr.get(0)));
             measPrec.set(1, 0.);
 
-            if (_debug) {
+            if (debug) {
                 System.out.println("HpsGblFitter: " + "meas: ");
                 meas.print(4, 6);
                 System.out.println("HpsGblFitter: " + "measErr:");
@@ -317,7 +322,7 @@ public class HpsGblRefitter extends Driver {
             //Find the Jacobian to be able to propagate the covariance matrix to this strip position
             jacPointToPoint = gblSimpleJacobianLambdaPhi(step, cosLambda, abs(bfac));
 
-            if (_debug) {
+            if (debug) {
                 System.out.println("HpsGblFitter: " + "jacPointToPoint to extrapolate to this point:");
                 jacPointToPoint.print(4, 6);
             }
@@ -341,7 +346,7 @@ public class HpsGblRefitter extends Driver {
 
             Matrix measMsCov = proL2m.times((msCov.getMatrix(3, 4, 3, 4)).times(proL2mTransposed));
 
-            if (_debug) {
+            if (debug) {
                 System.out.println("HpsGblFitter: " + " msCov at this point:");
                 msCov.print(4, 6);
                 System.out.println("HpsGblFitter: " + "measMsCov at this point:");
@@ -367,7 +372,7 @@ public class HpsGblRefitter extends Driver {
             // add scatterer if not using the uncorrelated MS covariances for testing
             if (!useUncorrMS) {
                 point.addScatterer(scat, scatPrec);
-                if (_debug) {
+                if (debug) {
                     System.out.println("HpsGblFitter: " + "adding scatError to this point:");
                     scatErr.print(4, 6);
                 }
@@ -440,7 +445,7 @@ public class HpsGblRefitter extends Driver {
         }
 
         // print the trajectory
-        if (_debug) {
+        if (debug) {
             System.out.println("%%%% Gbl Trajectory ");
             traj.printTrajectory(1);
             traj.printData();
@@ -454,7 +459,7 @@ public class HpsGblRefitter extends Driver {
         Vector aCorrection = new Vector(5);
         SymMatrix aCovariance = new SymMatrix(5);
         traj.getResults(1, aCorrection, aCovariance);
-        if (_debug) {
+        if (debug) {
             System.out.println(" cor ");
             aCorrection.print(6, 4);
             System.out.println(" cov ");
@@ -463,10 +468,6 @@ public class HpsGblRefitter extends Driver {
 
         logger.fine("locPar " + aCorrection.toString());
 
-//	// write to MP binary file
-        if (writeMilleBinary) {
-            traj.milleOut(mille);
-        }
 //
         return new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
     }
@@ -475,7 +476,7 @@ public class HpsGblRefitter extends Driver {
     protected void detectorChanged(Detector detector) {
     }
 
-    private Matrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
+    private static Matrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
         /**
          * Simple jacobian: quadratic in arc length difference. using lambda phi
          * as directions
