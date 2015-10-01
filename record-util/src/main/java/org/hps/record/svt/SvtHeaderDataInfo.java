@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.hps.readout.svt;
+package org.hps.record.svt;
 
 import org.lcsim.event.GenericObject;
 
@@ -32,17 +32,22 @@ public class SvtHeaderDataInfo implements GenericObject {
     }
     
     public void setMultisampleHeaders(int[] multisampleheaders) {
+        if(multisampleheaders.length % 4 != 0) 
+            throw new RuntimeException("invalid number of multisample headers, need to be %4==0: " + multisampleheaders.length);
         this.multisampleheader = multisampleheaders;
     }
     
-    public int[] getMultisampleHeaders() {
-        return this.multisampleheader;
+    public int[] getMultisampleHeader(int multisampleIndex) {
+        int index = multisampleIndex*4; 
+        if( multisampleIndex >= getNumberOfMultisampleHeaders() || multisampleIndex < 0)
+            throw new ArrayIndexOutOfBoundsException(multisampleIndex);
+        int[] words = new int[4];
+        System.arraycopy(this.multisampleheader, index, words, 0, words.length);
+        return words;
     }
     
-    public int getMultisampleHeader(int index) {
-        if( index >= getMultisampleHeaders().length || index < 0)
-            throw new ArrayIndexOutOfBoundsException(index);
-        return this.multisampleheader[index];
+    public int getNumberOfMultisampleHeaders() {
+        return this.multisampleheader.length/4;
     }
     
     public int getNum() {
@@ -82,9 +87,9 @@ public class SvtHeaderDataInfo implements GenericObject {
             case 2:
                 return getTail();
             default:
-                if( (index-3) >= getMultisampleHeaders().length )
+                if( (index-3) >= this.multisampleheader.length )
                     throw new RuntimeException("Invalid index " + Integer.toString(index));
-                return getMultisampleHeader(index -3);
+                return this.multisampleheader[ index - 3 ];
         }
     }
 
@@ -105,6 +110,10 @@ public class SvtHeaderDataInfo implements GenericObject {
     public boolean isFixedSize() {
         return true;
     }
+    
+    public String toString() {
+        return "num " + Integer.toString(num) + " header " + Integer.toHexString(header) + " tail " + Integer.toHexString(tail) + " nMultisamples " + Integer.toString(multisampleheader.length);
+    }
 
     public static int getNum(GenericObject header) {
         return header.getIntVal(0);
@@ -118,10 +127,11 @@ public class SvtHeaderDataInfo implements GenericObject {
         return header2.getIntVal(2);
     }
 
-    public static int getMultisample(int iMultiSample, GenericObject header) {
-        return header.getIntVal(iMultiSample+3);
+    public static int[] getMultisampleHeader(int iMultisample, SvtHeaderDataInfo header) {
+        return header.getMultisampleHeader(iMultisample);
     }
-    
+
+      
     
 
 }

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.hps.readout.svt;
+package org.hps.record.svt;
 
 import org.lcsim.event.GenericObject;
 
