@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 import org.hps.analysis.trigger.util.TriggerDataUtils;
 import org.hps.evio.SvtEvioReader;
 import org.hps.evio.SvtEvioUtils;
-import org.hps.readout.svt.SvtHeaderDataInfo;
+import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.HeadBankData;
 import org.hps.util.BasicLogFormatter;
@@ -156,25 +156,25 @@ public class SvtHeaderAnalysisDriver extends Driver {
                                 + " roc " + roc);
                 }
             }
-           
             
-            
+
             // Check for multisample tail error bit
-            int nMultisamples = SvtEvioUtils.getSvtTailMultisampleCount(SvtHeaderDataInfo.getTail(header));
+            int nMultisamples = SvtEvioUtils.getSvtTailMultisampleCount(SvtHeaderDataInfo.getTail((SvtHeaderDataInfo)header));
             logger.fine(nMultisamples + " multisamples");
             int multisampleErrorBits = 0;
             for(int iMultisample = 0; iMultisample != nMultisamples; ++iMultisample) {
-                int multisampleHeader = SvtHeaderDataInfo.getMultisample(iMultisample, header);
-                logger.fine("found multisample tail: " + Integer.toHexString(multisampleHeader));
-                int multisampleErrorBit = SvtEvioUtils.getErrorBitFromMultisampleHeader(multisampleHeader);
+                int[] multisampleHeader = SvtHeaderDataInfo.getMultisampleHeader(iMultisample, (SvtHeaderDataInfo)header);
+                int multisampleHeaderTail = SvtEvioUtils.getMultisampleTailWord(multisampleHeader);
+                logger.fine("found multisample tail: " + Integer.toHexString(multisampleHeaderTail));
+                int multisampleErrorBit = SvtEvioUtils.getErrorBitFromMultisampleHeader(multisampleHeaderTail);
                 checkBitValueRange(multisampleErrorBit);
                 logger.fine("found multisample tail error bit: " + multisampleErrorBit);
                 if( multisampleErrorBit != 0) {
                     multisampleErrorBits++;
                     logger.info("multisample tail error: run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + eventDate.toString() 
-                            + " roc " + roc + " feb " + SvtEvioUtils.getFebIDFromMultisampleTail(multisampleHeader) 
-                            + " hybrid " + SvtEvioUtils.getFebHybridIDFromMultisampleTail(multisampleHeader)  
-                            + " apv " + SvtEvioUtils.getApvFromMultisampleTail(multisampleHeader));
+                            + " roc " + roc + " feb " + SvtEvioUtils.getFebIDFromMultisampleTail(multisampleHeaderTail) 
+                            + " hybrid " + SvtEvioUtils.getFebHybridIDFromMultisampleTail(multisampleHeaderTail)  
+                            + " apv " + SvtEvioUtils.getApvFromMultisampleTail(multisampleHeaderTail));
                 }
             }
             
