@@ -15,6 +15,12 @@ public class SvtEvioUtils {
     
     private static final int TOTAL_SAMPLES = 6;
     public static final int  SAMPLE_MASK = 0xFFFF;
+    private static final int APV_HEADER_DATA_READ_ERROR_MASK = 0x1; //[0:0]
+    private static final int APV_HEADER_BUFFER_ADDRESS_MASK  = 0xFF; //[8:1]
+    private static final int APV_HEADER_DATA_FRAME_COUNT_MASK = 0xF; //[12:9]
+    private static final int APV_HEADER_DATA_APV_NR_MASK = 0x3; //[15:13]
+    
+
    
     // TODO: Move these to constants class
     public static final int APV25_PER_HYBRID = 5;
@@ -287,6 +293,93 @@ public class SvtEvioUtils {
                 throw new RuntimeException("Invalid sample number! Valid range of values for n are from 0 - 5");
         }
     }
+    
+    
+    /**
+     *  Extract and return the nth SVT APV buffer address.
+     * 
+     *  @param sampleN : The apv address of interest. Valid values are 0 to 5?
+     *  @param data : a multisample header
+     *  @throws RuntimeException if the apv address number is out of range
+     *  @return address of the nth apv
+     * 
+     */
+    public static int getApvBufferAddress(int sampleN, int[] data) {
+
+        switch (sampleN) {
+            case 0:
+                return (data[0] >>> 1) & APV_HEADER_BUFFER_ADDRESS_MASK;
+            case 1:
+                return (data[0] >>> 17) & APV_HEADER_BUFFER_ADDRESS_MASK;
+            case 2:
+                return (data[1] >>> 1) & APV_HEADER_BUFFER_ADDRESS_MASK;
+            case 3:
+                return (data[1] >>> 17) & APV_HEADER_BUFFER_ADDRESS_MASK;
+            case 4:
+                return (data[2] >>> 1) & APV_HEADER_BUFFER_ADDRESS_MASK;
+            case 5:
+                return (data[2] >>> 17) & APV_HEADER_BUFFER_ADDRESS_MASK;
+            default:
+                throw new RuntimeException("Invalid address number! Valid range of values for n are from 0 - 5");
+        }
+    }
+    
+    /**
+     *  Extract and return the nth SVT APV read error.
+     * 
+     *  @param sampleN : The apv read error of interest. Valid values are 0 to 5.
+     *  @param data : a multisample header
+     *  @throws RuntimeException if the apv number is out of range
+     *  @return read error of the nth apv
+     * 
+     */
+    public static int getApvReadErrors(int sampleN, int[] data) {
+        switch (sampleN) {
+            case 0:
+                return data[0] & APV_HEADER_DATA_READ_ERROR_MASK;
+            case 1:
+                return (data[0] >>> 16) & APV_HEADER_DATA_READ_ERROR_MASK;
+            case 2:
+                return data[1] & APV_HEADER_DATA_READ_ERROR_MASK;
+            case 3:
+                return (data[1] >>> 16) & APV_HEADER_DATA_READ_ERROR_MASK;
+            case 4:
+                return data[2] & APV_HEADER_DATA_READ_ERROR_MASK;
+            case 5:
+                return (data[2] >>> 16) & APV_HEADER_DATA_READ_ERROR_MASK;
+            default:
+                throw new RuntimeException("Invalid address number! Valid range of values for n are from 0 - 5");
+        }
+    }
+    
+    /**
+     *  Extract and return the nth SVT APV read error.
+     * 
+     *  @param sampleN : The apv read error of interest. Valid values are 0 to 5.
+     *  @param data : a multisample header
+     *  @throws RuntimeException if the apv number is out of range
+     *  @return read error of the nth apv
+     * 
+     */
+    public static int getApvFrameCount(int sampleN, int[] data) {
+        switch (sampleN) {
+            case 0:
+                return (data[0] >>> 9) & APV_HEADER_DATA_FRAME_COUNT_MASK;
+            case 1:
+                return (data[0] >>> 25) & APV_HEADER_DATA_FRAME_COUNT_MASK;
+            case 2:
+                return (data[1] >>> 9) & APV_HEADER_DATA_FRAME_COUNT_MASK;
+            case 3:
+                return (data[1] >>> 25) & APV_HEADER_DATA_FRAME_COUNT_MASK;
+            case 4:
+                return (data[2] >>> 9) & APV_HEADER_DATA_FRAME_COUNT_MASK;
+            case 5:
+                return (data[2] >>> 25) & APV_HEADER_DATA_FRAME_COUNT_MASK;
+            default:
+                throw new RuntimeException("Invalid address number! Valid range of values for n are from 0 - 5");
+        }
+    }
+    
 
     /**
      *  Extract and return all SVT samples as an array 
@@ -302,6 +395,52 @@ public class SvtEvioUtils {
         }
         return samples;
     }
+    
+    /**
+     *  Extract and return all SVT APV buffer addresses as an array 
+     * 
+     *  @param multisampleHeader : multisample header
+     *  @return An array containing all SVT APV buffer addresses
+     */
+    public static int[] getApvBufferAddresses(int[] multisampleHeader) {
+        int[] samples = new int[TOTAL_SAMPLES];
+        // Get all SVT Samples
+        for (int sampleN = 0; sampleN < TOTAL_SAMPLES; sampleN++) {
+            samples[sampleN] = getApvBufferAddress(sampleN, multisampleHeader);
+        }
+        return samples;
+    }
+    
+    /**
+     *  Extract and return all SVT APV read errorsas an array 
+     * 
+     *  @param multisampleHeader : multisample header
+     *  @return An array containing all SVT APV read errors
+     */
+    public static int[] getApvReadErrors(int[] multisampleHeader) {
+        int[] samples = new int[TOTAL_SAMPLES];
+        // Get all SVT Samples
+        for (int sampleN = 0; sampleN < TOTAL_SAMPLES; sampleN++) {
+            samples[sampleN] = getApvReadErrors(sampleN, multisampleHeader);
+        }
+        return samples;
+    }
+    
+    /**
+     *  Extract and return all SVT APV read errorsas an array 
+     * 
+     *  @param multisampleHeader : multisample header
+     *  @return An array containing all SVT APV read errors
+     */
+    public static int[] getApvFrameCount(int[] multisampleHeader) {
+        int[] samples = new int[TOTAL_SAMPLES];
+        // Get all SVT Samples
+        for (int sampleN = 0; sampleN < TOTAL_SAMPLES; sampleN++) {
+            samples[sampleN] = getApvFrameCount(sampleN, multisampleHeader);
+        }
+        return samples;
+    }
+
 
     /**
      *  Private constructor to prevent the class from being instantiated.

@@ -18,15 +18,15 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-tracking</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hps</groupId>
             <artifactId>hps-record-util</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-run-database</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-tracking</artifactId>
         </dependency>
     </dependencies>
     <build>

@@ -2,7 +2,7 @@ package org.hps.evio;
 
 import java.util.List;
 
-import org.hps.readout.svt.SvtHeaderDataInfo;
+import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -194,14 +194,27 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 
     @Override
     protected void setMultiSampleHeaders(SvtHeaderDataInfo headerData,
+            int max, int[] multisampleHeaders) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    protected void extractMultisampleHeaderTail(int[] multisample, int index,
             int[] multisampleHeaders) {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    protected void extractMultisampleTail(int[] multisample, int index,
-            int[] multisampleHeaders) {
+    protected int extractMultisampleHeaderData(int[] samples, int i,
+            int[] multisampleHeaderData) {
+       return 0;
+        
+    }
+
+    @Override
+    protected void checkSvtHeaders(List<SvtHeaderDataInfo> headers) {
         // TODO Auto-generated method stub
         
     }

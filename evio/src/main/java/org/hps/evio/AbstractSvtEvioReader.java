@@ -7,7 +7,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.readout.svt.SvtHeaderDataInfo;
+import org.hps.record.svt.SvtHeaderDataInfo;
+import org.hps.util.BasicLogFormatter;
 import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.DataType;
@@ -40,8 +41,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 
     
     // Initialize the logger
-    protected static Logger logger = LogUtil.create(AbstractSvtEvioReader.class.getName(), 
-            new DefaultLogFormatter(), Level.INFO);
+    protected static Logger logger = LogUtil.create(AbstractSvtEvioReader.class.getName(), new BasicLogFormatter(), Level.INFO);
 
     // A Map from DAQ pair (FPGA/Hybrid or FEB ID/FEB Hybrid ID) to the
     // corresponding sensor
@@ -233,9 +233,6 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                 // extract header and tail information
                 SvtHeaderDataInfo headerData = this.extractSvtHeader(dataBank.getHeader().getNumber(), data);
                 
-                // Check the integrity of the SVT header data
-                this.checkSvtHeaderData(headerData);
-                
                 // Check that the multisample count is consistent
                 this.checkSvtSampleCount(sampleCount, headerData);
                 
@@ -243,17 +240,36 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                 headers.add(headerData);
                 
                 
-                // create array for the apv headers of known length
-                int multisampleHeaders[] = new int[sampleCount/4];
+                // Create array for the apv headers of known length
+                //int multisampleHeaderTails[] = new int[sampleCount/4];
+                
+                // Store the multisample headers
+                // Note that the length is not known but can't be longer than the multisample count
+                // in other words the data can be only header multisamples for example.
+                int multisampleHeaderData[] = new int[sampleCount];
+                int multisampleHeaderIndex = 0;
+
+                logger.fine("sampleCount " + sampleCount);
                 
                 // Loop through all of the samples and make hits
                 for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
-
+                    
                     int[] samples = new int[4];
                     System.arraycopy(data, this.getDataHeaderLength() + samplesN, samples, 0, samples.length);
                     
-                    // Extract multisample header
-                    this.extractMultisampleTail(samples, samplesN/4, multisampleHeaders);
+                    logger.fine("samplesN " + samplesN + " multisampleHeaderCount " + multisampleHeaderIndex);
+                    if(SvtEvioUtils.isMultisampleHeader(samples))
+                        logger.fine("this is a header multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
+                    else 
+                        logger.fine("this is a data   multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
+                    
+                    
+                    // Extract tail word in multisample header
+                    //this.extractMultisampleHeaderTail(samples, samplesN/4, multisampleHeaderTails);
+                    
+                    // Extract data words from multisample header 
+                    multisampleHeaderIndex += this.extractMultisampleHeaderData(samples, multisampleHeaderIndex, multisampleHeaderData);
+                    
                     //if( SvtEvioUtils.isMultisampleHeader(samples) ) 
                     //    multisampleHeaders[samplesN/4] = SvtEvioUtils.getMultisampleTailWord(samples);
                     
@@ -262,9 +278,13 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                     rawHits.add(this.makeHit(samples));
                 }
                 
-                // add multisample headers to header data object
-                this.setMultiSampleHeaders(headerData, multisampleHeaders);
+                logger.fine("got " +  multisampleHeaderIndex + " multisampleHeaderIndex for " + sampleCount + " sampleCount");
+                
+                // add multisample header tails to header data object
+                this.setMultiSampleHeaders(headerData, multisampleHeaderIndex, multisampleHeaderData);
                 //headerData.setMultisampleHeaders(multisampleHeaders);
+                
+                //this.checkSvtHeaders(headers);
             }
         }
         
@@ -275,6 +295,10 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         // Add the collection of raw hits to the LCSim event
         lcsimEvent.put(SVT_HIT_COLLECTION_NAME, rawHits, RawTrackerHit.class, flag, READOUT_NAME);
 
+        
+        // Check that the SVT header data is valid
+        this.checkSvtHeaders(headers);
+        
         // Add SVT header data to the event
         this.addSvtHeadersToEvents(headers, lcsimEvent);
 
@@ -283,12 +307,12 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         return true;
     }
 
-    protected abstract void setMultiSampleHeaders(SvtHeaderDataInfo headerData, int[] multisampleHeaders);
     
-    protected abstract void extractMultisampleTail(int[] multisample, int index, int[] multisampleHeaders);
     
-   
-    
+    protected abstract void checkSvtHeaders(List<SvtHeaderDataInfo> headers) throws SvtEvioHeaderException;
+    protected abstract int extractMultisampleHeaderData(int[] samples, int i, int[] multisampleHeaderData);
+    protected abstract void setMultiSampleHeaders(SvtHeaderDataInfo headerData, int max, int[] multisampleHeaders);
+    protected abstract void extractMultisampleHeaderTail(int[] multisample, int index, int[] multisampleHeaders);
     protected abstract void checkSvtSampleCount(int sampleCount, SvtHeaderDataInfo headerData) throws SvtEvioHeaderException;
 
     /**

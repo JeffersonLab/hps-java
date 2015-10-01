@@ -145,16 +145,34 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Error making ECal hits.", e);
         }
-
+        
         // Make SVT RawTrackerHits.
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);
+        } catch (final SvtEvioHeaderMultisampleErrorBitException e) {
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
+            throw new RuntimeException(e);
+        } catch (final SvtEvioHeaderSkipCountException e) {
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
+            throw new RuntimeException(e);
+        } catch (final SvtEvioHeaderOFErrorException e) {
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
+            throw new RuntimeException(e);
+        } catch (final SvtEvioHeaderApvBufferAddressException e) {
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
+            throw new RuntimeException(e);
+        } catch (final SvtEvioHeaderApvFrameCountException e) {
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
+            throw new RuntimeException(e);
+        } catch (final SvtEvioHeaderApvReadErrorException e) {
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
+            throw new RuntimeException(e);
         } catch (final SvtEvioHeaderException e) {
-            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT.", e);
+            LOGGER.log(Level.SEVERE, "General error reading header information from the SVT. Don't stop", e);
         } catch (final SvtEvioReaderException e) {
             LOGGER.log(Level.SEVERE, "Error making SVT hits.", e);
         } catch (final Exception e) {
-            LOGGER.log(Level.SEVERE, "Error making SVT hits. Don't think I should be able to get here?", e);
+            LOGGER.log(Level.SEVERE, "General error making SVT hits. I should handle this exception in some way", e);
         }
 
         // Write the current EPICS data into this event.
