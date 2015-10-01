@@ -65,7 +65,7 @@ public class GBLOutputDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
-        Hep3Vector bfield = detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 1.));
+        Hep3Vector bfield = detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 500.0));
 
         // Create the class that handles all the GBL output
         gbl = new GBLOutput(gblFileName, bfield); // if filename is empty no text file is written
