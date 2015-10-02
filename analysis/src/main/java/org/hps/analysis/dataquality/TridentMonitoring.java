@@ -20,6 +20,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
 import org.lcsim.geometry.Detector;
 
@@ -33,51 +34,145 @@ import org.lcsim.geometry.Detector;
 public class TridentMonitoring extends DataQualityMonitor {
 
     private double ebeam = 1.05;
-    private BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
-    private static final int nCuts = 8;
+    private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
+    private static final int nCuts = 9;
+    private final String[] cutNames = {"Trk Quality",
+        "V0 Quality",
+        "V0 Vertex",
+        "Timing",
+        "Tracking",
+        "Cluster",
+        "Event",
+        "Front Hits",
+        "Isolation"};
+    private int firstVertexingCut = 0;
     private static final int PASS = 0;
     private static final int FAIL = 1;
 
-    private String finalStateParticlesColName = "FinalStateParticles";
-    private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
-    private String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
-    private String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
-    private String trackListName = "MatchedTracks";
+    private final String finalStateParticlesColName = "FinalStateParticles";
+    private final String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
+//    private final String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
+//    private final String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
+//    private final String trackListName = "MatchedTracks";
     private String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
 
     private final String plotDir = "TridentMonitoring/";
-    private IHistogram2D trackTime2D;
-    private IHistogram1D trackTimeDiff;
-    private IHistogram2D vertexMassMomentum;
-    private IHistogram2D vertexZVsMomentum;
-    private IHistogram2D vertexedTrackMomentum2D;
-    private IHistogram2D pyEleVspyPos;
-    private IHistogram2D pxEleVspxPos;
-    private IHistogram2D vertexPxPy;
-    private IHistogram1D goodVertexMass;
-    private IHistogram2D goodVertexZVsMass;
-    private IHistogram1D vertexX;
-    private IHistogram1D vertexY;
-    private IHistogram1D vertexZ;
-    private IHistogram1D vertexPx;
-    private IHistogram1D vertexPy;
-    private IHistogram1D vertexPz;
-    private IHistogram1D vertexU;
-    private IHistogram1D vertexV;
-    private IHistogram1D nCand;
+
+    private IHistogram2D triTrackTime2D;
+    private IHistogram1D triTrackTimeDiff;
+    private IHistogram2D triMassMomentum;
+    private IHistogram2D triZVsMomentum;
+    private IHistogram2D triTrackMomentum2D;
+    private IHistogram2D triPyEleVsPyPos;
+    private IHistogram2D triPxEleVsPxPos;
+    private IHistogram1D triDeltaP;
+    private IHistogram1D triSumP;
+    private IHistogram1D triMass;
+    private IHistogram2D triZVsMass;
+    private IHistogram1D triX;
+    private IHistogram1D triY;
+    private IHistogram1D triZ;
+    private IHistogram2D triZY;
+    private IHistogram2D triXY;
+    private IHistogram1D triPx;
+    private IHistogram1D triPy;
+    private IHistogram1D triPz;
+    private IHistogram2D triPxPy;
+    private IHistogram1D triU;
+    private IHistogram1D triV;
+
+    private IHistogram2D triRadTrackTime2D;
+    private IHistogram1D triRadTrackTimeDiff;
+    private IHistogram2D triRadMassMomentum;
+    private IHistogram2D triRadZVsMomentum;
+    private IHistogram2D triRadTrackMomentum2D;
+    private IHistogram2D triRadPyEleVsPyPos;
+    private IHistogram2D triRadPxEleVsPxPos;
+    private IHistogram1D triRadDeltaP;
+    private IHistogram1D triRadSumP;
+    private IHistogram1D triRadMass;
+    private IHistogram2D triRadZVsMass;
+    private IHistogram1D triRadX;
+    private IHistogram1D triRadY;
+    private IHistogram1D triRadZ;
+    private IHistogram2D triRadZY;
+    private IHistogram2D triRadXY;
+    private IHistogram1D triRadPx;
+    private IHistogram1D triRadPy;
+    private IHistogram1D triRadPz;
+    private IHistogram2D triRadPxPy;
+    private IHistogram1D triRadU;
+    private IHistogram1D triRadV;
+
+    private IHistogram2D vertTrackTime2D;
+    private IHistogram1D vertTrackTimeDiff;
+    private IHistogram2D vertMassMomentum;
+    private IHistogram2D vertZVsMomentum;
+    private IHistogram2D vertTrackMomentum2D;
+    private IHistogram2D vertPyEleVsPyPos;
+    private IHistogram2D vertPxEleVsPxPos;
+    private IHistogram1D vertDeltaP;
+    private IHistogram1D vertSumP;
+    private IHistogram1D vertMass;
+    private IHistogram2D vertZVsMass;
+    private IHistogram1D vertX;
+    private IHistogram1D vertY;
+    private IHistogram1D vertZ;
+    private IHistogram2D vertZY;
+    private IHistogram2D vertXY;
+    private IHistogram1D vertPx;
+    private IHistogram1D vertPy;
+    private IHistogram1D vertPz;
+    private IHistogram2D vertPxPy;
+    private IHistogram1D vertU;
+    private IHistogram1D vertV;
+
+    private IHistogram2D vertRadTrackTime2D;
+    private IHistogram1D vertRadTrackTimeDiff;
+    private IHistogram2D vertRadMassMomentum;
+    private IHistogram2D vertRadZVsMomentum;
+    private IHistogram2D vertRadTrackMomentum2D;
+    private IHistogram2D vertRadPyEleVsPyPos;
+    private IHistogram2D vertRadPxEleVsPxPos;
+    private IHistogram1D vertRadDeltaP;
+    private IHistogram1D vertRadSumP;
+    private IHistogram1D vertRadMass;
+    private IHistogram2D vertRadZVsMass;
+    private IHistogram1D vertRadX;
+    private IHistogram1D vertRadY;
+    private IHistogram1D vertRadZ;
+    private IHistogram2D vertRadZY;
+    private IHistogram2D vertRadXY;
+    private IHistogram1D vertRadPx;
+    private IHistogram1D vertRadPy;
+    private IHistogram1D vertRadPz;
+    private IHistogram2D vertRadPxPy;
+    private IHistogram1D vertRadU;
+    private IHistogram1D vertRadV;
+
+    private IHistogram1D nTriCand;
     private IHistogram1D nVtxCand;
 //    IHistogram1D vertexW;
 //    IHistogram2D vertexVZ;
-    private IHistogram2D vertexZY;
 
-    private IHistogram1D[][] cutVertexMass = new IHistogram1D[nCuts][2];
-    private IHistogram1D[][] cutVertexZ = new IHistogram1D[nCuts][2];
-    private IHistogram2D[][] cutVertexZVsMass = new IHistogram2D[nCuts][2];
+    private IHistogram1D maxTrkChi2;
+    private IHistogram2D zVsMaxTrkChi2;
+    private IHistogram1D v0Chi2;
+    private IHistogram2D zVsV0Chi2;
+    private IHistogram1D trackTimeDiff;
+    private IHistogram2D zVsTrackTimeDiff;
+    private IHistogram1D hitTimeStdDev;
+    private IHistogram2D zVsHitTimeStdDev;
+    private IHistogram1D eventTrkCount;
+    private IHistogram1D eventPosCount;
+    private IHistogram2D zVsEventTrkCount;
+    private IHistogram2D zVsEventPosCount;
+    private IHistogram1D l1Iso;
+    private IHistogram2D zVsL1Iso;
 
-    private IHistogram1D deltaP;
-    private IHistogram1D deltaPRad;
-    private IHistogram1D sumP;
-    private IHistogram2D vertexedTrackMomentum2DRad;
+    private final IHistogram1D[][] cutVertexMass = new IHistogram1D[nCuts][2];
+    private final IHistogram1D[][] cutVertexZ = new IHistogram1D[nCuts][2];
+    private final IHistogram2D[][] cutVertexZVsMass = new IHistogram2D[nCuts][2];
 
     //clean up event first
     private int nTrkMax = 5;
@@ -90,8 +185,8 @@ public class TridentMonitoring extends DataQualityMonitor {
     //v0 cuts   
     private double v0PzMax = 1.25 * ebeam;//GeV 
     private double v0PzMin = 0.1;// GeV
-    private double v0PyMax = 0.2;//GeV absolute value
-    private double v0PxMax = 0.2;//GeV absolute value
+    private double v0PyMax = 0.04;//GeV absolute value
+    private double v0PxMax = 0.04;//GeV absolute value
     private double v0VzMax = 50.0;// mm from target...someday make mass dependent
     private double v0VyMax = 1.0;// mm from target...someday make mass dependent
     private double v0VxMax = 2.0;// mm from target...someday make mass dependent
@@ -101,7 +196,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 //    private double trkPyMax = 0.2;
 //    private double trkPxMax = 0.2;
     private double radCut = 0.8 * ebeam;
-    private double trkTimeDiff = 16.0;
+    private double trkTimeDiff = 5.0;
     private double clusterTimeDiffCut = 2.5;
 
     private double l1IsoMin = 1.0;
@@ -114,15 +209,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 //counters
     private float nEvents = 0;
     private float nRecoV0 = 0;
-    private float nPassBasicCuts = 0;
-    private float nPassTrkQualityCuts = 0;
-    private float nPassV0QualityCuts = 0;
-    private float nPassV0Cuts = 0;
-    private float nPassTimeCuts = 0;
-    private float nPassTrkCuts = 0;
-    private float nPassClusterMatchCuts = 0;
-    private float nPassFrontHitsCuts = 0;
-    private float nPassIsoCuts = 0;
+    private final float[] nPassCut = new float[nCuts];
 
     public void setEbeam(double ebeam) {
         this.ebeam = ebeam;
@@ -153,49 +240,143 @@ public class TridentMonitoring extends DataQualityMonitor {
 //        IHistogram1D tarconVy = aida.histogram1D(plotDir +  triggerType + "/"+ triggerType + "/"+"Target Constrained Vy (mm)", 50, -1, 1);
 //        IHistogram1D tarconVz = aida.histogram1D(plotDir +  triggerType + "/"+ triggerType + "/"+"Target Constrained Vz (mm)", 50, -10, 10);
 //        IHistogram1D tarconChi2 = aida.histogram1D(plotDir +  triggerType + "/"+ triggerType + "/"+"Target Constrained Chi2", 25, 0, 25);
-        pyEleVspyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Py(e) vs Py(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
-        pxEleVspxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Px(e) vs Px(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
-        trackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Track time difference", 100, -10, 10);
-        trackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Track time vs. track time", 100, -10, 10, 100, -10, 10);
-        vertexMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex mass vs. vertex momentum", 100, 0, 1.1, 100, 0, 0.1);
-        vertexZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Z vs. vertex momentum", 100, 0, 0.1, 100, -v0VzMax, v0VzMax);
-        vertexedTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Positron vs. electron momentum", 100, 0, 1.1, 100, 0, 1.1);
-        vertexedTrackMomentum2DRad = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Positron vs. electron momentum: radiative", 100, 0, 1.1, 100, 0, 1.1);
-        vertexPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Py vs. Px", 100, -0.04, 0.04, 100, -0.04, 0.04);
-        goodVertexMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Good vertex mass", 100, 0, 0.11);
-        goodVertexZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Good vertex Z vs. mass", 100, 0, 0.11, 100, -v0VzMax, v0VzMax);
-        nCand = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Number of Trident Candidates", 5, 0, 4);
+        nTriCand = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Number of Trident Candidates", 5, 0, 4);
+
+        triTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Track time difference", 100, -10, 10);
+        triTrackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Track time vs. track time", 100, -10, 10, 100, -10, 10);
+
+        triTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Positron vs. electron momentum", 100, 0, v0PzMax, 100, 0, v0PzMax);
+        triDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Positron - electron momentum", 100, -1., 1.0);
+        triSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Positron + electron momentum", 100, v0PzMin, v0PzMax);
+        triPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Py(e) vs Py(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+        triPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Px(e) vs Px(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+
+        triMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex mass vs. vertex momentum", 100, v0PzMin, v0PzMax, 100, 0, 0.1);
+        triZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Z vs. vertex momentum", 100, v0PzMin, v0PzMax, 100, -v0VzMax, v0VzMax);
+        triMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex mass", 100, 0, 0.11);
+        triZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Z vs. mass", 100, 0, 0.11, 100, -v0VzMax, v0VzMax);
+        triX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex X", 100, -v0VxMax, v0VxMax);
+        triY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Y", 100, -v0VyMax, v0VyMax);
+        triZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Z", 100, -v0VzMax, v0VzMax);
+        triXY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Y vs. X", 100, -v0VxMax, v0VxMax, 100, -v0VyMax, v0VyMax);
+        triZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
+        triPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Px", 100, -v0PxMax, v0PxMax);
+        triPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Py", 100, -v0PyMax, v0PyMax);
+        triPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Pz", 100, v0PzMin, v0PzMax);
+        triPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Py vs. Px", 100, -v0PxMax, v0PxMax, 100, -v0PyMax, v0PyMax);
+        triU = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Px over Ptot", 100, -0.1, 0.1);
+        triV = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Py over Ptot", 100, -0.1, 0.1);
+
+        triRadTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Track time difference", 100, -10, 10);
+        triRadTrackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Track time vs. track time", 100, -10, 10, 100, -10, 10);
+
+        triRadTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Positron vs. electron momentum", 100, 0, v0PzMax, 100, 0, v0PzMax);
+        triRadDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Positron - electron momentum", 100, -1., 1.0);
+        triRadSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Positron + electron momentum", 100, v0PzMin, v0PzMax);
+        triRadPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Py(e) vs Py(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+        triRadPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Px(e) vs Px(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+
+        triRadMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex mass vs. vertex momentum", 100, v0PzMin, v0PzMax, 100, 0, 0.1);
+        triRadZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Z vs. vertex momentum", 100, v0PzMin, v0PzMax, 100, -v0VzMax, v0VzMax);
+        triRadMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex mass", 100, 0, 0.11);
+        triRadZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Z vs. mass", 100, 0, 0.11, 100, -v0VzMax, v0VzMax);
+        triRadX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex X", 100, -v0VxMax, v0VxMax);
+        triRadY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Y", 100, -v0VyMax, v0VyMax);
+        triRadZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Z", 100, -v0VzMax, v0VzMax);
+        triRadXY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Y vs. X", 100, -v0VxMax, v0VxMax, 100, -v0VyMax, v0VyMax);
+        triRadZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
+        triRadPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Px", 100, -v0PxMax, v0PxMax);
+        triRadPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Py", 100, -v0PyMax, v0PyMax);
+        triRadPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Pz", 100, v0PzMin, v0PzMax);
+        triRadPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Py vs. Px", 100, -v0PxMax, v0PxMax, 100, -v0PyMax, v0PyMax);
+        triRadU = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Px over Ptot", 100, -0.1, 0.1);
+        triRadV = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Py over Ptot", 100, -0.1, 0.1);
+
+        vertTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Track time difference", 100, -10, 10);
+        vertTrackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Track time vs. track time", 100, -10, 10, 100, -10, 10);
+
+        vertTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Positron vs. electron momentum", 100, 0, v0PzMax, 100, 0, v0PzMax);
+        vertDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Positron - electron momentum", 100, -1., 1.0);
+        vertSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Positron + electron momentum", 100, v0PzMin, v0PzMax);
+        vertPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Py(e) vs Py(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+        vertPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Px(e) vs Px(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+
+        vertMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass vs. vertex momentum", 100, v0PzMin, v0PzMax, 100, 0, 0.1);
+        vertZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. vertex momentum", 100, v0PzMin, v0PzMax, 100, -v0VzMax, v0VzMax);
+        vertMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass", 100, 0, 0.11);
+        vertZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. mass", 100, 0, 0.11, 100, -v0VzMax, v0VzMax);
+        vertX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex X", 100, -v0VxMax, v0VxMax);
+        vertY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Y", 100, -v0VyMax, v0VyMax);
+        vertZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z", 100, -v0VzMax, v0VzMax);
+        vertXY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Y vs. X", 100, -v0VxMax, v0VxMax, 100, -v0VyMax, v0VyMax);
+        vertZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
+        vertPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Px", 100, -v0PxMax, v0PxMax);
+        vertPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Py", 100, -v0PyMax, v0PyMax);
+        vertPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Pz", 100, v0PzMin, v0PzMax);
+        vertPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Py vs. Px", 100, -v0PxMax, v0PxMax, 100, -v0PyMax, v0PyMax);
+        vertU = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Px over Ptot", 100, -0.1, 0.1);
+        vertV = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Py over Ptot", 100, -0.1, 0.1);
+
+        vertRadTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Track time difference", 100, -10, 10);
+        vertRadTrackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Track time vs. track time", 100, -10, 10, 100, -10, 10);
+
+        vertRadTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Positron vs. electron momentum", 100, 0, v0PzMax, 100, 0, v0PzMax);
+        vertRadDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Positron - electron momentum", 100, -1., 1.0);
+        vertRadSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Positron + electron momentum", 100, v0PzMin, v0PzMax);
+        vertRadPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Py(e) vs Py(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+        vertRadPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Px(e) vs Px(p)", 50, -0.04, 0.04, 50, -0.04, 0.04);
+
+        vertRadMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex mass vs. vertex momentum", 100, v0PzMin, v0PzMax, 100, 0, 0.1);
+        vertRadZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Z vs. vertex momentum", 100, v0PzMin, v0PzMax, 100, -v0VzMax, v0VzMax);
+        vertRadMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex mass", 100, 0, 0.11);
+        vertRadZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Z vs. mass", 100, 0, 0.11, 100, -v0VzMax, v0VzMax);
+        vertRadX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex X", 100, -v0VxMax, v0VxMax);
+        vertRadY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Y", 100, -v0VyMax, v0VyMax);
+        vertRadZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Z", 100, -v0VzMax, v0VzMax);
+        vertRadXY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Y vs. X", 100, -v0VxMax, v0VxMax, 100, -v0VyMax, v0VyMax);
+        vertRadZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
+        vertRadPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Px", 100, -v0PxMax, v0PxMax);
+        vertRadPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Py", 100, -v0PyMax, v0PyMax);
+        vertRadPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Pz", 100, v0PzMin, v0PzMax);
+        vertRadPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Py vs. Px", 100, -v0PxMax, v0PxMax, 100, -v0PyMax, v0PyMax);
+        vertRadU = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Px over Ptot", 100, -0.1, 0.1);
+        vertRadV = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Py over Ptot", 100, -0.1, 0.1);
+
         nVtxCand = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Number of Vertexing Candidates", 5, 0, 4);
-        deltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Positron - electron momentum", 100, -1., 1.0);
-        deltaPRad = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Positron - electron momentum: radiative", 100, -1., 1.0);
-        sumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Positron + electron momentum", 100, v0PzMin, v0PzMax);
-        vertexX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex X Position (mm)", 100, -v0VxMax, v0VxMax);
-        vertexY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Y Position (mm)", 100, -v0VyMax, v0VyMax);
-        vertexZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Z Position (mm)", 100, -v0VzMax, v0VzMax);
-        vertexPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Px (GeV)", 100, -v0PxMax, v0PxMax);
-        vertexPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Py (GeV)", 100, -v0PyMax, v0PyMax);
-        vertexPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Pz (GeV)", 100, v0PzMin, v0PzMax);
-        vertexU = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Px over Ptot (GeV)", 100, -0.1, 0.1);
-        vertexV = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex Py over Ptot (GeV)", 100, -0.1, 0.1);
-//        vertexW = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Vertex Pz overPtot (GeV)", 100, 0.95, 1.0);
-//        vertexVZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Py over Ptot vs. Z", 100, -v0VzMax, v0VzMax, 100, -0.1, 0.1);
-        vertexZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
+
+        maxTrkChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: Trk Chi2", 50, 0.0, 50.0);
+        zVsMaxTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs Trk Chi2", 50, 0.0, 50.0, 50, -v0VzMax, v0VzMax);
+
+        v0Chi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: V0 Chi2", 50, 0.0, 25.0);
+        zVsV0Chi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs V0 Chi2", 50, 0.0, 25.0, 50, -v0VzMax, v0VzMax);
+
+        trackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: Trk Time Diff", 50, 0.0, 10.0);
+        hitTimeStdDev = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: Hit Time Std Dev", 50, 0.0, 10.0);
+        zVsTrackTimeDiff = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs Trk Time Diff", 50, 0.0, 10.0, 50, -v0VzMax, v0VzMax);
+        zVsHitTimeStdDev = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs Hit Time Std Dev", 50, 0.0, 10.0, 50, -v0VzMax, v0VzMax);
+
+        eventTrkCount = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: Num Tracks", 10, 0.5, 10.5);
+        eventPosCount = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: Num Positrons", 5, 0.5, 5.5);
+        zVsEventTrkCount = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs Num Tracks", 10, 0.5, 10.5, 50, -v0VzMax, v0VzMax);
+        zVsEventPosCount = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs Num Positrons", 5, 0.5, 5.5, 50, -v0VzMax, v0VzMax);
+
+        l1Iso = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: L1 Isolation", 50, 0.0, 5.0);
+        zVsL1Iso = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs L1 Isolation", 50, 0.0, 5.0, 50, -v0VzMax, v0VzMax);
 
         for (int i = 0; i < nCuts; i++) {
             for (int pass = 0; pass < 2; pass++) {
-                cutVertexZ[i][pass] = aida.histogram1D(String.format("%s%s%s/cut%d/%s: Vertex Z position (mm)", plotDir, trkType, triggerType, i, pass == PASS ? "pass" : "fail"),
+                cutVertexZ[i][pass] = aida.histogram1D(String.format("%s%s%s/cut %d: %s/%s: Vertex Z position (mm)", plotDir, trkType, triggerType, i, cutNames[i], pass == PASS ? "pass" : "fail"),
                         100, -v0VzMax, v0VzMax);
-                cutVertexMass[i][pass] = aida.histogram1D(String.format("%s%s%s/cut%d/%s: Vertex mass (GeV)", plotDir, trkType, triggerType, i, pass == PASS ? "pass" : "fail"),
+                cutVertexMass[i][pass] = aida.histogram1D(String.format("%s%s%s/cut %d: %s/%s: Vertex mass (GeV)", plotDir, trkType, triggerType, i, cutNames[i], pass == PASS ? "pass" : "fail"),
                         100, 0, 0.1 * ebeam);
-                cutVertexZVsMass[i][pass] = aida.histogram2D(String.format("%s%s%s/cut%d/%s: Vertex Z vs. mass", plotDir, trkType, triggerType, i, pass == PASS ? "pass" : "fail"),
+                cutVertexZVsMass[i][pass] = aida.histogram2D(String.format("%s%s%s/cut %d: %s/%s: Vertex Z vs. mass", plotDir, trkType, triggerType, i, cutNames[i], pass == PASS ? "pass" : "fail"),
                         100, 0, 0.1 * ebeam, 100, -v0VzMax, v0VzMax);
             }
         }
     }
 
     @Override
-    public void process(EventHeader event
-    ) {
+    public void process(EventHeader event) {
         /*  make sure everything is there */
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
@@ -203,15 +384,12 @@ public class TridentMonitoring extends DataQualityMonitor {
         if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
             return;
         }
-        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName)) {
-            return;
-        }
-        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName)) {
-            return;
-        }
-        if (!event.hasCollection(Track.class, trackListName)) {
-            return;
-        }
+//        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName)) {
+//            return;
+//        }
+//        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName)) {
+//            return;
+//        }
 
         //check to see if this event is from the correct trigger (or "all");
         if (!matchTrigger(event)) {
@@ -246,14 +424,6 @@ public class TridentMonitoring extends DataQualityMonitor {
                 npos++;
             }
         }
-        if (ntrk < 2 || ntrk > nTrkMax) {
-            return;
-        }
-        if (npos < 1 || npos > nPosMax) {
-            return;
-        }
-
-        nPassBasicCuts += nV0;//passed some basic event-level cuts...
 
         List<ReconstructedParticle> candidateList = new ArrayList<>();
         List<ReconstructedParticle> vertCandidateList = new ArrayList<>();
@@ -278,9 +448,22 @@ public class TridentMonitoring extends DataQualityMonitor {
                 throw new RuntimeException("expected two tracks in vertex, got " + tracks.size());
             }
             List<Double> trackTimes = new ArrayList<Double>();
+            List<Double> hitTimes = new ArrayList<Double>();
+            double mean = 0;
             for (Track track : tracks) {
                 trackTimes.add(TrackUtils.getTrackTime(track, hitToStrips, hitToRotated));
+                for (TrackerHit hit : TrackUtils.getStripHits(track, hitToStrips, hitToRotated)) {
+                    mean += hit.getTime();
+                    hitTimes.add(hit.getTime());
+                }
             }
+            mean /= hitTimes.size();
+            double stdDev = 0;
+            for (Double time : hitTimes) {
+                stdDev += Math.pow(time - mean, 2);
+            }
+            stdDev /= (hitTimes.size() - 1);
+            stdDev = Math.sqrt(stdDev);
 
             Double[] eleIso = TrackUtils.getIsolations(electron.getTracks().get(0), hitToStrips, hitToRotated);
             Double[] posIso = TrackUtils.getIsolations(positron.getTracks().get(0), hitToStrips, hitToRotated);
@@ -289,11 +472,13 @@ public class TridentMonitoring extends DataQualityMonitor {
                 double eleL1Iso = Math.min(Math.abs(eleIso[0]), Math.abs(eleIso[1]));
                 double posL1Iso = Math.min(Math.abs(posIso[0]), Math.abs(posIso[1]));
                 minL1Iso = Math.min(eleL1Iso, posL1Iso);
-//                    VtxZVsL1Iso.fill(minL1Iso, uncVert.getPosition().z());
             }
 
+            //start applying cuts
             int cutNum = 0;
             boolean trackQualityCut = Math.max(tracks.get(0).getChi2(), tracks.get(1).getChi2()) < (isGBL ? maxChi2GBLTrack : maxChi2SeedTrack);
+            maxTrkChi2.fill(Math.max(tracks.get(0).getChi2(), tracks.get(1).getChi2()));
+            zVsMaxTrkChi2.fill(Math.max(tracks.get(0).getChi2(), tracks.get(1).getChi2()), v0Vtx.z());
             if (!trackQualityCut) {
                 cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
                 cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
@@ -303,10 +488,12 @@ public class TridentMonitoring extends DataQualityMonitor {
             cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
             cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
             cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            nPassCut[cutNum]++;
             cutNum++;
-            nPassTrkQualityCuts++;
 
             boolean v0QualityCut = uncVert.getChi2() < maxVertChi2;
+            v0Chi2.fill(uncVert.getChi2());
+            zVsV0Chi2.fill(uncVert.getChi2(), v0Vtx.z());
             if (!v0QualityCut) {
                 cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
                 cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
@@ -316,8 +503,8 @@ public class TridentMonitoring extends DataQualityMonitor {
             cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
             cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
             cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            nPassCut[cutNum]++;
             cutNum++;
-            nPassV0QualityCuts++;
 
             boolean vertexMomentumCut = v0MomRot.z() < v0PzMax && v0MomRot.z() > v0PzMin && Math.abs(v0MomRot.x()) < v0PxMax && Math.abs(v0MomRot.y()) < v0PyMax;
             boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0VxMax && Math.abs(v0Vtx.y()) < v0VyMax && Math.abs(v0Vtx.z()) < v0VzMax;
@@ -330,11 +517,14 @@ public class TridentMonitoring extends DataQualityMonitor {
             cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
             cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
             cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            nPassCut[cutNum]++;
             cutNum++;
-            nPassV0Cuts++;
 
             boolean trackTimeDiffCut = Math.abs(trackTimes.get(0) - trackTimes.get(1)) < trkTimeDiff;
-
+            trackTimeDiff.fill(Math.abs(trackTimes.get(0) - trackTimes.get(1)));
+            hitTimeStdDev.fill(stdDev);
+            zVsTrackTimeDiff.fill(Math.abs(trackTimes.get(0) - trackTimes.get(1)), v0Vtx.z());
+            zVsHitTimeStdDev.fill(stdDev, v0Vtx.z());
             if (!trackTimeDiffCut) {
                 cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
                 cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
@@ -344,8 +534,8 @@ public class TridentMonitoring extends DataQualityMonitor {
             cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
             cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
             cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            nPassCut[cutNum]++;
             cutNum++;
-            nPassTimeCuts++;
 
             boolean topBottomCut = electron.getMomentum().y() * positron.getMomentum().y() < 0;
             boolean pMinCut = electron.getMomentum().magnitude() > minPCut && positron.getMomentum().magnitude() > minPCut;
@@ -359,8 +549,8 @@ public class TridentMonitoring extends DataQualityMonitor {
             cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
             cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
             cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            nPassCut[cutNum]++;
             cutNum++;
-            nPassTrkCuts++;
 
             boolean clusterMatchCut = !electron.getClusters().isEmpty() && !positron.getClusters().isEmpty();
             boolean clusterTimeCut = clusterMatchCut && Math.abs(ClusterUtilities.getSeedHitTime(electron.getClusters().get(0)) - ClusterUtilities.getSeedHitTime(positron.getClusters().get(0))) < clusterTimeDiffCut;
@@ -373,10 +563,29 @@ public class TridentMonitoring extends DataQualityMonitor {
             cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
             cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
             cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            nPassCut[cutNum]++;
             cutNum++;
-            nPassClusterMatchCuts++;
+
+            boolean eventTrkCountCut = ntrk >= 2 && ntrk <= nTrkMax;
+            boolean eventPosCountCut = npos >= 1 && npos <= nPosMax;
+            eventTrkCount.fill(ntrk);
+            eventPosCount.fill(npos);
+            zVsEventTrkCount.fill(ntrk, v0Vtx.z());
+            zVsEventPosCount.fill(npos, v0Vtx.z());
+            if (!eventTrkCountCut || !eventPosCountCut) {
+                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
+                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
+                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
+                continue;
+            }
+            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
+            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
+            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            nPassCut[cutNum]++;
+            cutNum++;
 
             candidateList.add(uncV0);
+            firstVertexingCut = cutNum;
 
             boolean frontHitsCut = eleIso[0] != null && posIso[0] != null && eleIso[2] != null && posIso[2] != null;
             if (!frontHitsCut) {
@@ -388,9 +597,11 @@ public class TridentMonitoring extends DataQualityMonitor {
             cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
             cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
             cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            nPassCut[cutNum]++;
             cutNum++;
-            nPassFrontHitsCuts++;
 
+            l1Iso.fill(minL1Iso);
+            zVsL1Iso.fill(minL1Iso, v0Vtx.z());
             boolean isoCut = minL1Iso > l1IsoMin;
             if (!isoCut) {
                 cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
@@ -401,64 +612,150 @@ public class TridentMonitoring extends DataQualityMonitor {
             cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
             cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
             cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
+            nPassCut[cutNum]++;
             cutNum++;
-            nPassIsoCuts++;
 
             vertCandidateList.add(uncV0);
         }
 
-        nCand.fill(candidateList.size());
+        nTriCand.fill(candidateList.size());
         nVtxCand.fill(vertCandidateList.size());
-        if (candidateList.isEmpty()) {
-            return;
+
+        if (!candidateList.isEmpty()) {
+            // pick the best candidate...for now just pick a random one. 
+            ReconstructedParticle bestCandidate = candidateList.get((int) (Math.random() * candidateList.size()));
+
+            //fill some stuff: 
+            ReconstructedParticle electron = bestCandidate.getParticles().get(ReconParticleDriver.ELECTRON);
+            ReconstructedParticle positron = bestCandidate.getParticles().get(ReconParticleDriver.POSITRON);
+            if (electron.getCharge() != -1 || positron.getCharge() != 1) {
+                throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
+            }
+
+            double tEle = TrackUtils.getTrackTime(electron.getTracks().get(0), hitToStrips, hitToRotated);
+            double tPos = TrackUtils.getTrackTime(positron.getTracks().get(0), hitToStrips, hitToRotated);
+            Hep3Vector pBestV0Rot = VecOp.mult(beamAxisRotation, bestCandidate.getMomentum());
+            Hep3Vector pEleRot = VecOp.mult(beamAxisRotation, electron.getMomentum());
+            Hep3Vector pPosRot = VecOp.mult(beamAxisRotation, positron.getMomentum());
+            Hep3Vector v0Vtx = VecOp.mult(beamAxisRotation, bestCandidate.getStartVertex().getPosition());
+
+            triTrackTime2D.fill(tEle, tPos);
+            triTrackTimeDiff.fill(tEle - tPos);
+            triZVsMomentum.fill(bestCandidate.getMomentum().magnitude(), v0Vtx.z());
+            triMassMomentum.fill(bestCandidate.getMomentum().magnitude(), bestCandidate.getMass());
+            triTrackMomentum2D.fill(electron.getMomentum().magnitude(), positron.getMomentum().magnitude());
+            triPyEleVsPyPos.fill(pEleRot.y(), pPosRot.y());
+            triPxEleVsPxPos.fill(pEleRot.x(), pPosRot.x());
+            triSumP.fill(bestCandidate.getMomentum().magnitude());
+            triDeltaP.fill(positron.getMomentum().magnitude() - electron.getMomentum().magnitude());
+
+            triPxPy.fill(pBestV0Rot.x(), pBestV0Rot.y());
+            triMass.fill(bestCandidate.getMass());
+            triZVsMass.fill(bestCandidate.getMass(), v0Vtx.z());
+            triX.fill(v0Vtx.x());
+            triY.fill(v0Vtx.y());
+            triZ.fill(v0Vtx.z());
+            triPx.fill(pBestV0Rot.x());
+            triPy.fill(pBestV0Rot.y());
+            triPz.fill(pBestV0Rot.z());
+            triU.fill(pBestV0Rot.x() / pBestV0Rot.magnitude());
+            triV.fill(pBestV0Rot.y() / pBestV0Rot.magnitude());
+            triXY.fill(v0Vtx.x(), v0Vtx.y());
+            triZY.fill(v0Vtx.y(), v0Vtx.z());
+            if (bestCandidate.getMomentum().magnitude() > radCut) {
+                triRadTrackTime2D.fill(tEle, tPos);
+                triRadTrackTimeDiff.fill(tEle - tPos);
+                triRadZVsMomentum.fill(bestCandidate.getMomentum().magnitude(), v0Vtx.z());
+                triRadMassMomentum.fill(bestCandidate.getMomentum().magnitude(), bestCandidate.getMass());
+                triRadTrackMomentum2D.fill(electron.getMomentum().magnitude(), positron.getMomentum().magnitude());
+                triRadPyEleVsPyPos.fill(pEleRot.y(), pPosRot.y());
+                triRadPxEleVsPxPos.fill(pEleRot.x(), pPosRot.x());
+                triRadSumP.fill(bestCandidate.getMomentum().magnitude());
+                triRadDeltaP.fill(positron.getMomentum().magnitude() - electron.getMomentum().magnitude());
+
+                triRadPxPy.fill(pBestV0Rot.x(), pBestV0Rot.y());
+                triRadMass.fill(bestCandidate.getMass());
+                triRadZVsMass.fill(bestCandidate.getMass(), v0Vtx.z());
+                triRadX.fill(v0Vtx.x());
+                triRadY.fill(v0Vtx.y());
+                triRadZ.fill(v0Vtx.z());
+                triRadPx.fill(pBestV0Rot.x());
+                triRadPy.fill(pBestV0Rot.y());
+                triRadPz.fill(pBestV0Rot.z());
+                triRadU.fill(pBestV0Rot.x() / pBestV0Rot.magnitude());
+                triRadV.fill(pBestV0Rot.y() / pBestV0Rot.magnitude());
+                triRadXY.fill(v0Vtx.x(), v0Vtx.y());
+                triRadZY.fill(v0Vtx.y(), v0Vtx.z());
+            }
         }
-        // pick the best candidate...for now just pick a random one. 
-        ReconstructedParticle bestCandidate = candidateList.get((int) (Math.random() * candidateList.size()));
 
-        //fill some stuff: 
-        ReconstructedParticle electron = bestCandidate.getParticles().get(ReconParticleDriver.ELECTRON);
-        ReconstructedParticle positron = bestCandidate.getParticles().get(ReconParticleDriver.POSITRON);
-        if (electron.getCharge() != -1 || positron.getCharge() != 1) {
-            throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
+        if (!vertCandidateList.isEmpty()) {
+            // pick the best candidate...for now just pick a random one. 
+            ReconstructedParticle bestCandidate = vertCandidateList.get((int) (Math.random() * vertCandidateList.size()));
+
+            //fill some stuff: 
+            ReconstructedParticle electron = bestCandidate.getParticles().get(ReconParticleDriver.ELECTRON);
+            ReconstructedParticle positron = bestCandidate.getParticles().get(ReconParticleDriver.POSITRON);
+            if (electron.getCharge() != -1 || positron.getCharge() != 1) {
+                throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
+            }
+
+            double tEle = TrackUtils.getTrackTime(electron.getTracks().get(0), hitToStrips, hitToRotated);
+            double tPos = TrackUtils.getTrackTime(positron.getTracks().get(0), hitToStrips, hitToRotated);
+            Hep3Vector pBestV0Rot = VecOp.mult(beamAxisRotation, bestCandidate.getMomentum());
+            Hep3Vector pEleRot = VecOp.mult(beamAxisRotation, electron.getMomentum());
+            Hep3Vector pPosRot = VecOp.mult(beamAxisRotation, positron.getMomentum());
+            Hep3Vector v0Vtx = VecOp.mult(beamAxisRotation, bestCandidate.getStartVertex().getPosition());
+
+            vertTrackTime2D.fill(tEle, tPos);
+            vertTrackTimeDiff.fill(tEle - tPos);
+            vertZVsMomentum.fill(bestCandidate.getMomentum().magnitude(), v0Vtx.z());
+            vertMassMomentum.fill(bestCandidate.getMomentum().magnitude(), bestCandidate.getMass());
+            vertTrackMomentum2D.fill(electron.getMomentum().magnitude(), positron.getMomentum().magnitude());
+            vertPyEleVsPyPos.fill(pEleRot.y(), pPosRot.y());
+            vertPxEleVsPxPos.fill(pEleRot.x(), pPosRot.x());
+            vertSumP.fill(bestCandidate.getMomentum().magnitude());
+            vertDeltaP.fill(positron.getMomentum().magnitude() - electron.getMomentum().magnitude());
+
+            vertPxPy.fill(pBestV0Rot.x(), pBestV0Rot.y());
+            vertMass.fill(bestCandidate.getMass());
+            vertZVsMass.fill(bestCandidate.getMass(), v0Vtx.z());
+            vertX.fill(v0Vtx.x());
+            vertY.fill(v0Vtx.y());
+            vertZ.fill(v0Vtx.z());
+            vertPx.fill(pBestV0Rot.x());
+            vertPy.fill(pBestV0Rot.y());
+            vertPz.fill(pBestV0Rot.z());
+            vertU.fill(pBestV0Rot.x() / pBestV0Rot.magnitude());
+            vertV.fill(pBestV0Rot.y() / pBestV0Rot.magnitude());
+            vertXY.fill(v0Vtx.x(), v0Vtx.y());
+            vertZY.fill(v0Vtx.y(), v0Vtx.z());
+            if (bestCandidate.getMomentum().magnitude() > radCut) {
+                vertRadTrackTime2D.fill(tEle, tPos);
+                vertRadTrackTimeDiff.fill(tEle - tPos);
+                vertRadZVsMomentum.fill(bestCandidate.getMomentum().magnitude(), v0Vtx.z());
+                vertRadMassMomentum.fill(bestCandidate.getMomentum().magnitude(), bestCandidate.getMass());
+                vertRadTrackMomentum2D.fill(electron.getMomentum().magnitude(), positron.getMomentum().magnitude());
+                vertRadPyEleVsPyPos.fill(pEleRot.y(), pPosRot.y());
+                vertRadPxEleVsPxPos.fill(pEleRot.x(), pPosRot.x());
+                vertRadSumP.fill(bestCandidate.getMomentum().magnitude());
+                vertRadDeltaP.fill(positron.getMomentum().magnitude() - electron.getMomentum().magnitude());
+
+                vertRadPxPy.fill(pBestV0Rot.x(), pBestV0Rot.y());
+                vertRadMass.fill(bestCandidate.getMass());
+                vertRadZVsMass.fill(bestCandidate.getMass(), v0Vtx.z());
+                vertRadX.fill(v0Vtx.x());
+                vertRadY.fill(v0Vtx.y());
+                vertRadZ.fill(v0Vtx.z());
+                vertRadPx.fill(pBestV0Rot.x());
+                vertRadPy.fill(pBestV0Rot.y());
+                vertRadPz.fill(pBestV0Rot.z());
+                vertRadU.fill(pBestV0Rot.x() / pBestV0Rot.magnitude());
+                vertRadV.fill(pBestV0Rot.y() / pBestV0Rot.magnitude());
+                vertRadXY.fill(v0Vtx.x(), v0Vtx.y());
+                vertRadZY.fill(v0Vtx.y(), v0Vtx.z());
+            }
         }
-
-        double tEle = TrackUtils.getTrackTime(electron.getTracks().get(0), hitToStrips, hitToRotated);
-        double tPos = TrackUtils.getTrackTime(positron.getTracks().get(0), hitToStrips, hitToRotated);
-        Hep3Vector pBestV0Rot = VecOp.mult(beamAxisRotation, bestCandidate.getMomentum());
-        Hep3Vector pEleRot = VecOp.mult(beamAxisRotation, electron.getMomentum());
-        Hep3Vector pPosRot = VecOp.mult(beamAxisRotation, positron.getMomentum());
-        Vertex uncVert = bestCandidate.getStartVertex();
-        Hep3Vector v0Vtx = VecOp.mult(beamAxisRotation, uncVert.getPosition());
-
-        trackTime2D.fill(tEle, tPos);
-        trackTimeDiff.fill(tEle - tPos);
-        vertexZVsMomentum.fill(bestCandidate.getMomentum().magnitude(), v0Vtx.z());
-        vertexMassMomentum.fill(bestCandidate.getMomentum().magnitude(), bestCandidate.getMass());
-        vertexedTrackMomentum2D.fill(electron.getMomentum().magnitude(), positron.getMomentum().magnitude());
-        pyEleVspyPos.fill(pEleRot.y(), pPosRot.y());
-        pxEleVspxPos.fill(pEleRot.x(), pPosRot.x());
-        sumP.fill(bestCandidate.getMomentum().magnitude());
-        deltaP.fill(positron.getMomentum().magnitude() - electron.getMomentum().magnitude());
-
-        vertexPxPy.fill(pBestV0Rot.x(), pBestV0Rot.y());
-        goodVertexMass.fill(bestCandidate.getMass());
-        goodVertexZVsMass.fill(bestCandidate.getMass(), v0Vtx.z());
-        vertexX.fill(v0Vtx.x());
-        vertexY.fill(v0Vtx.y());
-        vertexZ.fill(v0Vtx.z());
-        vertexPx.fill(pBestV0Rot.x());
-        vertexPy.fill(pBestV0Rot.y());
-        vertexPz.fill(pBestV0Rot.z());
-        vertexU.fill(pBestV0Rot.x() / pBestV0Rot.magnitude());
-        vertexV.fill(pBestV0Rot.y() / pBestV0Rot.magnitude());
-//                    vertexW.fill(bestCandidate.getMomentum().z()/bestCandidate.getMomentum().magnitude());
-//        vertexVZ.fill(v0Vtx.z(), pBestV0Rot.y() / pBestV0Rot.magnitude());
-        vertexZY.fill(v0Vtx.y(), v0Vtx.z());
-        if (bestCandidate.getMomentum().magnitude() > radCut) {
-            vertexedTrackMomentum2DRad.fill(electron.getMomentum().magnitude(), positron.getMomentum().magnitude());
-            deltaPRad.fill(positron.getMomentum().magnitude() - electron.getMomentum().magnitude());
-        }
-
     }
 
     @Override
@@ -469,23 +766,20 @@ public class TridentMonitoring extends DataQualityMonitor {
         }
         System.out.println("*******************************");
 
-        System.out.println("TridendMonitoring::Tridend Selection Summary");
+        System.out.println("TridendMonitoring::Tridend Selection Summary: " + (isGBL ? "GBLTrack" : "SeedTrack"));
 
         System.out.println("\t\t\tTridend Selection Summary");
         System.out.println("******************************************************************************************");
-        System.out.println("Number of     V0:\t\t" + nRecoV0 + "\t\t\t" + nRecoV0 / nRecoV0 + "\t\t\t" + nRecoV0 / nRecoV0 + "\t\t\t" + nRecoV0 / nEvents);
-        System.out.println("N(particle) Cuts:\t\t" + nPassBasicCuts + "\t\t\t" + nPassBasicCuts / nRecoV0 + "\t\t\t" + nPassBasicCuts / nRecoV0 + "\t\t\t" + nPassBasicCuts / nEvents);
-        System.out.println("Trk Quality Cuts:\t\t" + nPassTrkQualityCuts + "\t\t\t" + nPassTrkQualityCuts / nPassBasicCuts + "\t\t\t" + nPassTrkQualityCuts / nRecoV0 + "\t\t\t" + nPassTrkQualityCuts / nEvents);
-        System.out.println("V0 Quality  Cuts:\t\t" + nPassV0QualityCuts + "\t\t\t" + nPassV0QualityCuts / nPassTrkQualityCuts + "\t\t\t" + nPassV0QualityCuts / nRecoV0 + "\t\t\t" + nPassV0QualityCuts / nEvents);
-        System.out.println("V0 Vertex   Cuts:\t\t" + nPassV0Cuts + "\t\t\t" + nPassV0Cuts / nPassV0QualityCuts + "\t\t\t" + nPassV0Cuts / nRecoV0 + "\t\t\t" + nPassV0Cuts / nEvents);
-        System.out.println("Timing      Cuts:\t\t" + nPassTimeCuts + "\t\t\t" + nPassTimeCuts / nPassV0Cuts + "\t\t\t" + nPassTimeCuts / nRecoV0 + "\t\t\t" + nPassTimeCuts / nEvents);
-        System.out.println("Tracking    Cuts:\t\t" + nPassTrkCuts + "\t\t\t" + nPassTrkCuts / nPassTimeCuts + "\t\t\t" + nPassTrkCuts / nRecoV0 + "\t\t\t" + nPassTrkCuts / nEvents);
-        System.out.println("Cluster     Cuts:\t\t" + nPassClusterMatchCuts + "\t\t\t" + nPassClusterMatchCuts / nPassTrkCuts + "\t\t\t" + nPassClusterMatchCuts / nRecoV0 + "\t\t\t" + nPassClusterMatchCuts / nEvents);
+        System.out.format("Number of      V0:\t%8.0f\t%8.6f\t%8.6f\t%8.6f\n", nRecoV0, nRecoV0 / nRecoV0, nRecoV0 / nRecoV0, nRecoV0 / nEvents);
 
-        System.out.println("\t\t\tVertex Selection Summary");
-        System.out.println("******************************************************************************************");
-        System.out.println("Front Hits  Cuts:\t\t" + nPassFrontHitsCuts + "\t\t\t" + nPassFrontHitsCuts / nPassClusterMatchCuts + "\t\t\t" + nPassFrontHitsCuts / nRecoV0 + "\t\t\t" + nPassFrontHitsCuts / nEvents);
-        System.out.println("Isolation   Cuts:\t\t" + nPassIsoCuts + "\t\t\t" + nPassIsoCuts / nPassFrontHitsCuts + "\t\t\t" + nPassIsoCuts / nRecoV0 + "\t\t\t" + nPassIsoCuts / nEvents);
+        for (int i = 0; i < nCuts; i++) {
+            if (i == firstVertexingCut) {
+                System.out.println("******************************************************************************************");
+                System.out.println("\t\t\tVertex Selection Summary");
+                System.out.println("******************************************************************************************");
+            }
+            System.out.format("%-12s Cuts:\t%8.0f\t%8.6f\t%8.6f\t%8.6f\n", cutNames[i], nPassCut[i], nPassCut[i] / (i == 0 ? nRecoV0 : nPassCut[i == 0 ? 0 : (i - 1)]), nPassCut[i] / nRecoV0, nPassCut[i] / nEvents);
+        }
         System.out.println("******************************************************************************************");
     }
 
