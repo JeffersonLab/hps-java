@@ -56,12 +56,6 @@ public class FittedGblTrajectory {
         _ndf = ndf;
         _lost = lost;
     }
-    public void set_track_data(GBLTrackData t) {
-       _t  = t;
-    }
-    public GBLTrackData get_track_data() {
-        return _t;
-    }
     public void set_seed(Track seed) {
         _seed = seed;
     }

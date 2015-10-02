@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
@@ -94,9 +95,7 @@ public class HpsGblRefitter extends Driver {
 
     @Override
     protected void process(EventHeader event) {
-//        Hep3Vector bfieldvec = event.getDetector().getFieldMap().getField(new BasicHep3Vector(0., 0., 1.));
-        Hep3Vector bfieldvec = event.getDetector().getFieldMap().getField(new BasicHep3Vector(0., 0., 500.));//mg...get the b-field in the middle of the magnet
-        double bfield = bfieldvec.y();
+        double bfield = TrackUtils.getBField(event.getDetector()).y();
         //double bfac = 0.0002998 * bfield;
         double bfac = Constants.fieldConversion * bfield;
 
@@ -155,11 +154,9 @@ public class HpsGblRefitter extends Driver {
 
         // loop over the tracks and do the GBL fit
         List<FittedGblTrajectory> trackFits = new ArrayList<FittedGblTrajectory>();
-        int trackNum = 0;
         logger.info("Trying to fit " + stripsGblMap.size() + " tracks");
         for (GBLTrackData t : stripsGblMap.keySet()) {
             FittedGblTrajectory traj = fit(stripsGblMap.get(t), bfac, _debug);
-            ++trackNum;
             if (traj != null) {
                 logger.info("GBL fit successful");
                 if (_debug) {
@@ -170,7 +167,6 @@ public class HpsGblRefitter extends Driver {
                     traj.get_traj().milleOut(mille);
                 }
                 traj.set_seed(gblToSeedMap.get(t));
-                traj.set_track_data(t);
                 trackFits.add(traj);
             } else {
                 logger.info("GBL fit failed");
@@ -194,7 +190,7 @@ public class HpsGblRefitter extends Driver {
 
     }
 
-    private static FittedGblTrajectory fit(List<GBLStripClusterData> hits, double bfac, boolean debug) {
+    public static FittedGblTrajectory fit(List<GBLStripClusterData> hits, double bfac, boolean debug) {
         // path length along trajectory
         double s = 0.;
 

@@ -303,7 +303,7 @@ public class HpsGblFitter {
                 if (_debug) {
                     System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n", this.getClass(), ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
                 }
-                scatAngle = GblUtils.estimateScatter(strip, htf, _scattering, _B);
+                scatAngle = GblUtils.estimateScatter(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement(), htf, _scattering, _B);
             }
 
             // Scattering angle in the curvilinear frame

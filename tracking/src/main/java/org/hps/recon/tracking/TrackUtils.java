@@ -994,16 +994,12 @@ public class TrackUtils {
     }
 
     public static double getTrackTime(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
-        int nStrips = 0;
         double meanTime = 0;
-        for (TrackerHit hit : track.getTrackerHits()) {
-            Set<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
-            for (TrackerHit hts : htsList) {
-                nStrips++;
-                meanTime += hts.getTime();
-            }
+        List<TrackerHit> stripHits = getStripHits(track, hitToStrips, hitToRotated);
+        for (TrackerHit hit : stripHits) {
+            meanTime += hit.getTime();
         }
-        meanTime /= nStrips;
+        meanTime /= stripHits.size();
         return meanTime;
     }
 
@@ -1279,5 +1275,9 @@ public class TrackUtils {
             }
         }
         return null;
+    }
+
+    public static Hep3Vector getBField(Detector detector) {
+        return detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 500.0));
     }
 }
