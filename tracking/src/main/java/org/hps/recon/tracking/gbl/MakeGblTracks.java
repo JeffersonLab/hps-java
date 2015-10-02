@@ -26,7 +26,6 @@ import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
-import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
@@ -42,7 +41,7 @@ import org.lcsim.util.log.LogUtil;
 public class MakeGblTracks {
 
     private String _TrkCollectionName = "GBLTracks";
-    private static Logger logger = LogUtil.create(MakeGblTracks.class, new BasicLogFormatter(), Level.INFO);
+    private static Logger logger = LogUtil.create(MakeGblTracks.class, new BasicLogFormatter(), Level.OFF);
 
     /**
      * Creates a new instance of MakeTracks.

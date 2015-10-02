@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.lcio.LCIOConstants;
@@ -68,15 +67,13 @@ public class MergeTrackCollections extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
         List<List<Track>> trackCollections = event.get(Track.class);
 
         // Loop over each of the track collections retrieved from the event
         Map<Set<TrackerHit>, List<Track>> hitsToTracksMap = new HashMap<Set<TrackerHit>, List<Track>>();
         for (List<Track> tracklist : trackCollections) {
             for (Track trk : tracklist) {
-                Set<TrackerHit> trackHits = new HashSet<TrackerHit>(TrackUtils.getStripHits(trk, hitToStrips, hitToRotated));
+                Set<TrackerHit> trackHits = new HashSet<TrackerHit>(trk.getTrackerHits());
                 List<Track> matchingTracks = hitsToTracksMap.get(trackHits);
                 if (matchingTracks == null) {
                     matchingTracks = new ArrayList<Track>();
