@@ -145,32 +145,36 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Error making ECal hits.", e);
         }
-        
+
+        //if(lcsimEvent.getEventNumber() >= 92296590){ 
+        //    LOGGER.info("lcsimEvent.getEventNumber() " + lcsimEvent.getEventNumber() + " set log level higher");
+        //    svtReader.logger.setLevel(Level.FINE);
+        //}
         // Make SVT RawTrackerHits.
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);
         } catch (final SvtEvioHeaderMultisampleErrorBitException e) {
-            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
-            throw new RuntimeException(e);
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
+            //throw new RuntimeException(e);
         } catch (final SvtEvioHeaderSkipCountException e) {
-            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
-            throw new RuntimeException(e);
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
+            //throw new RuntimeException(e);
         } catch (final SvtEvioHeaderOFErrorException e) {
-            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
-            throw new RuntimeException(e);
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
+            //throw new RuntimeException(e);
         } catch (final SvtEvioHeaderApvBufferAddressException e) {
-            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
-            throw new RuntimeException(e);
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
+            //throw new RuntimeException(e);
         } catch (final SvtEvioHeaderApvFrameCountException e) {
-            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
-            throw new RuntimeException(e);
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
+            //throw new RuntimeException(e);
         } catch (final SvtEvioHeaderApvReadErrorException e) {
-            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT. Stop!", e);
-            throw new RuntimeException(e);
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
+            //throw new RuntimeException(e);
         } catch (final SvtEvioHeaderException e) {
-            LOGGER.log(Level.SEVERE, "General error reading header information from the SVT. Don't stop", e);
+            LOGGER.log(Level.SEVERE, "Generic  error reading header information from the SVT for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
         } catch (final SvtEvioReaderException e) {
-            LOGGER.log(Level.SEVERE, "Error making SVT hits.", e);
+            LOGGER.log(Level.SEVERE, "Error making SVT hits for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "General error making SVT hits. I should handle this exception in some way", e);
         }

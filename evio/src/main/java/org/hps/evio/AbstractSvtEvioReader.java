@@ -41,8 +41,9 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 
     
     // Initialize the logger
-    protected static Logger logger = LogUtil.create(AbstractSvtEvioReader.class.getName(), new BasicLogFormatter(), Level.INFO);
-
+    protected static Level logLevel = Level.INFO;
+    public static Logger logger = LogUtil.create(AbstractSvtEvioReader.class.getName(), new BasicLogFormatter(), Level.INFO);
+    
     // A Map from DAQ pair (FPGA/Hybrid or FEB ID/FEB Hybrid ID) to the
     // corresponding sensor
     protected Map<Pair<Integer /* FPGA */, Integer /* Hybrid */>,
