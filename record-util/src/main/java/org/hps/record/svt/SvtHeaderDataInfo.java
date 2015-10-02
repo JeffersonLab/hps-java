@@ -40,7 +40,7 @@ public class SvtHeaderDataInfo implements GenericObject {
     public int[] getMultisampleHeader(int multisampleIndex) {
         int index = multisampleIndex*4; 
         if( multisampleIndex >= getNumberOfMultisampleHeaders() || multisampleIndex < 0)
-            throw new ArrayIndexOutOfBoundsException(multisampleIndex);
+            throw new ArrayIndexOutOfBoundsException(" num " + num + " the multisampleIndex " + multisampleIndex + " with index " + index + " is larger than then number of multisamples in the array " + getNumberOfMultisampleHeaders());
         int[] words = new int[4];
         System.arraycopy(this.multisampleheader, index, words, 0, words.length);
         return words;
