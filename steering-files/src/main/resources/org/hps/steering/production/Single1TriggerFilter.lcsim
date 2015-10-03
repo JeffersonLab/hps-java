@@ -1,0 +1,16 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    
+    <execute>
+        <driver name="Skimmer"/>
+        <driver name="LCIOWriter"/>
+    </execute>    
+
+    <drivers>
+        <driver name="Skimmer" type="org.hps.recon.filtering.Single1TriggerFilterDriver">
+        </driver>
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+    </drivers>   
+</lcsim>
