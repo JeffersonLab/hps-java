@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 import org.hps.analysis.trigger.util.TriggerDataUtils;
 import org.hps.evio.SvtEvioReader;
 import org.hps.evio.SvtEvioUtils;
-import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.HeadBankData;
 import org.hps.util.BasicLogFormatter;
@@ -33,12 +32,12 @@ import org.lcsim.util.log.LogUtil;
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  */
-public class SvtHeaderAnalysisDriver extends Driver {
+public class SvtOldHeaderAnalysisDriver extends Driver {
 
     private final AIDA aida = AIDA.defaultInstance();
     
     private final String HeaderCollectionName = "SvtHeaders"; 
-    private final Logger logger = LogUtil.create(SvtHeaderAnalysisDriver.class.getSimpleName(), new BasicLogFormatter(), Level.INFO);
+    private final Logger logger = LogUtil.create(SvtOldHeaderAnalysisDriver.class.getSimpleName(), new BasicLogFormatter(), Level.INFO);
     private int nEventsProcessed = 0;
     private Date eventDate = new Date(0);
     private IHistogram2D rceSyncErrorCount;
@@ -63,7 +62,7 @@ public class SvtHeaderAnalysisDriver extends Driver {
     /**
      * 
      */
-    public SvtHeaderAnalysisDriver() {
+    public SvtOldHeaderAnalysisDriver() {
          
     }
     
@@ -126,24 +125,16 @@ public class SvtHeaderAnalysisDriver extends Driver {
         
         List<GenericObject> headers = event.get(GenericObject.class, HeaderCollectionName);
         
-        logger.info("Found " + headers.size() + " SvtHeaders in event " + event.getEventNumber() + " run " + event.getRunNumber());
+        logger.fine("Found " + headers.size() + " SvtHeaders in event " + event.getEventNumber() + " run " + event.getRunNumber());
         
         for(GenericObject header : headers ) {
-            logger.info("1");
-            SvtHeaderDataInfo headerInfo  = (SvtHeaderDataInfo) header;
-            int roc = headerInfo.getNum();
-            logger.info("process roc  " +  roc);
-            
-            int svtHeader = headerInfo.getHeader();
-            int svtTail = headerInfo.getTail();
-            
-            logger.info("svtHeader " + Integer.toHexString(svtHeader) + " svtTail " + Integer.toHexString(svtTail));
-
+            logger.fine("nint " + header.getNInt());
+            int roc = SvtOldHeaderDataInfo.getNum(header);
             
             // find the errors in the header
-            int syncError = SvtEvioUtils.getSvtTailSyncErrorBit(svtTail);
-            int oFError = SvtEvioUtils.getSvtTailOFErrorBit(svtTail);
-            int skipCount = SvtEvioUtils.getSvtTailMultisampleSkipCount(svtTail);
+            int syncError = SvtEvioUtils.getSvtTailSyncErrorBit(SvtOldHeaderDataInfo.getTail(header));
+            int oFError = SvtEvioUtils.getSvtTailOFErrorBit(SvtOldHeaderDataInfo.getTail(header));
+            int skipCount = SvtEvioUtils.getSvtTailMultisampleSkipCount(SvtOldHeaderDataInfo.getTail(header));
             
             // check bits
             checkBitValueRange(oFError);
@@ -164,41 +155,28 @@ public class SvtHeaderAnalysisDriver extends Driver {
                                 + " roc " + roc);
                 }
             }
+           
             
-            int nMultiSamples = headerInfo.getNumberOfMultisampleHeaders();
             
-            logger.info("svtHeader " + Integer.toHexString(svtHeader) + " svtTail " + Integer.toHexString(svtTail) + " nMultiSamples " + nMultiSamples);
-            
-            //if(1==1)    continue;
-
+            // Check for multisample tail error bit
+            int nMultisamples = SvtEvioUtils.getSvtTailMultisampleCount(SvtOldHeaderDataInfo.getTail(header));
+            logger.fine(nMultisamples + " multisamples");
             int multisampleErrorBits = 0;
-
-            for(int iMultisample = 0; iMultisample < nMultiSamples; ++iMultisample) {
-
-                logger.info("iMultisample " + iMultisample);
-
-                logger.info(headerInfo.toString());
-
-                int[] multisampleHeader = headerInfo.getMultisampleHeader(iMultisample);
-                int multisampleHeaderTail = SvtEvioUtils.getMultisampleTailWord(multisampleHeader);
-                logger.info("found multisample tail: " + Integer.toHexString(multisampleHeaderTail));
-                int multisampleErrorBit = SvtEvioUtils.getErrorBitFromMultisampleHeader(multisampleHeaderTail);
+            for(int iMultisample = 0; iMultisample != nMultisamples; ++iMultisample) {
+                int multisampleHeader = SvtOldHeaderDataInfo.getMultisample(iMultisample, header);
+                logger.fine("found multisample tail: " + Integer.toHexString(multisampleHeader));
+                int multisampleErrorBit = SvtEvioUtils.getErrorBitFromMultisampleHeader(multisampleHeader);
                 checkBitValueRange(multisampleErrorBit);
-                logger.info("found multisample tail error bit: " + multisampleErrorBit);
+                logger.fine("found multisample tail error bit: " + multisampleErrorBit);
                 if( multisampleErrorBit != 0) {
                     multisampleErrorBits++;
                     logger.info("multisample tail error: run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + eventDate.toString() 
-                            + " roc " + roc + " feb " + SvtEvioUtils.getFebIDFromMultisampleTail(multisampleHeaderTail) 
-                            + " hybrid " + SvtEvioUtils.getFebHybridIDFromMultisampleTail(multisampleHeaderTail)  
-                            + " apv " + SvtEvioUtils.getApvFromMultisampleTail(multisampleHeaderTail));
+                            + " roc " + roc + " feb " + SvtEvioUtils.getFebIDFromMultisampleTail(multisampleHeader) 
+                            + " hybrid " + SvtEvioUtils.getFebHybridIDFromMultisampleTail(multisampleHeader)  
+                            + " apv " + SvtEvioUtils.getApvFromMultisampleTail(multisampleHeader));
                 }
-                
-                //if (1==1) break;
-
-                
             }
-
-
+            
             // keep track how many headers have errors
             rceSyncErrorCount.fill(roc, syncError);
             rceOFErrorCount.fill(roc, oFError);
@@ -209,8 +187,11 @@ public class SvtHeaderAnalysisDriver extends Driver {
             if( skipCount > 0 ) nRceSkipCount++;
             if( multisampleErrorBits > 0 ) nRceMultisampleErrorCount++;
             nRceSvtHeaders++;
-
-        }        
+            
+            
+            
+        }
+        
         
         nEventsProcessed++;
     }
