@@ -140,34 +140,39 @@ public class SvtOldHeaderAnalysisDriver extends Driver {
             checkBitValueRange(oFError);
             checkBitValueRange(syncError);
             
+            boolean printEverything = false;
+            
             // print header errors to log
             if( syncError != 0) {
                 logger.info("syncError: run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + " processed " + nEventsProcessed +  " date " + eventDate.toString()
                             + " roc " + roc);
+                printEverything = true;
             }            
             if( oFError != 0) {
                 logger.info("oFError: run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + " processed " + nEventsProcessed +  " date " + eventDate.toString()
                             + " roc " + roc);
+                printEverything = true;
             }  
             for(int i=0; i < skipCount; ++i) {
                 if( oFError != 0) {
                     logger.info("skipCount: run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + " processed " + nEventsProcessed +  " date " + eventDate.toString()
                                 + " roc " + roc);
                 }
+                printEverything = true;
             }
            
-            
+            printEverything = false;
             
             // Check for multisample tail error bit
             int nMultisamples = SvtEvioUtils.getSvtTailMultisampleCount(SvtOldHeaderDataInfo.getTail(header));
-            logger.fine(nMultisamples + " multisamples");
+            logger.info(nMultisamples + " multisamples");
             int multisampleErrorBits = 0;
             for(int iMultisample = 0; iMultisample != nMultisamples; ++iMultisample) {
                 int multisampleHeader = SvtOldHeaderDataInfo.getMultisample(iMultisample, header);
-                logger.fine("found multisample tail: " + Integer.toHexString(multisampleHeader));
+                logger.log(printEverything ? Level.INFO : Level.FINE, "found multisample tail: " + Integer.toHexString(multisampleHeader));
                 int multisampleErrorBit = SvtEvioUtils.getErrorBitFromMultisampleHeader(multisampleHeader);
                 checkBitValueRange(multisampleErrorBit);
-                logger.fine("found multisample tail error bit: " + multisampleErrorBit);
+                logger.log(printEverything ? Level.INFO : Level.FINE, "found multisample tail error bit: " + multisampleErrorBit);
                 if( multisampleErrorBit != 0) {
                     multisampleErrorBits++;
                     logger.info("multisample tail error: run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + eventDate.toString() 
