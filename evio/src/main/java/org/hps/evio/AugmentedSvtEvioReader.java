@@ -47,7 +47,7 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
             logger.fine("checkSvtHeaderData skipcount  " +  Integer.toHexString(SvtEvioUtils.getSvtTailMultisampleSkipCount(tail)));
         }
         if( SvtEvioUtils.getSvtTailSyncErrorBit(tail) != 0) {
-            throw new SvtEvioHeaderApvBufferAddressException("This SVT header had a SyncError " + header.toString());
+            throw new SvtEvioHeaderSyncErrorException("This SVT header had a SyncError " + header.toString());
         }
         else if( SvtEvioUtils.getSvtTailOFErrorBit(tail) != 0) {
             throw new SvtEvioHeaderOFErrorException("This header had a OverFlowError " + header.toString());
@@ -142,9 +142,7 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
             logger.fine("checking header: " + headerDataInfo.toString());
 
 
-            // Check the header data
-            this.checkSvtHeaderData(headerDataInfo);
-
+            // Check the multisample header information            
             int nMultisampleHeaders = headerDataInfo.getNumberOfMultisampleHeaders();
             for(int iMultisampleHeader = 0; iMultisampleHeader < nMultisampleHeaders; iMultisampleHeader++) {
                 logger.fine("iMultisampleHeader " + iMultisampleHeader);
@@ -200,14 +198,18 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
                     if( !Arrays.equals(bufferAddresses, bufAddresses)) {
                         throw new SvtEvioHeaderApvBufferAddressException("The APV buffer addresses in this event do not match " + 
                                                                             this.getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) +
-                                                                            this.getDebugString(bufAddresses, frameCounts, readError)); 
+                                                                            this.getDebugString(bufAddresses, frameCounts, readError) +
+                                                                            " compared to " +
+                                                                            this.getDebugString(bufferAddresses, firstFrameCounts, readError)); 
                     }
 
                     // Check that apv frame count match
                     if( !Arrays.equals(firstFrameCounts, frameCounts)) {
                         throw new SvtEvioHeaderApvFrameCountException("The APV frame counts in this event do not match " + 
                                 this.getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) +
-                                this.getDebugString(bufAddresses, frameCounts, readError)); 
+                                this.getDebugString(bufAddresses, frameCounts, readError) +
+                                " compared to " +
+                                this.getDebugString(bufferAddresses, firstFrameCounts, readError)); 
                     }
                 }
 
@@ -237,6 +239,15 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
 
 
             } // multisampleheaders
+            
+            
+            // Check the header data
+            // Parts of this get its input from the multisample which has already been checked
+            // therefore I don't expect these to happen.
+            this.checkSvtHeaderData(headerDataInfo);
+
+            
+
         }
 
     }

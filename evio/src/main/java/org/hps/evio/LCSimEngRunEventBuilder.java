@@ -171,6 +171,9 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         } catch (final SvtEvioHeaderApvReadErrorException e) {
             LOGGER.log(Level.SEVERE, "Error reading header information from the SVT for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
             //throw new RuntimeException(e);
+        } catch (final SvtEvioHeaderSyncErrorException e) {
+            LOGGER.log(Level.SEVERE, "Error reading header information from the SVT for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
+            //throw new RuntimeException(e);
         } catch (final SvtEvioHeaderException e) {
             LOGGER.log(Level.SEVERE, "Generic  error reading header information from the SVT for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
         } catch (final SvtEvioReaderException e) {
