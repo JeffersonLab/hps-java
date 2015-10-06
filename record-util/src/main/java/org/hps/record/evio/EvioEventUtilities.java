@@ -8,8 +8,17 @@ import static org.hps.record.evio.EvioEventConstants.PHYSICS_START_TAG;
 import static org.hps.record.evio.EvioEventConstants.PRESTART_EVENT_TAG;
 import static org.hps.record.evio.EvioEventConstants.SYNC_EVENT_TAG;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.record.daqconfig.EvioDAQParser;
+import org.hps.record.epics.EpicsData;
+import org.hps.record.epics.EpicsHeader;
+import org.hps.record.scalers.ScalerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
+import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**
  * This is a set of basic static utility methods for <code>EvioEvent</code> objects.
@@ -18,6 +27,13 @@ import org.jlab.coda.jevio.EvioEvent;
  */
 public final class EvioEventUtilities {
 
+    /**
+     * Class should not be instantiated.
+     */
+    private EvioEventUtilities() {
+        throw new UnsupportedOperationException("Do not instantiate this class.");
+    }
+    
     /**
      * Extract the CODA run data stored in a control event.
      *
@@ -235,11 +251,49 @@ public final class EvioEventUtilities {
         }
         return eventId;
     }
+                  
+    static EvioDAQParser createDAQConfig(EvioEvent evioEvent, int crate, BaseStructure subBank) {
+        
+        EvioDAQParser parser = new EvioDAQParser();
+        
+        // Get run number from EVIO event.
+        int runNumber = EvioEventUtilities.getRunNumber(evioEvent);
+        
+        // Initialize the conditions system if necessary as the DAQ config parsing classes use it.
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        if (!conditionsManager.isInitialized() || conditionsManager.getRun() != runNumber) {
+            try {
+                conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");
+                DatabaseConditionsManager.getInstance().setDetector("HPS-dummy-detector", runNumber);
+            } catch (ConditionsNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        // Create the trigger config from the EVIO data.
+        parser.parse(
+                crate, 
+                runNumber, 
+                subBank.getStringData());
+        
+        return parser;
+    }
     
-    /**
-     * Class should not be instantiated.
-     */
-    private EvioEventUtilities() {
-        throw new UnsupportedOperationException("Do not instantiate this class.");
+    public static List<EvioDAQParser> getDAQConfig(EvioEvent evioEvent) {
+        List<EvioDAQParser> triggerConfig = new ArrayList<EvioDAQParser>();
+        outerLoop: for (BaseStructure bank : evioEvent.getChildrenList()) {
+            if (bank.getChildCount() <= 0)
+                continue;
+            int crate = bank.getHeader().getTag();
+            for (BaseStructure subBank : bank.getChildrenList()) {
+                if (EvioBankTag.TRIGGER_CONFIG.equals(subBank)) {
+                    if (subBank.getStringData() == null) {                        
+                        throw new RuntimeException("Trigger config bank is missing string data.");
+                    }
+                    triggerConfig.add(createDAQConfig(evioEvent, crate, subBank));
+                }
+            }
+        }
+        return triggerConfig;
     }
 }

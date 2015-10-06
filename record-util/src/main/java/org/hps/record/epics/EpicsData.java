@@ -8,6 +8,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.hps.record.evio.EventTagConstant;
+import org.hps.record.evio.EvioBankTag;
+import org.jlab.coda.jevio.BaseStructure;
+import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 
@@ -265,4 +269,45 @@ public final class EpicsData {
         stringMap.put(EPICS_VARIABLE_NAMES, object.getKeys());
         event.put(collectionName, collection, GenericObject.class, 0, DUMMY_INT_MAP, DUMMY_FLOAT_MAP, stringMap);
     }
+    
+    /**
+     * Get EPICS data from an EVIO event.
+     * 
+     * @param evioEvent the EVIO event
+     * @return the EPICS data or <code>null</code> if it is not present in the event
+     */
+    public static EpicsData getEpicsData(EvioEvent evioEvent) {
+        
+        EpicsData epicsData = null;
+        
+        // Is this an EPICS event?
+        if (EventTagConstant.EPICS.equals(evioEvent)) {
+
+            // Find the bank with the EPICS data string.
+            final BaseStructure epicsBank = EvioBankTag.EPICS_STRING.findBank(evioEvent);
+
+            // Was EPICS data found in the event?
+            if (epicsBank != null) {
+
+                // Create EpicsData object from bank's string data.
+                epicsData = new EpicsData(epicsBank.getStringData()[0]);
+
+                // Find the header information in the event.
+                final BaseStructure headerBank = EvioBankTag.EPICS_HEADER.findBank(evioEvent);
+
+                if (headerBank != null) {
+                    // Set the header object.
+                    epicsData.setEpicsHeader(EpicsHeader.fromEvio(headerBank.getIntData()));
+                } else {
+                    throw new RuntimeException("EPICS data is missing header.");
+                }
+
+            } else {
+                // This is an error because the string data bank should always be present in EPICS events.
+                throw new RuntimeException("No data bank found in EPICS event.");
+            }
+        }
+        return epicsData;
+    }
+    
 }

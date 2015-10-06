@@ -4,9 +4,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.record.evio.EvioEventProcessor;
 import org.jlab.coda.jevio.EvioEvent;
+import org.lcsim.util.log.DefaultLogFormatter;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * Creates a list of EPICS data found in EVIO events across an entire job.
@@ -15,6 +19,11 @@ import org.jlab.coda.jevio.EvioEvent;
  */
 public final class EpicsRunProcessor extends EvioEventProcessor {
 
+    /**
+     * Setup class logger.
+     */
+    private static final Logger LOGGER = LogUtil.create(EpicsRunProcessor.class, new DefaultLogFormatter(), Level.INFO);
+    
     /**
      * The current EPICS data block from the EVIO events (last one that was found).
      */
@@ -54,11 +63,15 @@ public final class EpicsRunProcessor extends EvioEventProcessor {
     public void process(final EvioEvent evioEvent) {
 
         // Call the processor that will load EPICS data if it exists in the event.
+        this.processor.reset();
         this.processor.process(evioEvent);
         this.currentEpicsData = this.processor.getEpicsData();
 
         // Add EPICS data to the collection.
         if (this.currentEpicsData != null) {
+            LOGGER.info("adding EPICS data for run " + this.currentEpicsData.getEpicsHeader().getRun() + " and timestamp " 
+                    + this.currentEpicsData.getEpicsHeader().getTimestamp() + " with seq " 
+                    + this.currentEpicsData.getEpicsHeader().getSequence());
             this.epicsDataSet.add(this.currentEpicsData);
         }
     }

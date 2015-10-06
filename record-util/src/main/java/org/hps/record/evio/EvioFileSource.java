@@ -160,6 +160,7 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
     private void openReader() {
         try {
             System.out.println("Opening reader for file " + this.files.get(this.fileIndex) + " ...");
+            // FIXME: this should use the reader directly and cached paths should be managed externally
             this.reader = EvioFileUtilities.open(this.files.get(this.fileIndex), true);
             System.out.println("Done opening file.");
         } catch (EvioException | IOException e) {

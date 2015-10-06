@@ -5,6 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hps.record.evio.EvioEventConstants;
+import org.hps.record.evio.EvioEventUtilities;
+import org.jlab.coda.jevio.BaseStructure;
+import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.GenericObject;
@@ -241,4 +245,39 @@ public final class ScalerData {
         event.put(collectionName, collection, GenericObject.class, 0, timestampParameter, DUMMY_FLOAT_MAP,
                 DUMMY_STRING_MAP);
     }
+    
+    /**
+     * Get scaler data from an EVIO event.
+     * 
+     * @param evioEvent the EVIO event
+     * @return the scaler data or <code>null</code> if it does not exist in the event
+     */
+    public static ScalerData getScalerData(final EvioEvent evioEvent) {
+        ScalerData scalerData = null;
+        outerBankLoop: for (final BaseStructure bank : evioEvent.getChildrenList()) {
+            // Does the crate tag match?
+            if (bank.getHeader().getTag() == EvioEventConstants.SCALERS_CRATE_TAG) {
+                if (bank.getChildrenList() != null) {
+                    for (final BaseStructure subBank : bank.getChildrenList()) {
+                        // Does the bank tag match?
+                        if (subBank.getHeader().getTag() == EvioEventConstants.SCALERS_BANK_TAG) {
+
+                            // Get event ID.
+                            final int eventId = EvioEventUtilities.getEventIdData(evioEvent)[0];
+
+                            // Get event's timestamp.
+                            final int timestamp = EvioEventUtilities.getHeadBankData(evioEvent)[3];
+
+                            // Create scaler data.
+                            scalerData = new ScalerData(subBank.getIntData(), eventId, timestamp);
+
+                            break outerBankLoop;
+                        }
+                    }
+                }
+            }
+        }
+        return scalerData;
+    }
+    
 }

@@ -9,7 +9,7 @@ import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
-
+// TODO: add doc
 public class EvioFileMetadataProcessor extends EvioEventProcessor {
     
     private static Logger LOGGER = LogUtil.create(EvioFileMetadataProcessor.class, new DefaultLogFormatter(), Level.ALL);
