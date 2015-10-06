@@ -747,9 +747,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         this.isInitialized = true;
 
         LOGGER.info("conditions system initialized successfully");
-
-        // Flush logger after initialization.
-        LOGGER.getHandlers()[0].flush();
     }
 
     /**
@@ -1065,7 +1062,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public void setLogLevel(final Level level) {
         LOGGER.config("setting log level to " + level);
         LOGGER.setLevel(level);
-        LOGGER.getHandlers()[0].setLevel(level);
     }
 
     /**
