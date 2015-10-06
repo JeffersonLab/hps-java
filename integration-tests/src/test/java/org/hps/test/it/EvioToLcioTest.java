@@ -95,15 +95,6 @@ public final class EvioToLcioTest extends TestCase {
                 if (epicsData.getEpicsHeader() == null) {
                     throw new RuntimeException("The EpicsData header is null.");
                 }
-                /*
-                for (final String variableName : Epics1sVariables.getVariables().keySet()) {
-                    if (!EXCLUDED_EPICS_VARIABLES.contains(variableName)) {
-                        if (!epicsData.getKeys().contains(variableName)) {
-                            throw new RuntimeException("EpicsData is missing key: " + variableName);
-                        }
-                    }
-                }
-                */
                 ++epicsDataCount;
             }
         }
@@ -145,7 +136,7 @@ public final class EvioToLcioTest extends TestCase {
      * Names of collections to check.
      */
     private static String[] COLLECTION_NAMES = new String[] {"EcalReadoutHits", "FADCGenericHits", "SVTRawTrackerHits",
-    "TriggerBank"};
+            "TriggerBank"};
 
     /**
      * Classes of collections.
@@ -157,11 +148,6 @@ public final class EvioToLcioTest extends TestCase {
      * The number of EPICS collections that should be found.
      */
     private static int EPICS_DATA_COUNT = 7;
-
-    /**
-     * List of EPICS variables that are not expected to be present in this data.
-     */
-    private static List<String> EXCLUDED_EPICS_VARIABLES = new ArrayList<String>();
 
     /**
      * The default input file (large file at SLAC so the pom.xml file excludes this test on non-SLAC hosts).
@@ -177,16 +163,7 @@ public final class EvioToLcioTest extends TestCase {
      * The number of scaler data collections that should be found.
      */
     private static int SCALER_DATA_COUNT = 3;
-
-    /**
-     * Expected scaler values after first occurrence of scaler collection in the data.
-     */
-    private static float[] SCALER_VALUES = {205.47786f, 206.38852f, -1.726095f, -0.622837f, 179.9981f};
-
-    static {
-        EXCLUDED_EPICS_VARIABLES.add("VCG2C21 2C21");
-    }
-
+   
     /**
      * Run the test.
      *
@@ -199,10 +176,15 @@ public final class EvioToLcioTest extends TestCase {
 
         // Run the command line utility.
         final String[] args = new String[] {"-l", outputFile.getPath(), "-d", "HPS-EngRun2015-Nominal-v1", INPUT_FILE,
-                "-L", "WARNING", "-r", "-x", "/org/hps/steering/test/Dummy.lcsim"};
+                "-L", "WARNING", "-r", "-x", "/org/hps/steering/EventMarker.lcsim"};
         System.out.println("Running EvioToLcio on " + INPUT_FILE + " ...");
-        EvioToLcio.main(args);
+        EvioToLcio cnv = new EvioToLcio();
+        cnv.parse(args);
+        long start = System.currentTimeMillis();
+        cnv.run();
+        long elapsed = System.currentTimeMillis() - start;
         System.out.println("Done running EvioToLcio!");
+        System.out.println("conversion to LCIO took " + elapsed + " ms");
 
         // Read in the LCIO file and run the CheckDriver on it.
         System.out.println("Checking LCIO output ...");
@@ -211,6 +193,8 @@ public final class EvioToLcioTest extends TestCase {
         final CheckDriver checkDriver = new CheckDriver();
         loop.add(checkDriver);
         loop.loop(-1);
+
+        System.out.println("conversion took " + elapsed / loop.getTotalConsumed() + " ms/event");
 
         // Check for correct number of events processed by loop.
         System.out.println("Loop processed " + loop.getTotalCountableConsumed() + " events.");
