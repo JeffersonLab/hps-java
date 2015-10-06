@@ -1,6 +1,8 @@
 package org.hps.recon.ecal.cluster;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.conditions.ConditionsEvent;
@@ -24,6 +26,11 @@ import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public abstract class AbstractClusterer implements Clusterer {
+    
+    private static Logger logger = Logger.getLogger(AbstractClusterer.class.getName());
+    static {
+        logger.setLevel(Level.ALL);
+    }
     
     protected HPSEcal3 ecal;
     protected NeighborMap neighborMap;
@@ -90,9 +97,17 @@ public abstract class AbstractClusterer implements Clusterer {
      */
     @Override
     public void conditionsChanged(ConditionsEvent event) {
+        logger.info("conditions change hook");
+        
         // Default setup of ECAL subdetector.
         this.ecal = (HPSEcal3) DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector("Ecal");
+        if (this.ecal == null) {
+            throw new IllegalStateException("The ECal subdetector object is null");
+        }
         this.neighborMap = ecal.getNeighborMap();
+        if (this.neighborMap == null) {
+            throw new IllegalStateException("The ECal neighbor map object is null");
+        }
     }
     
     /**
