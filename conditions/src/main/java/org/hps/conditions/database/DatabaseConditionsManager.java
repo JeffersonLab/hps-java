@@ -43,8 +43,6 @@ import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 import org.lcsim.util.loop.DetectorConditionsConverter;
 
 /**
@@ -89,8 +87,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Initialize the logger.
      */
-    private static Logger LOGGER = LogUtil.create(DatabaseConditionsManager.class.getName(), new DefaultLogFormatter(),
-            Level.CONFIG);
+    private static Logger LOGGER = Logger.getLogger(DatabaseConditionsManager.class.getPackage().getName());
 
     /**
      * The Test Run XML config.
@@ -104,7 +101,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
     static {
         // Set default login timeout of 5 seconds.
-        DriverManager.setLoginTimeout(5);
+        DriverManager.setLoginTimeout(30);
     }
 
     /**
