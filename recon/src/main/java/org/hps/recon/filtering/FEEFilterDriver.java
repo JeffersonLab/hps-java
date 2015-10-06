@@ -13,6 +13,11 @@ public class FEEFilterDriver extends Driver
 {
   public void process(EventHeader event) {
 
+    // don't drop any events with EPICS data:
+    // (could also do this via event tag=31)
+    final EpicsData data = EpicsData.read(event);
+    if (data != null) return;
+
     // only keep singles triggers:
     if (!event.hasCollection(GenericObject.class,"TriggerBank"))
       throw new Driver.NextEventException();
@@ -28,11 +33,6 @@ public class FEEFilterDriver extends Driver
       }
     }
     if (!isSingles) throw new Driver.NextEventException();
-
-    // don't drop any events with EPICS data:
-    // (could also do this via event tag=31)
-    final EpicsData data = EpicsData.read(event);
-    if (data != null) return;
 
     if (!event.hasCollection(Cluster.class, "EcalClusters"))
       throw new Driver.NextEventException();
