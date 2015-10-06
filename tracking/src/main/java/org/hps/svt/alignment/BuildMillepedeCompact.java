@@ -54,6 +54,8 @@ public class BuildMillepedeCompact {
 
 	private static String detectorName = "Tracker";
 	private static boolean replaceConstant = false;
+    private static boolean calcNewValue = true;
+
 
 
     private static Options createCmdLineOpts() {
@@ -61,6 +63,7 @@ public class BuildMillepedeCompact {
 		options.addOption(new Option("c",true,"The path to the compact xml file."));
 		options.addOption(new Option("o",true,"The name of the new compact xml file."));
 		options.addOption(new Option("r", false, "Replace correction instead of adding to it."));
+        options.addOption(new Option("t", false, "Add a text string as a new value instead of adding to it."));
 		return options;
 	}
 	
@@ -99,11 +102,16 @@ public class BuildMillepedeCompact {
 			compactFilenameNew = cl.getOptionValue("o");
 		}
 		
+		
+		
 		if(cl.hasOption("r")) {
 		    replaceConstant = true;
 		}
 
-		
+		if(cl.hasOption("t")) {
+            calcNewValue = false;
+        }
+
 		
 		File compactFile = new File(compactFilename);
 		
@@ -165,25 +173,45 @@ public class BuildMillepedeCompact {
 		                    for(MilleParameter p : params) {
 		                        Element node = findMillepedeConstantNode(detector,Integer.toString(p.getId()));
 		                        if(node!=null) {
-		                            double correction = p.getValue();
-		                            double oldValue = 0;
-		                            try {
-		                                oldValue = node.getAttribute("value").getDoubleValue();
-		                            } catch (DataConversionException e) {
-		                                e.printStackTrace();
-		                            }
-		                            double newValue;
-		                            if(replaceConstant) {
-		                                newValue = correction;
-		                            } else {
-		                                if (p.getType() == MilleParameter.Type.ROTATION.getType()) {
-		                                    newValue = oldValue - correction;
-		                                } else {
-		                                    newValue = oldValue + correction;
+
+                                    double correction = p.getValue();
+
+		                            // have the option of adding a text value to the compact instead of actually computing the new value
+		                            if(calcNewValue) {
+
+		                                double oldValue = 0;
+		                                try {
+		                                    oldValue = node.getAttribute("value").getDoubleValue();
+		                                } catch (DataConversionException e) {
+		                                    e.printStackTrace();
 		                                }
+		                                double newValue;
+		                                if(replaceConstant) {
+		                                    newValue = correction;
+		                                } else {
+		                                    if (p.getType() == MilleParameter.Type.ROTATION.getType()) {
+		                                        newValue = oldValue - correction;
+		                                    } else {
+		                                        newValue = oldValue + correction;
+		                                    }
+		                                }
+		                                System.out.println("Update " + p.getId() + ": " + oldValue + " (corr. " + correction + ") ->  "  + newValue );
+		                                node.setAttribute("value", String.format("%.6f",newValue));
+		                            
+		                            } else {
+		                                
+		                                String oldValue = node.getAttribute("value").getValue();
+		                                
+		                                if(replaceConstant)
+		                                    throw new RuntimeException("Doesn't make sense to try and replace with the string option?");
+
+		                                if( correction != 0.0) {
+		                                    String newValue = oldValue + " + " + String.format("%.6f",correction);
+		                                    System.out.println("Update " + p.getId() + ": " + oldValue + " (corr. " + correction + ") ->  "  + newValue );
+		                                    node.setAttribute("value", newValue);
+		                                }		                                
 		                            }
-		                            System.out.println("Update " + p.getId() + ": " + oldValue + " (corr. " + correction + ") ->  "  + newValue );
-		                            node.setAttribute("value", String.format("%.6f",newValue));
+		                            
 		                        } else {
 		                            throw new RuntimeException("no element found for " + p.getId() + " check format of compact file");
 		                        }
