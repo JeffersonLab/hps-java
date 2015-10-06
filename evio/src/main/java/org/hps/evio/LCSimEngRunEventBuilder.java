@@ -5,6 +5,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderApvBufferAddressException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderApvFrameCountException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderApvReadErrorException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderMultisampleErrorBitException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderOFErrorException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderSkipCountException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderSyncErrorException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioReaderException;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsEvioProcessor;
 import org.hps.record.evio.EvioEventUtilities;

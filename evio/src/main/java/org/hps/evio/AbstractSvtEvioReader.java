@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioReaderException;
 import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.util.BasicLogFormatter;
 import org.hps.util.Pair;

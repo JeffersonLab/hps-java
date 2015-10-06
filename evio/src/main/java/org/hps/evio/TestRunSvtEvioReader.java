@@ -2,6 +2,7 @@ package org.hps.evio;
 
 import java.util.List;
 
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderException;
 import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
