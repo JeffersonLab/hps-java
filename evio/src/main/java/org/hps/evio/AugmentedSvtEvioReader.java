@@ -25,19 +25,6 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
     }
 
 
-
-
-    @Override
-    protected SvtHeaderDataInfo extractSvtHeader(int num, int[] data) {
-        // Extract the header information
-        int svtHeader = SvtEvioUtils.getSvtHeader(data);
-        // Extract the tail information
-        int svtTail = SvtEvioUtils.getSvtTail(data);
-        return new SvtHeaderDataInfo(num, svtHeader, svtTail);
-
-    }
-
-    @Override
     protected void checkSvtHeaderData(SvtHeaderDataInfo header) throws SvtEvioHeaderException {
         int tail = header.getTail();
         if(logger.getLevel().intValue() >= Level.FINE.intValue()) {
@@ -57,9 +44,9 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
         }
         logger.fine("checkSvtHeaderData passed all I guess");
     }
-
-    @Override
-    protected void addSvtHeadersToEvents(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) {
+    
+    
+    protected void addSvtHeadersToEventEventCollection(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) {
         // Turn on 64-bit cell ID.
         int flag = LCIOUtil.bitSet(0, 31, true);
         // Add the collection of raw hits to the LCSim event
@@ -67,43 +54,7 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
 
     }
 
-    @Override
-    protected void checkSvtSampleCount(int sampleCount, SvtHeaderDataInfo headerData) throws SvtEvioHeaderException {
-        if( sampleCount != SvtEvioUtils.getSvtTailMultisampleCount(headerData.getTail())*4)
-            throw new SvtEvioHeaderException("multisample count is not consistent with bank size.");
-    }
-
-    @Override
-    protected void setMultiSampleHeaders(SvtHeaderDataInfo headerData, int n, int[] multisampleHeaders) {
-        //copy out the headers that are non-zero
-        int[] vals = new int[n];
-        System.arraycopy(multisampleHeaders, 0, vals, 0, n);
-        //logger.info("setMultiSampleHeaders: adding " + vals.length + " multisample headers");
-        headerData.setMultisampleHeaders(vals);
-    }
-
-    @Override
-    protected void extractMultisampleHeaderTail(int[] multisample, int index, int[] multisampleHeaders) {
-        //logger.fine("extractMultisampleHeaderTail: index " + index);
-        if( SvtEvioUtils.isMultisampleHeader(multisample) && !SvtEvioUtils.isMultisampleTail(multisample))
-            multisampleHeaders[index] = SvtEvioUtils.getMultisampleTailWord(multisample);
-        //else 
-        //   logger.fine("extractMultisampleHeaderTail: this is a NOT multisample header at index " + index);
-
-    }
-
-    @Override
-    protected int extractMultisampleHeaderData(int[] samples, int index, int[] multisampleHeaderData) {
-        logger.finest("extractMultisampleHeaderData: index " + index);
-        if( SvtEvioUtils.isMultisampleHeader(samples) && !SvtEvioUtils.isMultisampleTail(samples) ) {
-            logger.finest("extractMultisampleHeaderData: this is a multisample header so add the words to index " + index);
-            System.arraycopy(samples, 0, multisampleHeaderData, index, samples.length);
-            return samples.length;
-        } else {
-            logger.finest("extractMultisampleHeaderData: this is a NOT multisample header ");
-            return 0;
-        }
-    }
+        
     
     private String getMultisampleDebugString(SvtHeaderDataInfo headerDataInfo, int multisampleHeaderTailWord) {
         String s = " header" + headerDataInfo.toString() +
@@ -126,7 +77,11 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
     
     
 
-    @Override
+    /**
+     * Check the integrity of the SVT header information.
+     * @param headers - headers to check
+     * @throws SvtEvioHeaderException
+     */
     protected void checkSvtHeaders(List<SvtHeaderDataInfo> headers) throws SvtEvioHeaderException {
         logger.fine("check " + headers.size() + " headers  ");
         int[] bufferAddresses = new int[6];
@@ -249,6 +204,36 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
             
 
         }
+
+    }
+    
+    @Override
+    protected void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) throws SvtEvioHeaderException {
+        // Check that the SVT header data is valid
+        // Catch the exception locally, add stuff to the event, then throw it again
+        // and handle it outside
+        try {
+        
+            this.checkSvtHeaders(headers);
+        
+        } catch(SvtEvioHeaderException e) {
+
+            // add skimming flag
+            SvtEventFlagger.voidAddHeaderCheckResultToMetaData(false, lcsimEvent);
+            
+            // add stuff to the event meta data
+            SvtEventFlagger.AddHeaderInfoToMetaData(headers, lcsimEvent);
+            
+            // then throw the exception again to be caught in the event builder
+            throw new SvtEvioHeaderException(e);
+            
+        } 
+
+        // add skimming flag - the header is OK since I would never get here otherwise
+        SvtEventFlagger.voidAddHeaderCheckResultToMetaData(true, lcsimEvent);
+        
+        // Add SVT header data to the event
+        //this.addSvtHeadersToEventEventCollection(headers, lcsimEvent);
 
     }
 

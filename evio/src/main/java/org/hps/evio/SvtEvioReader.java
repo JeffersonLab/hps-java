@@ -208,50 +208,10 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
         return makeHit(data, SvtEvioUtils.getPhysicalChannelNumber(data));
     }
 
+
     @Override
-    protected void addSvtHeadersToEvents(List<SvtHeaderDataInfo> headers,
-            EventHeader lcsimEvent) {
-     
-    }
-    
-    @Override
-    protected void checkSvtHeaderData(SvtHeaderDataInfo header)
+    protected void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent)
             throws SvtEvioHeaderException {
-    }
-
-    @Override
-    protected SvtHeaderDataInfo extractSvtHeader(int num, int[] data) {
-       return null;
-    }
-    
-    @Override
-    protected void checkSvtSampleCount(int sampleCount,
-            SvtHeaderDataInfo headerData) throws SvtEvioHeaderException {
-    }
-    
-    @Override
-    protected void setMultiSampleHeaders(SvtHeaderDataInfo headerData,
-            int max, int[] multisampleHeaders) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    protected void extractMultisampleHeaderTail(int[] multisample, int index,
-            int[] multisampleHeaders) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    protected int extractMultisampleHeaderData(int[] samples, int i,
-            int[] multisampleHeaderData) {
-        return 0;
-        
-    }
-
-    @Override
-    protected void checkSvtHeaders(List<SvtHeaderDataInfo> headers) throws SvtEvioHeaderException {
         // TODO Auto-generated method stub
         
     }

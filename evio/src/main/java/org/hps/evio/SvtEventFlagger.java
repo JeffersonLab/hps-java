@@ -11,6 +11,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtAlignmentConstant;
 import org.hps.conditions.svt.SvtBiasConstant;
 import org.hps.conditions.svt.SvtMotorPosition;
+import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.HeadBankData;
 import org.lcsim.conditions.ConditionsManager;
@@ -152,5 +153,34 @@ public class SvtEventFlagger {
             }
         }
         return true;
+    }
+
+    public static void voidAddHeaderCheckResultToMetaData(boolean ok, EventHeader lcsimEvent) {
+        //System.out.println("adding svt header check ");
+        lcsimEvent.getIntegerParameters().put("svt_event_header_good", new int[]{ ok ? 1 : 0});
+        //if(lcsimEvent.hasItem("svt_event_header_good"))
+        //        System.out.println("event header has the svt header check ");
+        //else
+        //    System.out.println("event header doesn't have the svt header check ");
+    }
+    
+    public static void AddHeaderInfoToMetaData(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) {
+        int[] svtHeaders = new int[headers.size()];
+        int[] svtTails = new int[headers.size()];
+        for(int iSvtHeader=0; iSvtHeader < headers.size();++iSvtHeader) {
+            svtHeaders[iSvtHeader] = headers.get(iSvtHeader).getHeader();
+            svtTails[iSvtHeader] = headers.get(iSvtHeader).getTail();
+            int nMS = headers.get(iSvtHeader).getNumberOfMultisampleHeaders();
+            int[] multisampleHeadersArray = new int[4*nMS];
+            for(int iMS = 0; iMS < nMS; ++iMS ) {
+                int[] multisampleHeader = headers.get(iSvtHeader).getMultisampleHeader(iMS);
+                System.arraycopy(multisampleHeader, 0, multisampleHeadersArray, iMS*4, multisampleHeader.length);
+            }
+            lcsimEvent.getIntegerParameters().put("svt_multisample_headers_roc" + headers.get(iSvtHeader).getNum(), multisampleHeadersArray);
+        }
+        lcsimEvent.getIntegerParameters().put("svt_event_headers", svtHeaders);
+        lcsimEvent.getIntegerParameters().put("svt_event_tails", svtTails);
+        
+        
     }
 }

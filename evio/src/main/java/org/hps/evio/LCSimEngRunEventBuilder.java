@@ -146,10 +146,6 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             LOGGER.log(Level.SEVERE, "Error making ECal hits.", e);
         }
 
-        //if(lcsimEvent.getEventNumber() >= 92296590){ 
-        //    LOGGER.info("lcsimEvent.getEventNumber() " + lcsimEvent.getEventNumber() + " set log level higher");
-        //    svtReader.logger.setLevel(Level.FINE);
-        //}
         // Make SVT RawTrackerHits.
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);
@@ -179,7 +175,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         } catch (final SvtEvioReaderException e) {
             LOGGER.log(Level.SEVERE, "Error making SVT hits for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
         } catch (final Exception e) {
-            LOGGER.log(Level.SEVERE, "General error making SVT hits. I should handle this exception in some way", e);
+            LOGGER.log(Level.SEVERE, "General error making SVT hits.", e);
         }
 
         // Write the current EPICS data into this event.
