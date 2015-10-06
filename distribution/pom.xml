@@ -137,5 +137,9 @@
             <groupId>org.hps</groupId>
             <artifactId>hps-crawler</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-job</artifactId>
+        </dependency>
     </dependencies>
 </project>

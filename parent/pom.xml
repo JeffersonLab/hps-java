@@ -137,107 +137,112 @@
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-util</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-detector-data</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-detector-model</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-conditions</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-recon</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-readout-sim</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-tracking</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-evio</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-recon</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-analysis</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-drivers</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-app</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-users</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-steering-files</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-distribution</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-event-display</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-record-util</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-util</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-run-database</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-crawler</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-datacat-client</artifactId>
-                <version>3.4.1-SNAPSHOT</version>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-job</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <!-- Next are external dependencies used in multiple modules. -->
             <dependency>
