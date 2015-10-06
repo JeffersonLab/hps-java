@@ -1,10 +1,12 @@
-package org.hps.conditions.svt;
+package org.hps.detector.svt;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.SvtConditions;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
 
@@ -17,7 +19,7 @@ import org.lcsim.geometry.Detector;
  */
 // TODO: Update this test with more meaningful assertions.
 public final class SvtDetectorSetupTest extends TestCase {
-
+    
     /**
      * Maximum channel number.
      */
@@ -60,6 +62,7 @@ public final class SvtDetectorSetupTest extends TestCase {
     public void test() throws Exception {
 
         final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        conditionsManager.addConditionsListener(new SvtDetectorSetup());
         conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
 
         // Get the detector.

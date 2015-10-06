@@ -1,0 +1,151 @@
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+    
+    <info name="HPSMuonCalorimeterTest" />
+    
+    <define>   
+        
+        <!-- world volume -->
+        <constant name="world_side" value="10000.0*cm" />
+        <constant name="world_x" value="world_side" />
+        <constant name="world_y" value="world_side" />
+        <constant name="world_z" value="world_side" />
+        
+        <!-- tracking region -->
+        <constant name="tracking_region_radius" value="5.0*cm" />
+        <constant name="tracking_region_min" value="0.0*cm" />
+        <constant name="tracking_region_zmax" value="100.0*cm" />
+        
+        <!-- muon parameters -->
+        <!--<constant name="beam_gap" value="22.785 + 1.0" />-->
+        <constant name="beam_gap" value="33.0" />
+        <constant name="muon_abs_z" value="150.0" />
+        <constant name="muon_sens_z" value="10.0" />
+        <constant name="muon_strip_gap" value="1.0" />
+                
+        <!-- muon layer 1 -->                
+        
+        <constant name="muon_abs1_x" value="1182.0" />
+        <constant name="muon_abs1_y" value="131.4" />
+        <constant name="muon_abs1_z" value="300.0" />        
+        <constant name="muon_abs1_pz" value="1920.0" />
+        <constant name="muon_abs1_py" value="beam_gap + muon_abs1_y / 2" />
+
+        <constant name="muon_sens1_x" value="muon_abs1_x" />
+        <constant name="muon_sens1_y" value="muon_abs1_y" />
+        <constant name="muon_sens1_pz" value="muon_abs1_pz + muon_abs1_z / 2 + muon_strip_gap + muon_sens_z / 2" />
+        <constant name="muon_sens1_py" value="beam_gap + muon_sens1_y / 2" />
+        
+        <constant name="muon_sens2_x" value="muon_sens1_x" />
+        <constant name="muon_sens2_y" value="muon_sens1_y" />
+        <constant name="muon_sens2_pz" value="muon_sens1_pz + muon_sens_z + muon_strip_gap" />
+        <constant name="muon_sens2_py" value="beam_gap + muon_sens2_y / 2" />
+        
+        <!-- muon layer 2 -->
+        
+        <constant name="muon_abs2_x" value="1276.0" />
+        <constant name="muon_abs2_y" value="130.72" />
+        <constant name="muon_abs2_pz" value="2168.0" />
+        <constant name="muon_abs2_py" value="beam_gap + muon_abs2_y / 2" />
+        
+        <constant name="muon_sens3_x" value="muon_abs2_x" />
+        <constant name="muon_sens3_y" value="muon_abs2_y" />
+        <constant name="muon_sens3_pz" value="muon_abs2_pz + muon_abs_z / 2 + muon_strip_gap + muon_sens_z / 2" />
+        <constant name="muon_sens3_py" value="beam_gap + muon_sens3_y / 2" />
+        
+        <constant name="muon_sens4_x" value="muon_sens3_x" />
+        <constant name="muon_sens4_y" value="muon_sens3_y" />
+        <constant name="muon_sens4_pz" value="muon_sens3_pz + muon_sens_z + muon_strip_gap" />
+        <constant name="muon_sens4_py" value="beam_gap + muon_sens4_y / 2" />
+        
+        <!-- muon layer 3 -->
+        
+        <constant name="muon_abs3_x" value="1406.0" />
+        <constant name="muon_abs3_y" value="140.7" />
+        <constant name="muon_abs3_pz" value="2341.0" />
+        <constant name="muon_abs3_py" value="beam_gap + muon_abs3_y / 2" />
+        
+        <constant name="muon_sens5_x" value="muon_abs3_x" />
+        <constant name="muon_sens5_y" value="muon_abs3_y" />
+        <constant name="muon_sens5_pz" value="muon_abs3_pz + muon_abs_z / 2 + muon_strip_gap + muon_sens_z / 2" />
+        <constant name="muon_sens5_py" value="beam_gap + muon_sens5_y / 2" />
+        
+        <constant name="muon_sens6_x" value="muon_sens5_x" />
+        <constant name="muon_sens6_y" value="muon_sens5_y" />
+        <constant name="muon_sens6_pz" value="muon_sens5_pz + muon_sens_z + muon_strip_gap" />    
+        <constant name="muon_sens6_py" value="beam_gap + muon_sens6_y / 2" />    
+
+        <!-- muon layer 4 -->
+               
+        <constant name="muon_abs4_x" value="1546.0" />
+        <constant name="muon_abs4_y" value="150.0" />
+        <constant name="muon_abs4_pz" value="2514.0" />
+        <constant name="muon_abs4_py" value="beam_gap + muon_abs4_y / 2" />
+        
+        <constant name="muon_sens7_x" value="muon_abs4_x" />
+        <constant name="muon_sens7_y" value="muon_abs4_y" />
+        <constant name="muon_sens7_pz" value="muon_abs4_pz + muon_abs_z / 2 + muon_strip_gap + muon_sens_z / 2" />
+        <constant name="muon_sens7_py" value="beam_gap + muon_sens7_y / 2" />
+        
+        <constant name="muon_sens8_x" value="muon_sens7_x" />
+        <constant name="muon_sens8_y" value="muon_sens7_y" />
+        <constant name="muon_sens8_pz" value="muon_sens7_pz + muon_sens_z + muon_strip_gap" />
+        <constant name="muon_sens8_py" value="beam_gap + muon_sens8_y / 2" />
+                     
+    </define>
+    
+    <materials>
+    </materials>
+    
+    <detectors>        
+        <detector id="2" name="MUON" type="HPSMuonCalorimeter" insideTrackingVolume="false" readout="MUON_HITS">
+            <layer id="1">
+                <!-- nstrips="26" strip_orientation="x" strip_gap="0.01" -->
+                <box x="muon_abs1_x"  y="muon_abs1_y"  z="muon_abs1_z" py="muon_abs1_py"   pz="muon_abs1_pz"  material="Steel235" />
+                <box x="muon_abs1_x"  y="muon_abs1_y"  z="muon_abs1_z" py="-muon_abs1_py"  pz="muon_abs1_pz"  material="Steel235" />
+                <box x="muon_sens1_x" y="muon_sens1_y" z="muon_sens_z" py="muon_sens1_py"  pz="muon_sens1_pz" material="Polystyrene" sensitive="true" />
+                <box x="muon_sens1_x" y="muon_sens1_y" z="muon_sens_z" py="-muon_sens1_py" pz="muon_sens1_pz" material="Polystyrene" sensitive="true" />
+                <box x="muon_sens2_x" y="muon_sens2_y" z="muon_sens_z" py="muon_sens2_py"  pz="muon_sens2_pz" material="Polystyrene" sensitive="true" />
+                <box x="muon_sens2_x" y="muon_sens2_y" z="muon_sens_z" py="-muon_sens2_py" pz="muon_sens2_pz" material="Polystyrene" sensitive="true" />
+            </layer>
+            <layer id="2">
+                <box x="muon_abs2_x"  y="muon_abs2_y"  z="muon_abs_z"  py="muon_abs2_py"   pz="muon_abs2_pz"  material="Steel235" />
+                <box x="muon_abs2_x"  y="muon_abs2_y"  z="muon_abs_z"  py="-muon_abs2_py"  pz="muon_abs2_pz"  material="Steel235" />
+                <box x="muon_sens3_x" y="muon_sens3_y" z="muon_sens_z" py="muon_sens3_py"  pz="muon_sens3_pz" material="Polystyrene" sensitive="true" />
+                <box x="muon_sens3_x" y="muon_sens3_y" z="muon_sens_z" py="-muon_sens3_py" pz="muon_sens3_pz" material="Polystyrene" sensitive="true" />
+                <box x="muon_sens4_x" y="muon_sens4_y" z="muon_sens_z" py="muon_sens4_py"  pz="muon_sens4_pz" material="Polystyrene" sensitive="true" />                 
+                <box x="muon_sens4_x" y="muon_sens4_y" z="muon_sens_z" py="-muon_sens4_py" pz="muon_sens4_pz" material="Polystyrene" sensitive="true" />
+            </layer>
+            <layer id="3">
+                <box x="muon_abs3_x"  y="muon_abs3_y"  z="muon_abs_z"  py="muon_abs3_py"   pz="muon_abs3_pz"  material="Steel235" />
+                <box x="muon_abs3_x"  y="muon_abs3_y"  z="muon_abs_z"  py="-muon_abs3_py"  pz="muon_abs3_pz"  material="Steel235" />
+                <box x="muon_sens5_x" y="muon_sens5_y" z="muon_sens_z" py="muon_sens5_py"  pz="muon_sens5_pz" material="Polystyrene" sensitive="true" />
+                <box x="muon_sens5_x" y="muon_sens5_y" z="muon_sens_z" py="-muon_sens5_py" pz="muon_sens5_pz" material="Polystyrene" sensitive="true" />
+                <box x="muon_sens6_x" y="muon_sens6_y" z="muon_sens_z" py="muon_sens6_py"  pz="muon_sens6_pz" material="Polystyrene" sensitive="true" />                
+                <box x="muon_sens6_x" y="muon_sens6_y" z="muon_sens_z" py="-muon_sens6_py" pz="muon_sens6_pz" material="Polystyrene" sensitive="true" />
+            </layer>
+            <layer id="4">
+                <box x="muon_abs4_x"  y="muon_abs4_y"  z="muon_abs_z"  py="muon_abs4_py"   pz="muon_abs4_pz"  material="Steel235" />
+                <box x="muon_abs4_x"  y="muon_abs4_y"  z="muon_abs_z"  py="-muon_abs4_py"  pz="muon_abs4_pz"  material="Steel235" />
+                <box x="muon_sens7_x" y="muon_sens7_y" z="muon_sens_z" py="muon_sens7_py"  pz="muon_sens7_pz" material="Polystyrene" sensitive="true" />
+                <box x="muon_sens7_x" y="muon_sens7_y" z="muon_sens_z" py="-muon_sens7_py" pz="muon_sens7_pz" material="Polystyrene" sensitive="true" /> 
+                <box x="muon_sens8_x" y="muon_sens8_y" z="muon_sens_z" py="muon_sens8_py"  pz="muon_sens8_pz" material="Polystyrene" sensitive="true" />
+                <box x="muon_sens8_x" y="muon_sens8_y" z="muon_sens_z" py="-muon_sens8_py" pz="muon_sens8_pz" material="Polystyrene" sensitive="true" />
+            </layer>
+        </detector>
+    </detectors>
+    
+    <readouts>
+        <readout name="MUON_HITS">
+            <segmentation type="GridXYZ" gridSizeX="5.0" gridSizeY="5.0" gridSizeZ="0.0" />
+            <!--<id>system:6,side:-2,layer:4,slice:3,ix:32:-8,iy:-6</id>-->
+            <id>system:6,side:-2,layer:4,slice:3,x:32:-8,y:-6</id>
+        </readout>
+    </readouts>
+    
+    <includes>
+        <gdmlFile file="./testResources/org/lcsim/geometry/subdetector/hps_2014_muon_vacuum_flange.gdml" />
+    </includes>
+        
+</lccdd>

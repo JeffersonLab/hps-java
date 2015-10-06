@@ -1,0 +1,56 @@
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+    <info name="HPSEcal3Test" />
+    <define>   
+        <!-- world volume -->
+        <constant name="world_side" value="10000.0*cm" />
+        <constant name="world_x" value="world_side" />
+        <constant name="world_y" value="world_side" />
+        <constant name="world_z" value="world_side" />
+        <!-- tracking region -->
+        <constant name="tracking_region_radius" value="200.0*cm" />
+        <constant name="tracking_region_min" value="5.0*cm" />
+        <constant name="tracking_region_zmax" value="100.0*cm" />
+        <!-- ECal placement parameters -->
+        <constant name="beam_angle" value="0.03052"/>
+         <constant name="ecal_front" value="13.3/2*mm" />
+        <constant name="ecal_back" value="16/2*mm" />
+        <constant name="ecal_z" value="160/2*mm" />
+        <constant name="ecal_dface" value="139.3*cm"/>
+    </define>
+    <materials>
+        <material name="LeadTungstate">
+            <D value="8.28" unit="g/cm3" />
+            <composite n="1" ref="Pb" />
+            <composite n="1" ref="W" />
+            <composite n="4" ref="O" />
+        </material>
+    </materials>
+    <detectors>
+    
+    <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits">
+        <comment>The crystal ECal</comment>
+        <material name="LeadTungstate" />
+        <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />          
+            <layout beamgap="20.0*mm" nx="46" ny="5" dface="ecal_dface">
+                <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
+                <top dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+                <bottom dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+            </layout>
+        </detector>
+<!--     
+        <detector id="2" name="ECAL" type="HPSEcal3" insideTrackingVolume="false" readout="ECAL_HITS">
+            <material name="LeadTungstate" />
+            <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />
+            <layout beamgapBottom="40.0*mm" beamgapTop="20.0*mm" nx="46" ny="5" dface="120.0*cm">
+                <remove ixmin="2" ixmax="7" iymin="-1" iymax="1" />
+            </layout>
+        </detector>
+ -->        
+    </detectors>
+    <readouts>
+        <readout name="EcalHits">
+            <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
+            <id>system:6,side:-2,layer:4,ix:-8,iy:-6</id>
+        </readout>
+    </readouts>
+</lccdd>

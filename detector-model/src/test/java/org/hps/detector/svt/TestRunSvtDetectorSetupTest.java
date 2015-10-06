@@ -1,10 +1,11 @@
-package org.hps.conditions.svt;
+package org.hps.detector.svt;
 
 import java.util.List;
 
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.TestRunSvtConditions;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.geometry.Detector;
 

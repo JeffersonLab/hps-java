@@ -33,6 +33,9 @@
                         <exclude>org/hps/conditions/svt/TestRunSvtConditionsConverterTest.java</exclude>
                         <exclude>org/hps/conditions/svt/TestRunSvtDaqMappingTest.java</exclude>
                         <exclude>org/hps/conditions/svt/SvtTimingConstantsTest.java</exclude>
+                        <exclude>org/hps/conditions/svt/SvtAlignmentTest.java</exclude>
+                        <exclude>org/hps/conditions/api/ConditionsTagTest.java</exclude>
+                        <exclude>org/hps/conditions/HPSJAVA_529_Test.java</exclude>
                         <exclude>org/hps/conditions/dummy/**.java</exclude>
                     </excludes>
                 </configuration>

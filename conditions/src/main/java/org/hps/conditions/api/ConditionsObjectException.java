@@ -12,6 +12,15 @@ public final class ConditionsObjectException extends Exception {
      * The associated conditions object to the error.
      */
     private ConditionsObject object;
+    
+    /**
+     * Error with a message.
+     *
+     * @param message the error message
+     */
+    public ConditionsObjectException(Exception e) {
+        super(e);
+    }
 
     /**
      * Error with a message.

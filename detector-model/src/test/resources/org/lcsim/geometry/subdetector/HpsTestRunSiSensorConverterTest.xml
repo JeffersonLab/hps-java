@@ -1,0 +1,145 @@
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+    
+    <info name="HPS-Test-JLAB-v4pt0">
+        <comment>HPS Test Proposal detector</comment>
+    </info>
+
+    <define>
+        
+        <!-- world -->
+        <constant name="world_side" value="500.0*cm" />
+        <constant name="world_x" value="world_side" />
+        <constant name="world_y" value="world_side" />
+        <constant name="world_z" value="world_side" />
+
+        <!-- tracking region -->
+        <constant name="tracking_region_radius" value="200.0*cm"/>
+        <constant name="tracking_region_min" value="5.0*cm"/>
+        <constant name="tracking_region_zmax" value="100.0*cm"/>
+
+        <!-- SVT module dimensions -->
+        <constant name="moduleLength" value="100.0"/>
+        <constant name="moduleWidth" value="40.34"/>
+
+        <!-- SVT sensor dimensions -->
+        <constant name="sensorLength" value="98.33"/>
+        <!-- Sensor width is slightly under the real value of 38.34 mm so that sisim doesn't break. -->
+        <constant name="sensorWidth" value="38.3399"/>
+
+        <!-- module tilt for stereo angle -->
+        <constant name="SA"  value="0.10" />
+        <constant name="SA2"  value="0.05" />
+        
+        <constant name="pi"  value="3.14159" />
+        <!-- module z placement -->
+        <constant name="zCent1" value="10*cm"/>
+        <constant name="zCent2" value="20*cm"/>
+        <constant name="zCent3" value="30*cm"/>
+        <constant name="zCent4" value="50*cm"/>
+        <constant name="zCent5" value="70*cm"/>
+
+        <!-- module z gaps -->
+        <constant name="ygap1" value="0.30*cm" />
+        <constant name="ygap2" value="0.60*cm" />
+        <constant name="ygap3" value="0.90*cm" />
+        <constant name="ygap4" value="1.5*cm" />
+        <constant name="ygap5" value="2.1*cm" />
+
+        <!-- module z plane distance -->
+        <constant name="zPlaneDist" value="1.0*cm"/>
+
+        <!-- ecal -->
+        <constant name="ecal_front" value="13.3/2*mm" />
+        <constant name="ecal_back" value="16/2*mm" />
+        <constant name="ecal_z" value="160/2*mm" />
+
+    </define>
+    
+    <materials>
+
+        <!-- Set tracking material to vacuum. -->
+        <material name="TrackingMaterial">
+            <D type="density" unit="g/cm3" value="0.0000000000000001"/>
+            <fraction n="1.0" ref="Air" />
+        </material>
+        
+    </materials>
+      
+    <detectors>
+       
+        <detector id="1" name="Tracker" type="HPSTracker2" readout="TrackerHits" combineHits="true">
+            <comment> The Silicon Vertex Tracker.</comment>            
+            <module name="TestRunModule" type="HpsTestRunSiSensor">
+                <box x="moduleLength" y="moduleWidth" />
+                <module_component thickness="0.032*cm" material = "Silicon" sensitive="true">
+                    <dimensions x="sensorLength" y="sensorWidth" /> 
+                </module_component>
+                <module_component thickness="0.02*cm" material = "Carbon" sensitive="false"/> 
+            </module>            
+            <layer id="1">
+                <module_placement name="TestRunModule" id="0" x="0.0" y="21.67" z="100.0" rx="0.0" ry="0.0" rz="-1.5707963267948966"/>
+                <module_placement name="TestRunModule" id="1" x="0.0" y="-21.67" z="100.0" rx="0.0" ry="0.0" rz="-1.6707963267948966"/>
+            </layer>
+            <layer id="2">
+                <module_placement name="TestRunModule" id="0" x="0.0" y="21.67" z="110.0" rx="0.0" ry="3.14159" rz="-4.812386326794897"/>
+                <module_placement name="TestRunModule" id="1" x="0.0" y="-21.67" z="110.0" rx="0.0" ry="3.14159" rz="-4.712386326794896"/>
+            </layer>
+            <layer id="3">
+                <module_placement name="TestRunModule" id="0" x="0.0" y="23.17" z="200.0" rx="0.0" ry="0.0" rz="-1.5707963267948966"/>
+                <module_placement name="TestRunModule" id="1" x="0.0" y="-23.17" z="200.0" rx="0.0" ry="0.0" rz="-1.6707963267948966"/>
+            </layer>
+            <layer id="4">
+                <module_placement name="TestRunModule" id="0" x="0.0" y="23.17" z="210.0" rx="0.0" ry="3.14159" rz="-4.812386326794897"/>
+                <module_placement name="TestRunModule" id="1" x="0.0" y="-23.17" z="210.0" rx="0.0" ry="3.14159" rz="-4.712386326794896"/>
+            </layer>
+            <layer id="5">
+                <module_placement name="TestRunModule" id="0" x="0.0" y="24.67" z="300.0" rx="0.0" ry="0.0" rz="-1.5707963267948966"/>
+                <module_placement name="TestRunModule" id="1" x="0.0" y="-24.67" z="300.0" rx="0.0" ry="0.0" rz="-1.6707963267948966"/>
+            </layer>
+            <layer id="6">
+                <module_placement name="TestRunModule" id="0" x="0.0" y="24.67" z="310.0" rx="0.0" ry="3.14159" rz="-4.812386326794897"/>
+                <module_placement name="TestRunModule" id="1" x="0.0" y="-24.67" z="310.0" rx="0.0" ry="3.14159" rz="-4.712386326794896"/>
+            </layer>
+            <layer id="7">
+                <module_placement name="TestRunModule" id="0" x="0.0" y="27.67" z="500.0" rx="0.0" ry="0.0" rz="-1.5707963267948966"/>
+                <module_placement name="TestRunModule" id="1" x="0.0" y="-27.67" z="500.0" rx="0.0" ry="0.0" rz="-1.6207963267948966"/>
+            </layer>
+            <layer id="8">
+                <module_placement name="TestRunModule" id="0" x="0.0" y="27.67" z="510.0" rx="0.0" ry="3.14159" rz="-4.762386326794896"/>
+                <module_placement name="TestRunModule" id="1" x="0.0" y="-27.67" z="510.0" rx="0.0" ry="3.14159" rz="-4.712386326794896"/>
+            </layer>
+            <layer id="9">
+                <module_placement name="TestRunModule" id="0" x="0.0" y="30.67" z="700.0" rx="0.0" ry="0.0" rz="-1.5707963267948966"/>
+                <module_placement name="TestRunModule" id="1" x="0.0" y="-30.67" z="700.0" rx="0.0" ry="0.0" rz="-1.6207963267948966"/>
+            </layer>
+            <layer id="10">
+                <module_placement name="TestRunModule" id="0" x="0.0" y="30.67" z="710.0" rx="0.0" ry="3.14159" rz="-4.762386326794896"/>
+                <module_placement name="TestRunModule" id="1" x="0.0" y="-30.67" z="710.0" rx="0.0" ry="3.14159" rz="-4.712386326794896"/>
+            </layer>                                      
+        </detector>     
+    </detectors>
+    
+    <readouts>   
+        <readout name="TrackerHits">
+            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
+        </readout>
+    </readouts>
+
+    <fields>
+        <field type="BoxDipole" 
+               name="AnalyzingDipole"
+               x="0*cm"
+               y="0*cm"
+               z="45.22*cm"
+               dx="22.86*cm"
+               dy="7.62*cm"
+               dz="46.22*cm"
+               bx="0.0"
+               by="-0.5"
+               bz="0.0">     
+        </field>
+    </fields>
+
+</lccdd>

@@ -4,7 +4,6 @@ import org.hps.conditions.database.Field;
 import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 
 /**
  * This class encapsulates the Test Run SVT DAQ map.

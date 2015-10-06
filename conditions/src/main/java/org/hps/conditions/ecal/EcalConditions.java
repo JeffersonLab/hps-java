@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
-import org.lcsim.detector.converter.compact.EcalCrystal;
-import org.lcsim.detector.converter.compact.HPSEcalAPI;
 import org.lcsim.geometry.Subdetector;
 
 /**
@@ -36,11 +34,6 @@ public final class EcalConditions {
     private final Map<EcalChannel, EcalChannelConstants> channelConstants = new HashMap<EcalChannel, EcalChannelConstants>();
 
     /**
-     * Map between channels and geometric crystals.
-     */
-    private EcalCrystalChannelMap crystalMap;
-
-    /**
      * The current ECAL subdetector in the geometry.
      */
     private final Subdetector subdetector;
@@ -55,16 +48,6 @@ public final class EcalConditions {
             throw new IllegalArgumentException("The subdetector argument is null.");
         }
         this.subdetector = subdetector;
-    }
-
-    /**
-     * Get the channel information for a geometric crystal.
-     *
-     * @param crystal the geometric crystal
-     * @return the channel information or null if does not exist
-     */
-    public EcalChannel getChannel(final EcalCrystal crystal) {
-        return this.crystalMap.getEcalChannel(crystal);
     }
 
     /**
@@ -104,10 +87,6 @@ public final class EcalConditions {
      */
     void setChannelCollection(final EcalChannelCollection channelCollection) {
         this.channelCollection = channelCollection;
-
-        // Build the map between crystals and channels.
-        this.crystalMap = new EcalCrystalChannelMap((HPSEcalAPI) this.subdetector.getDetectorElement(),
-                channelCollection);
     }
 
     /**

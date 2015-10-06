@@ -1,8 +1,9 @@
-package org.hps.conditions.ecal;
+package org.hps.detector.ecal;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.detector.converter.compact.HPSEcalAPI;

@@ -1,0 +1,254 @@
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+
+    <info name="HPSTest">
+        <comment>HPS test setup</comment>
+    </info>
+
+    <define>   
+
+<!--        <constant name="pi" value="3.14159" />-->
+        <constant name="SA"  value="0.10" />
+        <constant name="SA2"  value="0.05" />
+
+        <!-- world -->
+        <constant name="world_side" value="10000.0*cm" />
+        <constant name="world_x" value="world_side" />
+        <constant name="world_y" value="world_side" />
+        <constant name="world_z" value="world_side" />
+    
+        <!-- tracking region -->
+        <constant name="tracking_region_radius" value="200.0*cm"/>
+        <constant name="tracking_region_min" value="5.0*cm"/>
+        <constant name="tracking_region_zmax" value="100.0*cm"/>
+    
+        <constant name="xCent1" value="10*cm"/>
+        <constant name="xCent2" value="20*cm"/>
+        <constant name="xCent3" value="30*cm"/>
+        <constant name="xCent4" value="50*cm"/>
+        <constant name="xCent5" value="70*cm"/>
+        
+        <constant name="zgap1" value="0.30*cm" />
+        <constant name="zgap2" value="0.60*cm" />
+        <constant name="zgap3" value="0.90*cm" />
+        <constant name="zgap4" value="1.5*cm" />
+        <constant name="zgap5" value="2.1*cm" />
+        
+        <constant name="zPlaneDist" value="1.0*cm"/>
+        
+        <constant name="modLength" value="10.0*cm"/>
+        <constant name="modWidth" value="4.0*cm"/>
+
+        <constant name="ecal_front" value="13.3/2*mm" />
+        <constant name="ecal_back" value="16/2*mm" />
+        <!--<constant name="ecal_back" value="30/2*mm"/>-->
+        <constant name="ecal_z" value="160/2*mm" />
+        
+
+        <!-- tracking region -->
+<!--
+        <constant name="tracking_region_radius" value="200.0*cm"/>
+        <constant name="tracking_region_min" value="5.0*cm"/>
+        <constant name="tracking_region_zmax" value="100.0*cm"/>	
+
+        <constant name="xCent1" value="10*cm" />
+        <constant name="xCent2" value="20*cm" />
+
+        <constant name="xCent3" value="30*cm" />
+        <constant name="xCent4" value="50*cm" />
+        <constant name="xCent5" value="70*cm" />
+        <constant name="xCent6" value="90*cm" />
+
+        <constant name="zgap1" value="0.30*cm" />
+        <constant name="zgap2" value="0.60*cm" />
+
+        <constant name="zgap3" value="0.498*cm" />
+        <constant name="zgap4" value="0.830*cm" />
+        <constant name="zgap5" value="1.162*cm" />
+        <constant name="zgap6" value="1.494*cm" />
+
+        <constant name="zPlaneDist" value="1.0*cm" />
+
+        <constant name="modLength" value="10.0*cm" />
+        <constant name="modWidth" value="4.0*cm" />
+-->
+
+    </define>
+
+    <materials>
+        <material name="LeadTungstate">
+            <D value="8.28" unit="g/cm3"/>
+            <composite n="1" ref="Pb"/>
+            <composite n="1" ref="W"/>
+            <composite n="4" ref="O"/>
+        </material>
+    </materials>
+
+    <detectors>
+
+        <detector id="13" 
+                  name="HPSEcalTest" 
+                  type="HPSEcal" 
+                  insideTrackingVolume="true" 
+                  readout="EcalHits"
+                  >
+            <material name="LeadTungstate" />
+            <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back"
+                        y2="ecal_back" z="ecal_z" />
+            <layout beamgap="20.0*mm" nx="46" ny="5" dface="120.0*cm" />
+        </detector>
+
+        <detector id="1" name="Tracker" type="SiTrackerFixedTarget2" readout="TrackerHits" combineHits="true" reflect="true"  flipSA="true">
+            <module name="Module1">
+                <trd x1="modWidth/2" x2="modWidth/2" z="modLength/2" />
+                <module_component   thickness="0.032*cm" material = "Silicon" sensitive="true"/><!-- X0=0.32% -->
+                <module_component   thickness="0.02*cm" material = "Carbon" sensitive="false"/> <!-- X0=0.1% -->
+            </module> 
+            
+            <layer id="1">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap1+modWidth)/2" nz="1" zStep="modWidth" phi0="0.0" x="xCent1" dx="0.0*cm"  module="Module1"/>
+            </layer>
+            <layer id="2">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap1+modWidth)/2" nz="1" zStep="modWidth" phi0="SA" x="xCent1+zPlaneDist" dx="0.0*cm"  module="Module1"/>
+            </layer>
+
+            <layer id="3">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap2+modWidth)/2" nz="1" zStep="modWidth" phi0="0.0" x="xCent2" dx="0.0*cm"  module="Module1"/>
+            </layer>
+            <layer id="4">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap2+modWidth)/2" nz="1" zStep="modWidth" phi0="SA" x="xCent2+zPlaneDist" dx="0.0*cm"  module="Module1"/>
+            </layer>
+            
+            
+            <layer id="5">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap3+modWidth)/2" nz="1" zStep="modWidth" phi0="0.0" x="xCent3" dx="0.0*cm"  module="Module1"/>
+            </layer>
+            <layer id="6">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap3+modWidth)/2" nz="1" zStep="modWidth" phi0="SA" x="xCent3+zPlaneDist" dx="0.0*cm"  module="Module1"/>
+            </layer>
+
+            <layer id="7">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap4+modWidth)/2" nz="1" zStep="modWidth" phi0="0.0" x="xCent4" dx="0.0*cm"  module="Module1"/>
+            </layer>
+            <layer id="8">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap4+modWidth)/2" nz="1" zStep="modWidth" phi0="SA2" x="xCent4+zPlaneDist" dx="0.0*cm"  module="Module1"/>
+            </layer>
+
+            <layer id="9">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap5+modWidth)/2" nz="1" zStep="modWidth" phi0="0.0" x="xCent5" dx="0.0*cm"  module="Module1"/>
+            </layer>
+            <layer id="10">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap5+modWidth)/2" nz="1" zStep="modWidth" phi0="SA2" x="xCent5+zPlaneDist" dx="0.0*cm"  module="Module1"/>
+            </layer>
+
+
+        </detector>     
+
+<!--                
+Proposal detector
+        <detector id="1" name="Tracker" type="SiTrackerFixedTarget2"
+                  readout="TrackerHits" combineHits="true" reflect="true">
+            <module name="Module1">
+                <trd x1="modWidth/2" x2="modWidth/2" z="modLength/2" />
+                <module_component thickness="0.032*cm" material="Silicon"
+                                  sensitive="true" />
+                <module_component thickness="0.02*cm" material="Carbon"
+                                  sensitive="false" />
+            </module>
+            
+            <layer id="1">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap1+modWidth)/2"
+                          nz="1" zStep="modWidth" phi0="0.0" x="xCent1" dx="0.0*cm" module="Module1" />
+            </layer>
+            <layer id="2">
+                <quadrant yStart="-1*modWidth/2" ny="2" yStep="modWidth"
+                          zStart="(zgap1+modLength)/2" nz="1" zStep="modLength" phi0="pi/2.0"
+                          x="xCent1+zPlaneDist" dx="0.0*cm" module="Module1" />
+            </layer>
+            
+            
+            <layer id="3">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap2+modWidth)/2"
+                          nz="2" zStep="modWidth" phi0="0.0" x="xCent2" dx="0.0*cm" module="Module1" />
+            </layer>
+            <layer id="4">
+                <quadrant yStart="-1*modWidth" ny="3" yStep="modWidth"
+                          zStart="(zgap2+modLength)/2" nz="1" zStep="modLength" phi0="pi/2.0"
+                          x="xCent2+zPlaneDist" dx="0.0*cm" module="Module1" />
+            </layer>
+            
+            <layer id="5">
+                <quadrant yStart="0" ny="1" yStep="modLength" zStart="(zgap3+modWidth)/2"
+                          nz="2" zStep="modWidth" phi0="0.0" x="xCent3" dx="0.0*cm" module="Module1" />
+            </layer>
+            <layer id="6">
+                <quadrant yStart="-1*modWidth" ny="3" yStep="modWidth"
+                          zStart="(zgap3+modLength)/2" nz="1" zStep="modLength" phi0="pi/2.0"
+                          x="xCent3+zPlaneDist" dx="0.0*cm" module="Module1" />
+            </layer>
+            
+            
+            
+            <layer id="7">
+                <quadrant yStart="-2*modWidth" ny="5" yStep="modWidth"
+                          zStart="(zgap4+modLength)/2" nz="1" zStep="modLength" phi0="pi/2.0-SA"
+                          x="xCent4" dx="0.0*cm" module="Module1" />
+            </layer>
+            <layer id="8">
+                <quadrant yStart="-2*modWidth" ny="5" yStep="modWidth"
+                          zStart="(zgap4+modLength)/2" nz="1" zStep="modLength" phi0="pi/2.0"
+                          x="xCent4+zPlaneDist" dx="0.0*cm" module="Module1" />
+            </layer>
+            
+            <layer id="9">
+                <quadrant yStart="-3*modWidth" ny="7" yStep="modWidth"
+                          zStart="(zgap5+modLength)/2" nz="1" zStep="modLength" phi0="pi/2.0+SA"
+                          x="xCent5" dx="0.0*cm" module="Module1" />
+            </layer>
+            <layer id="10">
+                <quadrant yStart="-3*modWidth" ny="7" yStep="modWidth"
+                          zStart="(zgap5+modLength)/2" nz="1" zStep="modLength" phi0="pi/2.0"
+                          x="xCent5+zPlaneDist" dx="0.0*cm" module="Module1" />
+            </layer>
+
+            <layer id="11">
+                <quadrant yStart="-7*modWidth/2" ny="8" yStep="modWidth"
+                          zStart="(zgap6+modLength)/2" nz="1" zStep="modLength" phi0="pi/2.0-SA"
+                          x="xCent6" dx="0.0*cm" module="Module1" />
+            </layer>
+            <layer id="12">
+                <quadrant yStart="-7*modWidth/2" ny="8" yStep="modWidth"
+                          zStart="(zgap6+modLength)/2" nz="1" zStep="modLength" phi0="pi/2.0"
+                          x="xCent6+zPlaneDist" dx="0.0*cm" module="Module1" />
+            </layer>
+
+        </detector>
+-->
+
+    </detectors>
+
+    <readouts>
+        <readout name="EcalHits">
+            <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
+            <id>system:6,side:-2,layer:4,ix:9,iy:9</id>
+        </readout>
+        <readout name="TargetHits">
+            <id>system:6,barrel:3,layer:4,wedge:4,module:12,sensor:1,side:32:-2,strip:12</id>
+        </readout>
+        <readout name="TrackerHits">
+            <id>system:6,barrel:3,layer:4,wedge:4,module:12,sensor:1,side:32:-2,strip:12</id>
+        </readout>
+    </readouts>
+    <fields>
+        <field type="Solenoid" 
+               name="GlobalSolenoid" 
+               inner_field="0.0"
+               outer_field="1.0" 
+               zmax="17.78*cm"
+               inner_radius="10.0*cm"
+               outer_radius="101.44*cm"
+               />
+    </fields>
+
+</lccdd>

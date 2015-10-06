@@ -1,5 +1,8 @@
 package org.hps.conditions.ecal;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsSeries;
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -30,6 +33,14 @@ import org.lcsim.geometry.Detector;
 public class EcalConditionsConverter implements ConditionsConverter<EcalConditions> {
     
     /**
+     * Setup logger.
+     */
+    private static Logger LOGGER = Logger.getLogger(EcalConditionsConverter.class.getName());
+    static {
+        LOGGER.setLevel(Level.ALL);
+    }
+    
+    /**
      * Create combined ECAL conditions object containing all data for the current run.
      *
      * @param manager the conditions manager
@@ -40,6 +51,15 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
        
         // Get the ECal channel map from the conditions database.
         final EcalChannelCollection channels = this.getEcalChannelCollection();
+        
+        if (channels == null) {
+            throw new IllegalStateException("The ECal channels collection is null.");
+        }
+        if (channels.size() == 0) {
+            throw new IllegalStateException("The ECal channels collection is empty.");
+        }
+        
+        LOGGER.fine("ECal channel collection has " + channels.size() + " objects");
 
         // Create the ECal conditions object that will be used to encapsulate ECal conditions collections.
         final Detector detector = getDatabaseConditionsManager().getDetectorObject();
@@ -51,9 +71,11 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
 
         // Get the ECal gains from the conditions database and add them to the conditions set
         final EcalGainCollection gains = this.getEcalGainCollection();
+        LOGGER.fine("ECal gain collction has " + gains.size() + " objects");
         for (final EcalGain gain : gains) {
             final ChannelId channelId = new ChannelId(new int[] {gain.getChannelId()});
             final EcalChannel channel = channels.findChannel(channelId);
+            LOGGER.fine("setting channel " + channel.getChannel() + " gain to " + gain.getGain());
             conditions.getChannelConstants(channel).setGain(gain);
         }
 
@@ -70,9 +92,11 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
 
         // Get the ECal calibrations from the conditions database and add them to the conditions set.
         final EcalCalibrationCollection calibrations = this.getEcalCalibrationCollection();
+        LOGGER.fine("ECal calibration collction has " + calibrations.size() + " objects");
         for (final EcalCalibration calibration : calibrations) {
             final ChannelId channelId = new ChannelId(new int[] {calibration.getChannelId()});
             final EcalChannel channel = channels.findChannel(channelId);
+            LOGGER.fine("setting channel " + channel.getChannel() + " ped, noise to " + calibration.getPedestal() + ", " + calibration.getNoise());
             conditions.getChannelConstants(channel).setCalibration(calibration);
         }
 

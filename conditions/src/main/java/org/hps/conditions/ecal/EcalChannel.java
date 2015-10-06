@@ -290,8 +290,11 @@ public final class EcalChannel extends BaseConditionsObject {
         public EcalChannelCollection getData(final ConditionsManager conditionsManager, final String name) {
             final EcalChannelCollection collection = super.getData(conditionsManager, name);
             final Subdetector ecal = DatabaseConditionsManager.getInstance().getEcalSubdetector();
-            if (ecal != null) {
+            if (ecal.getDetectorElement() != null) {
                 collection.buildGeometryMap(ecal.getDetectorElement().getIdentifierHelper(), ecal.getSystemID());
+            } else {
+                // This can happen when not running with the detector-framework jar in the classpath.
+                throw new IllegalStateException("The ECal subdetector's detector element is not setup.");
             }
             return collection;
         }

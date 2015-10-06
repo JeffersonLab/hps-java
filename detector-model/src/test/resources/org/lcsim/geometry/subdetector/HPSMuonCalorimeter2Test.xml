@@ -1,0 +1,57 @@
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+    
+    <info name="HPSMuonCalorimeter2Test" />
+    
+    <define>   
+        
+        <!-- world volume -->
+        <constant name="world_side" value="10000.0*cm" />
+        <constant name="world_x" value="world_side" />
+        <constant name="world_y" value="world_side" />
+        <constant name="world_z" value="world_side" />
+        
+        <!-- tracking region -->
+        <constant name="tracking_region_radius" value="5.0*cm" />
+        <constant name="tracking_region_min" value="0.0*cm" />
+        <constant name="tracking_region_zmax" value="100.0*cm" />
+        
+    </define>
+    
+    <materials>
+        <material name="Scintillator">
+            <D value="1.032" unit="g/cm3"/>
+            <composite n="9" ref="C"/>
+            <composite n="10" ref="H"/>
+        </material>
+    </materials>
+    
+    <detectors>        
+        <detector id="2" name="MUON" type="HPSMuonCalorimeter2" insideTrackingVolume="false" readout="MUON_HITS">
+            <parameters front_face_to_target="177.0*cm" 
+                        dead_zone_angle="0.015" 
+                        strip_thickness="1.0*cm" 
+                        strip_spacing_z="1.0"
+                        strip_spacing_y="0.1"
+                        strip_spacing_x="0.1" 
+                        strip_spacing_z_outer="1.0*cm" 
+                        center_x="0." />
+             
+             <layer id="1">
+                 <slice material="Iron" sensitive="false" thickness="30.0*cm" />
+                 <slice material="Scintillator" sensitive="true" />
+                 <slice material="Scintillator" sensitive="true" />
+             </layer>
+             
+        </detector>
+    </detectors>
+    
+    <readouts>
+        <readout name="MUON_HITS">
+            <segmentation type="GridXYZ" gridSizeX="5.0" gridSizeY="5.0" gridSizeZ="0.0" />
+            <id>system:6,side:-2,layer:4,slice:3,x:32:-8,y:-6</id>
+        </readout>
+    </readouts>
+            
+</lccdd>

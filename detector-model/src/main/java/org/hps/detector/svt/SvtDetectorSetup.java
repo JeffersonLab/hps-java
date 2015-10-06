@@ -1,4 +1,4 @@
-package org.hps.conditions.svt;
+package org.hps.detector.svt;
 
 import java.util.Collection;
 import java.util.List;
@@ -6,11 +6,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.AbstractSvtDaqMapping;
+import org.hps.conditions.svt.ChannelConstants;
+import org.hps.conditions.svt.SvtChannel;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
+import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
+import org.hps.conditions.svt.SvtT0Shift;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
+import org.hps.conditions.svt.TestRunSvtChannel;
 import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
+import org.hps.conditions.svt.TestRunSvtConditions;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
+import org.hps.conditions.svt.TestRunSvtT0Shift;
 import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
 import org.hps.util.Pair;
 import org.lcsim.conditions.ConditionsEvent;
@@ -32,6 +40,9 @@ public final class SvtDetectorSetup implements ConditionsListener {
      * Initialize logger.
      */
     private static Logger logger = LogUtil.create(SvtDetectorSetup.class);
+    static {
+        logger.setLevel(Level.ALL);
+    }
 
     /**
      * The number of noise samples.
@@ -54,11 +65,19 @@ public final class SvtDetectorSetup implements ConditionsListener {
     private String svtName = "Tracker";
 
     /**
+     * Constructor that uses the default detector name.
+     */
+    public SvtDetectorSetup() {
+        logger.info("hi");
+    }
+
+    /**
      * Constructor that takes name of SVT.
      *
      * @param svtName the name of the SVT subdetector
      */
     public SvtDetectorSetup(final String svtName) {
+        logger.info("hi");
         this.svtName = svtName;
     }
 
@@ -69,15 +88,19 @@ public final class SvtDetectorSetup implements ConditionsListener {
      */
     @Override
     public void conditionsChanged(final ConditionsEvent event) {
+        logger.info("conditions changed hook activated");
         if (this.enabled) {
+            logger.info("I am enabled");
             final DatabaseConditionsManager manager = (DatabaseConditionsManager) event.getConditionsManager();
             final Subdetector subdetector = manager.getDetectorObject().getSubdetector(this.svtName);
             if (subdetector != null) {
+                logger.info("found the SVT");
                 if (manager.isTestRun()) {
                     final TestRunSvtConditions svtConditions = manager.getCachedConditions(TestRunSvtConditions.class,
                             "test_run_svt_conditions").getCachedData();
                     this.loadTestRun(subdetector, svtConditions);
                 } else {
+                    logger.info("activating default setup (not test run)");
                     final SvtConditions svtConditions = manager.getCachedConditions(SvtConditions.class,
                             "svt_conditions").getCachedData();
                     this.loadDefault(subdetector, svtConditions);
@@ -99,7 +122,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
      */
     void loadDefault(final Subdetector subdetector, final SvtConditions conditions) {
 
-        logger.info("loading SVT conditions onto subdetector " + subdetector.getName());
+        logger.info("loading default SVT conditions onto subdetector " + subdetector.getName());
 
         // Find sensor objects.
         final List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
