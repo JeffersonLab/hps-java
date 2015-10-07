@@ -11,7 +11,7 @@ import org.lcsim.event.EventHeader;
  */
 public class EventFlagFilter extends EventReconFilter {
 
-    String[] flagNames = {"svt_bias_good", "svt_position_good", "svt_burstmode_noise_good"};
+    String[] flagNames = {"svt_bias_good", "svt_position_good", "svt_burstmode_noise_good", "svt_event_header_good"};
 
     public void setFlagNames(String[] flagNames) {
         this.flagNames = flagNames;
@@ -21,8 +21,8 @@ public class EventFlagFilter extends EventReconFilter {
     public void process(EventHeader event) {
         incrementEventProcessed();
         if (flagNames != null) {
-            for (int i = 0; i < flagNames.length; i++) {
-                int[] flag = event.getIntegerParameters().get(flagNames[i]);
+            for (String flagName : flagNames) {
+                int[] flag = event.getIntegerParameters().get(flagName);
                 if (flag == null || flag[0] == 0) {
                     skipEvent();
                 }
