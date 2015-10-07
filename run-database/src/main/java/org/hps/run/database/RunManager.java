@@ -3,7 +3,6 @@ package org.hps.run.database;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.ConnectionParameters;
@@ -12,8 +11,6 @@ import org.hps.record.scalers.ScalerData;
 import org.hps.record.triggerbank.TriggerConfig;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsListener;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Manages read-only access to the run database and creates a {@link RunSummary} for a specific run.
@@ -47,9 +44,9 @@ public final class RunManager implements ConditionsListener {
     private static RunManager INSTANCE;
 
     /**
-     * The class's logger.
+     * Initialize the logger.
      */
-    private static Logger LOGGER = LogUtil.create(RunManager.class, new DefaultLogFormatter(), Level.ALL);
+    private static final Logger LOGGER = Logger.getLogger(RunManager.class.getPackage().getName());
 
     /**
      * Get the global instance of the {@link RunManager}.

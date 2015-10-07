@@ -1,7 +1,5 @@
 package org.hps.conditions.database;
 
-import java.util.logging.Level;
-
 import junit.framework.TestCase;
 
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
@@ -27,7 +25,6 @@ public class DatabaseConditionsManagerTest extends TestCase {
     public void testDatabaseConditionsManager() throws Exception {
         
         DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        manager.setLogLevel(Level.ALL);
         
         // Check initial state.
         TestCase.assertTrue("The conditions manager instance is null.", manager != null);        

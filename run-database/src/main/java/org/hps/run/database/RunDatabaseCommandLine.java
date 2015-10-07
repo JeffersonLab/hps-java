@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -23,8 +22,6 @@ import org.hps.datacat.client.DatacatClientFactory;
 import org.hps.datacat.client.Dataset;
 import org.hps.datacat.client.DatasetMetadata;
 import org.hps.record.evio.EvioFileUtilities;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Command line tool for updating the run database from EVIO files registered in the data catalog.
@@ -56,10 +53,9 @@ public class RunDatabaseCommandLine {
     }
 
     /**
-     * Setup the logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(RunDatabaseCommandLine.class, new DefaultLogFormatter(),
-            Level.ALL);
+    private static final Logger LOGGER = Logger.getLogger(RunDatabaseCommandLine.class.getPackage().getName());
 
     /**
      * Command line options for the crawler.

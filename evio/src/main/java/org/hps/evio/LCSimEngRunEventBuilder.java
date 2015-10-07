@@ -29,8 +29,6 @@ import org.hps.run.database.RunManager;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.event.EventHeader;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * This is the {@link org.hps.record.LCSimEventBuilder} implementation for the
@@ -51,8 +49,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     /**
      * Setup logger.
      */
-    private static final Logger LOGGER = LogUtil.create(LCSimEngRunEventBuilder.class, new DefaultLogFormatter(),
-            Level.INFO);
+    private static final Logger LOGGER = Logger.getLogger(LCSimEngRunEventBuilder.class.getPackage().getName());
 
     /**
      * EVIO processor for extracting EPICS data.

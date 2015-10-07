@@ -1,5 +1,6 @@
 package org.hps.recon.tracking.gbl;
 
+import static org.hps.recon.tracking.gbl.GBLOutput.getPerToClPrj;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
@@ -13,11 +14,9 @@ import java.util.logging.Logger;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.TrackType;
-import static org.hps.recon.tracking.gbl.GBLOutput.getPerToClPrj;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
-import org.hps.util.BasicLogFormatter;
 import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
@@ -29,7 +28,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * A class that creates track objects from fitted GBL trajectories and adds them
@@ -41,7 +39,7 @@ import org.lcsim.util.log.LogUtil;
 public class MakeGblTracks {
 
     private String _TrkCollectionName = "GBLTracks";
-    private static Logger logger = LogUtil.create(MakeGblTracks.class, new BasicLogFormatter(), Level.OFF);
+    private static Logger LOGGER = Logger.getLogger(MakeGblTracks.class.getPackage().getName());
 
     /**
      * Creates a new instance of MakeTracks.
@@ -51,9 +49,9 @@ public class MakeGblTracks {
 
     public void setDebug(boolean debug) {
         if (debug) {
-            logger.setLevel(Level.INFO);
+            LOGGER.setLevel(Level.INFO);
         } else {
-            logger.setLevel(Level.OFF);
+            LOGGER.setLevel(Level.OFF);
         }
     }
 
@@ -69,7 +67,7 @@ public class MakeGblTracks {
 
         List<Track> tracks = new ArrayList<Track>();
 
-        logger.info("adding " + gblTrajectories.size() + " of fitted GBL tracks to the event");
+        LOGGER.info("adding " + gblTrajectories.size() + " of fitted GBL tracks to the event");
 
         for (FittedGblTrajectory fittedTraj : gblTrajectories) {
 
@@ -83,7 +81,7 @@ public class MakeGblTracks {
             tracks.add(trk);
         }
 
-        logger.info("adding " + Integer.toString(tracks.size()) + " Gbl tracks to event with " + event.get(Track.class, "MatchedTracks").size() + " matched tracks");
+        LOGGER.info("adding " + Integer.toString(tracks.size()) + " Gbl tracks to event with " + event.get(Track.class, "MatchedTracks").size() + " matched tracks");
 
         // Put the tracks back into the event and exit
         int flag = 1 << LCIOConstants.TRBIT_HITS;
@@ -124,10 +122,10 @@ public class MakeGblTracks {
 
         //  Add the track to the list of tracks
 //            tracks.add(trk);
-        logger.info(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helix.chisqtot(), helix.ndf()[0] + helix.ndf()[1], trk.getChi2(), trk.getNDF()));
-        if (logger.getLevel().intValue() <= Level.INFO.intValue()) {
+        LOGGER.info(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helix.chisqtot(), helix.ndf()[0] + helix.ndf()[1], trk.getChi2(), trk.getNDF()));
+        if (LOGGER.getLevel().intValue() <= Level.INFO.intValue()) {
             for (int i = 0; i < 5; ++i) {
-                logger.info(String.format("param %d: %.10f -> %.10f    helix-gbl= %f", i, helix.parameters()[i], trk.getTrackParameter(i), helix.parameters()[i] - trk.getTrackParameter(i)));
+                LOGGER.info(String.format("param %d: %.10f -> %.10f    helix-gbl= %f", i, helix.parameters()[i], trk.getTrackParameter(i), helix.parameters()[i] - trk.getTrackParameter(i)));
             }
         }
         return trk;
@@ -151,9 +149,9 @@ public class MakeGblTracks {
         double phi0 = helix.phi0();
         double lambda = Math.atan(helix.slope());
 
-        logger.info("GblPoint: " + point.toString() + "( " + point.name() + ")");
-        logger.info(String.format("original helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f", helix.dca(), helix.z0(), helix.curvature(), helix.slope(), helix.phi0(), helix.p(Math.abs(bfield))));
-        logger.info("original helix covariance:\n" + helix.covariance());
+        LOGGER.info("GblPoint: " + point.toString() + "( " + point.name() + ")");
+        LOGGER.info(String.format("original helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f", helix.dca(), helix.z0(), helix.curvature(), helix.slope(), helix.phi0(), helix.p(Math.abs(bfield))));
+        LOGGER.info("original helix covariance:\n" + helix.covariance());
 
         // get corrections from GBL fit
         Vector locPar = new Vector(5);
@@ -175,7 +173,7 @@ public class MakeGblTracks {
         double xTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XT.getValue());
         double yTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YT.getValue());
 
-        logger.info((helix.slope() > 0 ? "top: " : "bot ") + "qOverPCorr " + qOverPCorr + " xtPrimeCorr " + xTPrimeCorr + " yTPrimeCorr " + yTPrimeCorr + " xTCorr " + xTCorr + " yTCorr " + yTCorr);
+        LOGGER.info((helix.slope() > 0 ? "top: " : "bot ") + "qOverPCorr " + qOverPCorr + " xtPrimeCorr " + xTPrimeCorr + " yTPrimeCorr " + yTPrimeCorr + " xTCorr " + xTCorr + " yTCorr " + yTCorr);
 
         // calculate new d0 and z0
 //        Hep3Matrix perToClPrj = traj.get_track_data().getPrjPerToCl();
@@ -205,9 +203,9 @@ public class MakeGblTracks {
         //calculate new phi0
         double phi0_gbl = phi0 + xTPrimeCorr - corrPer.x() * C_gbl;
 
-        logger.info("qOverP=" + qOverP + " qOverPCorr=" + qOverPCorr + " qOverP_gbl=" + qOverP_gbl + " ==> pGbl=" + 1.0 / qOverP_gbl + " C_gbl=" + C_gbl);
+        LOGGER.info("qOverP=" + qOverP + " qOverPCorr=" + qOverPCorr + " qOverP_gbl=" + qOverP_gbl + " ==> pGbl=" + 1.0 / qOverP_gbl + " C_gbl=" + C_gbl);
 
-        logger.info(String.format("corrected helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f", dca_gbl, z0_gbl, C_gbl, slope_gbl, phi0_gbl, Math.abs(1 / qOverP_gbl)));
+        LOGGER.info(String.format("corrected helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f", dca_gbl, z0_gbl, C_gbl, slope_gbl, phi0_gbl, Math.abs(1 / qOverP_gbl)));
 
         /*
          // Strandlie, Wittek, NIMA 566, 2006
@@ -275,7 +273,7 @@ public class MakeGblTracks {
                 }
             }
         }
-        logger.info("corrected helix covariance:\n" + cov);
+        LOGGER.info("corrected helix covariance:\n" + cov);
 
         double parameters_gbl[] = new double[5];
         parameters_gbl[HelicalTrackFit.dcaIndex] = dca_gbl;

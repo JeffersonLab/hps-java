@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * A miscellaneous collection of EVIO file utility methods.
@@ -18,9 +17,9 @@ import org.lcsim.util.log.LogUtil;
 public final class EvioFileUtilities {
 
     /**
-     * Setup class logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(EvioFileUtilities.class);
+    private static final Logger LOGGER = Logger.getLogger(EvioFileUtilities.class.getPackage().getName());
 
     /**
      * Milliseconds constant for conversion to/from second.

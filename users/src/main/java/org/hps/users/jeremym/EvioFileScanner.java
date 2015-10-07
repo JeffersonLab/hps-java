@@ -36,7 +36,6 @@ import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * A utility for scanning EVIO files by run.
@@ -333,7 +332,7 @@ public class EvioFileScanner {
         }
     }
 
-    private static final Logger LOGGER = LogUtil.create(EvioFileVisitor.class);
+    private static final Logger LOGGER = Logger.getLogger(EvioFileScanner.class.getName());
     private static final long MILLISECONDS = 1000L;
 
     private static final Options OPTIONS = new Options();

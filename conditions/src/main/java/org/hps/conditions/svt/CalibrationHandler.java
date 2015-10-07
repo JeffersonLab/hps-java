@@ -1,14 +1,11 @@
 package org.hps.conditions.svt;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -23,8 +20,7 @@ class CalibrationHandler extends DefaultHandler {
     /**
      * Initialize the logger.
      */
-    private static Logger logger = LogUtil.create(SvtConditionsLoader.class.getSimpleName(), new DefaultLogFormatter(),
-            Level.INFO);
+    private static Logger LOGGER = Logger.getLogger(CalibrationHandler.class.getPackage().getName());
 
     /**
      * Baseline sample ID (0-5).
@@ -161,7 +157,7 @@ class CalibrationHandler extends DefaultHandler {
                 break;
             case "Hybrid":
                 this.hybridID = Integer.parseInt(attributes.getValue("id"));
-                logger.info("Processing calibrations for FEB " + this.febID + " Hybrid " + this.hybridID);
+                LOGGER.info("Processing calibrations for FEB " + this.febID + " Hybrid " + this.hybridID);
                 break;
             case "channel":
                 this.channel = Integer.parseInt(attributes.getValue("id"));

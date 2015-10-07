@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.record.evio.EventTagConstant;
@@ -14,8 +13,6 @@ import org.hps.record.evio.EvioFileUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Reads metadata from EVIO files.
@@ -25,9 +22,9 @@ import org.lcsim.util.log.LogUtil;
 public class EvioMetadataReader implements FileMetadataReader {
 
     /**
-     * Class logger.
+     * Initialize the logger.
      */
-    private static Logger LOGGER = LogUtil.create(EvioMetadataReader.class, new DefaultLogFormatter(), Level.ALL);
+    private static Logger LOGGER = Logger.getLogger(EvioMetadataReader.class.getPackage().getName());
 
     /**
      * Get the EVIO file metadata.

@@ -5,7 +5,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
@@ -111,8 +110,6 @@ public final class SvtBadChannelTest extends TestCase {
         // Configure the loop.
         loop.setLCIORecordSource(testFile);
         loop.add(new SvtBadChannelChecker());
-
-        DatabaseConditionsManager.getInstance().setLogLevel(Level.OFF);
 
         // Run over all events.
         loop.loop(-1, null);

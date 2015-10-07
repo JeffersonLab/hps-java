@@ -50,7 +50,6 @@ public final class TestRunSvtBadChannelsTest extends TestCase {
 
         final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
-        conditionsManager.setLogLevel(Level.WARNING);
 
         for (int i = 0; i < RUN_NUMBERS.length; i++) {
 

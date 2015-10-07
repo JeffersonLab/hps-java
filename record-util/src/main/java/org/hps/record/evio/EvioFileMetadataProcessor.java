@@ -2,17 +2,17 @@ package org.hps.record.evio;
 
 import java.io.File;
 import java.util.Date;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jlab.coda.jevio.EvioEvent;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
-// TODO: add doc
+// TODO: delete me
 public class EvioFileMetadataProcessor extends EvioEventProcessor {
     
-    private static Logger LOGGER = LogUtil.create(EvioFileMetadataProcessor.class, new DefaultLogFormatter(), Level.ALL);
+    /**
+     * Initialize the logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(EvioFileMetadataProcessor.class.getPackage().getName());
     
     private File evioFile = null;
     private Date startDate = null;

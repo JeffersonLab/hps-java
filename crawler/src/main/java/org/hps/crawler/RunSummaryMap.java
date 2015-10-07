@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 import org.hps.run.database.RunSummary;
 import org.hps.run.database.RunSummaryImpl;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * This class maps run numbers to {@link RunSummary} objects.
@@ -17,9 +16,9 @@ import org.lcsim.util.log.LogUtil;
 final class RunSummaryMap extends HashMap<Integer, RunSummaryImpl> {
 
     /**
-     * Setup logging.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(RunSummaryMap.class);
+    private static Logger LOGGER = Logger.getLogger(RunSummaryMap.class.getPackage().getName());
 
     /**
      * Get the collection of {@link RunSummary} objects.

@@ -244,6 +244,11 @@
                 <artifactId>hps-job</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-logging</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <!-- Next are external dependencies used in multiple modules. -->
             <dependency>
                 <groupId>org.jlab.coda</groupId>
@@ -443,6 +448,10 @@
                         <property>
                             <name>org.lcsim.cacheDir</name>
                             <value>${org.lcsim.cacheDir}</value>
+                        </property>
+                        <property>
+                            <name>java.util.logging.config.class</name>
+                            <value>org.hps.logging.config.DefaultLoggingConfig</value>
                         </property>
                     </systemProperties>
                 </configuration>

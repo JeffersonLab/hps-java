@@ -19,15 +19,12 @@ import org.hps.analysis.trigger.util.TriggerDataUtils;
 import org.hps.evio.SvtEvioReader;
 import org.hps.evio.SvtEvioUtils;
 import org.hps.record.svt.SvtHeaderDataInfo;
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.HeadBankData;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
@@ -38,7 +35,7 @@ public class SvtHeaderAnalysisDriver extends Driver {
     private final AIDA aida = AIDA.defaultInstance();
     
     private final String HeaderCollectionName = "SvtHeaders"; 
-    private final Logger logger = LogUtil.create(SvtHeaderAnalysisDriver.class.getSimpleName(), new BasicLogFormatter(), Level.INFO);
+    private final Logger logger = Logger.getLogger(SvtHeaderAnalysisDriver.class.getSimpleName());
     private int nEventsProcessed = 0;
     private Date eventDate = new Date(0);
     private IHistogram2D rceSyncErrorCount;
@@ -64,7 +61,7 @@ public class SvtHeaderAnalysisDriver extends Driver {
      * 
      */
     public SvtHeaderAnalysisDriver() {
-         
+         logger.setLevel(Level.INFO);
     }
     
     public void setLogFileName(String name) {

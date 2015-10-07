@@ -4,13 +4,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.record.evio.EvioEventProcessor;
 import org.jlab.coda.jevio.EvioEvent;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Creates a list of EPICS data found in EVIO events across an entire job.
@@ -20,9 +17,9 @@ import org.lcsim.util.log.LogUtil;
 public final class EpicsRunProcessor extends EvioEventProcessor {
 
     /**
-     * Setup class logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(EpicsRunProcessor.class, new DefaultLogFormatter(), Level.INFO);
+    private static final Logger LOGGER = Logger.getLogger(EpicsRunProcessor.class.getPackage().getName());
     
     /**
      * The current EPICS data block from the EVIO events (last one that was found).

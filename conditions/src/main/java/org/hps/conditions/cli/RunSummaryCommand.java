@@ -3,7 +3,6 @@ package org.hps.conditions.cli;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -14,8 +13,6 @@ import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.lcsim.util.log.LogUtil;
-import org.lcsim.util.log.MessageOnlyLogFormatter;
 
 /**
  * This is a sub-command to print out collection meta data for the current conditions configuration of tag, detector
@@ -29,10 +26,9 @@ import org.lcsim.util.log.MessageOnlyLogFormatter;
 final class RunSummaryCommand extends AbstractCommand {
 
     /**
-     * Setup logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(RunSummaryCommand.class, new MessageOnlyLogFormatter(),
-            Level.INFO);
+    private static final Logger LOGGER = Logger.getLogger(RunSummaryCommand.class.getPackage().getName());
 
     /**
      * Define command options.

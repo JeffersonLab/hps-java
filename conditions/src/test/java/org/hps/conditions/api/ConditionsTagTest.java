@@ -104,7 +104,6 @@ public class ConditionsTagTest extends TestCase {
      */
     public void testPass1Tag() throws Exception {
                 
-        MANAGER.setLogLevel(Level.WARNING);
         MANAGER.addTag("pass1");
         
         Map<Integer, int[]> collectionMap = buildCollectionMap();

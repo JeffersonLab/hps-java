@@ -20,7 +20,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.analysis.trigger.util.TriggerDataUtils;
-import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunSpreadsheet;
 import org.hps.conditions.svt.SvtBiasConditionsLoader;
@@ -32,7 +31,6 @@ import org.hps.conditions.svt.SvtBiasMyaDataReader.SvtBiasRunRange;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.HeadBankData;
-import org.hps.util.BasicLogFormatter;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -40,7 +38,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
@@ -49,7 +46,7 @@ import org.lcsim.util.log.LogUtil;
 public class SampleZeroHVBiasChecker extends Driver {
 
     // Logger
-    Logger logger = LogUtil.create(getName(), new BasicLogFormatter(), Level.INFO);
+    private static Logger LOGGER = Logger.getLogger(SampleZeroHVBiasChecker.class.getPackage().getName());
 
     static {
         hep.aida.jfree.AnalysisFactory.register();
@@ -226,10 +223,10 @@ public class SampleZeroHVBiasChecker extends Driver {
 
         //SvtBiasConditionsLoader.setTimeOffset(Calendar.)
         runRanges = SvtBiasMyaDataReader.findOverlappingRanges(runmap, ranges);
-        logger.info("Print all " + runRanges.size() + " bias run ranges:");
+        LOGGER.info("Print all " + runRanges.size() + " bias run ranges:");
         for (SvtBiasRunRange r : runRanges) {
             if (debug) {
-                logger.info(r.toString());
+                LOGGER.info(r.toString());
             }
             pWriter.println(r.toString());
         }
@@ -276,11 +273,11 @@ public class SampleZeroHVBiasChecker extends Driver {
         epicsData = EpicsData.read(event);
 
         if (epicsData != null) {
-            logger.info(epicsData.toString());
+            LOGGER.info(epicsData.toString());
             if (epicsData.getKeys().contains("SVT:bias:top:0:v_sens")) {
 
                 epicsBiasValue = epicsData.getValue("SVT:bias:top:0:v_sens");
-                logger.info("epicsBiasValue = " + Double.toString(epicsBiasValue));
+                LOGGER.info("epicsBiasValue = " + Double.toString(epicsBiasValue));
 
                 if (epicsBiasValue > 178.0) {
                     hvOnEpics = true;
@@ -289,7 +286,7 @@ public class SampleZeroHVBiasChecker extends Driver {
                 }
             }
         } else {
-            logger.fine("no epics information in this event");
+            LOGGER.fine("no epics information in this event");
         }
 
         // Read the timestamp for the event
@@ -305,14 +302,14 @@ public class SampleZeroHVBiasChecker extends Driver {
                 System.out.println("hvOnMya is " + (hvOnMya ? "ON" : "OFF") + " hvOnEpics " + (hvOnEpics ? "ON" : "OFF") + " hvOnConditions " + (hvOnConditions ? "ON" : "OFF") + " hvOnEventFlag " + (hvOnEventFlag ? "ON" : "OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + newEventDate.toString() + " epoch " + newEventDate.getTime());
                 // check what the DB has
                 if (svtBiasConstants != null) {
-                    logger.info("there are " + svtBiasConstants.size() + " constants to search");
+                    LOGGER.info("there are " + svtBiasConstants.size() + " constants to search");
                     for (SvtBiasConstant constant : svtBiasConstants) {
-                        logger.info("start " + constant.getStart() + " end " + constant.getEnd() + " value " + constant.getValue());
+                        LOGGER.info("start " + constant.getStart() + " end " + constant.getEnd() + " value " + constant.getValue());
                     }
 
                     SvtBiasConstant constant = svtBiasConstants.find(newEventDate);
 
-                    logger.info(constant == null ? "No constant found!" : ("Found constant " + "start " + constant.getStart() + " end " + constant.getEnd() + " value " + constant.getValue()));
+                    LOGGER.info(constant == null ? "No constant found!" : ("Found constant " + "start " + constant.getStart() + " end " + constant.getEnd() + " value " + constant.getValue()));
 
                 }
             }
@@ -326,7 +323,7 @@ public class SampleZeroHVBiasChecker extends Driver {
         // only do this analysis where there is a date availabe.
         if (eventDate != null) {
             if (debug) {
-                logger.info("eventDate " + eventDate.toString());
+                LOGGER.info("eventDate " + eventDate.toString());
             }
 
             eventCount++;
@@ -344,7 +341,7 @@ public class SampleZeroHVBiasChecker extends Driver {
             // print the cases where epics and run range do not agree
             if (hvOnMya != hvOnEpics && epicsBiasValue > 0.) {
                 if (debug) {
-                    logger.warning("hvOnMya is " + (hvOnMya ? "ON" : "OFF") + " hvOnEpics " + (hvOnEpics ? "ON" : "OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOnMya ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
+                    LOGGER.warning("hvOnMya is " + (hvOnMya ? "ON" : "OFF") + " hvOnEpics " + (hvOnEpics ? "ON" : "OFF") + " for Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOnMya ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
                 }
                 pWriter.println("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOn " + (hvOnMya ? "YES" : "NO"));
                 eventCountEpicsDisagree++;
@@ -353,7 +350,7 @@ public class SampleZeroHVBiasChecker extends Driver {
             // print the cases where the HV is OFF
             if (!hvOnMya) {
                 if (debug) {
-                    logger.info("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOnMya " + (hvOnMya ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
+                    LOGGER.info("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOnMya " + (hvOnMya ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
                 }
                 pWriter.println("Run " + event.getRunNumber() + " Event " + event.getEventNumber() + " date " + eventDate.toString() + " epoch " + eventDate.getTime() + " hvOnMya " + (hvOnMya ? "YES" : "NO") + " hvOnEpics " + (hvOnEpics ? "YES" : "NO"));
                 eventCountHvOff++;
@@ -427,14 +424,14 @@ public class SampleZeroHVBiasChecker extends Driver {
     @Override
     public void endOfData() {
 
-        logger.info("eventCount " + Integer.toString(eventCount) + " eventCountHvOff " + Integer.toString(eventCountHvOff) + " eventCountEpicsDisagree " + Integer.toString(eventCountEpicsDisagree));
+        LOGGER.info("eventCount " + Integer.toString(eventCount) + " eventCountHvOff " + Integer.toString(eventCountHvOff) + " eventCountEpicsDisagree " + Integer.toString(eventCountEpicsDisagree));
         pWriter.println("eventCount " + Integer.toString(eventCount) + " eventCountHvOff " + Integer.toString(eventCountHvOff) + " eventCountEpicsDisagree " + Integer.toString(eventCountEpicsDisagree));
 
         try {
             pWriter.close();
             fWriter.close();
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
 
     }

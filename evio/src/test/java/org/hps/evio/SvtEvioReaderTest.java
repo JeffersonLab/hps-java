@@ -1,23 +1,18 @@
 package org.hps.evio;
 
-import junit.framework.TestCase;
-
 import java.io.File;
 import java.net.URL;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jlab.coda.jevio.EvioReader; 
-import org.jlab.coda.jevio.EvioEvent; 
+import junit.framework.TestCase;
 
-import org.lcsim.event.EventHeader; 
-import org.lcsim.util.cache.FileCache;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
-
-import org.hps.record.evio.EvioEventUtilities; 
-import org.hps.record.LCSimEventBuilder; 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.record.LCSimEventBuilder;
+import org.hps.record.evio.EvioEventUtilities;
+import org.jlab.coda.jevio.EvioEvent;
+import org.jlab.coda.jevio.EvioReader;
+import org.lcsim.event.EventHeader;
+import org.lcsim.util.cache.FileCache;
 
 /**
  *  Test used to check the EVIO reader that will be used for the engineering
@@ -28,8 +23,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 public class SvtEvioReaderTest extends TestCase {
 
     // Initialize the logger
-    protected static Logger logger = LogUtil.create(AbstractSvtEvioReader.class.getName(), 
-            new DefaultLogFormatter(), Level.INFO);
+    protected static Logger LOGGER = Logger.getLogger(SvtEvioReaderTest.class.getPackage().getName());
     
 	public void testSvtEvioReaderTest() throws Exception { 
 
@@ -38,7 +32,7 @@ public class SvtEvioReaderTest extends TestCase {
 		File evioFile = fileCache.getCachedFile(
 				new URL("http://www.lcsim.org/test/hps-java/svt_evio_reader_test.evio")); 
 
-		logger.info("Opening file " + evioFile); 
+		LOGGER.info("Opening file " + evioFile); 
 
 		// Instantiate the EVIO reader and open the file
 		EvioReader evioReader = new EvioReader(evioFile); 
@@ -55,7 +49,7 @@ public class SvtEvioReaderTest extends TestCase {
 
 		// Check that the file contains the expected number of events
 		int eventCount = evioReader.getEventCount(); 
-		logger.info("File " + evioFile + " contains " + eventCount + " events."); 
+		LOGGER.info("File " + evioFile + " contains " + eventCount + " events."); 
 
 
 		// Loop through the EVIO events and process them.
@@ -65,10 +59,10 @@ public class SvtEvioReaderTest extends TestCase {
 
 			// Only process physics events
 			if (!EvioEventUtilities.isPhysicsEvent(evioEvent)) continue;
-			logger.info("Found physics event."); 	
+			LOGGER.info("Found physics event."); 	
 	
 			EventHeader lcsimEvent = eventBuilder.makeLCSimEvent(evioEvent); 
-			logger.info("Created LCSim event # " + lcsimEvent.getEventNumber()); 	
+			LOGGER.info("Created LCSim event # " + lcsimEvent.getEventNumber()); 	
 
 			// Process the event using the SVT evio reader
 			svtReader.processEvent(evioEvent, lcsimEvent);  

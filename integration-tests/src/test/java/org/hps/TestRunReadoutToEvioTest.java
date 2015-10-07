@@ -30,7 +30,6 @@ public class TestRunReadoutToEvioTest extends TestCase {
         File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/TestRunReadoutToEvioTest.slcio"));
         
         JobManager job = new JobManager();
-        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         DatabaseConditionsManager.getInstance().setDetector("HPS-TestRun-v5", 1351);
         conditionsManager.freeze();

@@ -2,7 +2,6 @@ package org.lcsim.detector.converter.compact;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import junit.framework.Test;
@@ -15,20 +14,17 @@ import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.GeometryReader;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Unit test for the HPSTracker2Coverter.
  * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Omar Moreno <omoreno1@ucsc.edu> 
+ * @author Jeremy McCormick, SLAC
+ * @author Omar Moreno, UCSC 
  */
 public class HPSTracker2ConverterTest extends TestCase {
    
     // Initialize the logger
-    private static Logger logger = LogUtil.create(HPSTracker2Converter.class.getName(),
-                                                  new DefaultLogFormatter(), Level.INFO);
+    private static Logger LOGGER = Logger.getLogger(HPSTracker2ConverterTest.class.getPackage().getName());
     
     Detector detector = null;
    
@@ -67,14 +63,14 @@ public class HPSTracker2ConverterTest extends TestCase {
     public void testHPSTracker2Converter() {
        
         // Test if the correct number of sensors was created.
-        logger.info("Checking if the correct number of sensors were created.");
+        LOGGER.info("Checking if the correct number of sensors were created.");
         List<HpsSiSensor> sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
         assertTrue("[ " + this.getClass().getSimpleName() + " ]: The wrong number of sensors were created.",
                 sensors.size() == TOTAL_NUMBER_OF_SENSORS);
-        logger.info("Total number of sensors that were created: " + sensors.size());
+        LOGGER.info("Total number of sensors that were created: " + sensors.size());
        
         // Test if the sensors that were created are instances of HpsSiSensor
-        logger.info("Checking if sensors were initialized correctly");
+        LOGGER.info("Checking if sensors were initialized correctly");
         for(HpsSiSensor sensor : sensors) {
             assertTrue("[ " + this.getClass().getSimpleName() + " ]: Sensor is of wrong type: " + sensor.getClass().getSimpleName(),
                         sensor instanceof HpsSiSensor);
@@ -83,20 +79,20 @@ public class HPSTracker2ConverterTest extends TestCase {
 			
 			assertTrue("[ " + this.getClass().getSimpleName() + " ]: Wrong number of sense electrodes found.",
 					sensor.getSenseElectrodes(ChargeCarrier.HOLE).getNCells() == NUMBER_OF_SENSE_STRIPS);
-			logger.info(sensor.toString());
+			LOGGER.info(sensor.toString());
         }
-        logger.info("Sensors were all initialized correctly.");
+        LOGGER.info("Sensors were all initialized correctly.");
         
         // Check that the correct number of stereo layers were created
-        logger.info("Checking if the correct number of stereo layers were created.");
+        LOGGER.info("Checking if the correct number of stereo layers were created.");
         List<SvtStereoLayer> stereoLayers = ((HpsTracker2) detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement()).getStereoPairs();
         // Check that the number of stereo layers created is as expected
         assertTrue("[ " + this.getClass().getSimpleName() + " ]: The wrong number of stereo layers were created.",
                 stereoLayers.size() == TOTAL_NUMBER_OF_STEREO_LAYERS);
-        logger.info("Total number of stereo layers created: " + stereoLayers.size());
+        LOGGER.info("Total number of stereo layers created: " + stereoLayers.size());
         
         for(SvtStereoLayer stereoLayer : stereoLayers){
-            logger.fine(stereoLayer.toString());
+            LOGGER.fine(stereoLayer.toString());
             
             // The sensors comprising the stereo layer should belong to the same detector volume
             assertTrue("[ " + this.getClass().getSimpleName() + " ]: Sensors belong to different detector volumes.", 
@@ -104,7 +100,7 @@ public class HPSTracker2ConverterTest extends TestCase {
             
             // If the stereo layer is part of the top detector volume, the axial layers have an odd layer number.
             // If the stereo layer is part of the bottom detector volume, the axial layers have an even layer number.
-            logger.info("Checking if the layers are oriented correctly."); 
+            LOGGER.info("Checking if the layers are oriented correctly."); 
             if(stereoLayer.getAxialSensor().isTopLayer()){
                 assertTrue("[ " + this.getClass().getSimpleName() + " ]: Sensors composing the stereo layer are flipped",
                         stereoLayer.getAxialSensor().getLayerNumber()%2 == 1);

@@ -38,8 +38,6 @@ import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOWriter;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * <p>
@@ -83,7 +81,7 @@ public class EvioToLcio {
     /**
      * Setup logging for this class.
      */
-    private static Logger LOGGER = LogUtil.create(EvioToLcio.class, new DefaultLogFormatter(), Level.INFO);
+    private static Logger LOGGER = Logger.getLogger(EvioToLcio.class.getPackage().getName());
 
     /**
      * Run the EVIO to LCIO converter from the command line.
@@ -270,7 +268,7 @@ public class EvioToLcio {
             LOGGER.setLevel(level);
 
             // Set log level on conditions manager.
-            DatabaseConditionsManager.getInstance().setLogLevel(level);
+            Logger.getLogger(DatabaseConditionsManager.class.getPackage().getName()).setLevel(level);
         }
 
         // Add all extra arguments to the EVIO file list.
@@ -470,7 +468,6 @@ public class EvioToLcio {
                 throw new RuntimeException("EVIO file " + evioFile.getPath() + " does not exist.");
             }
             LOGGER.info("Opening EVIO file " + evioFileName + " ...");
-            LOGGER.getHandlers()[0].flush();
 
             // Open the EVIO reader.
             try {

@@ -9,11 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
@@ -35,7 +31,7 @@ public final class ExportPdf {
     /**
      * Setup logging.
      */
-    private static Logger LOGGER = LogUtil.create(ExportPdf.class, new DefaultLogFormatter(), Level.ALL);
+    private static Logger LOGGER = Logger.getLogger(ExportPdf.class.getPackage().getName());
 
     /**
      * Do not allow class instantiation.

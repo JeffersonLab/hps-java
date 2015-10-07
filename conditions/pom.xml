@@ -52,6 +52,11 @@
             <artifactId>hps-detector-data</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-logging</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.26</version>

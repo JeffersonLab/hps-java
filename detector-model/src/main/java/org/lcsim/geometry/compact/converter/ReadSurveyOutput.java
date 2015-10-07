@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,9 +20,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.hps.util.BasicLogFormatter;
-import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.SvtBox;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
@@ -31,7 +27,7 @@ import org.lcsim.util.log.LogUtil;
  */
 public class ReadSurveyOutput {
 
-    private static Logger logger = LogUtil.create(ReadSurveyOutput.class, new BasicLogFormatter(),Level.INFO);
+    private static Logger logger = Logger.getLogger(ReadSurveyOutput.class.getPackage().getName());
     
     List<CSVRecord> records;
     

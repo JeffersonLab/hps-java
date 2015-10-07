@@ -14,7 +14,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * This class is a command-line tool for performing commands on the conditions database using sub-commands for
@@ -28,9 +27,9 @@ import org.lcsim.util.log.LogUtil;
 public final class CommandLineTool {
 
     /**
-     * Setup logging.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(CommandLineTool.class);
+    private static final Logger LOGGER = Logger.getLogger(CommandLineTool.class.getPackage().getName());
 
     private static Options OPTIONS = new Options();
 
@@ -180,9 +179,9 @@ public final class CommandLineTool {
 
         // Set the conditions manager log level (does not affect logger of this class or sub-commands).
         if (commandLine.hasOption("l")) {
-            final Level level = Level.parse(commandLine.getOptionValue("l"));
-            this.conditionsManager.setLogLevel(level);
-            LOGGER.config("conditions manager log level will be set to " + level.toString());
+            final Level newLevel = Level.parse(commandLine.getOptionValue("l"));
+            Logger.getLogger(DatabaseConditionsManager.class.getPackage().getName()).setLevel(newLevel);
+            LOGGER.config("conditions manager log level will be set to " + newLevel.toString());
         }
 
         // Connection properties.

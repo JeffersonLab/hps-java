@@ -9,12 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.json.JSONObject;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Implementation of {@link DatacatClient} interface for working with SRS datacat REST API.
@@ -26,7 +23,7 @@ final class DatacatClientImpl implements DatacatClient {
     /**
      * Setup class logging.
      */
-    private static Logger LOGGER = LogUtil.create(DatacatClientImpl.class, new DefaultLogFormatter(), Level.ALL);
+    private static Logger LOGGER = Logger.getLogger(DatacatClientImpl.class.getPackage().getName());
 
     /**
      * The root directory (e.g. should be 'HPS').

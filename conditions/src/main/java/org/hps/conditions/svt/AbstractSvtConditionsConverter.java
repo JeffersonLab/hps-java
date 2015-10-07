@@ -11,7 +11,6 @@ import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollection;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Abstract class providing some of the common methods used in creating SVT conditions objects from the database.
@@ -22,14 +21,13 @@ import org.lcsim.util.log.LogUtil;
 public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtConditions> implements ConditionsConverter<T> {
 
     /**
-     * Initialize logging.
+     * Initialize the logger.
      */
-    static Logger logger = LogUtil.create(AbstractSvtConditionsConverter.class);
+    private static Logger LOGGER = Logger.getLogger(AbstractSvtConditionsConverter.class.getPackage().getName());
 
     /**
      * The combined detector conditions object.
      */
-    // FIXME: Should be private with accessor methods.
     protected T conditions;
 
     /**
@@ -73,7 +71,7 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
                 }
             }
         } catch (final RuntimeException e) {
-            logger.warning("A set of SVT bad channels was not found.");
+            LOGGER.warning("A set of SVT bad channels was not found.");
         }
 
         // Get the gains and offsets from the conditions database

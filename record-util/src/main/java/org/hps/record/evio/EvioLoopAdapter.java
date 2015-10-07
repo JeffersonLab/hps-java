@@ -2,7 +2,6 @@ package org.hps.record.evio;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.freehep.record.loop.AbstractLoopListener;
@@ -11,8 +10,6 @@ import org.freehep.record.loop.LoopListener;
 import org.freehep.record.loop.RecordEvent;
 import org.freehep.record.loop.RecordListener;
 import org.jlab.coda.jevio.EvioEvent;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * A loop adapter for the {@link EvioLoop} which manages and activates a list of {@link EvioEventProcessor} objects.
@@ -22,9 +19,9 @@ import org.lcsim.util.log.LogUtil;
 public final class EvioLoopAdapter extends AbstractLoopListener implements RecordListener, LoopListener {
 
     /**
-     * Setup class logger.
+     * Initialize the logger.
      */
-    private final Logger LOGGER = LogUtil.create(EvioLoopAdapter.class, new DefaultLogFormatter(), Level.ALL);
+    private static final Logger LOGGER = Logger.getLogger(EvioLoopAdapter.class.getPackage().getName());
 
     /**
      * List of event processors to activate.

@@ -140,7 +140,6 @@ public class ClustererTest extends TestCase {
 
         // Initialize the conditions system.
         DatabaseConditionsManager.resetInstance();
-        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
     }
 
     /**

@@ -47,7 +47,6 @@ public class SimpleSvtReadoutTest extends TestCase {
         FinalCheckDriver checker = new FinalCheckDriver();
         
         JobManager job = new JobManager();
-        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
         job.addInputFile(inputFile);
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.setup("/org/hps/steering/readout/HPS2014TruthReadoutToLcio.lcsim");        

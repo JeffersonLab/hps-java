@@ -4,40 +4,37 @@ import hep.physics.vec.Hep3Vector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.util.BasicLogFormatter;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
-import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Driver used to persist additional {@link Track} information via a
  * {@link GenericObject}.
  *
- * @author <a href="mailto:moreno1@ucsc.edu">Omar Moreno</a>
- * @author <a href="meeg@slac.stanford.edu">Sho Uemura</a>
+ * @author Omar Moreno, UCSC
+ * @author Sho Uemura, SLAC
  */
 public final class TrackDataDriver extends Driver {
 
     /** logger **/
-    private static Logger logger  = LogUtil.create(TrackDataDriver.class.getSimpleName(), new BasicLogFormatter(), Level.WARNING);
+    private static Logger LOGGER  = Logger.getLogger(TrackDataDriver.class.getPackage().getName());
     
     
     /** The B field map */
@@ -260,7 +257,7 @@ public final class TrackDataDriver extends Driver {
                 // Add a track state that contains the extrapolated track position and 
                 // parameters at the face of the Ecal.
                 //
-                logger.info("Extrapolating track with type " + Integer.toString(track.getType()) );
+                LOGGER.info("Extrapolating track with type " + Integer.toString(track.getType()) );
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 if( TrackType.isGBL(track.getType())) {
@@ -282,16 +279,16 @@ public final class TrackDataDriver extends Driver {
                     //track.getTrackStates().add(stateEcalIP);
                    
                 } else {
-                    logger.info("Extrapolate seed track to ECal from vertex");
+                    LOGGER.info("Extrapolate seed track to ECal from vertex");
                     TrackState state = TrackUtils.extrapolateTrackUsingFieldMap(track, extStartPos, ecalPosition, stepSize, bFieldMap);
                     track.getTrackStates().add(state);
                 }
                 
-                logger.info(Integer.toString(track.getTrackStates().size()) +  " track states for this track at this point:");
+                LOGGER.info(Integer.toString(track.getTrackStates().size()) +  " track states for this track at this point:");
                 for(TrackState state : track.getTrackStates()) {
                     String s = "type " + Integer.toString(track.getType()) + " location " + Integer.toString(state.getLocation()) + " refPoint (" + state.getReferencePoint()[0] + " " + state.getReferencePoint()[1] + " " + state.getReferencePoint()[2] + ") " + " params: ";
                     for(int i=0;i<5;++i) s += String.format(" %f", state.getParameter(i));
-                    logger.info(s);
+                    LOGGER.info(s);
                 }
                 
                 

@@ -1,9 +1,8 @@
 package org.hps.record.triggerbank;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.lcsim.util.log.LogUtil;
+import org.hps.record.scalers.ScalersEvioProcessor;
 
 /**
  * Class <code>SSPTrigger</code> represents the data output by the SSP
@@ -18,11 +17,10 @@ public class SSPTrigger {
     protected final int time;
     protected final int data;
     
-    // Logger to output status messages.
-    protected static Logger logger = LogUtil.create(SSPTrigger.class);   
-    static {
-        logger.setLevel(Level.WARNING);
-    }
+    /**
+     * Initialize the logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(ScalersEvioProcessor.class.getPackage().getName());
     
     /**
      * Instantiates a new <code>SSPTrigger</code> with the indicated
@@ -34,7 +32,7 @@ public class SSPTrigger {
     public SSPTrigger(int type, int time, int data) {
         // Log any issues with processing the trigger.
         if(!SSPTriggerFactory.isKnownTriggerType(type)) {
-            logger.warning(String.format("Trigger type %d is not recognized.", type));
+            LOGGER.warning(String.format("Trigger type %d is not recognized.", type));
         }
         
         // Store the trigger data.
@@ -43,7 +41,7 @@ public class SSPTrigger {
         this.data = data;
         
         // Note that a trigger was made.
-        logger.fine(String.format("Constructed trigger of type %d occurred at time %3d with data %d.",
+        LOGGER.fine(String.format("Constructed trigger of type %d occurred at time %3d with data %d.",
                 type, time, data));
     }
     

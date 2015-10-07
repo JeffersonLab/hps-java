@@ -1,6 +1,7 @@
 package org.hps.conditions.api;
 
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -16,8 +17,14 @@ import org.lcsim.conditions.ConditionsManager;
  * @author Jeremy McCormick, SLAC
  * @param <T> The type of the returned data which should be a class extending {@link BaseConditionsObjectCollection}.
  */
+// TODO: Move to conditions.database package (not an API class).
 public abstract class AbstractConditionsObjectConverter<T> implements ConditionsConverter<T> {
 
+    /**
+     * Initialize the logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(AbstractConditionsObjectConverter.class.getPackage().getName());
+    
     /**
      * Create a conditions object collection.
      *
@@ -119,7 +126,7 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
             throw new RuntimeException(e);
         }
 
-        DatabaseConditionsManager.getLogger().info("loading conditions set..." + '\n' + conditionsRecord);
+        LOGGER.info("loading conditions set..." + '\n' + conditionsRecord);
 
         // Select the objects into the collection by the collection ID.
         try {

@@ -1,6 +1,5 @@
 package org.hps.conditions.ecal;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.api.ConditionsObjectCollection;
@@ -33,13 +32,10 @@ import org.lcsim.geometry.Detector;
 public class EcalConditionsConverter implements ConditionsConverter<EcalConditions> {
     
     /**
-     * Setup logger.
+     * Initialize the logger.
      */
-    private static Logger LOGGER = Logger.getLogger(EcalConditionsConverter.class.getName());
-    static {
-        LOGGER.setLevel(Level.ALL);
-    }
-    
+    private static Logger LOGGER = Logger.getLogger(EcalConditionsConverter.class.getPackage().getName());
+       
     /**
      * Create combined ECAL conditions object containing all data for the current run.
      *
@@ -110,7 +106,7 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
             }
         } else {
             // If time shifts do not exist it is not a fatal error.
-            DatabaseConditionsManager.getLogger().warning("no conditions found for EcalTimeShiftCollection");
+            LOGGER.warning("no conditions found for EcalTimeShiftCollection");
         }
         
         // Set the channel pulse width if it exists in the database.
@@ -123,7 +119,7 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
             }
         } else {
             // If pulse widths do not exist it is not a fatal error.
-            DatabaseConditionsManager.getLogger().warning("no conditions found for EcalPulseWidthCollection");
+            LOGGER.warning("no conditions found for EcalPulseWidthCollection");
         }
 
         // Return the conditions object to caller.

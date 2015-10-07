@@ -18,7 +18,6 @@ import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * This sub-command of the conditions CLI prints conditions conditions table data by run number to the console or
@@ -29,9 +28,9 @@ import org.lcsim.util.log.LogUtil;
 final class PrintCommand extends AbstractCommand {
 
     /**
-     * Setup logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(PrintCommand.class);
+    private static final Logger LOGGER = Logger.getLogger(PrintCommand.class.getPackage().getName());
 
     /**
      * Defines command options.

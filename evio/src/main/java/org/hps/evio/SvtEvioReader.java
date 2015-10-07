@@ -98,7 +98,7 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
         for (HpsSiSensor sensor : sensors) { 
             Pair<Integer, Integer> daqPair 
                 = new Pair<Integer, Integer>(sensor.getFebID(), sensor.getFebHybridID());
-        logger.fine("FEB ID: " + sensor.getFebID() 
+        LOGGER.fine("FEB ID: " + sensor.getFebID() 
                   + " Hybrid ID: " + sensor.getFebHybridID());
             daqPairToSensor.put(daqPair, sensor);
         }

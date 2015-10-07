@@ -4,14 +4,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.record.evio.EvioEventProcessor;
-import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * This is an EVIO event processor for creating a {@link ScalerData} object from scaler bank data.
@@ -20,8 +16,10 @@ import org.lcsim.util.log.LogUtil;
  */
 public class ScalersEvioProcessor extends EvioEventProcessor {
 
-    private static final Logger LOGGER = LogUtil.create(ScalersEvioProcessor.class, new DefaultLogFormatter(),
-            Level.ALL);
+    /**
+     * Initialize the logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(ScalersEvioProcessor.class.getPackage().getName());
 
     /**
      * Currently cached ScalerData object which was created by the process method.

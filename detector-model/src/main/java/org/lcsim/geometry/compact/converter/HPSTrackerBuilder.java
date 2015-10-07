@@ -16,11 +16,10 @@ import org.jdom.Element;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.Transform3D;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseModule;
-import org.lcsim.util.log.LogUtil;
 
 public abstract class HPSTrackerBuilder {
 
-    private static final Logger LOGGER = LogUtil.create(HPSTrackerBuilder.class);
+    private static final Logger LOGGER = Logger.getLogger(HPSTrackerBuilder.class.getPackage().getName());
 
     private boolean debug = true;
     public List<BaseModuleBundle> modules = new ArrayList<BaseModuleBundle>();

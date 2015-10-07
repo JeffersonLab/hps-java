@@ -2,7 +2,6 @@ package org.hps.conditions.cli;
 
 import java.io.File;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -13,8 +12,6 @@ import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.DatabaseObjectException;
 import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.lcsim.util.log.LogUtil;
-import org.lcsim.util.log.MessageOnlyLogFormatter;
 
 /**
  * This is a sub-command to add conditions data using an input text file. The file should be ASCII text that is
@@ -27,9 +24,9 @@ import org.lcsim.util.log.MessageOnlyLogFormatter;
 final class LoadCommand extends AbstractCommand {
 
     /**
-     * Setup the logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(LoadCommand.class, new MessageOnlyLogFormatter(), Level.ALL);
+    private static final Logger LOGGER = Logger.getLogger(CommandLineTool.class.getPackage().getName());
 
     /**
      * Define command options.

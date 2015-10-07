@@ -18,8 +18,6 @@ import org.apache.commons.cli.PosixParser;
 import org.jlab.coda.jevio.EventWriter;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Skim EVIO events into a new file based on a list of event numbers to include.
@@ -30,9 +28,9 @@ import org.lcsim.util.log.LogUtil;
 public class EvioEventSkimmer {
 
     /**
-     * Setup the logger.
+     * Initialize the logger.
      */
-    private static Logger LOGGER = LogUtil.create(EvioEventSkimmer.class, new DefaultLogFormatter(), Level.CONFIG);
+    private static final Logger LOGGER = Logger.getLogger(EvioEventSkimmer.class.getPackage().getName());
 
     /**
      * Define command line options.

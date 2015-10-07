@@ -20,7 +20,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.util.BasicLogFormatter;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -33,14 +32,16 @@ import org.lcsim.geometry.FieldMap;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  */
 public class TrackExtrapolationTestDriver extends Driver {
-    private static Logger logger = LogUtil.create(TrackExtrapolationTestDriver.class.getName(), new BasicLogFormatter(), Level.INFO);
+    private static Logger LOGGER = Logger.getLogger(TrackExtrapolationTestDriver.class.getName());
+    static {
+        LOGGER.setLevel(Level.INFO);
+    }
     private AIDA aida = AIDA.defaultInstance();
     IHistogram1D res_trackPos_Y;
     IHistogram1D res_trackPos_X;
@@ -127,14 +128,14 @@ public class TrackExtrapolationTestDriver extends Driver {
                     layerTrackPos.put(layer, trackPosition);
                     layerTrackPos3DField.put(layer, trackPosition3DField);
                     
-                    logger.fine("layer " + layer + " stereohitposition " + stereoHitPosition.toString());
+                    LOGGER.fine("layer " + layer + " stereohitposition " + stereoHitPosition.toString());
                     if( prevStereoHitPosition != null)
-                        logger.fine("prevStereoHitPosition " + prevStereoHitPosition.toString());
-                    logger.fine("trackPos " + layerTrackPos.get(layer).toString());
+                        LOGGER.fine("prevStereoHitPosition " + prevStereoHitPosition.toString());
+                    LOGGER.fine("trackPos " + layerTrackPos.get(layer).toString());
                     if( trackPosition3DField != null) {
-                        logger.fine("trackPosition3DField " + trackPosition3DField.toString());
+                        LOGGER.fine("trackPosition3DField " + trackPosition3DField.toString());
                     } else {
-                        logger.fine("trackPosition3DField  no prev layer ");
+                        LOGGER.fine("trackPosition3DField  no prev layer ");
                     }
                     
                     if(layer == 6 ) {

@@ -74,6 +74,7 @@
                     <binFileExtensions>
                         <unix>.sh</unix>
                     </binFileExtensions>
+                    <extraJvmArguments>-Djava.util.logging.config.class=org.hps.logging.config.DefaultLoggingConfig</extraJvmArguments>
                     <programs>
                         <program>
                             <mainClass>org.hps.evio.EvioToLcio</mainClass>
@@ -140,6 +141,10 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-job</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-logging</artifactId>
         </dependency>
     </dependencies>
 </project>

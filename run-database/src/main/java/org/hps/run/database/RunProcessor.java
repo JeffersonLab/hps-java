@@ -1,24 +1,16 @@
 package org.hps.run.database;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.datacat.client.DatasetFileFormat;
 import org.hps.record.epics.EpicsRunProcessor;
-import org.hps.record.evio.EvioFileMetadata;
-import org.hps.record.evio.EvioFileMetadataAdapter;
-import org.hps.record.evio.EvioFileSequenceComparator;
 import org.hps.record.evio.EvioFileSource;
 import org.hps.record.evio.EvioLoop;
 import org.hps.record.scalers.ScalersEvioProcessor;
 import org.hps.record.triggerbank.TiTimeOffsetEvioProcessor;
 import org.hps.record.triggerbank.TriggerConfig;
 import org.hps.record.triggerbank.TriggerConfigVariable;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Processes EVIO files from a run and extracts meta data for updating the run database.
@@ -28,9 +20,9 @@ import org.lcsim.util.log.LogUtil;
 public final class RunProcessor {
 
     /**
-     * Setup logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(RunProcessor.class, new DefaultLogFormatter(), Level.FINE);
+    private static final Logger LOGGER = Logger.getLogger(RunProcessor.class.getPackage().getName());
 
     /**
      * Processor for extracting EPICS information.

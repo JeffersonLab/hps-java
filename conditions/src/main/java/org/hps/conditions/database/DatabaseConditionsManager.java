@@ -132,15 +132,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Get the Logger for this class, which can be used by related sub-classes if they do not have their own logger.
-     *
-     * @return the Logger for this class
-     */
-    public static Logger getLogger() {
-        return LOGGER;
-    }
-
-    /**
      * Utility method to determine if a run number is from the 2012 Test Run.
      *
      * @param runNumber the run number
@@ -834,11 +825,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             LOGGER.config("isTestRun = " + this.isTestRun);
         }
 
-        element = node.getChild("logLevel");
-        if (element != null) {
-            this.setLogLevel(Level.parse(element.getText()));
-        }
-
         element = node.getChild("closeConnectionAfterInitialize");
         if (element != null) {
             this.closeConnectionAfterInitialize = Boolean.parseBoolean(element.getText());
@@ -1052,16 +1038,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         this.ecalName = ecalName;
         LOGGER.info("ECAL name set to " + ecalName);
-    }
-
-    /**
-     * Set the log level.
-     *
-     * @param level the new log level
-     */
-    public void setLogLevel(final Level level) {
-        LOGGER.config("setting log level to " + level);
-        LOGGER.setLevel(level);
     }
 
     /**

@@ -8,8 +8,6 @@ import org.hps.record.evio.EvioBankTag;
 import org.hps.record.evio.EvioEventProcessor;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * This is an EVIO event processor that will read EPICS events (event tag 31) and turn them into {@link EpicsData}
@@ -22,8 +20,7 @@ public class EpicsEvioProcessor extends EvioEventProcessor {
     /**
      * Setup class logger.
      */
-    private static final Logger LOGGER = LogUtil
-            .create(EpicsEvioProcessor.class, new DefaultLogFormatter(), Level.INFO);
+    private static final Logger LOGGER = Logger.getLogger(EpicsEvioProcessor.class.getPackage().getName());
 
     /**
      * The current EPICS data object.

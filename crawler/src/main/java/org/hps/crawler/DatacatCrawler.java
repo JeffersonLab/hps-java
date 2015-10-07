@@ -28,8 +28,6 @@ import org.apache.commons.cli.PosixParser;
 import org.hps.datacat.client.DatacatClient;
 import org.hps.datacat.client.DatacatClientFactory;
 import org.hps.datacat.client.DatasetFileFormat;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Command line file crawler for populating the data catalog.
@@ -118,7 +116,7 @@ public class DatacatCrawler {
     /**
      * Setup the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(DatacatCrawler.class, new DefaultLogFormatter(), Level.CONFIG);
+    private static final Logger LOGGER = Logger.getLogger(DatacatCrawler.class.getPackage().getName());
 
     /**
      * Command line options for the crawler.

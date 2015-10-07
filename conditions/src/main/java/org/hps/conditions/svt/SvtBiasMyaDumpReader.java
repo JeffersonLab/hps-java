@@ -10,20 +10,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.run.RunSpreadsheet;
 import org.hps.conditions.run.RunSpreadsheet.RunData;
-import org.hps.util.BasicLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 
 
 public class SvtBiasMyaDumpReader {
     
-    private static Logger logger = LogUtil.create(SvtBiasMyaDumpReader.class, new BasicLogFormatter(), Level.INFO);
-
+    /**
+     * Initialize the logger.
+     */
+    private static Logger LOGGER = Logger.getLogger(SvtBiasMyaDumpReader.class.getPackage().getName());
     
     public static void main(String[] args) {
         
@@ -51,7 +49,7 @@ public class SvtBiasMyaDumpReader {
     
     private void readFromFile(File file) {
         addEntries(readMyaDump(file));
-        logger.info("Got " + getEntries().size() + " entries from " + file.getName());
+        LOGGER.info("Got " + getEntries().size() + " entries from " + file.getName());
        
     }
     public void buildFromFiles(String[] args) {
@@ -90,7 +88,7 @@ public class SvtBiasMyaDumpReader {
     
     private void printRanges() {
         for( SvtBiasMyaRange r : biasRanges) {
-            logger.info(r.toString());
+            LOGGER.info(r.toString());
         }
      }
     
@@ -143,14 +141,14 @@ public class SvtBiasMyaDumpReader {
             
             if( e.getValue() > BIASVALUEON) {
                 if (range==null) {
-                    logger.fine("BIAS ON: " + e.toString());
+                    LOGGER.fine("BIAS ON: " + e.toString());
                     range = new SvtBiasMyaRange();
                     range.setStart(e);
                 } 
             } else {
                 //close it
                 if (range!=null) {
-                    logger.fine("BIAS TURNED OFF: " + e.toString());
+                    LOGGER.fine("BIAS TURNED OFF: " + e.toString());
                     range.setEnd(e);
                     this.biasRanges.add(range);
                     range = null;
@@ -158,7 +156,7 @@ public class SvtBiasMyaDumpReader {
             }            
             eprev = e;
         }
-        logger.info("Built " + this.biasRanges.size() + " ranges");
+        LOGGER.info("Built " + this.biasRanges.size() + " ranges");
         
     }
     
@@ -188,13 +186,13 @@ public class SvtBiasMyaDumpReader {
     public static final class SvtBiasMyaRanges extends ArrayList<SvtBiasMyaRange> {
         public SvtBiasMyaRanges() {}
         public SvtBiasMyaRanges findOverlappingRanges(Date date_start, Date date_end) {
-            logger.fine("look for overlaps from " + date_start.toString() + " to " + date_end.toString());
+            LOGGER.fine("look for overlaps from " + date_start.toString() + " to " + date_end.toString());
             SvtBiasMyaRanges overlaps = new SvtBiasMyaRanges();
             for(SvtBiasMyaRange range : this) {
-                logger.fine("loop bias range " + range.toString());
+                LOGGER.fine("loop bias range " + range.toString());
                 if( range.overlap(date_start,date_end) ) {
                     overlaps.add(range);
-                    logger.fine("overlap found!! ");
+                    LOGGER.fine("overlap found!! ");
                 }
             }
             return overlaps;

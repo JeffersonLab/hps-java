@@ -15,9 +15,6 @@ import java.util.logging.Logger;
 
 import javassist.Modifier;
 
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
-
 /**
  * An abstract class which updates a set of listeners when there are property changes to a backing model.
  *
@@ -28,8 +25,7 @@ public abstract class AbstractModel {
     /**
      * Setup logging.
      */
-    private static final Logger LOGGER = LogUtil.create(AbstractModel.class.getName(), new DefaultLogFormatter(),
-            Level.INFO);
+    private static final Logger LOGGER = Logger.getLogger(AbstractModel.class.getPackage().getName());
 
     /**
      * This method will extract property names from a class, which in this package's conventions are statically

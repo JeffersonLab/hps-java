@@ -3,12 +3,9 @@ package org.hps.crawler;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.datacat.client.DatasetFileFormat;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Filter files on their format.
@@ -20,9 +17,9 @@ import org.lcsim.util.log.LogUtil;
 public class FileFormatFilter implements FileFilter {
 
     /**
-     * Setup logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(FileFormatFilter.class, new DefaultLogFormatter(), Level.ALL);
+    private static final Logger LOGGER = Logger.getLogger(FileFormatFilter.class.getPackage().getName());
 
     /**
      * The file format.

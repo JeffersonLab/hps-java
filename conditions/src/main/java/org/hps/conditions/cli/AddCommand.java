@@ -13,7 +13,6 @@ import org.hps.conditions.api.DatabaseObjectException;
 import org.hps.conditions.api.FieldValuesMap;
 import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * This is a command for the conditions CLI that will add a conditions record, making a conditions set with a particular
@@ -24,9 +23,9 @@ import org.lcsim.util.log.LogUtil;
 final class AddCommand extends AbstractCommand {
 
     /**
-     * Setup logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(AddCommand.class);
+    private static final Logger LOGGER = Logger.getLogger(AddCommand.class.getPackage().getName());
 
     /**
      * Define command line options.

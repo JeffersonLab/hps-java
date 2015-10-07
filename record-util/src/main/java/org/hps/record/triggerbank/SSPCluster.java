@@ -1,9 +1,8 @@
 package org.hps.record.triggerbank;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.lcsim.util.log.LogUtil;
+import org.hps.record.scalers.ScalersEvioProcessor;
 
 /**
  * Class <code>SSPCluster</code> stores all of the information on 
@@ -26,11 +25,10 @@ public final class SSPCluster {
     private final int t;
     private final double e;
     
-    // Output potential errors or messages.
-    private static Logger logger = LogUtil.create(SSPCluster.class);
-    static {
-        logger.setLevel(Level.WARNING);
-    }
+    /**
+     * Initialize the logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(ScalersEvioProcessor.class.getPackage().getName());
     
     /**
      * Creates a new <code>SSPCluster</code> object.
@@ -43,15 +41,15 @@ public final class SSPCluster {
     public SSPCluster(int ix, int iy, int energy, int hits, int time) {
         // Make sure that the input values are valid.
         if(ix == 0 || ix < -23 || ix > 23) {
-            logger.warning(String.format("Received out-of-bounds ix value of %d.", ix));
+            LOGGER.warning(String.format("Received out-of-bounds ix value of %d.", ix));
         } if(iy == 0 || iy < -5 || iy > 5) {
-            logger.warning(String.format("Received out-of-bounds iy value of %d.", iy));
+            LOGGER.warning(String.format("Received out-of-bounds iy value of %d.", iy));
         } if(energy < 0) {
-            logger.warning("Received negative energy for cluster.");
+            LOGGER.warning("Received negative energy for cluster.");
         } if(hits <= 0) {
-            logger.warning("Received cluster with zero or fewer hits.");
+            LOGGER.warning("Received cluster with zero or fewer hits.");
         } if(time < 0) {
-            logger.warning("Received cluster with negative time.");
+            LOGGER.warning("Received cluster with negative time.");
         }
         
         // Define the cluster parameters.
@@ -62,7 +60,7 @@ public final class SSPCluster {
         this.n = hits;
         
         // Indicate that the cluster was made.
-        logger.fine(String.format("Constructed cluster at (%3d, %3d) at time %3d ns with energy %4d MeV and %d hits.",
+        LOGGER.fine(String.format("Constructed cluster at (%3d, %3d) at time %3d ns with energy %4d MeV and %d hits.",
                 ix, iy, time, energy, hits));
     }
     

@@ -39,7 +39,6 @@ public class APrimeReconTest extends TestCase
         File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/APrimeReconTest/" + fileName));
         // Run the reconstruction.
         JobManager job = new JobManager();
-        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_recon");
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.addInputFile(inputFile);

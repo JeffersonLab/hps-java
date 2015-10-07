@@ -25,7 +25,6 @@ import org.hps.recon.tracking.ShaperFitAlgorithm;
 import org.hps.recon.tracking.StraightLineTrack;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
-import org.hps.util.BasicLogFormatter;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
@@ -49,7 +48,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.log.LogUtil;
 
 /**
  *
@@ -115,7 +113,7 @@ public class TrackingReconstructionPlots extends Driver {
     HelixConverter converter = new HelixConverter(0);
     private boolean showPlots = true;
     private double _bfield;
-    private static Logger logger = LogUtil.create(TrackingReconstructionPlots.class, new BasicLogFormatter());
+    private static Logger LOGGER = Logger.getLogger(TrackingReconstructionPlots.class.getName());
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -126,7 +124,7 @@ public class TrackingReconstructionPlots extends Driver {
                 sensors.add(s);
             }
         }
-        logger.info("Found " + sensors.size() + " SiSensors.");       
+        LOGGER.info("Found " + sensors.size() + " SiSensors.");       
         
         Hep3Vector bfieldvec = detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 1.));
         _bfield = bfieldvec.y();
@@ -959,7 +957,7 @@ public class TrackingReconstructionPlots extends Driver {
     }
 
     public TrackingReconstructionPlots() {
-        logger.setLevel(Level.WARNING);
+        LOGGER.setLevel(Level.WARNING);
     }
 
     public void setOutputPlots(String output) {
@@ -1007,7 +1005,7 @@ public class TrackingReconstructionPlots extends Driver {
             
             double stripIsoMin = 9999.9;
             for (SiTrackerHitStrip1D stripHitOther : stripClusters) {
-                logger.fine(stripHit.getPositionAsVector().toString() + " c.f. " + stripHitOther.getPositionAsVector().toString());
+                LOGGER.fine(stripHit.getPositionAsVector().toString() + " c.f. " + stripHitOther.getPositionAsVector().toString());
                 
                 if(stripHitOther.equals(stripHit)) {
                     continue;
@@ -1225,7 +1223,7 @@ public class TrackingReconstructionPlots extends Driver {
                     else isTopLayer=false;
                     HelicalTrackStripGbl stripGbl = new HelicalTrackStripGbl(strip, true);
                     Map<String, Double> stripResiduals = TrackUtils.calculateLocalTrackHitResiduals(helicalTrackFit, stripGbl, 0.,0.,_bfield);
-                    logger.fine("Sensor " + sensor.getName() + " ures = " + stripResiduals.get("ures"));
+                    LOGGER.fine("Sensor " + sensor.getName() + " ures = " + stripResiduals.get("ures"));
                     aida.histogram1D(sensor.getName() + " strip residual (mm)").fill(stripResiduals.get("ures"));
                     
                     

@@ -9,12 +9,9 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.record.epics.EpicsData;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Implementation of database operations for {@link RunSummary} objects in the run database.
@@ -56,9 +53,9 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
     private static Calendar CALENDAR = new GregorianCalendar(TimeZone.getTimeZone("America/New_York"));
 
     /**
-     * Setup class logging.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(RunSummaryDaoImpl.class, new DefaultLogFormatter(), Level.ALL);
+    private static final Logger LOGGER = Logger.getLogger(RunSummaryDaoImpl.class.getPackage().getName());
 
     /**
      * The database connection.

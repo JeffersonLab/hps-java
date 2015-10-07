@@ -1,7 +1,5 @@
 package org.hps.detector;
 
-import java.util.logging.Level;
-
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -45,9 +43,8 @@ public class SvtAlignmentTest extends TestCase {
 
     public void testSvtAlignment() throws Exception {
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        manager.setLogLevel(Level.WARNING);
         int runIndex = 0;
-        for (int run : RUNS) {       
+        for (int run : RUNS) {
             
             System.out.println();            
             System.out.println("loading run " + run + " SVT alignments for detector " + DETECTOR_NAME + " ...");

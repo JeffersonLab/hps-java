@@ -10,7 +10,6 @@ import hep.aida.IPlotterStyle;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.analysis.trigger.util.SinglesTrigger;
@@ -19,14 +18,11 @@ import org.hps.analysis.trigger.util.TriggerDecisionCalculator.TriggerType;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.SSPCluster;
 import org.hps.record.triggerbank.SSPData;
-import org.hps.util.BasicLogFormatter;
-import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>, Matt Solt <mrsolt@slac.stanford.edu>
@@ -34,7 +30,7 @@ import org.lcsim.util.log.LogUtil;
  */
 public class TriggerTurnOnSSPDriver extends Driver {
     
-    private static Logger logger = LogUtil.create(TriggerTurnOnSSPDriver.class, new BasicLogFormatter(), Level.INFO);
+    private static Logger LOGGER = Logger.getLogger(TriggerTurnOnSSPDriver.class.getPackage().getName());
     private final String ecalClusterCollectionName = "EcalClustersCorr";
     IPlotter plotter;
     IPlotter plotter2;
@@ -121,18 +117,18 @@ public class TriggerTurnOnSSPDriver extends Driver {
         if(!triggerDecisions.passed(TriggerType.PULSER))
             return;
         
-        logger.fine("pulser trigger fired");
+        LOGGER.fine("pulser trigger fired");
 
         if(triggerDecisions.passed(TriggerType.SINGLES1))
-            logger.fine("Singles1 trigger fired");
+            LOGGER.fine("Singles1 trigger fired");
         
         if(triggerDecisions.passed(TriggerType.SINGLES1_SIM)) {
-            logger.fine("Sim Singles1 trigger fired");
+            LOGGER.fine("Sim Singles1 trigger fired");
             nSimSingles1++;
         }
         
         if(triggerDecisions.passed(TriggerType.SINGLES1_RESULTS)) {
-            logger.fine("Results Singles1 trigger fired");
+            LOGGER.fine("Results Singles1 trigger fired");
             nResultSingles1++;
         }
         
@@ -171,7 +167,7 @@ public class TriggerTurnOnSSPDriver extends Driver {
 
         // fill numerator
         if (triggerDecisions.passed(TriggerType.SINGLES1_SIM)) {
-            logger.fine("Eureka. They both fired.");
+            LOGGER.fine("Eureka. They both fired.");
             if(clusterEMax != null) {
                 clusterE_RandomSingles1.fill(clusterEMax.getEnergy());
                 if(clusters.size() == 1) {
@@ -190,8 +186,8 @@ public class TriggerTurnOnSSPDriver extends Driver {
     
     @Override
     protected void endOfData() {
-        logger.info("Processed " + nEventsProcessed);
-        logger.info("nResSingles1 " + nResultSingles1 + " nSimSingles1 " + nSimSingles1);
+        LOGGER.info("Processed " + nEventsProcessed);
+        LOGGER.info("nResSingles1 " + nResultSingles1 + " nSimSingles1 " + nSimSingles1);
         clusterE_RandomSingles1_trigEff = aida.histogramFactory().divide("SSP_trigEff", clusterE_RandomSingles1, clusterE_Random);
         clusterEOne_RandomSingles1_trigEff = aida.histogramFactory().divide("SSP_trigEffEone", clusterEOne_RandomSingles1, clusterEOne_Random);
         int r = 0;
@@ -202,7 +198,7 @@ public class TriggerTurnOnSSPDriver extends Driver {
                 r++;
             }
         }
-        logger.info("entries in clusterE_RandomSingles1_trigEff: " + Integer.toString(clusterE_RandomSingles1_trigEff.allEntries()));
+        LOGGER.info("entries in clusterE_RandomSingles1_trigEff: " + Integer.toString(clusterE_RandomSingles1_trigEff.allEntries()));
         plotter.region(2).plot(clusterE_RandomSingles1_trigEff);
         plotter2.region(2).plot(clusterEOne_RandomSingles1_trigEff);
         

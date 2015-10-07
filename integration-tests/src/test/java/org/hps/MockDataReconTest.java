@@ -94,7 +94,6 @@ public class MockDataReconTest extends TestCase {
 
         System.out.println("running recon using steering resource " + steeringResource);
         JobManager jobManager = new JobManager();
-        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
         jobManager.addVariableDefinition("outputFile", outputFile.getPath());
         jobManager.addInputFile(mockDataFile);
         jobManager.setup(steeringResource);

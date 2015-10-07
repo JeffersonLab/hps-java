@@ -1,5 +1,12 @@
 package org.hps.monitoring.drivers.svt;
 
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,33 +15,21 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.IPlotter;
-import hep.aida.IPlotterStyle;
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
-
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.tracking.gbl.HpsGblRefitter;
-import org.hps.util.BasicLogFormatter;
-import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.Track;
-import org.lcsim.event.base.ParticleTypeClassifier;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.log.LogUtil;
 
 public class GblTrackingReconstructionPlots extends Driver {
     private double _bfield;
-    private static Logger logger = LogUtil.create(GblTrackingReconstructionPlots.class, new BasicLogFormatter());
+    private static Logger LOGGER = Logger.getLogger(GblTrackingReconstructionPlots.class.getPackage().getName());
     private AIDA aida = AIDA.defaultInstance();
     private String outputPlots = null;
     private final String trackCollectionName = "MatchedTracks";
@@ -69,7 +64,7 @@ public class GblTrackingReconstructionPlots extends Driver {
     
     public GblTrackingReconstructionPlots() {
         // TODO Auto-generated constructor stub
-        logger.setLevel(Level.INFO);
+        LOGGER.setLevel(Level.INFO);
     }
 
     public void setOutputPlots(String output) {
@@ -168,14 +163,14 @@ public class GblTrackingReconstructionPlots extends Driver {
         if(event.hasCollection(Track.class, trackCollectionName)) {
             tracks = event.get(Track.class, trackCollectionName);
         } else {
-           logger.warning("no seed track collection");
+           LOGGER.warning("no seed track collection");
            tracks = new ArrayList<Track>();
         }
         List<Track> gblTracks;
         if(event.hasCollection(Track.class, gblTrackCollectionName)) {
             gblTracks = event.get(Track.class, gblTrackCollectionName);
         } else {
-           logger.warning("no gbl track collection");
+           LOGGER.warning("no gbl track collection");
            gblTracks = new ArrayList<Track>();
         }
         
@@ -185,7 +180,7 @@ public class GblTrackingReconstructionPlots extends Driver {
             mcparticles = event.get(MCParticle.class).get(0);
             fsParticles = HPSMCParticlePlotsDriver.makeGenFSParticleList(mcparticles);
         } else {
-            logger.warning("no gbl track collection");
+            LOGGER.warning("no gbl track collection");
             mcparticles = new ArrayList<MCParticle>();
             fsParticles = new ArrayList<MCParticle>();
         }
@@ -193,10 +188,10 @@ public class GblTrackingReconstructionPlots extends Driver {
         
         
         
-        logger.info("Number of Tracks = " + tracks.size());
-        logger.info("Number of GBL Tracks = " + gblTracks.size());
-        logger.info("Number of MC particles = " + mcparticles.size());
-        logger.info("Number of FS MC particles = " + fsParticles.size());
+        LOGGER.info("Number of Tracks = " + tracks.size());
+        LOGGER.info("Number of GBL Tracks = " + gblTracks.size());
+        LOGGER.info("Number of MC particles = " + mcparticles.size());
+        LOGGER.info("Number of FS MC particles = " + fsParticles.size());
         
         
         
@@ -206,33 +201,33 @@ public class GblTrackingReconstructionPlots extends Driver {
             MCParticle part = TrackUtils.getMatchedTruthParticle(track);
             trackTruthMatch.put(track, part);
             if(part!=null) {
-                logger.info("Match track with q " + track.getCharge() + " p " + track.getMomentum()[0] + "," + track.getMomentum()[1] + ","  + track.getMomentum()[2]);
+                LOGGER.info("Match track with q " + track.getCharge() + " p " + track.getMomentum()[0] + "," + track.getMomentum()[1] + ","  + track.getMomentum()[2]);
             } else {
-                logger.info("no match for track with q " + track.getCharge() + " p " + track.getMomentum()[0] + "," + track.getMomentum()[1] + ","  + track.getMomentum()[2]);
+                LOGGER.info("no match for track with q " + track.getCharge() + " p " + track.getMomentum()[0] + "," + track.getMomentum()[1] + ","  + track.getMomentum()[2]);
             }
         }
         
         for(Track track : gblTracks) {
             
-            logger.info("Track:");
+            LOGGER.info("Track:");
             SeedTrack st = (SeedTrack)track;
             SeedCandidate seed = st.getSeedCandidate();
             HelicalTrackFit htf = seed.getHelix(); 
-            logger.info(htf.toString());
+            LOGGER.info(htf.toString());
             HelicalTrackFit pHTF = null;
             double pTruth = -1.;
             double pTrackTruth = -1.;
             if(trackTruthMatch.get(track)==null) {
-                logger.info("no truth mc particle for this track");
+                LOGGER.info("no truth mc particle for this track");
             } else {
                 MCParticle part = trackTruthMatch.get(track);
                 pTruth = part.getMomentum().magnitude();
                 pHTF = TrackUtils.getHTF(part,Math.abs(_bfield));
                 pTrackTruth = pHTF.p(Math.abs(_bfield));
-                logger.info("part: " + trackTruthMatch.get(track).getPDGID());
-                logger.info("pHTF:");
-                logger.info(pHTF.toString());
-                logger.info("pTruth="+pTruth+" pTrackTruth="+pTrackTruth);
+                LOGGER.info("part: " + trackTruthMatch.get(track).getPDGID());
+                LOGGER.info("pHTF:");
+                LOGGER.info(pHTF.toString());
+                LOGGER.info("pTruth="+pTruth+" pTrackTruth="+pTrackTruth);
             }
             
             
@@ -250,7 +245,7 @@ public class GblTrackingReconstructionPlots extends Driver {
             double phiGbl = track.getTrackStates().get(0).getPhi();
             double slopeGbl = track.getTrackStates().get(0).getTanLambda();
             double pGbl = getMag(track.getTrackStates().get(0).getMomentum());
-            logger.info("pGbl="+pGbl);
+            LOGGER.info("pGbl="+pGbl);
 
             if(pHTF!=null) {
                 double d0Truth = pHTF.dca();
@@ -258,7 +253,7 @@ public class GblTrackingReconstructionPlots extends Driver {
                 double CTruth = pHTF.curvature();
                 double phiTruth = pHTF.phi0();
                 double slopeTruth = pHTF.slope();
-                logger.info("d0 " + d0 + " d0 trugh " + d0Truth);
+                LOGGER.info("d0 " + d0 + " d0 trugh " + d0Truth);
                 d0Diff.fill(d0-d0Truth);
                 z0Diff.fill(z0-z0Truth);
                 phiDiff.fill(phi-phiTruth);
@@ -308,7 +303,7 @@ public class GblTrackingReconstructionPlots extends Driver {
             try {
                 aida.saveAs(outputPlots);
             } catch (IOException ex) {
-                logger.log(Level.SEVERE,"aid problem saving file",ex);
+                LOGGER.log(Level.SEVERE,"aid problem saving file",ex);
             }
         }
         //plotterFrame.dispose();

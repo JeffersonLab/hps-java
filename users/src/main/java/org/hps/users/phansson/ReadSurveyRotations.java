@@ -7,11 +7,9 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -24,8 +22,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.RotationOrder;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import org.hps.util.BasicLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
@@ -33,7 +29,10 @@ import org.lcsim.util.log.LogUtil;
  */
 public class ReadSurveyRotations {
 
-    final static Logger logger = LogUtil.create(ReadSurveyRotations.class.getSimpleName(), new BasicLogFormatter(), Level.INFO);
+    final static Logger LOGGER = Logger.getLogger(ReadSurveyRotations.class.getSimpleName());
+    static {
+        LOGGER.setLevel(Level.INFO);
+    }
     
     String name;
     String parent;
@@ -48,10 +47,10 @@ public class ReadSurveyRotations {
 
         
         List<ReadSurveyRotations> rotSurvey = getRotations(args[0]);
-        logger.info("Found " + rotSurvey.size() + " survey rotations");
+        LOGGER.info("Found " + rotSurvey.size() + " survey rotations");
         
         List<ReadSurveyRotations> rotIdeal = getRotations(args[1]);
-        logger.info("Found " + rotIdeal.size() + " ideal rotations");
+        LOGGER.info("Found " + rotIdeal.size() + " ideal rotations");
         
         
         
@@ -149,8 +148,8 @@ public class ReadSurveyRotations {
                         Hep3Vector v = getVector(matcher.group(4));
                         Hep3Vector w = getVector(matcher.group(5));
                         if(Math.abs(u.magnitude()-1.0)>0.0001 || Math.abs(v.magnitude()-1.0)>0.0001 ||Math.abs(w.magnitude()-1.0)>0.0001 ) {
-                            logger.warning(line);
-                            logger.warning("name: " + name + " unit vectors: " + u.toString() + " " + v.toString() + " " + w.toString());
+                            LOGGER.warning(line);
+                            LOGGER.warning("name: " + name + " unit vectors: " + u.toString() + " " + v.toString() + " " + w.toString());
                             throw new RuntimeException("error reading vectors");
                         }
                         ReadSurveyRotations rot = new ReadSurveyRotations(name, parent, u, v, w);

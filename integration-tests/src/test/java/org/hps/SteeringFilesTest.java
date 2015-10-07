@@ -111,7 +111,6 @@ public class SteeringFilesTest extends TestCase {
      * @throws Exception If there was an error initializing from one of the steering files.
      */
     public void testSteeringFiles() throws Exception {
-        DatabaseConditionsManager.getInstance().setLogLevel(Level.SEVERE);
         final List<String> steeringResources = SteeringFileCatalog.find();
         for (final String steeringResource : steeringResources) {
             if (!SKIP_STEERING_FILES.contains(steeringResource)) {

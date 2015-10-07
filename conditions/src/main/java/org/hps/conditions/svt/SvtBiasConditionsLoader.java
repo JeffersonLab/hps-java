@@ -1,6 +1,11 @@
 package org.hps.conditions.svt;
 
-import hep.aida.*;
+import hep.aida.IDataPoint;
+import hep.aida.IDataPointSet;
+import hep.aida.IDataPointSetFactory;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -17,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -38,9 +43,7 @@ import org.hps.conditions.svt.SvtBiasMyaDataReader.SvtBiasRunRange;
 import org.hps.conditions.svt.SvtMotorMyaDataReader.SvtPositionMyaRange;
 import org.hps.conditions.svt.SvtMotorMyaDataReader.SvtPositionRunRange;
 import org.hps.conditions.svt.SvtMotorPosition.SvtMotorPositionCollection;
-import org.hps.util.BasicLogFormatter;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
@@ -49,7 +52,11 @@ import org.lcsim.util.log.LogUtil;
 public class SvtBiasConditionsLoader {
 
     private static final Set<String> FIELDS = new HashSet<String>();
-    private static Logger logger = LogUtil.create(SvtBiasConditionsLoader.class, new BasicLogFormatter(), Level.INFO);
+    
+    /**
+     * Initialize the logger.
+     */
+    private static Logger LOGGER = Logger.getLogger(SvtBiasConditionsLoader.class.getPackage().getName());
 
     /**
      * Setup conditions.
@@ -113,7 +120,7 @@ public class SvtBiasConditionsLoader {
      */
     private static boolean isValid(RunData data) {
         if (data.getStartDate() == null || data.getEndDate() == null || data.getStartDate().before((new GregorianCalendar(1999, 1, 1)).getTime())) {
-            logger.fine("This run data is not valid: " + data.toString());
+            LOGGER.fine("This run data is not valid: " + data.toString());
             return false;
         }
         if (data.getStartDate().after(data.getEndDate())) {
@@ -125,18 +132,18 @@ public class SvtBiasConditionsLoader {
     //private static Options options = null;
     public static RunMap getRunMapFromSpreadSheet(String path) {
         // Load in CSV records from the exported run spreadsheet.
-        logger.info(path);
+        LOGGER.info(path);
         final RunSpreadsheet runSheet = new RunSpreadsheet(new File(path));
 
         // Find the run ranges that have the same fields values.
         final List<RunRange> ranges = RunRange.findRunRanges(runSheet, FIELDS);
-        logger.info("Found " + ranges.size() + " ranges.");
+        LOGGER.info("Found " + ranges.size() + " ranges.");
         for (RunRange range : ranges) {
-            logger.fine(range.toString());
+            LOGGER.fine(range.toString());
         }
         // find the run records (has converted dates and stuff) for these ranges
         RunMap runmap = runSheet.getRunMap(ranges);
-        logger.info("Found " + runmap.size() + " runs in the run map.");
+        LOGGER.info("Found " + runmap.size() + " runs in the run map.");
         return runmap;
     }
 
@@ -205,13 +212,13 @@ public class SvtBiasConditionsLoader {
         // Load MYA dump
         if (cl.hasOption("m")) {
             List<SvtBiasMyaRange> biasRanges = SvtBiasMyaDataReader.readMyaData(new File(cl.getOptionValue("m")), 178.0, 2000, cl.hasOption("d"));
-            logger.info("Got " + biasRanges.size() + " bias ranges");
+            LOGGER.info("Got " + biasRanges.size() + " bias ranges");
             biasRunRanges = SvtBiasMyaDataReader.findOverlappingRanges(runList, biasRanges);
         }
 
         if (cl.hasOption("p")) {
             List<SvtPositionMyaRange> positionRanges = SvtMotorMyaDataReader.readMyaData(new File(cl.getOptionValue("p")), 200, 10000);
-            logger.info("Got " + positionRanges.size() + " position ranges");
+            LOGGER.info("Got " + positionRanges.size() + " position ranges");
             positionRunRanges = SvtMotorMyaDataReader.findOverlappingRanges(runList, positionRanges);
         }
 
@@ -221,7 +228,7 @@ public class SvtBiasConditionsLoader {
         if (cl.hasOption("s")) {
             if (cl.hasOption("m")) {
                 for (SvtBiasRunRange r : biasRunRanges) {
-                    logger.info(r.toString());
+                    LOGGER.info(r.toString());
                     if (r.getRun().getRun() > 5600) {//9999999999999.0) {
                         //if(dpsRuns.size()/4.0<500) {//9999999999999.0) {
                         addPoint(dpsRuns, r.getRun().getStartDate().getTime(), 0.0);
@@ -240,7 +247,7 @@ public class SvtBiasConditionsLoader {
             }
             if (cl.hasOption("p")) {
                 for (SvtPositionRunRange r : positionRunRanges) {
-                    logger.info(r.toString());
+                    LOGGER.info(r.toString());
                     if (r.getRun().getRun() > 5600) {//9999999999999.0) {
                         //if(dpsRuns.size()/4.0<500) {//9999999999999.0) {
                         for (SvtPositionMyaRange br : r.getRanges()) {
@@ -276,22 +283,22 @@ public class SvtBiasConditionsLoader {
     }
 
     private static void loadBiasesToConditionsDB(List<SvtBiasRunRange> ranges) {
-        logger.info("Load to DB...");
+        LOGGER.info("Load to DB...");
 
         // Create a new collection for each run
         List<Integer> runsadded = new ArrayList<Integer>();
 
         for (SvtBiasRunRange range : ranges) {
-            logger.info("Loading " + range.toString());
+            LOGGER.info("Loading " + range.toString());
             RunData rundata = range.getRun();
             if (runsadded.contains(rundata.getRun())) {
-                logger.warning("Run " + Integer.toString(rundata.getRun()) + " was already added?");
+                LOGGER.warning("Run " + Integer.toString(rundata.getRun()) + " was already added?");
                 throw new RuntimeException("Run " + Integer.toString(rundata.getRun()) + " was already added?");
             }
             runsadded.add(rundata.getRun());
 
             if (range.getRanges().isEmpty()) {
-                logger.info("No bias range for run " + range.getRun().getRun());
+                LOGGER.info("No bias range for run " + range.getRun().getRun());
                 continue;
             }
 
@@ -322,7 +329,7 @@ public class SvtBiasConditionsLoader {
             condition.setFieldValue("collection_id", collectionId);
             condition.setTableMetaData(MANAGER.findTableMetaData("conditions"));
             condition.setConnection(MANAGER.getConnection());
-            logger.info(condition.toString());
+            LOGGER.info(condition.toString());
 
             try {
 
@@ -348,22 +355,22 @@ public class SvtBiasConditionsLoader {
     }
 
     private static void loadPositionsToConditionsDB(List<SvtPositionRunRange> ranges) {
-        logger.info("Load to DB...");
+        LOGGER.info("Load to DB...");
 
         // Create a new collection for each run
         List<Integer> runsadded = new ArrayList<Integer>();
 
         for (SvtPositionRunRange range : ranges) {
-            logger.info("Loading " + range.toString());
+            LOGGER.info("Loading " + range.toString());
             RunData rundata = range.getRun();
             if (runsadded.contains(rundata.getRun())) {
-                logger.warning("Run " + Integer.toString(rundata.getRun()) + " was already added?");
+                LOGGER.warning("Run " + Integer.toString(rundata.getRun()) + " was already added?");
                 throw new RuntimeException("Run " + Integer.toString(rundata.getRun()) + " was already added?");
             }
             runsadded.add(rundata.getRun());
 
             if (range.getRanges().isEmpty()) {
-                logger.info("No position range for run " + range.getRun().getRun());
+                LOGGER.info("No position range for run " + range.getRun().getRun());
                 continue;
             }
 
@@ -394,7 +401,7 @@ public class SvtBiasConditionsLoader {
             condition.setFieldValue("collection_id", collectionId);
             condition.setTableMetaData(MANAGER.findTableMetaData("conditions"));
             condition.setConnection(MANAGER.getConnection());
-            logger.info(condition.toString());
+            LOGGER.info(condition.toString());
 
             try {
 

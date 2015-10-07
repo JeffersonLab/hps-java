@@ -9,13 +9,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsHeader;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Implementation of database operations for EPICS data.
@@ -25,10 +22,9 @@ import org.lcsim.util.log.LogUtil;
 final class EpicsDataDaoImpl implements EpicsDataDao {
 
     /**
-     * Setup class logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil
-            .create(EpicsDataDaoImpl.class, new DefaultLogFormatter(), Level.INFO);
+    private static final Logger LOGGER = Logger.getLogger(EpicsDataDaoImpl.class.getPackage().getName());
     
     /**
      * The database connection.

@@ -1,11 +1,12 @@
 package org.hps.recon.tracking.gbl;
 
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.VecOp;
 import static java.lang.Math.abs;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
@@ -26,24 +28,19 @@ import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.converter.MilleParameter;
 import org.lcsim.util.Driver;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * A Driver which refits tracks using GBL. Modeled on the hps-dst code written
  * by Per Hansson and Omar Moreno. Requires the GBL Collections and Relations to
  * be present in the event.
  *
- * @author Norman A Graf
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- * @version $Id: HpsGblRefitter.java 3460 2015-08-29 01:45:39Z
- * meeg@slac.stanford.edu $
+ * @author Norman A Graf, SLAC
+ * @author Per Hansson Adrian, SLAC
  */
 public class HpsGblRefitter extends Driver {
 
     static Formatter f = new BasicLogFormatter();
-    private static Logger logger = LogUtil.create(HpsGblRefitter.class.getSimpleName(), f, Level.WARNING);
-    //private static final Logger logger = Logger.getLogger(HpsGblRefitter.class.getName());
+    private static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
     private boolean _debug = false;
     private final String trackCollectionName = "MatchedTracks";
     private final String track2GblTrackRelationName = "TrackToGBLTrack";
@@ -71,8 +68,8 @@ public class HpsGblRefitter extends Driver {
     public HpsGblRefitter() {
         _makeTracks = new MakeGblTracks();
         _makeTracks.setDebug(_debug);
-        logger.setLevel(Level.WARNING);
-        System.out.println("level " + logger.getLevel().toString());
+        LOGGER.setLevel(Level.WARNING);
+        System.out.println("level " + LOGGER.getLevel().toString());
     }
 
     //@Override
@@ -154,11 +151,11 @@ public class HpsGblRefitter extends Driver {
 
         // loop over the tracks and do the GBL fit
         List<FittedGblTrajectory> trackFits = new ArrayList<FittedGblTrajectory>();
-        logger.info("Trying to fit " + stripsGblMap.size() + " tracks");
+        LOGGER.info("Trying to fit " + stripsGblMap.size() + " tracks");
         for (GBLTrackData t : stripsGblMap.keySet()) {
             FittedGblTrajectory traj = fit(stripsGblMap.get(t), bfac, _debug);
             if (traj != null) {
-                logger.info("GBL fit successful");
+                LOGGER.info("GBL fit successful");
                 if (_debug) {
                     System.out.printf("%s: GBL fit successful.\n", getClass().getSimpleName());
                 }
@@ -169,18 +166,18 @@ public class HpsGblRefitter extends Driver {
                 traj.set_seed(gblToSeedMap.get(t));
                 trackFits.add(traj);
             } else {
-                logger.info("GBL fit failed");
+                LOGGER.info("GBL fit failed");
                 if (_debug) {
                     System.out.printf("%s: GBL fit failed.\n", getClass().getSimpleName());
                 }
             }
         }
 
-        logger.info(event.get(Track.class, trackCollectionName).size() + " tracks in collection \"" + trackCollectionName + "\"");
-        logger.info(gblObjMap.size() + " tracks in gblObjMap");
-        logger.info(gblToSeedMap.size() + " tracks in gblToSeedMap");
-        logger.info(stripsGblMap.size() + " tracks in stripsGblMap");
-        logger.info(trackFits.size() + " fitted GBL tracks before adding to event");
+        LOGGER.info(event.get(Track.class, trackCollectionName).size() + " tracks in collection \"" + trackCollectionName + "\"");
+        LOGGER.info(gblObjMap.size() + " tracks in gblObjMap");
+        LOGGER.info(gblToSeedMap.size() + " tracks in gblToSeedMap");
+        LOGGER.info(stripsGblMap.size() + " tracks in stripsGblMap");
+        LOGGER.info(trackFits.size() + " fitted GBL tracks before adding to event");
 
         _makeTracks.Process(event, trackFits, bfield);
 
@@ -423,9 +420,9 @@ public class HpsGblRefitter extends Driver {
             for (int i = 0; i < milleParameters.size(); ++i) {
                 logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
             }
-            logger.info("\n" + logders);
+            LOGGER.info("\n" + logders);
 
-            logger.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
+            LOGGER.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
 
             //go to next point
             s += step;
@@ -451,7 +448,7 @@ public class HpsGblRefitter extends Driver {
         double[] dVals = new double[2];
         int[] iVals = new int[1];
         traj.fit(dVals, iVals, "");
-        logger.info("fit result: Chi2=" + dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
+        LOGGER.info("fit result: Chi2=" + dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
         Vector aCorrection = new Vector(5);
         SymMatrix aCovariance = new SymMatrix(5);
         traj.getResults(1, aCorrection, aCovariance);
@@ -462,7 +459,7 @@ public class HpsGblRefitter extends Driver {
             aCovariance.print(6, 4);
         }
 
-        logger.fine("locPar " + aCorrection.toString());
+        LOGGER.fine("locPar " + aCorrection.toString());
 
 //
         return new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);

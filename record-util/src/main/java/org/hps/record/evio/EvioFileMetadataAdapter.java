@@ -3,7 +3,6 @@ package org.hps.record.evio;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.freehep.record.loop.AbstractLoopListener;
@@ -12,20 +11,19 @@ import org.freehep.record.loop.LoopListener;
 import org.freehep.record.loop.RecordEvent;
 import org.freehep.record.loop.RecordListener;
 import org.jlab.coda.jevio.EvioEvent;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Loop adapter for creating a list of metadata from processed EVIO files.
  * 
  * @author Jeremy McCormick, SLAC
  */
+// TODO: delete me
 public class EvioFileMetadataAdapter extends AbstractLoopListener implements RecordListener, LoopListener {
     
     /**
-     * Setup logging.
+     * Initialize the logger.
      */
-    private static Logger LOGGER = LogUtil.create(EvioFileMetadataProcessor.class, new DefaultLogFormatter(), Level.ALL);
+    private static final Logger LOGGER = Logger.getLogger(EvioFileMetadataAdapter.class.getPackage().getName());
     
     /**
      * The EVIO file currently being processed.

@@ -8,10 +8,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.evio.SvtEvioExceptions.*;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderApvBufferAddressException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderApvFrameCountException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderApvReadErrorException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderMultisampleErrorBitException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderOFErrorException;
+import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderSkipCountException;
 import org.hps.record.svt.SvtHeaderDataInfo;
-import org.hps.util.BasicLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * 
@@ -22,7 +26,7 @@ import org.lcsim.util.log.LogUtil;
  */
 public class SvtEventHeaderChecker {
 
-    private static Logger logger = LogUtil.create(SvtEventHeaderChecker.class.getSimpleName(), new BasicLogFormatter(), Level.INFO);
+    private static Logger LOGGER = Logger.getLogger(SvtEventHeaderChecker.class.getPackage().getName());
     
         /**
      * Check the integrity of the SVT header information.
@@ -30,7 +34,7 @@ public class SvtEventHeaderChecker {
      * @throws SvtEvioHeaderException
      */
     public static void checkSvtHeaders(List<SvtHeaderDataInfo> headers) throws SvtEvioHeaderException {
-        logger.fine("check " + headers.size() + " headers  ");
+        LOGGER.fine("check " + headers.size() + " headers  ");
         int[] bufferAddresses = new int[6];
         int[] firstFrameCounts = new int[6];
         boolean firstHeader = true;
@@ -41,13 +45,13 @@ public class SvtEventHeaderChecker {
         int count;
         int multisampleHeaderTailerrorBit;
         for( SvtHeaderDataInfo headerDataInfo : headers ) {
-            logger.fine("checking header: " + headerDataInfo.toString());
+            LOGGER.fine("checking header: " + headerDataInfo.toString());
 
 
             // Check the multisample header information            
             int nMultisampleHeaders = headerDataInfo.getNumberOfMultisampleHeaders();
             for(int iMultisampleHeader = 0; iMultisampleHeader < nMultisampleHeaders; iMultisampleHeader++) {
-                logger.fine("iMultisampleHeader " + iMultisampleHeader);
+                LOGGER.fine("iMultisampleHeader " + iMultisampleHeader);
 
                 multisampleHeader = SvtHeaderDataInfo.getMultisampleHeader(iMultisampleHeader, headerDataInfo);
 
@@ -80,8 +84,8 @@ public class SvtEventHeaderChecker {
                 }
 
                 // print debug
-                if(logger.getLevel().intValue() >= Level.FINE.intValue()) {
-                    logger.fine(getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) + 
+                if(LOGGER.getLevel().intValue() >= Level.FINE.intValue()) {
+                    LOGGER.fine(getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) + 
                                 getDebugString(bufAddresses, frameCounts, readError));
                 }
 
@@ -120,7 +124,7 @@ public class SvtEventHeaderChecker {
 
                 count = -1;
                 for (int iFrame=0; iFrame<frameCounts.length; ++iFrame) {
-                    logger.fine("frame count " + iFrame + "  " + frameCounts[iFrame]  + " ( " + Integer.toHexString( frameCounts[iFrame]) + " )");
+                    LOGGER.fine("frame count " + iFrame + "  " + frameCounts[iFrame]  + " ( " + Integer.toHexString( frameCounts[iFrame]) + " )");
 
                     if( frameCounts[iFrame] > 15  ||  (count < 15 && frameCounts[iFrame] < count) || ( count == 15 && frameCounts[iFrame] != 0 ) ) {
                         throw new SvtEvioHeaderApvFrameCountException("The APV frame counts in this events are invalid " + 
@@ -131,7 +135,7 @@ public class SvtEventHeaderChecker {
                 }
 
                 for (int iReadError=0; iReadError<readError.length; ++iReadError) {
-                    logger.fine("read error " + iReadError + "  " + readError[iReadError]  + " ( " + Integer.toHexString( readError[iReadError]) + " )");
+                    LOGGER.fine("read error " + iReadError + "  " + readError[iReadError]  + " ( " + Integer.toHexString( readError[iReadError]) + " )");
                     if( readError[iReadError] != 1)  {// active low
                         throw new SvtEvioHeaderApvReadErrorException("Read error occurred " + 
                                 getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) +
@@ -156,11 +160,11 @@ public class SvtEventHeaderChecker {
     
     public static void checkSvtHeaderData(SvtHeaderDataInfo header) throws SvtEvioHeaderException {
         int tail = header.getTail();
-        if(logger.getLevel().intValue() >= Level.FINE.intValue()) {
-            logger.fine("checkSvtHeaderData tail " + tail + "( " + Integer.toHexString(tail) + " )");
-            logger.fine("checkSvtHeaderData errorbit   " +  Integer.toHexString(SvtEvioUtils.getSvtTailSyncErrorBit(tail)));
-            logger.fine("checkSvtHeaderData OFerrorbit " +  Integer.toHexString(SvtEvioUtils.getSvtTailOFErrorBit(tail)));
-            logger.fine("checkSvtHeaderData skipcount  " +  Integer.toHexString(SvtEvioUtils.getSvtTailMultisampleSkipCount(tail)));
+        if(LOGGER.getLevel().intValue() >= Level.FINE.intValue()) {
+            LOGGER.fine("checkSvtHeaderData tail " + tail + "( " + Integer.toHexString(tail) + " )");
+            LOGGER.fine("checkSvtHeaderData errorbit   " +  Integer.toHexString(SvtEvioUtils.getSvtTailSyncErrorBit(tail)));
+            LOGGER.fine("checkSvtHeaderData OFerrorbit " +  Integer.toHexString(SvtEvioUtils.getSvtTailOFErrorBit(tail)));
+            LOGGER.fine("checkSvtHeaderData skipcount  " +  Integer.toHexString(SvtEvioUtils.getSvtTailMultisampleSkipCount(tail)));
         }
         if( SvtEvioUtils.getSvtTailSyncErrorBit(tail) != 0) {
             throw new SvtEvioExceptions.SvtEvioHeaderSyncErrorException("This SVT header had a SyncError " + header.toString());
@@ -171,7 +175,7 @@ public class SvtEventHeaderChecker {
         else if( SvtEvioUtils.getSvtTailMultisampleSkipCount(tail) != 0) {
             throw new SvtEvioHeaderSkipCountException("This header had a skipCount " + SvtEvioUtils.getSvtTailMultisampleSkipCount(tail) + " error " + header.toString());
         }
-        logger.fine("checkSvtHeaderData passed all I guess");
+        LOGGER.fine("checkSvtHeaderData passed all I guess");
     }
     
     

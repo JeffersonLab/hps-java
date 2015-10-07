@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventUtilities;
@@ -18,8 +19,6 @@ import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseLCSimEvent;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Build LCSim events from Test Run 2012 EVIO data.
@@ -34,7 +33,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
     protected long time = 0; //most recent event time (ns), taken from prestart and end events, and trigger banks (if any)
     protected int sspCrateBankTag = 0x1; //bank ID of the crate containing the SSP
     protected int sspBankTag = 0xe106; //SSP bank's tag
-    protected static Logger LOGGER = LogUtil.create(LCSimTestRunEventBuilder.class, new DefaultLogFormatter(), Level.INFO);
+    protected static Logger LOGGER = Logger.getLogger(LCSimTestRunEventBuilder.class.getPackage().getName());
     protected List<IntBankDefinition> intBanks = null;
 
     public LCSimTestRunEventBuilder() {
@@ -42,7 +41,6 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         svtReader = new TestRunSvtEvioReader();
         intBanks = new ArrayList<IntBankDefinition>();
         intBanks.add(new IntBankDefinition(TestRunTriggerData.class, new int[]{sspCrateBankTag, sspBankTag}));
-        LOGGER.setLevel(Level.FINE);
     }
 
     public void setEcalHitCollectionName(String ecalHitCollectionName) {

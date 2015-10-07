@@ -19,8 +19,6 @@ import org.hps.conditions.api.DatabaseObjectException;
 import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.database.MultipleCollectionsAction;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Create a conditions system tag.
@@ -35,9 +33,9 @@ import org.lcsim.util.log.LogUtil;
 final class TagCommand extends AbstractCommand {
 
     /**
-     * Setup the logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil.create(TagCommand.class, new DefaultLogFormatter(), Level.ALL);
+    private static final Logger LOGGER = Logger.getLogger(TagCommand.class.getPackage().getName());
     
     /**
      * Defines command options.
@@ -144,7 +142,6 @@ final class TagCommand extends AbstractCommand {
 
         // Conditions system configuration.
         this.getManager().setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");
-        this.getManager().setLogLevel(Level.ALL);
 
         // Find all the applicable conditions records by their run number ranges.
         ConditionsRecordCollection tagConditionsRecordCollection = this.findConditionsRecords(runStart, runEnd);

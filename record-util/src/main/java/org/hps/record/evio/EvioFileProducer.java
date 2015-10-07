@@ -27,8 +27,6 @@ import org.jlab.coda.et.enums.Mode;
 import org.jlab.coda.jevio.EventWriter;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * A command line utility for streaming EVIO files to an ET server.
@@ -78,12 +76,11 @@ public final class EvioFileProducer {
      * Minimum port number of ET server (lower port numbers not allowed).
      */
     private static final int ET_PORT_MIN = 1024;
-
+   
     /**
-     * Setup the logger.
+     * Initialize the logger.
      */
-    private static final Logger LOGGER = LogUtil
-            .create(EvioFileProducer.class, new DefaultLogFormatter(), Level.CONFIG);
+    private static final Logger LOGGER = Logger.getLogger(EvioFileProducer.class.getPackage().getName());
 
     /**
      * The command line options.

@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -33,7 +32,6 @@ import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
-import org.lcsim.util.log.LogUtil;
 
 /**
  *
@@ -70,10 +68,7 @@ public class EcalEvioReader extends EvioReader {
 
     private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();
 
-    private static final Logger logger = LogUtil.create(EcalEvioReader.class);
-    static {
-        logger.setLevel(Level.INFO);
-    }
+    private static final Logger LOGGER = Logger.getLogger(EcalEvioReader.class.getPackage().getName());
 
     public EcalEvioReader(int topBankTag, int botBankTag) {
         this.topBankTag = topBankTag;
@@ -132,7 +127,7 @@ public class EcalEvioReader extends EvioReader {
 //                            CompositeData cdata = slotBank.getCompositeData();
                                     if (slotBank.getHeader().getTag() != bankTag) {
                                         bankTag = slotBank.getHeader().getTag();
-                                        logger.info(String.format("ECal format tag: 0x%x\n", bankTag));
+                                        LOGGER.info(String.format("ECal format tag: 0x%x\n", bankTag));
                                     }
                                     switch (slotBank.getHeader().getTag()) {
                                         case EventConstants.ECAL_WINDOW_BANK_TAG:
@@ -440,9 +435,9 @@ public class EcalEvioReader extends EvioReader {
         
         // Lowered the log level on these.  Otherwise they print too much. --JM
         if (count < 10) {
-            logger.finer(String.format("Crate %d, slot %d, channel %d not found in map", hit.getCrate(), hit.getSlot(), hit.getChannel()));
+            LOGGER.finer(String.format("Crate %d, slot %d, channel %d not found in map", hit.getCrate(), hit.getSlot(), hit.getChannel()));
         } else if (count == 10) {
-            logger.fine(String.format("Crate %d, slot %d, channel %d not found in map: silencing further warnings for this channel", hit.getCrate(), hit.getSlot(), hit.getChannel()));
+            LOGGER.fine(String.format("Crate %d, slot %d, channel %d not found in map: silencing further warnings for this channel", hit.getCrate(), hit.getSlot(), hit.getChannel()));
         }
     }
 

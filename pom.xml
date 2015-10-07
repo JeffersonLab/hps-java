@@ -139,6 +139,7 @@
         <module>evio</module>        
         <module>integration-tests</module>
         <module>job</module>
+        <module>logging</module>
         <module>monitoring-util</module>
         <module>monitoring-drivers</module>
         <module>monitoring-app</module>

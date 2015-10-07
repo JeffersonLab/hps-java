@@ -7,16 +7,12 @@ import hep.physics.vec.Hep3Vector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.util.BasicLogFormatter;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.lcio.LCIOConstants;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * 

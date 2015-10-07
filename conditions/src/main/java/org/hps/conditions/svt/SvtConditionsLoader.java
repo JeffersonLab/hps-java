@@ -1,7 +1,6 @@
 package org.hps.conditions.svt;
 
 import java.io.File;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -17,8 +16,6 @@ import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
-import org.lcsim.util.log.DefaultLogFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * Command line tool used to load SVT conditions into the conditions database.
@@ -45,8 +42,7 @@ public final class SvtConditionsLoader {
     /**
      * Initialize the logger.
      */
-    private static Logger logger = LogUtil.create(SvtConditionsLoader.class.getName(), new DefaultLogFormatter(),
-            Level.INFO);
+    private static Logger LOGGER = Logger.getLogger(SvtConditionsLoader.class.getPackage().getName());
 
     /**
      * SVT channels table name.
@@ -78,7 +74,7 @@ public final class SvtConditionsLoader {
             return;
         }
         final int runNumber = Integer.valueOf(commandLine.getOptionValue("r"));
-        logger.info("Run number set to " + runNumber);
+        LOGGER.info("Run number set to " + runNumber);
 
         // Initialize the conditions system and load the conditions onto the
         // detector object
@@ -106,7 +102,7 @@ public final class SvtConditionsLoader {
         // to the conditions database.
         if (commandLine.hasOption("c")) {
             final File calibrationFile = new File(commandLine.getOptionValue("c"));
-            logger.info("Loading calibrations from file " + calibrationFile.getAbsolutePath());
+            LOGGER.info("Loading calibrations from file " + calibrationFile.getAbsolutePath());
             try {
 
                 // Parse the calibration file and retrieve the calibrations collection.
@@ -121,11 +117,11 @@ public final class SvtConditionsLoader {
                 // Set the collection ID.
                 final int collectionID = DatabaseConditionsManager.getInstance().getCollectionId(calibrations, null);
                 calibrations.setCollectionId(collectionID);
-                logger.info("Using collection ID " + collectionID);
+                LOGGER.info("Using collection ID " + collectionID);
 
                 // Load the calibrations
                 calibrations.insert();
-                logger.info("A total of " + calibrations.size()
+                LOGGER.info("A total of " + calibrations.size()
                         + " SvtCalibrations were loaded successfully into the database.");
 
                 // Create a conditions record associated with the set of conditions that were just loaded.
@@ -144,7 +140,7 @@ public final class SvtConditionsLoader {
         // conditions database.
         if (commandLine.hasOption("d")) {
             final File daqMapFile = new File(commandLine.getOptionValue("d"));
-            logger.info("Loading DAQ map from file " + daqMapFile.getAbsolutePath());
+            LOGGER.info("Loading DAQ map from file " + daqMapFile.getAbsolutePath());
             try {
 
                 // Parse the DAQ map file
@@ -159,12 +155,12 @@ public final class SvtConditionsLoader {
                 // Set the collection ID
                 int collectionID = DatabaseConditionsManager.getInstance().getCollectionId(daqMapping, null);
                 daqMapping.setCollectionId(collectionID);
-                logger.info("Using collection ID " + collectionID);
+                LOGGER.info("Using collection ID " + collectionID);
 
                 // Load the DAQ map
                 daqMapping.insert();
-                logger.info("DAQ map has been loaded successfully");
-                logger.fine(daqMapping.toString());
+                LOGGER.info("DAQ map has been loaded successfully");
+                LOGGER.fine(daqMapping.toString());
 
                 // Create a conditions record associated with the set of
                 // conditions that were just loaded.
@@ -173,7 +169,7 @@ public final class SvtConditionsLoader {
                         "Engineering run DAQ map. Loaded using SvtConditionsLoader.", "eng_run");
                 conditionsRecord.insert();
 
-                logger.info("Loading the collection of SvtChannel's");
+                LOGGER.info("Loading the collection of SvtChannel's");
                 final SvtChannelCollection svtChannels = reader.getSvtChannelCollection();
 
                 // Set the table meta data
@@ -184,10 +180,10 @@ public final class SvtConditionsLoader {
                 // Set the collection ID
                 collectionID = DatabaseConditionsManager.getInstance().getCollectionId(svtChannels, null);
                 svtChannels.setCollectionId(collectionID);
-                logger.info("Using collection ID " + collectionID);
+                LOGGER.info("Using collection ID " + collectionID);
 
                 svtChannels.insert();
-                logger.info("A total of " + svtChannels.size()
+                LOGGER.info("A total of " + svtChannels.size()
                         + " SvtChannels were successfully loaded into the database.");
 
                 // Create a conditions record associated with the set of
