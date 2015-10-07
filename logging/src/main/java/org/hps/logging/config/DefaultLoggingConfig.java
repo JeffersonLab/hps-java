@@ -22,4 +22,15 @@ public class DefaultLoggingConfig {
             throw new RuntimeException("Initialization of default logging configuration failed.", e);
         }
     }
+    
+    /**
+     * Initialize default logging if java system properties are not set.
+     */
+    public static void initialize() {
+        if (System.getProperty("java.util.logging.config.class") == null &&
+                System.getProperty("java.util.logging.config.file") == null) {
+            // Config is only read in if there is not an externally set class or file already.
+            new DefaultLoggingConfig();
+        }
+    }
 }

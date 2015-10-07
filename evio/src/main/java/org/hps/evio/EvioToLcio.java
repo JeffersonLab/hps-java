@@ -26,6 +26,7 @@ import org.freehep.record.source.NoSuchRecordException;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
 import org.hps.job.JobManager;
+import org.hps.logging.config.DefaultLoggingConfig;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventQueue;
 import org.hps.record.evio.EvioEventUtilities;
@@ -89,7 +90,11 @@ public class EvioToLcio {
      * @param args The command line arguments.
      */
     public static void main(final String[] args) {
-        final EvioToLcio evioToLcio = new EvioToLcio();
+
+        // Initialize default logging settings if no system props are set.
+        DefaultLoggingConfig.initialize();
+                
+        final EvioToLcio evioToLcio = new EvioToLcio();        
         evioToLcio.parse(args);
         evioToLcio.run();
     }
