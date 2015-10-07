@@ -84,10 +84,8 @@ public class SvtEventHeaderChecker {
                 }
 
                 // print debug
-                if(LOGGER.getLevel().intValue() >= Level.FINE.intValue()) {
-                    LOGGER.fine(getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) + 
-                                getDebugString(bufAddresses, frameCounts, readError));
-                }
+                LOGGER.fine(getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) + 
+                        getDebugString(bufAddresses, frameCounts, readError));
 
                 // Get a reference for comparison 
                 if(firstHeader) {
@@ -160,12 +158,10 @@ public class SvtEventHeaderChecker {
     
     public static void checkSvtHeaderData(SvtHeaderDataInfo header) throws SvtEvioHeaderException {
         int tail = header.getTail();
-        if(LOGGER.getLevel().intValue() >= Level.FINE.intValue()) {
-            LOGGER.fine("checkSvtHeaderData tail " + tail + "( " + Integer.toHexString(tail) + " )");
-            LOGGER.fine("checkSvtHeaderData errorbit   " +  Integer.toHexString(SvtEvioUtils.getSvtTailSyncErrorBit(tail)));
-            LOGGER.fine("checkSvtHeaderData OFerrorbit " +  Integer.toHexString(SvtEvioUtils.getSvtTailOFErrorBit(tail)));
-            LOGGER.fine("checkSvtHeaderData skipcount  " +  Integer.toHexString(SvtEvioUtils.getSvtTailMultisampleSkipCount(tail)));
-        }
+        LOGGER.fine("checkSvtHeaderData tail " + tail + "( " + Integer.toHexString(tail) + " ) " +
+                                                 " errorbit   " +  Integer.toHexString(SvtEvioUtils.getSvtTailSyncErrorBit(tail)) +
+                                                 " OFerrorbit " +  Integer.toHexString(SvtEvioUtils.getSvtTailOFErrorBit(tail)) + 
+                                                 " checkSvtHeaderData skipcount  " +  Integer.toHexString(SvtEvioUtils.getSvtTailMultisampleSkipCount(tail)));
         if( SvtEvioUtils.getSvtTailSyncErrorBit(tail) != 0) {
             throw new SvtEvioExceptions.SvtEvioHeaderSyncErrorException("This SVT header had a SyncError " + header.toString());
         }
