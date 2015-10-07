@@ -2,6 +2,7 @@ package org.hps.recon.filtering;
 
 import static java.lang.Math.abs;
 import java.util.List;
+import org.hps.record.epics.EpicsData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 
@@ -21,10 +22,20 @@ public class V0CandidateFilter extends EventReconFilter {
     private double _clusterTimingCut = 2.5;
 
     private boolean _tight = false;
+    private boolean _keepEpicsDataEvents = false;
+
 
     @Override
     protected void process(EventHeader event) {
         incrementEventProcessed();
+        if (_keepEpicsDataEvents) {
+            // don't drop any events with EPICS data:
+            final EpicsData data = EpicsData.read(event);
+            if (data != null) {
+                incrementEventPassed();
+                return;
+            }
+        }
         if (!event.hasCollection(ReconstructedParticle.class, _V0CandidateCollectionName)) {
             skipEvent();
         }
@@ -97,5 +108,15 @@ public class V0CandidateFilter extends EventReconFilter {
      */
     public void setTightConstraint(boolean b) {
         _tight = b;
+    }
+    
+    /**
+     * Setting this true keeps ALL events containing EPICS data
+     *
+     * @param b
+     */
+    public void setKeepEpicsDataEvents(boolean b)
+    {
+        _keepEpicsDataEvents = b;
     }
 }

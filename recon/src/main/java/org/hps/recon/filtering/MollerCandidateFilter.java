@@ -2,6 +2,7 @@ package org.hps.recon.filtering;
 
 import static java.lang.Math.abs;
 import java.util.List;
+import org.hps.record.epics.EpicsData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 
@@ -17,7 +18,8 @@ import org.lcsim.event.ReconstructedParticle;
  *
  * @version $Id:
  */
-public class MollerCandidateFilter extends EventReconFilter {
+public class MollerCandidateFilter extends EventReconFilter
+{
 
     private String _mollerCandidateCollectionName = "TargetConstrainedMollerCandidates";
     private double _mollerMomentumSumMin = 0.85;
@@ -26,10 +28,20 @@ public class MollerCandidateFilter extends EventReconFilter {
     private double _clusterTimingCut = 2.5;
 
     private boolean _tight = false;
+    private boolean _keepEpicsDataEvents = false;
 
     @Override
-    protected void process(EventHeader event) {
+    protected void process(EventHeader event)
+    {
         incrementEventProcessed();
+        if (_keepEpicsDataEvents) {
+            // don't drop any events with EPICS data:
+            final EpicsData data = EpicsData.read(event);
+            if (data != null) {
+                incrementEventPassed();
+                return;
+            }
+        }
         if (!event.hasCollection(ReconstructedParticle.class, _mollerCandidateCollectionName)) {
             skipEvent();
         }
@@ -96,7 +108,8 @@ public class MollerCandidateFilter extends EventReconFilter {
      *
      * @param d
      */
-    public void setClusterTimingCut(double d) {
+    public void setClusterTimingCut(double d)
+    {
         _clusterTimingCut = d;
     }
 
@@ -105,7 +118,8 @@ public class MollerCandidateFilter extends EventReconFilter {
      *
      * @param s
      */
-    public void setMollerCandidateCollectionName(String s) {
+    public void setMollerCandidateCollectionName(String s)
+    {
         _mollerCandidateCollectionName = s;
     }
 
@@ -114,7 +128,8 @@ public class MollerCandidateFilter extends EventReconFilter {
      *
      * @param d
      */
-    public void setMollerMomentumSumMin(double d) {
+    public void setMollerMomentumSumMin(double d)
+    {
         _mollerMomentumSumMin = d;
     }
 
@@ -123,7 +138,8 @@ public class MollerCandidateFilter extends EventReconFilter {
      *
      * @param d
      */
-    public void setMollerMomentumSumMax(double d) {
+    public void setMollerMomentumSumMax(double d)
+    {
         _mollerMomentumSumMax = d;
     }
 
@@ -133,7 +149,8 @@ public class MollerCandidateFilter extends EventReconFilter {
      *
      * @param d
      */
-    public void setMollerMomentumMax(double d) {
+    public void setMollerMomentumMax(double d)
+    {
         _fullEnergyCut = d;
     }
 
@@ -143,7 +160,18 @@ public class MollerCandidateFilter extends EventReconFilter {
      *
      * @param b
      */
-    public void setTightConstraint(boolean b) {
+    public void setTightConstraint(boolean b)
+    {
         _tight = b;
+    }
+    
+    /**
+     * Setting this true keeps ALL events containing EPICS data
+     *
+     * @param b
+     */
+    public void setKeepEpicsDataEvents(boolean b)
+    {
+        _keepEpicsDataEvents = b;
     }
 }
