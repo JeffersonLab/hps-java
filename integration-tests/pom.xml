@@ -18,13 +18,14 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-distribution</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
+                <artifactId>maven-surefire-plugin</artifactId>                                 
                 <configuration>
                     <forkCount>1</forkCount>
                     <reuseForks>false</reuseForks>
@@ -55,33 +56,6 @@
                 </plugins>
             </build>
         </profile> 
-<!--        
-        <profile>
-            <id>fast-integration-tests</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <excludes>
-                                <exclude>org/hps/EtSystemTest.java</exclude>
-                                <exclude>org/hps/DataQualityMonitorTest.java</exclude>
-                                <exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
-                                <exclude>org/hps/MCFilteredReconTest.java</exclude>
-                                <exclude>org/hps/ReadoutToEvioTest.java</exclude>
-                                <exclude>org/hps/ReadoutToLcioTest.java</exclude>
-                                <exclude>org/hps/SimpleSvtReadoutTest.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>                 
--->        
         <!-- This profile activates automatically when not running tests on a SLAC Unix system with NFS access. -->
         <profile>
             <id>no-slac-nfs</id>
