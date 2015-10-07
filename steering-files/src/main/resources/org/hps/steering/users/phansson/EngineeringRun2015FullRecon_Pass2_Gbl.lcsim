@@ -7,6 +7,7 @@
       @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
     -->
     <execute>
+        <!--<driver name="TimerDriver1"/>-->
         <driver name="CleanupDriver"/>
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/>
@@ -55,13 +56,17 @@
         <driver name="GBLOutputDriver" />
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
-        <driver name="ReconParticleDriver" />   
+        <!--<driver name="GblResidualEcalDriver" />-->
+        <!--<driver name="TrackExtrapolationTestDriver"/>-->
+        <driver name="ReconParticleDriver" />  
+        <!--<driver name="TrackingReconstructionPlots" />-->
+        <driver name="GeomChecker" />
         <driver name="LCIOWriter"/>
         
     </execute>    
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
+            <eventInterval>100</eventInterval>
         </driver>        
 
         <!-- Ecal reconstruction drivers -->
@@ -140,7 +145,9 @@
             <isMC>false</isMC>
             <gblFileName>${outputFile}.gbl</gblFileName>
         </driver> 
-        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.HpsGblRefitter"/>
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.HpsGblRefitter">
+            <debug>false</debug>
+        </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
@@ -149,5 +156,13 @@
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>  
         <driver name="AlignmentFilterDriver" type="org.hps.recon.filtering.SvtAlignmentFilter"/>     
+        <driver name="GblResidualEcalDriver" type="org.hps.users.phansson.ECalExtrapolationDriver"/>   
+        <driver name="TrackExtrapolationTestDriver" type="org.hps.users.phansson.TrackExtrapolationTestDriver"/>   
+        <driver name="TrackingReconstructionPlots" type="org.hps.users.phansson.TrackingReconstructionPlots">
+            <showPlots>True</showPlots>
+        </driver>
+        <driver name="TimerDriver1" type="org.hps.util.TimerDriver"/>
+        <driver name="GeomChecker" type="org.hps.users.phansson.TrackingGeometryChecker"/>
+
     </drivers>
 </lcsim>
