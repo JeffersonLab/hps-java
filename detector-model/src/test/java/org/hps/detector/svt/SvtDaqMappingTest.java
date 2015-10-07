@@ -1,8 +1,9 @@
-package org.hps.conditions.svt;
+package org.hps.detector.svt;
 
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.SvtDaqMapping;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
 /**

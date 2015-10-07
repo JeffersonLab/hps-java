@@ -9,6 +9,8 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.AbstractSvtDaqMapping;
 import org.hps.conditions.svt.ChannelConstants;
 import org.hps.conditions.svt.SvtChannel;
+import org.hps.conditions.svt.SvtDaqMapping;
+import org.hps.conditions.svt.TestRunSvtDaqMapping;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
@@ -64,7 +66,6 @@ public final class SvtDetectorSetup implements ConditionsListener {
      * Constructor that uses the default detector name.
      */
     public SvtDetectorSetup() {
-        LOGGER.info("hi");
     }
 
     /**
@@ -73,7 +74,6 @@ public final class SvtDetectorSetup implements ConditionsListener {
      * @param svtName the name of the SVT subdetector
      */
     public SvtDetectorSetup(final String svtName) {
-        LOGGER.info("hi");
         this.svtName = svtName;
     }
 
@@ -86,17 +86,16 @@ public final class SvtDetectorSetup implements ConditionsListener {
     public void conditionsChanged(final ConditionsEvent event) {
         LOGGER.info("conditions changed hook activated");
         if (this.enabled) {
-            LOGGER.info("I am enabled");
             final DatabaseConditionsManager manager = (DatabaseConditionsManager) event.getConditionsManager();
             final Subdetector subdetector = manager.getDetectorObject().getSubdetector(this.svtName);
             if (subdetector != null) {
-                LOGGER.info("found the SVT");
                 if (manager.isTestRun()) {
+                    LOGGER.info("activating Test Run setup");
                     final TestRunSvtConditions svtConditions = manager.getCachedConditions(TestRunSvtConditions.class,
                             "test_run_svt_conditions").getCachedData();
                     this.loadTestRun(subdetector, svtConditions);
                 } else {
-                    LOGGER.info("activating default setup (not test run)");
+                    LOGGER.info("activating default setup");
                     final SvtConditions svtConditions = manager.getCachedConditions(SvtConditions.class,
                             "svt_conditions").getCachedData();
                     this.loadDefault(subdetector, svtConditions);
@@ -135,7 +134,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
             sensor.reset();
 
             // Get DAQ pair (FEB ID, FEB Hybrid ID) corresponding to this sensor
-            final Pair<Integer, Integer> daqPair = daqMap.getDaqPair(sensor);
+            final Pair<Integer, Integer> daqPair = getDaqPair(daqMap, sensor);
             if (daqPair == null) {
                 throw new RuntimeException("Failed to find DAQ pair for sensor: " + sensor.getName());
             }
@@ -226,7 +225,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
             sensor.reset();
 
             // Get DAQ pair (FPGA ID, Hybrid ID) corresponding to this sensor
-            final Pair<Integer, Integer> daqPair = daqMap.getDaqPair(sensor);
+            final Pair<Integer, Integer> daqPair = SvtDetectorSetup.getTestRunDaqPair(daqMap, sensor);
             if (daqPair == null) {
                 throw new RuntimeException("Failed to find DAQ pair for sensor: " + sensor.getName());
             }
@@ -315,4 +314,44 @@ public final class SvtDetectorSetup implements ConditionsListener {
     public void setSvtName(final String svtName) {
         this.svtName = svtName;
     }
+    
+    /**
+     * Get a DAQ pair (FEB ID, FEB Hybrid ID) for the given {@link HpsSiSensor}.
+     *
+     * @param sensor a sensor of type {@link HpsSiSensor}
+     * @return the DAQ pair associated with the sensor
+     */
+    static Pair<Integer, Integer> getDaqPair(SvtDaqMappingCollection daqMap, final HpsSiSensor sensor) {
+
+        final String svtHalf = sensor.isTopLayer() ? AbstractSvtDaqMapping.TOP_HALF : AbstractSvtDaqMapping.BOTTOM_HALF;
+        for (final SvtDaqMapping object : daqMap) {
+
+            if (svtHalf.equals(object.getSvtHalf()) && object.getLayerNumber() == sensor.getLayerNumber()
+                    && object.getSide().equals(sensor.getSide())) {
+
+                return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get a test run DAQ pair (FPGA and Hybrid ID) for the given {@linkplain HpsTestRunSiSensor}.
+     *
+     * @param sensor a sensor of type {@link HpsTestRunSiSensor}
+     * @return the DAQ pair associated with the sensor
+     */
+    static Pair<Integer, Integer> getTestRunDaqPair(TestRunSvtDaqMappingCollection daqMap, final HpsSiSensor sensor) {
+
+        final String svtHalf = sensor.isTopLayer() ? AbstractSvtDaqMapping.TOP_HALF : AbstractSvtDaqMapping.BOTTOM_HALF;
+        for (final TestRunSvtDaqMapping daqMapping : daqMap) {
+
+            if (svtHalf.equals(daqMapping.getSvtHalf()) && daqMapping.getLayerNumber() == sensor.getLayerNumber()) {
+
+                return new Pair<Integer, Integer>(daqMapping.getFpgaID(), daqMapping.getHybridID());
+            }
+        }
+        return null;
+    }
+    
 }

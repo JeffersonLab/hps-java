@@ -1,4 +1,4 @@
-package org.hps.conditions.svt;
+package org.hps.detector.svt;
 
 import java.io.File;
 import java.net.URL;

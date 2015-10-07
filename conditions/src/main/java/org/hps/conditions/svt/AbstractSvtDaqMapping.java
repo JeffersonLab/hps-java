@@ -4,7 +4,6 @@ import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Field;
 import org.hps.util.Pair;
-import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
 /**
  * This abstract class provides some of the basic functionality used to access SVT DAQ map variables.
@@ -21,15 +20,7 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
     @SuppressWarnings("serial")
     public static abstract class AbstractSvtDaqMappingCollection<T extends AbstractSvtDaqMapping> extends
             BaseConditionsObjectCollection<T> {
-
-        /**
-         * Get a DAQ pair for the given {@link HpsSiSensor}.
-         *
-         * @param sensor a sensor of type {@link HpsSiSensor}
-         * @return the DAQ pair associated with the sensor
-         */
-        public abstract Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor);
-
+      
         /**
          * Get the orientation of a sensor.
          *

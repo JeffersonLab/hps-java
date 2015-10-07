@@ -3,7 +3,6 @@ package org.hps.conditions.svt;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
-import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
 /**
  * This class encapsulates the Test Run SVT DAQ map.
@@ -17,27 +16,7 @@ public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
      * The collection implementation for {@link TestRunSvtDaqMapping} objects.
      */
     public static class TestRunSvtDaqMappingCollection extends AbstractSvtDaqMappingCollection<TestRunSvtDaqMapping> {
-
-        /**
-         * Get a test run DAQ pair (FPGA and Hybrid ID) for the given {@linkplain HpsTestRunSiSensor}.
-         *
-         * @param sensor a sensor of type {@link HpsTestRunSiSensor}
-         * @return the DAQ pair associated with the sensor
-         */
-        @Override
-        public Pair<Integer, Integer> getDaqPair(final HpsSiSensor sensor) {
-
-            final String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
-            for (final TestRunSvtDaqMapping daqMapping : this) {
-
-                if (svtHalf.equals(daqMapping.getSvtHalf()) && daqMapping.getLayerNumber() == sensor.getLayerNumber()) {
-
-                    return new Pair<Integer, Integer>(daqMapping.getFpgaID(), daqMapping.getHybridID());
-                }
-            }
-            return null;
-        }
-
+       
         /**
          * Get the orientation of a sensor using the FPGA and Hybrid ID. If the FPGA and Hybrid ID combination is not
          * found, return null.

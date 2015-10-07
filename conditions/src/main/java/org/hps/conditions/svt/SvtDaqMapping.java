@@ -3,7 +3,6 @@ package org.hps.conditions.svt;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
-import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
 /**
  * This class encapsulates the SVT DAQ map.
@@ -19,28 +18,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      */
     @SuppressWarnings("serial")
     public static class SvtDaqMappingCollection extends AbstractSvtDaqMappingCollection<SvtDaqMapping> {
-
-        /**
-         * Get a DAQ pair (FEB ID, FEB Hybrid ID) for the given {@link HpsSiSensor}.
-         *
-         * @param sensor a sensor of type {@link HpsSiSensor}
-         * @return the DAQ pair associated with the sensor
-         */
-        @Override
-        public Pair<Integer, Integer> getDaqPair(final HpsSiSensor sensor) {
-
-            final String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
-            for (final SvtDaqMapping object : this) {
-
-                if (svtHalf.equals(object.getSvtHalf()) && object.getLayerNumber() == sensor.getLayerNumber()
-                        && object.getSide().equals(sensor.getSide())) {
-
-                    return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
-                }
-            }
-            return null;
-        }
-
+       
         /**
          * Get the orientation of a sensor using the FEB ID and FEB Hybrid ID. If the FEB ID and FEB Hybrid ID
          * combination is not found, return null.
