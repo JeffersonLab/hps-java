@@ -7,6 +7,8 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
+import java.util.logging.Logger;
+
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
@@ -26,7 +28,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
  */
  public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefinition {
 
-
+     private static final Logger LOGGER = Logger.getLogger(HPSTracker2014GeometryDefinition.class.getPackage().getName());
 
     public HPSTracker2014GeometryDefinition(boolean debug, Element node) {
         super(debug, node);
@@ -117,8 +119,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             }
         }       
 
-        System.out.printf("%s: Constructed %d geometry objects\n", this.getClass().getSimpleName(), surveyVolumes.size());
-        System.out.printf("%s: Constructed %d module bundles\n", this.getClass().getSimpleName(),modules.size());        
+        LOGGER.info(String.format("%s: Constructed %d geometry objects\n", this.getClass().getSimpleName(), surveyVolumes.size()));
+        LOGGER.info(String.format("%s: Constructed %d module bundles\n", this.getClass().getSimpleName(),modules.size()));
 
         if(isDebug()) {
             System.out.printf("%s: DONE constructing the geometry objects\n", this.getClass().getSimpleName());

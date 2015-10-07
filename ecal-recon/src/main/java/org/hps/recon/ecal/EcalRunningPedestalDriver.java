@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
@@ -33,6 +34,8 @@ import org.lcsim.util.Driver;
  */
 public class EcalRunningPedestalDriver extends Driver {
 
+    private static final Logger LOGGER = Logger.getLogger(EcalRunningPedestalDriver.class.getPackage().getName());
+    
     // limit array lengths:
     private final int limitLookbackEvents = 1000;
 
@@ -74,12 +77,9 @@ public class EcalRunningPedestalDriver extends Driver {
 
     @Override
     protected void startOfData() {
-        System.out.println("ECalRunningPedestalDriver.minLookbackEvents = "
-                + minLookbackEvents);
-        System.out.println("ECalRunningPedestalDriver.maxLookbackEvents = "
-                + maxLookbackEvents);
-        System.out.println("ECalRunningPedestalDriver.maxLookbackTime   = "
-                + maxLookbackTime);
+        LOGGER.config("minLookbackEvents: " + minLookbackEvents);
+        LOGGER.config("maxLookbackEvents: " + maxLookbackEvents);
+        LOGGER.config("maxLookbackTime:" + maxLookbackTime);
     }
 
     @Override

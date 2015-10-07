@@ -3,12 +3,15 @@ package org.hps.recon.tracking;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RelationalTable;
@@ -30,8 +33,11 @@ import org.lcsim.util.Driver;
  *
  * @author Matt Graham
  */
+// FIXME: Printing to System.out should be converted to use logger.
 public final class TrackerReconDriver extends Driver {
 
+    private static final Logger LOGGER = Logger.getLogger(TrackerReconDriver.class.getPackage().getName());
+    
     // Debug flag.
     private boolean debug = false;
     // Tracks found across all events.
@@ -142,9 +148,9 @@ public final class TrackerReconDriver extends Driver {
 //        this.bfield = Math.abs((detector.getFieldMap().getField(new BasicHep3Vector(0, 0, 0)).y()));
         double zvalInTracker=500.0;//50cm...about the middle
         Hep3Vector fieldInTracker=detector.getFieldMap().getField(new BasicHep3Vector(0, 0, zvalInTracker));
-        System.out.println("fieldInTracker at "+zvalInTracker+": Bx = "+fieldInTracker.x()+"; By = "+fieldInTracker.y()+"; Bz = "+fieldInTracker.z());      
+        LOGGER.config("fieldInTracker at "+zvalInTracker+": Bx = "+fieldInTracker.x()+"; By = "+fieldInTracker.y()+"; Bz = "+fieldInTracker.z());      
         this.bfield = Math.abs(fieldInTracker.y());
-        System.out.printf("%s: Set B-field to %.6f\n", this.getClass().getSimpleName(), this.bfield);
+        LOGGER.config(String.format("%s: Set B-field to %.6f\n", this.getClass().getSimpleName(), this.bfield));
 
         initialize();
 
