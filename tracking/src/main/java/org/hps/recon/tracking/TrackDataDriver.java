@@ -257,7 +257,7 @@ public final class TrackDataDriver extends Driver {
                 // Add a track state that contains the extrapolated track position and 
                 // parameters at the face of the Ecal.
                 //
-                LOGGER.info("Extrapolating track with type " + Integer.toString(track.getType()) );
+                LOGGER.fine("Extrapolating track with type " + Integer.toString(track.getType()) );
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 if( TrackType.isGBL(track.getType())) {
@@ -279,16 +279,16 @@ public final class TrackDataDriver extends Driver {
                     //track.getTrackStates().add(stateEcalIP);
                    
                 } else {
-                    LOGGER.info("Extrapolate seed track to ECal from vertex");
+                    LOGGER.fine("Extrapolate seed track to ECal from vertex");
                     TrackState state = TrackUtils.extrapolateTrackUsingFieldMap(track, extStartPos, ecalPosition, stepSize, bFieldMap);
                     track.getTrackStates().add(state);
                 }
                 
-                LOGGER.info(Integer.toString(track.getTrackStates().size()) +  " track states for this track at this point:");
+                LOGGER.fine(Integer.toString(track.getTrackStates().size()) +  " track states for this track at this point:");
                 for(TrackState state : track.getTrackStates()) {
                     String s = "type " + Integer.toString(track.getType()) + " location " + Integer.toString(state.getLocation()) + " refPoint (" + state.getReferencePoint()[0] + " " + state.getReferencePoint()[1] + " " + state.getReferencePoint()[2] + ") " + " params: ";
                     for(int i=0;i<5;++i) s += String.format(" %f", state.getParameter(i));
-                    LOGGER.info(s);
+                    LOGGER.fine(s);
                 }
                 
                 
