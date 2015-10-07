@@ -32,6 +32,10 @@
             <groupId>org.hps</groupId>
             <artifactId>hps-tracking</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-logging</artifactId>        
+        </dependency>
     </dependencies>
     <build>
         <plugins>
