@@ -13,21 +13,13 @@ public class DefaultLoggingConfig {
 
     /**
      * Class constructor which reads in a logging properties file from a classpath resource.
-     * <p>
-     * The default configuration will only be activated if there is no file or class specified 
-     * from a system property.
      */
     public DefaultLoggingConfig() {
-        // Activate the default config if the logging system properties are not set. 
-        if (System.getProperty("java.util.logging.config.class") == null 
-                && System.getProperty("java.util.logging.config.file") == null) {
-            InputStream inputStream = DefaultLoggingConfig.class.getResourceAsStream("logging.properties");
-            try {
-                LogManager.getLogManager().readConfiguration(inputStream);
-            } catch (SecurityException | IOException e) {
-                throw new RuntimeException("Initialization of default logging configuration failed.", e);
-            }
-        } 
+        InputStream inputStream = DefaultLoggingConfig.class.getResourceAsStream("logging.properties");
+        try {
+            LogManager.getLogManager().readConfiguration(inputStream);
+        } catch (SecurityException | IOException e) {
+            throw new RuntimeException("Initialization of default logging configuration failed.", e);
+        }
     }
-
 }
