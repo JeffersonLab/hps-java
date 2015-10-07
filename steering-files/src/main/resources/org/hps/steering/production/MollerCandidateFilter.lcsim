@@ -7,6 +7,7 @@
     </control>
     <execute>
         <driver name="EventMarkerDriver"/>
+        <driver name="EventFlagFilter"/>
         <driver name="StripEvent"/>
         <driver name="Writer"/>
     </execute>
@@ -15,6 +16,10 @@
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
+        </driver>
+        <!-- Driver to reject "bad" events -->
+        <driver name="EventFlagFilter" 
+                type="org.hps.recon.filtering.EventFlagFilter">
         </driver>
         <!-- Driver to strip events -->
        <driver name="StripEvent"
@@ -29,6 +34,8 @@
               <mollerMomentumSumMax>1.3</mollerMomentumSumMax>
               <!-- Maximum difference in the ECal cluster times -->
               <clusterTimingCut>2.5</clusterTimingCut>
+              <!-- Setting this true keeps ALL events containing EPICS data -->
+              <keepEpicsDataEvents>true</keepEpicsDataEvents>
         </driver>
         <!-- Driver to write output slcio file -->
         <driver name="Writer"

@@ -7,6 +7,7 @@
     </control>
     <execute>
         <driver name="EventMarkerDriver"/>
+        <driver name="EventFlagFilter"/>
         <driver name="StripEvent"/>
         <driver name="Writer"/>
     </execute>
@@ -16,8 +17,12 @@
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
+        <!-- Driver to reject "bad" events -->
+        <driver name="EventFlagFilter" 
+                type="org.hps.recon.filtering.EventFlagFilter">
+        </driver>
         <!-- Driver to strip events -->
-       <driver name="StripEvent"
+        <driver name="StripEvent"
                 type="org.hps.recon.filtering.V0CandidateFilter">
               <!-- Name of the V0 Candidate Collection of ReconstructedParticles -->
               <v0CandidateCollectionName>TargetConstrainedV0Candidates</v0CandidateCollectionName>
@@ -25,6 +30,8 @@
               <clusterTimingCut>2.5</clusterTimingCut>
               <!-- A tight selection requires one and only one real V0 vertex --> 
               <tightConstraint>false</tightConstraint>
+              <!-- Setting this true keeps ALL events containing EPICS data -->
+              <keepEpicsDataEvents>true</keepEpicsDataEvents>
         </driver>
         <!-- Driver to write output slcio file -->
         <driver name="Writer"
