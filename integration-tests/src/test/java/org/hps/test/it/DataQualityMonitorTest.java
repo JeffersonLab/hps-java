@@ -1,8 +1,10 @@
-package org.hps;
+package org.hps.test.it;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
@@ -51,8 +53,8 @@ public class DataQualityMonitorTest extends TestCase {
             dataFile = cache.getCachedFile(new URL(fileLocation));
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-        System.out.println("running recon using steering resource " + steeringResource);
+        }        
+        System.out.println("running data quality job with steering resource " + steeringResource);
         JobManager jobManager = new JobManager();
         jobManager.addVariableDefinition("outputFile", outputFile.getPath());
         jobManager.addInputFile(dataFile);
