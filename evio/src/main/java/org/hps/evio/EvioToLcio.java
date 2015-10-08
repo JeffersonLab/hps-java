@@ -206,7 +206,7 @@ public class EvioToLcio {
                     }
                     RunManager.getRunManager().setRun(runNumber);
                 } else {
-                    LOGGER.finest("event " + evioEvent.getEventNumber() + " does not have a head bank");
+                    LOGGER.finer("event " + evioEvent.getEventNumber() + " does not have a head bank");
                 }
             }
         }
@@ -472,7 +472,7 @@ public class EvioToLcio {
             if (!evioFile.exists()) {
                 throw new RuntimeException("EVIO file " + evioFile.getPath() + " does not exist.");
             }
-            LOGGER.info("Opening EVIO file " + evioFileName + " ...");
+            LOGGER.info("Opening EVIO file " + evioFileName);
 
             // Open the EVIO reader.
             try {
@@ -491,6 +491,8 @@ public class EvioToLcio {
                 // Buffer the EVIO events into the queue.
                 this.bufferEvents(reader, eventQueue, maxBufferSize);
 
+                LOGGER.fine("buffered " + eventQueue.size() + " events");
+                
                 // Is the event queue empty?
                 if (eventQueue.size() == 0) {
                     // Break from the event processing loop.
@@ -511,6 +513,7 @@ public class EvioToLcio {
                             new RuntimeException("Failed to read EVIO event.").printStackTrace();
                             continue recordLoop;
                         }
+                        LOGGER.finer("processing EVIO event " + evioEvent.getEventNumber());
                     } catch (final IOException e) {
                         // This means the EVIO event has bad data.
                         LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -530,6 +533,8 @@ public class EvioToLcio {
                     // Is this a pre start event?
                     if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
 
+                        LOGGER.info("got PRESTART event");
+                        
                         // Get the pre start event's data bank.
                         final int[] data = EvioEventUtilities.getControlEventData(evioEvent);
 
@@ -544,6 +549,9 @@ public class EvioToLcio {
 
                     // Is this an end event?
                     if (EvioEventUtilities.isEndEvent(evioEvent)) {
+                        
+                        LOGGER.info("got END event");
+                        
                         final int[] data = EvioEventUtilities.getControlEventData(evioEvent);
                         if (data == null) {
                             // This should never happen but just ignore it.
@@ -557,6 +565,7 @@ public class EvioToLcio {
 
                     // Setup state in the LCSimEventBuilder based on the EVIO control event.
                     if (eventBuilder != null) {
+                        LOGGER.finer("event builder reading in EVIO event " + evioEvent.getEventNumber());
                         eventBuilder.readEvioEvent(evioEvent);
                     }
 
@@ -565,7 +574,7 @@ public class EvioToLcio {
 
                         // Print physics event number, which is actually a sequence number from
                         // the reader, not the actual event number from the data.
-                        LOGGER.finest("physics event " + evioEvent.getEventNumber());
+                        LOGGER.finer("got physics event " + evioEvent.getEventNumber());
 
                         // Is the event builder initialized?
                         if (eventBuilder == null) {
@@ -576,15 +585,14 @@ public class EvioToLcio {
                         // Build the LCIO event.
                         final EventHeader lcioEvent = eventBuilder.makeLCSimEvent(evioEvent);
                         eventTime = lcioEvent.getTimeStamp() / 1000000;
-                        LOGGER.finest("created LCIO event " + lcioEvent.getEventNumber() + " with time "
-                                + new Date(eventTime));
+                        LOGGER.finer("created LCIO event " + lcioEvent.getEventNumber() + " with timestamp " + eventTime);
                         if (firstEvent) {
                             LOGGER.info("first physics event time: " + eventTime / 1000 + " - " + new Date(eventTime));
                             firstEvent = false;
                         }
 
                         // Activate Driver process methods.
-                        LOGGER.finest("jobManager processing event " + lcioEvent.getEventNumber());
+                        LOGGER.finer("Job manager processing event " + lcioEvent.getEventNumber());
                         jobManager.processEvent(lcioEvent);
 
                         // Write out this LCIO event.
@@ -592,11 +600,11 @@ public class EvioToLcio {
                             try {
                                 writer.write(lcioEvent);
                                 writer.flush();
-                                LOGGER.finest("wrote LCSim event " + lcioEvent.getEventNumber());
+                                LOGGER.finer("wrote LCSim event " + lcioEvent.getEventNumber());
                             } catch (final IOException e) {
                                 throw new RuntimeException("Error writing LCIO file.", e);
                             }
-                            LOGGER.finest("wrote event #" + lcioEvent.getEventNumber());
+                            LOGGER.finer("wrote event #" + lcioEvent.getEventNumber());
                         }
 
                         // Increment number of events processed.
