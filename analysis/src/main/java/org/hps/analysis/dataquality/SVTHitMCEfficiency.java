@@ -4,10 +4,13 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IProfile1D;
 import hep.aida.IProfile2D;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
+
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
 import org.lcsim.detector.tracker.silicon.SiSensor;
@@ -32,6 +35,8 @@ import org.lcsim.geometry.Detector;
 // TODO: Add some quantities for DQM monitoring:  e.g. <efficiency>, probably within first 1 cm or so.   
 public class SVTHitMCEfficiency extends DataQualityMonitor {
 
+    private static Logger LOGGER = Logger.getLogger(SVTHitMCEfficiency.class.getPackage().getName());
+    
     private final String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private final String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
@@ -207,7 +212,7 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
                             getLayerPlot2D(plotDir + "goodClusterFits", simhit.getLayer()).fill(ShapeFitParameters.getT0(fit), ShapeFitParameters.getAmp(fit));
                         }
                     } else {
-//                        System.out.println(clust.getRawHits().size());
+//                        LOGGER.info(clust.getRawHits().size());
                         for (RawTrackerHit rth : (List<RawTrackerHit>) clust.getRawHits()) {
                             GenericObject fit = (GenericObject) rthtofit.to(rth);
                             getLayerPlot2D(plotDir + "badClusterFits", simhit.getLayer()).fill(ShapeFitParameters.getT0(fit), ShapeFitParameters.getAmp(fit));
@@ -316,14 +321,14 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
     @Override
     public void printDQMData() {
         for (SiSensor sensor : sensors) {
-            System.out.println(avgClusterEffNames.get(sensor.getName()) + ":  " + avgClusterEffMap.get(sensor.getName()));
+            LOGGER.info(avgClusterEffNames.get(sensor.getName()) + ":  " + avgClusterEffMap.get(sensor.getName()));
         }
     }
 
     @Override
     public void printDQMStrings() {
         for (SiSensor sensor : sensors) {
-            System.out.println("ALTER TABLE dqm ADD " + avgClusterEffNames.get(sensor.getName()) + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + avgClusterEffNames.get(sensor.getName()) + " double;");
         }
     }
 

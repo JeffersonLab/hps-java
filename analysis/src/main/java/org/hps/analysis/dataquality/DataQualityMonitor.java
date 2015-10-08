@@ -23,6 +23,8 @@ import org.lcsim.util.aida.AIDA;
  * calculateEndOfRunQuantities & printDQMData i.e. useful methods
  */
 public class DataQualityMonitor extends Driver {
+    
+    private static Logger LOGGER = Logger.getLogger(DataQualityMonitor.class.getPackage().getName());
 
     protected AIDA aida = AIDA.defaultInstance();
     protected DQMDatabaseManager manager;
@@ -89,16 +91,16 @@ public class DataQualityMonitor extends Driver {
         printDQMData();
         if (printDQMStrings)
             printDQMStrings();
-        System.out.println("Should I write to the database?  " + connectToDB);
+        LOGGER.info("Should I write to the database?  " + connectToDB);
         if (connectToDB) {
-            System.out.println("Connecting To Database...getting DQMDBManager");
+            LOGGER.info("Connecting To Database...getting DQMDBManager");
             manager = DQMDatabaseManager.getInstance();
             //check to see if I need to make a new db entry
             boolean entryExists = false;
             try {
                 entryExists = checkRowExists();
                 if (entryExists)
-                    System.out.println("Found an existing run/reco entry in the dqm database; overwrite = " + overwriteDB);
+                    LOGGER.info("Found an existing run/reco entry in the dqm database; overwrite = " + overwriteDB);
             } catch (SQLException ex) {
                 Logger.getLogger(DataQualityMonitor.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -111,15 +113,15 @@ public class DataQualityMonitor extends Driver {
     }
 
     private void makeNewRow() {
-        System.out.println("is the data base connected?  " + manager.isConnected);
+        LOGGER.info("is the data base connected?  " + manager.isConnected);
         if (manager.isConnected) {
             String ins = "insert into dqm SET runNumber=" + runNumber;
-//            System.out.println(ins);
+//            LOGGER.info(ins);
             manager.updateQuery(ins);
             ins = "update  dqm SET recoVersion='" + recoVersion + "' where runNumber=" + runNumber;
             manager.updateQuery(ins);
         }
-        System.out.println("Made a new row for runNumber=" + runNumber + "; recoVersion=" + recoVersion);
+        LOGGER.info("Made a new row for runNumber=" + runNumber + "; recoVersion=" + recoVersion);
     }
 
     private boolean checkRowExists() throws SQLException {
@@ -137,7 +139,7 @@ public class DataQualityMonitor extends Driver {
         double result = res.getDouble(var);
         if (res.wasNull())
             return true;
-        System.out.println("checkSelectionIsNULL::" + var + " = " + result);
+        LOGGER.info("checkSelectionIsNULL::" + var + " = " + result);
         return false;
     }
 
@@ -166,11 +168,11 @@ public class DataQualityMonitor extends Driver {
                 Logger.getLogger(SvtMonitoring.class.getName()).log(Level.SEVERE, null, ex);
             }
             if (!overwriteDB && !isnull) {
-                System.out.println("Not writing because " + name + " is already filled for this entry");
+                LOGGER.info("Not writing because " + name + " is already filled for this entry");
                 continue; //entry exists and I don't want to overwrite                
             }
             String put = "update dqm SET " + name + " = " + val + " WHERE " + getRunRecoString();
-            System.out.println(put);
+            LOGGER.info(put);
             manager.updateQuery(put);
 
         }
@@ -206,7 +208,7 @@ public class DataQualityMonitor extends Driver {
                         match = false;
                 }
         } else if (debug)
-            System.out.println(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
+            LOGGER.info(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
         return match;
     }
 

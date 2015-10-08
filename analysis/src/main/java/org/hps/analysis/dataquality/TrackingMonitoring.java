@@ -8,9 +8,12 @@ import hep.aida.IHistogram2D;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
+
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -33,6 +36,8 @@ import org.lcsim.util.aida.AIDA;
 // TODO:  Add some quantities for DQM monitoring:  e.g. <tracks>, <hits/track>, etc
 public class TrackingMonitoring extends DataQualityMonitor {
 
+    private static Logger LOGGER = Logger.getLogger(SvtMonitoring.class.getPackage().getName());
+    
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private final String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
     private final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
@@ -566,7 +571,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
             IHistogram1D hitTimeResidual = getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", getNiceSensorName(sensor));
             IFitResult result = fitGaussian(hitTimeResidual, fitter, "range=\"(-20.0,20.0)\"");
             if (result != null) {
-                System.out.format("%s\t%f\t%f\t%d\t%d\n", getNiceSensorName(sensor), result.fittedParameters()[1], result.fittedParameters()[2], sensor.getFebID(), sensor.getFebHybridID());
+                LOGGER.info(String.format("%s\t%f\t%f\t%d\t%d", getNiceSensorName(sensor), result.fittedParameters()[1], result.fittedParameters()[2], sensor.getFebID(), sensor.getFebHybridID()));
             }
         }
 
@@ -584,7 +589,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
         try {
             ifr = fitter.fit(h1d, "g", init, range);
         } catch (RuntimeException ex) {
-            System.out.println(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
+            LOGGER.info(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
         }
         return ifr;
 //        double[] init = {20.0, 0.0, 1.0, 20, -1};
@@ -593,17 +598,16 @@ public class TrackingMonitoring extends DataQualityMonitor {
 
     @Override
     public void printDQMData() {
-        System.out.println("ReconMonitoring::printDQMData");
+        LOGGER.info("ReconMonitoring::printDQMData");
         for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         }
-        System.out.println("*******************************");
     }
 
     @Override
     public void printDQMStrings() {
         for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         }
     }
 

@@ -9,9 +9,12 @@ import hep.aida.IHistogram2D;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
+
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
@@ -33,6 +36,8 @@ import org.lcsim.geometry.Detector;
  */
 public class TridentMonitoring extends DataQualityMonitor {
 
+    private static Logger LOGGER = Logger.getLogger(TridentMonitoring.class.getPackage().getName());
+    
     private double ebeam = 1.05;
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
     private static final int nCuts = 9;
@@ -217,7 +222,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        System.out.println("TridendMonitoring::detectorChanged  Setting up the plotter");
+        LOGGER.info("TridendMonitoring::detectorChanged  Setting up the plotter");
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
 
         aida.tree().cd("/");
@@ -759,7 +764,8 @@ public class TridentMonitoring extends DataQualityMonitor {
     }
 
     @Override
-    public void printDQMData() {
+    // TODO: Change from System.out to use logger instead.
+    public void printDQMData() {        
         System.out.println("TridendMonitoring::printDQMData");
         for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
             System.out.println(entry.getKey() + " = " + entry.getValue());
@@ -770,7 +776,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 
         System.out.println("\t\t\tTridend Selection Summary");
         System.out.println("******************************************************************************************");
-        System.out.format("Number of      V0:\t%8.0f\t%8.6f\t%8.6f\t%8.6f\n", nRecoV0, nRecoV0 / nRecoV0, nRecoV0 / nRecoV0, nRecoV0 / nEvents);
+        System.out.println(String.format("Number of      V0:\t%8.0f\t%8.6f\t%8.6f\t%8.6f\n", nRecoV0, nRecoV0 / nRecoV0, nRecoV0 / nRecoV0, nRecoV0 / nEvents));
 
         for (int i = 0; i < nCuts; i++) {
             if (i == firstVertexingCut) {
@@ -799,7 +805,7 @@ public class TridentMonitoring extends DataQualityMonitor {
     public void printDQMStrings() {
         for (int i = 0; i < 9; i++)//TODO:  do this in a smarter way...loop over the map
         {
-            System.out.println("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
         }
     }
 

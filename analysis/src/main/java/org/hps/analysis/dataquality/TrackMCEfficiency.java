@@ -5,10 +5,13 @@ import hep.aida.IHistogramFactory;
 import hep.aida.IProfile1D;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
+
 import org.hps.analysis.examples.TrackAnalysis;
 import org.hps.recon.tracking.FindableTrack;
 import org.hps.recon.tracking.FittedRawTrackerHit;
@@ -37,6 +40,8 @@ import org.lcsim.geometry.Detector;
 // TODO:  Add some quantities for DQM monitoring:  e.g. <efficiency>, <eff>_findable
 public class TrackMCEfficiency extends DataQualityMonitor {
 
+    private static Logger LOGGER = Logger.getLogger(TrackMCEfficiency.class.getPackage().getName());
+    
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     private String trackHitCollectionName = "RotatedHelicalTrackHits";
     private String fittedSVTHitCollectionName = "SVTFittedRawTrackerHits";
@@ -118,33 +123,33 @@ public class TrackMCEfficiency extends DataQualityMonitor {
         //make sure the required collections exist
         if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
             if (debug)
-                System.out.println(this.getClass().getSimpleName() + ": no collection found " + rawTrackerHitCollectionName);
+                LOGGER.info(this.getClass().getSimpleName() + ": no collection found " + rawTrackerHitCollectionName);
             return;
         }
         if (!event.hasCollection(LCRelation.class, fittedSVTHitCollectionName))
             if (debug)
-                System.out.println(this.getClass().getSimpleName() + ": no collection found " + fittedSVTHitCollectionName); //mg...2/1/2015...don't return if the fitted collection isn't there...
+                LOGGER.info(this.getClass().getSimpleName() + ": no collection found " + fittedSVTHitCollectionName); //mg...2/1/2015...don't return if the fitted collection isn't there...
         //allow us to run if we simulated in "simple" mode (i.e. no time evolution)
         //            return;
         if (!event.hasCollection(Track.class, trackCollectionName)) {
             if (debug)
-                System.out.println(this.getClass().getSimpleName() + ": no collection found " + trackCollectionName);
+                LOGGER.info(this.getClass().getSimpleName() + ": no collection found " + trackCollectionName);
             return;
         }
         if (!event.hasCollection(LCRelation.class, trackHitMCRelationsCollectionName)) {
             if (debug)
-                System.out.println(this.getClass().getSimpleName() + ": no collection found " + trackHitMCRelationsCollectionName);
+                LOGGER.info(this.getClass().getSimpleName() + ": no collection found " + trackHitMCRelationsCollectionName);
             return;
         }
         if (!event.hasCollection(TrackerHit.class, siClusterCollectionName)) {
             if (debug)
-                System.out.println(this.getClass().getSimpleName() + ": no collection found " + siClusterCollectionName);
+                LOGGER.info(this.getClass().getSimpleName() + ": no collection found " + siClusterCollectionName);
             return;
         }
 
         if (!event.hasCollection(SimTrackerHit.class, trackerHitCollectionName)) {
             if (debug)
-                System.out.println(this.getClass().getSimpleName() + ": no collection found " + trackerHitCollectionName);
+                LOGGER.info(this.getClass().getSimpleName() + ": no collection found " + trackerHitCollectionName);
             return;
         }
         //
@@ -156,12 +161,12 @@ public class TrackMCEfficiency extends DataQualityMonitor {
         RelationalTable hittomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> mcrelations = event.get(LCRelation.class, trackHitMCRelationsCollectionName);
         if (debugTrackEfficiency)
-            System.out.println(this.getClass().getSimpleName() + ": number of MC relations = " + mcrelations.size());
+            LOGGER.info(this.getClass().getSimpleName() + ": number of MC relations = " + mcrelations.size());
         for (LCRelation relation : mcrelations)
             if (relation != null && relation.getFrom() != null && relation.getTo() != null)
                 hittomc.add(relation.getFrom(), relation.getTo());
         if (debugTrackEfficiency)
-            System.out.println(this.getClass().getSimpleName() + ": number of hittomc relations = " + hittomc.size());
+            LOGGER.info(this.getClass().getSimpleName() + ": number of hittomc relations = " + hittomc.size());
         RelationalTable mcHittomcP = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         //  Get the collections of SimTrackerHits
         List<List<SimTrackerHit>> simcols = event.get(SimTrackerHit.class);
@@ -220,14 +225,14 @@ public class TrackMCEfficiency extends DataQualityMonitor {
 
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         if (debugTrackEfficiency)
-            System.out.println(this.getClass().getSimpleName() + ": nTracks = " + tracks.size());
+            LOGGER.info(this.getClass().getSimpleName() + ": nTracks = " + tracks.size());
         for (Track trk : tracks) {
             TrackAnalysis tkanal = new TrackAnalysis(trk, hittomc, rawtomc, hittostrip, hittorotated);
             tkanalMap.put(trk, tkanal);
             MCParticle mcp = tkanal.getMCParticleNew();
             if (mcp != null) {//  Create a map between the tracks found and the assigned MC particle            
                 if (debugTrackEfficiency)
-                    System.out.println(this.getClass().getSimpleName() + ": found MCP match");
+                    LOGGER.info(this.getClass().getSimpleName() + ": found MCP match");
                 trktomc.add(trk, tkanal.getMCParticleNew());
             }
         }
@@ -250,11 +255,11 @@ public class TrackMCEfficiency extends DataQualityMonitor {
             double phi = Math.atan2(px, pz);
             //  Find the number of layers hit by this mc particle
             if (debugTrackEfficiency)
-                System.out.println("MC pt=" + pt);
+                LOGGER.info("MC pt=" + pt);
             int nhits = findable.LayersHit(mcp);
             boolean isFindable = findable.InnerTrackerIsFindable(mcp, nlayers - 2);
             if (debugTrackEfficiency)
-                System.out.println("nhits Findable =" + nhits + "; is findable? " + isFindable);
+                LOGGER.info("nhits Findable =" + nhits + "; is findable? " + isFindable);
             //  Calculate the helix parameters for this MC particle
             HelixParamCalculator helix = new HelixParamCalculator(mcp, bfield);
             double d0 = helix.getDCA();
@@ -299,7 +304,7 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                     wgt = 1.;
                 foundTracks += wgt;
                 if (debugTrackEfficiency)
-                    System.out.println("...is findable; filling plots with weight " + wgt);
+                    LOGGER.info("...is findable; filling plots with weight " + wgt);
                 peffFindable.fill(p, wgt);
                 phieffFindable.fill(phi, wgt);
                 ctheffFindable.fill(cth, wgt);
@@ -310,17 +315,17 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                     if (debugTrackEfficiency)
                         if (fittomc != null) {
                             Set<FittedRawTrackerHit> fitlist = fittomc.allTo(mcp);
-                            System.out.println(this.getClass().getSimpleName() + ":  Missed a findable track with MC p = " + p);
+                            LOGGER.info(this.getClass().getSimpleName() + ":  Missed a findable track with MC p = " + p);
                             if (!hasHTHInEachLayer(hitlist, fitlist))
-                                System.out.println("\t\tThis track failed becasue it's missing a helical track hit");
+                                LOGGER.info("\t\tThis track failed becasue it's missing a helical track hit");
                         }
                 }
 
             }
             if (debugTrackEfficiency){
-                System.out.println("# of mc parents " + mcp.getParents().size());
+                LOGGER.info("# of mc parents " + mcp.getParents().size());
                 if(mcp.getParents().size() > 0 )
-                    System.out.println("PDG ID of parent 0 is " + mcp.getParents().get(0).getPDGID());
+                    LOGGER.info("PDG ID of parent 0 is " + mcp.getParents().get(0).getPDGID());
             }
             if (mcp.getParents().size() == 1 && mcp.getParents().get(0).getPDGID() == 622) {
                 totelectrons++;
@@ -329,7 +334,7 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                 if (ntrk > 0)
                     wgt = 1.;
                 if (debugTrackEfficiency)
-                    System.out.println("...is from A'; filling plots with weight " + wgt);
+                    LOGGER.info("...is from A'; filling plots with weight " + wgt);
                 foundelectrons += wgt;
                 peffElectrons.fill(p, wgt);
                 phieffElectrons.fill(phi, wgt);
@@ -382,30 +387,30 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                 if (hit.Layer() == layer)
                     hasThisLayer = true;
             if (!hasThisLayer) {
-//                System.out.println("Missing reconstructed hit in layer = " + layer);
+//                LOGGER.info("Missing reconstructed hit in layer = " + layer);
                 boolean hasFitHitSL1 = false;
                 boolean hasFitHitSL2 = false;
                 FittedRawTrackerHit fitSL1 = null;
                 FittedRawTrackerHit fitSL2 = null;
-//                System.out.println("fitted hit list size = " + fitlist.size());
+//                LOGGER.info("fitted hit list size = " + fitlist.size());
                 for (FittedRawTrackerHit fit : fitlist) {
-//                    System.out.println("fitted hit layer number = " + fit.getRawTrackerHit().getLayerNumber());
+//                    LOGGER.info("fitted hit layer number = " + fit.getRawTrackerHit().getLayerNumber());
                     if (fit.getRawTrackerHit().getLayerNumber() == layer) {
                         hasFitHitSL1 = true;
                         fitSL1 = fit;
-//                        System.out.println("Found a hit in SL1 with t0 = " + fitSL1.getT0() + "; amp = " + fitSL1.getAmp() + "; chi^2 = " + fitSL1.getShapeFitParameters().getChiProb() + "; strip = " + fitSL1.getRawTrackerHit().getCellID());
+//                        LOGGER.info("Found a hit in SL1 with t0 = " + fitSL1.getT0() + "; amp = " + fitSL1.getAmp() + "; chi^2 = " + fitSL1.getShapeFitParameters().getChiProb() + "; strip = " + fitSL1.getRawTrackerHit().getCellID());
                     }
                     if (fit.getRawTrackerHit().getLayerNumber() == layer + 1) {
                         hasFitHitSL2 = true;
                         fitSL2 = fit;
-//                        System.out.println("Found a hit in SL2 with t0 = " + fitSL2.getT0() + "; amp = " + fitSL2.getAmp() + "; chi^2 = " + fitSL2.getShapeFitParameters().getChiProb() + "; strip = " + fitSL2.getRawTrackerHit().getCellID());
+//                        LOGGER.info("Found a hit in SL2 with t0 = " + fitSL2.getT0() + "; amp = " + fitSL2.getAmp() + "; chi^2 = " + fitSL2.getShapeFitParameters().getChiProb() + "; strip = " + fitSL2.getRawTrackerHit().getCellID());
 
                     }
                 }
 //                if (!hasFitHitSL1)
-//                    System.out.println("MISSING a hit in SL1!!!");
+//                    LOGGER.info("MISSING a hit in SL1!!!");
 //                if (!hasFitHitSL2)
-//                    System.out.println("MISSING a hit in SL2!!!");
+//                    LOGGER.info("MISSING a hit in SL2!!!");
 
                 return false;
             }

@@ -11,12 +11,14 @@ import hep.aida.IPlotterStyle;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.VecOp;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
@@ -39,6 +41,8 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
  */
 public class V0Monitoring extends DataQualityMonitor {
 
+    private static Logger LOGGER = Logger.getLogger(V0Monitoring.class.getPackage().getName());
+    
     String finalStateParticlesColName = "FinalStateParticles";
     String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
     String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
@@ -156,7 +160,7 @@ public class V0Monitoring extends DataQualityMonitor {
     protected void detectorChanged(Detector detector) {
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
 
-        System.out.println("V0Monitoring::detectorChanged  Setting up the plotter");
+        LOGGER.info("Setting up the plotter");
         aida.tree().cd("/");
         String xtra = "Extras";
         String trkType = "SeedTrack/";
@@ -381,7 +385,7 @@ public class V0Monitoring extends DataQualityMonitor {
         }
         List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         if (debug)
-            System.out.println("This events has " + finalStateParticles.size() + " final state particles");
+            LOGGER.info("This events has " + finalStateParticles.size() + " final state particles");
 
         ReconstructedParticle ele1 = null;
         ReconstructedParticle ele2 = null;
@@ -391,7 +395,7 @@ public class V0Monitoring extends DataQualityMonitor {
             if (isGBL != TrackType.isGBL(fsPart.getType()))
                 continue;
             if (debug)
-                System.out.println("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = " + fsPart.getMomentum().x());
+                LOGGER.info("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = " + fsPart.getMomentum().x());
             double charge = fsPart.getCharge();
             sumCharge += charge;
             if (charge != 0) {
@@ -410,8 +414,8 @@ public class V0Monitoring extends DataQualityMonitor {
             Hep3Vector p1 = VecOp.mult(beamAxisRotation, ele1.getMomentum());
             Hep3Vector p2 = VecOp.mult(beamAxisRotation, ele2.getMomentum());
 //            Hep3Vector beamAxis = new BasicHep3Vector(Math.sin(0.0305), 0, Math.cos(0.0305));
-//            System.out.println(p1);
-//            System.out.println(VecOp.mult(rot, p1));
+//            LOGGER.info(p1);
+//            LOGGER.info(VecOp.mult(rot, p1));
 
             double theta1 = Math.acos(p1.z() / p1.magnitude());
             double theta2 = Math.acos(p2.z() / p2.magnitude());
@@ -447,7 +451,7 @@ public class V0Monitoring extends DataQualityMonitor {
                 BilliorTrack btEle1 = new BilliorTrack(stEle1.getSeedCandidate().getHelix());
                 BilliorTrack btEle2 = new BilliorTrack(stEle2.getSeedCandidate().getHelix());
                 BilliorVertex bv = fitVertex(btEle1, btEle2);
-//                System.out.println("ee vertex: "+bv.toString());
+//                LOGGER.info("ee vertex: "+bv.toString());
                 mollerMass.fill(bv.getParameters().get("invMass"));
                 mollerVx.fill(bv.getPosition().x());
                 mollerVy.fill(bv.getPosition().y());
@@ -470,10 +474,10 @@ public class V0Monitoring extends DataQualityMonitor {
 
     @Override
     public void printDQMData() {
-        System.out.println("V0Monitoring::printDQMData");
+        LOGGER.info("V0Monitoring::printDQMData");
         for (Entry<String, Double> entry : monitoredQuantityMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
-        System.out.println("*******************************");
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
+        LOGGER.info("*******************************");
     }
 
     /**
@@ -498,7 +502,7 @@ public class V0Monitoring extends DataQualityMonitor {
             double[] parsVz = resVz.fittedParameters();
 
             for (int i = 0; i < 5; i++)
-                System.out.println("Vertex Fit Parameters:  " + resVx.fittedParameterNames()[i] + " = " + parsVx[i] + "; " + parsVy[i] + "; " + parsVz[i]);
+                LOGGER.info("Vertex Fit Parameters:  " + resVx.fittedParameterNames()[i] + " = " + parsVx[i] + "; " + parsVy[i] + "; " + parsVz[i]);
 
             IPlotter plotter = analysisFactory.createPlotterFactory().create("Vertex Position");
             plotter.createRegions(1, 3);
@@ -538,7 +542,7 @@ public class V0Monitoring extends DataQualityMonitor {
     @Override
     public void printDQMStrings() {
         for (int i = 0; i < 9; i++)//TODO:  do this in a smarter way...loop over the map
-            System.out.println("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
     }
 
     IFitResult fitVertexPosition(IHistogram1D h1d, IFitter fitter, double[] init, String range
@@ -547,7 +551,7 @@ public class V0Monitoring extends DataQualityMonitor {
         try {
             ifr = fitter.fit(h1d, "g+p1", init, range);
         } catch (RuntimeException ex) {
-            System.out.println(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
+            LOGGER.info(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
         }
         return ifr;
     }

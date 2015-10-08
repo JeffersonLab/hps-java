@@ -8,6 +8,7 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -36,6 +38,8 @@ import org.lcsim.geometry.Detector;
  */
 //TODO:  add some more quantities to DQM database:  <t0> or <sigma>_t0 for intime events;  <chi^2>, <amplitude> etc
 public class SvtMonitoring extends DataQualityMonitor {
+    
+    private static Logger LOGGER = Logger.getLogger(SvtMonitoring.class.getPackage().getName());
 
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
@@ -72,7 +76,7 @@ public class SvtMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        System.out.println("SvtMonitoring::detectorChanged  Setting up the plotter");
+        LOGGER.info("Setting up the plotter");
         this.detector = detector;
         aida.tree().cd("/");
 
@@ -120,7 +124,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         Map<String, Integer> hitsPerSensor = new HashMap<String, Integer>();
 
         if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
-//            System.out.println("Found a raw hit collection");
+//            LOGGER.info("Found a raw hit collection");
             List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
             for (RawTrackerHit hit : rawTrackerHits) {
                 int[] strips = occupancyMap.get(hit.getDetectorElement().getName());
@@ -179,13 +183,13 @@ public class SvtMonitoring extends DataQualityMonitor {
         }
 
         if (event.hasItem(trackerHitCollectionName)) {
-//            System.out.println("Found a Si cluster collection");
+//            LOGGER.info("Found a Si cluster collection");
             List<TrackerHit> siClusters = (List<TrackerHit>) event.get(trackerHitCollectionName);
             for (TrackerHit cluster : siClusters) {
                 String sensorName = getNiceSensorName((HpsSiSensor) ((RawTrackerHit) cluster.getRawHits().get(0)).getDetectorElement());
                 double t0 = cluster.getTime();
                 double dedx = cluster.getdEdx() * 1e6;
-//                System.out.println("dedx = "+dedx);
+//                LOGGER.info("dedx = "+dedx);
                 getSensorPlot(plotDir + triggerType + "/"+"t0Cluster_", sensorName).fill(t0);
                 getSensorPlot2D(plotDir + triggerType + "/"+"t0ClusterTrigTime_", sensorName).fill(t0, event.getTimeStamp() % 24);
                 getSensorPlot(plotDir + triggerType + "/"+"electrons_", sensorName).fill(dedx);
@@ -271,7 +275,7 @@ public class SvtMonitoring extends DataQualityMonitor {
     @Override
     public void fillEndOfRunPlots() {
         // Plot strip occupancies.
-        System.out.println("SvtMonitoring::endOfData  filling occupancy plots");
+        LOGGER.info("SvtMonitoring::endOfData  filling occupancy plots");
         for (HpsSiSensor sensor : sensors) {
             Double avg = 0.0;
             //IHistogram1D sensorHist = aida.histogram1D(sensor.getName());
@@ -358,18 +362,18 @@ public class SvtMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMData() {
         for (HpsSiSensor sensor : sensors) {
-            System.out.println(avgOccupancyNames.get(sensor.getName()) + "  " +triggerType+" " + avgOccupancyMap.get(sensor.getName()));
-            System.out.println(avgt0Names.get(sensor.getName()) + "  " +triggerType+" " + avgt0Map.get(sensor.getName()));
-            System.out.println(sigt0Names.get(sensor.getName()) + "  " +triggerType+" " + sigt0Map.get(sensor.getName()));
+            LOGGER.info(avgOccupancyNames.get(sensor.getName()) + "  " +triggerType+" " + avgOccupancyMap.get(sensor.getName()));
+            LOGGER.info(avgt0Names.get(sensor.getName()) + "  " +triggerType+" " + avgt0Map.get(sensor.getName()));
+            LOGGER.info(sigt0Names.get(sensor.getName()) + "  " +triggerType+" " + sigt0Map.get(sensor.getName()));
         }
     }
 
     @Override
     public void printDQMStrings() {
         for (HpsSiSensor sensor : sensors) {
-            System.out.println("ALTER TABLE dqm ADD " + avgOccupancyNames.get(sensor.getName()) + " double;");
-            System.out.println("ALTER TABLE dqm ADD " + avgt0Names.get(sensor.getName()) + " double;");
-            System.out.println("ALTER TABLE dqm ADD " + sigt0Names.get(sensor.getName()) + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + avgOccupancyNames.get(sensor.getName()) + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + avgt0Names.get(sensor.getName()) + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + sigt0Names.get(sensor.getName()) + " double;");
         }
     }
 
@@ -388,11 +392,11 @@ public class SvtMonitoring extends DataQualityMonitor {
             Logger.getLogger(SvtMonitoring.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (!overwriteDB && !isnull) {
-            System.out.println("Not writing because " + name + " is already filled for this entry");
+            LOGGER.info("Not writing because " + name + " is already filled for this entry");
             return; //entry exists and I don't want to overwrite                
         }
         String put = "update dqm SET " + name + " = " + val + " WHERE " + getRunRecoString();
-        System.out.println(put);
+        LOGGER.info(put);
         manager.updateQuery(put);
     }
 }

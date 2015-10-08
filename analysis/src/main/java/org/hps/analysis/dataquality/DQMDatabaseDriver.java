@@ -1,8 +1,8 @@
 package org.hps.analysis.dataquality;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import org.lcsim.conditions.ConditionsReader;
+import java.util.logging.Logger;
+
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
@@ -14,6 +14,8 @@ import org.lcsim.util.Driver;
  * cribbed heavily from {@link org.hps.conditions.ConditionsDriver}
  */
 public class DQMDatabaseDriver extends Driver {
+    
+    private static Logger LOGGER = Logger.getLogger(DQMDatabaseDriver.class.getPackage().getName());
 
     // Static instance of the manager.
     static DQMDatabaseManager manager;
@@ -27,7 +29,7 @@ public class DQMDatabaseDriver extends Driver {
      * connection parameters and configuration.
      */
     public DQMDatabaseDriver() throws SQLException {
-        System.out.println("DQMDatabaseDriver.ctor");
+        LOGGER.info("DQMDatabaseDriver.ctor");
         manager = new DQMDatabaseManager();
         manager.setConnectionResource(_defaultConnectionResource);
         manager.setup();
@@ -35,7 +37,7 @@ public class DQMDatabaseDriver extends Driver {
 //       ResultSet result=manager.selectQuery("SELECT * from dqm where run=1111;");
         //      result.next();
         //      float  occ = result.getFloat(3);
-        //      System.out.println(occ);
+        //      LOGGER.info(occ);
     }
 
     /**

@@ -16,8 +16,10 @@ import hep.aida.IProfile1D;
 import hep.aida.IProfile2D;
 import hep.aida.ref.plotter.style.registry.IStyleStore;
 import hep.aida.ref.plotter.style.registry.StyleRegistry;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.lcsim.util.aida.AIDA;
 
 /**
@@ -26,6 +28,8 @@ import org.lcsim.util.aida.AIDA;
  */
 public class PlotAndFitUtilities {
 
+    private static Logger LOGGER = Logger.getLogger(PlotAndFitUtilities.class.getPackage().getName());
+    
     static private AIDA aida = AIDA.defaultInstance();
 
     /*
@@ -50,7 +54,7 @@ public class PlotAndFitUtilities {
     static void plot(IPlotter plotter, IBaseHistogram histogram, IPlotterStyle style, int region) {
         if (style == null)
             style = getPlotterStyle(histogram);
-        System.out.println("Putting plot in region " + region);
+        LOGGER.info("Putting plot in region " + region);
         plotter.region(region).plot(histogram, style);
 
     }
@@ -62,7 +66,7 @@ public class PlotAndFitUtilities {
     static void plot(IPlotter plotter, IFunction function, IPlotterStyle style, int region) {
         if (style == null)
             style = getPlotterStyle(function);
-        System.out.println("Putting function in region " + region);
+        LOGGER.info("Putting function in region " + region);
         plotter.region(region).plot(function, style);
     }
 
@@ -125,7 +129,7 @@ public class PlotAndFitUtilities {
         try {
             fitResult = fitter.fit(histogram, function);
         } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+            LOGGER.info(e.getMessage());
         }
         return fitResult;
     }

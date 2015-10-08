@@ -2,8 +2,11 @@ package org.hps.analysis.dataquality;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
+
 import org.apache.commons.math.stat.StatUtils;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.lcsim.event.CalorimeterHit;
@@ -21,6 +24,8 @@ import org.lcsim.geometry.Detector;
  * mostly copied from online monitoring
  */
 public class EcalMonitoring extends DataQualityMonitor {
+    
+    private static Logger LOGGER = Logger.getLogger(EcalMonitoring.class.getPackage().getName());
 
     String readoutHitCollectionName = "EcalReadoutHits";//these are in ADC counts
     String calibratedHitCollectionName = "EcalCalHits";//these are in energy
@@ -91,7 +96,7 @@ public class EcalMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        System.out.println("EcalMonitoring::detectorChanged  Setting up the plotter");
+        LOGGER.info("EcalMonitoring::detectorChanged  Setting up the plotter");
         aida.tree().cd("/");
         if (fillHitPlots) {
             // Setup hit plots.
@@ -230,15 +235,15 @@ public class EcalMonitoring extends DataQualityMonitor {
 
     @Override
     public void dumpDQMData() {
-        System.out.println("EcalMonitoring::endOfData filling DQM database");
+        LOGGER.info("EcalMonitoring::endOfData filling DQM database");
     }
 
     @Override
     public void printDQMData() {
-        System.out.println("EcalMonitoring::printDQMData");
+        LOGGER.info("EcalMonitoring::printDQMData");
         for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
-        System.out.println("*******************************");
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
+        LOGGER.info("*******************************");
     }
 
     /**

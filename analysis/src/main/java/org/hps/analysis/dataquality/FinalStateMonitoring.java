@@ -10,11 +10,13 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
@@ -40,6 +42,8 @@ import org.lcsim.geometry.Detector;
  *
  */
 public class FinalStateMonitoring extends DataQualityMonitor {
+    
+    private static Logger LOGGER = Logger.getLogger(FinalStateMonitoring.class.getPackage().getName());
 
     String finalStateParticlesColName = "FinalStateParticles";
 
@@ -99,7 +103,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        System.out.println("FinalStateMonitoring::detectorChanged  Setting up the plotter");
+        LOGGER.info("Setting up the plotter");
         aida.tree().cd("/");
           String trkType="SeedTrack/";
         if(isGBL)
@@ -147,7 +151,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             if (debug) {
-                System.out.println(finalStateParticlesColName + " collection not found???");
+                LOGGER.info(finalStateParticlesColName + " collection not found???");
             }
             return;
         }
@@ -165,11 +169,11 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         int nUnAssTracks = 0; //number of tracks w/o clusters
         List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         if (debug) {
-            System.out.println("This events has " + finalStateParticles.size() + " final state particles");
+            LOGGER.info("This events has " + finalStateParticles.size() + " final state particles");
         }
         for (ReconstructedParticle fsPart : finalStateParticles) {
             if (debug) {
-                System.out.println("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = " + fsPart.getMomentum().x());
+                LOGGER.info("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = " + fsPart.getMomentum().x());
             }
           if (isGBL != TrackType.isGBL(fsPart.getType()))
                 continue;
@@ -269,7 +273,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                 trackTvsECalT.fill(ClusterUtilities.getSeedHitTime(fsCluster), TrackUtils.getTrackTime(fsTrack, hitToStrips, hitToRotated));
                 timeMatchDeltaT.fill(ClusterUtilities.getSeedHitTime(fsCluster) - TrackUtils.getTrackTime(fsTrack, hitToStrips, hitToRotated));
                 //          if(dy<-20)
-                //              System.out.println("Big deltaY...")
+                //              LOGGER.info("Big deltaY...")
 
             }
             if (!hasCluster) {//if there is no cluster, can't be a track or else it wouldn't be in list
@@ -283,11 +287,11 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
     @Override
     public void printDQMData() {
-        System.out.println("FinalStateMonitoring::printDQMData");
+        LOGGER.info("FinalStateMonitoring::printDQMData");
         for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         }
-        System.out.println("*******************************");
+        LOGGER.info("*******************************");
     }
 
     /**
@@ -302,7 +306,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         if (result != null) {
             double[] pars = result.fittedParameters();
             for (int i = 0; i < 5; i++) {
-                System.out.println("Beam Energy Peak:  " + result.fittedParameterNames()[i] + " = " + pars[i]);
+                LOGGER.info("Beam Energy Peak:  " + result.fittedParameterNames()[i] + " = " + pars[i]);
             }
             monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[7], (double) pars[1]);
             monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[8], (double) pars[2]);
@@ -336,7 +340,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     public void printDQMStrings() {
         for (int i = 0; i < 9; i++)//TODO:  do this in a smarter way...loop over the map
         {
-            System.out.println("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
         }
     }
 
@@ -350,7 +354,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         try {
             ifr = fitter.fit(h1d, "g+p1", init);
         } catch (RuntimeException ex) {
-            System.out.println(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
+            LOGGER.info(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
         }
 
         return ifr;

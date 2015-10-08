@@ -25,7 +25,7 @@ import org.hps.conditions.database.ConnectionParameters;
 
 @SuppressWarnings("rawtypes")
 public class DQMDatabaseManager {
-
+    
     int runNumber = -1;
     String detectorName;
     List<TableMetaData> tableMetaData;
@@ -45,7 +45,7 @@ public class DQMDatabaseManager {
      * Class constructor, which is only package accessible.
      */
     DQMDatabaseManager() {
-        System.out.println("Making the instance of DQMDatabaseManager");
+        LOGGER.info("Making the instance of DQMDatabaseManager");
 
     }
 

@@ -7,12 +7,14 @@ import hep.aida.IFitter;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.recon.tracking.gbl.GBLStripClusterData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -26,6 +28,8 @@ import org.lcsim.geometry.Detector;
 // TODO:  Add some quantities for DQM monitoring: 
 public class TrackingResiduals extends DataQualityMonitor {
 
+    private static Logger LOGGER = Logger.getLogger(TrackingResiduals.class.getPackage().getName());
+    
     // Collection Names
     String trackTimeDataCollectionName = "TrackTimeData";
     String trackResidualsCollectionName = "TrackResiduals";
@@ -303,52 +307,52 @@ public class TrackingResiduals extends DataQualityMonitor {
 
     @Override
     public void printDQMData() {
-        System.out.println("TrackingResiduals::printDQMData");
+        LOGGER.info("TrackingResiduals::printDQMData");
         for (Map.Entry<String, Double> entry : xposTopMeanResidMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         for (Map.Entry<String, Double> entry : xposBotMeanResidMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         for (Map.Entry<String, Double> entry : xposTopSigmaResidMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         for (Map.Entry<String, Double> entry : xposBotSigmaResidMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         for (Map.Entry<String, Double> entry : yposTopMeanResidMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         for (Map.Entry<String, Double> entry : yposBotMeanResidMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         for (Map.Entry<String, Double> entry : yposTopSigmaResidMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         for (Map.Entry<String, Double> entry : yposBotSigmaResidMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         for (Map.Entry<String, Double> entry : timeMeanResidMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
         for (Map.Entry<String, Double> entry : timeSigmaResidMap.entrySet())
-            System.out.println(entry.getKey() + " = " + entry.getValue());
-        System.out.println("*******************************");
+            LOGGER.info(entry.getKey() + " = " + entry.getValue());
+        LOGGER.info("*******************************");
     }
 
     @Override
     public void printDQMStrings() {
         for (Map.Entry<String, Double> entry : xposTopMeanResidMap.entrySet())
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         for (Map.Entry<String, Double> entry : xposBotMeanResidMap.entrySet())
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         for (Map.Entry<String, Double> entry : xposTopSigmaResidMap.entrySet())
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         for (Map.Entry<String, Double> entry : xposBotSigmaResidMap.entrySet())
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         for (Map.Entry<String, Double> entry : yposTopMeanResidMap.entrySet())
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         for (Map.Entry<String, Double> entry : yposBotMeanResidMap.entrySet())
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         for (Map.Entry<String, Double> entry : yposTopSigmaResidMap.entrySet())
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         for (Map.Entry<String, Double> entry : yposBotSigmaResidMap.entrySet())
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         for (Map.Entry<String, Double> entry : timeMeanResidMap.entrySet())
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         for (Map.Entry<String, Double> entry : timeSigmaResidMap.entrySet())
-            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
+            LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
     }
 
     private void resetOccupancyMap() {
@@ -385,7 +389,7 @@ public class TrackingResiduals extends DataQualityMonitor {
         try {
             ifr = fitter.fit(h1d, "g", init, range);
         } catch (RuntimeException ex) {
-            System.out.println(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
+            LOGGER.info(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
         }
         return ifr;
 //        double[] init = {20.0, 0.0, 1.0, 20, -1};
