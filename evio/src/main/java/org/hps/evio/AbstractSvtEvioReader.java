@@ -156,7 +156,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
      */
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) throws SvtEvioReaderException {
 
-        LOGGER.fine("Physics Event: " + event.toString());
+        LOGGER.finest("Physics Event: " + event.toString());
         
         // Retrieve the ROC banks encapsulated by the physics bank.  The ROC
         // bank range is set in the subclass.
@@ -164,15 +164,15 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         for (int rocBankTag = this.getMinRocBankTag(); 
                 rocBankTag <= this.getMaxRocBankTag(); rocBankTag++) { 
             
-            LOGGER.fine("Retrieving ROC bank: " + rocBankTag);
+            LOGGER.finest("Retrieving ROC bank: " + rocBankTag);
             List<BaseStructure> matchingRocBanks = this.getMatchingBanks(event, rocBankTag);
             if (matchingRocBanks == null) { 
-                LOGGER.fine("ROC bank " + rocBankTag + " was not found!");
+                LOGGER.finest("ROC bank " + rocBankTag + " was not found!");
                 continue;
             }
             rocBanks.addAll(matchingRocBanks);
         }
-        LOGGER.fine("Total ROC banks found: " + rocBanks.size());
+        LOGGER.finest("Total ROC banks found: " + rocBanks.size());
         
         // Return false if ROC banks weren't found
         if (rocBanks.isEmpty()) return false;  
@@ -191,9 +191,9 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         // Loop over the SVT ROC banks and process all samples
         for (BaseStructure rocBank : rocBanks) { 
             
-            LOGGER.fine("ROC bank: " + rocBank.toString());
+            LOGGER.finest("ROC bank: " + rocBank.toString());
             
-            LOGGER.fine("Processing ROC bank " + rocBank.getHeader().getTag());
+            LOGGER.finest("Processing ROC bank " + rocBank.getHeader().getTag());
             
             // If the ROC bank doesn't contain any data, raise an exception
             if (rocBank.getChildCount() == 0) { 
@@ -203,25 +203,25 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
             
             // Get the data banks containing the SVT samples.  
             List<BaseStructure> dataBanks = rocBank.getChildren(); 
-            LOGGER.fine("Total data banks found: " + dataBanks.size());
+            LOGGER.finest("Total data banks found: " + dataBanks.size());
             
             // Loop over all of the data banks contained by the ROC banks and 
             // processed them
             for (BaseStructure dataBank : dataBanks) { 
         
-                LOGGER.fine("Processing data bank: " + dataBank.toString());
+                LOGGER.finest("Processing data bank: " + dataBank.toString());
                 
                 // Check that the bank is valid
                 if (!this.isValidDataBank(dataBank)) continue;
                 
                 // Get the int data encapsulated by the data bank
                 int[] data = dataBank.getIntData();
-                LOGGER.fine("Total number of integers contained by the data bank: " + data.length);
+                LOGGER.finest("Total number of integers contained by the data bank: " + data.length);
         
                 // Check that a complete set of samples exist
                 int sampleCount = data.length - this.getDataHeaderLength()
                         - this.getDataTailLength();
-                LOGGER.fine("Total number of  samples: " + sampleCount);
+                LOGGER.finest("Total number of  samples: " + sampleCount);
                 if (sampleCount % 4 != 0) {
                     throw new SvtEvioReaderException("[ "
                             + this.getClass().getSimpleName()
@@ -244,7 +244,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                 int multisampleHeaderData[] = new int[sampleCount];
                 int multisampleHeaderIndex = 0;
 
-                LOGGER.fine("sampleCount " + sampleCount);
+                LOGGER.finest("sampleCount " + sampleCount);
                 
                 // Loop through all of the samples and make hits
                 for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
@@ -252,11 +252,11 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                     int[] samples = new int[4];
                     System.arraycopy(data, this.getDataHeaderLength() + samplesN, samples, 0, samples.length);
                     
-                    LOGGER.fine("samplesN " + samplesN + " multisampleHeaderCount " + multisampleHeaderIndex);
+                    LOGGER.finest("samplesN " + samplesN + " multisampleHeaderCount " + multisampleHeaderIndex);
                     if(SvtEvioUtils.isMultisampleHeader(samples))
-                        LOGGER.fine("this is a header multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
+                        LOGGER.finest("this is a header multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
                     else 
-                        LOGGER.fine("this is a data   multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
+                        LOGGER.finest("this is a data multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
                     
                     
                     // Extract data words from multisample header 
@@ -267,7 +267,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                     rawHits.add(this.makeHit(samples));
                 }
                 
-                LOGGER.fine("got " +  multisampleHeaderIndex + " multisampleHeaderIndex for " + sampleCount + " sampleCount");
+                LOGGER.finest("got " +  multisampleHeaderIndex + " multisampleHeaderIndex for " + sampleCount + " sampleCount");
                 
                 // add multisample header tails to header data object
                 this.setMultiSampleHeaders(headerData, multisampleHeaderIndex, multisampleHeaderData);
@@ -275,7 +275,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
             }
         }
         
-        LOGGER.fine("Total number of RawTrackerHits created: " + rawHits.size());
+        LOGGER.finest("Total number of RawTrackerHits created: " + rawHits.size());
 
         // Turn on 64-bit cell ID.
         int flag = LCIOUtil.bitSet(0, 31, true);
