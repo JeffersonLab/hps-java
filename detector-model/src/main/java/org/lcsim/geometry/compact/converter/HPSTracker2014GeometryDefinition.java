@@ -119,8 +119,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             }
         }       
 
-        LOGGER.info(String.format("%s: Constructed %d geometry objects\n", this.getClass().getSimpleName(), surveyVolumes.size()));
-        LOGGER.info(String.format("%s: Constructed %d module bundles\n", this.getClass().getSimpleName(),modules.size()));
+        LOGGER.info(String.format("%s: Constructed %d geometry objects", this.getClass().getSimpleName(), surveyVolumes.size()));
+        LOGGER.info(String.format("%s: Constructed %d module bundles", this.getClass().getSimpleName(),modules.size()));
 
         if(isDebug()) {
             System.out.printf("%s: DONE constructing the geometry objects\n", this.getClass().getSimpleName());
