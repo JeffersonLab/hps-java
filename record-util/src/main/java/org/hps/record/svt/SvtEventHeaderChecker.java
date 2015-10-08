@@ -1,21 +1,14 @@
 /**
  * 
  */
-package org.hps.evio;
+package org.hps.record.svt;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderApvBufferAddressException;
-import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderApvFrameCountException;
-import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderApvReadErrorException;
-import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderException;
-import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderMultisampleErrorBitException;
-import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderOFErrorException;
-import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderSkipCountException;
-import org.hps.record.svt.SvtHeaderDataInfo;
+import org.hps.record.svt.SvtEvioExceptions.*;
+
 
 /**
  * 
@@ -31,9 +24,16 @@ public class SvtEventHeaderChecker {
         /**
      * Check the integrity of the SVT header information.
      * @param headers - headers to check
+         * @throws SvtEvioHeaderApvBufferAddressException 
+         * @throws SvtEvioHeaderApvFrameCountException 
+         * @throws SvtEvioHeaderMultisampleErrorBitException 
+         * @throws SvtEvioHeaderApvReadErrorException 
+         * @throws SvtEvioHeaderSkipCountException 
+         * @throws SvtEvioHeaderOFErrorException 
+         * @throws SvtEvioHeaderSyncErrorException 
      * @throws SvtEvioHeaderException
      */
-    public static void checkSvtHeaders(List<SvtHeaderDataInfo> headers) throws SvtEvioHeaderException {
+    public static void checkSvtHeaders(List<SvtHeaderDataInfo> headers) throws SvtEvioHeaderApvBufferAddressException, SvtEvioHeaderApvFrameCountException, SvtEvioHeaderMultisampleErrorBitException, SvtEvioHeaderApvReadErrorException, SvtEvioHeaderSyncErrorException, SvtEvioHeaderOFErrorException, SvtEvioHeaderSkipCountException  {
         LOGGER.fine("check " + headers.size() + " headers  ");
         int[] bufferAddresses = new int[6];
         int[] firstFrameCounts = new int[6];
@@ -156,7 +156,7 @@ public class SvtEventHeaderChecker {
 
     }
     
-    public static void checkSvtHeaderData(SvtHeaderDataInfo header) throws SvtEvioHeaderException {
+    public static void checkSvtHeaderData(SvtHeaderDataInfo header) throws SvtEvioHeaderSyncErrorException, SvtEvioHeaderOFErrorException, SvtEvioHeaderSkipCountException {
         int tail = header.getTail();
         LOGGER.fine("checkSvtHeaderData tail " + tail + "( " + Integer.toHexString(tail) + " ) " +
                                                  " errorbit   " +  Integer.toHexString(SvtEvioUtils.getSvtTailSyncErrorBit(tail)) +

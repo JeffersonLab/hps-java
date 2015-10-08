@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 import org.hps.analysis.trigger.util.TriggerDataUtils;
 import org.hps.evio.SvtEvioReader;
-import org.hps.evio.SvtEvioUtils;
+import org.hps.record.svt.SvtEvioUtils;
 import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.event.EventHeader;

@@ -2,9 +2,10 @@ package org.hps.evio;
 
 import java.util.List;
 
-import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderException;
-import org.hps.evio.SvtEvioExceptions.SvtEvioReaderException;
+import org.hps.record.svt.SvtEvioUtils;
 import org.hps.record.svt.SvtHeaderDataInfo;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderException;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioReaderException;
 import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
@@ -12,7 +13,6 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
-import org.lcsim.lcio.LCIOUtil;
 
 /**
  *  SVT EVIO reader used to convert SVT bank integer data to LCIO objects.

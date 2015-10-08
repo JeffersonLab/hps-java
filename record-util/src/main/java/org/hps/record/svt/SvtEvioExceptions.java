@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.hps.evio;
+package org.hps.record.svt;
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>

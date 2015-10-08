@@ -6,9 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.hps.evio.SvtEvioExceptions.SvtEvioHeaderException;
-import org.hps.evio.SvtEvioExceptions.SvtEvioReaderException;
+import org.hps.record.svt.SvtEvioUtils;
 import org.hps.record.svt.SvtHeaderDataInfo;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderException;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioReaderException;
 import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.DataType;

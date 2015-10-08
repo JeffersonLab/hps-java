@@ -5,8 +5,16 @@ package org.hps.evio;
 
 import java.util.List;
 
-import org.hps.evio.SvtEvioExceptions.*;
+import org.hps.record.svt.SvtEventHeaderChecker;
 import org.hps.record.svt.SvtHeaderDataInfo;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderApvBufferAddressException;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderApvFrameCountException;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderApvReadErrorException;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderException;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderMultisampleErrorBitException;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderOFErrorException;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderSkipCountException;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderSyncErrorException;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOUtil;
 
@@ -16,6 +24,8 @@ import org.lcsim.lcio.LCIOUtil;
  */
 public class AugmentedSvtEvioReader extends SvtEvioReader {
 
+    private final static boolean throwHeaderExceptions = false; 
+    
     /**
      * 
      */
@@ -27,14 +37,22 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
     
     @Override
     protected void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) throws SvtEvioHeaderException {
+    
         // Check that the SVT header data is valid
-        // Catch the exception locally, add stuff to the event, then throw it again
+        // Catch the exceptions locally, add stuff to the event, then throw it again
         // and handle it outside
+        
+        // if we want we can control the behavior here depending on if we want the run to stop
+        
         try {
-        
             SvtEventHeaderChecker.checkSvtHeaders(headers);
-        
-        } catch(SvtEvioHeaderException e) {
+        } catch (SvtEvioHeaderApvBufferAddressException
+                | SvtEvioHeaderApvFrameCountException
+                | SvtEvioHeaderMultisampleErrorBitException
+                | SvtEvioHeaderApvReadErrorException
+                | SvtEvioHeaderSyncErrorException
+                | SvtEvioHeaderOFErrorException
+                | SvtEvioHeaderSkipCountException e) {
 
             // add skimming flag
             SvtEventFlagger.voidAddHeaderCheckResultToMetaData(false, lcsimEvent);
@@ -43,10 +61,14 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
             SvtEventFlagger.AddHeaderInfoToMetaData(headers, lcsimEvent);
             
             // then throw the exception again to be caught in the event builder
-            throw new SvtEvioHeaderException(e);
-            
-        } 
-
+            if(throwHeaderExceptions)
+                throw new SvtEvioHeaderException(e);
+            else {
+                LOGGER.info("caught SvtEvioHeaderException exception for event " + lcsimEvent.getEventNumber());
+                return; // need to return to prevent me from setting the GOOD flag outside the caught exceptions.
+            }
+        }
+        
         // add skimming flag - the header is OK since I would never get here otherwise
         SvtEventFlagger.voidAddHeaderCheckResultToMetaData(true, lcsimEvent);
         

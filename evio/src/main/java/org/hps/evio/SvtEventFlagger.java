@@ -14,7 +14,6 @@ import org.hps.conditions.svt.SvtMotorPosition;
 import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.HeadBankData;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -23,6 +22,7 @@ import org.lcsim.event.RawTrackerHit;
 /**
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
+ * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  * @version $Id: $
  */
 public class SvtEventFlagger {
@@ -170,6 +170,11 @@ public class SvtEventFlagger {
         for(int iSvtHeader=0; iSvtHeader < headers.size();++iSvtHeader) {
             svtHeaders[iSvtHeader] = headers.get(iSvtHeader).getHeader();
             svtTails[iSvtHeader] = headers.get(iSvtHeader).getTail();
+            
+            lcsimEvent.getIntegerParameters().put("svt_event_header_roc" + headers.get(iSvtHeader).getNum(), new int[]{headers.get(iSvtHeader).getHeader()});
+            lcsimEvent.getIntegerParameters().put("svt_event_tail_roc" + headers.get(iSvtHeader).getNum(), new int[]{headers.get(iSvtHeader).getTail()});
+            
+            
             int nMS = headers.get(iSvtHeader).getNumberOfMultisampleHeaders();
             int[] multisampleHeadersArray = new int[4*nMS];
             for(int iMS = 0; iMS < nMS; ++iMS ) {
@@ -178,9 +183,6 @@ public class SvtEventFlagger {
             }
             lcsimEvent.getIntegerParameters().put("svt_multisample_headers_roc" + headers.get(iSvtHeader).getNum(), multisampleHeadersArray);
         }
-        lcsimEvent.getIntegerParameters().put("svt_event_headers", svtHeaders);
-        lcsimEvent.getIntegerParameters().put("svt_event_tails", svtTails);
-        
         
     }
 }
