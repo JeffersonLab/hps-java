@@ -2,11 +2,9 @@ package org.hps;
 
 import java.io.File;
 import java.net.URL;
-import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
@@ -38,6 +36,8 @@ public class ReadoutNoPileupTest extends TestCase {
         
         JobManager job = new JobManager();
         job.addInputFile(inputFile);
+        job.addVariableDefinition("detector", "HPS-Proposal2014-v8-2pt2");
+        job.addVariableDefinition("run", "0");
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_readout");
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.setup("/org/hps/steering/readout/HPS2014ReadoutNoPileup.lcsim");

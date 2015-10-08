@@ -1,9 +1,9 @@
 package org.hps.test.it;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
@@ -176,8 +176,10 @@ public final class EvioToLcioTest extends TestCase {
 
         // Run the command line utility.
         final String[] args = new String[] {"-l", outputFile.getPath(), "-d", "HPS-EngRun2015-Nominal-v1", INPUT_FILE,
-                "-L", "WARNING", "-r", "-x", "/org/hps/steering/EventMarker.lcsim"};
-        System.out.println("Running EvioToLcio on " + INPUT_FILE + " ...");
+                "-r", "-x", "/org/hps/steering/EventMarker.lcsim"};
+        System.out.println("Running EvioToLcio on " + INPUT_FILE);
+        Logger.getLogger("org.hps.evio").setLevel(Level.WARNING);
+        System.out.println("org.hps.evio logging level is " + Logger.getLogger("org.hps.evio").getLevel());
         EvioToLcio cnv = new EvioToLcio();
         cnv.parse(args);
         long start = System.currentTimeMillis();
@@ -185,6 +187,9 @@ public final class EvioToLcioTest extends TestCase {
         long elapsed = System.currentTimeMillis() - start;
         System.out.println("Done running EvioToLcio!");
         System.out.println("conversion to LCIO took " + elapsed + " ms");
+        
+        // Check that the conversion did not take too long.
+        assertTrue("Conversion from EVIO to LCIO took too long.", elapsed < 1000000);
 
         // Read in the LCIO file and run the CheckDriver on it.
         System.out.println("Checking LCIO output ...");
@@ -194,25 +199,25 @@ public final class EvioToLcioTest extends TestCase {
         loop.add(checkDriver);
         loop.loop(-1);
 
-        System.out.println("conversion took " + elapsed / loop.getTotalConsumed() + " ms/event");
+        System.out.println("conversion to LCIO took " + elapsed / loop.getTotalConsumed() + " ms/event");
 
-        // Check for correct number of events processed by loop.
-        System.out.println("Loop processed " + loop.getTotalCountableConsumed() + " events.");
-        assertEquals("Loop processed wrong number of events.", PROCESSED_COUNT, loop.getTotalCountableConsumed());
+        // Check that correct number of events were processed by the loop.
+        System.out.println("LCSim loop processed " + loop.getTotalCountableConsumed() + " events.");
+        assertEquals("LCSim loop processed the wrong number of events.", PROCESSED_COUNT, loop.getTotalCountableConsumed());
 
         // Check that the Driver saw the correct number of events.
         System.out.println("CheckDriver processed " + checkDriver.processedCount + " events.");
-        assertEquals("Driver saw wrong number of events.", PROCESSED_COUNT, checkDriver.processedCount);
+        assertEquals("Wrong number of events processed by the check Driver.", PROCESSED_COUNT, checkDriver.processedCount);
 
-        // Require that the correct number of events with EPICS data were found.
+        // Check that the correct number of EPICS data collections were written out.
         System.out.println("Found " + checkDriver.epicsDataCount + " events with EPICS data.");
-        assertTrue("Missing EPICS data.", checkDriver.epicsDataCount == EPICS_DATA_COUNT);
+        assertTrue("EPICS data count is wrong.", checkDriver.epicsDataCount == EPICS_DATA_COUNT);
 
-        // Require that the correct number of events with scaler data were found.
+        // Check that the correct number of scaler data collections were written out.
         System.out.println("Found " + checkDriver.scalerDataCount + " events with scaler data.");
-        assertTrue("Missing scaler data.", checkDriver.scalerDataCount == SCALER_DATA_COUNT);
+        assertTrue("Scaler data count is wrong.", checkDriver.scalerDataCount == SCALER_DATA_COUNT);
 
-        // Check if there were too many empty collections.
+        // Check that there were not too many empty collections.  
         for (int i = 0; i < COLLECTION_NAMES.length; i++) {
             final String collection = COLLECTION_NAMES[i];
             final Integer nEmpty = checkDriver.emptyCollections.get(collection);

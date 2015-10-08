@@ -1,13 +1,11 @@
-package org.hps;
+package org.hps.test.it;
 
 import java.io.File;
 import java.net.URL;
 import java.util.List;
-import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -23,7 +21,6 @@ import org.lcsim.util.cache.FileCache;
  */
 public class SimpleSvtReadoutTest extends TestCase {
 
-	
     static final String fileUrl = "http://www.lcsim.org/test/hps-java/ReadoutToLcioTest.slcio";
     static final File outputDir = new File("./target/test-output/" + SimpleSvtReadoutTest.class.getSimpleName());    
     static final File outputFile = new File(outputDir + File.separator + SimpleSvtReadoutTest.class.getSimpleName());
@@ -49,6 +46,8 @@ public class SimpleSvtReadoutTest extends TestCase {
         JobManager job = new JobManager();
         job.addInputFile(inputFile);
         job.addVariableDefinition("outputFile", outputFile.getPath());
+        job.addVariableDefinition("detector", "HPS-Proposal2014-v8-2pt2");
+        job.addVariableDefinition("run", "0");
         job.setup("/org/hps/steering/readout/HPS2014TruthReadoutToLcio.lcsim");        
         job.getLCSimLoop().add(checker);
         job.setNumberOfEvents(10000);

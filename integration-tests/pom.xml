@@ -29,9 +29,6 @@
                 <configuration>
                     <forkCount>1</forkCount>
                     <reuseForks>false</reuseForks>
-                    <excludes>
-                        <exclude>org/hps/**.java</exclude>
-                    </excludes>
                     <trimStackTrace>false</trimStackTrace>
                 </configuration>
             </plugin>
