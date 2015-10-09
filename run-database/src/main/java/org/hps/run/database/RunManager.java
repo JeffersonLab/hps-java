@@ -293,9 +293,7 @@ public final class RunManager implements ConditionsListener {
             if (this.connection.isClosed()) {
                 LOGGER.info("creating new database connection");
                 this.connection = connectionParameters.createConnection();
-            } else {
-                LOGGER.warning("connection already open");
-            }
+            } 
         } catch (final SQLException e) {
             throw new RuntimeException("Error opening database connection.", e);
         }
