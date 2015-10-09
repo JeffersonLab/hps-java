@@ -24,6 +24,8 @@
         <!-- Driver to strip events -->
        <driver name="StripEvent"
                 type="org.hps.recon.filtering.MollerCandidateFilter">
+              <!-- Setting the tight constraint requires two electrons (track+cluster) -->
+              <tightConstraint>true</tightConstraint>
               <!-- Name of the Moller Candidate Collection of ReconstriuctedParticles -->
               <mollerCandidateCollectionName>TargetConstrainedMollerCandidates</mollerCandidateCollectionName>
               <!-- Maximum momentum of each electron, used to remove full energy electrons -->
@@ -32,8 +34,35 @@
               <mollerMomentumSumMin>0.85</mollerMomentumSumMin>
               <!-- Sum of the two electron momenta should equal the beam energy, this is the high cut -->
               <mollerMomentumSumMax>1.3</mollerMomentumSumMax>
+              <!-- Following is for the calorimeter-only cuts -->
+              <!-- Name of Moller Candidate Calorimeter Cluster Collection Name-->
+              <mollerCandidateClusterCollectionName > "EcalClustersCorr" </mollerCandidateClusterCollectionName>
+              <!-- Minimum value for the Cluster time [ns]-->
+              <clusterTimeLo >40. </clusterTimeLo>
+              <!-- Maximum value for the Cluster time [ns]-->
+              <clusterTimeHi > 48. </clusterTimeHi>
+              <!-- Maximum value for the Cluster x position [mm]-->
+              <clusterMaxX > 0. </clusterMaxX>
+              <!-- Cluster Pair cuts -->
+              <!-- Minimum value for the Cluster x position sum [mm]-->
+              <clusterXSumLo > -175. </clusterXSumLo>
+              <!-- Maximum value for the Cluster x position sum [mm]-->
+              <clusterXSumHi > -145. </clusterXSumHi>
+              <!-- Minimum value for the Cluster x position difference [mm]-->
+              <clusterXDiffLo > -80. </clusterXDiffLo>
+              <!-- Maximum value for the Cluster x position difference [mm]-->
+              <clusterXDiffHi > 80. </clusterXDiffHi>
+              <!-- Minimum value for the Cluster Energy sum [mm]-->
+              <clusterESumLo > 0.85 </clusterESumLo>
+              <!-- Maximum value for the Cluster Energy sum [mm]-->
+              <clusterESumHi > 1.1 </clusterESumHi>
+              <!-- Minimum value for the Cluster Energy difference [mm]-->
+              <clusterEDiffLo > -0.3 </clusterEDiffLo>
+              <!-- Maximum value for the Cluster Energy difference [mm]-->
+              <clusterEDiffHi > 0.3 </clusterEDiffHi>
+
               <!-- Maximum difference in the ECal cluster times -->
-              <clusterTimingCut>2.5</clusterTimingCut>
+              <clusterDeltaTimeCut>2.5</clusterDeltaTimeCut>
               <!-- Setting this true keeps ALL events containing EPICS data -->
               <keepEpicsDataEvents>true</keepEpicsDataEvents>
         </driver>
