@@ -60,8 +60,8 @@ public class MTEAnalysis extends Driver {
 	private IHistogram1D posTrackCount = aida.histogram1D("MTE Analysis/All Positive Event Tracks", 10, -0.5, 9.5);
 	private IHistogram1D chargedTrackCount = aida.histogram1D("MTE Analysis/All Event Event Tracks", 10, -0.5, 9.5);
 	
-	private IHistogram1D trInvariantMassAll            = aida.histogram1D("Trident/Invariant Mass",                     2200,   0.0,  1.1);
-	private IHistogram1D trInvariantMassFiducial       = aida.histogram1D("Trident/Invariant Mass (Fiducial Region)",   2200,   0.0,  1.1);
+	private IHistogram1D trInvariantMassAll            = aida.histogram1D("Trident/Invariant Mass",                     1500,   0.0,  1.5);
+	private IHistogram1D trInvariantMassFiducial       = aida.histogram1D("Trident/Invariant Mass (Fiducial Region)",   1500,   0.0,  1.5);
 	private IHistogram1D trTimeCoincidenceAll          = aida.histogram1D("Trident/Time Coincidence",                    300, -15.0, 15.0);
 	private IHistogram1D trTimeCoincidenceFiducial     = aida.histogram1D("Trident/Time Coincidence (Fiducial Region)",  300, -15.0, 15.0);
 	private IHistogram1D trEnergySumAll                = aida.histogram1D("Trident/Energy Sum",                          300,   0.0,  1.5);
@@ -335,13 +335,6 @@ public class MTEAnalysis extends Driver {
 				boolean isPosNeg = (pair[0].getCharge() < 0 && pair[1].getCharge() > 0) || (pair[0].getCharge() > 0 && pair[1].getCharge() < 0);
 				if(!isPosNeg) { continue tridentTrackLoop; }
 				
-				// Require that tridents also be a top/bottom pair.
-				boolean isTopBot = (pair[0].getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0 && pair[0].getTracks().get(0).getTrackStates().get(0).getTanLambda() < 0)
-						|| (pair[0].getTracks().get(0).getTrackStates().get(0).getTanLambda() < 0 && pair[0].getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0);
-				if(!isTopBot) {
-					continue tridentTrackLoop;
-				}
-				
 				// Both tracks must have clusters associated with them.
 				Cluster[] trackClusters = new Cluster[pair.length];
 				for(int i = 0; i < pair.length; i++) {
@@ -356,6 +349,13 @@ public class MTEAnalysis extends Driver {
 				
 				// Make sure that the clusters are not the same.
 				if(trackClusters[0] == trackClusters[1]) {
+					continue tridentTrackLoop;
+				}
+				
+				// Require that tridents also be a top/bottom pair.
+				boolean isTopBot = (TriggerModule.getClusterYIndex(trackClusters[0]) > 0 && TriggerModule.getClusterYIndex(trackClusters[1]) < 0)
+						|| (TriggerModule.getClusterYIndex(trackClusters[0]) < 0 && TriggerModule.getClusterYIndex(trackClusters[1]) > 0);
+				if(!isTopBot) {
 					continue tridentTrackLoop;
 				}
 				
