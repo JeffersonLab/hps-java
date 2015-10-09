@@ -125,23 +125,12 @@ public final class HPSEcalDetectorElement extends SubdetectorDetectorElement imp
     }
                                          
     @Override
-    public EcalCrystal getCrystal(int xIndex, int yIndex) {
-        //System.out.println("getCrystal: " + xIndex + " " + yIndex);
-        /*
-        for (EcalCrystal crystal : this.getCrystals()) {
-            if (crystal.getX() == xIndex && crystal.getY() == yIndex) {
-                //System.out.println("found crystal at " + xIndex + " " + yIndex);
-                return crystal;
-            }
-        } 
-        */       
-        //return null;
+    public EcalCrystal getCrystal(int xIndex, int yIndex) {        
         IIdentifierHelper helper = getIdentifierHelper();
         IExpandedIdentifier expId = helper.createExpandedIdentifier();
         expId.setValue(helper.getFieldIndex("ix"), xIndex);
         expId.setValue(helper.getFieldIndex("iy"), yIndex);
         expId.setValue(helper.getFieldIndex("system"), getSystemID());
-        System.out.println("getting crystal at x, y, system: " + xIndex + " " + yIndex + " " + getSystemID());
         return getCrystal(helper.pack(expId));
     }
     
@@ -229,19 +218,15 @@ public final class HPSEcalDetectorElement extends SubdetectorDetectorElement imp
     private void createNeighborMap() {
         neighborMap = new HashMap<EcalCrystal, List<EcalCrystal>>();
         for (EcalCrystal crystal : getCrystals()) {            
-            System.out.println("finding neighbors for " + crystal.getName() + " @ " + crystal.getX() + " " + crystal.getY());
             List<EcalCrystal> neighborCrystals = new ArrayList<EcalCrystal>();
             for (NeighborDirection neighborDirection : NeighborDirection.values()) {
                 int[] xy = getNeighborIndices(crystal, neighborDirection);
                 EcalCrystal neighborCrystal = getCrystal(xy[0], xy[1]);
                 if (neighborCrystal != null) {
-                    System.out.println("  adding neighbor @ " + neighborCrystal.getX() + " " + neighborCrystal.getY());
                     neighborCrystals.add(neighborCrystal);
                 } 
             }            
-            System.out.println("found " + neighborCrystals.size() + " neighbors");
-            neighborMap.put(crystal, neighborCrystals);            
-            System.out.println();
+            neighborMap.put(crystal, neighborCrystals);
         }
     }
               
