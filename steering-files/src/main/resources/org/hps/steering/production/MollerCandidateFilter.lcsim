@@ -34,7 +34,7 @@
               <mollerMomentumSumMax>1.3</mollerMomentumSumMax>
               <!-- Following is for the calorimeter-only cuts -->
               <!-- Name of Moller Candidate Calorimeter Cluster Collection Name-->
-              <mollerCandidateClusterCollectionName > "EcalClustersCorr" </mollerCandidateClusterCollectionName>
+              <mollerCandidateClusterCollectionName >EcalClustersCorr</mollerCandidateClusterCollectionName>
               <!-- Minimum value for the Cluster time [ns]-->
               <clusterTimeLo >40. </clusterTimeLo>
               <!-- Maximum value for the Cluster time [ns]-->
