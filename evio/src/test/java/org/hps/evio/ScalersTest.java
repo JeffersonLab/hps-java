@@ -15,6 +15,7 @@ import org.hps.record.evio.EvioDetectorConditionsProcessor;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.scalers.ScalerUtilities;
 import org.hps.record.scalers.ScalerUtilities.LiveTimeIndex;
+import org.hps.run.database.RunManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;
@@ -44,6 +45,9 @@ public class ScalersTest extends TestCase {
         LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
         manager.addConditionsListener(builder);
         
+        // This needs to be set as the builder depends on it now.
+        RunManager.getRunManager().setRun(4469);
+                
         // Configure and run the job to write out the LCIO from EVIO.
         CompositeLoopConfiguration configuration = new CompositeLoopConfiguration();
         configuration.setDataSourceType(DataSourceType.EVIO_FILE);
