@@ -147,11 +147,13 @@ public class MollerCandidateFilter extends EventReconFilter
                 if (t < _clusterTimeLo || t > _clusterTimeHi) {
                     continue;
                 }
-                // remove edge clusters
-                int nNeighbors = neighborMap.get(seedHit.getCellID()).size();
-                if (nNeighbors < 8) {
-                    continue;
-                }
+//                // remove edge clusters
+//                int nNeighbors = neighborMap.get(seedHit.getCellID()).size();
+//                if (nNeighbors < 8) {
+//                    continue;
+//                }
+                // if we got here we have a "good" cluster
+                goodClusters.add(c);
             } // end of loop looking for good clusters
             if (goodClusters.size() < 2) {
                 skipEvent();
