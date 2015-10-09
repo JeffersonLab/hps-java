@@ -69,7 +69,7 @@ public class HpsGblRefitter extends Driver {
         _makeTracks = new MakeGblTracks();
         _makeTracks.setDebug(_debug);
         LOGGER.setLevel(Level.WARNING);
-        System.out.println("level " + LOGGER.getLevel().toString());
+        //System.out.println("level " + LOGGER.getLevel().toString());
     }
 
     //@Override
