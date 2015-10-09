@@ -9,7 +9,6 @@
         <driver name="TestRunReconToEvio"/>
         <driver name="ClockDriver"/>
     </execute> 
-
     <drivers>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="DummyTrigger" type="org.hps.readout.ecal.DummyTriggerDriver">

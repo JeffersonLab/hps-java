@@ -6,10 +6,6 @@
       MG...this is kludged for use with 2.2 GeV signal (A') MC so that it gives high trigger efficiency...
       @author Matt Graham <mgraham@slac.stanford.edu>
     -->    
-    <control>
-        <printInputFiles>true</printInputFiles>
-        <printDriversDetailed>true</printDriversDetailed>
-    </control>    
     <execute>    
         <driver name="ConditionsDriver"/>
         <driver name="EventMarkerDriver" />

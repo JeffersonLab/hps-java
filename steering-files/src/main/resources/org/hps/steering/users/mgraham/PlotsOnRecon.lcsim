@@ -4,10 +4,6 @@
       Steering file for tracking and v0 reconstruction monitoring 
       @author Matt Graham <mgraham@slac.stanford.edu>
     -->
-  <control>
-        <printInputFiles>true</printInputFiles>
-        <printDriversDetailed>true</printDriversDetailed>
-    </control>   
     <execute>
         <driver name="EventMarkerDriver" />
         <!-- Standard Reconstruction -->        

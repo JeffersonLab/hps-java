@@ -1,9 +1,5 @@
 <!-- This is meant to be used on raw LCIO MC files (i.e. slic output) Disregard time; no trigger; use TrackerDigiDriver to do readout. @author Matt Graham <mgraham@slac.stanford.edu> @version $Id: NoTimeNoTriggerRecon.lcsim,v 1.2 2014/07/03 23:22:24 mgraham Exp $ -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
-    <control>
-        <printInputFiles>true</printInputFiles>
-        <printDriversDetailed>true</printDriversDetailed>
-    </control>
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="TrackerDigiDriver"/>

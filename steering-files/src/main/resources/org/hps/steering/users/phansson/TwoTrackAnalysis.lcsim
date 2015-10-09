@@ -7,8 +7,6 @@
     </inputFiles>
     <control>
         <numberOfEvents>1000000000</numberOfEvents>
-        <printInputFiles>true</printInputFiles>
-        <printDriversDetailed>true</printDriversDetailed>
     </control>
     <execute>
         <driver name="EventMarkerDriver" />

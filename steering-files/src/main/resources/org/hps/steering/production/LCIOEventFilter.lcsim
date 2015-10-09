@@ -3,10 +3,6 @@
     <inputFiles>
         <!--<fileRegExp baseDir="./../data/mc/v3/pair_filter/" >pairs.*filt.*recon.*</fileRegExp>-->
     </inputFiles>
-    <control>
-        <printInputFiles>true</printInputFiles>
-        <printDriversDetailed>true</printDriversDetailed>
-    </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="TwoTrackFilter"/>

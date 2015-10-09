@@ -5,8 +5,6 @@
   @author Per Hansson Adrian <phansson@slac.stanford.edu>
 -->
     <control>
-        <printInputFiles>false</printInputFiles>
-        <printDriversDetailed>false</printDriversDetailed>
         <numberOfEvents>10000</numberOfEvents>
     </control>
     <execute>
