@@ -21,7 +21,7 @@
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution/</developerConnection>
     </scm>
     <build>
-        <defaultGoal>install appassembler:assemble</defaultGoal>
+        <defaultGoal>install</defaultGoal>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -70,42 +70,50 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
                 <version>1.10</version>
-                <configuration>
-                    <binFileExtensions>
-                        <unix>.sh</unix>
-                    </binFileExtensions>
-                    <extraJvmArguments>-Djava.util.logging.config.class=org.hps.logging.config.DefaultLoggingConfig</extraJvmArguments>
-                    <programs>
-                        <program>
-                            <mainClass>org.hps.evio.EvioToLcio</mainClass>
-                            <id>evio2lcio</id>
-                        </program>
-                        <program>
-                            <mainClass>org.hps.job.JobManager</mainClass>
-                            <id>job</id>
-                        </program>
-                        <program>
-                            <mainClass>org.hps.conditions.cli.CommandLineTool</mainClass>
-                            <id>conddb</id>
-                        </program>
-                        <program>
-                            <mainClass>org.hps.crawler.DatacatCrawler</mainClass>
-                            <id>crawler</id>
-                        </program>
-                        <program>
-                            <mainClass>org.hps.run.database.RunDatabaseCommandLine</mainClass>
-                            <id>rundb</id>
-                        </program>
-                        <program>
-                            <mainClass>org.hps.monitoring.application.Main</mainClass>
-                            <id>monapp</id>
-                        </program>
-                        <program>
-                            <mainClass>org.lcsim.geometry.compact.converter.Main</mainClass>
-                            <id>detcnv</id>
-                        </program>
-                    </programs>
-                </configuration>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>                                
+                        <configuration>
+                        <binFileExtensions>
+                                <unix>.sh</unix>
+                            </binFileExtensions>
+                            <extraJvmArguments>-Djava.util.logging.config.class=org.hps.logging.config.DefaultLoggingConfig</extraJvmArguments>
+                            <programs>
+                                <program>
+                                    <mainClass>org.hps.evio.EvioToLcio</mainClass>
+                                    <id>evio2lcio</id>
+                                </program>
+                                <program>
+                                    <mainClass>org.hps.job.JobManager</mainClass>
+                                    <id>job</id>
+                                </program>
+                                <program>
+                                    <mainClass>org.hps.conditions.cli.CommandLineTool</mainClass>
+                                    <id>conddb</id>
+                                </program>
+                                <program>
+                                    <mainClass>org.hps.crawler.DatacatCrawler</mainClass>
+                                    <id>crawler</id>
+                                </program>
+                                <program>
+                                    <mainClass>org.hps.run.database.RunDatabaseCommandLine</mainClass>
+                                    <id>rundb</id>
+                                </program>
+                                <program>
+                                    <mainClass>org.hps.monitoring.application.Main</mainClass>
+                                    <id>monapp</id>
+                                </program>
+                                <program>
+                                    <mainClass>org.lcsim.geometry.compact.converter.Main</mainClass>
+                                    <id>detcnv</id>
+                                </program>
+                            </programs>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>            
         </plugins>
     </build>
