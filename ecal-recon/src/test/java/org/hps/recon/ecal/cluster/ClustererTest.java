@@ -266,7 +266,6 @@ public class ClustererTest extends TestCase {
         if (config.cuts != null) {
             clusterDriver.setCuts(config.cuts);
         }
-        clusterDriver.getLogger().setLevel(Level.ALL);
         clusterDriver.setInputHitCollectionName("EcalHits");
         clusterDriver.setOutputClusterCollectionName(config.getClusterCollectionName());
         clusterDriver.setRaiseErrorNoHitCollection(true);
