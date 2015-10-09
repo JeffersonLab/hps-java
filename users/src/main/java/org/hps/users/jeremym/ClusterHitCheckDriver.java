@@ -3,7 +3,7 @@ package org.hps.users.jeremym;
 import java.util.List;
 import java.util.logging.Level;
 
-import org.lcsim.detector.converter.compact.EcalCrystal;
+import org.hps.detector.ecal.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;

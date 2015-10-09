@@ -4,7 +4,7 @@ import hep.physics.vec.Hep3Vector;
 
 import java.util.List;
 
-import org.lcsim.detector.converter.compact.EcalCrystal;
+import org.hps.detector.ecal.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.base.AbstractClusterPropertyCalculator;

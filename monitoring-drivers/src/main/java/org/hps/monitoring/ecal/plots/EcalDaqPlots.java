@@ -12,7 +12,7 @@ import java.util.List;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.detector.converter.compact.EcalCrystal;
+import org.hps.detector.ecal.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;

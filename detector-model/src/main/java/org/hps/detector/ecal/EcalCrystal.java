@@ -1,4 +1,4 @@
-package org.lcsim.detector.converter.compact;
+package org.hps.detector.ecal;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
@@ -11,13 +11,12 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.solids.Trd;
 
 /**
- * This class implements behavior specific to the ECal crystals of the HPS experiment, 
- * which includes access to time dependent conditions as well as DAQ setup information.
+ * This class implements the geometry API for ECal crystals in the HPS experiment. 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalCrystal extends DetectorElement {
     
-    Hep3Vector positionFront;
+    private Hep3Vector positionFront;
 
     /**
      * Class constructor.
@@ -26,7 +25,7 @@ public class EcalCrystal extends DetectorElement {
      * @param path The physical path.
      * @param id The component's ID.
      */
-    EcalCrystal(String name, IDetectorElement parent, String path, IIdentifier id) {
+    public EcalCrystal(String name, IDetectorElement parent, String path, IIdentifier id) {
         super(name, parent, path, id);
     }
     

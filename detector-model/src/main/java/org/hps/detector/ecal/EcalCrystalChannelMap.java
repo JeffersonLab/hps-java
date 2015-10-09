@@ -5,8 +5,6 @@ import java.util.Map;
 
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
-import org.lcsim.detector.converter.compact.EcalCrystal;
-import org.lcsim.detector.converter.compact.HPSEcalAPI;
 
 /**
  * This is a convenience utility for associating the geometric crystal objects with the conditions system channel

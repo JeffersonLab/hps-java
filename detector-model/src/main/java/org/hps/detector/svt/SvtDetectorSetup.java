@@ -84,7 +84,6 @@ public final class SvtDetectorSetup implements ConditionsListener {
      */
     @Override
     public void conditionsChanged(final ConditionsEvent event) {
-        LOGGER.info("conditions changed hook activated");
         if (this.enabled) {
             final DatabaseConditionsManager manager = (DatabaseConditionsManager) event.getConditionsManager();
             final Subdetector subdetector = manager.getDetectorObject().getSubdetector(this.svtName);
@@ -101,7 +100,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
                     this.loadDefault(subdetector, svtConditions);
                 }
             } else {
-                LOGGER.warning("no SVT detector was found so SvtDetectorSetup was NOT activated");
+                LOGGER.warning("no SVT detector was found so setup was NOT activated");
                 this.enabled = false;
             }
         } else {

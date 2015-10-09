@@ -13,7 +13,7 @@ import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.detector.converter.compact.EcalCrystal;
+import org.hps.detector.ecal.EcalCrystal;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.RawTrackerHit;

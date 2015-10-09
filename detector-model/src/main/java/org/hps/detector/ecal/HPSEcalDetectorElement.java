@@ -1,4 +1,4 @@
-package org.lcsim.detector.converter.compact;
+package org.hps.detector.ecal;
 
 import hep.physics.vec.Hep3Vector;
 
@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.IDetectorElementContainer;
-import org.lcsim.detector.converter.compact.HPSEcal3Converter.CrystalRange;
+import org.lcsim.detector.converter.compact.SubdetectorDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
@@ -32,18 +32,18 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
  */
 public final class HPSEcalDetectorElement extends SubdetectorDetectorElement implements HPSEcalAPI {
         
-    Map<EcalCrystal, List<EcalCrystal>> neighborMap;
+    private Map<EcalCrystal, List<EcalCrystal>> neighborMap;
     
-    int xIndexMax = Integer.MIN_VALUE;
-    int xIndexMin = Integer.MAX_VALUE;
-    int yIndexMax = Integer.MIN_VALUE;
-    int yIndexMin = Integer.MAX_VALUE;
+    private int xIndexMax = Integer.MIN_VALUE;
+    private int xIndexMin = Integer.MAX_VALUE;
+    private int yIndexMax = Integer.MIN_VALUE;
+    private int yIndexMin = Integer.MAX_VALUE;
     
-    List<Integer> xIndices;
-    List<Integer> yIndices;
+    private List<Integer> xIndices;
+    private List<Integer> yIndices;
     
-    CrystalRange beamGap;
-                         
+    private CrystalRange beamGap;
+                            
     public HPSEcalDetectorElement(String name, IDetectorElement parent) {
         super(name, parent);
     }
@@ -52,7 +52,7 @@ public final class HPSEcalDetectorElement extends SubdetectorDetectorElement imp
      * Set the index range for the beam gap.
      * @param beamGap The beam gap index range.
      */
-    void setBeamGapIndices(CrystalRange beamGap) {
+    public void setBeamGapIndices(CrystalRange beamGap) {
         this.beamGap = beamGap;
     }
     
@@ -126,22 +126,29 @@ public final class HPSEcalDetectorElement extends SubdetectorDetectorElement imp
                                          
     @Override
     public EcalCrystal getCrystal(int xIndex, int yIndex) {
+        //System.out.println("getCrystal: " + xIndex + " " + yIndex);
+        /*
+        for (EcalCrystal crystal : this.getCrystals()) {
+            if (crystal.getX() == xIndex && crystal.getY() == yIndex) {
+                //System.out.println("found crystal at " + xIndex + " " + yIndex);
+                return crystal;
+            }
+        } 
+        */       
+        //return null;
         IIdentifierHelper helper = getIdentifierHelper();
         IExpandedIdentifier expId = helper.createExpandedIdentifier();
         expId.setValue(helper.getFieldIndex("ix"), xIndex);
         expId.setValue(helper.getFieldIndex("iy"), yIndex);
         expId.setValue(helper.getFieldIndex("system"), getSystemID());
+        System.out.println("getting crystal at x, y, system: " + xIndex + " " + yIndex + " " + getSystemID());
         return getCrystal(helper.pack(expId));
     }
-
+    
     @Override
     public EcalCrystal getCrystal(IIdentifier id) {
         IDetectorElementContainer de = findDetectorElement(id);
-        if (de == null || de.isEmpty()) {
-            return null;
-        } else {
-            return (EcalCrystal) de.get(0);
-        }
+        return de.isEmpty() ? null : (EcalCrystal) de.get(0);
     }    
           
     @Override
@@ -185,17 +192,11 @@ public final class HPSEcalDetectorElement extends SubdetectorDetectorElement imp
                 yIndexMin = crystal.getY();
             }
         }
-        //System.out.println("computed index boundaries ...");
-        //System.out.println("maxIndexX = " + xIndexMax);
-        //System.out.println("minIndexX = " + xIndexMin);
-        //System.out.println("maxIndexY = " + yIndexMax);
-        //System.out.println("minIndexY = " + yIndexMin);
-        
+                
         xIndices = new ArrayList<Integer>();
         for (int ix = xIndexMin; ix <= xIndexMax; ix++) {
             if (ix == 0)
                 continue;
-            //System.out.println("adding ix = " + ix);
             xIndices.add(ix);
         }
         
@@ -203,7 +204,6 @@ public final class HPSEcalDetectorElement extends SubdetectorDetectorElement imp
         for (int iy = yIndexMin; iy <= yIndexMax; iy++) {
             if (iy == 0)
                 continue;
-            //System.out.println("adding iy = " + iy);
             yIndices.add(iy);
         }
     }
@@ -226,20 +226,22 @@ public final class HPSEcalDetectorElement extends SubdetectorDetectorElement imp
      * which automatically takes care of edge crystals and missing crystals from the beam gap
      * without explicitly needing to check those indices for validity.
      */
-    void createNeighborMap() {
+    private void createNeighborMap() {
         neighborMap = new HashMap<EcalCrystal, List<EcalCrystal>>();
         for (EcalCrystal crystal : getCrystals()) {            
-            //System.out.println("find neighbors for " + crystal.getName() + " @ " + crystal.getX() + " " + crystal.getY());            
-            List<EcalCrystal> neighborCrystals = new ArrayList<EcalCrystal>();                        
+            System.out.println("finding neighbors for " + crystal.getName() + " @ " + crystal.getX() + " " + crystal.getY());
+            List<EcalCrystal> neighborCrystals = new ArrayList<EcalCrystal>();
             for (NeighborDirection neighborDirection : NeighborDirection.values()) {
                 int[] xy = getNeighborIndices(crystal, neighborDirection);
                 EcalCrystal neighborCrystal = getCrystal(xy[0], xy[1]);
                 if (neighborCrystal != null) {
-                    //System.out.println("  adding neighbor @ " + neighborCrystal.getX() + " " + neighborCrystal.getY());
+                    System.out.println("  adding neighbor @ " + neighborCrystal.getX() + " " + neighborCrystal.getY());
                     neighborCrystals.add(neighborCrystal);
                 } 
             }            
+            System.out.println("found " + neighborCrystals.size() + " neighbors");
             neighborMap.put(crystal, neighborCrystals);            
+            System.out.println();
         }
     }
               
@@ -249,7 +251,7 @@ public final class HPSEcalDetectorElement extends SubdetectorDetectorElement imp
      * @param direction The direction of the neighbor from integer encoding.
      * @return The neighbor indices.
      */   
-    int[] getNeighborIndices(EcalCrystal crystal, NeighborDirection direction) {
+    private static int[] getNeighborIndices(EcalCrystal crystal, NeighborDirection direction) {
         int[] xy = new int[2];
         int ix = crystal.getX();
         int iy = crystal.getY();

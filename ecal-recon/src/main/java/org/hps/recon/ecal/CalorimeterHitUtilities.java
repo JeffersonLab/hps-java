@@ -1,7 +1,7 @@
 package org.hps.recon.ecal;
 
+import org.hps.detector.ecal.EcalCrystal;
 import org.lcsim.detector.IGeometryInfo;
-import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.base.BaseCalorimeterHit;

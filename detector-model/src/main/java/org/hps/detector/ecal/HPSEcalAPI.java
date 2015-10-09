@@ -1,4 +1,4 @@
-package org.lcsim.detector.converter.compact;
+package org.hps.detector.ecal;
 
 import hep.physics.vec.Hep3Vector;
 
@@ -74,7 +74,7 @@ public interface HPSEcalAPI {
     EcalCrystal getCrystal(IIdentifier id);
     
     /**
-     * Get the crystal at the given position in global coordinates or null if position
+     * Get the crystal at the given position in global coordinates or <code>null</code> if position
      * is not inside a crystal's volume.
      * @param position The position of the crystal.
      * @return The crystal at the given position or null if position is not inside crystal.

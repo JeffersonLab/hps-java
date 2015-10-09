@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.hps.detector.ecal.CrystalRange;
+import org.hps.detector.ecal.EcalCrystal;
+import org.hps.detector.ecal.HPSEcalDetectorElement;
 import org.jdom.DataConversionException;
 import org.jdom.Element;
 import org.lcsim.detector.IDetectorElement;
@@ -34,65 +37,29 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 
 public class HPSEcal3Converter extends AbstractSubdetectorConverter {
 
-    private static Logger LOGGER = Logger.getLogger(HPSEcal3Converter.class.toString());
-    
-    static class CrystalRange {
-
-        int xIndexMax;
-        int xIndexMin;
-        int yIndexMax;
-        int yIndexMin;
-
-        CrystalRange(final Element elem) throws Exception {
-            xIndexMin = xIndexMax = yIndexMin = yIndexMax = 0;
-
-            if (elem.getAttribute("ixmin") != null) {
-                xIndexMin = elem.getAttribute("ixmin").getIntValue();
-            } else {
-                throw new RuntimeException("Missing ixmin parameter.");
-            }
-
-            if (elem.getAttribute("ixmax") != null) {
-                xIndexMax = elem.getAttribute("ixmax").getIntValue();
-            } else {
-                throw new RuntimeException("Missing ixmax parameter.");
-            }
-
-            if (elem.getAttribute("iymin") != null) {
-                yIndexMin = elem.getAttribute("iymin").getIntValue();
-            } else {
-                throw new RuntimeException("Missing ixmax parameter.");
-            }
-
-            if (elem.getAttribute("iymax") != null) {
-                yIndexMax = elem.getAttribute("iymax").getIntValue();
-            } else {
-                throw new RuntimeException("Missing iymax parameter.");
-            }
-        }
-    }
-
-    static final double crystalToleranceX = 0.2;
+    private static Logger LOGGER = Logger.getLogger(HPSEcal3Converter.class.getPackage().getName());
+        
+    private static final double crystalToleranceX = 0.2;
     // Tolerance factor for separating crystals to avoid overlaps.
-    static final double crystalToleranceY = 0.35;
+    private static final double crystalToleranceY = 0.35;
 
     // Margin for mother volume.
-    static final double margin = 1.1;
+    //private static final double margin = 1.1;
 
     // Tolerance factor for moving crystals to appropriate place in mom volume.
-    static final double tolerance = 0.0;
+    private static final double tolerance = 0.0;
 
-    IIdentifierDictionary dict;
-    IIdentifierHelper helper;
+    private IIdentifierDictionary dict;
+    private IIdentifierHelper helper;
 
-    List<CrystalRange> ranges = new ArrayList<CrystalRange>();
+    private List<CrystalRange> ranges = new ArrayList<CrystalRange>();
 
     private boolean checkRange(final int ix, final int iy, final List<CrystalRange> ranges) {
         if (ranges.size() == 0) {
             return true;
         }
         for (final CrystalRange range : ranges) {
-            if (ix >= range.xIndexMin && ix <= range.xIndexMax && iy >= range.yIndexMin && iy <= range.yIndexMax) {
+            if (ix >= range.getXIndexMin() && ix <= range.getXIndexMax() && iy >= range.getYIndexMin() && iy <= range.getYIndexMax()) {
                 return false;
             }
 
@@ -356,9 +323,6 @@ public class HPSEcal3Converter extends AbstractSubdetectorConverter {
             ycorrtot += ycorr;
             zcorrtoty += zcorry;
         }
-
-        // Initialize state of ECal detector element.
-        ((HPSEcalDetectorElement) subdet.getDetectorElement()).initialize();
     }
 
     /**

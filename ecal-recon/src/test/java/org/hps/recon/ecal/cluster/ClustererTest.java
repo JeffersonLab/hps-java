@@ -17,8 +17,8 @@ import java.util.logging.Level;
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.detector.ecal.EcalCrystal;
 import org.hps.recon.ecal.CalorimeterHitUtilities;
-import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
