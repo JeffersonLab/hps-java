@@ -48,6 +48,9 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <skipTests>true</skipTests>
+                            <excludes>
+                                <exclude>org/hps/test/it/DataQualityMonitorTest.java</exclude>
+                            </excludes>
                         </configuration>
                     </plugin>
                 </plugins>
