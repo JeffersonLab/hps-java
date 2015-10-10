@@ -66,8 +66,8 @@ public class MTEAnalysis extends Driver {
 	private IHistogram1D trTimeCoincidenceFiducial     = aida.histogram1D("Trident/Time Coincidence (Fiducial Region)",  300, -15.0, 15.0);
 	private IHistogram1D trEnergySumAll                = aida.histogram1D("Trident/Energy Sum",                          300,   0.0,  1.5);
 	private IHistogram1D trEnergySumFiducial           = aida.histogram1D("Trident/Energy Sum (Fiducial Region)",        300,   0.0,  1.5);
-	private IHistogram2D trEnergySum2DAll              = aida.histogram2D("Trident/First Cluster Energy vs. Second Cluster Energy",                   300, 0, 1.5, 220,   0, 1.5);
-	private IHistogram2D trEnergySum2DFiducial         = aida.histogram2D("Trident/First Cluster Energy vs. Second Cluster Energy (Fiducial Region)", 300, 0, 1.5, 220,   0, 1.5);
+	private IHistogram2D trEnergySum2DAll              = aida.histogram2D("Trident/First Cluster Energy vs. Second Cluster Energy",                   300, 0, 1.5, 300,   0, 1.5);
+	private IHistogram2D trEnergySum2DFiducial         = aida.histogram2D("Trident/First Cluster Energy vs. Second Cluster Energy (Fiducial Region)", 300, 0, 1.5, 300,   0, 1.5);
 	private IHistogram2D trSumCoplanarityAll           = aida.histogram2D("Trident/Hardware Coplanarity vs. Energy Sum",                              300, 0, 1.5, 115,   0, 180);
 	private IHistogram2D trSumCoplanarityFiducial      = aida.histogram2D("Trident/Hardware Coplanarity vs. Energy Sum (Fiducial Region)",            300, 0, 1.5, 115,   0, 180);
 	private IHistogram2D trSumCoplanarityCalcAll       = aida.histogram2D("Trident/Calculated Coplanarity vs. Energy Sum",                            300, 0, 1.5, 115, 130, 230);

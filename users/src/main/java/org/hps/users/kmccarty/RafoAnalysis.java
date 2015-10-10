@@ -23,11 +23,11 @@ public class RafoAnalysis extends Driver {
 	private AIDA aida = AIDA.defaultInstance();
 	private IHistogram1D t0TimeCoincidenceAll          = aida.histogram1D("Tier 0/Time Coincidence",                    300, -15.0, 15.0);
 	private IHistogram1D t0TimeCoincidenceFiducial     = aida.histogram1D("Tier 0/Time Coincidence (Fiducial Region)",  300, -15.0, 15.0);
-	private IHistogram1D t0EnergySumAll                = aida.histogram1D("Tier 0/Energy Sum",                          220,   0.0,  1.1);
-	private IHistogram1D t0EnergySumFiducial           = aida.histogram1D("Tier 0/Energy Sum (Fiducial Region)",        220,   0.0,  1.1);
+	private IHistogram1D t0EnergySumAll                = aida.histogram1D("Tier 0/Energy Sum",                          300,   0.0,  1.5);
+	private IHistogram1D t0EnergySumFiducial           = aida.histogram1D("Tier 0/Energy Sum (Fiducial Region)",        300,   0.0,  1.5);
 	private IHistogram1D t0InvariantMassAll            = aida.histogram1D("Tier 0/Invariant Mass",                     2200,   0.0,  1.1);
-	private IHistogram2D t0EnergySum2DAll              = aida.histogram2D("Tier 0/Top Cluster Energy vs. Bottom Cluster Energy",                   300, 0, 1.5, 220,   0, 1.1);
-	private IHistogram2D t0EnergySum2DFiducial         = aida.histogram2D("Tier 0/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 300, 0, 1.5, 220,   0, 1.1);
+	private IHistogram2D t0EnergySum2DAll              = aida.histogram2D("Tier 0/Top Cluster Energy vs. Bottom Cluster Energy",                   300, 0, 1.5, 300,   0, 1.5);
+	private IHistogram2D t0EnergySum2DFiducial         = aida.histogram2D("Tier 0/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 300, 0, 1.5, 300,   0, 1.5);
 	private IHistogram2D t0SumCoplanarityAll           = aida.histogram2D("Tier 0/Hardware Coplanarity vs. Energy Sum",                            300, 0, 1.5, 115,   0, 230);
 	private IHistogram2D t0SumCoplanarityFiducial      = aida.histogram2D("Tier 0/Hardware Coplanarity vs. Energy Sum (Fiducial Region)",          300, 0, 1.5, 115,   0, 230);
 	private IHistogram2D t0SumCoplanarityCalcAll       = aida.histogram2D("Tier 0/Calculated Coplanarity vs. Energy Sum",                          300, 0, 1.5, 115, 130, 230);
@@ -37,11 +37,11 @@ public class RafoAnalysis extends Driver {
 	
 	private IHistogram1D t1TimeCoincidenceAll          = aida.histogram1D("Tier 1/Time Coincidence",                    300, -15.0, 15.0);
 	private IHistogram1D t1TimeCoincidenceFiducial     = aida.histogram1D("Tier 1/Time Coincidence (Fiducial Region)",  300, -15.0, 15.0);
-	private IHistogram1D t1EnergySumAll                = aida.histogram1D("Tier 1/Energy Sum",                          220,   0.0,  1.1);
-	private IHistogram1D t1EnergySumFiducial           = aida.histogram1D("Tier 1/Energy Sum (Fiducial Region)",        220,   0.0,  1.1);
+	private IHistogram1D t1EnergySumAll                = aida.histogram1D("Tier 1/Energy Sum",                          300,   0.0,  1.5);
+	private IHistogram1D t1EnergySumFiducial           = aida.histogram1D("Tier 1/Energy Sum (Fiducial Region)",        300,   0.0,  1.5);
 	private IHistogram1D t1InvariantMassAll            = aida.histogram1D("Tier 1/Invariant Mass",                     2200,   0.0,  1.1);
-	private IHistogram2D t1EnergySum2DAll              = aida.histogram2D("Tier 1/Top Cluster Energy vs. Bottom Cluster Energy",                   300, 0, 1.5, 220,   0, 1.1);
-	private IHistogram2D t1EnergySum2DFiducial         = aida.histogram2D("Tier 1/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 300, 0, 1.5, 220,   0, 1.1);
+	private IHistogram2D t1EnergySum2DAll              = aida.histogram2D("Tier 1/Top Cluster Energy vs. Bottom Cluster Energy",                   300, 0, 1.5, 300,   0, 1.5);
+	private IHistogram2D t1EnergySum2DFiducial         = aida.histogram2D("Tier 1/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 300, 0, 1.5, 300,   0, 1.5);
 	private IHistogram2D t1SumCoplanarityAll           = aida.histogram2D("Tier 1/Hardware Coplanarity vs. Energy Sum",                            300, 0, 1.5, 115,   0, 230);
 	private IHistogram2D t1SumCoplanarityFiducial      = aida.histogram2D("Tier 1/Hardware Coplanarity vs. Energy Sum (Fiducial Region)",          300, 0, 1.5, 115,   0, 230);
 	private IHistogram2D t1SumCoplanarityCalcAll       = aida.histogram2D("Tier 1/Calculated Coplanarity vs. Energy Sum",                          300, 0, 1.5, 115, 130, 230);
@@ -51,11 +51,11 @@ public class RafoAnalysis extends Driver {
 	
 	private IHistogram1D t2TimeCoincidenceAll          = aida.histogram1D("Tier 2/Time Coincidence",                    300, -15.0, 15.0);
 	private IHistogram1D t2TimeCoincidenceFiducial     = aida.histogram1D("Tier 2/Time Coincidence (Fiducial Region)",  300, -15.0, 15.0);
-	private IHistogram1D t2EnergySumAll                = aida.histogram1D("Tier 2/Energy Sum",                          220,   0.0,  1.1);
-	private IHistogram1D t2EnergySumFiducial           = aida.histogram1D("Tier 2/Energy Sum (Fiducial Region)",        220,   0.0,  1.1);
+	private IHistogram1D t2EnergySumAll                = aida.histogram1D("Tier 2/Energy Sum",                          300,   0.0,  1.5);
+	private IHistogram1D t2EnergySumFiducial           = aida.histogram1D("Tier 2/Energy Sum (Fiducial Region)",        300,   0.0,  1.5);
 	private IHistogram1D t2InvariantMassAll            = aida.histogram1D("Tier 2/Invariant Mass",                     2200,   0.0,  1.1);
-	private IHistogram2D t2EnergySum2DAll              = aida.histogram2D("Tier 2/Top Cluster Energy vs. Bottom Cluster Energy",                   300, 0, 1.5, 220,   0, 1.1);
-	private IHistogram2D t2EnergySum2DFiducial         = aida.histogram2D("Tier 2/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 300, 0, 1.5, 220,   0, 1.1);
+	private IHistogram2D t2EnergySum2DAll              = aida.histogram2D("Tier 2/Top Cluster Energy vs. Bottom Cluster Energy",                   300, 0, 1.5, 300,   0, 1.5);
+	private IHistogram2D t2EnergySum2DFiducial         = aida.histogram2D("Tier 2/Top Cluster Energy vs. Bottom Cluster Energy (Fiducial Region)", 300, 0, 1.5, 300,   0, 1.5);
 	private IHistogram2D t2SumCoplanarityAll           = aida.histogram2D("Tier 2/Hardware Coplanarity vs. Energy Sum",                            300, 0, 1.5, 115,   0, 230);
 	private IHistogram2D t2SumCoplanarityFiducial      = aida.histogram2D("Tier 2/Hardware Coplanarity vs. Energy Sum (Fiducial Region)",          300, 0, 1.5, 115,   0, 230);
 	private IHistogram2D t2SumCoplanarityCalcAll       = aida.histogram2D("Tier 2/Calculated Coplanarity vs. Energy Sum",                          300, 0, 1.5, 115, 130, 230);
@@ -109,7 +109,7 @@ public class RafoAnalysis extends Driver {
 		// Perform tier 1 analysis. This requires that there be at
 		// least one top/bottom cluster pair with a time difference
 		// of less then 4 ns.
-		double t1TimeThreshold = 2.5;
+		double t1TimeThreshold = 1.5;
 		
 		// Get a list of cluster pairs.
 		List<Cluster[]> pairList = getClusterPairs(clusterList);
@@ -214,6 +214,11 @@ public class RafoAnalysis extends Driver {
 			}
 			
 			for(Cluster[] pair : pairList) {
+				// Only include clusters that pass the time coincidence.
+				if(TriggerModule.getValueTimeCoincidence(pair) > t1TimeThreshold) {
+					continue;
+				}
+				
 				// Fill the all pairs plots.
 				double pairEnergy = pair[0].getEnergy() + pair[1].getEnergy();
 				t1EnergySumAll.fill(pairEnergy);
@@ -266,6 +271,11 @@ public class RafoAnalysis extends Driver {
 			}
 			
 			for(Cluster[] pair : pairList) {
+				// Only include clusters that pass the time coincidence.
+				if(TriggerModule.getValueTimeCoincidence(pair) > t1TimeThreshold) {
+					continue;
+				}
+				
 				// Fill the all pairs plots.
 				double pairEnergy = pair[0].getEnergy() + pair[1].getEnergy();
 				t2EnergySumAll.fill(pairEnergy);
@@ -312,8 +322,8 @@ public class RafoAnalysis extends Driver {
 		energy[1] = Math.sqrt(pair[1].getMomentum().magnitudeSquared() + electronMassSquared);
 		
 		// Calculate the invariant mass.
-		return Math.sqrt(Math.pow(energy[0] + energy[1], 2) - Math.pow(pair[0].getMomentum().x() - pair[1].getMomentum().x(), 2)
-				+ Math.pow(pair[0].getMomentum().y() - pair[1].getMomentum().y(), 2) + Math.pow(pair[0].getMomentum().z() - pair[1].getMomentum().z(), 2));
+		return Math.sqrt(Math.pow(energy[0] + energy[1], 2) - Math.pow(pair[0].getMomentum().x() + pair[1].getMomentum().x(), 2)
+				+ Math.pow(pair[0].getMomentum().y() + pair[1].getMomentum().y(), 2) + Math.pow(pair[0].getMomentum().z() + pair[1].getMomentum().z(), 2));
 	}
 	
 	public static final double getCalculatedCoplanarity(Cluster[] pair) {

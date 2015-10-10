@@ -57,23 +57,24 @@ public class TriggerPlotsFormat {
 	 */
 	public static void main(String[] args) throws IOException {
 		// Define the root directory for the plots.
-		String rootDir = "D:\\cygwin64\\home\\Kyle\\"; //plots\\no-cuts\\2-hit\\";
+		String rootDir = "D:\\cygwin64\\home\\Kyle\\aprime-plots\\";
 		
 		// Define the new name of the file containing the trigger plots.
 		String[] plotFile = {
-				rootDir + "5568-ana.aida"
 				//rootDir + "background-ana_triggerPlots.aida"
-				//rootDir + "15MeV-ana_triggerPlots.aida",
-				//rootDir + "30MeV-ana_triggerPlots.aida",
-				//rootDir + "40MeV-ana_triggerPlots.aida",
-				//rootDir + "50MeV-ana_triggerPlots.aida"
+				rootDir + "15-MeV\\compiled-plots.aida",
+				rootDir + "20-MeV\\compiled-plots.aida",
+				rootDir + "30-MeV\\compiled-plots.aida",
+				rootDir + "40-MeV\\compiled-plots.aida",
+				rootDir + "50-MeV\\compiled-plots.aida"
 		};
 		
 		// Define the names of each plot. This will be used for the
 		// legend in the case of multiple plots.
 		String[] treeName = {
-			"Background",
+			//"Background",
 			"15 MeV A'",
+			"20 MeV A'",
 			"30 MeV A'",
 			"40 MeV A'",
 			"50 MeV A'"
@@ -81,11 +82,14 @@ public class TriggerPlotsFormat {
 		
 		// Define the color style for the plots.
 		ColorStyle[] dataColorStyle = {
-				ColorStyle.GREY,
+				//ColorStyle.GREY,
 				ColorStyle.MS_GREEN,
 				ColorStyle.MS_BLUE,
 				ColorStyle.MS_ORANGE,
-				ColorStyle.MS_RED
+				ColorStyle.MS_RED,
+				ColorStyle.CRIMSON,
+				ColorStyle.TEAL,
+				ColorStyle.FOREST
 		};
 		
 		// Get the plots file and open it.
@@ -99,7 +103,7 @@ public class TriggerPlotsFormat {
 		// Get a list of all the histograms in the file.
 		List<List<String>> treeHistograms = new ArrayList<List<String>>(plotFile.length);
 		for(int i = 0; i < plotFile.length; i++) {
-			treeHistograms.add(getHistograms(tree[i]));//, "/PassedAll/"));
+			treeHistograms.add(getHistograms(tree[i], "/NoCuts/"));//, "/PassedAll/"));
 		}
 		
 		// Create a plotter factory.
@@ -170,10 +174,10 @@ public class TriggerPlotsFormat {
 			
 			// Show the plotter.
 			plotter.region(0).setTitle(plotTitle);
-			//plotter.setParameter("plotterWidth", "1600");
-			//plotter.setParameter("plotterHeight", "1550");
-			plotter.setParameter("plotterWidth", "2000");
-			plotter.setParameter("plotterHeight", "1200");
+			plotter.setParameter("plotterWidth", "750");
+			plotter.setParameter("plotterHeight", "600");
+			//plotter.setParameter("plotterWidth", "2000");
+			//plotter.setParameter("plotterHeight", "1200");
 			plotter.show();
 		}
 		
