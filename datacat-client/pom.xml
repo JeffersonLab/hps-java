@@ -7,12 +7,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.4.1</version>
+        <version>3.4.2-SNAPSHOT</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.4.1/datacat-client</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.4.1/datacat-client</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.4.1/datacat-client</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/datacat-client/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/datacat-client/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/datacat-client/</developerConnection>
     </scm>
     <build>
         <plugins>
