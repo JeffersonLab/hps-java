@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * This class encapsulates the parameters for connecting to a database, including host name, port, user and password.
@@ -21,6 +22,11 @@ public final class ConnectionParameters {
      * The default port number.
      */
     public static final int DEFAULT_PORT = 3306;
+
+    /**
+     * Number of connection retries allowed.
+     */
+    private static final int MAX_ATTEMPTS = 10;
 
     /**
      * Configure the connection parameters from a properties file.
@@ -147,13 +153,24 @@ public final class ConnectionParameters {
     public Connection createConnection() {
         final Properties connectionProperties = this.getConnectionProperties();
         Connection connection = null;
-        try {
-            connection = DriverManager.getConnection(this.getConnectionString(), connectionProperties);
-            connection.createStatement().execute("USE " + this.getDatabase());
-        } catch (final SQLException x) {
-            throw new RuntimeException("Failed to connect to database: " + this.getConnectionString(), x);
+        int attempt = 0;
+        while (true) {
+            attempt++;
+            try {
+                connection = DriverManager.getConnection(this.getConnectionString(), connectionProperties);
+                connection.createStatement().execute("USE " + this.getDatabase());
+            } catch (final SQLException x) {
+                Logger.getLogger(this.getClass().getPackage().getName()).warning("Failed to connect to database " + this.getConnectionString() + " - " + x.getMessage());
+                if (attempt >= MAX_ATTEMPTS) {
+                    throw new RuntimeException("Failed to connect to database after " + attempt + " attempts: " + this.getConnectionString(), x);
+                }
+                continue;
+            }
+            if (attempt > 1) {
+                Logger.getLogger(this.getClass().getPackage().getName()).warning("Connected to database " + this.getConnectionString() + " - after " + attempt + " attempts");
+            }
+            return connection;
         }
-        return connection;
     }
 
     /**
