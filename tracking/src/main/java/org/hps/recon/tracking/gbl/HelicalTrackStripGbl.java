@@ -13,14 +13,16 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 
 /**
- * Encapsulate @HelicalTrackStrip to make sure that unit vectors are based on geometry. 
- * TODO should extend as a permanent solution.
+ * Encapsulates the {@HelicalTrackStrip} to make sure that the local unit vectors are 
+ * coming from the underlying geometry.
+ * 
+ * I think the base calss should change but whatever.
  * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  */
 public  class HelicalTrackStripGbl { 
-    private HelicalTrackStrip _strip;
+    protected HelicalTrackStrip _strip;
     private SiSensorElectrodes _electrodes = null;
     private Hep3Matrix _electrodesToTracking = null; 
     private Hep3Vector _u = null;
@@ -96,5 +98,11 @@ public  class HelicalTrackStripGbl {
         return _w;
     }
 
+    
+    
+    @Override
+    public String toString() {
+        return ("GBl Strip with u="+u().toString()+"\n v="+v().toString()+ "\n w="+w().toString() + "\n vmin="+vmin() + "\n vmax="+vmax() + "\n umeas="+this.umeas()+"\n origin="+this.origin().toString()); 
+    }
 
 }
