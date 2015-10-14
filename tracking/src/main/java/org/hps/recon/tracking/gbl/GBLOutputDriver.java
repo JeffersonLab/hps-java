@@ -58,7 +58,15 @@ public class GBLOutputDriver extends Driver {
     private int totalTracksProcessed = 0;
     private int iTrack = 0;
     private int iEvent = 0;
-    private boolean _addBeamspot=false;
+    private boolean addBeamspot=false;
+    private double beamspotScatAngle = 0.000001;
+    private double beamspotWidthZ = 0.05;
+    private double beamspotWidthY = 0.15;
+    private double beamspotTiltZOverY = 15.0*180.0/Math.PI;
+    private double beamspotPosition[] = {0,0,0};
+
+    
+    
 
     public GBLOutputDriver() {
     }
@@ -73,7 +81,12 @@ public class GBLOutputDriver extends Driver {
         gbl.buildModel(detector);
         gbl.setAPrimeEventFlag(false);
         gbl.setXPlaneFlag(false);
-        gbl.setAddBeamspot(_addBeamspot);
+        gbl.setAddBeamspot(addBeamspot);
+        gbl.setBeamspotScatAngle(beamspotScatAngle);
+        gbl.setBeamspotWidthY(beamspotWidthY);
+        gbl.setBeamspotWidthZ(beamspotWidthZ);
+        gbl.setBeamspotTiltZOverY(beamspotTiltZOverY);
+        gbl.setBeamspotPosition(beamspotPosition);
 
         //Create the class that makes residual plots for cross-checking
         //truthRes = new TruthResiduals(bfield);
@@ -95,7 +108,7 @@ public class GBLOutputDriver extends Driver {
 
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
         if (_debug > 0) {
-            System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", stripHits.size());
+            System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n",this.getClass().getSimpleName(), stripHits.size());
         }
 
         List<MCParticle> mcParticles = new ArrayList<MCParticle>();
@@ -131,7 +144,13 @@ public class GBLOutputDriver extends Driver {
         // Loop over each of the track collections retrieved from the event
         for (Track trk : tracklist) {
             totalTracks++;
-
+            
+            if (_debug > 0) System.out.printf("%s: PX %f bottom %d\n", this.getClass().getSimpleName(), trk.getPX(), TrackUtils.isBottomTrack(trk, 4)?1:0) ;
+            
+            //if( trk.getPX() < 0.9) continue;
+            
+            //if( TrackUtils.isBottomTrack(trk, 4)) continue;
+            
             if (TrackUtils.isGoodTrack(trk, tracklist, EventQuality.Quality.NONE)) {
                 if (_debug > 0) {
                     System.out.printf("%s: Print GBL output for this track\n", this.getClass().getSimpleName());
@@ -211,7 +230,47 @@ public class GBLOutputDriver extends Driver {
     }
 
     public void setAddBeamspot(boolean add){
-        this._addBeamspot=add;
+        this.addBeamspot=add;
+    }
+
+    public double getBeamspotScatAngle() {
+        return beamspotScatAngle;
+    }
+
+    public void setBeamspotScatAngle(double beamspotScatAngle) {
+        this.beamspotScatAngle = beamspotScatAngle;
+    }
+
+    public double getBeamspotWidthZ() {
+        return beamspotWidthZ;
+    }
+
+    public void setBeamspotWidthZ(double beamspotWidthZ) {
+        this.beamspotWidthZ = beamspotWidthZ;
+    }
+
+    public double getBeamspotWidthY() {
+        return beamspotWidthY;
+    }
+
+    public void setBeamspotWidthY(double beamspotWidthY) {
+        this.beamspotWidthY = beamspotWidthY;
+    }
+
+    public double getBeamspotTiltZOverY() {
+        return beamspotTiltZOverY;
+    }
+
+    public void setBeamspotTiltZOverY(double beamspotTiltZOverY) {
+        this.beamspotTiltZOverY = beamspotTiltZOverY;
+    }
+
+    public double[] getBeamspotPosition() {
+        return beamspotPosition;
+    }
+
+    public void setBeamspotPosition(double beamspotPosition[]) {
+        this.beamspotPosition = beamspotPosition;
     }
     
 }
