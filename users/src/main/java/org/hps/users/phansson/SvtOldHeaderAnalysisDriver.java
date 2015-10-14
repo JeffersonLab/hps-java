@@ -162,7 +162,7 @@ public class SvtOldHeaderAnalysisDriver extends Driver {
             
             // Check for multisample tail error bit
             int nMultisamples = SvtEvioUtils.getSvtTailMultisampleCount(SvtOldHeaderDataInfo.getTail(header));
-            LOGGER.info(nMultisamples + " multisamples");
+            LOGGER.fine(nMultisamples + " multisamples");
             int multisampleErrorBits = 0;
             for(int iMultisample = 0; iMultisample != nMultisamples; ++iMultisample) {
                 int multisampleHeader = SvtOldHeaderDataInfo.getMultisample(iMultisample, header);
