@@ -165,8 +165,7 @@ public class EcalRunningPedestalDriver extends Driver {
             for (RawTrackerHit hit : hits) {
                short samples[] = hit.getADCValues();
                if (nSamples > samples.length) {
-                   System.err.println("NOT ENGOUTH SAMPLES FOR ECAL RUNNING PEDETSAL.");
-                   System.exit(0);
+                   throw new IllegalStateException("Not enough samples for ECal running pedestal.");
                }
               
                //double ped = getNSampleMinimum(samples);

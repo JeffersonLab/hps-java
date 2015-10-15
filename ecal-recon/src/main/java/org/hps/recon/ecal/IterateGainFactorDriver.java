@@ -85,8 +85,7 @@ public class IterateGainFactorDriver extends Driver {
             final int channelid = Integer.valueOf(columns[0]);
             final double gain = Double.valueOf(columns[1]);
             if (gainFileGains.containsKey(channelid)) {
-              System.err.println("Duplicate Entries in ECal Gain File.");
-              System.exit(2);
+              throw new RuntimeException("Duplicate Entries in ECal Gain File.");
             }
             gainFileGains.put(channelid,gain);
           }

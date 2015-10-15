@@ -83,8 +83,7 @@ public class EcalPedestalCalculator extends Driver {
     public void endOfData() {
         Console cc = System.console();
         if (cc == null) {
-            System.err.println("No console.");
-            System.exit(1);
+            throw new IllegalStateException("Could not access system console.");
         }
       
         System.err.println("\n\n\n***************************************************************\n");
