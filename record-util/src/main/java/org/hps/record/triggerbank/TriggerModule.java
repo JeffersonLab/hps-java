@@ -1,6 +1,9 @@
 package org.hps.record.triggerbank;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -604,6 +607,127 @@ public final class TriggerModule {
      */
     public static double getClusterZ(SSPCluster cluster) {
     	return getCrystalPosition(cluster.getXIndex(), cluster.getYIndex())[2];
+    }
+    
+    /**
+     * Forms all possible pairs of top/bottom clusters from a given
+     * list of clusters.
+     * @param clusters - The clusters from which to form the pairs.
+     * @return Returns a <code>List</code> collection of size two
+     * <code>Cluster</code> arrays representing top/bottom pairs. The
+     * first entry in the array is always the top cluster, with the
+     * bottom cluster in the next position.
+     */
+	public static <E> List<E[]> getTopBottomPairs(List<E> clusters, Class<E> clusterType) throws IllegalArgumentException {
+		// Ensure that only valid cluster types are processed.
+		if(!clusterType.equals(Cluster.class) && !clusterType.equals(SSPCluster.class)) {
+			throw new IllegalArgumentException("Class \"" + clusterType.getSimpleName() + "\" is not a supported cluster type.");
+		}
+		
+    	// Create a list to store top clusters, bottom clusters, and
+    	// cluster pairs.
+    	List<E> topClusters = new ArrayList<E>();
+    	List<E> botClusters = new ArrayList<E>();
+    	List<E[]> pairClusters = new ArrayList<E[]>();
+    	
+    	// Separate the cluster list into top/bottom clusters.
+    	for(E cluster : clusters) {
+    		// Process LCIO clusters...
+    		if(clusterType.equals(Cluster.class)) {
+				if(getClusterYIndex((Cluster) cluster) > 0) {
+					topClusters.add(cluster);
+				} else { botClusters.add(cluster); }
+    		}
+    		
+    		// Process SSP clusters...
+    		else if(clusterType.equals(SSPCluster.class)) {
+				if(getClusterYIndex((SSPCluster) cluster) > 0) {
+					topClusters.add(cluster);
+				} else { botClusters.add(cluster); }
+    		}
+    	}
+    	
+    	// Form all top/bottom cluster pairs.
+    	for(E topCluster : topClusters) {
+    		for(E botCluster : botClusters) {
+    			@SuppressWarnings("unchecked")
+				E[] pair = (E[]) Array.newInstance(clusterType, 2);
+    			pair[0] = topCluster;
+    			pair[1] = botCluster;
+    			pairClusters.add(pair);
+    		}
+    	}
+    	
+    	// Return the cluster pairs.
+    	return pairClusters;
+    }
+    
+    /**
+     * Forms all possible pairs of top/bottom clusters from a given
+     * list of clusters.
+     * @param clusters - The clusters from which to form the pairs.
+     * @return Returns a <code>List</code> collection of size two
+     * <code>Cluster</code> arrays representing top/bottom pairs. The
+     * first entry in the array is always the top cluster, with the
+     * bottom cluster in the next position.
+     */
+	public static List<Cluster[]> getTopBottomPairs(Cluster... clusters) {
+    	// Create a list to store top clusters, bottom clusters, and
+    	// cluster pairs.
+    	List<Cluster> topClusters = new ArrayList<Cluster>();
+    	List<Cluster> botClusters = new ArrayList<Cluster>();
+    	List<Cluster[]> pairClusters = new ArrayList<Cluster[]>();
+    	
+    	// Separate the cluster list into top/bottom clusters.
+    	for(Cluster cluster : clusters) {
+			if(getClusterYIndex(cluster) > 0) {
+				topClusters.add(cluster);
+			} else { botClusters.add(cluster); }
+    	}
+    	
+    	// Form all top/bottom cluster pairs.
+    	for(Cluster topCluster : topClusters) {
+    		for(Cluster botCluster : botClusters) {
+    			pairClusters.add(new Cluster[] { topCluster, botCluster });
+    		}
+    	}
+    	
+    	// Return the cluster pairs.
+    	return pairClusters;
+    }
+    
+    /**
+     * Forms all possible pairs of top/bottom clusters from a given
+     * list of clusters.
+     * @param clusters - The clusters from which to form the pairs.
+     * @return Returns a <code>List</code> collection of size two
+     * <code>SSPCluster</code> arrays representing top/bottom pairs.
+     * The first entry in the array is always the top cluster, with
+     * the bottom cluster in the next position.
+     */
+	public static List<SSPCluster[]> getTopBottomPairs(SSPCluster... clusters) {
+    	// Create a list to store top clusters, bottom clusters, and
+    	// cluster pairs.
+    	List<SSPCluster> topClusters = new ArrayList<SSPCluster>();
+    	List<SSPCluster> botClusters = new ArrayList<SSPCluster>();
+    	List<SSPCluster[]> pairClusters = new ArrayList<SSPCluster[]>();
+    	
+    	// Separate the cluster list into top/bottom clusters.
+    	for(SSPCluster cluster : clusters) {
+			if(getClusterYIndex(cluster) > 0) {
+				topClusters.add(cluster);
+			} else { botClusters.add(cluster); }
+    	}
+    	
+    	// Form all top/bottom cluster pairs.
+    	for(SSPCluster topCluster : topClusters) {
+    		for(SSPCluster botCluster : botClusters) {
+    			pairClusters.add(new SSPCluster[] { topCluster, botCluster });
+    		}
+    	}
+    	
+    	// Return the cluster pairs.
+    	return pairClusters;
     }
     
     /**
