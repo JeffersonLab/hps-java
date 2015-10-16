@@ -55,6 +55,7 @@ public class BuildMillepedeCompact {
 	private static String detectorName = "Tracker";
 	private static boolean replaceConstant = false;
     private static boolean calcNewValue = true;
+    private static boolean ignoreBeamspot = true;
 
 
 
@@ -144,6 +145,13 @@ public class BuildMillepedeCompact {
 						MilleParameter par = new MilleParameter(line);
 						//System.out.println(par.getXMLName() + " " + par.getValue());
 						
+						if (ignoreBeamspot) {
+						    if(par.getSensor() == 98 || par.getSensor() == 99) {
+						        System.out.printf("Ignoring %s\n", par.toString());
+						        continue;
+						    }
+						}
+						System.out.printf("Adding %s\n", par.toString());
 						//add the parameter
 						params.add(par);
 						
