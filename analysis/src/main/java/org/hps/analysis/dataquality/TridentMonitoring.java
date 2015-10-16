@@ -11,6 +11,7 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
@@ -36,30 +37,63 @@ import org.lcsim.geometry.Detector;
  */
 public class TridentMonitoring extends DataQualityMonitor {
 
-    private static Logger LOGGER = Logger.getLogger(TridentMonitoring.class.getPackage().getName());
-    
+    private enum Cut {
+
+        TRK_QUALITY("Trk Quality"),
+        VTX_QUALITY("Vtx Quality"),
+        VERTEX_CUTS("Vtx Cuts"),
+        TIMING("Timing"),
+        TRACK_CUTS("Trk Cuts"),
+        CLUSTER_CUTS("Cluster"),
+        EVENT_QUALITY("Evt Quality"),
+        FRONT_HITS("Front Hits"),
+        ISOLATION("Isolation");
+        private final String name;
+        private final static int nCuts = 9;
+        private final static int firstVertexingCut = 7;
+
+        Cut(String name) {
+            this.name = name;
+        }
+
+        static int bitmask(EnumSet<Cut> flags) {
+            int mask = 0;
+            for (Cut flag : flags) {
+                mask |= 1 << flag.ordinal();
+            }
+            return mask;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    private final static Logger LOGGER = Logger.getLogger(TridentMonitoring.class.getPackage().getName());
+
     private double ebeam = 1.05;
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
-    private static final int nCuts = 9;
-    private final String[] cutNames = {"Trk Quality",
-        "V0 Quality",
-        "V0 Vertex",
-        "Timing",
-        "Tracking",
-        "Cluster",
-        "Event",
-        "Front Hits",
-        "Isolation"};
-    private int firstVertexingCut = 0;
-    private static final int PASS = 0;
-    private static final int FAIL = 1;
+//    private static final int nCuts = 9;
+//    private final String[] cutNames = {"Trk Quality",
+//        "V0 Quality",
+//        "V0 Vertex",
+//        "Timing",
+//        "Tracking",
+//        "Cluster",
+//        "Event",
+//        "Front Hits",
+//        "Isolation"};
+//    private int firstVertexingCut = 0;
+    private static final int TRIDENT = 0;
+    private static final int VERTEX = 1;
 
     private final String finalStateParticlesColName = "FinalStateParticles";
     private final String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
 //    private final String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
 //    private final String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
 //    private final String trackListName = "MatchedTracks";
-    private String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
+    private final String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
 
     private final String plotDir = "TridentMonitoring/";
 
@@ -175,36 +209,39 @@ public class TridentMonitoring extends DataQualityMonitor {
     private IHistogram1D l1Iso;
     private IHistogram2D zVsL1Iso;
 
-    private final IHistogram1D[][] cutVertexMass = new IHistogram1D[nCuts][2];
-    private final IHistogram1D[][] cutVertexZ = new IHistogram1D[nCuts][2];
-    private final IHistogram2D[][] cutVertexZVsMass = new IHistogram2D[nCuts][2];
+    private final IHistogram1D[][] cutVertexMass = new IHistogram1D[Cut.nCuts][2];
+    private final IHistogram1D[][] cutVertexZ = new IHistogram1D[Cut.nCuts][2];
+    private final IHistogram2D[][] cutVertexZVsMass = new IHistogram2D[Cut.nCuts][2];
+
+    private final double plotsMinMass = 0.03 * ebeam;
+    private final double plotsMaxMass = 0.04 * ebeam;
 
     //clean up event first
-    private int nTrkMax = 5;
-    private int nPosMax = 1;
+    private final int nTrkMax = 5;
+    private final int nPosMax = 1;
 
-    private double maxChi2SeedTrack = 7.0;
-    private double maxChi2GBLTrack = 15.0;
-    private double maxVertChi2 = 7.0;
+    private final double maxChi2SeedTrack = 7.0;
+    private final double maxChi2GBLTrack = 15.0;
+    private final double maxVertChi2 = 7.0;
 
     //v0 cuts   
-    private double v0PzMax = 1.25 * ebeam;//GeV 
-    private double v0PzMin = 0.1;// GeV
-    private double v0PyMax = 0.04;//GeV absolute value
-    private double v0PxMax = 0.04;//GeV absolute value
-    private double v0VzMax = 50.0;// mm from target...someday make mass dependent
-    private double v0VyMax = 1.0;// mm from target...someday make mass dependent
-    private double v0VxMax = 2.0;// mm from target...someday make mass dependent
+    private final double v0PzMax = 1.25 * ebeam;//GeV 
+    private final double v0PzMin = 0.1;// GeV
+    private final double v0PyMax = 0.04;//GeV absolute value
+    private final double v0PxMax = 0.04;//GeV absolute value
+    private final double v0VzMax = 50.0;// mm from target...someday make mass dependent
+    private final double v0VyMax = 1.0;// mm from target...someday make mass dependent
+    private final double v0VxMax = 2.0;// mm from target...someday make mass dependent
     //  track quality cuts
-    private double beamPCut = 0.85;
-    private double minPCut = 0.05;
+    private final double beamPCut = 0.85;
+    private final double minPCut = 0.05;
 //    private double trkPyMax = 0.2;
 //    private double trkPxMax = 0.2;
-    private double radCut = 0.8 * ebeam;
-    private double trkTimeDiff = 5.0;
-    private double clusterTimeDiffCut = 2.5;
+    private final double radCut = 0.8 * ebeam;
+    private final double trkTimeDiff = 5.0;
+    private final double clusterTimeDiffCut = 2.5;
 
-    private double l1IsoMin = 1.0;
+    private final double l1IsoMin = 1.0;
 //cluster matching
 //    private boolean reqCluster = false;
 //    private int nClustMax = 3;
@@ -214,7 +251,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 //counters
     private float nEvents = 0;
     private float nRecoV0 = 0;
-    private final float[] nPassCut = new float[nCuts];
+    private final float[] nPassCut = new float[Cut.nCuts];
 
     public void setEbeam(double ebeam) {
         this.ebeam = ebeam;
@@ -368,13 +405,13 @@ public class TridentMonitoring extends DataQualityMonitor {
         l1Iso = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: L1 Isolation", 50, 0.0, 5.0);
         zVsL1Iso = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs L1 Isolation", 50, 0.0, 5.0, 50, -v0VzMax, v0VzMax);
 
-        for (int i = 0; i < nCuts; i++) {
-            for (int pass = 0; pass < 2; pass++) {
-                cutVertexZ[i][pass] = aida.histogram1D(String.format("%s%s%s/cut %d: %s/%s: Vertex Z position (mm)", plotDir, trkType, triggerType, i, cutNames[i], pass == PASS ? "pass" : "fail"),
+        for (Cut cut : Cut.values()) {
+            for (int i = 0; i < 2; i++) {
+                cutVertexZ[cut.ordinal()][i] = aida.histogram1D(String.format("%s%s%s/failed cut: %s/%s: Vertex Z position (mm)", plotDir, trkType, triggerType, cut.ordinal(), cut.name, i == VERTEX ? "vertex" : "trident"),
                         100, -v0VzMax, v0VzMax);
-                cutVertexMass[i][pass] = aida.histogram1D(String.format("%s%s%s/cut %d: %s/%s: Vertex mass (GeV)", plotDir, trkType, triggerType, i, cutNames[i], pass == PASS ? "pass" : "fail"),
+                cutVertexMass[cut.ordinal()][i] = aida.histogram1D(String.format("%s%s%s/failed cut: %s/%s: Vertex mass (GeV)", plotDir, trkType, triggerType, cut.ordinal(), cut.name, i == VERTEX ? "vertex" : "trident"),
                         100, 0, 0.1 * ebeam);
-                cutVertexZVsMass[i][pass] = aida.histogram2D(String.format("%s%s%s/cut %d: %s/%s: Vertex Z vs. mass", plotDir, trkType, triggerType, i, cutNames[i], pass == PASS ? "pass" : "fail"),
+                cutVertexZVsMass[cut.ordinal()][i] = aida.histogram2D(String.format("%s%s%s/failed cut: %s/%s: Vertex Z vs. mass", plotDir, trkType, triggerType, cut.ordinal(), cut.name, i == VERTEX ? "vertex" : "trident"),
                         100, 0, 0.1 * ebeam, 100, -v0VzMax, v0VzMax);
             }
         }
@@ -480,96 +517,49 @@ public class TridentMonitoring extends DataQualityMonitor {
             }
 
             //start applying cuts
-            int cutNum = 0;
+            EnumSet<Cut> bits = EnumSet.noneOf(Cut.class);
+
             boolean trackQualityCut = Math.max(tracks.get(0).getChi2(), tracks.get(1).getChi2()) < (isGBL ? maxChi2GBLTrack : maxChi2SeedTrack);
             maxTrkChi2.fill(Math.max(tracks.get(0).getChi2(), tracks.get(1).getChi2()));
             zVsMaxTrkChi2.fill(Math.max(tracks.get(0).getChi2(), tracks.get(1).getChi2()), v0Vtx.z());
-            if (!trackQualityCut) {
-                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
-                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
-                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
-                continue;
+            if (trackQualityCut) {
+                bits.add(Cut.TRK_QUALITY);
             }
-            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
-            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
-            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
-            nPassCut[cutNum]++;
-            cutNum++;
 
             boolean v0QualityCut = uncVert.getChi2() < maxVertChi2;
             v0Chi2.fill(uncVert.getChi2());
             zVsV0Chi2.fill(uncVert.getChi2(), v0Vtx.z());
-            if (!v0QualityCut) {
-                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
-                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
-                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
-                continue;
+            if (v0QualityCut) {
+                bits.add(Cut.VTX_QUALITY);
             }
-            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
-            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
-            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
-            nPassCut[cutNum]++;
-            cutNum++;
 
             boolean vertexMomentumCut = v0MomRot.z() < v0PzMax && v0MomRot.z() > v0PzMin && Math.abs(v0MomRot.x()) < v0PxMax && Math.abs(v0MomRot.y()) < v0PyMax;
             boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0VxMax && Math.abs(v0Vtx.y()) < v0VyMax && Math.abs(v0Vtx.z()) < v0VzMax;
-            if (!vertexMomentumCut || !vertexPositionCut) {
-                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
-                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
-                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
-                continue;
+            if (vertexMomentumCut && vertexPositionCut) {
+                bits.add(Cut.VERTEX_CUTS);
             }
-            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
-            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
-            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
-            nPassCut[cutNum]++;
-            cutNum++;
 
             boolean trackTimeDiffCut = Math.abs(trackTimes.get(0) - trackTimes.get(1)) < trkTimeDiff;
             trackTimeDiff.fill(Math.abs(trackTimes.get(0) - trackTimes.get(1)));
             hitTimeStdDev.fill(stdDev);
             zVsTrackTimeDiff.fill(Math.abs(trackTimes.get(0) - trackTimes.get(1)), v0Vtx.z());
             zVsHitTimeStdDev.fill(stdDev, v0Vtx.z());
-            if (!trackTimeDiffCut) {
-                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
-                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
-                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
-                continue;
+            if (trackTimeDiffCut) {
+                bits.add(Cut.TIMING);
             }
-            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
-            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
-            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
-            nPassCut[cutNum]++;
-            cutNum++;
 
             boolean topBottomCut = electron.getMomentum().y() * positron.getMomentum().y() < 0;
             boolean pMinCut = electron.getMomentum().magnitude() > minPCut && positron.getMomentum().magnitude() > minPCut;
             boolean pMaxCut = electron.getMomentum().magnitude() < beamPCut && positron.getMomentum().magnitude() < beamPCut;
-            if (!topBottomCut || !pMaxCut || !pMinCut) {
-                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
-                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
-                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
-                continue;
+            if (topBottomCut && pMaxCut && pMinCut) {
+                bits.add(Cut.TRACK_CUTS);
             }
-            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
-            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
-            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
-            nPassCut[cutNum]++;
-            cutNum++;
 
             boolean clusterMatchCut = !electron.getClusters().isEmpty() && !positron.getClusters().isEmpty();
             boolean clusterTimeCut = clusterMatchCut && Math.abs(ClusterUtilities.getSeedHitTime(electron.getClusters().get(0)) - ClusterUtilities.getSeedHitTime(positron.getClusters().get(0))) < clusterTimeDiffCut;
-            if (!clusterMatchCut || !clusterTimeCut) {
-                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
-                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
-                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
-                continue;
+            if (clusterMatchCut && clusterTimeCut) {
+                bits.add(Cut.CLUSTER_CUTS);
             }
-            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
-            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
-            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
-            nPassCut[cutNum]++;
-            cutNum++;
 
             boolean eventTrkCountCut = ntrk >= 2 && ntrk <= nTrkMax;
             boolean eventPosCountCut = npos >= 1 && npos <= nPosMax;
@@ -577,50 +567,61 @@ public class TridentMonitoring extends DataQualityMonitor {
             eventPosCount.fill(npos);
             zVsEventTrkCount.fill(ntrk, v0Vtx.z());
             zVsEventPosCount.fill(npos, v0Vtx.z());
-            if (!eventTrkCountCut || !eventPosCountCut) {
-                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
-                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
-                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
-                continue;
+            if (eventTrkCountCut && eventPosCountCut) {
+                bits.add(Cut.EVENT_QUALITY);
             }
-            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
-            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
-            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
-            nPassCut[cutNum]++;
-            cutNum++;
-
-            candidateList.add(uncV0);
-            firstVertexingCut = cutNum;
 
             boolean frontHitsCut = eleIso[0] != null && posIso[0] != null && eleIso[2] != null && posIso[2] != null;
-            if (!frontHitsCut) {
-                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
-                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
-                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
-                continue;
+            if (frontHitsCut) {
+                bits.add(Cut.FRONT_HITS);
             }
-            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
-            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
-            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
-            nPassCut[cutNum]++;
-            cutNum++;
 
             l1Iso.fill(minL1Iso);
             zVsL1Iso.fill(minL1Iso, v0Vtx.z());
             boolean isoCut = minL1Iso > l1IsoMin;
-            if (!isoCut) {
-                cutVertexZ[cutNum][FAIL].fill(v0Vtx.z());
-                cutVertexMass[cutNum][FAIL].fill(uncV0.getMass());
-                cutVertexZVsMass[cutNum][FAIL].fill(uncV0.getMass(), v0Vtx.z());
-                continue;
+            if (isoCut) {
+                bits.add(Cut.ISOLATION);
             }
-            cutVertexZ[cutNum][PASS].fill(v0Vtx.z());
-            cutVertexMass[cutNum][PASS].fill(uncV0.getMass());
-            cutVertexZVsMass[cutNum][PASS].fill(uncV0.getMass(), v0Vtx.z());
-            nPassCut[cutNum]++;
-            cutNum++;
 
-            vertCandidateList.add(uncV0);
+            for (Cut cut : Cut.values()) {
+                if (bits.contains(cut)) {
+                    if (cut.ordinal() == Cut.firstVertexingCut) {//if we get here, we've passed all non-vertexing cuts
+                        candidateList.add(uncV0);
+                    }
+                    nPassCut[cut.ordinal()]++;
+                } else {
+                    break;
+                }
+            }
+
+            for (Cut cut : Cut.values()) {
+                EnumSet<Cut> allButThisCut = EnumSet.allOf(Cut.class);
+                allButThisCut.remove(cut);
+                if (bits.equals(allButThisCut)) {
+                    if (uncV0.getMass() > plotsMinMass && uncV0.getMass() < plotsMaxMass) {
+                        cutVertexZ[cut.ordinal()][VERTEX].fill(v0Vtx.z());
+                    }
+                    cutVertexMass[cut.ordinal()][VERTEX].fill(uncV0.getMass());
+                    cutVertexZVsMass[cut.ordinal()][VERTEX].fill(uncV0.getMass(), v0Vtx.z());
+                }
+
+                EnumSet<Cut> allTriCutsButThisCut = EnumSet.range(Cut.values()[0], Cut.values()[Cut.firstVertexingCut - 1]);
+                allTriCutsButThisCut.remove(cut);
+                if (bits.containsAll(allTriCutsButThisCut) && !bits.contains(cut)) {
+                    if (uncV0.getMass() > plotsMinMass && uncV0.getMass() < plotsMaxMass) {
+                        cutVertexZ[cut.ordinal()][TRIDENT].fill(v0Vtx.z());
+                    }
+                    cutVertexMass[cut.ordinal()][TRIDENT].fill(uncV0.getMass());
+                    cutVertexZVsMass[cut.ordinal()][TRIDENT].fill(uncV0.getMass(), v0Vtx.z());
+                }
+            }
+
+            if (bits.containsAll(EnumSet.range(Cut.values()[0], Cut.values()[Cut.firstVertexingCut - 1]))) {
+                candidateList.add(uncV0);
+            }
+            if (bits.equals(EnumSet.allOf(Cut.class))) {
+                vertCandidateList.add(uncV0);
+            }
         }
 
         nTriCand.fill(candidateList.size());
@@ -765,7 +766,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 
     @Override
     // TODO: Change from System.out to use logger instead.
-    public void printDQMData() {        
+    public void printDQMData() {
         System.out.println("TridendMonitoring::printDQMData");
         for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
             System.out.println(entry.getKey() + " = " + entry.getValue());
@@ -778,13 +779,13 @@ public class TridentMonitoring extends DataQualityMonitor {
         System.out.println("******************************************************************************************");
         System.out.println(String.format("Number of      V0:\t%8.0f\t%8.6f\t%8.6f\t%8.6f\n", nRecoV0, nRecoV0 / nRecoV0, nRecoV0 / nRecoV0, nRecoV0 / nEvents));
 
-        for (int i = 0; i < nCuts; i++) {
-            if (i == firstVertexingCut) {
+        for (Cut cut : Cut.values()) {
+            if (cut.ordinal() == Cut.firstVertexingCut) {
                 System.out.println("******************************************************************************************");
                 System.out.println("\t\t\tVertex Selection Summary");
                 System.out.println("******************************************************************************************");
             }
-            System.out.format("%-12s Cuts:\t%8.0f\t%8.6f\t%8.6f\t%8.6f\n", cutNames[i], nPassCut[i], nPassCut[i] / (i == 0 ? nRecoV0 : nPassCut[i == 0 ? 0 : (i - 1)]), nPassCut[i] / nRecoV0, nPassCut[i] / nEvents);
+            System.out.format("%-12s Cuts:\t%8.0f\t%8.6f\t%8.6f\t%8.6f\n", cut.name, nPassCut[cut.ordinal()], nPassCut[cut.ordinal()] / (cut.ordinal() == 0 ? nRecoV0 : nPassCut[cut.ordinal() == 0 ? 0 : (cut.ordinal() - 1)]), nPassCut[cut.ordinal()] / nRecoV0, nPassCut[cut.ordinal()] / nEvents);
         }
         System.out.println("******************************************************************************************");
     }

@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -163,6 +164,11 @@ public final class ConnectionParameters {
                 Logger.getLogger(this.getClass().getPackage().getName()).warning("Failed to connect to database " + this.getConnectionString() + " - " + x.getMessage());
                 if (attempt >= MAX_ATTEMPTS) {
                     throw new RuntimeException("Failed to connect to database after " + attempt + " attempts: " + this.getConnectionString(), x);
+                }
+                try {
+                    Thread.sleep(attempt * 1000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(ConnectionParameters.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 continue;
             }
