@@ -47,7 +47,6 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
-import org.lcsim.event.base.MyLCRelation;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -67,10 +66,7 @@ public class TriggerDiagnosticDriver extends Driver {
 	private SSPData sspBank;
 	private List<SSPCluster> sspClusters;
 	private List<Cluster> reconClusters = new ArrayList<Cluster>();
-	private List<List<PairTrigger<Cluster[]>>> reconPairsTriggers = new ArrayList<List<PairTrigger<Cluster[]>>>(2);
-	private List<List<PairTrigger<SSPCluster[]>>> sspPairsTriggers = new ArrayList<List<PairTrigger<SSPCluster[]>>>(2);
-	private List<List<SinglesTrigger<Cluster>>> reconSinglesTriggers = new ArrayList<List<SinglesTrigger<Cluster>>>(2);
-	private List<List<SinglesTrigger<SSPCluster>>> sspSinglesTriggers = new ArrayList<List<SinglesTrigger<SSPCluster>>>(2);
+	private SimTriggerData triggerData = null;
 	
 	// Trigger modules for performing trigger analysis.
 	//private int activeTrigger = -1;
@@ -338,14 +334,6 @@ public class TriggerDiagnosticDriver extends Driver {
 		pairsTrigger[1].setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH, 180);
 		pairsTrigger[1].setCutValue(TriggerModule.PAIR_TIME_COINCIDENCE, 8);
 		
-		// Instantiate the triggers lists.
-		for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
-			reconPairsTriggers.add(new ArrayList<PairTrigger<Cluster[]>>());
-			sspPairsTriggers.add(new ArrayList<PairTrigger<SSPCluster[]>>());
-			reconSinglesTriggers.add(new ArrayList<SinglesTrigger<Cluster>>());
-			sspSinglesTriggers.add(new ArrayList<SinglesTrigger<SSPCluster>>());
-		}
-		
 		// Print the initial settings.
 		logSettings();
 	}
@@ -354,7 +342,29 @@ public class TriggerDiagnosticDriver extends Driver {
 	 * Prints the total run statistics.
 	 */
 	@Override
-	public void endOfData() { logStatistics(); }
+	public void endOfData() {
+		// Output the statistics.
+		logStatistics();
+		
+		/*
+		// Calculate the values needed for the efficiency histogram.
+		long totalTime = entryList.get(entryList.size()).time / 1000000000;
+		int entries = (int) (totalTime / (localWindowThreshold / 1000000000)) + 1;
+		
+		// Generate a histogram containing the efficiencies.
+		IHistogram1D[] efficiencyHist = new IHistogram1D[5];
+		for(int i = 0; i < 5; i++) {
+			efficiencyHist[i] = aida.histogram1D("Efficiency " + i, entries, 0.0, totalTime + (localWindowThreshold / 1000000000));
+		}
+		
+		// Input the efficiencies.
+		for(EfficiencyEntry entry : entryList) {
+			for(int i = 0; i < 5; i++) {
+				efficiencyHist[i].fill(entry.time / 1000000000, entry.efficiency[i]);
+			}
+		}
+		*/
+	}
 	
 	/**
 	 * Gets the banks and clusters from the event.
@@ -557,14 +567,6 @@ public class TriggerDiagnosticDriver extends Driver {
 		// ==== Obtain Reconstructed Clusters =======================
 		// ==========================================================
 		
-		// Clear the list of triggers from previous events.
-		for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
-			sspSinglesTriggers.get(triggerNum).clear();
-			reconSinglesTriggers.get(triggerNum).clear();
-			sspPairsTriggers.get(triggerNum).clear();
-			reconPairsTriggers.get(triggerNum).clear();
-		}
-		
 		// Get the reconstructed clusters.
 		if(event.hasCollection(Cluster.class, clusterCollectionName)) {
 			// Get the reconstructed clusters.
@@ -608,14 +610,18 @@ public class TriggerDiagnosticDriver extends Driver {
 		// Perform the cluster verification step.
 		if(performClusterVerification) { clusterVerification(); }
 		
+		// Get the simulated triggers.
+		if(event.hasCollection(SimTriggerData.class, "SimTriggers")) {
+			List<SimTriggerData> stdList = event.get(SimTriggerData.class, "SimTriggers");
+			triggerData = stdList.get(0);
+		}
+		
 		// Construct lists of triggers for the SSP clusters and the
 		// reconstructed clusters.
 		if(performSinglesTriggerVerification) {
-			constructSinglesTriggers();
 			singlesTriggerVerification();
 		}
 		if(performPairTriggerVerification) {
-			constructPairTriggers();
 			pairTriggerVerification();
 		}
 		
@@ -659,18 +665,27 @@ public class TriggerDiagnosticDriver extends Driver {
 			// Push the snapshot to the data stream.
 			event.put(diagnosticCollectionName, snapshotList);
 			
-			// Record the efficiencies in this time snapshot.
+			// Store values needed to calculate efficiency.
+			int[] matched = {
+					localStats.getClusterStats().getMatches(),
+					localStats.getTriggerStats().getSingles0Stats().getMatchedReconSimulatedTriggers(),
+					localStats.getTriggerStats().getSingles1Stats().getMatchedReconSimulatedTriggers(),
+					localStats.getTriggerStats().getPair0Stats().getMatchedReconSimulatedTriggers(),
+					localStats.getTriggerStats().getPair1Stats().getMatchedReconSimulatedTriggers()
+			};
+			int[] total = {
+					localStats.getClusterStats().getReconClusterCount(),
+					localStats.getTriggerStats().getSingles0Stats().getReconSimulatedTriggers(),
+					localStats.getTriggerStats().getSingles1Stats().getReconSimulatedTriggers(),
+					localStats.getTriggerStats().getPair0Stats().getReconSimulatedTriggers(),
+					localStats.getTriggerStats().getPair1Stats().getReconSimulatedTriggers()
+			};
+			
+			// Calculate the efficiencies and upper/lower errors.
 			double[] efficiency = new double[5];
-			efficiency[0] = 1.0 * localStats.getClusterStats().getMatches()
-					/ localStats.getClusterStats().getReconClusterCount();
-			efficiency[1] = 1.0 * localStats.getTriggerStats().getSingles0Stats().getMatchedReconSimulatedTriggers()
-					/ localStats.getTriggerStats().getSingles0Stats().getReconSimulatedTriggers();
-			efficiency[2] = 1.0 * localStats.getTriggerStats().getSingles1Stats().getMatchedReconSimulatedTriggers()
-					/ localStats.getTriggerStats().getSingles1Stats().getReconSimulatedTriggers();
-			efficiency[3] = 1.0 * localStats.getTriggerStats().getPair0Stats().getMatchedReconSimulatedTriggers()
-					/ localStats.getTriggerStats().getPair0Stats().getReconSimulatedTriggers();
-			efficiency[4] = 1.0 * localStats.getTriggerStats().getPair1Stats().getMatchedReconSimulatedTriggers()
-					/ localStats.getTriggerStats().getPair1Stats().getReconSimulatedTriggers();
+			for(int i = 0; i < 5; i++) {
+				efficiency[i] = 1.0 * matched[i] / total[i];
+			}
 			
 			// Get the time for the current snapshot. This is the total
 			// run time before the snapshot plus half of the snapshot.
@@ -1219,15 +1234,10 @@ public class TriggerDiagnosticDriver extends Driver {
 		
 		// Convert the simulated triggers to generic versions and add
 		// them to the generic list.
-		for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
-			// Get the generic trigger list.
-			List<? extends Trigger<?>> sspTriggers = sspSinglesTriggers.get(triggerNum);
-			List<? extends Trigger<?>> reconTriggers = reconSinglesTriggers.get(triggerNum);
-			
-			// Add it to the generic list.
-			sspTriggerList.add(sspTriggers);
-			reconTriggerList.add(reconTriggers);
-		}
+		sspTriggerList.add(triggerData.getSimSSPTriggers().getSingles0Triggers());
+		sspTriggerList.add(triggerData.getSimSSPTriggers().getSingles1Triggers());
+		reconTriggerList.add(triggerData.getSimReconTriggers().getSingles0Triggers());
+		reconTriggerList.add(triggerData.getSimReconTriggers().getSingles1Triggers());
 		
 		// Run generic trigger verification.
 		triggerVerification(sspTriggerList, reconTriggerList, true);
@@ -1246,15 +1256,10 @@ public class TriggerDiagnosticDriver extends Driver {
 		
 		// Convert the simulated triggers to generic versions and add
 		// them to the generic list.
-		for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
-			// Get the generic trigger list.
-			List<? extends Trigger<?>> sspTriggers = sspPairsTriggers.get(triggerNum);
-			List<? extends Trigger<?>> reconTriggers = reconPairsTriggers.get(triggerNum);
-			
-			// Add it to the generic list.
-			sspTriggerList.add(sspTriggers);
-			reconTriggerList.add(reconTriggers);
-		}
+		sspTriggerList.add(triggerData.getSimSSPTriggers().getPair0Triggers());
+		sspTriggerList.add(triggerData.getSimSSPTriggers().getPair1Triggers());
+		reconTriggerList.add(triggerData.getSimReconTriggers().getPair0Triggers());
+		reconTriggerList.add(triggerData.getSimReconTriggers().getPair1Triggers());
 		
 		// Run generic trigger verification.
 		triggerVerification(sspTriggerList, reconTriggerList, false);
@@ -1673,330 +1678,6 @@ public class TriggerDiagnosticDriver extends Driver {
 		} if(triggerEvent[0].getFailedSSPSimulatedTriggers() != 0 && triggerEvent[1].getFailedSSPSimulatedTriggers() != 0) {
 			if(isSingles) { singlesInternalFail = true; }
 			else { pairInternalFail = true; }
-		}
-	}
-	
-	/**
-	 * Generates and stores the singles triggers for both reconstructed
-	 * and SSP clusters.
-	 */
-	private void constructSinglesTriggers() {
-		// Run the SSP clusters through the singles trigger to determine
-		// whether they pass it or not.
-		for(SSPCluster cluster : sspClusters) {
-			// Add the cluster to the "NO_CUTS" plots for each singles
-			// TI bit that is active.
-			if(tiBank.isSingle0Trigger()) { globalTriggerPlots.sawCluster(0, cluster); }
-			if(tiBank.isSingle1Trigger()) { globalTriggerPlots.sawCluster(1, cluster); }
-			
-			triggerLoop:
-			for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
-				// For a cluster to have formed it is assumed to have
-				// passed the cluster seed energy cuts. This can not
-				// be verified since the SSP bank does not report
-				// individual hit. 
-				boolean passSeedLow = true;
-				boolean passSeedHigh = true;
-				
-				// The remaining cuts may be acquired from trigger module.
-				boolean passClusterLow = singlesTrigger[triggerNum].clusterTotalEnergyCutLow(cluster);
-				boolean passClusterHigh = singlesTrigger[triggerNum].clusterTotalEnergyCutHigh(cluster);
-				boolean passHitCount = singlesTrigger[triggerNum].clusterHitCountCut(cluster);
-				
-				// Make a trigger to store the results.
-				SinglesTrigger<SSPCluster> trigger = new SinglesTrigger<SSPCluster>(cluster, triggerNum);
-				trigger.setStateSeedEnergyLow(passSeedLow);
-				trigger.setStateSeedEnergyHigh(passSeedHigh);
-				trigger.setStateClusterEnergyLow(passClusterLow);
-				trigger.setStateClusterEnergyHigh(passClusterHigh);
-				trigger.setStateHitCount(passHitCount);
-				
-				// A trigger will only be reported by the SSP if it
-				// passes all of the enabled cuts for that trigger.
-				// Check whether this trigger meets these conditions.
-				if(singlesCutsEnabled[triggerNum][ENERGY_MIN] && !trigger.getStateClusterEnergyLow()) {
-					continue triggerLoop;
-				} if(singlesCutsEnabled[triggerNum][ENERGY_MAX] && !trigger.getStateClusterEnergyHigh()) {
-					continue triggerLoop;
-				} if(singlesCutsEnabled[triggerNum][HIT_COUNT] && !trigger.getStateHitCount()) {
-					continue triggerLoop;
-				}
-				
-				// If all the trigger cuts passed, plot this trigger
-				// in the "triggered" plots.
-				if(trigger.getTriggerState()) {
-					globalTriggerPlots.passedTrigger(trigger);
-				}
-				
-				// If all the necessary checks passed, store the new
-				// trigger for verification.
-				sspSinglesTriggers.get(triggerNum).add(trigger);
-			}
-		}
-		
-		// Run the reconstructed clusters through the singles trigger
-		// to determine whether they pass it or not.
-		for(Cluster cluster : reconClusters) {
-			// Add the cluster to the "NO_CUTS" plots for each singles
-			// TI bit that is active.
-			if(tiBank.isSingle0Trigger()) { globalTriggerPlots.sawCluster(0, cluster); }
-			if(tiBank.isSingle1Trigger()) { globalTriggerPlots.sawCluster(1, cluster); }
-			
-			// Simulate each of the cluster singles triggers.
-			triggerLoop:
-			for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
-				// For a cluster to have formed it is assumed to have passed
-				// the cluster seed energy cuts. This can not be verified
-				// since the SSP bank does not report individual hit. 
-				boolean passSeedLow = true;
-				boolean passSeedHigh = true;
-				
-				// The remaining cuts may be acquired from trigger module.
-				boolean passClusterLow = singlesTrigger[triggerNum].clusterTotalEnergyCutLow(cluster);
-				boolean passClusterHigh = singlesTrigger[triggerNum].clusterTotalEnergyCutHigh(cluster);
-				boolean passHitCount = singlesTrigger[triggerNum].clusterHitCountCut(cluster);
-				
-				// Make a trigger to store the results.
-				SinglesTrigger<Cluster> trigger = new SinglesTrigger<Cluster>(cluster, triggerNum);
-				trigger.setStateSeedEnergyLow(passSeedLow);
-				trigger.setStateSeedEnergyHigh(passSeedHigh);
-				trigger.setStateClusterEnergyLow(passClusterLow);
-				trigger.setStateClusterEnergyHigh(passClusterHigh);
-				trigger.setStateHitCount(passHitCount);
-				
-				// If all the trigger cuts passed, plot this trigger
-				// in the "triggered" plots.
-				if(trigger.getTriggerState()) {
-					globalTriggerPlots.passedTrigger(trigger);
-					singlesCandidates.get(triggerNum).add(trigger.getTriggerSource());
-				}
-				
-				// A trigger will only be reported by the SSP if it
-				// passes all of the enabled cuts for that trigger.
-				// Check whether this trigger meets these conditions.
-				if(singlesCutsEnabled[triggerNum][ENERGY_MIN] && !trigger.getStateClusterEnergyLow()) {
-					continue triggerLoop;
-				} if(singlesCutsEnabled[triggerNum][ENERGY_MAX] && !trigger.getStateClusterEnergyHigh()) {
-					continue triggerLoop;
-				} if(singlesCutsEnabled[triggerNum][HIT_COUNT] && !trigger.getStateHitCount()) {
-					continue triggerLoop;
-				}
-				
-				// Store the trigger.
-				reconSinglesTriggers.get(triggerNum).add(trigger);
-			}
-		}
-	}
-	
-	/**
-	 * Generates and stores the pair triggers for both reconstructed
-	 * and SSP clusters.
-	 */
-	private void constructPairTriggers() {
-		// Store cluster pairs.
-		List<Cluster> topReconClusters = new ArrayList<Cluster>();
-		List<Cluster> bottomReconClusters = new ArrayList<Cluster>();
-		List<Cluster[]> reconPairs = new ArrayList<Cluster[]>();
-		List<SSPCluster> topSSPClusters = new ArrayList<SSPCluster>();
-		List<SSPCluster> bottomSSPClusters = new ArrayList<SSPCluster>();
-		List<SSPCluster[]> sspPairs = new ArrayList<SSPCluster[]>();
-		
-		// Split the clusters into lists of top and bottom clusters.
-		for(Cluster reconCluster : reconClusters) {
-			if(reconCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") > 0) {
-				topReconClusters.add(reconCluster);
-			} else {
-				bottomReconClusters.add(reconCluster);
-			}
-		}
-		for(SSPCluster sspCluster : sspClusters) {
-			if(sspCluster.getYIndex() > 0) {
-				topSSPClusters.add(sspCluster);
-			} else {
-				bottomSSPClusters.add(sspCluster);
-			}
-		}
-		
-		// Form all possible top/bottom cluster pairs.
-		for(Cluster topReconCluster : topReconClusters) {
-			for(Cluster bottomReconCluster : bottomReconClusters) {
-				Cluster[] reconPair = new Cluster[2];
-				reconPair[0] = topReconCluster;
-				reconPair[1] = bottomReconCluster;
-				reconPairs.add(reconPair);
-			}
-		}
-		for(SSPCluster topSSPCluster : topSSPClusters) {
-			for(SSPCluster bottomSSPCluster : bottomSSPClusters) {
-				SSPCluster[] sspPair = new SSPCluster[2];
-				sspPair[0] = topSSPCluster;
-				sspPair[1] = bottomSSPCluster;
-				sspPairs.add(sspPair);
-			}
-		}
-		
-		// Simulate the pair triggers and record the results.
-		for(Cluster[] reconPair : reconPairs) {
-			// Simulate each of the cluster pair triggers.
-			pairTriggerLoop:
-			for(int triggerIndex = 0; triggerIndex < 2; triggerIndex++) {
-				// Check that the pair passes the time coincidence cut.
-				// If it does not, it is not a valid pair and should be
-				// destroyed.
-				if(!pairsTrigger[triggerIndex].pairTimeCoincidenceCut(reconPair)) {
-					continue pairTriggerLoop;
-				}
-				
-				// Add the cluster to the "NO_CUTS" plots for each
-				// singles TI bit that is active.
-				if((triggerIndex == 0 && tiBank.isPair0Trigger()) || (triggerIndex == 1 && tiBank.isPair1Trigger())) {
-					globalTriggerPlots.sawPair(triggerIndex, reconPair);
-				}
-				
-				// For a cluster to have formed it is assumed to have passed
-				// the cluster seed energy cuts. This can not be verified
-				// since the SSP bank does not report individual hit. 
-				boolean passSeedLow = true;
-				boolean passSeedHigh = true;
-				
-				// The remaining cuts may be acquired from trigger module.
-				boolean passClusterLow = pairsTrigger[triggerIndex].clusterTotalEnergyCutLow(reconPair[0])
-						&& pairsTrigger[triggerIndex].clusterTotalEnergyCutLow(reconPair[1]);
-				boolean passClusterHigh = pairsTrigger[triggerIndex].clusterTotalEnergyCutHigh(reconPair[0])
-						&& pairsTrigger[triggerIndex].clusterTotalEnergyCutHigh(reconPair[1]);
-				boolean passHitCount = pairsTrigger[triggerIndex].clusterHitCountCut(reconPair[0])
-						&& pairsTrigger[triggerIndex].clusterHitCountCut(reconPair[1]);
-				boolean passPairEnergySumLow = pairsTrigger[triggerIndex].pairEnergySumCutLow(reconPair);
-				boolean passPairEnergySumHigh = pairsTrigger[triggerIndex].pairEnergySumCutHigh(reconPair);
-				boolean passPairEnergyDifference = pairsTrigger[triggerIndex].pairEnergyDifferenceCut(reconPair);
-				boolean passPairEnergySlope = pairsTrigger[triggerIndex].pairEnergySlopeCut(reconPair);
-				boolean passPairCoplanarity = pairsTrigger[triggerIndex].pairCoplanarityCut(reconPair);
-				boolean passTimeCoincidence = pairsTrigger[triggerIndex].pairTimeCoincidenceCut(reconPair);
-				
-				// Create a trigger from the results.
-				PairTrigger<Cluster[]> trigger = new PairTrigger<Cluster[]>(reconPair, triggerIndex);
-				trigger.setStateSeedEnergyLow(passSeedLow);
-				trigger.setStateSeedEnergyHigh(passSeedHigh);
-				trigger.setStateClusterEnergyLow(passClusterLow);
-				trigger.setStateClusterEnergyHigh(passClusterHigh);
-				trigger.setStateHitCount(passHitCount);
-				trigger.setStateEnergySumLow(passPairEnergySumLow);
-				trigger.setStateEnergySumHigh(passPairEnergySumHigh);
-				trigger.setStateEnergyDifference(passPairEnergyDifference);
-				trigger.setStateEnergySlope(passPairEnergySlope);
-				trigger.setStateCoplanarity(passPairCoplanarity);
-				trigger.setStateTimeCoincidence(passTimeCoincidence);
-				
-				// A trigger will only be reported by the SSP if it
-				// passes all of the enabled cuts for that trigger.
-				// Check whether this trigger meets these conditions.
-				if(pairCutsEnabled[triggerIndex][ENERGY_MIN] && !trigger.getStateClusterEnergyLow()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][ENERGY_MAX] && !trigger.getStateClusterEnergyHigh()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][HIT_COUNT] && !trigger.getStateHitCount()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][3 + ENERGY_SUM] && !trigger.getStateEnergySum()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][3 + ENERGY_DIFF] && !trigger.getStateEnergyDifference()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][3 + ENERGY_SLOPE] && !trigger.getStateEnergySlope()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][3 + COPLANARITY] && !trigger.getStateCoplanarity()) {
-					continue pairTriggerLoop;
-				}
-				
-				// If all the trigger cuts passed, plot this trigger
-				// in the "triggered" plots.
-				if(trigger.getTriggerState()) {
-					globalTriggerPlots.passedTrigger(trigger);
-					LCRelation lcPair = new MyLCRelation(trigger.getTriggerSource()[0], trigger.getTriggerSource()[1]);
-					pairCandidates.get(triggerIndex).add(lcPair);
-				}
-				
-				// Add the trigger to the list.
-				reconPairsTriggers.get(triggerIndex).add(trigger);
-			}
-		}
-		
-		for(SSPCluster[] sspPair : sspPairs) {
-			pairTriggerLoop:
-			for(int triggerIndex = 0; triggerIndex < 2; triggerIndex++) {
-				// Check that the pair passes the time coincidence cut.
-				// If it does not, it is not a valid pair and should be
-				// destroyed.
-				if(!pairsTrigger[triggerIndex].pairTimeCoincidenceCut(sspPair)) {
-					continue pairTriggerLoop;
-				}
-				
-				// Add the cluster to the "NO_CUTS" plots for each
-				// singles TI bit that is active.
-				if((triggerIndex == 0 && tiBank.isPair0Trigger()) || (triggerIndex == 1 && tiBank.isPair1Trigger())) {
-					globalTriggerPlots.sawPair(triggerIndex, sspPair);
-				}
-				
-				// For a cluster to have formed it is assumed to have passed
-				// the cluster seed energy cuts. This can not be verified
-				// since the SSP bank does not report individual hit. 
-				boolean passSeedLow = true;
-				boolean passSeedHigh = true;
-				
-				// The remaining cuts may be acquired from trigger module.
-				boolean passClusterLow = pairsTrigger[triggerIndex].clusterTotalEnergyCutLow(sspPair[0])
-						&& pairsTrigger[triggerIndex].clusterTotalEnergyCutLow(sspPair[1]);
-				boolean passClusterHigh = pairsTrigger[triggerIndex].clusterTotalEnergyCutHigh(sspPair[0])
-						&& pairsTrigger[triggerIndex].clusterTotalEnergyCutHigh(sspPair[1]);
-				boolean passHitCount = pairsTrigger[triggerIndex].clusterHitCountCut(sspPair[0])
-						&& pairsTrigger[triggerIndex].clusterHitCountCut(sspPair[1]);
-				boolean passPairEnergySumLow = pairsTrigger[triggerIndex].pairEnergySumCutLow(sspPair);
-				boolean passPairEnergySumHigh = pairsTrigger[triggerIndex].pairEnergySumCutHigh(sspPair);
-				boolean passPairEnergyDifference = pairsTrigger[triggerIndex].pairEnergyDifferenceCut(sspPair);
-				boolean passPairEnergySlope = pairsTrigger[triggerIndex].pairEnergySlopeCut(sspPair);
-				boolean passPairCoplanarity = pairsTrigger[triggerIndex].pairCoplanarityCut(sspPair);
-				boolean passTimeCoincidence = pairsTrigger[triggerIndex].pairTimeCoincidenceCut(sspPair);
-				
-				// Create a trigger from the results.
-				PairTrigger<SSPCluster[]> trigger = new PairTrigger<SSPCluster[]>(sspPair, triggerIndex);
-				trigger.setStateSeedEnergyLow(passSeedLow);
-				trigger.setStateSeedEnergyHigh(passSeedHigh);
-				trigger.setStateClusterEnergyLow(passClusterLow);
-				trigger.setStateClusterEnergyHigh(passClusterHigh);
-				trigger.setStateHitCount(passHitCount);
-				trigger.setStateEnergySumLow(passPairEnergySumLow);
-				trigger.setStateEnergySumHigh(passPairEnergySumHigh);
-				trigger.setStateEnergyDifference(passPairEnergyDifference);
-				trigger.setStateEnergySlope(passPairEnergySlope);
-				trigger.setStateCoplanarity(passPairCoplanarity);
-				trigger.setStateTimeCoincidence(passTimeCoincidence);
-				
-				// If all the trigger cuts passed, plot this trigger
-				// in the "triggered" plots.
-				if(trigger.getTriggerState()) {
-					globalTriggerPlots.passedTrigger(trigger);
-				}
-				
-				// A trigger will only be reported by the SSP if it
-				// passes all of the enabled cuts for that trigger.
-				// Check whether this trigger meets these conditions.
-				if(pairCutsEnabled[triggerIndex][ENERGY_MIN] && !trigger.getStateClusterEnergyLow()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][ENERGY_MAX] && !trigger.getStateClusterEnergyHigh()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][HIT_COUNT] && !trigger.getStateHitCount()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][3 + ENERGY_SUM] && !trigger.getStateEnergySum()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][3 + ENERGY_DIFF] && !trigger.getStateEnergyDifference()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][3 + ENERGY_SLOPE] && !trigger.getStateEnergySlope()) {
-					continue pairTriggerLoop;
-				} if(pairCutsEnabled[triggerIndex][3 + COPLANARITY] && !trigger.getStateCoplanarity()) {
-					continue pairTriggerLoop;
-				}
-				
-				// Add the trigger to the list.
-				sspPairsTriggers.get(triggerIndex).add(trigger);
-			}
 		}
 	}
 	
