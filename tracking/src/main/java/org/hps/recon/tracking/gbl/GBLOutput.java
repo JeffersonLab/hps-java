@@ -288,7 +288,7 @@ public class GBLOutput {
             // Add beamspot first
             if(ihit == iBeamspotHit) {
                  if( addBeamspot ) {
-                     strips = this.getBeamSpotHits();
+                     strips = this.getBeamSpotHits(TrackUtils.isTopTrack(trk, 4));
                      correctedHitPosition = new BasicHep3Vector(0, 0, 0);
                  } else 
                      continue;
@@ -581,7 +581,7 @@ public class GBLOutput {
      * Make a pair of HelicalTrackStrips from the beam spot.
      *
      */
-    private List<HelicalTrackStrip> getBeamSpotHits() {
+    private List<HelicalTrackStrip> getBeamSpotHits(boolean isTopTrack) {
         
         // dummy constants
         final double time = 0;
@@ -643,12 +643,14 @@ public class GBLOutput {
         Hep3Vector vAxial = new BasicHep3Vector(vAxial_v.getX(), vAxial_v.getY(), vAxial_v.getZ());    
 
         // Create the actual strip hit objects
+        String sensorNameAxial = isTopTrack ? "module_L0t_halfmodule_axial_sensor0" : "module_L0b_halfmodule_axial_sensor0";
+        String sensorNameStereo = isTopTrack ? "module_L0t_halfmodule_stereo_sensor0" : "module_L0b_halfmodule_stereo_sensor0";
         NormalHelicalTrackStrip hitAxial = new NormalHelicalTrackStrip(posAxial, uAxial, vAxial,
                 umeas, beamspotWidthZ, vmin, vmax, 0.0, time,
-                null, "module_L0b_halfmodule_axial_sensor0", lyr, be);
+                null, sensorNameAxial, lyr, be);
         NormalHelicalTrackStrip hitStereo = new NormalHelicalTrackStrip(posStereo, uStereo, vStereo,
                 umeas, beamspotWidthZ, vmin, vmax, 0.0, time,
-                null, "module_L0b_halfmodule_stereo_sensor0", lyr, be);
+                null, sensorNameStereo, lyr, be);
 
         if(_debug > 0) {
             System.out.printf("%s: created beamspot strip hits\n", this.getClass().getSimpleName());
