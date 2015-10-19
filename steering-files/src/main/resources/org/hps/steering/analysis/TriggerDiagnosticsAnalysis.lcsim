@@ -1,11 +1,18 @@
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">    
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <control>
+        <printInputFiles>false</printInputFiles>
+        <printDriversDetailed>false</printDriversDetailed>
+    </control>
+    
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="ConditionsDriver"/>
         <driver name="DAQConfig"/>
         <driver name="EcalRawConverter"/>
         <driver name="GTPTestDriver"/>
+        <driver name="TriggerSimDriver"/>
         <driver name="TriggerDiagnostics"/>
+        <driver name="RawPlotsDriver"/>
         <driver name="AidaSaveDriver"/>
         <driver name="ClockDriver"/>
         <driver name="CleanupDriver"/>
@@ -22,20 +29,9 @@
         
         <driver name="DAQConfig" type="org.hps.record.daqconfig.DAQConfigDriver"/>
         
-        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalOnlineRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
-            <use2014Gain>false</use2014Gain>
-            <useTimestamps>false</useTimestamps>
-            <useTruthTime>false</useTruthTime>
-            <useRunningPedestal>false</useRunningPedestal>
-            <useTimeWalkCorrection>false</useTimeWalkCorrection>
-            <emulateFirmware>true</emulateFirmware>
-            <emulateMode7>false</emulateMode7>
-            <leadingEdgeThreshold>12</leadingEdgeThreshold>
-            <useDAQConfig>true</useDAQConfig>
-            <nsa>100</nsa>
-            <nsb>20</nsb>
-            <nPeak>3</nPeak>
+            <rawCollectionName>EcalReadoutHits</rawCollectionName>
         </driver>
         
         <driver name="GTPTestDriver" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
@@ -45,6 +41,13 @@
             <windowAfter>2</windowAfter>
             <useDAQConfig>true</useDAQConfig>
             <verbose>false</verbose>
+        </driver>
+        
+        <driver name="TriggerSimDriver" type="org.hps.analysis.trigger.DataTriggerSimDriver">
+            <filterUnverifiableClusters>true</filterUnverifiableClusters>
+            <bankCollectionName>TriggerBank</bankCollectionName>
+            <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <triggerCollectionName>SimTriggers</triggerCollectionName>
         </driver>
         
         <driver name="TriggerDiagnostics" type="org.hps.analysis.trigger.TriggerDiagnosticDriver">
@@ -59,6 +62,12 @@
             <enforceStrictTimeCompliance>true</enforceStrictTimeCompliance>
             <readDAQConfig>true</readDAQConfig>
             <verbose>false</verbose>
+        </driver>
+        
+        <driver name="RawPlotsDriver" type="org.hps.users.kmccarty.EvioAnalysis">
+            <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <bankCollectionName>TriggerBank</bankCollectionName>
+            <energySlopeParamF>0.0055</energySlopeParamF>
         </driver>
         
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
