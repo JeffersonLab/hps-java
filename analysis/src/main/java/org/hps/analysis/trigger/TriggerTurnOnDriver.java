@@ -54,7 +54,16 @@ public class TriggerTurnOnDriver extends Driver {
     private int nEventsProcessed = 0;
     private int nSimSingles1 = 0;
     private int nResultSingles1 = 0;
+    private boolean isMC;
     
+    public boolean isMC() {
+        return isMC;
+    }
+
+    public void setIsMC(boolean isMC) {
+        this.isMC = isMC;
+    }
+
     /**
      * 
      */
@@ -115,7 +124,7 @@ public class TriggerTurnOnDriver extends Driver {
         
         TriggerDecisionCalculator triggerDecisions = new TriggerDecisionCalculator(event);
         
-        if(!triggerDecisions.passed(TriggerType.PULSER))
+        if(!triggerDecisions.passed(TriggerType.PULSER) && !isMC)
             return;
         
         LOGGER.fine("pulser trigger fired");
