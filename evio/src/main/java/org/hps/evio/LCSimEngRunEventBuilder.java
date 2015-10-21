@@ -102,8 +102,12 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     @Override
     protected long getTime(final List<AbstractIntData> triggerList) {
         long tiTimeOffset = 0;
-        if (RunManager.getRunManager().runExists() && RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() != null) {
-            tiTimeOffset = (RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() / timestampCycle) * timestampCycle;
+        try {
+            if (RunManager.getRunManager().runExists() && RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() != null) {
+                tiTimeOffset = (RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() / timestampCycle) * timestampCycle;
+            }
+        } catch (IllegalStateException e) {
+            // May happen if RunManager is not initialized; just ignore.
         }
         for (final AbstractIntData data : triggerList) {
             if (data instanceof TIData) {
