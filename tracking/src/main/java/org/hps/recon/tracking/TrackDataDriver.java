@@ -271,12 +271,12 @@ public final class TrackDataDriver extends Driver {
                     }
                     if( stateLast == null)
                         throw new RuntimeException("last hit track state for GBL track was not found");
-                    TrackState stateEcal = TrackUtils.extrapolateTrackUsingFieldMap(stateLast, extStartPos, ecalPosition, stepSize, bFieldMap);
-                    track.getTrackStates().add(stateEcal);
-                    //if( stateIP == null)
-                    //    throw new RuntimeException("IP track state for GBL track was not found");
-                    //TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, ecalPosition, stepSize, bFieldMap);
-                    //track.getTrackStates().add(stateEcalIP);
+//                    TrackState stateEcal = TrackUtils.extrapolateTrackUsingFieldMap(stateLast, extStartPos, ecalPosition, stepSize, bFieldMap);
+//                    track.getTrackStates().add(stateEcal);
+                    if( stateIP == null)
+                        throw new RuntimeException("IP track state for GBL track was not found");
+                    TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, ecalPosition, stepSize, bFieldMap);
+                    track.getTrackStates().add(stateEcalIP);
                    
                 } else {
                     LOGGER.fine("Extrapolate seed track to ECal from vertex");
