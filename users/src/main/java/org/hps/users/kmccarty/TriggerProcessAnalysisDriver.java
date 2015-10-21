@@ -9,10 +9,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hps.recon.tracking.TrackType;
+import org.hps.recon.tracking.TrackUtils;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.Track;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -20,6 +24,8 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	private int eventsProcessed = 0;
 	private int møllersProcessed = 0;
 	private int tridentsProcessed = 0;
+	private int gblMøllersProcessed = 0;
+	private int gblTridentsProcessed = 0;
 	private double timeCoincidence = 2.5;
 	private AIDA aida = AIDA.defaultInstance();
 	private String clusterCollectionName = "EcalClustersCorr";
@@ -38,6 +44,8 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	private IHistogram2D trctmClusterPosition = aida.histogram2D("Tridents CTMatched/Cluster Seed Position", 46, -23, 23, 11, -5.5, 5.5);
 	private IHistogram2D trctmEnergySum2D = aida.histogram2D("Tridents CTMatched/Cluster Energy Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
 	private IHistogram2D trctmMomentumSum2D = aida.histogram2D("Tridents CTMatched/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
+	private IHistogram2D trctmESumCoplanarity = aida.histogram2D("Tridents CTMatched/Cluster Energy Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
+	private IHistogram2D trctmPSumCoplanarity = aida.histogram2D("Tridents CTMatched/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
 	
 	// Define the Møller cluster-track matched condition plots.
 	private IHistogram1D møctmInvariantMass = aida.histogram1D("Møller CTMatched/Invariant Mass", 140, 0.0, 0.070);
@@ -50,6 +58,29 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	private IHistogram2D møctmClusterPosition = aida.histogram2D("Møller CTMatched/Cluster Seed Position", 46, -23, 23, 11, -5.5, 5.5);
 	private IHistogram2D møctmEnergySum2D = aida.histogram2D("Møller CTMatched/Cluster Energy Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
 	private IHistogram2D møctmMomentumSum2D = aida.histogram2D("Møller CTMatched/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
+	private IHistogram2D møctmESumCoplanarity = aida.histogram2D("Møller CTMatched/Cluster Energy Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
+	private IHistogram2D møctmPSumCoplanarity = aida.histogram2D("Møller CTMatched/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
+	
+	// Define the Møller track-only condition plots.
+	private IHistogram1D møgblTimeCoincidence = aida.histogram1D("Møller Track-Only/Time Coincidence", 100, -4, 4);
+	private IHistogram1D møgblInvariantMass = aida.histogram1D("Møller Track-Only/Invariant Mass", 140, 0.0, 0.070);
+	private IHistogram1D møgblInstancesInEvent = aida.histogram1D("Møller Track-Only/Instances in Event", 9, 0.5, 9.5);
+	private IHistogram1D møgblMomentumSum1D = aida.histogram1D("Møller Track-Only/Track Momentum Sum", 150, 0.000, 1.500);
+	private IHistogram1D møgblElectronMomentum = aida.histogram1D("Møller Track-Only/Electron Track Momentum", 150, 0.000, 1.500);
+	private IHistogram2D møgblClusterPosition = aida.histogram2D("Møller Track-Only/Extrapolated Track Position", 138, -23, 23, 33, -5.5, 5.5);
+	private IHistogram2D møgblMomentumSum2D = aida.histogram2D("Møller Track-Only/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
+	private IHistogram2D møgblPSumCoplanarity = aida.histogram2D("Møller Track-Only/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
+	
+	// Define the GBL trident condition plots.
+	private IHistogram1D trgblInvariantMass = aida.histogram1D("Tridents Track-Only/Invariant Mass", 140, 0.0, 0.070);
+	private IHistogram1D trgblInstancesInEvent = aida.histogram1D("Tridents Track-Only/Instances in Event", 9, 0.5, 9.5);
+	private IHistogram1D trgblMomentumSum1D = aida.histogram1D("Tridents Track-Only/Track Momentum Sum", 150, 0.000, 1.500);
+	private IHistogram1D trgblElectronMomentum = aida.histogram1D("Tridents Track-Only/Electron Track Momentum", 150, 0.000, 1.500);
+	private IHistogram1D trgblPositronMomentum = aida.histogram1D("Tridents Track-Only/Positron Track Momentum", 150, 0.000, 1.500);
+	private IHistogram1D trgblTimeCoincidence = aida.histogram1D("Tridents Track-Only/Time Coincidence", 100, -4, 4);
+	private IHistogram2D trgblClusterPosition = aida.histogram2D("Tridents Track-Only/Extrapolated Track Position", 46, -23, 23, 11, -5.5, 5.5);
+	private IHistogram2D trgblMomentumSum2D = aida.histogram2D("Tridents Track-Only/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
+	private IHistogram2D trgblPSumCoplanarity = aida.histogram2D("Tridents Track-Only/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
 	
 	@Override
 	public void endOfData() {
@@ -59,10 +90,19 @@ public class TriggerProcessAnalysisDriver extends Driver {
 		System.out.println("Processed " + eventsProcessed + " events.");
 		System.out.println("Processed " + møllersProcessed + " Møller events");
 		System.out.println("\tAcceptance :: " + (100.0 * møllersProcessed / eventsProcessed) + "%");
-		System.out.println("\tRate       :: " + (møllersProcessed * scale) + "Hz");
+		System.out.println("\tRate       :: " + (møllersProcessed * scale) + " Hz");
+		
 		System.out.println("Processed " + tridentsProcessed + " trident events");
 		System.out.println("\tAcceptance :: " + (100.0 * tridentsProcessed / eventsProcessed) + "%");
-		System.out.println("\tRate       :: " + (tridentsProcessed * scale) + "Hz");
+		System.out.println("\tRate       :: " + (tridentsProcessed * scale) + " Hz");
+		
+		System.out.println("Processed " + gblMøllersProcessed + " track-only Møller events");
+		System.out.println("\tAcceptance :: " + (100.0 * gblMøllersProcessed / eventsProcessed) + "%");
+		System.out.println("\tRate       :: " + (gblMøllersProcessed * scale) + " Hz");
+		
+		System.out.println("Processed " + gblTridentsProcessed + " Rafo trident events");
+		System.out.println("\tAcceptance :: " + (100.0 * gblTridentsProcessed / eventsProcessed) + "%");
+		System.out.println("\tRate       :: " + (gblTridentsProcessed * scale) + " Hz");
 		
 		// Scale the cluster-track matched Møller plots.
 		møctmInvariantMass.scale(scale);
@@ -123,16 +163,21 @@ public class TriggerProcessAnalysisDriver extends Driver {
 		List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
 		
 		// Get cluster-track matched top/bottom pairs.
-		List<ReconstructedParticle[]> ctMatchedPairs = getTopBottomTracksCTMatched(trackList);
+		List<ReconstructedParticle[]> gblMatchedPairs = getTopBottomTracksGBL(trackList);
+		List<ReconstructedParticle[]> ctMatchedPairs  = getTopBottomTracksCTMatched(trackList);
 		
 		// Get the trident and Møller tracks for the matched track
 		// and cluster pair condition sets.
-		List<ReconstructedParticle[]> møllers = getMøllerTracksCTMatched(ctMatchedPairs);
-		List<ReconstructedParticle[]> tridents = getTridentTracksCTMatched(ctMatchedPairs);
+		List<ReconstructedParticle[]> møllers     = getMøllerTracksCTMatched(ctMatchedPairs);
+		List<ReconstructedParticle[]> møllersGBL  = getMøllerTracksGBL(gblMatchedPairs, event);
+		List<ReconstructedParticle[]> tridents    = getTridentTracksCTMatched(ctMatchedPairs);
+		List<ReconstructedParticle[]> tridentsGBL = getTridentClustersGBL(gblMatchedPairs, TriggerModule.getTopBottomPairs(clusterList, Cluster.class), event);
 		
 		// Track how many events had tridents and Møllers.
 		if(!møllers.isEmpty()) { møllersProcessed++; }
 		if(!tridents.isEmpty()) { tridentsProcessed++; }
+		if(!møllersGBL.isEmpty()) { gblMøllersProcessed++; }
+		if(!tridentsGBL.isEmpty()) { gblTridentsProcessed++; }
 		
 		// Produce Møller cluster-track matched plots.
 		møctmInstancesInEvent.fill(møllers.size());
@@ -145,6 +190,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			møctmElectronEnergy.fill(trackClusters[1].getEnergy());
 			møctmEnergySum1D.fill(TriggerModule.getValueEnergySum(trackClusters));
 			møctmEnergySum2D.fill(trackClusters[0].getEnergy(), trackClusters[1].getEnergy());
+			møctmESumCoplanarity.fill(TriggerModule.getValueEnergySum(trackClusters), getCalculatedCoplanarity(trackClusters));
 			møctmTimeCoincidence.fill(TriggerModule.getClusterTime(trackClusters[0]) - TriggerModule.getClusterTime(trackClusters[1]));
 			møctmClusterPosition.fill(TriggerModule.getClusterXIndex(trackClusters[0]), TriggerModule.getClusterYIndex(trackClusters[0]));
 			møctmClusterPosition.fill(TriggerModule.getClusterXIndex(trackClusters[1]), TriggerModule.getClusterYIndex(trackClusters[1]));
@@ -155,6 +201,8 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			møctmElectronMomentum.fill(pair[1].getMomentum().magnitude());
 			møctmMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
 			møctmMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+			møctmPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
+					getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
 		}
 		
 		// Produce trident cluster-track matched plots.
@@ -172,8 +220,9 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			// Populate the cluster plots.
 			trctmElectronEnergy.fill(electronCluster.getEnergy());
 			trctmPositronEnergy.fill(positronCluster.getEnergy());
-			trctmEnergySum1D.fill(TriggerModule.getValueEnergySum(trackClusters));
 			trctmEnergySum2D.fill(pair[0].getEnergy(), pair[1].getEnergy());
+			trctmEnergySum1D.fill(TriggerModule.getValueEnergySum(trackClusters));
+			trctmESumCoplanarity.fill(TriggerModule.getValueEnergySum(trackClusters), getCalculatedCoplanarity(trackClusters));
 			trctmTimeCoincidence.fill(TriggerModule.getClusterTime(trackClusters[0]) - TriggerModule.getClusterTime(trackClusters[1]));
 			trctmClusterPosition.fill(TriggerModule.getClusterXIndex(trackClusters[0]), TriggerModule.getClusterYIndex(trackClusters[0]));
 			trctmClusterPosition.fill(TriggerModule.getClusterXIndex(trackClusters[1]), TriggerModule.getClusterYIndex(trackClusters[1]));
@@ -184,7 +233,104 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			trctmPositronMomentum.fill(positronTrack.getMomentum().magnitude());
 			trctmMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
 			trctmMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+			trctmPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
+					getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
 		}
+		
+		// Produce the Møller track-only plots.
+		møgblInstancesInEvent.fill(møllersGBL.size());
+		RelationalTable<?, ?> hitToStrips = TrackUtils.getHitToStripsTable(event);
+		RelationalTable<?, ?> hitToRotated = TrackUtils.getHitToRotatedTable(event);
+		for(ReconstructedParticle pair[] : møllersGBL) {
+			// Get the tracks and track times.
+			Track[] tracks = { pair[0].getTracks().get(0), pair[1].getTracks().get(0) };
+			double times[] = {
+					TrackUtils.getTrackTime(tracks[0], hitToStrips, hitToRotated),
+					TrackUtils.getTrackTime(tracks[1], hitToStrips, hitToRotated)	
+			};
+			
+			// Fill the plots.
+			møgblTimeCoincidence.fill(times[0] - times[1]);
+			møgblInvariantMass.fill(getInvariantMass(pair));
+			møgblElectronMomentum.fill(pair[0].getMomentum().magnitude());
+			møgblElectronMomentum.fill(pair[1].getMomentum().magnitude());
+			møgblMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
+			møgblMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+			møgblClusterPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
+			møgblClusterPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
+			møgblPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
+					getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
+		}
+		
+		// Produce track-only trident plots.
+		trgblInstancesInEvent.fill(tridentsGBL.size());
+		for(ReconstructedParticle[] pair : tridentsGBL) {
+			// Get the tracks and track times.
+			Track[] tracks = { pair[0].getTracks().get(0), pair[1].getTracks().get(0) };
+			double times[] = {
+					TrackUtils.getTrackTime(tracks[0], hitToStrips, hitToRotated),
+					TrackUtils.getTrackTime(tracks[1], hitToStrips, hitToRotated)	
+			};
+			
+			// Fill the plots.
+			trgblTimeCoincidence.fill(times[0] - times[1]);
+			trgblInvariantMass.fill(getInvariantMass(pair));
+			trgblElectronMomentum.fill(pair[0].getMomentum().magnitude());
+			trgblElectronMomentum.fill(pair[1].getMomentum().magnitude());
+			trgblMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
+			trgblMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+			trgblClusterPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
+			trgblClusterPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
+			trgblPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
+					getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
+		}
+	}
+	
+	/**
+	 * Gets a list of all possible GBL top/bottom track pairs. These
+	 * tracks are not guaranteed to have a matched cluster.
+	 * @param trackList - A list of all possible tracks.
+	 * @return Returns a list of track pairs.
+	 */
+	private static final List<ReconstructedParticle[]> getTopBottomTracksGBL(List<ReconstructedParticle> trackList) {
+		// Separate the tracks into top and bottom tracks based on
+		// the value of tan(Λ). Use only GBL tracks to avoid track
+		// duplication.
+		List<ReconstructedParticle> topTracks = new ArrayList<ReconstructedParticle>();
+		List<ReconstructedParticle> botTracks = new ArrayList<ReconstructedParticle>();
+		trackLoop:
+		for(ReconstructedParticle track : trackList) {
+			// Require that the ReconstructedParticle contain an actual
+			// Track object.
+			if(track.getTracks().isEmpty()) {
+				continue trackLoop;
+			}
+			
+			// Ignore tracks that are not GBL tracks.
+			if(!TrackType.isGBL(track.getType())) {
+				continue trackLoop;
+			}
+			
+			// If the above tests pass, the ReconstructedParticle has
+			// a track and is also a GBL track. Separate it into either
+			// a top or a bottom track based on its tan(Λ) value.
+			if(track.getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0) {
+				topTracks.add(track);
+			} else {
+				botTracks.add(track);
+			}
+		}
+		
+		// Form all top/bottom pairs with the unique tracks.
+		List<ReconstructedParticle[]> pairList = new ArrayList<ReconstructedParticle[]>();
+		for(ReconstructedParticle topTrack : topTracks) {
+			for(ReconstructedParticle botTrack : botTracks) {
+				pairList.add(new ReconstructedParticle[] { topTrack, botTrack });
+			}
+		}
+		
+		// Return the result.
+		return pairList;
 	}
 	
 	/**
@@ -243,6 +389,81 @@ public class TriggerProcessAnalysisDriver extends Driver {
 		
 		// Return the result.
 		return pairList;
+	}
+	
+	private final List<ReconstructedParticle[]> getTridentClustersGBL(List<ReconstructedParticle[]> pairList, List<Cluster[]> clusterList, EventHeader event) {
+		// Store the set of track pairs that meet the trident condition.
+		List<ReconstructedParticle[]> tridentTracks = new ArrayList<ReconstructedParticle[]>();
+		
+		// Extract track relational tables from the event object.
+		RelationalTable<?, ?> hitToStrips = TrackUtils.getHitToStripsTable(event);
+		RelationalTable<?, ?> hitToRotated = TrackUtils.getHitToRotatedTable(event);
+		
+		// Tracks will not be considered for trident analysis unless there
+		// is at least one top/bottom cluster pair within the time window.
+		boolean passesClusterCondition = false;
+		tridentClusterLoop:
+		for(Cluster[] pair : clusterList) {
+			// Ignore clusters that are too far apart temporally.
+			if(TriggerModule.getValueTimeCoincidence(pair) > timeCoincidence) {
+				continue tridentClusterLoop;
+			}
+			
+			// Require that the cluster pair be top/bottom.
+			boolean hasTop = TriggerModule.getClusterYIndex(pair[0]) > 0 || TriggerModule.getClusterYIndex(pair[1]) > 0;
+			boolean hasBot = TriggerModule.getClusterYIndex(pair[0]) < 0 || TriggerModule.getClusterYIndex(pair[1]) < 0;
+			if(!hasTop || !hasBot) {
+				continue tridentClusterLoop;
+			}
+			
+			// If the cluster passes, mark that it has done so and skip
+			// the rest. Only one pair need pass.
+			passesClusterCondition = true;
+			break tridentClusterLoop;
+		}
+		
+		// If no cluster pair passed the cluster condition, no tracks
+		// are allowed to pass either.
+		if(!passesClusterCondition) {
+			return tridentTracks;
+		}
+		
+		// Next, check the track pair list. A track pair must have a
+		// positive and a negative track and must also be within the
+		// time coincidence window.
+		tridentTrackLoop:
+		for(ReconstructedParticle[] pair : pairList) {
+			// Check that there is at least one positive and one negative
+			// track in the pair.
+			boolean hasPositive = pair[0].getCharge() > 0 || pair[1].getCharge() > 0;
+			boolean hasNegative = pair[0].getCharge() < 0 || pair[1].getCharge() < 0;
+			if(hasPositive && hasNegative) {
+				break tridentTrackLoop;
+			}
+			
+			// Check that the track pair passes the time cut.
+			double times[] = {
+				TrackUtils.getTrackTime(pair[0].getTracks().get(0), hitToStrips, hitToRotated),
+				TrackUtils.getTrackTime(pair[1].getTracks().get(0), hitToStrips, hitToRotated)	
+			};
+			
+			if(Math.abs(times[0] - times[1]) > timeCoincidence) {
+				continue tridentTrackLoop;
+			}
+			
+			// Require that the negative track have less than 900 MeV
+			// momentum to exclude elastic electrons.
+			if(pair[0].getCharge() < 0 && pair[0].getMomentum().magnitude() > 0.900
+					|| pair[1].getCharge() < 0 && pair[1].getMomentum().magnitude() > 0.900) {
+				continue tridentTrackLoop;
+			}
+			
+			// If the track passes both, it is considered a trident pair.
+			tridentTracks.add(pair);
+		}
+		
+		// Return the resultant pairs.
+		return tridentTracks;
 	}
 	
 	/**
@@ -305,6 +526,55 @@ public class TriggerProcessAnalysisDriver extends Driver {
 		
 		// Return the list of pairs that passed the condition.
 		return tridentTracks;
+	}
+	
+	private final List<ReconstructedParticle[]> getMøllerTracksGBL(List<ReconstructedParticle[]> pairList, EventHeader event) {
+		// Store the set of track pairs that meet the Møller condition.
+		List<ReconstructedParticle[]> møllerTracks = new ArrayList<ReconstructedParticle[]>();
+		
+		// Extract track relational tables from the event object.
+		RelationalTable<?, ?> hitToStrips = TrackUtils.getHitToStripsTable(event);
+		RelationalTable<?, ?> hitToRotated = TrackUtils.getHitToRotatedTable(event);
+		
+		// Loop over the filtered pair list and apply the Møller
+		// condition test.
+		møllerLoop:
+		for(ReconstructedParticle[] pair : pairList) {
+			// Both tracks must be negatively charged.
+			if(pair[0].getCharge() > 0 || pair[1].getCharge() > 0) {
+				continue møllerLoop;
+			}
+			
+			// The clusters must within a limited time window.
+			double times[] = {
+				TrackUtils.getTrackTime(pair[0].getTracks().get(0), hitToStrips, hitToRotated),
+				TrackUtils.getTrackTime(pair[1].getTracks().get(0), hitToStrips, hitToRotated)	
+			};
+			
+			if(Math.abs(times[0] - times[1]) > timeCoincidence) {
+				continue møllerLoop;
+			}
+			
+			// Require that the electrons in the pair have energies
+			// below 900 MeV to exclude elastic electrons.
+			if(pair[0].getMomentum().magnitude() > 0.900 || pair[1].getMomentum().magnitude() > 0.900) {
+				continue møllerLoop;
+			}
+			
+			// Require that the energy of the pair be within a range
+			// that is sufficiently "Møller-like."
+			double momentumSum = VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude();
+			if(momentumSum < 0.800 || momentumSum > 1.500) {
+				continue møllerLoop;
+			}
+			
+			// If all the above conditions are met, the pair is to be
+			// considered a trident pair. Add it to the list.
+			møllerTracks.add(pair);
+		}
+		
+		// Return the list of pairs that passed the condition.
+		return møllerTracks;
 	}
 	
 	/**
@@ -385,6 +655,57 @@ public class TriggerProcessAnalysisDriver extends Driver {
 		
 		// Calculate the invariant mass.
 		return Math.sqrt(p2 - Math.pow(xPro, 2) - Math.pow(yPro, 2) - Math.pow(zPro, 2));
+	}
+	
+	/**
+	 * Calculates the coplanarity angle between two points, specified
+	 * by a double array. The array must be of the format (x, y, z).
+	 * @param position - The first position array.
+	 * @param otherPosition - The second position array.
+	 * @return Returns the coplanarity angle between the points in units
+	 * of degrees.
+	 */
+	private static final double getCalculatedCoplanarity(double[] position, double[] otherPosition) {
+		// Define the x- and y-coordinates of the clusters as well as
+		// calorimeter center.
+		final double ORIGIN_X = 42.52;
+		double x[] = { position[0], otherPosition[0] };
+		double y[] = { position[1], otherPosition[1] };
+		
+        // Get the cluster angles.
+        double[] clusterAngle = new double[2];
+        for(int i = 0; i < 2; i++) {
+        	clusterAngle[i] = Math.atan2(y[i], x[i] - ORIGIN_X) * 180 / Math.PI;
+        	if(clusterAngle[i] <= 0) { clusterAngle[i] += 360; }
+        }
+        
+        // Calculate the coplanarity cut value.
+        double clusterDiff = clusterAngle[0] - clusterAngle[1];
+        return clusterDiff > 0 ? clusterDiff : clusterDiff + 360;
+	}
+	
+	/**
+	 * Calculates the coplanarity angle of a pair of clusters.
+	 * @param pair - The pair of clusters for which to calculate the
+	 * coplanarity angle.
+	 * @return Returns the coplanarity angle between the two clusters
+	 * in degrees.
+	 */
+	private static final double getCalculatedCoplanarity(Cluster[] pair) {
+		return getCalculatedCoplanarity(pair[0].getPosition(), pair[1].getPosition());
+	}
+	
+	/**
+	 * Calculates the coplanarity angle of a pair of tracks. The track
+	 * is extrapolated to the calorimeter face and its position there
+	 * used for the arguments in the calculation.
+	 * @param pair - The pair of tracks for which to calculate the
+	 * coplanarity angle.
+	 * @return Returns the coplanarity angle between the two tracks
+	 * in degrees.
+	 */
+	private static final double getCalculatedCoplanarity(Track[] pair) {
+		return getCalculatedCoplanarity(TrackUtils.getTrackPositionAtEcal(pair[0]).v(), TrackUtils.getTrackPositionAtEcal(pair[1]).v());
 	}
 }
 // shawna.hollen@unh.edu
