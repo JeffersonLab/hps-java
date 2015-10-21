@@ -8,7 +8,7 @@
         <driver name="EventMarkerDriver"/> 
         <!--<driver name="SvtMetaData"/>-->
         <driver name="OLDLinkErrorDriver"/>
-        <!--<driver name="LinkErrorDriver"/>-->
+        <driver name="LinkErrorDriver"/>
         <!--<driver name="LCIOWriter"/>-->
         <!--<driver name="AidaSaveDriverRoot" />-->
         <driver name="CleanupDriver"/>
@@ -20,7 +20,6 @@
         
         <driver name="LinkErrorDriver" type="org.hps.users.phansson.SvtHeaderAnalysisDriver">
             <logFileName>${outputFile}.log</logFileName>
-            <showPlots>False</showPlots>
         </driver>  
        
        <driver name="OLDLinkErrorDriver" type="org.hps.users.phansson.SvtOldHeaderAnalysisDriver">
