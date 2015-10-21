@@ -126,6 +126,8 @@ public class SvtChargeIntegrator {
             SvtBiasConstantCollection svtBiasConstants = null;
             SvtMotorPositionCollection svtPositionConstants = null;
             SvtAlignmentConstant.SvtAlignmentConstantCollection alignmentConstants = null;
+            Date date = null;
+            Date lastDate = null;
 
             for (CSVRecord record : records) {
                 int runNum = Integer.parseInt(record.get(0));
@@ -181,8 +183,7 @@ public class SvtChargeIntegrator {
                 double totalGatedCharge = 0;
                 double totalGatedChargeWithBias = 0;
                 double totalGatedChargeWithBiasAtNominal = 0;
-                Date date = null;
-                Date lastDate = null;
+                br.mark(1000);
 
                 while ((line = br.readLine()) != null) {
                     String arr[] = line.split(" +");
@@ -193,11 +194,14 @@ public class SvtChargeIntegrator {
                     lastDate = date;
                     date = dateFormat.parse(arr[0] + " " + arr[1]);
                     if (date.after(endDate) && lastDate != null && lastDate.after(endDate)) {
+                        date = lastDate;
+                        br.reset();
                         break;
                     }
                     if (date.before(startDate)) {
                         continue;
                     }
+                    br.mark(1000);
 
                     double current, livetime;
                     if (arr[2].equals("<undefined>")) {
@@ -232,7 +236,7 @@ public class SvtChargeIntegrator {
                         double dt = (Math.min(date.getTime(), endDate.getTime()) - Math.max(startDate.getTime(), lastDate.getTime())) / 1000.0;
                         double dq = dt * current; // nC
                         double dqGated = dt * current * livetime; // nC
-//                        System.out.format("start %d end %d date %d lastDate %d current %f dt %f\n", startDate.getTime(), endDate.getTime(), date.getTime(), lastDate.getTime(), current, dt);
+                        System.out.format("start %d end %d date %d lastDate %d current %f dt %f\n", startDate.getTime(), endDate.getTime(), date.getTime(), lastDate.getTime(), current, dt);
                         totalCharge += dq;
                         totalGatedCharge += dqGated;
                         if (biasGood) {
