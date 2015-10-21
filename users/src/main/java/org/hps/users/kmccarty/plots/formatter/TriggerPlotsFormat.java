@@ -57,22 +57,23 @@ public class TriggerPlotsFormat {
 	 */
 	public static void main(String[] args) throws IOException {
 		// Define the root directory for the plots.
-		String rootDir = "D:\\cygwin64\\home\\Kyle\\aprime-plots\\";
+		String rootDir = "D:\\cygwin64\\home\\Kyle\\beam-plots\\base\\";
+		//String rootDir = "D:\\cygwin64\\home\\Kyle\\aprime-plots\\base\\readout-plots\\";
 		
 		// Define the new name of the file containing the trigger plots.
 		String[] plotFile = {
-				//rootDir + "background-ana_triggerPlots.aida"
-				rootDir + "15-MeV\\compiled-plots.aida",
-				rootDir + "20-MeV\\compiled-plots.aida",
-				rootDir + "30-MeV\\compiled-plots.aida",
-				rootDir + "40-MeV\\compiled-plots.aida",
-				rootDir + "50-MeV\\compiled-plots.aida"
+				rootDir + "compiled-plots.aida"
+				//rootDir + "15-MeV\\compiled-plots.aida",
+				//rootDir + "20-MeV\\compiled-plots.aida",
+				//rootDir + "30-MeV\\compiled-plots.aida",
+				//rootDir + "40-MeV\\compiled-plots.aida",
+				//rootDir + "50-MeV\\compiled-plots.aida"
 		};
 		
 		// Define the names of each plot. This will be used for the
 		// legend in the case of multiple plots.
 		String[] treeName = {
-			//"Background",
+			"Background",
 			"15 MeV A'",
 			"20 MeV A'",
 			"30 MeV A'",
@@ -82,13 +83,13 @@ public class TriggerPlotsFormat {
 		
 		// Define the color style for the plots.
 		ColorStyle[] dataColorStyle = {
-				//ColorStyle.GREY,
+				ColorStyle.GREY,
 				ColorStyle.MS_GREEN,
 				ColorStyle.MS_BLUE,
 				ColorStyle.MS_ORANGE,
 				ColorStyle.MS_RED,
-				ColorStyle.CRIMSON,
 				ColorStyle.TEAL,
+				ColorStyle.CRIMSON,
 				ColorStyle.FOREST
 		};
 		
