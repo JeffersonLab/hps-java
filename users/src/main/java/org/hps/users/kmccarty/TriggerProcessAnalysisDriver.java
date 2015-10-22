@@ -67,7 +67,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	private IHistogram1D møgblInstancesInEvent = aida.histogram1D("Møller Track-Only/Instances in Event", 9, 0.5, 9.5);
 	private IHistogram1D møgblMomentumSum1D = aida.histogram1D("Møller Track-Only/Track Momentum Sum", 150, 0.000, 1.500);
 	private IHistogram1D møgblElectronMomentum = aida.histogram1D("Møller Track-Only/Electron Track Momentum", 150, 0.000, 1.500);
-	private IHistogram2D møgblClusterPosition = aida.histogram2D("Møller Track-Only/Extrapolated Track Position", 138, -23, 23, 33, -5.5, 5.5);
+	private IHistogram2D møgblClusterPosition = aida.histogram2D("Møller Track-Only/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
 	private IHistogram2D møgblMomentumSum2D = aida.histogram2D("Møller Track-Only/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
 	private IHistogram2D møgblPSumCoplanarity = aida.histogram2D("Møller Track-Only/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
 	
@@ -78,7 +78,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	private IHistogram1D trgblElectronMomentum = aida.histogram1D("Tridents Track-Only/Electron Track Momentum", 150, 0.000, 1.500);
 	private IHistogram1D trgblPositronMomentum = aida.histogram1D("Tridents Track-Only/Positron Track Momentum", 150, 0.000, 1.500);
 	private IHistogram1D trgblTimeCoincidence = aida.histogram1D("Tridents Track-Only/Time Coincidence", 100, -4, 4);
-	private IHistogram2D trgblClusterPosition = aida.histogram2D("Tridents Track-Only/Extrapolated Track Position", 46, -23, 23, 11, -5.5, 5.5);
+	private IHistogram2D trgblClusterPosition = aida.histogram2D("Tridents Track-Only/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
 	private IHistogram2D trgblMomentumSum2D = aida.histogram2D("Tridents Track-Only/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
 	private IHistogram2D trgblPSumCoplanarity = aida.histogram2D("Tridents Track-Only/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
 	
