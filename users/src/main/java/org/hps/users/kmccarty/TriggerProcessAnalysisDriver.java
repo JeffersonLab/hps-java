@@ -103,32 +103,6 @@ public class TriggerProcessAnalysisDriver extends Driver {
 		System.out.println("Processed " + gblTridentsProcessed + " Rafo trident events");
 		System.out.println("\tAcceptance :: " + (100.0 * gblTridentsProcessed / eventsProcessed) + "%");
 		System.out.println("\tRate       :: " + (gblTridentsProcessed * scale) + " Hz");
-		
-		// Scale the cluster-track matched Møller plots.
-		møctmInvariantMass.scale(scale);
-		møctmInstancesInEvent.scale(scale);
-		møctmEnergySum1D.scale(scale);
-		møctmMomentumSum1D.scale(scale);
-		møctmElectronEnergy.scale(scale);
-		møctmElectronMomentum.scale(scale);
-		møctmTimeCoincidence.scale(scale);
-		møctmClusterPosition.scale(scale);
-		møctmEnergySum2D.scale(scale);
-		møctmMomentumSum2D.scale(scale);
-		
-		// Scale the cluster-track matched trident plots.
-		trctmInvariantMass.scale(scale);
-		trctmInstancesInEvent.scale(scale);
-		trctmEnergySum1D.scale(scale);
-		trctmMomentumSum1D.scale(scale);
-		trctmElectronEnergy.scale(scale);
-		trctmElectronMomentum.scale(scale);
-		trctmPositronEnergy.scale(scale);
-		trctmPositronMomentum.scale(scale);
-		trctmTimeCoincidence.scale(scale);
-		trctmClusterPosition.scale(scale);
-		trctmEnergySum2D.scale(scale);
-		trctmMomentumSum2D.scale(scale);
 	}
 	
 	@Override
@@ -272,11 +246,15 @@ public class TriggerProcessAnalysisDriver extends Driver {
 					TrackUtils.getTrackTime(tracks[1], hitToStrips, hitToRotated)	
 			};
 			
+			// Get the positron and the electron.
+			ReconstructedParticle positron = pair[0].getCharge() > 0 ? pair[0] : pair[1];
+			ReconstructedParticle electron = pair[0].getCharge() < 0 ? pair[0] : pair[1];
+			
 			// Fill the plots.
 			trgblTimeCoincidence.fill(times[0] - times[1]);
 			trgblInvariantMass.fill(getInvariantMass(pair));
-			trgblElectronMomentum.fill(pair[0].getMomentum().magnitude());
-			trgblElectronMomentum.fill(pair[1].getMomentum().magnitude());
+			trgblElectronMomentum.fill(electron.getMomentum().magnitude());
+			trgblPositronMomentum.fill(positron.getMomentum().magnitude());
 			trgblMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
 			trgblMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
 			trgblClusterPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
