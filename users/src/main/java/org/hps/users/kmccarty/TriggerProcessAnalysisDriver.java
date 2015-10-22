@@ -43,6 +43,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	private IHistogram1D trctmTimeCoincidence = aida.histogram1D("Tridents CTMatched/Time Coincidence", 100, -4, 4);
 	private IHistogram2D trctmClusterPosition = aida.histogram2D("Tridents CTMatched/Cluster Seed Position", 46, -23, 23, 11, -5.5, 5.5);
 	private IHistogram2D trctmEnergySum2D = aida.histogram2D("Tridents CTMatched/Cluster Energy Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
+	private IHistogram2D trctmTrackPosition = aida.histogram2D("Tridents CTMatched/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
 	private IHistogram2D trctmMomentumSum2D = aida.histogram2D("Tridents CTMatched/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
 	private IHistogram2D trctmESumCoplanarity = aida.histogram2D("Tridents CTMatched/Cluster Energy Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
 	private IHistogram2D trctmPSumCoplanarity = aida.histogram2D("Tridents CTMatched/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
@@ -57,6 +58,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	private IHistogram1D møctmTimeCoincidence = aida.histogram1D("Møller CTMatched/Time Coincidence", 100, -4, 4);
 	private IHistogram2D møctmClusterPosition = aida.histogram2D("Møller CTMatched/Cluster Seed Position", 46, -23, 23, 11, -5.5, 5.5);
 	private IHistogram2D møctmEnergySum2D = aida.histogram2D("Møller CTMatched/Cluster Energy Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
+	private IHistogram2D møctmTrackPosition = aida.histogram2D("Møller CTMatched/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
 	private IHistogram2D møctmMomentumSum2D = aida.histogram2D("Møller CTMatched/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
 	private IHistogram2D møctmESumCoplanarity = aida.histogram2D("Møller CTMatched/Cluster Energy Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
 	private IHistogram2D møctmPSumCoplanarity = aida.histogram2D("Møller CTMatched/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
@@ -67,7 +69,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	private IHistogram1D møgblInstancesInEvent = aida.histogram1D("Møller Track-Only/Instances in Event", 9, 0.5, 9.5);
 	private IHistogram1D møgblMomentumSum1D = aida.histogram1D("Møller Track-Only/Track Momentum Sum", 150, 0.000, 1.500);
 	private IHistogram1D møgblElectronMomentum = aida.histogram1D("Møller Track-Only/Electron Track Momentum", 150, 0.000, 1.500);
-	private IHistogram2D møgblClusterPosition = aida.histogram2D("Møller Track-Only/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
+	private IHistogram2D møgblTrackPosition = aida.histogram2D("Møller Track-Only/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
 	private IHistogram2D møgblMomentumSum2D = aida.histogram2D("Møller Track-Only/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
 	private IHistogram2D møgblPSumCoplanarity = aida.histogram2D("Møller Track-Only/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
 	
@@ -78,7 +80,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	private IHistogram1D trgblElectronMomentum = aida.histogram1D("Tridents Track-Only/Electron Track Momentum", 150, 0.000, 1.500);
 	private IHistogram1D trgblPositronMomentum = aida.histogram1D("Tridents Track-Only/Positron Track Momentum", 150, 0.000, 1.500);
 	private IHistogram1D trgblTimeCoincidence = aida.histogram1D("Tridents Track-Only/Time Coincidence", 100, -4, 4);
-	private IHistogram2D trgblClusterPosition = aida.histogram2D("Tridents Track-Only/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
+	private IHistogram2D trgblTrackPosition = aida.histogram2D("Tridents Track-Only/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
 	private IHistogram2D trgblMomentumSum2D = aida.histogram2D("Tridents Track-Only/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
 	private IHistogram2D trgblPSumCoplanarity = aida.histogram2D("Tridents Track-Only/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
 	
@@ -157,6 +159,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
 		møctmInstancesInEvent.fill(møllers.size());
 		for(ReconstructedParticle[] pair : møllers) {
 			// Get the track clusters.
+			Track[] tracks = { pair[0].getTracks().get(0), pair[1].getTracks().get(0) };
 			Cluster[] trackClusters = { pair[0].getClusters().get(0), pair[1].getClusters().get(0) };
 			
 			// Populate the cluster plots.
@@ -175,6 +178,8 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			møctmElectronMomentum.fill(pair[1].getMomentum().magnitude());
 			møctmMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
 			møctmMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+			møctmTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
+			møctmTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
 			møctmPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
 					getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
 		}
@@ -189,6 +194,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			// Get the track clusters.
 			Cluster electronCluster = electronTrack.getClusters().get(0);
 			Cluster positronCluster = positronTrack.getClusters().get(0);
+			Track[] tracks = { pair[0].getTracks().get(0), pair[1].getTracks().get(0) };
 			Cluster[] trackClusters = { pair[0].getClusters().get(0), pair[1].getClusters().get(0) };
 			
 			// Populate the cluster plots.
@@ -207,6 +213,8 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			trctmPositronMomentum.fill(positronTrack.getMomentum().magnitude());
 			trctmMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
 			trctmMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+			trctmTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
+			trctmTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
 			trctmPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
 					getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
 		}
@@ -230,8 +238,8 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			møgblElectronMomentum.fill(pair[1].getMomentum().magnitude());
 			møgblMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
 			møgblMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
-			møgblClusterPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
-			møgblClusterPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
+			møgblTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
+			møgblTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
 			møgblPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
 					getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
 		}
@@ -257,8 +265,8 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			trgblPositronMomentum.fill(positron.getMomentum().magnitude());
 			trgblMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
 			trgblMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
-			trgblClusterPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
-			trgblClusterPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
+			trgblTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
+			trgblTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
 			trgblPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
 					getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
 		}
