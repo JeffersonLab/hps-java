@@ -415,7 +415,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			// track in the pair.
 			boolean hasPositive = pair[0].getCharge() > 0 || pair[1].getCharge() > 0;
 			boolean hasNegative = pair[0].getCharge() < 0 || pair[1].getCharge() < 0;
-			if(hasPositive && hasNegative) {
+			if(!hasPositive || !hasNegative) {
 				break tridentTrackLoop;
 			}
 			
