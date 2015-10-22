@@ -110,6 +110,21 @@
                                     <mainClass>org.lcsim.geometry.compact.converter.Main</mainClass>
                                     <id>detcnv</id>
                                 </program>
+                                <program>
+                                    <mainClass>org.hps.record.evio.EvioFileProducer</mainClass>
+                                    <id>evio_file_producer</id>
+                                </program>
+                                <program>
+                                    <mainClass>org.jlab.coda.et.apps.StartEt</mainClass>
+                                    <id>et_server</id>
+                                    <commandLineArguments>
+                                        <commandLineArgument>-f</commandLineArgument>
+                                        <commandLineArgument>ETBuffer</commandLineArgument>
+                                        <commandLineArgument>-s</commandLineArgument>
+                                        <commandLineArgument>20000</commandLineArgument>
+                                        <commandLineArgument>-v</commandLineArgument>
+                                    </commandLineArguments>
+                                </program>
                             </programs>
                         </configuration>
                     </execution>
