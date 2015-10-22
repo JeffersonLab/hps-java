@@ -327,7 +327,6 @@ public class DatacatCrawler {
         }
 
         LOGGER.info("done parsing command line options");
-        LOGGER.getHandlers()[0].flush();
 
         return this;
     }
