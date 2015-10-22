@@ -94,7 +94,7 @@ final class DatacatClientImpl implements DatacatClient {
         parameters.put("fileFormat", fileFormat.toString());
         parameters.put("name", name);
         final JSONObject jsonDataset = JSONUtilities.createJSONDataset(parameters, metadata);
-        final String urlLocation = url + "/r/datasets.json/" + this.rootDir + "/" + folder;
+        final String urlLocation = url + "/datasets.json/" + this.rootDir + "/" + folder;
         LOGGER.info("addDataset: " + urlLocation);
         LOGGER.info("dataset JSON: " + jsonDataset.toString());
         return HttpUtilities.doPost(urlLocation, jsonDataset.toString());
@@ -113,7 +113,7 @@ final class DatacatClientImpl implements DatacatClient {
     public int addMetadata(final String folder, final String name, final Map<String, Object> metaData) {
         final JSONObject object = new JSONObject();
         object.put("versionMetadata", JSONUtilities.createJSONMetadataArray(metaData));
-        final String patchUrl = this.url.toString() + "/r/datasets.json/" + this.rootDir + "/" + folder + "/" + name
+        final String patchUrl = this.url.toString() + "/datasets.json/" + this.rootDir + "/" + folder + "/" + name
                 + ";v=current;s=" + this.site;
         LOGGER.info("addMetadata: " + patchUrl);
         return HttpUtilities.doPatch(patchUrl, object.toString());
@@ -129,7 +129,7 @@ final class DatacatClientImpl implements DatacatClient {
      */
     @Override
     public int deleteDataset(final String path) {
-        final String urlLocation = url.toString() + "/r/datasets.json/" + this.rootDir + path;
+        final String urlLocation = url.toString() + "/datasets.json/" + this.rootDir + path;
         LOGGER.info("deleting dataset: " + urlLocation);
         return HttpUtilities.doDelete(urlLocation);
     }
@@ -147,7 +147,7 @@ final class DatacatClientImpl implements DatacatClient {
         if (path.length() == 0) {
             throw new IllegalArgumentException("The path is a blank string.");
         }
-        final String urlLocation = this.url + "/r/path.json/" + this.rootDir + "/" + path;
+        final String urlLocation = this.url + "/path.json/" + this.rootDir + "/" + path;
         final StringBuffer output = new StringBuffer();
         final int status = HttpUtilities.doGet(urlLocation, output);
         if (status > 400) {
@@ -170,7 +170,7 @@ final class DatacatClientImpl implements DatacatClient {
     @Override
     public List<Dataset> findDatasets(final String directory, final String query, final Set<String> showMetadata) {
 
-        String urlLocation = this.url.toString() + "/r/search.json/" + this.rootDir + "/";
+        String urlLocation = this.url.toString() + "/search.json/" + this.rootDir + "/";
         if (directory != null) {
             urlLocation += directory;
         }
@@ -224,7 +224,7 @@ final class DatacatClientImpl implements DatacatClient {
         if (site == null) {
             throw new IllegalArgumentException("The site is null.");
         }
-        String urlLocation = this.url + "/r/path.json/" + this.rootDir;
+        String urlLocation = this.url + "/path.json/" + this.rootDir;
         if (!path.startsWith("/")) {
             urlLocation += "/";
         }
@@ -247,7 +247,7 @@ final class DatacatClientImpl implements DatacatClient {
         if (path.length() == 0) {
             throw new IllegalArgumentException("The path is a blank string.");
         }
-        final String urlLocation = this.url + "/r/path.json/" + this.rootDir + "/" + path;
+        final String urlLocation = this.url + "/path.json/" + this.rootDir + "/" + path;
         final StringBuffer output = new StringBuffer();
         final int status = HttpUtilities.doGet(urlLocation, output);
         if (status > 400) {
@@ -271,7 +271,7 @@ final class DatacatClientImpl implements DatacatClient {
         parameters.put("name", name);
         parameters.put("_type", "folder");
         final JSONObject object = JSONUtilities.createJSONFromMap(parameters);
-        final String urlLocation = url + "/r/folders.json/" + this.rootDir;
+        final String urlLocation = url + "/folders.json/" + this.rootDir;
         LOGGER.info("making folder: " + urlLocation);
         LOGGER.info("folder JSON: " + object.toString());
         return HttpUtilities.doPost(urlLocation, object.toString());
@@ -287,7 +287,7 @@ final class DatacatClientImpl implements DatacatClient {
      */
     @Override
     public int removeFolder(final String folder) {
-        final String fullUrl = url.toString() + "/r/folders.json/" + this.rootDir + folder;
+        final String fullUrl = url.toString() + "/folders.json/" + this.rootDir + folder;
         LOGGER.info("removing folder: " + fullUrl);
         return HttpUtilities.doDelete(fullUrl);
     }

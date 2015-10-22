@@ -15,5 +15,5 @@ final class DatacatConstants {
     /**
      * The base URL of the datacat server.
      */
-    public static final String BASE_URL = "http://hpsweb.jlab.org/datacat";
+    public static final String BASE_URL = "http://hpsweb.jlab.org/datacat/r";
 }
