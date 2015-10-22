@@ -137,6 +137,9 @@ public class SvtChargeIntegrator {
 
                 if (runNum != currentRun) {
                     RunManager.getRunManager().setRun(runNum);
+                    if (!RunManager.getRunManager().runExists() || RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() == null) {
+                        continue;
+                    }
                     try {
                         DatabaseConditionsManager.getInstance().setDetector("HPS-EngRun2015-Nominal-v3", runNum);
 
@@ -144,10 +147,6 @@ public class SvtChargeIntegrator {
                         svtPositionConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtMotorPosition.SvtMotorPositionCollection.class, "svt_motor_positions").getCachedData();
                         alignmentConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtAlignmentConstant.SvtAlignmentConstantCollection.class, "svt_alignments").getCachedData();
                     } catch (Exception ex) {
-                        continue;
-                    }
-
-                    if (!RunManager.getRunManager().runExists() || RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() == null) {
                         continue;
                     }
 
@@ -193,15 +192,9 @@ public class SvtChargeIntegrator {
                     }
                     lastDate = date;
                     date = dateFormat.parse(arr[0] + " " + arr[1]);
-                    if (date.after(endDate) && lastDate != null && lastDate.after(endDate)) {
-                        date = lastDate;
-                        br.reset();
-                        break;
-                    }
-                    if (date.before(startDate)) {
+                    if (date.before(startDate)) { //not in the file's time range yet; keep reading the file 
                         continue;
                     }
-                    br.mark(1000);
 
                     double current, livetime;
                     if (arr[2].equals("<undefined>")) {
@@ -236,7 +229,7 @@ public class SvtChargeIntegrator {
                         double dt = (Math.min(date.getTime(), endDate.getTime()) - Math.max(startDate.getTime(), lastDate.getTime())) / 1000.0;
                         double dq = dt * current; // nC
                         double dqGated = dt * current * livetime; // nC
-                        System.out.format("start %d end %d date %d lastDate %d current %f dt %f\n", startDate.getTime(), endDate.getTime(), date.getTime(), lastDate.getTime(), current, dt);
+//                        System.out.format("start %d end %d date %d lastDate %d current %f dt %f\n", startDate.getTime(), endDate.getTime(), date.getTime(), lastDate.getTime(), current, dt);
                         totalCharge += dq;
                         totalGatedCharge += dqGated;
                         if (biasGood) {
@@ -248,6 +241,12 @@ public class SvtChargeIntegrator {
                             }
                         }
                     }
+                    if (date.after(endDate)) {//this is the last interval overlapping the file's time range; backtrack so this line will be read again for the next file
+                        date = lastDate;
+                        br.reset();
+                        break;
+                    }
+                    br.mark(1000);
                 }
                 int nEvents = Integer.parseInt(record.get(2));
                 System.out.format("%d\t%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, fileNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal);
