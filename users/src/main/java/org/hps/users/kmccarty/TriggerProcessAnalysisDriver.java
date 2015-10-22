@@ -21,6 +21,7 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 public class TriggerProcessAnalysisDriver extends Driver {
+	private boolean checkSVT = false;
 	private int eventsProcessed = 0;
 	private int møllersProcessed = 0;
 	private int tridentsProcessed = 0;
@@ -110,16 +111,19 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	@Override
 	public void process(EventHeader event) {
 		// Check whether the SVT was active in this event and, if so,
-		// skip it.
-		final String[] flagNames = { "svt_bias_good", "svt_burstmode_noise_good", "svt_position_good" };
-		boolean svtGood = true;
-        for(int i = 0; i < flagNames.length; i++) {
-            int[] flag = event.getIntegerParameters().get(flagNames[i]);
-            if(flag == null || flag[0] == 0) {
-                svtGood = false;
-            }
-        }
-        if(!svtGood) { return; }
+		// skip it. This can be disabled through the steering file for
+		// Monte Carlo data, where the "SVT" is always active.
+		if(checkSVT) {
+			final String[] flagNames = { "svt_bias_good", "svt_burstmode_noise_good", "svt_position_good" };
+			boolean svtGood = true;
+	        for(int i = 0; i < flagNames.length; i++) {
+	            int[] flag = event.getIntegerParameters().get(flagNames[i]);
+	            if(flag == null || flag[0] == 0) {
+	                svtGood = false;
+	            }
+	        }
+	        if(!svtGood) { return; }
+		}
         
         // Track the number of events with good SVT.
         eventsProcessed++;
@@ -141,6 +145,9 @@ public class TriggerProcessAnalysisDriver extends Driver {
 		// Get cluster-track matched top/bottom pairs.
 		List<ReconstructedParticle[]> gblMatchedPairs = getTopBottomTracksGBL(trackList);
 		List<ReconstructedParticle[]> ctMatchedPairs  = getTopBottomTracksCTMatched(trackList);
+		
+		System.out.println("CTM Pairs :: " + ctMatchedPairs.size());
+		System.out.println("GBL Pairs :: " + gblMatchedPairs.size());
 		
 		// Get the trident and Møller tracks for the matched track
 		// and cluster pair condition sets.
@@ -270,6 +277,10 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			trgblPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
 					getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
 		}
+	}
+	
+	public void setCheckSVT(boolean state) {
+		checkSVT = state;
 	}
 	
 	/**
