@@ -6,8 +6,10 @@ package org.hps.users.phansson;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -16,7 +18,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.hps.analysis.trigger.util.TriggerDataUtils;
+import org.hps.evio.AugmentedSvtEvioReader;
+import org.hps.evio.SvtEventFlagger;
+import org.hps.record.svt.SvtEventHeaderChecker;
 import org.hps.record.svt.SvtEvioUtils;
+import org.hps.record.svt.SvtHeaderDataInfo;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderException;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -32,6 +39,8 @@ public class SvtHeaderAnalysisDriver extends Driver {
     private final Logger logger = Logger.getLogger(SvtHeaderAnalysisDriver.class.getSimpleName());
     private int nEventsProcessed = 0;
     private Date eventDate = new Date(0);
+    private int nEventsProcessedHeaderBad = 0;
+    private int nEventsProcessedWithHeaderInfo = 0;
     private int nRceSyncErrorCountN = 0;
     private int nRceOFErrorCount = 0;
     private int nRceSkipCount = 0;
@@ -41,7 +50,9 @@ public class SvtHeaderAnalysisDriver extends Driver {
     FileWriter fileWriter; 
     PrintWriter printWriter;
     private final String triggerBankCollectionName = "TriggerBank";
-    private static final Pattern rocIdPattern  = Pattern.compile("svt_.*_roc(\\d+)");
+    Map<Integer, Map<String, Integer> > exceptionCount = new HashMap<Integer, Map<String,Integer>>(); 
+
+    
 
     
     /**
@@ -71,16 +82,6 @@ public class SvtHeaderAnalysisDriver extends Driver {
         
     }
     
-    
-    private int getRoc(String seq) {
-        Matcher m = rocIdPattern.matcher(seq);
-        if(m == null) 
-            throw new RuntimeException("null matcher, don't think this should happen");
-        if( !m.matches() ) 
-            return -1;
-        else
-            return Integer.parseInt( m.group(1) );
-    }
     
     
     @Override
@@ -114,16 +115,65 @@ public class SvtHeaderAnalysisDriver extends Driver {
             logger.warning("No svt_event_header_good flag found for run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + eventDate.toString() + " processed " + nEventsProcessed);
 
         // print if the flag is bad
-        if (headerFlag == 0) 
+        if (headerFlag == 0) {
             logger.info("svt_event_header_good " + headerFlag + " for run " + event.getRunNumber() + " event " + event.getEventNumber() + " date " + eventDate.toString() + " processed " + nEventsProcessed);
-                   
+            nEventsProcessedHeaderBad++;
+        }
+        
+        
+        List<SvtHeaderDataInfo> headerDataInfoList = SvtEventFlagger.getHeaderInfoToMetaData(event);
+        
+        logger.fine("found " + headerDataInfoList.size() + " SvtHeaderDataInfo in this event");
+        
+        // check that heder info is there if there was an error
+        if( headerFlag == 0 && headerDataInfoList.size()==0)
+            throw new RuntimeException("event has bad flag " + headerFlag + " but no SvtHeaderDataInfo");
+        
+        
+        // Get all the exceptions
+        List<SvtEvioHeaderException> exceptions = SvtEventHeaderChecker.checkSvtHeaders(headerDataInfoList);
+        
+
+        // Catalog and count them
+        
+        if(exceptions.size()>0) {
+            nEventsProcessedWithHeaderInfo++;
+            logger.info("found " + exceptions.size() + " SvtEvioHeaderExceptions in this event");
+        }
+        
+        for(SvtEvioHeaderException e : exceptions) {
+            String str = SvtEventHeaderChecker.getSvtEvioHeaderExceptionCompactMessage(e);
+            logger.info("Run " + event.getRunNumber() + " event " + event.getEventNumber() + " " + str);
+            String name = SvtEventHeaderChecker.getSvtEvioHeaderExceptionName(e);
+            Integer roc = SvtEventHeaderChecker.getDAQComponentFromExceptionMsg(e, "num");
+            if(!exceptionCount.containsKey(roc)) {
+                Map<String, Integer> m = new HashMap<String,Integer>();
+                exceptionCount.put(roc, m);
+            }
+            Map<String, Integer> typeCount = exceptionCount.get(roc);
+            if( !typeCount.containsKey(name) ) typeCount.put(name, 0);
+            int n = typeCount.get(name) + 1;
+            typeCount.put(name, n);
+        }
+        
+        // number of headers processed is just the size
+        nRceSvtHeaders += exceptionCount.size();
+        
+        nEventsProcessed++;
+        
+        /*
+        
+        // count how many containers of SVT header info I see
+        // they should only be there when there is an error
+        // check that the event flag and this make sense
+        int[] nRceErrorsPerEvent = {0,0,0};
         
         Map<Integer, Integer> rceHeaderCount = new HashMap<Integer, Integer>();
 
         // Get all the headers in the event
         for(Map.Entry<String, int[]> entry : event.getIntegerParameters().entrySet()) {
             
-            int roc = getRoc(entry.getKey());
+            int roc = SvtEventFlagger.getRocFromSvtHeaderName(entry.getKey());
             
             if( roc == -1) {
                 logger.fine("skip this entry \"" + entry.getKey());
@@ -148,12 +198,15 @@ public class SvtHeaderAnalysisDriver extends Driver {
             
             
             // check if this is a header
-            if(entry.getKey().contains("svt_event_header_roc"))
+            if(entry.getKey().contains("svt_event_header_roc")) {
                 logger.fine("found SVT header \"" + Integer.toHexString(value[0]) + "\" for \"" + entry.getKey()+ "\"" + " roc + " + roc);
+                nRceErrorsPerEvent[0]++;
+            }
             
             
             // Analyze the SVT event tails
             if(entry.getKey().contains("svt_event_tail_roc")) {
+                nRceErrorsPerEvent[1]++;
 
                 logger.fine("found SVT tail \"" + Integer.toHexString(value[0]) + "\" for \"" + entry.getKey()+ "\""+ " roc + "  + roc );
                 
@@ -183,7 +236,10 @@ public class SvtHeaderAnalysisDriver extends Driver {
             
             if(entry.getKey().contains("svt_multisample_headers_roc")) {
 
+                nRceErrorsPerEvent[2]++;
+
                 logger.fine("found " + value.length + " SVT multisample headers:");
+
                 
                 for(int i=0; i< value.length/4; ++i) {
                     
@@ -213,21 +269,25 @@ public class SvtHeaderAnalysisDriver extends Driver {
                 }
             }
             
-                    // keep track how many headers have errors
+            // keep track how many headers have errors
             if( syncError > 0) nRceSyncErrorCountN++;
             if( oFError > 0 ) nRceOFErrorCount++;
             if( skipCount > 0 ) nRceSkipCount++;
             if( multisampleErrorBits > 0 ) nRceMultisampleErrorCount++;
         }
+        // check that the counts make sense
+        if(! ( nRceErrorsPerEvent[0] == nRceErrorsPerEvent[1] && nRceErrorsPerEvent[0] == nRceErrorsPerEvent[2])) 
+            throw new RuntimeException("counts of header, tail and multisample headers are crazy: " + nRceErrorsPerEvent[0] + " vs " +nRceErrorsPerEvent[1] + " vs " + nRceErrorsPerEvent[2]);
+                
+        if( headerFlag == 0 && nRceErrorsPerEvent[0]==0)
+            throw new RuntimeException("event has bad flag " + headerFlag + " but counts of header, tail and multisample headers are zero?: " + nRceErrorsPerEvent[0] + " vs " +nRceErrorsPerEvent[1] + " vs " + nRceErrorsPerEvent[2]);
         
         
         for(Map.Entry<Integer, Integer> entry : rceHeaderCount.entrySet())
             logger.fine("ROC " + entry.getKey() + " count " + entry.getValue());
+        */
 
-        // number of headers processed is just the size
-        nRceSvtHeaders += rceHeaderCount.size();
-        
-        nEventsProcessed++;
+      
     }
     
     private void checkBitValueRange(int val) {
@@ -237,12 +297,44 @@ public class SvtHeaderAnalysisDriver extends Driver {
     
     @Override
     protected void endOfData() {
-        logger.info("endOfData: processed " + nEventsProcessed +  "events date " + eventDate.toString());
+        logger.info("nEventsProcessed " + nEventsProcessed);
+        logger.info("nEventsProcessedHeaderBad " + nEventsProcessedHeaderBad);
+        logger.info("nEventsProcessedWithHeaderInfo " + nEventsProcessedWithHeaderInfo);
         logger.info("nRceSvtHeaders " + nRceSvtHeaders);
-        logger.info("nRceSyncErrorCountN " + nRceSyncErrorCountN);
-        logger.info("nRceOFErrorCount " + nRceOFErrorCount);
-        logger.info("nRceSkipCount " + nRceSkipCount);
-        logger.info("nRceMultisampleErrorCount " + nRceMultisampleErrorCount);
+        //Map<Integer, Map<String, Integer> > exceptionCount = new HashMap<Integer, Map<String,Integer>>(); 
+        
+        //print roc's with errors
+        String rocs = "";
+        for(Integer roc : exceptionCount.keySet()) rocs += roc + " ";
+        logger.info("There were " + exceptionCount.keySet().size() + " rocs with any error: " + rocs);
+        
+        //print type of errors
+        Map<String, Integer> errorTypeCount = new HashMap<String,Integer>(); 
+        for(Map.Entry<Integer, Map<String, Integer> > rCount : exceptionCount.entrySet()) {
+            Map<String,Integer> m = rCount.getValue();
+            for(Map.Entry<String,Integer> entry : m.entrySet()) {
+                if( !errorTypeCount.containsKey(entry.getKey()) ) {
+                    errorTypeCount.put(entry.getKey(),0);
+                }
+                int n = errorTypeCount.get(entry.getKey()) + 1;
+                errorTypeCount.put(entry.getKey(), n);
+            }
+        }
+        logger.info("There are " + errorTypeCount.entrySet().size()+ " type of error occuring in the ROCs:");
+        for(Map.Entry<String,Integer> entry : errorTypeCount.entrySet()) {
+            String rocsWithError = "";
+            for(Map.Entry<Integer, Map<String, Integer> > rCount : exceptionCount.entrySet()) {
+                if(rCount.getValue().containsKey(entry.getKey())) {
+                    rocsWithError += rCount.getKey() + ":" + rCount.getValue().get(entry.getKey()) + " ";
+                }
+            }
+            logger.info(entry.getKey() + " " + entry.getValue() + " (individual roc counts " + rocsWithError + " )");
+        }
+        
+//        logger.info("nRceSyncErrorCountN " + nRceSyncErrorCountN);
+//        logger.info("nRceOFErrorCount " + nRceOFErrorCount);
+//        logger.info("nRceSkipCount " + nRceSkipCount);
+//        logger.info("nRceMultisampleErrorCount " + nRceMultisampleErrorCount);
         
     }
     

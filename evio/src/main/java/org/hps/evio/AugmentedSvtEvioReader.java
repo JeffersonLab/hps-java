@@ -6,17 +6,11 @@ package org.hps.evio;
 import java.util.List;
 
 import org.hps.record.svt.SvtEventHeaderChecker;
-import org.hps.record.svt.SvtHeaderDataInfo;
-import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderApvBufferAddressException;
-import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderApvFrameCountException;
-import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderApvReadErrorException;
 import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderException;
-import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderMultisampleErrorBitException;
-import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderOFErrorException;
-import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderSkipCountException;
-import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderSyncErrorException;
+import org.hps.record.svt.SvtHeaderDataInfo;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOUtil;
+
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
@@ -33,7 +27,8 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
         super();
     }
 
-
+    
+    
     
     @Override
     protected void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) throws SvtEvioHeaderException {
@@ -44,34 +39,39 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
         
         // if we want we can control the behavior here depending on if we want the run to stop
         
-        try {
-            SvtEventHeaderChecker.checkSvtHeaders(headers);
-        } catch (SvtEvioHeaderApvBufferAddressException
-                | SvtEvioHeaderApvFrameCountException
-                | SvtEvioHeaderMultisampleErrorBitException
-                | SvtEvioHeaderApvReadErrorException
-                | SvtEvioHeaderSyncErrorException
-                | SvtEvioHeaderOFErrorException
-                | SvtEvioHeaderSkipCountException e) {
+        List<SvtEvioHeaderException> exceptions = SvtEventHeaderChecker.checkSvtHeaders(headers);
 
-            // add skimming flag
-            SvtEventFlagger.voidAddHeaderCheckResultToMetaData(false, lcsimEvent);
+        if( !exceptions.isEmpty() ) {
+
+            // print some debug info 
             
+            List<String> exceptionNames = SvtEventHeaderChecker.getSvtEvioHeaderExceptionNames(exceptions);
+            String names = "";
+            for(String str : exceptionNames) names += str + " ";
+            
+            LOGGER.info("Caught " + exceptions.size() + " SvtEvioHeaderExceptions for event " + lcsimEvent.getEventNumber() + " of " + exceptionNames.size() + " types: " + names);
+            
+            //LOGGER.fine("List all of them.\n");
+            //int i = 0;
+            //for(SvtEvioHeaderException e : exceptions ) {
+            //    LOGGER.fine("Exception " + (i++) + " for event " + lcsimEvent.getEventNumber() + ":\n" + e.getMessage());
+            //}
+
+            // add event flag
+            SvtEventFlagger.voidAddHeaderCheckResultToMetaData(false, lcsimEvent);
+
             // add stuff to the event meta data
             SvtEventFlagger.AddHeaderInfoToMetaData(headers, lcsimEvent);
-            
-            // then throw the exception again to be caught in the event builder
+
+            // then throw the first exception again to be caught in the event builder if we want to
             if(throwHeaderExceptions)
-                throw new SvtEvioHeaderException(e);
-            else {
-                LOGGER.info("caught SvtEvioHeaderException exception for event " + lcsimEvent.getEventNumber());
-                return; // need to return to prevent me from setting the GOOD flag outside the caught exceptions.
-            }
+                throw new SvtEvioHeaderException(exceptions.get(0));
+            
+        } else { 
+            // add skimming flag - the header is OK since I would never get here otherwise
+            SvtEventFlagger.voidAddHeaderCheckResultToMetaData(true, lcsimEvent);
         }
-        
-        // add skimming flag - the header is OK since I would never get here otherwise
-        SvtEventFlagger.voidAddHeaderCheckResultToMetaData(true, lcsimEvent);
-        
+
         // Add SVT header data to the event
         //this.addSvtHeadersToEventEventCollection(headers, lcsimEvent);
 

@@ -3,9 +3,13 @@
  */
 package org.hps.record.svt;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.hps.record.svt.SvtEvioExceptions.*;
 
@@ -20,6 +24,9 @@ import org.hps.record.svt.SvtEvioExceptions.*;
 public class SvtEventHeaderChecker {
 
     private static Logger LOGGER = Logger.getLogger(SvtEventHeaderChecker.class.getPackage().getName());
+    static {
+        LOGGER.setLevel(Level.INFO);
+    }
     
         /**
      * Check the integrity of the SVT header information.
@@ -33,7 +40,9 @@ public class SvtEventHeaderChecker {
          * @throws SvtEvioHeaderSyncErrorException 
      * @throws SvtEvioHeaderException
      */
-    public static void checkSvtHeaders(List<SvtHeaderDataInfo> headers) throws SvtEvioHeaderApvBufferAddressException, SvtEvioHeaderApvFrameCountException, SvtEvioHeaderMultisampleErrorBitException, SvtEvioHeaderApvReadErrorException, SvtEvioHeaderSyncErrorException, SvtEvioHeaderOFErrorException, SvtEvioHeaderSkipCountException  {
+    //public static List<SvtEvioHeaderException>  checkSvtHeaders(List<SvtHeaderDataInfo> headers) throws SvtEvioHeaderApvBufferAddressException, SvtEvioHeaderApvFrameCountException, SvtEvioHeaderMultisampleErrorBitException, SvtEvioHeaderApvReadErrorException, SvtEvioHeaderSyncErrorException, SvtEvioHeaderOFErrorException, SvtEvioHeaderSkipCountException  {
+    public static List<SvtEvioHeaderException>  checkSvtHeaders(List<SvtHeaderDataInfo> headers) {
+          
         LOGGER.fine("check " + headers.size() + " headers  ");
         int[] bufferAddresses = new int[6];
         int[] firstFrameCounts = new int[6];
@@ -44,6 +53,8 @@ public class SvtEventHeaderChecker {
         int[] readError;
         int count;
         int multisampleHeaderTailerrorBit;
+        // create a list to hold all active exceptions
+        List<SvtEvioHeaderException> exceptions = new ArrayList<SvtEvioHeaderException>();
         for( SvtHeaderDataInfo headerDataInfo : headers ) {
             LOGGER.fine("checking header: " + headerDataInfo.toString());
 
@@ -66,21 +77,21 @@ public class SvtEventHeaderChecker {
 
                 // check if there was any read errors
                 readError = SvtEvioUtils.getApvReadErrors(multisampleHeader);
-
+                
                 if( bufAddresses.length != 6)
-                    throw new SvtEvioHeaderApvBufferAddressException("Invalid number of APV buffer addresses.");
+                    exceptions.add(new SvtEvioHeaderApvBufferAddressException("Invalid number of APV buffer addresses."));
 
                 if( frameCounts.length != 6)
-                    throw new SvtEvioHeaderApvFrameCountException("Invalid number of APV frame counts.");
+                    exceptions.add( new SvtEvioHeaderApvFrameCountException("Invalid number of APV frame counts."));
 
                 if( readError.length != 6)
-                    throw new SvtEvioHeaderApvFrameCountException("Invalid number of read errors.");
+                    exceptions.add( new SvtEvioHeaderApvFrameCountException("Invalid number of read errors."));
 
                 // Check for error bit
                 if( multisampleHeaderTailerrorBit != 0) {
-                    throw new SvtEvioHeaderMultisampleErrorBitException("A multisample header error bit was set for " + 
+                    exceptions.add( new SvtEvioHeaderMultisampleErrorBitException("A multisample header error bit was set for " + 
                                                                         getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) + 
-                                                                        getDebugString(bufAddresses, frameCounts, readError)); 
+                                                                        getDebugString(bufAddresses, frameCounts, readError))); 
                 }
 
                 // print debug
@@ -100,20 +111,20 @@ public class SvtEventHeaderChecker {
 
                     // Check that apv buffer addresses match
                     if( !Arrays.equals(bufferAddresses, bufAddresses)) {
-                        throw new SvtEvioHeaderApvBufferAddressException("The APV buffer addresses in this event do not match " + 
+                        exceptions.add( new SvtEvioHeaderApvBufferAddressException("The APV buffer addresses in this event do not match " + 
                                                                             getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) +
                                                                             getDebugString(bufAddresses, frameCounts, readError) +
                                                                             " compared to " +
-                                                                            getDebugString(bufferAddresses, firstFrameCounts, readError)); 
+                                                                            getDebugString(bufferAddresses, firstFrameCounts, readError))); 
                     }
 
                     // Check that apv frame count match
                     if( !Arrays.equals(firstFrameCounts, frameCounts)) {
-                        throw new SvtEvioHeaderApvFrameCountException("The APV frame counts in this event do not match " + 
+                        exceptions.add( new SvtEvioHeaderApvFrameCountException("The APV frame counts in this event do not match " + 
                                 getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) +
                                 getDebugString(bufAddresses, frameCounts, readError) +
                                 " compared to " +
-                                getDebugString(bufferAddresses, firstFrameCounts, readError)); 
+                                getDebugString(bufferAddresses, firstFrameCounts, readError))); 
                     }
                 }
 
@@ -125,9 +136,9 @@ public class SvtEventHeaderChecker {
                     LOGGER.fine("frame count " + iFrame + "  " + frameCounts[iFrame]  + " ( " + Integer.toHexString( frameCounts[iFrame]) + " )");
 
                     if( frameCounts[iFrame] > 15  ||  (count < 15 && frameCounts[iFrame] < count) || ( count == 15 && frameCounts[iFrame] != 0 ) ) {
-                        throw new SvtEvioHeaderApvFrameCountException("The APV frame counts in this events are invalid " + 
+                        exceptions.add( new SvtEvioHeaderApvFrameCountException("The APV frame counts in this events are invalid " + 
                                 getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) +
-                                getDebugString(bufAddresses, frameCounts, readError)); 
+                                getDebugString(bufAddresses, frameCounts, readError))); 
                     }
                     count = frameCounts[iFrame];
                 }
@@ -135,9 +146,9 @@ public class SvtEventHeaderChecker {
                 for (int iReadError=0; iReadError<readError.length; ++iReadError) {
                     LOGGER.fine("read error " + iReadError + "  " + readError[iReadError]  + " ( " + Integer.toHexString( readError[iReadError]) + " )");
                     if( readError[iReadError] != 1)  {// active low
-                        throw new SvtEvioHeaderApvReadErrorException("Read error occurred " + 
+                        exceptions.add( new SvtEvioHeaderApvReadErrorException("Read error occurred " + 
                                 getMultisampleDebugString(headerDataInfo, SvtEvioUtils.getMultisampleTailWord(multisampleHeader)) +
-                                getDebugString(bufAddresses, frameCounts, readError)); 
+                                getDebugString(bufAddresses, frameCounts, readError))); 
                     }
                 }
 
@@ -148,40 +159,58 @@ public class SvtEventHeaderChecker {
             // Check the header data
             // Parts of this get its input from the multisample which has already been checked
             // therefore I don't expect these to happen.
-            checkSvtHeaderData(headerDataInfo);
+            List<SvtEvioHeaderException> svtHeaderDataExceptions = checkSvtHeaderData(headerDataInfo);
+            
+            exceptions.addAll(svtHeaderDataExceptions);
 
             
 
         }
+        
+        return exceptions;
 
     }
     
-    public static void checkSvtHeaderData(SvtHeaderDataInfo header) throws SvtEvioHeaderSyncErrorException, SvtEvioHeaderOFErrorException, SvtEvioHeaderSkipCountException {
+    //public static List<SvtEvioHeaderException> checkSvtHeaderData(SvtHeaderDataInfo header) throws SvtEvioHeaderSyncErrorException, SvtEvioHeaderOFErrorException, SvtEvioHeaderSkipCountException {
+    public static List<SvtEvioHeaderException> checkSvtHeaderData(SvtHeaderDataInfo header)  {
+        
         int tail = header.getTail();
         LOGGER.fine("checkSvtHeaderData tail " + tail + "( " + Integer.toHexString(tail) + " ) " +
                                                  " errorbit   " +  Integer.toHexString(SvtEvioUtils.getSvtTailSyncErrorBit(tail)) +
                                                  " OFerrorbit " +  Integer.toHexString(SvtEvioUtils.getSvtTailOFErrorBit(tail)) + 
                                                  " checkSvtHeaderData skipcount  " +  Integer.toHexString(SvtEvioUtils.getSvtTailMultisampleSkipCount(tail)));
+        
+        List<SvtEvioHeaderException> exceptions = new ArrayList<SvtEvioHeaderException>();
+        
         if( SvtEvioUtils.getSvtTailSyncErrorBit(tail) != 0) {
-            throw new SvtEvioExceptions.SvtEvioHeaderSyncErrorException("This SVT header had a SyncError " + header.toString());
+            exceptions.add( new SvtEvioHeaderSyncErrorException("This SVT header had a SyncError " + getHeaderDebugString(header)));
         }
         else if( SvtEvioUtils.getSvtTailOFErrorBit(tail) != 0) {
-            throw new SvtEvioHeaderOFErrorException("This header had a OverFlowError " + header.toString());
+            exceptions.add( new SvtEvioHeaderOFErrorException("This header had a OverFlowError " + getHeaderDebugString(header)));
         }
         else if( SvtEvioUtils.getSvtTailMultisampleSkipCount(tail) != 0) {
-            throw new SvtEvioHeaderSkipCountException("This header had a skipCount " + SvtEvioUtils.getSvtTailMultisampleSkipCount(tail) + " error " + header.toString());
+            exceptions.add( new SvtEvioHeaderSkipCountException("This header had a skipCount " + SvtEvioUtils.getSvtTailMultisampleSkipCount(tail) + " error " + getHeaderDebugString(header)));
         }
-        LOGGER.fine("checkSvtHeaderData passed all I guess");
+        if(exceptions.size() == 0)
+            LOGGER.fine("checkSvtHeaderData passed all I guess");
+        else
+            LOGGER.fine("checkSvtHeaderData problem found");
+        return exceptions;
     }
     
     
+    private static String getHeaderDebugString(SvtHeaderDataInfo headerDataInfo) {
+        return headerDataInfo.toString();
+    }
+
     private static String getMultisampleDebugString(SvtHeaderDataInfo headerDataInfo, int multisampleHeaderTailWord) {
-        String s = " header" + headerDataInfo.toString() +
+        String s = getHeaderDebugString(headerDataInfo) + 
                 " multisample: feb " + SvtEvioUtils.getFebIDFromMultisampleTail(multisampleHeaderTailWord) + 
                 " hybrid " + SvtEvioUtils.getFebHybridIDFromMultisampleTail(multisampleHeaderTailWord) + 
-                " apv " + SvtEvioUtils.getApvFromMultisampleTail(multisampleHeaderTailWord);
+                " apv " + SvtEvioUtils.getApvFromMultisampleTail(multisampleHeaderTailWord) + " ";
         return s;
     }
+
     
     private static String getDebugString(int[] bufAddresses, int[] frameCounts, int[] readError ) {
         String s = "";
@@ -193,6 +222,55 @@ public class SvtEventHeaderChecker {
             s+="\nread error     " + i + "  " + readError[i]  + " ( " + Integer.toHexString( readError[i]) + " )";
         return s;
     }
+    
+    
+    public static int getDAQComponentFromExceptionMsg(SvtEvioHeaderException exception, String type) {
+        //Clean up character return before proceeding, I don't know why the regexp fails but whatever
+        
+        String str;
+        int charRet_idx = exception.getMessage().indexOf('\n');
+        if(charRet_idx != -1) str = exception.getMessage().substring(0, exception.getMessage().indexOf('\n'));
+        else str = exception.getMessage();
+        
+        // now match
+        Matcher m = Pattern.compile(".*\\s" + type + "\\s(\\d+)\\s.*").matcher(str);
+        int id = -1;
+        try {
+            if(m.matches())
+                id = Integer.parseInt(m.group(1));
+            else 
+                id = -2;            
+        } catch (Exception e) {
+            throw new RuntimeException("exception when matching \"" + str + "\" with \"" + m.pattern().toString() + "\"", e);
+        }
+        //System.out.println("got " + id + " from " + m.pattern().toString() + " for \""+ str + "\"");
+        return id;
+    }    
+    
+    public static String getSvtEvioHeaderExceptionCompactMessage(SvtEvioHeaderException e) {
+        String str = "Exception type " + e.getClass().getSimpleName();
+        int roc = getDAQComponentFromExceptionMsg(e, "num");
+        if(roc<0) throw new RuntimeException("Got " + roc + " from matching \"" + e.getMessage()  + " seem to have failed. Shouldn't happen?");
+        int feb = getDAQComponentFromExceptionMsg(e, "feb");
+        int hybrid = getDAQComponentFromExceptionMsg(e, "hybrid");
+        int apv = getDAQComponentFromExceptionMsg(e, "apv");
+        str += " for roc " + roc + " feb " + feb + " hybrid " + hybrid + " apv " + apv;
+        return str;
+    }
+    
+    public static String getSvtEvioHeaderExceptionName(SvtEvioHeaderException e) {
+        return e.getClass().getSimpleName();
+    }
+    
+    public static List<String> getSvtEvioHeaderExceptionNames(List<SvtEvioHeaderException> exceptions) {
+        List<String> l = new ArrayList<String>();
+        for (SvtEvioHeaderException e : exceptions) {
+            String name = getSvtEvioHeaderExceptionName(e);
+            if( !l.contains(name)) l.add(name);
+        }
+        return l;
+    }
+    
     
     /**
      * Private construction to avoid class being instantiated

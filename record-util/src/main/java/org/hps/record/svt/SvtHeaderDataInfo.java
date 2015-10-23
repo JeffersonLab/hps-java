@@ -31,6 +31,14 @@ public class SvtHeaderDataInfo implements GenericObject {
         this.multisampleheader = multisampleheaders;
     }
     
+    public SvtHeaderDataInfo(int num, int header, int tail, Integer[] multisampleheaders) {
+        this.num = num;
+        this.header = header;
+        this.tail = tail;
+        this.multisampleheader = new int[ multisampleheaders.length ];
+        for(int i=0; i<multisampleheaders.length; ++i) this.multisampleheader[i] = multisampleheaders[i];
+    }
+    
     public void setMultisampleHeaders(int[] multisampleheaders) {
         if(multisampleheaders.length % 4 != 0) 
             throw new RuntimeException("invalid number of multisample headers, need to be %4==0: " + multisampleheaders.length);

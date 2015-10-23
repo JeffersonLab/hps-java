@@ -1,12 +1,17 @@
 package org.hps.evio;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtAlignmentConstant;
 import org.hps.conditions.svt.SvtBiasConstant;
@@ -185,4 +190,64 @@ public class SvtEventFlagger {
         }
         
     }
+    
+    private static final Pattern rocIdPattern  = Pattern.compile("svt_.*_roc(\\d+)");
+    
+    public static int getRocFromSvtHeaderName(String seq) {
+        Matcher m = rocIdPattern.matcher(seq);
+        if(m == null) 
+            throw new RuntimeException("null matcher, don't think this should happen");
+        if( !m.matches() ) 
+            return -1;
+        else
+            return Integer.parseInt( m.group(1) );
+    }
+    
+    
+    
+    public static List<SvtHeaderDataInfo>  getHeaderInfoToMetaData(EventHeader lcsimEvent) {
+        Map<Integer, Integer> headers = new HashMap<Integer,Integer>();
+        Map<Integer, Integer> tails = new HashMap<Integer,Integer>();
+        Map<Integer, Integer[]> multisampleHeaders = new HashMap<Integer,Integer[]>();
+        
+        
+        for(Map.Entry<String, int[]> entry : lcsimEvent.getIntegerParameters().entrySet()) {
+            
+            int roc = getRocFromSvtHeaderName(entry.getKey());
+            
+            if( roc == -1) {
+                continue;
+            }
+            //LOGGER.logger.fine("processing entry \"" + entry.getKey()+ "\"" + " for roc "  + roc);
+            int[] value = entry.getValue();
+           
+            if(entry.getKey().contains("svt_event_header_roc"))
+                headers.put(roc, value[0]);
+            
+            if(entry.getKey().contains("svt_event_tail_roc")) 
+                tails.put(roc, value[0]);
+                
+            // really need to copy?
+            if(entry.getKey().contains("svt_multisample_headers_roc")) {
+                Integer[] tmp = ArrayUtils.toObject(value); //new Integer[value.length];
+                multisampleHeaders.put(roc, tmp);
+            }
+                    
+        }
+        
+        // create the new objects
+        List<SvtHeaderDataInfo> headerDataInfo = new ArrayList<SvtHeaderDataInfo>();
+        for(Integer roc : headers.keySet()) {
+            int header = headers.get(roc);
+            int tail = tails.get(roc);
+            Integer[] ms = multisampleHeaders.get(roc);
+            headerDataInfo.add(new SvtHeaderDataInfo(roc, header, tail, ms));
+        }
+        
+       return headerDataInfo;
+        
+    }
+    
+    
+    
 }
