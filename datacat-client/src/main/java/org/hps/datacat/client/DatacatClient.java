@@ -17,14 +17,16 @@ public interface DatacatClient {
      * @param folder the folder which must already exist
      * @param dataType the data type
      * @param resource the resource (path)
+     * @param size the size of the file in bytes
      * @param site the site of the file
      * @param fileFormat the file format
      * @param name the name of the dataset
      * @param metadata metadata to assign to the dataset
      * @return the HTTP status code from the request
      */
-    int addDataset(String folder, DatasetDataType dataType, String resource, DatasetSite site,
-            DatasetFileFormat fileFormat, String name, Map<String, Object> metadata);
+    public int addDataset(final String folder, final DatasetDataType dataType, final String resource,
+            final long size, final DatasetSite site, final DatasetFileFormat fileFormat, final String name,
+            final Map<String, Object> metadata);
 
     /**
      * Add metadata to an existing dataset.

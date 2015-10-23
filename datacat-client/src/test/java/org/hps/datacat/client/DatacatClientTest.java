@@ -37,7 +37,7 @@ public class DatacatClientTest extends TestCase {
         dsMetadata.put("testFloat", 1.1f);
         dsMetadata.put("testDouble", 1.2d);
         dsMetadata.put("testString", "herpderp");
-        response = client.addDataset(FOLDER, DatasetDataType.TEST, RESOURCE, DatasetSite.SLAC, DatasetFileFormat.TEST,
+        response = client.addDataset(FOLDER, DatasetDataType.TEST, RESOURCE, 0L, DatasetSite.SLAC, DatasetFileFormat.TEST,
                 DATASET_NAME, dsMetadata);
 
         // Patch the dataset with some meta data.

@@ -77,6 +77,7 @@ final class DatacatClientImpl implements DatacatClient {
      * @param folder the logical folder in the datacat, which must already exist
      * @param dataType the data type
      * @param resource the resource (path on the file system)
+     * @param size the size of the file in bytes
      * @param site the site of the file
      * @param fileFormat the file format
      * @param name the name of the dataset
@@ -84,8 +85,14 @@ final class DatacatClientImpl implements DatacatClient {
      * @return the HTTP status code from the request
      */
     @Override
-    public int addDataset(final String folder, final DatasetDataType dataType, final String resource,
-            final DatasetSite site, final DatasetFileFormat fileFormat, final String name,
+    public int addDataset(
+            final String folder, 
+            final DatasetDataType dataType, 
+            final String resource,
+            final long size, 
+            final DatasetSite site, 
+            final DatasetFileFormat fileFormat, 
+            final String name,
             final Map<String, Object> metadata) {
         final Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("dataType", dataType.toString());
@@ -93,6 +100,7 @@ final class DatacatClientImpl implements DatacatClient {
         parameters.put("site", DatasetSite.SLAC.name());
         parameters.put("fileFormat", fileFormat.toString());
         parameters.put("name", name);
+        parameters.put("size", size);
         final JSONObject jsonDataset = JSONUtilities.createJSONDataset(parameters, metadata);
         final String urlLocation = url + "/datasets.json/" + this.rootDir + "/" + folder;
         LOGGER.info("addDataset: " + urlLocation);
