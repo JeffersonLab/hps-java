@@ -55,9 +55,15 @@ class DatacatUtilities {
     static int addFile(final DatacatClient client, final String folder, final File file,
             final Map<String, Object> metadata, final DatasetFileFormat fileFormat, final DatasetDataType dataType,
             final DatasetSite site) {
+        
+        // Strip out cache dir prefix.
+        String filePath = file.getAbsolutePath();
+        if (filePath.startsWith("/cache")) {
+            filePath = filePath.replace("/cache", "");
+        }
 
         // Add the dataset to the data catalog using the REST API.
-        final int response = client.addDataset(folder, dataType, file.getAbsolutePath(), site, fileFormat,
+        final int response = client.addDataset(folder, dataType, filePath, file.length(), site, fileFormat, 
                 file.getName(), metadata);
 
         return response;
