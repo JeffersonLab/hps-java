@@ -21,14 +21,18 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 public class TriggerProcessAnalysisDriver extends Driver {
-	private boolean checkSVT = false;
 	private int eventsProcessed = 0;
 	private int møllersProcessed = 0;
+	private boolean checkSVT = false;
 	private int tridentsProcessed = 0;
 	private int gblMøllersProcessed = 0;
 	private int gblTridentsProcessed = 0;
 	private double timeCoincidence = 2.5;
+	private double elasticThreshold = 0.800;
+	private double møllerLowerRange = 0.900;
+	private double møllerUpperRange = 1.200;
 	private AIDA aida = AIDA.defaultInstance();
+	private boolean checkTriggerTimeWindow = false;
 	private String clusterCollectionName = "EcalClustersCorr";
 	private String particleCollectionName = "FinalStateParticles";
 	
@@ -283,6 +287,10 @@ public class TriggerProcessAnalysisDriver extends Driver {
 		checkSVT = state;
 	}
 	
+	public void setCheckTriggerTimeWindow(boolean state) {
+		checkTriggerTimeWindow = state;
+	}
+	
 	/**
 	 * Gets a list of all possible GBL top/bottom track pairs. These
 	 * tracks are not guaranteed to have a matched cluster.
@@ -448,10 +456,10 @@ public class TriggerProcessAnalysisDriver extends Driver {
 				continue tridentTrackLoop;
 			}
 			
-			// Require that the negative track have less than 900 MeV
-			// momentum to exclude elastic electrons.
-			if(pair[0].getCharge() < 0 && pair[0].getMomentum().magnitude() > 0.900
-					|| pair[1].getCharge() < 0 && pair[1].getMomentum().magnitude() > 0.900) {
+			// Require that the negative track have less than the
+			// elastic threshold momentum to exclude elastic electrons.
+			if(pair[0].getCharge() < 0 && pair[0].getMomentum().magnitude() > elasticThreshold
+					|| pair[1].getCharge() < 0 && pair[1].getMomentum().magnitude() > elasticThreshold) {
 				continue tridentTrackLoop;
 			}
 			
@@ -505,15 +513,32 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			}
 			
 			// The clusters must within a limited time window.
+			/*
 			Cluster[] trackClusters = { pair[0].getClusters().get(0), pair[1].getClusters().get(0) };
 			if(TriggerModule.getValueTimeCoincidence(trackClusters) > timeCoincidence) {
 				continue tridentLoop;
 			}
+			*/
+			
+			// The clusters must be coincidental within an energy
+			// dependent coincidence window.
+			Cluster[] trackClusters = { pair[0].getClusters().get(0), pair[1].getClusters().get(0) };
+			if(!isCoincidental(trackClusters)) {
+				continue tridentLoop;
+			}
 			
 			// Require that the electron in the pair have an energy
-			// below 900 MeV to exclude elastic electrons.
-			if(electron.getMomentum().magnitude() >= 0.900) {
+			// below the elastic threshold to exclude elastic electrons.
+			if(electron.getMomentum().magnitude() >= elasticThreshold) {
 				continue tridentLoop;
+			}
+			
+			// Require that all clusters occur within the trigger time
+			// window to exclude accidentals.
+			if(checkTriggerTimeWindow) {
+				if(!inTriggerWindow(trackClusters[0]) || !inTriggerWindow(trackClusters[1])) {
+					continue tridentLoop;
+				}
 			}
 			
 			// If all the above conditions are met, the pair is to be
@@ -553,15 +578,15 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			}
 			
 			// Require that the electrons in the pair have energies
-			// below 900 MeV to exclude elastic electrons.
-			if(pair[0].getMomentum().magnitude() > 0.900 || pair[1].getMomentum().magnitude() > 0.900) {
+			// below the elastic threshold to exclude said electrons.
+			if(pair[0].getMomentum().magnitude() > elasticThreshold || pair[1].getMomentum().magnitude() > elasticThreshold) {
 				continue møllerLoop;
 			}
 			
 			// Require that the energy of the pair be within a range
 			// that is sufficiently "Møller-like."
 			double momentumSum = VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude();
-			if(momentumSum < 0.800 || momentumSum > 1.500) {
+			if(momentumSum < møllerLowerRange || momentumSum > møllerUpperRange) {
 				continue møllerLoop;
 			}
 			
@@ -605,22 +630,39 @@ public class TriggerProcessAnalysisDriver extends Driver {
 			}
 			
 			// The clusters must within a limited time window.
+			/*
 			Cluster[] trackClusters = { pair[0].getClusters().get(0), pair[1].getClusters().get(0) };
 			if(TriggerModule.getValueTimeCoincidence(trackClusters) > timeCoincidence) {
 				continue møllerLoop;
 			}
+			*/
+			
+			// The clusters must be coincidental within an energy
+			// dependent coincidence window.
+			Cluster[] trackClusters = { pair[0].getClusters().get(0), pair[1].getClusters().get(0) };
+			if(!isCoincidental(trackClusters)) {
+				continue møllerLoop;
+			}
 			
 			// Require that the electrons in the pair have energies
-			// below 900 MeV to exclude elastic electrons.
-			if(pair[0].getMomentum().magnitude() > 0.900 || pair[1].getMomentum().magnitude() > 0.900) {
+			// below the elastic threshold to exclude said electrons.
+			if(pair[0].getMomentum().magnitude() > elasticThreshold || pair[1].getMomentum().magnitude() > elasticThreshold) {
 				continue møllerLoop;
 			}
 			
 			// Require that the energy of the pair be within a range
 			// that is sufficiently "Møller-like."
 			double momentumSum = VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude();
-			if(momentumSum < 0.800 || momentumSum > 1.500) {
+			if(momentumSum < møllerLowerRange || momentumSum > møllerUpperRange) {
 				continue møllerLoop;
+			}
+			
+			// Require that all clusters occur within the trigger time
+			// window to exclude accidentals.
+			if(checkTriggerTimeWindow) {
+				if(!inTriggerWindow(trackClusters[0]) || !inTriggerWindow(trackClusters[1])) {
+					continue møllerLoop;
+				}
 			}
 			
 			// If all the above conditions are met, the pair is to be
@@ -704,5 +746,43 @@ public class TriggerProcessAnalysisDriver extends Driver {
 	private static final double getCalculatedCoplanarity(Track[] pair) {
 		return getCalculatedCoplanarity(TrackUtils.getTrackPositionAtEcal(pair[0]).v(), TrackUtils.getTrackPositionAtEcal(pair[1]).v());
 	}
+	
+	private static final boolean inTriggerWindow(Cluster cluster) {
+		// Get the cluster time.
+		double clusterTime = TriggerModule.getClusterTime(cluster);
+		
+		// Check that it is within the allowed bounds.
+		return (35 <= clusterTime && clusterTime <= 50);
+	}
+	
+	private static final boolean isCoincidental(Cluster[] pair) {
+		// Get the energy sum and the time coincidence.
+		double energySum = pair[0].getEnergy() + pair[1].getEnergy();
+		double timeCoincidence = TriggerModule.getValueTimeCoincidence(pair);
+		
+		// Get the upper and lower bounds of the allowed range.
+		double mean = getTimeDependenceMean(energySum);
+		double threeSigma = 3.0 * getTimeDependenceSigma(energySum);
+		double lowerBound = mean - threeSigma;
+		double upperBound = mean + threeSigma;
+		
+		// Perform the time coincidence check.
+		return (lowerBound <= timeCoincidence && timeCoincidence <= upperBound);
+	}
+	
+	private static final double getTimeDependenceMean(double energySum) {
+		// Define the fit parameters.
+		double[] param = { 0.289337, -2.81998, 9.03475, -12.93, 8.71476, -2.26969 };
+		
+		// Calculate the mean.
+		return param[0] + energySum * (param[1] + energySum * (param[2] + energySum * (param[3] + energySum * (param[4] + energySum * (param[5])))));
+	}
+	
+	private static final double getTimeDependenceSigma(double energySum) {
+		// Define the fit parameters.
+		double[] param = { 4.3987, -24.2371, 68.9567, -98.2586, 67.562, -17.8987 };
+		
+		// Calculate the standard deviation.
+		return param[0] + energySum * (param[1] + energySum * (param[2] + energySum * (param[3] + energySum * (param[4] + energySum * (param[5])))));
+	}
 }
-// shawna.hollen@unh.edu
