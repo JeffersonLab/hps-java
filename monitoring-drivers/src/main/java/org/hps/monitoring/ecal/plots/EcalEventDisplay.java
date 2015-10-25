@@ -322,19 +322,28 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
             }
         });
         // Comment this out for now. It is causing problems. --JM
-        /*
-         * int row,column; String hName; //System.out.println("EcalEventDisplay endOfData clear histograms"); for(int ii
-         * = 0; ii < NUM_CHANNELS; ii++) { // The above instruction is a terrible hack, just to fill // the arrayList
-         * with all the elements. They'll be initialized // properly during the event readout, Since we want to account
-         * // for possibly different raw waveform dimensions! //Get the x and y indices for the current channel. row =
-         * EcalMonitoringUtilities.getRowFromHistoID(ii); column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
-         * hName=detectorName + " : " + inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii;
-         * aida.tree().rm(hName); hName=detectorName + " : " + inputCollection + " : Hit Time : " + column + " " + row +
-         * ": " + ii; aida.tree().rm(hName); hName=detectorName+ " : " + inputCollection + " : Hit Time Vs Energy : " +
-         * column + " " + row + ": " + ii; aida.tree().rm(hName); if (isFirstRaw[ii]==false){ hName=detectorName+ " : "
-         * + inputCollectionRaw + " : Raw Waveform : " + column + " " + row + ": " + ii; aida.tree().rm(hName); } }
-         */
-        // System.out.println("EcalEventDisplay endOfData clear histograms done");
+        
+        int row,column; 
+        String hName; 
+        System.out.println("EcalEventDisplay endOfData clear histograms"); 
+        for(int ii = 0; ii < NUM_CHANNELS; ii++) { 
+              row=EcalMonitoringUtilities.getRowFromHistoID(ii);
+        	  column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
+        	  hName=detectorName + " : " + inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii;
+        	  aida.tree().rm(hName);
+        	  hName=detectorName + " : " + inputCollection + " : Hit Time : " + column + " " + row +": " + ii;
+        	  aida.tree().rm(hName);
+        	  hName=detectorName+ " : " + inputCollection + " : Hit Time Vs Energy : " + column + " " + row + ": " + ii; 
+        	  aida.tree().rm(hName); 
+        	  hName=detectorName + " : " + inputCollection +" : Cluster Energy : " + column + " " + row + ": " + ii;
+        	  aida.tree().rm(hName);
+        	  
+        	  
+        	  if (isFirstRaw[ii]==false)          { 
+        		  hName=detectorName+ " : "          + inputCollectionRaw + " : Raw Waveform : " + column + " " + row + ": " + ii; aida.tree().rm(hName); 
+        	  } 
+          }
+          System.out.println("EcalEventDisplay endOfData clear histograms done");
     }
 
     @Override
