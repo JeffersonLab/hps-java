@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.IllegalArgumentException;
 
 import javax.swing.SwingUtilities;
 
@@ -67,7 +68,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     // LCIO Collection names.
     private String inputCollection = "EcalCalHits";
     private String inputCollectionRaw = "EcalReadoutHits";
-    private final boolean[] isFirstRaw = new boolean[NUM_CHANNELS]; // Whether a waveform plot was initiated for each
+  
     // channel.
     private long lastEventTime = 0; // Tracks the time at which the last event occurred.
     private double maxEch = 3500 * EcalUtils.MeV; // The energy scale maximum.
@@ -81,8 +82,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     private boolean resetOnUpdate = true; // Clears the event display on each update.
     // Internal variables.
     private final PEventViewer viewer; // Single event display.
-    private final int[] windowRaw = new int[NUM_CHANNELS]; // The number of samples in a waveform for each channel.
-
+   
     public EcalEventDisplay() {
         // Check if the configuration mapping file exists.
         final File config = new File("ecal-mapping-config.csv");
@@ -192,16 +192,6 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
                 this.pstyle.yAxisStyle().setLabel(NO_TITLE);
                 this.plotter.region(3).plot(this.clusterEnergyPlot.get(id), this.pstyle);
 
-                /**
-                 * // Process and plot the region 3 plot. if(!isFirstRaw[id]) {
-                 * pstyle.yAxisStyle().setLabel(SIGNAL_AMPLITUDE_TITLE);
-                 * pstyle.xAxisStyle().setLabel(SIGNAL_TIME_TITLE);
-                 * pstyle.dataStyle().fillStyle().setColor(SIGNAL_DATA_STYLE_COLOR);
-                 * pstyle.dataStyle().markerStyle().setColor(SIGNAL_DATA_STYLE_COLOR);
-                 * pstyle.dataStyle().errorBarStyle().setVisible(false); } else {
-                 * pstyle.xAxisStyle().setLabel(HIT_ENERGY_TITLE); pstyle.yAxisStyle().setLabel(""); }
-                 * plotter.region(3).plot(channelRawWaveform.get(id), pstyle);
-                 **/
             }
         }
     }
@@ -252,10 +242,8 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
             this.clusterEnergyPlot.add(this.aida.histogram1D(this.detectorName + " : " + this.inputCollection
                     + " : Cluster Energy : " + column + " " + row + ": " + ii, 100, -0.2, this.maxEch));
 
-            // Note that no raw waveform has yet been read for this
-            // crystal/channel.
-            this.windowRaw[ii] = 1;
-            this.isFirstRaw[ii] = true;
+   
+          
         }
 
         // Define the plot region that will display the single channel
@@ -321,29 +309,43 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
                 System.out.println("done disposing ECAL event display");
             }
         });
-        // Comment this out for now. It is causing problems. --JM
-        
-        int row,column; 
-        String hName; 
+
+        int row,column; String hName; 
         System.out.println("EcalEventDisplay endOfData clear histograms"); 
         for(int ii = 0; ii < NUM_CHANNELS; ii++) { 
-              row=EcalMonitoringUtilities.getRowFromHistoID(ii);
-        	  column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
-        	  hName=detectorName + " : " + inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii;
-        	  aida.tree().rm(hName);
-        	  hName=detectorName + " : " + inputCollection + " : Hit Time : " + column + " " + row +": " + ii;
-        	  aida.tree().rm(hName);
-        	  hName=detectorName+ " : " + inputCollection + " : Hit Time Vs Energy : " + column + " " + row + ": " + ii; 
-        	  aida.tree().rm(hName); 
-        	  hName=detectorName + " : " + inputCollection +" : Cluster Energy : " + column + " " + row + ": " + ii;
-        	  aida.tree().rm(hName);
-        	  
-        	  
-        	  if (isFirstRaw[ii]==false)          { 
-        		  hName=detectorName+ " : "          + inputCollectionRaw + " : Raw Waveform : " + column + " " + row + ": " + ii; aida.tree().rm(hName); 
-        	  } 
-          }
-          System.out.println("EcalEventDisplay endOfData clear histograms done");
+            row = EcalMonitoringUtilities.getRowFromHistoID(ii);
+            column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
+            hName=detectorName + " : " + inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii;
+            try{
+                aida.tree().rm(hName);
+            }
+            catch(IllegalArgumentException e){
+                System.out.println("Got exception "+e);
+            }
+
+
+
+            hName=detectorName + " : " + inputCollection + " : Hit Time : " + column + " " + row + ": " + ii;
+            try{
+                aida.tree().rm(hName);
+            }
+            catch(IllegalArgumentException e){
+                System.out.println("Got exception "+e);
+            }
+
+
+
+            hName=detectorName+ " : " + inputCollection + " : Hit Time Vs Energy : " + column + " " + row + ": " + ii; 
+            try{
+                aida.tree().rm(hName);
+            }
+            catch(IllegalArgumentException e){
+                System.out.println("Got exception "+e);
+            }
+
+
+        }
+        System.out.println("EcalEventDisplay endOfData clear histograms done");
     }
 
     @Override
@@ -420,35 +422,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
             }
         }
 
-        /**
-         * // Plot the raw waveform only if raw tracker hit exist in the // event. if
-         * (event.hasCollection(RawTrackerHit.class, inputCollectionRaw)){ // Get the list of raw tracker hits.
-         * List<RawTrackerHit> hits = event.get(RawTrackerHit.class, inputCollectionRaw);
-         *
-         * // Process each raw tracker hit. for (RawTrackerHit hit : hits) { // Get the x and y indices for the hit. int
-         * ix = hit.getIdentifierFieldValue("ix"); int iy = hit.getIdentifierFieldValue("iy");
-         *
-         * if(iy != 0 && ix != 0) { if(!ECalUtils.isInHole(iy, ix)) { // Get the crystal ID for the current hit. int id
-         * = ECalUtils.getHistoIDFromRowColumn(iy, ix);
-         *
-         * // The window is length is not known by default. // If this is the first hit, read the window // length and
-         * initialize the plot. if(isFirstRaw[id]) { // Note that this plot is initialized. isFirstRaw[id] = false;
-         *
-         * // Set the waveform array. windowRaw[id] = hit.getADCValues().length;
-         *
-         * // Initialize the waveform plot. channelRawWaveform.set(id, aida.histogram1D(detector.getDetectorName() +
-         * " : " + inputCollectionRaw + " : Raw Waveform : " + ix + " " + iy + ": " + id, windowRaw[id], -0.5 *
-         * ECalUtils.ecalReadoutPeriod, (-0.5 + windowRaw[id]) * ECalUtils.ecalReadoutPeriod)); }
-         *
-         * // If the plot should be updated, do so. if(update) { channelRawWaveform.get(id).reset(); for (int jj = 0; jj
-         * < windowRaw[id]; jj++) { channelRawWaveform.get(id).fill(jj * ECalUtils.ecalReadoutPeriod,
-         * hit.getADCValues()[jj] * ECalUtils.adcResolution * 1000); } double[] result =
-         * ECalUtils.computeAmplitude(hit.getADCValues(), windowRaw[id], pedSamples);
-         * channelRawWaveform.get(id).setTitle("Ampl: " + String.format("%.2f", result[0]) + " mV , ped : " +
-         * String.format("%.2f", result[1]) + " " + String.format("%.2f", result[2]) + " ADC counts");
-         * plotter.region(3).refresh(); } } } } }
-         **/
-
+   
         // Update the single event display.
         if (update) {
             this.viewer.updateDisplay();
