@@ -574,29 +574,29 @@ public class EcalLedSequenceMonitor extends Driver{
             }
         }
 
+        if (isMonitoringApp){
+            askUploadToDBDialog();
+            synchronized (modalMonitor) {
+                try{
+                    modalMonitor.wait(120000); //wait 2 minutes for user interaction.
+                }
+                catch(InterruptedException excp){
+                    System.out.println("Got exception: "+excp);
+                }
+            }
+            if (m_ret==1){
+                System.out.println("OK, upload to DB");
+                try {
+                    uploadToDB();
+                } catch (SQLException | DatabaseObjectException | ConditionsObjectException error) {
+                    throw new RuntimeException("Error uploading to the database.", error);
+                }
 
-        askUploadToDBDialog();
-        synchronized (modalMonitor) {
-            try{
-                modalMonitor.wait(120000); //wait 2 minutes for user interaction.
-            }
-            catch(InterruptedException excp){
-                System.out.println("Got exception: "+excp);
-            }
-        }
-        if (m_ret==1){
-            System.out.println("OK, upload to DB");
-            try {
-                uploadToDB();
-            } catch (SQLException | DatabaseObjectException | ConditionsObjectException error) {
-                throw new RuntimeException("Error uploading to the database.", error);
-            }
-            if (isMonitoringApp){
                 System.out.println("Save an Elog too");
                 uploadToElog();
             }
         }
-
+        
         /*Write a file with the LED values*/
         try {
             if (useRawEnergy){
