@@ -59,7 +59,7 @@ public class AddPlots {
 			}
 			
 			// Store the root directory.
-			rootDir = plotDirectory.getAbsolutePath() + "\\";
+			rootDir = plotDirectory.getAbsolutePath() + "/";
 			
 			// Extract the AIDA files from the directory.
 			for(File file : plotDirectory.listFiles()) {
@@ -81,7 +81,7 @@ public class AddPlots {
 			}
 			
 			// Get the root directory.
-			rootDir = System.getProperty("user.dir") + "\\";
+			rootDir = System.getProperty("user.dir") + "/";
 			
 			// Create and verify the specified files.
 			for(int i = 1; i < args.length; i++) {
