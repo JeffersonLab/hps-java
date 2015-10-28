@@ -29,6 +29,7 @@ import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
 import org.hps.record.et.EtStationThread;
 import org.hps.record.evio.EvioDetectorConditionsProcessor;
+import org.hps.steering.SteeringFileCatalog;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.exception.EtClosedException;
 import org.jlab.coda.et.exception.EtException;
@@ -617,10 +618,10 @@ final class EventProcessing {
      * @param steering the steering resource
      * @throws IOException if there is a problem accessing or setting up the resource
      */
-    private void setupSteeringResource(final String steering) throws IOException {
-        final InputStream is = this.getClass().getClassLoader().getResourceAsStream(steering);
+    private void setupSteeringResource(final String resource) throws IOException {
+        final InputStream is = SteeringFileCatalog.getInputStream(resource);
         if (is == null) {
-            throw new IOException("Steering resource is not accessible or does not exist.");
+            throw new IOException("Resource " + resource + " is not accessible or does not exist.");
         }
         this.sessionState.jobManager.setup(is);
         is.close();

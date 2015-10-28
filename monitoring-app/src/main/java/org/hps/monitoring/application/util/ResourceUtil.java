@@ -1,18 +1,7 @@
 package org.hps.monitoring.application.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.JarURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.LCSimEventBuilder;
