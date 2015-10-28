@@ -3,9 +3,9 @@ package org.hps.steering;
 import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -16,6 +16,9 @@ import java.util.jar.JarFile;
  */
 public final class SteeringFileCatalog {
     
+    /**
+     * Do not allow class instantiation.
+     */
     private SteeringFileCatalog() {        
     }
     
@@ -23,8 +26,8 @@ public final class SteeringFileCatalog {
      * Find the list of steering files in the standard resource directory.     
      * @return The list of steering files.
      */
-    public static List<String> find() {
-        return find("org/hps/steering");
+    public static Set<String> getSteeringResources() {        
+        return findSteeringResources("org/hps/steering/monitoring");
     }
     
     /**
@@ -32,9 +35,9 @@ public final class SteeringFileCatalog {
      * @param resourceDirectory The resource directory.
      * @return The list of matching steering files.
      */
-    public static List<String> find(String resourceDirectory) {        
-        List<String> resources = new ArrayList<String>();              
-        URL url = SteeringFileCatalog.class.getResource("SteeringFileCatalog.class");        
+    private static Set<String> findSteeringResources(String resourceDirectory) {
+        Set<String> resources = new TreeSet<String>();
+        URL url = SteeringFileCatalog.class.getResource("SteeringFileCatalog.class");    
         String scheme = url.getProtocol();
         if (!"jar".equals(scheme)) {
             throw new IllegalArgumentException("Unsupported URL protocol: " + url.getProtocol());
@@ -44,10 +47,10 @@ public final class SteeringFileCatalog {
             JarFile archive = con.getJarFile();
             Enumeration<JarEntry> entries = archive.entries();
             while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();                
-                if (entry.getName().endsWith(".lcsim") && 
-                        (resourceDirectory == null || resourceDirectory.length() == 0 || entry.getName().contains(resourceDirectory))) {
-                    // Accept the file if it ends with .lcsim and the resource directory matches or is not set (e.g. null or zero length string).
+                JarEntry entry = entries.nextElement();
+                //System.out.println("entry: " + entry.getName());
+                // Accept the file if it ends with .lcsim and the resource directory matches or is null.
+                if (entry.getName().endsWith(".lcsim") && entry.getName().startsWith(resourceDirectory)) {
                     resources.add("/" + entry.getName());
                 }
             }

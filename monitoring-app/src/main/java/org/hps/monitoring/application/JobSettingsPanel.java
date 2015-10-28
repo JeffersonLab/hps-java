@@ -8,6 +8,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 import java.util.logging.Level;
 
 import javax.swing.JButton;
@@ -18,10 +19,12 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 
+import org.hps.data.detectors.DetectorDataResources;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.SteeringType;
 import org.hps.monitoring.application.util.ResourceUtil;
 import org.hps.record.enums.ProcessingStage;
+import org.hps.steering.SteeringFileCatalog;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -246,8 +249,9 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
         // Listen on changes to the configuration which will then be automatically pushed to the GUI.
         model.addPropertyChangeListener(this);
 
+        Set<String> steeringFileResources = SteeringFileCatalog.getSteeringResources();        
         this.steeringResourcesComboBox = this.addComboBoxMultiline("Steering File Resource",
-                ResourceUtil.findSteeringResources(STEERING_PACKAGE));
+                steeringFileResources.toArray(new String[steeringFileResources.size()]));
         this.steeringResourcesComboBox.setActionCommand(Commands.STEERING_RESOURCE_CHANGED);
         this.steeringResourcesComboBox.addActionListener(this);
 
@@ -266,8 +270,9 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
         this.addComponent("Processing Stage", this.processingStageComboBox);
         this.processingStageComboBox.setActionCommand(Commands.PROCESSING_STAGE_CHANGED);
         this.processingStageComboBox.addActionListener(this);
-
-        this.detectorNameComboBox = this.addComboBox("Detector Name", ResourceUtil.findDetectorNames());
+        
+        Set<String> detectorNames = DetectorDataResources.getDetectorNames();
+        this.detectorNameComboBox = this.addComboBox("Detector Name", detectorNames.toArray(new String[detectorNames.size()]));
         this.detectorNameComboBox.setActionCommand(Commands.DETECTOR_NAME_CHANGED);
         this.detectorNameComboBox.addActionListener(this);
 
