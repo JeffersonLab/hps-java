@@ -244,7 +244,6 @@ public final class CommandLineTool {
                         + " ...");
                 DatabaseConditionsManager.getInstance().setDetector(detectorName, run);
                 LOGGER.config("Conditions manager was initialized successfully!");
-                LOGGER.getHandlers()[0].flush();
             } catch (final ConditionsNotFoundException e) {
                 throw new RuntimeException("Error setting up the conditions manager.", e);
             }
