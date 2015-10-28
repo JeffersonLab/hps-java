@@ -1,6 +1,7 @@
 package org.hps.steering;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.util.Enumeration;
@@ -28,6 +29,15 @@ public final class SteeringFileCatalog {
      */
     public static Set<String> getSteeringResources() {        
         return findSteeringResources("org/hps/steering/monitoring");
+    }
+    
+    /**
+     * Get input stream for a steering resource.
+     * @param resource the steering file resource
+     * @return the input stream or <code>null</code> if resource does not exist or is inaccessible
+     */
+    public static InputStream getInputStream(String resource) {
+        return SteeringFileCatalog.class.getResourceAsStream(resource);
     }
     
     /**
