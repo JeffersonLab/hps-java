@@ -979,6 +979,28 @@ public final class TriggerModule {
     }
     
     /**
+	 * Indicates whether the argument cluster is located in the fiducial
+	 * region or not.
+	 * @param cluster - The cluster to check.
+	 * @return Returns <code>true</code> if the cluster is located in
+	 * the fiducial region and <code>false</code> otherwise.
+	 */
+	public static final boolean inFiducialRegion(Cluster cluster) {
+		return inFiducialRegion(getClusterXIndex(cluster), getClusterYIndex(cluster));
+	}
+    
+    /**
+	 * Indicates whether the argument cluster is located in the fiducial
+	 * region or not.
+	 * @param cluster - The cluster to check.
+	 * @return Returns <code>true</code> if the cluster is located in
+	 * the fiducial region and <code>false</code> otherwise.
+	 */
+	public static final boolean inFiducialRegion(SSPCluster cluster) {
+		return inFiducialRegion(getClusterXIndex(cluster), getClusterYIndex(cluster));
+	}
+    
+    /**
      * Checks if a cluster pair is coplanar to the beam within a given
      * angle. This is defined as <code>θ <= PAIR_COPLANARITY_HIGH</code>.
      * @param clusterPair - The cluster pair to check.
@@ -1381,6 +1403,50 @@ public final class TriggerModule {
     private static double getValueTimeCoincidence(double[] time) {
     	return Math.abs(time[0] - time[1]);
     }
+    
+    /**
+	 * Indicates whether the argument cluster is located in the fiducial
+	 * region or not.
+	 * @param cluster - The cluster to check.
+	 * @return Returns <code>true</code> if the cluster is located in
+	 * the fiducial region and <code>false</code> otherwise.
+	 */
+	private static final boolean inFiducialRegion(int ix, int iy) {
+		// Get the x and y indices for the cluster.
+		int absx = Math.abs(ix);
+		int absy = Math.abs(iy);
+		
+		// Check if the cluster is on the top or the bottom of the
+		// calorimeter, as defined by |y| == 5. This is an edge cluster
+		// and is not in the fiducial region.
+		if(absy == 5) {
+			return false;
+		}
+		
+		// Check if the cluster is on the extreme left or right side
+		// of the calorimeter, as defined by |x| == 23. This is also
+		// and edge cluster is not in the fiducial region.
+		if(absx == 23) {
+			return false;
+		}
+		
+		// Check if the cluster is along the beam gap, as defined by
+		// |y| == 1. This is an internal edge cluster and is not in the
+		// fiducial region.
+		if(absy == 1) {
+			return false;
+		}
+		
+		// Lastly, check if the cluster falls along the beam hole, as
+		// defined by clusters with -11 <= x <= -1 and |y| == 2. This
+		// is not the fiducial region.
+		if(absy == 2 && ix <= -1 && ix >= -11) {
+			return false;
+		}
+		
+		// If all checks fail, the cluster is in the fiducial region.
+		return true;
+	}
     
     /**
      * Checks if a coplanarity angle is within threshold.
