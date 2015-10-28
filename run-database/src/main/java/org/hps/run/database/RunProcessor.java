@@ -117,8 +117,6 @@ public final class RunProcessor {
         LOGGER.info("looping over all events");
         evioLoop.loop(-1);
                 
-        LOGGER.getHandlers()[0].flush();
-
         // Update run summary from processors.
         LOGGER.info("updating run summary");
         this.updateRunSummary();
@@ -155,7 +153,5 @@ public final class RunProcessor {
             LOGGER.info("tiTimeOffset: " + triggerConfig.get(TriggerConfigVariable.TI_TIME_OFFSET));
             runSummary.setTriggerConfig(triggerConfig);
         }
-
-        LOGGER.getHandlers()[0].flush();
     }        
 }

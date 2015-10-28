@@ -343,8 +343,6 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             }
 
             LOGGER.info("done inserting run summary " + run);
-
-            LOGGER.getHandlers()[0].flush();
         }
 
         try {

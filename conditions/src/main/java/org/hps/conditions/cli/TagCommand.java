@@ -154,8 +154,6 @@ final class TagCommand extends AbstractCommand {
 
         LOGGER.info("created " + conditionsTagCollection.size() + " tag records ..." + '\n' + conditionsTagCollection);
 
-        LOGGER.getHandlers()[0].flush();
-
         // Prompt user to verify tag creation.
         boolean createTag = true;
         if (promptBeforeTagging) {
