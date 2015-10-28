@@ -5,12 +5,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -68,7 +70,7 @@ final class DatacatClientImpl implements DatacatClient {
             throw new IllegalArgumentException("The root dir argument is null.");
         }
         this.rootDir = rootDir;
-        LOGGER.config("url: " + url + "; site: " + site + "rootDir: " + rootDir);
+        LOGGER.config("url: " + url + "; site: " + site + "; rootDir: " + rootDir);
     }
 
     /**
@@ -212,7 +214,7 @@ final class DatacatClientImpl implements DatacatClient {
         // Build and return dataset list
         final JSONObject searchResults = new JSONObject(outputBuffer.toString());
         LOGGER.info("returning search results: " + searchResults.toString());
-        return DatasetUtilities.getDatasetsFromSearch(searchResults);
+        return createDatasetsFromSearch(searchResults);
     }
 
     /**
@@ -298,5 +300,22 @@ final class DatacatClientImpl implements DatacatClient {
         final String fullUrl = url.toString() + "/folders.json/" + this.rootDir + folder;
         LOGGER.info("removing folder: " + fullUrl);
         return HttpUtilities.doDelete(fullUrl);
+    }
+    
+    /**
+     * Create {@link Dataset} objects from JSON search results.
+     * 
+     * @param searchResults the JSON search results
+     * @return the list of {@link Dataset} objects
+     */
+    static List<Dataset> createDatasetsFromSearch(JSONObject searchResults) {
+        List<Dataset> datasets = new ArrayList<Dataset>();
+        JSONArray resultsArray = searchResults.getJSONArray("results");
+        for (int i = 0; i < resultsArray.length(); i++) {
+            JSONObject jsonObject = resultsArray.getJSONObject(i);
+            System.out.println("result[" + i + "]: " + jsonObject.toString());
+            datasets.add(new DatasetImpl(resultsArray.getJSONObject(i)));
+        }
+        return datasets;
     }
 }
