@@ -24,7 +24,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.detector.svt.SvtDetectorSetup;
 import org.hps.job.JobManager;
 import org.hps.logging.config.DefaultLoggingConfig;
 import org.hps.record.LCSimEventBuilder;
@@ -453,9 +452,6 @@ public class EvioToLcio {
      * @param args The command line arguments.
      */
     public void run() {
-
-        // Register class for setting up SVT detector state from conditions data.
-        DatabaseConditionsManager.getInstance().addConditionsListener(new SvtDetectorSetup());
 
         // Is there a run number from the command line options?
         if (runNumber != null) {

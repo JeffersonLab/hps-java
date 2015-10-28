@@ -33,7 +33,6 @@ import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.exception.EtClosedException;
 import org.jlab.coda.et.exception.EtException;
 import org.lcsim.conditions.ConditionsListener;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.util.Driver;
 
@@ -192,6 +191,11 @@ final class EventProcessing {
      * The current {@link EventProcessing.SessionState} object which has all of the session state for event processing.
      */
     private SessionState sessionState;
+   
+    /**
+     * The current conditions manager.
+     */ 
+    private DatabaseConditionsManager conditionsManager;
 
     /**
      * Class constructor, which will initialize with reference to the current monitoring application and lists of extra
@@ -315,7 +319,7 @@ final class EventProcessing {
         }
 
         // Add the builder as a listener so it is notified when conditions change.
-        ConditionsManager.defaultInstance().addConditionsListener(this.sessionState.eventBuilder);
+        this.conditionsManager.addConditionsListener(this.sessionState.eventBuilder);
     }
 
     /**
@@ -409,12 +413,12 @@ final class EventProcessing {
      * Notify the loop to pause the event processing.
      */
     synchronized void pause() {
-        this.logger.finest("pausing");
         if (!this.connectionModel.getPaused()) {
+            this.logger.finest("pausing");
             this.sessionState.loop.pause();
             this.connectionModel.setPaused(true);
+            this.logger.finest("paused");
         }
-        this.logger.finest("paused");
     }
 
     /**
@@ -435,7 +439,7 @@ final class EventProcessing {
      *
      * @param configurationModel the global @link org.hps.monitoring.model.ConfigurationModel} object
      */
-    void setup(final ConfigurationModel configurationModel) {
+    synchronized void setup(final ConfigurationModel configurationModel) {
 
         // Setup LCSim from the configuration.
         this.setupLcsim(configurationModel);
@@ -468,11 +472,13 @@ final class EventProcessing {
             // Create the job manager. A new conditions manager is instantiated from this call but not configured.
             this.sessionState.jobManager = new JobManager();
 
+            // Set ref to current conditions manager.
+            this.conditionsManager = DatabaseConditionsManager.getInstance();
+            
             // Add conditions listeners after new database conditions manager is initialized from the job manager.
-            final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
             for (final ConditionsListener conditionsListener : this.sessionState.conditionsListeners) {
                 this.logger.config("adding conditions listener " + conditionsListener.getClass().getName());
-                conditionsManager.addConditionsListener(conditionsListener);
+                this.conditionsManager.addConditionsListener(conditionsListener);
             }
 
             if (configurationModel.hasValidProperty(ConfigurationModel.DETECTOR_ALIAS_PROPERTY)) {
@@ -507,15 +513,15 @@ final class EventProcessing {
                 final int userRunNumber = configurationModel.getUserRunNumber();
                 final String detectorName = configurationModel.getDetectorName();
                 this.logger.config("setting user run number " + userRunNumber + " with detector " + detectorName);
-                conditionsManager.setDetector(configurationModel.getDetectorName(), userRunNumber);
+                conditionsManager.setDetector(detectorName, userRunNumber);
                 if (configurationModel.hasPropertyKey(ConfigurationModel.FREEZE_CONDITIONS_PROPERTY)) {
                     // Freeze the conditions system to ignore run numbers from the events.
                     this.logger.config("user configured to freeze conditions system");
-                    conditionsManager.freeze();
+                    this.conditionsManager.freeze();
                 } else {
                     // Allow run numbers to be picked up from the events.
                     this.logger.config("user run number provided but conditions system is NOT frozen");
-                    conditionsManager.unfreeze();
+                    this.conditionsManager.unfreeze();
                 }
             }
 
@@ -545,8 +551,7 @@ final class EventProcessing {
                 .setEtConnection(this.sessionState.connection).setFilePath(configurationModel.getDataSourcePath())
                 .setLCSimEventBuilder(this.sessionState.eventBuilder);
 
-        this.logger.config("data source path is " + configurationModel.getDataSourcePath());
-        this.logger.config("data source type is " + configurationModel.getDataSourceType());
+        this.logger.config("data src path " + configurationModel.getDataSourcePath() + " and type " + configurationModel.getDataSourceType());
 
         // Set the max events.
         if (configurationModel.hasValidProperty(ConfigurationModel.MAX_EVENTS_PROPERTY)) {
