@@ -152,9 +152,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             svtReader.makeHits(evioEvent, lcsimEvent);
         } catch (final SvtEvioReaderException e) {
             LOGGER.log(Level.SEVERE, "Error making SVT hits for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
-        } catch (final Exception e) {
-            LOGGER.log(Level.SEVERE, "General error making SVT hits.", e);
-        }
+        } 
 
         // Write the current EPICS data into this event.
         this.writeEpicsData(lcsimEvent);
