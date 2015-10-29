@@ -2,12 +2,30 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-Phantom-fieldmap" />
-    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="371582178" />
+    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="1953036368" />
     <author name="NONE" />
     <comment>HPS detector with phantom scoring planes to study field propagation</comment>
   </header>
   <iddict>
+    <idspec name="TrackerHits" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
     <idspec name="PhantomTrackerHits" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
+    <idspec name="ECalScoringTrackerHits" length="46">
       <idfield signed="false" label="system" length="6" start="0" />
       <idfield signed="false" label="barrel" length="3" start="6" />
       <idfield signed="false" label="layer" length="4" start="9" />
@@ -21,8 +39,11 @@
     <tracker name="TrackerFieldDef" ecut="0.0" eunit="MeV" verbose="0" hits_collection="PhantomTrackerHits">
       <idspecref ref="PhantomTrackerHits" />
     </tracker>
-    <tracker name="PhantomTracker" ecut="0.0" eunit="MeV" verbose="0" hits_collection="PhantomTrackerHits">
-      <idspecref ref="PhantomTrackerHits" />
+    <tracker name="PhantomTracker" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHits">
+      <idspecref ref="TrackerHits" />
+    </tracker>
+    <tracker name="ECalScoringPlane" ecut="0.0" eunit="MeV" verbose="0" hits_collection="ECalScoringTrackerHits">
+      <idspecref ref="ECalScoringTrackerHits" />
     </tracker>
   </sensitive_detectors>
   <limits />
@@ -99,29 +120,35 @@
       <position name="PhantomPlaneVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="PhantomPlaneVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer1_module0_position" x="21.17" y="0.0" z="88.815" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer1_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer2_module0_position" x="21.17" y="0.0" z="96.185" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer2_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer2_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer3_module0_position" x="21.17" y="0.0" z="188.815" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer3_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer3_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer4_module0_position" x="21.17" y="0.0" z="196.185" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer4_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer4_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer5_module0_position" x="21.17" y="0.0" z="288.815" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer5_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer5_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer6_module0_position" x="21.17" y="0.0" z="296.185" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer6_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer6_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer7_module0_position" x="21.17" y="0.0" z="488.815" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer7_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer7_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer8_module0_position" x="21.17" y="0.0" z="496.185" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer8_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer8_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer9_module0_position" x="21.17" y="0.0" z="688.815" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer9_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer9_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer10_module0_position" x="21.17" y="0.0" z="696.185" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer10_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer10_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer11_module0_position" x="21.17" y="0.0" z="888.815" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer11_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer11_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
       <position name="PhantomTracker_PhantomPlane_layer12_module0_position" x="21.17" y="0.0" z="896.185" unit="mm" />
-      <rotation name="PhantomTracker_PhantomPlane_layer12_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <rotation name="PhantomTracker_PhantomPlane_layer12_module0_rotation" x="0.0" y="-0.03052" z="-1.570796326795" unit="radian" />
+      <position name="ECalScoringPlaneDefVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="ECalScoringPlaneDefVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="ECalScoringPlaneDefVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="ECalScoringPlaneDefVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="ECalScoringPlane_ECalScoringPlaneDef_layer1_module0_position" x="0.0" y="0.0" z="1338.0" unit="mm" />
+      <rotation name="ECalScoringPlane_ECalScoringPlaneDef_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
     </define>
     <materials>
       <element Z="1" formula="H" name="H">
@@ -149,6 +176,9 @@
       <box name="PhantomPlaneBox" x="177.8" y="416.052" z="1.0E-8" />
       <box name="PhantomPlaneVolume_component0Box" x="177.8" y="416.052" z="1.0E-8" />
       <box name="PhantomPlaneVolume_component0Sensor0Box" x="177.8" y="416.052" z="1.0E-8" />
+      <box name="ECalScoringPlaneDefBox" x="177.8" y="416.052" z="1.0E-8" />
+      <box name="ECalScoringPlaneDefVolume_component0Box" x="177.8" y="416.052" z="1.0E-8" />
+      <box name="ECalScoringPlaneDefVolume_component0Sensor0Box" x="177.8" y="416.052" z="1.0E-8" />
     </solids>
     <structure>
       <volume name="PhantomPlaneFieldDefVolume_component0Sensor0">
@@ -198,6 +228,31 @@
           <volumeref ref="PhantomPlaneVolume_component0" />
           <positionref ref="PhantomPlaneVolume_component0_position" />
           <rotationref ref="PhantomPlaneVolume_component0_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+      </volume>
+      <volume name="ECalScoringPlaneDefVolume_component0Sensor0">
+        <materialref ref="Vacuum" />
+        <solidref ref="ECalScoringPlaneDefVolume_component0Sensor0Box" />
+        <sdref ref="ECalScoringPlane" />
+      </volume>
+      <volume name="ECalScoringPlaneDefVolume_component0">
+        <materialref ref="Vacuum" />
+        <solidref ref="ECalScoringPlaneDefVolume_component0Box" />
+        <physvol>
+          <volumeref ref="ECalScoringPlaneDefVolume_component0Sensor0" />
+          <positionref ref="ECalScoringPlaneDefVolume_component0Sensor0Position" />
+          <rotationref ref="ECalScoringPlaneDefVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="ECalScoringPlaneDefVolume">
+        <materialref ref="Vacuum" />
+        <solidref ref="ECalScoringPlaneDefBox" />
+        <physvol>
+          <volumeref ref="ECalScoringPlaneDefVolume_component0" />
+          <positionref ref="ECalScoringPlaneDefVolume_component0_position" />
+          <rotationref ref="ECalScoringPlaneDefVolume_component0_rotation" />
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
@@ -328,6 +383,15 @@
           <physvolid field_name="system" value="1" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="12" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="ECalScoringPlaneDefVolume" />
+          <positionref ref="ECalScoringPlane_ECalScoringPlaneDef_layer1_module0_position" />
+          <rotationref ref="ECalScoringPlane_ECalScoringPlaneDef_layer1_module0_rotation" />
+          <physvolid field_name="system" value="3" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="module" value="0" />
         </physvol>
         <regionref ref="TrackingRegion" />

@@ -176,7 +176,7 @@
     </materials>
 
     <detectors>       
-        <detector id="1" name="PhantomTracker" type="HPSTracker2" readout="PhantomTrackerHits" >
+        <detector id="1" name="PhantomTracker" type="HPSTracker2" readout="TrackerHits" >
             <comment>Boundary planes for magnetic field</comment>
             <module name="PhantomPlane">
                 <box x="dipoleMagnetWidth" y="dipoleMagnetHeight" />
@@ -185,40 +185,40 @@
                 </module_component>
             </module>                      
             <layer id="1">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z1t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z1t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="2">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z2t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z2t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="3">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z3t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z3t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="4">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z4t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z4t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="5">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z5t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z5t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="6">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z6t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z6t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="7">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z7t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z7t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="8">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z8t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z8t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="9">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z9t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z9t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="10">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z10t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z10t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="11">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z11t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z11t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>
             <layer id="12">
-                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z12t" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="PhantomPlane" id="0" x="dipoleMagnetPositionX" y="0" z="z12t" rx="0" ry="-y_rot" rz="-PI/2"/>
             </layer>            
         </detector>
         
@@ -237,12 +237,31 @@
             <layer id="2">
                 <module_placement name="PhantomPlaneFieldDef" id="0" x="dipoleMagnetPositionX" y="0" z="dipoleMagnetPositionZ+dipoleMagnetLength/2" rx="0" ry="0" rz="-PI/2"/>
             </layer>
-        </detector>     
-     
+        </detector>
+        
+        <detector id="3" name="ECalScoringPlane" type="HPSTracker2" readout="ECalScoringTrackerHits" >
+            <comment>Boundary planes for magnetic field</comment>
+            <module name="ECalScoringPlaneDef">
+                <box x="dipoleMagnetWidth" y="dipoleMagnetHeight" />
+                <module_component thickness="0.000000001*cm" material = "Vacuum" sensitive="true">
+                    <dimensions x="dipoleMagnetWidth" y="dipoleMagnetHeight" /> 
+                </module_component>
+            </module>                      
+            <layer id="1">
+                <module_placement name="ECalScoringPlaneDef" id="0" x="0" y="0" z="1338*mm" rx="0" ry="0" rz="-PI/2"/>
+            </layer>
+        </detector>
+        
     </detectors>
     
     <readouts>   
         <readout name="PhantomTrackerHits">
+            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
+        </readout>
+        <readout name="ECalScoringTrackerHits">
+            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
+        </readout>        
+        <readout name="TrackerHits">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
         </readout> 
     </readouts>
