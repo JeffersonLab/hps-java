@@ -46,7 +46,6 @@ import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
 import org.hps.conditions.ecal.EcalLedCalibration;
 import org.hps.conditions.ecal.EcalLedCalibration.EcalLedCalibrationCollection;
 import org.hps.conditions.ecal.EcalLedCalibration.LedColor;
-import org.hps.conditions.ecal.EcalLedCalibration.LedColor;
 import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -65,6 +64,8 @@ public class EcalLedSequenceMonitor extends Driver{
     private static final int runNumberMax = 9999;
     private static final int nDrivers = 8;
     private static final int nSteps = 56;
+    
+   
 
     String inputCollectionRaw = "EcalReadoutHits";
     String inputCollection = "EcalCalHits";	
@@ -89,8 +90,8 @@ public class EcalLedSequenceMonitor extends Driver{
 
     private int runNumber = 0;	
     private int eventN    = 0;
-    private int id,row,column,chid,ledid,driverid;
-    private  int[][] LEDStep = new int[][]{
+    private int id,row,column,chid,ledId,driverId;
+    private  int[][] expectedSequence = new int[][]{ /*A.C. it is a terrible thing to have this hard-coded here!*/
             //first 4 are the flasher1 sequence, TOP controller 
             {2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,-1,-1},
             {56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111},
@@ -102,6 +103,7 @@ public class EcalLedSequenceMonitor extends Driver{
             {112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167},	
             {168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223},
     };
+    private int[][] actualSequence=new int[nDrivers][nSteps];
 
     private int[] iStep = new int[nDrivers];
     private int[] nEvents = new int[NUM_CHANNELS];
@@ -154,9 +156,9 @@ public class EcalLedSequenceMonitor extends Driver{
     private JFrame frame;
     private JPanel panel;
     String  labelString;
-    private JButton okButton,cancelButton;
+    private JButton okButtonRed,okButtonBlue,cancelButton;
     private int m_iteration=0;
-    private int m_ret=0;
+    private LedColor m_ret=LedColor.UNKNOWN; //use UNKNONW as CANCEL button
     static Object modalMonitor = new Object();
 
     public void setUseRawEnergy(boolean useRawEnergy) {
@@ -207,7 +209,8 @@ public class EcalLedSequenceMonitor extends Driver{
         System.out.println("LedAnalysis::Detector changed was called");
         System.out.println(fEvnMinDraw+" "+fEvnMaxDraw);
         for (int ii=0;ii<nDrivers;ii++){
-            iStep[ii]=-1;
+            iStep[ii]=0;
+            // actualSequence[ii][iStep[ii]]=-1;
         }
 
         // Setup conditions
@@ -296,6 +299,7 @@ public class EcalLedSequenceMonitor extends Driver{
                 chid = ChannelCollection.findGeometric(cellID).getChannelId();
 
                 energy = hit.getCorrectedEnergy();
+                
                 if (useRawEnergy){
                     fillEnergy = getRawADCSum(energy,cellID);
                 }
@@ -307,30 +311,43 @@ public class EcalLedSequenceMonitor extends Driver{
 
                 //find the LED
                 if (row>0){
-                    ledid=LedTopMap.get(chid);
+                    ledId=LedTopMap.get(chid);
                 }
                 else if (row<0){
-                    ledid=LedBotMap.get(chid);
+                    ledId=LedBotMap.get(chid);
                 }
-                driverid=getDriver(ledid);
-                if (row<0) driverid+=4;
+                driverId=getDriver(ledId);
+                if (row<0) driverId+=4;
 
 
 
                 /*Skip the events under thr*/
                 if (energy<energyCut) continue;
-
+                
                 /*First, check if this led is the one in the NEXT step. Therefore, increment by 1 the step*/
-                if (iStep[driverid]<(nSteps-1)){
-                    if (ledid==LEDStep[driverid][iStep[driverid]+1]){   
-                        iStep[driverid]++;
-                        System.out.println("LedAnalysis:: increment step ("+iStep[driverid]+") for driver "+driverid+" . Led ID: "+ledid+" Column: "+column+" Row: "+row);
-                        if (iStep[driverid]>0) drawProfiles(LEDStep[driverid][iStep[driverid]-1],driverid);      
-                    }	
+                if (iStep[driverId]==0){
+                    actualSequence[driverId][iStep[driverId]]=ledId;
+                    iStep[driverId]=1;                  
+                }
+                else if ((iStep[driverId]==1)&&(ledId!=actualSequence[driverId][0])){              
+                    System.out.println("LedAnalysis:: increment step ("+iStep[driverId]+") for driver "+driverId+" . Led ID: "+ledId+" Column: "+column+" Row: "+row);                 
+                    if (iStep[driverId]>0) drawProfiles(actualSequence[driverId][iStep[driverId]-1],driverId); 
+                    actualSequence[driverId][iStep[driverId]]=ledId;
+                    iStep[driverId]++;
+                }
+                else if ((iStep[driverId]>1)&&(ledId!=actualSequence[driverId][iStep[driverId]-1])&&(ledId!=actualSequence[driverId][iStep[driverId]-2])){
+                    System.out.println("LedAnalysis:: increment step ("+iStep[driverId]+") for driver "+driverId+" . Led ID: "+ledId+" Column: "+column+" Row: "+row);                 
+                    if (iStep[driverId]>0) drawProfiles(actualSequence[driverId][iStep[driverId]-1],driverId); 
+                    actualSequence[driverId][iStep[driverId]]=ledId;
+                    iStep[driverId]++;
                 }
 
 
-                if (iStep[driverid]==-1) continue;
+
+
+
+
+                if (iStep[driverId]==-1) continue; /*Not yet data*/
 
                 /*Put this code here, since we want to always fill the ntuple*/
                 iTuple.get(id).fill(0,nEvents[id]);
@@ -339,17 +356,11 @@ public class EcalLedSequenceMonitor extends Driver{
                 iTuple.get(id).addRow();
                 nEvents[id]++;
 
-                /*Case 1: this led is the one in the corresponding step*/;
-                if (ledid==LEDStep[driverid][iStep[driverid]]){
 
-                }
-                else{	/*Case 2: this led is not one in the corresponding step (but maybe is the neighborhood??Ctalk??)*/;
-
-                }
 
                 /*Add a debug print */
                 if (eventN % 10000==0){
-                    System.out.println("Debug. LED ID: "+ledid+" DRIVER ID: "+driverid+" ECAL ID: "+id+" ROW: "+row+" COLUMN: "+column+ "HISTO ID: "+id);
+                    System.out.println("Debug. Event "+eventN+" LED ID: "+ledId+" DRIVER ID: "+driverId+" ECAL ID: "+id+" ROW: "+row+" COLUMN: "+column+ "HISTO ID: "+id);
                 }
             }
             if (eventN % 10000==0){
@@ -579,25 +590,29 @@ public class EcalLedSequenceMonitor extends Driver{
             askUploadToDBDialog();
             synchronized (modalMonitor) {
                 try{
-                    modalMonitor.wait(120000); //wait 2 minutes for user interaction.
+                    modalMonitor.wait(60000); //wait 1 minute for user interaction.
                 }
                 catch(InterruptedException excp){
                     System.out.println("Got exception: "+excp);
                 }
             }
-            if (m_ret==1){
-                System.out.println("OK, upload to DB");
+            if ((m_ret!=LedColor.UNKNOWN)){
+                if (m_ret==LedColor.BLUE)    System.out.println("OK, upload to DB BLUE");
+                else System.out.println("OK, upload to DB RED");
                 try {
-                    uploadToDB();
+                    uploadToDB(m_ret);
                 } catch (SQLException | DatabaseObjectException | ConditionsObjectException error) {
-                    throw new RuntimeException("Error uploading to the database.", error);
+                    throw new RuntimeException("Error uploading to the database ", error);
                 }
 
                 System.out.println("Save an Elog too");
                 uploadToElog();
             }
+            else{
+                System.out.println("Cancel pressed. Nothing to do");
+            }
         }
-        
+
         /*Write a file with the LED values*/
         try {
             if (useRawEnergy){
@@ -679,7 +694,7 @@ public class EcalLedSequenceMonitor extends Driver{
     }
 
     /**
-     * Very simple method to retreive the pedestal-subtracted raw Energy.
+     * Very simple method to retrieve the pedestal-subtracted raw Energy.
      * If the gain changes (because we do a re-calibration), I do not want to include this in the LED analysis
      * @param energy
      * @param cellID
@@ -694,13 +709,15 @@ public class EcalLedSequenceMonitor extends Driver{
         return ret;
     }
 
-    private void uploadToDB() throws DatabaseObjectException, ConditionsObjectException, SQLException {
+    private void uploadToDB(LedColor color) throws DatabaseObjectException, ConditionsObjectException, SQLException {
         int x,y,id;
         double mean,rms;
         System.out.println(String.format("Uploading new led data to the database, runMin=%d, runMax=%d, tag=%s ....",
                 runNumber,runNumberMax,dbTag));
-
+        
+        conditionsManager = DatabaseConditionsManager.getInstance();
         EcalLedCalibrationCollection led_calibrations =  new EcalLedCalibrationCollection();
+        led_calibrations.setConnection(conditionsManager.getConnection());
 
         TableMetaData tableMetaData = conditionsManager.findTableMetaData(dbTableName);
         led_calibrations.setTableMetaData(tableMetaData);
@@ -712,7 +729,7 @@ public class EcalLedSequenceMonitor extends Driver{
             id=EcalMonitoringUtilities.getHistoIDFromRowColumn(y,x);
             mean=mMean[id];
             rms=mRMS[id];
-            led_calibrations.add(new EcalLedCalibration(cid,mean,rms,LedColor.UNKNOWN));
+            led_calibrations.add(new EcalLedCalibration(cid,mean,rms,color));
         }
 
         int collectionId = -1;
@@ -720,6 +737,7 @@ public class EcalLedSequenceMonitor extends Driver{
         try {
             collectionId = conditionsManager.getCollectionId(led_calibrations, "loaded by EcalLedSequenceMonitor");
         } catch (Exception e) {
+            System.out.println("Got exception on uploadToDB "+ e);
             throw new RuntimeException(e);
         }
         System.err.println("CollectionID:  "+collectionId);
@@ -727,6 +745,7 @@ public class EcalLedSequenceMonitor extends Driver{
         ConditionsRecord conditionsRecord = new ConditionsRecord(
                 led_calibrations.getCollectionId(), runNumber, runNumberMax, dbTableName, dbTableName, 
                 "Generated by LedAnalysis from Run #"+runNumber, dbTag);
+        conditionsRecord.setConnection(conditionsManager.getConnection());
         conditionsRecord.insert();
 
         System.out.println("Upload to DB done");
@@ -809,13 +828,14 @@ public class EcalLedSequenceMonitor extends Driver{
 
 
     private void askUploadToDBDialog(){
-        m_ret=0;
+        m_ret=LedColor.UNKNOWN;
 
-        okButton = new JButton("OK");
+        okButtonRed = new JButton("Yes, red");
+        okButtonBlue = new JButton("Yes, blue");
         cancelButton = new JButton("Cancel");
         labelString = "<html> Update conditions to DB <br> for run: <br> "+runNumber+" - "+runNumberMax+" <br> ???? <br> "
-                + "Use the monitoring app to look at the map<br>" 
-                + "(Tab LED sequence)<br"
+                + "Use the monitoring app to look at the map<br>"
+                + "(Tab LED sequence)<br>"
                 +"Reply in 60 seconds<br>"+"</html>";   
         label = new JLabel( labelString);
 
@@ -835,17 +855,32 @@ public class EcalLedSequenceMonitor extends Driver{
         //dialog.pack();
         panel.add(label);
         panel.add(cancelButton);
-        panel.add(okButton);
+        panel.add(okButtonBlue);
+        panel.add(okButtonRed);
+     
 
         frame.setVisible(true);
-        okButton.addActionListener(new ActionListener(){
+        okButtonBlue.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent event)
             {
-                m_ret=1;
+                m_ret=LedColor.BLUE;
                 frame.dispose();    
                 synchronized(modalMonitor)
                 {
-                    System.out.println("Ok pressed");
+                    System.out.println("Blue pressed");
+                    modalMonitor.notify();
+                }
+            }
+        }
+                );
+        okButtonRed.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent event)
+            {
+                m_ret=LedColor.RED;
+                frame.dispose();    
+                synchronized(modalMonitor)
+                {
+                    System.out.println("Red pressed");
                     modalMonitor.notify();
                 }
             }
@@ -855,7 +890,7 @@ public class EcalLedSequenceMonitor extends Driver{
         cancelButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent event)
             {
-                m_ret=0;
+                m_ret=LedColor.UNKNOWN;
                 frame.dispose();   
                 synchronized(modalMonitor)
                 {
