@@ -21,6 +21,7 @@
         <!-- tracking region -->
         <constant name="tracking_region_radius" value="400.0*cm"/>
         <constant name="tracking_region_min" value="5.0*cm"/>
+        <constant name="tracking_region_zmax" value="1350*mm"/>
         
         <!--  dipole magnet and  B-field -->
         <constant name="dipoleMagnetPositionX" value="2.117*cm"/>

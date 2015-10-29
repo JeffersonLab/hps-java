@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-Phantom-fieldmap" />
-    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="3662925794" />
+    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="3372402216" />
     <author name="NONE" />
     <comment>HPS detector with phantom scoring planes to study field propagation</comment>
   </header>
@@ -104,6 +104,7 @@
       <constant name="z7t" value="488.815" />
       <constant name="z11t" value="888.815" />
       <constant name="moduleLength" value="100.0" />
+      <constant name="tracking_region_zmax" value="1350.0" />
       <constant name="moduleWidth" value="40.34" />
       <constant name="z9t" value="688.815" />
       <position name="PhantomPlaneFieldDefVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
