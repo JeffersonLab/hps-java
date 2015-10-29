@@ -14,6 +14,15 @@ import org.hps.conditions.database.Table;
 public final class EcalLedCalibration extends BaseConditionsObject {
 
     /**
+     * Color of LED measurement.
+     */
+    public enum LedColor {
+        UNKNOWN,
+        BLUE,
+        RED
+    }
+    
+    /**
      * Generic collection class for these objects.
      */
     public static class EcalLedCalibrationCollection extends BaseConditionsObjectCollection<EcalLedCalibration> {
@@ -32,10 +41,11 @@ public final class EcalLedCalibration extends BaseConditionsObject {
      * @param ledResponse the mean of the LED response
      * @param rms the RMS of the LED response
      */
-    public EcalLedCalibration(final int channelId, final double ledResponse, final double rms) {
+    public EcalLedCalibration(final int channelId, final double ledResponse, final double rms, LedColor color) {
         this.setFieldValue("ecal_channel_id", channelId);
         this.setFieldValue("led_response", ledResponse);
         this.setFieldValue("rms", rms);
+        this.setFieldValue("color", color.ordinal());
     }
 
     /**
@@ -66,5 +76,15 @@ public final class EcalLedCalibration extends BaseConditionsObject {
     @Field(names = {"rms"})
     public Integer getRms() {
         return this.getFieldValue("rms");
+    }
+    
+    /**
+     * Get the LED color.
+     * 
+     * @return the LED color
+     */
+    @Field(names = {"color"})
+    public LedColor getColor() {
+        return LedColor.values()[(int) this.getFieldValue("color")];
     }
 }

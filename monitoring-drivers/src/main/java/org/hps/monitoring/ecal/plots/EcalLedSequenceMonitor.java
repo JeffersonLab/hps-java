@@ -1,9 +1,5 @@
 package org.hps.monitoring.ecal.plots;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import hep.aida.IEvaluator;
 import hep.aida.IFitResult;
 import hep.aida.IFitter;
@@ -20,6 +16,9 @@ import hep.aida.ITuple;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,6 +45,8 @@ import org.hps.conditions.ecal.EcalLed;
 import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
 import org.hps.conditions.ecal.EcalLedCalibration;
 import org.hps.conditions.ecal.EcalLedCalibration.EcalLedCalibrationCollection;
+import org.hps.conditions.ecal.EcalLedCalibration.LedColor;
+import org.hps.conditions.ecal.EcalLedCalibration.LedColor;
 import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -711,7 +712,7 @@ public class EcalLedSequenceMonitor extends Driver{
             id=EcalMonitoringUtilities.getHistoIDFromRowColumn(y,x);
             mean=mMean[id];
             rms=mRMS[id];
-            led_calibrations.add(new EcalLedCalibration(cid,mean,rms));
+            led_calibrations.add(new EcalLedCalibration(cid,mean,rms,LedColor.UNKNOWN));
         }
 
         int collectionId = -1;
