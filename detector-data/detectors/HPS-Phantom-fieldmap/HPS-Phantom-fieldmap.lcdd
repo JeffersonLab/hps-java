@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-Phantom-fieldmap" />
-    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="1953036368" />
+    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="1860101664" />
     <author name="NONE" />
     <comment>HPS detector with phantom scoring planes to study field propagation</comment>
   </header>
@@ -176,9 +176,9 @@
       <box name="PhantomPlaneBox" x="177.8" y="416.052" z="1.0E-8" />
       <box name="PhantomPlaneVolume_component0Box" x="177.8" y="416.052" z="1.0E-8" />
       <box name="PhantomPlaneVolume_component0Sensor0Box" x="177.8" y="416.052" z="1.0E-8" />
-      <box name="ECalScoringPlaneDefBox" x="177.8" y="416.052" z="1.0E-8" />
-      <box name="ECalScoringPlaneDefVolume_component0Box" x="177.8" y="416.052" z="1.0E-8" />
-      <box name="ECalScoringPlaneDefVolume_component0Sensor0Box" x="177.8" y="416.052" z="1.0E-8" />
+      <box name="ECalScoringPlaneDefBox" x="355.6" y="832.104" z="1.0E-8" />
+      <box name="ECalScoringPlaneDefVolume_component0Box" x="355.6" y="832.104" z="1.0E-8" />
+      <box name="ECalScoringPlaneDefVolume_component0Sensor0Box" x="355.6" y="832.104" z="1.0E-8" />
     </solids>
     <structure>
       <volume name="PhantomPlaneFieldDefVolume_component0Sensor0">

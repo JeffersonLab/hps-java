@@ -242,9 +242,9 @@
         <detector id="3" name="ECalScoringPlane" type="HPSTracker2" readout="ECalScoringTrackerHits" >
             <comment>Boundary planes for magnetic field</comment>
             <module name="ECalScoringPlaneDef">
-                <box x="dipoleMagnetWidth" y="dipoleMagnetHeight" />
+                <box x="2.*dipoleMagnetWidth" y="2.*dipoleMagnetHeight" />
                 <module_component thickness="0.000000001*cm" material = "Vacuum" sensitive="true">
-                    <dimensions x="dipoleMagnetWidth" y="dipoleMagnetHeight" /> 
+                    <dimensions x="2.*dipoleMagnetWidth" y="2.*dipoleMagnetHeight" /> 
                 </module_component>
             </module>                      
             <layer id="1">
