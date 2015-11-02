@@ -1,4 +1,4 @@
-package org.hps.recon.ecal.cluster;
+package org.hps.test.it;
 
 import hep.aida.ICloud1D;
 import hep.aida.ICloud2D;
@@ -12,13 +12,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.data.test.TestDataUtility;
 import org.hps.detector.ecal.EcalCrystal;
 import org.hps.recon.ecal.CalorimeterHitUtilities;
+import org.hps.recon.ecal.cluster.ClusterDriver;
+import org.hps.recon.ecal.cluster.ClusterType;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.ecal.cluster.Clusterer;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -127,13 +131,9 @@ public class ClustererTest extends TestCase {
     }
 
     public void setUp() {
-        // Cache the input file.
-        try {
-            inputFile = new FileCache().getCachedFile(new URL(fileLocation));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
+        
+        inputFile = new TestDataUtility().getTestData("MockDataReconTest.slcio");
+        
         // Create test output directory.
         testOutputDir = new TestOutputFile(getClass().getSimpleName());
         testOutputDir.mkdir();
