@@ -29,6 +29,9 @@ final class JSONUtilities {
         dataset.put("site", parameters.get("site"));
         dataset.put("fileFormat", parameters.get("fileFormat"));
         dataset.put("name", parameters.get("name"));
+        if (parameters.containsKey("size")) {
+            dataset.put("size", parameters.get("size"));
+        }
         
         Map<String, Object> metadataCopy = new HashMap<String, Object>();
         metadataCopy.putAll(metadata);
