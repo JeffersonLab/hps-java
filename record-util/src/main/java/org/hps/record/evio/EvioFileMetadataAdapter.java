@@ -87,7 +87,6 @@ public class EvioFileMetadataAdapter extends AbstractLoopListener implements Rec
         LOGGER.info("finish");
         metadataList.add(metadataProcessor.createEvioFileMetadata());        
         LOGGER.info("created " + metadataList.size() + " metadata objects in job");
-        LOGGER.getHandlers()[0].flush();
     }
     
     /**
