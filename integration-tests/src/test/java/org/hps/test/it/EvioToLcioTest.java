@@ -152,7 +152,7 @@ public final class EvioToLcioTest extends TestCase {
     /**
      * The default input file (large file at SLAC so the pom.xml file excludes this test on non-SLAC hosts).
      */
-    private static final String INPUT_FILE = "/nfs/slac/g/hps3/data/engrun/evio/hps_005772.evio.0";
+    private static final String INPUT_FILE = "/nfs/slac/g/hps3/data/engrun2015/evio/hps_005772.evio.0";
 
     /**
      * The number of events that should be processed.
@@ -175,8 +175,8 @@ public final class EvioToLcioTest extends TestCase {
         final TestOutputFile outputFile = new TestOutputFile(EvioToLcioTest.class, "hps_005772.slcio");
 
         // Run the command line utility.
-        final String[] args = new String[] {"-l", outputFile.getPath(), "-d", "HPS-EngRun2015-Nominal-v1", INPUT_FILE,
-                "-r", "-x", "/org/hps/steering/EventMarker.lcsim"};
+        final String[] args = new String[] {"-l", outputFile.getPath(), "-d", "HPS-EngRun2015-Nominal-v1", "-r", "-x", 
+                "/org/hps/steering/EventMarker.lcsim", INPUT_FILE};
         System.out.println("Running EvioToLcio on " + INPUT_FILE);
         Logger.getLogger("org.hps.evio").setLevel(Level.WARNING);
         System.out.println("org.hps.evio logging level is " + Logger.getLogger("org.hps.evio").getLevel());

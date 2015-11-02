@@ -6,6 +6,7 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.hps.data.test.TestDataUtility;
 import org.hps.job.JobManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -20,8 +21,7 @@ import org.lcsim.util.cache.FileCache;
  *
  */
 public class SimpleSvtReadoutTest extends TestCase {
-
-    static final String fileUrl = "http://www.lcsim.org/test/hps-java/ReadoutToLcioTest.slcio";
+   
     static final File outputDir = new File("./target/test-output/" + SimpleSvtReadoutTest.class.getSimpleName());    
     static final File outputFile = new File(outputDir + File.separator + SimpleSvtReadoutTest.class.getSimpleName());
     
@@ -29,12 +29,9 @@ public class SimpleSvtReadoutTest extends TestCase {
     static final String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     
 	public void testSimpleSvtReadout() throws Exception { 
-		
-		this.printDebug("Retrieving test file from " + fileUrl);
-	
-        FileCache cache = new FileCache();
-        File inputFile = cache.getCachedFile(new URL(fileUrl));
-	        
+				
+		File inputFile = new TestDataUtility().getTestData("ReadoutToLcioTest.slcio");
+			        
         outputDir.mkdirs();
         if(!outputDir.exists()){ 
         	this.printDebug("Failed to create directory " + outputDir.getPath());

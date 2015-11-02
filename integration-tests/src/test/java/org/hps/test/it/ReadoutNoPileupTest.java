@@ -5,6 +5,7 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
+import org.hps.data.test.TestDataUtility;
 import org.hps.job.JobManager;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
@@ -29,11 +30,8 @@ public class ReadoutNoPileupTest extends TestCase {
     static final int nEvents = 100;
     
     public void testReadoutNoPileup() throws Exception {
-        new TestOutputFile(this.getClass().getSimpleName()).mkdir();
-        
-        FileCache cache = new FileCache();
-        File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/ReadoutNoPileupTest.slcio"));
-        
+        new TestOutputFile(this.getClass().getSimpleName()).mkdir();        
+        File inputFile = new TestDataUtility().getTestData("ReadoutNoPileupTest.slcio");
         JobManager job = new JobManager();
         job.addInputFile(inputFile);
         job.addVariableDefinition("detector", "HPS-Proposal2014-v8-2pt2");

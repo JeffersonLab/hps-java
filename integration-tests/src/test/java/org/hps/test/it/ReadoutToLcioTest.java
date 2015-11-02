@@ -1,12 +1,11 @@
 package org.hps.test.it;
 
 import java.io.File;
-import java.net.URL;
 
 import junit.framework.TestCase;
 
+import org.hps.data.test.TestDataUtility;
 import org.hps.job.JobManager;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
@@ -27,11 +26,9 @@ public class ReadoutToLcioTest extends TestCase {
     
     public void testReadoutToLcio() throws Exception {
         
-        new TestOutputFile(this.getClass().getSimpleName()).mkdir();
-        
-        FileCache cache = new FileCache();
-        File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/ReadoutToLcioTest.slcio"));
-        
+        new TestOutputFile(this.getClass().getSimpleName()).mkdir();        
+        File inputFile = new TestDataUtility().getTestData("ReadoutToLcioTest.slcio");
+                
         JobManager job = new JobManager();
         job.addVariableDefinition("detector", "HPS-Proposal2014-v8-2pt2");
         job.addVariableDefinition("run", "0");
