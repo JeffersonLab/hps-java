@@ -1,16 +1,11 @@
 package org.hps.test.it;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
+import org.hps.data.test.TestDataUtility;
 import org.hps.job.JobManager;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 
 /**
  * Test package for data quality monitoring of reconstructed data
@@ -19,47 +14,33 @@ import org.lcsim.util.cache.FileCache;
  * created on 10/16/2014
  */
 public class DataQualityMonitorTest extends TestCase {
-    static final String fileLocation = "http://www.lcsim.org/test/hps-java/DataQualityMonitorTest.slcio";
 
-//    static final String fileLocation = "file:///Users/mgraham/HPS/DataQualityMonitorTest.slcio";
-
-    static final String className = DataQualityMonitorTest.class.getSimpleName();
-    static final File outputDir = new File("./target/test-output/" + className);
-    static final File outputFile = new File(outputDir.getAbsolutePath() + File.separator + className);
-    static final File aidaFile = new File(outputFile.getAbsolutePath() + ".aida");
-    static final String steeringResource = "/org/hps/steering/test/DataQualityTest.lcsim";
-    AIDA aida = AIDA.defaultInstance();
+    private static final String CLASS_NAME = DataQualityMonitorTest.class.getSimpleName();
+    private static final File OUTPUT_DIR = new File("./target/test-output/" + CLASS_NAME);
+    private static final File OUTPUT_FILE = new File(OUTPUT_DIR.getAbsolutePath() + File.separator + CLASS_NAME);
+    private static final File AIDA_FILE = new File(OUTPUT_FILE.getAbsolutePath() + ".aida");
+    private static final String STEERING_RESOURCE = "/org/hps/steering/test/DataQualityTest.lcsim";
 
     public void setUp() {
         
         System.out.println("Setting up DQM Test");
         // Delete files if they already exist.     
-        if (aidaFile.exists())
-            aidaFile.delete();
+        if (AIDA_FILE.exists())
+            AIDA_FILE.delete();
 
         // Create output dir.
-        outputDir.mkdirs();
-        if (!outputDir.exists())
+        OUTPUT_DIR.mkdirs();
+        if (!OUTPUT_DIR.exists())
             throw new RuntimeException("Failed to create test output dir.");
     }
 
     public void testQualityMonitor() {
-        System.out.println("caching file ...");
-        System.out.println(fileLocation);
-
-        File dataFile = null;
-        try {
-            FileCache cache = new FileCache();
-            dataFile = cache.getCachedFile(new URL(fileLocation));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }        
-        System.out.println("running data quality job with steering resource " + steeringResource);
+        File dataFile = new TestDataUtility().getTestData("DataQualityMonitorTest.slcio");
+        System.out.println("running data quality job with steering resource " + STEERING_RESOURCE);
         JobManager jobManager = new JobManager();
-        jobManager.addVariableDefinition("outputFile", outputFile.getPath());
+        jobManager.addVariableDefinition("outputFile", OUTPUT_FILE.getPath());
         jobManager.addInputFile(dataFile);
-        jobManager.setup(steeringResource);
+        jobManager.setup(STEERING_RESOURCE);
         jobManager.run();
-
     }
 }

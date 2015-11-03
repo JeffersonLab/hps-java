@@ -1,7 +1,6 @@
 package org.hps.test.it;
 
 import java.io.File;
-import java.net.URL;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -11,7 +10,6 @@ import org.hps.job.JobManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.util.Driver;
-import org.lcsim.util.cache.FileCache;
 
 
 /**
