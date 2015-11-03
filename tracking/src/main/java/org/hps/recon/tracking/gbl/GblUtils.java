@@ -6,6 +6,9 @@ import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
@@ -19,6 +22,7 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
@@ -123,6 +127,34 @@ public class GblUtils {
         } else {
             throw new UnsupportedOperationException("Should not happen. This problem is only solved with the MaterialSupervisor.");
         }
+    }
+
+    /**
+     * Do a GBL fit to an arbitrary set of strip hits, with a starting value of
+     * the helix parameters.
+     *
+     * @param helix Initial helix parameters. Only track parameters are used
+     * (not covariance)
+     * @param stripHits Strip hits to be used for the GBL fit. Does not need to
+     * be in sorted order.
+     * @param hth Stereo hits for the track's hit list (these are not used in
+     * the GBL fit). Does not need to be in sorted order.
+     * @param nIterations Number of times to iterate the GBL fit.
+     * @param scattering Multiple scattering manager.
+     * @param bfield B-field
+     * @return The refitted track.
+     */
+    public static Track refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, MultipleScattering scattering, double bfield) {
+        List<TrackerHit> allHthList = sortHits(hth);
+        List<TrackerHit> sortedStripHits = sortHits(stripHits);
+        FittedGblTrajectory fit = GblUtils.doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
+        for (int i = 0; i < nIterations; i++) {
+            Track newTrack = MakeGblTracks.makeCorrectedTrack(fit, helix, allHthList, 0, bfield);
+            helix = TrackUtils.getHTF(newTrack);
+            fit = GblUtils.doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
+        }
+        Track mergedTrack = MakeGblTracks.makeCorrectedTrack(fit, helix, allHthList, 0, bfield);
+        return mergedTrack;
     }
 
     public static FittedGblTrajectory doGBLFit(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double bfield, int debug) {
@@ -293,5 +325,19 @@ public class GblUtils {
         HelicalTrackStrip strip = new HelicalTrackStrip(neworigin, newu, newv, umeas, du, vmin, vmax, dEdx, time, rawhits, null, -1, null);
 
         return strip;
+    }
+
+    private static List<TrackerHit> sortHits(Collection<TrackerHit> hits) {
+        List<TrackerHit> hitList = new ArrayList<TrackerHit>(hits);
+        Collections.sort(hitList, new LayerComparator());
+        return hitList;
+    }
+
+    private static class LayerComparator implements Comparator<TrackerHit> {
+
+        @Override
+        public int compare(TrackerHit o1, TrackerHit o2) {
+            return Integer.compare(TrackUtils.getLayer(o1), TrackUtils.getLayer(o2));
+        }
     }
 }
