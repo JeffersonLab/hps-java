@@ -125,15 +125,28 @@ final class HttpUtilities {
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
+            connection.setDoInput(true);
             if (data != null) {
                 final OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
                 out.write(data);
                 out.close();
             }
+            
+            // DEBUG
+            /*
+            StringBuffer stringBuffer = new StringBuffer();
+            if (stringBuffer != null) {
+                final String output = IOUtils.toString(connection.getInputStream(), "UTF-8");
+                stringBuffer.append(output);
+            }
+            
             System.out.println("url: " + urlLocation);
             System.out.println("data: " + data);
             System.out.println("response: " + connection.getResponseCode());
             System.out.println("message: " + connection.getResponseMessage());
+            System.out.println("output: " + stringBuffer.toString());
+            */
+            
             responseCode = connection.getResponseCode();
         } catch (final IOException e) {
             throw new RuntimeException(e);
