@@ -19,7 +19,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 
 /**
  *
@@ -72,7 +72,7 @@ public class ecalPlots {
             help.printHelp(" ", opts);
             System.exit(1);
         }
-        CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new DefaultParser();
         CommandLine cmd=null;
         try {
             cmd = parser.parse(opts, args);

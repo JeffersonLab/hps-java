@@ -23,7 +23,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 
 import org.jdom.Document;
 import org.jdom.Element;
@@ -156,7 +156,7 @@ public class BuildCompact {
 			printHelpAndExit(options);
 		}
 
-		CommandLineParser parser = new PosixParser();
+		CommandLineParser parser = new DefaultParser();
 		CommandLine cl = null;
 		try {
 			cl = parser.parse(options, args);

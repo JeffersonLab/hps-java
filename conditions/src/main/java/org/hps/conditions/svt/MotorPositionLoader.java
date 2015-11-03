@@ -16,7 +16,7 @@ import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 
 /**
  * Load SVT motor positions from a MYA dump, figure out time ranges (same position for > 10 seconds), and then convert
@@ -195,7 +195,7 @@ public class MotorPositionLoader {
      */
     void run(final String args[]) {
 
-        final PosixParser parser = new PosixParser();
+        final DefaultParser parser = new DefaultParser();
 
         CommandLine cl = null;
         try {

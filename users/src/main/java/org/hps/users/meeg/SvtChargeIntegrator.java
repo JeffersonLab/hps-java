@@ -15,7 +15,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -64,7 +64,7 @@ public class SvtChargeIntegrator {
 //        options.addOption(new Option("b", true, "beam current file"));
 //        options.addOption(new Option("s", false, "Show plots"));
 
-        final CommandLineParser parser = new PosixParser();
+        final CommandLineParser parser = new DefaultParser();
         CommandLine cl = null;
         try {
             cl = parser.parse(options, args);

@@ -13,7 +13,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
@@ -49,7 +49,7 @@ public class MergeMCBunches {
     public static void main(String[] args) {
         // Set up command line parsing.
         Options options = createCommandLineOptions();
-        CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new DefaultParser();
 
         // Parse command line arguments.
         CommandLine cl = null;

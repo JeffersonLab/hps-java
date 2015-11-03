@@ -17,7 +17,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 
 /**
  *
@@ -73,7 +73,7 @@ public class trigRate {
             help.printHelp(" ", options);
             System.exit(1);
         }
-        CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new DefaultParser();
         
         CommandLine cl = null;
         try {

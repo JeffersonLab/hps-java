@@ -30,7 +30,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunRange;
@@ -183,7 +183,7 @@ public class SvtBiasConditionsLoader {
         options.addOption(new Option("b", true, "beam current file"));
         options.addOption(new Option("s", false, "Show plots"));
 
-        final CommandLineParser parser = new PosixParser();
+        final CommandLineParser parser = new DefaultParser();
         CommandLine cl = null;
         try {
             cl = parser.parse(options, args);

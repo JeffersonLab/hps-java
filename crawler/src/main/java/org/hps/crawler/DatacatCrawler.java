@@ -24,7 +24,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.hps.datacat.client.DatacatClient;
 import org.hps.datacat.client.DatacatClientFactory;
 import org.hps.datacat.client.DatasetFileFormat;
@@ -165,7 +165,7 @@ public class DatacatCrawler {
     /**
      * The options parser.
      */
-    private final PosixParser parser = new PosixParser();
+    private final DefaultParser parser = new DefaultParser();
 
     /**
      * Throw an exception if the path doesn't exist in the data catalog or it is not a folder.

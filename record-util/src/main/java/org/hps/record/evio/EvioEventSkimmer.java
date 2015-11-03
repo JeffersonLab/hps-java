@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.jlab.coda.jevio.EventWriter;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
@@ -51,7 +51,7 @@ public class EvioEventSkimmer {
      */
     public static void main(String[] args) {
 
-        PosixParser parser = new PosixParser();
+        DefaultParser parser = new DefaultParser();
 
         CommandLine commandLine = null;
         try {

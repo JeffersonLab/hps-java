@@ -8,7 +8,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.hps.monitoring.application.model.Configuration;
 
 /**
@@ -29,7 +29,7 @@ public final class Main {
         final Options options = new Options();
         options.addOption(new Option("h", false, "Print help."));
         options.addOption(new Option("c", true, "Load a properties file with configuration parameters."));
-        final CommandLineParser parser = new PosixParser();
+        final CommandLineParser parser = new DefaultParser();
 
         // Parse command line arguments.
         final CommandLine cl;

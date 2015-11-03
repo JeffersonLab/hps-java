@@ -11,7 +11,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
@@ -80,7 +80,7 @@ public final class CommandLineTool {
     /**
      * The options parser.
      */
-    private final PosixParser parser = new PosixParser();
+    private final DefaultParser parser = new DefaultParser();
 
     /**
      * Exit with the given status.
