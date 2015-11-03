@@ -8,7 +8,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -60,7 +60,7 @@ public final class SvtConditionsLoader {
         final Options options = setupCommandLineOptions();
 
         // Parse the command line arguments
-        final CommandLineParser parser = new PosixParser();
+        final CommandLineParser parser = new DefaultParser();
         final CommandLine commandLine;
         try {
             commandLine = parser.parse(options, args);

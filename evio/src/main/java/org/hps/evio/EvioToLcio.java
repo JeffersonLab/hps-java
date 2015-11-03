@@ -21,7 +21,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
@@ -255,7 +255,7 @@ public class EvioToLcio {
         if (args.length == 0) {
             this.printUsage();
         }
-        final CommandLineParser parser = new PosixParser();
+        final CommandLineParser parser = new DefaultParser();
         CommandLine cl = null;
         try {
             cl = parser.parse(OPTIONS, args);

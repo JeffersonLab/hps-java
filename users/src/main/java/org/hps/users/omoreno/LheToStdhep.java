@@ -15,7 +15,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -58,7 +58,7 @@ public class LheToStdhep {
 		String stdhepFileName = "output.stdhep";
 		
 		// Instantiate te command line parser
-		CommandLineParser parser = new PosixParser(); 
+		CommandLineParser parser = new DefaultParser(); 
 
 		// Create the Options
 		// TODO: Add ability to parse list of files.

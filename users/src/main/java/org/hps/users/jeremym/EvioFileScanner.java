@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.DefaultParser;
 import org.hps.conditions.database.ConnectionParameters;
 import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventUtilities;
@@ -484,7 +484,7 @@ public class EvioFileScanner {
 
     final Set<Integer> acceptRuns = new HashSet<Integer>();
 
-    final PosixParser parser = new PosixParser();
+    final DefaultParser parser = new DefaultParser();
 
     boolean printSummary = false;
 
