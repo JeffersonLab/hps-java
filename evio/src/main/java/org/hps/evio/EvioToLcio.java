@@ -366,6 +366,10 @@ public class EvioToLcio {
 
         // Process the LCSim job variable definitions, if any.
         jobManager = new JobManager();
+        
+        // Enable dry run because events will be processed individually.
+        jobManager.setDryRun(true);
+        
         if (cl.hasOption("D")) {
             final String[] steeringOptions = cl.getOptionValues("D");
             for (final String def : steeringOptions) {

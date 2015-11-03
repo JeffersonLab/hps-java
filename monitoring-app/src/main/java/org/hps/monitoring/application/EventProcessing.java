@@ -494,7 +494,7 @@ final class EventProcessing {
             this.createEventBuilder(configurationModel);
 
             // Configure the job manager for the XML steering.
-            this.sessionState.jobManager.setPerformDryRun(true);
+            this.sessionState.jobManager.setDryRun(true);
             if (steeringType == SteeringType.RESOURCE) {
                 this.setupSteeringResource(steering);
             } else if (steeringType.equals(SteeringType.FILE)) {
