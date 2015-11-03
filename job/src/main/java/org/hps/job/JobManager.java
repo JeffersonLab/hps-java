@@ -23,7 +23,8 @@ public class JobManager extends JobControlManager {
     public static void main(final String args[]) {
         // Run the job.
         final JobManager job = new JobManager();
-        job.run(args);
+        job.parse(args);
+        job.run();
     }
 
     /**
@@ -45,7 +46,7 @@ public class JobManager extends JobControlManager {
         super.setup(is);
                 
         // Setup the conditions system if there is a ConditionsDriver present.
-        this.setupConditions();        
+        this.setupConditionsDriver();
     }
     
     /**
@@ -70,7 +71,7 @@ public class JobManager extends JobControlManager {
      * manager and then execute its initialization method, which may override the default behavior of the conditions
      * system.
      */
-    private void setupConditions() {
+    private void setupConditionsDriver() {
         ConditionsDriver conditionsDriver = null;
         for (final Driver driver : this.getDriverAdapter().getDriver().drivers()) {
             if (driver instanceof ConditionsDriver) {
@@ -79,7 +80,9 @@ public class JobManager extends JobControlManager {
             }
         }
         if (conditionsDriver != null) {
+            LOGGER.config("initializing conditions Driver");            
             conditionsDriver.initialize();
+            LOGGER.warning("Conditions driver will be removed soon!");
         }
     }
 }
