@@ -28,6 +28,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.hps.datacat.client.DatacatClient;
 import org.hps.datacat.client.DatacatClientFactory;
 import org.hps.datacat.client.DatasetFileFormat;
+import org.hps.datacat.client.DatasetSite;
 
 /**
  * Command line file crawler for populating the data catalog.
@@ -146,6 +147,7 @@ public class DatacatCrawler {
         OPTIONS.addOption("s", "site", true, "datacat site");
         OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name");
         OPTIONS.addOption("x", "max-depth", true, "max depth to crawl");
+        OPTIONS.addOption("D", "dry-run", false, "dry run which will not update the datacat");
     }
 
     /**
@@ -204,10 +206,10 @@ public class DatacatCrawler {
                 this.printUsage();
             }
 
-            // Log level.
+            // Log level (only used for this class's logger).
             if (cl.hasOption("L")) {
                 final Level level = Level.parse(cl.getOptionValue("L"));
-                LOGGER.config("setting log level to " + level);
+                LOGGER.config("log level " + level);
                 LOGGER.setLevel(level);
             }
 
@@ -221,7 +223,7 @@ public class DatacatCrawler {
                     throw new IllegalArgumentException("The specified path is not a directory.");
                 }
                 config.setRootDir(rootDir);
-                LOGGER.config("root dir set to " + config.rootDir());
+                LOGGER.config("root dir " + config.rootDir());
             }
 
             // Timestamp file for date filtering.
@@ -313,6 +315,14 @@ public class DatacatCrawler {
                 }
                 config.setAcceptRuns(acceptRuns);
             }
+            
+            // Dataset site (defaults to JLAB).
+            DatasetSite site = DatasetSite.JLAB;
+            if (cl.hasOption("s")) {
+                site = DatasetSite.valueOf(cl.getOptionValue("s"));
+            }
+            LOGGER.config("dataset site " + site);
+            config.setDatasetSite(site);
 
         } catch (final ParseException e) {
             throw new RuntimeException("Error parsing options.", e);
@@ -379,25 +389,38 @@ public class DatacatCrawler {
     private void updateDatacat(final FileSet fileSet) {
         final DatacatClient datacatClient = new DatacatClientFactory().createClient();
         for (final DatasetFileFormat fileFormat : config.getFileFormats()) {
-            LOGGER.info("adding files to datacat with format " + fileFormat.name());
-            for (final File file : fileSet.get(fileFormat)) {
+            List<File> formatFiles = fileSet.get(fileFormat);
+            LOGGER.info("adding " + formatFiles.size() + " files with format " + fileFormat.name());
+            for (final File file : formatFiles) {
 
-                LOGGER.info("adding file " + file.getAbsolutePath() + " to datacat");
+                LOGGER.info("adding file " + file.getAbsolutePath());
 
-                // Create metadata if this is enabled (takes awhile).
+                // Create metadata if this is enabled (will take awhile).
                 Map<String, Object> metadata = new HashMap<String, Object>();
                 if (config.enableMetaData()) {
+                    LOGGER.info("creating metadata for " + file.getPath());
                     metadata = DatacatUtilities.createMetadata(file);
                 }
 
                 // Register file in the catalog.
-                DatacatUtilities.addFile(datacatClient, config.datacatFolder(), file, metadata);
+                if (!config.dryRun()) {
+                    int response = DatacatUtilities.addFile(datacatClient, config.datacatFolder(), file, config.datasetSite(), metadata);
+                    LOGGER.info("HTTP response " + response);
+                    if (response >= 400) {
+                        // Throw exception if response from server indicates an error occurred.
+                        throw new RuntimeException("HTTP error code " + response + " received from server.");
+                    }
+                } else {
+                    LOGGER.info("update on " + file.getPath() + " skipped from dry run");
+                }
             }
+            LOGGER.info("successfully added " + formatFiles.size() + " " + fileFormat + " files");
         }
+        LOGGER.info("done updating datacat");
     }
-
+       
     /**
-     * Walk the directory tree to find EVIO files for the runs that are being processed in the job.
+     * Walk the directory tree to find files for the runs that are being processed in the job.
      *
      * @param visitor the file visitor
      */

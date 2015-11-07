@@ -28,19 +28,23 @@ public final class EvioFileUtilities {
 
     /**
      * Get a cached file path, assuming that the input file path is on the JLAB MSS e.g. it starts with "/mss".
+     * If the file is not on the JLAB MSS an error will be thrown.
+     * <p>
+     * If the file is already on the cache disk just return the same file.
      *
-     * @param file the MSS file path
+     * @param mssFile the MSS file path
      * @return the cached file path (prepends "/cache" to the path)
      * @throws IllegalArgumentException if the file is not on the MSS (e.g. path does not start with "/mss")
      */
-    public static File getCachedFile(final File file) {
-        if (!isMssFile(file)) {
-            throw new IllegalArgumentException("File " + file.getPath() + " is not on the JLab MSS.");
+    public static File getCachedFile(final File mssFile) {
+        if (!isMssFile(mssFile)) {
+            throw new IllegalArgumentException("File " + mssFile.getPath() + " is not on the JLab MSS.");
         }
-        if (isCachedFile(file)) {
-            throw new IllegalArgumentException("File " + file.getPath() + " is already on the cache disk.");
-        }
-        return new File("/cache" + file.getPath());
+        File cacheFile = mssFile;
+        if (!isCachedFile(mssFile)) {
+            cacheFile = new File("/cache" + mssFile.getAbsolutePath());
+        }        
+        return cacheFile;
     }
 
     /**
@@ -98,7 +102,7 @@ public final class EvioFileUtilities {
      * @throws EvioException if there is an error reading the EVIO data
      */
     public static EvioReader open(final File file) throws IOException, EvioException {
-        return open(file, false);
+        return open(file, true);
     }
 
     /**
@@ -111,6 +115,7 @@ public final class EvioFileUtilities {
      * @throws EvioException if there is an error reading the EVIO data
      */
     public static EvioReader open(final File file, final boolean sequential) throws IOException, EvioException {
+        LOGGER.info("opening " + file.getPath() + " in " + (sequential ? "sequential" : "mmap" + " mode"));
         File openFile = file;
         if (isMssFile(file)) {
             openFile = getCachedFile(file);

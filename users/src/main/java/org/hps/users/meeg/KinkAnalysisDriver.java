@@ -78,7 +78,6 @@ public class KinkAnalysisDriver extends Driver {
 //                }
 //            }
 //        }
-
         if (event.hasCollection(ReconstructedParticle.class, "AprimeBeamspotConstrained")) {
             List<ReconstructedParticle> particles = event.get(ReconstructedParticle.class, "AprimeBeamspotConstrained");
             int nvertices = 0;
@@ -101,47 +100,14 @@ public class KinkAnalysisDriver extends Driver {
 
         for (MCParticle particle : MCParticles) {
             if (particle.getOrigin().magnitude() > 10.0) {
-                hardScatters.add(VecOp.neg(particle.getOrigin()));
+                hardScatters.add(particle.getOrigin());
             }
         }
-
 
         List<SimTrackerHit> trackerHits = event.get(SimTrackerHit.class, "TrackerHits");
 
 //        Map<MCParticle, List<SimTrackerHit>> hitMap = new HashMap<MCParticle, List<SimTrackerHit>>();
-        Map<MCParticle, Map<Integer, SimTrackerHit>> trackMap = new HashMap<MCParticle, Map<Integer, SimTrackerHit>>();
-
-        for (SimTrackerHit hit : trackerHits) {
-//            List hitList = hitMap.get(hit.getMCParticle());
-//            if (hitList == null) {
-//                hitList = new ArrayList<SimTrackerHit>();
-//                hitMap.put(hit.getMCParticle(), hitList);
-//            }
-//            hitList.add(hit);
-
-            Map<Integer, SimTrackerHit> layerMap = trackMap.get(hit.getMCParticle());
-            if (layerMap == null) {
-                layerMap = new HashMap<Integer, SimTrackerHit>();
-                trackMap.put(hit.getMCParticle(), layerMap);
-            }
-            int layer = hit.getIdentifierFieldValue("layer");
-            if (layerMap.containsKey(layer)) {
-                boolean nearHardScatter = false;
-                for (Hep3Vector scatter : hardScatters) {
-                    if (VecOp.add(hit.getPositionVec(), scatter).magnitude() < 5.0) {
-                        nearHardScatter = true;
-                    }
-                }
-                if (!nearHardScatter) {
-                    hardScatters.add(VecOp.neg(hit.getPositionVec()));
-                }
-//                System.out.format("Double hit in layer %d, %s\n", layer, nearHardScatter ? "near hard scatter" : "not near hard scatter");
-                if (layerMap.get(layer).getPathLength() < hit.getPathLength()) {
-                    continue;
-                }
-            }
-            layerMap.put(layer, hit);
-        }
+        Map<MCParticle, Map<Integer, SimTrackerHit>> trackMap = makeTrackHitMap(trackerHits, hardScatters);
 
         List<MCParticle> particlesWithoutTracks = new ArrayList<MCParticle>();
         for (MCParticle particle : trackMap.keySet()) {
@@ -208,13 +174,12 @@ public class KinkAnalysisDriver extends Driver {
             frontDP.fill(p1.magnitude() - p2.magnitude());
             frontDT.fill(deflection12);
 
-
             for (int i = 0; i < layers.size() - 1; i++) {
                 SimTrackerHit hit = layerMap.get(layers.get(i));
 
                 boolean nearHardScatter = false;
                 for (Hep3Vector scatter : hardScatters) {
-                    if (VecOp.add(hit.getPositionVec(), scatter).magnitude() < 5.0) {
+                    if (VecOp.sub(hit.getPositionVec(), scatter).magnitude() < 5.0) {
                         nearHardScatter = true;
                     }
                 }
@@ -268,7 +233,7 @@ public class KinkAnalysisDriver extends Driver {
         }
     }
 
-    private double angle(SimTrackerHit hit1, SimTrackerHit hit2) {
+    private static double angle(SimTrackerHit hit1, SimTrackerHit hit2) {
         double y1 = hit2.getMCParticle().getOriginY();
 //        double z1 = hit2.getMCParticle().getOriginZ();
         double s1 = hit2.getMCParticle().getProductionTime() * PhysicalConstants.c_light;
@@ -286,7 +251,7 @@ public class KinkAnalysisDriver extends Driver {
         return Math.asin((y2 - y1) / (s2 - s1));
     }
 
-    private double angle(List<Integer> layers, Map<Integer, SimTrackerHit> layerMap, int layer1, int layer2) {
+    private static double angle(List<Integer> layers, Map<Integer, SimTrackerHit> layerMap, int layer1, int layer2) {
         SimTrackerHit hit1 = null;
         if (layer1 > 0) {
             hit1 = layerMap.get(layers.get(layer1 - 1));
@@ -296,7 +261,7 @@ public class KinkAnalysisDriver extends Driver {
         return angle(hit1, hit2);
     }
 
-    private double deflection(Map<Integer, SimTrackerHit> layerMap, int layer1, int layer2) {
+    static double deflection(Map<Integer, SimTrackerHit> layerMap, int layer1, int layer2) {
         List<Integer> layers = new ArrayList<Integer>(layerMap.keySet());
         Collections.sort(layers);
 
@@ -304,6 +269,38 @@ public class KinkAnalysisDriver extends Driver {
         double angle2 = angle(layers, layerMap, layer2, layer2 + 1);
 
         return (angle2 - angle1) * Math.signum(angle1);
+    }
+
+    static Map<MCParticle, Map<Integer, SimTrackerHit>> makeTrackHitMap(List<SimTrackerHit> trackerHits, List<Hep3Vector> hardScatters) {
+        Map<MCParticle, Map<Integer, SimTrackerHit>> trackMap = new HashMap<MCParticle, Map<Integer, SimTrackerHit>>();
+
+        for (SimTrackerHit hit : trackerHits) {
+            Map<Integer, SimTrackerHit> layerMap = trackMap.get(hit.getMCParticle());
+            if (layerMap == null) {
+                layerMap = new HashMap<Integer, SimTrackerHit>();
+                trackMap.put(hit.getMCParticle(), layerMap);
+            }
+            int layer = hit.getIdentifierFieldValue("layer");
+            if (layerMap.containsKey(layer)) {
+                if (hardScatters != null) {
+                    boolean nearHardScatter = false;
+                    for (Hep3Vector scatter : hardScatters) {
+                        if (VecOp.sub(hit.getPositionVec(), scatter).magnitude() < 5.0) {
+                            nearHardScatter = true;
+                        }
+                    }
+                    if (!nearHardScatter) {
+                        hardScatters.add(hit.getPositionVec());
+                    }
+                }
+//                System.out.format("Double hit in layer %d, %s\n", layer, nearHardScatter ? "near hard scatter" : "not near hard scatter");
+                if (layerMap.get(layer).getPathLength() < hit.getPathLength()) {
+                    continue;
+                }
+            }
+            layerMap.put(layer, hit);
+        }
+        return trackMap;
     }
 
     @Override

@@ -13,9 +13,6 @@ import java.util.List;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.daqconfig.EvioDAQParser;
-import org.hps.record.epics.EpicsData;
-import org.hps.record.epics.EpicsHeader;
-import org.hps.record.scalers.ScalerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;

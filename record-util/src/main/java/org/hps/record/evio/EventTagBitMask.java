@@ -20,7 +20,7 @@ public enum EventTagBitMask {
     /** Pair 1 trigger. */
     PAIRS1(3),
     /** Physics event. */
-    PHYSICS(7),
+    PHYSICS(7), // FIXME: Doesn't work!
     /** Pulser triggered event. */
     PULSER(5),
     /** Single 0 trigger. */

@@ -80,6 +80,11 @@ final class CrawlerConfig {
      * A file to use for getting the timestamp date.
      */
     private File timestampFile = null;
+    
+    /**
+     * Dry run for not actually executing updates.
+     */
+    private boolean dryRun = false;
 
     /**
      * Get the set of runs that will be accepted for the job.
@@ -209,9 +214,22 @@ final class CrawlerConfig {
      *
      * @return this object
      */
-    void setDatasetSite(final DatasetSite site) {
+    CrawlerConfig setDatasetSite(final DatasetSite site) {
         this.site = site;
+        return this;
     }
+    
+    /**
+     * Enable dry run.
+     * 
+     * @param dryRun set to <code>true</code> to enable dry run
+     * @return this object
+     */
+    CrawlerConfig setDryRun(boolean dryRun) {
+        this.dryRun = dryRun;
+        return this;
+    }
+    
 
     /**
      * Set whether metadata extraction is enabled.
@@ -301,5 +319,14 @@ final class CrawlerConfig {
      */
     File timestampFile() {
         return timestampFile;
+    }
+    
+    /**
+     * Returns <code>true</code> if dry run which means no updates will occur.
+     * 
+     * @return <code>true</code> if dry run
+     */
+    boolean dryRun() {
+        return this.dryRun;
     }
 }

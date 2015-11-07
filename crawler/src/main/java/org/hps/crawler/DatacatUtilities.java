@@ -9,6 +9,7 @@ import org.hps.datacat.client.DatacatClient;
 import org.hps.datacat.client.DatasetDataType;
 import org.hps.datacat.client.DatasetFileFormat;
 import org.hps.datacat.client.DatasetSite;
+import org.hps.record.evio.EvioFileUtilities;
 
 /**
  * Datacat utilities for the crawler.
@@ -35,11 +36,11 @@ class DatacatUtilities {
      * @param file the file with the full path
      * @param metadata the file's meta data
      */
-    static void addFile(final DatacatClient datacatClient, final String folder, final File file,
-            final Map<String, Object> metadata) {
+    static int addFile(final DatacatClient datacatClient, final String folder, final File file,
+            DatasetSite site, final Map<String, Object> metadata) {
         final DatasetFileFormat fileFormat = DatacatUtilities.getFileFormat(file);
         final DatasetDataType dataType = DatacatUtilities.getDataType(file);
-        DatacatUtilities.addFile(datacatClient, folder, file, metadata, fileFormat, dataType, DatasetSite.SLAC);
+        return DatacatUtilities.addFile(datacatClient, folder, file, metadata, fileFormat, dataType, site);
     }
 
     /**
@@ -56,14 +57,14 @@ class DatacatUtilities {
             final Map<String, Object> metadata, final DatasetFileFormat fileFormat, final DatasetDataType dataType,
             final DatasetSite site) {
         
-        // Strip out cache dir prefix.
-        String filePath = file.getAbsolutePath();
-        if (filePath.startsWith("/cache")) {
-            filePath = filePath.replace("/cache", "");
+        // Get the cache file if this file is on JLAB MSS.
+        File actualFile = file;
+        if (EvioFileUtilities.isMssFile(file)) {
+            actualFile = EvioFileUtilities.getCachedFile(file);
         }
 
         // Add the dataset to the data catalog using the REST API.
-        final int response = client.addDataset(folder, dataType, filePath, file.length(), site, fileFormat, 
+        final int response = client.addDataset(folder, dataType, file.getAbsolutePath(), actualFile.length(), site, fileFormat, 
                 file.getName(), metadata);
 
         return response;
