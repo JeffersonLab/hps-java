@@ -70,10 +70,10 @@ public class CountTriggersDriver extends Driver {
 		
 		// Otherwise, increment the relevant trigger counts.
 		if(tiBank.isPulserTrigger()) { triggers[PULSER]++; }
-		else if(tiBank.isSingle0Trigger()) { triggers[SINGLES0]++; }
-		else if(tiBank.isSingle1Trigger()) { triggers[SINGLES1]++; }
-		else if(tiBank.isPair0Trigger()) { triggers[PAIR0]++; }
-		else if(tiBank.isPair1Trigger()) { triggers[PAIR1]++; }
-		else if(tiBank.isCalibTrigger()) { triggers[COSMIC]++; }
+		if(tiBank.isSingle0Trigger()) { triggers[SINGLES0]++; }
+		if(tiBank.isSingle1Trigger()) { triggers[SINGLES1]++; }
+		if(tiBank.isPair0Trigger()) { triggers[PAIR0]++; }
+		if(tiBank.isPair1Trigger()) { triggers[PAIR1]++; }
+		if(tiBank.isCalibTrigger()) { triggers[COSMIC]++; }
 	}
 }
