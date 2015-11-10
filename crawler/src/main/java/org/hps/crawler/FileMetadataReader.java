@@ -18,5 +18,5 @@ public interface FileMetadataReader {
      * @return the metadata map
      * @throws IOException if there is an error reading the file
      */
-    public Map<String, Object> getMetadata(File file) throws IOException;
+    Map<String, Object> getMetadata(File file) throws IOException;
 }

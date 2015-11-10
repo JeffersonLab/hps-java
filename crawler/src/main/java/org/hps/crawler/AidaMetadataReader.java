@@ -12,7 +12,7 @@ import java.util.Map;
  *
  * @author Jeremy McCormick, SLAC
  */
-public class AidaMetadataReader implements FileMetadataReader {
+final class AidaMetadataReader implements FileMetadataReader {
 
     /**
      * Get the metadata for a ROOT DQM file.

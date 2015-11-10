@@ -35,7 +35,7 @@ import org.hps.datacat.client.DatasetSite;
  *
  * @author Jeremy McCormick, SLAC
  */
-public class DatacatCrawler {
+public final class DatacatCrawler {
 
     /**
      * Visitor which creates a {@link FileSet} from walking a directory tree.
@@ -175,7 +175,7 @@ public class DatacatCrawler {
      * @param folder the folder in the datacat
      * @throws RuntimeException if the given path does not exist or it is not a folder
      */
-    void checkFolder(final String folder) {
+    private void checkFolder(final String folder) {
         final DatacatClient datacatClient = new DatacatClientFactory().createClient();
         if (!datacatClient.exists(folder)) {
             throw new RuntimeException("The folder " + folder + " does not exist in the data catalog.");
@@ -191,7 +191,7 @@ public class DatacatCrawler {
      * @param args the command line arguments
      * @return this object (for method chaining)
      */
-    public DatacatCrawler parse(final String[] args) {
+    private DatacatCrawler parse(final String[] args) {
         config = new CrawlerConfig();
 
         LOGGER.config("parsing command line options");
@@ -323,6 +323,11 @@ public class DatacatCrawler {
             }
             LOGGER.config("dataset site " + site);
             config.setDatasetSite(site);
+            
+            // Dry run.
+            if (cl.hasOption("D")) {
+                config.setDryRun(true);
+            }
 
         } catch (final ParseException e) {
             throw new RuntimeException("Error parsing options.", e);
@@ -353,7 +358,7 @@ public class DatacatCrawler {
     /**
      * Run the crawler job.
      */
-    void run() {
+    private void run() {
 
         // Create the file visitor for crawling the root directory with the given date filter.
         final DatacatFileVisitor visitor = new DatacatFileVisitor();
@@ -411,7 +416,7 @@ public class DatacatCrawler {
                         throw new RuntimeException("HTTP error code " + response + " received from server.");
                     }
                 } else {
-                    LOGGER.info("update on " + file.getPath() + " skipped from dry run");
+                    LOGGER.info("skipped updated on " + file.getPath() + " from dry run");
                 }
             }
             LOGGER.info("successfully added " + formatFiles.size() + " " + fileFormat + " files");

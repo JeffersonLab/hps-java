@@ -7,7 +7,7 @@ import java.io.File;
  *
  * @author Jeremy McCormick, SLAC
  */
-public class CrawlerFileUtilities {
+final class CrawlerFileUtilities {
 
     /**
      * Get run number from file name assuming it looks like "hps_001234".

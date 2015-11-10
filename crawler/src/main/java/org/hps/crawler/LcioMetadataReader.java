@@ -21,7 +21,7 @@ import org.lcsim.util.loop.DummyDetector;
  */
 public class LcioMetadataReader implements FileMetadataReader {
 
-    /*
+    /**
      * Setup the conditions system in dummy mode.
      */
     static {

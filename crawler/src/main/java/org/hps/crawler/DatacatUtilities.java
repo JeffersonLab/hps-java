@@ -21,7 +21,7 @@ class DatacatUtilities {
     /**
      * Static map of strings to dataset file formats.
      */
-    static Map<String, DatasetFileFormat> formatMap = new HashMap<String, DatasetFileFormat>();
+    private static Map<String, DatasetFileFormat> formatMap = new HashMap<String, DatasetFileFormat>();
     static {
         for (final DatasetFileFormat format : DatasetFileFormat.values()) {
             formatMap.put(format.extension(), format);

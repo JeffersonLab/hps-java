@@ -14,14 +14,14 @@ import org.hps.datacat.client.DatasetFileFormat;
  */
 public class FileSet extends HashMap<DatasetFileFormat, List<File>> {
     
-    public List<File> get(DatasetFileFormat format) {
+    List<File> get(DatasetFileFormat format) {
         if (super.get(format) == null) {
             this.put(format, new ArrayList<File>());
         }
         return super.get(format);
     }
     
-    public void addFile(DatasetFileFormat format, File file) {
+    void addFile(DatasetFileFormat format, File file) {
         this.get(format).add(file);
     }
 }

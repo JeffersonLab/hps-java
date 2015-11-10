@@ -45,7 +45,7 @@ public class EpicsEvioProcessor extends EvioEventProcessor {
     public void process(final EvioEvent evioEvent) {
 
         // Is this an EPICS event?
-        if (EventTagConstant.EPICS.equals(evioEvent)) {
+        if (EventTagConstant.EPICS.matches(evioEvent)) {
 
             LOGGER.fine("processing EPICS event " + evioEvent.getEventNumber());
 
