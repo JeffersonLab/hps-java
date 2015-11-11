@@ -1,9 +1,11 @@
 
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+<!--
     <control>
         <numberOfEvents>20000</numberOfEvents>
     </control>
+-->
     <execute>
         <driver name="EventMarkerDriver"/>   
         <driver name="ReconClusterer" />
