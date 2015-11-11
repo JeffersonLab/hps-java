@@ -159,7 +159,7 @@
         <driver name="GblResidualEcalDriver" type="org.hps.users.phansson.ECalExtrapolationDriver"/>   
         <driver name="TrackExtrapolationTestDriver" type="org.hps.users.phansson.TrackExtrapolationTestDriver"/>   
         <driver name="TrackingReconstructionPlots" type="org.hps.users.phansson.TrackingReconstructionPlots">
-            <showPlots>True</showPlots>
+            <showPlots>False</showPlots>
         </driver>
         <driver name="TimerDriver1" type="org.hps.util.TimerDriver"/>
         <driver name="GeomChecker" type="org.hps.users.phansson.TrackingGeometryChecker"/>
