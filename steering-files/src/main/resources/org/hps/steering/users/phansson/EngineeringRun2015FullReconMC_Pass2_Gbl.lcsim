@@ -166,10 +166,11 @@
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>
+        <!--
         <driver name="TriggerTurnOnDriver" type="org.hps.analysis.trigger.TriggerTurnOnDriver">
             <isMC>True</isMC>
         </driver>
         <driver name="TriggerTurnOnSSPDriver" type="org.hps.analysis.trigger.TriggerTurnOnSSPDriver"/>
-        
+        -->
     </drivers>
 </lcsim>
