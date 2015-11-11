@@ -12,7 +12,7 @@
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="EcalClustererGTP"/>
-        <driver name="DummyTrigger"/>
+        <driver name="SinglesTrigger1"/>
         <driver name="SimpleSVTReadout" />
         <driver name="TestRunReconToLcio"/>     
         <driver name="AidaSaveDriver"/>    
@@ -54,7 +54,6 @@
             <seedEnergyThreshold>0.050</seedEnergyThreshold>
             <logLevel>SEVERE</logLevel>
         </driver>
-        <driver name="DummyTrigger" type="org.hps.readout.ecal.DummyTriggerDriver"/>
         <driver name="SinglesTrigger1" type="org.hps.readout.ecal.SinglesTriggerDriver">
             <!--      
             Hits Per Cluster Min:             3
