@@ -63,10 +63,12 @@ public class GBLOutput {
     private boolean addBeamspot = false;
     private double beamspotTiltZOverY = 0; //Math.PI/180* 15;
     private double beamspotScatAngle = 0.000001;
-    // beam spot with in tracking frame
+    // beam spot, in tracking frame
     private double beamspotWidthZ = 0.05;
     private double beamspotWidthY = 0.150;
-    double beamspotPosition[] = {0,0,0};
+    private double beamspotPosition[] = {0,0,0};
+    // human readable ID for beam spot     
+    private final int iBeamspotHit = -1; 
     
 
     /**
@@ -274,7 +276,6 @@ public class GBLOutput {
         
         
         int istrip = 0;
-        final int iBeamspotHit = -1; // human readable ID for beam spot 
         int beamSpotMillepedeId = 98; // just a random int number that I came up with
         
         for (int ihit = -1; ihit != hits.size(); ++ihit) {
@@ -282,7 +283,7 @@ public class GBLOutput {
             HelicalTrackHit hit = null;
             HelicalTrackCross htc = null;
             List<HelicalTrackStrip> strips;
-            List<MCParticle> hitMCParticles = null;
+            List<MCParticle> hitMCParticles = new ArrayList<MCParticle>();
             Hep3Vector correctedHitPosition = null;
 
             // Add beamspot first
@@ -390,7 +391,7 @@ public class GBLOutput {
                 SimTrackerHit simHit = simHitsLayerMap.get(strip.layer());
 
                 if (isMC) {
-                    if (simHit == null) {
+                    if (simHit == null && ihit != iBeamspotHit) {
                         System.out.printf("%s: no sim hit for strip hit at layer %d\n", this.getClass().getSimpleName(), strip.layer());
                         System.out.printf("%s: it as %d mc particles associated with it:\n", this.getClass().getSimpleName(), hitMCParticles.size());
                         for (MCParticle particle : hitMCParticles) {
@@ -684,6 +685,7 @@ public class GBLOutput {
         if (_debug > 0) {
             double invMassTruth = Math.sqrt(Math.pow(mcp_pair.get(0).getEnergy() + mcp_pair.get(1).getEnergy(), 2) - VecOp.add(mcp_pair.get(0).getMomentum(), mcp_pair.get(1).getMomentum()).magnitudeSquared());
             double invMassTruthTrks = getInvMassTracks(TrackUtils.getHTF(mcp_pair.get(0), -1.0 * this.bFieldVector.z()), TrackUtils.getHTF(mcp_pair.get(1), -1.0 * this.bFieldVector.z()));
+            
             System.out.printf("%s: invM = %f\n", this.getClass().getSimpleName(), invMassTruth);
             System.out.printf("%s: invMTracks = %f\n", this.getClass().getSimpleName(), invMassTruthTrks);
         }

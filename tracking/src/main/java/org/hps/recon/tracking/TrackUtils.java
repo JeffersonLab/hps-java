@@ -793,16 +793,14 @@ public class TrackUtils {
      * @return helix object based on the MC particle
      */
     public static HelicalTrackFit getHTF(MCParticle mcp, double Bz) {
-        boolean debug = true;
-        if (debug) {
-            System.out.printf("getHTF\n");
-            System.out.printf("mcp org %s mc p %s\n", mcp.getOrigin().toString(), mcp.getMomentum().toString());
-        }
+        boolean debug = false;
+        
+        if (debug) System.out.printf("getHTF\nmcp org %s mc p %s\n", mcp.getOrigin().toString(), mcp.getMomentum().toString());
+        
         Hep3Vector org = CoordinateTransformations.transformVectorToTracking(mcp.getOrigin());
         Hep3Vector p = CoordinateTransformations.transformVectorToTracking(mcp.getMomentum());
 
-        if (debug)
-            System.out.printf("mcp org %s mc p %s (trans)\n", org.toString(), p.toString());
+        if (debug) System.out.printf("mcp org %s mc p %s (trans)\n", org.toString(), p.toString());
 
         // Move to x=0 if needed
         double targetX = BeamlineConstants.DIPOLE_EDGELOW_TESTRUN;
@@ -820,8 +818,7 @@ public class TrackUtils {
             // old.toString(),p.toString(),org.toString());
         }
 
-        if (debug)
-            System.out.printf("mcp org %s mc p %s (trans2)\n", org.toString(), p.toString());
+        if (debug) System.out.printf("mcp org %s mc p %s (trans2)\n", org.toString(), p.toString());
 
         HelixParamCalculator helixParamCalculator = new HelixParamCalculator(p, org, -1 * ((int) mcp.getCharge()), Bz);
         double par[] = new double[5];
@@ -831,8 +828,7 @@ public class TrackUtils {
         par[HelicalTrackFit.curvatureIndex] = 1.0 / helixParamCalculator.getRadius();
         par[HelicalTrackFit.z0Index] = helixParamCalculator.getZ0();
         HelicalTrackFit htf = getHTF(par);
-        System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n",
-                htf.dca(), htf.z0(), htf.R(), htf.phi0(), htf.slope());
+        if(debug) System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n", htf.dca(), htf.z0(), htf.R(), htf.phi0(), htf.slope());
         return htf;
     }
 
