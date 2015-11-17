@@ -785,19 +785,34 @@ public class TrackUtils {
         return !isTopTrack(htf);
     }
 
+    
     /**
      * Transform MCParticle into a Helix object. Note that it produces the helix
      * parameters at nominal x=0 and assumes that there is no field at x<0
      *
      * @param mcp MC particle to be transformed
-     * @return helix object based on the MC particle
+     * @return {@link HelicalTrackFit} object based on the MC particle
      */
     public static HelicalTrackFit getHTF(MCParticle mcp, double Bz) {
+        return getHTF(mcp,mcp.getOrigin(),Bz);
+    }
+        
+    
+    
+    /**
+     * Transform MCParticle into a Helix object. Note that it produces the helix
+     * parameters at nominal x=0 and assumes that there is no field at x<0
+     *
+     * @param mcp MC particle to be transformed
+     * @param org origin to be used for the track 
+     * @return {@link HelicalTrackFit} object based on the MC particle
+     */
+    public static HelicalTrackFit getHTF(MCParticle mcp, Hep3Vector origin, double Bz) {
         boolean debug = false;
         
-        if (debug) System.out.printf("getHTF\nmcp org %s mc p %s\n", mcp.getOrigin().toString(), mcp.getMomentum().toString());
+        if (debug) System.out.printf("getHTF\nmcp org %s origin used %s mc p %s\n", mcp.getOrigin().toString(),origin.toString(), mcp.getMomentum().toString());
         
-        Hep3Vector org = CoordinateTransformations.transformVectorToTracking(mcp.getOrigin());
+        Hep3Vector org = CoordinateTransformations.transformVectorToTracking(origin);
         Hep3Vector p = CoordinateTransformations.transformVectorToTracking(mcp.getMomentum());
 
         if (debug) System.out.printf("mcp org %s mc p %s (trans)\n", org.toString(), p.toString());
