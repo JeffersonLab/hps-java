@@ -259,7 +259,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                         LOGGER.finest("this is a data multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
                     
                     
-                    // Extract data words from multisample header 
+                    // Extract data words from multisample header and update index
                     multisampleHeaderIndex += this.extractMultisampleHeaderData(samples, multisampleHeaderIndex, multisampleHeaderData);
                     
                     // If a set of samples is associated with an APV header or tail, skip it
@@ -294,6 +294,12 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 
     
     
+    /**
+     * Process the headers that were extracted from the SVT data. 
+     * @param headers - list of all headers
+     * @param lcsimEvent - the current LCSIM event being processed
+     * @throws SvtEvioHeaderException
+     */
     protected abstract void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) throws SvtEvioHeaderException;
     
     /**
@@ -311,6 +317,13 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 
     }
     
+    /**
+     * Copy the multisample header data for the samples into a long array.
+     * @param samples
+     * @param index
+     * @param multisampleHeaderData
+     * @return
+     */
     protected int extractMultisampleHeaderData(int[] samples, int index, int[] multisampleHeaderData) {
         LOGGER.finest("extractMultisampleHeaderData: index " + index);
         if( SvtEvioUtils.isMultisampleHeader(samples) && !SvtEvioUtils.isMultisampleTail(samples) ) {
@@ -323,11 +336,23 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         }
     }
     
+    /**
+     * Checks that the SVT header data count is consistent with the bank size.
+     * @param sampleCount - sample count from the size.
+     * @param headerData - header extracted from the bank.
+     * @throws SvtEvioHeaderException
+     */
     protected void checkSvtSampleCount(int sampleCount, SvtHeaderDataInfo headerData) throws SvtEvioHeaderException {
         if( sampleCount != SvtEvioUtils.getSvtTailMultisampleCount(headerData.getTail())*4)
             throw new SvtEvioHeaderException("multisample count is not consistent with bank size.");
     }
     
+    /**
+     * Add the multisample headers to the {@link SvtHeaderDataInfo} object.
+     * @param headerData - object to add multisample headers to.
+     * @param n - number of multisample headers
+     * @param multisampleHeaders - multisample headers to copy
+     */
     protected void setMultiSampleHeaders(SvtHeaderDataInfo headerData, int n, int[] multisampleHeaders) {
         //copy out the headers that are non-zero
         int[] vals = new int[n];
