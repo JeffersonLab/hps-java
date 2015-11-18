@@ -79,7 +79,6 @@ public class GBLOutputDriver extends Driver {
         gbl = new GBLOutput(gblFileName, bfield); // if filename is empty no text file is written
         gbl.setDebug(_debug);
         gbl.buildModel(detector);
-        gbl.setAPrimeEventFlag(false);
         gbl.setXPlaneFlag(false);
         gbl.setAddBeamspot(addBeamspot);
         gbl.setBeamspotScatAngle(beamspotScatAngle);
