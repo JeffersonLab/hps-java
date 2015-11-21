@@ -29,6 +29,7 @@ public class RfFitterDriver extends Driver {
 	static final int SLOT=13;
 	static final int CHANNELS[]={0,1};
 	static final double NSPERSAMPLE=4;
+		
 
 	// boilerplate:
     AIDA aida = AIDA.defaultInstance();
@@ -61,8 +62,9 @@ public class RfFitterDriver extends Driver {
 					
 					// we found a RF readout, fit it:
 					foundRf=true;
-					IFitResult fit=fitPulse(hit);
-  				    times[ii]=NSPERSAMPLE*fit.fittedParameter("time");
+					times[ii] = fitPulse(hit);
+					//System.out.println("rf times:\t"+times[ii]);
+  				    
 					break;
 				}
 			}
@@ -79,30 +81,93 @@ public class RfFitterDriver extends Driver {
 	/*
 	 * Perform the fit to the RF pulse:
 	 */
-	public IFitResult fitPulse(FADCGenericHit hit) {
-
+	public double fitPulse(FADCGenericHit hit) {
 		fitData.clear();
 		final int adcSamples[]=hit.getData();
-		
-		// TODO: only add those ADC values which are to be fitted:
-		for (int ii=0; ii<adcSamples.length; ii++) {
-			final int jj=fitData.size();
-			fitData.addPoint();
-			fitData.point(jj).coordinate(0).setValue(ii);
-			fitData.point(jj).coordinate(1).setValue(adcSamples[ii]);
-			fitData.point(jj).coordinate(1).setErrorMinus(NOISE);
-			fitData.point(jj).coordinate(1).setErrorPlus(NOISE);
+		//stores the location of the peak bins
+		int iz=0;
+		int peakBin[]={-999,-999,-999};
+		final int threshold = 300;	
+		double fitThresh[]={-999,-999,-999};
+		double pedVal[]={-999,-999,-999};
+		for (int ii=4; ii<(adcSamples.length-1); ii++) {
+			//looks for peak bins in time spectra (not more than 3)
+			//System.out.println("Samp:\t"+ii+"\t"+adcSamples[ii]);
+			if (iz==3){break;}
+			if (adcSamples[ii+1]>0 && adcSamples[ii-1]>0 && adcSamples[ii]>threshold && ii>12){
+				if ((adcSamples[ii]>adcSamples[ii+1] && adcSamples[ii]>adcSamples[ii-1])
+						||((adcSamples[ii]>adcSamples[ii+1] && adcSamples[ii]==adcSamples[ii-1])
+								||(adcSamples[ii]==adcSamples[ii+1] && adcSamples[ii]>adcSamples[ii-1]))){
+					//System.out.println("peak:\t"+iz);
+					peakBin[iz]=ii;
+					iz++;
+				}
+			}
 		}
 		
-		// TODO: properly initialize fit parameters:
-		fitFunction.setParameter("time",0.0);
-		fitFunction.setParameter("pedestal",0.0);
-		fitFunction.setParameter("slope",100.0);
+		int jj=0;
+		//each signal will always have 2-3 pulses in the window. ik=1 selects the second pulse (closest to middle of window)
+		int ik=1;
+		pedVal[ik] = (adcSamples[peakBin[ik]-6]+adcSamples[peakBin[ik]-7]+adcSamples[peakBin[ik]-8]+adcSamples[peakBin[ik]-9])/4.0;
+		fitThresh[ik]= (adcSamples[peakBin[ik]]-pedVal[ik])/3.0;
+		
+		//calc initial values along the way:
+		double itime = -999;
+		double islope = -999; 
+			
+		//find the points of the peak bin to peak bin-5
+		for (int ll=0; ll<5; ll++){	
+			if ((adcSamples[peakBin[ik]-5+ll]) > fitThresh[ik]){
+				//get one below fit threshold and two points above	
+				if(jj==0 && (adcSamples[peakBin[ik]-6+ll] > pedVal[ik])){
+					final int zz=fitData.size();	
+					fitData.addPoint();
+					//System.out.println("fit points:\t"+zz+"\t"+(peakBin[ik]-6+ll));
+					fitData.point(zz).coordinate(0).setValue(peakBin[ik]-6+ll);
+					fitData.point(zz).coordinate(1).setValue(adcSamples[peakBin[ik]-6+ll]);
+					fitData.point(zz).coordinate(1).setErrorMinus(0.0);
+					fitData.point(zz).coordinate(1).setErrorPlus(0.0);		
+					jj++;	
+				}
+				final int zz=fitData.size();	
+				fitData.addPoint();
+				//System.out.println("fit points:\t"+zz+"\t"+(peakBin[ik]-5+ll));
+				if (zz==1){
+					itime = peakBin[ik]-5+ll;
+					islope =((double) (adcSamples[peakBin[ik]-5+ll]-adcSamples[peakBin[ik]-6+ll]))/(peakBin[ik]-5+ll-(peakBin[ik]-6+ll));	
+				}
+				fitData.point(zz).coordinate(0).setValue(peakBin[ik]-5+ll);
+				fitData.point(zz).coordinate(1).setValue(adcSamples[peakBin[ik]-5+ll]);
+				fitData.point(zz).coordinate(1).setErrorMinus(0.0);
+				fitData.point(zz).coordinate(1).setErrorPlus(0.0);
+						
+				jj++;
+				if (jj==3) {break;}					
+			}
+		}
+			
+		double icept = itime*(1-islope);
+		//System.out.println("initial parameters, icept:\t"+icept+"\t islope:\t"+islope+"\t itime:\t"+itime);
+		// properly initialize fit parameters:
+		fitFunction.setParameter("time",itime);
+		fitFunction.setParameter("intercept",icept);
+		fitFunction.setParameter("slope",islope);
 	
 		// this used to be turned on somewhere else on every event, dunno if it still is:
 		//Logger.getLogger("org.freehep.math.minuit").setLevel(Level.OFF);
 		
-		return fitter.fit(fitData,fitFunction);
+		IFitResult fitResults = fitter.fit(fitData,fitFunction);
+		
+		//choose to get the time value at this location on the fit:
+		double halfVal = (adcSamples[peakBin[1]]+pedVal[1])/2.0;	
+		System.out.println("Fit results:\t"+fitResults.fittedParameter("intercept")+"\t"+fitResults.fittedParameter("slope"));
+		System.out.println("Half height:\t"+halfVal);
+		return NSPERSAMPLE*(halfVal-fitResults.fittedParameter("intercept"))/fitResults.fittedParameter("slope");
+		
+		
 	}
+	
+	
+	
 	
 }
