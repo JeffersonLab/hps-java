@@ -12,10 +12,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -33,36 +34,20 @@ import org.hps.run.database.RunManager;
  */
 public class SvtChargeIntegrator {
 
-    /**
-     * Initialize the logger.
-     */
-    private static Logger LOGGER = Logger.getLogger(SvtChargeIntegrator.class.getPackage().getName());
-
     private static final double angleTolerance = 1e-4;
-
-    /**
-     * Default constructor
-     */
-    public SvtChargeIntegrator() {
-    }
 
     /**
      * Load SVT HV bias constants into the conditions database.
      *
-     * @param args the command line arguments (requires a CVS run log file and a
-     * MYA dump file.)
+     * @param args the command line arguments (requires a CSV run/file log file
+     * and a MYA dump file.)
      */
     public static void main(String[] args) {
 
         Options options = new Options();
-//        options.addOption(new Option("c", true, "CSV run file"));
-//        options.addOption(new Option("m", true, "MYA dump file for bias"));
-//        options.addOption(new Option("p", true, "MYA dump file for motor positions"));
-//        options.addOption(new Option("t", false, "use run table format (from crawler) for bias"));
-//        options.addOption(new Option("d", false, "discard first line of MYA data (for myaData output)"));
-//        options.addOption(new Option("g", false, "Actually load stuff into DB"));
-//        options.addOption(new Option("b", true, "beam current file"));
-//        options.addOption(new Option("s", false, "Show plots"));
+        options.addOption(new Option("r", false, "use per-run CSV log file (default is per-file)"));
+        options.addOption(new Option("t", false, "use TI timestamp instead of Unix time (higher precision, but requires TI time offset in run DB)"));
+        options.addOption(new Option("c", false, "get TI time offset from CSV log file instead of run DB"));
 
         final CommandLineParser parser = new DefaultParser();
         CommandLine cl = null;
@@ -72,23 +57,22 @@ public class SvtChargeIntegrator {
             throw new RuntimeException("Cannot parse.", e);
         }
 
-//        if (!cl.hasOption("c") || (!cl.hasOption("m") && !cl.hasOption("p"))) {
-//            printUsage(options);
-//            return;
-//        }
+        boolean perRun = cl.hasOption("r");
+        boolean useTI = cl.hasOption("t");
+        boolean useCrawlerTI = cl.hasOption("c");
+
+        if (cl.getArgs().length != 2) {
+            printUsage(options);
+            return;
+        }
+
         List<CSVRecord> records = null;
         try {
             FileReader reader = new FileReader(cl.getArgs()[0]);
-            final CSVFormat format = CSVFormat.DEFAULT;
-
-            final CSVParser csvParser;
-            csvParser = new CSVParser(reader, format);
+            final CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT);
 
             records = csvParser.getRecords();
 
-//            // Remove first two rows of headers.
-//            records.remove(0);
-//            records.remove(0);
             csvParser.close();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(SvtChargeIntegrator.class.getName()).log(Level.SEVERE, null, ex);
@@ -96,18 +80,6 @@ public class SvtChargeIntegrator {
             Logger.getLogger(SvtChargeIntegrator.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-//        for (CSVRecord record : records) {
-//            int runNum = Integer.parseInt(record.get(0));
-//            int fileNum = Integer.parseInt(record.get(1));
-////            int nEvents = Integer.parseInt(record.get(2));
-////            int badEvents = Integer.parseInt(record.get(3));
-////            int firstTimestamp = Integer.parseInt(record.get(4));
-////            int lastTimestamp = Integer.parseInt(record.get(5));
-//            long firstTI = Long.parseLong(record.get(6));
-//            long lastTI = Long.parseLong(record.get(7));
-////            long tiOffset = Long.parseLong(record.get(8));
-////            data.add(new FileData(runNum, fileNum, firstTI, lastTI, record));
-//        }
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
 
@@ -115,8 +87,11 @@ public class SvtChargeIntegrator {
             BufferedReader br = new BufferedReader(new FileReader(cl.getArgs()[1]));
             String line;
             System.err.println("myaData header: " + br.readLine()); //discard the first line
-//            System.out.println("run\ttotalQ\ttotalQBias\tfracBias\ttotalQNom\tfracNom\ttotalQ1pt5\tfrac1pt5\ttotalGatedQ\ttotalGatedQBias\tfracGatedBias\ttotalGatedQNom\tfracGatedNom\ttotalGatedQ1pt5\tfracGated1pt5");
-            System.out.println("run_num\tfile_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom");
+            if (perRun) {
+                System.out.println("run_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom");
+            } else {
+                System.out.println("run_num\tfile_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom");
+            }
 
             int currentRun = 0;
             double nominalAngleTop = -999;
@@ -127,54 +102,98 @@ public class SvtChargeIntegrator {
             SvtMotorPositionCollection svtPositionConstants = null;
             SvtAlignmentConstant.SvtAlignmentConstantCollection alignmentConstants = null;
             Date date = null;
-            Date lastDate = null;
+            Date lastDate;
 
             for (CSVRecord record : records) {
                 int runNum = Integer.parseInt(record.get(0));
-                int fileNum = Integer.parseInt(record.get(1));
-                long firstTI = Long.parseLong(record.get(6));
-                long lastTI = Long.parseLong(record.get(7));
-
-                if (runNum != currentRun) {
-                    RunManager.getRunManager().setRun(runNum);
-                    if (!RunManager.getRunManager().runExists() || RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() == null) {
+                if (useCrawlerTI) {
+                    if (perRun) {
+                        tiTimeOffset = Long.parseLong(record.get(12));
+                    } else {
+                        tiTimeOffset = Long.parseLong(record.get(8));
+                    }
+                    if (tiTimeOffset == 0) {
                         continue;
                     }
+                }
+
+                if (runNum != currentRun) {
+                    if (useTI && !useCrawlerTI) {
+                        RunManager.getRunManager().setRun(runNum);
+                        if (!RunManager.getRunManager().runExists() || RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() == null) {
+                            continue;
+                        }
+                        tiTimeOffset = RunManager.getRunManager().getTriggerConfig().getTiTimeOffset();
+                    }
+
                     try {
                         DatabaseConditionsManager.getInstance().setDetector("HPS-EngRun2015-Nominal-v3", runNum);
-
-                        svtBiasConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtBiasConstant.SvtBiasConstantCollection.class, "svt_bias_constants").getCachedData();
-                        svtPositionConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtMotorPosition.SvtMotorPositionCollection.class, "svt_motor_positions").getCachedData();
-                        alignmentConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtAlignmentConstant.SvtAlignmentConstantCollection.class, "svt_alignments").getCachedData();
                     } catch (Exception ex) {
                         continue;
                     }
 
-                    tiTimeOffset = RunManager.getRunManager().getTriggerConfig().getTiTimeOffset();
-
-                    for (final SvtAlignmentConstant constant : alignmentConstants) {
-                        switch (constant.getParameter()) {
-                            case 13100:
-                                nominalAngleTop = constant.getValue();
-                                break;
-                            case 23100:
-                                nominalAngleBottom = -constant.getValue();
-                                break;
-                        }
+                    try {
+                        svtBiasConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtBiasConstant.SvtBiasConstantCollection.class, "svt_bias_constants").getCachedData();
+                    } catch (Exception ex) {
+                        svtBiasConstants = null;
+                    }
+                    try {
+                        svtPositionConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtMotorPosition.SvtMotorPositionCollection.class, "svt_motor_positions").getCachedData();
+                    } catch (Exception ex) {
+                        svtPositionConstants = null;
                     }
 
-                    if (Math.abs(nominalAngleBottom) < angleTolerance && Math.abs(nominalAngleTop) < angleTolerance) {
-                        nominalPosition = "0pt5";
-                    } else if (Math.abs(nominalAngleBottom - 0.0033) < angleTolerance && Math.abs(nominalAngleTop - 0.0031) < angleTolerance) {
-                        nominalPosition = "1pt5";
-                    } else {
+                    try {
+                        alignmentConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtAlignmentConstant.SvtAlignmentConstantCollection.class, "svt_alignments").getCachedData();
+                        for (final SvtAlignmentConstant constant : alignmentConstants) {
+                            switch (constant.getParameter()) {
+                                case 13100:
+                                    nominalAngleTop = constant.getValue();
+                                    break;
+                                case 23100:
+                                    nominalAngleBottom = -constant.getValue();
+                                    break;
+                            }
+                        }
+                        if (Math.abs(nominalAngleBottom) < angleTolerance && Math.abs(nominalAngleTop) < angleTolerance) {
+                            nominalPosition = "0pt5";
+                        } else if (Math.abs(nominalAngleBottom - 0.0033) < angleTolerance && Math.abs(nominalAngleTop - 0.0031) < angleTolerance) {
+                            nominalPosition = "1pt5";
+                        } else {
+                            nominalPosition = "unknown";
+                        }
+                    } catch (Exception ex) {
+                        alignmentConstants = null;
                         nominalPosition = "unknown";
                     }
+
                     currentRun = runNum;
                 }
 
-                Date startDate = new Date((long) ((firstTI + tiTimeOffset) / 1e6));
-                Date endDate = new Date((long) ((lastTI + tiTimeOffset) / 1e6));
+                Date startDate, endDate;
+                long firstTime, lastTime;//Unix time from head bank
+                long firstTI, lastTI;//TI timestamp from TI bank
+
+                if (perRun) {
+                    firstTime = Long.parseLong(record.get(7));
+                    lastTime = Long.parseLong(record.get(8));
+                    firstTI = Long.parseLong(record.get(10));
+                    lastTI = Long.parseLong(record.get(11));
+
+                } else {
+                    firstTime = Long.parseLong(record.get(4));
+                    lastTime = Long.parseLong(record.get(5));
+                    firstTI = Long.parseLong(record.get(6));
+                    lastTI = Long.parseLong(record.get(7));
+                }
+
+                if (useTI) {
+                    startDate = new Date((long) ((firstTI + tiTimeOffset) / 1e6));
+                    endDate = new Date((long) ((lastTI + tiTimeOffset) / 1e6));
+                } else {
+                    startDate = new Date(firstTime * 1000);
+                    endDate = new Date(lastTime * 1000);
+                }
 
                 double totalCharge = 0;
                 double totalChargeWithBias = 0;
@@ -210,14 +229,23 @@ public class SvtChargeIntegrator {
 
                     boolean biasGood = false;
                     boolean positionGood = false;
-
-                    SvtBiasConstant biasConstant = svtBiasConstants.find(date);
-                    if (biasConstant != null) {
-                        biasGood = true;
+                    SvtBiasConstant biasConstant = null;
+                    if (svtBiasConstants != null) {
+                        biasConstant = svtBiasConstants.find(date);
+                        if (biasConstant == null && lastDate != null) {
+                            biasConstant = svtBiasConstants.find(lastDate);
+                        }
+                        if (biasConstant != null) {
+                            biasGood = true;
+                        }
                     }
+                    SvtMotorPosition positionConstant = null;
                     if (svtPositionConstants != null) {
-                        SvtMotorPosition positionConstant = svtPositionConstants.find(date);
-                        if (positionConstant != null) {
+                        positionConstant = svtPositionConstants.find(date);
+                        if (positionConstant == null && lastDate != null) {
+                            positionConstant = svtPositionConstants.find(lastDate);
+                        }
+                        if (positionConstant != null && alignmentConstants != null) {
 //                    System.out.format("%f %f %f %f\n", positionConstant.getBottom(), nominalAngleBottom, positionConstant.getTop(), nominalAngleTop);
                             if (Math.abs(positionConstant.getBottom() - nominalAngleBottom) < angleTolerance && Math.abs(positionConstant.getTop() - nominalAngleTop) < angleTolerance) {
                                 positionGood = true;
@@ -226,18 +254,32 @@ public class SvtChargeIntegrator {
                     }
 
                     if (lastDate != null) {
-                        double dt = (Math.min(date.getTime(), endDate.getTime()) - Math.max(startDate.getTime(), lastDate.getTime())) / 1000.0;
+                        double biasDt = 0;
+                        double positionDt = 0;
+                        long dtStart = Math.max(startDate.getTime(), lastDate.getTime());
+                        long dtEnd = Math.min(date.getTime(), endDate.getTime());
+                        double dt = (dtEnd - dtStart) / 1000.0;
+                        if (biasConstant != null) {
+                            long biasStart = Math.max(dtStart, biasConstant.getStart());
+                            long biasEnd = Math.min(dtEnd, biasConstant.getEnd());
+                            biasDt = (biasEnd - biasStart) / 1000.0;
+                            if (positionConstant != null) {
+                                long positionStart = Math.max(biasStart, positionConstant.getStart());
+                                long positionEnd = Math.min(biasEnd, positionConstant.getEnd());
+                                positionDt = (positionEnd - positionStart) / 1000.0;
+                            }
+                        }
                         double dq = dt * current; // nC
                         double dqGated = dt * current * livetime; // nC
 //                        System.out.format("start %d end %d date %d lastDate %d current %f dt %f\n", startDate.getTime(), endDate.getTime(), date.getTime(), lastDate.getTime(), current, dt);
                         totalCharge += dq;
                         totalGatedCharge += dqGated;
                         if (biasGood) {
-                            totalChargeWithBias += dq;
-                            totalGatedChargeWithBias += dqGated;
+                            totalChargeWithBias += biasDt * current;
+                            totalGatedChargeWithBias += biasDt * current * livetime;
                             if (positionGood) {
-                                totalChargeWithBiasAtNominal += dq;
-                                totalGatedChargeWithBiasAtNominal += dqGated;
+                                totalChargeWithBiasAtNominal += positionDt * current;
+                                totalGatedChargeWithBiasAtNominal += positionDt * current * livetime;
                             }
                         }
                     }
@@ -248,8 +290,14 @@ public class SvtChargeIntegrator {
                     }
                     br.mark(1000);
                 }
-                int nEvents = Integer.parseInt(record.get(2));
-                System.out.format("%d\t%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, fileNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal);
+                if (perRun) {
+                    int nEvents = Integer.parseInt(record.get(9));
+                    System.out.format("%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal);
+                } else {
+                    int fileNum = Integer.parseInt(record.get(1));
+                    int nEvents = Integer.parseInt(record.get(2));
+                    System.out.format("%d\t%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, fileNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal);
+                }
             }
         } catch (Exception ex) {
             Logger.getLogger(SvtChargeIntegrator.class.getName()).log(Level.SEVERE, null, ex);
@@ -259,7 +307,7 @@ public class SvtChargeIntegrator {
 
     private static void printUsage(Options options) {
         HelpFormatter formatter = new HelpFormatter();
+        System.err.println("SvtChargeIntegrator <CSV log file> <MYA dump file>");
         formatter.printHelp("Need to adhere to these options", options);
-
     }
 }
