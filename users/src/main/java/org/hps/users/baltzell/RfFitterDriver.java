@@ -63,7 +63,9 @@ public class RfFitterDriver extends Driver {
 					// we found a RF readout, fit it:
 					foundRf=true;
 					times[ii] = fitPulse(hit);
-					//System.out.println("rf times:\t"+times[ii]);
+					if (ii==1){
+						System.out.println(times[1]-times[0]);
+					}
   				    
 					break;
 				}
@@ -84,21 +86,23 @@ public class RfFitterDriver extends Driver {
 	public double fitPulse(FADCGenericHit hit) {
 		fitData.clear();
 		final int adcSamples[]=hit.getData();
-		//stores the location of the peak bins
+		//stores the number of peaks
 		int iz=0;
-		int peakBin[]={-999,-999,-999};
+		int peakBin[]={-999,-999};
 		final int threshold = 300;	
-		double fitThresh[]={-999,-999,-999};
-		double pedVal[]={-999,-999,-999};
-		for (int ii=4; ii<(adcSamples.length-1); ii++) {
-			//looks for peak bins in time spectra (not more than 3)
-			//System.out.println("Samp:\t"+ii+"\t"+adcSamples[ii]);
-			if (iz==3){break;}
-			if (adcSamples[ii+1]>0 && adcSamples[ii-1]>0 && adcSamples[ii]>threshold && ii>12){
-				if ((adcSamples[ii]>adcSamples[ii+1] && adcSamples[ii]>adcSamples[ii-1])
-						||((adcSamples[ii]>adcSamples[ii+1] && adcSamples[ii]==adcSamples[ii-1])
-								||(adcSamples[ii]==adcSamples[ii+1] && adcSamples[ii]>adcSamples[ii-1]))){
-					//System.out.println("peak:\t"+iz);
+		double fitThresh[]={-999,-999};
+		double pedVal[]={-999,-999};
+		
+		//use this loop to look for bins containing the peaks (2-3 peaks)
+		for (int ii=4; ii<adcSamples.length-4; ii++) {
+			//after 2 peaks, stop looking for more
+			if (iz==2){break;}
+			//System.out.println("nsamp:\t"+ii+"\t"+adcSamples[ii]+"\tplus 1:\t"+adcSamples[ii+1]+"\tminus 1:\t"+adcSamples[ii-1]);
+			if ((adcSamples[ii+1]>0) && (adcSamples[ii-1]>0) && (adcSamples[ii]>threshold) && ii>12){
+				//System.out.println("Passed 1st condition!\t"+iz);
+				if ((adcSamples[ii]>adcSamples[ii+1]) && (adcSamples[ii]>adcSamples[ii-1]) ){
+					//System.out.println("iz:\t"+iz);
+//						||((adcSamples[ii]==adcSamples[ii+1] && adcSamples[ii]>adcSamples[ii-1]))){//not in c code
 					peakBin[iz]=ii;
 					iz++;
 				}
@@ -106,50 +110,51 @@ public class RfFitterDriver extends Driver {
 		}
 		
 		int jj=0;
-		//each signal will always have 2-3 pulses in the window. ik=1 selects the second pulse (closest to middle of window)
-		int ik=1;
+		//choose peak closest to center of window (second peak, ik=1)
+		final int ik=1;
 		pedVal[ik] = (adcSamples[peakBin[ik]-6]+adcSamples[peakBin[ik]-7]+adcSamples[peakBin[ik]-8]+adcSamples[peakBin[ik]-9])/4.0;
-		fitThresh[ik]= (adcSamples[peakBin[ik]]-pedVal[ik])/3.0;
+		fitThresh[ik]= (adcSamples[peakBin[ik]]+pedVal[ik])/3.0;
 		
-		//calc initial values along the way:
-		double itime = -999;
-		double islope = -999; 
+		//calc initial values along the way, we find/fit 3 points:
+		double itime[] = {-999,-999,-999};
+		double ifadc[] = {-999,-999,-999};
 			
-		//find the points of the peak bin to peak bin-5
+		//find the points of the peak bin to peak bin-5 (look backwards to forwards)
 		for (int ll=0; ll<5; ll++){	
 			if ((adcSamples[peakBin[ik]-5+ll]) > fitThresh[ik]){
 				//get one below fit threshold and two points above	
 				if(jj==0 && (adcSamples[peakBin[ik]-6+ll] > pedVal[ik])){
 					final int zz=fitData.size();	
 					fitData.addPoint();
-					//System.out.println("fit points:\t"+zz+"\t"+(peakBin[ik]-6+ll));
+					//System.out.println("fit points:\t"+zz+"\t"+(peakBin[ik]-6+ll)+"\t"+adcSamples[peakBin[ik]-6+ll]);
+					itime[zz] = peakBin[ik]-6+ll;
+					ifadc[zz] = adcSamples[peakBin[ik]-6+ll];
 					fitData.point(zz).coordinate(0).setValue(peakBin[ik]-6+ll);
 					fitData.point(zz).coordinate(1).setValue(adcSamples[peakBin[ik]-6+ll]);
-					fitData.point(zz).coordinate(1).setErrorMinus(0.0);
-					fitData.point(zz).coordinate(1).setErrorPlus(0.0);		
+					fitData.point(zz).coordinate(1).setErrorMinus(NOISE);
+					fitData.point(zz).coordinate(1).setErrorPlus(NOISE);		
 					jj++;	
 				}
 				final int zz=fitData.size();	
 				fitData.addPoint();
-				//System.out.println("fit points:\t"+zz+"\t"+(peakBin[ik]-5+ll));
-				if (zz==1){
-					itime = peakBin[ik]-5+ll;
-					islope =((double) (adcSamples[peakBin[ik]-5+ll]-adcSamples[peakBin[ik]-6+ll]))/(peakBin[ik]-5+ll-(peakBin[ik]-6+ll));	
-				}
+				//System.out.println("fit points:\t"+zz+"\t"+(peakBin[ik]-5+ll)+"\t"+adcSamples[peakBin[ik]-5+ll]);
+				itime[zz] = peakBin[ik]-5+ll;
+				ifadc[zz] = adcSamples[peakBin[ik]-5+ll];
 				fitData.point(zz).coordinate(0).setValue(peakBin[ik]-5+ll);
 				fitData.point(zz).coordinate(1).setValue(adcSamples[peakBin[ik]-5+ll]);
-				fitData.point(zz).coordinate(1).setErrorMinus(0.0);
-				fitData.point(zz).coordinate(1).setErrorPlus(0.0);
+				fitData.point(zz).coordinate(1).setErrorMinus(NOISE);
+				fitData.point(zz).coordinate(1).setErrorPlus(NOISE);
 						
 				jj++;
 				if (jj==3) {break;}					
 			}
 		}
 			
-		double icept = itime*(1-islope);
-		//System.out.println("initial parameters, icept:\t"+icept+"\t islope:\t"+islope+"\t itime:\t"+itime);
+		double islope = ((double)(ifadc[2]-ifadc[0]))/(itime[2]-itime[0]);
+		double icept = ifadc[1] - islope*itime[1];
+		//System.out.println("initial parameters, icept:\t"+icept+"\t islope:\t"+islope+"\t itime:\t"+itime[1]);
 		// properly initialize fit parameters:
-		fitFunction.setParameter("time",itime);
+		//fitFunction.setParameter("time",0.0);//itime[1]);
 		fitFunction.setParameter("intercept",icept);
 		fitFunction.setParameter("slope",islope);
 	
@@ -160,8 +165,8 @@ public class RfFitterDriver extends Driver {
 		
 		//choose to get the time value at this location on the fit:
 		double halfVal = (adcSamples[peakBin[1]]+pedVal[1])/2.0;	
-		System.out.println("Fit results:\t"+fitResults.fittedParameter("intercept")+"\t"+fitResults.fittedParameter("slope"));
-		System.out.println("Half height:\t"+halfVal);
+		//System.out.println("Fit results:\t"+fitResults.fittedParameter("intercept")+"\t"+fitResults.fittedParameter("slope"));
+		//System.out.println("Half height:\t"+halfVal);
 		return NSPERSAMPLE*(halfVal-fitResults.fittedParameter("intercept"))/fitResults.fittedParameter("slope");
 		
 		
