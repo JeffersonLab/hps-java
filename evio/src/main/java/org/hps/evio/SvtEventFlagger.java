@@ -16,6 +16,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtAlignmentConstant;
 import org.hps.conditions.svt.SvtBiasConstant;
 import org.hps.conditions.svt.SvtMotorPosition;
+import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.HeadBankData;
@@ -35,9 +36,11 @@ public class SvtEventFlagger {
     private static final double angleTolerance = 0.0001;
     SvtBiasConstant.SvtBiasConstantCollection svtBiasConstants = null;
     SvtMotorPosition.SvtMotorPositionCollection svtPositionConstants = null;
+    private SvtTimingConstants svtTimingConstants = null;
     private boolean biasGood = false;
     private boolean positionGood = false;
     private boolean burstmodeNoiseGood = false;
+    private boolean latencyGood = false;
     private double nominalAngleTop = 0;
     private double nominalAngleBottom = 0;
 
@@ -64,11 +67,24 @@ public class SvtEventFlagger {
             }
         }
 
+        latencyGood = false;
+        if (svtTimingConstants != null) {
+            if (svtTimingConstants.getOffsetTime() <= 27) {
+                latencyGood = true;
+            } else {
+                if (((event.getTimeStamp() - 4 * svtTimingConstants.getOffsetPhase()) % 24) < 16) {
+                    latencyGood = true;
+                }
+            }
+//        System.out.format("%f %b\n", svtTimingConstants.getOffsetTime() + (((event.getTimeStamp() - 4 * svtTimingConstants.getOffsetPhase()) % 24) - 12), latencyGood);
+        }
+
         burstmodeNoiseGood = isBurstmodeNoiseGood(event);
 
         event.getIntegerParameters().put("svt_bias_good", new int[]{biasGood ? 1 : 0});
         event.getIntegerParameters().put("svt_position_good", new int[]{positionGood ? 1 : 0});
         event.getIntegerParameters().put("svt_burstmode_noise_good", new int[]{burstmodeNoiseGood ? 1 : 0});
+        event.getIntegerParameters().put("svt_latency_good", new int[]{latencyGood ? 1 : 0});
     }
 
     private Date getEventTimeStamp(EventHeader event) {
@@ -109,6 +125,13 @@ public class SvtEventFlagger {
         } catch (Exception e) {
             svtPositionConstants = null;
         }
+
+        try {
+            svtTimingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
+        } catch (Exception e) {
+            svtTimingConstants = null;
+        }
+
     }
 
     private static boolean isBurstmodeNoiseGood(EventHeader event) {
@@ -162,92 +185,90 @@ public class SvtEventFlagger {
 
     public static void voidAddHeaderCheckResultToMetaData(boolean ok, EventHeader lcsimEvent) {
         //System.out.println("adding svt header check ");
-        lcsimEvent.getIntegerParameters().put("svt_event_header_good", new int[]{ ok ? 1 : 0});
+        lcsimEvent.getIntegerParameters().put("svt_event_header_good", new int[]{ok ? 1 : 0});
         //if(lcsimEvent.hasItem("svt_event_header_good"))
         //        System.out.println("event header has the svt header check ");
         //else
         //    System.out.println("event header doesn't have the svt header check ");
     }
-    
+
     public static void AddHeaderInfoToMetaData(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) {
         int[] svtHeaders = new int[headers.size()];
         int[] svtTails = new int[headers.size()];
-        for(int iSvtHeader=0; iSvtHeader < headers.size();++iSvtHeader) {
+        for (int iSvtHeader = 0; iSvtHeader < headers.size(); ++iSvtHeader) {
             svtHeaders[iSvtHeader] = headers.get(iSvtHeader).getHeader();
             svtTails[iSvtHeader] = headers.get(iSvtHeader).getTail();
-            
+
             lcsimEvent.getIntegerParameters().put("svt_event_header_roc" + headers.get(iSvtHeader).getNum(), new int[]{headers.get(iSvtHeader).getHeader()});
             lcsimEvent.getIntegerParameters().put("svt_event_tail_roc" + headers.get(iSvtHeader).getNum(), new int[]{headers.get(iSvtHeader).getTail()});
-            
-            
+
             int nMS = headers.get(iSvtHeader).getNumberOfMultisampleHeaders();
-            int[] multisampleHeadersArray = new int[4*nMS];
-            for(int iMS = 0; iMS < nMS; ++iMS ) {
+            int[] multisampleHeadersArray = new int[4 * nMS];
+            for (int iMS = 0; iMS < nMS; ++iMS) {
                 int[] multisampleHeader = headers.get(iSvtHeader).getMultisampleHeader(iMS);
-                System.arraycopy(multisampleHeader, 0, multisampleHeadersArray, iMS*4, multisampleHeader.length);
+                System.arraycopy(multisampleHeader, 0, multisampleHeadersArray, iMS * 4, multisampleHeader.length);
             }
             lcsimEvent.getIntegerParameters().put("svt_multisample_headers_roc" + headers.get(iSvtHeader).getNum(), multisampleHeadersArray);
         }
-        
+
     }
-    
-    private static final Pattern rocIdPattern  = Pattern.compile("svt_.*_roc(\\d+)");
-    
+
+    private static final Pattern rocIdPattern = Pattern.compile("svt_.*_roc(\\d+)");
+
     public static int getRocFromSvtHeaderName(String seq) {
         Matcher m = rocIdPattern.matcher(seq);
-        if(m == null) 
+        if (m == null) {
             throw new RuntimeException("null matcher, don't think this should happen");
-        if( !m.matches() ) 
+        }
+        if (!m.matches()) {
             return -1;
-        else
-            return Integer.parseInt( m.group(1) );
+        } else {
+            return Integer.parseInt(m.group(1));
+        }
     }
-    
-    
-    
-    public static List<SvtHeaderDataInfo>  getHeaderInfoToMetaData(EventHeader lcsimEvent) {
-        Map<Integer, Integer> headers = new HashMap<Integer,Integer>();
-        Map<Integer, Integer> tails = new HashMap<Integer,Integer>();
-        Map<Integer, Integer[]> multisampleHeaders = new HashMap<Integer,Integer[]>();
-        
-        
-        for(Map.Entry<String, int[]> entry : lcsimEvent.getIntegerParameters().entrySet()) {
-            
+
+    public static List<SvtHeaderDataInfo> getHeaderInfoToMetaData(EventHeader lcsimEvent) {
+        Map<Integer, Integer> headers = new HashMap<Integer, Integer>();
+        Map<Integer, Integer> tails = new HashMap<Integer, Integer>();
+        Map<Integer, Integer[]> multisampleHeaders = new HashMap<Integer, Integer[]>();
+
+        for (Map.Entry<String, int[]> entry : lcsimEvent.getIntegerParameters().entrySet()) {
+
             int roc = getRocFromSvtHeaderName(entry.getKey());
-            
-            if( roc == -1) {
+
+            if (roc == -1) {
                 continue;
             }
             //LOGGER.logger.fine("processing entry \"" + entry.getKey()+ "\"" + " for roc "  + roc);
             int[] value = entry.getValue();
-           
-            if(entry.getKey().contains("svt_event_header_roc"))
+
+            if (entry.getKey().contains("svt_event_header_roc")) {
                 headers.put(roc, value[0]);
-            
-            if(entry.getKey().contains("svt_event_tail_roc")) 
+            }
+
+            if (entry.getKey().contains("svt_event_tail_roc")) {
                 tails.put(roc, value[0]);
-                
+            }
+
             // really need to copy?
-            if(entry.getKey().contains("svt_multisample_headers_roc")) {
+            if (entry.getKey().contains("svt_multisample_headers_roc")) {
                 Integer[] tmp = ArrayUtils.toObject(value); //new Integer[value.length];
                 multisampleHeaders.put(roc, tmp);
             }
-                    
+
         }
-        
+
         // create the new objects
         List<SvtHeaderDataInfo> headerDataInfo = new ArrayList<SvtHeaderDataInfo>();
-        for(Integer roc : headers.keySet()) {
+        for (Integer roc : headers.keySet()) {
             int header = headers.get(roc);
             int tail = tails.get(roc);
             Integer[] ms = multisampleHeaders.get(roc);
             headerDataInfo.add(new SvtHeaderDataInfo(roc, header, tail, ms));
         }
-        
-       return headerDataInfo;
-        
+
+        return headerDataInfo;
+
     }
-    
-    
-    
+
 }
