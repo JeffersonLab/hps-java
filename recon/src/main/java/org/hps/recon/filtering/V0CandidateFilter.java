@@ -2,15 +2,17 @@ package org.hps.recon.filtering;
 
 import static java.lang.Math.abs;
 import java.util.List;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.record.epics.EpicsData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 
 /**
- * Class to strip off trident candidates. Currently defined as: e+ e- events with
- * tracks matched to clusters. Neither electron can be a full-energy candidate
- * (momentum less than _fullEnergyCut [0.85GeV]). The Ecal cluster times must be 
- * within _timingCut [2.5ns] of each other.
+ * Class to strip off trident candidates. Currently defined as: e+ e- events
+ * with tracks. If the tight constraint is enabled, tracks must be matched to
+ * clusters and the Ecal cluster times must be within _timingCut [2.5ns] of each
+ * other.
  *
  * @author Norman A Graf
  *
@@ -23,7 +25,6 @@ public class V0CandidateFilter extends EventReconFilter {
 
     private boolean _tight = false;
     private boolean _keepEpicsDataEvents = false;
-
 
     @Override
     protected void process(EventHeader event) {
@@ -40,7 +41,7 @@ public class V0CandidateFilter extends EventReconFilter {
             skipEvent();
         }
         List<ReconstructedParticle> V0Candidates = event.get(ReconstructedParticle.class, _V0CandidateCollectionName);
-        if (V0Candidates.size() == 0) {
+        if (V0Candidates.isEmpty()) {
             skipEvent();
         }
 
@@ -49,34 +50,33 @@ public class V0CandidateFilter extends EventReconFilter {
             if (V0Candidates.size() != 2) {
                 skipEvent();
             }
-        }
+            for (ReconstructedParticle rp : V0Candidates) {
 
-        for (ReconstructedParticle rp : V0Candidates) {
+                ReconstructedParticle electron;
+                ReconstructedParticle positron;
 
-            ReconstructedParticle e1 = null;
-            ReconstructedParticle e2 = null;
+                List<ReconstructedParticle> fsParticles = rp.getParticles();
+                if (fsParticles.size() != 2) {
+                    skipEvent();
+                }
+                // require both electrons to be associated with an ECal cluster
+                electron = fsParticles.get(ReconParticleDriver.ELECTRON);
+                if (electron.getClusters().isEmpty()) {
+                    skipEvent();
+                }
+                positron = fsParticles.get(ReconParticleDriver.POSITRON);
+                if (positron.getClusters().isEmpty()) {
+                    skipEvent();
+                }
 
-            List<ReconstructedParticle> electrons = rp.getParticles();
-            if (electrons.size() != 2) {
-                skipEvent();
-            }
-            // require both electrons to be associated with an ECal cluster
-            e1 = electrons.get(0);
-            if (e1.getClusters().size() == 0) {
-                skipEvent();
-            }
-            e2 = electrons.get(1);
-            if (e2.getClusters().size() == 0) {
-                skipEvent();
-            }
+                // calorimeter cluster timing cut
+                // first CalorimeterHit in the list is the seed crystal
+                double t1 = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
+                double t2 = ClusterUtilities.getSeedHitTime(positron.getClusters().get(0));
 
-            // calorimeter cluster timing cut
-            // first CalorimeterHit in the list is the seed crystal
-            double t1 = e1.getClusters().get(0).getCalorimeterHits().get(0).getTime();
-            double t2 = e2.getClusters().get(0).getCalorimeterHits().get(0).getTime();
-
-            if (abs(t1 - t2) > _clusterTimingCut) {
-                skipEvent();
+                if (abs(t1 - t2) > _clusterTimingCut) {
+                    skipEvent();
+                }
             }
         }
         incrementEventPassed();
@@ -109,14 +109,13 @@ public class V0CandidateFilter extends EventReconFilter {
     public void setTightConstraint(boolean b) {
         _tight = b;
     }
-    
+
     /**
      * Setting this true keeps ALL events containing EPICS data
      *
      * @param b
      */
-    public void setKeepEpicsDataEvents(boolean b)
-    {
+    public void setKeepEpicsDataEvents(boolean b) {
         _keepEpicsDataEvents = b;
     }
 }
