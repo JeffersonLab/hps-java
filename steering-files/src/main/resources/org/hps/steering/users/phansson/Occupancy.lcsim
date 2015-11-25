@@ -59,8 +59,11 @@
         <driver name="SensorOccupancyDriver" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver">
             <enablePositionPlots>True</enablePositionPlots>
             <eventRefreshRate>100</eventRefreshRate>
-            <enableTriggerFilter>True</enableTriggerFilter>
-            <filterPair1Triggers>True</filterPair1Triggers>
+            <enableTriggerFilter>False</enableTriggerFilter>
+            <filterPair1Triggers>False</filterPair1Triggers>
+            <filterPulserTriggers>True</filterPulserTriggers>
+            <timeWindowWeight>3.0</timeWindowWeight>
+            <maxSamplePosition>1</maxSamplePosition>
         </driver>
 
     </drivers>
