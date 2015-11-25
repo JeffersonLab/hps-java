@@ -124,6 +124,9 @@ public class SvtChargeIntegrator {
                             continue;
                         }
                         tiTimeOffset = RunManager.getRunManager().getTriggerConfig().getTiTimeOffset();
+                        if (tiTimeOffset == 0) {
+                            continue;
+                        }
                     }
 
                     try {
@@ -188,9 +191,15 @@ public class SvtChargeIntegrator {
                 }
 
                 if (useTI) {
+                    if (firstTI == 0 || lastTI == 0) {
+                        continue;
+                    }
                     startDate = new Date((long) ((firstTI + tiTimeOffset) / 1e6));
                     endDate = new Date((long) ((lastTI + tiTimeOffset) / 1e6));
                 } else {
+                    if (firstTime == 0 || lastTime == 0) {
+                        continue;
+                    }
                     startDate = new Date(firstTime * 1000);
                     endDate = new Date(lastTime * 1000);
                 }
@@ -285,7 +294,10 @@ public class SvtChargeIntegrator {
                     }
                     if (date.after(endDate)) {//this is the last interval overlapping the file's time range; backtrack so this line will be read again for the next file
                         date = lastDate;
-                        br.reset();
+                        try {
+                            br.reset();
+                        } catch (IOException e) {
+                        }
                         break;
                     }
                     br.mark(1000);

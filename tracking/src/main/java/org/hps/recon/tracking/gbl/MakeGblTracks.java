@@ -1,27 +1,27 @@
 package org.hps.recon.tracking.gbl;
 
-import static org.hps.recon.tracking.gbl.GBLOutput.getPerToClPrj;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.TrackType;
+import static org.hps.recon.tracking.gbl.GBLOutput.getPerToClPrj;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
@@ -67,6 +67,10 @@ public class MakeGblTracks {
 
         List<Track> tracks = new ArrayList<Track>();
 
+        List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
+
+        List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
+
         LOGGER.info("adding " + gblTrajectories.size() + " of fitted GBL tracks to the event");
 
         for (FittedGblTrajectory fittedTraj : gblTrajectories) {
@@ -75,10 +79,12 @@ public class MakeGblTracks {
             SeedCandidate trackseed = seedTrack.getSeedCandidate();
 
             //  Create a new Track
-            Track trk = makeCorrectedTrack(fittedTraj, trackseed.getHelix(), seedTrack.getTrackerHits(), seedTrack.getType(), bfield);
+            Pair<Track, GBLKinkData> trk = makeCorrectedTrack(fittedTraj, trackseed.getHelix(), seedTrack.getTrackerHits(), seedTrack.getType(), bfield);
 
             //  Add the track to the list of tracks
-            tracks.add(trk);
+            tracks.add(trk.getFirst());
+            kinkDataCollection.add(trk.getSecond());
+            kinkDataRelations.add(new BaseLCRelation(trk.getSecond(), trk.getFirst()));
         }
 
         LOGGER.info("adding " + Integer.toString(tracks.size()) + " Gbl tracks to event with " + event.get(Track.class, "MatchedTracks").size() + " matched tracks");
@@ -86,9 +92,11 @@ public class MakeGblTracks {
         // Put the tracks back into the event and exit
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(_TrkCollectionName, tracks, Track.class, flag);
+        event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
+        event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
     }
 
-    public static Track makeCorrectedTrack(FittedGblTrajectory fittedTraj, HelicalTrackFit helix, List<TrackerHit> trackHits, int trackType, double bfield) {
+    public static Pair<Track, GBLKinkData> makeCorrectedTrack(FittedGblTrajectory fittedTraj, HelicalTrackFit helix, List<TrackerHit> trackHits, int trackType, double bfield) {
         //  Initialize the reference point to the origin
         double[] ref = new double[]{0., 0., 0.};
 
@@ -113,6 +121,8 @@ public class MakeGblTracks {
         TrackState stateLast = new BaseTrackState(correctedHelixParamsLast.getFirst(), ref, correctedHelixParamsLast.getSecond().asPackedArray(true), TrackState.AtLastHit, bfield);
         trk.getTrackStates().add(stateLast);
 
+        GBLKinkData kinkData = getKinks(fittedTraj.get_traj());
+
         // Set other info needed
         trk.setChisq(fittedTraj.get_chi2());
         trk.setNDF(fittedTraj.get_ndf());
@@ -128,7 +138,7 @@ public class MakeGblTracks {
                 LOGGER.info(String.format("param %d: %.10f -> %.10f    helix-gbl= %f", i, helix.parameters()[i], trk.getTrackParameter(i), helix.parameters()[i] - trk.getTrackParameter(i)));
             }
         }
-        return trk;
+        return new Pair<Track, GBLKinkData>(trk, kinkData);
     }
 
     /**
@@ -283,6 +293,30 @@ public class MakeGblTracks {
         parameters_gbl[HelicalTrackFit.slopeIndex] = slope_gbl;
 
         return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
+    }
+
+    public static GBLKinkData getKinks(GblTrajectory traj) {
+
+        // get corrections from GBL fit
+        Vector locPar = new Vector(5);
+        SymMatrix locCov = new SymMatrix(5);
+        float[] lambdaKinks = new float[traj.getNumPoints() - 1];
+        double[] phiKinks = new double[traj.getNumPoints() - 1];
+
+        double oldPhi = 0, oldLambda = 0;
+        for (int i = 0; i < traj.getNumPoints(); i++) {
+            traj.getResults(i + 1, locPar, locCov); // vertex point
+            double newPhi = locPar.get(FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());
+            double newLambda = locPar.get(FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
+            if (i > 0) {
+                lambdaKinks[i - 1] = (float) (newLambda - oldLambda);
+                phiKinks[i - 1] = newPhi - oldPhi;
+            }
+            oldPhi = newPhi;
+            oldLambda = newLambda;
+        }
+
+        return new GBLKinkData(lambdaKinks, phiKinks);
     }
 
     public void setTrkCollectionName(String name) {

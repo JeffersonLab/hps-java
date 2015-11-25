@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
@@ -144,16 +145,16 @@ public class GblUtils {
      * @param bfield B-field
      * @return The refitted track.
      */
-    public static Track refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, MultipleScattering scattering, double bfield) {
+    public static Pair<Track, GBLKinkData> refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, MultipleScattering scattering, double bfield) {
         List<TrackerHit> allHthList = sortHits(hth);
         List<TrackerHit> sortedStripHits = sortHits(stripHits);
         FittedGblTrajectory fit = GblUtils.doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
         for (int i = 0; i < nIterations; i++) {
-            Track newTrack = MakeGblTracks.makeCorrectedTrack(fit, helix, allHthList, 0, bfield);
-            helix = TrackUtils.getHTF(newTrack);
+            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.makeCorrectedTrack(fit, helix, allHthList, 0, bfield);
+            helix = TrackUtils.getHTF(newTrack.getFirst());
             fit = GblUtils.doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
         }
-        Track mergedTrack = MakeGblTracks.makeCorrectedTrack(fit, helix, allHthList, 0, bfield);
+        Pair<Track, GBLKinkData> mergedTrack = MakeGblTracks.makeCorrectedTrack(fit, helix, allHthList, 0, bfield);
         return mergedTrack;
     }
 
