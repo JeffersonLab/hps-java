@@ -69,7 +69,7 @@ public class GBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            Pair<Track, GBLKinkData> newTrack = GblUtils.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, _scattering, bfield);
+            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, _scattering, bfield);
             refittedTracks.add(newTrack.getFirst());
             inputToRefitted.put(track, newTrack.getFirst());
         }
@@ -106,7 +106,7 @@ public class GBLRefitterDriver extends Driver {
                         }
                     }
 
-                    Pair<Track, GBLKinkData> mergedTrack = GblUtils.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), allHth, 5, _scattering, bfield);
+                    Pair<Track, GBLKinkData> mergedTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), allHth, 5, _scattering, bfield);
                     mergedTracks.add(mergedTrack.getFirst());
 //                    System.out.format("%f %f %f\n", fit.get_chi2(), inputToRefitted.get(track).getChi2(), inputToRefitted.get(otherTrack).getChi2());
 //                mergedTrackToTrackList.put(mergedTrack, new ArrayList<Track>());
