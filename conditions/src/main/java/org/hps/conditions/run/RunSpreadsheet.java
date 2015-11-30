@@ -32,38 +32,10 @@ public final class RunSpreadsheet {
     /**
      * The column headers.
      */
-    private static String[] HEADERS = {
-        "run", 
-        "date", 
-        "start_time", 
-        "end_time", 
-        "to_tape", 
-        "n_events", 
-        "files",
-        "trigger_rate", 
-        "target", 
-        "beam_current",
-        "beam_x", 
-        "beam_y", 
-        "trigger_config",
-        /*
-        "ecal_fadc_mode", 
-        "ecal_fadc_thresh", 
-        "ecal_fadc_window", 
-        "ecal_cluster_thresh_seed", 
-        "ecal_cluster_thresh_cluster",
-        "ecal_cluster_window_hits", 
-        "ecal_cluster_window_pairs",
-        */ 
-        "ecal_scalers_fadc", 
-        "ecal_scalers_dsc", 
-        "svt_y_position", 
-        "svt_offset_phase", 
-        "svt_offset_time",
-        "ecal_temp", 
-        "ecal_lv_current", 
-        "notes"
-    };
+    private static String[] HEADERS = {"run", "date", "start_time", "end_time", "to_tape", "n_events", "trigger_rate", "target", "beam_current",
+        "beam_x", "beam_y", "trigger_config", "ecal_fadc_mode", "ecal_fadc_thresh", "ecal_fadc_window", "ecal_cluster_thresh_seed", "ecal_cluster_thresh_cluster",
+        "ecal_cluster_window_hits", "ecal_cluster_window_pairs", "ecal_scalers_fadc", "ecal_scalers_dsc", "svt_y_position", "svt_offset_phase", "svt_offset_time",
+        "ecal_temp", "ecal_lv_current", "notes"};
 
     /**
      * Read the CSV file from the command line and print the data to the terminal (just a basic test).
