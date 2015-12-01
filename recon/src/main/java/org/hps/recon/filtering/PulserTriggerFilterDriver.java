@@ -7,7 +7,14 @@ import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
-
+/**
+ * Keep pulser triggered events.
+ * Also keep EPICS events, and Scaler events.
+ * Drop all other events.
+ * 
+ * @author baltzell
+ *
+ */
 public class PulserTriggerFilterDriver extends Driver
 {
   public void process(EventHeader event) {

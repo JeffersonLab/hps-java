@@ -34,13 +34,12 @@ public final class CommandLineTool {
     private static Options OPTIONS = new Options();
 
     static {
-        OPTIONS.addOption(new Option("h", false, "print help"));
-        OPTIONS.addOption(new Option("d", true, "detector name"));
-        OPTIONS.addOption(new Option("r", true, "run number"));
-        OPTIONS.addOption(new Option("p", true, "database connection properties file"));
-        OPTIONS.addOption(new Option("x", true, "conditions XML configuration file"));
-        OPTIONS.addOption(new Option("t", true, "conditions tag to use for filtering records"));
-        OPTIONS.addOption(new Option("l", true, "log level of the conditions manager (INFO, FINE, etc.)"));
+        OPTIONS.addOption(new Option("h", "help", false, "print help"));
+        OPTIONS.addOption(new Option("d", "detector", true, "detector name"));
+        OPTIONS.addOption(new Option("r", "run", true, "run number"));
+        OPTIONS.addOption(new Option("p", "connection", true, "database connection properties file"));
+        OPTIONS.addOption(new Option("x", "xml", true, "conditions XML configuration file"));
+        OPTIONS.addOption(new Option("t", "tag", true, "conditions tag to use for filtering records"));
     }
 
     /**
@@ -176,13 +175,6 @@ public final class CommandLineTool {
 
         // Create new manager.
         this.conditionsManager = DatabaseConditionsManager.getInstance();
-
-        // Set the conditions manager log level (does not affect logger of this class or sub-commands).
-        if (commandLine.hasOption("l")) {
-            final Level newLevel = Level.parse(commandLine.getOptionValue("l"));
-            Logger.getLogger(DatabaseConditionsManager.class.getPackage().getName()).setLevel(newLevel);
-            LOGGER.config("conditions manager log level will be set to " + newLevel.toString());
-        }
 
         // Connection properties.
         if (commandLine.hasOption("p")) {

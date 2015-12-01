@@ -1,15 +1,10 @@
 package org.hps.crawler;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -21,10 +16,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.DefaultParser;
 import org.hps.datacat.client.DatacatClient;
 import org.hps.datacat.client.DatacatClientFactory;
 import org.hps.datacat.client.DatasetFileFormat;
@@ -35,79 +30,8 @@ import org.hps.datacat.client.DatasetSite;
  *
  * @author Jeremy McCormick, SLAC
  */
+// TODO: add support for patching metadata if resource exists
 public final class DatacatCrawler {
-
-    /**
-     * Visitor which creates a {@link FileSet} from walking a directory tree.
-     * <p>
-     * Any number of {@link java.io.FileFilter} objects can be registered with this visitor to restrict which files are
-     * accepted.
-     *
-     * @author Jeremy McCormick, SLAC
-     */
-    final class DatacatFileVisitor extends SimpleFileVisitor<Path> {
-
-        /**
-         * The run log containing information about files from each run.
-         */
-        private final FileSet fileSet = new FileSet();
-
-        /**
-         * A list of file filters to apply.
-         */
-        private final List<FileFilter> filters = new ArrayList<FileFilter>();
-
-        /**
-         * Run the filters on the file to tell whether it should be accepted or not.
-         *
-         * @param file the EVIO file
-         * @return <code>true</code> if file should be accepted
-         */
-        private boolean accept(final File file) {
-            boolean accept = true;
-            for (final FileFilter filter : this.filters) {
-                accept = filter.accept(file);
-                if (!accept) {
-                    break;
-                }
-            }
-            return accept;
-        }
-
-        /**
-         * Add a file filter.
-         *
-         * @param filter the file filter
-         */
-        void addFilter(final FileFilter filter) {
-            this.filters.add(filter);
-        }
-
-        /**
-         * Get the file set created by visiting the directory tree.
-         *
-         * @return the file set from visiting the directory tree
-         */
-        FileSet getFileSet() {
-            return this.fileSet;
-        }
-
-        /**
-         * Visit a single file.
-         *
-         * @param path the file to visit
-         * @param attrs the file attributes
-         */
-        @Override
-        public FileVisitResult visitFile(final Path path, final BasicFileAttributes attrs) {
-            final File file = path.toFile();
-            if (this.accept(file)) {
-                final DatasetFileFormat format = DatacatUtilities.getFileFormat(file);
-                fileSet.addFile(format, file);
-            }
-            return FileVisitResult.CONTINUE;
-        }
-    }
 
     /**
      * Make a list of available file formats for printing help.
@@ -118,7 +42,7 @@ public final class DatacatCrawler {
      * Setup the logger.
      */
     private static final Logger LOGGER = Logger.getLogger(DatacatCrawler.class.getPackage().getName());
-
+    
     /**
      * Command line options for the crawler.
      */
@@ -148,6 +72,7 @@ public final class DatacatCrawler {
         OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name");
         OPTIONS.addOption("x", "max-depth", true, "max depth to crawl");
         OPTIONS.addOption("D", "dry-run", false, "dry run which will not update the datacat");
+        OPTIONS.addOption("u", "base-url", true, "provide a base URL of the datacat server");
     }
 
     /**
@@ -168,6 +93,11 @@ public final class DatacatCrawler {
      * The options parser.
      */
     private final DefaultParser parser = new DefaultParser();
+    
+    /**
+     * The data catalog client interface.
+     */
+    private DatacatClient datacatClient;
 
     /**
      * Throw an exception if the path doesn't exist in the data catalog or it is not a folder.
@@ -176,7 +106,6 @@ public final class DatacatCrawler {
      * @throws RuntimeException if the given path does not exist or it is not a folder
      */
     private void checkFolder(final String folder) {
-        final DatacatClient datacatClient = new DatacatClientFactory().createClient();
         if (!datacatClient.exists(folder)) {
             throw new RuntimeException("The folder " + folder + " does not exist in the data catalog.");
         }
@@ -328,13 +257,21 @@ public final class DatacatCrawler {
             if (cl.hasOption("D")) {
                 config.setDryRun(true);
             }
+            
+            if (cl.hasOption("u")) {
+                config.setBaseUrl(cl.getOptionValue("u"));
+            }
+            
+            if (!cl.getArgList().isEmpty()) {
+                for (String arg : cl.getArgList()) {
+                    config.addPath(arg);
+                }
+                
+            }
 
         } catch (final ParseException e) {
             throw new RuntimeException("Error parsing options.", e);
         }
-
-        // Check the datacat folder which must already exist.
-        this.checkFolder(config.datacatFolder());
 
         // Check that there is at least one file format enabled for filtering.
         if (this.config.getFileFormats().isEmpty()) {
@@ -351,7 +288,7 @@ public final class DatacatCrawler {
      */
     private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
-        help.printHelp(70, "DatacatCrawler [options]", "", OPTIONS, "");
+        help.printHelp(70, "DatacatCrawler [options] path ...", "", OPTIONS, "");
         System.exit(0);
     }
 
@@ -359,19 +296,33 @@ public final class DatacatCrawler {
      * Run the crawler job.
      */
     private void run() {
+        
+        LOGGER.config("creating datacat client with url = " + config.baseUrl() + "; site = " + config.datasetSite() + "; rootFolder = " + config.rootFolder());
+        datacatClient = new DatacatClientFactory().createClient(config.baseUrl(), config.datasetSite(), config.rootFolder()); 
+        
+        // Check the datacat folder which must already exist.
+        this.checkFolder(config.datacatFolder());
 
         // Create the file visitor for crawling the root directory with the given date filter.
-        final DatacatFileVisitor visitor = new DatacatFileVisitor();
+        final CrawlerFileVisitor visitor = new CrawlerFileVisitor();
 
         // Add date filter if timestamp is supplied.
         if (config.timestamp() != null) {
             visitor.addFilter(new DateFileFilter(config.timestamp()));
+            LOGGER.config("added timestamp filter " + config.timestamp());
+        }
+        
+        if (!config.paths().isEmpty()) {
+            visitor.addFilter(new PathFilter(config.paths()));
+            StringBuffer sb = new StringBuffer();
+            for (String path : config.paths()) {
+                sb.append(path + ":");
+            }
+            sb.setLength(sb.length() - 1);
+            LOGGER.config("added paths " + sb.toString());
         }
 
         // Add file format filter.
-        for (final DatasetFileFormat fileFormat : config.getFileFormats()) {
-            LOGGER.info("adding file format filter for " + fileFormat.name());
-        }
         visitor.addFilter(new FileFormatFilter(config.getFileFormats()));
 
         // Run number filter.
@@ -379,11 +330,17 @@ public final class DatacatCrawler {
             visitor.addFilter(new RunFilter(config.acceptRuns()));
         }
 
-        // Walk the file tree using the visitor.
+        // Walk the file tree using the visitor with the enabled filters.
         this.walk(visitor);
+        
+        LOGGER.info(visitor.getFileSet().toString());
 
         // Update the data catalog.
-        this.updateDatacat(visitor.getFileSet());
+        if (!visitor.getFileSet().isEmpty()) {
+            this.updateDatacat(visitor.getFileSet());
+        } else {
+            LOGGER.warning("no files found");
+        }
     }
 
     /**
@@ -392,7 +349,6 @@ public final class DatacatCrawler {
      * @param runMap the map of run information including the EVIO file list
      */
     private void updateDatacat(final FileSet fileSet) {
-        final DatacatClient datacatClient = new DatacatClientFactory().createClient();
         for (final DatasetFileFormat fileFormat : config.getFileFormats()) {
             List<File> formatFiles = fileSet.get(fileFormat);
             LOGGER.info("adding " + formatFiles.size() + " files with format " + fileFormat.name());
@@ -400,28 +356,50 @@ public final class DatacatCrawler {
 
                 LOGGER.info("adding file " + file.getAbsolutePath());
 
-                // Create metadata if this is enabled (will take awhile).
                 Map<String, Object> metadata = new HashMap<String, Object>();
+
+                // Use file on JLAB cache disk if necessary.
+                File actualFile = file;
+                if (CrawlerFileUtilities.isMssFile(file)) {
+                    actualFile = CrawlerFileUtilities.getCachedFile(file);
+                    LOGGER.info("using cached file " + actualFile.getPath());
+                }
+                
                 if (config.enableMetaData()) {
-                    LOGGER.info("creating metadata for " + file.getPath());
-                    metadata = DatacatUtilities.createMetadata(file);
+                    // Create metadata map for file.
+                    LOGGER.info("creating metadata for " + actualFile.getPath());
+                    metadata = DatacatUtilities.createMetadata(actualFile);
+                    metadata.put("scanStatus", "OK");
+                } else {
+                    // Assign run number even if metadata is not enabled.
+                    metadata = new HashMap<String, Object>();
+                    int run = CrawlerFileUtilities.getRunFromFileName(file);
+                    metadata.put("runMin", run);
+                    metadata.put("runMax", run);
+                    metadata.put("scanStatus", "UNSCANNED");
                 }
 
                 // Register file in the catalog.
                 if (!config.dryRun()) {
-                    int response = DatacatUtilities.addFile(datacatClient, config.datacatFolder(), file, config.datasetSite(), metadata);
+                    int response = DatacatUtilities.addFile(
+                            datacatClient, 
+                            config.datacatFolder(),
+                            file,  
+                            actualFile.length(),
+                            config.datasetSite(), 
+                            metadata);
                     LOGGER.info("HTTP response " + response);
                     if (response >= 400) {
                         // Throw exception if response from server indicates an error occurred.
-                        throw new RuntimeException("HTTP error code " + response + " received from server.");
+                        throw new RuntimeException("HTTP error code " + response + " was received from server.");
                     }
                 } else {
-                    LOGGER.info("skipped updated on " + file.getPath() + " from dry run");
+                    LOGGER.info("Skipped update on " + file.getPath() + " because dry run is enabled.");
                 }
             }
-            LOGGER.info("successfully added " + formatFiles.size() + " " + fileFormat + " files");
+            LOGGER.info("Successfully added " + formatFiles.size() + " " + fileFormat + " files to data catalog.");
         }
-        LOGGER.info("done updating datacat");
+        LOGGER.info("Done updating data catalog.");
     }
        
     /**
@@ -429,7 +407,7 @@ public final class DatacatCrawler {
      *
      * @param visitor the file visitor
      */
-    private void walk(final DatacatFileVisitor visitor) {
+    private void walk(final CrawlerFileVisitor visitor) {
         try {
             // Walk the file tree from the root directory.
             final EnumSet<FileVisitOption> options = EnumSet.noneOf(FileVisitOption.class);

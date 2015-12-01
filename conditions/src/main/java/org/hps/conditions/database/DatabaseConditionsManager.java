@@ -20,7 +20,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
@@ -349,7 +348,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Close the database connection.
      */
     public synchronized void closeConnection() {
-        LOGGER.fine("closing connection");
+        //LOGGER.finer("closing connection");
         if (this.connection != null) {
             try {
                 if (!this.connection.isClosed()) {
@@ -361,7 +360,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         this.connection = null;
         this.isConnected = false;
-        LOGGER.fine("connection closed");
+        //LOGGER.finer("connection closed");
     }
 
     /**

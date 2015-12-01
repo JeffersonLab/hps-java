@@ -1,6 +1,6 @@
 package org.hps.conditions.dummy;
 
-import org.hps.conditions.api.AbstractConditionsObjectConverter;
+import org.hps.conditions.database.AbstractConditionsObjectConverter;
 import org.hps.conditions.dummy.DummyConditionsObject.DummyConditionsObjectCollection;
 
 /**

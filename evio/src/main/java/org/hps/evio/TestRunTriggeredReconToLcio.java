@@ -310,7 +310,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
                 }
             }
             if (ecalScoringPlaneHits != null) {
-                lcsimEvent.put(ecalScoringPlaneHitsCollectionName, ecalScoringPlaneHits, SimTrackerHit.class, 0);
+                lcsimEvent.put(ecalScoringPlaneHitsCollectionName, ecalScoringPlaneHits, SimTrackerHit.class, 0xc0000000);
                 if (verbosity >= 1) {
                     System.out.println("Adding " + ecalScoringPlaneHits.size() + " ECalTrackerHits");
                 }
@@ -333,7 +333,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
                 }
             }
             if (triggerECalScoringPlaneHits != null) {
-                lcsimEvent.put(ecalScoringPlaneHitsCollectionName, triggerECalScoringPlaneHits, SimTrackerHit.class, 0);
+                lcsimEvent.put(ecalScoringPlaneHitsCollectionName, triggerECalScoringPlaneHits, SimTrackerHit.class, 0xc0000000);
                 if (verbosity >= 1) {
                     System.out.println("Adding " + triggerECalScoringPlaneHits.size() + " ECalTrackerHits");
                 }

@@ -785,24 +785,37 @@ public class TrackUtils {
         return !isTopTrack(htf);
     }
 
+    
     /**
      * Transform MCParticle into a Helix object. Note that it produces the helix
      * parameters at nominal x=0 and assumes that there is no field at x<0
      *
      * @param mcp MC particle to be transformed
-     * @return helix object based on the MC particle
+     * @return {@link HelicalTrackFit} object based on the MC particle
      */
     public static HelicalTrackFit getHTF(MCParticle mcp, double Bz) {
-        boolean debug = true;
-        if (debug) {
-            System.out.printf("getHTF\n");
-            System.out.printf("mcp org %s mc p %s\n", mcp.getOrigin().toString(), mcp.getMomentum().toString());
-        }
-        Hep3Vector org = CoordinateTransformations.transformVectorToTracking(mcp.getOrigin());
+        return getHTF(mcp,mcp.getOrigin(),Bz);
+    }
+        
+    
+    
+    /**
+     * Transform MCParticle into a Helix object. Note that it produces the helix
+     * parameters at nominal x=0 and assumes that there is no field at x<0
+     *
+     * @param mcp MC particle to be transformed
+     * @param org origin to be used for the track 
+     * @return {@link HelicalTrackFit} object based on the MC particle
+     */
+    public static HelicalTrackFit getHTF(MCParticle mcp, Hep3Vector origin, double Bz) {
+        boolean debug = false;
+        
+        if (debug) System.out.printf("getHTF\nmcp org %s origin used %s mc p %s\n", mcp.getOrigin().toString(),origin.toString(), mcp.getMomentum().toString());
+        
+        Hep3Vector org = CoordinateTransformations.transformVectorToTracking(origin);
         Hep3Vector p = CoordinateTransformations.transformVectorToTracking(mcp.getMomentum());
 
-        if (debug)
-            System.out.printf("mcp org %s mc p %s (trans)\n", org.toString(), p.toString());
+        if (debug) System.out.printf("mcp org %s mc p %s (trans)\n", org.toString(), p.toString());
 
         // Move to x=0 if needed
         double targetX = BeamlineConstants.DIPOLE_EDGELOW_TESTRUN;
@@ -820,8 +833,7 @@ public class TrackUtils {
             // old.toString(),p.toString(),org.toString());
         }
 
-        if (debug)
-            System.out.printf("mcp org %s mc p %s (trans2)\n", org.toString(), p.toString());
+        if (debug) System.out.printf("mcp org %s mc p %s (trans2)\n", org.toString(), p.toString());
 
         HelixParamCalculator helixParamCalculator = new HelixParamCalculator(p, org, -1 * ((int) mcp.getCharge()), Bz);
         double par[] = new double[5];
@@ -831,8 +843,7 @@ public class TrackUtils {
         par[HelicalTrackFit.curvatureIndex] = 1.0 / helixParamCalculator.getRadius();
         par[HelicalTrackFit.z0Index] = helixParamCalculator.getZ0();
         HelicalTrackFit htf = getHTF(par);
-        System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n",
-                htf.dca(), htf.z0(), htf.R(), htf.phi0(), htf.slope());
+        if(debug) System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n", htf.dca(), htf.z0(), htf.R(), htf.phi0(), htf.slope());
         return htf;
     }
 

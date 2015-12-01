@@ -38,7 +38,7 @@
 	           <doFullAnalysis>false</doFullAnalysis>
 	           <skipMin>0.25</skipMin>
 	           <skipInitial>0.05</skipInitial>    
-	           <useRawEnergy>false</useRawEnergy>
+	           <useRawEnergy>true</useRawEnergy>
 	           <energyCut>1</energyCut>
 	           <nEventsMin>300</nEventsMin>
 	           <evnMinDraw>0.</evnMinDraw>

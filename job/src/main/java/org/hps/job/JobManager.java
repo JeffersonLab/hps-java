@@ -1,10 +1,10 @@
 package org.hps.job;
 
-import java.io.InputStream;
-
 import org.hps.conditions.ConditionsDriver;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
+import org.hps.run.database.RunManager;
+import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 
@@ -32,21 +32,43 @@ public class JobManager extends JobControlManager {
      */
     public JobManager() {
     }
-
+   
     /**
-     * Override setup so the conditions system can be reset.
+     * Initialize the conditions system for the job.
+     * <p>
+     * If detector and run are provided from the command line or conditions driver then the
+     * conditions system will be initialized and frozen.
      * 
-     * @param is the input stream containing config information
+     * @throws ConditionsNotFoundException if a condition is not found during initialization
      */
-    public void setup(InputStream is) {
+    protected void initializeConditions() throws ConditionsNotFoundException {
         
-        // Add class that will setup SVT detector with conditions data (this is awkward but has to be done someplace).
-        DatabaseConditionsManager.getInstance().addConditionsListener(new SvtDetectorSetup());
+        // Initialize the db conditions manager.
+        DatabaseConditionsManager dbManager = DatabaseConditionsManager.getInstance();
         
-        super.setup(is);
+        // Initialize run manager and add as listener on conditions system.
+        RunManager runManager = RunManager.getRunManager();
+        dbManager.addConditionsListener(runManager);
+        
+        // Add class that will setup SVT detector with conditions data.
+        dbManager.addConditionsListener(new SvtDetectorSetup());
                 
-        // Setup the conditions system if there is a ConditionsDriver present.
-        this.setupConditionsDriver();
+        // Call super method which will initialize conditions system if the detector and run were provided.
+        super.initializeConditions();
+        
+        // Setup from conditions driver (to be deleted soon).
+        if (!dbManager.isInitialized()) {
+            setupConditionsDriver();
+        } else {
+            // Command line options overrode the conditions driver.
+            LOGGER.config("conditions driver was overridden by command line options");
+        }
+        
+        if (dbManager.isInitialized()) {
+            // Assume conditions system should be frozen since detector and run were provided explicitly.
+            LOGGER.config("job manager freezing conditions system");
+            dbManager.freeze();
+        }
     }
     
     /**
@@ -70,7 +92,9 @@ public class JobManager extends JobControlManager {
      * This method will find the {@link org.hps.conditions.ConditionsDriver} in the list of Drivers registered with the
      * manager and then execute its initialization method, which may override the default behavior of the conditions
      * system.
+     * @deprecated Use command line options of {@link org.lcsim.job.JobControlManager} instead.
      */
+    @Deprecated
     private void setupConditionsDriver() {
         ConditionsDriver conditionsDriver = null;
         for (final Driver driver : this.getDriverAdapter().getDriver().drivers()) {
@@ -80,7 +104,7 @@ public class JobManager extends JobControlManager {
             }
         }
         if (conditionsDriver != null) {
-            LOGGER.config("initializing conditions Driver");            
+            LOGGER.config("initializing conditions Driver");
             conditionsDriver.initialize();
             LOGGER.warning("Conditions driver will be removed soon!");
         }

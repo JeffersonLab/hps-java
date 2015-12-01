@@ -1,11 +1,17 @@
-package org.hps.conditions.api;
+package org.hps.conditions.database;
 
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
+import org.hps.conditions.api.BaseConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.ConditionsRecord;
+import org.hps.conditions.api.DatabaseObjectException;
+import org.hps.conditions.api.TableMetaData;
+import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
-import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.MultipleCollectionsAction;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
@@ -17,7 +23,6 @@ import org.lcsim.conditions.ConditionsManager;
  * @author Jeremy McCormick, SLAC
  * @param <T> The type of the returned data which should be a class extending {@link BaseConditionsObjectCollection}.
  */
-// TODO: Move to conditions.database package (not an API class).
 public abstract class AbstractConditionsObjectConverter<T> implements ConditionsConverter<T> {
 
     /**

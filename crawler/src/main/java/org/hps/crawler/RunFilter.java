@@ -38,6 +38,11 @@ final class RunFilter implements FileFilter {
      */
     @Override
     public boolean accept(final File file) {
-        return this.acceptRuns.contains(EvioFileUtilities.getRunFromName(file));
+        try {
+            int run = EvioFileUtilities.getRunFromName(file);
+            return this.acceptRuns.contains(run);
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }

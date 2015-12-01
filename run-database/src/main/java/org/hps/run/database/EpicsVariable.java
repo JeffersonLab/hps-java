@@ -2,7 +2,7 @@ package org.hps.run.database;
 
 /**
  * Information about an EPICS variable including its name in the EPICS database, column name for the run database,
- * description of the variable, and type (either 1s or 10s).
+ * description of the variable, and type (either 2s or 20s).
  * <p>
  * This class is used to represent data from the <i>epics_variables</i> table in the run database.
  *

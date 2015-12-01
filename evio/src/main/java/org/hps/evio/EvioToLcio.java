@@ -367,6 +367,10 @@ public class EvioToLcio {
         // Process the LCSim job variable definitions, if any.
         jobManager = new JobManager();
         
+        // Initialize run manager and add as listener on conditions system.
+        RunManager runManager = RunManager.getRunManager();
+        DatabaseConditionsManager.getInstance().addConditionsListener(runManager);
+        
         // Enable dry run because events will be processed individually.
         jobManager.setDryRun(true);
         

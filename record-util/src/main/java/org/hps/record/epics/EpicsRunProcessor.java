@@ -39,7 +39,7 @@ public final class EpicsRunProcessor extends EvioEventProcessor {
     private final EpicsEvioProcessor processor = new EpicsEvioProcessor();
 
     /**
-     * Create an EPICs log.
+     * Create a processor that will make a list of EPICS data.
      */
     public EpicsRunProcessor() {
     }
@@ -66,9 +66,9 @@ public final class EpicsRunProcessor extends EvioEventProcessor {
 
         // Add EPICS data to the collection.
         if (this.currentEpicsData != null) {
-            LOGGER.info("adding EPICS data for run " + this.currentEpicsData.getEpicsHeader().getRun() + " and timestamp " 
-                    + this.currentEpicsData.getEpicsHeader().getTimestamp() + " with seq " 
-                    + this.currentEpicsData.getEpicsHeader().getSequence());
+            LOGGER.info("Adding EPICS data with run " + this.currentEpicsData.getEpicsHeader().getRun() + "; timestamp " 
+                    + this.currentEpicsData.getEpicsHeader().getTimestamp() + "; seq "
+                    + this.currentEpicsData.getEpicsHeader().getSequence() + ".");
             this.epicsDataSet.add(this.currentEpicsData);
         }
     }

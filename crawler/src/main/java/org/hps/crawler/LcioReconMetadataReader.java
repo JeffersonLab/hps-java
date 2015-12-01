@@ -4,12 +4,16 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.util.loop.DummyConditionsConverter;
 import org.lcsim.util.loop.DummyDetector;
@@ -19,7 +23,7 @@ import org.lcsim.util.loop.DummyDetector;
  * 
  * @author Jeremy McCormick, SLAC
  */
-public class LcioMetadataReader implements FileMetadataReader {
+public class LcioReconMetadataReader implements FileMetadataReader {
 
     /**
      * Setup the conditions system in dummy mode.
@@ -40,31 +44,53 @@ public class LcioMetadataReader implements FileMetadataReader {
      */
     @Override
     public Map<String, Object> getMetadata(File file) throws IOException {
-        Map<String, Object> metaData = new HashMap<String, Object>();
-        LCIOReader reader = null;
+        
+        Set<String> collectionNames = new HashSet<String>();
+        String detectorName = null;
+        int eventCount = 0;
+        Integer run = null;
+        LCIOReader reader = null;                
         try {        
             reader = new LCIOReader(file);               
             EventHeader eventHeader = null;
-            int eventCount = 0;
-            Integer run = null;
             try {
                 while((eventHeader = reader.read()) != null) {
                     if (run == null) {
                         run = eventHeader.getRunNumber();
-                    }            
+                    }
+                    if (detectorName == null) {
+                        detectorName = eventHeader.getDetectorName();
+                    }
+                    for (List<?> list : eventHeader.getLists()) {
+                        LCMetaData metadata = eventHeader.getMetaData(list);
+                        collectionNames.add(metadata.getName());
+                    }
                     eventCount++;
                 }
             } catch (EOFException e) {
                 e.printStackTrace();
             }
-            metaData.put("eventCount", eventCount);
-            metaData.put("runMin", run);
-            metaData.put("runMax", run);
         } finally {
             if (reader != null) {
                 reader.close();
             }
-        }        
-        return metaData;
+        }    
+        
+        // Build collection names string.
+        StringBuffer sb = new StringBuffer();
+        for (String collectionName : collectionNames) {
+            sb.append(collectionName + ",");
+        }
+        sb.setLength(sb.length() - 1);
+        
+        Map<String, Object> metadata = new HashMap<String, Object>();
+        metadata.put("eventCount", eventCount);
+        metadata.put("runMin", run);
+        metadata.put("runMax", run);
+        metadata.put("DETECTOR", detectorName);
+        metadata.put("COLLECTIONS", sb.toString());
+        
+        
+        return metadata;
     }
 }

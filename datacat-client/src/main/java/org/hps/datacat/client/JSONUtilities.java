@@ -49,6 +49,10 @@ final class JSONUtilities {
             dataset.put("eventCount", metadataCopy.get("eventCount"));
             metadataCopy.remove("eventCount");
         }
+        if (metadataCopy.containsKey("scanStatus")) {
+            dataset.put("scanStatus", metadataCopy.get("scanStatus"));
+            metadataCopy.remove("scanStatus");
+        }
         
         if (metadata != null && metadata.size() != 0) {
             JSONArray jsonMetadata = createJSONMetadataArray(metadataCopy);

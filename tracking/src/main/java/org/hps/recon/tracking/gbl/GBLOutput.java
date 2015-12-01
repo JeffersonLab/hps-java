@@ -58,15 +58,16 @@ public class GBLOutput {
     private final MaterialSupervisor materialManager;
     private final MultipleScattering _scattering;
     private final double _beamEnergy = 1.1; //GeV
-    private boolean AprimeEvent = false; // do extra checks
     private boolean hasXPlanes = false;
     private boolean addBeamspot = false;
     private double beamspotTiltZOverY = 0; //Math.PI/180* 15;
     private double beamspotScatAngle = 0.000001;
-    // beam spot with in tracking frame
+    // beam spot, in tracking frame
     private double beamspotWidthZ = 0.05;
     private double beamspotWidthY = 0.150;
-    double beamspotPosition[] = {0,0,0};
+    private double beamspotPosition[] = {0,0,0};
+    // human readable ID for beam spot     
+    private final int iBeamspotHit = -1; 
     
 
     /**
@@ -138,10 +139,6 @@ public class GBLOutput {
         }
     }
 
-    void setAPrimeEventFlag(boolean flag) {
-        this.AprimeEvent = flag;
-    }
-
     void setXPlaneFlag(boolean flag) {
         this.hasXPlanes = flag;
     }
@@ -168,25 +165,61 @@ public class GBLOutput {
 
         // Find the truth particle of the track
         MCParticle mcp = null;
-
+        MCParticle ap = null;
+        
+        // MC processing
         if (isMC) {
+            
+            // find the truth particle for this track
             mcp = getMatchedTruthParticle(trk);
 
+            // check if this is an A' event
+            for(MCParticle part : mcParticles) {
+                if(Math.abs(part.getPDGID()) == 622) {
+                    ap = part;
+                    break;
+                }
+            }
+            
             if (mcp == null) {
                 System.out.printf("%s: WARNING!! no truth particle found in event!\n", this.getClass().getSimpleName());
                 this.printMCParticles(mcParticles);
                 //System.exit(1);
-            } else if (_debug > 0) {
-                System.out.printf("%s: truth particle (pdgif %d ) found in event!\n", this.getClass().getSimpleName(), mcp.getPDGID());
-            }
+            } else {
+                if (_debug > 0) System.out.printf("%s: truth particle (pdgif %d ) found in event!\n", this.getClass().getSimpleName(), mcp.getPDGID());
 
-            if (AprimeEvent) {
-                checkAprimeTruth(mcp, mcParticles);
+                // If this is an A' event, do some more checks
+                if ( ap != null) {
+                    // A few MC files have broken links b/w parents-daughters
+                    // This causes the MC particle to come from the origin even if the decay happen somewhere else
+                    if(this.getAprimeDecayProducts(mcParticles).size()>0) {
+                        //do a full check
+                        checkAprimeTruth(mcp, mcParticles);
+                    }
+                }
             }
-        }
+        }        
 
         // Get track parameters from MC particle 
-        HelicalTrackFit htfTruth = (isMC && mcp != null) ? TrackUtils.getHTF(mcp, -1.0 * this.bFieldVector.z()) : null;
+        HelicalTrackFit htfTruth = null;
+        
+        if( isMC && mcp != null) {
+            // check if we should be using a different origin than the particle tells us
+            Hep3Vector mcp_origin;
+            if( ap != null) {
+                // There is an A' here. Use its origin if different
+                if (_debug > 0) System.out.printf("%s: A' found with origin  %s compared to particle %s (diff: %s)\n", this.getClass().getSimpleName(), ap.getOrigin().toString(), mcp.getOrigin().toString(), VecOp.sub(ap.getOrigin(), mcp.getOrigin()).toString());
+                if(VecOp.sub(ap.getOrigin(), mcp.getOrigin()).magnitude() > 0.00001)
+                    mcp_origin = ap.getOrigin();
+                else
+                    mcp_origin = mcp.getOrigin();
+            } else {
+                // No A', use particle origin
+                mcp_origin = mcp.getOrigin();
+            }
+
+            htfTruth = TrackUtils.getHTF(mcp,mcp_origin, -1.0 * this.bFieldVector.z());
+        }
 
         // Use the truth helix as the initial track for GBL?
         //htf = htfTruth;
@@ -274,7 +307,6 @@ public class GBLOutput {
         
         
         int istrip = 0;
-        final int iBeamspotHit = -1; // human readable ID for beam spot 
         int beamSpotMillepedeId = 98; // just a random int number that I came up with
         
         for (int ihit = -1; ihit != hits.size(); ++ihit) {
@@ -282,7 +314,7 @@ public class GBLOutput {
             HelicalTrackHit hit = null;
             HelicalTrackCross htc = null;
             List<HelicalTrackStrip> strips;
-            List<MCParticle> hitMCParticles = null;
+            List<MCParticle> hitMCParticles = new ArrayList<MCParticle>();
             Hep3Vector correctedHitPosition = null;
 
             // Add beamspot first
@@ -390,7 +422,7 @@ public class GBLOutput {
                 SimTrackerHit simHit = simHitsLayerMap.get(strip.layer());
 
                 if (isMC) {
-                    if (simHit == null) {
+                    if (simHit == null && ihit != iBeamspotHit) {
                         System.out.printf("%s: no sim hit for strip hit at layer %d\n", this.getClass().getSimpleName(), strip.layer());
                         System.out.printf("%s: it as %d mc particles associated with it:\n", this.getClass().getSimpleName(), hitMCParticles.size());
                         for (MCParticle particle : hitMCParticles) {
@@ -676,14 +708,57 @@ public class GBLOutput {
     }
 
     
+    
+    private List<MCParticle> getAprimeDecayProducts(List<MCParticle> mcParticles) {
+        List<MCParticle> pair = new ArrayList<MCParticle>();
+        for (MCParticle mcp : mcParticles) {
+            if (mcp.getGeneratorStatus() != MCParticle.FINAL_STATE) {
+                continue;
+            }
+            boolean hasAprimeParent = false;
+            for (MCParticle parent : mcp.getParents()) {
+                if (Math.abs(parent.getPDGID()) == 622) {
+                    hasAprimeParent = true;
+                }
+            }
+            if (hasAprimeParent) {
+                pair.add(mcp);
+            }
+        }
+        
+        return pair;
+
+    }
+
    
 
     private void checkAprimeTruth(MCParticle mcp, List<MCParticle> mcParticles) {
+        
         List<MCParticle> mcp_pair = getAprimeDecayProducts(mcParticles);
 
+        
+        if (mcp_pair.size() != 2) {
+            System.out.printf("%s: ERROR this event has %d mcp with 622 as parent!!??  \n", this.getClass().getSimpleName(), mcp_pair.size());
+            this.printMCParticles(mcParticles);
+            System.exit(1);
+        }
+        if (Math.abs(mcp_pair.get(0).getPDGID()) != 11 || Math.abs(mcp_pair.get(1).getPDGID()) != 11) {
+            System.out.printf("%s: ERROR decay products are not e+e-? \n", this.getClass().getSimpleName());
+            this.printMCParticles(mcParticles);
+            System.exit(1);
+        }
+        if (mcp_pair.get(0).getPDGID() * mcp_pair.get(1).getPDGID() > 0) {
+            System.out.printf("%s: ERROR decay products have the same sign? \n", this.getClass().getSimpleName());
+            this.printMCParticles(mcParticles);
+            System.exit(1);
+        }
+        
+        
+        
         if (_debug > 0) {
             double invMassTruth = Math.sqrt(Math.pow(mcp_pair.get(0).getEnergy() + mcp_pair.get(1).getEnergy(), 2) - VecOp.add(mcp_pair.get(0).getMomentum(), mcp_pair.get(1).getMomentum()).magnitudeSquared());
             double invMassTruthTrks = getInvMassTracks(TrackUtils.getHTF(mcp_pair.get(0), -1.0 * this.bFieldVector.z()), TrackUtils.getHTF(mcp_pair.get(1), -1.0 * this.bFieldVector.z()));
+            
             System.out.printf("%s: invM = %f\n", this.getClass().getSimpleName(), invMassTruth);
             System.out.printf("%s: invMTracks = %f\n", this.getClass().getSimpleName(), invMassTruthTrks);
         }
@@ -894,40 +969,6 @@ public class GBLOutput {
         return chi2.e(0, 0);
     }
 
-    private List<MCParticle> getAprimeDecayProducts(List<MCParticle> mcParticles) {
-        List<MCParticle> pair = new ArrayList<MCParticle>();
-        for (MCParticle mcp : mcParticles) {
-            if (mcp.getGeneratorStatus() != MCParticle.FINAL_STATE) {
-                continue;
-            }
-            boolean hasAprimeParent = false;
-            for (MCParticle parent : mcp.getParents()) {
-                if (Math.abs(parent.getPDGID()) == 622) {
-                    hasAprimeParent = true;
-                }
-            }
-            if (hasAprimeParent) {
-                pair.add(mcp);
-            }
-        }
-        if (pair.size() != 2) {
-            System.out.printf("%s: ERROR this event has %d mcp with 622 as parent!!??  \n", this.getClass().getSimpleName(), pair.size());
-            this.printMCParticles(mcParticles);
-            System.exit(1);
-        }
-        if (Math.abs(pair.get(0).getPDGID()) != 11 || Math.abs(pair.get(1).getPDGID()) != 11) {
-            System.out.printf("%s: ERROR decay products are not e+e-? \n", this.getClass().getSimpleName());
-            this.printMCParticles(mcParticles);
-            System.exit(1);
-        }
-        if (pair.get(0).getPDGID() * pair.get(1).getPDGID() > 0) {
-            System.out.printf("%s: ERROR decay products have the same sign? \n", this.getClass().getSimpleName());
-            this.printMCParticles(mcParticles);
-            System.exit(1);
-        }
-        return pair;
-
-    }
 
     private void printMCParticles(List<MCParticle> mcParticles) {
         System.out.printf("%s: printMCParticles \n", this.getClass().getSimpleName());

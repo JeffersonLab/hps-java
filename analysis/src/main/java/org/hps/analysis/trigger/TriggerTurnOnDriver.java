@@ -50,7 +50,7 @@ public class TriggerTurnOnDriver extends Driver {
     IHistogram1D clusterEOne_Random_thetaY[][] = new IHistogram1D[2][5];
     IHistogram1D clusterEOne_RandomSingles1_thetaY[][] = new IHistogram1D[2][5];
     
-    private boolean showPlots = true;
+    private boolean showPlots = false;
     private int nEventsProcessed = 0;
     private int nSimSingles1 = 0;
     private int nResultSingles1 = 0;
@@ -70,6 +70,10 @@ public class TriggerTurnOnDriver extends Driver {
     public TriggerTurnOnDriver() {
     }
     
+	public void setShowPlots(boolean showPlots) {
+		this.showPlots = showPlots;
+	}
+
     @Override
     protected void detectorChanged(Detector detector) {
         

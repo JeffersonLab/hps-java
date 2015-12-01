@@ -4,12 +4,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.AbstractIdentifier;
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.database.AbstractConditionsObjectConverter;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.Field;
@@ -290,11 +290,16 @@ public final class EcalChannel extends BaseConditionsObject {
         public EcalChannelCollection getData(final ConditionsManager conditionsManager, final String name) {
             final EcalChannelCollection collection = super.getData(conditionsManager, name);
             final Subdetector ecal = DatabaseConditionsManager.getInstance().getEcalSubdetector();
-            if (ecal.getDetectorElement() != null) {
-                collection.buildGeometryMap(ecal.getDetectorElement().getIdentifierHelper(), ecal.getSystemID());
+            if (ecal != null) {
+                if (ecal.getDetectorElement() != null) {
+                    collection.buildGeometryMap(ecal.getDetectorElement().getIdentifierHelper(), ecal.getSystemID());
+                } else {
+                    // This can happen when not running with the detector-framework jar in the classpath.
+                    throw new IllegalStateException("The ECal subdetector's detector element is not setup.");
+                }
             } else {
-                // This can happen when not running with the detector-framework jar in the classpath.
-                throw new IllegalStateException("The ECal subdetector's detector element is not setup.");
+                // Bad detector or conditions system not initialized properly.
+                throw new IllegalStateException("The ECal subdetector object is null.");
             }
             return collection;
         }

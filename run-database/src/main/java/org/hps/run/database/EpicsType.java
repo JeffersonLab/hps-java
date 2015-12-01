@@ -3,34 +3,34 @@ package org.hps.run.database;
 import org.hps.record.epics.EpicsData;
 
 /**
- * Enum for representing different types of EPICS data in the run database, of which there are currently two (1s and
- * 10s).
+ * Enum for representing different types of EPICS data in the run database, of which there are currently two (2s and
+ * 20s).
  *
  * @author Jeremy McCormick, SLAC
  */
 public enum EpicsType {
 
     /**
-     * 10S EPICS data.
+     * 20S EPICS data.
      */
-    EPICS_10S(10),
+    EPICS_20s(10),
     /**
-     * 1S EPICS data.
+     * 2S EPICS data.
      */
-    EPICS_1S(1);
+    EPICS_2s(1);
 
     /**
      * Get the type from an int.
      *
      * @param type the type from an int
      * @return the type from an int
-     * @throws IllegalArgumentException if <code>type</code> is invalid (not 1 or 10)
+     * @throws IllegalArgumentException if <code>type</code> is invalid (not 2 or 20)
      */
     public static EpicsType fromInt(final int type) {
-        if (type == EPICS_1S.type) {
-            return EPICS_1S;
-        } else if (type == EPICS_10S.type) {
-            return EPICS_10S;
+        if (type == EPICS_2s.type) {
+            return EPICS_2s;
+        } else if (type == EPICS_20s.type) {
+            return EPICS_20s;
         } else {
             throw new IllegalArgumentException("The type code is invalid (must be 1 or 10): " + type);
         }
@@ -44,9 +44,9 @@ public enum EpicsType {
     public static EpicsType getEpicsType(final EpicsData epicsData) {
         // FIXME: The type argument should be set on creation which would make this key check unnecessary.
         if (epicsData.getKeys().contains("MBSY2C_energy")) {
-            return EpicsType.EPICS_1S;
+            return EpicsType.EPICS_2s;
         } else {
-            return EpicsType.EPICS_10S;
+            return EpicsType.EPICS_20s;
         }
     }
 

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackUtils;
@@ -68,9 +69,9 @@ public class GBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            Track newTrack = GblUtils.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, _scattering, bfield);
-            refittedTracks.add(newTrack);
-            inputToRefitted.put(track, newTrack);
+            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, _scattering, bfield);
+            refittedTracks.add(newTrack.getFirst());
+            inputToRefitted.put(track, newTrack.getFirst());
         }
 
         if (mergeTracks) {
@@ -105,8 +106,8 @@ public class GBLRefitterDriver extends Driver {
                         }
                     }
 
-                    Track mergedTrack = GblUtils.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), allHth, 5, _scattering, bfield);
-                    mergedTracks.add(mergedTrack);
+                    Pair<Track, GBLKinkData> mergedTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), allHth, 5, _scattering, bfield);
+                    mergedTracks.add(mergedTrack.getFirst());
 //                    System.out.format("%f %f %f\n", fit.get_chi2(), inputToRefitted.get(track).getChi2(), inputToRefitted.get(otherTrack).getChi2());
 //                mergedTrackToTrackList.put(mergedTrack, new ArrayList<Track>());
                 }

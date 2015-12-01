@@ -97,12 +97,12 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                 deleteEpicsData.setInt(1, headerId);
                 int rowsAffected = deleteEpicsData.executeUpdate();
                 if (rowsAffected == 0) {
-                    throw new SQLException("Deletion of EPICS data failed; no rows affect.");
+                    throw new SQLException("Deletion of EPICS data failed; no rows affected.");
                 }
                 deleteHeader.setInt(1, headerId);
                 rowsAffected = deleteHeader.executeUpdate();
                 if (rowsAffected == 0) {
-                    throw new SQLException("Deletion of EPICS header failed; no rows affect.");
+                    throw new SQLException("Deletion of EPICS header failed; no rows affected.");
                 }
             }
 
@@ -137,7 +137,7 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
      * Get EPICS data by run.
      *
      * @param run the run number
-     * @param epicsType the type of EPICS data (1s or 10s)
+     * @param epicsType the type of EPICS data (2s or 20s)
      * @return the EPICS data
      */
     @Override
@@ -238,11 +238,11 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                     insertStatement.setDouble(parameterIndex, value);
                     ++parameterIndex;
                 }
-                final int dataRowsCreated = insertStatement.executeUpdate();                
+                final int dataRowsCreated = insertStatement.executeUpdate();
                 if (dataRowsCreated == 0) {
                     throw new SQLException("Creation of EPICS data failed; no rows affected.");
                 }
-                LOGGER.info("inserted EPICS data with run " + epicsHeader.getRun() + ", seq " + epicsHeader.getSequence() + "timestamp " 
+                LOGGER.fine("inserted EPICS data with run " + epicsHeader.getRun() + "; seq " + epicsHeader.getSequence() + "; timestamp " 
                         + epicsHeader.getTimestamp());
                 insertStatement.close();
             }

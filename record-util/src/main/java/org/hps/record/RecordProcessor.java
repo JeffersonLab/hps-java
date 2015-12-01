@@ -45,4 +45,11 @@ public interface RecordProcessor<RecordType> {
      * Suspend processing action.
      */
     void suspend();
+    
+    /**
+     * Return <code>true</code> if processor is active.
+     * 
+     * @return <code>true</code> if processor is active
+     */
+    boolean isActive();
 }

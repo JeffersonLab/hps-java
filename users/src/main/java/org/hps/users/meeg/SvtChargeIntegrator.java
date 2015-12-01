@@ -137,7 +137,7 @@ public class SvtChargeIntegrator {
 
                 if (runNum != currentRun) {
                     RunManager.getRunManager().setRun(runNum);
-                    if (!RunManager.getRunManager().runExists() || RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() == null) {
+                    if (!RunManager.getRunManager().runExists() || RunManager.getRunManager().getRunSummary().getTiTimeOffset() == null) {
                         continue;
                     }
                     try {
@@ -150,7 +150,7 @@ public class SvtChargeIntegrator {
                         continue;
                     }
 
-                    tiTimeOffset = RunManager.getRunManager().getTriggerConfig().getTiTimeOffset();
+                    tiTimeOffset = RunManager.getRunManager().getRunSummary().getTiTimeOffset();
 
                     for (final SvtAlignmentConstant constant : alignmentConstants) {
                         switch (constant.getParameter()) {

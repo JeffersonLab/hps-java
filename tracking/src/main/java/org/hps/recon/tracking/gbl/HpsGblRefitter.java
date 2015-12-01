@@ -14,8 +14,10 @@ import java.util.Map;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.math3.util.Pair;
 
 import org.hps.recon.tracking.TrackUtils;
+import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
@@ -25,8 +27,12 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.Track;
+import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.converter.MilleParameter;
+import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
+import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 
 /**
@@ -40,21 +46,20 @@ import org.lcsim.util.Driver;
 public class HpsGblRefitter extends Driver {
 
     static Formatter f = new BasicLogFormatter();
-    private static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
+    private final static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
     private boolean _debug = false;
     private final String trackCollectionName = "MatchedTracks";
     private final String track2GblTrackRelationName = "TrackToGBLTrack";
     private final String gblTrack2StripRelationName = "GBLTrackToStripData";
+    private final String outputTrackCollectionName = "GBLTracks";
 
     private MilleBinary mille;
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
     private boolean writeMilleBinary = false;
 
-    private final MakeGblTracks _makeTracks;
-
     public void setDebug(boolean debug) {
         _debug = debug;
-        _makeTracks.setDebug(debug);
+        MakeGblTracks.setDebug(debug);
     }
 
     public void setMilleBinaryFileName(String filename) {
@@ -66,8 +71,7 @@ public class HpsGblRefitter extends Driver {
     }
 
     public HpsGblRefitter() {
-        _makeTracks = new MakeGblTracks();
-        _makeTracks.setDebug(_debug);
+        MakeGblTracks.setDebug(_debug);
         LOGGER.setLevel(Level.WARNING);
         //System.out.println("level " + LOGGER.getLevel().toString());
     }
@@ -179,7 +183,35 @@ public class HpsGblRefitter extends Driver {
         LOGGER.info(stripsGblMap.size() + " tracks in stripsGblMap");
         LOGGER.info(trackFits.size() + " fitted GBL tracks before adding to event");
 
-        _makeTracks.Process(event, trackFits, bfield);
+        List<Track> newTracks = new ArrayList<Track>();
+
+        List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
+
+        List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
+
+        LOGGER.info("adding " + trackFits.size() + " of fitted GBL tracks to the event");
+
+        for (FittedGblTrajectory fittedTraj : trackFits) {
+
+            SeedTrack seedTrack = (SeedTrack) fittedTraj.get_seed();
+            SeedCandidate trackseed = seedTrack.getSeedCandidate();
+
+            //  Create a new Track
+            Pair<Track, GBLKinkData> trk = makeCorrectedTrack(fittedTraj, trackseed.getHelix(), seedTrack.getTrackerHits(), seedTrack.getType(), bfield);
+
+            //  Add the track to the list of tracks
+            newTracks.add(trk.getFirst());
+            kinkDataCollection.add(trk.getSecond());
+            kinkDataRelations.add(new BaseLCRelation(trk.getSecond(), trk.getFirst()));
+        }
+
+        LOGGER.info("adding " + Integer.toString(newTracks.size()) + " Gbl tracks to event with " + event.get(Track.class, "MatchedTracks").size() + " matched tracks");
+
+        // Put the tracks back into the event and exit
+        int flag = 1 << LCIOConstants.TRBIT_HITS;
+        event.put(outputTrackCollectionName, newTracks, Track.class, flag);
+        event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
+        event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
 
         if (_debug) {
             System.out.printf("%s: Done.\n", getClass().getSimpleName());

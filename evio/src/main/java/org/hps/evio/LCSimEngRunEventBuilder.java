@@ -67,6 +67,8 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
      * Modulus of TI timestamp offset (units of nanoseconds).
      */
     private final long timestampCycle = 24 * 6 * 35;
+    
+    private Long currentTiTimeOffset = null;
 
     /**
      * Class constructor.
@@ -92,22 +94,27 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     public void conditionsChanged(final ConditionsEvent conditionsEvent) {
         super.conditionsChanged(conditionsEvent);
         svtEventFlagger.initialize();
+        
+        // Get TI time offset from run db.
+        if (RunManager.getRunManager().runExists() && RunManager.getRunManager().getRunSummary().getTiTimeOffset() != null) {
+            currentTiTimeOffset = RunManager.getRunManager().getRunSummary().getTiTimeOffset();
+            LOGGER.info("TI time offset set to " + currentTiTimeOffset + " for run " + conditionsEvent.getConditionsManager().getRun());
+        } else {
+            currentTiTimeOffset = null;
+            LOGGER.info("no TI time offset in database for run " + conditionsEvent.getConditionsManager().getRun());
+        }
     }
 
     /**
-     * Get the time from the TI data.
+     * Get the time from the TI data with time offset applied from run database.
      *
      * @param triggerList the TI data list
      */
     @Override
     protected long getTime(final List<AbstractIntData> triggerList) {
         long tiTimeOffset = 0;
-        try {
-            if (RunManager.getRunManager().runExists() && RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() != null) {
-                tiTimeOffset = (RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() / timestampCycle) * timestampCycle;
-            }
-        } catch (IllegalStateException e) {
-            // May happen if RunManager is not initialized; just ignore.
+        if (currentTiTimeOffset != null) {
+            tiTimeOffset = (currentTiTimeOffset / timestampCycle) * timestampCycle;
         }
         for (final AbstractIntData data : triggerList) {
             if (data instanceof TIData) {

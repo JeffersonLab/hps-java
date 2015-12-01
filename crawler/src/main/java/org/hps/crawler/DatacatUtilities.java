@@ -31,21 +31,6 @@ class DatacatUtilities {
     /**
      * Add a file to the data catalog.
      *
-     * @param datacatClient the data catalog client
-     * @param folder the target folder in the data catalog
-     * @param file the file with the full path
-     * @param metadata the file's meta data
-     */
-    static int addFile(final DatacatClient datacatClient, final String folder, final File file,
-            DatasetSite site, final Map<String, Object> metadata) {
-        final DatasetFileFormat fileFormat = DatacatUtilities.getFileFormat(file);
-        final DatasetDataType dataType = DatacatUtilities.getDataType(file);
-        return DatacatUtilities.addFile(datacatClient, folder, file, metadata, fileFormat, dataType, site);
-    }
-
-    /**
-     * Add a file to the data catalog.
-     *
      * @param client the data catalog client
      * @param folder the folder name e.g. "data/raw"
      * @param fileMetadata the file's meta data including the path
@@ -53,21 +38,15 @@ class DatacatUtilities {
      * @param dataType the file's data type (RAW, RECON, etc.)
      * @return the HTTP response code
      */
-    static int addFile(final DatacatClient client, final String folder, final File file,
-            final Map<String, Object> metadata, final DatasetFileFormat fileFormat, final DatasetDataType dataType,
-            final DatasetSite site) {
+    static int addFile(final DatacatClient client, final String folder, final File file, long fileLength,
+            final DatasetSite site, final Map<String, Object> metadata) {
         
-        // Get the cache file if this file is on JLAB MSS.
-        File actualFile = file;
-        if (EvioFileUtilities.isMssFile(file)) {
-            actualFile = EvioFileUtilities.getCachedFile(file);
-        }
-
+        // Get the dataset format and type.
+        final DatasetFileFormat fileFormat = DatacatUtilities.getFileFormat(file);
+        final DatasetDataType dataType = DatacatUtilities.getDataType(file);
+        
         // Add the dataset to the data catalog using the REST API.
-        final int response = client.addDataset(folder, dataType, file.getAbsolutePath(), actualFile.length(), site, fileFormat, 
-                file.getName(), metadata);
-
-        return response;
+        return client.addDataset(folder, dataType, file.getAbsolutePath(), fileLength, site, fileFormat, file.getName(), metadata);
     }
 
     /**
@@ -149,7 +128,7 @@ class DatacatUtilities {
     static FileMetadataReader getFileMetaDataReader(final DatasetFileFormat fileFormat, final DatasetDataType dataType) {
         FileMetadataReader reader = null;
         if (fileFormat.equals(DatasetFileFormat.LCIO)) {
-            reader = new LcioMetadataReader();
+            reader = new LcioReconMetadataReader();
         } else if (fileFormat.equals(DatasetFileFormat.EVIO)) {
             reader = new EvioMetadataReader();
         } else if (fileFormat.equals(DatasetFileFormat.ROOT) && dataType.equals(DatasetDataType.DST)) {

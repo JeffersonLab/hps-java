@@ -35,8 +35,8 @@ final class RunSummaryCommand extends AbstractCommand {
      */
     static Options options = new Options();
     static {
-        options.addOption(new Option("h", false, "Show help for run-summary command"));
-        options.addOption(new Option("a", false, "Print all collections found for the run"));
+        options.addOption(new Option("h", "print", false, "Show help for run-summary command"));
+        options.addOption(new Option("a", "all", false, "Print all collections found for the run"));
     }
 
     /**

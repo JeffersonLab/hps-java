@@ -102,6 +102,15 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
         if (object == null) {
             throw new IllegalArgumentException("The object argument is null.");
         }
+        //checkCollectionId(object);
+        final boolean added = this.objects.add(object);
+        if (!added) {
+            throw new RuntimeException("Failed to add object.");
+        }
+        return added;
+    }
+
+    private void checkCollectionId(final ObjectType object) {
         // Does this collection have a valid ID yet?
         if (this.getCollectionId() != BaseConditionsObject.UNSET_COLLECTION_ID) {
             // Does the object that is being added have a collection ID?
@@ -122,11 +131,6 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
                 }
             }
         }
-        final boolean added = this.objects.add(object);
-        if (!added) {
-            throw new RuntimeException("Failed to add object.");
-        }
-        return added;
     }
 
     /**
@@ -344,7 +348,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
         } else {
             // If the collection already exists in the database with this ID then it cannot be inserted.
             if (this.exists()) {
-                throw new DatabaseObjectException("The collection " + this.collectionId
+                throw new DatabaseObjectException("The collection ID " + this.collectionId
                         + " cannot be inserted because it already exists in the " + this.tableMetaData.getTableName()
                         + " table.", this);
             }
@@ -703,7 +707,6 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     public void writeCsv(final File file) throws IOException {
         FileWriter fileWriter = null;
         CSVPrinter csvFilePrinter = null;
-
         try {
             fileWriter = new FileWriter(file);
             csvFilePrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);

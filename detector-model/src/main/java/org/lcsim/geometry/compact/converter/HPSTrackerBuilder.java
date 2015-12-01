@@ -74,6 +74,10 @@ public abstract class HPSTrackerBuilder {
             LOGGER.info("mille parameters will be read from compact.xml file");
             initAlignmentParameters();
         }
+        if(debug) {
+            for (MilleParameter p : milleparameters)
+                System.out.printf("%d,%f \n", p.getId(),p.getValue());
+        }
     }
 
     /**
@@ -125,9 +129,8 @@ public abstract class HPSTrackerBuilder {
         if (debug) {
             System.out.printf("%s: Initialized %d alignment parameters:\n", this.getClass().getSimpleName(),
                     milleparameters.size());
-            for (MilleParameter p : milleparameters) {
+            for (MilleParameter p : milleparameters)
                 System.out.printf("%s: %s \n", this.getClass().getSimpleName(), p.toString());
-            }
         }
 
     }

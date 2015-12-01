@@ -5,12 +5,8 @@ import java.sql.SQLException;
 
 /**
  * Factory for creating database API objects for interacting with the run database.
- * <p>
- * This allows the implementation classes to be package protected as only public interfaces are returned by this class.
  *
  * @author Jeremy McCormick, SLAC
- * @see EpicsDataDao
- * @see EpicsVariableDao
  */
 final class RunDatabaseDaoFactory {
 
@@ -73,13 +69,13 @@ final class RunDatabaseDaoFactory {
     ScalerDataDao createScalerDataDao() {
         return new ScalerDataDaoImpl(connection);
     }
-
+    
     /**
-     * Get the trigger config DAO.
-     *
-     * @return the trigger config DAO
+     * Get the SVT config DAO.
+     * 
+     * @return the SVT config DAO
      */
-    TriggerConfigDao createTriggerConfigDao() {
-        return new TriggerConfigDaoImpl(connection);
+    SvtConfigDao createSvtConfigDao() {
+        return new SvtConfigDaoImpl(connection);
     }
 }

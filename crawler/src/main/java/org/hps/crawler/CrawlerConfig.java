@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hps.conditions.database.ConnectionParameters;
+import org.hps.datacat.client.DatacatConstants;
 import org.hps.datacat.client.DatasetFileFormat;
 import org.hps.datacat.client.DatasetSite;
 
@@ -41,20 +42,18 @@ final class CrawlerConfig {
 
     /**
      * The name of the folder in the data catalog for inserting data (under "/HPS" root folder).
-     * <p>
-     * Default provided for Eng Run 2015 data.
      */
     private String datacatFolder = null;
 
     /**
-     * Set whether extraction of metadata from files is enabled.
+     * Set whether extraction of metadata is enabled.
      */
     private boolean enableMetadata;
 
     /**
-     * Set of file formats for filtering files.
+     * Set of accepted file formats.
      */
-    Set<DatasetFileFormat> formats = new HashSet<DatasetFileFormat>();
+    private Set<DatasetFileFormat> formats = new HashSet<DatasetFileFormat>();
 
     /**
      * The maximum depth to crawl.
@@ -69,7 +68,7 @@ final class CrawlerConfig {
     /**
      * The dataset site for the datacat.
      */
-    private DatasetSite site;
+    private DatasetSite site = DatasetSite.JLAB;
 
     /**
      * A timestamp to use for filtering input files on their creation date.
@@ -85,6 +84,21 @@ final class CrawlerConfig {
      * Dry run for not actually executing updates.
      */
     private boolean dryRun = false;
+    
+    /**
+     * Base URL of datacat client.
+     */
+    private String baseUrl = DatacatConstants.BASE_URL;
+    
+    /**
+     * Root URL of datacat client (e.g. 'HPS').
+     */
+    private String rootFolder = DatacatConstants.ROOT_FOLDER;
+    
+    /**
+     * Set of paths used for filtering files (file's path must match one of these).
+     */
+    private Set<String> paths = new HashSet<String>();
 
     /**
      * Get the set of runs that will be accepted for the job.
@@ -328,5 +342,29 @@ final class CrawlerConfig {
      */
     boolean dryRun() {
         return this.dryRun;
+    }
+    
+    void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;        
+    }
+    
+    String baseUrl() {
+        return this.baseUrl;
+    }
+    
+    void setRootFolder(String rootFolder) {
+        this.rootFolder = rootFolder;
+    }
+    
+    String rootFolder() {
+        return this.rootFolder;
+    }    
+    
+    void addPath(String path) {
+        this.paths.add(path);
+    }
+    
+    Set<String> paths() {
+        return this.paths;
     }
 }

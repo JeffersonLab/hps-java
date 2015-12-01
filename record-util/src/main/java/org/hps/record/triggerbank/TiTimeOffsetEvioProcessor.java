@@ -55,13 +55,18 @@ public class TiTimeOffsetEvioProcessor extends EvioEventProcessor {
             }
         }
     }
-
-    public void updateTriggerConfig(final TriggerConfig triggerConfig) {
+    
+    public long getTiTimeOffset() {
         final long offsetRange = maxOffset - minOffset;
         if (offsetRange > minRange && nOutliers < maxOutliers) {
-            triggerConfig.put(TriggerConfigVariable.TI_TIME_OFFSET, minOffset);
+            return minOffset;
         } else {
-            triggerConfig.put(TriggerConfigVariable.TI_TIME_OFFSET, 0L);
+            return 0L;
         }
+    }
+
+    public void updateTriggerConfig(final TriggerConfig triggerConfig) {
+        long tiTimeOffset = getTiTimeOffset();
+        triggerConfig.put(TriggerConfigVariable.TI_TIME_OFFSET, tiTimeOffset);
     }
 }

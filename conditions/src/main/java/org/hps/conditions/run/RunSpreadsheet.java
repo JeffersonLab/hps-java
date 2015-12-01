@@ -25,7 +25,7 @@ import org.apache.commons.csv.CSVRecord;
  * The rows are accessible as raw CSV data through the Apache Commons CSV library, and this data must be manually cleaned up and converted 
  * to the correct data type before being inserted into the conditions database.
  *
- * @author Jeremy McCormick
+ * @author Jeremy McCormick, SLAC
  */
 public final class RunSpreadsheet {
 
@@ -38,23 +38,23 @@ public final class RunSpreadsheet {
         "start_time", 
         "end_time", 
         "to_tape", 
-        "n_events", 
+        "events",
         "files",
         "trigger_rate", 
         "target", 
         "beam_current",
         "beam_x", 
-        "beam_y", 
-        "trigger_config",
-        /*
-        "ecal_fadc_mode", 
+        "beam_y",
+        "trigger_config", 
+        /* Next 7 are actually hidden in the spreadsheet! */
+        "ecal_fadc_mode",
         "ecal_fadc_thresh", 
         "ecal_fadc_window", 
         "ecal_cluster_thresh_seed", 
         "ecal_cluster_thresh_cluster",
         "ecal_cluster_window_hits", 
-        "ecal_cluster_window_pairs",
-        */ 
+        "ecal_cluster_window_pairs", 
+        /* End hidden fields. */
         "ecal_scalers_fadc", 
         "ecal_scalers_dsc", 
         "svt_y_position", 
@@ -62,8 +62,7 @@ public final class RunSpreadsheet {
         "svt_offset_time",
         "ecal_temp", 
         "ecal_lv_current", 
-        "notes"
-    };
+        "notes"};
 
     /**
      * Read the CSV file from the command line and print the data to the terminal (just a basic test).
@@ -161,14 +160,15 @@ public final class RunSpreadsheet {
         return records;
     }
     
-    public static final AnotherSimpleDateFormat DATE_FORMAT = new AnotherSimpleDateFormat("MM/dd/yyyy H:mm"); 
+    public static final RunSpreadsheetDateFormat DATE_FORMAT = new RunSpreadsheetDateFormat("MM/dd/yyyy H:mm"); 
     private static final TimeZone TIME_ZONE =  TimeZone.getTimeZone("EST");
     
     
     @SuppressWarnings("serial")
     public
-    static class AnotherSimpleDateFormat extends SimpleDateFormat {
-        public AnotherSimpleDateFormat(String formatstring) {
+    static class RunSpreadsheetDateFormat extends SimpleDateFormat {
+        
+        public RunSpreadsheetDateFormat(String formatstring) {
             super(formatstring);
             //Calendar c = Calendar.getInstance(TIME_ZONE,Locale.US);
             //setTimeZone(TIME_ZONE);

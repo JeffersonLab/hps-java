@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsTag;
 import org.hps.conditions.api.ConditionsTag.ConditionsTagCollection;

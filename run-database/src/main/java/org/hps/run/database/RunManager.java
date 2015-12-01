@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import org.hps.conditions.database.ConnectionParameters;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
-import org.hps.record.triggerbank.TriggerConfig;
+import org.hps.record.svt.SvtConfigData;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsListener;
 
@@ -23,13 +23,11 @@ public final class RunManager implements ConditionsListener {
      * Simple class for caching data.
      */
     private class DataCache {
-
-        List<EpicsData> epicsData;
-        RunSummary fullRunSummary;
-        Boolean runExists;
-        RunSummary runSummary;
-        List<ScalerData> scalerData;
-        TriggerConfig triggerConfig;
+        Boolean runExists = null;
+        RunSummary runSummary = null;
+        List<EpicsData> epicsData = null;
+        List<ScalerData> scalerData = null;
+        List<SvtConfigData> svtConfigData = null;
     }
 
     /**
@@ -142,12 +140,16 @@ public final class RunManager implements ConditionsListener {
      *
      * @param run the run number
      */
-    public void deleteRun() {
-        // Create object for updating run info in the database.
-        final RunSummaryDao runSummaryDao = factory.createRunSummaryDao();
-
-        // Delete run from the database.
-        runSummaryDao.deleteFullRun(run);
+    void deleteRun() {
+        
+        factory.createEpicsDataDao().deleteEpicsData(EpicsType.EPICS_2s, run);
+        factory.createEpicsDataDao().deleteEpicsData(EpicsType.EPICS_20s, run);
+        
+        factory.createScalerDataDao().deleteScalerData(run);
+        
+        factory.createSvtConfigDao().deleteSvtConfigs(run);
+        
+        factory.createRunSummaryDao().deleteRunSummary(run);
     }
 
     /**
@@ -185,24 +187,11 @@ public final class RunManager implements ConditionsListener {
     }
 
     /**
-     * Get the full run summary for the current run including scaler data, etc.
-     *
-     * @return the full run summary for the current run
-     */
-    public RunSummary getFullRunSummary() {
-        this.checkRunNumber();
-        if (this.dataCache.fullRunSummary == null) {
-            this.dataCache.fullRunSummary = factory.createRunSummaryDao().readFullRunSummary(this.run);
-        }
-        return this.dataCache.fullRunSummary;
-    }
-
-    /**
      * Get the current run number.
      *
      * @return the run number
      */
-    public int getRun() {
+    public int getCurrentRun() {
         return run;
     }
 
@@ -214,16 +203,7 @@ public final class RunManager implements ConditionsListener {
     public List<Integer> getRuns() {
         return new RunSummaryDaoImpl(this.connection).getRuns();
     }
-
-    /**
-     * Get the full list of summaries for all runs in the database without complex data like EPICS records.
-     *
-     * @return the full list of run summaries
-     */
-    public List<RunSummary> getRunSummaries() {
-        return this.factory.createRunSummaryDao().getRunSummaries();
-    }
-
+  
     /**
      * Get the run summary for the current run not including its sub-objects like scaler data.
      *
@@ -250,39 +230,21 @@ public final class RunManager implements ConditionsListener {
         }
         return this.dataCache.scalerData;
     }
-
+    
     /**
-     * Get the trigger config for the current run.
-     *
-     * @return the trigger config for the current run
+     * Get SVT configuration data.
+     * 
+     * @return the SVT configuration data
      */
-    public TriggerConfig getTriggerConfig() {
+    public List<SvtConfigData> getSvtConfigData() {
         this.checkRunNumber();
-        if (this.dataCache.triggerConfig == null) {
-            LOGGER.info("loading trigger config for run " + this.run);
-            this.dataCache.triggerConfig = factory.createTriggerConfigDao().getTriggerConfig(run);
+        if (this.dataCache.svtConfigData == null) {
+            LOGGER.info("loading SVT configuration data for run " + this.run);
+            this.dataCache.svtConfigData = factory.createSvtConfigDao().getSvtConfigs(run);
         }
-        return this.dataCache.triggerConfig;
+        return this.dataCache.svtConfigData;
     }
-
-    /**
-     * Update the database with information found from crawling the files.
-     *
-     * @param runs the list of runs to update
-     * @throws SQLException if there is a database query error
-     */
-    public void insertRun(final RunSummary runSummary) throws SQLException {
-        LOGGER.info("updating run database for run " + runSummary.getRun());
-
-        // Create object for updating run info in the database.
-        final RunSummaryDao runSummaryDao = factory.createRunSummaryDao();
-
-        // Insert run summary into database.
-        runSummaryDao.insertFullRunSummary(runSummary);
-
-        LOGGER.info("done updating run database");
-    }
-
+     
     /**
      * Open a new database connection from the connection parameters if the current one is closed or <code>null</code>.
      * <p>
@@ -307,7 +269,7 @@ public final class RunManager implements ConditionsListener {
     public boolean runExists() {
         this.checkRunNumber();
         if (this.dataCache.runExists == null) {
-            this.dataCache.runExists = factory.createRunSummaryDao().runSummaryExists(this.run);
+            this.dataCache.runExists = factory.createRunSummaryDao().runExists(this.run);
         }
         return this.dataCache.runExists;
     }
@@ -319,10 +281,7 @@ public final class RunManager implements ConditionsListener {
      * @return <code>true</code> if the run exists in the database
      */
     boolean runExists(final int run) {
-        if (this.dataCache.runExists == null) {
-            this.dataCache.runExists = factory.createRunSummaryDao().runSummaryExists(run);
-        }
-        return this.dataCache.runExists;
+        return factory.createRunSummaryDao().runExists(run);
     }
 
     /**

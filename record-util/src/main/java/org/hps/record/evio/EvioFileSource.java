@@ -12,10 +12,8 @@ import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 
 /**
- * A basic implementation of an <tt>AbstractRecordSource</tt> for supplying <tt>EvioEvent</tt> objects to a loop from a
- * list of EVIO files.
- * <p>
- * Unlike the LCIO record source, it has no rewind or indexing capabilities.
+ * A basic implementation of an <code>AbstractRecordSource</code> for supplying <code>EvioEvent</code> objects to a 
+ * loop from a list of EVIO files.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -159,10 +157,8 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
      */
     private void openReader() {
         try {
-            System.out.println("Opening reader for file " + this.files.get(this.fileIndex) + " ...");
-            // FIXME: this should use the reader directly and cached paths should be managed externally
+            // FIXME: This should use the reader directly and MSS paths should be transformed externally.
             this.reader = EvioFileUtilities.open(this.files.get(this.fileIndex), true);
-            System.out.println("Done opening file.");
         } catch (EvioException | IOException e) {
             throw new RuntimeException(e);
         }

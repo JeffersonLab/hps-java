@@ -5,12 +5,12 @@ package org.hps.datacat.client;
  * 
  * @author Jeremy McCormick, SLAC
  */
-final class DatacatConstants {
+public final class DatacatConstants {
 
     /**
      * The root directory in the catalog for HPS folders.
      */
-    public static final String ROOT_DIR = "HPS";
+    public static final String ROOT_FOLDER = "HPS";
         
     /**
      * The base URL of the datacat server.

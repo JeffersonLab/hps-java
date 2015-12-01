@@ -32,16 +32,13 @@ final class AddCommand extends AbstractCommand {
      */
     private static final Options OPTIONS = new Options();
     static {
-        OPTIONS.addOption(new Option("h", false, "print help for add command"));
-        OPTIONS.addOption("r", true, "starting run number (required)");
-        OPTIONS.getOption("r").setRequired(true);
-        OPTIONS.addOption("e", true, "ending run number (default is starting run number)");
-        OPTIONS.addOption("t", true, "table name (required)");
-        OPTIONS.getOption("t").setRequired(true);
-        OPTIONS.addOption("c", true, "collection ID (required)");
-        OPTIONS.getOption("c").setRequired(true);
-        OPTIONS.addOption("u", true, "user name (optional)");
-        OPTIONS.addOption("m", true, "notes about this conditions set (optional)");
+        OPTIONS.addOption(new Option("h", "help", false, "print help for add command"));
+        OPTIONS.addOption("r", "run-start", true, "starting run number (required)");
+        OPTIONS.addOption("e", "run-end", true, "ending run number (default is starting run number)");
+        OPTIONS.addOption("t", "table", true, "table name (required)");
+        OPTIONS.addOption("c", "collection", true, "collection ID (required)");
+        OPTIONS.addOption("u", "user", true, "user name (optional)");
+        OPTIONS.addOption("m", "notes", true, "notes about this conditions set (optional)");
     }
 
     /**

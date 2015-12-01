@@ -141,10 +141,6 @@ public class SvtBiasMyaDataReader {
 
             records = parser.getRecords();
 
-            // Remove first two rows of headers.
-            records.remove(0);
-            records.remove(0);
-
             parser.close();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(SvtBiasMyaDataReader.class.getName()).log(Level.SEVERE, null, ex);
