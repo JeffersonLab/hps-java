@@ -571,7 +571,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
             IHistogram1D hitTimeResidual = getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", getNiceSensorName(sensor));
             IFitResult result = fitGaussian(hitTimeResidual, fitter, "range=\"(-20.0,20.0)\"");
             if (result != null) {
-                LOGGER.info(String.format("%s\t%f\t%f\t%d\t%d", getNiceSensorName(sensor), result.fittedParameters()[1], result.fittedParameters()[2], sensor.getFebID(), sensor.getFebHybridID()));
+                System.out.format("%s\t%f\t%f\t%d\t%d\t%f\n", getNiceSensorName(sensor), result.fittedParameters()[1], result.fittedParameters()[2], sensor.getFebID(), sensor.getFebHybridID(), sensor.getT0Shift());
             }
         }
 
