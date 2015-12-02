@@ -7,13 +7,16 @@ import hep.physics.vec.HepLorentzVector;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -23,6 +26,8 @@ import org.lcsim.event.base.BaseCluster;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
+import org.lcsim.geometry.subdetector.HPSEcal3;
+
 
 /**
  * Driver framework for generating reconstructed particles and matching clusters
@@ -44,6 +49,8 @@ public abstract class ReconParticleDriver extends Driver {
     public static final int POSITRON = 1;
     public static final int MOLLER_TOP = 0;
     public static final int MOLLER_BOT = 1;
+    
+    HPSEcal3 ecal;
 
     /**
      * Sets the name of the LCIO collection for beam spot constrained V0
@@ -173,6 +180,8 @@ public abstract class ReconParticleDriver extends Driver {
         this.trackCollectionNames = trackCollectionNames;
     }
 
+        
+    
     /**
      * Updates the magnetic field parameters to match the appropriate values for
      * the current detector settings.
@@ -188,6 +197,7 @@ public abstract class ReconParticleDriver extends Driver {
             flipSign = -1;
         }
 
+        ecal = (HPSEcal3) detector.getSubdetector("Ecal");
         matcher.setBFieldMap(detector.getFieldMap());
 
     }
@@ -222,6 +232,9 @@ public abstract class ReconParticleDriver extends Driver {
         // Create a list of unmatched clusters. A cluster should be
         // removed from the list if a matching track is found.
         Set<Cluster> unmatchedClusters = new HashSet<Cluster>(clusters);
+        
+        // Create a mapping of matched clusters to corresponding tracks.
+        HashMap<Cluster, Track> clusterToTrack = new HashMap<Cluster,Track>();
 
         // Loop through all of the track collections and try to match every
         // track to a cluster.  Allow a cluster to be matched to multiple 
@@ -263,6 +276,9 @@ public abstract class ReconParticleDriver extends Driver {
                     // Check if the cluster and track are a valid match.
                     if (matcher.isMatch(cluster, track)) {
 
+                    	// Store the matched cluster to matched track.
+                    	clusterToTrack.put(cluster, track);
+                    	
                         // Store the matched cluster.
                         matchedCluster = cluster;
 
@@ -315,10 +331,17 @@ public abstract class ReconParticleDriver extends Driver {
             }
         }
 
-        // Apply the corrections to the Ecal clusters
+        // Apply the corrections to the Ecal clusters using track information, if available
         for (Cluster cluster : clusters) {
             if (cluster.getParticleId() != 0) {
-                ClusterUtilities.applyCorrections(cluster);
+            	if (clusterToTrack.containsKey(cluster)){
+            		Track matchedT = clusterToTrack.get(cluster);
+            		double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
+            		ClusterUtilities.applyCorrections(ecal, cluster, ypos);
+            	}
+            	else {
+            		ClusterUtilities.applyCorrections(ecal, cluster);          		
+            	}
             }
         }
 
