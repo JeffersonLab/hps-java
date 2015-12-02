@@ -334,7 +334,7 @@ public final class ClusterUtilities {
      * Apply HPS-specific energy and position corrections to a list of clusters in place.
      * @param clusters The list of clusters.
      */
-    public static void applyCorrections(List<Cluster> clusters) {
+    public static void applyCorrections(HPSEcal3 ecal, List<Cluster> clusters) {
                 
         // Loop over the clusters.
         for (Cluster cluster : clusters) {
@@ -347,16 +347,16 @@ public final class ClusterUtilities {
                 ClusterPositionCorrection.setCorrectedPosition(baseCluster);
             
                 // Apply PID based energy correction.
-                ClusterEnergyCorrection.setCorrectedEnergy(baseCluster);
+                ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster);
             }
         }
     }
-    
+      
     /**
-     * Apply HPS-specific energy and position corrections to a cluster.
+     * Apply HPS-specific energy and position corrections to a cluster without track information.
      * @param cluster The input cluster.
      */
-    public static void applyCorrections(Cluster cluster) {
+    public static void applyCorrections(HPSEcal3 ecal, Cluster cluster) {
                             
         if (cluster instanceof BaseCluster) {
             
@@ -366,7 +366,25 @@ public final class ClusterUtilities {
             ClusterPositionCorrection.setCorrectedPosition(baseCluster);
             
             // Apply PID based energy correction.
-            ClusterEnergyCorrection.setCorrectedEnergy(baseCluster);
+            ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster);
+        }        
+    }   
+    
+    /**
+     * Apply HPS-specific energy and position corrections to a cluster with track information.
+     * @param cluster The input cluster.
+     */
+    public static void applyCorrections(HPSEcal3 ecal, Cluster cluster, double ypos) {
+        
+        if (cluster instanceof BaseCluster) {
+            
+            BaseCluster baseCluster = (BaseCluster)cluster;            
+                        
+            // Apply PID based position correction, which should happen before final energy correction.
+            ClusterPositionCorrection.setCorrectedPosition(baseCluster);
+            
+            // Apply PID based energy correction.
+            ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, ypos);
         }        
     }    
         
