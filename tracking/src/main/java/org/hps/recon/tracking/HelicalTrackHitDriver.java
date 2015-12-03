@@ -427,7 +427,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                     Collection<TrackerHit> htsList = hittostrip.allFrom(cross);
                     for (TrackerHit strip : htsList) {
                         Set<HelicalTrackHit> sharedCrosses = hittostrip.allTo(strip);
-                        System.out.println(sharedCrosses.size());
+//                        System.out.println(sharedCrosses.size());
                         if (sharedCrosses.size() > 1) {
 //                    this.getLogger().warning(String.format("removing possible ghost hit"));
                             iter.remove();

@@ -22,12 +22,6 @@
         <!-- Driver to strip events -->
         <driver name="StripEvent"
                 type="org.hps.recon.filtering.V0CandidateFilter">
-              <!-- Name of the V0 Candidate Collection of ReconstructedParticles -->
-              <v0CandidateCollectionName>TargetConstrainedV0Candidates</v0CandidateCollectionName>
-              <!-- Maximum difference in the ECal cluster times [ns]-->
-              <clusterTimingCut>2.5</clusterTimingCut>
-              <!-- A tight selection requires one and only one real V0 vertex --> 
-              <tightConstraint>false</tightConstraint>
               <!-- Setting this true keeps ALL events containing EPICS data -->
               <keepEpicsDataEvents>true</keepEpicsDataEvents>
         </driver>

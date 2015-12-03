@@ -49,7 +49,7 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 /**
  * Builds a complete {@link RunSummary} object from various data sources, including the data catalog and the run
  * spreadsheet, so that it is ready to be inserted into the run database using the DAO interfaces.  This class also 
- * extracts EPICS data, scaler data, trigger config and SVT config information.
+ * extracts EPICS data, scaler data, trigger config and SVT config information from all of the EVIO files in a run.
  * <p>
  * The setters and some other methods follow the builder pattern and so can be chained by the caller.
  * 
