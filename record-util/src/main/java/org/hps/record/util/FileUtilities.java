@@ -1,4 +1,4 @@
-package org.hps.crawler;
+package org.hps.record.util;
 
 import java.io.File;
 
@@ -7,15 +7,15 @@ import java.io.File;
  *
  * @author Jeremy McCormick, SLAC
  */
-final class CrawlerFileUtilities {
-
+public final class FileUtilities {
+    
     /**
      * Get run number from file name assuming it looks like "hps_001234".
      *
      * @param file the file
      * @return the run number
      */
-    static int getRunFromFileName(final File file) {
+    public static int getRunFromFileName(final File file) {
         final String name = file.getName();
         return Integer.parseInt(name.substring(4, 10));
     }
@@ -59,5 +59,8 @@ final class CrawlerFileUtilities {
      */
     public static boolean isMssFile(final File file) {
         return file.getPath().startsWith("/mss");
+    }
+    
+    private FileUtilities() {
     }
 }

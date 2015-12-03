@@ -9,7 +9,7 @@ import org.hps.record.svt.SvtConfigData;
  * 
  * @author Jeremy McCormick, SLAC
  */
-public interface SvtConfigDao {
+interface SvtConfigDao {
    
     /**
      * Insert SVT configurations.

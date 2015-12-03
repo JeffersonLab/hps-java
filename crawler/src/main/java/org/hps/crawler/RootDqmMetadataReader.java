@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hps.record.util.FileUtilities;
+
 /**
  * This is a metadata reader for ROOT DQM files.
  * <p>
@@ -22,7 +24,7 @@ public class RootDqmMetadataReader implements FileMetadataReader {
     @Override
     public Map<String, Object> getMetadata(final File file) throws IOException {
         final Map<String, Object> metadata = new HashMap<String, Object>();
-        final int run = CrawlerFileUtilities.getRunFromFileName(file);
+        final int run = FileUtilities.getRunFromFileName(file);
         metadata.put("runMin", run);
         metadata.put("runMax", run);
         return metadata;

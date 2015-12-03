@@ -17,13 +17,6 @@ interface RunSummaryDao {
     void deleteRunSummary(int run);
 
     /**
-     * Delete a run summary but not its objects.
-     *
-     * @param runSummary the run summary object
-     */
-    void deleteRunSummary(RunSummary runSummary);
-
-    /**
      * Get the list of run numbers.
      *
      * @return the list of run numbers
@@ -51,12 +44,5 @@ interface RunSummaryDao {
      * @param run the run number
      * @return <code>true</code> if <code>run</code> exists in the database
      */
-    boolean runExists(int run);
-
-    /**
-     * Update a run summary.
-     *
-     * @param runSummary the run summary to update
-     */
-    void updateRunSummary(RunSummary runSummary);    
+    boolean runSummaryExists(int run);
 }

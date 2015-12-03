@@ -3,6 +3,7 @@ package org.hps.run.database;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -18,10 +19,9 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunSpreadsheet;
 import org.hps.conditions.run.RunSpreadsheet.RunData;
 import org.hps.datacat.client.DatacatClient;
-import org.hps.datacat.client.DatacatClientFactory;
 import org.hps.datacat.client.Dataset;
-import org.hps.datacat.client.DatasetSite;
 import org.hps.record.AbstractRecordProcessor;
+import org.hps.record.daqconfig.DAQConfig;
 import org.hps.record.daqconfig.DAQConfigEvioProcessor;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsRunProcessor;
@@ -39,6 +39,7 @@ import org.hps.record.svt.SvtConfigEvioProcessor;
 import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.hps.record.triggerbank.HeadBankData;
 import org.hps.record.triggerbank.TiTimeOffsetEvioProcessor;
+import org.hps.record.util.FileUtilities;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
@@ -48,7 +49,7 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 /**
  * Builds a complete {@link RunSummary} object from various data sources, including the data catalog and the run
  * spreadsheet, so that it is ready to be inserted into the run database using the DAO interfaces.  This class also 
- * extracts EPICS and scaler records from the EVIO data for insertion into run database tables.
+ * extracts EPICS data, scaler data, trigger config and SVT config information.
  * <p>
  * The setters and some other methods follow the builder pattern and so can be chained by the caller.
  * 
@@ -97,6 +98,11 @@ final class RunDatabaseBuilder {
      * List of EVIO files.
      */
     private List<File> evioFiles;
+    
+    /**
+     * List of EVIO files with cache path/
+     */
+    private List<File> cacheFiles;
 
     /**
      * Allow replacement of information in the database (off by default).
@@ -127,7 +133,45 @@ final class RunDatabaseBuilder {
      * List of SVT configuration bank data.
      */
     private List<SvtConfigData> svtConfigs;
+    
+    /**
+     * The trigger config object.
+     */
+    private TriggerConfig config;
+    
+    /**
+     * Reload run data after insert for debugging.
+     */
+    private boolean reload;
+    
+    /**
+     * Reload state for the current run number (used for testing after a database insert).
+     */
+    static void reload(Connection connection, int run) {
         
+        RunManager runManager = new RunManager(connection);
+        runManager.setRun(run);
+
+        RunSummary runSummary = runManager.getRunSummary();
+
+        LOGGER.info("loaded run summary ..." + '\n' + runSummary);
+
+        LOGGER.info("loaded " + runManager.getEpicsData(EpicsType.EPICS_2s).size() + " EPICS 2S records");
+        LOGGER.info("loaded " + runManager.getEpicsData(EpicsType.EPICS_20s).size() + " EPICS 20S records");
+
+        List<ScalerData> scalerData = runManager.getScalerData();
+        LOGGER.info("loaded " + scalerData.size() + " scaler records");
+
+        List<SvtConfigData> svtConfigs = runManager.getSvtConfigData();
+        LOGGER.info("loaded " + svtConfigs.size() + " SVT configurations");
+            
+        LOGGER.info("printing DAQ config ...");
+        DAQConfig daqConfig = runManager.getDAQConfig();
+        daqConfig.printConfig();
+        
+        runManager.closeConnection();
+    }
+                      
     /**
      * Create an empty run summary.
      * 
@@ -163,15 +207,25 @@ final class RunDatabaseBuilder {
             throw new IllegalStateException("No EVIO datasets for run " + getRun() + " were found in the data catalog.");
         }
         
-        // Map file to dataset.
+        // Map files to datasets.
         for (final Dataset dataset : datasets) {
             evioDatasets.put(new File(dataset.getLocations().get(0).getResource()), dataset);
         }
         
-        // Create the list of EVIO files.
+        // Create the list of sorted EVIO files.
         evioFiles = new ArrayList<File>();
         evioFiles.addAll(evioDatasets.keySet());
         EvioFileUtilities.sortBySequence(evioFiles);
+        
+        // Create a list of files with cache paths in case running at JLAB.
+        cacheFiles = new ArrayList<File>();
+        for (File file : evioFiles) {
+            if (FileUtilities.isMssFile(file)) {
+                cacheFiles.add(FileUtilities.getCachedFile(file));
+            } else {
+                cacheFiles.add(file);
+            }
+        }        
         
         LOGGER.info("found " + evioFiles.size() + " EVIO file(s) for run " + runSummary.getRun());
     }
@@ -184,19 +238,7 @@ final class RunDatabaseBuilder {
     int getRun() {
         return runSummary.getRun();
     }
-
-    /**
-     * Initialize the datacat client.
-     */
-    private void initializeDatacat() {
-
-        LOGGER.info("initializing data catalog client");
-
-        // DEBUG: use dev datacat server; prod should use default JLAB connection
-        datacatClient = new DatacatClientFactory().createClient("http://localhost:8080/datacat-v0.4-SNAPSHOT/r",
-                DatasetSite.SLAC, "HPS");
-    }
-
+    
     /**
      * Insert the run data into the database using the current connection.
      */
@@ -235,49 +277,17 @@ final class RunDatabaseBuilder {
             LOGGER.warning("no SVT config to insert");
         }
         
-        try {
-            connection.close();
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, e.getMessage(), e);
+        // Insert trigger config data.
+        if (this.config != null) {
+            LOGGER.info("inserting trigger config");
+            runFactory.createTriggerConfigDao().insertTriggerConfig(config, getRun());
+        } else {
+            LOGGER.warning("no trigger config to inesrt");
         }
-               
+                       
         LOGGER.info("done inserting run " + getRun());
     }
-    
-    /**
-     * Reload state for the current run number into this object (used for testing after a database insert).
-     * 
-     * @param load <code>true</code> if this method should be executed (skipped if <code>false</code>)
-     * @return this object
-     */
-    RunDatabaseBuilder load(boolean load) {
-        if (load) {
-            RunManager runManager = new RunManager(connectionParameters.createConnection());
-            runManager.setRun(getRun());
-
-            this.runSummary = RunSummaryImpl.class.cast(runManager.getRunSummary());
-
-            LOGGER.info("loaded run summary ..." + '\n' + runSummary);
-
-            epicsData = new ArrayList<EpicsData>();
-            epicsData.addAll(runManager.getEpicsData(EpicsType.EPICS_2s));
-            epicsData.addAll(runManager.getEpicsData(EpicsType.EPICS_20s));
-            LOGGER.info("loaded " + epicsData.size() + " EPICS records");
-
-            scalerData = runManager.getScalerData();
-            LOGGER.info("loaded " + scalerData.size() + " scaler records");
-
-            svtConfigs = runManager.getSvtConfigData();
-            LOGGER.info("loaded " + svtConfigs.size() + " SVT configurations");
-
-            runManager.closeConnection();
-        } else {
-            LOGGER.info("load is skipped");
-        }
-        
-        return this;
-    }
-    
+          
     /**
      * Print summary information to the log.
      */
@@ -304,9 +314,9 @@ final class RunDatabaseBuilder {
         } else {
             LOGGER.info("no SVT config");
         }
-        if (runSummary.getTriggerConfigData() != null) {
-            for (Entry<Integer, String> entry : runSummary.getTriggerConfigData().entrySet()) {
-                LOGGER.info("trigger config data " + entry.getKey() + " ..." + entry.getValue());
+        if (config != null) {
+            for (Entry<Integer, String> entry : config.getData().entrySet()) {
+                LOGGER.info("trigger config data " + entry.getKey() + " with timestamp " + config.getTimestamp() + " ..." + entry.getValue());
             }
         } else {
             LOGGER.info("no trigger config");
@@ -328,7 +338,7 @@ final class RunDatabaseBuilder {
             throw new IllegalStateException("The detector name was not set.");
         }
 
-        // Initialize the conditions system.
+        // Initialize the conditions system because the DAQ config processor needs it.
         try {
             DatabaseConditionsManager dbManager = DatabaseConditionsManager.getInstance();
             DatabaseConditionsManager.getInstance().setDetector(detectorName, runSummary.getRun());
@@ -344,8 +354,12 @@ final class RunDatabaseBuilder {
         ScalersEvioProcessor scalersProcessor = new ScalersEvioProcessor();
         scalersProcessor.setResetEveryEvent(false);
         processors.add(scalersProcessor);
+        
+        // Processor for getting EPICS data.
+        EpicsRunProcessor epicsProcessor = new EpicsRunProcessor();
+        processors.add(epicsProcessor);
 
-        // Processor for calculating TI time offset.
+        // Processor for calculating the TI time offset.
         TiTimeOffsetEvioProcessor tiProcessor = new TiTimeOffsetEvioProcessor();
         processors.add(tiProcessor);
 
@@ -357,14 +371,10 @@ final class RunDatabaseBuilder {
         SvtConfigEvioProcessor svtProcessor = new SvtConfigEvioProcessor();
         processors.add(svtProcessor);
 
-        // Processor for getting EPICS data.
-        EpicsRunProcessor epicsProcessor = new EpicsRunProcessor();
-        processors.add(epicsProcessor);
-
         // Run the job using the EVIO loop.
         EvioLoop loop = new EvioLoop();
         loop.addProcessors(processors);
-        EvioFileSource source = new EvioFileSource(evioFiles);
+        EvioFileSource source = new EvioFileSource(cacheFiles);
         loop.setEvioFileSource(source);
         loop.loop(-1);
 
@@ -374,13 +384,6 @@ final class RunDatabaseBuilder {
         // Set TI time offset.
         runSummary.setTiTimeOffset(tiProcessor.getTiTimeOffset());
 
-        // Set DAQ config object.
-        runSummary.setDAQConfig(daqProcessor.getDAQConfig());
-
-        // Set map of crate number to string trigger config data.
-        runSummary.setTriggerConfigData(daqProcessor.getTriggerConfigData());
-        LOGGER.info("found " + daqProcessor.getTriggerConfigData().size() + " valid SVT config events");
-
         // Set EPICS data list.
         epicsData = epicsProcessor.getEpicsData();
 
@@ -389,6 +392,11 @@ final class RunDatabaseBuilder {
 
         // Set SVT config data strings.
         svtConfigs = svtProcessor.getSvtConfigs();
+        
+        // Set trigger config object.
+        if (!daqProcessor.getTriggerConfigData().isEmpty()) {            
+            config = new TriggerConfig(daqProcessor.getTriggerConfigData(), daqProcessor.getTimestamp());
+        }
 
         LOGGER.info("done processing EVIO files");
     }
@@ -406,9 +414,10 @@ final class RunDatabaseBuilder {
             throw new IllegalStateException("The run summary was never created.");
         }        
         
-        // Setup datacat client.
-        initializeDatacat();
-        
+        if (this.datacatClient == null) {
+            throw new IllegalStateException("The datacat client was not set.");
+        }
+                
         // Find EVIO datasets in the datacat.
         findEvioDatasets();
 
@@ -447,11 +456,17 @@ final class RunDatabaseBuilder {
         if (!dryRun) {
             // Update the database.
             updateDatabase();
+            
+            if (reload) {
+                LOGGER.info("reloading data for run " + getRun() + " ...");
+                reload(connectionParameters.createConnection(), getRun());
+            }
+            
         } else {
             // Dry run so database is not updated.
             LOGGER.info("Dry run enabled so no updates were performed.");
         }
-        
+                        
         return this;
     }
 
@@ -463,6 +478,17 @@ final class RunDatabaseBuilder {
      */
     RunDatabaseBuilder setConnectionParameters(ConnectionParameters connectionParameters) {
         this.connectionParameters = connectionParameters;
+        return this;
+    }
+    
+    /**
+     * Set the datacat client for querying the data catalog.
+     * 
+     * @param datacatClient the datacat client
+     * @return this object
+     */
+    RunDatabaseBuilder setDatacatClient(DatacatClient datacatClient) {
+        this.datacatClient = datacatClient;
         return this;
     }
 
@@ -487,6 +513,17 @@ final class RunDatabaseBuilder {
     RunDatabaseBuilder setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
         LOGGER.config("dryRun = " + this.dryRun);
+        return this;
+    }
+    
+    /**
+     * Set whether data should be reloaded at end (as debug check).
+     * 
+     * @param reload <code>true</code> to reload data at end of job
+     * @return this object
+     */
+    RunDatabaseBuilder setReload(boolean reload) {
+        this.reload = reload;
         return this;
     }
 
@@ -539,27 +576,46 @@ final class RunDatabaseBuilder {
         LOGGER.fine("updating the run database");
         
         // Initialize the run manager.
-        RunManager runManager = new RunManager(connectionParameters.createConnection());
+        Connection connection = connectionParameters.createConnection();
+        RunManager runManager = new RunManager(connection);
         runManager.setRun(runSummary.getRun());
+        
+        // Turn off autocommit to start transaction.
+        try {
+            connection.setAutoCommit(false);
 
-        // Does run exist?
-        if (runManager.runExists()) {
+            // Does run exist?
+            if (runManager.runExists()) {
             
-            LOGGER.info("run already exists");
+                LOGGER.info("run already exists");
             
-            // If replacement is not enabled and run exists, then this is a fatal exception.
-            if (!replace) {
-                throw new RuntimeException("Run already exists (use -x option to enable replacement).");
+                // If replacement is not enabled and run exists, then this is a fatal exception.
+                if (!replace) {
+                    throw new RuntimeException("Run already exists (use -x option to enable replacement).");
+                }
+
+                // Delete the run so insert statements can be used to rebuild it.
+                LOGGER.info("deleting existing run");
+                runManager.deleteRun();
             }
 
-            // Delete the run so insert statements can be used to rebuild it.
-            LOGGER.info("deleting existing run");
-            runManager.deleteRun();
-        }
-
-        // Insert the run data into the database.
-        LOGGER.info("inserting the run data");
-        insertRun(runManager.getConnection());
+            // Insert the run data into the database.
+            LOGGER.info("inserting the run data");
+            insertRun(connection);
+        
+            // Commit the transaction.                                 
+            LOGGER.info("committing to run db ...");
+            connection.commit();
+            LOGGER.info("done committing");
+            
+        } catch (Exception e1) {
+            try {
+                LOGGER.log(Level.SEVERE, "Error occurred updating database; rolling back transaction...", e1);
+                connection.rollback();
+            } catch (SQLException e2) {
+                throw new RuntimeException(e2);
+            }
+        }        
 
         // Close the database connection.
         runManager.closeConnection();
@@ -571,7 +627,7 @@ final class RunDatabaseBuilder {
     private void updateEndTimestamp() {
         LOGGER.info("updating end timestamp");
         IntBankDefinition headBankDefinition = new IntBankDefinition(HeadBankData.class, new int[] {0x2e, 0xe10f});
-        File lastEvioFile = evioFiles.get(evioFiles.size() - 1);
+        File lastEvioFile = cacheFiles.get(cacheFiles.size() - 1);
         EvioReader reader = null;
         Integer endTimestamp = null;
         try {
@@ -618,16 +674,22 @@ final class RunDatabaseBuilder {
         RunData data = runSpreadsheet.getRunMap().get(runSummary.getRun());        
         if (data != null) {
             LOGGER.info("found run data ..." + '\n' + data.getRecord());
+            
+            // Trigger config name.
             String triggerConfigName = data.getRecord().get("trigger_config");
             if (triggerConfigName != null) {
                 runSummary.setTriggerConfigName(triggerConfigName);
                 LOGGER.info("set trigger config name <" + runSummary.getTriggerConfigName() + "> from spreadsheet");
             }
+            
+            // Notes.
             String notes = data.getRecord().get("notes");
             if (notes != null) {
                 runSummary.setNotes(notes);
                 LOGGER.info("set notes <" + runSummary.getNotes() + "> from spreadsheet");
             }
+            
+            // Target.
             String target = data.getRecord().get("target");
             if (target != null) {
                 runSummary.setTarget(target);
@@ -653,9 +715,9 @@ final class RunDatabaseBuilder {
         runSummary.setLivetimeClock(livetimes[LiveTimeIndex.CLOCK.ordinal()]);
         runSummary.setLivetimeFcupTdc(livetimes[LiveTimeIndex.FCUP_TDC.ordinal()]);
         runSummary.setLivetimeFcupTrg(livetimes[LiveTimeIndex.FCUP_TRG.ordinal()]);
-        LOGGER.info("clock livetime set to " + runSummary.getLivetimeClock());
-        LOGGER.info("fcup tdc livetime set to " + runSummary.getLivetimeFcupTdc());
-        LOGGER.info("fcup trg livetime set to " + runSummary.getLivetimeFcupTrg());
+        LOGGER.info("clock livetime = " + runSummary.getLivetimeClock());
+        LOGGER.info("fcup tdc livetime = " + runSummary.getLivetimeFcupTdc());
+        LOGGER.info("fcup trg livetime = " + runSummary.getLivetimeFcupTrg());
     }
 
     /**
@@ -663,7 +725,7 @@ final class RunDatabaseBuilder {
      */
     private void updateStartTimestamps() {
         LOGGER.fine("updating start timestamps");
-        File firstEvioFile = evioFiles.get(0);
+        File firstEvioFile = cacheFiles.get(0);
         int sequence = EvioFileUtilities.getSequenceFromName(firstEvioFile);
         if (sequence != 0) {
             LOGGER.warning("first file does not have sequence 0");

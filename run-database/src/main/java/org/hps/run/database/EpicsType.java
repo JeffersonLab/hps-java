@@ -13,11 +13,11 @@ public enum EpicsType {
     /**
      * 20S EPICS data.
      */
-    EPICS_20s(10),
+    EPICS_20s(20),
     /**
      * 2S EPICS data.
      */
-    EPICS_2s(1);
+    EPICS_2s(2);
 
     /**
      * Get the type from an int.

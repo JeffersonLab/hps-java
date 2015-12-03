@@ -102,7 +102,7 @@ public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSour
      * @throws NoSuchRecordException if there are no records available from the queue
      */
     @Override
-    public void next() throws IOException, NoSuchRecordException {
+    public synchronized void next() throws IOException, NoSuchRecordException {
         try {
             if (this.timeOutMillis > 0L) {
                 // Poll the queue for the next record until timeout is exceeded.

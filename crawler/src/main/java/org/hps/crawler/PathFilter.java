@@ -32,8 +32,9 @@ final class PathFilter implements FileFilter {
     @Override
     public boolean accept(File pathname) {
         for (String acceptPath : paths) {
-            if (pathname.getPath().equals(acceptPath)) {
-                LOGGER.info("accepted path " + pathname);                
+            // FIXME: Use endsWith, equals or contains here????
+            if (pathname.getPath().endsWith(acceptPath)) {
+                LOGGER.info("accepted path " + pathname);
                 return true;
             }
         }

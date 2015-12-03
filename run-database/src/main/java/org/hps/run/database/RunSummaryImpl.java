@@ -1,12 +1,6 @@
 package org.hps.run.database;
 
 import java.util.Date;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.hps.record.daqconfig.ConfigurationManager;
-import org.hps.record.daqconfig.DAQConfig;
-import org.hps.record.daqconfig.EvioDAQParser;
 
 /**
  * Implementation of {@link RunSummary} for retrieving information from the run database.
@@ -19,11 +13,6 @@ final class RunSummaryImpl implements RunSummary {
      * Date this record was created.
      */
     private Date created;
-
-    /**
-     * DAQ config object built from string data.
-     */
-    private DAQConfig daqConfig;
 
     /**
      * Timestamp of END event.
@@ -84,12 +73,7 @@ final class RunSummaryImpl implements RunSummary {
      * The total number of files in the run.
      */
     private Integer totalFiles;
-
-    /**
-     * Map of crate number to trigger config string data.
-     */
-    private Map<Integer, String> triggerConfigData;
-
+   
     /**
      * Get the name of the trigger config file.
      */
@@ -117,11 +101,6 @@ final class RunSummaryImpl implements RunSummary {
     @Override
     public Date getCreated() {
         return this.created;
-    }
-
-    @Override
-    public DAQConfig getDAQConfig() {
-        return this.daqConfig;
     }
 
     @Override
@@ -183,12 +162,7 @@ final class RunSummaryImpl implements RunSummary {
     public Integer getTotalFiles() {
         return this.totalFiles;
     }
-
-    @Override
-    public Map<Integer, String> getTriggerConfigData() {
-        return this.triggerConfigData;
-    }
-
+   
     @Override
     public String getTriggerConfigName() {
         return this.triggerConfigName;
@@ -205,55 +179,82 @@ final class RunSummaryImpl implements RunSummary {
     }
 
     /**
-     * Load DAQ config object from trigger config string data.
+     * Set the creation date of the run summary.
+     * 
+     * @param created the creation date
      */
-    private void loadDAQConfig() {
-        if (this.triggerConfigData != null && !this.triggerConfigData.isEmpty()) {
-            EvioDAQParser parser = new EvioDAQParser();
-            for (Entry<Integer, String> entry : this.triggerConfigData.entrySet()) {
-                parser.parse(entry.getKey(), this.getRun(), new String[] {entry.getValue()});
-            }
-            ConfigurationManager.updateConfiguration(parser);
-            daqConfig = ConfigurationManager.getInstance();
-        }
-    }
-
     void setCreated(Date created) {
         this.created = created;
     }
 
-    void setDAQConfig(DAQConfig daqConfig) {
-        this.daqConfig = daqConfig;
-    }
-
+    /**
+     * Set the end timestamp.
+     * 
+     * @param endTimestamp the end timestamp
+     */
     void setEndTimestamp(Integer endTimestamp) {
         this.endTimestamp = endTimestamp;
     }
 
+    /**
+     * Set the GO timestamp.
+     * 
+     * @param goTimestamp the GO timestamp
+     */
     void setGoTimestamp(Integer goTimestamp) {
         this.goTimestamp = goTimestamp;
     }
 
+    /**
+     * Set the clock livetime. 
+     * 
+     * @param livetimeClock the clock livetime
+     */
     void setLivetimeClock(Double livetimeClock) {
         this.livetimeClock = livetimeClock;
     }
 
+    /**
+     * Set the FCUP TDC livetime.
+     * 
+     * @param livetimeTdc the FCUP TDC livetime
+     */
     void setLivetimeFcupTdc(Double livetimeTdc) {
         this.livetimeTdc = livetimeTdc;
     }
 
+    /**
+     * Set the FCUP TRG livetime.
+     * 
+     * @param livetimeTrg the FCUP TRG livetime
+     */
     void setLivetimeFcupTrg(Double livetimeTrg) {
         this.livetimeTrg = livetimeTrg;
     }
 
+    /**
+     * Set the notes.
+     * 
+     * @param notes the notes
+     */
     void setNotes(String notes) {
         this.notes = notes;
     }
 
+    /**
+     * Set the PRESTART timestamp.
+     * 
+     * @param prestartTimestamp the PRESTART timestamp
+     */
     void setPrestartTimestamp(Integer prestartTimestamp) {
         this.prestartTimestamp = prestartTimestamp;
     }
 
+    /**
+     * Set the target description.
+     * 
+     * @param target the target description
+     */
     void setTarget(String target) {
         this.target = target;
     }
@@ -286,19 +287,6 @@ final class RunSummaryImpl implements RunSummary {
     }
 
     /**
-     * Build the DAQ config from the trigger config string data.
-     * 
-     * @param triggerConfigData a map of crate number to the trigger config string data from the bank
-     */
-    void setTriggerConfigData(Map<Integer, String> triggerConfigData) {
-        this.triggerConfigData = triggerConfigData;
-        // Load DAQ config if not already set.
-        if (daqConfig == null) {
-            loadDAQConfig();
-        }
-    }
-
-    /**
      * Set the trigger config file.
      * 
      * @param triggerConfigName the trigger config file
@@ -316,6 +304,11 @@ final class RunSummaryImpl implements RunSummary {
         this.triggerRate = triggerRate;
     }
 
+    /**
+     * Set the updated date of the summary.
+     * 
+     * @param updated the updated date
+     */
     void setUpdated(Date updated) {
         this.updated = updated;
     }
@@ -337,7 +330,6 @@ final class RunSummaryImpl implements RunSummary {
                 + ", goTimestamp: " + this.getGoTimestamp()
                 + ", endTimestamp: " + this.getEndTimestamp()
                 + ", triggerConfigFile: " + this.getTriggerConfigName()
-                + ", DAQConfig: " + (this.getDAQConfig() != null ? true : false)
                 + ", triggerRate: " + this.getTriggerRate()
                 + ", livetimeClock: " + this.getLivetimeClock()
                 + ", livetimeTdc: " + this.getLivetimeFcupTdc()

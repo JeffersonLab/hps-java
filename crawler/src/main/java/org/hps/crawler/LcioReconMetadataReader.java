@@ -90,7 +90,6 @@ public class LcioReconMetadataReader implements FileMetadataReader {
         metadata.put("DETECTOR", detectorName);
         metadata.put("COLLECTIONS", sb.toString());
         
-        
         return metadata;
     }
 }

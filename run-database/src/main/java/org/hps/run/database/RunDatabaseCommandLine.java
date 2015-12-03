@@ -8,6 +8,10 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.hps.conditions.database.ConnectionParameters;
+import org.hps.datacat.client.DatacatClient;
+import org.hps.datacat.client.DatacatClientFactory;
+import org.hps.datacat.client.DatacatConstants;
+import org.hps.datacat.client.DatasetSite;
 
 /**
  * Command line tool for inserting records into the run database.
@@ -19,7 +23,7 @@ public final class RunDatabaseCommandLine {
     /**
      * Command line options for the crawler.
      */
-    private static final Options OPTIONS = new Options();    
+    private static final Options OPTIONS = new Options();
 
     /**
      * Statically define the command options.
@@ -28,12 +32,15 @@ public final class RunDatabaseCommandLine {
         OPTIONS.addOption("h", "help", false, "print help and exit (overrides all other arguments)");
         OPTIONS.addOption("r", "run", true, "run to update");
         OPTIONS.addOption("p", "connection-properties", true, "database connection properties file (required)");       
-        OPTIONS.addOption("D", "dry-run", false, "dry run which will not update the database");
+        OPTIONS.addOption("Y", "dry-run", false, "dry run which will not update the database");
         OPTIONS.addOption("x", "replace", false, "allow deleting and replacing an existing run");
         OPTIONS.addOption("s", "spreadsheet", true, "path to run database spreadsheet (CSV format)");
-        OPTIONS.addOption("d", "detector", true, "conditions system detector name");        
+        OPTIONS.addOption("d", "detector", true, "conditions system detector name");
         OPTIONS.addOption("N", "no-evio-processing", false, "skip processing of all EVIO files");
         OPTIONS.addOption("L", "load", false, "load back run information after inserting (for debugging)");
+        OPTIONS.addOption("u", "url", true, "datacat URL");
+        OPTIONS.addOption("S", "site", true, "datacat site (e.g. SLAC or JLAB)");        
+        // TODO: add -D option for defining metadata values
     }
 
     /**
@@ -79,12 +86,17 @@ public final class RunDatabaseCommandLine {
     /**
      * Load back run information after insert (for debugging).
      */
-    private boolean load = false;
+    private boolean reload = false;
     
     /**
      * Database connection parameters.
      */
     private ConnectionParameters connectionParameters = null;
+    
+    /**
+     * Datacat client to use for connecting to data catalog.
+     */
+    private DatacatClient datacatClient = null;
     
     /**
      * Parse command line options and return reference to <code>this</code> object.
@@ -125,7 +137,7 @@ public final class RunDatabaseCommandLine {
             }
             
             // Dry run.
-            if (cl.hasOption("D")) {
+            if (cl.hasOption("Y")) {
                 this.dryRun = true;
             }
             
@@ -154,8 +166,20 @@ public final class RunDatabaseCommandLine {
             
             // Load back run info at end of job.
             if (cl.hasOption("L")) {
-                this.load = true;
+                this.reload = true;
             }
+            
+            // Setup datacat client.
+            DatasetSite site = DatasetSite.JLAB;            
+            String url = DatacatConstants.BASE_URL;            
+            String rootFolder = DatacatConstants.ROOT_FOLDER;            
+            if (cl.hasOption("u")) {
+                url = cl.getOptionValue("u");
+            }
+            if (cl.hasOption("S")) {
+                site = DatasetSite.valueOf(cl.getOptionValue("S"));
+            }
+            datacatClient = new DatacatClientFactory().createClient(url, site, rootFolder);
             
         } catch (final ParseException e) {
             throw new RuntimeException(e);
@@ -172,12 +196,12 @@ public final class RunDatabaseCommandLine {
             .createRunSummary(run)
             .setDetectorName(detectorName)
             .setConnectionParameters(connectionParameters)
+            .setDatacatClient(datacatClient)
             .setDryRun(dryRun)
             .setReplace(replace)
             .skipEvioProcessing(skipEvioProcessing)
             .setSpreadsheetFile(spreadsheetFile)
-            .run()
-            .load(load);
-    }
-        
+            .setReload(reload)
+            .run();
+    }        
 }

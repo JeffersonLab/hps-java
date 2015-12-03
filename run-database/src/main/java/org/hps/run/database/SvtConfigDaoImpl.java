@@ -16,7 +16,7 @@ import org.hps.record.svt.SvtConfigData.RocTag;
  * 
  * @author Jeremy McCormick, SLAC
  */
-public class SvtConfigDaoImpl implements SvtConfigDao {
+final class SvtConfigDaoImpl implements SvtConfigDao {
 
     private Connection connection = null;
     

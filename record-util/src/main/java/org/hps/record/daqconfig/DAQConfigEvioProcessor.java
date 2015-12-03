@@ -15,7 +15,7 @@ import org.jlab.coda.jevio.EvioEvent;
  * Copied and modified from code in {@link org.hps.evio.TriggerConfigEvioReader} to extract DAQ config without
  * needing an output LCSim event.
  * <p>
- * Only the last valid DAQ config object will be saved.
+ * Only the last valid DAQ config object is available once the job is finished.
  * 
  * @author Jeremy McCormick, SLAC
  */
@@ -28,6 +28,10 @@ public class DAQConfigEvioProcessor extends EvioEventProcessor {
     private Map<Integer, String> stringData = new HashMap<Integer, String>();
     
     private Integer run = null;
+    
+    private int timestamp;
+    
+    private int currentTimestamp;
 
     /**
      * Process EVIO events to extract DAQ config data.
@@ -43,10 +47,19 @@ public class DAQConfigEvioProcessor extends EvioEventProcessor {
                 } catch (NullPointerException e) {
                 }
             }
-
+                        
             // Can only start parsing DAQ banks once the run is set.
             if (run != null) {
                 
+                // Set current timestamp from head bank.
+                BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
+                if (headBank != null) {
+                    if (headBank.getIntData()[3] != 0) {
+                        currentTimestamp = headBank.getIntData()[3];
+                        LOGGER.finest("set timestamp " + currentTimestamp + " from head bank");
+                    }
+                }
+                                
                 // Parse config data from the EVIO banks.
                 EvioDAQParser evioParser = parseEvioData(evioEvent);
             
@@ -55,7 +68,9 @@ public class DAQConfigEvioProcessor extends EvioEventProcessor {
                     // Set the current DAQ config object.
                     ConfigurationManager.updateConfiguration(evioParser);
                     daqConfig = ConfigurationManager.getInstance();
+                    timestamp = currentTimestamp;
                 }
+                                
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Error parsing DAQ config from EVIO.", e);
@@ -119,11 +134,20 @@ public class DAQConfigEvioProcessor extends EvioEventProcessor {
     }
     
     /**
-     * Get a map of bank number to its string data for the current config.
+     * Get a map of bank number to string data for the current config.
      * 
      * @return a map of bank to trigger config data
      */
     public Map<Integer, String> getTriggerConfigData() {
         return this.stringData;
+    }
+    
+    /**
+     * Get the timestamp associated with the config.
+     * 
+     * @return the timestamp
+     */
+    public int getTimestamp() {
+        return timestamp;
     }
 }

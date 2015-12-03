@@ -78,4 +78,13 @@ final class RunDatabaseDaoFactory {
     SvtConfigDao createSvtConfigDao() {
         return new SvtConfigDaoImpl(connection);
     }
+    
+    /**
+     * Get the trigger config DAO.
+     * 
+     * @return the trigger config DAO
+     */
+    TriggerConfigDao createTriggerConfigDao() {
+        return new TriggerConfigDaoImpl(connection);
+    }
 }

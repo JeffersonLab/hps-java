@@ -24,6 +24,7 @@ import org.hps.datacat.client.DatacatClient;
 import org.hps.datacat.client.DatacatClientFactory;
 import org.hps.datacat.client.DatasetFileFormat;
 import org.hps.datacat.client.DatasetSite;
+import org.hps.record.util.FileUtilities;
 
 /**
  * Command line file crawler for populating the data catalog.
@@ -266,7 +267,6 @@ public final class DatacatCrawler {
                 for (String arg : cl.getArgList()) {
                     config.addPath(arg);
                 }
-                
             }
 
         } catch (final ParseException e) {
@@ -360,8 +360,8 @@ public final class DatacatCrawler {
 
                 // Use file on JLAB cache disk if necessary.
                 File actualFile = file;
-                if (CrawlerFileUtilities.isMssFile(file)) {
-                    actualFile = CrawlerFileUtilities.getCachedFile(file);
+                if (FileUtilities.isMssFile(file)) {
+                    actualFile = FileUtilities.getCachedFile(file);
                     LOGGER.info("using cached file " + actualFile.getPath());
                 }
                 
@@ -373,7 +373,7 @@ public final class DatacatCrawler {
                 } else {
                     // Assign run number even if metadata is not enabled.
                     metadata = new HashMap<String, Object>();
-                    int run = CrawlerFileUtilities.getRunFromFileName(file);
+                    int run = FileUtilities.getRunFromFileName(file);
                     metadata.put("runMin", run);
                     metadata.put("runMax", run);
                     metadata.put("scanStatus", "UNSCANNED");

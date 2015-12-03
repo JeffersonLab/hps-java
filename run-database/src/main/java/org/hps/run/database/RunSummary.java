@@ -1,9 +1,6 @@
 package org.hps.run.database;
 
 import java.util.Date;
-import java.util.Map;
-
-import org.hps.record.daqconfig.DAQConfig;
 
 /**
  * This is an API for accessing run summary information which is persisted as a row in the <i>run_summaries</i> table.
@@ -18,27 +15,12 @@ import org.hps.record.daqconfig.DAQConfig;
  */
 public interface RunSummary {
 
-    /*
-     * Mapping of trigger config fields to crate numbers.
-     */
-    public static final int TRIGGER_CONFIG1 = 37;
-    public static final int TRIGGER_CONFIG2 = 39;
-    public static final int TRIGGER_CONFIG3 = 46;
-    public static final int TRIGGER_CONFIG4 = 58;
-
     /**
      * Get the creation date of this record.
      *
      * @return the creation date of this record
      */
     Date getCreated();
-
-    /**
-     * Get the trigger config.
-     * 
-     * @return the trigger config
-     */
-    DAQConfig getDAQConfig();
 
     /**
      * Get the END event timestamp or the timestamp from the last head bank if END is not present.
@@ -123,13 +105,6 @@ public interface RunSummary {
      * @return the total number of files in this run
      */
     Integer getTotalFiles();
-
-    /**
-     * Get a map of crate number to trigger config data.
-     * 
-     * @return the map of crate number to trigger config data
-     */
-    Map<Integer, String> getTriggerConfigData();
 
     /**
      * Get the trigger config name (from the run spreadsheet).

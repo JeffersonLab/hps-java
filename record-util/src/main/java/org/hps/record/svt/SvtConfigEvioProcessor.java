@@ -34,9 +34,9 @@ public class SvtConfigEvioProcessor extends EvioEventProcessor {
         BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
         int configBanks = 0;
         if (headBank != null) {
-            if (headBank.getIntData()[0] != 0) {
-                timestamp = headBank.getIntData()[0];
-                LOGGER.info("set timestamp " + timestamp);
+            if (headBank.getIntData()[3] != 0) {
+                timestamp = headBank.getIntData()[3];
+                //LOGGER.finest("set timestamp " + timestamp + " from head bank");
             }
         }
         for (BaseStructure bank : evioEvent.getChildrenList()) {
@@ -75,8 +75,8 @@ public class SvtConfigEvioProcessor extends EvioEventProcessor {
             }
         } 
         if (config != null) {
-            LOGGER.info("Adding SVT config " + evioEvent.getEventNumber() + " with " + configBanks 
-                    + " banks from event " + evioEvent.getEventNumber());
+            LOGGER.info("Adding SVT config " + evioEvent.getEventNumber() + " with " + configBanks
+                    + " banks and timestamp " + timestamp + " from event " + evioEvent.getEventNumber());
             this.configs.add(config);
         }
     }

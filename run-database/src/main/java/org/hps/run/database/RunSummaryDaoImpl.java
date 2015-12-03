@@ -1,14 +1,11 @@
 package org.hps.run.database;
 
-import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -19,11 +16,6 @@ import java.util.logging.Logger;
 final class RunSummaryDaoImpl implements RunSummaryDao {
 
     /**
-     * Expected number of string banks in trigger config.
-     */
-    private static final int TRIGGER_CONFIG_LEN = 4;
-
-    /**
      * Delete by run number.
      */
     private static final String DELETE = "DELETE FROM run_summaries WHERE run = ?";
@@ -32,23 +24,15 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
      * Insert a record for a run.
      */
     private static final String INSERT = "INSERT INTO run_summaries (run, nevents, nfiles, prestart_timestamp,"
-            + " go_timestamp, end_timestamp, trigger_rate, trigger_config_name, trigger_config1, trigger_config2," 
-            + " trigger_config3, trigger_config4, ti_time_offset, livetime_clock, livetime_fcup_tdc, livetime_fcup_trg,"
-            + " target, notes, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+            + " go_timestamp, end_timestamp, trigger_rate, trigger_config_name, ti_time_offset," 
+            + " livetime_clock, livetime_fcup_tdc, livetime_fcup_trg, target, notes, created, updated)"
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
                      
     /**
      * Select record by run number.
      */
     private static final String SELECT = "SELECT * FROM run_summaries WHERE run = ?";
-        
-    /**
-     * Update information for a run.
-     */
-    private static final String UPDATE = "UPDATE run_summaries SET nevents = ?, nfiles = ?, prestart_timestamp = ?,"
-            + " go_timestamp = ?, end_timestamp = ?, trigger_rate = ?, trigger_config_name = ?, trigger_config1 = ?,"
-            + " trigger_config2 = ?, trigger_config3 = ?, trigger_config4 = ?, ti_time_offset = ?, livetime_clock = ?,"
-            + " livetime_fcup_tdc = ?, livetime_fcup_trg = ?, target = ?, notes = ?, created WHERE run = ?";
-
+           
     /**
      * Initialize the logger.
      */
@@ -102,32 +86,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             }
         }
     }
-
-    /**
-     * Delete a run summary but not its objects.
-     *
-     * @param runSummary the run summary object
-     */
-    @Override
-    public void deleteRunSummary(final RunSummary runSummary) {
-        PreparedStatement preparedStatement = null;
-        try {
-            preparedStatement = connection.prepareStatement(DELETE);
-            preparedStatement.setInt(1, runSummary.getRun());
-            preparedStatement.executeUpdate();
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (final SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
+   
     /**
      * Get the list of run numbers.
      *
@@ -183,10 +142,6 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             runSummary.setEndTimestamp(resultSet.getInt("end_timestamp"));
             runSummary.setTriggerRate(resultSet.getDouble("trigger_rate"));
             runSummary.setTriggerConfigName(resultSet.getString("trigger_config_name"));
-            Map<Integer, String> triggerConfigData = createTriggerConfigData(resultSet);
-            if (!triggerConfigData.isEmpty()) {
-                runSummary.setTriggerConfigData(triggerConfigData);
-            } 
             runSummary.setTiTimeOffset(resultSet.getLong("ti_time_offset"));
             runSummary.setLivetimeClock(resultSet.getDouble("livetime_clock"));
             runSummary.setLivetimeFcupTdc(resultSet.getDouble("livetime_fcup_tdc"));
@@ -208,34 +163,6 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         }
         return runSummary;
     }
-
-    /**
-     * Create trigger config data from result set.
-     * 
-     * @param resultSet the result set with the run summary record
-     * @return the trigger config data as a map of bank number to string data
-     * @throws SQLException if there is an error querying the database
-     */
-    private Map<Integer, String> createTriggerConfigData(final ResultSet resultSet) throws SQLException {
-        Map<Integer, String> triggerConfigData = new LinkedHashMap<Integer, String>();
-        Clob clob = resultSet.getClob("trigger_config1");            
-        if (clob != null) {
-            triggerConfigData.put(RunSummary.TRIGGER_CONFIG1, clob.getSubString(1, (int) clob.length()));
-        }
-        clob = resultSet.getClob("trigger_config2");
-        if (clob != null) {
-            triggerConfigData.put(RunSummary.TRIGGER_CONFIG2, clob.getSubString(1, (int) clob.length()));
-        }
-        clob = resultSet.getClob("trigger_config3");
-        if (clob != null) {
-            triggerConfigData.put(RunSummary.TRIGGER_CONFIG3, clob.getSubString(1, (int) clob.length()));
-        }
-        clob = resultSet.getClob("trigger_config4");
-        if (clob != null) {
-            triggerConfigData.put(RunSummary.TRIGGER_CONFIG4, clob.getSubString(1, (int) clob.length()));
-        }
-        return triggerConfigData;
-    }
       
     /**
      * Insert a run summary.
@@ -255,14 +182,12 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             preparedStatement.setInt(6, runSummary.getEndTimestamp());
             preparedStatement.setDouble(7, runSummary.getTriggerRate());
             preparedStatement.setString(8, runSummary.getTriggerConfigName());
-            Map<Integer, String> triggerData = runSummary.getTriggerConfigData();
-            prepareTriggerData(preparedStatement, triggerData);
-            preparedStatement.setLong(13, runSummary.getTiTimeOffset());
-            preparedStatement.setDouble(14, runSummary.getLivetimeClock());
-            preparedStatement.setDouble(15, runSummary.getLivetimeFcupTdc());
-            preparedStatement.setDouble(16, runSummary.getLivetimeFcupTrg());
-            preparedStatement.setString(17, runSummary.getTarget());
-            preparedStatement.setString(18, runSummary.getNotes());
+            preparedStatement.setLong(9, runSummary.getTiTimeOffset());
+            preparedStatement.setDouble(10, runSummary.getLivetimeClock());
+            preparedStatement.setDouble(11, runSummary.getLivetimeFcupTdc());
+            preparedStatement.setDouble(12, runSummary.getLivetimeFcupTrg());
+            preparedStatement.setString(13, runSummary.getTarget());
+            preparedStatement.setString(14, runSummary.getNotes());
             LOGGER.fine(preparedStatement.toString());
             preparedStatement.executeUpdate();
         } catch (final SQLException e) {
@@ -277,30 +202,6 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             }
         }
     }
-
-    /**
-     * Set trigger config data on prepared statement.
-     * @param preparedStatement the prepared statement
-     * @param triggerData the trigger config data
-     * @throws SQLException if there is an error querying the database
-     */
-    private void prepareTriggerData(PreparedStatement preparedStatement, Map<Integer, String> triggerData)
-            throws SQLException {
-        if (triggerData != null && !triggerData.isEmpty()) {
-            if (triggerData.size() != TRIGGER_CONFIG_LEN) {
-                throw new IllegalArgumentException("The trigger config data has the wrong length.");
-            }
-            preparedStatement.setBytes(9, triggerData.get(RunSummary.TRIGGER_CONFIG1).getBytes());
-            preparedStatement.setBytes(10, triggerData.get(RunSummary.TRIGGER_CONFIG2).getBytes());
-            preparedStatement.setBytes(11, triggerData.get(RunSummary.TRIGGER_CONFIG3).getBytes());
-            preparedStatement.setBytes(12, triggerData.get(RunSummary.TRIGGER_CONFIG4).getBytes());
-        } else {
-            preparedStatement.setBytes(9, null);
-            preparedStatement.setBytes(10, null);
-            preparedStatement.setBytes(11, null);
-            preparedStatement.setBytes(12, null);
-        }
-    }
    
     /**
      * Return <code>true</code> if a run summary exists in the database for the run number.
@@ -309,7 +210,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
      * @return <code>true</code> if run exists in the database
      */
     @Override
-    public boolean runExists(final int run) {
+    public boolean runSummaryExists(final int run) {
         PreparedStatement preparedStatement = null;
         try {
             preparedStatement = connection.prepareStatement("SELECT run FROM run_summaries where run = ?");
@@ -328,58 +229,4 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             }
         }
     }
-
-    /**
-     * Update a run summary.
-     *
-     * @param runSummary the run summary to update
-     */
-    @Override
-    public void updateRunSummary(final RunSummary runSummary) {
-        PreparedStatement preparedStatement = null;
-        try {
-            preparedStatement = connection.prepareStatement(UPDATE);                       
-            preparedStatement.setInt(1, runSummary.getTotalEvents());
-            preparedStatement.setInt(2, runSummary.getTotalFiles());
-            preparedStatement.setInt(3, runSummary.getPrestartTimestamp());
-            preparedStatement.setInt(4, runSummary.getGoTimestamp());
-            preparedStatement.setInt(5, runSummary.getEndTimestamp());
-            preparedStatement.setDouble(6, runSummary.getTriggerRate());
-            preparedStatement.setString(7, runSummary.getTriggerConfigName());
-            Map<Integer, String> triggerData = runSummary.getTriggerConfigData();
-            if (triggerData != null && !triggerData.isEmpty()) {
-                if (triggerData.size() != 4) {
-                    throw new IllegalArgumentException("The trigger config data has the wrong length.");
-                }
-                preparedStatement.setBytes(8, triggerData.get(RunSummary.TRIGGER_CONFIG1).getBytes());
-                preparedStatement.setBytes(9, triggerData.get(RunSummary.TRIGGER_CONFIG2).getBytes());
-                preparedStatement.setBytes(10, triggerData.get(RunSummary.TRIGGER_CONFIG3).getBytes());
-                preparedStatement.setBytes(11, triggerData.get(RunSummary.TRIGGER_CONFIG4).getBytes());
-            } else {
-                preparedStatement.setBytes(8, null);
-                preparedStatement.setBytes(9, null);
-                preparedStatement.setBytes(10, null);
-                preparedStatement.setBytes(11, null);
-            }
-            preparedStatement.setLong(12, runSummary.getTiTimeOffset());
-            preparedStatement.setDouble(13, runSummary.getLivetimeClock());
-            preparedStatement.setDouble(14, runSummary.getLivetimeFcupTdc());
-            preparedStatement.setDouble(15, runSummary.getLivetimeFcupTrg());
-            preparedStatement.setString(16, runSummary.getTarget());
-            preparedStatement.setString(17, runSummary.getNotes());
-            preparedStatement.setInt(18, runSummary.getRun());
-            LOGGER.fine(preparedStatement.toString());
-            preparedStatement.executeUpdate();
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (final SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }      
 }
