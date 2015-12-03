@@ -32,6 +32,8 @@ public class V0CandidateFilter extends EventReconFilter {
     private double v0Chi2Cut = 10.0;
     private double trackChi2Cut = 20.0;
     private double trackDtCut = 5.0;
+    private double trackPMax = 0.9;
+    private double v0PMax = 1.4;
 
     private boolean _tight = false;
     private boolean _keepEpicsDataEvents = false;
@@ -69,6 +71,12 @@ public class V0CandidateFilter extends EventReconFilter {
                 continue;
             }
             if (electron.getTracks().get(0).getChi2() > trackChi2Cut || positron.getTracks().get(0).getChi2() > trackChi2Cut) {
+                continue;
+            }
+            if (electron.getMomentum().magnitude() > trackPMax || positron.getMomentum().magnitude() > trackPMax) {
+                continue;
+            }
+            if (v0.getMomentum().magnitude() > v0PMax) {
                 continue;
             }
             double eleTime = TrackData.getTrackTime(TrackData.getTrackData(event, electron.getTracks().get(0)));
@@ -127,6 +135,20 @@ public class V0CandidateFilter extends EventReconFilter {
      */
     public void setTrackDtCut(double trackDtCut) {
         this.trackDtCut = trackDtCut;
+    }
+
+    /**
+     * Maximum track momentum for a V0 to be counted. A V0 is rejected if either
+     * of the final state tracks has momentum exceeding this cut.
+     *
+     * @param trackPMax units of GeV, default of 0.9
+     */
+    public void setTrackPMax(double trackPMax) {
+        this.trackPMax = trackPMax;
+    }
+
+    public void setV0PMax(double v0PMax) {
+        this.v0PMax = v0PMax;
     }
 
     /**
