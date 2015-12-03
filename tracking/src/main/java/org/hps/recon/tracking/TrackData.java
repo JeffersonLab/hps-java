@@ -1,6 +1,13 @@
 package org.hps.recon.tracking;
 
+import java.util.List;
+import org.apache.commons.math3.util.Pair;
+import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.Track;
+import org.lcsim.event.base.BaseRelationalTable;
 
 /**
  * Generic object used to persist track data not available through a Track
@@ -154,5 +161,25 @@ public class TrackData implements GenericObject {
     @Override
     public boolean isFixedSize() {
         return true;
+    }
+
+    private static Pair<EventHeader, RelationalTable> trackDataToTrackCache = null;
+
+    public static RelationalTable getTrackDataToTrackTable(EventHeader event) {
+        if (trackDataToTrackCache == null || trackDataToTrackCache.getFirst() != event) {
+            RelationalTable trackDataToTrack = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+            List<LCRelation> hitrelations = event.get(LCRelation.class, TRACK_DATA_RELATION_COLLECTION);
+            for (LCRelation relation : hitrelations) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    trackDataToTrack.add(relation.getFrom(), relation.getTo());
+                }
+            }
+            trackDataToTrackCache = new Pair<EventHeader, RelationalTable>(event, trackDataToTrack);
+        }
+        return trackDataToTrackCache.getSecond();
+    }
+
+    public static GenericObject getTrackData(EventHeader event, Track track) {
+        return (GenericObject) getTrackDataToTrackTable(event).from(track);
     }
 }
