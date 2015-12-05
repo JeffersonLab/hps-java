@@ -645,7 +645,7 @@ public abstract class ReconParticleDriver extends Driver {
     // Beam size variables.
     // The beamsize array is in the tracking frame
     /* TODO  mg-May 14, 2014:  the the beam size from the conditions db...also beam position!  */
-    protected double[] beamSize = {0.001, 0.2, 0.02};
+    protected double[] beamSize = {0.001, 0.130, 0.050}; //rough estimate from harp scans during engineering run production running
     protected double bField;
 
     //  flipSign is a kludge...
