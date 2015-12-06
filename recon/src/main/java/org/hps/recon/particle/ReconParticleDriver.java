@@ -267,30 +267,41 @@ public abstract class ReconParticleDriver extends Driver {
                     ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
                 }
 
+                // the cluster matched to the track:
                 Cluster matchedCluster = null;
+              
+                // normalized cluster-track distance required for qualifying as a match:
+                final double maximumNSigma=5;
+                
+                // only match clusters to GBL tracks:
+                if (track.getType() >= 32) {
+                	 
+                	// normalized distance of the closest match:
+                	double smallestNSigma=Double.MAX_VALUE;
+                	
+                	for (Cluster cluster : clusters) {
+                		
+                		// normalized distance between this cluster and track:
+                		double thisNSigma=matcher.getNSigmaFromMeanGBL(cluster, track);
 
-                // Track the best matching cluster for the track.
-                // TODO: This should find the best match not just the first match.
-                clusterLoop:
-                for (Cluster cluster : clusters) {
-                    // Check if the cluster and track are a valid match.
-                    if (matcher.isMatch(cluster, track)) {
-
-                    	// Store the matched cluster to matched track.
-                    	clusterToTrack.put(cluster, track);
-                    	
-                        // Store the matched cluster.
-                        matchedCluster = cluster;
-
-                        // Since a match has been found, the loop can be
-                        // terminated.
-                        break clusterLoop;
-                    }
+                		// ignore if distance doesn't make the cut:
+                		if (thisNSigma > maximumNSigma) continue;
+                		
+                		// keep the cluster with the smallest normalized distance to the track:
+                		if (thisNSigma < smallestNSigma) {
+                			smallestNSigma = thisNSigma;
+                			matchedCluster = cluster;
+                		}
+                	}
                 }
-
+                
                 // If a cluster was found that matches the track...
                 if (matchedCluster != null) {
-                    particle.addCluster(matchedCluster);
+
+                	// store the matching for later cluster corrections: 
+                	clusterToTrack.put(matchedCluster,  track);
+                    
+                	particle.addCluster(matchedCluster);
 
                     int pid = particle.getParticleIDUsed().getPDG();
                     if (Math.abs(pid) == 11) {
@@ -645,7 +656,7 @@ public abstract class ReconParticleDriver extends Driver {
     // Beam size variables.
     // The beamsize array is in the tracking frame
     /* TODO  mg-May 14, 2014:  the the beam size from the conditions db...also beam position!  */
-    protected double[] beamSize = {0.001, 0.130, 0.050}; //rough estimate from harp scans during engineering run production running
+    protected double[] beamSize = {0.001, 0.2, 0.02};
     protected double bField;
 
     //  flipSign is a kludge...
