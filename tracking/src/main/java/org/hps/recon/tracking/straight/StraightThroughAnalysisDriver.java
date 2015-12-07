@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.hps.users.phansson;
+package org.hps.recon.tracking.straight;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IFitResult;
@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.monitoring.drivers.svt.SvtPlotUtils;
-import org.hps.users.phansson.STUtils.STStereoTrack;
+import org.hps.recon.tracking.SvtPlotUtils;
+import org.hps.recon.tracking.straight.STUtils.STStereoTrack;
 import org.lcsim.detector.converter.compact.subdetector.HpsTracker2;
 import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;

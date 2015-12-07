@@ -16,6 +16,7 @@ import hep.aida.ITree;
 import hep.aida.jfree.plotter.Plotter;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.ref.rootwriter.RootFileStore;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,8 +26,8 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
-
 import org.hps.recon.tracking.FittedRawTrackerHit;
+import org.hps.recon.tracking.SvtPlotUtils;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.util.aida.AIDA;
 

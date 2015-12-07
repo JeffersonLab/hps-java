@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.hps.users.phansson;
+package org.hps.recon.tracking.straight;
 
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.vec.BasicHep3Matrix;
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.users.phansson.STUtils.STStereoTrack.VIEW;
+import org.hps.recon.tracking.straight.STUtils.STStereoTrack.VIEW;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hps.recon.tracking.SvtPlotUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.util.Driver;
 import org.lcsim.geometry.Detector;
