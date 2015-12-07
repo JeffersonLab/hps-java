@@ -64,104 +64,52 @@ public class TrackClusterMatcher {
     private double bottomClusterTrackMatchDeltaYLow = -28; // mm 
     private double bottomClusterTrackMatchDeltaYHigh = 24; // mm 
 
-
     /**
      * Rafo's parameterization of cluster-seed x/y position residuals as function of energy.
-     * Derived using GBL tracks, non-analytic extrapolation, and uncorrected cluster positions.
+     * Derived using GBL/seed tracks, non-analytic extrapolation, uncorrected cluster positions,
+     * and EngRun2015-Nominal-v3-4-fieldmap detector 
      */
     private static final double dxMeanTopPosiGBL[] = { 6.67414,-9.57296, 5.70647, 27.4523,-28.1103,-9.11424 };
     private static final double dxSigmTopPosiGBL[] = { 52.6437,-478.805, 1896.73,-3761.48, 3676.77,-1408.31 };
     private static final double dxMeanBotPosiGBL[] = { 4.13802, 15.8887,-74.2844,-9.78944, 308.541,-287.668 };
     private static final double dxSigmBotPosiGBL[] = { 37.6513,-294.851, 1002.15,-1639.08, 1228.02,-308.754 };
+    
     private static final double dxMeanTopElecGBL[] = {-1.6473,  5.58701, 25.3977,-17.1523,-121.025, 145.969 };
     private static final double dxSigmTopElecGBL[] = { 48.7018,-423.599, 1592.66,-2959.99, 2668.97,-919.876 };
     private static final double dxMeanBotElecGBL[] = {-6.63558, 83.7763,-460.451, 1275.63,-1702.83, 873.913 };
     private static final double dxSigmBotElecGBL[] = { 47.0029,-411.784, 1586.52,-3083.37, 2985.58,-1145.53 };
+    
     private static final double dyMeanTopPosiGBL[] = { 0.71245, 5.57585,-6.50267,-8.21688, 39.8607,-43.9661 };
     private static final double dySigmTopPosiGBL[] = { 33.0213,-275.174, 1168.77,-2642.34, 3045.52,-1406.21 };
     private static final double dyMeanBotPosiGBL[] = {-5.532,   74.9738,-383.972, 977.849,-1250.28, 637.75  };
     private static final double dySigmBotPosiGBL[] = { 19.019, -83.9253, 133.813, 119.883,-546.951, 405.207 };
+    
     private static final double dyMeanTopElecGBL[] = { 2.88498,-20.4101, 62.9689, 25.6386,-259.957, 207.145 };
     private static final double dySigmTopElecGBL[] = { 8.65583, 120.676,-1166.43, 3811.72,-5383.19, 2787.42 };
     private static final double dyMeanBotElecGBL[] = {-9.02276, 112.329,-489.761, 953.037,-829.96,  260.772 };
     private static final double dySigmBotElecGBL[] = { 23.4856,-108.19,  158.7,   189.261,-682.034, 459.15  };
 
-    public double getNSigmaFromMeanGBL(Cluster cluster,Track track) {
-
-        if (this.useAnalyticExtrapolator)
-            throw new RuntimeException("This is to be used with non-analytic extrapolator only.");
-       
-        if (track.getType() < 32) 
-            throw new RuntimeException("This is to be used with GBL tracks only.");
-        
-    	// Get the cluster position:
-        Hep3Vector cPos = new BasicHep3Vector(cluster.getPosition());
-        
-        // Get the extrapolated track position at the calorimeter:
-        TrackState trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
-        Hep3Vector tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
-        tPos = CoordinateTransformations.transformVectorToDetector(tPos);
-
-        // whether track is in top half of detector:
-        final boolean isTopTrack = track.getTrackStates().get(0).getTanLambda() > 0;
-       
-        // track and cluster in different halves:
-        if (isTopTrack != cPos.y()>0) return Double.MAX_VALUE;
-       
-        // choose which parameterization of mean and sigma to use:
-        double dxMean[],dyMean[],dxSigm[],dySigm[];
-        if (track.getCharge()==1) {
-        	if (isTopTrack) {
-        		dxMean=dxMeanTopPosiGBL;
-        		dxSigm=dxSigmTopPosiGBL;
-        		dyMean=dyMeanTopPosiGBL;
-        		dySigm=dySigmTopPosiGBL;
-        	}
-        	else {
-        		dxMean=dxMeanBotPosiGBL;
-        		dxSigm=dxSigmBotPosiGBL;
-        		dyMean=dyMeanBotPosiGBL;
-        		dySigm=dySigmBotPosiGBL;
-        	}
-        }
-        else if (track.getCharge()==-1) {
-        	if (isTopTrack) {
-        		dxMean=dxMeanTopElecGBL;
-        		dxSigm=dxSigmTopElecGBL;
-        		dyMean=dyMeanTopElecGBL;
-        		dySigm=dySigmTopElecGBL;
-        	}
-        	else {
-        		dxMean=dxMeanBotElecGBL;
-        		dxSigm=dxSigmBotElecGBL;
-        		dyMean=dyMeanBotElecGBL;
-        		dySigm=dySigmBotElecGBL;
-        	}
-        }
-        else {
-            return Double.MAX_VALUE;
-        }
-       
-        // get particle energy:
-        final double pp[] = track.getMomentum();
-        double ee = Math.sqrt( pp[0]*pp[0] + pp[1]*pp[1] + pp[2]*pp[2] );
-        
-        // force the parameterizations to be constant above a certain energy:
-        if (ee > 0.6) ee=0.6;
-
-        // calculate measured mean and sigma of deltaX and deltaY for this energy:
-        double aDxMean=0,aDxSigm=0,aDyMean=0,aDySigm=0;
-        for (int ii=dxMean.length-1; ii>=0; ii--) aDxMean = dxMean[ii] + ee*aDxMean;
-        for (int ii=dxSigm.length-1; ii>=0; ii--) aDxSigm = dxSigm[ii] + ee*aDxSigm;
-        for (int ii=dyMean.length-1; ii>=0; ii--) aDyMean = dyMean[ii] + ee*aDyMean;
-        for (int ii=dySigm.length-1; ii>=0; ii--) aDySigm = dySigm[ii] + ee*aDySigm;
-        
-        // calculate nSigma between track and cluster:
-        final double nSigmaX = Math.abs(cPos.x() - tPos.x() - aDxMean) / aDxSigm;
-        final double nSigmaY = Math.abs(cPos.y() - tPos.y() - aDyMean) / aDySigm;
-        return Math.sqrt(nSigmaX*nSigmaX + nSigmaY*nSigmaY);
-    }
+    private static final double dxMeanTopPosiSeed[] ={ 11.6245,-28.5061, 13.0332, 59.9465,-21.1014,-63.6126 };
+    private static final double dxSigmTopPosiSeed[] ={ 61.5911,-540.596, 2077.22,-3973.22, 3704.45,-1332.07 };
+    private static final double dxMeanBotPosiSeed[] ={ 4.53394, 11.3773,-63.7127,-2.81629, 273.868,-264.709 };
+    private static final double dxSigmBotPosiSeed[] ={ 48.3163,-409.249, 1590.36,-3212.85, 3326.04,-1402.3  };
     
+    private static final double dxMeanTopElecSeed[] ={ 2.14163,-20.8713, 76.3054,  34.894,-340.272,  295.24 };
+    private static final double dxSigmTopElecSeed[] ={ 48.585, -385.166, 1320.26,-2157.45, 1581.06,-366.012 };
+    private static final double dxMeanBotElecSeed[] ={-3.44302, 12.4687, 4.09878,-30.0057,-13.3151, 40.2707 };
+    private static final double dxSigmBotElecSeed[] ={ 48.4089,-385.494, 1341.37,-2271.52, 1814.02,-526.555 };
+
+    private static final double dyMeanTopPosiSeed[] ={-0.127741,10.4944, -18.242,-12.9155, 81.0116,-73.9773 };
+    private static final double dySigmTopPosiSeed[] ={ 37.3097, -357.55, 1607.03,-3709.55, 4282.36,-1957.91 };
+    private static final double dyMeanBotPosiSeed[] ={ 2.24392,-55.2003,  405.04,-1250.64, 1731.47,-887.262 };
+    private static final double dySigmBotPosiSeed[] ={ 25.5776,-199.731,  754.59,-1408.72, 1240.36,-400.912 };
+
+    private static final double dyMeanTopElecSeed[] ={ 3.25429,-24.0858, 69.0145, 34.1213,-297.752, 239.939 };
+    private static final double dySigmTopElecSeed[] ={ 19.9111,-53.2699,-261.915,  1593.2,-2774.01, 1605.54 };
+    private static final double dyMeanBotElecSeed[] ={-7.72963, 98.1346, -427.91, 840.225,-751.188, 250.792 };
+    private static final double dySigmBotElecSeed[] ={ 21.7909,-85.4757,-56.9423, 977.522,-1902.05, 1137.92 };
+
+
     /**
      * Z position to start extrapolation from
      */
@@ -296,6 +244,92 @@ public class TrackClusterMatcher {
         return Math.sqrt(Math.pow(cPos.x()-tPos.x(),2)+Math.pow(cPos.y()-tPos.y(),2));
     }
     
+    /**
+     * Calculate #sigma between cluster-track x/y position at calorimeter.
+     *
+     * Based on Rafo's parameterizations.  Requires non-analytic extrapolation
+     * and uncorrected cluster positions.
+     * 
+     * @param cluster = position-uncorrected cluster
+     * @param track
+     *
+     * @return #sigma between cluster and track positions
+     */
+    public double getNSigmaPosition(Cluster cluster,Track track) {
+
+        if (this.useAnalyticExtrapolator)
+            throw new RuntimeException("This is to be used with non-analytic extrapolator only.");
+
+        // Get the cluster position:
+        Hep3Vector cPos = new BasicHep3Vector(cluster.getPosition());
+
+        // whether track is in top half of detector:
+        final boolean isTopTrack = track.getTrackStates().get(0).getTanLambda() > 0;
+
+        // ignore if track and cluster in different halves:
+        if (isTopTrack != cPos.y()>0) return Double.MAX_VALUE;
+
+        // Get the extrapolated track position at the calorimeter:
+        TrackState trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
+        Hep3Vector tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
+        tPos = CoordinateTransformations.transformVectorToDetector(tPos);
+
+        // whether it's a GBL track:
+        final boolean isGBL = track.getType() >= 32;
+        
+        // choose which parameterization of mean and sigma to use:
+        double dxMean[],dyMean[],dxSigm[],dySigm[];
+        if (track.getCharge()==1) {
+            if (isTopTrack) {
+                dxMean = isGBL ? dxMeanTopPosiGBL : dxMeanTopPosiSeed;
+                dxSigm = isGBL ? dxSigmTopPosiGBL : dxSigmTopPosiSeed;
+                dyMean = isGBL ? dyMeanTopPosiGBL : dyMeanTopPosiSeed;
+                dySigm = isGBL ? dySigmTopPosiGBL : dySigmTopPosiSeed;
+            }
+            else {
+                dxMean = isGBL ? dxMeanBotPosiGBL : dxMeanBotPosiSeed;
+                dxSigm = isGBL ? dxSigmBotPosiGBL : dxSigmBotPosiSeed;
+                dyMean = isGBL ? dyMeanBotPosiGBL : dyMeanBotPosiSeed;
+                dySigm = isGBL ? dySigmBotPosiGBL : dySigmBotPosiSeed;
+            }
+        }
+        else if (track.getCharge()==-1) {
+            if (isTopTrack) {
+                dxMean = isGBL ? dxMeanTopElecGBL : dxMeanTopElecSeed;
+                dxSigm = isGBL ? dxSigmTopElecGBL : dxSigmTopElecSeed;
+                dyMean = isGBL ? dyMeanTopElecGBL : dyMeanTopElecSeed;
+                dySigm = isGBL ? dySigmTopElecGBL : dySigmTopElecSeed;
+            }
+            else {
+                dxMean = isGBL ? dxMeanBotElecGBL : dxMeanBotElecSeed;
+                dxSigm = isGBL ? dxSigmBotElecGBL : dxSigmBotElecSeed;
+                dyMean = isGBL ? dyMeanBotElecGBL : dyMeanBotElecSeed;
+                dySigm = isGBL ? dySigmBotElecGBL : dySigmBotElecSeed;
+            }
+        }
+        else return Double.MAX_VALUE;
+
+        // get particle energy:
+        final double pp[] = track.getMomentum();
+        double ee = Math.sqrt( pp[0]*pp[0] + pp[1]*pp[1] + pp[2]*pp[2] );
+
+        // force the parameterizations to be constant above a certain energy:
+        if (ee > 0.6) ee=0.6;
+
+        // calculate measured mean and sigma of deltaX and deltaY for this energy:
+        double aDxMean=0,aDxSigm=0,aDyMean=0,aDySigm=0;
+        for (int ii=dxMean.length-1; ii>=0; ii--) aDxMean = dxMean[ii] + ee*aDxMean;
+        for (int ii=dxSigm.length-1; ii>=0; ii--) aDxSigm = dxSigm[ii] + ee*aDxSigm;
+        for (int ii=dyMean.length-1; ii>=0; ii--) aDyMean = dyMean[ii] + ee*aDyMean;
+        for (int ii=dySigm.length-1; ii>=0; ii--) aDySigm = dySigm[ii] + ee*aDySigm;
+
+        // calculate nSigma between track and cluster:
+        final double nSigmaX = (cPos.x() - tPos.x() - aDxMean) / aDxSigm;
+        final double nSigmaY = (cPos.y() - tPos.y() - aDyMean) / aDySigm;
+        return Math.sqrt(nSigmaX*nSigmaX + nSigmaY*nSigmaY);
+    }
+
+
     /**
      * Determine if a track is matched to a cluster. Currently, this is
      * determined by checking that the track and cluster are within the same

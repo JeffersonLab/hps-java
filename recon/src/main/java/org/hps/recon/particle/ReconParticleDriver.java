@@ -267,41 +267,38 @@ public abstract class ReconParticleDriver extends Driver {
                     ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
                 }
 
-                // the cluster matched to the track:
-                Cluster matchedCluster = null;
-              
                 // normalized cluster-track distance required for qualifying as a match:
-                final double maximumNSigma=5;
-                
-                // only match clusters to GBL tracks:
-                if (track.getType() >= 32) {
-                	 
-                	// normalized distance of the closest match:
-                	double smallestNSigma=Double.MAX_VALUE;
-                	
-                	for (Cluster cluster : clusters) {
-                		
-                		// normalized distance between this cluster and track:
-                		double thisNSigma=matcher.getNSigmaFromMeanGBL(cluster, track);
+                final double maximumNSigma=5.0;
 
-                		// ignore if distance doesn't make the cut:
-                		if (thisNSigma > maximumNSigma) continue;
-                		
-                		// keep the cluster with the smallest normalized distance to the track:
-                		if (thisNSigma < smallestNSigma) {
-                			smallestNSigma = thisNSigma;
-                			matchedCluster = cluster;
-                		}
-                	}
+                // normalized distance of the closest match:
+                double smallestNSigma=Double.MAX_VALUE;
+               
+                // try to find a matching cluster:
+                Cluster matchedCluster = null;
+                for (Cluster cluster : clusters) {
+
+                    // normalized distance between this cluster and track:
+                    final double thisNSigma=matcher.getNSigmaPosition(cluster, track);
+
+                    // ignore if distance doesn't make the cut:
+                    if (thisNSigma > maximumNSigma) continue;
+
+                    // the cluster with the smallest normalized distance will be the match:
+                    if (thisNSigma < smallestNSigma) {
+                        
+                        smallestNSigma = thisNSigma;
+                        matchedCluster = cluster;
+
+                        // prefer using GBL tracks to actually correct the clusters (later):
+                        if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster))
+                            clusterToTrack.put(matchedCluster,track);
+                    } 
                 }
-                
+
                 // If a cluster was found that matches the track...
                 if (matchedCluster != null) {
 
-                	// store the matching for later cluster corrections: 
-                	clusterToTrack.put(matchedCluster,  track);
-                    
-                	particle.addCluster(matchedCluster);
+                    particle.addCluster(matchedCluster);
 
                     int pid = particle.getParticleIDUsed().getPDG();
                     if (Math.abs(pid) == 11) {
@@ -317,42 +314,40 @@ public abstract class ReconParticleDriver extends Driver {
         }
 
         // Iterate over the remaining unmatched clusters.
-        if (!unmatchedClusters.isEmpty()) {
-            for (Cluster unmatchedCluster : unmatchedClusters) {
+        for (Cluster unmatchedCluster : unmatchedClusters) {
 
-                // Create a reconstructed particle to represent the unmatched cluster.
-                ReconstructedParticle particle = new BaseReconstructedParticle();
+            // Create a reconstructed particle to represent the unmatched cluster.
+            ReconstructedParticle particle = new BaseReconstructedParticle();
 
-                // The particle is assumed to be a photon, since it did not leave a track.
-                ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(22, 0, 0, 0));
+            // The particle is assumed to be a photon, since it did not leave a track.
+            ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(22, 0, 0, 0));
 
-                int pid = particle.getParticleIDUsed().getPDG();
-                if (Math.abs(pid) != 11) {
-                    ((BaseCluster) unmatchedCluster).setParticleId(pid);
-                }
-
-                // Add the cluster to the particle.
-                particle.addCluster(unmatchedCluster);
-
-                // Set the reconstructed particle properties based on the cluster properties.
-                ((BaseReconstructedParticle) particle).setCharge(0);
-
-                // Add the particle to the reconstructed particle list.
-                particles.add(particle);
+            int pid = particle.getParticleIDUsed().getPDG();
+            if (Math.abs(pid) != 11) {
+                ((BaseCluster) unmatchedCluster).setParticleId(pid);
             }
+
+            // Add the cluster to the particle.
+            particle.addCluster(unmatchedCluster);
+
+            // Set the reconstructed particle properties based on the cluster properties.
+            ((BaseReconstructedParticle) particle).setCharge(0);
+
+            // Add the particle to the reconstructed particle list.
+            particles.add(particle);
         }
 
         // Apply the corrections to the Ecal clusters using track information, if available
         for (Cluster cluster : clusters) {
             if (cluster.getParticleId() != 0) {
-            	if (clusterToTrack.containsKey(cluster)){
-            		Track matchedT = clusterToTrack.get(cluster);
-            		double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
-            		ClusterUtilities.applyCorrections(ecal, cluster, ypos);
-            	}
-            	else {
-            		ClusterUtilities.applyCorrections(ecal, cluster);          		
-            	}
+                if (clusterToTrack.containsKey(cluster)){
+                    Track matchedT = clusterToTrack.get(cluster);
+                    double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
+                    ClusterUtilities.applyCorrections(ecal, cluster, ypos);
+                }
+                else {
+                    ClusterUtilities.applyCorrections(ecal, cluster);          		
+                }
             }
         }
 
