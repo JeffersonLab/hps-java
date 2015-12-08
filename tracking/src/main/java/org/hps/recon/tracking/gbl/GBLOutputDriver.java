@@ -1,32 +1,21 @@
 package org.hps.recon.tracking.gbl;
 
-import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hps.recon.tracking.EventQuality;
-import org.hps.recon.tracking.StrategyType;
-import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.MyLCRelation;
 import org.lcsim.geometry.Detector;
-import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
-import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -58,15 +47,12 @@ public class GBLOutputDriver extends Driver {
     private int totalTracksProcessed = 0;
     private int iTrack = 0;
     private int iEvent = 0;
-    private boolean addBeamspot=false;
+    private boolean addBeamspot = false;
     private double beamspotScatAngle = 0.000001;
     private double beamspotWidthZ = 0.05;
     private double beamspotWidthY = 0.15;
-    private double beamspotTiltZOverY = 15.0*180.0/Math.PI;
-    private double beamspotPosition[] = {0,0,0};
-
-    
-    
+    private double beamspotTiltZOverY = 15.0 * 180.0 / Math.PI;
+    private double beamspotPosition[] = {0, 0, 0};
 
     public GBLOutputDriver() {
     }
@@ -95,7 +81,7 @@ public class GBLOutputDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        List<Track> tracklist = null;
+        List<Track> tracklist;
         if (event.hasCollection(Track.class, trackCollectionName)) {
             tracklist = event.get(Track.class, trackCollectionName);
             if (_debug > 0) {
@@ -107,7 +93,7 @@ public class GBLOutputDriver extends Driver {
 
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
         if (_debug > 0) {
-            System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n",this.getClass().getSimpleName(), stripHits.size());
+            System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", this.getClass().getSimpleName(), stripHits.size());
         }
 
         List<MCParticle> mcParticles = new ArrayList<MCParticle>();
@@ -143,13 +129,13 @@ public class GBLOutputDriver extends Driver {
         // Loop over each of the track collections retrieved from the event
         for (Track trk : tracklist) {
             totalTracks++;
-            
-            if (_debug > 0) System.out.printf("%s: PX %f bottom %d\n", this.getClass().getSimpleName(), trk.getPX(), TrackUtils.isBottomTrack(trk, 4)?1:0) ;
-            
+
+            if (_debug > 0) {
+                System.out.printf("%s: PX %f bottom %d\n", this.getClass().getSimpleName(), trk.getPX(), TrackUtils.isBottomTrack(trk, 4) ? 1 : 0);
+            }
+
             //if( trk.getPX() < 0.9) continue;
-            
             //if( TrackUtils.isBottomTrack(trk, 4)) continue;
-            
             if (TrackUtils.isGoodTrack(trk, tracklist, EventQuality.Quality.NONE)) {
                 if (_debug > 0) {
                     System.out.printf("%s: Print GBL output for this track\n", this.getClass().getSimpleName());
@@ -228,8 +214,8 @@ public class GBLOutputDriver extends Driver {
         this.isMC = isMC;
     }
 
-    public void setAddBeamspot(boolean add){
-        this.addBeamspot=add;
+    public void setAddBeamspot(boolean add) {
+        this.addBeamspot = add;
     }
 
     public double getBeamspotScatAngle() {
@@ -271,5 +257,8 @@ public class GBLOutputDriver extends Driver {
     public void setBeamspotPosition(double beamspotPosition[]) {
         this.beamspotPosition = beamspotPosition;
     }
-    
+
+    public void setTrackCollectionName(String trackCollectionName) {
+        this.trackCollectionName = trackCollectionName;
+    }
 }
