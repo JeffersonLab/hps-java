@@ -2,6 +2,7 @@ package org.hps.monitoring.drivers.svt;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
@@ -9,19 +10,19 @@ import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
 import hep.aida.jfree.plotter.Plotter;
 import hep.aida.jfree.plotter.PlotterRegion;
+import hep.aida.ref.rootwriter.RootFileStore;
 
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.util.Driver;
-import org.lcsim.geometry.Detector;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.geometry.Detector;
+import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
@@ -29,6 +30,8 @@ import org.lcsim.util.aida.AIDA;
  * event.
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
+ * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ * 
  */
 public class SvtHitPlots extends Driver {
 
@@ -50,6 +53,8 @@ public class SvtHitPlots extends Driver {
     private static Map<String, IHistogram1D> layersHitPlots = new HashMap<String, IHistogram1D>();
     private static Map<String, IHistogram1D> hitCountPlots = new HashMap<String, IHistogram1D>();
     private static Map<String, IHistogram1D> firstSamplePlots = new HashMap<String, IHistogram1D>();
+    private static Map<String, IHistogram1D> firstSamplePlotsNoise = new HashMap<String, IHistogram1D>();
+    private static Map<String, IHistogram2D> firstSamplePlotsNoisePerChannel = new HashMap<String, IHistogram2D>();
 
     private List<HpsSiSensor> sensors;
 
@@ -63,6 +68,10 @@ public class SvtHitPlots extends Driver {
     double totalBotHitCount = 0;
 
     private boolean dropSmallHitEvents = true;
+    private static final boolean debug = false;
+    private static final boolean doPerChannelSamplePlots = false;
+    private static final boolean saveRootFile = false;
+    private String outputRootFilename = "";
 
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
         this.dropSmallHitEvents = dropSmallHitEvents;
@@ -138,6 +147,9 @@ public class SvtHitPlots extends Driver {
         for (HpsSiSensor sensor : sensors) {
             hitsPerSensorPlots.get(sensor.getName()).reset();
             firstSamplePlots.get(sensor.getName()).reset();
+            firstSamplePlotsNoise.get(sensor.getName()).reset();
+            if(doPerChannelSamplePlots)
+                firstSamplePlotsNoisePerChannel.get(sensor.getName()).reset();
         }
 
         for (IHistogram1D histogram : layersHitPlots.values()) {
@@ -204,11 +216,34 @@ public class SvtHitPlots extends Driver {
 
         plotters.put("First sample distributions (pedestal shifts)", plotterFactory.create("First sample distributions (pedestal shifts)"));
         plotters.get("First sample distributions (pedestal shifts)").createRegions(6, 6);
+
+        plotters.put("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)", plotterFactory.create("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)"));
+        plotters.get("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)").createRegions(6, 6);
+        
+        if(doPerChannelSamplePlots) {
+            plotters.put("First sample channel distributions (pedestal shifts, MAX_SAMPLE>=4)", plotterFactory.create("First sample channel distributions (pedestal shifts, MAX_SAMPLE>=4)"));
+            plotters.get("First sample channel distributions (pedestal shifts, MAX_SAMPLE>=4)").createRegions(6, 6);
+        }
+
+        
         for (HpsSiSensor sensor : sensors) {
             firstSamplePlots.put(sensor.getName(),
                     histogramFactory.createHistogram1D(sensor.getName() + " - first sample", 100, -500.0, 2000.0));
             plotters.get("First sample distributions (pedestal shifts)").region(this.computePlotterRegion(sensor))
                     .plot(firstSamplePlots.get(sensor.getName()), this.createStyle(sensor, "First sample - pedestal [ADC counts]", ""));
+            firstSamplePlotsNoise.put(sensor.getName(),
+                    histogramFactory.createHistogram1D(sensor.getName() + " - first sample (MAX_SAMPLE>=4)", 100, -500.0, 2000.0));
+            plotters.get("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)").region(this.computePlotterRegion(sensor))
+                    .plot(firstSamplePlotsNoise.get(sensor.getName()), this.createStyle(sensor, "First sample - pedestal (MAX_SAMPLE>=4) [ADC counts]", ""));
+
+            if( doPerChannelSamplePlots ) {
+                firstSamplePlotsNoisePerChannel.put(sensor.getName(),
+                        histogramFactory.createHistogram2D(sensor.getName() + " channels - first sample (MAX_SAMPLE>=4)", 640, -0.5,639.5, 20, -500.0, 500.0));
+                plotters.get("First sample channel distributions (pedestal shifts, MAX_SAMPLE>=4)").region(this.computePlotterRegion(sensor))
+                .plot(firstSamplePlotsNoisePerChannel.get(sensor.getName()), this.createStyle(sensor, "First sample channels - pedestal (MAX_SAMPLE>=4) [ADC counts]", ""));
+            }
+        
+        
         }
 
         for (IPlotter plotter : plotters.values()) {
@@ -229,8 +264,15 @@ public class SvtHitPlots extends Driver {
             return;
         }
 
+        if(debug && ((int) eventCount % 100 == 0) )
+            System.out.println(this.getClass().getSimpleName() + ": processed " + String.valueOf(eventCount) + " events");
+        
         eventCount++;
+        
 
+        if(outputRootFilename.isEmpty())
+            outputRootFilename = "run" + String.valueOf( event.getRunNumber());
+        
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
 
@@ -241,8 +283,28 @@ public class SvtHitPlots extends Driver {
         this.clearHitMaps();
         for (RawTrackerHit rawHit : rawHits) {
             HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+            int channel = rawHit.getIdentifierFieldValue("strip");
+            double pedestal = sensor.getPedestal(channel,0);
+            // Find the sample with maximum ADC count
+            int maxSample = 0;
+            double maxSampleValue = 0;
+            for (int s = 0; s < 6; ++s) {
+                if (((double) rawHit.getADCValues()[s] - pedestal) > maxSampleValue) {
+                    maxSample = s;
+                    maxSampleValue = ((double) rawHit.getADCValues()[s]) - pedestal;
+                }
+            }
+
             hitsPerSensor.get(sensor.getName())[0]++;
-            firstSamplePlots.get(sensor.getName()).fill(rawHit.getADCValues()[0] - sensor.getPedestal(rawHit.getIdentifierFieldValue("strip"), 0));
+            firstSamplePlots.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
+            if (maxSample >= 4) {
+                firstSamplePlotsNoise.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
+                
+                if( doPerChannelSamplePlots ) {
+                    firstSamplePlotsNoisePerChannel.get(sensor.getName()).fill(channel, rawHit.getADCValues()[0] - pedestal);
+                }
+            
+            }
         }
 
         int[] topLayersHit = new int[12];
@@ -301,6 +363,19 @@ public class SvtHitPlots extends Driver {
         System.out.println("% Total Top SVT Hits/Event: " + totalTopHitCount / eventCount);
         System.out.println("% Total Bottom SVT Hits/Event: " + totalBotHitCount / eventCount);
         System.out.println("\n%================================================%");
+        
+        if(saveRootFile) {
+            String rootFileName = outputRootFilename.isEmpty() ? "svthitplots.root" : outputRootFilename + "_svthitplots.root";
+            RootFileStore rootFileStore = new RootFileStore(rootFileName);
+            try {
+                rootFileStore.open();
+                rootFileStore.add(tree);
+                rootFileStore.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        
     }
 
 }
