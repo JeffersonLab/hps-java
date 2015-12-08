@@ -5,6 +5,7 @@
       @author <a href="mailto:phansson@slac.stanford.edu">Sho Uemura</a>
     -->
     <execute>
+        <driver name="CleanupDriver"/>
         <driver name="EventMarkerDriver"/>
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
@@ -16,7 +17,6 @@
 
         <!-- write and cleanup -->
         <driver name="LCIOWriter"/>
-        <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">

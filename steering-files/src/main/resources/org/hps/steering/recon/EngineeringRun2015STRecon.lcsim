@@ -10,11 +10,8 @@
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
-        <driver name="HelicalTrackHitDriver"/>
-        <!--<driver name="SensorOccupancyDriver"/>-->
         
         <driver name="StraightThroughDriver"/>
-        <!--<driver name="TrackingReconstructionPlots" />-->
         <!--<driver name="LCIOWriter"/>-->
         <!--<driver name="AidaSaveDriver"/>-->
         <driver name="CleanupDriver"/>
@@ -40,12 +37,6 @@
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
-        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
-            <debug>false</debug>
-            <clusterTimeCut>12.0</clusterTimeCut>
-            <maxDt>16.0</maxDt>
-            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
-        </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
@@ -61,7 +52,7 @@
             <eventRefreshRate>100</eventRefreshRate>
             <enableTriggerFilter>False</enableTriggerFilter>
         </driver>
-        <driver name="StraightThroughDriver" type="org.hps.users.phansson.StraightThroughAnalysisDriver">
+        <driver name="StraightThroughDriver" type="org.hps.recon.tracking.straight.StraightThroughAnalysisDriver">
             <outputFilename>${outputFile}</outputFilename>
             <writeGbl>true</writeGbl>
         </driver>
