@@ -2,9 +2,9 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-PhysicsRun2016-2pt2-v0">
+    <info name="HPS-PhysicsRun2016-6pt6-v0">
         <comment>HPS detector for 2016 (?) Physics Run 
-                  this detector uses the box dipole at -0.5T for 2 GeV running
+                  this detector uses the box dipole at -1.5T for 6.6 GeV running
                   including SVT mechanical survey.                   
         </comment>
     </info>
@@ -31,7 +31,7 @@
         <constant name="dipoleMagnetHeight" value="100*cm"/>
         <constant name="dipoleMagnetWidth" value="100*cm"/>
         <constant name="dipoleMagnetLength" value="108*cm"/>
-        <constant name="constBFieldY" value="-0.50"/><!-- set for 2GeV running -->
+        <constant name="constBFieldY" value="-1.5"/><!-- set for 6.6GeV running -->
          
         
         <!-- ECAL crystal dimensions -->
