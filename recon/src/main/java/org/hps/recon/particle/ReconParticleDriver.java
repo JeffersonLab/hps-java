@@ -6,6 +6,8 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.HepLorentzVector;
 import hep.physics.vec.VecOp;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,7 +18,6 @@ import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
-import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -25,8 +26,8 @@ import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
-import org.lcsim.util.Driver;
 import org.lcsim.geometry.subdetector.HPSEcal3;
+import org.lcsim.util.Driver;
 
 
 /**
@@ -50,6 +51,9 @@ public abstract class ReconParticleDriver extends Driver {
     public static final int MOLLER_TOP = 0;
     public static final int MOLLER_BOT = 1;
     
+    // normalized cluster-track distance required for qualifying as a match:
+    private double MAXNSIGMAPOSITIONMATCH=30.0;
+
     HPSEcal3 ecal;
 
     /**
@@ -180,6 +184,15 @@ public abstract class ReconParticleDriver extends Driver {
         this.trackCollectionNames = trackCollectionNames;
     }
 
+    /**
+     * Set the requirement on cluster-track position matching in terms of N-sigma.
+     * 
+     * @param nsigma
+     */
+    public void setNSigmaPositionMatch(double nsigma) {
+    	MAXNSIGMAPOSITIONMATCH=nsigma;
+    }
+    
         
     
     /**
@@ -235,15 +248,16 @@ public abstract class ReconParticleDriver extends Driver {
         
         // Create a mapping of matched clusters to corresponding tracks.
         HashMap<Cluster, Track> clusterToTrack = new HashMap<Cluster,Track>();
-
+        
         // Loop through all of the track collections and try to match every
         // track to a cluster.  Allow a cluster to be matched to multiple 
         // tracks and use a probability (to be coded later) to determine what 
         // the best match is.
         // TODO: At some point, pull this out to it's own method
         for (List<Track> tracks : trackCollections) {
+       
             for (Track track : tracks) {
-
+            	
                 // Create a reconstructed particle to represent the track.
                 ReconstructedParticle particle = new BaseReconstructedParticle();
 
@@ -258,6 +272,9 @@ public abstract class ReconParticleDriver extends Driver {
                 // Derive the charge of the particle from the track.
                 ((BaseReconstructedParticle) particle).setCharge(track.getCharge() * flipSign);
 
+                // initialize PID quality to a junk value:
+                ((BaseReconstructedParticle)particle).setGoodnessOfPid(-9999);
+
                 // Extrapolate the particle ID from the track. Positively
                 // charged particles are assumed to be positrons and those
                 // with negative charges are assumed to be electrons.
@@ -267,9 +284,6 @@ public abstract class ReconParticleDriver extends Driver {
                     ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
                 }
 
-                // normalized cluster-track distance required for qualifying as a match:
-                final double maximumNSigma=5.0;
-
                 // normalized distance of the closest match:
                 double smallestNSigma=Double.MAX_VALUE;
                
@@ -278,33 +292,40 @@ public abstract class ReconParticleDriver extends Driver {
                 for (Cluster cluster : clusters) {
 
                     // normalized distance between this cluster and track:
-                    final double thisNSigma=matcher.getNSigmaPosition(cluster, track);
+                    final double thisNSigma=matcher.getNSigmaPosition(cluster, particle);
 
-                    // ignore if distance doesn't make the cut:
-                    if (thisNSigma > maximumNSigma) continue;
+                    // ignore if matching quality doesn't make the cut:
+                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH) continue;
 
-                    // the cluster with the smallest normalized distance will be the match:
-                    if (thisNSigma < smallestNSigma) {
-                        
-                        smallestNSigma = thisNSigma;
-                        matchedCluster = cluster;
+                    // ignore if we already found a cluster that's a better match:
+                    if (thisNSigma > smallestNSigma) continue;
 
-                        // prefer using GBL tracks to actually correct the clusters (later):
-                        if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster))
-                            clusterToTrack.put(matchedCluster,track);
-                    } 
+                    // we found a new best cluster candidate for this track:
+                    smallestNSigma = thisNSigma;
+                    matchedCluster = cluster;
+
+                    // prefer using GBL tracks to correct (later) the clusters, for some consistency:
+                    if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster)) {
+                    	  clusterToTrack.put(matchedCluster,track);
+                    }
                 }
 
                 // If a cluster was found that matches the track...
                 if (matchedCluster != null) {
 
+                    // add cluster to the particle:
                     particle.addCluster(matchedCluster);
 
-                    int pid = particle.getParticleIDUsed().getPDG();
+                    // use pid quality to store track-cluster matching quality:
+                    ((BaseReconstructedParticle)particle).setGoodnessOfPid(smallestNSigma);
+                    
+                    // propogate pid to the cluster:
+                    final int pid = particle.getParticleIDUsed().getPDG();
                     if (Math.abs(pid) == 11) {
                         ((BaseCluster) matchedCluster).setParticleId(pid);
                     }
 
+                    // unmatched clusters will (later) be used to create photon particles:
                     unmatchedClusters.remove(matchedCluster);
                 }
 

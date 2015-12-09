@@ -1,9 +1,5 @@
 package org.hps.recon.utils;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -13,12 +9,17 @@ import hep.aida.ref.rootwriter.RootFileStore;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
+import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.geometry.FieldMap;
-import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.tracking.TrackUtils;
 
 /**
  * Utility used to determine if a track and cluster are matched.
@@ -66,8 +67,11 @@ public class TrackClusterMatcher {
 
     /**
      * Rafo's parameterization of cluster-seed x/y position residuals as function of energy.
+     * 
      * Derived using GBL/seed tracks, non-analytic extrapolation, uncorrected cluster positions,
-     * and EngRun2015-Nominal-v3-4-fieldmap detector 
+     * and EngRun2015-Nominal-v3-4-fieldmap detector.
+     * 
+     *  f = p0+e*(p1+e*(p2+e*(p3+e*(p4+e*p5))))
      */
     private static final double dxMeanTopPosiGBL[] = { 6.67414,-9.57296, 5.70647, 27.4523,-28.1103,-9.11424 };
     private static final double dxSigmTopPosiGBL[] = { 52.6437,-478.805, 1896.73,-3761.48, 3676.77,-1408.31 };
@@ -255,8 +259,11 @@ public class TrackClusterMatcher {
      *
      * @return #sigma between cluster and track positions
      */
-    public double getNSigmaPosition(Cluster cluster,Track track) {
+    public double getNSigmaPosition(Cluster cluster,ReconstructedParticle particle) {
 
+        if (particle.getTracks().size()<1) return Double.MAX_VALUE;
+    	  Track track=particle.getTracks().get(0);
+    	
         if (this.useAnalyticExtrapolator)
             throw new RuntimeException("This is to be used with non-analytic extrapolator only.");
 
@@ -276,10 +283,10 @@ public class TrackClusterMatcher {
 
         // whether it's a GBL track:
         final boolean isGBL = track.getType() >= 32;
-        
+       
         // choose which parameterization of mean and sigma to use:
         double dxMean[],dyMean[],dxSigm[],dySigm[];
-        if (track.getCharge()==1) {
+        if (particle.getCharge()>0) {
             if (isTopTrack) {
                 dxMean = isGBL ? dxMeanTopPosiGBL : dxMeanTopPosiSeed;
                 dxSigm = isGBL ? dxSigmTopPosiGBL : dxSigmTopPosiSeed;
@@ -293,7 +300,7 @@ public class TrackClusterMatcher {
                 dySigm = isGBL ? dySigmBotPosiGBL : dySigmBotPosiSeed;
             }
         }
-        else if (track.getCharge()==-1) {
+        else if (particle.getCharge()<0) {
             if (isTopTrack) {
                 dxMean = isGBL ? dxMeanTopElecGBL : dxMeanTopElecSeed;
                 dxSigm = isGBL ? dxSigmTopElecGBL : dxSigmTopElecSeed;
@@ -310,11 +317,12 @@ public class TrackClusterMatcher {
         else return Double.MAX_VALUE;
 
         // get particle energy:
-        final double pp[] = track.getMomentum();
-        double ee = Math.sqrt( pp[0]*pp[0] + pp[1]*pp[1] + pp[2]*pp[2] );
-
-        // force the parameterizations to be constant above a certain energy:
-        if (ee > 0.6) ee=0.6;
+        Hep3Vector p3 = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
+        p3 = CoordinateTransformations.transformVectorToDetector(p3);
+        double ee = p3.magnitude();
+        
+        // Rafo's parameterization isn't measured above 650 MeV/c but expected to be constant:
+        if (ee > 0.65) ee=0.65;
 
         // calculate measured mean and sigma of deltaX and deltaY for this energy:
         double aDxMean=0,aDxSigm=0,aDyMean=0,aDySigm=0;
@@ -327,6 +335,7 @@ public class TrackClusterMatcher {
         final double nSigmaX = (cPos.x() - tPos.x() - aDxMean) / aDxSigm;
         final double nSigmaY = (cPos.y() - tPos.y() - aDyMean) / aDySigm;
         return Math.sqrt(nSigmaX*nSigmaX + nSigmaY*nSigmaY);
+        //return Math.sqrt( 1 / ( 1/nSigmaX/nSigmaX + 1/nSigmaY/nSigmaY ) );
     }
 
 
@@ -520,4 +529,16 @@ public class TrackClusterMatcher {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Class to store track-cluster matching qualities.
+     */
+    public class TrackClusterMatch {
+    	private double nSigmaPositionMatch=Double.MAX_VALUE;
+    	public TrackClusterMatch(ReconstructedParticle pp, Cluster cc) {
+    	    nSigmaPositionMatch = getNSigmaPosition(cc,pp);
+    	}
+    	public double getNSigmaPositionMatch() { return nSigmaPositionMatch; }
+    }
+    
 }
