@@ -28,6 +28,7 @@ public class GBLRefitterDriver extends Driver {
 
     private String inputCollectionName = "MatchedTracks";
     private String outputCollectionName = "GBLTracks";
+    private String trackRelationCollectionName = "MatchedToGBLTrackRelations";
 
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
@@ -68,16 +69,17 @@ public class GBLRefitterDriver extends Driver {
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
         List<Track> refittedTracks = new ArrayList<Track>();
-        List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
+        List<LCRelation> trackRelations = new ArrayList<LCRelation>();
 
+        List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
         List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield
-            );
+            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield);
 //            newTrack.getFirst().
             refittedTracks.add(newTrack.getFirst());
+            trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
             inputToRefitted.put(track, newTrack.getFirst());
 
             kinkDataCollection.add(newTrack.getSecond());
@@ -141,6 +143,7 @@ public class GBLRefitterDriver extends Driver {
         // Put the tracks back into the event and exit
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputCollectionName, refittedTracks, Track.class, flag);
+        event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
         event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
         event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
     }

@@ -1306,15 +1306,25 @@ public class TrackUtils {
             return new Line(r0, phi, lambda);
     }
 
-    public static TrackState getTrackStateAtECal(Track trk) {
+    /**
+     * Port of Track.getTrackState(int location) from the C++ LCIO API.
+     * @param trk A track.
+     * @param location A TrackState location constant
+     * @return The first matching TrackState; null if none is found.
+     */
+    public static TrackState getTrackStateAtLocation(Track trk, int location) {
         for (TrackState state : trk.getTrackStates()) {
-            if (state.getLocation() == TrackState.AtCalorimeter) {
+            if (state.getLocation() == location) {
                 return state;
             }
         }
         return null;
     }
 
+    public static TrackState getTrackStateAtECal(Track trk) {
+        return getTrackStateAtLocation(trk, TrackState.AtCalorimeter);
+    }
+    
     public static Hep3Vector getBField(Detector detector) {
         return detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 500.0));
     }

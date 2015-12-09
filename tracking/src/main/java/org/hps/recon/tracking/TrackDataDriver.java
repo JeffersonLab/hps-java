@@ -16,7 +16,6 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
-import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
@@ -34,7 +33,7 @@ import org.lcsim.util.Driver;
 public final class TrackDataDriver extends Driver {
 
     /** logger **/
-    private static Logger LOGGER  = Logger.getLogger(TrackDataDriver.class.getPackage().getName());
+    private static final Logger LOGGER  = Logger.getLogger(TrackDataDriver.class.getPackage().getName());
     
     
     /** The B field map */
@@ -107,6 +106,7 @@ public final class TrackDataDriver extends Driver {
      * 
      * @param detector LCSim {@link Detector} geometry 
      */     
+    @Override
     protected void detectorChanged(Detector detector) { 
        
         // Get the field map from the detector object
@@ -121,6 +121,7 @@ public final class TrackDataDriver extends Driver {
      * 
      * @param event : LCSim event
      */
+    @Override
     protected void process(EventHeader event) {
 
         // Check if the event contains a collection of the type Track. If it
@@ -135,15 +136,11 @@ public final class TrackDataDriver extends Driver {
 
         // Get the collection of LCRelations relating RotatedHelicalTrackHits to
         // HelicalTrackHits
-        List<LCRelation> rotatedHthToHthRelations = event.get(LCRelation.class, ROTATED_HTH_REL_COL_NAME);
-        BaseRelationalTable hthToRotatedHth = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE,
-                        RelationalTable.Weighting.UNWEIGHTED);
-        hthToRotatedHth.addRelations(rotatedHthToHthRelations);
 
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
-        List<HelicalTrackHit> rotatedHths = event.get(HelicalTrackHit.class, ROTATED_HTH_COL_NAME);
+//        List<HelicalTrackHit> rotatedHths = event.get(HelicalTrackHit.class, ROTATED_HTH_COL_NAME);
 
         // Create a container that will be used to store all TrackData objects.
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
@@ -159,21 +156,21 @@ public final class TrackDataDriver extends Driver {
         // residuals
         List<LCRelation> trackToTrackResidualsRelations = new ArrayList<LCRelation>();
 
-        double xResidual = 0;
-        double yResidual = 0;
+        double xResidual;
+        double yResidual;
 
-        float totalT0 = 0;
-        float totalHits = 0;
-        float trackTime = 0;
+        float totalT0;
+        float totalHits;
+        float trackTime;
 
         int trackerVolume = -1;
 
-        boolean isFirstHit = true;
+        boolean isFirstHit;
 
-        HpsSiSensor sensor = null;
-        Hep3Vector stereoHitPosition = null;
-        Hep3Vector trackPosition = null;
-        HelicalTrackHit helicalTrackHit = null;
+        HpsSiSensor sensor;
+        Hep3Vector stereoHitPosition;
+        Hep3Vector trackPosition;
+        HelicalTrackHit helicalTrackHit;
 
         List<Double> t0Residuals = new ArrayList<Double>();
         List<Double> trackResidualsX = new ArrayList<Double>();
@@ -198,7 +195,10 @@ public final class TrackDataDriver extends Driver {
                 stereoLayers.clear();
                 isFirstHit = true;
 
-                //
+//                TrackState trackStateForResiduals = TrackUtils.getTrackStateAtLocation(track, TrackState.AtLastHit);
+//                if (trackStateForResiduals == null ) trackStateForResiduals= TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
+                TrackState trackStateForResiduals = TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
+                
                 // Change the position of a HelicalTrackHit to be the corrected
                 // one.
                 // FIXME: Now that multiple track collections are being used, 
@@ -216,7 +216,7 @@ public final class TrackDataDriver extends Driver {
                     // Extrapolate the track to the stereo hit position and
                     // calculate track residuals
                     stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
-                    trackPosition = TrackUtils.extrapolateTrack(track, stereoHitPosition.x());
+                    trackPosition = TrackUtils.extrapolateTrack(trackStateForResiduals, stereoHitPosition.x());
                     xResidual = trackPosition.x() - stereoHitPosition.y();
                     yResidual = trackPosition.y() - stereoHitPosition.z();
                     trackResidualsX.add(xResidual);
@@ -230,7 +230,7 @@ public final class TrackDataDriver extends Driver {
                     
                     // Get the HelicalTrackHit corresponding to the 
                     // RotatedHelicalTrackHit associated with a track
-                    helicalTrackHit = (HelicalTrackHit) hthToRotatedHth.from(rotatedStereoHit);
+                    helicalTrackHit = (HelicalTrackHit) hitToRotated.from(rotatedStereoHit);
                     ((HelicalTrackHit) rotatedStereoHit).setPosition(stereoHitPosition.v());
                     stereoHitPosition = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
                     helicalTrackHit.setPosition(stereoHitPosition.v());
@@ -261,18 +261,7 @@ public final class TrackDataDriver extends Driver {
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 if( TrackType.isGBL(track.getType())) {
-                    TrackState stateLast = null;
-                    TrackState stateIP = null;
-                    for(int ist= 0; ist < track.getTrackStates().size(); ist++) {
-                        if( track.getTrackStates().get(ist).getLocation() == TrackState.AtLastHit ) 
-                            stateLast = track.getTrackStates().get(ist);
-                        if( track.getTrackStates().get(ist).getLocation() == TrackState.AtIP ) 
-                            stateIP = track.getTrackStates().get(ist);
-                    }
-                    if( stateLast == null)
-                        throw new RuntimeException("last hit track state for GBL track was not found");
-//                    TrackState stateEcal = TrackUtils.extrapolateTrackUsingFieldMap(stateLast, extStartPos, ecalPosition, stepSize, bFieldMap);
-//                    track.getTrackStates().add(stateEcal);
+                    TrackState stateIP = TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
                     if( stateIP == null)
                         throw new RuntimeException("IP track state for GBL track was not found");
                     TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, ecalPosition, stepSize, bFieldMap);
