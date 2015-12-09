@@ -174,6 +174,31 @@ public class TrackClusterMatcher {
     }
 
     /**
+     * Get distance between track and cluster.
+     * 
+     * @param cluster
+     * @param track
+     * @return distance between cluster and track
+     */
+    public double getDistance(Cluster cluster,Track track) {
+        
+    	// Get the cluster position
+        Hep3Vector cPos = new BasicHep3Vector(cluster.getPosition());
+        
+        // Extrapolate the track to the Ecal cluster position
+        Hep3Vector tPos = null;
+        if (this.useAnalyticExtrapolator) {
+            tPos = TrackUtils.extrapolateTrack(track, cPos.z());
+        } else {
+            TrackState trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
+            tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
+            tPos = CoordinateTransformations.transformVectorToDetector(tPos);
+        }
+        
+        return Math.sqrt(Math.pow(cPos.x()-tPos.x(),2)+Math.pow(cPos.y()-tPos.y(),2));
+    }
+    
+    /**
      * Determine if a track is matched to a cluster. Currently, this is
      * determined by checking that the track and cluster are within the same
      * detector volume of each other and that the extrapolated track position is

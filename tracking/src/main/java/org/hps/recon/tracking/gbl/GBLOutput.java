@@ -153,15 +153,13 @@ public class GBLOutput {
 
     void printGBL(Track trk, List<SiTrackerHitStrip1D> stripHits, GBLTrackData gtd, List<GBLStripClusterData> stripClusterDataList, List<MCParticle> mcParticles, List<SimTrackerHit> simTrackerHits, boolean isMC) {
 
-        SeedTrack st = (SeedTrack) trk;
-        SeedCandidate seed = st.getSeedCandidate();
-        HelicalTrackFit htf = seed.getHelix();
+        HelicalTrackFit htf = TrackUtils.getHTF(trk);
 
         // Find scatter points along the path
         ScatterPoints scatters = _scattering.FindHPSScatterPoints(htf);
 
         // Hits on track
-        List<HelicalTrackHit> hits = seed.getHits();
+        List<TrackerHit> hits = trk.getTrackerHits();
 
         // Find the truth particle of the track
         MCParticle mcp = null;
@@ -326,7 +324,7 @@ public class GBLOutput {
                      continue;
             } 
             else {
-                hit = hits.get(ihit);
+                hit = (HelicalTrackHit) hits.get(ihit);
                 htc = (HelicalTrackCross) hit;
                 strips = htc.getStrips();
                 correctedHitPosition = hit.getCorrectedPosition();

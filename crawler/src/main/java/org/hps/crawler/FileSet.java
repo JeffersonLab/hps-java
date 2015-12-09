@@ -12,7 +12,7 @@ import org.hps.datacat.client.DatasetFileFormat;
  * 
  * @author Jeremy McCormick, SLAC
  */
-public class FileSet extends HashMap<DatasetFileFormat, List<File>> {
+final class FileSet extends HashMap<DatasetFileFormat, List<File>> {
     
     List<File> get(DatasetFileFormat format) {
         if (super.get(format) == null) {

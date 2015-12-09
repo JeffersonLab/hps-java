@@ -66,7 +66,7 @@ public final class EpicsRunProcessor extends EvioEventProcessor {
 
         // Add EPICS data to the collection.
         if (this.currentEpicsData != null) {
-            LOGGER.info("Adding EPICS data with run " + this.currentEpicsData.getEpicsHeader().getRun() + "; timestamp " 
+            LOGGER.fine("Adding EPICS data with run " + this.currentEpicsData.getEpicsHeader().getRun() + "; timestamp " 
                     + this.currentEpicsData.getEpicsHeader().getTimestamp() + "; seq "
                     + this.currentEpicsData.getEpicsHeader().getSequence() + ".");
             this.epicsDataSet.add(this.currentEpicsData);

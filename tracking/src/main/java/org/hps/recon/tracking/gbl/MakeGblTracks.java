@@ -146,7 +146,7 @@ public class MakeGblTracks {
         double yTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
         double xTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XT.getValue());
         double yTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YT.getValue());
-
+//        System.out.println((helix.slope() > 0 ? "top: " : "bot ") + "qOverPCorr " + qOverPCorr + " xtPrimeCorr " + xTPrimeCorr + " yTPrimeCorr " + yTPrimeCorr + " xTCorr " + xTCorr + " yTCorr " + yTCorr);
         LOGGER.info((helix.slope() > 0 ? "top: " : "bot ") + "qOverPCorr " + qOverPCorr + " xtPrimeCorr " + xTPrimeCorr + " yTPrimeCorr " + yTPrimeCorr + " xTCorr " + xTCorr + " yTCorr " + yTCorr);
 
         // calculate new d0 and z0
@@ -275,6 +275,7 @@ public class MakeGblTracks {
             if (i > 0) {
                 lambdaKinks[i - 1] = (float) (newLambda - oldLambda);
                 phiKinks[i - 1] = newPhi - oldPhi;
+//                System.out.println("phikink: " + (newPhi - oldPhi));
             }
             oldPhi = newPhi;
             oldLambda = newLambda;
@@ -298,16 +299,16 @@ public class MakeGblTracks {
      * @param bfield B-field
      * @return The refitted track.
      */
-    public static Pair<Track, GBLKinkData> refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, MultipleScattering scattering, double bfield) {
-        List<TrackerHit> allHthList = sortHits(hth);
-        List<TrackerHit> sortedStripHits = sortHits(stripHits);
-        FittedGblTrajectory fit = MakeGblTracks.doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
+    public static Pair<Track, GBLKinkData> refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield) {
+        List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
+        List<TrackerHit> sortedStripHits = TrackUtils.sortHits(stripHits);
+        FittedGblTrajectory fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
         for (int i = 0; i < nIterations; i++) {
-            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.makeCorrectedTrack(fit, helix, allHthList, 0, bfield);
+            Pair<Track, GBLKinkData> newTrack = makeCorrectedTrack(fit, helix, allHthList, trackType, bfield);
             helix = TrackUtils.getHTF(newTrack.getFirst());
-            fit = MakeGblTracks.doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
+            fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
         }
-        Pair<Track, GBLKinkData> mergedTrack = MakeGblTracks.makeCorrectedTrack(fit, helix, allHthList, 0, bfield);
+        Pair<Track, GBLKinkData> mergedTrack = makeCorrectedTrack(fit, helix, allHthList, trackType, bfield);
         return mergedTrack;
     }
 
@@ -479,19 +480,5 @@ public class MakeGblTracks {
         HelicalTrackStrip strip = new HelicalTrackStrip(neworigin, newu, newv, umeas, du, vmin, vmax, dEdx, time, rawhits, null, -1, null);
 
         return strip;
-    }
-
-    private static List<TrackerHit> sortHits(Collection<TrackerHit> hits) {
-        List<TrackerHit> hitList = new ArrayList<TrackerHit>(hits);
-        Collections.sort(hitList, new LayerComparator());
-        return hitList;
-    }
-
-    private static class LayerComparator implements Comparator<TrackerHit> {
-
-        @Override
-        public int compare(TrackerHit o1, TrackerHit o2) {
-            return Integer.compare(TrackUtils.getLayer(o1), TrackUtils.getLayer(o2));
-        }
     }
 }

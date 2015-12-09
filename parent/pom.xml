@@ -290,6 +290,11 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.lcsim</groupId>
+                <artifactId>lcsim-detector-framework</artifactId>
+                <version>3.1.6-SNAPSHOT</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <reporting>

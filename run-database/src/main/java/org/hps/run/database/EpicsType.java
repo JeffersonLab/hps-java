@@ -8,16 +8,17 @@ import org.hps.record.epics.EpicsData;
  *
  * @author Jeremy McCormick, SLAC
  */
+// FIXME: move to record-util
 public enum EpicsType {
 
     /**
      * 20S EPICS data.
      */
-    EPICS_20s(20),
+    EPICS_20S(20),
     /**
      * 2S EPICS data.
      */
-    EPICS_2s(2);
+    EPICS_2S(2);
 
     /**
      * Get the type from an int.
@@ -27,10 +28,10 @@ public enum EpicsType {
      * @throws IllegalArgumentException if <code>type</code> is invalid (not 2 or 20)
      */
     public static EpicsType fromInt(final int type) {
-        if (type == EPICS_2s.type) {
-            return EPICS_2s;
-        } else if (type == EPICS_20s.type) {
-            return EPICS_20s;
+        if (type == EPICS_2S.type) {
+            return EPICS_2S;
+        } else if (type == EPICS_20S.type) {
+            return EPICS_20S;
         } else {
             throw new IllegalArgumentException("The type code is invalid (must be 1 or 10): " + type);
         }
@@ -44,9 +45,9 @@ public enum EpicsType {
     public static EpicsType getEpicsType(final EpicsData epicsData) {
         // FIXME: The type argument should be set on creation which would make this key check unnecessary.
         if (epicsData.getKeys().contains("MBSY2C_energy")) {
-            return EpicsType.EPICS_2s;
+            return EpicsType.EPICS_2S;
         } else {
-            return EpicsType.EPICS_20s;
+            return EpicsType.EPICS_20S;
         }
     }
 

@@ -214,7 +214,15 @@ final class EvioMetadataReader implements FileMetadataReader {
         LOGGER.info("done reading " + events + " events");
 
         // Rough trigger rate calculation.
-        triggerRate = calculateTriggerRate(firstHeadTimestamp, lastHeadTimestamp, events);
+        try {
+            if (firstHeadTimestamp != null && lastHeadTimestamp != null && events > 0) {
+                triggerRate = calculateTriggerRate(firstHeadTimestamp, lastHeadTimestamp, events);
+            } else {
+                LOGGER.log(Level.WARNING, "Missing information for calculating trigger rate.");
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error calculating trigger rate.", e);
+        }
 
         // Create and fill the metadata map.
         final Map<String, Object> metadataMap = new LinkedHashMap<String, Object>();

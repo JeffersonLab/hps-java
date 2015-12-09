@@ -29,7 +29,7 @@ public final class EpicsVariable {
     private final String variableName;
 
     /**
-     * The type of the variable (1s or 10s).
+     * The type of the variable (2s or 20s).
      */
     private final EpicsType variableType;
 

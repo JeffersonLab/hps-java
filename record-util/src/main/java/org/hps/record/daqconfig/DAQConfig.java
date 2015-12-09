@@ -1,5 +1,9 @@
 package org.hps.record.daqconfig;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
+
 /**
  * Class <code>DAQConfig</code> holds all of the supported parameters
  * from the DAQ configuration that exists in EVIO files. These values
@@ -47,13 +51,23 @@ public class DAQConfig extends IDAQConfig {
     }
 
     @Override
-    public void printConfig() {
+    public void printConfig(PrintStream ps) {
         // Print the system-specific objects.
-        fadcConfig.printConfig();
-        System.out.println();
-        gtpConfig.printConfig();
-        System.out.println();
-        sspConfig.printConfig();
+        fadcConfig.printConfig(ps);
+        ps.println();
+        gtpConfig.printConfig(ps);
+        ps.println();
+        sspConfig.printConfig(ps);
     }
-    
+
+    public String toString() {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(os);
+        printConfig(ps);
+        try {
+            return os.toString("UTF8");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

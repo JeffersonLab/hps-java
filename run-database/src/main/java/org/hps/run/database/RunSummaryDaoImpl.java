@@ -171,23 +171,24 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
      */
     @Override
     public void insertRunSummary(final RunSummary runSummary) {
-        PreparedStatement preparedStatement = null;        
+        PreparedStatement preparedStatement = null;
         try {
             preparedStatement = connection.prepareStatement(INSERT);                       
             preparedStatement.setInt(1, runSummary.getRun());
             preparedStatement.setInt(2, runSummary.getTotalEvents());
             preparedStatement.setInt(3, runSummary.getTotalFiles());
-            preparedStatement.setInt(4, runSummary.getPrestartTimestamp());
-            preparedStatement.setInt(5, runSummary.getGoTimestamp());
-            preparedStatement.setInt(6, runSummary.getEndTimestamp());
-            preparedStatement.setDouble(7, runSummary.getTriggerRate());
-            preparedStatement.setString(8, runSummary.getTriggerConfigName());
-            preparedStatement.setLong(9, runSummary.getTiTimeOffset());
-            preparedStatement.setDouble(10, runSummary.getLivetimeClock());
-            preparedStatement.setDouble(11, runSummary.getLivetimeFcupTdc());
-            preparedStatement.setDouble(12, runSummary.getLivetimeFcupTrg());
-            preparedStatement.setString(13, runSummary.getTarget());
-            preparedStatement.setString(14, runSummary.getNotes());
+            /* Use setObject on the rest as they may be null. */
+            preparedStatement.setObject(4, runSummary.getPrestartTimestamp());
+            preparedStatement.setObject(5, runSummary.getGoTimestamp());
+            preparedStatement.setObject(6, runSummary.getEndTimestamp());
+            preparedStatement.setObject(7, runSummary.getTriggerRate());
+            preparedStatement.setObject(8, runSummary.getTriggerConfigName());
+            preparedStatement.setObject(9, runSummary.getTiTimeOffset());
+            preparedStatement.setObject(10, runSummary.getLivetimeClock());
+            preparedStatement.setObject(11, runSummary.getLivetimeFcupTdc());
+            preparedStatement.setObject(12, runSummary.getLivetimeFcupTrg());
+            preparedStatement.setObject(13, runSummary.getTarget());
+            preparedStatement.setObject(14, runSummary.getNotes());
             LOGGER.fine(preparedStatement.toString());
             preparedStatement.executeUpdate();
         } catch (final SQLException e) {

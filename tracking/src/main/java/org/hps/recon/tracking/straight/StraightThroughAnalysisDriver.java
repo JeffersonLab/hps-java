@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.hps.users.phansson;
+package org.hps.recon.tracking.straight;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IFitResult;
@@ -27,8 +27,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.monitoring.drivers.svt.SvtPlotUtils;
-import org.hps.users.phansson.STUtils.STStereoTrack;
+import org.hps.recon.tracking.SvtPlotUtils;
+import org.hps.recon.tracking.straight.STUtils.STStereoTrack;
+import org.hps.recon.tracking.straight.STUtils.STTrack;
 import org.lcsim.detector.converter.compact.subdetector.HpsTracker2;
 import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -41,10 +42,15 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
+ * Driver that fits {@link SiTrackerHitStrip1D} clusters to a straight line track model. 
+ * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  */
 public class StraightThroughAnalysisDriver extends Driver {
+
+
+
 
     final static Logger logger = Logger.getLogger(StraightThroughAnalysisDriver.class.getSimpleName());
     private String stripClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
@@ -54,8 +60,11 @@ public class StraightThroughAnalysisDriver extends Driver {
     private IHistogram1D botHitCount;
     private Map<String,IHistogram2D> stereoHitPositionsXY = new HashMap<String, IHistogram2D>();
     private Map<String,IHistogram1D> sensorHitResGlobal = new HashMap<String, IHistogram1D>();
+    private Map<String,IHistogram1D> sensorHitResGlobalL13 = new HashMap<String, IHistogram1D>();
+    private Map<String,IHistogram1D> sensorHitResGlobalL46 = new HashMap<String, IHistogram1D>();
     private Map<String,IHistogram1D>  sensorStereoHitYZResGlobal = new HashMap<String, IHistogram1D>();
     private Map<String,IHistogram1D>  sensorStereoHitXZResGlobal = new HashMap<String, IHistogram1D>();
+    private Map<String,IHistogram1D>  sensorURes = new HashMap<String, IHistogram1D>();
     private Map<String,IHistogram1D> sensorHitPositions = new HashMap<String, IHistogram1D>();
     private Map<String,IHistogram1D> sensorHitCounts = new HashMap<String, IHistogram1D>();
     private Map<String,IHistogram1D> sensorHitTimes = new HashMap<String, IHistogram1D>();
@@ -73,6 +82,12 @@ public class StraightThroughAnalysisDriver extends Driver {
     private IHistogram1D trackAxialHitCount[];
     private IHistogram1D trackAxialSlope[];
     private IHistogram1D trackAxialIntercept[];
+    private IHistogram1D trackL13AxialSlope[];
+    private IHistogram1D trackL13AxialIntercept[];
+    private IHistogram1D trackL46AxialSlope[];
+    private IHistogram1D trackL46AxialIntercept[];
+    private IHistogram1D trackL13L46AxialSlope[];
+    private IHistogram1D trackL13L46AxialIntercept[];
     private IHistogram1D trackAxialCount[];
     private IHistogram2D trackAxialExtraPolation[];
     private IHistogram2D trackExtraPolationY[];
@@ -101,6 +116,7 @@ public class StraightThroughAnalysisDriver extends Driver {
 
     private String outputFilename = "";
     private PrintWriter gblPrintWriter = null;
+    private boolean writeGbl = true;
     
 
     
@@ -109,22 +125,21 @@ public class StraightThroughAnalysisDriver extends Driver {
      */
     public StraightThroughAnalysisDriver() {
         logger.setLevel(Level.INFO);
-        STUtils.logger.setLevel(logger.getLevel());
+        STUtils.logger.setLevel(Level.INFO); 
     }
 
   
-    private static double getTheta0(double beta,double p,double X0) {
-        return 13.6/beta/p*Math.sqrt(X0)*(1 + 0.038*Math.log(X0));
-    }
+    
     protected void detectorChanged(Detector detector) {
 
-        if(!outputFilename.isEmpty()) {
+        if(writeGbl) {
+            String gblFileName = outputFilename.isEmpty() ? "straight_throughs.gbl" : outputFilename + ".gbl"; 
             try {
-                gblPrintWriter = new PrintWriter( new BufferedWriter(new FileWriter(outputFilename)));
+                gblPrintWriter = new PrintWriter( new BufferedWriter(new FileWriter(gblFileName)));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            logger.info("Created a GBL filewriter for to file \"" + outputFilename + "\"");
+            logger.info("Created a GBL filewriter for to file \"" + gblFileName + "\"");
         }
 
         // find the stereo layers for this detector
@@ -133,12 +148,7 @@ public class StraightThroughAnalysisDriver extends Driver {
         for(SvtStereoLayer sl : stereoLayers) sb.append(sl.getLayerNumber() + ": " + sl.getAxialSensor().getName()+ " - " + sl.getStereoSensor().getName() + "\n");
         logger.info(sb.toString());
 
-        //
-        double beta = 1.0;
-        double p = 1.05;
-        double X0 = 0.007; // per stereo pair
-        double theta0 = getTheta0(beta, p, X0);
-        double msErrY = 100.0*theta0;
+        double msErrY = 100.0*STUtils.msangle(STUtils.beamEnergy, STUtils.sensorThickness);
         regressionFitter.setErrY(msErrY);
         
         
@@ -148,9 +158,15 @@ public class StraightThroughAnalysisDriver extends Driver {
         plotters.put("Sensor hit position", af.createPlotterFactory().create("Sensor hit positions"));
         plotters.get("Sensor hit position").setStyle(this.getDefaultPlotterStyle("Hit y (mm)","Entries"));
         plotters.get("Sensor hit position").createRegions(6, 6);
+        plotters.put("Sensor u res", af.createPlotterFactory().create("Sensor u res"));
+        plotters.get("Sensor u res").setStyle(this.getDefaultPlotterStyle("u residual (mm)","Entries"));
+        plotters.get("Sensor u res").createRegions(6, 6);
         plotters.put("Sensor hit res", af.createPlotterFactory().create("Sensor hit res"));
-        //plotters.get("Sensor hit res").setStyle(this.getDefaultPlotterStyle("Hit y res global (mm)","Entries"));
         plotters.get("Sensor hit res").createRegions(3, 6);
+        plotters.put("Sensor hit res L13", af.createPlotterFactory().create("Sensor hit res L13"));
+        plotters.get("Sensor hit res L13").createRegions(3, 6);
+        plotters.put("Sensor hit res L46", af.createPlotterFactory().create("Sensor hit res L46"));
+        plotters.get("Sensor hit res L46").createRegions(3, 6);
         plotters.put("Sensor stereo YZ hit res", af.createPlotterFactory().create("Sensor stereo YZ hit res"));
         plotters.get("Sensor stereo YZ hit res").setStyle(this.getDefaultPlotterStyle("Stereo hit y res global (mm)","Entries"));
         plotters.get("Sensor stereo YZ hit res").createRegions(3, 6);
@@ -191,6 +207,12 @@ public class StraightThroughAnalysisDriver extends Driver {
         trackAxialCount = new IHistogram1D[2];
         trackAxialSlope = new IHistogram1D[2];
         trackAxialIntercept = new IHistogram1D[2];
+        trackL13AxialSlope = new IHistogram1D[2];
+        trackL13AxialIntercept = new IHistogram1D[2];
+        trackL46AxialSlope = new IHistogram1D[2];
+        trackL46AxialIntercept = new IHistogram1D[2];
+        trackL13L46AxialSlope = new IHistogram1D[2];
+        trackL13L46AxialIntercept = new IHistogram1D[2];
         trackAxialExtraPolation = new IHistogram2D[5];
         trackExtraPolationY = new IHistogram2D[5];
         trackExtraPolationX = new IHistogram2D[5];
@@ -209,20 +231,32 @@ public class StraightThroughAnalysisDriver extends Driver {
             trackCount[i] = hf.createHistogram1D("Track " + half + " multiplicity", 11, -0.5, 10.5);
             trackSlope[i] = new IHistogram1D[2];
             trackIntercept[i] = new IHistogram1D[2];
+            trackSlope[i] = new IHistogram1D[2];
+            trackIntercept[i] = new IHistogram1D[2];
             trackSlope[i][STUtils.STStereoTrack.VIEW.YZ.ordinal()] = hf.createHistogram1D("Track " + half +" " + STUtils.STStereoTrack.VIEW.YZ.name()  + " slope", 50, -0.05, 0.05);
             trackSlope[i][STUtils.STStereoTrack.VIEW.XZ.ordinal()] = hf.createHistogram1D("Track " + half +" " + STUtils.STStereoTrack.VIEW.XZ.name()  + " slope", 50, -0.1, 0.1);
             if(i==0) {
                 trackIntercept[i][STUtils.STStereoTrack.VIEW.YZ.ordinal()] = hf.createHistogram1D("Track " + half +" " + STUtils.STStereoTrack.VIEW.YZ.name()  + " intecept", 50, 0, 50);
                 trackIntercept[i][STUtils.STStereoTrack.VIEW.XZ.ordinal()] = hf.createHistogram1D("Track " + half +" " + STUtils.STStereoTrack.VIEW.XZ.name()  + " intecept", 50, -80, 0);
                 trackAxialIntercept[i] = hf.createHistogram1D("Track axial " + half +" intercept", 50, 0, 50);
+                trackL13AxialIntercept[i] = hf.createHistogram1D("Track L13 axial " + half +" intercept", 50, -20, 50);
+                trackL46AxialIntercept[i] = hf.createHistogram1D("Track L46 axial " + half +" intercept", 50, -20, 50);
+                trackL13AxialSlope[i] = hf.createHistogram1D("Track L13 axial " + half +" slope", 50, -0.02, 0.1);
+                trackL46AxialSlope[i] = hf.createHistogram1D("Track L46 axial " + half +" slope", 50, -0.02, 0.1);
             } else {
                 trackIntercept[i][STUtils.STStereoTrack.VIEW.YZ.ordinal()] = hf.createHistogram1D("Track " + half +" " + STUtils.STStereoTrack.VIEW.YZ.name()  + " intecept", 50, -50, 0);
                 trackIntercept[i][STUtils.STStereoTrack.VIEW.XZ.ordinal()] = hf.createHistogram1D("Track " + half +" " + STUtils.STStereoTrack.VIEW.XZ.name()  + " intecept", 50, -50, 50);
                 trackAxialIntercept[i] = hf.createHistogram1D("Track axial " + half +" intercept", 50, -50, 0);
+                trackL13AxialIntercept[i] = hf.createHistogram1D("Track L13 axial " + half +" intercept", 50, -50, 20);
+                trackL46AxialIntercept[i] = hf.createHistogram1D("Track L46 axial " + half +" intercept", 50, -50, 20);
+                trackL13AxialSlope[i] = hf.createHistogram1D("Track L13 axial " + half +" slope", 50, -0.1, 0.02);
+                trackL46AxialSlope[i] = hf.createHistogram1D("Track L46 axial " + half +" slope", 50, -0.1, 0.02);
             }
             trackAxialHitCount[i] = hf.createHistogram1D("Track axial " + half +" hit multiplicity", 11, -0.5, 10.5);
             trackAxialCount[i] = hf.createHistogram1D("Track axial " + half +" multiplicity", 2, -0.5, 1.5);
             trackAxialSlope[i] = hf.createHistogram1D("Track axial " + half +" slope", 50, -0.05, 0.05);
+            trackL13L46AxialSlope[i] = hf.createHistogram1D("Track L13-L46 axial " + half +" slope", 50, -0.03, 0.03);
+            trackL13L46AxialIntercept[i] = hf.createHistogram1D("Track L13-L46 axial " + half +" intercept", 50, -8, 8);
             trackAxialExtraPolation[i] = hf.createHistogram2D("Track axial " + half +" extrapolation", nPointsZ, endPointZ, startPointZ,50,-80,80);
             trackExtraPolationY[i] = hf.createHistogram2D("Track " + half +" extrapolation Y", nPointsZ, endPointZ, startPointZ,50,-80,80);
             trackExtraPolationX[i] = hf.createHistogram2D("Track " + half +" extrapolation X", nPointsZ, endPointZ, startPointZ,50,-100,60);
@@ -240,7 +274,24 @@ public class StraightThroughAnalysisDriver extends Driver {
             plotters.get("Track " + half +" axial").region(1).plot(trackAxialCount[i]);
             plotters.get("Track " + half +" axial").region(2).plot(trackAxialSlope[i]);
             plotters.get("Track " + half +" axial").region(3).plot(trackAxialIntercept[i]);
+            
+            plotters.put("Track L13 " + half +" axial", af.createPlotterFactory().create("Track L13 " + half +" axial"));
+            //plotters.get("Track " + half +" axial").setStyle(this.getDefaultPlotterStyle("","Entries",true));
+            plotters.get("Track L13 " + half +" axial").createRegions(2,2);            
+            plotters.get("Track L13 " + half +" axial").region(2).plot(trackL13AxialSlope[i]);
+            plotters.get("Track L13 " + half +" axial").region(3).plot(trackL13AxialIntercept[i]);
 
+            plotters.put("Track L46 " + half +" axial", af.createPlotterFactory().create("Track L46 " + half +" axial"));
+            //plotters.get("Track " + half +" axial").setStyle(this.getDefaultPlotterStyle("","Entries",true));
+            plotters.get("Track L46 " + half +" axial").createRegions(2,2);            
+            plotters.get("Track L46 " + half +" axial").region(2).plot(trackL46AxialSlope[i]);
+            plotters.get("Track L46 " + half +" axial").region(3).plot(trackL46AxialIntercept[i]);
+
+            plotters.put("Track L13L46 " + half +" axial", af.createPlotterFactory().create("Track L13L46 " + half +" axial"));
+            //plotters.get("Track " + half +" axial").setStyle(this.getDefaultPlotterStyle("","Entries",true));
+            plotters.get("Track L13L46 " + half +" axial").createRegions(2,2);            
+            plotters.get("Track L13L46 " + half +" axial").region(2).plot(trackL13L46AxialSlope[i]);
+            plotters.get("Track L13L46 " + half +" axial").region(3).plot(trackL13L46AxialIntercept[i]);
 
 
             plotters.put("Track " + half, af.createPlotterFactory().create("Track " + half));
@@ -307,11 +358,26 @@ public class StraightThroughAnalysisDriver extends Driver {
             sensorHitTimes.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_hittime", 50, -100, 100));
             sensorHitCountMap.put(sensor.getName(), new int[1]);
             sensorHitCountMap.get(sensor.getName())[0] = 0;
+            sensorURes.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_ures", 50, -1, 1));
 
+            plotters.get("Sensor u res").region(SvtPlotUtils.computePlotterRegion(sensor)).plot(sensorURes.get(sensor.getName()));
+            plotters.get("Sensor hit position").region(SvtPlotUtils.computePlotterRegion(sensor)).plot(sensorHitPositions.get(sensor.getName()));
+            plotters.get("Sensor hit times").region(SvtPlotUtils.computePlotterRegion(sensor)).plot(sensorHitTimes.get(sensor.getName()));
+            plotters.get("Sensor cluster counts").region(SvtPlotUtils.computePlotterRegion(sensor)).plot(sensorHitCounts.get(sensor.getName()));
+            
             if(sensor.isAxial()) {
                 sensorHitResGlobal.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_hitresglobal", 50, -0.7, 0.7));
                 plotters.get("Sensor hit res").region(SvtPlotUtils.computePlotterRegionAxialOnly(sensor)).plot(sensorHitResGlobal.get(sensor.getName()));
                 plotters.get("Sensor hit res").region(0).style().dataStyle().showInStatisticsBox(true);
+
+                sensorHitResGlobalL13.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_hitresglobalL13", 50, -0.7, 0.7));
+                plotters.get("Sensor hit res L13").region(SvtPlotUtils.computePlotterRegionAxialOnly(sensor)).plot(sensorHitResGlobalL13.get(sensor.getName()));
+                plotters.get("Sensor hit res L13").region(0).style().dataStyle().showInStatisticsBox(true);
+
+                sensorHitResGlobalL46.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_hitresglobalL46", 50, -0.7, 0.7));
+                plotters.get("Sensor hit res L46").region(SvtPlotUtils.computePlotterRegionAxialOnly(sensor)).plot(sensorHitResGlobalL46.get(sensor.getName()));
+                plotters.get("Sensor hit res L46").region(0).style().dataStyle().showInStatisticsBox(true);
+
                 sensorStereoHitYZResGlobal.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_stereohityzresglobal", 50, -1, 1));
                 plotters.get("Sensor stereo YZ hit res").region(SvtPlotUtils.computePlotterRegionAxialOnly(sensor)).plot(sensorStereoHitYZResGlobal.get(sensor.getName()));
                 plotters.get("Sensor stereo YZ hit res").region(0).style().dataStyle().showInStatisticsBox(true);
@@ -321,10 +387,8 @@ public class StraightThroughAnalysisDriver extends Driver {
 
             
             }
+
             
-            plotters.get("Sensor hit position").region(SvtPlotUtils.computePlotterRegion(sensor)).plot(sensorHitPositions.get(sensor.getName()));
-            plotters.get("Sensor hit times").region(SvtPlotUtils.computePlotterRegion(sensor)).plot(sensorHitTimes.get(sensor.getName()));
-            plotters.get("Sensor cluster counts").region(SvtPlotUtils.computePlotterRegion(sensor)).plot(sensorHitCounts.get(sensor.getName()));
             
         }
 
@@ -443,26 +507,44 @@ public class StraightThroughAnalysisDriver extends Driver {
         
         // Pattern recognition for axial hits - yeah!
         List< List<SiTrackerHitStrip1D>> axialSeedHits = new ArrayList<List<SiTrackerHitStrip1D>>();
+        List< List<SiTrackerHitStrip1D>> axialSeedL13Hits = new ArrayList<List<SiTrackerHitStrip1D>>();
+        List< List<SiTrackerHitStrip1D>> axialSeedL46Hits = new ArrayList<List<SiTrackerHitStrip1D>>();
         for(int ihalf=0; ihalf<2; ++ihalf) {
             List<SiTrackerHitStrip1D> seedHits = new ArrayList<SiTrackerHitStrip1D>();
+            List<SiTrackerHitStrip1D> seedL13Hits = new ArrayList<SiTrackerHitStrip1D>();
+            List<SiTrackerHitStrip1D> seedL46Hits = new ArrayList<SiTrackerHitStrip1D>();
             for(int layer : axialHitsPerLayer.get(ihalf).keySet()) {
                 // single hit on the sensor
-                if( axialHitsPerLayer.get(ihalf).get(layer).size() == 1 )
+                if( axialHitsPerLayer.get(ihalf).get(layer).size() == 1 ) {
                     seedHits.add(axialHitsPerLayer.get(ihalf).get(layer).get(0));
+                    if( layer < 4) seedL13Hits.add(axialHitsPerLayer.get(ihalf).get(layer).get(0));
+                    else seedL46Hits.add(axialHitsPerLayer.get(ihalf).get(layer).get(0));
+                }
             }
             axialSeedHits.add(seedHits);
+            axialSeedL13Hits.add(seedL13Hits);
+            axialSeedL46Hits.add(seedL46Hits);
         }
         
         // Pattern recognition for stereo hits - yeah!
         List< List<SiTrackerHitStrip1D>> stereoSeedHits = new ArrayList<List<SiTrackerHitStrip1D>>();
+        List< List<SiTrackerHitStrip1D>> stereoSeedL13Hits = new ArrayList<List<SiTrackerHitStrip1D>>();
+        List< List<SiTrackerHitStrip1D>> stereoSeedL46Hits = new ArrayList<List<SiTrackerHitStrip1D>>();
         for(int ihalf=0; ihalf<2; ++ihalf) {
             List<SiTrackerHitStrip1D> seedHits = new ArrayList<SiTrackerHitStrip1D>();
+            List<SiTrackerHitStrip1D> seedL13Hits = new ArrayList<SiTrackerHitStrip1D>();
+            List<SiTrackerHitStrip1D> seedL46Hits = new ArrayList<SiTrackerHitStrip1D>();
             for(int layer : stereoHitsPerLayer.get(ihalf).keySet()) {
                 // single hit on the sensor
-                if( stereoHitsPerLayer.get(ihalf).get(layer).size() == 1 )
+                if( stereoHitsPerLayer.get(ihalf).get(layer).size() == 1 ) {
                     seedHits.add(stereoHitsPerLayer.get(ihalf).get(layer).get(0));
+                    if( layer < 4) seedL13Hits.add(stereoHitsPerLayer.get(ihalf).get(layer).get(0));
+                    else seedL46Hits.add(stereoHitsPerLayer.get(ihalf).get(layer).get(0));
+                }
             }
             stereoSeedHits.add(seedHits);
+            stereoSeedL13Hits.add(seedL13Hits);
+            stereoSeedL46Hits.add(seedL46Hits);
         }
         
 
@@ -558,31 +640,56 @@ public class StraightThroughAnalysisDriver extends Driver {
             axialTracks.add(track);
         }
 
-        // add stereo hits to tracks and fit them with simple regression in 1D
+        
+        // add hits to L13 axial tracks and fit them
+        List<STUtils.STTrack> axialL13Tracks = new ArrayList<STUtils.STTrack>();
+        for(List<SiTrackerHitStrip1D> seedHits : axialSeedL13Hits) {
+            if(seedHits.size() !=3)
+                continue;
+            STUtils.STTrack track = new STUtils.STTrack();
+            track.setHits(seedHits);
+            logger.fine("Fit axial L13 track");
+            regressionFitter.fit(track);
+            track.addFit(regressionFitter.getFit());
+            axialL13Tracks.add(track);
+        }
+
+        // add hits to L46 axial tracks and fit them
+        List<STUtils.STTrack> axialL46Tracks = new ArrayList<STUtils.STTrack>();
+        for(List<SiTrackerHitStrip1D> seedHits : axialSeedL46Hits) {
+            if(seedHits.size() !=3)
+                continue;
+            STUtils.STTrack track = new STUtils.STTrack();
+            track.setHits(seedHits);
+            logger.fine("Fit axial L46 track");
+            regressionFitter.fit(track);
+            track.addFit(regressionFitter.getFit());
+            axialL46Tracks.add(track);
+        }
+
+        
+        // add stereo hits to tracks and fit them 
         List<STUtils.STStereoTrack> stereoTracks = new ArrayList<STUtils.STStereoTrack>();
         for(List<STUtils.StereoPair> seedHits : stereoPairs) {
             
+            // require min number of hits
             if(seedHits.size() < minHitsStereoTrack) 
                 continue;
 
+            // Create the track and set the hits
             STUtils.STStereoTrack track = new STUtils.STStereoTrack();
             track.setHits(seedHits);
             
+            // Fit the hits
             STUtils.fit(regressionFitter, track);
 
-            //            logger.fine("Fit stereo track in YZ");
-//            regressionFitter.fit(track.getPointList(STStereoTrack.VIEW.YZ,null));
-//            track.setFit(regressionFitter.getFit(), STStereoTrack.VIEW.YZ);
-//            logger.fine("Fit stereo track in XZ");
-//            regressionFitter.fit(track.getPointList(STStereoTrack.VIEW.XZ,STStereoTrack.VIEW.YZ));
-//            track.setFit(regressionFitter.getFit(), STStereoTrack.VIEW.XZ);
-            
+            // add fitted track to list of tracks
             stereoTracks.add(track);
         }
         
         
         
-        // Loop over the axial tracks
+        // Fill histograms for axial tracks
         int nTracksAxial[] = {0,0};
         for(STUtils.STTrack track : axialTracks) {
             
@@ -594,7 +701,7 @@ public class StraightThroughAnalysisDriver extends Driver {
                 sensorHitResGlobal.get(hit.getRawHits().get(0).getDetectorElement().getName()).fill(resGlobal);
             }
             
-            logger.fine(track.toString());
+            logger.finest(track.toString());
 
             if(track.isTop()) {
                 nTracksAxial[0]++;
@@ -612,10 +719,71 @@ public class StraightThroughAnalysisDriver extends Driver {
         trackAxialCount[0].fill(nTracksAxial[0]);
         trackAxialCount[1].fill(nTracksAxial[1]);
         
+        // Fill histograms for axial L13 tracks
         
+        for(STUtils.STTrack track : axialL13Tracks) {
+            
+            for(SiTrackerHitStrip1D hit : track.getHits()) {
+                double yhit = hit.getPositionAsVector().y();
+                double zHit = hit.getPositionAsVector().z();
+                double yPred = track.predict(zHit);
+                double resGlobal = yhit - yPred;
+                sensorHitResGlobalL13.get(hit.getRawHits().get(0).getDetectorElement().getName()).fill(resGlobal);
+            }
+            
+            logger.finest(track.toString());
+
+            if(track.isTop()) {
+                trackL13AxialSlope[0].fill(track.getSlope());
+                trackL13AxialIntercept[0].fill(track.getIntercept());
+            }
+            else {
+                trackL13AxialSlope[1].fill(track.getSlope());
+                trackL13AxialIntercept[1].fill(track.getIntercept());
+            }
+         }   
         
-        // Loop over the stereo tracks
-        int nTracks[] = {0,0};
+        // Fill histograms for axial L46 tracks
+        
+        for(STUtils.STTrack track : axialL46Tracks) {
+            
+            for(SiTrackerHitStrip1D hit : track.getHits()) {
+                double yhit = hit.getPositionAsVector().y();
+                double zHit = hit.getPositionAsVector().z();
+                double yPred = track.predict(zHit);
+                double resGlobal = yhit - yPred;
+                sensorHitResGlobalL46.get(hit.getRawHits().get(0).getDetectorElement().getName()).fill(resGlobal);
+            }
+            
+            logger.finest(track.toString());
+
+            if(track.isTop()) {
+                trackL46AxialSlope[0].fill(track.getSlope());
+                trackL46AxialIntercept[0].fill(track.getIntercept());
+            }
+            else {
+                trackL46AxialSlope[1].fill(track.getSlope());
+                trackL46AxialIntercept[1].fill(track.getIntercept());
+            }
+         }   
+        
+        // Look at difference b/w L13 and L46 axial tracks
+        
+        if(axialL13Tracks.size()==1 && axialL46Tracks.size()==1) {
+            STUtils.STTrack l13Track =  axialL13Tracks.get(0);
+            STUtils.STTrack l46Track =  axialL46Tracks.get(0);
+            if( l13Track.isTop() == l46Track.isTop()) {
+            if(l13Track.isTop()) {
+                trackL13L46AxialSlope[0].fill(l13Track.getSlope() - l46Track.getSlope());
+                trackL13L46AxialIntercept[0].fill(l13Track.getIntercept() - l46Track.getIntercept());
+            }
+            else {
+                trackL13L46AxialSlope[1].fill(l13Track.getSlope() - l46Track.getSlope());
+                trackL13L46AxialIntercept[1].fill(l13Track.getIntercept() - l46Track.getIntercept());
+            }
+        }
+        }        
+        // Update track and hit positions
         for(STUtils.STStereoTrack track : stereoTracks) {
 
             int half = track.isTop() ? 0 : 1;
@@ -624,15 +792,15 @@ public class StraightThroughAnalysisDriver extends Driver {
             double delta = 9999.9;
             int idelta = 0;
             while(delta>0.05) {
-                logger.fine(idelta + ": delta " + delta);
+                logger.finest(idelta + ": delta " + delta);
                 delta = 0.0;
                 for(STUtils.StereoPair pair : track.getHits()) {
                     Hep3Vector p = new BasicHep3Vector(pair.getPosition().v());
                     Hep3Vector trackDirection = track.getDirection();
-                    logger.fine("updatePosition " + p.toString() + " with track dir " + trackDirection.toString());
+                    logger.finest("updatePosition " + p.toString() + " with track dir " + trackDirection.toString());
                     pair.updatePosition(trackDirection);
                     Hep3Vector pnew = pair.getPosition();
-                    logger.fine("new position " + pnew.toString());
+                    logger.finest("new position " + pnew.toString());
                     delta += VecOp.sub(p, pnew).magnitude();
                 }
                 delta = delta / track.getHits().size();
@@ -642,30 +810,42 @@ public class StraightThroughAnalysisDriver extends Driver {
 
                 // Re-fit the track after the update
                 STUtils.fit(regressionFitter,track);
-//                track.clearFit();
-//                logger.fine("Fit stereo track in YZ");
-//                regressionFitter.fit(track.getPointList(STStereoTrack.VIEW.YZ,null));
-//                track.setFit(regressionFitter.getFit(), STStereoTrack.VIEW.YZ);
-//                logger.fine("Fit stereo track in XZ");
-//                regressionFitter.fit(track.getPointList(STStereoTrack.VIEW.XZ,STStereoTrack.VIEW.YZ));
-//                track.setFit(regressionFitter.getFit(), STStereoTrack.VIEW.XZ);
                 
             }
-            logger.fine("finished update position after " + idelta + "iterations with delta " + delta);
             
+            logger.finest("finished update position after " + idelta + "iterations with delta " + delta);
+        
+        }
+        
+        
+        // Fill histograms for stereo tracks
+        int nTracks[] = {0,0};
+        for(STUtils.STStereoTrack track : stereoTracks) {
+
+            logger.finest(track.toString());
+
+            int half = track.isTop() ? 0 : 1;
             
+            // fill histograms
             for(STUtils.StereoPair hit : track.getHits()) {
                 double yhit = hit.getPosition().y();
                 double xhit = hit.getPosition().x();
                 double zHit = hit.getPosition().z();
                 double xyPred[] = track.predict(zHit);
                 double resGlobalY = yhit - xyPred[STStereoTrack.VIEW.YZ.ordinal()];
-                double resGlobalX = xhit - xyPred[STStereoTrack.VIEW.XZ.ordinal()];;
+                double resGlobalX = xhit - xyPred[STStereoTrack.VIEW.XZ.ordinal()];
+                double uResAxial =STUtils.getUResidual(hit.getAxial(), track);
+                double uResStereo =STUtils.getUResidual(hit.getStereo(), track);
+                
                 sensorStereoHitYZResGlobal.get(hit.getAxial().getRawHits().get(0).getDetectorElement().getName()).fill(resGlobalY);
                 sensorStereoHitXZResGlobal.get(hit.getAxial().getRawHits().get(0).getDetectorElement().getName()).fill(resGlobalX);
+                
+                sensorURes.get(hit.getAxial().getRawHits().get(0).getDetectorElement().getName()).fill(uResAxial);
+                sensorURes.get(hit.getStereo().getRawHits().get(0).getDetectorElement().getName()).fill(uResStereo);
+                
+                
             }
 
-            logger.fine(track.toString());
 
             nTracks[half]++;
             trackHitCount[half].fill(track.getHits().size());
@@ -674,7 +854,9 @@ public class StraightThroughAnalysisDriver extends Driver {
                 trackSlope[half][v].fill(track.getSlope()[view.ordinal()]);
                 trackIntercept[half][v].fill(track.getIntercept()[view.ordinal()]);
             }
+            
         }   
+        
         trackCount[0].fill(nTracks[0]);
         trackCount[1].fill(nTracks[1]);
 
@@ -740,7 +922,9 @@ public class StraightThroughAnalysisDriver extends Driver {
 
 
         // GBL interface
-        if(gblPrintWriter != null) {
+        if(writeGbl ) {
+            if(gblPrintWriter == null) 
+                throw new RuntimeException("No file was opened!");
             STUtils.printGBL(gblPrintWriter, event, stereoTracks);
         }
 
@@ -750,7 +934,7 @@ public class StraightThroughAnalysisDriver extends Driver {
     
     protected void endOfData() {
         
-        rootFileName = outputFilename + "_hitrecon.root";
+        rootFileName = outputFilename.isEmpty() ? "hitrecon.root" : outputFilename + "_hitrecon.root";
         RootFileStore rootFileStore = new RootFileStore(rootFileName);
         try {
             rootFileStore.open();
@@ -776,16 +960,18 @@ public class StraightThroughAnalysisDriver extends Driver {
                     }
                 }
             }
-//            if(sensor.isAxial()) {
-//                sensorHitResGlobal.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_hitresglobal", 50, -1.5, 1.5));
-//                plotters.get("Sensor hit res").region(SvtPlotUtils.computePlotterRegionAxialOnly(sensor)).plot(sensorHitResGlobal.get(sensor.getName()));
-//                plotters.get("Sensor hit res").region(0).style().dataStyle().showInStatisticsBox(true);
-//            }
-            
         }
         
     }
 
+    public void setOutputFilename(String gblOutputFilename) {
+        this.outputFilename = gblOutputFilename;
+    }
+    
+    public void setWriteGbl(boolean writeGbl) {
+        this.writeGbl = writeGbl;
+    }
+    
     protected IPlotterStyle getMinPlotterStyle(String xAxisTitle, String yAxisTitle) {
         // Create a default style
         IPlotterStyle style = this.pf.createPlotterStyle();
@@ -843,11 +1029,8 @@ public class StraightThroughAnalysisDriver extends Driver {
 
 
 
-    public void setOutputFilename(String gblOutputFilename) {
-        this.outputFilename = gblOutputFilename;
-    }
-    
    
+
     
     
 }

@@ -156,8 +156,8 @@ final class RunDatabaseBuilder {
 
         LOGGER.info("loaded run summary ..." + '\n' + runSummary);
 
-        LOGGER.info("loaded " + runManager.getEpicsData(EpicsType.EPICS_2s).size() + " EPICS 2S records");
-        LOGGER.info("loaded " + runManager.getEpicsData(EpicsType.EPICS_20s).size() + " EPICS 20S records");
+        LOGGER.info("loaded " + runManager.getEpicsData(EpicsType.EPICS_2S).size() + " EPICS 2S records");
+        LOGGER.info("loaded " + runManager.getEpicsData(EpicsType.EPICS_20S).size() + " EPICS 20S records");
 
         List<ScalerData> scalerData = runManager.getScalerData();
         LOGGER.info("loaded " + scalerData.size() + " scaler records");
@@ -167,7 +167,7 @@ final class RunDatabaseBuilder {
             
         LOGGER.info("printing DAQ config ...");
         DAQConfig daqConfig = runManager.getDAQConfig();
-        daqConfig.printConfig();
+        daqConfig.printConfig(System.out);
         
         runManager.closeConnection();
     }
@@ -628,6 +628,7 @@ final class RunDatabaseBuilder {
         LOGGER.info("updating end timestamp");
         IntBankDefinition headBankDefinition = new IntBankDefinition(HeadBankData.class, new int[] {0x2e, 0xe10f});
         File lastEvioFile = cacheFiles.get(cacheFiles.size() - 1);
+        LOGGER.info("setting end timestamp from file " + lastEvioFile.getPath());
         EvioReader reader = null;
         Integer endTimestamp = null;
         try {
@@ -659,7 +660,7 @@ final class RunDatabaseBuilder {
             }
         }
         runSummary.setEndTimestamp(endTimestamp);
-        LOGGER.fine("end timestamp set to " + endTimestamp);
+        LOGGER.fine("end timestamp was set to " + endTimestamp);
     }
 
     /**
@@ -726,6 +727,7 @@ final class RunDatabaseBuilder {
     private void updateStartTimestamps() {
         LOGGER.fine("updating start timestamps");
         File firstEvioFile = cacheFiles.get(0);
+        LOGGER.info("setting start timestamps from file " + firstEvioFile.getPath());
         int sequence = EvioFileUtilities.getSequenceFromName(firstEvioFile);
         if (sequence != 0) {
             LOGGER.warning("first file does not have sequence 0");
@@ -790,13 +792,21 @@ final class RunDatabaseBuilder {
      */
     private void updateTriggerRate() {
         LOGGER.fine("updating trigger rate");
-        if (runSummary.getEndTimestamp() != null && runSummary.getGoTimestamp() != null) {
+        Integer startTimestamp = null;
+        if (runSummary.getGoTimestamp() != null) {
+            startTimestamp = runSummary.getGoTimestamp();
+        } else if (runSummary.getPrestartTimestamp() != null) {
+            startTimestamp = runSummary.getPrestartTimestamp();
+        } else {
+            LOGGER.warning("Could not get starting timestamp for trigger rate calculation.");
+        }
+        if (runSummary.getEndTimestamp() != null && startTimestamp != null) {
             double triggerRate = ((double) runSummary.getTotalEvents() / ((double) runSummary.getEndTimestamp() - (double) runSummary
                     .getGoTimestamp())) / 1000.;
             runSummary.setTriggerRate(triggerRate);
             LOGGER.info("trigger rate set to " + runSummary.getTriggerRate());
         } else {
-            LOGGER.warning("Skipped trigger rate calculation because END or GO timestamp is missing.");
+            LOGGER.warning("Skipped trigger rate calculation because a timestamp is missing.");
         }
     }
 }

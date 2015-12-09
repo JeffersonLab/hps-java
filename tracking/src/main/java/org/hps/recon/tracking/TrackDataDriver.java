@@ -317,7 +317,7 @@ public final class TrackDataDriver extends Driver {
         }
         
         // Add all collections to the event
-        event.put(TrackData.TRACK_DATA_COLLECTION, trackDataCollection, TrackTimeData.class, 0);
+        event.put(TrackData.TRACK_DATA_COLLECTION, trackDataCollection, TrackData.class, 0);
         event.put(TrackData.TRACK_DATA_RELATION_COLLECTION, trackDataRelations, LCRelation.class, 0);
         event.put(TRK_RESIDUALS_COL_NAME, trackResidualsCollection, TrackResidualsData.class, 0);
         event.put(TRK_RESIDUALS_REL_COL_NAME, trackToTrackResidualsRelations, LCRelation.class, 0);

@@ -7,6 +7,9 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.SpacePoint;
 import hep.physics.vec.VecOp;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1029,6 +1032,20 @@ public class TrackUtils {
         for (TrackerHit hit : track.getTrackerHits())
             hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
         return hits;
+    }
+
+    public static List<TrackerHit> sortHits(Collection<TrackerHit> hits) {
+        List<TrackerHit> hitList = new ArrayList<TrackerHit>(hits);
+        Collections.sort(hitList, new LayerComparator());
+        return hitList;
+    }
+
+    private static class LayerComparator implements Comparator<TrackerHit> {
+
+        @Override
+        public int compare(TrackerHit o1, TrackerHit o2) {
+            return Integer.compare(TrackUtils.getLayer(o1), TrackUtils.getLayer(o2));
+        }
     }
 
     public static boolean hasSharedStrips(Track track1, Track track2, RelationalTable hitToStrips, RelationalTable hitToRotated) {

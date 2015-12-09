@@ -276,6 +276,7 @@ public final class EpicsData {
      * @param evioEvent the EVIO event
      * @return the EPICS data or <code>null</code> if it is not present in the event
      */
+    // FIXME: Not currently used.
     public static EpicsData getEpicsData(EvioEvent evioEvent) {
         
         EpicsData epicsData = null;

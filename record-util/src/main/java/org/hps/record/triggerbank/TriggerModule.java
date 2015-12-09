@@ -449,8 +449,22 @@ public final class TriggerModule {
      * be calculated.
      * @return Returns displacement of the cluster.
      */
-    // TODO: What defines cluster distance?
     public static double getClusterDistance(Cluster cluster) {
+    	// Get the variables from the cluster.
+    	double x = getClusterX(cluster);
+    	double y = getClusterY(cluster);
+    	
+    	// Perform the calculation.
+    	return getClusterDistance(x, y);
+    }
+    
+    /**
+     * Calculates the distance between the origin and a cluster.
+     * @param cluster - The cluster pair from which the value should
+     * be calculated.
+     * @return Returns displacement of the cluster.
+     */
+    public static double getClusterDistance(SSPCluster cluster) {
     	// Get the variables from the cluster.
     	double x = getClusterX(cluster);
     	double y = getClusterY(cluster);

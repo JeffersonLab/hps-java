@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.record.AbstractRecordQueue;
@@ -19,6 +20,8 @@ import org.jlab.coda.jevio.EvioReader;
  */
 public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
 
+    private static final Logger LOGGER = Logger.getLogger(EvioFileSource.class.getPackage().getName());
+    
     /**
      * The current event.
      */
@@ -158,6 +161,7 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
     private void openReader() {
         try {
             // FIXME: This should use the reader directly and MSS paths should be transformed externally.
+            LOGGER.info("opening EVIO file " + this.files.get(this.fileIndex).getPath() + " ...");
             this.reader = EvioFileUtilities.open(this.files.get(this.fileIndex), true);
         } catch (EvioException | IOException e) {
             throw new RuntimeException(e);

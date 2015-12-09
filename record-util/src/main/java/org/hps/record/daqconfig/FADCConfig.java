@@ -1,6 +1,7 @@
 package org.hps.record.daqconfig;
 
 import java.awt.Point;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -305,18 +306,18 @@ public class FADCConfig extends IDAQConfig {
     }
     
     @Override
-    public void printConfig() {
+    public void printConfig(PrintStream ps) {
     	// Print the basic configuration information.
-        System.out.println("FADC Configuration:");
-        System.out.printf("\tMode          :: %d%n", mode);
-        System.out.printf("\tNSA           :: %d%n", nsa);
-        System.out.printf("\tNSB           :: %d%n", nsb);
-        System.out.printf("\tWindow Width  :: %d%n", windowWidth);
-        System.out.printf("\tWindow Offset :: %d%n", offset);
-        System.out.printf("\tMax Peaks     :: %d%n", maxPulses);
+        ps.println("FADC Configuration:");
+        ps.printf("\tMode          :: %d%n", mode);
+        ps.printf("\tNSA           :: %d%n", nsa);
+        ps.printf("\tNSB           :: %d%n", nsb);
+        ps.printf("\tWindow Width  :: %d%n", windowWidth);
+        ps.printf("\tWindow Offset :: %d%n", offset);
+        ps.printf("\tMax Peaks     :: %d%n", maxPulses);
         
         // Output the pedestal/gain write-out header.
-        System.out.println("\tix\tiy\tPedestal (ADC)\tGain (MeV/ADC)\tThreshold (ADC)");
+        ps.println("\tix\tiy\tPedestal (ADC)\tGain (MeV/ADC)\tThreshold (ADC)");
         
         // Iterate over each crystal y-index.
         yLoop:
@@ -335,7 +336,7 @@ public class FADCConfig extends IDAQConfig {
         		
         		// Output the crystal indices, pedestal, and gain.
         		int channelID = indexChannelMap.get(new Point(ix, iy));
-        		System.out.printf("\t%3d\t%3d\t%8.3f\t%8.3f\t%4d%n", ix, iy,
+        		ps.printf("\t%3d\t%3d\t%8.3f\t%8.3f\t%4d%n", ix, iy,
         				getPedestal(channelID), getGain(channelID), getThreshold(channelID));
         	}
         }

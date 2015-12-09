@@ -143,8 +143,8 @@ public final class RunManager implements ConditionsListener {
      * @param run the run number
      */
     void deleteRun() {        
-        factory.createEpicsDataDao().deleteEpicsData(EpicsType.EPICS_2s, run);
-        factory.createEpicsDataDao().deleteEpicsData(EpicsType.EPICS_20s, run);
+        factory.createEpicsDataDao().deleteEpicsData(EpicsType.EPICS_2S, run);
+        factory.createEpicsDataDao().deleteEpicsData(EpicsType.EPICS_20S, run);
         factory.createScalerDataDao().deleteScalerData(run);        
         factory.createSvtConfigDao().deleteSvtConfigs(run);
         factory.createTriggerConfigDao().deleteTriggerConfig(run);

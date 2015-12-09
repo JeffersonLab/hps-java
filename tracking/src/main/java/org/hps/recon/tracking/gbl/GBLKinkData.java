@@ -1,6 +1,13 @@
 package org.hps.recon.tracking.gbl;
 
+import java.util.List;
+import org.apache.commons.math3.util.Pair;
+import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.Track;
+import org.lcsim.event.base.BaseRelationalTable;
 
 /**
  * Generic object used to persist GBL kink data.
@@ -94,4 +101,27 @@ public class GBLKinkData implements GenericObject {
     public boolean isFixedSize() {
         return true;
     }
+
+    private static Pair<EventHeader, RelationalTable> kinkDataToTrackCache = null;
+
+    public static RelationalTable getKinkDataToTrackTable(EventHeader event) {
+        if (kinkDataToTrackCache == null || kinkDataToTrackCache.getFirst() != event) {
+            RelationalTable kinkDataToTrack = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+            if (event.hasCollection(LCRelation.class, DATA_RELATION_COLLECTION)) {
+                List<LCRelation> relations = event.get(LCRelation.class, DATA_RELATION_COLLECTION);
+                for (LCRelation relation : relations) {
+                    if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                        kinkDataToTrack.add(relation.getFrom(), relation.getTo());
+                    }
+                }
+            }
+            kinkDataToTrackCache = new Pair<EventHeader, RelationalTable>(event, kinkDataToTrack);
+        }
+        return kinkDataToTrackCache.getSecond();
+    }
+
+    public static GenericObject getKinkData(EventHeader event, Track track) {
+        return (GenericObject) getKinkDataToTrackTable(event).from(track);
+    }
+
 }

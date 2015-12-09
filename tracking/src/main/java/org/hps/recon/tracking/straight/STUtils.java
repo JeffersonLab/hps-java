@@ -1,8 +1,9 @@
 /**
  * 
  */
-package org.hps.users.phansson;
+package org.hps.recon.tracking.straight;
 
+import hep.physics.matrix.BasicMatrix;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
@@ -15,7 +16,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.math3.stat.regression.SimpleRegression;
-import org.hps.users.phansson.STUtils.STStereoTrack.VIEW;
+import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.tracking.straight.STUtils.STStereoTrack.VIEW;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -36,6 +38,9 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType.CoordinateSyst
 public class STUtils {
     
     public final static Logger logger = Logger.getLogger(STUtils.class.getSimpleName());
+    protected static final double sensorThickness = 0.7e-2*0.5; // radiation length per sensor
+    protected static final double beamEnergy = 1.05;
+        
 
     
     /**
@@ -254,14 +259,24 @@ public class STUtils {
         public String toString() {
             StringBuffer sb = new StringBuffer("STStereoTrack:\n");
             sb.append(hits.size() + " stereo hits.\n");
+            for(StereoPair pair : hits) {
+                sb.append("Pair: pos " + pair.getPosition() + 
+                        " " + pair.getAxial().getRawHits().get(0).getDetectorElement().getName() + " org " + getOrigin(pair.getAxial()).toString() +
+                        " " + pair.getStereo().getRawHits().get(0).getDetectorElement().getName() + " org " + getOrigin(pair.getStereo()).toString() + "\n");
+            }
+            sb.append("\nPointlists:\n");
             for(int i=0;i<2;++i) {
                 VIEW v = VIEW.values()[i];
                 sb.append("View " + v.name() + ": \n");
                 for(double[] xy : getPointList(v))
                     sb.append(xy[0] + ", " + xy[1] + "\n");
-                if(getFit(v)!=null) sb.append(getFit(v).toString());
+                if(getFit(v)!=null) sb.append(getFit(v).toString() + "\n");
             }
             return sb.toString();
+        }
+
+        public double getMomentum() {
+            return beamEnergy;
         }
 
 
@@ -610,9 +625,29 @@ public class STUtils {
         return z > 0 ? Math.sqrt( z*z + dy*dy ) : -1*Math.sqrt( z*z + dy*dy );
     }
     
+    public static double getTraversedMaterial(STStereoTrack track, SiTrackerHitStrip1D hit) {
+
+        // calculate the path length through the material
+        if( (track.getDirection().magnitude() - 1) > 0.0001 )
+            throw new RuntimeException("track dir is not normalized? " + track.getDirection().toString() + " mag = " + track.getDirection().magnitude());
+        
+        final double C = sensorThickness/track.getDirection().z();
+        Hep3Vector t = VecOp.mult(C, track.getDirection());
+        double thickness = t.magnitude();
+        logger.finest("\nMaterial " + thickness + " X0 from \nC = " + C + " \nsensor thickness = " + sensorThickness + " \ntDir = " + track.getDirection().toString() + " \nt = " + t.toString());
+        
+        return thickness;        
+    }
     
     
     
+    /**
+     * Prints information for running GBL to a text file.
+     * 
+     * @param printWriter
+     * @param event
+     * @param tracks
+     */
     public static void printGBL(PrintWriter printWriter, EventHeader event, List<STStereoTrack> tracks) {
         printWriter.printf("New Event %d %f", event.getEventNumber(), 0.0);
         printWriter.println();
@@ -623,15 +658,16 @@ public class STUtils {
             printWriter.printf("New Track %d", iTrack);
             printWriter.println();
             
-            double[] perPars = getPerPars(track);
-            printWriter.printf("Track perPar (x0 y0 dxdz dydz) %.12f %.12f %.12f %.12f", perPars[0],perPars[1],perPars[2],perPars[3]);
+            double[] perPars= getPerPars(track);
+            printWriter.printf("Track perPar (y0 z0 dydx dzdx) %.12f %.12f %.12f %.12f", perPars[0],perPars[1],perPars[2],perPars[3]);
             printWriter.println();
+            
             
             double[] clPars = getCLPars(track);
-            printWriter.printf("Track clPar (xT yT dxTdz dyTdz) %.12f %.12f %.12f %.12f", clPars[0],clPars[1],clPars[2],clPars[3]);
+            printWriter.printf("Track clPar (q/p lambda phi xT yT) %.12f %.12f %.12f %.12f %.12f", clPars[0],clPars[1],clPars[2],clPars[3], clPars[4]);
             printWriter.println();
-            
-            Hep3Matrix clPrj = curvilinearProjectionMatrix(track.getDirection());
+
+            Hep3Matrix clPrj = curvilinearProjectionMatrix(CoordinateTransformations.transformVectorToTracking( track.getDirection() ) );
             StringBuffer sb = new StringBuffer();
             for(int i=0;i!=3;++i) 
                 for(int j=0;j!=3;++j) 
@@ -639,8 +675,9 @@ public class STUtils {
             printWriter.printf("Track clPrj %s", sb.toString());
             printWriter.println();
             
-            //List<SiTrackerHitStrip1D> stripHits = new ArrayList<SiTrackerHitStrip1D>();
+            //Counter of number strips
             int iStrip = 0;
+
             for(StereoPair pair : track.getHits()) {
                 SiTrackerHitStrip1D strips[] = new SiTrackerHitStrip1D[2];
                 if(pair.getAxial().getPosition()[2] < pair.getStereo().getPosition()[2]) {
@@ -651,10 +688,56 @@ public class STUtils {
                     strips[0] = pair.getStereo();
                 }
                 for(int i=0; i<strips.length;++i) {
+                    
                     SiTrackerHitStrip1D strip = strips[i];
+                    
                     HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.getRawHits().get(0)).getDetectorElement();
                     printWriter.printf("New Strip id layer %d %d %s", iStrip, sensor.getMillepedeId(), sensor.getName() );
                     printWriter.println();
+                    
+                    Hep3Vector originGlobal = getOrigin(strip);
+                    Hep3Vector origin = CoordinateTransformations.transformVectorToTracking(originGlobal);
+                    printWriter.printf("Strip origin %.12f %.12f %.12f", origin.x(), origin.y(), origin.z() );
+                    printWriter.println();
+
+                    Hep3Vector stereoHitPosition = CoordinateTransformations.transformVectorToTracking( pair.getPosition() );
+                    printWriter.printf("Strip 3D hit pos %.12f %.12f %.12f", stereoHitPosition.x(), stereoHitPosition.y(), stereoHitPosition.z() );
+                    printWriter.println();
+
+                    Hep3Vector trackPositionGlobal = getLinePlaneIntercept(strip, track);
+                    Hep3Vector trackPosition = CoordinateTransformations.transformVectorToTracking(trackPositionGlobal);
+                    printWriter.printf("Strip track pos %.12f %.12f %.12f", trackPosition.x(), trackPosition.y(), trackPosition.z() );
+                    printWriter.println();
+                    
+                    double pathLen = getPathLength(trackPositionGlobal.z(), track);
+                    printWriter.printf("Strip pathLen %.12f", pathLen );
+                    printWriter.println();
+
+                    Hep3Vector u = CoordinateTransformations.transformVectorToTracking( strip.getMeasuredCoordinate());
+                    printWriter.printf("Strip meas dir %.12f %.12f %.12f", u.x(), u.y(), u.z() );
+                    printWriter.println();
+
+                    Hep3Vector v = CoordinateTransformations.transformVectorToTracking( strip.getUnmeasuredCoordinate());
+                    printWriter.printf("Strip non-meas dir %.12f %.12f %.12f", v.x(), v.y(), v.z() );
+                    printWriter.println();
+
+                    Hep3Vector w = VecOp.cross(u, v );
+                    printWriter.printf("Strip normal dir %.12f %.12f %.12f", w.x(), w.y(), w.z() );
+                    printWriter.println();
+
+                    printWriter.printf("Strip u %.12f", strip.getTransformedHit(CoordinateSystem.SENSOR).getPosition()[0]);
+                    printWriter.println();
+
+                    double uRes = getUResidual(strip, track);
+                    double uRes_err = Math.sqrt( strip.getTransformedHit(CoordinateSystem.SENSOR).getCovarianceAsMatrix().diagonal(0) );
+                    printWriter.printf("Strip ures %.12f %.12f", uRes, uRes_err);
+                    printWriter.println();
+                    
+                    double scatAngle = getScatteringAngle(strip, track);
+                    printWriter.printf("Strip scatangle %.12f", scatAngle);
+                    printWriter.println();
+
+                    // update hit counter
                     iStrip++;
                 }
             }
@@ -666,26 +749,240 @@ public class STUtils {
     
     
     
+
+    /**
+     * Calculate the multiple scattering angle for a given momentum and thickness
+     * @param p
+     * @param radlength
+     * @return
+     */
+    public static double msangle(double p, double radlength) {
+        double angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength));
+        return angle;
+    }
+
+    /**
+     * Calculate expected multiple Coulomb scattering angle for this track from given sensor.
+     * @param strip
+     * @param track
+     * @return angle
+     */
+    private static double getScatteringAngle(SiTrackerHitStrip1D strip, STStereoTrack track) {
+        final double thickness = getTraversedMaterial(track, strip);
+        final double angle = msangle(track.getMomentum(), thickness);
+        return angle;
+    }
     
-    public static double[] getPerPars(STStereoTrack track) {
-        double intercept[] = track.getIntercept();
-        double slope[] = track.getSlope();
-        return new double[]{
-                intercept[VIEW.XZ.ordinal()],
-                intercept[VIEW.YZ.ordinal()],
-                slope[VIEW.XZ.ordinal()],
-                slope[VIEW.YZ.ordinal()]};
+    
+    
+    /**
+     * Finds point of intercept between a generic straight line and a plane.
+     * 
+     * @param l - vector pointing along the line
+     * @param l0 - point on the line
+     * @param p0 - point on the plane
+     * @param n - normal vector of the plane.
+     * @return point of intercept. 
+     */
+    private static Hep3Vector getLinePlaneIntercept(Hep3Vector l, Hep3Vector l0, Hep3Vector p0, Hep3Vector n) {
+        if( VecOp.dot(l, n) == 0 )
+            throw new RuntimeException("This line and plane are parallel!");
+       final double d = VecOp.dot( VecOp.sub(p0, l0), n) / VecOp.dot(l, n);
+       Hep3Vector p = VecOp.add( VecOp.mult(d, l) , l0);
+       return p;
+        
+    }
+    
+    /**
+     * Finds point of intercept between a {@link STStereoTrack} and a sensor obtained from a {@link SiTrackerHitStrip1D}.
+     * @param strip
+     * @param track
+     * @return point of intercept.
+     */
+    private static Hep3Vector getLinePlaneIntercept(SiTrackerHitStrip1D strip, STStereoTrack track) {
+        // line description
+        Hep3Vector l0 = new BasicHep3Vector(track.getIntercept()[VIEW.XZ.ordinal()], track.getIntercept()[VIEW.YZ.ordinal()], 0);
+        Hep3Vector l = track.getDirection();
+        // plane
+        Hep3Vector p0 = getOrigin(strip);
+        Hep3Vector n = VecOp.cross(strip.getMeasuredCoordinate(), strip.getUnmeasuredCoordinate());
+        // find intercept
+        Hep3Vector trkpos = getLinePlaneIntercept(l, l0, p0, n);
+        logger.finest("\ntrkpos " + trkpos.toString() + "\n l " + l.toString() + "\n l0 " + l0.toString() + "\n p0 " + p0.toString() + "\n n " + n.toString());
+        return trkpos;
     }
     
     
     /**
-     * Computes projection matrix from the ST variables x0,y0,z0
+     * Calculate the residual (measured - predicted) for this hit in the measurement frame.
+     * @param strip
+     * @param track
+     * @return
+     */
+    protected static double getUResidual(SiTrackerHitStrip1D strip, STStereoTrack track) {
+        
+        //Predict track position on sensor
+        Hep3Vector trkpos = getLinePlaneIntercept(strip, track);
+        
+        logger.finest("trkpos " + trkpos.toString());
+        logger.finest("origin " + getOrigin(strip).toString());
+        logger.finest("u " + strip.getMeasuredCoordinate().toString() + " v " + strip.getUnmeasuredCoordinate().toString() + " w " + VecOp.cross(strip.getMeasuredCoordinate(), strip.getUnmeasuredCoordinate()).toString());
+        
+        
+        // vector from origin to track position
+        Hep3Vector trkposOrigin = VecOp.sub(trkpos, getOrigin(strip));
+
+        logger.finest("trkposOrigin " + trkposOrigin.toString());
+
+        
+        //trkposOriginLocal = globalToLocal.rotated(trkposOrigin);
+        
+        // Transform from JLab frame to sensor frame (done through the RawTrackerHit)
+        SiTrackerHitStrip1D local = strip.getTransformedHit(CoordinateSystem.SENSOR);
+        ITransform3D globalToLocal = local.getLocalToGlobal().inverse();
+        
+        logger.finest("local pos " + local.getPositionAsVector());
+
+        logger.finest("localToGlobal:\n" + local.getLocalToGlobal().toString());
+        logger.finest("localToGlobal:\n" + local.getLocalToGlobal().inverse().toString());
+        
+        
+        //Hep3Vector trkposOriginLocal = strip.getLocalToGlobal().getRotation().inverse().rotated(trkposOrigin);
+        Hep3Vector trkposOriginLocal = globalToLocal.getRotation().rotated(trkposOrigin);
+        
+        logger.finest("trkposOriginLocal " + trkposOriginLocal.toString());
+        
+        // get the measured position
+        Hep3Vector measpos = VecOp.sub(strip.getPositionAsVector(), getOrigin(strip));
+
+        logger.finest("strip pos " + strip.getPositionAsVector().toString());
+        logger.finest("strip origin " + getOrigin(strip).toString());
+        logger.finest("measpos " + measpos.toString());
+        
+        //Hep3Vector measposLocal = strip.getLocalToGlobal().getRotation().inverse().rotated(measpos);
+        Hep3Vector measposLocal = globalToLocal.rotated(measpos);
+
+        logger.finest("measposLocal " + measposLocal.toString());
+
+        final double ures = measposLocal.x() - trkposOriginLocal.x();
+        
+        logger.finest("res " + VecOp.sub(measposLocal, trkposOriginLocal).toString());
+        
+        logger.finest("\nures " + ures + " \ntrkpos " + trkpos.toString() + " \ntrkposOriginLocal " + trkposOriginLocal.toString() + " \nmeaspos " + measpos.toString() + " \nmeasposLocal " + measposLocal.toString());
+        
+        return ures;
+    }
+
+    /**
+     * Path length to this point along the {@link STStereoTrack}.
+     * @param z
+     * @param track
+     * @return
+     */
+    private static double getPathLength(double z, STStereoTrack track) {
+        final double C = z / track.getDirection().z();
+        final Hep3Vector tNew = VecOp.mult(C, track.getDirection());
+        final double s = tNew.magnitude();
+        logger.finest("\npath length " + s + " to z " + z + " from \nt  " + track.getDirection().toString() + " \ntNew = " + tNew.toString() + " \nC = " + C );
+        return s;
+    }
+
+
+    /**
+     * Get a vector of track parameters for a {@link STStereoTrack} in the tracking frame.
+     * @param track
+     * @return array of intercept YX, intercept ZX, slope YX and slope ZX.
+     */
+    public static double[] getPerPars(STStereoTrack track) {
+       Hep3Vector interceptGlobalFrame = new BasicHep3Vector(track.getIntercept(VIEW.XZ), track.getIntercept(VIEW.YZ), 0);
+       Hep3Vector interceptTrackingFrame = CoordinateTransformations.transformVectorToTracking(interceptGlobalFrame);
+       Hep3Vector slopeGlobalFrame = new BasicHep3Vector(track.getSlope(VIEW.XZ), track.getSlope(VIEW.YZ), 0);
+       Hep3Vector slopeTrackingFrame = CoordinateTransformations.transformVectorToTracking(slopeGlobalFrame);
+       logger.finest("intercept global " + interceptGlobalFrame.toString() + " tracking " +  interceptTrackingFrame.toString());
+       logger.finest("slope global " + slopeGlobalFrame.toString() + " tracking " +  slopeTrackingFrame.toString());
+        return new double[]{
+                interceptTrackingFrame.y(),
+                interceptTrackingFrame.z(),
+                slopeTrackingFrame.y(),
+                slopeTrackingFrame.z()};
+    }
+    
+    
+    
+    /**
+     * Compute the Jacobian for transporting uncertainties along the track a certain distance.
+     * @param ds - distance along the track
+     * @return Jacobian matrix
+     */
+    private static BasicMatrix getSimpleJacobian(double ds) {
+        
+        // Spell out variables for readibility
+        double d_xT_d_xT = 1;
+        double d_xT_d_yT = 0;
+        double d_xT_d_xTprime = ds;
+        double d_xT_d_yTprime = 0;
+        
+        double d_yT_d_xT = 0;
+        double d_yT_d_yT = 1;
+        double d_yT_d_xTprime = 0;
+        double d_yT_d_yTprime = ds;
+        
+        double d_xTprime_d_xT = 0;
+        double d_xTprime_d_yT = 0;
+        double d_xTprime_d_xTprime = 1;
+        double d_xTprime_d_yTprime = 0;
+        
+        double d_yTprime_d_xT = 0;
+        double d_yTprime_d_yT = 0;
+        double d_yTprime_d_xTprime = 0;
+        double d_yTprime_d_yTprime = 1;
+
+        BasicMatrix jacobian = new BasicMatrix(4, 4);
+        jacobian.setElement(0, 0, d_xT_d_xT);
+        jacobian.setElement(0, 1, d_xT_d_yT);
+        jacobian.setElement(0, 2, d_xT_d_xTprime);
+        jacobian.setElement(0, 3, d_xT_d_yTprime);
+        
+        jacobian.setElement(1, 0, d_yT_d_xT);
+        jacobian.setElement(1, 1, d_yT_d_yT);
+        jacobian.setElement(1, 2, d_yT_d_xTprime);
+        jacobian.setElement(1, 3, d_yT_d_yTprime);
+        
+        jacobian.setElement(2, 0, d_xTprime_d_xT);
+        jacobian.setElement(2, 1, d_xTprime_d_yT);
+        jacobian.setElement(2, 2, d_xTprime_d_xTprime);
+        jacobian.setElement(2, 3, d_xTprime_d_yTprime);
+        
+        jacobian.setElement(3, 0, d_yTprime_d_xT);
+        jacobian.setElement(3, 1, d_yTprime_d_yT);
+        jacobian.setElement(3, 2, d_yTprime_d_xTprime);
+        jacobian.setElement(3, 3, d_yTprime_d_yTprime);
+        
+        
+        // debug 
+        StringBuffer sb = new StringBuffer();
+        sb.append("\nJacobian d(xT,yT,xT',yT')/d(xT,yT,xT',yT'):\n");
+        for(int i=0;i!=4;++i) {
+            sb.append("\n");
+            for(int j=0;j!=4;++j) {
+                sb.append(jacobian.e(i, j) + "  ");
+            }
+        }
+        logger.finest(sb.toString());
+        
+        
+        
+        return jacobian;
+    }
+    
+    /**
+     * Computes projection matrix from the intercept variables x0,y0,z0 
      * to the curvilinear xT,yT,zT variables.
      *
      * @param track - {@link STStereoTrack}
      * @return 3x3 projection matrix
      */
-    static Hep3Matrix curvilinearProjectionMatrix(Hep3Vector dir) {
+    private static Hep3Matrix curvilinearProjectionMatrix(Hep3Vector dir) {
         
         Hep3Vector X = new BasicHep3Vector(1, 0, 0);
         Hep3Vector Y = new BasicHep3Vector(0, 1, 0);
@@ -696,15 +993,9 @@ public class STUtils {
         Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
         Hep3Vector U = VecOp.mult(-1, J);
         Hep3Vector V = VecOp.cross(T, U);
-        Hep3Vector K = Z;
-        Hep3Vector I = VecOp.cross(J, K);
+        //Hep3Vector K = Z;
+        //Hep3Vector I = VecOp.cross(J, K);
 
-        logger.info("U " + U.toString());
-        logger.info("V " + V.toString());
-        logger.info("T " + T.toString());
-        logger.info("X " + X.toString());
-        logger.info("Y " + Y.toString());
-        logger.info("Z " + Z.toString());
         BasicHep3Matrix trans = new BasicHep3Matrix();
         trans.setElement(0, 0, VecOp.dot(X, U));
         trans.setElement(0, 1, VecOp.dot(Y, U));
@@ -716,12 +1007,24 @@ public class STUtils {
         trans.setElement(2, 1, VecOp.dot(Y, T));
         trans.setElement(2, 2, VecOp.dot(Z, T));
         
-        
-        
+        // debug 
+        StringBuffer sb = new StringBuffer();
+        sb.append("\nU " + U.toString());
+        sb.append("\nV " + V.toString());
+        sb.append("\nT " + T.toString());
+        sb.append("\nX " + X.toString());
+        sb.append("\nY " + Y.toString());
+        sb.append("\nZ " + Z.toString());
+        for(int i=0;i!=3;++i) {
+            sb.append("\n");
+            for(int j=0;j!=3;++j) {
+                sb.append(trans.e(i, j) + "  ");
+            }
+        }
+        logger.finest(sb.toString());
+
         return trans;
-
     }
-
     
     /**
      * Computes projection matrix from the ST variables x0,y0,z0
@@ -733,70 +1036,76 @@ public class STUtils {
     static Hep3Vector curvilinearProjection(double x0, double y0, Hep3Vector dir) {
         final double z0 = 0; 
         Hep3Vector v = new BasicHep3Vector(x0, y0, z0);
+
+        logger.finest("Convert v " + v.toString() + " in x,y,z to curvilinear frame xT,yT,zT");
+        
         Hep3Matrix trans = curvilinearProjectionMatrix(dir);
+        
         Hep3Vector vnew = VecOp.mult(trans, v);
 
-        StringBuffer sb = new StringBuffer();
-        sb.append("Convert v " + v.toString() + " in ST x,y,z to curvilinear frame xT,yT,zT with prjection matrix:\n");
-        for(int i=0;i!=3;++i) {
-            sb.append("\n");
-            for(int j=0;j!=3;++j) {
-                sb.append(trans.e(i, j) + "  ");
-            }
-        }
-        sb.append("New vector is " + vnew.toString() + " in curvilinear frame xT,yT,zT");
-        logger.info(sb.toString());
+        logger.finest("New vector is " + vnew.toString() + " in curvilinear frame xT,yT,zT");
         
         return vnew;
 
     }
     
     /**
-     * 
-     * Get curvilinear track parameter. 
+     * Get curvilinear track parameters for this {@link STStereoTrack}.
+     * @param track
+     * @return array of track parameters
      */
     public static double[] getCLPars(STStereoTrack track) {
-        return getCLPars(track.getIntercept(VIEW.XZ), track.getIntercept(VIEW.YZ), track.getSlope(VIEW.XZ), track.getSlope(VIEW.YZ));
+        return getCLPars(track.getMomentum(), track.getIntercept(VIEW.XZ), track.getIntercept(VIEW.YZ), track.getSlope(VIEW.XZ), track.getSlope(VIEW.YZ));
     }
     
-    public static double[] getCLPars(double x0, double y0, double dxdz, double dydz) {
+    /**
+     * Get curvilinear track parameters from slope and intercept parameters.
+     * @param p
+     * @param x0
+     * @param y0
+     * @param dxdz
+     * @param dydz
+     * @return curvilinear parameters 1/p, lambda, phi, xT and yT
+     */
+    public static double[] getCLPars(double p, double x0, double y0, double dxdz, double dydz) {
+        
         // track direction
-        Hep3Vector dir = new BasicHep3Vector(dxdz, dydz, 1 - Math.sqrt(dxdz*dxdz + dydz*dydz));
+        Hep3Vector dirGlobal = VecOp.unit( new BasicHep3Vector(dxdz, dydz, 1) );
+        Hep3Vector dir = CoordinateTransformations.transformVectorToTracking(dirGlobal);
         
         final double z0 = 0;
-        Hep3Vector v = new BasicHep3Vector(x0, y0, z0);
+        Hep3Vector vGlobal = new BasicHep3Vector(x0, y0, z0);
+        Hep3Vector v = CoordinateTransformations.transformVectorToTracking(vGlobal);
         Hep3Matrix trans = curvilinearProjectionMatrix(dir);
         Hep3Vector vnew = VecOp.mult(trans, v);
 
-        // for readability
+        // Spell these out for readability
         double xT = vnew.x();
         double yT = vnew.y();
         //double zT = vnew.z();
 
-        final double dzdz = 1.0;
-        Hep3Vector dxyz_dv = new BasicHep3Vector(dxdz, dydz, dzdz);
-        Hep3Vector dxyzT_dv = VecOp.mult(trans, dxyz_dv);
-
-        // for readability
-        double xT_prime = dxyzT_dv.x();
-        double yT_prime = dxyzT_dv.y();
-        //double zT_prime = dxyzT_dv.z();
-
-        double clPars[] = new double[]{xT,yT,xT_prime,yT_prime};
+        double lambda = Math.atan( dir.z() );
+        double phi = Math.asin( dir.y() );
         
-        logger.info("getCLPars: \n(x0,y0,z0) " + v.toString() + "\n(xT,yT,zT) " + vnew.toString() + "\nd/dz(x,y,z) " + dxyz_dv.toString() + "\nd/dz(xT,yT,zT) " + dxyzT_dv.toString()  );
+        // debug stuff
         StringBuffer sb = new StringBuffer();
+        sb.append("\n dir " + dir.toString() + "\n(x0,y0,z0) " + v.toString() + "\n(xT,yT,zT) " + vnew.toString() + "\nlambda " + lambda + "\nphi " + phi );
+        //logger.finest("getCLPars: \n(x0,y0,z0) " + v.toString() + "\n(xT,yT,zT) " + vnew.toString() + "\nd/dz(x,y,z) " + dxyz_dv.toString() + "\nd/dz(xT,yT,zT) " + dxyzT_dv.toString()  );
+        sb.append("\nusing projection matrix:\n");
         for(int i=0;i!=3;++i) {
             sb.append("\n");
             for(int j=0;j!=3;++j) {
                 sb.append(trans.e(i, j) + "  ");
             }
         }
-        logger.info("using CL prj matrix:\n" + sb.toString() + "\n and track direction "+ dir.toString());
+        logger.finest(sb.toString());
         
+        double clPars[] = new double[]{1.0/p, lambda, phi, xT, yT,};
         return clPars;
     }
 
+    
+   
     
     
     

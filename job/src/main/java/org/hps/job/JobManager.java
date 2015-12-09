@@ -1,5 +1,10 @@
 package org.hps.job;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 import org.hps.conditions.ConditionsDriver;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
@@ -15,6 +20,11 @@ import org.lcsim.util.Driver;
  */
 public class JobManager extends JobControlManager {
 
+    /**
+     * The set of conditions tags (none by default).
+     */
+    private Set<String> tags = null;
+    
     /**
      * Run the job manager from the command line.
      *
@@ -33,6 +43,25 @@ public class JobManager extends JobControlManager {
     public JobManager() {
     }
    
+    @Override
+    protected Options createCommandLineOptions() {
+        Options options = super.createCommandLineOptions();
+        options.addOption("t", "tag", true, "conditions system tag (can be used multiple times)");
+        return options;
+    }
+    
+    @Override
+    public CommandLine parse(final String args[]) {
+        CommandLine commandLine = super.parse(args);
+        if (commandLine.hasOption("t")) {
+            tags = new HashSet<String>();
+            for (String tag : commandLine.getOptionValues("t")) {
+                tags.add(tag);
+            }
+        }
+        return commandLine;
+    }
+    
     /**
      * Initialize the conditions system for the job.
      * <p>
@@ -52,21 +81,26 @@ public class JobManager extends JobControlManager {
         
         // Add class that will setup SVT detector with conditions data.
         dbManager.addConditionsListener(new SvtDetectorSetup());
-                
-        // Call super method which will initialize conditions system if the detector and run were provided.
+        
+        // Add conditions system tags.
+        if (this.tags != null) {
+            dbManager.addTags(tags);
+        }
+                       
+        // Call super method which will initialize the conditions system if both the detector and run were provided.
         super.initializeConditions();
         
-        // Setup from conditions driver (to be deleted soon).
+        // Setup from conditions driver (to be deleted soon!).
         if (!dbManager.isInitialized()) {
             setupConditionsDriver();
         } else {
             // Command line options overrode the conditions driver.
-            LOGGER.config("conditions driver was overridden by command line options");
+            LOGGER.config("Conditions driver was overridden by command line options!");
         }
         
         if (dbManager.isInitialized()) {
-            // Assume conditions system should be frozen since detector and run were provided explicitly.
-            LOGGER.config("job manager freezing conditions system");
+            // Assume conditions system should be frozen since detector and run were both set explicitly.
+            LOGGER.config("Job manager is freezing the conditions system.");
             dbManager.freeze();
         }
     }
@@ -84,6 +118,9 @@ public class JobManager extends JobControlManager {
 
         // Close the conditions database connection if it is open.
         DatabaseConditionsManager.getInstance().closeConnection();
+                
+        // Close the connection to the run db if necessary.
+        RunManager.getRunManager().closeConnection();
 
         return result;
     }

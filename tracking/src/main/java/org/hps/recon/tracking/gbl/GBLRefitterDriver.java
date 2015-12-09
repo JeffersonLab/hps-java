@@ -11,9 +11,11 @@ import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
@@ -66,12 +68,20 @@ public class GBLRefitterDriver extends Driver {
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
         List<Track> refittedTracks = new ArrayList<Track>();
+        List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
+
+        List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, _scattering, bfield);
+            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield
+            );
+//            newTrack.getFirst().
             refittedTracks.add(newTrack.getFirst());
             inputToRefitted.put(track, newTrack.getFirst());
+
+            kinkDataCollection.add(newTrack.getSecond());
+            kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), newTrack.getFirst()));
         }
 
         if (mergeTracks) {
@@ -106,7 +116,7 @@ public class GBLRefitterDriver extends Driver {
                         }
                     }
 
-                    Pair<Track, GBLKinkData> mergedTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), allHth, 5, _scattering, bfield);
+                    Pair<Track, GBLKinkData> mergedTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), allHth, 5, track.getType(), _scattering, bfield);
                     mergedTracks.add(mergedTrack.getFirst());
 //                    System.out.format("%f %f %f\n", fit.get_chi2(), inputToRefitted.get(track).getChi2(), inputToRefitted.get(otherTrack).getChi2());
 //                mergedTrackToTrackList.put(mergedTrack, new ArrayList<Track>());
@@ -131,5 +141,7 @@ public class GBLRefitterDriver extends Driver {
         // Put the tracks back into the event and exit
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputCollectionName, refittedTracks, Track.class, flag);
+        event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
+        event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
     }
 }

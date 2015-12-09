@@ -8,16 +8,17 @@ import hep.aida.IHistogram2D;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.gbl.GBLKinkData;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
@@ -37,7 +38,7 @@ import org.lcsim.util.aida.AIDA;
 public class TrackingMonitoring extends DataQualityMonitor {
 
     private static Logger LOGGER = Logger.getLogger(SvtMonitoring.class.getPackage().getName());
-    
+
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private final String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
     private final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
@@ -64,6 +65,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
     private final String botDir = "Bottom/";
     private final String hthplotDir = "HelicalTrackHits/";
     private final String timeresidDir = "HitTimeResiduals/";
+    private final String kinkDir = "Kinks/";
     String[] trackingQuantNames = {"avg_N_tracks", "avg_N_hitsPerTrack", "avg_d0", "avg_z0", "avg_absslope", "avg_chi2"};
     int nmodules = 6;
     IHistogram1D[] hthTop = new IHistogram1D[nmodules];
@@ -300,9 +302,12 @@ public class TrackingMonitoring extends DataQualityMonitor {
         aida.tree().cd("/");
         for (HpsSiSensor sensor : sensors) {
             //IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
-            IHistogram1D hitTimeResidual = createSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensor, 100, -20, 20);
+            IHistogram1D hitTimeResidual = PlotAndFitUtilities.createSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensor, 100, -20, 20);
+            IHistogram1D lambdaKink = PlotAndFitUtilities.createSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKink_", sensor, 100, -5e-3, 5e-3);
+            IHistogram1D phiKink = PlotAndFitUtilities.createSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKink_", sensor, 100, -5e-3, 5e-3);
+            IHistogram2D lambdaKink2D = PlotAndFitUtilities.createSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKinkVsOmega_", sensor, 100, -omegaCut, omegaCut, 100, -5e-3, 5e-3);
+            IHistogram2D phiKink2D = PlotAndFitUtilities.createSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKinkVsOmega_", sensor, 100, -omegaCut, omegaCut, 100, -5e-3, 5e-3);
         }
-
     }
 
     @Override
@@ -385,7 +390,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
             double sinphi0 = Math.sin(trk.getTrackStates().get(0).getPhi());
             double omega = trk.getTrackStates().get(0).getOmega();
             double lambda = trk.getTrackStates().get(0).getTanLambda();
-            double z0 = trk.getTrackStates().get(0).getZ0();            
+            double z0 = trk.getTrackStates().get(0).getZ0();
             trkChi2.fill(trk.getChi2());
             nHits.fill(trk.getTrackerHits().size());
             trackNhitsVsChi2.fill(trk.getChi2(), trk.getTrackerHits().size());
@@ -447,8 +452,12 @@ public class TrackingMonitoring extends DataQualityMonitor {
             int nSeedStrips = 0;
             double meanTime = 0;
             double meanSeedTime = 0;
+
+            List<TrackerHit> stripHits = new ArrayList<TrackerHit>();
+
             for (TrackerHit hit : trk.getTrackerHits()) {
                 Collection<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
+                stripHits.addAll(htsList);
                 double hitTimes[] = new double[2];
                 for (TrackerHit hts : htsList) {
                     int stripLayer = ((HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
@@ -479,18 +488,16 @@ public class TrackingMonitoring extends DataQualityMonitor {
 
             double rmsTime = 0;
             double rmsSeedTime = 0;
-            for (TrackerHit hit : trk.getTrackerHits()) {
-                Collection<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
-                for (TrackerHit hts : htsList) {
-                    rmsTime += Math.pow(hts.getTime() - meanTime, 2);
-                    HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement();
-                    int layer = sensor.getLayerNumber();
-                    if (layer <= 6) {
-                        rmsSeedTime += Math.pow(hts.getTime() - meanSeedTime, 2);
-                    }
-                    String sensorName = getNiceSensorName(sensor);
-                    getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensorName).fill((hts.getTime() - meanTime) * nStrips / (nStrips - 1)); //correct residual for bias
+
+            stripHits = TrackUtils.sortHits(stripHits);
+            for (TrackerHit hts : stripHits) {
+                rmsTime += Math.pow(hts.getTime() - meanTime, 2);
+                HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement();
+                int layer = sensor.getLayerNumber();
+                if (layer <= 6) {
+                    rmsSeedTime += Math.pow(hts.getTime() - meanSeedTime, 2);
                 }
+                PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensor).fill((hts.getTime() - meanTime) * nStrips / (nStrips - 1)); //correct residual for bias
             }
             rmsTime = Math.sqrt(rmsTime / nStrips);
             trackMeanTime.fill(meanTime);
@@ -501,6 +508,23 @@ public class TrackingMonitoring extends DataQualityMonitor {
 
             rmsSeedTime = Math.sqrt(rmsSeedTime / nSeedStrips);
             seedRMSTime.fill(rmsSeedTime);
+
+            GenericObject kinkData = GBLKinkData.getKinkData(event, trk);
+            if (kinkData != null) {
+                for (int i = 0; i < stripHits.size(); i++) {
+                    TrackerHit hts = stripHits.get(i);
+                    HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement();
+//                    int layer = sensor.getLayerNumber();
+                    double lambdaKink = GBLKinkData.getLambdaKink(kinkData, i);
+                    double phiKink = GBLKinkData.getPhiKink(kinkData, i);
+//                    System.out.format("%d %d %f %f\n", i, layer, lambdaKink, phiKink);
+
+                    PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKink_", sensor).fill(lambdaKink);
+                    PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKink_", sensor).fill(phiKink);
+                    PlotAndFitUtilities.getSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKinkVsOmega_", sensor).fill(trk.getTrackStates().get(0).getOmega(), lambdaKink);
+                    PlotAndFitUtilities.getSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKinkVsOmega_", sensor).fill(trk.getTrackStates().get(0).getOmega(), phiKink);
+                }
+            }
 
             if (trk.getTrackStates().get(0).getOmega() < 0) {//positrons
                 trkChi2Pos.fill(trk.getChi2());
@@ -568,7 +592,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
 
         for (HpsSiSensor sensor : sensors) {
             //IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
-            IHistogram1D hitTimeResidual = getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", getNiceSensorName(sensor));
+            IHistogram1D hitTimeResidual = PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensor);
             IFitResult result = fitGaussian(hitTimeResidual, fitter, "range=\"(-20.0,20.0)\"");
             if (result != null) {
                 System.out.format("%s\t%f\t%f\t%d\t%d\t%f\n", getNiceSensorName(sensor), result.fittedParameters()[1], result.fittedParameters()[2], sensor.getFebID(), sensor.getFebHybridID(), sensor.getT0Shift());
@@ -609,26 +633,6 @@ public class TrackingMonitoring extends DataQualityMonitor {
         for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
             LOGGER.info("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
         }
-    }
-
-    private IHistogram1D getSensorPlot(String prefix, HpsSiSensor sensor) {
-        String hname = prefix + getNiceSensorName(sensor);
-        return aida.histogram1D(hname);
-    }
-
-    private IHistogram1D getSensorPlot(String prefix, String sensorName) {
-        return aida.histogram1D(prefix + sensorName);
-    }
-
-    private IHistogram1D createSensorPlot(String prefix, HpsSiSensor sensor, int nchan, double min, double max) {
-        String hname = prefix + getNiceSensorName(sensor);
-        IHistogram1D hist = aida.histogram1D(hname, nchan, min, max);
-        hist.setTitle(sensor.getName().replaceAll(nameStrip, "")
-                .replace("module", "mod")
-                .replace("layer", "lyr")
-                .replace("sensor", "sens"));
-
-        return hist;
     }
 
     private String getNiceSensorName(HpsSiSensor sensor) {
