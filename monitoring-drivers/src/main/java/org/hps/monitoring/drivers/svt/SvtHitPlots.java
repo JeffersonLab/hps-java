@@ -69,13 +69,22 @@ public class SvtHitPlots extends Driver {
 
     private boolean dropSmallHitEvents = true;
     private static final boolean debug = false;
-    private static final boolean doPerChannelSamplePlots = false;
-    private static final boolean saveRootFile = false;
+    private boolean doPerChannelSamplePlots = false;
+    private boolean saveRootFile = false;
     private String outputRootFilename = "";
 
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
         this.dropSmallHitEvents = dropSmallHitEvents;
     }
+
+    public void setDoPerChannelsSampleplots(boolean val) {
+        doPerChannelSamplePlots = val;
+    }
+
+    public void setSaveRootFile(boolean save) {
+        saveRootFile = save;
+    }
+
 
     private int computePlotterRegion(HpsSiSensor sensor) {
 
@@ -377,5 +386,6 @@ public class SvtHitPlots extends Driver {
         }
         
     }
+
 
 }
