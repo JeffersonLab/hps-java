@@ -53,7 +53,6 @@
             ReconstructedParticle types are properly set.
          -->
         <driver name="MergeTrackCollections"/>
-        <driver name="GBLOutputDriver" />
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />   
@@ -119,8 +118,7 @@
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>       
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
-        <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver"/>             
-        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.HpsGblRefitter"/>
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <fixShapeParameter>true</fixShapeParameter>

@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @brief Steering file that will be used for pass 2 reconstruction of 
-             the 2015 Engineering Run data. 
-      @author <a href="mailto:meeg@slac.stanford.edu">Sho Uemura</a>
-      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+      @brief Steering file to run simple straight through trackingon the 2015 Engineering Run data. 
+      @author <a href="mailto:phansson@slac.stanford.edu">Sho Uemura</a>
     -->
     <execute>
         <driver name="EventMarkerDriver"/>
@@ -12,11 +10,8 @@
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
-        <driver name="HelicalTrackHitDriver"/>
-        <!--<driver name="SensorOccupancyDriver"/>-->
         
         <driver name="StraightThroughDriver"/>
-        <!--<driver name="TrackingReconstructionPlots" />-->
         <!--<driver name="LCIOWriter"/>-->
         <!--<driver name="AidaSaveDriver"/>-->
         <driver name="CleanupDriver"/>
@@ -42,12 +37,6 @@
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
-        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
-            <debug>false</debug>
-            <clusterTimeCut>12.0</clusterTimeCut>
-            <maxDt>16.0</maxDt>
-            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
-        </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
@@ -63,8 +52,9 @@
             <eventRefreshRate>100</eventRefreshRate>
             <enableTriggerFilter>False</enableTriggerFilter>
         </driver>
-        <driver name="StraightThroughDriver" type="org.hps.users.phansson.StraightThroughAnalysisDriver">
-            <outputFilename>${outputFile}.gbl</outputFilename>
+        <driver name="StraightThroughDriver" type="org.hps.recon.tracking.straight.StraightThroughAnalysisDriver">
+            <outputFilename>${outputFile}</outputFilename>
+            <writeGbl>true</writeGbl>
         </driver>
 
     </drivers>

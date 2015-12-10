@@ -64,8 +64,8 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     private final List<String> _colnames = new ArrayList<String>();
     private boolean _doTransformToTracking = true;
     private boolean _saveAxialHits = false;
-    private String _axialname = "AxialTrackHits";
-    private String _axialmcrelname = "AxialTrackHitsMCRelations";
+    private final String _axialname = "AxialTrackHits";
+    private final String _axialmcrelname = "AxialTrackHitsMCRelations";
     private boolean rejectGhostHits = false;
 
     public enum LayerGeometryType {
@@ -143,7 +143,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     public void setEpsStereo(double eps) {
         this._crosser.setEpsStereoAngle(eps);
     }
-    
+
     /**
      *
      * @param trans
@@ -199,8 +199,9 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         // Create an LCRelation from a HelicalTrackHit to an MC particle used to
         // create it
         List<LCRelation> mcrelations = new ArrayList<LCRelation>();
-        RelationalTable hittomc = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        RelationalTable hittomc = null;
         if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+            hittomc = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
             List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
             for (LCRelation relation : trueHitRelations) {
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
@@ -241,9 +242,11 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
 
                     // Create a HelicalTrackStrip for this hit
                     HelicalTrackStrip strip = makeDigiStrip(h);
-                    for (RawTrackerHit rth : h.getRawHits()) {
-                        for (Object simHit : hittomc.allFrom(rth)) {
-                            strip.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
+                    if (hittomc != null) {
+                        for (RawTrackerHit rth : h.getRawHits()) {
+                            for (Object simHit : hittomc.allFrom(rth)) {
+                                strip.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
+                            }
                         }
                     }
 
@@ -259,10 +262,12 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                         if (((HpsSiSensor) h.getSensor()).isAxial()) {
                             HelicalTrack2DHit haxial = makeDigiAxialHit(h);
                             axialhits.add(haxial);
-                            List<RawTrackerHit> rl = haxial.getRawHits();
-                            for (RawTrackerHit rth : rl) {
-                                for (Object simHit : hittomc.allFrom(rth)) {
-                                    haxial.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
+                            if (hittomc != null) {
+                                List<RawTrackerHit> rl = haxial.getRawHits();
+                                for (RawTrackerHit rth : rl) {
+                                    for (Object simHit : hittomc.allFrom(rth)) {
+                                        haxial.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
+                                    }
                                 }
                             }
                             axialmcrelations.add(new MyLCRelation(haxial, haxial.getMCParticles()));
@@ -456,14 +461,18 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         helhits.addAll(stereoCrosses);
         event.put(_outname, helhits, HelicalTrackHit.class, 0);
         event.put(_hitrelname, hitrelations, LCRelation.class, 0);
-        event.put(_mcrelname, mcrelations, LCRelation.class, 0);
+        if (hittomc != null) {
+            event.put(_mcrelname, mcrelations, LCRelation.class, 0);
+        }
         if (_saveAxialHits) {
             event.put(_axialname, axialhits, HelicalTrackHit.class, 0);
-            event.put(_axialmcrelname, axialmcrelations, LCRelation.class, 0);
-            System.out.println(this.getClass().getSimpleName() + " : number of " + _axialmcrelname + " found = " + axialmcrelations.size());
+            if (hittomc != null) {
+                event.put(_axialmcrelname, axialmcrelations, LCRelation.class, 0);
+                System.out.println(this.getClass().getSimpleName() + " : number of " + _axialmcrelname + " found = " + axialmcrelations.size());
+            }
         }
         if (_doTransformToTracking) {
-            addRotatedHitsToEvent(event, stereoCrosses);
+            addRotatedHitsToEvent(event, stereoCrosses, hittomc != null);
             if (_saveAxialHits) {
                 addRotated2DHitsToEvent(event, axialhits);
             }
@@ -595,7 +604,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         return strip;
     }
 
-    private void addRotatedHitsToEvent(EventHeader event, List<HelicalTrackCross> stereohits) {
+    private void addRotatedHitsToEvent(EventHeader event, List<HelicalTrackCross> stereohits, boolean isMC) {
 
         List<HelicalTrackHit> rotatedhits = new ArrayList<HelicalTrackHit>();
         List<LCRelation> hthrelations = new ArrayList<LCRelation>();
@@ -634,10 +643,10 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
             strip1.add(rotatedstriphits.get(0));
             strip2.add(rotatedstriphits.get(1));
             List<HelicalTrackCross> newhits = _crosser.MakeHits(strip1, strip2);
-            if(newhits.size()!=1) {
+            if (newhits.size() != 1) {
                 throw new RuntimeException("no rotated cross was created!?");
             }
-            HelicalTrackCross newhit  = newhits.get(0);
+            HelicalTrackCross newhit = newhits.get(0);
             //HelicalTrackCross newhit = new HelicalTrackCross(rotatedstriphits.get(0), rotatedstriphits.get(1));
             for (MCParticle mcp : cross.getMCParticles()) {
                 newhit.addMCParticle(mcp);
@@ -651,7 +660,9 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
 
         event.put("Rotated" + _outname, rotatedhits, HelicalTrackHit.class, 0);
         event.put("Rotated" + _hitrelname, hthrelations, LCRelation.class, 0);
-        event.put("Rotated" + _mcrelname, mcrelations, LCRelation.class, 0);
+        if (isMC) {
+            event.put("Rotated" + _mcrelname, mcrelations, LCRelation.class, 0);
+        }
     }
 
     /*

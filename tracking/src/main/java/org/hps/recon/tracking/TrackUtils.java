@@ -7,6 +7,9 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.SpacePoint;
 import hep.physics.vec.VecOp;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1031,6 +1034,20 @@ public class TrackUtils {
         return hits;
     }
 
+    public static List<TrackerHit> sortHits(Collection<TrackerHit> hits) {
+        List<TrackerHit> hitList = new ArrayList<TrackerHit>(hits);
+        Collections.sort(hitList, new LayerComparator());
+        return hitList;
+    }
+
+    private static class LayerComparator implements Comparator<TrackerHit> {
+
+        @Override
+        public int compare(TrackerHit o1, TrackerHit o2) {
+            return Integer.compare(TrackUtils.getLayer(o1), TrackUtils.getLayer(o2));
+        }
+    }
+
     public static boolean hasSharedStrips(Track track1, Track track2, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         Set<TrackerHit> track1hits = new HashSet<TrackerHit>(getStripHits(track1, hitToStrips, hitToRotated));
         for (TrackerHit hit : track2.getTrackerHits())
@@ -1289,15 +1306,25 @@ public class TrackUtils {
             return new Line(r0, phi, lambda);
     }
 
-    public static TrackState getTrackStateAtECal(Track trk) {
+    /**
+     * Port of Track.getTrackState(int location) from the C++ LCIO API.
+     * @param trk A track.
+     * @param location A TrackState location constant
+     * @return The first matching TrackState; null if none is found.
+     */
+    public static TrackState getTrackStateAtLocation(Track trk, int location) {
         for (TrackState state : trk.getTrackStates()) {
-            if (state.getLocation() == TrackState.AtCalorimeter) {
+            if (state.getLocation() == location) {
                 return state;
             }
         }
         return null;
     }
 
+    public static TrackState getTrackStateAtECal(Track trk) {
+        return getTrackStateAtLocation(trk, TrackState.AtCalorimeter);
+    }
+    
     public static Hep3Vector getBField(Detector detector) {
         return detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 500.0));
     }

@@ -38,7 +38,7 @@ import org.lcsim.geometry.Detector;
  */
 //TODO:  add some more quantities to DQM database:  <t0> or <sigma>_t0 for intime events;  <chi^2>, <amplitude> etc
 public class SvtMonitoring extends DataQualityMonitor {
-    
+
     private static Logger LOGGER = Logger.getLogger(SvtMonitoring.class.getPackage().getName());
 
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
@@ -90,22 +90,22 @@ public class SvtMonitoring extends DataQualityMonitor {
         aida.tree().cd("/");
         for (HpsSiSensor sensor : sensors) {
             //IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
-            IHistogram1D occupancyPlot = createSensorPlot(plotDir + triggerType + "/"+"occupancy_", sensor, maxChannels, 0, maxChannels - 1);
-            IHistogram1D t0Plot = createSensorPlot(plotDir + triggerType + "/"+"t0Hit_", sensor, 400, -100., 100.);
-            IHistogram1D nHits = createSensorPlot(plotDir + triggerType + "/"+"nHitsPerEvent_", sensor, 100, -0.5, 99.5);
-            IHistogram1D pileup = createSensorPlot(plotDir + triggerType + "/"+"nFitsPerHit_", sensor, 3, 0.5, 3.5);
+            IHistogram1D occupancyPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "occupancy_", sensor, maxChannels, 0, maxChannels - 1);
+            IHistogram1D t0Plot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "t0Hit_", sensor, 400, -100., 100.);
+            IHistogram1D nHits = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "nHitsPerEvent_", sensor, 100, -0.5, 99.5);
+            IHistogram1D pileup = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "nFitsPerHit_", sensor, 3, 0.5, 3.5);
 
-            IHistogram1D amplitudePlot = createSensorPlot(plotDir + triggerType + "/"+"amplitude_", sensor, 50, 0, 4000.0);
-            IHistogram2D t0AmpPlot = createSensorPlot2D(plotDir + triggerType + "/"+"t0AmpHit_", sensor, 200, -100., 100., 50, 0, 4000.0);
-            IHistogram2D t0ChanPlot = createSensorPlot2D(plotDir + triggerType + "/"+"t0ChanBigHit_", sensor, 640, -0.5, 639.5, 200, -100., 100.);
-            IHistogram2D ampChanPlot = createSensorPlot2D(plotDir + triggerType + "/"+"ampChanHit_", sensor, 640, -0.5, 639.5, 50, 0, 4000);
-            IHistogram2D chiprobChanPlot = createSensorPlot2D(plotDir + triggerType + "/"+"chiprobChanBigHit_", sensor, 640, -0.5, 639.5, 50, 0, 1.0);
-            IHistogram2D t0TrigTimeHitPlot = createSensorPlot2D(plotDir + triggerType + "/"+"t0BigHitTrigTime_", sensor, 400, -100., 100., 6, 0, 24);
+            IHistogram1D amplitudePlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "amplitude_", sensor, 50, 0, 4000.0);
+            IHistogram2D t0AmpPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "t0AmpHit_", sensor, 200, -100., 100., 50, 0, 4000.0);
+            IHistogram2D t0ChanPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "t0ChanBigHit_", sensor, 640, -0.5, 639.5, 200, -100., 100.);
+            IHistogram2D ampChanPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "ampChanHit_", sensor, 640, -0.5, 639.5, 50, 0, 4000);
+            IHistogram2D chiprobChanPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "chiprobChanBigHit_", sensor, 640, -0.5, 639.5, 50, 0, 1.0);
+            IHistogram2D t0TrigTimeHitPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "t0BigHitTrigTime_", sensor, 400, -100., 100., 6, 0, 24);
 
-            IHistogram1D chiProbPlot = createSensorPlot(plotDir + triggerType + "/"+"chiProb_", sensor, 50, 0, 1.0);
-            IHistogram1D t0ClusterPlot = createSensorPlot(plotDir + triggerType + "/"+"t0Cluster_", sensor, 400, -100., 100.);
-            IHistogram2D t0TrigTimePlot = createSensorPlot2D(plotDir + triggerType + "/"+"t0ClusterTrigTime_", sensor, 400, -100., 100., 6, 0, 24);
-            IHistogram1D dedxClusterPlot = createSensorPlot(plotDir + triggerType + "/"+"electrons_", sensor, 50, 0., 10.);
+            IHistogram1D chiProbPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "chiProb_", sensor, 50, 0, 1.0);
+            IHistogram1D t0ClusterPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "t0Cluster_", sensor, 400, -100., 100.);
+            IHistogram2D t0TrigTimePlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "t0ClusterTrigTime_", sensor, 400, -100., 100., 6, 0, 24);
+            IHistogram1D dedxClusterPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "electrons_", sensor, 50, 0., 10.);
             occupancyPlot.reset();
         }
 
@@ -116,10 +116,11 @@ public class SvtMonitoring extends DataQualityMonitor {
 
     public void process(EventHeader event) {
 
-          //check to see if this event is from the correct trigger (or "all");
-        if (!matchTrigger(event))
+        //check to see if this event is from the correct trigger (or "all");
+        if (!matchTrigger(event)) {
             return;
-        
+        }
+
         /*  increment the strip occupancy arrays */
         Map<String, Integer> hitsPerSensor = new HashMap<String, Integer>();
 
@@ -140,7 +141,7 @@ public class SvtMonitoring extends DataQualityMonitor {
             ++eventCountRaw;
         }
         for (HpsSiSensor sensor : sensors) {
-            IHistogram1D sensorHist = getSensorPlot(plotDir + triggerType + "/"+"nHitsPerEvent_", sensor);
+            IHistogram1D sensorHist = PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "nHitsPerEvent_", sensor);
             Integer nHits = hitsPerSensor.get(sensor.getName());
             if (nHits == null) {
                 sensorHist.fill(0);
@@ -161,22 +162,22 @@ public class SvtMonitoring extends DataQualityMonitor {
                 RawTrackerHit rth = (RawTrackerHit) hit.getFrom();
                 GenericObject pars = (GenericObject) hit.getTo();
 
-                String sensorName = getNiceSensorName((HpsSiSensor) rth.getDetectorElement());
+                HpsSiSensor sensor = ((HpsSiSensor) rth.getDetectorElement());
                 //this is a clever way to get the parameters we want from the generic object
                 double t0 = ShapeFitParameters.getT0(pars);
                 double amp = ShapeFitParameters.getAmp(pars);
                 double chiProb = ShapeFitParameters.getChiProb(pars);
                 int channel = rth.getIdentifierFieldValue("strip");
-                getSensorPlot(plotDir + triggerType + "/"+"nFitsPerHit_", sensorName).fill(rthtofit.allFrom(rth).size());
-                getSensorPlot(plotDir + triggerType + "/"+"t0Hit_", sensorName).fill(t0);
-                getSensorPlot(plotDir + triggerType + "/"+"amplitude_", sensorName).fill(amp);
-                getSensorPlot2D(plotDir + triggerType + "/"+"t0AmpHit_", sensorName).fill(t0, amp);
-                getSensorPlot(plotDir + triggerType + "/"+"chiProb_", sensorName).fill(chiProb);
-                getSensorPlot2D(plotDir + triggerType + "/"+"ampChanHit_", sensorName).fill(channel, amp);
+                PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "nFitsPerHit_", sensor).fill(rthtofit.allFrom(rth).size());
+                PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "t0Hit_", sensor).fill(t0);
+                PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "amplitude_", sensor).fill(amp);
+                PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "t0AmpHit_", sensor).fill(t0, amp);
+                PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "chiProb_", sensor).fill(chiProb);
+                PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "ampChanHit_", sensor).fill(channel, amp);
                 if (amp > 1000.0) {
-                    getSensorPlot2D(plotDir + triggerType + "/"+"t0ChanBigHit_", sensorName).fill(channel, t0);
-                    getSensorPlot2D(plotDir + triggerType + "/"+"chiprobChanBigHit_", sensorName).fill(channel, chiProb);
-                    getSensorPlot2D(plotDir + triggerType + "/"+"t0BigHitTrigTime_", sensorName).fill(t0, event.getTimeStamp() % 24);
+                    PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "t0ChanBigHit_", sensor).fill(channel, t0);
+                    PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "chiprobChanBigHit_", sensor).fill(channel, chiProb);
+                    PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "t0BigHitTrigTime_", sensor).fill(t0, event.getTimeStamp() % 24);
                 }
             }
             ++eventCountFit;
@@ -186,55 +187,15 @@ public class SvtMonitoring extends DataQualityMonitor {
 //            LOGGER.info("Found a Si cluster collection");
             List<TrackerHit> siClusters = (List<TrackerHit>) event.get(trackerHitCollectionName);
             for (TrackerHit cluster : siClusters) {
-                String sensorName = getNiceSensorName((HpsSiSensor) ((RawTrackerHit) cluster.getRawHits().get(0)).getDetectorElement());
+                HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) cluster.getRawHits().get(0)).getDetectorElement();
                 double t0 = cluster.getTime();
                 double dedx = cluster.getdEdx() * 1e6;
 //                LOGGER.info("dedx = "+dedx);
-                getSensorPlot(plotDir + triggerType + "/"+"t0Cluster_", sensorName).fill(t0);
-                getSensorPlot2D(plotDir + triggerType + "/"+"t0ClusterTrigTime_", sensorName).fill(t0, event.getTimeStamp() % 24);
-                getSensorPlot(plotDir + triggerType + "/"+"electrons_", sensorName).fill(dedx);
+                PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "t0Cluster_", sensor).fill(t0);
+                PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "t0ClusterTrigTime_", sensor).fill(t0, event.getTimeStamp() % 24);
+                PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "electrons_", sensor).fill(dedx);
             }
         }
-    }
-
-    private IHistogram1D getSensorPlot(String prefix, HpsSiSensor sensor) {
-        String hname = prefix + getNiceSensorName(sensor);
-        return aida.histogram1D(hname);
-    }
-
-    private IHistogram1D getSensorPlot(String prefix, String sensorName) {
-        return aida.histogram1D(prefix + sensorName);
-    }
-
-    private IHistogram1D createSensorPlot(String prefix, HpsSiSensor sensor, int nchan, double min, double max) {
-        String hname = prefix + getNiceSensorName(sensor);
-        IHistogram1D hist = aida.histogram1D(hname, nchan, min, max);
-        hist.setTitle(sensor.getName().replaceAll(nameStrip, "")
-                .replace("module", "mod")
-                .replace("layer", "lyr")
-                .replace("sensor", "sens"));
-
-        return hist;
-    }
-
-    private IHistogram2D getSensorPlot2D(String prefix, HpsSiSensor sensor) {
-        String hname = prefix + getNiceSensorName(sensor);
-        return aida.histogram2D(hname);
-    }
-
-    private IHistogram2D getSensorPlot2D(String prefix, String sensorName) {
-        return aida.histogram2D(prefix + sensorName);
-    }
-
-    private IHistogram2D createSensorPlot2D(String prefix, HpsSiSensor sensor, int nchanX, double minX, double maxX, int nchanY, double minY, double maxY) {
-        String hname = prefix + getNiceSensorName(sensor);
-        IHistogram2D hist = aida.histogram2D(hname, nchanX, minX, maxX, nchanY, minY, maxY);
-        hist.setTitle(sensor.getName().replaceAll(nameStrip, "")
-                .replace("module", "mod")
-                .replace("layer", "lyr")
-                .replace("sensor", "sens"));
-
-        return hist;
     }
 
     private void resetOccupancyMap() {
@@ -279,7 +240,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         for (HpsSiSensor sensor : sensors) {
             Double avg = 0.0;
             //IHistogram1D sensorHist = aida.histogram1D(sensor.getName());
-            IHistogram1D sensorHist = getSensorPlot(plotDir + triggerType + "/"+"occupancy_", sensor);
+            IHistogram1D sensorHist = PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "occupancy_", sensor);
             sensorHist.reset();
             int[] strips = occupancyMap.get(sensor.getName());
             for (int i = 0; i < strips.length; i++) {
@@ -314,7 +275,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         int irTop = 0;
         int irBot = 0;
         for (HpsSiSensor sensor : sensors) {
-            IHistogram1D sensPlot = getSensorPlot(plotDir + triggerType + "/"+"t0Hit_", sensor);
+            IHistogram1D sensPlot = PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "t0Hit_", sensor);
             IFitResult result = fitGaussian(sensPlot, fitter, "range=\"(-8.0,8.0)\"");
 
             boolean isTop = sensor.isTopLayer();
@@ -362,9 +323,9 @@ public class SvtMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMData() {
         for (HpsSiSensor sensor : sensors) {
-            LOGGER.info(avgOccupancyNames.get(sensor.getName()) + "  " +triggerType+" " + avgOccupancyMap.get(sensor.getName()));
-            LOGGER.info(avgt0Names.get(sensor.getName()) + "  " +triggerType+" " + avgt0Map.get(sensor.getName()));
-            LOGGER.info(sigt0Names.get(sensor.getName()) + "  " +triggerType+" " + sigt0Map.get(sensor.getName()));
+            LOGGER.info(avgOccupancyNames.get(sensor.getName()) + "  " + triggerType + " " + avgOccupancyMap.get(sensor.getName()));
+            LOGGER.info(avgt0Names.get(sensor.getName()) + "  " + triggerType + " " + avgt0Map.get(sensor.getName()));
+            LOGGER.info(sigt0Names.get(sensor.getName()) + "  " + triggerType + " " + sigt0Map.get(sensor.getName()));
         }
     }
 

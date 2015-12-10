@@ -51,7 +51,6 @@
            ReconstructedParticle types are properly set.
         -->
         <driver name="MergeTrackCollections"/>
-        <driver name="GBLOutputDriver" />
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />   
@@ -134,8 +133,7 @@
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
             <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
         </driver>  
-        <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver"/>      
-        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.HpsGblRefitter"/>
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
