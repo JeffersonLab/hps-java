@@ -73,6 +73,7 @@ public class SvtHitPlots extends Driver {
     private int maxSampleCutForNoise = -1;
     private boolean saveRootFile = false;
     private String outputRootFilename = "";
+    private boolean showPlots = true;
 
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
         this.dropSmallHitEvents = dropSmallHitEvents;
@@ -264,7 +265,8 @@ public class SvtHitPlots extends Driver {
                 }
                 region.getPanel().addMouseListener(new PopupPlotterListener(region));
             }
-            plotter.show();
+            if(showPlots)
+                plotter.show();
         }
     }
 
@@ -387,6 +389,10 @@ public class SvtHitPlots extends Driver {
             }
         }
         
+    }
+
+    public void setShowPlots(boolean showPlots) {
+        this.showPlots = showPlots;
     }
 
 
