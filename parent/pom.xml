@@ -12,7 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-        <lcsimVersion>3.1.6-SNAPSHOT</lcsimVersion>
+        <lcsimVersion>3.1.6</lcsimVersion>
         <skipSite>false</skipSite>
         <skipPlugin>false</skipPlugin>
     </properties>
@@ -278,7 +278,7 @@
             <dependency>
                 <groupId>jfreechart-aida-experimental</groupId>
                 <artifactId>jfreechart-aida-experimental</artifactId>
-                <version>1.8-SNAPSHOT</version>
+                <version>1.7</version>
                 <exclusions>
                     <exclusion>
                         <groupId>jdom</groupId>
@@ -289,11 +289,6 @@
                         <artifactId>commons-math</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.lcsim</groupId>
-                <artifactId>lcsim-detector-framework</artifactId>
-                <version>3.1.6-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
