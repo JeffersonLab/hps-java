@@ -16,8 +16,45 @@ import org.lcsim.event.SimTrackerHit;
  */
 public class TridentMCFilter extends EventReconFilter {
 
+    private boolean requireFrontHits = false;
+    private double minL12Kink = -1;
+    private double maxL12Kink = -1;
+    private double minL1Kink = -1;
+    private double maxL1Kink = -1;
+    private double minL2Kink = -1;
+    private double maxL2Kink = -1;
+
+    public void setMinL12Kink(double minL12Kink) {
+        this.minL12Kink = minL12Kink;
+    }
+
+    public void setMaxL12Kink(double maxL12Kink) {
+        this.maxL12Kink = maxL12Kink;
+    }
+
+    public void setMinL1Kink(double minL1Kink) {
+        this.minL1Kink = minL1Kink;
+    }
+
+    public void setMaxL1Kink(double maxL1Kink) {
+        this.maxL1Kink = maxL1Kink;
+    }
+
+    public void setMinL2Kink(double minL2Kink) {
+        this.minL2Kink = minL2Kink;
+    }
+
+    public void setMaxL2Kink(double maxL2Kink) {
+        this.maxL2Kink = maxL2Kink;
+    }
+
+    public void setRequireFrontHits(boolean requireFrontHits) {
+        this.requireFrontHits = requireFrontHits;
+    }
+
     @Override
     public void process(EventHeader event) {
+        incrementEventProcessed();
         List<MCParticle> MCParticles = event.getMCParticles();
 
         List<MCParticle> tridentParticles = null;
@@ -39,7 +76,11 @@ public class TridentMCFilter extends EventReconFilter {
         int nElectronsWithTracks = 0, nPositronsWithTracks = 0;
         MCParticle electron = null, positron = null;
 
+        particleLoop:
         for (MCParticle particle : tridentParticles) {
+            if (!trackHitMap.containsKey(particle)) {
+                continue;
+            }
             Set<Integer> layers = trackHitMap.get(particle).keySet();
             int pairCount = 0;
             for (Integer layer : layers) {
@@ -47,31 +88,74 @@ public class TridentMCFilter extends EventReconFilter {
                     pairCount++;
                 }
             }
-            boolean hasTrack = (pairCount >= 5);
+            if (pairCount < 5) {
+                continue;
+            }
+            if (requireFrontHits) {
+                for (int i = 1; i < 5; i++) {
+                    if (!layers.contains(i)) {
+                        continue particleLoop;
+                    }
+                }
+            }
 
-            if (hasTrack && particle.getCharge() < 0) {
+            if (particle.getCharge() < 0) {
                 nElectronsWithTracks++;
                 electron = particle;
             }
-            if (hasTrack && particle.getCharge() > 0) {
+            if (particle.getCharge() > 0) {
                 nPositronsWithTracks++;
                 positron = particle;
             }
         }
 
         if (electron == null || positron == null) {
-            System.out.println("not enough trident daughters with tracks");
+//            System.out.println("not enough trident daughters with tracks");
             skipEvent();
         }
 
         if (nElectronsWithTracks > 1 || nPositronsWithTracks > 1) {
-            System.out.println("too many trident daughters with tracks");
+//            System.out.println("too many trident daughters with tracks");
             skipEvent();
         }
 
-//        double deflection12_ele = KinkAnalysisDriver.deflection(trackHitMap.get(electron), 0, 4);
-//        double deflection12_pos = KinkAnalysisDriver.deflection(trackHitMap.get(positron), 0, 4);
-        incrementEventPassed();
+        double deflection12_ele = KinkAnalysisDriver.deflection(trackHitMap.get(electron), 0, 4);
+        double deflection12_pos = KinkAnalysisDriver.deflection(trackHitMap.get(positron), 0, 4);
+        double deflection1_ele = KinkAnalysisDriver.deflection(trackHitMap.get(electron), 0, 2);
+        double deflection1_pos = KinkAnalysisDriver.deflection(trackHitMap.get(positron), 0, 2);
+        double deflection2_ele = KinkAnalysisDriver.deflection(trackHitMap.get(electron), 2, 4);
+        double deflection2_pos = KinkAnalysisDriver.deflection(trackHitMap.get(positron), 2, 4);
+        if (minL12Kink > 0) {
+            if (Math.abs(deflection12_ele) < minL12Kink && Math.abs(deflection12_pos) < minL12Kink) {
+                skipEvent();
+            }
+        }
+        if (maxL12Kink > 0) {
+            if (Math.abs(deflection12_ele) > maxL12Kink || Math.abs(deflection12_pos) > maxL12Kink) {
+                skipEvent();
+            }
+        }
+        if (minL1Kink > 0) {
+            if (Math.abs(deflection1_ele) < minL1Kink && Math.abs(deflection1_pos) < minL1Kink) {
+                skipEvent();
+            }
+        }
+        if (maxL1Kink > 0) {
+            if (Math.abs(deflection1_ele) > maxL1Kink || Math.abs(deflection1_pos) > maxL1Kink) {
+                skipEvent();
+            }
+        }
+        if (minL2Kink > 0) {
+            if (Math.abs(deflection2_ele) < minL2Kink && Math.abs(deflection2_pos) < minL2Kink) {
+                skipEvent();
+            }
+        }
+        if (maxL2Kink > 0) {
+            if (Math.abs(deflection2_ele) > maxL2Kink || Math.abs(deflection2_pos) > maxL2Kink) {
+                skipEvent();
+            }
+        }
 
+        incrementEventPassed();
     }
 }
