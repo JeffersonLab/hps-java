@@ -271,7 +271,7 @@ public abstract class ReconParticleDriver extends Driver {
                 ((BaseReconstructedParticle) particle).setCharge(track.getCharge() * flipSign);
 
                 // initialize PID quality to a junk value:
-                ((BaseReconstructedParticle)particle).setGoodnessOfPid(-9999);
+                ((BaseReconstructedParticle)particle).setGoodnessOfPid(9999);
 
                 // Extrapolate the particle ID from the track. Positively
                 // charged particles are assumed to be positrons and those
