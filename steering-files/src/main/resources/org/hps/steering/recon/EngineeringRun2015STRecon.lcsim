@@ -55,6 +55,7 @@
         <driver name="StraightThroughDriver" type="org.hps.recon.tracking.straight.StraightThroughAnalysisDriver">
             <outputFilename>${outputFile}</outputFilename>
             <writeGbl>true</writeGbl>
+            <showPlots>false</showPlots>
         </driver>
 
     </drivers>
