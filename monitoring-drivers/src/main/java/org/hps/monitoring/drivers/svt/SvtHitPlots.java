@@ -70,6 +70,7 @@ public class SvtHitPlots extends Driver {
     private boolean dropSmallHitEvents = true;
     private static final boolean debug = false;
     private boolean doPerChannelSamplePlots = false;
+    private int maxSampleCutForNoise = -1;
     private boolean saveRootFile = false;
     private String outputRootFilename = "";
 
@@ -306,13 +307,14 @@ public class SvtHitPlots extends Driver {
 
             hitsPerSensor.get(sensor.getName())[0]++;
             firstSamplePlots.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
-            if (maxSample >= 4) {
+            if (maxSampleCutForNoise >=0 && maxSample >= maxSampleCutForNoise) {
+                    firstSamplePlotsNoise.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
+                    if( doPerChannelSamplePlots ) 
+                        firstSamplePlotsNoisePerChannel.get(sensor.getName()).fill(channel, rawHit.getADCValues()[0] - pedestal);
+            } else {
                 firstSamplePlotsNoise.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
-                
-                if( doPerChannelSamplePlots ) {
+                if( doPerChannelSamplePlots ) 
                     firstSamplePlotsNoisePerChannel.get(sensor.getName()).fill(channel, rawHit.getADCValues()[0] - pedestal);
-                }
-            
             }
         }
 
