@@ -7,7 +7,9 @@
       @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
     -->
     <execute>
-        
+    	<!--RF driver-->
+    	<driver name="RfFitter"/>
+ 
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
@@ -60,7 +62,9 @@
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
-        </driver>        
+        </driver> 
+        
+        <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
