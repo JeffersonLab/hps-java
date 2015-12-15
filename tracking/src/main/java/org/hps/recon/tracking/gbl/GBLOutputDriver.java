@@ -20,11 +20,11 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * This driver class is used to 1) write lcio collection of GBL info objects OR
- * 2) write GBL info into a unstructures text-based output
+ * This driver class is used to 
+ * 1) write LCIO collection of GBL info objects, or, 
+ * 2) write GBL info into a structured text-based output
  *
- * It uses a helper class that does the actual work. We will port GBL to java
- * and that will replace this driver.
+ * It uses a helper class that does the actual work. 
  *
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  * @version $Id: GBLOutputDriver.java,v 1.9 2013/11/07 03:54:58 phansson Exp $
@@ -134,8 +134,6 @@ public class GBLOutputDriver extends Driver {
                 System.out.printf("%s: PX %f bottom %d\n", this.getClass().getSimpleName(), trk.getPX(), TrackUtils.isBottomTrack(trk, 4) ? 1 : 0);
             }
 
-            //if( trk.getPX() < 0.9) continue;
-            //if( TrackUtils.isBottomTrack(trk, 4)) continue;
             if (TrackUtils.isGoodTrack(trk, tracklist, EventQuality.Quality.NONE)) {
                 if (_debug > 0) {
                     System.out.printf("%s: Print GBL output for this track\n", this.getClass().getSimpleName());
