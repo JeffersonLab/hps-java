@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-EngRun2015-Nominal-v3-4-fieldmap">
+    <info name="HPS-EngRun2015-Nominal-v4-4-fieldmap">
         <comment>HPS detector for 2015 Engineering Run with tracker fully open
                  this detector uses the corrected fieldmap scaled to -0.24T for 1.056 GeV 
                  running including SVT mechanical survey.  The ECal top is shifted up 2.7 mm
