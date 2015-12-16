@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hps.record.util.FileUtilities;
-
 /**
  * This is a metadata reader for ROOT DQM files.
  * <p>

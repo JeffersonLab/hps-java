@@ -5,12 +5,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,8 +14,6 @@ import org.hps.conditions.database.ConnectionParameters;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunSpreadsheet;
 import org.hps.conditions.run.RunSpreadsheet.RunData;
-import org.hps.datacat.client.DatacatClient;
-import org.hps.datacat.client.Dataset;
 import org.hps.record.AbstractRecordProcessor;
 import org.hps.record.daqconfig.DAQConfig;
 import org.hps.record.daqconfig.DAQConfigEvioProcessor;
@@ -39,12 +33,15 @@ import org.hps.record.svt.SvtConfigEvioProcessor;
 import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.hps.record.triggerbank.HeadBankData;
 import org.hps.record.triggerbank.TiTimeOffsetEvioProcessor;
-import org.hps.record.util.FileUtilities;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
+import org.srs.datacat.client.Client;
+import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatasetResultSetModel;
+import org.srs.datacat.model.dataset.DatasetWithViewModel;
 
 /**
  * Builds a complete {@link RunSummary} object from various data sources, including the data catalog and the run
@@ -70,40 +67,30 @@ final class RunDatabaseBuilder {
     private ConnectionParameters connectionParameters;
 
     /**
-     * Data catalog client API.
-     */
-    private DatacatClient datacatClient;
-
-    /**
      * Detector name for initializing conditions system.
      */
     private String detectorName;
 
     /**
-     * Dry run to not perform database updates (off by default).
+     * Enable dry run to not perform database updates (off by default).
      */
     private boolean dryRun = false;
 
     /**
-     * List of EPICS data from the run.
+     * List of EPICS data read from the EVIO files.
      */
     private List<EpicsData> epicsData;
 
     /**
-     * Map of EVIO files to their dataset objects.
+     * List of EVIO datasets found in the datacat for the run.
      */
-    private Map<File, Dataset> evioDatasets;
+    private List<DatasetModel> evioDatasets;
 
     /**
-     * List of EVIO files.
+     * List of EVIO files for processing.
      */
     private List<File> evioFiles;
-    
-    /**
-     * List of EVIO files with cache path/
-     */
-    private List<File> cacheFiles;
-
+       
     /**
      * Allow replacement of information in the database (off by default).
      */
@@ -115,7 +102,7 @@ final class RunDatabaseBuilder {
     private RunSummaryImpl runSummary;
 
     /**
-     * List of scaler data from the run.
+     * List of scaler data read from the EVIO files.
      */
     private List<ScalerData> scalerData;
 
@@ -125,7 +112,7 @@ final class RunDatabaseBuilder {
     private boolean skipEvioProcessing = false;
 
     /**
-     * Path to run spreadsheet CSV file (not used by default).
+     * Run spreadsheet CSV file with supplementary information (not used by default).
      */
     private File spreadsheetFile;
 
@@ -145,7 +132,17 @@ final class RunDatabaseBuilder {
     private boolean reload;
     
     /**
-     * Reload state for the current run number (used for testing after a database insert).
+     * Data catalog client interface.
+     */
+    private Client datacatClient;
+    
+    /**
+     * Datacat site to use.
+     */
+    private String site;
+        
+    /**
+     * Reload state for the current run number for testing.
      */
     static void reload(Connection connection, int run) {
         
@@ -182,52 +179,50 @@ final class RunDatabaseBuilder {
         runSummary = new RunSummaryImpl(run);
         return this;
     }
+    
+    /**
+     * Create the EVIO file list from the data catalog datasets.
+     */
+    private void createEvioFileList() {
+        this.evioFiles = new ArrayList<File>();
+        
+        for (DatasetModel dataset : this.evioDatasets) {
+            String resource = 
+                    ((DatasetWithViewModel) dataset).getViewInfo().getLocations().iterator().next().getResource();
+            File file = new File(resource);
+            if (file.getPath().startsWith("/mss")) {
+                file = new File("/cache" + resource);
+            }
+            this.evioFiles.add(file);
+        }
+        EvioFileUtilities.sortBySequence(this.evioFiles);
+    }
 
     /**
      * Find EVIO files in the data catalog.
      */
     private void findEvioDatasets() {
+        
         LOGGER.info("finding EVIO datasets for run " + getRun());
-        
-        // Metadata to return from search.
-        final Set<String> metadata = new LinkedHashSet<String>();
-        metadata.add("runMin");
-        metadata.add("eventCount");
-        
-        // Initialize map of files to datasets.
-        evioDatasets = new HashMap<File, Dataset>();
-        
-        // Find datasets in the datacat using a search.
-        final List<Dataset> datasets = datacatClient.findDatasets(
-                "data/raw",
+               
+        DatasetResultSetModel results = datacatClient.searchForDatasets(
+                "/HPS/data/raw",  
+                "current",  
+                this.site,
                 "fileFormat eq 'EVIO' AND dataType eq 'RAW' AND runMin eq " + getRun(), 
-                metadata);
-        if (datasets.isEmpty()) {
-            // No files for the run in datacat is a fatal error.
-            throw new IllegalStateException("No EVIO datasets for run " + getRun() + " were found in the data catalog.");
+                null, 
+                null, 
+                null, 
+                null
+                );
+        
+        this.evioDatasets = results.getResults();
+        
+        if (!this.evioDatasets.isEmpty()) {
+            throw new RuntimeException("No EVIO datasets found in data catalog.");
         }
         
-        // Map files to datasets.
-        for (final Dataset dataset : datasets) {
-            evioDatasets.put(new File(dataset.getLocations().get(0).getResource()), dataset);
-        }
-        
-        // Create the list of sorted EVIO files.
-        evioFiles = new ArrayList<File>();
-        evioFiles.addAll(evioDatasets.keySet());
-        EvioFileUtilities.sortBySequence(evioFiles);
-        
-        // Create a list of files with cache paths in case running at JLAB.
-        cacheFiles = new ArrayList<File>();
-        for (File file : evioFiles) {
-            if (FileUtilities.isMssFile(file)) {
-                cacheFiles.add(FileUtilities.getCachedFile(file));
-            } else {
-                cacheFiles.add(file);
-            }
-        }        
-        
-        LOGGER.info("found " + evioFiles.size() + " EVIO file(s) for run " + runSummary.getRun());
+        this.evioFiles = new ArrayList<File>();        
     }
    
     /**
@@ -247,16 +242,16 @@ final class RunDatabaseBuilder {
         LOGGER.info("inserting run " + runSummary.getRun() + " into db");
 
         // Create DAO factory.
-        final RunDatabaseDaoFactory runFactory = new RunDatabaseDaoFactory(connection);
+        final DaoProvider runFactory = new DaoProvider(connection);
 
         // Insert the run summary record.
         LOGGER.info("inserting run summary");
-        runFactory.createRunSummaryDao().insertRunSummary(runSummary);
+        runFactory.getRunSummaryDao().insertRunSummary(runSummary);
 
         // Insert the EPICS data.
         if (epicsData != null) {
             LOGGER.info("inserting EPICS data");
-            runFactory.createEpicsDataDao().insertEpicsData(epicsData);
+            runFactory.getEpicsDataDao().insertEpicsData(epicsData);
         } else {
             LOGGER.warning("no EPICS data to insert");
         }
@@ -264,7 +259,7 @@ final class RunDatabaseBuilder {
         // Insert the scaler data.
         if (scalerData != null) {
             LOGGER.info("inserting scaler data");
-            runFactory.createScalerDataDao().insertScalerData(scalerData, getRun());
+            runFactory.getScalerDataDao().insertScalerData(scalerData, getRun());
         } else {
             LOGGER.warning("no scaler data to insert");
         }
@@ -272,7 +267,7 @@ final class RunDatabaseBuilder {
         // Insert SVT config data.
         if (this.svtConfigs != null) {
             LOGGER.info("inserting SVT config");
-            runFactory.createSvtConfigDao().insertSvtConfigs(svtConfigs, getRun());
+            runFactory.getSvtConfigDao().insertSvtConfigs(svtConfigs, getRun());
         } else {
             LOGGER.warning("no SVT config to insert");
         }
@@ -280,7 +275,7 @@ final class RunDatabaseBuilder {
         // Insert trigger config data.
         if (this.config != null) {
             LOGGER.info("inserting trigger config");
-            runFactory.createTriggerConfigDao().insertTriggerConfig(config, getRun());
+            runFactory.getTriggerConfigDao().insertTriggerConfig(config, getRun());
         } else {
             LOGGER.warning("no trigger config to inesrt");
         }
@@ -330,10 +325,6 @@ final class RunDatabaseBuilder {
 
         LOGGER.fine("processing EVIO files");
 
-        if (evioFiles == null || evioFiles.isEmpty()) {
-            throw new IllegalStateException("No EVIO files were found.");
-        }
-
         if (detectorName == null) {
             throw new IllegalStateException("The detector name was not set.");
         }
@@ -374,10 +365,13 @@ final class RunDatabaseBuilder {
         // Run the job using the EVIO loop.
         EvioLoop loop = new EvioLoop();
         loop.addProcessors(processors);
-        EvioFileSource source = new EvioFileSource(cacheFiles);
+        EvioFileSource source = new EvioFileSource(this.evioFiles);
         loop.setEvioFileSource(source);
         loop.loop(-1);
-
+        
+        // Update total events from loop state.
+        runSummary.setTotalEvents(loop.getTotalCountableConsumed());
+        
         // Set livetime field values.
         updateLivetimes(scalersProcessor);
 
@@ -420,6 +414,9 @@ final class RunDatabaseBuilder {
                 
         // Find EVIO datasets in the datacat.
         findEvioDatasets();
+        
+        // Create list of EVIO files from datasets.
+        createEvioFileList();
 
         // Set total number of files.
         updateTotalFiles();
@@ -430,33 +427,32 @@ final class RunDatabaseBuilder {
         // Set END timestamp.
         updateEndTimestamp();
 
-        // Set total number of events.
-        updateTotalEvents();
-
         // Calculate trigger rate.
         updateTriggerRate();
                 
-        // Run EVIO job if enabled.
+        // Run the full EVIO processing job.
         if (!this.skipEvioProcessing) {
             processEvioFiles();
         } else {
             LOGGER.info("EVIO file processing is skipped.");
         }
-
-        // Get extra info from spreadsheet if enabled.
+        
+        // Get extra info from the spreadsheet.
         if (this.spreadsheetFile != null) {
             updateFromSpreadsheet();
         } else {
             LOGGER.info("Run spreadsheet not used.");
         }
 
-        // Print out summary info to the log before updating database.
+        // Print out summary info before updating database.
         printSummary();
-
+        
         if (!dryRun) {
-            // Update the database.
-            updateDatabase();
             
+            // Perform the database update; this will throw a runtime exception if there is an error.
+            updateDatabase();
+                        
+            // Optionally load back run information.
             if (reload) {
                 LOGGER.info("reloading data for run " + getRun() + " ...");
                 reload(connectionParameters.createConnection(), getRun());
@@ -466,6 +462,8 @@ final class RunDatabaseBuilder {
             // Dry run so database is not updated.
             LOGGER.info("Dry run enabled so no updates were performed.");
         }
+        
+        LOGGER.info("Done!");
                         
         return this;
     }
@@ -487,7 +485,7 @@ final class RunDatabaseBuilder {
      * @param datacatClient the datacat client
      * @return this object
      */
-    RunDatabaseBuilder setDatacatClient(DatacatClient datacatClient) {
+    RunDatabaseBuilder setDatacatClient(Client datacatClient) {
         this.datacatClient = datacatClient;
         return this;
     }
@@ -536,6 +534,11 @@ final class RunDatabaseBuilder {
     RunDatabaseBuilder setReplace(boolean replace) {
         this.replace = replace;
         LOGGER.config("replace = " + this.replace);
+        return this;
+    }
+    
+    RunDatabaseBuilder setSite(String site) {
+        this.site = site;
         return this;
     }
 
@@ -612,8 +615,9 @@ final class RunDatabaseBuilder {
             try {
                 LOGGER.log(Level.SEVERE, "Error occurred updating database; rolling back transaction...", e1);
                 connection.rollback();
+                throw new RuntimeException("Failed to insert run.");
             } catch (SQLException e2) {
-                throw new RuntimeException(e2);
+                throw new RuntimeException("Error performing rollback.", e2);
             }
         }        
 
@@ -627,7 +631,7 @@ final class RunDatabaseBuilder {
     private void updateEndTimestamp() {
         LOGGER.info("updating end timestamp");
         IntBankDefinition headBankDefinition = new IntBankDefinition(HeadBankData.class, new int[] {0x2e, 0xe10f});
-        File lastEvioFile = cacheFiles.get(cacheFiles.size() - 1);
+        File lastEvioFile = evioFiles.get(evioFiles.size() - 1);
         LOGGER.info("setting end timestamp from file " + lastEvioFile.getPath());
         EvioReader reader = null;
         Integer endTimestamp = null;
@@ -726,7 +730,7 @@ final class RunDatabaseBuilder {
      */
     private void updateStartTimestamps() {
         LOGGER.fine("updating start timestamps");
-        File firstEvioFile = cacheFiles.get(0);
+        File firstEvioFile = evioFiles.get(0);
         LOGGER.info("setting start timestamps from file " + firstEvioFile.getPath());
         int sequence = EvioFileUtilities.getSequenceFromName(firstEvioFile);
         if (sequence != 0) {
@@ -765,19 +769,6 @@ final class RunDatabaseBuilder {
     }
 
     /**
-     * Update the total number of events.
-     */
-    private void updateTotalEvents() {
-        LOGGER.fine("updating total events");
-        int totalEvents = 0;
-        for (Entry<File, Dataset> entry : evioDatasets.entrySet()) {
-            totalEvents += entry.getValue().getLocations().get(0).getEventCount();
-        }
-        runSummary.setTotalEvents(totalEvents);
-        LOGGER.info("total events set to " + runSummary.getTotalEvents());
-    }
-
-    /**
      * Update the total number of EVIO files in the run.
      */
     private void updateTotalFiles() {
@@ -801,8 +792,8 @@ final class RunDatabaseBuilder {
             LOGGER.warning("Could not get starting timestamp for trigger rate calculation.");
         }
         if (runSummary.getEndTimestamp() != null && startTimestamp != null) {
-            double triggerRate = ((double) runSummary.getTotalEvents() / ((double) runSummary.getEndTimestamp() - (double) runSummary
-                    .getGoTimestamp())) / 1000.;
+            double triggerRate = ((double) runSummary.getTotalEvents() /
+                    ((double) runSummary.getEndTimestamp() - (double) runSummary.getGoTimestamp()));
             runSummary.setTriggerRate(triggerRate);
             LOGGER.info("trigger rate set to " + runSummary.getTriggerRate());
         } else {

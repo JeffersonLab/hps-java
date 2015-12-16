@@ -135,7 +135,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
                 throw new IllegalArgumentException("Run " + run + " does not exist in database.");
             }
             runSummary = new RunSummaryImpl(run);
-            runSummary.setTotalEvents(resultSet.getInt("nevents"));
+            runSummary.setTotalEvents(resultSet.getLong("nevents"));
             runSummary.setTotalFiles(resultSet.getInt("nfiles"));
             runSummary.setPrestartTimestamp(resultSet.getInt("prestart_timestamp"));
             runSummary.setGoTimestamp(resultSet.getInt("go_timestamp"));
@@ -175,7 +175,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         try {
             preparedStatement = connection.prepareStatement(INSERT);                       
             preparedStatement.setInt(1, runSummary.getRun());
-            preparedStatement.setInt(2, runSummary.getTotalEvents());
+            preparedStatement.setLong(2, runSummary.getTotalEvents());
             preparedStatement.setInt(3, runSummary.getTotalFiles());
             /* Use setObject on the rest as they may be null. */
             preparedStatement.setObject(4, runSummary.getPrestartTimestamp());

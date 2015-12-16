@@ -97,7 +97,7 @@ public interface RunSummary {
      *
      * @return the total number of events in the run
      */
-    Integer getTotalEvents();
+    Long getTotalEvents();
 
     /**
      * Get the total number of EVIO files in this run.

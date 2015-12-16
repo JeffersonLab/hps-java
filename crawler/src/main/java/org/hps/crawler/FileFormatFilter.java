@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.Set;
 
-import org.hps.datacat.client.DatasetFileFormat;
-
 /**
  * Filter files on their format.
  * <p>
@@ -18,14 +16,14 @@ public class FileFormatFilter implements FileFilter {
     /**
      * The file format.
      */
-    private final Set<DatasetFileFormat> formats;
+    private final Set<FileFormat> formats;
 
     /**
      * Create a new filter with the given format.
      *
      * @param format the file format
      */
-    FileFormatFilter(final Set<DatasetFileFormat> formats) {
+    FileFormatFilter(final Set<FileFormat> formats) {
         if (formats == null) {
             throw new IllegalArgumentException("The formats collection is null.");
         }
@@ -42,7 +40,7 @@ public class FileFormatFilter implements FileFilter {
      */
     @Override
     public boolean accept(final File pathname) {
-        final DatasetFileFormat fileFormat = DatacatUtilities.getFileFormat(pathname);
+        final FileFormat fileFormat = DatacatHelper.getFileFormat(pathname);
         if (fileFormat != null) {
             return formats.contains(fileFormat);
         } else {

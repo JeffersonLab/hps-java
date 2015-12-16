@@ -57,10 +57,12 @@ final class EvioMetadataReader implements FileMetadataReader {
     @Override
     public Map<String, Object> getMetadata(final File file) throws IOException {
 
-        int events = 0;
+        LOGGER.info("creating metadata for " + file.getPath());
+        
+        long events = 0;
         int badEvents = 0;
-        boolean blinded = true;
-        Integer run = null;
+        int blinded = 0;
+        Long run = null;
         Integer firstHeadTimestamp = null;
         Integer lastHeadTimestamp = null;
         Integer lastPhysicsEvent = null;
@@ -82,10 +84,21 @@ final class EvioMetadataReader implements FileMetadataReader {
         // Get the file number from the name.
         final int fileNumber = EvioFileUtilities.getSequenceFromName(file);
 
-        // Files with sequence number divisible by 10 are unblinded (Eng Run 2015 scheme).
-        if (fileNumber % 10 == 0) {
-            blinded = false;
+        // Files with a sequence number that is not divisible by 10 are blinded (Eng Run 2015 scheme).
+        if (!(fileNumber % 10 == 0)) {
+            blinded = 1;
         }
+        
+        // Get file size.
+        long size = 0;
+        File cacheFile = file;
+        if (FileUtilities.isMssFile(file)) {
+            cacheFile = FileUtilities.getCachedFile(file);
+        }
+        size = cacheFile.length();
+        
+        // Compute MD5 checksum string.
+        String checksum = FileUtilities.createMD5Checksum(cacheFile);
 
         EvioReader evioReader = null;
         try {
@@ -105,6 +118,7 @@ final class EvioMetadataReader implements FileMetadataReader {
                         break fileLoop;
                     }
                     
+                    // Increment event count (doesn't count events that can't be parsed).
                     ++events;
 
                     // Debug print event number and tag.
@@ -137,7 +151,7 @@ final class EvioMetadataReader implements FileMetadataReader {
                             // Run number.
                             if (run == null) {
                                 if (headBankData[1] != 0) {
-                                    run = headBankData[1];
+                                    run = (long) headBankData[1];
                                     LOGGER.info("run " + run + " from event " + evioEvent.getEventNumber());
                                 }
                             }
@@ -192,7 +206,7 @@ final class EvioMetadataReader implements FileMetadataReader {
                     tiProcessor.process(evioEvent);
                     
                 } catch (IOException | EvioException e) {
-                    // Trap event processing errors (not counted in event total).
+                    // Trap event processing errors.
                     badEvents++;
                     LOGGER.warning("error processing EVIO event " + evioEvent.getEventNumber());
                 }
@@ -211,7 +225,7 @@ final class EvioMetadataReader implements FileMetadataReader {
             }
         }
 
-        LOGGER.info("done reading " + events + " events");
+        LOGGER.info("done reading " + events + " events from " + file.getPath());
 
         // Rough trigger rate calculation.
         try {
@@ -231,6 +245,8 @@ final class EvioMetadataReader implements FileMetadataReader {
         metadataMap.put("runMin", run);
         metadataMap.put("runMax", run);
         metadataMap.put("eventCount", events);
+        metadataMap.put("size", size);
+        metadataMap.put("checksum", checksum);
         
         // File sequence number.
         metadataMap.put("FILE", fileNumber);
@@ -252,13 +268,13 @@ final class EvioMetadataReader implements FileMetadataReader {
         metadataMap.put("TI_TIME_DELTA", maxTIDelta - minTIDelta);
         
         // TI time offset (stored as string because of bug in MySQL datacat backend).
-        metadataMap.put("TI_TIME_OFFSET", ((Long) tiProcessor.getTiTimeOffset()).toString());
+        metadataMap.put("TI_TIME_OFFSET", tiProcessor.getTiTimeOffset());
 
         // Event counts.
         metadataMap.put("BAD_EVENTS", badEvents);
         
         // Trigger rate in KHz.
-        DecimalFormat df = new DecimalFormat("#.####");
+        DecimalFormat df = new DecimalFormat("#.##");
         df.setRoundingMode(RoundingMode.CEILING);
         metadataMap.put("TRIGGER_RATE", Double.parseDouble(df.format(triggerRate)));
 
@@ -280,14 +296,14 @@ final class EvioMetadataReader implements FileMetadataReader {
     }
          
     /**
-     * Calculate the trigger rate in KHz.
+     * Calculate the trigger rate in Hz.
      * 
      * @param firstTimestamp the first physics timestamp
      * @param lastTimestamp the last physics timestamp
      * @param events the number of physics events
      * @return the trigger rate calculation in KHz
      */
-    private double calculateTriggerRate(Integer firstTimestamp, Integer lastTimestamp, int events) {
-        return ((double) events / ((double) lastTimestamp - (double) firstTimestamp)) / 1000.;
+    private double calculateTriggerRate(Integer firstTimestamp, Integer lastTimestamp, long events) {
+        return ((double) events / ((double) lastTimestamp - (double) firstTimestamp));
     }
 }

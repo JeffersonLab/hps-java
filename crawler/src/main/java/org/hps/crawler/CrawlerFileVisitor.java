@@ -9,8 +9,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.datacat.client.DatasetFileFormat;
-
 /**
  * Visitor which creates a {@link FileSet} from walking a directory tree.
  * <p>
@@ -24,7 +22,7 @@ final class CrawlerFileVisitor extends SimpleFileVisitor<Path> {
     /**
      * The run log containing information about files from each run.
      */
-    private final FileSet fileSet = new FileSet();
+    private final List<File> files = new ArrayList<File>();
 
     /**
      * A list of file filters to apply.
@@ -62,8 +60,8 @@ final class CrawlerFileVisitor extends SimpleFileVisitor<Path> {
      *
      * @return the file set from visiting the directory tree
      */
-    FileSet getFileSet() {
-        return this.fileSet;
+    List<File> getFiles() {
+        return this.files;
     }
 
     /**
@@ -76,8 +74,7 @@ final class CrawlerFileVisitor extends SimpleFileVisitor<Path> {
     public FileVisitResult visitFile(final Path path, final BasicFileAttributes attrs) {
         final File file = path.toFile();
         if (this.accept(file)) {
-            final DatasetFileFormat format = DatacatUtilities.getFileFormat(file);
-            fileSet.addFile(format, file);
+            files.add(file);
         }
         return FileVisitResult.CONTINUE;
     }

@@ -21,18 +21,6 @@ import org.lcsim.conditions.ConditionsListener;
 public final class RunManager implements ConditionsListener {
 
     /**
-     * Simple class for caching data.
-     */
-    private class DataCache {
-        Boolean runExists = null;
-        RunSummary runSummary = null;
-        List<EpicsData> epicsData = null;
-        List<ScalerData> scalerData = null;
-        List<SvtConfigData> svtConfigData = null;
-        DAQConfig daqConfig = null;
-    }
-
-    /**
      * The default connection parameters for read-only access to the run database.
      */
     private static ConnectionParameters DEFAULT_CONNECTION_PARAMETERS = new ConnectionParameters("hpsuser",
@@ -71,14 +59,9 @@ public final class RunManager implements ConditionsListener {
     private final ConnectionParameters connectionParameters = DEFAULT_CONNECTION_PARAMETERS;
 
     /**
-     * The data cache of run information.
-     */
-    private DataCache cache;
-
-    /**
      * Factory for creating database API objects.
      */
-    private final RunDatabaseDaoFactory factory;
+    private final DaoProvider factory;
 
     /**
      * The run number; the -1 value indicates that this has not been set externally yet.
@@ -91,7 +74,7 @@ public final class RunManager implements ConditionsListener {
     public RunManager() {
         this.connection = DEFAULT_CONNECTION_PARAMETERS.createConnection();
         this.openConnection();
-        factory = new RunDatabaseDaoFactory(this.connection);
+        factory = new DaoProvider(this.connection);
     }
 
     /**
@@ -102,7 +85,7 @@ public final class RunManager implements ConditionsListener {
     public RunManager(final Connection connection) {
         this.connection = connection;
         this.openConnection();
-        factory = new RunDatabaseDaoFactory(this.connection);
+        factory = new DaoProvider(this.connection);
     }
 
     /**
@@ -110,7 +93,7 @@ public final class RunManager implements ConditionsListener {
      */
     private void checkRunNumber() {
         if (this.run == null) {
-            throw new IllegalStateException("The run number was not set.");
+            throw new IllegalStateException("The run number was never set.");
         }
     }
 
@@ -143,12 +126,12 @@ public final class RunManager implements ConditionsListener {
      * @param run the run number
      */
     void deleteRun() {        
-        factory.createEpicsDataDao().deleteEpicsData(EpicsType.EPICS_2S, run);
-        factory.createEpicsDataDao().deleteEpicsData(EpicsType.EPICS_20S, run);
-        factory.createScalerDataDao().deleteScalerData(run);        
-        factory.createSvtConfigDao().deleteSvtConfigs(run);
-        factory.createTriggerConfigDao().deleteTriggerConfig(run);
-        factory.createRunSummaryDao().deleteRunSummary(run);
+        factory.getEpicsDataDao().deleteEpicsData(EpicsType.EPICS_2S, run);
+        factory.getEpicsDataDao().deleteEpicsData(EpicsType.EPICS_20S, run);
+        factory.getScalerDataDao().deleteScalerData(run);        
+        factory.getSvtConfigDao().deleteSvtConfigs(run);
+        factory.getTriggerConfigDao().deleteTriggerConfig(run);
+        factory.getRunSummaryDao().deleteRunSummary(run);
     }
 
     /**
@@ -168,11 +151,7 @@ public final class RunManager implements ConditionsListener {
      */
     public List<EpicsData> getEpicsData(final EpicsType epicsType) {
         this.checkRunNumber();
-        if (this.cache.epicsData == null) {
-            LOGGER.info("loading EPICS data for run " + this.run);
-            this.cache.epicsData = factory.createEpicsDataDao().getEpicsData(epicsType, this.run);
-        }
-        return this.cache.epicsData;
+        return factory.getEpicsDataDao().getEpicsData(epicsType, this.run);
     }
 
     /**
@@ -182,7 +161,8 @@ public final class RunManager implements ConditionsListener {
      * @return the EPICS data for the current run
      */
     public List<EpicsVariable> getEpicsVariables(final EpicsType epicsType) {
-        return factory.createEpicsVariableDao().getEpicsVariables(epicsType);
+        this.checkRunNumber();
+        return factory.getEpicsVariableDao().getEpicsVariables(epicsType);
     }
 
     /**
@@ -200,7 +180,7 @@ public final class RunManager implements ConditionsListener {
      * @return the complete list of run numbers
      */
     public List<Integer> getRuns() {
-        return new RunSummaryDaoImpl(this.connection).getRuns();
+        return factory.getRunSummaryDao().getRuns();
     }
   
     /**
@@ -210,10 +190,7 @@ public final class RunManager implements ConditionsListener {
      */
     public RunSummary getRunSummary() {
         this.checkRunNumber();
-        if (this.cache.runSummary == null) {
-            this.cache.runSummary = factory.createRunSummaryDao().getRunSummary(this.run);
-        }
-        return this.cache.runSummary;
+        return factory.getRunSummaryDao().getRunSummary(this.run);
     }
 
     /**
@@ -223,11 +200,7 @@ public final class RunManager implements ConditionsListener {
      */
     public List<ScalerData> getScalerData() {
         this.checkRunNumber();
-        if (this.cache.scalerData == null) {
-            LOGGER.info("loading scaler data for run " + this.run);
-            this.cache.scalerData = factory.createScalerDataDao().getScalerData(run);
-        }
-        return this.cache.scalerData;
+        return factory.getScalerDataDao().getScalerData(run);
     }
     
     /**
@@ -237,11 +210,7 @@ public final class RunManager implements ConditionsListener {
      */
     public List<SvtConfigData> getSvtConfigData() {
         this.checkRunNumber();
-        if (this.cache.svtConfigData == null) {
-            LOGGER.info("loading SVT configuration data for run " + this.run);
-            this.cache.svtConfigData = factory.createSvtConfigDao().getSvtConfigs(run);
-        }
-        return this.cache.svtConfigData;
+        return factory.getSvtConfigDao().getSvtConfigs(run);
     }
     
     /**
@@ -251,11 +220,8 @@ public final class RunManager implements ConditionsListener {
      */
     public DAQConfig getDAQConfig() {
         this.checkRunNumber();
-        if (this.cache.daqConfig == null) {
-            TriggerConfig config = factory.createTriggerConfigDao().getTriggerConfig(run);
-            cache.daqConfig = config.loadDAQConfig(run);
-        }
-        return this.cache.daqConfig;
+        TriggerConfig config = factory.getTriggerConfigDao().getTriggerConfig(run);
+        return config.loadDAQConfig(run);
     }
      
     /**
@@ -280,11 +246,7 @@ public final class RunManager implements ConditionsListener {
      * @return <code>true</code> if the run exists in the database
      */
     public boolean runExists() {
-        this.checkRunNumber();
-        if (this.cache.runExists == null) {
-            this.cache.runExists = factory.createRunSummaryDao().runSummaryExists(this.run);
-        }
-        return this.cache.runExists;
+        return factory.getRunSummaryDao().runSummaryExists(this.run);
     }
 
     /**
@@ -294,7 +256,7 @@ public final class RunManager implements ConditionsListener {
      * @return <code>true</code> if the run exists in the database
      */
     boolean runExists(final int run) {
-        return factory.createRunSummaryDao().runSummaryExists(run);
+        return factory.getRunSummaryDao().runSummaryExists(run);
     }
 
     /**
@@ -310,9 +272,6 @@ public final class RunManager implements ConditionsListener {
 
             // Set the run number.
             this.run = run;
-
-            // Reset the data cache.
-            this.cache = new DataCache();
         }
     }
 }

@@ -67,7 +67,7 @@ final class RunSummaryImpl implements RunSummary {
     /**
      * The total events found in the run across all files.
      */
-    private Integer totalEvents;
+    private Long totalEvents;
 
     /**
      * The total number of files in the run.
@@ -154,7 +154,7 @@ final class RunSummaryImpl implements RunSummary {
     }
 
     @Override
-    public Integer getTotalEvents() {
+    public Long getTotalEvents() {
         return this.totalEvents;
     }
 
@@ -273,7 +273,7 @@ final class RunSummaryImpl implements RunSummary {
      *
      * @param totalEvents the total number of physics events in the run
      */
-    void setTotalEvents(final Integer totalEvents) {
+    void setTotalEvents(final Long totalEvents) {
         this.totalEvents = totalEvents;
     }
 

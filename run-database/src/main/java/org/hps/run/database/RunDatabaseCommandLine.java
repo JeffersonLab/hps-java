@@ -1,6 +1,7 @@
 package org.hps.run.database;
 
 import java.io.File;
+import java.net.URISyntaxException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -8,10 +9,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.hps.conditions.database.ConnectionParameters;
-import org.hps.datacat.client.DatacatClient;
-import org.hps.datacat.client.DatacatClientFactory;
-import org.hps.datacat.client.DatacatConstants;
-import org.hps.datacat.client.DatasetSite;
+import org.srs.datacat.client.Client;
+import org.srs.datacat.client.ClientBuilder;
 
 /**
  * Command line tool for inserting records into the run database.
@@ -38,9 +37,8 @@ public final class RunDatabaseCommandLine {
         OPTIONS.addOption("d", "detector", true, "conditions system detector name");
         OPTIONS.addOption("N", "no-evio-processing", false, "skip processing of all EVIO files");
         OPTIONS.addOption("L", "load", false, "load back run information after inserting (for debugging)");
-        OPTIONS.addOption("u", "url", true, "datacat URL");
-        OPTIONS.addOption("S", "site", true, "datacat site (e.g. SLAC or JLAB)");        
-        // TODO: add -D option for defining metadata values
+        OPTIONS.addOption("u", "url", true, "data catalog URL");
+        OPTIONS.addOption("S", "site", true, "data catalog site (e.g. SLAC or JLAB)");
     }
 
     /**
@@ -49,7 +47,6 @@ public final class RunDatabaseCommandLine {
      * @param args the command line arguments
      */
     public static void main(final String args[]) {
-        // Parse command line options and run the job.
         new RunDatabaseCommandLine().parse(args).run();
     }
     
@@ -94,9 +91,19 @@ public final class RunDatabaseCommandLine {
     private ConnectionParameters connectionParameters = null;
     
     /**
-     * Datacat client to use for connecting to data catalog.
+     * Data catalog client interface.
      */
-    private DatacatClient datacatClient = null;
+    private Client datacatClient = null;
+    
+    /**
+     * Data catalog site.
+     */
+    private String site = "JLAB";                             
+    
+    /**
+     * Data catalog URL.
+     */
+    private String url = "http://hpsweb.jlab.org/datacat/r";  
     
     /**
      * Parse command line options and return reference to <code>this</code> object.
@@ -169,17 +176,22 @@ public final class RunDatabaseCommandLine {
                 this.reload = true;
             }
             
-            // Setup datacat client.
-            DatasetSite site = DatasetSite.JLAB;            
-            String url = DatacatConstants.BASE_URL;            
-            String rootFolder = DatacatConstants.ROOT_FOLDER;            
+            // Data catalog URL.
             if (cl.hasOption("u")) {
                 url = cl.getOptionValue("u");
             }
+            
+            // Site in the data catalog.
             if (cl.hasOption("S")) {
-                site = DatasetSite.valueOf(cl.getOptionValue("S"));
+                site = cl.getOptionValue("S");
             }
-            datacatClient = new DatacatClientFactory().createClient(url, site, rootFolder);
+            
+            // Initialize the data catalog client.
+            try {
+                datacatClient = new ClientBuilder().setUrl(url).build();
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("Bad datacat URL.", e);
+            }
             
         } catch (final ParseException e) {
             throw new RuntimeException(e);
@@ -197,6 +209,7 @@ public final class RunDatabaseCommandLine {
             .setDetectorName(detectorName)
             .setConnectionParameters(connectionParameters)
             .setDatacatClient(datacatClient)
+            .setSite(site)
             .setDryRun(dryRun)
             .setReplace(replace)
             .skipEvioProcessing(skipEvioProcessing)

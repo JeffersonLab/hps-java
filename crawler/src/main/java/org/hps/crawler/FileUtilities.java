@@ -1,6 +1,11 @@
-package org.hps.record.util;
+package org.hps.crawler;
 
 import java.io.File;
+import java.io.IOException;
+
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 
 /**
  * File utilities for the datacat crawler.
@@ -15,7 +20,7 @@ public final class FileUtilities {
      * @param file the file
      * @return the run number
      */
-    public static int getRunFromFileName(final File file) {
+    static int getRunFromFileName(final File file) {
         final String name = file.getName();
         return Integer.parseInt(name.substring(4, 10));
     }
@@ -30,7 +35,7 @@ public final class FileUtilities {
      * @return the cached file path (prepends "/cache" to the path)
      * @throws IllegalArgumentException if the file is not on the MSS (e.g. path does not start with "/mss")
      */
-    public static File getCachedFile(final File mssFile) {
+    static File getCachedFile(final File mssFile) {
         if (!isMssFile(mssFile)) {
             throw new IllegalArgumentException("File " + mssFile.getPath() + " is not on the JLab MSS.");
         }
@@ -47,7 +52,7 @@ public final class FileUtilities {
      * @param file the file
      * @return <code>true</code> if the file is a cached file
      */
-    public static boolean isCachedFile(final File file) {
+    static boolean isCachedFile(final File file) {
         return file.getPath().startsWith("/cache");
     }
     
@@ -57,8 +62,18 @@ public final class FileUtilities {
      * @param file the file
      * @return <code>true</code> if the file is on the MSS
      */
-    public static boolean isMssFile(final File file) {
+    static boolean isMssFile(final File file) {
         return file.getPath().startsWith("/mss");
+    }
+    
+    /**
+     * Create an MD5 checksum for the file.
+     * 
+     * @param file the file to hash
+     */
+    static String createMD5Checksum(File file) throws IOException {
+        HashCode md5 = Files.hash(file, Hashing.md5());
+        return md5.toString();
     }
     
     private FileUtilities() {

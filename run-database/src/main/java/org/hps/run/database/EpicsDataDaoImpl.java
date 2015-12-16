@@ -74,6 +74,9 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
 
     /**
      * Delete all EPICS data for a run from the database.
+     * <p>
+     * Only the <code>epics_header</code> records are deleted and the child records
+     * are deleted automatically via a <code>CASCADE</code>.
      *
      * @param run the run number
      */
@@ -242,7 +245,7 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                 if (dataRowsCreated == 0) {
                     throw new SQLException("Creation of EPICS data failed; no rows affected.");
                 }
-                LOGGER.fine("inserted EPICS data with run " + epicsHeader.getRun() + "; seq " + epicsHeader.getSequence() + "; timestamp " 
+                LOGGER.finer("inserted EPICS data with run " + epicsHeader.getRun() + "; seq " + epicsHeader.getSequence() + "; timestamp " 
                         + epicsHeader.getTimestamp());
                 insertStatement.close();
             }
