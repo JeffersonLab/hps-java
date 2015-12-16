@@ -22,9 +22,9 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 public final class ClusterEnergyCorrection {
 	
 	// Variables for electron energy corrections.
-	static final double par0_em = 0.009051;
-    static final double par1_em[] = {35,-0.1322,-0.0005613,16.42,0.3431,-2.021,74.85,-0.3626};
-    static final double par2_em[] = {35, 0.9652, 0.003234, 18.06, 0.2592, 8.586, 75.08, -0.3771};
+	static final double par0_em = 0.02203;
+    static final double par1_em[] = {35,-0.1795,-0.0005613,16.42,0.3431,-2.021,74.85,-0.3626};
+    static final double par2_em[] = {35, 1.011, 0.003234, 18.06, 0.2592, 8.586, 75.08, -0.3771};
 
     // Variables for positron energy corrections.
     static final double par0_ep = 0.01307;

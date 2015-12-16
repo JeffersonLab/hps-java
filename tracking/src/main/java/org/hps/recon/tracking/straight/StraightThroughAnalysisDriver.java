@@ -117,6 +117,7 @@ public class StraightThroughAnalysisDriver extends Driver {
     private String outputFilename = "";
     private PrintWriter gblPrintWriter = null;
     private boolean writeGbl = true;
+    private boolean showPlots = true;
     
 
     
@@ -392,8 +393,10 @@ public class StraightThroughAnalysisDriver extends Driver {
             
         }
 
-        for(IPlotter plotter : plotters.values())
-            plotter.show();
+        if(showPlots ) {
+            for(IPlotter plotter : plotters.values())
+                plotter.show();
+        }
     }
     
     
@@ -1025,6 +1028,12 @@ public class StraightThroughAnalysisDriver extends Driver {
         style.dataStyle().errorBarStyle().setVisible(false);
         
         return style;
+    }
+
+
+
+    public void setShowPlots(boolean showPlots) {
+        this.showPlots = showPlots;
     }
 
 

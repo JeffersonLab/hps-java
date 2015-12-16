@@ -69,13 +69,24 @@ public class SvtHitPlots extends Driver {
 
     private boolean dropSmallHitEvents = true;
     private static final boolean debug = false;
-    private static final boolean doPerChannelSamplePlots = false;
-    private static final boolean saveRootFile = false;
+    private boolean doPerChannelSamplePlots = false;
+    private int maxSampleCutForNoise = -1;
+    private boolean saveRootFile = false;
     private String outputRootFilename = "";
+    private boolean showPlots = true;
 
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
         this.dropSmallHitEvents = dropSmallHitEvents;
     }
+
+    public void setDoPerChannelsSampleplots(boolean val) {
+        doPerChannelSamplePlots = val;
+    }
+
+    public void setSaveRootFile(boolean save) {
+        saveRootFile = save;
+    }
+
 
     private int computePlotterRegion(HpsSiSensor sensor) {
 
@@ -254,7 +265,8 @@ public class SvtHitPlots extends Driver {
                 }
                 region.getPanel().addMouseListener(new PopupPlotterListener(region));
             }
-            plotter.show();
+            if(showPlots)
+                plotter.show();
         }
     }
 
@@ -297,13 +309,14 @@ public class SvtHitPlots extends Driver {
 
             hitsPerSensor.get(sensor.getName())[0]++;
             firstSamplePlots.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
-            if (maxSample >= 4) {
+            if (maxSampleCutForNoise >=0 && maxSample >= maxSampleCutForNoise) {
+                    firstSamplePlotsNoise.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
+                    if( doPerChannelSamplePlots ) 
+                        firstSamplePlotsNoisePerChannel.get(sensor.getName()).fill(channel, rawHit.getADCValues()[0] - pedestal);
+            } else {
                 firstSamplePlotsNoise.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
-                
-                if( doPerChannelSamplePlots ) {
+                if( doPerChannelSamplePlots ) 
                     firstSamplePlotsNoisePerChannel.get(sensor.getName()).fill(channel, rawHit.getADCValues()[0] - pedestal);
-                }
-            
             }
         }
 
@@ -377,5 +390,10 @@ public class SvtHitPlots extends Driver {
         }
         
     }
+
+    public void setShowPlots(boolean showPlots) {
+        this.showPlots = showPlots;
+    }
+
 
 }

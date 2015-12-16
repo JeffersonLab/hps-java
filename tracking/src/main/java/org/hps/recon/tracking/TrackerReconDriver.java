@@ -13,11 +13,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.LCRelation;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
@@ -65,7 +63,7 @@ public final class TrackerReconDriver extends Driver {
     private double rmsTimeCut = -1;
     private boolean rejectUncorrectedHits = true;
     private boolean rejectSharedHits = false;
-    
+
     public TrackerReconDriver() {
     }
 
@@ -165,8 +163,9 @@ public final class TrackerReconDriver extends Driver {
         //
         // 1) Driver to run Seed Tracker.
         //
-        if (!strategyResource.startsWith("/"))
+        if (!strategyResource.startsWith("/")) {
             strategyResource = "/org/hps/recon/tracking/strategies/" + strategyResource;
+        }
         List<SeedStrategy> sFinallist = StrategyXMLUtils.getStrategyListFromInputStream(this.getClass().getResourceAsStream(strategyResource));
         SeedTracker stFinal = new SeedTracker(sFinallist, this._useHPSMaterialManager, this.includeMS);
         stFinal.setApplySectorBinning(_applySectorBinning);
@@ -177,14 +176,16 @@ public final class TrackerReconDriver extends Driver {
         stFinal.setInputCollectionName(stInputCollectionName);
         stFinal.setTrkCollectionName(trackCollectionName);
         stFinal.setBField(bfield);
-        if (debug)
+        if (debug) {
             stFinal.setDiagnostics(new SeedTrackerDiagnostics());
+        }
         // stFinal.setSectorParams(false); //this doesn't actually seem to do anything
         stFinal.setSectorParams(1, 10000);
         add(stFinal);
 
-        if (rmsTimeCut > 0)
+        if (rmsTimeCut > 0) {
             stFinal.setTrackCheck(new HitTimeTrackCheck(rmsTimeCut));
+        }
     }
 
     /**
@@ -198,10 +199,11 @@ public final class TrackerReconDriver extends Driver {
 
         // Debug printouts.
         if (debug) {
-            if (event.hasCollection(HelicalTrackHit.class, stInputCollectionName))
+            if (event.hasCollection(HelicalTrackHit.class, stInputCollectionName)) {
                 System.out.println(this.getClass().getSimpleName() + ": The HelicalTrackHit collection " + stInputCollectionName + " has " + event.get(HelicalTrackHit.class, stInputCollectionName).size() + " hits.");
-            else
+            } else {
                 System.out.println(this.getClass().getSimpleName() + ": No HelicalTrackHit collection for this event");
+            }
             // Check for Tracks.
             List<Track> tracks = event.get(Track.class, trackCollectionName);
             System.out.println(this.getClass().getSimpleName() + ": The Track collection " + trackCollectionName + " has " + tracks.size() + " tracks.");
@@ -236,27 +238,13 @@ public final class TrackerReconDriver extends Driver {
         }
 
         if (rejectSharedHits) {
-
-            RelationalTable hittostrip = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-            List<LCRelation> hitrelations = event.get(LCRelation.class, "HelicalTrackHitRelations");
-            for (LCRelation relation : hitrelations) {
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
-                    hittostrip.add(relation.getFrom(), relation.getTo());
-                }
-            }
-
-            RelationalTable hittorotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
-            List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
-            for (LCRelation relation : rotaterelations) {
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
-                    hittorotated.add(relation.getFrom(), relation.getTo());
-                }
-            }
+            RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+            RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
             Map<TrackerHit, List<Track>> stripsToTracks = new HashMap<TrackerHit, List<Track>>();
             for (Track track : tracks) {
                 for (TrackerHit hit : track.getTrackerHits()) {
-                    Collection<TrackerHit> htsList = hittostrip.allFrom(hittorotated.from(hit));
+                    Collection<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
                     for (TrackerHit strip : htsList) {
                         List<Track> sharedTracks = stripsToTracks.get(strip);
                         if (sharedTracks == null) {
@@ -272,7 +260,7 @@ public final class TrackerReconDriver extends Driver {
             while (iter.hasNext()) {
                 Track track = iter.next();
                 for (TrackerHit hit : track.getTrackerHits()) {
-                    Collection<TrackerHit> htsList = hittostrip.allFrom(hittorotated.from(hit));
+                    Collection<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
                     for (TrackerHit strip : htsList) {
                         List<Track> sharedTracks = stripsToTracks.get(strip);
                         if (sharedTracks.size() > 1) {
@@ -304,8 +292,9 @@ public final class TrackerReconDriver extends Driver {
      * @param tracks The list of <code>Track</code> objects.
      */
     private void setTrackType(List<Track> tracks) {
-        for (Track track : tracks)
+        for (Track track : tracks) {
             ((BaseTrack) track).setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
+        }
     }
 
     @Override

@@ -449,6 +449,8 @@ public class HpsSiSensor extends SiSensor {
         buffer.append("\n");
         buffer.append("----------------------------------");
         buffer.append("\n");
+        buffer.append("Feb ID: " + this.getFebID() + "\n");
+        buffer.append("Feb Hybrid ID: " + this.getFebHybridID() + "\n");
         buffer.append("Layer: " + this.getLayerNumber() + "\n");
         buffer.append("Module: " + this.getModuleNumber() + "\n");
         buffer.append("Number of readout strips: " + this.getReadoutElectrodes(ChargeCarrier.HOLE).getNCells() + "\n");

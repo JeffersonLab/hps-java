@@ -195,8 +195,8 @@ public class STUtils {
         public Hep3Vector getDirection() {
             double dxdz = getFit(VIEW.XZ).slope();
             double dydz = getFit(VIEW.YZ).slope();
-            double dzdz = 1- Math.sqrt( dxdz*dxdz + dydz*dydz);
-            return new BasicHep3Vector(dxdz, dydz, dzdz);
+            double dzdz = 1;
+            return VecOp.unit(new BasicHep3Vector(dxdz, dydz, dzdz));
         }
     
         public List<StereoPair> getHits() {

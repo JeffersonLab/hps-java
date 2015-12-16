@@ -23,7 +23,10 @@
             <timeWindowWeight>3</timeWindowWeight>
             <resetPeriod>50000</resetPeriod>
        </driver>
-        <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots" />
+        <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots">
+            <doPerChannelsSampleplots>true</doPerChannelsSampleplots>
+            <saveRootFile>true</saveRootFile>
+        </driver>
         <driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />
         <driver name="PedestalPlots" type="org.hps.monitoring.drivers.svt.PedestalPlots" />
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">

@@ -7,7 +7,7 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.4.2-SNAPSHOT</version>
+        <version>3.5-SNAPSHOT</version>
     </parent>
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/ecal-event-display/</url>
