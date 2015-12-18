@@ -56,6 +56,7 @@ public class BuildMillepedeCompact {
 	private static boolean replaceConstant = false;
     private static boolean calcNewValue = true;
     private static boolean ignoreBeamspot = true;
+    private static boolean flipRotationCorrection = false;
 
 
 
@@ -65,6 +66,7 @@ public class BuildMillepedeCompact {
 		options.addOption(new Option("o",true,"The name of the new compact xml file."));
 		options.addOption(new Option("r", false, "Replace correction instead of adding to it."));
         options.addOption(new Option("t", false, "Add a text string as a new value instead of adding to it."));
+        options.addOption(new Option("f",false, "Flip sign of rotation corrections."));
 		return options;
 	}
 	
@@ -113,6 +115,23 @@ public class BuildMillepedeCompact {
             calcNewValue = false;
         }
 
+		if(cl.hasOption("f")) {
+		    flipRotationCorrection = true;
+		}
+		
+		if (calcNewValue)
+            System.out.println("DO CALCULATE NEW VALUE");
+        else
+            System.out.println("DO NOT CALCULATE NEW VALUE");
+        
+		
+		
+		if (flipRotationCorrection)
+		    System.out.println("DO FLIP ROTATIONS");
+		else
+		    System.out.println("DO NOT FLIP ROTATIONS");
+        
+		
 		
 		File compactFile = new File(compactFilename);
 		
@@ -197,10 +216,12 @@ public class BuildMillepedeCompact {
 		                                if(replaceConstant) {
 		                                    newValue = correction;
 		                                } else {
-		                                    if (p.getType() == MilleParameter.Type.ROTATION.getType()) {
+		                                    if (p.getType() == MilleParameter.Type.ROTATION.getType() && !flipRotationCorrection) {
 		                                        newValue = oldValue - correction;
+		                                        System.out.println("NOFLIP");
 		                                    } else {
 		                                        newValue = oldValue + correction;
+                                                System.out.println("FLIP");
 		                                    }
 		                                }
 		                                System.out.println("Update " + p.getId() + ": " + oldValue + " (corr. " + correction + ") ->  "  + newValue );
@@ -214,7 +235,16 @@ public class BuildMillepedeCompact {
 		                                    throw new RuntimeException("Doesn't make sense to try and replace with the string option?");
 
 		                                if( correction != 0.0) {
-		                                    String newValue = oldValue + " + " + String.format("%.6f",correction);
+		                                    String newValue;
+		                                    
+		                                    if (p.getType() == MilleParameter.Type.ROTATION.getType() && !flipRotationCorrection) {
+		                                        newValue = oldValue + " - " + String.format("%.6f",correction);
+                                                System.out.println("NOFLIP");
+                                            } else {
+                                                newValue = oldValue + " + " + String.format("%.6f",correction);
+                                                System.out.println("FLIP");
+                                            }
+		                                    
 		                                    System.out.println("Update " + p.getId() + ": " + oldValue + " (corr. " + correction + ") ->  "  + newValue );
 		                                    node.setAttribute("value", newValue);
 		                                }		                                
