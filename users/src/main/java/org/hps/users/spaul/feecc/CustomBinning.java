@@ -76,21 +76,5 @@ public class CustomBinning {
 		}
 		return tot;
 	}
-	/**
-	 * @param bin
-	 * @param a = 2E/M
-	 * @return the integral of 1/sin^4(th/2)*cos^2(th/2)/(1+a*sin^2(th/2)) times dPhi,
-	 * which appears in the integral of mott scattering.
-	 */
-	public double mottIntegralFactor(double a, int bin){
-		double dPhi = 0;
-		for(int i = 0; i< phiMax[bin].length; i++)
-			dPhi += 2*(phiMax[bin][0] - phiMin[bin][0]); //factor of 2 from top and bottom
-		
-		double csc2 = Math.pow(Math.sin(thetaMax[bin]/2), -2);
-		double Imax = (-csc2+(1+a)*Math.log(a+2*csc2));
-		       csc2 = Math.pow(Math.sin(thetaMin[bin]/2), -2);
-		double Imin = (-csc2+(1+a)*Math.log(a+2*csc2));
-		return 2*dPhi*(Imax-Imin);
-	}
+
 }

@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 
 public class BinGenerator {
 	public static void main(String arg[]) throws FileNotFoundException{
-		int nBins = 20;
+		int nBins = 32;
 
 		PrintStream pw = new PrintStream("generatedbins.txt");
 		pw.println(nBins);
@@ -33,17 +33,21 @@ public class BinGenerator {
 			bins[i] = thetaMin+dTheta*i;
 		}
 		return bins; */
-		double thetaMax = .145;
-		double thetaMin = .035;
+		double thetaMax = .200;
+		double thetaMin = .040;
 
 		double[] bins = new double[nBins +1];
-		double xMin = 1/(thetaMax*thetaMax);
+		for(int i = 0; i<nBins+1; i++){
+			bins[i] = thetaMin+i*(thetaMax-thetaMin)/nBins;
+		}
+		return bins;
+		/*double xMin = 1/(thetaMax*thetaMax);
 		double xMax = 1/(thetaMin*thetaMin);
 		for(int i = 0; i< nBins+1; i++){
 			double x = xMax - i*(xMax-xMin)/nBins;
 			bins[i] = Math.pow(x, -.5);
 		}
-		return bins;
+		return bins;*/
 	}
 	private static double[] getPhiBounds(double thetaMin, double thetaMax){
 		double phiBins[] = new double[6];
@@ -52,8 +56,14 @@ public class BinGenerator {
 
 		boolean prevInRange = false;
 		for(double phi = 0; phi< 3.14; phi+= dphi){
-			boolean inRange = EcalUtil.fid_ECal_spherical(thetaMin, phi) && EcalUtil.fid_ECal_spherical(thetaMax, phi)
-								&& EcalUtil.fid_ECal_spherical(thetaMin, -phi) && EcalUtil.fid_ECal_spherical(thetaMax, -phi);
+			
+			// make the angular cuts on the tracks such that the particles that go into that cut 
+			// are expected to be within 4 mm (~= 2 times the angular resolution of 1.5 mrad) of 
+			// the ecal cuts.  
+			double d = 4;
+			
+			boolean inRange = EcalUtil.fid_ECal_spherical_more_strict(thetaMin, phi, d) && EcalUtil.fid_ECal_spherical_more_strict(thetaMax, phi, d)
+								&& EcalUtil.fid_ECal_spherical_more_strict(thetaMin, -phi, d) && EcalUtil.fid_ECal_spherical_more_strict(thetaMax, -phi, d);
 			if(inRange && !prevInRange)
 				phiBins[edgeNumber++] = phi;
 			if(prevInRange && !inRange)
