@@ -14,6 +14,7 @@ import java.util.Set;
 import org.srs.datacat.client.Client;
 import org.srs.datacat.client.ClientBuilder;
 import org.srs.datacat.model.DatasetModel;
+import org.srs.datacat.model.DatasetView.VersionId;
 import org.srs.datacat.shared.Dataset;
 import org.srs.datacat.shared.Provider;
 
@@ -183,27 +184,37 @@ class DatacatHelper {
             String dataType,
             String fileFormat) {
         
-        Provider provider = new Provider();        
-        List<DatasetModel> datasets = new ArrayList<DatasetModel>();
-                              
+        Provider provider = new Provider();                                              
         Dataset.Builder datasetBuilder = provider.getDatasetBuilder();
-        datasetBuilder.versionId(1);
-        datasetBuilder.master(true);
-        datasetBuilder.name(file.getName());
-        datasetBuilder.resource(file.getPath());
-        datasetBuilder.size((Long) metadata.get("size"));
-        datasetBuilder.scanStatus("OK");
-        datasetBuilder.dataType(dataType);
-        datasetBuilder.fileFormat(fileFormat);
-        datasetBuilder.site(site);
+        
+        // Set basic info on new dataset.
+        datasetBuilder.versionId(VersionId.valueOf("new"))
+            .master(true)
+            .name(file.getName())
+            .resource(file.getPath())
+            .dataType(dataType)
+            .fileFormat(fileFormat)
+            .site(site)
+            .scanStatus("OK");
+        
+        // Set system metadata from the provided metadata map.
         if (metadata.get("eventCount") != null) {
             datasetBuilder.eventCount((Long) metadata.get("eventCount"));
         }
-        datasetBuilder.runMin((Long) metadata.get("runMin"));
-        datasetBuilder.runMax((Long) metadata.get("runMax"));
-        datasetBuilder.checksum((String) metadata.get("checksum"));
-                        
-        // Create user metadata leaving out system metadata fields.
+        if (metadata.get("checksum") != null) {
+            datasetBuilder.checksum((String) metadata.get("checksum"));
+        }
+        if (metadata.get("runMin") != null) {                   
+            datasetBuilder.runMin((Long) metadata.get("runMin"));
+        }
+        if (metadata.get("runMax") != null) {
+            datasetBuilder.runMax((Long) metadata.get("runMax"));
+        }
+        if (metadata.get("size") != null) {
+            datasetBuilder.size((Long) metadata.get("size"));
+        }
+                                
+        // Create user metadata, leaving out system metadata fields.
         Map<String, Object> userMetadata = new HashMap<String, Object>();
         for (Entry<String, Object> metadataEntry : metadata.entrySet()) {
             if (!SYSTEM_METADATA.contains(metadataEntry.getKey())) {
@@ -212,11 +223,7 @@ class DatacatHelper {
         }
         datasetBuilder.versionMetadata(userMetadata);
         
-        // Build dataset and add to list.
-        DatasetModel dataset = datasetBuilder.build();
-        datasets.add(dataset);
-        
-        return dataset;
+        return datasetBuilder.build();
     }
     
     /**

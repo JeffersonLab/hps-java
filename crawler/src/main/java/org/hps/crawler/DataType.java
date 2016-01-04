@@ -7,7 +7,7 @@ package org.hps.crawler;
  */
 public enum DataType {
     /**
-     * Data quality management plots.
+     * Data quality management plots (AIDA or ROOT).
      */
     DQM,
     /**
@@ -15,7 +15,7 @@ public enum DataType {
      */
     RAW,
     /**
-     * Reconstructed data (usually LCIO).
+     * Reconstructed data (LCIO).
      */
     RECON,
     /**

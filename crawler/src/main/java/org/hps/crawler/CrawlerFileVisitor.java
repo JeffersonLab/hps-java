@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Visitor which creates a {@link FileSet} from walking a directory tree.
+ * Visitor which creates a list of files from walking a directory tree.
  * <p>
  * Any number of {@link java.io.FileFilter} objects can be registered with this visitor to restrict which files are
  * accepted.
@@ -20,12 +20,12 @@ import java.util.List;
 final class CrawlerFileVisitor extends SimpleFileVisitor<Path> {
 
     /**
-     * The run log containing information about files from each run.
+     * The list of files found from crawling.
      */
     private final List<File> files = new ArrayList<File>();
 
     /**
-     * A list of file filters to apply.
+     * A list of file filters applied to each path.
      */
     private final List<FileFilter> filters = new ArrayList<FileFilter>();
 

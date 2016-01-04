@@ -2,7 +2,6 @@ package org.hps.crawler;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -19,8 +18,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.srs.datacat.client.Client;
-import org.srs.datacat.client.ClientBuilder;
 import org.srs.datacat.model.DatasetModel;
 
 /**
@@ -57,7 +54,6 @@ public final class DatacatCrawler {
      * Statically define the command options.
      */
     static {
-        OPTIONS.addOption("L", "log-level", true, "set the log level (INFO, FINE, etc.)");
         OPTIONS.addOption("b", "min-date", true, "min date for a file (example \"2015-03-26 11:28:59\")");
         OPTIONS.addOption("d", "directory", true, "root directory to crawl");
         OPTIONS.addOption("f", "folder", true, "datacat folder");
@@ -108,13 +104,6 @@ public final class DatacatCrawler {
             // Print help.
             if (cl.hasOption("h") || args.length == 0) {
                 this.printUsage();
-            }
-
-            // Log level (only used for this class's logger).
-            if (cl.hasOption("L")) {
-                final Level level = Level.parse(cl.getOptionValue("L"));
-                LOGGER.config("log level " + level);
-                LOGGER.setLevel(level);
             }
 
             // Root directory for file crawling.
@@ -217,6 +206,18 @@ public final class DatacatCrawler {
                 }
                 config.setAcceptRuns(acceptRuns);
             }
+                                    
+            // Dry run.
+            if (cl.hasOption("D")) {
+                config.setDryRun(true);
+            }
+                        
+            // List of paths.
+            if (!cl.getArgList().isEmpty()) {
+                for (String arg : cl.getArgList()) {
+                    config.addPath(arg);
+                }
+            }
             
             // Dataset site (defaults to JLAB).
             Site site = Site.JLAB;
@@ -226,22 +227,10 @@ public final class DatacatCrawler {
             LOGGER.config("dataset site " + site);
             config.setSite(site);
             
-            // Dry run.
-            if (cl.hasOption("D")) {
-                config.setDryRun(true);
-            }
-            
             // Data catalog URL.
             if (cl.hasOption("u")) {
                 config.setDatacatUrl(cl.getOptionValue("u"));
                 LOGGER.config("datacat URL " + config.datacatUrl());
-            }
-            
-            // List of paths.
-            if (!cl.getArgList().isEmpty()) {
-                for (String arg : cl.getArgList()) {
-                    config.addPath(arg);
-                }
             }
 
         } catch (final ParseException e) {
