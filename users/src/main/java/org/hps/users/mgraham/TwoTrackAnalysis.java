@@ -17,10 +17,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.hps.recon.tracking.BeamlineConstants;
-import org.hps.recon.tracking.HPSTrack;
+import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.HelixConverter;
 import org.hps.recon.tracking.StraightLineTrack;
+import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
@@ -273,10 +275,11 @@ public class TwoTrackAnalysis extends Driver {
             HelicalTrackFit ht = seedEle.getHelix();
             HelixConverter converter = new HelixConverter(0);
             StraightLineTrack slt = converter.Convert(ht);
-            HPSTrack hpstrack = new HPSTrack(ht);
-            Hep3Vector[] trkatconver = hpstrack.getPositionAtZMap(100, BeamlineConstants.HARP_POSITION_TESTRUN, 1);
-            aida.histogram1D("X (mm) @ Converter using Map").fill(trkatconver[0].x()); // y tracker frame?
-            aida.histogram1D("Y (mm) @ Converter using Map").fill(trkatconver[0].y()); // z tracker frame?
+            HpsHelicalTrackFit hpstrack = new HpsHelicalTrackFit(ht);
+            Hep3Vector trkatconver = new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk, 100, BeamlineConstants.HARP_POSITION_TESTRUN, 1, event.getDetector().getFieldMap()).getReferencePoint());
+
+            aida.histogram1D("X (mm) @ Converter using Map").fill(trkatconver.x()); // y tracker frame?
+            aida.histogram1D("Y (mm) @ Converter using Map").fill(trkatconver.y()); // z tracker frame?
             if (slt != null) {
                 aida.histogram1D("X (mm) @ Converter using SLT").fill(slt.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN)[0]); // y tracker frame?
                 aida.histogram1D("Y (mm) @ Converter using SLT").fill(slt.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN)[1]); // z tracker frame?
@@ -320,9 +323,9 @@ public class TwoTrackAnalysis extends Driver {
 //            HPSTrack hpstrack2 = new HPSTrack(ht2);
 //            Hep3Vector[] trkatconver2 = hpstrack2.getPositionAtZMap(100, BeamlineConstants.HARP_POSITION, 1);
 
-            HPSTrack hpstrack1 = new HPSTrack(ht1);
+            HpsHelicalTrackFit hpstrack1 = new HpsHelicalTrackFit(ht1);
             Hep3Vector[] trkatconver1 = {new BasicHep3Vector(), new BasicHep3Vector(0, 0, 0)};
-            HPSTrack hpstrack2 = new HPSTrack(ht2);
+            HpsHelicalTrackFit hpstrack2 = new HpsHelicalTrackFit(ht2);
             Hep3Vector[] trkatconver2 = {new BasicHep3Vector(), new BasicHep3Vector(0, 0, 0)};;
             if (isMC) {
                 double[] t1 = slt1.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN);
@@ -330,8 +333,9 @@ public class TwoTrackAnalysis extends Driver {
                 trkatconver1[0] = new BasicHep3Vector(t1[0], t1[1], BeamlineConstants.HARP_POSITION_TESTRUN);
                 trkatconver2[0] = new BasicHep3Vector(t2[0], t2[1], BeamlineConstants.HARP_POSITION_TESTRUN);
             } else {
-                trkatconver1 = hpstrack1.getPositionAtZMap(100, BeamlineConstants.HARP_POSITION_TESTRUN, 1);
-                trkatconver2 = hpstrack2.getPositionAtZMap(100, BeamlineConstants.HARP_POSITION_TESTRUN, 1);
+                throw new NotImplementedException("Need to implement using TrackUtils to extrapolate tracks!");
+                //trkatconver1 = hpstrack1.getPositionAtZMap(100, BeamlineConstants.HARP_POSITION_TESTRUN, 1);
+                //trkatconver2 = hpstrack2.getPositionAtZMap(100, BeamlineConstants.HARP_POSITION_TESTRUN, 1);
             }
             List<TrackerHit> hitsOnTrack1 = trk1.getTrackerHits();
             int layer1;
@@ -508,9 +512,10 @@ public class TwoTrackAnalysis extends Driver {
                             posvec[1] = slt1.getYZAtX(z)[1];
                             posvec[2] = z;
                         } else {
-                            Hep3Vector[] trk1atz = hpstrack1.getPositionAtZMap(100, z, 1);
-                            posvec[0] = trk1atz[0].x();
-                            posvec[1] = trk1atz[0].y();
+                            Hep3Vector trk1atz = new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk1, 100, z, 1, event.getDetector().getFieldMap()).getReferencePoint());
+
+                            posvec[0] = trk1atz.x();
+                            posvec[1] = trk1atz.y();
                             posvec[2] = z;
                         }
                         Trk1.add(posvec);
@@ -592,9 +597,10 @@ public class TwoTrackAnalysis extends Driver {
                             posvec2[1] = slt2.getYZAtX(z)[1];
                             posvec2[2] = z;
                         } else {
-                            Hep3Vector[] trk2atz = hpstrack2.getPositionAtZMap(100, z, 1);
-                            posvec2[0] = trk2atz[0].x();
-                            posvec2[1] = trk2atz[0].y();
+                            Hep3Vector trk2atz = new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk2, 100, z, 1, event.getDetector().getFieldMap()).getReferencePoint());
+
+                            posvec2[0] = trk2atz.x();
+                            posvec2[1] = trk2atz.y();
                             posvec2[2] = z;
                         }
                         Trk2.add(posvec2);

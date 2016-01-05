@@ -5,13 +5,14 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
+import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import java.util.List;
 import java.util.Map;
 
 import org.hps.recon.tracking.BeamlineConstants;
-import org.hps.recon.tracking.HPSTrack;
+import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.HelixConverter;
 import org.hps.recon.tracking.StraightLineTrack;
 import org.hps.recon.tracking.TrackUtils;
@@ -99,10 +100,9 @@ public class TrackExtrapolationAnalysis extends Driver {
                 charge = 0;//make plot look pretty
 //            System.out.println("Charge = " + charge + "; isTop = " + isTop);
 
-            HPSTrack hpstrk=null;
-                hpstrk = new HPSTrack(ht);
-//            Hep3Vector posAtConv = hpstrk.getPositionAtZ(zAtConverter, -101, -100, 0.1);
-            Hep3Vector posAtConv = hpstrk.getPositionAtZMap(100,BeamlineConstants.HARP_POSITION_TESTRUN , 5.0)[0];
+            HpsHelicalTrackFit hpstrk=null;
+                hpstrk = new HpsHelicalTrackFit(ht);
+                Hep3Vector posAtConv = new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk, 100, BeamlineConstants.HARP_POSITION_TESTRUN, 5.0, event.getDetector().getFieldMap()).getReferencePoint());
             double useThisx=posAtConv.x();
             double useThisy=posAtConv.y();
             
@@ -123,7 +123,7 @@ public class TrackExtrapolationAnalysis extends Driver {
                 aida.histogram1D("Negative Y (mm) @ Converter").fill(useThisy);
             }
 //            Hep3Vector posAtConvShort = hpstrk.getPositionAtZ(zAtConverter, -0.1, 0, 0.01);
-            Hep3Vector posAtConvShort = hpstrk.getPositionAtZMap(0,BeamlineConstants.HARP_POSITION_TESTRUN, 5.0)[0];
+            Hep3Vector posAtConvShort = new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk, 0, BeamlineConstants.HARP_POSITION_TESTRUN, 5.0, event.getDetector().getFieldMap()).getReferencePoint());
             aida.histogram2D("Extrapolated X: short vs long fringe").fill(posAtConvShort.x(), posAtConv.x());
             aida.histogram2D("Extrapolated Y: short vs long fringe").fill(posAtConvShort.y(), posAtConv.y());
 
@@ -144,7 +144,8 @@ public class TrackExtrapolationAnalysis extends Driver {
 //                Hep3Vector posAtEcalHPS = hpstrk.getPositionAtZMap(750,zCluster, 5.0);
                 double zCluster=clust.getPosition()[2];
  //               double zCluster=1450.0;
-                 Hep3Vector posAtEcalHPS = hpstrk.getPositionAtZMap(750,zCluster, 5.0)[0];
+                Hep3Vector posAtEcalHPS = new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk, 750, zCluster, 5.0, event.getDetector().getFieldMap()).getReferencePoint());
+
                 Hep3Vector posAtEcalExtend= TrackUtils.extrapolateTrack(trk,zCluster);
                 aida.histogram2D("ECal Extrapolation X :  HPS vs Extend").fill( posAtEcalExtend.y(),posAtEcalHPS.x()-posAtEcalExtend.y());
                 aida.histogram2D("ECal Extrapolation Y :  HPS vs Extend").fill( posAtEcalExtend.z(),posAtEcalHPS.y()-posAtEcalExtend.z());

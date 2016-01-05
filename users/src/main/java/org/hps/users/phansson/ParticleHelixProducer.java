@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
-import org.hps.recon.tracking.HPSTrack;
+import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
@@ -137,7 +137,7 @@ public class ParticleHelixProducer extends Driver {
 
         //Make new tracks based on the MC particles
         //List<HelicalTrackFit> tracks = new ArrayList<HelicalTrackFit>();
-        List<HPSTrack> tracks = new ArrayList<HPSTrack>();
+        List<HpsHelicalTrackFit> tracks = new ArrayList<HpsHelicalTrackFit>();
 
         if (event.hasCollection(MCParticle.class)) {
             List<MCParticle> mcparticles = event.get(MCParticle.class).get(0);
@@ -251,7 +251,7 @@ public class ParticleHelixProducer extends Driver {
                     pars[3] = hpc.getZ0();
                     pars[4] = hpc.getSlopeSZPlane();
                     //HelicalTrackFit htf = this.trackUtils.makeHelicalTrackFit(pars);
-                    HPSTrack htf = this.makeHPSTrack(pars, part);
+                    HpsHelicalTrackFit htf = this.makeHPSTrack(pars, part);
                     tracks.add(htf);
                     if (debug) {
                         System.out.println(this.getClass().getSimpleName() + ": MC particle created HelicalTrackFit " + htf.toString());
@@ -281,7 +281,7 @@ public class ParticleHelixProducer extends Driver {
         }
 
         this.printDebug("created " + tracks.size() + " MC particle helix tracks");
-        event.put(this.trackOutputCollectionName, tracks, HPSTrack.class, 0);
+        event.put(this.trackOutputCollectionName, tracks, HpsHelicalTrackFit.class, 0);
         _totalTracks += tracks.size();
     }
 
@@ -292,9 +292,12 @@ public class ParticleHelixProducer extends Driver {
      * @param mcParticle : MC particle associated to this HelicalTrackFit
      * @return HpsHelicalTrackFit :
      */
-    public HPSTrack makeHPSTrack(double[] helixParameters, MCParticle mcParticle) {
-        return new HPSTrack(helixParameters, new SymmetricMatrix(5), new double[2], new int[2],
-                new HashMap<HelicalTrackHit, Double>(), new HashMap<HelicalTrackHit, MultipleScatter>(), mcParticle);
+    public HpsHelicalTrackFit makeHPSTrack(double[] helixParameters, MCParticle mcParticle) {
+        HpsHelicalTrackFit helicalTrackFit = new HpsHelicalTrackFit(helixParameters, new SymmetricMatrix(5), new double[2], new int[2],
+                new HashMap<HelicalTrackHit, Double>(), new HashMap<HelicalTrackHit, MultipleScatter>());
+        helicalTrackFit.setMcParticle(mcParticle);
+        return  helicalTrackFit;
+        
     }
 
     /**

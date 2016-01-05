@@ -20,10 +20,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
 import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.EventQuality;
-import org.hps.recon.tracking.HPSTrack;
+import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.StraightLineTrack;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.TwoParticleVertexer;
@@ -41,6 +42,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.ParticleTypeClassifier;
@@ -645,8 +647,8 @@ public class ROOTFlatTupleDriver extends Driver {
                 } else {
                     printWriter.format("%5.5f %5.5f ", -9999999.9, -9999999.9);
                 }
-                HPSTrack hpstrk1 = new HPSTrack(helix1);
-                Hep3Vector posAtConverterFringe1 = hpstrk1.getPositionAtZMap(100., BeamlineConstants.HARP_POSITION_TESTRUN, 5.0)[0];
+                HpsHelicalTrackFit hpstrk1 = new HpsHelicalTrackFit(helix1);
+                Hep3Vector posAtConverterFringe1 =  new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk1, 100., BeamlineConstants.HARP_POSITION_TESTRUN, 5.0, event.getDetector().getFieldMap()).getReferencePoint());
                 if (beamlinePosOk(posAtConverterFringe1)) {
                     printWriter.format("%5.5f %5.5f %5.5f ", posAtConverterFringe1.z(), posAtConverterFringe1.x(), posAtConverterFringe1.y()); //note rotation from JLab->tracking
                 } else {
@@ -660,15 +662,15 @@ public class ROOTFlatTupleDriver extends Driver {
                     printWriter.format("%5.5f %5.5f ", -9999999.9, -9999999.9);
                 }
 
-                Hep3Vector posAtNomTargetFringe1 = hpstrk1.getPositionAtZMap(100., 0.0, 5.0)[0];
+                Hep3Vector posAtNomTargetFringe1 =  new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk1, 100., 0., 5.0, event.getDetector().getFieldMap()).getReferencePoint());
                 if (beamlinePosOk(posAtNomTargetFringe1)) {
                     printWriter.format("%5.5f %5.5f %5.5f ", posAtNomTargetFringe1.z(), posAtNomTargetFringe1.x(), posAtNomTargetFringe1.y()); //note rotation from JLab->tracking
                 } else {
                     printWriter.format("%5.5f %5.5f %5.5f ", -9999999.9, -9999999.9, -9999999.9);
                 }
 
+                Hep3Vector posAtECalFringe1 =  new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk1, BeamlineConstants.DIPOLE_EDGE_TESTRUN - 100, BeamlineConstants.ECAL_FACE_TESTRUN, 5.0, event.getDetector().getFieldMap()).getReferencePoint());
                 Hep3Vector posAtECal = TrackUtils.extrapolateTrack(trk1, BeamlineConstants.ECAL_FACE_TESTRUN);
-                Hep3Vector posAtECalFringe1 = hpstrk1.getPositionAtZMap(BeamlineConstants.DIPOLE_EDGE_TESTRUN - 100, BeamlineConstants.ECAL_FACE_TESTRUN, 5.0, false)[0];
                 if (beamlinePosOk(posAtECal)) {
                     //printWriter.format("%5.5f %5.5f ",posAtECal.x(),posAtECal.y()); //note rotation from JLab->tracking
                     printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ", posAtECal.x(), posAtECal.y(), posAtECalFringe1.z(), posAtECalFringe1.x(), posAtECalFringe1.y()); //note rotation from JLab->tracking
@@ -681,7 +683,8 @@ public class ROOTFlatTupleDriver extends Driver {
                     double[] pos_cluster = matched_cluster.getPosition();
                     posAtECal = TrackUtils.extrapolateTrack(trk1, pos_cluster[2]);
                     if (beamlinePosOk(posAtECal)) {
-                        posAtECalFringe1 = hpstrk1.getPositionAtZMap(BeamlineConstants.DIPOLE_EDGE_TESTRUN - 100, pos_cluster[2], 5.0, false)[0];
+                        posAtECalFringe1 =  new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk1, BeamlineConstants.DIPOLE_EDGE_TESTRUN - 100,  pos_cluster[2], 5.0, event.getDetector().getFieldMap()).getReferencePoint());
+
                         printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ", posAtECal.x(), posAtECal.y(), posAtECalFringe1.z(), posAtECalFringe1.x(), posAtECalFringe1.y()); //note rotation from JLab->tracking
                         if (_debug) {
                             System.out.printf("clpos:%5.5f %5.5f %5.5f  trk: %5.5f %5.5f %5.5f %5.5f %5.5f \n", pos_cluster[0], pos_cluster[1], pos_cluster[2], posAtECal.x(), posAtECal.y(), posAtECalFringe1.z(), posAtECalFringe1.x(), posAtECalFringe1.y()); //note rotation from JLab->tracking
@@ -1212,15 +1215,19 @@ public class ROOTFlatTupleDriver extends Driver {
     }
 
     private StraightLineTrack[] getSLTs(Track trk1, Track trk2, boolean useFringe) {
+        throw new NotImplementedException("Need to implement the SLT stuff again. Not sure where it went.");
         // find the point on the x- and y-axis by 
         // 1) go outside the fringe region 
         // 2) assume straight lines 
         // 3) solve for the position where the z-position is at the crossing point
-        double zStart = useFringe == true ? -100. : 0.;
-        StraightLineTrack slt1 = TrackUtils.findSLTAtZ(trk1, zStart, useFringe);
-        StraightLineTrack slt2 = TrackUtils.findSLTAtZ(trk2, zStart, useFringe);
-        StraightLineTrack[] vv = {slt1, slt2};
-        return vv;
+        //double zStart = useFringe == true ? -100. : 0.;
+        //StraightLineTrack slt1 = TrackUtils.findSLTAtZ(trk1, zStart, useFringe);
+        //StraightLineTrack slt2 = TrackUtils.findSLTAtZ(trk2, zStart, useFringe);
+        //StraightLineTrack[] vv = {slt1, slt2};
+        //StraightLineTrack[] vv = {null, null};
+        //if(1==1)
+        //    throw new NotImplementedException("Need to implement the SLT stuff again. Not sure where it went.");
+        //return vv;
     }
 
     /*
