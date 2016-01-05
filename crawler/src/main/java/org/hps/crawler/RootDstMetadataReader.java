@@ -28,6 +28,10 @@ public class RootDstMetadataReader implements FileMetadataReader {
     @Override
     public Map<String, Object> getMetadata(final File file) throws IOException {
         final Map<String, Object> metadata = new HashMap<String, Object>();
+        Long run = FileUtilities.getRunFromFileName(file);
+        metadata.put("runMin", run);
+        metadata.put("runMax", run);
+        /*
         RootFileReader rootReader = null;
         long eventCount = 0;
         int runMin = 0;
@@ -60,6 +64,7 @@ public class RootDstMetadataReader implements FileMetadataReader {
         metadata.put("runMin", runMin);
         metadata.put("runMax", runMax);
         metadata.put("size", size);
+        */
         return metadata;
     }
 }

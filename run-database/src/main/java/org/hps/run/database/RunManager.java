@@ -128,7 +128,7 @@ public final class RunManager implements ConditionsListener {
     void deleteRun() {        
         factory.getEpicsDataDao().deleteEpicsData(EpicsType.EPICS_2S, run);
         factory.getEpicsDataDao().deleteEpicsData(EpicsType.EPICS_20S, run);
-        factory.getScalerDataDao().deleteScalerData(run);        
+        factory.getScalerDataDao().deleteScalerData(run);
         factory.getSvtConfigDao().deleteSvtConfigs(run);
         factory.getTriggerConfigDao().deleteTriggerConfig(run);
         factory.getRunSummaryDao().deleteRunSummary(run);

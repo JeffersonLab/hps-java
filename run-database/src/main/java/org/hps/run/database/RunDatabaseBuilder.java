@@ -140,6 +140,11 @@ final class RunDatabaseBuilder {
      * Datacat site to use.
      */
     private String site;
+    
+    /**
+     * Default folder for file search.
+     */
+    private String folder;
         
     /**
      * Reload state for the current run number for testing.
@@ -186,13 +191,14 @@ final class RunDatabaseBuilder {
     private void createEvioFileList() {
         this.evioFiles = new ArrayList<File>();
         
-        for (DatasetModel dataset : this.evioDatasets) {
+        for (DatasetModel dataset : this.evioDatasets) {            
             String resource = 
                     ((DatasetWithViewModel) dataset).getViewInfo().getLocations().iterator().next().getResource();
             File file = new File(resource);
             if (file.getPath().startsWith("/mss")) {
                 file = new File("/cache" + resource);
             }
+            LOGGER.info("adding EVIO file " + file.getPath() + " from dataset " + dataset.getName());
             this.evioFiles.add(file);
         }
         EvioFileUtilities.sortBySequence(this.evioFiles);
@@ -203,26 +209,33 @@ final class RunDatabaseBuilder {
      */
     private void findEvioDatasets() {
         
-        LOGGER.info("finding EVIO datasets for run " + getRun());
-               
+        LOGGER.info("finding EVIO datasets for run " + getRun() + " in folder " + this.folder + " at site " + this.site);
+                
         DatasetResultSetModel results = datacatClient.searchForDatasets(
-                "/HPS/data/raw",  
-                "current",  
+                this.folder,
+                "current",
                 this.site,
-                "fileFormat eq 'EVIO' AND dataType eq 'RAW' AND runMin eq " + getRun(), 
-                null, 
-                null, 
-                null, 
+                "fileFormat eq 'EVIO' AND dataType eq 'RAW' AND runMin eq " + getRun(),
+                null,
+                null,
+                null,
                 null
                 );
         
         this.evioDatasets = results.getResults();
         
-        if (!this.evioDatasets.isEmpty()) {
+        if (this.evioDatasets.isEmpty()) {
             throw new RuntimeException("No EVIO datasets found in data catalog.");
         }
-        
-        this.evioFiles = new ArrayList<File>();        
+    }
+    
+    /**
+     * Get the folder for dataset search.
+     * 
+     * @return the folder for dataset search
+     */
+    String folder() {
+        return folder;
     }
    
     /**
@@ -426,9 +439,6 @@ final class RunDatabaseBuilder {
 
         // Set END timestamp.
         updateEndTimestamp();
-
-        // Calculate trigger rate.
-        updateTriggerRate();
                 
         // Run the full EVIO processing job.
         if (!this.skipEvioProcessing) {
@@ -437,6 +447,9 @@ final class RunDatabaseBuilder {
             LOGGER.info("EVIO file processing is skipped.");
         }
         
+        // Calculate trigger rate.
+        updateTriggerRate();
+       
         // Get extra info from the spreadsheet.
         if (this.spreadsheetFile != null) {
             updateFromSpreadsheet();
@@ -511,6 +524,14 @@ final class RunDatabaseBuilder {
     RunDatabaseBuilder setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
         LOGGER.config("dryRun = " + this.dryRun);
+        return this;
+    }
+    
+    /**
+     * Default folder for file search.
+     */
+    RunDatabaseBuilder setFolder(String folder) {
+        this.folder = folder;
         return this;
     }
     

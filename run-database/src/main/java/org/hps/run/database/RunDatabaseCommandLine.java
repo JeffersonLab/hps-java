@@ -39,6 +39,7 @@ public final class RunDatabaseCommandLine {
         OPTIONS.addOption("L", "load", false, "load back run information after inserting (for debugging)");
         OPTIONS.addOption("u", "url", true, "data catalog URL");
         OPTIONS.addOption("S", "site", true, "data catalog site (e.g. SLAC or JLAB)");
+        OPTIONS.addOption("f", "folder", true, "folder in datacat for dataset search");
     }
 
     /**
@@ -104,6 +105,11 @@ public final class RunDatabaseCommandLine {
      * Data catalog URL.
      */
     private String url = "http://hpsweb.jlab.org/datacat/r";  
+    
+    /**
+     * Default folder for file search.
+     */
+    private String folder = "/HPS/data/raw";
     
     /**
      * Parse command line options and return reference to <code>this</code> object.
@@ -186,6 +192,11 @@ public final class RunDatabaseCommandLine {
                 site = cl.getOptionValue("S");
             }
             
+            // Set folder for dataset search.
+            if (cl.hasOption("f")) {
+                folder = cl.getOptionValue("f");
+            }
+            
             // Initialize the data catalog client.
             try {
                 datacatClient = new ClientBuilder().setUrl(url).build();
@@ -206,6 +217,7 @@ public final class RunDatabaseCommandLine {
     private void run() {
         new RunDatabaseBuilder()
             .createRunSummary(run)
+            .setFolder(folder)
             .setDetectorName(detectorName)
             .setConnectionParameters(connectionParameters)
             .setDatacatClient(datacatClient)

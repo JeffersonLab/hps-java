@@ -8,6 +8,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Visitor which creates a list of files from walking a directory tree.
@@ -19,6 +20,8 @@ import java.util.List;
  */
 final class CrawlerFileVisitor extends SimpleFileVisitor<Path> {
 
+    private static Logger LOGGER = Logger.getLogger(CrawlerFileVisitor.class.getPackage().getName());
+    
     /**
      * The list of files found from crawling.
      */
@@ -75,6 +78,7 @@ final class CrawlerFileVisitor extends SimpleFileVisitor<Path> {
         final File file = path.toFile();
         if (this.accept(file)) {
             files.add(file);
+            LOGGER.info("accepted file " + file.getPath());
         }
         return FileVisitResult.CONTINUE;
     }

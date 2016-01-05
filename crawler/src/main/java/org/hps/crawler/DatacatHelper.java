@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.srs.datacat.client.Client;
 import org.srs.datacat.client.ClientBuilder;
@@ -24,6 +26,8 @@ import org.srs.datacat.shared.Provider;
  * @author Jeremy McCormick, SLAC
  */
 class DatacatHelper {
+    
+    private static final Logger LOGGER = Logger.getLogger(DatacatHelper.class.getPackage().getName());
     
     /*
      * Default base URL for datacat.
@@ -60,6 +64,7 @@ class DatacatHelper {
      * @return the metadata for the file
      */
     static Map<String, Object> createMetadata(final File file) {
+        LOGGER.fine("creating metadata for " + file.getPath());
         File actualFile = file;
         if (FileUtilities.isMssFile(file)) {
             actualFile = FileUtilities.getCachedFile(file);
@@ -184,6 +189,8 @@ class DatacatHelper {
             String dataType,
             String fileFormat) {
         
+        LOGGER.info("creating dataset for " + file.getPath());
+        
         Provider provider = new Provider();                                              
         Dataset.Builder datasetBuilder = provider.getDatasetBuilder();
         
@@ -240,8 +247,8 @@ class DatacatHelper {
             FileFormat fileFormat = DatacatHelper.getFileFormat(file);
             DatasetModel dataset = DatacatHelper.createDataset(
                     file,
-                    metadata, 
-                    folder, 
+                    metadata,
+                    folder,
                     site,
                     dataType.toString(),
                     fileFormat.toString());
@@ -265,7 +272,11 @@ class DatacatHelper {
             throw new RuntimeException("Bad datacat URL.", e);
         }
         for (DatasetModel dataset : datasets) {
-            client.createDataset(folder, dataset);
+            try {
+                client.createDataset(folder, dataset);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, e.getMessage(), e);
+            }
         }
     }
 }

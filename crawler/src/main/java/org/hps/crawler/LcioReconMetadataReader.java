@@ -45,10 +45,10 @@ public class LcioReconMetadataReader implements FileMetadataReader {
     @Override
     public Map<String, Object> getMetadata(File file) throws IOException {
         
-        Set<String> collectionNames = new HashSet<String>();
+        //Set<String> collectionNames = new HashSet<String>();
         String detectorName = null;
-        int eventCount = 0;
-        Integer run = null;
+        long eventCount = 0;
+        Long run = null;
         LCIOReader reader = null;                
         try {        
             reader = new LCIOReader(file);               
@@ -56,39 +56,42 @@ public class LcioReconMetadataReader implements FileMetadataReader {
             try {
                 while((eventHeader = reader.read()) != null) {
                     if (run == null) {
-                        run = eventHeader.getRunNumber();
+                        run = (long) eventHeader.getRunNumber();
                     }
                     if (detectorName == null) {
                         detectorName = eventHeader.getDetectorName();
                     }
-                    for (List<?> list : eventHeader.getLists()) {
-                        LCMetaData metadata = eventHeader.getMetaData(list);
-                        collectionNames.add(metadata.getName());
-                    }
+                    //for (List<?> list : eventHeader.getLists()) {
+                    //    LCMetaData metadata = eventHeader.getMetaData(list);
+                    //    collectionNames.add(metadata.getName());
+                    //}
                     eventCount++;
                 }
             } catch (EOFException e) {
-                e.printStackTrace();
             }
         } finally {
             if (reader != null) {
-                reader.close();
+                try {
+                    reader.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }    
         
         // Build collection names string.
-        StringBuffer sb = new StringBuffer();
-        for (String collectionName : collectionNames) {
-            sb.append(collectionName + ",");
-        }
-        sb.setLength(sb.length() - 1);
+        //StringBuffer sb = new StringBuffer();
+        //for (String collectionName : collectionNames) {
+        //    sb.append(collectionName + ",");
+        //}
+        //sb.setLength(sb.length() - 1);
         
         Map<String, Object> metadata = new HashMap<String, Object>();
         metadata.put("eventCount", eventCount);
         metadata.put("runMin", run);
         metadata.put("runMax", run);
         metadata.put("DETECTOR", detectorName);
-        metadata.put("COLLECTIONS", sb.toString());
+        //metadata.put("COLLECTIONS", sb.toString());
         
         return metadata;
     }

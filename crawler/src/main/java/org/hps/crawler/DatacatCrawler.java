@@ -10,7 +10,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -181,6 +180,11 @@ public final class DatacatCrawler {
                     }
                     LOGGER.config("adding format " + format.name());
                     this.config.addFileFormat(format);
+                }
+            } else {
+                for (FileFormat format : FileFormat.values()) {
+                    this.config.addFileFormat(format);
+                    LOGGER.config("adding default format " + format);
                 }
             }
             

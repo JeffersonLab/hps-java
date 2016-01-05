@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.Set;
 
-import org.hps.record.evio.EvioFileUtilities;
-
 /**
  * A filter which rejects files with run numbers not in a specified set.
  *
@@ -25,7 +23,7 @@ final class RunFilter implements FileFilter {
      */
     RunFilter(final Set<Integer> acceptRuns) {
         if (acceptRuns.isEmpty()) {
-            throw new IllegalArgumentException("the acceptRuns collection is empty");
+            throw new IllegalArgumentException("The acceptRuns collection is empty.");
         }
         this.acceptRuns = acceptRuns;
     }
@@ -39,9 +37,9 @@ final class RunFilter implements FileFilter {
     @Override
     public boolean accept(final File file) {
         try {
-            int run = EvioFileUtilities.getRunFromName(file);
+            int run = Integer.parseInt(file.getName().substring(5, 10));
             return this.acceptRuns.contains(run);
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             return false;
         }
     }

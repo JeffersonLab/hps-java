@@ -22,7 +22,7 @@ final class AidaMetadataReader implements FileMetadataReader {
     @Override
     public Map<String, Object> getMetadata(final File file) throws IOException {
         final Map<String, Object> metadata = new HashMap<String, Object>();
-        final int run = FileUtilities.getRunFromFileName(file);
+        final Long run = FileUtilities.getRunFromFileName(file);
         metadata.put("runMin", run);
         metadata.put("runMax", run);
         return metadata;

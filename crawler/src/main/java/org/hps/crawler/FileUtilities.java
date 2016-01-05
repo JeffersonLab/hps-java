@@ -20,9 +20,8 @@ public final class FileUtilities {
      * @param file the file
      * @return the run number
      */
-    static int getRunFromFileName(final File file) {
-        final String name = file.getName();
-        return Integer.parseInt(name.substring(4, 10));
+    static Long getRunFromFileName(final File file) {
+        return Long.parseLong(file.getName().substring(5, 10));
     }
     
     /**

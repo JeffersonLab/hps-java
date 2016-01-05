@@ -26,8 +26,6 @@ import org.jlab.coda.jevio.EvioReader;
 /**
  * Reads metadata from EVIO files, including the event count, run min and run max expected by the datacat, as well as
  * many custom field values applicable to HPS EVIO raw data.
- * <p>
- * The size of the data file is set externally to this reader using the datacat client.
  * 
  * @author Jeremy McCormick, SLAC
  */
@@ -56,8 +54,6 @@ final class EvioMetadataReader implements FileMetadataReader {
      */
     @Override
     public Map<String, Object> getMetadata(final File file) throws IOException {
-
-        LOGGER.info("creating metadata for " + file.getPath());
         
         long events = 0;
         int badEvents = 0;
@@ -114,7 +110,7 @@ final class EvioMetadataReader implements FileMetadataReader {
 
                     // End of file.
                     if (evioEvent == null) {
-                        LOGGER.info("EOF after " + events + " events");
+                        LOGGER.fine("EOF after " + events + " events");
                         break fileLoop;
                     }
                     
@@ -140,7 +136,7 @@ final class EvioMetadataReader implements FileMetadataReader {
                                 // First header timestamp.
                                 if (firstHeadTimestamp == null) {
                                     firstHeadTimestamp = thisTimestamp;
-                                    LOGGER.info("first head timestamp " + firstHeadTimestamp + " from event "
+                                    LOGGER.finer("first head timestamp " + firstHeadTimestamp + " from event "
                                             + evioEvent.getEventNumber());
                                 }
 
@@ -152,7 +148,7 @@ final class EvioMetadataReader implements FileMetadataReader {
                             if (run == null) {
                                 if (headBankData[1] != 0) {
                                     run = (long) headBankData[1];
-                                    LOGGER.info("run " + run + " from event " + evioEvent.getEventNumber());
+                                    LOGGER.finer("run " + run + " from event " + evioEvent.getEventNumber());
                                 }
                             }
                         }
@@ -189,7 +185,7 @@ final class EvioMetadataReader implements FileMetadataReader {
                             // Set the first physics event.
                             if (firstPhysicsEvent == null) {
                                 firstPhysicsEvent = eventIdData[0];
-                                LOGGER.info("set first physics event " + firstPhysicsEvent);
+                                LOGGER.finer("set first physics event " + firstPhysicsEvent);
                             }
                         }
                     }
