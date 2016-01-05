@@ -169,7 +169,7 @@ public class GBLOutput {
         if (isMC) {
             
             // find the truth particle for this track
-            mcp = getMatchedTruthParticle(trk);
+            mcp = TrackUtils.getMatchedTruthParticle(trk);
 
             // check if this is an A' event
             for(MCParticle part : mcParticles) {
@@ -222,8 +222,8 @@ public class GBLOutput {
         // Use the truth helix as the initial track for GBL?
         //htf = htfTruth;
         // Get perigee parameters to curvilinear frame
-        PerigeeParams perPar = new PerigeeParams(htf, bFieldVector.z());
-        PerigeeParams perParTruth = new PerigeeParams(htfTruth, bFieldVector.z());
+        GblUtils.PerigeeParams perPar = new GblUtils.PerigeeParams(htf, bFieldVector.z());
+        GblUtils.PerigeeParams perParTruth = new GblUtils.PerigeeParams(htfTruth, bFieldVector.z());
 
         //GBLDATA
         gtd.setPerigeeTrackParameters(perPar);
@@ -234,8 +234,8 @@ public class GBLOutput {
 
         // Get curvilinear parameters
         if (textFile != null) {
-            ClParams clPar = new ClParams(htf, bFieldVector.z());
-            ClParams clParTruth = new ClParams(htfTruth, bFieldVector.z());
+            GblUtils.ClParams clPar = new GblUtils.ClParams(htf, bFieldVector.z());
+            GblUtils.ClParams clParTruth = new GblUtils.ClParams(htfTruth, bFieldVector.z());
             textFile.printClTrackParam(clPar);
             textFile.printClTrackParamTruth(clParTruth);
 
@@ -246,7 +246,7 @@ public class GBLOutput {
         }
 
         // find the projection from the I,J,K to U,V,T curvilinear coordinates
-        Hep3Matrix perToClPrj = getPerToClPrj(htf);
+        Hep3Matrix perToClPrj = GblUtils.getPerToClPrj(htf);
 
         //GBLDATA
         for (int row = 0; row < perToClPrj.getNRows(); ++row) {
@@ -780,171 +780,10 @@ public class GBLOutput {
         }
     }
 
-    MCParticle getMatchedTruthParticle(Track track) {
-        boolean debug = false;
+    
+    
 
-        Map<MCParticle, Integer> particlesOnTrack = new HashMap<MCParticle, Integer>();
-
-        if (debug) {
-            System.out.printf("getmatched mc particle from %d tracker hits on the track \n", track.getTrackerHits().size());
-        }
-
-        for (TrackerHit hit : track.getTrackerHits()) {
-            List<MCParticle> mcps = ((HelicalTrackHit) hit).getMCParticles();
-            if (mcps == null) {
-                System.out.printf("%s: warning, this hit (layer %d pos=%s) has no mc particles.\n", this.getClass().getSimpleName(), ((HelicalTrackHit) hit).Layer(), ((HelicalTrackHit) hit).getCorrectedPosition().toString());
-            } else {
-                if (debug) {
-                    System.out.printf("%s: this hit (layer %d pos=%s) has %d mc particles.\n", this.getClass().getSimpleName(), ((HelicalTrackHit) hit).Layer(), ((HelicalTrackHit) hit).getCorrectedPosition().toString(), mcps.size());
-                }
-                for (MCParticle mcp : mcps) {
-                    if (!particlesOnTrack.containsKey(mcp)) {
-                        particlesOnTrack.put(mcp, 0);
-                    }
-                    int c = particlesOnTrack.get(mcp);
-                    particlesOnTrack.put(mcp, c + 1);
-                }
-            }
-        }
-        if (debug) {
-            System.out.printf("Track p=[ %f, %f, %f] \n", track.getTrackStates().get(0).getMomentum()[0], track.getTrackStates().get(0).getMomentum()[1], track.getTrackStates().get(0).getMomentum()[1]);
-            System.out.printf("FOund %d particles\n", particlesOnTrack.size());
-            for (Map.Entry<MCParticle, Integer> entry : particlesOnTrack.entrySet()) {
-                System.out.printf("%d hits assigned to %d p=%s \n", entry.getValue(), entry.getKey().getPDGID(), entry.getKey().getMomentum().toString());
-            }
-        }
-        Map.Entry<MCParticle, Integer> maxEntry = null;
-        for (Map.Entry<MCParticle, Integer> entry : particlesOnTrack.entrySet()) {
-            if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
-                maxEntry = entry; //if ( maxEntry != null ) {
-            }        //    if(entry.getValue().compareTo(maxEntry.getValue()) < 0) continue;
-        }        //}
-        //maxEntry = entry;
-        if (debug) {
-            if (maxEntry != null) {
-                System.out.printf("Matched particle with pdgId=%d and mom %s to track with charge %d and momentum [%f %f %f]\n",
-                        maxEntry.getKey().getPDGID(), maxEntry.getKey().getMomentum().toString(),
-                        track.getCharge(), track.getTrackStates().get(0).getMomentum()[0], track.getTrackStates().get(0).getMomentum()[1], track.getTrackStates().get(0).getMomentum()[2]);
-            } else {
-                System.out.printf("No truth particle found on this track\n");
-            }
-        }
-        return maxEntry == null ? null : maxEntry.getKey();
-    }
-
-//    private BasicMatrix getJacPerToCl(HelicalTrackFit htf) {
-//        System.out.printf("%s: getJacPerToCl\n", this.getClass().getSimpleName());
-//        //use propoerly normalized B-field
-//        Hep3Vector Bnorm = VecOp.mult(Constants.fieldConversion, _B);
-//        //init jacobian to zero
-//        BasicMatrix j = new BasicMatrix(5, 5);
-//        initZero(j);
-//        double lambda = Math.atan(htf.slope());
-//        double q = Math.signum(htf.R());
-//        double theta = Math.PI / 2.0 - lambda;
-//        Hep3Vector T = HelixUtils.Direction(htf, 0.);
-//        Hep3Vector p = VecOp.mult(htf.p(Math.abs(_B.z())), T);
-//        double pT = htf.pT(Math.abs(_B.z()));
-//        Hep3Vector H = VecOp.mult(1. / (Bnorm.magnitude()), Bnorm);
-//        Hep3Vector Z = new BasicHep3Vector(0, 0, 1);
-//        Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
-//        Hep3Vector U = VecOp.mult(-1, J);
-//        Hep3Vector V = VecOp.cross(T, U);
-//        double alpha = VecOp.cross(H, T).magnitude();
-//        Hep3Vector N = VecOp.mult(1. / alpha, VecOp.cross(H, T));
-//        Hep3Vector K = Z;
-//        double Q = -Bnorm.magnitude() * q / p.magnitude();
-//        double kappa = -1.0 * q * Bnorm.z() / pT;
-//
-//        if (this._debug != 0) {
-//            System.out.printf("%s: Bnorm=%s mag(Bnorm)=%f\n", this.getClass().getSimpleName(), Bnorm.toString(), Bnorm.magnitude());
-//            System.out.printf("%s: p=%s |p|=%f pT=%f\n", this.getClass().getSimpleName(), p.toString(), p.magnitude(), pT);
-//            System.out.printf("%s: q=%f\n", this.getClass().getSimpleName(), q);
-//            System.out.printf("%s: q/p=%f\n", this.getClass().getSimpleName(), q / p.magnitude());
-//            System.out.printf("%s: T=%s\n", this.getClass().getSimpleName(), T.toString());
-//            System.out.printf("%s: H=%s\n", this.getClass().getSimpleName(), H.toString());
-//            System.out.printf("%s: kappa=%f\n", this.getClass().getSimpleName(), kappa);
-//            System.out.printf("%s: alpha=%f Q=%f \n", this.getClass().getSimpleName(), alpha, Q);
-//            System.out.printf("%s: J=%s \n", this.getClass().getSimpleName(), J.toString());
-//            System.out.printf("%s: V=%s \n", this.getClass().getSimpleName(), V.toString());
-//            System.out.printf("%s: N=%s \n", this.getClass().getSimpleName(), N.toString());
-//            System.out.printf("%s: TdotJ=%f \n", this.getClass().getSimpleName(), VecOp.dot(T, J));
-//            System.out.printf("%s: VdotN=%f \n", this.getClass().getSimpleName(), VecOp.dot(V, N));
-//            System.out.printf("%s: TdotK=%f \n", this.getClass().getSimpleName(), VecOp.dot(T, K));
-//            System.out.printf("%s: UdotN=%f \n", this.getClass().getSimpleName(), VecOp.dot(U, N));
-//        }
-//
-//        j.setElement(0, 0, -1.0 * Math.sin(theta) / Bnorm.z());
-//
-//        j.setElement(0, 1, q / (p.magnitude() * Math.tan(theta)));
-//
-//        j.setElement(1, 1, -1);
-//
-//        j.setElement(1, 3, -alpha * Q * VecOp.dot(T, J) * VecOp.dot(V, N));
-//
-//        j.setElement(1, 4, -alpha * Q * VecOp.dot(T, K) * VecOp.dot(V, N));
-//
-//        j.setElement(2, 2, 1);
-//
-//        j.setElement(2, 3, -alpha * Q * VecOp.dot(T, J) * VecOp.dot(U, N) / Math.cos(lambda));
-//
-//        j.setElement(2, 4, -alpha * Q * VecOp.dot(T, K) * VecOp.dot(U, N) / Math.cos(lambda));
-//
-//        j.setElement(3, 3, -1);
-//
-//        j.setElement(4, 4, VecOp.dot(V, K));
-//
-//        if (_debug > 0) {
-//            System.out.printf("%s: lambda= J(1,1)=%f  * theta + J(1,3)=%f * eps + J(1,4)=%f * z0 \n",
-//                    this.getClass().getSimpleName(),
-//                    j.e(1, 1), j.e(1, 3), j.e(1, 4));
-//
-//        }
-//
-//        return j;
-//
-//    }
-    /**
-     * Transform MCParticle into a Helix object. Note that it produces the helix
-     * parameters at nominal x=0 and assumes that there is no field at x<0
-     *
-     * @param mcp MC particle to be transformed
-     * @return helix object based on the MC particle
-     */
-//    private HelicalTrackFit getHTF(MCParticle mcp) {
-//        Hep3Vector org = this._hpstrans.transformVectorToTracking(mcp.getOrigin());
-//        Hep3Vector p = this._hpstrans.transformVectorToTracking(mcp.getMomentum());
-//        // Move to x=0 if needed
-//        if(org.x() < 0.) { 
-//        	double dydx = p.y()/p.x();
-//        	double dzdx = p.z()/p.x();
-//        	double delta_x = -1. * org.x(); 
-//        	double y = delta_x * dydx;
-//        	double z = delta_x * dzdx;
-//        	double x = org.x() + delta_x;
-//        	if( Math.abs(x) > 1e-8) throw new RuntimeException("Error: origin is not zero!");
-//        	Hep3Vector old = org;
-//        	org = new BasicHep3Vector(x,y,z);
-//        	System.out.printf("org %s p %s -> org %s\n", old.toString(),p.toString(),org.toString());
-//        } else {
-//        	org = this._hpstrans.transformVectorToTracking(mcp.getOrigin());
-//        }
-//        
-//        
-//        
-//        HelixParamCalculator helixParamCalculator = new HelixParamCalculator(p, org, -1*((int)mcp.getCharge()), -1.0*this._B.z());
-//        double par[] = new double[5];
-//        par[HelicalTrackFit.dcaIndex] = helixParamCalculator.getDCA();
-//        par[HelicalTrackFit.slopeIndex] = helixParamCalculator.getSlopeSZPlane();
-//        par[HelicalTrackFit.phi0Index] = helixParamCalculator.getPhi0();
-//        par[HelicalTrackFit.curvatureIndex] = 1.0/helixParamCalculator.getRadius();
-//        par[HelicalTrackFit.z0Index] = helixParamCalculator.getZ0();
-//        SymmetricMatrix cov = new SymmetricMatrix(5);
-//        for(int i=0;i<cov.getNRows();++i) cov.setElement(i, i, 1.);
-//        HelicalTrackFit htf = new HelicalTrackFit(par, cov, new double[2], new int[2], null, null);
-//        return htf;
-//    }
-    private double truthTrackFitChi2(PerigeeParams perPar, PerigeeParams perParTruth, SymmetricMatrix covariance) {
+    private double truthTrackFitChi2(GblUtils.PerigeeParams perPar, GblUtils.PerigeeParams perParTruth, SymmetricMatrix covariance) {
         //re-shuffle the param vector to match the covariance order of parameters
         BasicMatrix p = new BasicMatrix(1, 5);
         p.setElement(0, 0, perPar.getD0());
@@ -1005,190 +844,6 @@ public class GBLOutput {
         return Math.sqrt(Math.pow(E1 + E2, 2) - VecOp.add(p1vec, p2vec).magnitudeSquared());
     }
 
-    private static BasicMatrix getPerParVector(double kappa, double theta, double phi, double d0, double z0) {
-        BasicMatrix perPar = new BasicMatrix(1, 5);
-        perPar.setElement(0, 0, kappa);
-        perPar.setElement(0, 1, theta);
-        perPar.setElement(0, 2, phi);
-        perPar.setElement(0, 3, d0);
-        perPar.setElement(0, 4, z0);
-        return perPar;
-    }
-
-    private static BasicMatrix getPerParVector(HelicalTrackFit htf, double B) {
-        if (htf != null) {
-            double kappa = -1.0 * Math.signum(B) / htf.R();
-            double theta = Math.PI / 2.0 - Math.atan(htf.slope());
-            return getPerParVector(kappa, theta, htf.phi0(), htf.dca(), htf.z0());
-        }
-        return new BasicMatrix(1, 5);
-    }
-
-    /**
-     * 
-     * Store perigee track parameters. 
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
-     */
-    public static class PerigeeParams {
-
-        private final BasicMatrix _params;
-
-        public PerigeeParams(HelicalTrackFit htf, double B) {
-            _params = getPerParVector(htf, B);
-        }
-
-        public PerigeeParams(double kappa, double theta, double phi, double d0, double z0) {
-            this._params = getPerParVector(kappa, theta, phi, d0, z0);
-        }
-
-        public BasicMatrix getParams() {
-            return _params;
-        }
-
-        public double getKappa() {
-            return _params.e(0, 0);
-        }
-
-        public double getTheta() {
-            return _params.e(0, 1);
-        }
-
-        public double getPhi() {
-            return _params.e(0, 2);
-        }
-
-        public double getD0() {
-            return _params.e(0, 3);
-        }
-
-        public double getZ0() {
-            return _params.e(0, 4);
-        }
-    }
-
-    /**
-     * Computes the projection matrix from the perigee XY plane variables dca
-     * and z0 into the curvilinear xT,yT,zT frame (U,V,T)
-     *
-     * @param htf input helix to find the track direction
-     * @return 3x3 projection matrix
-     */
-    static Hep3Matrix getPerToClPrj(HelicalTrackFit htf) {
-        Hep3Vector Z = new BasicHep3Vector(0, 0, 1);
-        Hep3Vector T = HelixUtils.Direction(htf, 0.);
-        Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
-        Hep3Vector K = Z;
-        Hep3Vector U = VecOp.mult(-1, J);
-        Hep3Vector V = VecOp.cross(T, U);
-        Hep3Vector I = VecOp.cross(J, K);
-
-        BasicHep3Matrix trans = new BasicHep3Matrix();
-        trans.setElement(0, 0, VecOp.dot(I, U));
-        trans.setElement(0, 1, VecOp.dot(J, U));
-        trans.setElement(0, 2, VecOp.dot(K, U));
-        trans.setElement(1, 0, VecOp.dot(I, V));
-        trans.setElement(1, 1, VecOp.dot(J, V));
-        trans.setElement(1, 2, VecOp.dot(K, V));
-        trans.setElement(2, 0, VecOp.dot(I, T));
-        trans.setElement(2, 1, VecOp.dot(J, T));
-        trans.setElement(2, 2, VecOp.dot(K, T));
-        return trans;
-
-        /*
-         Hep3Vector B = new BasicHep3Vector(0, 0, 1); // TODO sign convention?
-         Hep3Vector H = VecOp.mult(1 / bfield, B);
-         Hep3Vector T = HelixUtils.Direction(helix, 0.);
-         Hep3Vector HcrossT = VecOp.cross(H, T);
-         double alpha = HcrossT.magnitude(); // this should be Bvec cross TrackDir/|B|
-         double Q = Math.abs(bfield) * q / p;
-         Hep3Vector Z = new BasicHep3Vector(0, 0, 1);
-         Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
-         Hep3Vector K = Z;
-         Hep3Vector U = VecOp.mult(-1, J);
-         Hep3Vector V = VecOp.cross(T, U);
-         Hep3Vector I = VecOp.cross(J, K);
-         Hep3Vector N = VecOp.mult(1 / alpha, VecOp.cross(H, T)); //-cross(T,H)/alpha = -cross(T,Z) = -J
-         double UdotI = VecOp.dot(U, I); // 0,0
-         double NdotV = VecOp.dot(N, V); // 1,1?
-         double NdotU = VecOp.dot(N, U); // 0,1?
-         double TdotI = VecOp.dot(T, I); // 2,0
-         double VdotI = VecOp.dot(V, I); // 1,0
-         double VdotK = VecOp.dot(V, K); // 1,2
-         */
-    }
-
-    
-    /**
-     * 
-     * Store curvilinear track parameters. 
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
-     */
-    public static class ClParams {
-
-        private BasicMatrix _params = new BasicMatrix(1, 5);
-
-        public ClParams(HelicalTrackFit htf, double B) {
-
-            if (htf == null) {
-                return;
-            }
-
-            Hep3Matrix perToClPrj = getPerToClPrj(htf);
-
-            double d0 = -1 * htf.dca(); //sign convention for curvilinear frame
-            double z0 = htf.z0();
-            Hep3Vector vecPer = new BasicHep3Vector(0., d0, z0);
-            //System.out.printf("%s: vecPer=%s\n",this.getClass().getSimpleName(),vecPer.toString());
-
-            Hep3Vector vecCl = VecOp.mult(perToClPrj, vecPer);
-            //System.out.printf("%s: vecCl=%s\n",this.getClass().getSimpleName(),vecCl.toString());
-            double xT = vecCl.x();
-            double yT = vecCl.y();
-            //double zT = vecCl.z();
-
-            double lambda = Math.atan(htf.slope());
-            double q = Math.signum(htf.R());
-            double qOverP = q / htf.p(Math.abs(B));
-            double phi = htf.phi0();
-
-            _params.setElement(0, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(), qOverP);
-            _params.setElement(0, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), lambda);
-            _params.setElement(0, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), phi);
-            _params.setElement(0, FittedGblTrajectory.GBLPARIDX.XT.getValue(), xT);
-            _params.setElement(0, FittedGblTrajectory.GBLPARIDX.YT.getValue(), yT);
-        }
-
-        public BasicMatrix getParams() {
-            return _params;
-        }
-
-        double getQoverP() {
-            return _params.e(0, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue());
-        }
-
-        double getLambda() {
-            return _params.e(0, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
-        }
-
-        double getPhi() {
-            return _params.e(0, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());
-        }
-
-        double getXt() {
-            return _params.e(0, FittedGblTrajectory.GBLPARIDX.XT.getValue());
-        }
-
-        double getYt() {
-            return _params.e(0, FittedGblTrajectory.GBLPARIDX.YT.getValue());
-        }
-
-    }
-    
-    
     /**
      * 
      * {@link HelicalTrackStripGbl} that explicitly uses the given unit vectors when accessed. 

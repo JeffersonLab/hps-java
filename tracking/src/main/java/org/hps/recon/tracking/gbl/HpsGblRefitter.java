@@ -14,10 +14,12 @@ import java.util.Map;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.math3.util.Pair;
 
+import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.TrackUtils;
+
 import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
+
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
@@ -52,6 +54,8 @@ public class HpsGblRefitter extends Driver {
     private final String track2GblTrackRelationName = "TrackToGBLTrack";
     private final String gblTrack2StripRelationName = "GBLTrackToStripData";
     private final String outputTrackCollectionName = "GBLTracks";
+    private final String trackRelationCollectionName = "MatchedToGBLTrackRelations";
+
 
     private MilleBinary mille;
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
@@ -184,6 +188,8 @@ public class HpsGblRefitter extends Driver {
         LOGGER.info(trackFits.size() + " fitted GBL tracks before adding to event");
 
         List<Track> newTracks = new ArrayList<Track>();
+        
+        List<LCRelation> trackRelations = new ArrayList<LCRelation>();
 
         List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
 
@@ -201,6 +207,10 @@ public class HpsGblRefitter extends Driver {
 
             //  Add the track to the list of tracks
             newTracks.add(trk.getFirst());
+
+            // Create relation from seed to GBL track
+            trackRelations.add(new BaseLCRelation(fittedTraj.get_seed(), trk.getFirst()));
+            
             kinkDataCollection.add(trk.getSecond());
             kinkDataRelations.add(new BaseLCRelation(trk.getSecond(), trk.getFirst()));
         }
@@ -210,6 +220,7 @@ public class HpsGblRefitter extends Driver {
         // Put the tracks back into the event and exit
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputTrackCollectionName, newTracks, Track.class, flag);
+        event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
         event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
         event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
 
@@ -222,12 +233,15 @@ public class HpsGblRefitter extends Driver {
     public static FittedGblTrajectory fit(List<GBLStripClusterData> hits, double bfac, boolean debug) {
         // path length along trajectory
         double s = 0.;
+        int iLabel;
+
 
         // jacobian to transport errors between points along the path
         Matrix jacPointToPoint = new Matrix(5, 5);
         jacPointToPoint.UnitMatrix();
         // Vector of the strip clusters used for the GBL fit
         List<GblPoint> listOfPoints = new ArrayList<GblPoint>();
+        Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
 
         // Store the projection from local to measurement frame for each strip cluster
         Map< Integer, Matrix> proL2m_list = new HashMap<Integer, Matrix>();
@@ -236,6 +250,10 @@ public class HpsGblRefitter extends Driver {
         //start trajectory at refence point (s=0) - this point has no measurement
         GblPoint ref_point = new GblPoint(jacPointToPoint);
         listOfPoints.add(ref_point);
+        
+        // save path length to each point
+        iLabel = listOfPoints.size();
+        pathLengthMap.put(iLabel, s);
 
         // Loop over strips
         int n_strips = hits.size();
@@ -405,7 +423,10 @@ public class HpsGblRefitter extends Driver {
 
             // Add this GBL point to list that will be used in fit
             listOfPoints.add(point);
-            int iLabel = listOfPoints.size();
+            iLabel = listOfPoints.size();
+
+            // save path length to each point
+            pathLengthMap.put(iLabel, s);
 
             // Update MS covariance matrix 
             msCov.set(1, 1, msCov.get(1, 1) + scatErr.get(0) * scatErr.get(0));
@@ -493,8 +514,10 @@ public class HpsGblRefitter extends Driver {
 
         LOGGER.fine("locPar " + aCorrection.toString());
 
-//
-        return new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
+        FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
+        fittedTraj.setPathLengthMap(pathLengthMap);
+        
+        return fittedTraj;
     }
 
     @Override

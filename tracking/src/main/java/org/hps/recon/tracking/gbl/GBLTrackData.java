@@ -3,7 +3,7 @@ package org.hps.recon.tracking.gbl;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Matrix;
 
-import org.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
+import org.hps.recon.tracking.gbl.GblUtils.PerigeeParams;
 import org.lcsim.event.GenericObject;
 
 /**
@@ -77,7 +77,7 @@ public class GBLTrackData implements GenericObject {
     /**
      * @param perPar is the perigee parameters that is added to object
      */
-    public void setPerigeeTrackParameters(PerigeeParams perPar) {
+    public void setPerigeeTrackParameters(GblUtils.PerigeeParams perPar) {
         this.bank_double[GBLDOUBLE.PERKAPPA] = perPar.getKappa();
         this.bank_double[GBLDOUBLE.PERTHETA] = perPar.getTheta();
         this.bank_double[GBLDOUBLE.PERPHI] = perPar.getPhi();
@@ -85,8 +85,8 @@ public class GBLTrackData implements GenericObject {
         this.bank_double[GBLDOUBLE.PERZ0] = perPar.getZ0();
     }
 
-    public PerigeeParams getPerigeeTrackParameters() {
-        return new PerigeeParams(this.bank_double[GBLDOUBLE.PERKAPPA],
+    public GblUtils.PerigeeParams getPerigeeTrackParameters() {
+        return new GblUtils.PerigeeParams(this.bank_double[GBLDOUBLE.PERKAPPA],
                 this.bank_double[GBLDOUBLE.PERTHETA],
                 this.bank_double[GBLDOUBLE.PERPHI],
                 this.bank_double[GBLDOUBLE.PERD0],

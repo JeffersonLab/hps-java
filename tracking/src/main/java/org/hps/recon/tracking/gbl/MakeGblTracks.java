@@ -5,19 +5,19 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
-import static org.hps.recon.tracking.gbl.GBLOutput.getPerToClPrj;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
@@ -73,7 +73,7 @@ public class MakeGblTracks {
         }
 
         // Set state at vertex
-        Pair<double[], SymmetricMatrix> correctedHelixParams = getGblCorrectedHelixParameters(helix, fittedTraj.get_traj(), bfield, FittedGblTrajectory.GBLPOINT.IP);
+        Pair<double[], SymmetricMatrix> correctedHelixParams = getGblCorrectedHelixParameters(helix, fittedTraj, bfield, FittedGblTrajectory.GBLPOINT.IP);
         trk.setTrackParameters(correctedHelixParams.getFirst(), bfield);// hack to set the track charge
         trk.getTrackStates().clear();
 
@@ -81,7 +81,7 @@ public class MakeGblTracks {
         trk.getTrackStates().add(stateVertex);
 
         // Set state at last point
-        Pair<double[], SymmetricMatrix> correctedHelixParamsLast = getGblCorrectedHelixParameters(helix, fittedTraj.get_traj(), bfield, FittedGblTrajectory.GBLPOINT.LAST);
+        Pair<double[], SymmetricMatrix> correctedHelixParamsLast = getGblCorrectedHelixParameters(helix, fittedTraj, bfield, FittedGblTrajectory.GBLPOINT.LAST);
         TrackState stateLast = new BaseTrackState(correctedHelixParamsLast.getFirst(), ref, correctedHelixParamsLast.getSecond().asPackedArray(true), TrackState.AtLastHit, bfield);
         trk.getTrackStates().add(stateLast);
 
@@ -109,49 +109,87 @@ public class MakeGblTracks {
      * Compute the updated helix parameters and covariance matrix at a given
      * point along the trajectory.
      *
-     * @param helix - original seed track
-     * @param traj - fitted GBL trajectory
-     * @param point - the point along the track where the result is computed.
+     * @param htf - original seed track
+     * @param fittedGblTraj - fitted GBL trajectory
+     * @param point - the GBL point along the track where the result is computed.
      * @return corrected parameters.
      */
-    public static Pair<double[], SymmetricMatrix> getGblCorrectedHelixParameters(HelicalTrackFit helix, GblTrajectory traj, double bfield, FittedGblTrajectory.GBLPOINT point) {
+    public static Pair<double[], SymmetricMatrix> getGblCorrectedHelixParameters(HelicalTrackFit htf, FittedGblTrajectory fittedGblTraj, double bfield, FittedGblTrajectory.GBLPOINT point) {
+        
+        LOGGER.info("Get corrected parameters at GblPoint: " + point.toString() + "( " + point.name() + ")");
 
-        // get seed helix parameters
-        double qOverP = helix.curvature() / (Constants.fieldConversion * Math.abs(bfield) * Math.sqrt(1 + Math.pow(helix.slope(), 2)));
-        double d0 = -1.0 * helix.dca(); // correct for different sign convention of d0 in perigee frame
-        double z0 = helix.z0();
-        double phi0 = helix.phi0();
-        double lambda = Math.atan(helix.slope());
-
-        LOGGER.info("GblPoint: " + point.toString() + "( " + point.name() + ")");
-        LOGGER.info(String.format("original helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f", helix.dca(), helix.z0(), helix.curvature(), helix.slope(), helix.phi0(), helix.p(Math.abs(bfield))));
-        LOGGER.info("original helix covariance:\n" + helix.covariance());
-
-        // get corrections from GBL fit
+        // Get corrections from GBL fit
         Vector locPar = new Vector(5);
         SymMatrix locCov = new SymMatrix(5);
-        int pointIndex;
-        if (point.compareTo(FittedGblTrajectory.GBLPOINT.IP) == 0) {
-            pointIndex = 1;
-        } else if (point.compareTo(FittedGblTrajectory.GBLPOINT.LAST) == 0) {
-            pointIndex = traj.getNumPoints();
-        } else {
-            throw new RuntimeException("This GBLPOINT " + point.toString() + "( " + point.name() + ") is not valid");
+
+        // Extract the corrections to the track parameters and the covariance matrix from the GBL trajectory
+        fittedGblTraj.getResults(point, locPar, locCov); 
+
+        // Use the super class to keep track of reference point of the helix
+        HpsHelicalTrackFit helicalTrackFit = new HpsHelicalTrackFit(htf);
+        double[] refIP = helicalTrackFit.getRefPoint();
+
+        // Calculate new reference point for this point
+        // This is the intersection of the helix with the plane
+        // The trajectory has this information already in the form of a map between GBL point and path length
+        double pathLength = fittedGblTraj.getPathLength(point);
+        Hep3Vector refPointVec = HelixUtils.PointOnHelix(helicalTrackFit, pathLength);
+        double[] refPoint = new double[]{refPointVec.x(), refPointVec.y()};
+        
+        LOGGER.info("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
+        
+        // Propagate the helix to new reference point
+        double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
+        
+        // Create a new helix with the new parameters and the new reference point
+        HpsHelicalTrackFit helicalTrackFitAtPoint = new HpsHelicalTrackFit(helixParametersAtPoint, helicalTrackFit.covariance(), 
+                                                        helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), 
+                                                        helicalTrackFit.ScatterMap(), refPoint);
+                
+        // find the corrected perigee track parameters at this point
+        double[] helixParametersAtPointCorrected = GblUtils.getCorrectedPerigeeParameters(locPar, helicalTrackFitAtPoint, bfield);
+        
+        // create a new helix
+        HpsHelicalTrackFit helicalTrackFitAtPointCorrected = new HpsHelicalTrackFit(helixParametersAtPointCorrected, helicalTrackFit.covariance(), 
+                helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), 
+                helicalTrackFit.ScatterMap(), refPoint);
+        
+        // change reference point back to the original one
+        double[] helixParametersAtIPCorrected = TrackUtils.getParametersAtNewRefPoint(refIP, helicalTrackFitAtPointCorrected);
+        
+        // create a new helix for the new parameters at the IP reference point
+        HpsHelicalTrackFit helicalTrackFitAtIPCorrected = new HpsHelicalTrackFit(helixParametersAtIPCorrected, helicalTrackFit.covariance(), 
+                helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), 
+                helicalTrackFit.ScatterMap(), refIP);
+        
+        
+        // Calculate the updated covariance
+        Matrix jacobian = GblUtils.getCLToPerigeeJacobian(helicalTrackFit, helicalTrackFitAtIPCorrected, bfield);
+        Matrix helixCovariance = jacobian.times(locCov.times(jacobian.transpose()));
+        SymmetricMatrix cov = new SymmetricMatrix(5);
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (i >= j) {
+                    cov.setElement(i, j, helixCovariance.get(i, j));
+                }
+            }
         }
-
-        traj.getResults(pointIndex, locPar, locCov); // vertex point
-//        locCov.print(10, 8);
-        double qOverPCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.QOVERP.getValue());
-        double xTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());
-        double yTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
-        double xTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XT.getValue());
-        double yTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YT.getValue());
-//        System.out.println((helix.slope() > 0 ? "top: " : "bot ") + "qOverPCorr " + qOverPCorr + " xtPrimeCorr " + xTPrimeCorr + " yTPrimeCorr " + yTPrimeCorr + " xTCorr " + xTCorr + " yTCorr " + yTCorr);
-        LOGGER.info((helix.slope() > 0 ? "top: " : "bot ") + "qOverPCorr " + qOverPCorr + " xtPrimeCorr " + xTPrimeCorr + " yTPrimeCorr " + yTPrimeCorr + " xTCorr " + xTCorr + " yTCorr " + yTCorr);
-
+        LOGGER.info("corrected helix covariance:\n" + cov);
+        
+        double parameters_gbl[] = helicalTrackFitAtIPCorrected.parameters();
+        
+        /*
+        
+        // Get seed helix parameters
+        double qOverP = helicalTrackFit.curvature() / (Constants.fieldConversion * Math.abs(bfield) * Math.sqrt(1 + Math.pow(helicalTrackFit.slope(), 2)));
+        double d0 = -1.0 * helicalTrackFit.dca(); // correct for different sign convention of d0 in perigee frame
+        double z0 = helicalTrackFit.z0();
+        double phi0 = helicalTrackFit.phi0();
+        double lambda = Math.atan(helicalTrackFit.slope());
+        
         // calculate new d0 and z0
 //        Hep3Matrix perToClPrj = traj.get_track_data().getPrjPerToCl();
-        Hep3Matrix perToClPrj = getPerToClPrj(helix);
+        Hep3Matrix perToClPrj = getPerToClPrj(helicalTrackFit);
 
         Hep3Matrix clToPerPrj = VecOp.inverse(perToClPrj);
         Hep3Vector corrPer = VecOp.mult(clToPerPrj, new BasicHep3Vector(xTCorr, yTCorr, 0.0));
@@ -180,81 +218,32 @@ public class MakeGblTracks {
         LOGGER.info("qOverP=" + qOverP + " qOverPCorr=" + qOverPCorr + " qOverP_gbl=" + qOverP_gbl + " ==> pGbl=" + 1.0 / qOverP_gbl + " C_gbl=" + C_gbl);
 
         LOGGER.info(String.format("corrected helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f", dca_gbl, z0_gbl, C_gbl, slope_gbl, phi0_gbl, Math.abs(1 / qOverP_gbl)));
-
-        /*
-         // Strandlie, Wittek, NIMA 566, 2006
-         Matrix covariance_gbl = new Matrix(5, 5);
-         //helpers
-         double Bz = -Constants.fieldConversion * Math.abs(bfield); // TODO sign convention and should it be it scaled from Telsa?
-         double p = Math.abs(1 / qOverP_gbl);
-         double q = Math.signum(qOverP_gbl);
-         double tanLambda = Math.tan(lambda_gbl);
-         double cosLambda = Math.cos(lambda_gbl);
-         //        Hep3Vector B = new BasicHep3Vector(0, 0, Bz); // TODO sign convention?
-         Hep3Vector H = new BasicHep3Vector(0, 0, 1);
-         Hep3Vector T = HelixUtils.Direction(helix, 0.);
-         Hep3Vector HcrossT = VecOp.cross(H, T);
-         double alpha = HcrossT.magnitude(); // this should be Bvec cross TrackDir/|B|
-         double Q = Bz * q / p;
-         Hep3Vector Z = new BasicHep3Vector(0, 0, 1);
-         Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
-         Hep3Vector K = Z;
-         Hep3Vector U = VecOp.mult(-1, J);
-         Hep3Vector V = VecOp.cross(T, U);
-         Hep3Vector I = VecOp.cross(J, K);
-         Hep3Vector N = VecOp.mult(1 / alpha, VecOp.cross(H, T));
-         double UdotI = VecOp.dot(U, I);
-         double NdotV = VecOp.dot(N, V);
-         double NdotU = VecOp.dot(N, U);
-         double TdotI = VecOp.dot(T, I);
-         double VdotI = VecOp.dot(V, I);
-         double VdotK = VecOp.dot(V, K);
-         covariance_gbl.set(HelicalTrackFit.dcaIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), VdotK / TdotI);
-         covariance_gbl.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), 1);
-         covariance_gbl.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.XT.getValue(), -alpha * Q * UdotI * NdotU / (cosLambda * TdotI));
-         covariance_gbl.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), -alpha * Q * VdotI * NdotU / (cosLambda * TdotI));
-         covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(), -1 * Bz / cosLambda);
-         //        covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), 0);
-         covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), -1 * q * Bz * tanLambda / (p * cosLambda));
-         covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), q * Bz * alpha * Q * tanLambda * UdotI * NdotV / (p * cosLambda * TdotI));
-         covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YT.getValue(), q * Bz * alpha * Q * tanLambda * VdotI * NdotV / (p * cosLambda * TdotI));
-         covariance_gbl.set(HelicalTrackFit.z0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), -1 / TdotI);
-         covariance_gbl.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), -1);
-         covariance_gbl.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), alpha * Q * UdotI * NdotV / TdotI);
-         covariance_gbl.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YT.getValue(), alpha * Q * VdotI * NdotV / TdotI);
-
-         covariance_gbl.print(15, 13);
          */
-        // Sho's magic
-        Matrix jacobian = new Matrix(5, 5);
-        jacobian.set(HelicalTrackFit.dcaIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), -clToPerPrj.e(1, 0));
-        jacobian.set(HelicalTrackFit.dcaIndex, FittedGblTrajectory.GBLPARIDX.YT.getValue(), -clToPerPrj.e(1, 1));
-        jacobian.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), 1.0);
-        jacobian.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), clToPerPrj.e(0, 1) * C_gbl);
-        jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(), Constants.fieldConversion * Math.abs(bfield) / Math.cos(lambda_gbl));
-        jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), Constants.fieldConversion * Math.abs(bfield) * qOverP_gbl * Math.tan(lambda_gbl) / Math.cos(lambda_gbl));
-        jacobian.set(HelicalTrackFit.z0Index, FittedGblTrajectory.GBLPARIDX.XT.getValue(), clToPerPrj.e(2, 0));
-        jacobian.set(HelicalTrackFit.z0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), clToPerPrj.e(2, 1));
-        jacobian.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), Math.pow(Math.cos(lambda_gbl), -2.0));
+        
+       
 
 //        jacobian.print(15, 13);
-        Matrix helixCovariance = jacobian.times(locCov.times(jacobian.transpose()));
-        SymmetricMatrix cov = new SymmetricMatrix(5);
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                if (i >= j) {
-                    cov.setElement(i, j, helixCovariance.get(i, j));
-                }
-            }
-        }
-        LOGGER.info("corrected helix covariance:\n" + cov);
+//        Matrix helixCovariance = jacobian.times(locCov.times(jacobian.transpose()));
+//        SymmetricMatrix cov = new SymmetricMatrix(5);
+//        for (int i = 0; i < 5; i++) {
+//            for (int j = 0; j < 5; j++) {
+//                if (i >= j) {
+//                    cov.setElement(i, j, helixCovariance.get(i, j));
+//                }
+//            }
+//        }
+//        LOGGER.info("corrected helix covariance:\n" + cov);
 
+        /*
         double parameters_gbl[] = new double[5];
         parameters_gbl[HelicalTrackFit.dcaIndex] = dca_gbl;
         parameters_gbl[HelicalTrackFit.phi0Index] = phi0_gbl;
         parameters_gbl[HelicalTrackFit.curvatureIndex] = C_gbl;
         parameters_gbl[HelicalTrackFit.z0Index] = z0_gbl;
         parameters_gbl[HelicalTrackFit.slopeIndex] = slope_gbl;
+        */
+        
+        
 
         return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
     }
