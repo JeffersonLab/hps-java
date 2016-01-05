@@ -12,14 +12,17 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
-import org.hps.recon.tracking.HPSTrack;
-import org.lcsim.event.Cluster;
 
+import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
+
+import org.hps.recon.tracking.HpsHelicalTrackFit;
+import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.geometry.Detector;
@@ -267,10 +270,12 @@ public class TrackingReconPlots extends Driver {
             SeedTrack stEle = (SeedTrack) trk;
             SeedCandidate seedEle = stEle.getSeedCandidate();
             HelicalTrackFit ht = seedEle.getHelix();
-            HPSTrack hpstrk = new HPSTrack(ht);
+            HpsHelicalTrackFit hpstrk = new HpsHelicalTrackFit(ht);
             double svt_l12 = 900.00;//mm ~approximately...this doesn't matter much
             double ecal_face = 1393.00;//mm ~approximately ... this matters!  Should use typical shower depth...or, once have cluster match, use that value of Z
-            Hep3Vector posAtEcal = hpstrk.getPositionAtZMap(svt_l12, ecal_face, 5.0, event.getDetector().getFieldMap())[0];
+            TrackState stateAtEcal = TrackUtils.extrapolateTrackUsingFieldMap(trk, svt_l12, ecal_face, 5.0, event.getDetector().getFieldMap());
+            Hep3Vector posAtEcal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
+            //Hep3Vector posAtEcal = hpstrk.getPositionAtZMap(svt_l12, ecal_face, 5.0, event.getDetector().getFieldMap())[0];
             List<Cluster> clusters = event.get(Cluster.class, ecalCollectionName);
             if (clusters != null) {
                 if (debug)
@@ -282,7 +287,8 @@ public class TrackingReconPlots extends Driver {
                     Hep3Vector clusterPos = new BasicHep3Vector(clust.getPosition());
                     double zCluster = clusterPos.z();
                     //improve the extrapolation...use the reconstructed cluster z-position
-                    posAtEcal = hpstrk.getPositionAtZMap(svt_l12, zCluster, 5.0, event.getDetector().getFieldMap())[0];
+                    stateAtEcal = TrackUtils.extrapolateTrackUsingFieldMap(trk, svt_l12, zCluster, 5.0, event.getDetector().getFieldMap());
+                    posAtEcal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
                     double eOverP = clust.getEnergy() / pmag;
                     double dx = posAtEcal.x() - clusterPos.x();
                     double dy = posAtEcal.y() - clusterPos.y();

@@ -4,14 +4,14 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import org.hps.recon.tracking.BeamlineConstants;
-import org.hps.recon.tracking.HPSTrack;
+import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.HelixConverter;
-import org.hps.recon.tracking.StraightLineTrack;
+import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
+import org.lcsim.geometry.FieldMap;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
-import org.lcsim.util.swim.Helix;
 
 /**
  * 
@@ -20,38 +20,42 @@ import org.lcsim.util.swim.Helix;
  * @author phansson
  *
  */
+
 public class TwoTrackFringeVertexer extends TwoTrackVertexer {
     protected HelixConverter converter = new HelixConverter(0.);
     
-    public void setTracks(Track track1, Track track2) {
+    public void setTracks(Track track1, Track track2, FieldMap fieldMap) {
     	SeedTrack s1 = (SeedTrack) track1;
         HelicalTrackFit htf1 = s1.getSeedCandidate().getHelix();
-        HPSTrack hpstrk1 = new HPSTrack(htf1);
+        HpsHelicalTrackFit hpstrk1 = new HpsHelicalTrackFit(htf1);
         SeedTrack s2 = (SeedTrack) track2;
         HelicalTrackFit htf2 = s2.getSeedCandidate().getHelix();
-        HPSTrack hpstrk2 = new HPSTrack(htf2);
+        HpsHelicalTrackFit hpstrk2 = new HpsHelicalTrackFit(htf2);
         boolean debug = false;
-        
-        Hep3Vector posAtConv1 = hpstrk1.getPositionAtZMap(100.0, BeamlineConstants.HARP_POSITION_TESTRUN, 5.0)[0];
-        Hep3Vector posAtConv2 = hpstrk2.getPositionAtZMap(100.0, BeamlineConstants.HARP_POSITION_TESTRUN, 5.0)[0];
 
-        StraightLineTrack slt1_conv = converter.Convert((Helix)hpstrk1.getTrajectory());
-        StraightLineTrack slt2_conv = converter.Convert((Helix)hpstrk2.getTrajectory());
-        
-        A1 = new BasicHep3Vector(slt1_conv.x0(),slt1_conv.y0(),slt1_conv.z0());
-        B1 = new BasicHep3Vector(slt2_conv.x0(),slt2_conv.y0(),slt2_conv.z0());
+        Hep3Vector posAtConv1 = new BasicHep3Vector( TrackUtils.extrapolateTrackUsingFieldMap(track1, 100.0, BeamlineConstants.HARP_POSITION_TESTRUN, 5.0, fieldMap).getReferencePoint());
+        Hep3Vector posAtConv2 = new BasicHep3Vector( TrackUtils.extrapolateTrackUsingFieldMap(track2, 100.0, BeamlineConstants.HARP_POSITION_TESTRUN, 5.0, fieldMap).getReferencePoint());
 
-        double YZAtConv1[] = slt1_conv.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN);
-        double YZAtConv2[] = slt2_conv.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN);
+        //FIXME the straight line objects are not working
         
-        A2 = new BasicHep3Vector(BeamlineConstants.HARP_POSITION_TESTRUN,YZAtConv1[0],YZAtConv1[1]);
-        B2 = new BasicHep3Vector(BeamlineConstants.HARP_POSITION_TESTRUN,YZAtConv2[0],YZAtConv2[1]);
+        //StraightLineTrack slt1_conv = converter.Convert((Helix)hpstrk1.getTrajectory());
+        //StraightLineTrack slt2_conv = converter.Convert((Helix)hpstrk2.getTrajectory());
+        
+        //A1 = new BasicHep3Vector(slt1_conv.x0(),slt1_conv.y0(),slt1_conv.z0());
+        //B1 = new BasicHep3Vector(slt2_conv.x0(),slt2_conv.y0(),slt2_conv.z0());
+
+        //double YZAtConv1[] = slt1_conv.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN);
+        //double YZAtConv2[] = slt2_conv.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN);
+        
+        //A2 = new BasicHep3Vector(BeamlineConstants.HARP_POSITION_TESTRUN,YZAtConv1[0],YZAtConv1[1]);
+        //B2 = new BasicHep3Vector(BeamlineConstants.HARP_POSITION_TESTRUN,YZAtConv2[0],YZAtConv2[1]);
+        
         
         if(debug) {
             System.out.printf("%s: original track1 direction at x=0 %s  \n",this.getClass().getSimpleName(),HelixUtils.Direction(hpstrk1,0.).toString());
             System.out.printf("%s: original track2 direction at x=0 %s  \n",this.getClass().getSimpleName(),HelixUtils.Direction(hpstrk2,0.).toString());
-            System.out.printf("%s: track1 direction at conv %s  \n",this.getClass().getSimpleName(),hpstrk1.getTrajectory().getUnitTangentAtLength(0.).toString());
-            System.out.printf("%s: track2 direction at conv %s  \n",this.getClass().getSimpleName(),hpstrk2.getTrajectory().getUnitTangentAtLength(0.).toString());
+            //System.out.printf("%s: track1 direction at conv %s  \n",this.getClass().getSimpleName(),hpstrk1.getTrajectory().getUnitTangentAtLength(0.).toString());
+            //System.out.printf("%s: track2 direction at conv %s  \n",this.getClass().getSimpleName(),hpstrk2.getTrajectory().getUnitTangentAtLength(0.).toString());
            
             
             System.out.printf("%s: pos at converter track1 %s  \n",this.getClass().getSimpleName(),posAtConv1.toString());
