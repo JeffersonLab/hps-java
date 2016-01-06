@@ -10,12 +10,15 @@ import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.physics.vec.Hep3Vector;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
+import org.hps.users.phansson.testrun.TrigRateDriver;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;

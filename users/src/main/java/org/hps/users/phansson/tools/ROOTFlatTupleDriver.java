@@ -32,7 +32,7 @@ import org.hps.recon.vertexing.TwoTrackFringeVertexer;
 import org.hps.recon.vertexing.TwoTrackVertexer;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TestRunTriggerData;
-import org.hps.users.phansson.TrigRateDriver;
+import org.hps.users.phansson.testrun.TrigRateDriver;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;

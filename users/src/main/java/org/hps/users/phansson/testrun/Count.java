@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.hps.users.phansson;
+package org.hps.users.phansson.testrun;
 
 /**
  *
@@ -15,7 +15,7 @@ public class Count {
     private double n;
     private double en;
     
-    Count(String n, String r, double N, double err) {
+    public Count(String n, String r, double N, double err) {
         this.name = n;
         this.run = r;
         this.n = N;

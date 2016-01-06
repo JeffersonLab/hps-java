@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.hps.users.phansson;
+package org.hps.users.phansson.daq;
 
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;

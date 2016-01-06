@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.hps.users.mgraham.alignment.RunAlignment;
-import org.hps.users.phansson.ResLimit;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.util.aida.AIDA;
