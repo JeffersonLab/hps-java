@@ -214,7 +214,7 @@ public class GblTrajectory
     }
 
 /// Retrieve validity of trajectory
-    boolean isValid()
+    public boolean isValid()
     {
         return constructOK;
     }
@@ -841,7 +841,7 @@ public class GblTrajectory
     /**
      * \param [in] level print level (0: minimum, >0: more)
      */
-    void printPoints(int level)
+    public void printPoints(int level)
     {
         System.out.println("GblPoints ");
 
