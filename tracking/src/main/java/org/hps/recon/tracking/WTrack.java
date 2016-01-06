@@ -12,9 +12,13 @@ import org.lcsim.constants.Constants;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
 /**
- * Track parameterization representation.
- * 
- * @author phansson
+ * Track representation based on paper
+ * Paul Avery, CBX 98-39, June 9, 1998
+ *  
+ *  Used primarily for the algorithm to intersect a helix with a generic plane in space.
+ *  
+ * @author phansson <phansson@slac.stanford.edu>
+
  */
 public class WTrack {
 

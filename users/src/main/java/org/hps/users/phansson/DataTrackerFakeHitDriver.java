@@ -16,10 +16,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
+import org.hps.recon.tracking.WTrack;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.ITranslation3D;
@@ -238,8 +240,8 @@ public class DataTrackerFakeHitDriver extends Driver {
                 System.out.println(this.getClass().getSimpleName() + ": create a WTrack object");
             }
 
-            WTrack wtrack = new WTrack(helix, Math.abs(_bfield.z()), true); //remove sign from B-field (assumed to go along z-direction)
-
+            WTrack wtrack = new WTrack(helix, Math.abs(_bfield.z())); 
+            
             if (debug) {
                 System.out.println(this.getClass().getSimpleName() + ": " + wtrack.toString());
 
