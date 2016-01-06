@@ -1,4 +1,4 @@
-package org.hps.recon.tracking.gbl;
+package org.hps.users.phansson.gbl;
 
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
@@ -7,6 +7,7 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +17,11 @@ import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.MultipleScattering.ScatterPoint;
 import org.hps.recon.tracking.MultipleScattering.ScatterPoints;
+import org.hps.recon.tracking.gbl.GblPoint;
+import org.hps.recon.tracking.gbl.GblTrajectory;
+import org.hps.recon.tracking.gbl.GblUtils;
+import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
+import org.hps.recon.tracking.gbl.MilleBinary;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.constants.Constants;

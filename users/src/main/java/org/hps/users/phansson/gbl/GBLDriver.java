@@ -1,4 +1,4 @@
-package org.hps.recon.tracking.gbl;
+package org.hps.users.phansson.gbl;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
+import org.hps.recon.tracking.gbl.MilleBinary;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
