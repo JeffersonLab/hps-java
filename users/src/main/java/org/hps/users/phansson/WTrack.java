@@ -12,8 +12,13 @@ import org.lcsim.constants.Constants;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
 /**
- *
- * @author phansson
+ * Track representation based on paper
+ * Paul Avery, CBX 98-39, June 9, 1998
+ *  
+ *  Used primarily for the algorithm to intersect a helix with a generic plane in space.
+ *  
+ * @author phansson <phansson@slac.stanford.edu>
+ * 
  */
 public class WTrack {
 
@@ -79,10 +84,6 @@ public class WTrack {
     public double a() {
         return _a;
 
-    }
-    
-    private int getCharge() {
-        return (int) Math.signum(_htf.R());
     }
     
     public Hep3Vector getP0() {

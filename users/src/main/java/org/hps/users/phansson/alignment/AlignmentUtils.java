@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.hps.users.phansson;
+package org.hps.users.phansson.alignment;
 
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.vec.BasicHep3Matrix;
@@ -1053,7 +1053,7 @@ public class AlignmentUtils {
         
     }    
     
-    double sign(double val) {
+    public double sign(double val) {
         return Math.signum(val);
     }
     

@@ -1,4 +1,4 @@
-package org.hps.users.phansson;
+package org.hps.users.phansson.alignment;
 
 import hep.aida.ICloud1D;
 import hep.aida.IDataPointSet;

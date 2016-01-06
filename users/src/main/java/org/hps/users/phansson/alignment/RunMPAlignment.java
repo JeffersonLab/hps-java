@@ -1,4 +1,4 @@
-package org.hps.users.phansson;
+package org.hps.users.phansson.alignment;
 
 import hep.physics.vec.BasicHep3Vector;
 
@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.users.phansson.TrigRateAna;
+import org.hps.users.phansson.TrigRateDriver;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;

@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.hps.users.phansson;
+package org.hps.users.phansson.alignment;
 
 import hep.aida.IAnalysisFactory;
 import hep.physics.matrix.BasicMatrix;
@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.hps.users.mgraham.alignment.RunAlignment;
+import org.hps.users.phansson.ResLimit;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.util.aida.AIDA;
