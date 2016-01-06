@@ -36,9 +36,9 @@ import org.lcsim.util.aida.AIDA;
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  */
-public class ECalExtrapolationDriver extends Driver {
+public class GblResidualDriver extends Driver {
     
-    private static Logger logger = Logger.getLogger(ECalExtrapolationDriver.class.getName());
+    private static Logger logger = Logger.getLogger(GblResidualDriver.class.getName());
 
     private double bfield; 
     
@@ -64,7 +64,7 @@ public class ECalExtrapolationDriver extends Driver {
     /**
      * 
      */
-    public ECalExtrapolationDriver() {
+    public GblResidualDriver() {
         logger.setLevel(Level.INFO);
     }
     

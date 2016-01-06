@@ -1,4 +1,4 @@
-package org.hps.users.phansson;
+package org.hps.users.phansson.apps;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

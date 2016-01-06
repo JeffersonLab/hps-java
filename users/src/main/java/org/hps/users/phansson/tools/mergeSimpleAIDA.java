@@ -1,4 +1,4 @@
-package org.hps.users.phansson;
+package org.hps.users.phansson.tools;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram;

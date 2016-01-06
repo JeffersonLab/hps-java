@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.hps.users.phansson;
+package org.hps.users.phansson.alignment;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
