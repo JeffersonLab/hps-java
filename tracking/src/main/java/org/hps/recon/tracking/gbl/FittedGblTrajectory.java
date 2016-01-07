@@ -238,7 +238,7 @@ public class FittedGblTrajectory {
         Hep3Vector refPointVec = HelixUtils.PointOnHelix(helicalTrackFit, pathLength);
         double[] refPoint = new double[]{refPointVec.x(), refPointVec.y()};
         
-        LOGGER.info("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
+        LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
         
         // Propagate the helix to new reference point
         double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
@@ -276,7 +276,7 @@ public class FittedGblTrajectory {
                 }
             }
         }
-        LOGGER.info("corrected helix covariance:\n" + cov);
+        LOGGER.finest("corrected helix covariance:\n" + cov);
         
         double parameters_gbl[] = helicalTrackFitAtIPCorrected.parameters();
         
