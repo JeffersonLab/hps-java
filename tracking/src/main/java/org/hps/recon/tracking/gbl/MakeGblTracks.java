@@ -14,11 +14,9 @@ import java.util.logging.Logger;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.lcsim.constants.Constants;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
@@ -46,7 +44,11 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 public class MakeGblTracks {
 
     private final static Logger LOGGER = Logger.getLogger(MakeGblTracks.class.getPackage().getName());
-
+    static {
+        LOGGER.setLevel(Level.WARNING);
+    }
+    
+    
     private MakeGblTracks() {
     }
 
@@ -105,12 +107,7 @@ public class MakeGblTracks {
 
         //  Add the track to the list of tracks
 //            tracks.add(trk);
-        LOGGER.info(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helicalTrackFit.chisqtot(), helicalTrackFit.ndf()[0] + helicalTrackFit.ndf()[1], trk.getChi2(), trk.getNDF()));
-        if (LOGGER.getLevel().intValue() <= Level.INFO.intValue()) {
-            for (int i = 0; i < 5; ++i) {
-                LOGGER.info(String.format("param %d: %.10f -> %.10f    helix-gbl= %f", i, helicalTrackFit.parameters()[i], trk.getTrackParameter(i), helicalTrackFit.parameters()[i] - trk.getTrackParameter(i)));
-            }
-        }
+        LOGGER.fine(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helicalTrackFit.chisqtot(), helicalTrackFit.ndf()[0] + helicalTrackFit.ndf()[1], trk.getChi2(), trk.getNDF()));
         return new Pair<Track, GBLKinkData>(trk, kinkData);
     }
 
