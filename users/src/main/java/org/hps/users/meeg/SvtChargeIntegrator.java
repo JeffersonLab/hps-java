@@ -26,6 +26,7 @@ import org.hps.conditions.svt.SvtBiasConstant;
 import org.hps.conditions.svt.SvtBiasConstant.SvtBiasConstantCollection;
 import org.hps.conditions.svt.SvtMotorPosition;
 import org.hps.conditions.svt.SvtMotorPosition.SvtMotorPositionCollection;
+import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.run.database.RunManager;
 
 /**
@@ -35,9 +36,9 @@ import org.hps.run.database.RunManager;
 public class SvtChargeIntegrator {
 
     private static final double angleTolerance = 1e-4;
+    private static final double burstModeNoiseEfficiency = 0.965;
 
     /**
-     * Load SVT HV bias constants into the conditions database.
      *
      * @param args the command line arguments (requires a CSV run/file log file
      * and a MYA dump file.)
@@ -88,9 +89,9 @@ public class SvtChargeIntegrator {
             String line;
             System.err.println("myaData header: " + br.readLine()); //discard the first line
             if (perRun) {
-                System.out.println("run_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom");
+                System.out.println("run_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgoodQ\tgoodQ_withbias\tgoodQ_atnom");
             } else {
-                System.out.println("run_num\tfile_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom");
+                System.out.println("run_num\tfile_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgoodQ\tgoodQ_withbias\tgoodQ_atnom");
             }
 
             int currentRun = 0;
@@ -98,6 +99,7 @@ public class SvtChargeIntegrator {
             double nominalAngleBottom = -999;
             String nominalPosition = null;
             long tiTimeOffset = 0;
+            double efficiency = 0;
             SvtBiasConstantCollection svtBiasConstants = null;
             SvtMotorPositionCollection svtPositionConstants = null;
             SvtAlignmentConstant.SvtAlignmentConstantCollection alignmentConstants = null;
@@ -169,7 +171,20 @@ public class SvtChargeIntegrator {
                         alignmentConstants = null;
                         nominalPosition = "unknown";
                     }
-
+                    efficiency = burstModeNoiseEfficiency;
+                    SvtTimingConstants svtTimingConstants;
+                    try {
+                        svtTimingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
+                    } catch (Exception ex) {
+                        svtTimingConstants = null;
+                    }
+                    if (svtTimingConstants != null) {
+                        if (svtTimingConstants.getOffsetTime() > 27) {
+                            efficiency *= 2.0 / 3.0; // bad latency: drop 2 out of 6 trigger phases
+                        }// otherwise, we have good latency
+                    } else {
+                        efficiency = 0;
+                    }//no latency info in conditions: give up
                     currentRun = runNum;
                 }
 
@@ -210,6 +225,9 @@ public class SvtChargeIntegrator {
                 double totalGatedCharge = 0;
                 double totalGatedChargeWithBias = 0;
                 double totalGatedChargeWithBiasAtNominal = 0;
+                double totalGoodCharge = 0;
+                double totalGoodChargeWithBias = 0;
+                double totalGoodChargeWithBiasAtNominal = 0;
                 br.mark(1000);
 
                 while ((line = br.readLine()) != null) {
@@ -278,17 +296,18 @@ public class SvtChargeIntegrator {
                                 positionDt = (positionEnd - positionStart) / 1000.0;
                             }
                         }
-                        double dq = dt * current; // nC
-                        double dqGated = dt * current * livetime; // nC
 //                        System.out.format("start %d end %d date %d lastDate %d current %f dt %f\n", startDate.getTime(), endDate.getTime(), date.getTime(), lastDate.getTime(), current, dt);
-                        totalCharge += dq;
-                        totalGatedCharge += dqGated;
+                        totalCharge += dt * current; // nC
+                        totalGatedCharge += dt * current * livetime;
+                        totalGoodCharge += dt * current * livetime * efficiency;
                         if (biasGood) {
                             totalChargeWithBias += biasDt * current;
                             totalGatedChargeWithBias += biasDt * current * livetime;
+                            totalGoodChargeWithBias += biasDt * current * livetime * efficiency;
                             if (positionGood) {
                                 totalChargeWithBiasAtNominal += positionDt * current;
                                 totalGatedChargeWithBiasAtNominal += positionDt * current * livetime;
+                                totalGoodChargeWithBiasAtNominal += positionDt * current * livetime * efficiency;
                             }
                         }
                     }
@@ -304,11 +323,11 @@ public class SvtChargeIntegrator {
                 }
                 if (perRun) {
                     int nEvents = Integer.parseInt(record.get(9));
-                    System.out.format("%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal);
+                    System.out.format("%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal);
                 } else {
                     int fileNum = Integer.parseInt(record.get(1));
                     int nEvents = Integer.parseInt(record.get(2));
-                    System.out.format("%d\t%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, fileNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal);
+                    System.out.format("%d\t%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, fileNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal);
                 }
             }
         } catch (Exception ex) {
