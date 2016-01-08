@@ -7,11 +7,12 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.math3.util.Pair;
+import org.hps.gbl.GblTrajectory;
+import org.hps.gbl.matrix.Matrix;
+import org.hps.gbl.matrix.SymMatrix;
+import org.hps.gbl.matrix.Vector;
 import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.tracking.gbl.matrix.Matrix;
-import org.hps.recon.tracking.gbl.matrix.SymMatrix;
-import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
@@ -238,7 +239,7 @@ public class FittedGblTrajectory {
         Hep3Vector refPointVec = HelixUtils.PointOnHelix(helicalTrackFit, pathLength);
         double[] refPoint = new double[]{refPointVec.x(), refPointVec.y()};
         
-        LOGGER.info("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
+        LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
         
         // Propagate the helix to new reference point
         double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
@@ -276,7 +277,7 @@ public class FittedGblTrajectory {
                 }
             }
         }
-        LOGGER.info("corrected helix covariance:\n" + cov);
+        LOGGER.finest("corrected helix covariance:\n" + cov);
         
         double parameters_gbl[] = helicalTrackFitAtIPCorrected.parameters();
         

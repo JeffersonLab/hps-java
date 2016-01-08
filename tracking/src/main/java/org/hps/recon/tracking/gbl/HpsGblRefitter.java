@@ -3,6 +3,7 @@ package org.hps.recon.tracking.gbl;
 import static java.lang.Math.abs;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
+import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -16,13 +17,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.math3.util.Pair;
+import org.hps.gbl.GblPoint;
+import org.hps.gbl.GblTrajectory;
+import org.hps.gbl.MilleBinary;
+import org.hps.gbl.matrix.Matrix;
+import org.hps.gbl.matrix.SymMatrix;
+import org.hps.gbl.matrix.Vector;
 import org.hps.recon.tracking.TrackUtils;
-
-import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
-
-import org.hps.recon.tracking.gbl.matrix.Matrix;
-import org.hps.recon.tracking.gbl.matrix.SymMatrix;
-import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;

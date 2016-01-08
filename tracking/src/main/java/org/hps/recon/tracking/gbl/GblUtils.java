@@ -1,7 +1,5 @@
 package org.hps.recon.tracking.gbl;
 
-import java.util.logging.Logger;
-
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.BasicHep3Vector;
@@ -9,11 +7,13 @@ import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
+import java.util.logging.Logger;
+
+import org.hps.gbl.matrix.Matrix;
+import org.hps.gbl.matrix.Vector;
 import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
-import org.hps.recon.tracking.gbl.matrix.Matrix;
-import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.constants.Constants;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;

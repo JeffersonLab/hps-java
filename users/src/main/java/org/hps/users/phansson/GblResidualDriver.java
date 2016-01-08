@@ -156,13 +156,23 @@ public class GblResidualDriver extends Driver {
             
             // select GBL tracks
             if(TrackType.isGBL(track.getType())) {
-
+            	
                 TrackState stateIP = null;
                 TrackState stateLast = null;
                 for(TrackState state : track.getTrackStates()) {
                     if (state.getLocation() == TrackState.AtLastHit) stateLast = state;
                     if (state.getLocation() == TrackState.AtIP) stateIP = state;
                 }
+
+            	System.out.println("Event " + event.getEventNumber() 
+            			+ " gbl track parameters " + 
+            			stateIP.getD0() + " " +
+            			stateIP.getZ0() + " " +
+            			stateIP.getPhi() + " " +
+            			stateIP.getOmega() + " " +
+            			stateIP.getTanLambda()
+            			);
+
 
                 // find seed track
                 Track seedTrack = null;

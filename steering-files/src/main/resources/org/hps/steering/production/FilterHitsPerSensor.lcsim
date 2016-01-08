@@ -7,14 +7,14 @@
     <execute>
         <driver name="CleanupDriver"/>
         <driver name="EventMarkerDriver"/>
+        <driver name="RawHitsPerSensorFilter"/>
         <!-- SVT reconstruction drivers -->
+        <!--
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
-
-        <!-- filter driver -->
-        <driver name="HitsPerSensorFilter"/>
-
+        <driver name="ClustersPerSensorFilter"/>
+        -->
         <!-- write and cleanup -->
         <driver name="LCIOWriter"/>
     </execute>    
@@ -39,7 +39,11 @@
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
-        <driver name="HitsPerSensorFilter" type="org.hps.recon.filtering.SvtHitMultiplicityFilter"/>
+        <driver name="RawHitsPerSensorFilter" type="org.hps.recon.filtering.SvtRawHitMultiplicityFilter">
+            <minHitsPerSensor>1</minHitsPerSensor>
+            <maxHitsPerSensor>2</maxHitsPerSensor>
+        </driver>
+        <driver name="ClustersPerSensorFilter" type="org.hps.recon.filtering.SvtHitMultiplicityFilter"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
