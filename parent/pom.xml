@@ -249,6 +249,11 @@
                 <artifactId>hps-logging</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.hps.gbl</groupId>
+                <artifactId>gbl</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
             <!-- Next are external dependencies used in multiple modules. -->
             <dependency>
                 <groupId>org.jlab.coda</groupId>
