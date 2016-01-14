@@ -46,7 +46,7 @@
             <artifactId>hps-evio</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.hps.gbl</groupId>
+            <groupId>org.hps</groupId>
             <artifactId>gbl</artifactId>
         </dependency>
     </dependencies>

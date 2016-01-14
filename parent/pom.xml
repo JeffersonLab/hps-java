@@ -250,7 +250,7 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.hps.gbl</groupId>
+                <groupId>org.hps</groupId>
                 <artifactId>gbl</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
