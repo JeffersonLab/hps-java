@@ -9,17 +9,18 @@ import hep.aida.IHistogram2D;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
-
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
-
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.vertexing.BilliorTrack;
+import org.hps.recon.vertexing.BilliorVertex;
+import org.hps.recon.vertexing.BilliorVertexer;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
@@ -155,10 +156,10 @@ public class TridentMonitoring extends DataQualityMonitor {
     private IHistogram1D vertMass;
     private IHistogram2D vertZVsMass;
 //    private IHistogram1D vertX;
-//    private IHistogram1D vertY;
+    private IHistogram1D vertY;
 //    private IHistogram1D vertZ;
-//    private IHistogram2D vertZY;
-//    private IHistogram2D vertXY;
+    private IHistogram2D vertZY;
+    private IHistogram2D vertXY;
 //    private IHistogram1D vertPx;
 //    private IHistogram1D vertPy;
 //    private IHistogram1D vertPz;
@@ -188,6 +189,8 @@ public class TridentMonitoring extends DataQualityMonitor {
     private IHistogram2D vertRadPxPy;
     private IHistogram1D vertRadU;
     private IHistogram1D vertRadV;
+
+    private IHistogram2D vertRadUnconBsconChi2;
 
     private IHistogram1D nTriCand;
     private IHistogram1D nVtxCand;
@@ -224,15 +227,25 @@ public class TridentMonitoring extends DataQualityMonitor {
     private final double maxChi2GBLTrack = 15.0;
     private final double maxVertChi2 = 7.0;
 
-    //v0 cuts   
+    //v0 plot ranges
     private final double v0PzMax = 1.25 * ebeam;//GeV 
     private final double v0PzMin = 0.1;// GeV
     private final double v0PyMax = 0.04;//GeV absolute value
     private final double v0PxMax = 0.04;//GeV absolute value
     private final double v0VzMax = 50.0;// mm from target...someday make mass dependent
-    private final double v0VyMax = 1.0;// mm from target...someday make mass dependent
+    private final double v0VyMax = 2.0;// mm from target...someday make mass dependent
     private final double v0VxMax = 2.0;// mm from target...someday make mass dependent
-    //  track quality cuts
+
+    //v0 cuts
+    private final double v0PzMaxCut = 1.25 * ebeam;//GeV 
+    private final double v0PzMinCut = 0.1;// GeV
+    private final double v0PyCut = 0.04;//GeV absolute value
+    private final double v0PxCut = 0.04;//GeV absolute value
+    private final double v0VzCut = 50.0;// mm from target...someday make mass dependent
+    private final double v0VyCut = 2.0;// mm from target...someday make mass dependent
+    private final double v0VxCut = 2.0;// mm from target...someday make mass dependent
+    
+//  track quality cuts
     private final double beamPCut = 0.85;
     private final double minPCut = 0.05;
 //    private double trkPyMax = 0.2;
@@ -242,12 +255,14 @@ public class TridentMonitoring extends DataQualityMonitor {
     private final double clusterTimeDiffCut = 2.5;
 
     private final double l1IsoMin = 1.0;
+
+    private double[] beamSize = {0.001, 0.130, 0.050}; //rough estimate from harp scans during engineering run production running
+
 //cluster matching
 //    private boolean reqCluster = false;
 //    private int nClustMax = 3;
 //    private double eneLossFactor = 0.7; //average E/p roughly
 //    private double eneOverPCut = 0.3; //|(E/p)_meas - (E/p)_mean|<eneOverPCut
-
 //counters
     private float nEvents = 0;
     private float nRecoV0 = 0;
@@ -346,10 +361,10 @@ public class TridentMonitoring extends DataQualityMonitor {
         vertMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass", 100, 0, 0.11);
         vertZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. mass", 100, 0, 0.11, 100, -v0VzMax, v0VzMax);
 //        vertX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex X", 100, -v0VxMax, v0VxMax);
-//        vertY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Y", 100, -v0VyMax, v0VyMax);
+        vertY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Y", 100, -v0VyMax, v0VyMax);
 //        vertZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z", 100, -v0VzMax, v0VzMax);
-//        vertXY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Y vs. X", 100, -v0VxMax, v0VxMax, 100, -v0VyMax, v0VyMax);
-//        vertZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
+        vertXY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Y vs. X", 100, -v0VxMax, v0VxMax, 100, -v0VyMax, v0VyMax);
+        vertZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
 //        vertPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Px", 100, -v0PxMax, v0PxMax);
 //        vertPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Py", 100, -v0PyMax, v0PyMax);
 //        vertPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Pz", 100, v0PzMin, v0PzMax);
@@ -381,6 +396,8 @@ public class TridentMonitoring extends DataQualityMonitor {
         vertRadPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Py vs. Px", 100, -v0PxMax, v0PxMax, 100, -v0PyMax, v0PyMax);
         vertRadU = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Px over Ptot", 100, -0.1, 0.1);
         vertRadV = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Py over Ptot", 100, -0.1, 0.1);
+
+        vertRadUnconBsconChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: beamspot chi2 vs. uncon chi2", 100, 0, 25.0, 100, 0, 25.0);
 
         nVtxCand = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Number of Vertexing Candidates", 5, 0, 4);
 
@@ -527,8 +544,8 @@ public class TridentMonitoring extends DataQualityMonitor {
                 bits.add(Cut.VTX_QUALITY);
             }
 
-            boolean vertexMomentumCut = v0MomRot.z() < v0PzMax && v0MomRot.z() > v0PzMin && Math.abs(v0MomRot.x()) < v0PxMax && Math.abs(v0MomRot.y()) < v0PyMax;
-            boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0VxMax && Math.abs(v0Vtx.y()) < v0VyMax && Math.abs(v0Vtx.z()) < v0VzMax;
+            boolean vertexMomentumCut = v0MomRot.z() < v0PzMaxCut && v0MomRot.z() > v0PzMinCut && Math.abs(v0MomRot.x()) < v0PxCut && Math.abs(v0MomRot.y()) < v0PyCut;
+            boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0VxCut && Math.abs(v0Vtx.y()) < v0VyCut && Math.abs(v0Vtx.z()) < v0VzCut;
             if (vertexMomentumCut && vertexPositionCut) {
                 bits.add(Cut.VERTEX_CUTS);
             }
@@ -715,6 +732,7 @@ public class TridentMonitoring extends DataQualityMonitor {
         if (!vertCandidateList.isEmpty()) {
             // pick the best candidate...for now just pick a random one. 
             ReconstructedParticle bestCandidate = vertCandidateList.get((int) (Math.random() * vertCandidateList.size()));
+            Vertex unconVertex = bestCandidate.getStartVertex();
 
             //fill some stuff: 
             ReconstructedParticle electron = bestCandidate.getParticles().get(ReconParticleDriver.ELECTRON);
@@ -728,7 +746,7 @@ public class TridentMonitoring extends DataQualityMonitor {
             Hep3Vector pBestV0Rot = VecOp.mult(beamAxisRotation, bestCandidate.getMomentum());
             Hep3Vector pEleRot = VecOp.mult(beamAxisRotation, electron.getMomentum());
             Hep3Vector pPosRot = VecOp.mult(beamAxisRotation, positron.getMomentum());
-            Hep3Vector v0Vtx = VecOp.mult(beamAxisRotation, bestCandidate.getStartVertex().getPosition());
+            Hep3Vector v0Vtx = VecOp.mult(beamAxisRotation, unconVertex.getPosition());
 
 //            vertTrackTime2D.fill(tEle, tPos);
 //            vertTrackTimeDiff.fill(tEle - tPos);
@@ -744,16 +762,26 @@ public class TridentMonitoring extends DataQualityMonitor {
             vertMass.fill(bestCandidate.getMass());
             vertZVsMass.fill(bestCandidate.getMass(), v0Vtx.z());
 //            vertX.fill(v0Vtx.x());
-//            vertY.fill(v0Vtx.y());
+            vertY.fill(v0Vtx.y());
 //            vertZ.fill(v0Vtx.z());
 //            vertPx.fill(pBestV0Rot.x());
 //            vertPy.fill(pBestV0Rot.y());
 //            vertPz.fill(pBestV0Rot.z());
 //            vertU.fill(pBestV0Rot.x() / pBestV0Rot.magnitude());
 //            vertV.fill(pBestV0Rot.y() / pBestV0Rot.magnitude());
-//            vertXY.fill(v0Vtx.x(), v0Vtx.y());
-//            vertZY.fill(v0Vtx.y(), v0Vtx.z());
+            vertXY.fill(v0Vtx.x(), v0Vtx.y());
+            vertZY.fill(v0Vtx.y(), v0Vtx.z());
             if (bestCandidate.getMomentum().magnitude() > radCut) {
+
+                BilliorVertexer vtxFitter = new BilliorVertexer(TrackUtils.getBField(event.getDetector()).y());
+                vtxFitter.setBeamSize(beamSize);
+                List<BilliorTrack> billiorTracks = new ArrayList<BilliorTrack>();
+                billiorTracks.add(new BilliorTrack(electron.getTracks().get(0)));
+                billiorTracks.add(new BilliorTrack(positron.getTracks().get(0)));
+                vtxFitter.doBeamSpotConstraint(true);
+                BilliorVertex bsconVertex = vtxFitter.fitVertex(billiorTracks);
+                vertRadUnconBsconChi2.fill(unconVertex.getChi2(), bsconVertex.getChi2());
+
                 vertRadTrackTime2D.fill(tEle, tPos);
                 vertRadTrackTimeDiff.fill(tEle - tPos);
                 vertRadZVsMomentum.fill(bestCandidate.getMomentum().magnitude(), v0Vtx.z());
