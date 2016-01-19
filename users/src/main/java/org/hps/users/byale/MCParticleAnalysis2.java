@@ -1,4 +1,4 @@
-package org.hps.users.mgraham;
+package org.hps.users.byale;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
@@ -16,9 +16,9 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  *
- * @author mgraham
+ * @author byale (modified from Matt's MCParticleAnalysisDriver)
  */
-public class MCParticleAnalysis extends Driver {
+public class MCParticleAnalysis2 extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
     private String collectionName = "MCParticle";
