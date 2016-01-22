@@ -464,10 +464,9 @@ final class EventProcessing {
             steering = configurationModel.getSteeringFile();
         } else {
             steering = configurationModel.getSteeringResource();
-        }
-        
-        if (!steering.startsWith("/")) {
-            steering = "/" + steering;
+            if (!steering.startsWith("/")) {
+                steering = "/" + steering;
+            }
         }
 
         this.logger.config("set steering " + steering + " with type " 
