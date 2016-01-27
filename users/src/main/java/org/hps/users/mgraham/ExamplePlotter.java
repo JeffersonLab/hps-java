@@ -4,6 +4,7 @@ import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
+import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import java.io.IOException;
@@ -12,9 +13,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.recon.tracking.BeamlineConstants;
-import org.hps.recon.tracking.HPSTrack;
+import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.HelixConverter;
 import org.hps.recon.tracking.StraightLineTrack;
+import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
@@ -76,15 +78,9 @@ public class ExamplePlotter extends Driver {
             aida.histogram1D("Track Momentum (Pz)").fill(trk.getTrackStates().get(0).getMomentum()[0]);
             aida.histogram1D("Track Chi2").fill(trk.getChi2());
 
-            SeedTrack stEle = (SeedTrack) trk;
-            SeedCandidate seedEle = stEle.getSeedCandidate();
-            HelicalTrackFit ht = seedEle.getHelix();
-            HelixConverter converter = new HelixConverter(0);
-            StraightLineTrack slt = converter.Convert(ht);
-            HPSTrack hpstrack = new HPSTrack(ht);
-            Hep3Vector[] trkatconver = hpstrack.getPositionAtZMap(100, BeamlineConstants.HARP_POSITION_TESTRUN, 1);
-            aida.histogram1D("X (mm) @ Converter").fill(trkatconver[0].x()); // y tracker frame?
-            aida.histogram1D("Y (mm) @ Converter").fill(trkatconver[0].y()); // z tracker frame?
+            Hep3Vector trkatconver = new BasicHep3Vector(TrackUtils.extrapolateTrackUsingFieldMap(trk, 100.0, BeamlineConstants.HARP_POSITION_TESTRUN, 5.0, event.getDetector().getFieldMap()).getReferencePoint());
+            aida.histogram1D("X (mm) @ Converter").fill(trkatconver.x()); // y tracker frame?
+            aida.histogram1D("Y (mm) @ Converter").fill(trkatconver.y()); // z tracker frame?
 
         }
     }

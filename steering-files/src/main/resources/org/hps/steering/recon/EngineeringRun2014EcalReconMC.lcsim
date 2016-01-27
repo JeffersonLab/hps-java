@@ -18,6 +18,7 @@
     <execute>
         <!--<driver name="EventMarkerDriver" />-->
         <driver name="EcalRunningPedestal"/>
+        <driver name="RfFitter"/>
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
         <driver name="GTPOnlineClusterer" />
@@ -28,6 +29,8 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>100</eventInterval>
         </driver>
+        <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
+        
      <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
        <detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
        <runNumber>3422</runNumber>

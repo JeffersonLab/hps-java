@@ -4,8 +4,8 @@
     <info name="HPS-EngRun2015-Nominal-v4-4-fieldmap">
         <comment>HPS detector for 2015 Engineering Run with tracker fully open
                  this detector uses the corrected fieldmap scaled to -0.24T for 1.056 GeV 
-                 running including SVT mechanical survey.  The ECal top is shifted up 2.7 mm
-                 from nominal and the bottom is shifted down 0.9 mm from nominal.
+                 running including SVT mechanical survey.  The ECal top is shifted up 2.3 mm
+                 from nominal and the bottom is shifted down 2.4 mm from nominal, based only on tracking.
                  SVT alignment: 
                  1) start from v3-2-fieldmap
                  2) beamspot BS_D: 

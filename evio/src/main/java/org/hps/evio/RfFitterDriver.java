@@ -43,38 +43,37 @@ public class RfFitterDriver extends Driver {
     IFunction fitFunction=new RfFitFunction();
 
     /*
-     * Check the event for an RF pulse, and, if found, fit it to get
-     * RF time and then dump it in the lcsim event.
+     * Check the event for an RF pulse, and, if found, fit it to get RF time.
      */
 	public void process(EventHeader event) {
-		if (!event.hasCollection(GenericObject.class,"FADCGenericHits")) return;
+		
+		List <RfHit> rfHits=new ArrayList<RfHit>();
 		
 		boolean foundRf=false;
-    	double times[]={-9999,-9999};
-    	
-    	for (GenericObject gob : event.get(GenericObject.class,"FADCGenericHits")) {
-			FADCGenericHit hit=(FADCGenericHit)gob;
-    		
-			// ignore hits not from proper RF signals based on crate/slot/channel:
-			if (hit.getCrate()!=CRATE || hit.getSlot()!=SLOT) continue;
-    		for (int ii=0; ii<CHANNELS.length; ii++) {
-				if (hit.getChannel()==CHANNELS[ii]) {
-					
-					// we found a RF readout, fit it:
-					foundRf=true;
-					times[ii] = fitPulse(hit);
-									  				    
-					break;
+		double times[]={-9999,-9999};
+		
+		if (event.hasCollection(GenericObject.class,"FADCGenericHits")) {
+
+			for (GenericObject gob : event.get(GenericObject.class,"FADCGenericHits")) {
+				FADCGenericHit hit=(FADCGenericHit)gob;
+
+				// ignore hits not from proper RF signals based on crate/slot/channel:
+				if (hit.getCrate()!=CRATE || hit.getSlot()!=SLOT) continue;
+				
+				for (int ii=0; ii<CHANNELS.length; ii++) {
+					if (hit.getChannel()==CHANNELS[ii]) {
+
+						// we found a RF readout, fit it:
+						foundRf=true;
+						times[ii] = fitPulse(hit);
+
+						break;
+					}
 				}
 			}
 		}
-		
-    	// if we found an RF readout, dump the fit result in the event:  
-    	if (foundRf) {
-    		List <RfHit> rfHits=new ArrayList<RfHit>();
-    		rfHits.add(new RfHit(times));
-	    	event.put("RFHits", rfHits, RfHit.class, 1);
-		}
+    	if (foundRf) rfHits.add(new RfHit(times));
+    	event.put("RFHits", rfHits, RfHit.class, 1);
 	}
 
 	/*

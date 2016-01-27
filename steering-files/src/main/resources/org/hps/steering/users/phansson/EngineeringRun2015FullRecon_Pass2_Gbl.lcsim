@@ -56,7 +56,7 @@
         <driver name="GBLOutputDriver" />
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
-        <!--<driver name="GblResidualEcalDriver" />-->
+        <driver name="GblResidualEcalDriver" />
         <!--<driver name="TrackExtrapolationTestDriver"/>-->
         <driver name="ReconParticleDriver" />  
         <!--<driver name="TrackingReconstructionPlots" />-->
@@ -162,13 +162,13 @@
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>  
         <driver name="AlignmentFilterDriver" type="org.hps.recon.filtering.SvtAlignmentFilter"/>     
-        <driver name="GblResidualEcalDriver" type="org.hps.users.phansson.ECalExtrapolationDriver"/>   
+        <driver name="GblResidualEcalDriver" type="org.hps.users.phansson.GblResidualDriver"/>   
         <driver name="TrackExtrapolationTestDriver" type="org.hps.users.phansson.TrackExtrapolationTestDriver"/>   
         <driver name="TrackingReconstructionPlots" type="org.hps.users.phansson.TrackingReconstructionPlots">
             <showPlots>False</showPlots>
         </driver>
         <driver name="TimerDriver1" type="org.hps.util.TimerDriver"/>
-        <driver name="GeomChecker" type="org.hps.users.phansson.TrackingGeometryChecker"/>
+        <driver name="GeomChecker" type="org.hps.users.phansson.tools.TrackingGeometryChecker"/>
 
     </drivers>
 </lcsim>

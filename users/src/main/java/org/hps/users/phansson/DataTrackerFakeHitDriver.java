@@ -16,10 +16,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 //===> import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.HPSTrack;
+import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
+import org.hps.recon.tracking.WTrack;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.ITranslation3D;
@@ -194,12 +196,12 @@ public class DataTrackerFakeHitDriver extends Driver {
 
 
         // Obtain the tracks from the event
-        if (!event.hasCollection(HPSTrack.class, trackCollectionName)) {
+        if (!event.hasCollection(HpsHelicalTrackFit.class, trackCollectionName)) {
             this.printDebug("No HPSTracks were found, skipping event");
             simHits = null;
             return;
         }
-        List<HPSTrack> tracks = event.get(HPSTrack.class, trackCollectionName);
+        List<HpsHelicalTrackFit> tracks = event.get(HpsHelicalTrackFit.class, trackCollectionName);
 
         if (debug) {
             System.out.println(this.getClass().getSimpleName() + ": found " + tracks.size() + " tracks (" + this.trackCollectionName + ")");
@@ -223,13 +225,13 @@ public class DataTrackerFakeHitDriver extends Driver {
             System.out.println(this.getClass().getSimpleName() + ": Add hits for " + tracks.size() + " tracks (" + this.trackCollectionName + ")");
         }
 
-        for (HPSTrack helix : tracks) {
+        for (HpsHelicalTrackFit helix : tracks) {
             if (debug) {
                 System.out.println(this.getClass().getSimpleName() + ": trying to add hits for this track");
             }
 
             // Get the MC Particle associated with this track
-            MCParticle mcParticle = helix.getMCParticle();
+            MCParticle mcParticle = helix.getMcParticle();
 
             if (debug) {
                 System.out.println(this.getClass().getSimpleName() + helix.toString());
@@ -238,8 +240,8 @@ public class DataTrackerFakeHitDriver extends Driver {
                 System.out.println(this.getClass().getSimpleName() + ": create a WTrack object");
             }
 
-            WTrack wtrack = new WTrack(helix, Math.abs(_bfield.z()), true); //remove sign from B-field (assumed to go along z-direction)
-
+            WTrack wtrack = new WTrack(helix, Math.abs(_bfield.z())); 
+            
             if (debug) {
                 System.out.println(this.getClass().getSimpleName() + ": " + wtrack.toString());
 

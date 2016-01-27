@@ -12,6 +12,45 @@ import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 
 public class EcalUtil {
+	
+	static int[] getCrystalIndex(Cluster c){
+		if(map == null){
+			try{
+				readMap();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		c.getPosition();
+		int bestix = 0, bestiy = 0;
+		double bestdist = 100000;
+
+		double cx = c.getPosition()[0];
+		double cy = c.getPosition()[1];
+		for(int ix = -23; ix<= 23; ix++){
+			if(!map.containsKey(200+ix))
+				continue;
+			double x = map.get(200+ix)[0];
+			if(Math.abs(x-cx)<bestdist){
+				bestdist = Math.abs(x-cx);
+				bestix = ix;
+			}
+		}
+		
+		bestdist = 100000;
+		for(int iy = -5; iy<= 5; iy++){
+			if(!map.containsKey(100*iy + bestix))
+				continue;
+			double y = map.get(100*iy + bestix)[1];
+			if(Math.abs(y-cy)<bestdist){
+				bestdist = Math.abs(y-cy);
+				bestiy = iy;
+			}
+		}
+		return new int[]{bestix, bestiy}; 
+	}
+	
+	
 	/**
 	 * Holly's algorithm.  
 	 * @param x x position of cluster
@@ -83,6 +122,40 @@ public class EcalUtil {
 
 		return in_fid;
 	}
+	/**
+	 * 
+	 * @param x
+	 * @param y
+	 * @param d the additional distance from the edge of the ecal in addition
+	 *       to what is required by fid_Cal(double, double)
+	 * @return
+	 */
+	public static boolean fid_ecal_more_strict(double x, double y, double d){
+		y = Math.abs(y);
+
+		boolean in_fid = false;
+		 
+		double x_edge_low = -262.74 + d;
+		double x_edge_high = 347.7 - d;
+		double y_edge_low = 33.54 + d;
+		double y_edge_high = 75.18 - d;
+
+		double x_gap_low = -106.66 - d;
+		double x_gap_high = 42.17 + d;
+		double y_gap_high = 47.18 + d;
+
+		y = Math.abs(y);
+
+		if( x > x_edge_low && x < x_edge_high && y > y_edge_low && y < y_edge_high )
+		{
+			if( !(x > x_gap_low && x < x_gap_high && y > y_edge_low && y < y_gap_high) )
+			{
+				in_fid = true;
+			}
+		}
+
+		return in_fid;
+	}
 	static double[] toSphericalFromBeam(double pxpz, double pypz){
 		double x = pxpz, y = pypz, z = 1;
 		double beamTilt = .03057;
@@ -96,10 +169,10 @@ public class EcalUtil {
 		
 		return new double[]{theta, phi};
 	}
-	static Map<Integer, double[]> map = new HashMap();
+	static Map<Integer, double[]> map ;
 	static void readMap() throws FileNotFoundException{
-		Scanner s = new Scanner(new File("ecal_positions.txt"));
-
+		Scanner s = new Scanner(new File(System.getenv("HOME") + "/ecal_positions.txt"));
+		map = new HashMap();
 		
 		while(s.hasNext()){
 			int ix =s.nextInt();
@@ -153,6 +226,12 @@ public class EcalUtil {
 		double x = xy[0];
 		double y = xy[1];
 		return fid_ECal(x, y);
+	}
+	public static boolean fid_ECal_spherical_more_strict(double theta, double phi, double d){
+		double[] xy = getXY(theta, phi);
+		double x = xy[0];
+		double y = xy[1];
+		return fid_ecal_more_strict(x, y, d);
 	}
 	public static void main(String arg[]){
 		double x = 0, y = 0;

@@ -11,8 +11,8 @@ import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.tracking.gbl.GBLOutput.ClParams;
-import org.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
+import org.hps.recon.tracking.gbl.GblUtils.ClParams;
+import org.hps.recon.tracking.gbl.GblUtils.PerigeeParams;
 import org.hps.svt.alignment.RunAlignment;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
@@ -67,34 +67,34 @@ public class GBLFileIO {
         addLine(String.format("Track perPar (R phi0 slope d0 z0) %.12f %.12f %.12f %.12f %.12f",htf.R(),htf.phi0(),htf.slope(),htf.dca(),htf.z0()));
     }
     
-    String getPerTrackParamStr(PerigeeParams perPar) {
+    String getPerTrackParamStr(GblUtils.PerigeeParams perPar) {
         return String.format("Track perPar (R theta phi d0 z0) %.12f %.12f %.12f %.12f %.12f",1.0/perPar.getKappa(),perPar.getTheta(),perPar.getPhi(),perPar.getD0(),perPar.getZ0());
     }
     
-    void printPerTrackParam(PerigeeParams perPar) {
+    void printPerTrackParam(GblUtils.PerigeeParams perPar) {
         addLine(this.getPerTrackParamStr(perPar));
     }
 
-    String getPerTrackParamTruthStr(PerigeeParams perPar) {
+    String getPerTrackParamTruthStr(GblUtils.PerigeeParams perPar) {
         return String.format("Truth perPar (kappa theta phi d0 z0) %.12f %.12f %.12f %.12f %.12f",perPar.getKappa(),perPar.getTheta(),perPar.getPhi(),perPar.getD0(),perPar.getZ0());
     }
 
-    void printPerTrackParamTruth(PerigeeParams perPar) {
+    void printPerTrackParamTruth(GblUtils.PerigeeParams perPar) {
         addLine(this.getPerTrackParamTruthStr(perPar));
     }
 
-    String getClTrackParamTruthStr(ClParams perPar) {
+    String getClTrackParamTruthStr(GblUtils.ClParams perPar) {
         return String.format("Truth clPar (q/p lambda phi xT yT) %.12f %.12f %.12f %.12f %.12f",perPar.getQoverP(),perPar.getLambda(),perPar.getPhi(),perPar.getXt(),perPar.getYt());
     }
 
-    void printClTrackParamTruth(ClParams perPar) {
+    void printClTrackParamTruth(GblUtils.ClParams perPar) {
         addLine(this.getClTrackParamTruthStr(perPar));
     }
 
-    String getClTrackParamStr(ClParams perPar) {
+    String getClTrackParamStr(GblUtils.ClParams perPar) {
         return String.format("Track clPar (q/p lambda phi xT yT) %.12f %.12f %.12f %.12f %.12f",perPar.getQoverP(),perPar.getLambda(),perPar.getPhi(),perPar.getXt(),perPar.getYt());
     }
-    void printClTrackParam(ClParams perPar) {
+    void printClTrackParam(GblUtils.ClParams perPar) {
         addLine(String.format("%s",this.getClTrackParamStr(perPar)));
     }
 

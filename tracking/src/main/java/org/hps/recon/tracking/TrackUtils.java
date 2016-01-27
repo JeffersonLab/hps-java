@@ -6,6 +6,7 @@ import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.SpacePoint;
 import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,10 +16,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.EventQuality.Quality;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
+
 import static org.lcsim.constants.Constants.fieldConversion;
+
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.solids.Box;
 import org.lcsim.detector.solids.Point3D;
@@ -84,6 +88,67 @@ public class TrackUtils {
     
     public static Hep3Vector extrapolateHelixToXPlane(TrackState track, double x) {
         return extrapolateHelixToXPlane(getHTF(track), x);
+    }
+    
+    /** 
+     * Change reference point of helix (following L3 Internal Note 1666.)
+     * @param newRefPoint - The new reference point in XY
+     */
+    public static double[] getParametersAtNewRefPoint(double[] newRefPoint, HpsHelicalTrackFit helicalTrackFit) {
+        return getParametersAtNewRefPoint(newRefPoint, helicalTrackFit.getRefPoint(),helicalTrackFit.parameters());
+    }
+    
+    /** 
+     * Change reference point of helix (following L3 Internal Note 1666.)
+     * @param newRefPoint - The new reference point in XY
+     */
+    public static double[] getParametersAtNewRefPoint(double[] newRefPoint, double[] __refPoint, 
+                                                 double[] parameters) {
+
+        double phi0 = parameters[HelicalTrackFit.phi0Index];
+        double curvature =parameters[HelicalTrackFit.curvatureIndex];
+        double dca = parameters[HelicalTrackFit.dcaIndex];
+        double slope = parameters[HelicalTrackFit.slopeIndex]; 
+        double z0 = parameters[HelicalTrackFit.z0Index];
+
+        //take care of phi0 range if needed (this matters for dphi below I think)
+        // L3 defines it in the range [-pi,pi]
+        if(phi0 > Math.PI) 
+            phi0 -= Math.PI*2;
+        
+        double dx = newRefPoint[0] - __refPoint[0];
+        double dy = newRefPoint[1] - __refPoint[1];
+        double sinphi = Math.sin(phi0);
+        double cosphi = Math.cos(phi0);
+        double R = 1.0/curvature;
+
+        // calculate new phi
+        double phinew = Math.atan2( sinphi - dx/(R-dca) , cosphi + dy/(R-dca)  );
+
+        // difference in phi
+        // watch out for ambiguity
+        double dphi = phinew - phi0;
+        if (Math.abs( dphi ) > Math.PI) 
+            throw new RuntimeException("dphi is large " +  dphi + " from phi0 " + phi0 
+                                        + " and phinew " + phinew + " take care of the ambiguity!!??");
+        
+        // calculate new dca
+        double dcanew = dca + dx*sinphi - dy*cosphi + (dx*cosphi + dy*sinphi)*Math.tan( dphi/2. );
+
+        // path length from old to new point
+        double s = -1.0*dphi/curvature;
+
+        // new z0
+        double z0new = z0 + s*slope;
+
+        // new array
+        double[] params = new double[5];
+        params[HelicalTrackFit.phi0Index] = phinew;
+        params[HelicalTrackFit.curvatureIndex] = curvature;
+        params[HelicalTrackFit.dcaIndex] = dcanew;
+        params[HelicalTrackFit.slopeIndex] = slope;
+        params[HelicalTrackFit.z0Index] = z0new;
+        return params;
     }
     
 
@@ -801,11 +866,11 @@ public class TrackUtils {
     
     
     /**
-     * Transform MCParticle into a Helix object. Note that it produces the helix
-     * parameters at nominal x=0 and assumes that there is no field at x<0
+     * Transform MCParticle into a {@link HelicalTrackFit} object. Note that it produces the {@link HelicalTrackFit}
+     * parameters at nominal reference point at origin and assumes that there is no field at x<0
      *
-     * @param mcp MC particle to be transformed
-     * @param org origin to be used for the track 
+     * @param mcp - MC particle to be transformed
+     * @param origin  - origin to be used for the track 
      * @return {@link HelicalTrackFit} object based on the MC particle
      */
     public static HelicalTrackFit getHTF(MCParticle mcp, Hep3Vector origin, double Bz) {
@@ -871,27 +936,7 @@ public class TrackUtils {
         return htf;
     }
 
-    public static StraightLineTrack findSLTAtZ(Track trk1, double zVal, boolean useFringe) {
-        SeedTrack s1 = (SeedTrack) trk1;
-        HelicalTrackFit htf1 = s1.getSeedCandidate().getHelix();
-        HPSTrack hpstrk1 = new HPSTrack(htf1);
-        Hep3Vector pos1;
-        if (useFringe) {
-            // broken because you need ot provide the Field Map to get this...
-//            pos1 = hpstrk1.getPositionAtZMap(100.0, zVal, 5.0)[0];            
-        } else
-            pos1 = TrackUtils.extrapolateTrack(trk1, zVal);
-        // System.out.printf("%s: Position1 at edge of fringe %s\n",this.getClass().getSimpleName(),pos1.toString());
-        Helix traj = (Helix) hpstrk1.getTrajectory();
-        if (traj == null) {
-            SpacePoint r0 = new SpacePoint(HelixUtils.PointOnHelix(htf1, 0));
-            traj = new Helix(r0, htf1.R(), htf1.phi0(), Math.atan(htf1.slope()));
-        }
-        HelixConverter converter = new HelixConverter(0.);
-        StraightLineTrack slt1 = converter.Convert(traj);
-        // System.out.printf("%s: straight line track: x0=%f,y0=%f,z0=%f dz/dx=%f dydx=%f targetY=%f targetZ=%f \n",this.getClass().getSimpleName(),slt1.x0(),slt1.y0(),slt1.z0(),slt1.dzdx(),slt1.dydx(),slt1.TargetYZ()[0],slt1.TargetYZ()[1]);
-        return slt1;
-    }
+    
 
     public static MCParticle getMatchedTruthParticle(Track track) {
         boolean debug = false;

@@ -12,9 +12,8 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 
 /**
  * This is the cluster energy correction requiring the particle id 
- * uncorrected cluster energy. This is not accurate for edge crystals
- * and should be used after cluster-track matching and after position
- * corrections.
+ * uncorrected cluster energy. This is now updated to include edge 
+ * corrections and sampling fractions derived from data. 
  * 
  * @author Holly Vance <hvanc001@odu.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
@@ -22,19 +21,19 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 public final class ClusterEnergyCorrection {
 	
 	// Variables for electron energy corrections.
-	static final double par0_em = 0.02203;
-    static final double par1_em[] = {35,-0.1795,-0.0005613,16.42,0.3431,-2.021,74.85,-0.3626};
-    static final double par2_em[] = {35, 1.011, 0.003234, 18.06, 0.2592, 8.586, 75.08, -0.3771};
+	static final double par0_em = -0.017;
+    static final double par1_em[] = {35,-0.06738,-0.0005613,16.42,0.3431,-2.021,74.85,-0.3626};
+    static final double par2_em[] = {35, 0.933, 0.003234, 18.06, 0.24, 8.586, 75.08, -0.39};
 
     // Variables for positron energy corrections.
-    static final double par0_ep = 0.01307;
-    static final double par1_ep[] = {35,-0.1415,-0.0008183,17.88,0.2886,-1.192,73.12,-0.3747};
-    static final double par2_ep[] = {35, 0.9733, 0.003713, 18.19, 0.2557, 8.342, 72.44, -0.3834};
+    static final double par0_ep = -0.0131;
+    static final double par1_ep[] = {35,-0.076,-0.0008183,17.88,0.2886,-1.192,73.12,-0.3747};
+    static final double par2_ep[] = {35, 0.94, 0.003713, 18.19, 0.24, 8.342, 72.44, -0.39};
     
     // Variables for photon energy corrections.
-    static final double par0_p = 0.01604;
-    static final double par1_p[] = {35,-0.1268,-0.0008572,16.76,0.2784,-0.07232,72.88,-0.1685};
-    static final double par2_p[] = {35, 0.965, 0.004, 18.05, 0.24, 3.027, 74.93, -0.3221};
+    static final double par0_p = -0.0113;
+    static final double par1_p[] = {35,-0.0585,-0.0008572,16.76,0.2784,-0.07232,72.88,-0.1685};
+    static final double par2_p[] = {35, 0.9307, 0.004, 18.05, 0.23, 3.027, 74.93, -0.34};
           
     /**
      * Calculate the corrected energy for the cluster.

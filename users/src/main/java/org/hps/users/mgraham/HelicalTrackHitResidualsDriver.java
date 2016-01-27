@@ -16,10 +16,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.EventQuality;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.users.phansson.TrigRateDriver;
+import org.hps.users.phansson.testrun.TrigRateDriver;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
