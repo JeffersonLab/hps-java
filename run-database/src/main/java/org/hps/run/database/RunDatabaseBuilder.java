@@ -11,12 +11,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.ConnectionParameters;
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.run.RunSpreadsheet;
 import org.hps.conditions.run.RunSpreadsheet.RunData;
 import org.hps.record.AbstractRecordProcessor;
 import org.hps.record.daqconfig.DAQConfig;
-import org.hps.record.daqconfig.DAQConfigEvioProcessor;
+import org.hps.record.daqconfig.TriggerConfigEvioProcessor;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsRunProcessor;
 import org.hps.record.evio.EventTagConstant;
@@ -28,16 +27,15 @@ import org.hps.record.scalers.ScalerData;
 import org.hps.record.scalers.ScalerUtilities;
 import org.hps.record.scalers.ScalerUtilities.LiveTimeIndex;
 import org.hps.record.scalers.ScalersEvioProcessor;
-import org.hps.record.svt.SvtConfigData;
-import org.hps.record.svt.SvtConfigEvioProcessor;
 import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.hps.record.triggerbank.HeadBankData;
 import org.hps.record.triggerbank.TiTimeOffsetEvioProcessor;
+import org.hps.record.triggerbank.TriggerConfigData;
+import org.hps.record.triggerbank.TriggerConfigData.Crate;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
-import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.srs.datacat.client.Client;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
@@ -119,12 +117,12 @@ final class RunDatabaseBuilder {
     /**
      * List of SVT configuration bank data.
      */
-    private List<SvtConfigData> svtConfigs;
+    //private List<SvtConfigData> svtConfigs;
     
     /**
      * The trigger config object.
      */
-    private TriggerConfig config;
+    private TriggerConfigData config;
     
     /**
      * Reload run data after insert for debugging.
@@ -164,8 +162,8 @@ final class RunDatabaseBuilder {
         List<ScalerData> scalerData = runManager.getScalerData();
         LOGGER.info("loaded " + scalerData.size() + " scaler records");
 
-        List<SvtConfigData> svtConfigs = runManager.getSvtConfigData();
-        LOGGER.info("loaded " + svtConfigs.size() + " SVT configurations");
+        //List<SvtConfigData> svtConfigs = runManager.getSvtConfigData();
+        //LOGGER.info("loaded " + svtConfigs.size() + " SVT configurations");
             
         LOGGER.info("printing DAQ config ...");
         DAQConfig daqConfig = runManager.getDAQConfig();
@@ -262,7 +260,7 @@ final class RunDatabaseBuilder {
         runFactory.getRunSummaryDao().insertRunSummary(runSummary);
 
         // Insert the EPICS data.
-        if (epicsData != null) {
+        if (epicsData != null && !epicsData.isEmpty()) {
             LOGGER.info("inserting EPICS data");
             runFactory.getEpicsDataDao().insertEpicsData(epicsData);
         } else {
@@ -278,19 +276,19 @@ final class RunDatabaseBuilder {
         }
 
         // Insert SVT config data.
-        if (this.svtConfigs != null) {
-            LOGGER.info("inserting SVT config");
-            runFactory.getSvtConfigDao().insertSvtConfigs(svtConfigs, getRun());
-        } else {
-            LOGGER.warning("no SVT config to insert");
-        }
+        //if (this.svtConfigs != null) {
+        //    LOGGER.info("inserting SVT config");
+        //    runFactory.getSvtConfigDao().insertSvtConfigs(svtConfigs, getRun());
+        //} else {
+        //    LOGGER.warning("no SVT config to insert");
+        //}
         
         // Insert trigger config data.
         if (this.config != null) {
             LOGGER.info("inserting trigger config");
             runFactory.getTriggerConfigDao().insertTriggerConfig(config, getRun());
         } else {
-            LOGGER.warning("no trigger config to inesrt");
+            LOGGER.warning("no trigger config to insert");
         }
                        
         LOGGER.info("done inserting run " + getRun());
@@ -311,6 +309,7 @@ final class RunDatabaseBuilder {
         } else {
             LOGGER.info("no scaler data");
         }
+        /*
         if (svtConfigs != null) {
             for (SvtConfigData config : svtConfigs) {
                 try {
@@ -322,8 +321,9 @@ final class RunDatabaseBuilder {
         } else {
             LOGGER.info("no SVT config");
         }
+        */
         if (config != null) {
-            for (Entry<Integer, String> entry : config.getData().entrySet()) {
+            for (Entry<Crate, String> entry : config.getData().entrySet()) {
                 LOGGER.info("trigger config data " + entry.getKey() + " with timestamp " + config.getTimestamp() + " ..." + entry.getValue());
             }
         } else {
@@ -343,6 +343,7 @@ final class RunDatabaseBuilder {
         }
 
         // Initialize the conditions system because the DAQ config processor needs it.
+        /*
         try {
             DatabaseConditionsManager dbManager = DatabaseConditionsManager.getInstance();
             DatabaseConditionsManager.getInstance().setDetector(detectorName, runSummary.getRun());
@@ -350,6 +351,7 @@ final class RunDatabaseBuilder {
         } catch (ConditionsNotFoundException e) {
             throw new RuntimeException(e);
         }
+        */
 
         // List of processors to execute in the job.
         ArrayList<AbstractRecordProcessor<EvioEvent>> processors = new ArrayList<AbstractRecordProcessor<EvioEvent>>();
@@ -368,12 +370,12 @@ final class RunDatabaseBuilder {
         processors.add(tiProcessor);
 
         // Processor for getting DAQ config.
-        DAQConfigEvioProcessor daqProcessor = new DAQConfigEvioProcessor();
+        TriggerConfigEvioProcessor daqProcessor = new TriggerConfigEvioProcessor();
         processors.add(daqProcessor);
 
         // Processor for getting the SVT XML config.
-        SvtConfigEvioProcessor svtProcessor = new SvtConfigEvioProcessor();
-        processors.add(svtProcessor);
+        //SvtConfigEvioProcessor svtProcessor = new SvtConfigEvioProcessor();
+        //processors.add(svtProcessor);
 
         // Run the job using the EVIO loop.
         EvioLoop loop = new EvioLoop();
@@ -398,12 +400,10 @@ final class RunDatabaseBuilder {
         scalerData = scalersProcessor.getScalerData();
 
         // Set SVT config data strings.
-        svtConfigs = svtProcessor.getSvtConfigs();
+        //svtConfigs = svtProcessor.getSvtConfigs();
         
         // Set trigger config object.
-        if (!daqProcessor.getTriggerConfigData().isEmpty()) {            
-            config = new TriggerConfig(daqProcessor.getTriggerConfigData(), daqProcessor.getTimestamp());
-        }
+        config = daqProcessor.getTriggerConfigData();
 
         LOGGER.info("done processing EVIO files");
     }
@@ -558,6 +558,12 @@ final class RunDatabaseBuilder {
         return this;
     }
     
+    /**
+     * Set the datacat site.
+     * 
+     * @param site the datacat site
+     * @return this object
+     */
     RunDatabaseBuilder setSite(String site) {
         this.site = site;
         return this;
@@ -734,16 +740,17 @@ final class RunDatabaseBuilder {
     private void updateLivetimes(ScalersEvioProcessor scalersProcessor) {
         LOGGER.fine("updating livetime calculations");
         ScalerData scalers = scalersProcessor.getCurrentScalerData();
-        if (scalers == null) {
-            throw new IllegalStateException("No scaler data was found by the EVIO processor.");
+        if (scalers != null) {
+            double[] livetimes = ScalerUtilities.getLiveTimes(scalers);
+            runSummary.setLivetimeClock(livetimes[LiveTimeIndex.CLOCK.ordinal()]);
+            runSummary.setLivetimeFcupTdc(livetimes[LiveTimeIndex.FCUP_TDC.ordinal()]);
+            runSummary.setLivetimeFcupTrg(livetimes[LiveTimeIndex.FCUP_TRG.ordinal()]);
+            LOGGER.info("clock livetime = " + runSummary.getLivetimeClock());
+            LOGGER.info("fcup tdc livetime = " + runSummary.getLivetimeFcupTdc());
+            LOGGER.info("fcup trg livetime = " + runSummary.getLivetimeFcupTrg());
+        } else {
+            LOGGER.warning("Could not calculate livetimes; no scaler data was found by the EVIO processor.");
         }
-        double[] livetimes = ScalerUtilities.getLiveTimes(scalers);
-        runSummary.setLivetimeClock(livetimes[LiveTimeIndex.CLOCK.ordinal()]);
-        runSummary.setLivetimeFcupTdc(livetimes[LiveTimeIndex.FCUP_TDC.ordinal()]);
-        runSummary.setLivetimeFcupTrg(livetimes[LiveTimeIndex.FCUP_TRG.ordinal()]);
-        LOGGER.info("clock livetime = " + runSummary.getLivetimeClock());
-        LOGGER.info("fcup tdc livetime = " + runSummary.getLivetimeFcupTdc());
-        LOGGER.info("fcup trg livetime = " + runSummary.getLivetimeFcupTrg());
     }
 
     /**

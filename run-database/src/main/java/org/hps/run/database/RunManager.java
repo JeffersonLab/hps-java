@@ -10,6 +10,7 @@ import org.hps.record.daqconfig.DAQConfig;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.svt.SvtConfigData;
+import org.hps.record.triggerbank.TriggerConfigData;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsListener;
 
@@ -220,7 +221,7 @@ public final class RunManager implements ConditionsListener {
      */
     public DAQConfig getDAQConfig() {
         this.checkRunNumber();
-        TriggerConfig config = factory.getTriggerConfigDao().getTriggerConfig(run);
+        TriggerConfigData config = factory.getTriggerConfigDao().getTriggerConfig(run);
         return config.loadDAQConfig(run);
     }
      

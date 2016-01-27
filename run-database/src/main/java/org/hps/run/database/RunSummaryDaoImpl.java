@@ -52,13 +52,6 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         if (connection == null) {
             throw new IllegalArgumentException("The connection is null.");
         }
-        try {
-            if (connection.isClosed()) {
-                throw new IllegalArgumentException("The connection is closed.");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
         this.connection = connection;
     }
 

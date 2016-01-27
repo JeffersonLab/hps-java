@@ -152,7 +152,7 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
             final List<EpicsVariable> variables = epicsVariableDao.getEpicsVariables(epicsType);
             selectEpicsData = connection.prepareStatement("SELECT * FROM " + epicsType.getTableName() 
                     + " LEFT JOIN epics_headers ON " + epicsType.getTableName() + ".epics_header_id = epics_headers.id"
-                    + " WHERE epics_headers.run = ?");
+                    + " WHERE epics_headers.run = ? ORDER BY epics_headers.sequence");
             selectEpicsData.setInt(1, run);
             ResultSet resultSet = selectEpicsData.executeQuery();
             while (resultSet.next()) {

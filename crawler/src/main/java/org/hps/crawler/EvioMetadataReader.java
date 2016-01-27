@@ -29,6 +29,8 @@ import org.jlab.coda.jevio.EvioReader;
  * 
  * @author Jeremy McCormick, SLAC
  */
+// TODO: add physics events count
+// TODO: remove trigger rate and TI time offset 
 final class EvioMetadataReader implements FileMetadataReader {
 
     /**
@@ -56,6 +58,7 @@ final class EvioMetadataReader implements FileMetadataReader {
     public Map<String, Object> getMetadata(final File file) throws IOException {
         
         long events = 0;
+        int physicsEvents = 0;
         int badEvents = 0;
         int blinded = 0;
         Long run = null;
@@ -63,7 +66,7 @@ final class EvioMetadataReader implements FileMetadataReader {
         Integer lastHeadTimestamp = null;
         Integer lastPhysicsEvent = null;
         Integer firstPhysicsEvent = null;
-        double triggerRate = 0;
+        Double triggerRate = null;
         long lastTI = 0;
         long minTIDelta = 0;
         long maxTIDelta = 0;
@@ -188,6 +191,8 @@ final class EvioMetadataReader implements FileMetadataReader {
                                 LOGGER.finer("set first physics event " + firstPhysicsEvent);
                             }
                         }
+                        
+                        ++physicsEvents;
                     }
 
                     // Count trigger types for this event.
@@ -201,7 +206,8 @@ final class EvioMetadataReader implements FileMetadataReader {
                     // Activate TI time offset processor.
                     tiProcessor.process(evioEvent);
                     
-                } catch (IOException | EvioException e) {
+                //} catch (IOException | NegativeArraySizeException | EvioException e) {
+                } catch (Exception e) {  
                     // Trap event processing errors.
                     badEvents++;
                     LOGGER.warning("error processing EVIO event " + evioEvent.getEventNumber());
@@ -237,6 +243,14 @@ final class EvioMetadataReader implements FileMetadataReader {
         // Create and fill the metadata map.
         final Map<String, Object> metadataMap = new LinkedHashMap<String, Object>();
 
+        try {
+            if (run == null) {
+                run = new Long(EvioFileUtilities.getRunFromName(file));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to determine run number from data or file name.", e);
+        }
+
         // Set built-in system metadata.
         metadataMap.put("runMin", run);
         metadataMap.put("runMax", run);
@@ -251,28 +265,56 @@ final class EvioMetadataReader implements FileMetadataReader {
         metadataMap.put("BLINDED", blinded);
 
         // First and last timestamps which may come from control or physics events.
-        metadataMap.put("FIRST_HEAD_TIMESTAMP", firstHeadTimestamp);
-        metadataMap.put("LAST_HEAD_TIMESTAMP", lastHeadTimestamp);
+        if (firstHeadTimestamp != null) {
+            metadataMap.put("FIRST_HEAD_TIMESTAMP", firstHeadTimestamp);
+        } else {
+            metadataMap.put("FIRST_HEAD_TIMESTAMP", 0L);
+        }
+        
+        if (lastHeadTimestamp != null) {
+            metadataMap.put("LAST_HEAD_TIMESTAMP", lastHeadTimestamp);
+        } else {
+            metadataMap.put("LAST_HEAD_TIMESTAMP", 0L);
+        }
 
         // First and last physics event numbers.
-        metadataMap.put("FIRST_PHYSICS_EVENT", firstPhysicsEvent);
-        metadataMap.put("LAST_PHYSICS_EVENT", lastPhysicsEvent);
+        if (firstPhysicsEvent != null) {
+            metadataMap.put("FIRST_PHYSICS_EVENT", firstPhysicsEvent);
+        } else {
+            metadataMap.put("FIRST_PHYSICS_EVENT", 0L);
+        }
+        
+        if (lastPhysicsEvent != null) {
+            metadataMap.put("LAST_PHYSICS_EVENT", lastPhysicsEvent);
+        } else {
+            metadataMap.put("LAST_PHYSICS_EVENT", 0L);
+        }
 
         // TI times and offset.
         metadataMap.put("FIRST_TI_TIME", firstTI);
         metadataMap.put("LAST_TI_TIME", lastTI);
         metadataMap.put("TI_TIME_DELTA", maxTIDelta - minTIDelta);
         
-        // TI time offset (stored as string because of bug in MySQL datacat backend).
-        metadataMap.put("TI_TIME_OFFSET", tiProcessor.getTiTimeOffset());
+        // TI time offset.
+        //metadataMap.put("TI_TIME_OFFSET", tiProcessor.getTiTimeOffset());
 
         // Event counts.
         metadataMap.put("BAD_EVENTS", badEvents);
         
-        // Trigger rate in KHz.
-        DecimalFormat df = new DecimalFormat("#.##");
-        df.setRoundingMode(RoundingMode.CEILING);
-        metadataMap.put("TRIGGER_RATE", Double.parseDouble(df.format(triggerRate)));
+        // Physics event count.
+        metadataMap.put("PHYSICS_EVENTS",  physicsEvents);
+        
+        // Trigger rate in Hz to 2 decimal places.
+        /*
+        if (triggerRate != null && !Double.isInfinite(triggerRate) && !Double.isNaN(triggerRate)) {
+            DecimalFormat df = new DecimalFormat("#.##");
+            df.setRoundingMode(RoundingMode.CEILING);
+            LOGGER.info("setting trigger rate " + triggerRate);
+            metadataMap.put("TRIGGER_RATE", Double.parseDouble(df.format(triggerRate)));
+        } else {
+            metadataMap.put("TRIGGER_RATE", 0);
+        }
+        */
 
         // Trigger type counts.
         for (Entry<TriggerType, Integer> entry : triggerCounts.entrySet()) {

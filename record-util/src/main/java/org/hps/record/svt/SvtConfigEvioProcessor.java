@@ -58,12 +58,18 @@ public class SvtConfigEvioProcessor extends EvioEventProcessor {
                                     config = new SvtConfigData(timestamp);
                                 }
                                 if (stringData.length > 0) {
+                                    System.out.println("found string data with length " + stringData.length);
+                                    for (int i = 0; i < stringData.length; i++) {
+                                        System.out.println("Printing raw string data " + i + " ...");
+                                        System.out.println(stringData[i]);
+                                        System.out.println("End print raw string data");
+                                    }                                                                       
                                     if (!stringData[0].trim().isEmpty()) {
-                                        LOGGER.info("Adding SVT config data with len " + stringData[0].length() + " ..." + '\n' + stringData[0]);
+                                        LOGGER.info("Adding SVT config data with len " + stringData[0].length() + " ..." + '\n' + stringData[0]);                                        
                                         config.setData(RocTag.fromTag(bank.getHeader().getTag()), stringData[0]);
                                         ++configBanks;
                                     } else {
-                                        LOGGER.warning("String data has no XML content.");
+                                        LOGGER.warning("String data has no content.");
                                     }
                                 } else {
                                     LOGGER.warning("String data has zero len.");
@@ -73,7 +79,7 @@ public class SvtConfigEvioProcessor extends EvioEventProcessor {
                     }
                 }
             }
-        } 
+        }
         if (config != null) {
             LOGGER.info("Adding SVT config " + evioEvent.getEventNumber() + " with " + configBanks
                     + " banks and timestamp " + timestamp + " from event " + evioEvent.getEventNumber());

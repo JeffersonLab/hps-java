@@ -243,7 +243,7 @@ public final class DatacatCrawler {
 
         // Check that there is at least one file format enabled for filtering.
         if (this.config.getFileFormats().isEmpty()) {
-            throw new IllegalStateException("At least one file format must be provided with the -f switch.");
+            throw new IllegalStateException("At least one file format must be provided with the -o switch.");
         }
 
         LOGGER.info("Done parsing command line options.");

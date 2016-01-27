@@ -96,7 +96,8 @@ final class ScalerDataDaoImpl implements ScalerDataDao {
         PreparedStatement selectScalers = null;
         final List<ScalerData> scalerDataList = new ArrayList<ScalerData>();
         try {
-            selectScalers = this.connection.prepareStatement("SELECT * FROM scalers WHERE run = ? ORDER BY event");
+            selectScalers = this.connection.prepareStatement("SELECT * FROM sc"
+                    + "alers WHERE run = ? ORDER BY event");
             selectScalers.setInt(1, run);
             final ResultSet resultSet = selectScalers.executeQuery();
             while (resultSet.next()) {

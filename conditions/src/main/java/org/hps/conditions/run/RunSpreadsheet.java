@@ -264,7 +264,7 @@ public final class RunSpreadsheet {
                 try {
                     addRunData(new RunData(record));
                 } catch (NumberFormatException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                 }
             }
         }

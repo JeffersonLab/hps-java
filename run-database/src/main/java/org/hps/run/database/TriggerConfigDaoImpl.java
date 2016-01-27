@@ -8,6 +8,9 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.hps.record.triggerbank.TriggerConfigData;
+import org.hps.record.triggerbank.TriggerConfigData.Crate;
+
 final class TriggerConfigDaoImpl implements TriggerConfigDao {
       
     private static final String INSERT =
@@ -37,7 +40,7 @@ final class TriggerConfigDaoImpl implements TriggerConfigDao {
     
 
     @Override
-    public void insertTriggerConfig(TriggerConfig config, int run) {
+    public void insertTriggerConfig(TriggerConfigData config, int run) {
         if (!config.isValid()) {
             throw new RuntimeException("The trigger config is not valid.");
         }
@@ -46,14 +49,14 @@ final class TriggerConfigDaoImpl implements TriggerConfigDao {
             preparedStatement = connection.prepareStatement(INSERT);
             preparedStatement.setInt(1, run);
             preparedStatement.setInt(2, config.getTimestamp());
-            Map<Integer, String> data = config.getData();
-            if (data.size() != TriggerConfig.DATA_LENGTH) {
+            Map<Crate, String> data = config.getData();
+            if (data.size() != TriggerConfigData.Crate.values().length) {
                 throw new IllegalArgumentException("The trigger config data has the wrong length.");
             }
-            preparedStatement.setBytes(3, data.get(TriggerConfig.CONFIG1).getBytes());
-            preparedStatement.setBytes(4, data.get(TriggerConfig.CONFIG2).getBytes());
-            preparedStatement.setBytes(5, data.get(TriggerConfig.CONFIG3).getBytes());
-            preparedStatement.setBytes(6, data.get(TriggerConfig.CONFIG4).getBytes());
+            preparedStatement.setBytes(3, data.get(TriggerConfigData.Crate.CONFIG1).getBytes());
+            preparedStatement.setBytes(4, data.get(TriggerConfigData.Crate.CONFIG2).getBytes());
+            preparedStatement.setBytes(5, data.get(TriggerConfigData.Crate.CONFIG3).getBytes());
+            preparedStatement.setBytes(6, data.get(TriggerConfigData.Crate.CONFIG4).getBytes());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -87,33 +90,33 @@ final class TriggerConfigDaoImpl implements TriggerConfigDao {
     }
     
     @Override
-    public TriggerConfig getTriggerConfig(int run) {
+    public TriggerConfigData getTriggerConfig(int run) {
         PreparedStatement preparedStatement = null;
-        TriggerConfig config = null;
+        TriggerConfigData config = null;
         try {
             preparedStatement = connection.prepareStatement(SELECT);
             preparedStatement.setInt(1, run);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                Map<Integer, String> data = new LinkedHashMap<Integer, String>();
+                Map<Crate, String> data = new LinkedHashMap<Crate, String>();
                 int timestamp = resultSet.getInt("timestamp");
                 Clob clob = resultSet.getClob("config1");
                 if (clob != null) {
-                    data.put(TriggerConfig.CONFIG1, clob.getSubString(1, (int) clob.length()));
+                    data.put(TriggerConfigData.Crate.CONFIG1, clob.getSubString(1, (int) clob.length()));
                 }
                 clob = resultSet.getClob("config2");
                 if (clob != null) {
-                    data.put(TriggerConfig.CONFIG2, clob.getSubString(1, (int) clob.length()));
+                    data.put(TriggerConfigData.Crate.CONFIG2, clob.getSubString(1, (int) clob.length()));
                 }
                 clob = resultSet.getClob("config3");
                 if (clob != null) {
-                    data.put(TriggerConfig.CONFIG3, clob.getSubString(1, (int) clob.length()));
+                    data.put(TriggerConfigData.Crate.CONFIG3, clob.getSubString(1, (int) clob.length()));
                 }
                 clob = resultSet.getClob("config4");
                 if (clob != null) {
-                    data.put(TriggerConfig.CONFIG4, clob.getSubString(1, (int) clob.length()));
+                    data.put(TriggerConfigData.Crate.CONFIG4, clob.getSubString(1, (int) clob.length()));
                 }
-                config = new TriggerConfig(data, timestamp);
+                config = new TriggerConfigData(data, timestamp);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

@@ -69,7 +69,7 @@
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>${outputFile}.root</outputFileName>
+            <outputFileName>${outputFile}</outputFileName>
         </driver>
 
         <!-- all triggers  -->

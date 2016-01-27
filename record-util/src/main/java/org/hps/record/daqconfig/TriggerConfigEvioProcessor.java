@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 import org.hps.record.evio.EvioBankTag;
 import org.hps.record.evio.EvioEventProcessor;
 import org.hps.record.evio.EvioEventUtilities;
+import org.hps.record.triggerbank.TriggerConfigData;
+import org.hps.record.triggerbank.TriggerConfigData.Crate;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 
@@ -19,19 +21,13 @@ import org.jlab.coda.jevio.EvioEvent;
  * 
  * @author Jeremy McCormick, SLAC
  */
-public class DAQConfigEvioProcessor extends EvioEventProcessor {
+public class TriggerConfigEvioProcessor extends EvioEventProcessor {
 
-    private Logger LOGGER = Logger.getLogger(DAQConfigEvioProcessor.class.getPackage().getName());
-        
-    private DAQConfig daqConfig = null;
-    
-    private Map<Integer, String> stringData = new HashMap<Integer, String>();
-    
+    private Logger LOGGER = Logger.getLogger(TriggerConfigEvioProcessor.class.getPackage().getName());
+            
+    private TriggerConfigData triggerConfig = null;    
     private Integer run = null;
-    
-    private int timestamp;
-    
-    private int currentTimestamp;
+    private int timestamp = 0;
 
     /**
      * Process EVIO events to extract DAQ config data.
@@ -55,22 +51,13 @@ public class DAQConfigEvioProcessor extends EvioEventProcessor {
                 BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
                 if (headBank != null) {
                     if (headBank.getIntData()[3] != 0) {
-                        currentTimestamp = headBank.getIntData()[3];
-                        LOGGER.finest("set timestamp " + currentTimestamp + " from head bank");
+                        timestamp = headBank.getIntData()[3];
+                        LOGGER.finest("set timestamp " + timestamp + " from head bank");
                     }
                 }
-                                
+                
                 // Parse config data from the EVIO banks.
-                EvioDAQParser evioParser = parseEvioData(evioEvent);
-            
-                // Was there a valid config created from the EVIO event?
-                if (evioParser != null) {            
-                    // Set the current DAQ config object.
-                    ConfigurationManager.updateConfiguration(evioParser);
-                    daqConfig = ConfigurationManager.getInstance();
-                    timestamp = currentTimestamp;
-                }
-                                
+                parseEvioData(evioEvent);                                                          
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Error parsing DAQ config from EVIO.", e);
@@ -83,9 +70,8 @@ public class DAQConfigEvioProcessor extends EvioEventProcessor {
      * @param evioEvent the EVIO event
      * @return a parser object if the event has valid config data; otherwise <code>null</code>
      */
-    private EvioDAQParser parseEvioData(EvioEvent evioEvent) {
-        EvioDAQParser parser = null;
-        int configBanks = 0;
+    private void parseEvioData(EvioEvent evioEvent) {
+        Map<Crate, String> stringData = null;
         for (BaseStructure bank : evioEvent.getChildrenList()) {
             if (bank.getChildCount() <= 0) {
                 continue;
@@ -97,57 +83,35 @@ public class DAQConfigEvioProcessor extends EvioEventProcessor {
                         LOGGER.warning("Trigger config bank is missing string data.");
                     } else {
                         try { 
-                            if (parser == null) {
-                                parser = new EvioDAQParser();
-                                stringData.clear();
+                            if (stringData == null) {
+                                stringData = new HashMap<Crate, String>();
                             }
-                            LOGGER.fine("raw string data" + subBank.getStringData()[0]);
-                            stringData.put(crate, subBank.getStringData()[0]);
-                            LOGGER.info("Parsing DAQ config from crate " + crate + ".");
-                            parser.parse(crate, run, subBank.getStringData());
-                            ++configBanks;
+                            //LOGGER.fine("got raw trigger config string data ..." + '\n' + subBank.getStringData()[0]);
+                            stringData.put(TriggerConfigData.Crate.fromCrateNumber(crate), subBank.getStringData()[0]);
                         } catch (Exception e) {
-                            LOGGER.log(Level.WARNING, "Failed to parse DAQ config.", e);
+                            LOGGER.log(Level.WARNING, "Failed to parse crate " + crate + " config.", e);
                         }
                     }
                 }
             }
         }
-        if (configBanks >= 4 || parser == null) {
-            if (parser != null) {
-                LOGGER.info("DAQ config was created from event " + evioEvent.getEventNumber() + " with " + configBanks + " banks.");
+        if (stringData != null) {
+            TriggerConfigData currentConfig = new TriggerConfigData(stringData, timestamp);
+            if (currentConfig.isValid()) {
+                triggerConfig = currentConfig;
+                LOGGER.warning("Found valid config in event num " + evioEvent.getEventNumber());
+            } else {
+                LOGGER.warning("Skipping invalid config from event num "  + evioEvent.getEventNumber());
             }
-            return parser;
-        } else {
-            LOGGER.warning("Not enough banks were found to build DAQ config.");
-            return null;
         }
     }
-
-    /**
-     * Get the DAQ config.
-     * 
-     * @return the DAQ config
-     */
-    public DAQConfig getDAQConfig() {
-        return this.daqConfig;
-    }
-    
+   
     /**
      * Get a map of bank number to string data for the current config.
      * 
      * @return a map of bank to trigger config data
      */
-    public Map<Integer, String> getTriggerConfigData() {
-        return this.stringData;
-    }
-    
-    /**
-     * Get the timestamp associated with the config.
-     * 
-     * @return the timestamp
-     */
-    public int getTimestamp() {
-        return timestamp;
+    public TriggerConfigData getTriggerConfigData() {
+        return this.triggerConfig;
     }
 }

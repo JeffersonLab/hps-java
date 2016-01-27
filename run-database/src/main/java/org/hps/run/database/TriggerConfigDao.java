@@ -1,7 +1,9 @@
 package org.hps.run.database;
 
+import org.hps.record.triggerbank.TriggerConfigData;
+
 /**
- * Database interface for getting raw trigger config data.
+ * Database interface for getting raw trigger config data and inserting into run db.
  * 
  * @author Jeremy McCormick, SLAC
  */
@@ -13,7 +15,7 @@ interface TriggerConfigDao {
      * @param run the run number
      * @return the trigger config
      */
-    TriggerConfig getTriggerConfig(int run);
+    TriggerConfigData getTriggerConfig(int run);
     
     /**
      * Insert a trigger config.
@@ -21,7 +23,7 @@ interface TriggerConfigDao {
      * @param config the trigger config
      * @param run the run number
      */
-    void insertTriggerConfig(TriggerConfig config, int run);
+    void insertTriggerConfig(TriggerConfigData config, int run);
             
     /**
      * Delete a trigger config by run.
