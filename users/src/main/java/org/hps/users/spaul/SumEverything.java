@@ -3,6 +3,7 @@ package org.hps.users.spaul;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
@@ -17,12 +18,14 @@ import hep.aida.ITreeFactory;
 // and put the sums in separate files in a folder called "sums"
 public class SumEverything {
 	public static void main(String arg[]) throws IllegalArgumentException, IOException{
-		if(arg.length > 1){
+		if(arg.length == 2){
 			twoArg(arg[0], arg[1]);
 		}
-		else{
+		else if(arg.length == 1){
 			oneArg(arg[0]);
 		}
+		else 
+			polyArg(arg);
 	}
 	static void oneArg(final String indir) throws IllegalArgumentException, IOException{
 		File outdir = new File(indir + "/sums");
@@ -64,53 +67,71 @@ public class SumEverything {
 
 	}
 
+
+
 	static void twoArg(String indir, String out) throws IllegalArgumentException, IOException{
+
+		run(new File(indir).listFiles(), out);
+	}
+	static void run(File[] files, String out) throws IllegalArgumentException, IOException{
 		IAnalysisFactory af = IAnalysisFactory.create();
 		ITreeFactory tf = af.createTreeFactory();
 		new File(out).delete();
-		ITree tree0 = tf.create(out, "xml", false, true);
-		IHistogramFactory hf = af.createHistogramFactory(tree0);
-
-
+		ITree outtree = tf.create(out, "xml", false, true);
+		//IHistogramFactory hf = af.createHistogramFactory(outtree);
 		int j = 0;
-		for(File s : new File(indir).listFiles()){
+		String names[] = null;
+		for(File s : files){
 			if(!s.getAbsolutePath().endsWith("aida"))
 				continue;
 			try{
-				ITree tree = af.createTreeFactory().create(s.getAbsolutePath(),"xml");
+				ITree tree = tf.create(s.getAbsolutePath(),"xml");
 
 
 				if(j == 0){
-					String [] names = tree.listObjectNames();
-					tree0.mount("/tmp", tree, "/");
+					names = tree.listObjectNames("/", true);
+					System.out.println(Arrays.toString(names));
+					outtree.mount("/tmp", tree, "/");
 					for(String name : names){
+						if(name.endsWith("/")){
+							outtree.mkdirs(name);
+							continue;
+						}
 						Object o = tree.find(name);
 						if(o instanceof IHistogram1D || o instanceof IHistogram2D)
-							tree0.cp("/tmp/" + name, name);
+							outtree.cp("/tmp" + name, name);
 					}
-					tree0.unmount("/tmp");
-					tree.close();
+					outtree.unmount("/tmp");
+					//tree.close();
 
 				}
 				else{
 					//tree.
-					String [] names = tree.listObjectNames();
-					tree0.mount("/tmp", tree, "/");
+					//String [] names = tree.listObjectNames("/", true);
+					//outtree.mount("/tmp", tree, "/");
+					//System.out.println(Arrays.toString(names));
 					for(String name : names){
-						Object o = tree.find(name);
+						if(name.endsWith("/"))
+							continue;
+						Object o = null;
+						try{
+							o = tree.find(name);
+						} catch(IllegalArgumentException e){
+							System.err.println("couldn't find object called " + name +  " in file " + s);
+							throw e;
+						}
 						if(o instanceof IHistogram1D)
-							((IHistogram1D)tree0.find(name)).add((IHistogram1D)o);
+							((IHistogram1D)outtree.find(name)).add((IHistogram1D)o);
 						if(o instanceof IHistogram2D)
-							((IHistogram2D)tree0.find(name)).add((IHistogram2D)o);
+							((IHistogram2D)outtree.find(name)).add((IHistogram2D)o);
 					}
-					tree0.unmount("/tmp");
-					tree.close();
+					//outtree.unmount("/tmp");
+					//tree.close();
 				}
 
 				tree.close();
 				j++;
 				System.out.println(j + " files have been read");
-
 
 			} catch(IllegalArgumentException e){
 				//print the filename
@@ -118,7 +139,27 @@ public class SumEverything {
 
 				e.printStackTrace();
 			}
-			tree0.commit();
+
+			outtree.commit();
+		}
+	}
+
+	static void polyArg(String[] arg) throws IllegalArgumentException, IOException{
+		ArrayList<File> files = new ArrayList<File>();
+		boolean nextIsOutput = false;
+		for(String a : arg){
+			if(a.equals("-o")){
+				nextIsOutput = true; 
+				continue;
+			}
+			if(nextIsOutput){
+				run(files.toArray(new File[0]), a);
+				nextIsOutput = false;
+				files.clear();
+				continue;
+			}
+			files.add(new File(a));
+
 		}
 	}
 }
