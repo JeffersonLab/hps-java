@@ -18,13 +18,12 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        <!--    <driver name="DQMDatabaseDriver" type="org.hps.analysis.dataquality.DQMDatabaseDriver"/> -->
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
+            <eventInterval>100</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>${outputFile}.root</outputFileName>
+            <outputFileName>${outputFile}</outputFileName>
         </driver>
         <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">
             <overwriteDB>false</overwriteDB>
@@ -48,6 +47,5 @@
             <overwriteDB>false</overwriteDB>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-
     </drivers>
 </lcsim>
