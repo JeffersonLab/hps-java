@@ -80,7 +80,7 @@
                         <binFileExtensions>
                                 <unix>.sh</unix>
                             </binFileExtensions>
-                            <extraJvmArguments>-Djava.util.logging.config.class=org.hps.logging.config.DefaultLoggingConfig</extraJvmArguments>
+                            <extraJvmArguments>-Xmx2g -Djava.util.logging.config.class=org.hps.logging.config.DefaultLoggingConfig</extraJvmArguments>
                             <programs>
                                 <program>
                                     <mainClass>org.hps.evio.EvioToLcio</mainClass>
