@@ -8,12 +8,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.5</version>
+        <version>3.6-SNAPSHOT</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.5/tracking</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.5/tracking</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.5/tracking</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/tracking/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/tracking/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/tracking/</developerConnection>
     </scm>
     <build>
         <plugins>
