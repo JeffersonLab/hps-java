@@ -19,7 +19,7 @@
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
             <tag>pass0</tag>
         </driver>        
-        <driver name="DAQConfig" type="org.hps.recon.ecal.daqconfig.DAQConfigDriver"/>        
+        <driver name="DAQConfig" type="org.hps.record.daqconfig.DAQConfigDriver"/>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
