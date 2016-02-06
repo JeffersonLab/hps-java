@@ -278,7 +278,7 @@
             <dependency>
                 <groupId>jfreechart-aida-experimental</groupId>
                 <artifactId>jfreechart-aida-experimental</artifactId>
-                <version>1.8-SNAPSHOT</version>
+                <version>1.8</version>
                 <exclusions>
                     <exclusion>
                         <groupId>jdom</groupId>
