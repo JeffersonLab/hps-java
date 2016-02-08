@@ -24,28 +24,29 @@ public class ShowCustomBinningXY extends ShowCustomBinning{
 
 				double nK = 10;
 				for(int sign = -1; sign <=1; sign +=2){
+
+					Polygon p = new Polygon();
 					for(int k = 0; k< nK; k++){
-						drawLineFromPolar(theta1, sign*(phi1+(phi2-phi1)*k/nK), theta1, sign*(phi1+(phi2-phi1)*(k+1)/nK),g);
+						drawLineFromPolar(theta1, sign*(phi1+(phi2-phi1)*k/nK), theta1, sign*(phi1+(phi2-phi1)*(k+1)/nK),g,p);
 					}
 					for(int k = 0; k< nK; k++){
-						drawLineFromPolar(theta1 + (theta2-theta1)*k/nK, sign*phi2, theta1 + (theta2-theta1)*(k+1)/nK, sign*phi2,g);
+						drawLineFromPolar(theta1 + (theta2-theta1)*k/nK, sign*phi2, theta1 + (theta2-theta1)*(k+1)/nK, sign*phi2,g,p);
 					}
 					for(int k = 0; k< nK; k++){
-						drawLineFromPolar(theta2, sign*(phi2+(phi1-phi2)*k/nK), theta2, sign*(phi2+(phi1-phi2)*(k+1)/nK),g);
+						drawLineFromPolar(theta2, sign*(phi2+(phi1-phi2)*k/nK), theta2, sign*(phi2+(phi1-phi2)*(k+1)/nK),g, p);
 					}
 					for(int k = 0; k< nK; k++){
-						drawLineFromPolar(theta2 + (theta1-theta2)*k/nK, sign*phi1, theta2 + (theta1-theta2)*(k+1)/nK, sign*phi1,g);
+						drawLineFromPolar(theta2 + (theta1-theta2)*k/nK, sign*phi1, theta2 + (theta1-theta2)*(k+1)/nK, sign*phi1,g, p);
 					}
 					
-					closePolarFigure(g, i%2 == 0 ? altBin1 : altBin2, i%2 == 0 ? fillBin1 : fillBin2);
+					closePolarFigure(g, i%2 == 0 ? altBin1 : altBin2, i%2 == 0 ? fillBin1 : fillBin2, p);
 				}
 
 			}
 		}
 	}
-	Polygon p = null;
 	private void drawLineFromPolar(double theta1, double phi1, double theta2,
-			double phi2, Graphics g) {
+			double phi2, Graphics g, Polygon p) {
 		double[] xy1 = toXY(theta1, phi1);
 		double[] xy2 = toXY(theta2, phi2);
 
@@ -57,19 +58,24 @@ public class ShowCustomBinningXY extends ShowCustomBinning{
 				getY(xy2[1]));*/
 		p.addPoint(getX(xy2[0]), getY(xy2[1]));
 	}
-	private void closePolarFigure(Graphics g, Color outlineColor, Color fillColor){
+	private void closePolarFigure(Graphics g, Color outlineColor, Color fillColor, Polygon p){
 		g.setColor(fillColor);
 		g.fillPolygon(p);
 		g.setColor(outlineColor);
 		g.drawPolygon(p);
-		p = null;
 		
 	}
-	double tilt = .03057;
+	double xtilt =  .0294;
+	double ytilt = -.00082;
 	double[] toXY(double theta, double phi){
-		double ux = Math.cos(phi)*Math.sin(theta)*Math.cos(tilt)+Math.cos(theta)*Math.sin(tilt);
+		double ux = Math.cos(phi)*Math.sin(theta)*Math.cos(xtilt)+Math.cos(theta)*Math.sin(xtilt);
 		double uy = Math.sin(phi)*Math.sin(theta);
-		double uz = Math.cos(theta)*Math.cos(tilt)-Math.cos(phi)*Math.sin(theta)*Math.sin(tilt);
+		double uz = Math.cos(theta)*Math.cos(xtilt)-Math.cos(phi)*Math.sin(theta)*Math.sin(xtilt);
+		
+		double temp = Math.cos(ytilt)*uy+Math.sin(ytilt)*uz;
+		uz = Math.cos(ytilt)*uz-Math.sin(ytilt)*uy;
+		uy = temp;
+		
 		double pxpz = ux/uz;
 		double pypz = uy/uz;
 		return new double[]{pxpz, pypz};
@@ -223,5 +229,20 @@ public class ShowCustomBinningXY extends ShowCustomBinning{
 			}
 			g.drawLine(getX(0), getY(i/100.), getX(0) + 5, getY(i/100.));
 		}
+	}
+	public void paint(Graphics g){
+		super.paint(g);
+		drawBeamspot(g);
+	}
+	
+	void drawBeamspot(Graphics g){
+		g.setColor(Color.red);
+		int x = getX(xtilt), y = getY(ytilt);
+		g.drawLine(x+10, y, x-10, y);
+		g.drawLine(x+10, y+1, x-10, y+1);
+		g.drawLine(x+10, y-1, x-10, y-1);
+		g.drawLine(x, y-10, x, y+10);
+		g.drawLine(x+1, y-10, x+1, y+10);
+		g.drawLine(x-1, y-10, x-1, y+10);
 	}
 }

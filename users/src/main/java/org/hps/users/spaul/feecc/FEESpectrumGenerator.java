@@ -145,7 +145,7 @@ public class FEESpectrumGenerator {
 			
 			thetaHist = hf.createHistogram1D("theta", "theta", thetaBins);
 			
-			EHist = hf.createHistogram1D("energy", 50, 0, 1.3);
+			EHist = hf.createHistogram1D("energy", 200, 0, 1.3);
 			IPlotter p = af.createPlotterFactory().create();
 			p.createRegions(2,1);
 			p.region(0).plot(thetaHist);
@@ -166,8 +166,9 @@ public class FEESpectrumGenerator {
 			
 			if(phep[3] > .5*E){
 				StdhepEvent event = new StdhepEvent(nevhep, nhep, isthep, idhep, jmohep, jdahep, phep, vhep);
+				double smear = .02;
 				if(display)
-					EHist.fill(phep[3]*(1+random.nextGaussian()*.045));
+					EHist.fill(phep[3]*(1+random.nextGaussian()*smear));
 				writer.writeRecord(event);
 			}
 			else{ // if the event has enough energy loss,

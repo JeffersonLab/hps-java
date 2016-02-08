@@ -74,6 +74,8 @@ public class SumEverything {
 		run(new File(indir).listFiles(), out);
 	}
 	static void run(File[] files, String out) throws IllegalArgumentException, IOException{
+		
+		long timeStart = System.currentTimeMillis();
 		IAnalysisFactory af = IAnalysisFactory.create();
 		ITreeFactory tf = af.createTreeFactory();
 		new File(out).delete();
@@ -120,9 +122,12 @@ public class SumEverything {
 							System.err.println("couldn't find object called " + name +  " in file " + s);
 							throw e;
 						}
-						if(o instanceof IHistogram1D)
+						if(o instanceof IHistogram1D){
+							if(((IHistogram1D)o).allEntries() != 0)
 							((IHistogram1D)outtree.find(name)).add((IHistogram1D)o);
+						}
 						if(o instanceof IHistogram2D)
+							if(((IHistogram2D)o).allEntries() != 0)
 							((IHistogram2D)outtree.find(name)).add((IHistogram2D)o);
 					}
 					//outtree.unmount("/tmp");
@@ -131,7 +136,7 @@ public class SumEverything {
 
 				tree.close();
 				j++;
-				System.out.println(j + " files have been read");
+				System.out.println(j + " files have been read (" +(System.currentTimeMillis()-timeStart)/j + " ms per event");
 
 			} catch(IllegalArgumentException e){
 				//print the filename
@@ -141,6 +146,7 @@ public class SumEverything {
 			}
 
 			outtree.commit();
+			System.out.println("summed file " + out +" commited.  Total time = " + (System.currentTimeMillis()-timeStart)/1000 + " seconds");
 		}
 	}
 

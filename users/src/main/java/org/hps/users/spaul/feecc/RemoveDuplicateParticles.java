@@ -56,7 +56,7 @@ public class RemoveDuplicateParticles {
 			return false;
 		if(p.getTracks().size() == 1 && p.getTracks().size() == 0)
 			return true;
-		if(TrackType.isGBL(p.getTracks().get(0).getType()) && !TrackType.isGBL(p.getTracks().get(0).getType()))
+		if(TrackType.isGBL(p.getTracks().get(0).getType()) && !TrackType.isGBL(p2.getTracks().get(0).getType()))
 				return true;
 		
 		if(p.getTracks().get(0).getChi2() < p2.getTracks().get(0).getChi2()){
