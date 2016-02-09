@@ -8,6 +8,9 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -70,9 +73,16 @@ public final class ExportPdf {
         } catch (DocumentException e) {
             throw new IOException(e);
         }
+        
+        ArrayList<IPlotter> sortedPlotters = new ArrayList<IPlotter>(plotters);
+        Collections.sort(sortedPlotters, new Comparator<Object>() {
+           public int compare(Object object1, Object object2) {
+               return ((IPlotter)object1).title().compareTo(((IPlotter)object2).title());
+           }            
+        });
 
         // Write the graphics from each plotter on a new page.
-        for (IPlotter plotter : plotters) {
+        for (IPlotter plotter : sortedPlotters) {
             plotter.refresh();
             document.newPage();
             writePage(document, writer, plotter);
