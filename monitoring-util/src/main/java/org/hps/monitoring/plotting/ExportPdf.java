@@ -74,11 +74,18 @@ public final class ExportPdf {
             throw new IOException(e);
         }
         
+        // Sort plotters so output appears the same every time.
         ArrayList<IPlotter> sortedPlotters = new ArrayList<IPlotter>(plotters);
-        Collections.sort(sortedPlotters, new Comparator<Object>() {
-           public int compare(Object object1, Object object2) {
-               return ((IPlotter)object1).title().compareTo(((IPlotter)object2).title());
-           }            
+        Collections.sort(sortedPlotters, new Comparator<IPlotter>() {
+           public int compare(IPlotter object1, IPlotter object2) {
+               if (object1.title() == null) {
+                   return -1;
+               }
+               if (object2.title() == null) {
+                   return 1;
+               }
+               return object1.title().compareTo(object2.title());
+           }
         });
 
         // Write the graphics from each plotter on a new page.
