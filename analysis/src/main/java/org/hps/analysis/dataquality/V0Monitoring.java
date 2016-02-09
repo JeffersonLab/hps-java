@@ -135,6 +135,11 @@ public class V0Monitoring extends DataQualityMonitor {
     IHistogram2D mollerXVsVtxZ;
     IHistogram2D mollerYVsVtxZ;
     IHistogram2D mollerXVsVtxY;
+    
+    IHistogram1D mollerUx;
+    IHistogram1D mollerUy;
+    
+    
 
     IHistogram1D sumChargeHisto;
     IHistogram1D numChargeHisto;
@@ -240,6 +245,10 @@ public class V0Monitoring extends DataQualityMonitor {
         mollerXVsVtxZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vx vs Vz", 100, -5, 5, 100, -50, 50);
         mollerYVsVtxZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vy vs Vz", 100, -2, 2, 100, -50, 50);
         mollerXVsVtxY = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vx vs Vy", 100, -5, 5, 100, -2, 2);
+    
+        mollerUx = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Pair Momentum Direction Ux", 100, .025, .035);
+        mollerUx = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Pair Momentum Direction Uy", 100, -.005, .005);
+    
     }
 
     @Override
@@ -459,6 +468,10 @@ public class V0Monitoring extends DataQualityMonitor {
                 mollerXVsVtxZ.fill(bv.getPosition().x(), bv.getPosition().z());
                 mollerYVsVtxZ.fill(bv.getPosition().y(), bv.getPosition().z());
                 mollerXVsVtxY.fill(bv.getPosition().x(), bv.getPosition().y());
+                
+                mollerUx.fill((p1.x()+p2.x())/(p1.z()+p2.z()));
+                mollerUy.fill((p1.y()+p2.y())/(p1.z()+p2.z()));
+                
                 if (Math.abs(bv.getPosition().x()) < 2
                         && Math.abs(bv.getPosition().y()) < 0.5) {
                     mollerMassVtxCut.fill(bv.getParameters().get("invMass"));
