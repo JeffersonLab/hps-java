@@ -27,6 +27,12 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             + " go_timestamp, end_timestamp, trigger_rate, trigger_config_name, ti_time_offset," 
             + " livetime_clock, livetime_fcup_tdc, livetime_fcup_trg, target, notes, created, updated)"
             + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+    
+    private static final String UPDATE = "UPDATE run_summaries SET nevents = ?, nfiles = ?, prestart_timestamp = ?,"
+            + " go_timestamp = ?, end_timestamp = ?, trigger_rate = ?, trigger_config_name = ?, ti_time_offset = ?," 
+            + " livetime_clock = ?, livetime_fcup_tdc = ?, livetime_fcup_trg = ?, target = ?, notes = ?, updated = NOW()"
+            + " WHERE run = ?";
+    
                      
     /**
      * Select record by run number.
@@ -196,6 +202,41 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             }
         }
     }
+    
+    @Override
+    public void updateRunSummary(RunSummary runSummary) {
+        PreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = connection.prepareStatement(UPDATE);                                   
+            preparedStatement.setLong(1, runSummary.getTotalEvents());
+            preparedStatement.setInt(2, runSummary.getTotalFiles());
+            preparedStatement.setObject(3, runSummary.getPrestartTimestamp());
+            preparedStatement.setObject(4, runSummary.getGoTimestamp());
+            preparedStatement.setObject(5, runSummary.getEndTimestamp());
+            preparedStatement.setObject(6, runSummary.getTriggerRate());
+            preparedStatement.setObject(7, runSummary.getTriggerConfigName());
+            preparedStatement.setObject(8, runSummary.getTiTimeOffset());
+            preparedStatement.setObject(9, runSummary.getLivetimeClock());
+            preparedStatement.setObject(10, runSummary.getLivetimeFcupTdc());
+            preparedStatement.setObject(11, runSummary.getLivetimeFcupTrg());
+            preparedStatement.setObject(12, runSummary.getTarget());
+            preparedStatement.setObject(13, runSummary.getNotes());
+            preparedStatement.setInt(14, runSummary.getRun());
+            LOGGER.fine(preparedStatement.toString());
+            preparedStatement.executeUpdate();
+        } catch (final SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (preparedStatement != null) {
+                try {
+                    preparedStatement.close();
+                } catch (final SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    
    
     /**
      * Return <code>true</code> if a run summary exists in the database for the run number.

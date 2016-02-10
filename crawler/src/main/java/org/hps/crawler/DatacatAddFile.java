@@ -13,21 +13,18 @@ import org.apache.commons.cli.ParseException;
 import org.srs.datacat.model.DatasetModel;
 
 /**
- * Command line file crawler for populating the data catalog.
+ * Command line tool for adding files to the data catalog.
  *
  * @author Jeremy McCormick, SLAC
  */
 public final class DatacatAddFile {
 
-    /**
-     * Setup the logger.
-     */
     private static final Logger LOGGER = Logger.getLogger(DatacatCrawler.class.getPackage().getName());
     
-    private List<File> paths;
+    private List<File> paths = new ArrayList<File>();
     
     /**
-     * Command line options for the crawler.
+     * Command line options.
      */
     private static final Options OPTIONS = new Options();
 
@@ -95,7 +92,6 @@ public final class DatacatAddFile {
                         
             // List of paths.
             if (!cl.getArgList().isEmpty()) {
-                paths = new ArrayList<File>();
                 for (String arg : cl.getArgList()) {                    
                     paths.add(new File(arg));
                 }
@@ -129,7 +125,7 @@ public final class DatacatAddFile {
     }
 
     /**
-     * Print the usage statement for this tool to the console and then exit the program.
+     * Print the usage statement and then exit.
      */
     private void printUsage() {
         final HelpFormatter help = new HelpFormatter();

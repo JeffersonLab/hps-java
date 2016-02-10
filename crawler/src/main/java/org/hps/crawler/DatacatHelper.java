@@ -37,17 +37,17 @@ class DatacatHelper {
     /*
      * Static map of strings to file formats.
      */
-    private static final Map<String, FileFormat> formatMap = new HashMap<String, FileFormat>();
+    private static final Map<String, FileFormat> FORMATS = new HashMap<String, FileFormat>();
     static {
         for (final FileFormat format : FileFormat.values()) {
-            formatMap.put(format.extension(), format);
+            FORMATS.put(format.extension(), format);
         }
     }
     
     /* 
      * System metadata fields. 
      */
-    private static final Set<String> SYSTEM_METADATA = new HashSet<String>();
+    static final Set<String> SYSTEM_METADATA = new HashSet<String>();
     static {
         SYSTEM_METADATA.add("eventCount");
         SYSTEM_METADATA.add("size");
@@ -56,9 +56,13 @@ class DatacatHelper {
         SYSTEM_METADATA.add("checksum");
         SYSTEM_METADATA.add("scanStatus");
     }
-   
+    
+    static final boolean isSystemMetadata(String name) {
+        return SYSTEM_METADATA.contains(name);
+    }
+           
     /**
-     * Create metadata for a file using its specific reader.
+     * Create metadata for a file using its {@link FileMetadataReader}.
      *
      * @param file the file
      * @return the metadata for the file
@@ -82,6 +86,7 @@ class DatacatHelper {
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
+        metadata.put("scanStatus", "OK");
         return metadata;
     }
 
@@ -128,7 +133,7 @@ class DatacatHelper {
             name = stripEvioFileNumber(name);
         }
         final String extension = name.substring(name.lastIndexOf(".") + 1);
-        return formatMap.get(extension);
+        return FORMATS.get(extension);
     }
 
     /**

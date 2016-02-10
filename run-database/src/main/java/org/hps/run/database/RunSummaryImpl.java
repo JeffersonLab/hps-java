@@ -75,7 +75,7 @@ final class RunSummaryImpl implements RunSummary {
     private Integer totalFiles;
    
     /**
-     * Get the name of the trigger config file.
+     * Name of the trigger config file.
      */
     private String triggerConfigName;
 

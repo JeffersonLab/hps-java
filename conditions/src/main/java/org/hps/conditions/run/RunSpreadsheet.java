@@ -99,11 +99,14 @@ public final class RunSpreadsheet {
      * @param file the CSV file
      */
     public RunSpreadsheet(final File file) {
+        if (file == null) {
+            throw new IllegalArgumentException("The file argument is null.");
+        }
         this.file = file;
         try {
             this.fromCsv(this.file);
         } catch (final Exception e) {
-            throw new RuntimeException();
+            throw new RuntimeException("Failed to parse run spreadsheet.", e);
         }
     }
 

@@ -45,4 +45,11 @@ interface RunSummaryDao {
      * @return <code>true</code> if <code>run</code> exists in the database
      */
     boolean runSummaryExists(int run);
+    
+    /**
+     * Update a run summary that already exists.
+     * 
+     * @param runSummary the run summary to update
+     */
+    void updateRunSummary(RunSummary runSummary);
 }

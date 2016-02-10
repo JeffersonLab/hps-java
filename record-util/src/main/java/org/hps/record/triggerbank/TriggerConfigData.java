@@ -26,20 +26,20 @@ public final class TriggerConfigData {
             this.crate = crate;
         }
         
-        public int crate() {
+        public int getCrateNumber() {
             return crate;
         }
         
         public static Crate fromCrateNumber(int crateNumber) {
             for (Crate crate : Crate.values()) {
-                if (crate.crate() == crateNumber) {
+                if (crate.getCrateNumber() == crateNumber) {
                     return crate;
                 }
             }
             return null;
-        }
+        }              
     }
-              
+                  
     private int timestamp;
     private Map<Crate, String> data;
     
@@ -99,7 +99,7 @@ public final class TriggerConfigData {
     public DAQConfig loadDAQConfig(int run) {
         EvioDAQParser parser = new EvioDAQParser();
         for (Entry<Crate, String> entry : data.entrySet()) {
-            parser.parse(entry.getKey().crate(), run, new String[] {entry.getValue()});
+            parser.parse(entry.getKey().getCrateNumber(), run, new String[] {entry.getValue()});
         }
         ConfigurationManager.updateConfiguration(parser);
         return ConfigurationManager.getInstance();

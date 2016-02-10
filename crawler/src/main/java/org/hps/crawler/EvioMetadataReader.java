@@ -11,11 +11,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.record.evio.EventTagConstant;
 import org.hps.record.evio.EvioEventUtilities;
 import org.hps.record.evio.EvioFileUtilities;
 import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.hps.record.triggerbank.HeadBankData;
-import org.hps.record.triggerbank.TIData;
 import org.hps.record.triggerbank.TiTimeOffsetEvioProcessor;
 import org.hps.record.triggerbank.TriggerType;
 import org.jlab.coda.jevio.BaseStructure;
@@ -24,13 +24,10 @@ import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 
 /**
- * Reads metadata from EVIO files, including the event count, run min and run max expected by the datacat, as well as
- * many custom field values applicable to HPS EVIO raw data.
+ * Creates detailed metadata for the datacat from an EVIO input file.
  * 
  * @author Jeremy McCormick, SLAC
  */
-// TODO: add physics events count
-// TODO: remove trigger rate and TI time offset 
 final class EvioMetadataReader implements FileMetadataReader {
 
     /**
@@ -44,11 +41,6 @@ final class EvioMetadataReader implements FileMetadataReader {
     private static IntBankDefinition HEAD_BANK = new IntBankDefinition(HeadBankData.class, new int[] {0x2e, 0xe10f});
 
     /**
-     * TI data bank definition.
-     */
-    private static IntBankDefinition TI_BANK = new IntBankDefinition(TIData.class, new int[] {0x2e, 0xe10a});
-
-    /**
      * Get the EVIO file metadata.
      * 
      * @param file the EVIO file
@@ -57,7 +49,7 @@ final class EvioMetadataReader implements FileMetadataReader {
     @Override
     public Map<String, Object> getMetadata(final File file) throws IOException {
         
-        long events = 0;
+        long totalEvents = 0;
         int physicsEvents = 0;
         int badEvents = 0;
         int blinded = 0;
@@ -66,12 +58,12 @@ final class EvioMetadataReader implements FileMetadataReader {
         Integer lastHeadTimestamp = null;
         Integer lastPhysicsEvent = null;
         Integer firstPhysicsEvent = null;
+        Integer prestartTimestamp = null;
+        Integer endTimestamp = null;
+        Integer goTimestamp = null;
         Double triggerRate = null;
-        long lastTI = 0;
-        long minTIDelta = 0;
-        long maxTIDelta = 0;
-        long firstTI = 0;
         
+        // Processor for calculating TI time offsets.
         TiTimeOffsetEvioProcessor tiProcessor = new TiTimeOffsetEvioProcessor();
 
         // Create map for counting trigger types.
@@ -83,7 +75,7 @@ final class EvioMetadataReader implements FileMetadataReader {
         // Get the file number from the name.
         final int fileNumber = EvioFileUtilities.getSequenceFromName(file);
 
-        // Files with a sequence number that is not divisible by 10 are blinded (Eng Run 2015 scheme).
+        // File numbers indivisible by 10 are blinded (Eng Run 2015 scheme).
         if (!(fileNumber % 10 == 0)) {
             blinded = 1;
         }
@@ -106,22 +98,22 @@ final class EvioMetadataReader implements FileMetadataReader {
             EvioEvent evioEvent = null;
 
             // Event read loop.
-            fileLoop: while (true) {
+            eventLoop: while (true) {
                 try {
                     // Parse next event.
                     evioEvent = evioReader.parseNextEvent();
 
                     // End of file.
                     if (evioEvent == null) {
-                        LOGGER.fine("EOF after " + events + " events");
-                        break fileLoop;
+                        LOGGER.fine("EOF after " + totalEvents + " events.");
+                        break eventLoop;
                     }
                     
                     // Increment event count (doesn't count events that can't be parsed).
-                    ++events;
+                    ++totalEvents;
 
                     // Debug print event number and tag.
-                    LOGGER.finest("parsed event " + evioEvent.getEventNumber() + " with tag 0x"
+                    LOGGER.finest("Parsed event " + evioEvent.getEventNumber() + " with tag 0x"
                             + String.format("%08x", evioEvent.getHeader().getTag()));
 
                     // Get head bank.
@@ -139,7 +131,7 @@ final class EvioMetadataReader implements FileMetadataReader {
                                 // First header timestamp.
                                 if (firstHeadTimestamp == null) {
                                     firstHeadTimestamp = thisTimestamp;
-                                    LOGGER.finer("first head timestamp " + firstHeadTimestamp + " from event "
+                                    LOGGER.finer("First head timestamp " + firstHeadTimestamp + " from event "
                                             + evioEvent.getEventNumber());
                                 }
 
@@ -151,31 +143,12 @@ final class EvioMetadataReader implements FileMetadataReader {
                             if (run == null) {
                                 if (headBankData[1] != 0) {
                                     run = (long) headBankData[1];
-                                    LOGGER.finer("run " + run + " from event " + evioEvent.getEventNumber());
+                                    LOGGER.finer("Run number " + run + " from event " + evioEvent.getEventNumber());
                                 }
                             }
                         }
                     }
-
-                    // Process trigger bank data for TI times (copied from Sho's BasicEvioFileReader class).
-                    BaseStructure tiBank = TI_BANK.findBank(evioEvent);
-                    if (tiBank != null) {
-                        TIData tiData = new TIData(tiBank.getIntData());
-                        if (lastTI == 0) {
-                            firstTI = tiData.getTime();
-                        }
-                        lastTI = tiData.getTime();
-                        if (thisTimestamp != 0) {
-                            long delta = thisTimestamp * 1000000000L - tiData.getTime();
-                            if (minTIDelta == 0 || minTIDelta > delta) {
-                                minTIDelta = delta;
-                            }
-                            if (maxTIDelta == 0 || maxTIDelta < delta) {
-                                maxTIDelta = delta;
-                            }
-                        }
-                    }
-
+                    
                     if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
                                                 
                         final int[] eventIdData = EvioEventUtilities.getEventIdData(evioEvent);
@@ -188,11 +161,24 @@ final class EvioMetadataReader implements FileMetadataReader {
                             // Set the first physics event.
                             if (firstPhysicsEvent == null) {
                                 firstPhysicsEvent = eventIdData[0];
-                                LOGGER.finer("set first physics event " + firstPhysicsEvent);
+                                LOGGER.finer("Set first physics event " + firstPhysicsEvent);
                             }
                         }
                         
                         ++physicsEvents;
+                    } else if (EvioEventUtilities.isControlEvent(evioEvent)) {
+                        int[] controlData = EvioEventUtilities.getControlEventData(evioEvent);
+                        if (controlData[0] != 0) {
+                            if (EventTagConstant.PRESTART.isEventTag(evioEvent)) {
+                                prestartTimestamp = controlData[0];
+                            }                        
+                            if (EventTagConstant.GO.isEventTag(evioEvent)) {
+                                goTimestamp = controlData[0];
+                            }
+                            if (EventTagConstant.END.isEventTag(evioEvent)) {
+                                endTimestamp = controlData[0];
+                            }
+                        }
                     }
 
                     // Count trigger types for this event.
@@ -200,17 +186,16 @@ final class EvioMetadataReader implements FileMetadataReader {
                     for (TriggerType mask : triggerTypes) {
                         int count = triggerCounts.get(mask) + 1;
                         triggerCounts.put(mask, count);
-                        LOGGER.finest("incremented " + mask.name() + " to " + count);
+                        LOGGER.finest("Incremented " + mask.name() + " to " + count);
                     }
                     
                     // Activate TI time offset processor.
                     tiProcessor.process(evioEvent);
                     
-                //} catch (IOException | NegativeArraySizeException | EvioException e) {
                 } catch (Exception e) {  
-                    // Trap event processing errors.
+                    // Trap all event processing errors.
                     badEvents++;
-                    LOGGER.warning("error processing EVIO event " + evioEvent.getEventNumber());
+                    LOGGER.warning("Error processing EVIO event " + evioEvent.getEventNumber());
                 }
             }
         } catch (final EvioException e) {
@@ -222,22 +207,23 @@ final class EvioMetadataReader implements FileMetadataReader {
                 try {
                     evioReader.close();
                 } catch (IOException e) {
-                    LOGGER.log(Level.WARNING, "error closing EVIO reader", e);
+                    LOGGER.log(Level.WARNING, "Error closing EVIO reader", e);
                 }
             }
         }
 
-        LOGGER.info("done reading " + events + " events from " + file.getPath());
+        LOGGER.info("Done reading " + totalEvents + " events from " + file.getPath());
 
         // Rough trigger rate calculation.
         try {
-            if (firstHeadTimestamp != null && lastHeadTimestamp != null && events > 0) {
-                triggerRate = calculateTriggerRate(firstHeadTimestamp, lastHeadTimestamp, events);
+            if (firstHeadTimestamp != null && lastHeadTimestamp != null && totalEvents > 0 
+                    && (firstHeadTimestamp - lastHeadTimestamp != 0)) {
+                triggerRate = calculateTriggerRate(firstHeadTimestamp, lastHeadTimestamp, totalEvents);
             } else {
                 LOGGER.log(Level.WARNING, "Missing information for calculating trigger rate.");
             }
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Error calculating trigger rate.", e);
+            LOGGER.log(Level.WARNING, "Error calculating the trigger rate.", e);
         }
 
         // Create and fill the metadata map.
@@ -248,15 +234,15 @@ final class EvioMetadataReader implements FileMetadataReader {
                 run = new Long(EvioFileUtilities.getRunFromName(file));
             }
         } catch (Exception e) {
-            throw new RuntimeException("Unable to determine run number from data or file name.", e);
+            throw new RuntimeException("Failed to get run number from event data or file name.", e);
         }
 
-        // Set built-in system metadata.
+        // Set locationExtras metadata.
         metadataMap.put("runMin", run);
         metadataMap.put("runMax", run);
-        metadataMap.put("eventCount", events);
+        metadataMap.put("eventCount", totalEvents);
         metadataMap.put("size", size);
-        metadataMap.put("checksum", checksum);
+        metadataMap.put("checksum", checksum);     
         
         // File sequence number.
         metadataMap.put("FILE", fileNumber);
@@ -267,54 +253,52 @@ final class EvioMetadataReader implements FileMetadataReader {
         // First and last timestamps which may come from control or physics events.
         if (firstHeadTimestamp != null) {
             metadataMap.put("FIRST_HEAD_TIMESTAMP", firstHeadTimestamp);
-        } else {
-            metadataMap.put("FIRST_HEAD_TIMESTAMP", 0L);
-        }
+        } 
         
         if (lastHeadTimestamp != null) {
             metadataMap.put("LAST_HEAD_TIMESTAMP", lastHeadTimestamp);
-        } else {
-            metadataMap.put("LAST_HEAD_TIMESTAMP", 0L);
-        }
+        } 
 
         // First and last physics event numbers.
         if (firstPhysicsEvent != null) {
             metadataMap.put("FIRST_PHYSICS_EVENT", firstPhysicsEvent);
-        } else {
-            metadataMap.put("FIRST_PHYSICS_EVENT", 0L);
-        }
+        } 
         
         if (lastPhysicsEvent != null) {
             metadataMap.put("LAST_PHYSICS_EVENT", lastPhysicsEvent);
-        } else {
-            metadataMap.put("LAST_PHYSICS_EVENT", 0L);
+        }
+        
+        // Timestamps which are only set if the corresponding control events were found in the file.
+        if (prestartTimestamp != null) {
+            metadataMap.put("PRESTART_TIMESTAMP", prestartTimestamp);
+        }
+        if (endTimestamp != null) {
+            metadataMap.put("END_TIMESTAMP", endTimestamp);
+        }
+        if (goTimestamp != null) {
+            metadataMap.put("GO_TIMESTAMP", goTimestamp);
         }
 
         // TI times and offset.
-        metadataMap.put("FIRST_TI_TIME", firstTI);
-        metadataMap.put("LAST_TI_TIME", lastTI);
-        metadataMap.put("TI_TIME_DELTA", maxTIDelta - minTIDelta);
+        metadataMap.put("TI_TIME_MIN_OFFSET", new Long(tiProcessor.getMinOffset()).toString());
+        metadataMap.put("TI_TIME_MAX_OFFSET", new Long(tiProcessor.getMaxOffset()).toString());
+        metadataMap.put("TI_TIME_N_OUTLIERS", tiProcessor.getNumOutliers());
         
-        // TI time offset.
-        //metadataMap.put("TI_TIME_OFFSET", tiProcessor.getTiTimeOffset());
-
         // Event counts.
         metadataMap.put("BAD_EVENTS", badEvents);
         
         // Physics event count.
-        metadataMap.put("PHYSICS_EVENTS",  physicsEvents);
+        metadataMap.put("PHYSICS_EVENTS", physicsEvents);
         
-        // Trigger rate in Hz to 2 decimal places.
-        /*
+        // Rough trigger rate.
         if (triggerRate != null && !Double.isInfinite(triggerRate) && !Double.isNaN(triggerRate)) {
             DecimalFormat df = new DecimalFormat("#.##");
             df.setRoundingMode(RoundingMode.CEILING);
-            LOGGER.info("setting trigger rate " + triggerRate);
+            LOGGER.info("Setting trigger rate to " + triggerRate + " Hz.");
             metadataMap.put("TRIGGER_RATE", Double.parseDouble(df.format(triggerRate)));
         } else {
-            metadataMap.put("TRIGGER_RATE", 0);
-        }
-        */
+            LOGGER.warning("Failed to calculate trigger rate.");
+        }        
 
         // Trigger type counts.
         for (Entry<TriggerType, Integer> entry : triggerCounts.entrySet()) {
@@ -327,7 +311,7 @@ final class EvioMetadataReader implements FileMetadataReader {
         for (Entry<String, Object> entry : metadataMap.entrySet()) {
             sb.append("  " + entry.getKey() + " = " + entry.getValue() + '\n');
         }
-        LOGGER.info("file metadata ..." + '\n' + sb.toString());
+        LOGGER.info("File metadata ..." + '\n' + sb.toString());
 
         // Return the completed metadata map.
         return metadataMap;

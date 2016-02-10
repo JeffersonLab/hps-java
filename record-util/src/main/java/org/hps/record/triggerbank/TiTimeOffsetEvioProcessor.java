@@ -56,6 +56,18 @@ public class TiTimeOffsetEvioProcessor extends EvioEventProcessor {
         }
     }
     
+    public long getMinOffset() {
+        return this.minOffset;
+    }
+    
+    public long getMaxOffset() {
+        return this.maxOffset;
+    }
+    
+    public int getNumOutliers() {
+        return this.nOutliers;
+    }
+    
     public long getTiTimeOffset() {
         final long offsetRange = maxOffset - minOffset;
         if (offsetRange > minRange && nOutliers < maxOutliers) {

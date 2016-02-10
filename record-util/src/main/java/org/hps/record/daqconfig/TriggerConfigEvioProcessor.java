@@ -14,10 +14,11 @@ import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
- * Copied and modified from code in {@link org.hps.evio.TriggerConfigEvioReader} to extract DAQ config without
- * needing an output LCSim event.
+ * Extracts DAQ config strings from an EVIO event stream, saving a reference to the most recent
+ * {@link org.hps.record.triggerbank.TriggerConfigData} object.
  * <p>
- * Only the last valid DAQ config object is available once the job is finished.
+ * When event processing is completed, the <code>triggerConfig</code> variable should reference
+ * the last valid DAQ config and can be accessed using the {@link #getTriggerConfigData()} method.
  * 
  * @author Jeremy McCormick, SLAC
  */
@@ -25,8 +26,7 @@ public class TriggerConfigEvioProcessor extends EvioEventProcessor {
 
     private Logger LOGGER = Logger.getLogger(TriggerConfigEvioProcessor.class.getPackage().getName());
             
-    private TriggerConfigData triggerConfig = null;    
-    private Integer run = null;
+    private TriggerConfigData triggerConfig = null;
     private int timestamp = 0;
 
     /**
@@ -35,32 +35,21 @@ public class TriggerConfigEvioProcessor extends EvioEventProcessor {
     @Override
     public void process(EvioEvent evioEvent) {       
         try {            
-            // Initialize the run number if necessary.
-            if (run == null) {
-                try {
-                    run = EvioEventUtilities.getRunNumber(evioEvent);
-                    LOGGER.info("run " + run);
-                } catch (NullPointerException e) {
+           
+            // Set current timestamp from head bank.
+            BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
+            if (headBank != null) {
+                if (headBank.getIntData()[3] != 0) {
+                    timestamp = headBank.getIntData()[3];
+                    LOGGER.finest("Set timestamp " + timestamp + " from head bank.");
                 }
             }
-                        
-            // Can only start parsing DAQ banks once the run is set.
-            if (run != null) {
                 
-                // Set current timestamp from head bank.
-                BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
-                if (headBank != null) {
-                    if (headBank.getIntData()[3] != 0) {
-                        timestamp = headBank.getIntData()[3];
-                        LOGGER.finest("set timestamp " + timestamp + " from head bank");
-                    }
-                }
-                
-                // Parse config data from the EVIO banks.
-                parseEvioData(evioEvent);                                                          
-            }
+            // Parse config data from the EVIO banks.
+            parseEvioData(evioEvent);                                                          
+            
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Error parsing DAQ config from EVIO.", e);
+            LOGGER.log(Level.SEVERE, "Error parsing DAQ config from EVIO.", e);
         }
     }
     
@@ -72,44 +61,66 @@ public class TriggerConfigEvioProcessor extends EvioEventProcessor {
      */
     private void parseEvioData(EvioEvent evioEvent) {
         Map<Crate, String> stringData = null;
+        // Loop over top banks.
         for (BaseStructure bank : evioEvent.getChildrenList()) {
             if (bank.getChildCount() <= 0) {
                 continue;
             }
-            int crate = bank.getHeader().getTag();
+            int crateNumber = bank.getHeader().getTag();
+            // Loop over sub-banks.
             for (BaseStructure subBank : bank.getChildrenList()) {
+                // In trigger config bank?
                 if (EvioBankTag.TRIGGER_CONFIG.equals(subBank)) {
-                    if (subBank.getStringData() == null) {
-                        LOGGER.warning("Trigger config bank is missing string data.");
-                    } else {
+                    // Has a valid string array?
+                    if (subBank.getStringData() != null) {                    
                         try { 
+                            
+                            // Make sure string data map is initialized for this event.
                             if (stringData == null) {
                                 stringData = new HashMap<Crate, String>();
-                            }
-                            //LOGGER.fine("got raw trigger config string data ..." + '\n' + subBank.getStringData()[0]);
-                            stringData.put(TriggerConfigData.Crate.fromCrateNumber(crate), subBank.getStringData()[0]);
+                            }                                                       
+                            
+                            // Get the Crate enum from crate number (if this returns null then the crate is ignored).
+                            Crate crate = Crate.fromCrateNumber(crateNumber);
+                            
+                            // Is crate number valid?
+                            if (crate != null) {
+                                
+                                // Is there valid string data in the array?
+                                if (subBank.getStringData().length > 0) {
+                                    // Add string data to map.
+                                    stringData.put(crate, subBank.getStringData()[0]);
+                                    LOGGER.info("Added crate " + crate.getCrateNumber() + " data ..." + '\n' + subBank.getStringData()[0]);
+                                } /*else { 
+                                    LOGGER.warning("The string bank has no data.");
+                                }*/
+                            } 
                         } catch (Exception e) {
-                            LOGGER.log(Level.WARNING, "Failed to parse crate " + crate + " config.", e);
+                            LOGGER.log(Level.SEVERE, "Error parsing DAQ config from crate " + crateNumber, e);
+                            e.printStackTrace();
                         }
                     }
-                }
+                } /*else {
+                    LOGGER.warning("Trigger config bank is missing string data.");
+                }*/
             }
         }
         if (stringData != null) {
+            LOGGER.info("Found " + stringData.size() + " config data strings in event " + evioEvent.getEventNumber());
             TriggerConfigData currentConfig = new TriggerConfigData(stringData, timestamp);
             if (currentConfig.isValid()) {
                 triggerConfig = currentConfig;
-                LOGGER.warning("Found valid config in event num " + evioEvent.getEventNumber());
+                LOGGER.info("Found valid DAQ config data in event num " + evioEvent.getEventNumber());
             } else {
-                LOGGER.warning("Skipping invalid config from event num "  + evioEvent.getEventNumber());
+                LOGGER.warning("Skipping invalid DAQ config data in event num "  + evioEvent.getEventNumber());
             }
         }
     }
    
     /**
-     * Get a map of bank number to string data for the current config.
+     * Get the last valid set of config data that was found in the event stream.
      * 
-     * @return a map of bank to trigger config data
+     * @return a map of bank number to the corresponding trigger config string data
      */
     public TriggerConfigData getTriggerConfigData() {
         return this.triggerConfig;

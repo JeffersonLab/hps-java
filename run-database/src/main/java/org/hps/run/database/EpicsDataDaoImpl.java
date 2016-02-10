@@ -192,12 +192,14 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
     /**
      * Insert a list of EPICS data into the database.
      * <p>
-     * The run number comes from the header information.
+     * By default, the run number from the header will be used, but it will be overridden
+     * if it does not match the <code>run</code> argument.  (There are a few data files
+     * where the run in the EPICS header is occassionally wrong.)
      *
      * @param epicsDataList the list of EPICS data
      */
     @Override
-    public void insertEpicsData(final List<EpicsData> epicsDataList) {
+    public void insertEpicsData(final List<EpicsData> epicsDataList, int run) {
         if (epicsDataList.isEmpty()) {
             throw new IllegalArgumentException("The EPICS data list is empty.");
         }
@@ -211,9 +213,11 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                 if (epicsHeader == null) {
                     throw new IllegalArgumentException("The EPICS data is missing a header.");
                 }
-                insertHeaderStatement.setInt(1, epicsHeader.getRun());
+                insertHeaderStatement.setInt(1, run); /* Don't use run from bank as it is sometimes wrong! */
                 insertHeaderStatement.setInt(2, epicsHeader.getSequence());
                 insertHeaderStatement.setInt(3, epicsHeader.getTimestamp());
+                LOGGER.finer("creating EPICs record with run = " + run + " ; seq = " 
+                        + epicsHeader.getSequence() + "; ts = " + epicsHeader.getTimestamp());
                 final int rowsCreated = insertHeaderStatement.executeUpdate();
                 if (rowsCreated == 0) {
                     throw new SQLException("Creation of EPICS header record failed; no rows affected.");

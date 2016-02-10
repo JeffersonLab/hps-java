@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +30,7 @@ import org.hps.record.scalers.ScalerUtilities.LiveTimeIndex;
 import org.hps.record.scalers.ScalersEvioProcessor;
 import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.hps.record.triggerbank.HeadBankData;
+import org.hps.record.triggerbank.TiTimeOffsetCalculator;
 import org.hps.record.triggerbank.TiTimeOffsetEvioProcessor;
 import org.hps.record.triggerbank.TriggerConfigData;
 import org.hps.record.triggerbank.TriggerConfigData.Crate;
@@ -40,6 +42,7 @@ import org.srs.datacat.client.Client;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.dataset.DatasetWithViewModel;
+import org.srs.datacat.shared.DatasetLocation;
 
 /**
  * Builds a complete {@link RunSummary} object from various data sources, including the data catalog and the run
@@ -143,7 +146,7 @@ final class RunDatabaseBuilder {
      * Default folder for file search.
      */
     private String folder;
-        
+    
     /**
      * Reload state for the current run number for testing.
      */
@@ -208,14 +211,12 @@ final class RunDatabaseBuilder {
     private void findEvioDatasets() {
         
         LOGGER.info("finding EVIO datasets for run " + getRun() + " in folder " + this.folder + " at site " + this.site);
-                
+        
         DatasetResultSetModel results = datacatClient.searchForDatasets(
                 this.folder,
                 "current",
                 this.site,
                 "fileFormat eq 'EVIO' AND dataType eq 'RAW' AND runMin eq " + getRun(),
-                null,
-                null,
                 null,
                 null
                 );
@@ -262,7 +263,7 @@ final class RunDatabaseBuilder {
         // Insert the EPICS data.
         if (epicsData != null && !epicsData.isEmpty()) {
             LOGGER.info("inserting EPICS data");
-            runFactory.getEpicsDataDao().insertEpicsData(epicsData);
+            runFactory.getEpicsDataDao().insertEpicsData(epicsData, getRun());
         } else {
             LOGGER.warning("no EPICS data to insert");
         }
@@ -663,12 +664,21 @@ final class RunDatabaseBuilder {
         EvioReader reader = null;
         Integer endTimestamp = null;
         try {
-            reader = EvioFileUtilities.open(lastEvioFile, true);
-            EvioEvent evioEvent = reader.parseNextEvent();
-            while (evioEvent != null) {
+            reader = EvioFileUtilities.open(lastEvioFile, true);            
+            while (true) {
+                if (reader.getNumEventsRemaining() == 0) {
+                    break;
+                }
+                EvioEvent evioEvent = null;
+                try {                                   
+                    evioEvent = reader.parseNextEvent();
+                } catch (Exception e) {
+                    LOGGER.severe("Error parsing EVIO event; skipping to next event.");
+                    continue;
+                }
                 if (EventTagConstant.END.matches(evioEvent)) {
                     endTimestamp = EvioEventUtilities.getControlEventData(evioEvent)[0];
-                    LOGGER.fine("found END timestamp " + endTimestamp);
+                    LOGGER.fine("found END timestamp " + endTimestamp + " in event " + evioEvent.getEventNumber());
                     break;
                 }
                 BaseStructure headBank = headBankDefinition.findBank(evioEvent);
@@ -677,10 +687,9 @@ final class RunDatabaseBuilder {
                         endTimestamp = headBank.getIntData()[0];
                     }
                 }
-                evioEvent = reader.parseNextEvent();
             }
-        } catch (IOException | EvioException e) {
-            throw new RuntimeException("Error reading first EVIO file.", e);
+        } catch (IOException | EvioException e2) {
+            throw new RuntimeException("Error getting END timestamp.", e2);
         } finally {
             if (reader != null) {
                 try {
@@ -690,7 +699,9 @@ final class RunDatabaseBuilder {
                 }
             }
         }
-        runSummary.setEndTimestamp(endTimestamp);
+        if (endTimestamp != null) {
+            runSummary.setEndTimestamp(endTimestamp);
+        }
         LOGGER.fine("end timestamp was set to " + endTimestamp);
     }
 
@@ -816,16 +827,15 @@ final class RunDatabaseBuilder {
             startTimestamp = runSummary.getGoTimestamp();
         } else if (runSummary.getPrestartTimestamp() != null) {
             startTimestamp = runSummary.getPrestartTimestamp();
-        } else {
-            LOGGER.warning("Could not get starting timestamp for trigger rate calculation.");
-        }
-        if (runSummary.getEndTimestamp() != null && startTimestamp != null) {
+        } 
+        Integer endTimestamp = runSummary.getEndTimestamp();
+        if (endTimestamp!= null && startTimestamp != null && runSummary.getTotalEvents() > 0) {
             double triggerRate = ((double) runSummary.getTotalEvents() /
                     ((double) runSummary.getEndTimestamp() - (double) runSummary.getGoTimestamp()));
             runSummary.setTriggerRate(triggerRate);
             LOGGER.info("trigger rate set to " + runSummary.getTriggerRate());
         } else {
-            LOGGER.warning("Skipped trigger rate calculation because a timestamp is missing.");
+            LOGGER.warning("Skipped trigger rate calculation due to missing data.");
         }
     }
 }
