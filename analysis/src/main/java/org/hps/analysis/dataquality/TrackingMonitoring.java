@@ -165,7 +165,8 @@ public class TrackingMonitoring extends DataQualityMonitor {
     IHistogram2D chi2VsLambda;
     IHistogram2D chi2VsZ0;
 
-    IHistogram2D beamAngle2D;
+    IHistogram2D beamAngleXY;
+    IHistogram2D beamAngleThetaPhi;
 
     IHistogram1D L1Iso;
     IHistogram1D L12Iso;
@@ -288,7 +289,8 @@ public class TrackingMonitoring extends DataQualityMonitor {
         chi2VsLambda = aida.histogram2D(plotDir + trackCollectionName + "/" + triggerType + "/" + "chi2 vs lambda", 50, -lambdaCut, lambdaCut, 50, 0.0, 50.0);
         chi2VsZ0 = aida.histogram2D(plotDir + trackCollectionName + "/" + triggerType + "/" + "chi2 vs z0", 50, -z0Cut, z0Cut, 50, 0.0, 50.0);
 
-        beamAngle2D = aida.histogram2D(plotDir + trackCollectionName + "/" + triggerType + "/" + "angles around beam axis: theta vs phi", 100, -Math.PI, Math.PI, 100, 0, 0.25);
+        beamAngleXY = aida.histogram2D(plotDir + trackCollectionName + "/" + triggerType + "/" + "angles around beam axis: theta_y vs theta_x", 100, -0.1, 0.1, 100, -0.1, 0.1);
+        beamAngleThetaPhi = aida.histogram2D(plotDir + trackCollectionName + "/" + triggerType + "/" + "angles around beam axis: theta vs phi", 100, -Math.PI, Math.PI, 100, 0, 0.25);
 
         L1Iso = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "L1 isolation", 100, -5.0, 5.0);
         L12Iso = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "L1-2 isolation", 100, -5.0, 5.0);
@@ -423,7 +425,8 @@ public class TrackingMonitoring extends DataQualityMonitor {
             double beamPhi = Math.atan2(dirRotated.y(), dirRotated.x());
             double beamTheta = Math.acos(dirRotated.z());
 
-            beamAngle2D.fill(beamPhi, beamTheta);
+            beamAngleXY.fill(dirRotated.x(), dirRotated.y());
+            beamAngleThetaPhi.fill(beamPhi, beamTheta);
 
             Double[] isolations = TrackUtils.getIsolations(trk, hitToStrips, hitToRotated);
             double l1Iso = Double.MAX_VALUE;
