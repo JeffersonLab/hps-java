@@ -249,7 +249,7 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                 if (dataRowsCreated == 0) {
                     throw new SQLException("Creation of EPICS data failed; no rows affected.");
                 }
-                LOGGER.finer("inserted EPICS data with run " + epicsHeader.getRun() + "; seq " + epicsHeader.getSequence() + "; timestamp " 
+                LOGGER.finer("inserted EPICS data with run = " + run + "; seq = " + epicsHeader.getSequence() + "; ts = " 
                         + epicsHeader.getTimestamp());
                 insertStatement.close();
             }
