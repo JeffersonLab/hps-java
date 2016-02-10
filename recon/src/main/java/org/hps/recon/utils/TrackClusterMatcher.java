@@ -69,7 +69,7 @@ public class TrackClusterMatcher {
      * Rafo's parameterization of cluster-seed x/y position residuals as function of energy.
      * 
      * Derived using GBL/seed tracks, non-analytic extrapolation, uncorrected cluster positions,
-     * and EngRun2015-Nominal-v3-4-fieldmap detector.
+     * and EngRun2015-Nominal-v4-4-fieldmap detector.
      * 
      *  f = p0+e*(p1+e*(p2+e*(p3+e*(p4+e*p5))))
      */
@@ -83,14 +83,14 @@ public class TrackClusterMatcher {
     private static final double dxMeanBotElecGBL[] = {-6.63558, 83.7763,-460.451, 1275.63,-1702.83, 873.913 };
     private static final double dxSigmBotElecGBL[] = { 47.0029,-411.784, 1586.52,-3083.37, 2985.58,-1145.53 };
     
-    private static final double dyMeanTopPosiGBL[] = { 0.71245, 5.57585,-6.50267,-8.21688, 39.8607,-43.9661 };
+    private static final double dyMeanTopPosiGBL[] = { 0.31245, 5.57585,-6.50267,-8.21688, 39.8607,-43.9661 };
     private static final double dySigmTopPosiGBL[] = { 33.0213,-275.174, 1168.77,-2642.34, 3045.52,-1406.21 };
-    private static final double dyMeanBotPosiGBL[] = {-5.532,   74.9738,-383.972, 977.849,-1250.28, 637.75  };
+    private static final double dyMeanBotPosiGBL[] = {-7.032,   74.9738,-383.972, 977.849,-1250.28, 637.75  };
     private static final double dySigmBotPosiGBL[] = { 19.019, -83.9253, 133.813, 119.883,-546.951, 405.207 };
     
-    private static final double dyMeanTopElecGBL[] = { 2.88498,-20.4101, 62.9689, 25.6386,-259.957, 207.145 };
+    private static final double dyMeanTopElecGBL[] = { 2.48498,-20.4101, 62.9689, 25.6386,-259.957, 207.145 };
     private static final double dySigmTopElecGBL[] = { 8.65583, 120.676,-1166.43, 3811.72,-5383.19, 2787.42 };
-    private static final double dyMeanBotElecGBL[] = {-9.02276, 112.329,-489.761, 953.037,-829.96,  260.772 };
+    private static final double dyMeanBotElecGBL[] = {-10.5228, 112.329,-489.761, 953.037,-829.96,  260.772 };
     private static final double dySigmBotElecGBL[] = { 23.4856,-108.19,  158.7,   189.261,-682.034, 459.15  };
 
     private static final double dxMeanTopPosiSeed[] ={ 11.6245,-28.5061, 13.0332, 59.9465,-21.1014,-63.6126 };
@@ -103,17 +103,15 @@ public class TrackClusterMatcher {
     private static final double dxMeanBotElecSeed[] ={-3.44302, 12.4687, 4.09878,-30.0057,-13.3151, 40.2707 };
     private static final double dxSigmBotElecSeed[] ={ 48.4089,-385.494, 1341.37,-2271.52, 1814.02,-526.555 };
 
-    private static final double dyMeanTopPosiSeed[] ={-0.127741,10.4944, -18.242,-12.9155, 81.0116,-73.9773 };
+    private static final double dyMeanTopPosiSeed[] ={-0.527741,10.4944, -18.242,-12.9155, 81.0116,-73.9773 };
     private static final double dySigmTopPosiSeed[] ={ 37.3097, -357.55, 1607.03,-3709.55, 4282.36,-1957.91 };
-    private static final double dyMeanBotPosiSeed[] ={ 2.24392,-55.2003,  405.04,-1250.64, 1731.47,-887.262 };
+    private static final double dyMeanBotPosiSeed[] ={ 0.74392,-55.2003,  405.04,-1250.64, 1731.47,-887.262 };
     private static final double dySigmBotPosiSeed[] ={ 25.5776,-199.731,  754.59,-1408.72, 1240.36,-400.912 };
 
-    private static final double dyMeanTopElecSeed[] ={ 3.25429,-24.0858, 69.0145, 34.1213,-297.752, 239.939 };
+    private static final double dyMeanTopElecSeed[] ={ 2.85429,-24.0858, 69.0145, 34.1213,-297.752, 239.939 };
     private static final double dySigmTopElecSeed[] ={ 19.9111,-53.2699,-261.915,  1593.2,-2774.01, 1605.54 };
-    private static final double dyMeanBotElecSeed[] ={-7.72963, 98.1346, -427.91, 840.225,-751.188, 250.792 };
+    private static final double dyMeanBotElecSeed[] ={-9.22963, 98.1346, -427.91, 840.225,-751.188, 250.792 };
     private static final double dySigmBotElecSeed[] ={ 21.7909,-85.4757,-56.9423, 977.522,-1902.05, 1137.92 };
-
-
     /**
      * Z position to start extrapolation from
      */
