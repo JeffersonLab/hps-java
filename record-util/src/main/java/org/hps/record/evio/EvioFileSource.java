@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.freehep.record.source.NoSuchRecordException;
@@ -41,7 +42,12 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
      * The reader to use for reading and parsing the EVIO data.
      */
     private EvioReader reader;
-
+    
+    /**
+     * Whether to continue on parse errors or not.
+     */
+    private boolean continueOnErrors = false;
+   
     /**
      * Constructor taking a single EVIO file.
      *
@@ -61,7 +67,15 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
         this.files.addAll(files);
         this.openReader();
     }
-
+    
+    /**
+     * Set whether to continue on errors or not.
+     * @param continueOnErrors <code>true</code> to continue on errors
+     */
+    public void setContinueOnErrors(boolean continueOnErrors) {
+        this.continueOnErrors = continueOnErrors;
+    }
+    
     /**
      * Close the current reader.
      */
@@ -136,20 +150,26 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
         for (;;) {
             try {
                 this.currentEvent = this.reader.parseNextEvent();
-            } catch (final EvioException e) {
-                throw new IOException(e);
-            }
-            if (this.currentEvent == null) {
-                this.closeReader();
-                this.fileIndex++;
-                if (!this.endOfFiles()) {
-                    this.openReader();
-                    continue;
+                if (this.reader.getNumEventsRemaining() == 0 && this.currentEvent == null) {
+                    this.closeReader();
+                    this.fileIndex++;
+                    if (!this.endOfFiles()) {
+                        this.openReader();
+                    } else {
+                        throw new NoSuchRecordException("End of data.");
+                    }
                 } else {
-                    throw new NoSuchRecordException();
+                    LOGGER.finest("Read EVIO event " + this.currentEvent.getEventNumber() + " okay.");
+                    break;
+                }                   
+            } catch (EvioException | NegativeArraySizeException e) { 
+                LOGGER.log(Level.SEVERE, "Error parsing next EVIO event.", e);
+                if (!continueOnErrors) {
+                    throw new IOException("Fatal error parsing next EVIO event.", e);
                 }
+            } catch (Exception e) {
+                throw new IOException("Error parsing EVIO event.", e);
             }
-            return;
         }
     }
 

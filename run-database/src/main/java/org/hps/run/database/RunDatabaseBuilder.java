@@ -382,6 +382,7 @@ final class RunDatabaseBuilder {
         EvioLoop loop = new EvioLoop();
         loop.addProcessors(processors);
         EvioFileSource source = new EvioFileSource(this.evioFiles);
+        source.setContinueOnErrors(true); // FIXME: errors should be handled by the loop instead
         loop.setEvioFileSource(source);
         loop.loop(-1);
         
