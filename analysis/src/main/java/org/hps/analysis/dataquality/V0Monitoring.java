@@ -247,8 +247,10 @@ public class V0Monitoring extends DataQualityMonitor {
         mollerXVsVtxY = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vx vs Vy", 100, -5, 5, 100, -2, 2);
     
         mollerUx = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Pair Momentum Direction Ux", 100, .025, .035);
-        mollerUx = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Pair Momentum Direction Uy", 100, -.005, .005);
+        mollerUy = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Pair Momentum Direction Uy", 100, -.005, .005);
     
+        
+        
     }
 
     @Override
