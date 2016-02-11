@@ -750,23 +750,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Don't just return a stored parameter. ACTUALLY check whether you are still connected to the $@#$%! database.
-     *
-     * @return <code>true</code> if connected
-     */    
-    public boolean checkIfConnected(){
-        try {
-            this.connection.createStatement().execute("SELECT * from svt_channels limit 1;");
-        } catch (final SQLException x) {
-            LOGGER.info("====== Checking database found it not connected. ");
-            this.isConnected = false;
-            return false;
-        }
-        LOGGER.info("====== Checking database found and found it still connected. ");
-        return true;
-    }
-    
-    /**
      * True if conditions system is frozen
      *
      * @return <code>true</code> if conditions system is currently frozen
