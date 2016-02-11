@@ -828,13 +828,17 @@ final class RunDatabaseBuilder {
             startTimestamp = runSummary.getGoTimestamp();
         } else if (runSummary.getPrestartTimestamp() != null) {
             startTimestamp = runSummary.getPrestartTimestamp();
-        } 
+        }
         Integer endTimestamp = runSummary.getEndTimestamp();
         if (endTimestamp!= null && startTimestamp != null && runSummary.getTotalEvents() > 0) {
-            double triggerRate = ((double) runSummary.getTotalEvents() /
-                    ((double) runSummary.getEndTimestamp() - (double) runSummary.getGoTimestamp()));
-            runSummary.setTriggerRate(triggerRate);
-            LOGGER.info("trigger rate set to " + runSummary.getTriggerRate());
+            try {
+                double triggerRate = ((double) runSummary.getTotalEvents() /
+                        ((double) endTimestamp - (double) startTimestamp));
+                runSummary.setTriggerRate(triggerRate);
+                LOGGER.info("trigger rate set to " + runSummary.getTriggerRate() + " Hz");
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Error calculating trigger rate.", e);
+            }
         } else {
             LOGGER.warning("Skipped trigger rate calculation due to missing data.");
         }
