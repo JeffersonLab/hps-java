@@ -232,7 +232,11 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                 SvtHeaderDataInfo headerData = this.extractSvtHeader(dataBank.getHeader().getNumber(), data);
                 
                 // Check that the multisample count is consistent
-                this.checkSvtSampleCount(sampleCount, headerData);
+                try {
+                    this.checkSvtSampleCount(sampleCount, headerData);
+                }  catch(final SvtEvioHeaderException e) {
+                    LOGGER.warning("Caught SVT exception:" + e.getMessage());
+                }
                 
                 // Add header to list
                 headers.add(headerData);
@@ -344,7 +348,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
      */
     protected void checkSvtSampleCount(int sampleCount, SvtHeaderDataInfo headerData) throws SvtEvioHeaderException {
         if( sampleCount != SvtEvioUtils.getSvtTailMultisampleCount(headerData.getTail())*4)
-            throw new SvtEvioHeaderException("multisample count is not consistent with bank size.");
+            throw new SvtEvioHeaderException("ROC " + headerData.getNum() + " multisample count " + sampleCount + " is not consistent with bank size " + SvtEvioUtils.getSvtTailMultisampleCount(headerData.getTail()));
     }
     
     /**
