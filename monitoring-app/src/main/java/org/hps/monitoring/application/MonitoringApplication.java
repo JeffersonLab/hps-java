@@ -954,7 +954,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
 
             // Add listener to push conditions changes to conditions panel.
             final List<ConditionsListener> conditionsListeners = new ArrayList<ConditionsListener>();
-            conditionsListeners.add(this.frame.getConditionsPanel().new ConditionsPanelListener());
+            //conditionsListeners.add(this.frame.getConditionsPanel().new ConditionsPanelListener());
 
             // Instantiate the event processing wrapper.
             this.processing = new EventProcessing(this, processors, drivers, conditionsListeners);

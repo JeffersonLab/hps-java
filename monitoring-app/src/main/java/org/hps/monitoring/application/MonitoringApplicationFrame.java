@@ -37,7 +37,7 @@ final class MonitoringApplicationFrame extends JFrame {
     /**
      * The conditions panel.
      */
-    private final ConditionsPanel conditionsPanel;
+    //private final ConditionsPanel conditionsPanel;
 
     /**
      * The dashboard panel.
@@ -150,8 +150,8 @@ final class MonitoringApplicationFrame extends JFrame {
         tableTabbedPane.addTab("Trigger Diagnostics", this.triggerPanel);
 
         // Add the conditions panel.
-        this.conditionsPanel = new ConditionsPanel();
-        tableTabbedPane.addTab("Detector Conditions", this.conditionsPanel);
+        //this.conditionsPanel = new ConditionsPanel();
+        //tableTabbedPane.addTab("Detector Conditions", this.conditionsPanel);
 
         // Vertical split pane in left panel.
         this.leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.dashboardPanel, tableTabbedPane);
@@ -209,9 +209,9 @@ final class MonitoringApplicationFrame extends JFrame {
      *
      * @return the conditions panel
      */
-    ConditionsPanel getConditionsPanel() {
-        return this.conditionsPanel;
-    }
+    //ConditionsPanel getConditionsPanel() {
+    //    return this.conditionsPanel;
+    //}
 
     /**
      * Get the panel for the dashboard.

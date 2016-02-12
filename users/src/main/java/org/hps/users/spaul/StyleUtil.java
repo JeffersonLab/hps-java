@@ -1,9 +1,16 @@
 package org.hps.users.spaul;
 
+import java.awt.Component;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Random;
 
+import javax.imageio.ImageIO;
+
 import hep.aida.*;
+import hep.aida.ref.plotter.PlotterUtilities;
 
 public class StyleUtil {
 	
@@ -27,14 +34,16 @@ public class StyleUtil {
 		r.style().yAxisStyle().labelStyle().setFontSize(16);
 		r.style().yAxisStyle().tickLabelStyle().setFontSize(14);
 		//	r.style().statisticsBoxStyle().set;
-		//System.out.println(Arrays.toString());
+		//debugPrint());
 		r.style().legendBoxStyle().textStyle().setFontSize(16);
+		r.style().statisticsBoxStyle().textStyle().setFontSize(16);
 		
 		//r.style().dataStyle().showInLegendBox(false);
+		
 		r.style().legendBoxStyle().boxStyle().foregroundStyle().setOpacity(1.0);
 		r.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
 		r.style().dataStyle().fillStyle().setParameter("showZeroHeightBins", "false");
-		System.out.println(Arrays.toString(r.style().statisticsBoxStyle().boxStyle().backgroundStyle().availableParameters()));
+		//debugPrint(r.style().dataStyle().availableParameters()));
 		//r.style().dataStyle().setParameter("showDataInStatisticsBox", "false");
 		r.style().setParameter("hist2DStyle", "colorMap");
 		//r.style().dataBoxStyle()
@@ -62,15 +71,38 @@ public class StyleUtil {
 		region.style().dataStyle().lineStyle().setParameter("colorRotateMethod", "regionOverlayIndex");
 		region.style().dataStyle().lineStyle().setParameter("colorRotate", "black, red, green, blue");
 		region.style().dataStyle().lineStyle().setParameter("thickness", "3");
+		region.style().dataStyle().outlineStyle().setParameter("colorRotateMethod", "regionOverlayIndex");
+		//debug = true;
+		debugPrint(region.style().dataStyle().outlineStyle().availableParameters());
+		region.style().dataStyle().outlineStyle().setParameter("colorRotate", "black, red, green, blue");
+		region.style().dataStyle().outlineStyle().setParameter("thickness", "3");
 		region.style().dataStyle().errorBarStyle().setVisible(false);
-		System.out.println(Arrays.toString(region.style().dataStyle().lineStyle().availableParameterOptions("colorRotateMethod")));
+		debugPrint(region.style().dataStyle().lineStyle().availableParameterOptions("colorRotateMethod"));
+	}
+	public static void setSize(IPlotter p, int width, int height){
+		p.setParameter("plotterWidth", width +"");
+		p.setParameter("plotterHeight", height +"");
 	}
 	
+	public static void setLog(IPlotterRegion r){
+
+		r.style().yAxisStyle().setParameter("scale", "log");
+		r.style().gridStyle().setUnits(100);
+		debugPrint(r.style().gridStyle().availableParameters()); 
+		
+	}
+	static boolean debug = false;
+	static void debugPrint(String[] stuff){
+		if(debug){
+			System.out.println(Arrays.toString(stuff));
+		}
+	}
 	public static void main(String arg[]){
 		IAnalysisFactory af = IAnalysisFactory.create();
 		IHistogramFactory hf = af.createHistogramFactory(af.createTreeFactory().create());
 		
 		IPlotter p = af.createPlotterFactory().create();
+		debugPrint(p.availableParameters());
 		p.createRegions(1, 2);
 		IHistogram1D h1 = hf.createHistogram1D("blah", 100, -5, 5);
 		IHistogram1D h2 = hf.createHistogram1D("bleh", 100, -5, 5);
@@ -99,9 +131,65 @@ public class StyleUtil {
 		
 		p.show();
 		
+		p = af.createPlotterFactory().create();
+		debugPrint(p.availableParameters());
+		p.createRegions(1, 2);
+		
+		p.region(0).plot(h1);
+		setLog(p.region(0));
+		
+		
+		
+		p.show();
 	}
 	public static void hideLegendAndStats(IPlotterRegion r){
 		r.style().statisticsBoxStyle().setVisible(false);
 		r.style().legendBoxStyle().setVisible(false);
+	}
+	public static IPlotterStyle smoothCurveStyle(IPlotterFactory pf) {
+		IPlotterStyle style = pf.createPlotterStyle();
+		debugPrint(style.dataStyle().availableParameters());
+		
+		style.dataStyle().markerStyle().setVisible(false);
+		
+		return style;
+	}
+	public static void writeToFile(IPlotter plotter, String filename, String filetype){
+		//JFrame frame = new JFrame()
+		//if(plotter.)
+		//plotter.hide();
+		//plotter.show();
+		//PlotterUtilities.writeToFile(plotter, filename, filetype, null);
+		try {
+			
+			
+			//PlotterUtilities.writeToFile(plotter, filename, filetype, null);
+			Thread.sleep(1000);
+			Component c = PlotterUtilities.componentForPlotter(plotter);
+			int width = Integer.parseInt(plotter.parameterValue("plotterWidth"));
+			int height = Integer.parseInt(plotter.parameterValue("plotterHeight"));
+			if(width <= 0){
+				width = 300;
+				plotter.setParameter("plotterWidth", Integer.toString(width));
+			}
+			if(height <= 0){
+				height = 300;
+
+				plotter.setParameter("plotterHeight", Integer.toString(height));
+			}
+			
+			c.setSize(width, height);
+			BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+			Graphics2D graphics2D = image.createGraphics();
+			c.paint(graphics2D);
+			ImageIO.write(image,filetype, new File(filename));
+			Runtime.getRuntime().exec("open " + filename);
+			System.out.println("saved");
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 }

@@ -36,7 +36,8 @@ public class ExtractFormFactors {
 
 			IDataPointSetFactory dpsf = af.createDataPointSetFactory(treeNew);
 
-			IPlotter p = af.createPlotterFactory().create(outpaths[config]);
+			IPlotterFactory pf = af.createPlotterFactory();
+			IPlotter p = pf.create(outpaths[config]);
 
 
 			int Nsets = arg.length/10;
@@ -152,7 +153,9 @@ public class ExtractFormFactors {
 
 				//p.region(0).plot(dps_iso);
 			}
-			p.region(0).plot(dpsTheory);
+			
+			IPlotterStyle style = StyleUtil.smoothCurveStyle(pf);
+			p.region(0).plot(dpsTheory, style);
 			StyleUtil.stylize(p.region(0), "Form Factors", "Q^2 (GeV^2)", "|F(Q^2)|^2");
 			p.show();
 		}

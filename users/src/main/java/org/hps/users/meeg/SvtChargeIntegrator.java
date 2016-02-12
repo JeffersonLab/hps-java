@@ -129,6 +129,9 @@ public class SvtChargeIntegrator {
                         if (tiTimeOffset == 0) {
                             continue;
                         }
+                        if (tiTimeOffset == 0) {
+                            continue;
+                        }
                     }
 
                     try {

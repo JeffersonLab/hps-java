@@ -25,6 +25,14 @@ public class FADCGenericHit implements GenericObject {
         this.channel = channel;
         this.data = data;
     }
+    
+    public FADCGenericHit(GenericObject object) {
+        this.readoutMode = getReadoutMode(object);
+        this.crate = getCrate(object);
+        this.slot = getSlot(object);
+        this.channel = getChannel(object);
+        this.data = getData(object);
+    }
 
     @Override
     public int getNInt() {
@@ -114,5 +122,5 @@ public class FADCGenericHit implements GenericObject {
             data[i] = object.getIntVal(i+4);
         }
         return data;
-    }
+    }    
 }

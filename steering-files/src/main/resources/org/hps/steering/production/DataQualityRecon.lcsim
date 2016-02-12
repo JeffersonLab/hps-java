@@ -59,6 +59,7 @@
         <driver name="TridentMonitoringGBLPairs1"/>     
         <!--           -->
         <driver name="AidaSaveDriver"/>
+        <driver name="AidaToRootSaveDriver"/>
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
@@ -68,7 +69,10 @@
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
-        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.aida</outputFileName>
+        </driver>
+        <driver name="AidaToRootSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>
 

@@ -22,6 +22,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.PosixParser;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
@@ -71,7 +72,7 @@ import org.lcsim.lcio.LCIOWriter;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Sho Uemura <meeg@slac.stanford.edu>
  */
-public class EvioToLcio {
+public final class EvioToLcio {
 
     /**
      * The default steering resource, which basically does nothing except print event numbers.
@@ -113,6 +114,7 @@ public class EvioToLcio {
      */
     private static Options OPTIONS = new Options();
     static {
+        OPTIONS.addOption(new Option("h", false, "print help and exit"));
         OPTIONS.addOption(new Option("d", true, "detector name (required)"));
         OPTIONS.getOption("d").setRequired(true);
         OPTIONS.addOption(new Option("f", true, "text file containing a list of EVIO files"));
@@ -251,19 +253,25 @@ public class EvioToLcio {
     }
 
     public void parse(String[] args) {
-        // Parse the command line options.
+        
         if (args.length == 0) {
             this.printUsage();
         }
-        final CommandLineParser parser = new DefaultParser();
+        
+        final CommandLineParser parser = new PosixParser();
         CommandLine cl = null;
         try {
             cl = parser.parse(OPTIONS, args);
         } catch (final ParseException e) {
             throw new RuntimeException("Problem parsing command line options.", e);
         }
+        
+        if (cl.hasOption("h")) {
+            this.printUsage();
+        }
 
         // Set the log level.
+        // TODO: Remove this argument; use java logging prop instead.
         if (cl.hasOption("L")) {
             final Level level = Level.parse(cl.getOptionValue("L").toUpperCase());
 
