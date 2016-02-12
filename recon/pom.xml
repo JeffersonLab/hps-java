@@ -8,12 +8,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.6.1</version>
+        <version>3.6-SNAPSHOT</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.6.1/recon</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.6.1/recon</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.6.1/recon</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/recon/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/recon/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/recon/</developerConnection>
     </scm>
     <dependencies>
         <!-- This will pull in the ECAL recon module transitively. -->
