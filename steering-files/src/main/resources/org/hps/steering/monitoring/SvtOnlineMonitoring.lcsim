@@ -25,7 +25,7 @@
        </driver>
         <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots">
             <doPerChannelsSampleplots>true</doPerChannelsSampleplots>
-            <saveRootFile>true</saveRootFile>
+            <saveRootFile>false</saveRootFile>
         </driver>
         <driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />
         <driver name="PedestalPlots" type="org.hps.monitoring.drivers.svt.PedestalPlots" />
