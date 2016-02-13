@@ -4,10 +4,7 @@ import org.lcsim.event.GenericObject;
 
 /**
  * Class <code>TIData</code> is an implementation of abstract class
- * <code>AbstractIntData</code> that represents a TI trigger bit bank. It
- * contains both a time window length and a set of flags that track whether a
- * trigger of a given type was registered with the event to which this bank is
- * attached.
+ * <code>AbstractIntData</code> that represents a TI trigger bit bank.
  *
  * @author Nathan Baltzell <baltzell@jlab.org>
  */
@@ -98,15 +95,11 @@ public class TIData extends AbstractIntData {
         calib = ((bank[0] >> 28) & 1) == 1;
         pulser = ((bank[0] >> 29) & 1) == 1;
 
-        // Get the unprocessed start and end times for the bank.
-        long w1 = bank[2] & 0xffffffffL;
-        long w2 = bank[3] & 0xffffffffL;
-
-        // Process the times into units of clock-cycles.
+        // interpret time:
+        final long w1 = bank[2] & 0xffffffffL;
+        final long w2 = bank[3] & 0xffffffffL;
         final long timelo = w1;
         final long timehi = (w2 & 0xffff) << 32;
-
-        // Store the time difference in nanoseconds.
         time = 4 * (timelo + timehi);
     }
 
@@ -115,11 +108,6 @@ public class TIData extends AbstractIntData {
         return BANK_TAG;
     }
 
-    /**
-     * Gets the time window for the bank.
-     *
-     * @return Returns the time window length in nanoseconds.
-     */
     public long getTime() {
         return time;
     }
