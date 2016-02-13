@@ -33,7 +33,7 @@
         <constant name="dipoleMagnetHeight" value="100*cm" />
         <constant name="dipoleMagnetWidth" value="100*cm" />
         <constant name="dipoleMagnetLength" value="108*cm" />
-        <constant name="constBFieldY" value="-0.5" />
+        <constant name="constBFieldY" value="-0.524" />
          
         
         <!-- ECAL crystal dimensions -->
