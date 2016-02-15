@@ -62,7 +62,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     private final String plotDir = "FinalStateParticles/";
     double beamEnergy = 1.05; //GeV
     double maxFactor = 1.5;
-    double feeMomentumCut = 0.8; //GeV
+    double feeMomentumCut = 0.75; //this number, multiplied by the beam energy, is the actual cut
 
     IHistogram1D elePx;
     IHistogram1D elePy;
@@ -97,6 +97,10 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     /* number of unassocaited tracks/event */
     IHistogram1D nUnAssTracksHisto;
     
+    
+    public void setBeamEnergy(double e){
+    	this.beamEnergy = e;
+    }
     public void setFinalStateParticlesColName(String fsp) {
         this.finalStateParticlesColName = fsp;
     }
@@ -111,24 +115,24 @@ public class FinalStateMonitoring extends DataQualityMonitor {
        
         /*  Final State Particle Quantities   */
         /*  plot electron & positron momentum separately  */
-        elePx = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Electron Px (GeV)", 100, -0.1, 0.200);
-        elePy = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Electron Py (GeV)", 100, -0.1, 0.1);
+        elePx = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Electron Px (GeV)", 100, -0.1*beamEnergy, 0.200*beamEnergy);
+        elePy = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Electron Py (GeV)", 100, -0.1*beamEnergy, 0.1*beamEnergy);
         elePz = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Electron Pz (GeV)", 100, 0, beamEnergy * maxFactor);
-        elePzBeam = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Beam Electrons Total P (GeV)", 100, feeMomentumCut, beamEnergy * maxFactor);
-        elePzBeamTop = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Beam Electrons Total P (GeV):  Top", 100, feeMomentumCut, beamEnergy * maxFactor);
-        elePzBeamBottom = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Beam Electrons Total P (GeV):  Bottom", 100, feeMomentumCut, beamEnergy * maxFactor);
+        elePzBeam = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Beam Electrons Total P (GeV)", 100, feeMomentumCut*beamEnergy, beamEnergy * maxFactor);
+        elePzBeamTop = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Beam Electrons Total P (GeV):  Top", 100, feeMomentumCut*beamEnergy, beamEnergy * maxFactor);
+        elePzBeamBottom = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Beam Electrons Total P (GeV):  Bottom", 100, feeMomentumCut*beamEnergy, beamEnergy * maxFactor);
         elePTop = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Electron Total P (GeV):  Top", 100, 0, beamEnergy * maxFactor);
         elePBottom = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Electron Total P (GeV):  Bottom", 100, 0, beamEnergy * maxFactor);
 
-        posPx = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Positron Px (GeV)", 50, -0.1, 0.200);
-        posPy = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Positron Py (GeV)", 50, -0.1, 0.1);
+        posPx = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Positron Px (GeV)", 50, -0.1*beamEnergy, 0.200*beamEnergy);
+        posPy = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Positron Py (GeV)", 50, -0.1*beamEnergy, 0.1*beamEnergy);
         posPz = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Positron Pz (GeV)", 50, 0, beamEnergy * maxFactor);
         posPTop = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Positron Total P (GeV):  Top", 100, 0, beamEnergy * maxFactor);
         posPBottom = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Positron Total P (GeV):  Bottom", 100, 0, beamEnergy * maxFactor);
 
         /*  photon quanties (...right now, just unassociated clusters) */
         nPhotonsHisto = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Number of photons per event", 15, 0, 15);
-        enePhoton = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Photon Energy (GeV)", 50, 0, 2.4);
+        enePhoton = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Photon Energy (GeV)", 50, 0, 2.4*beamEnergy);
         xPhoton = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Photon X position (mm)", 50, -200, 200);
         yPhoton = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Photon Y position (mm)", 50, -100, 100);
 
