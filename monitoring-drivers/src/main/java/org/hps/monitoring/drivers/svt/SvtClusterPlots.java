@@ -75,7 +75,7 @@ public class SvtClusterPlots extends Driver {
 
     private int runNumber = -1;
 
-    private boolean saveRootPlots = true;
+    private boolean saveRootFile = true;
 
     private boolean dropSmallHitEvents = true;
 
@@ -83,8 +83,8 @@ public class SvtClusterPlots extends Driver {
         this.dropSmallHitEvents = dropSmallHitEvents;
     }
 
-    public void setSaveRootPlots(boolean saveRootPlots) {
-        this.saveRootPlots = saveRootPlots;
+    public void setSaveRootFile(boolean saveRootFile) {
+        this.saveRootFile = saveRootFile;
     }
 
     private int computePlotterRegion(HpsSiSensor sensor) {
@@ -349,7 +349,7 @@ public class SvtClusterPlots extends Driver {
     }
 
     public void endOfData() {
-        if (saveRootPlots) {
+        if (saveRootFile) {
             String rootFile = "run" + runNumber + "_cluster_analysis.root";
             RootFileStore store = new RootFileStore(rootFile);
             try {

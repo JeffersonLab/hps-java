@@ -107,7 +107,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private double clusterTimeCutMax = 4.0;
     private double clusterTimeCutMin = -4.0;
 
-    private boolean saveRootPlots = true;
+    private boolean saveRootFile = true;
 
     public SensorOccupancyPlotsDriver() {
         maxSampleStatus = new SystemStatusImpl(Subsystem.SVT, "Checks that SVT is timed in (max sample plot)", true);
@@ -196,8 +196,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
         this.maxPeakOccupancy = maxPeakOccupancy;
     }
 
-    public void setSaveRootPlots(boolean saveRootPlots) {
-        this.saveRootPlots = saveRootPlots;
+    public void setSaveRootFile(boolean saveRootFile) {
+        this.saveRootFile = saveRootFile;
     }
 
     /**
@@ -708,7 +708,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
     @Override
     public void endOfData() {
 
-        if (saveRootPlots) {
+        if (saveRootFile) {
             String rootFile = "run" + runNumber + "_occupancy.root";
             RootFileStore store = new RootFileStore(rootFile);
             try {
