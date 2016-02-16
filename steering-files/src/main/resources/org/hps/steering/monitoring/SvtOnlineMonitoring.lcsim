@@ -22,10 +22,11 @@
             <maxSamplePosition>3</maxSamplePosition>
             <timeWindowWeight>3</timeWindowWeight>
             <resetPeriod>50000</resetPeriod>
+            <saveRootFile>false</saveRootFile>
        </driver>
         <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots">
             <doPerChannelsSampleplots>true</doPerChannelsSampleplots>
-            <saveRootFile>true</saveRootFile>
+            <saveRootFile>false</saveRootFile>
         </driver>
         <driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />
         <driver name="PedestalPlots" type="org.hps.monitoring.drivers.svt.PedestalPlots" />
@@ -44,7 +45,9 @@
             <neighborDeltaT>8.0</neighborDeltaT>
             <debug>false</debug>
         </driver>
-        <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots" />
+        <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
+            <saveRootFile>false</saveRootFile>
+        </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
     </drivers>
 </lcsim>

@@ -87,28 +87,5 @@
                 </plugins>
             </build>
         </profile> 
-        <!-- This profile activates automatically when not running tests on a SLAC Unix system with NFS access. -->
-        <profile>
-            <id>no-slac-nfs</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-                <file>
-                    <missing>/nfs/slac/g/hps/</missing>
-                </file>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <excludes>                           
-                                <exclude>org/hps/test/it/EvioToLcioTest.java</exclude> 
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>        
-        </profile>  
     </profiles>    
 </project>

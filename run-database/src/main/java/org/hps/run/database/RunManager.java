@@ -247,6 +247,15 @@ public final class RunManager implements ConditionsListener {
      * @return <code>true</code> if the run exists in the database
      */
     public boolean runExists() {
+        if (factory == null) {
+            throw new RuntimeException("factory is null");
+        }
+        if (factory.getRunSummaryDao() == null) {
+            throw new RuntimeException("RunSummaryDao is null");
+        }
+        if (this.run == null) {
+            throw new RuntimeException("run is null");
+        }
         return factory.getRunSummaryDao().runSummaryExists(this.run);
     }
 

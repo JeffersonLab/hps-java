@@ -8335,7 +8335,7 @@
     </setup>
   </gdml>
   <fields>
-    <box_dipole name="AnalyzingDipole" lunit="mm" funit="tesla" x="21.17" y="0.0" z="457.2" dx="500.0" dy="500.0" dz="540.0" bx="0.0" by="-0.5" bz="0.0" />
+    <box_dipole name="AnalyzingDipole" lunit="mm" funit="tesla" x="21.17" y="0.0" z="457.2" dx="500.0" dy="500.0" dz="540.0" bx="0.0" by="-0.524" bz="0.0" />
   </fields>
 </lcdd>
 

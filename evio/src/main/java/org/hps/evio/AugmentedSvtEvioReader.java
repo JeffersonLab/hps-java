@@ -32,7 +32,10 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
     
     @Override
     protected void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) throws SvtEvioHeaderException {
-    
+
+
+        LOGGER.finest("Process " + headers.size() + " SVT headers for run " + lcsimEvent.getRunNumber() + " and event " + lcsimEvent.getEventNumber());
+        
         // Check that the SVT header data is valid
         // Catch the exceptions locally, add stuff to the event, then throw it again
         // and handle it outside
@@ -43,6 +46,8 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
 
         if( !exceptions.isEmpty() ) {
 
+            LOGGER.finest("Found " + exceptions.size() + " " + SvtEvioHeaderException.class.getSimpleName() + " exceptions");
+            
             // print some debug info 
             
             List<String> exceptionNames = SvtEventHeaderChecker.getSvtEvioHeaderExceptionNames(exceptions);
@@ -68,8 +73,14 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
                 throw new SvtEvioHeaderException(exceptions.get(0));
             
         } else { 
+            
+            LOGGER.finest("No " + SvtEvioHeaderException.class.getSimpleName() + " exceptions found for this event");
+            
             // add skimming flag - the header is OK since I would never get here otherwise
             SvtEventFlagger.voidAddHeaderCheckResultToMetaData(true, lcsimEvent);
+            
+            
+            
         }
 
         // Add SVT header data to the event

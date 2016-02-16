@@ -74,6 +74,36 @@ public class TridentMonitoring extends DataQualityMonitor {
     private final static Logger LOGGER = Logger.getLogger(TridentMonitoring.class.getPackage().getName());
 
     private double ebeam = 1.05;
+    
+    public void setBeamEnergy(double ebeam){
+    	this.ebeam = ebeam;
+    	
+    	  plotsMinMass = 0.03 * ebeam;
+    	    plotsMaxMass = 0.04 * ebeam;
+
+
+    	    //v0 plot ranges
+    	    v0PzMax = 1.25 * ebeam;//GeV 
+    	    v0PzMin = 0.1;// GeV
+    	    v0PyMax = 0.04 * ebeam;//GeV absolute value
+    	    v0PxMax = 0.04 * ebeam;//GeV absolute value
+    	    
+    	    //v0 cuts
+    	    v0PzMaxCut = 1.25 * ebeam;//GeV 
+    	    v0PzMinCut = 0.1;// GeV
+    	    v0PyCut = 0.04 * ebeam;//GeV absolute value
+    	    v0PxCut = 0.04 * ebeam;//GeV absolute value
+    	    
+    	//  track quality cuts
+    	    beamPCut = 0.85 * ebeam;
+    	    minPCut = 0.05;
+//    	    private double trkPyMax = 0.2;
+//    	    private double trkPxMax = 0.2;
+    	    radCut = 0.8 * ebeam;
+    	    
+
+    }
+    
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
 //    private static final int nCuts = 9;
 //    private final String[] cutNames = {"Trk Quality",
@@ -216,8 +246,8 @@ public class TridentMonitoring extends DataQualityMonitor {
     private final IHistogram1D[][] cutVertexZ = new IHistogram1D[Cut.nCuts][2];
     private final IHistogram2D[][] cutVertexZVsMass = new IHistogram2D[Cut.nCuts][2];
 
-    private final double plotsMinMass = 0.03 * ebeam;
-    private final double plotsMaxMass = 0.04 * ebeam;
+    private  double plotsMinMass = 0.03 * ebeam;
+    private  double plotsMaxMass = 0.04 * ebeam;
 
     //clean up event first
     private final int nTrkMax = 5;
@@ -228,29 +258,29 @@ public class TridentMonitoring extends DataQualityMonitor {
     private final double maxVertChi2 = 7.0;
 
     //v0 plot ranges
-    private final double v0PzMax = 1.25 * ebeam;//GeV 
-    private final double v0PzMin = 0.1;// GeV
-    private final double v0PyMax = 0.04;//GeV absolute value
-    private final double v0PxMax = 0.04;//GeV absolute value
+    private  double v0PzMax = 1.25 * ebeam;//GeV 
+    private  double v0PzMin = 0.1;// GeV
+    private  double v0PyMax = 0.04 * ebeam;//GeV absolute value
+    private  double v0PxMax = 0.04 * ebeam;//GeV absolute value
     private final double v0VzMax = 50.0;// mm from target...someday make mass dependent
     private final double v0VyMax = 2.0;// mm from target...someday make mass dependent
     private final double v0VxMax = 2.0;// mm from target...someday make mass dependent
 
     //v0 cuts
-    private final double v0PzMaxCut = 1.25 * ebeam;//GeV 
-    private final double v0PzMinCut = 0.1;// GeV
-    private final double v0PyCut = 0.04;//GeV absolute value
-    private final double v0PxCut = 0.04;//GeV absolute value
+    private  double v0PzMaxCut = 1.25 * ebeam;//GeV 
+    private  double v0PzMinCut = 0.1;// GeV
+    private  double v0PyCut = 0.04 * ebeam;//GeV absolute value
+    private  double v0PxCut = 0.04 * ebeam;//GeV absolute value
     private final double v0VzCut = 50.0;// mm from target...someday make mass dependent
     private final double v0VyCut = 2.0;// mm from target...someday make mass dependent
     private final double v0VxCut = 2.0;// mm from target...someday make mass dependent
     
 //  track quality cuts
-    private final double beamPCut = 0.85;
-    private final double minPCut = 0.05;
+    private  double beamPCut = 0.85 * ebeam;
+    private  double minPCut = 0.05;
 //    private double trkPyMax = 0.2;
 //    private double trkPxMax = 0.2;
-    private final double radCut = 0.8 * ebeam;
+    private  double radCut = 0.8 * ebeam;
     private final double trkTimeDiff = 5.0;
     private final double clusterTimeDiffCut = 2.5;
 
@@ -268,9 +298,7 @@ public class TridentMonitoring extends DataQualityMonitor {
     private float nRecoV0 = 0;
     private final float[] nPassCut = new float[Cut.nCuts];
 
-    public void setEbeam(double ebeam) {
-        this.ebeam = ebeam;
-    }
+   
 
     @Override
     protected void detectorChanged(Detector detector) {

@@ -73,7 +73,14 @@ public class EcalMonitoring extends DataQualityMonitor {
     boolean fillHitPlots = true;
     String[] ecalQuantNames = {"avg_N_hits", "avg_Hit_Energy",
         "avg_N_clusters", "avg_N_hitsPerCluster", "avg_Cluster_Energy", "avg_ClusterTime"};
-    double maxE = 1.1;
+    double beamEnergy = 1.1;
+    
+    double maxFactor = 1.5;
+    
+    public void setBeamEnergy(double e){
+    	beamEnergy = e;
+    }
+    
     private final String plotHitsDir = "EcalHits/";
     private final String plotClustersDir = "EcalClusters/";
     private final String plotFidCutDir = "FiducialCut/";
@@ -90,6 +97,7 @@ public class EcalMonitoring extends DataQualityMonitor {
         this.clusterCollectionName = clusterCollectionName;
     }
 
+    
     public void setFillHitPlots(boolean fill) {
         this.fillHitPlots = fill;
     }
@@ -102,32 +110,32 @@ public class EcalMonitoring extends DataQualityMonitor {
             // Setup hit plots.
             hitCountPlot = aida.histogram1D(plotHitsDir + triggerType + "/"+ calibratedHitCollectionName + " Hit Count In Event", 40, -0.5, 39.5);
             hitTimePlot = aida.histogram1D(plotHitsDir + triggerType + "/"+calibratedHitCollectionName + " Hit Time", 50, 0 * 4.0, 50 * 4.0);
-            hitEnergyPlot = aida.histogram1D(plotHitsDir + triggerType + "/"+calibratedHitCollectionName + " Hit Energy", 100, -0.1, maxE);
+            hitEnergyPlot = aida.histogram1D(plotHitsDir + triggerType + "/"+calibratedHitCollectionName + " Hit Energy", 100, -0.1, beamEnergy*maxFactor);
             fiducialHitCountPlot = aida.histogram1D(plotHitsDir + triggerType + "/"+calibratedHitCollectionName + " Hit Count with Fiducial Cut", 10, -0.5, 9.5);
-            fiducialEnergyPlot = aida.histogram1D(plotHitsDir + triggerType + "/"+calibratedHitCollectionName + " Hit Energy with Fiducial Cut", 100, -0.1, maxE);
+            fiducialEnergyPlot = aida.histogram1D(plotHitsDir + triggerType + "/"+calibratedHitCollectionName + " Hit Energy with Fiducial Cut", 100, -0.1, beamEnergy*maxFactor);
         }
         // Setup cluster plots
         clusterCountPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Count per Event", 10, -0.5, 9.5);
         clusterSizePlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Size", 10, -0.5, 9.5);
-        clusterEnergyPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Energy", 100, -0.1, maxE);
+        clusterEnergyPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Energy", 100, -0.1, beamEnergy*maxFactor);
         clusterTimes = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Seed Times", 400, 0, 4.0 * 50);
         clusterTimeMean = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Time Mean", 400, 0, 4.0 * 50);
         clusterTimeSigma = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Cluster Time Sigma", 100, 0, 10);
-        twoclusterTotEnergy = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Two Cluster Energy Sum", 100, 0, maxE);
-        twoclusterEnergyAsymmetry = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Two Cluster Energy Asymmetry", 100, 0, 1.0);
-        energyVsT = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs time", 400, 0.0, 200.0, 100, -0.1, maxE);
+        twoclusterTotEnergy = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Two Cluster Energy Sum", 100, 0, beamEnergy*maxFactor);
+        twoclusterEnergyAsymmetry = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Two Cluster Energy Asymmetry", 100, 0, beamEnergy*maxFactor);
+        energyVsT = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs time", 400, 0.0, 200.0, 100, -0.1, beamEnergy*maxFactor);
         xVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " X vs Y (NHits >1)", 200, -200.0, 200.0, 85, -85.0, 85.0);
-        energyVsX = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs X", 50, 0, 1.6, 50, .0, 200.0);
-        energyVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs Y", 50, 0, 1.6, 50, 20.0, 85.0);
-        pairsE1vsE2 = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + "Pair E1 vs E2", 50, 0, 2, 50, 0, 2);
+        energyVsX = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs X", 50, 0, maxFactor*beamEnergy, 50, .0, 200.0);
+        energyVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs Y", 50, 0, maxFactor*beamEnergy, 50, 20.0, 85.0);
+        pairsE1vsE2 = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + "Pair E1 vs E2", 50, 0, beamEnergy*maxFactor, 50, 0, beamEnergy*maxFactor);
         pairsT1vsT2 = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + "Pair T1 vs T2", 200, 0, 100, 200, 0, 100);
         pairsDeltaT = aida.histogram1D(plotClustersDir + triggerType + "/" + clusterCollectionName + " Pair Time Difference", 100, -20.0, 20.0);
 
         fiducialClusterCountPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+plotFidCutDir + clusterCollectionName + " Cluster Count with Fiducal Cut", 10, -0.5, 9.5);
         fiducialClusterSizePlot = aida.histogram1D(plotClustersDir+  triggerType + "/" +plotFidCutDir + clusterCollectionName + " Cluster Size with Fiducal Cut", 10, -0.5, 9.5);
-        fiducialClusterEnergyPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+plotFidCutDir  + clusterCollectionName + " Cluster Energy with Fiducal Cut", 100, -0.1, maxE);
-        fiducialenergyVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+plotFidCutDir + clusterCollectionName + " Energy vs Y with Fiducial Cuts", 50, 0, 1.6, 50, 45.0, 85.0);
-        fiducialenergyVsX = aida.histogram2D(plotClustersDir+  triggerType + "/" +plotFidCutDir + clusterCollectionName + " Energy vs X with Fiducial Cuts", 50, 0, 1.6, 50, 0.0, 200.0);
+        fiducialClusterEnergyPlot = aida.histogram1D(plotClustersDir +  triggerType + "/"+plotFidCutDir  + clusterCollectionName + " Cluster Energy with Fiducal Cut", 100, -0.1, beamEnergy*maxFactor);
+        fiducialenergyVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+plotFidCutDir + clusterCollectionName + " Energy vs Y with Fiducial Cuts", 50, 0, beamEnergy*maxFactor, 50, 45.0, 85.0);
+        fiducialenergyVsX = aida.histogram2D(plotClustersDir+  triggerType + "/" +plotFidCutDir + clusterCollectionName + " Energy vs X with Fiducial Cuts", 50, 0, beamEnergy*maxFactor, 50, 0.0, 200.0);
 
     }
 
