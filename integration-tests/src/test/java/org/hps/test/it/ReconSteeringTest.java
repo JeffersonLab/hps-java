@@ -28,6 +28,7 @@ public class ReconSteeringTest extends TestCase {
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.addInputFile(inputFile);
         job.setup(STEERING_RESOURCE);
+        job.setNumberOfEvents(1000);
         job.run();
         System.out.println("Done processing " + job.getLCSimLoop().getTotalCountableConsumed() + " events.");
                             

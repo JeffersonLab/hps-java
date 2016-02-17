@@ -284,4 +284,12 @@ public final class RunManager implements ConditionsListener {
             this.run = run;
         }
     }
+    
+    /**
+     * Get the currently active run number or <code>null</code>.
+     * @return the currently active run number of <code>null</code>
+     */
+    public Integer getRun() {
+        return this.run;
+    }
 }

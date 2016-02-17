@@ -1,6 +1,3 @@
-/**
- *
- */
 package org.hps.monitoring.application;
 
 import java.awt.BorderLayout;
@@ -81,7 +78,7 @@ final class SystemStatusPanel extends JPanel {
         
         this.statuses.clear();
     }
-
+    
     private class SystemStatusBeeper extends TimerTask {
 
         @Override
@@ -93,7 +90,7 @@ final class SystemStatusPanel extends JPanel {
                 }
             }
             if (isAlarming) {
-                System.out.println("beep\007");
+                Toolkit.getDefaultToolkit().beep();
             }
         }
     }
