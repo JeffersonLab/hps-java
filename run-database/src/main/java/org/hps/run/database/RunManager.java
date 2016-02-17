@@ -25,7 +25,7 @@ public final class RunManager implements ConditionsListener {
      * The default connection parameters for read-only access to the run database.
      */
     private static ConnectionParameters DEFAULT_CONNECTION_PARAMETERS = new ConnectionParameters("hpsuser",
-            "darkphoton", "hps_run_db", "hpsdb.jlab.org");
+            "darkphoton", "hps_run_db_v2", "hpsdb.jlab.org");
 
     /**
      * The singleton instance of the RunManager.
