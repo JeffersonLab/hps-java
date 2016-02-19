@@ -232,11 +232,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                 SvtHeaderDataInfo headerData = this.extractSvtHeader(dataBank.getHeader().getNumber(), data);
                 
                 // Check that the multisample count is consistent
-                try {
-                    this.checkSvtSampleCount(sampleCount, headerData);
-                }  catch(final SvtEvioHeaderException e) {
-                    LOGGER.warning("Caught SVT exception:" + e.getMessage());
-                }
+                this.checkSvtSampleCount(sampleCount, headerData);
                 
                 // Add header to list
                 headers.add(headerData);
