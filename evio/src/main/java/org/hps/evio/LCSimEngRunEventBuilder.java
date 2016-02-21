@@ -106,6 +106,11 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             if (RunManager.getRunManager().runExists() && RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() != null) {
                 tiTimeOffset = (RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() / timestampCycle) * timestampCycle;
             }
+            try {
+                RunManager.getRunManager().closeConnection();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } catch (IllegalStateException e) {
             // May happen if RunManager is not initialized; just ignore.
         }
