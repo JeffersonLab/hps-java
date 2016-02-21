@@ -102,7 +102,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     
     // Diagnostic plots.
     private AIDA aida = AIDA.defaultInstance();
-    private IHistogram1D hitEnergy = aida.histogram1D("GTP(O) Cluster Plot/Hit Energy Distribution", 256, -1.0, 2.2);
+    private IHistogram1D hitEnergy = aida.histogram1D("GTP(O) Cluster Plots/Hit Energy Distribution", 256, -1.0, 2.2);
     private IHistogram1D clusterSeedEnergy = aida.histogram1D("GTP(O) Cluster Plots/Cluster Seed Energy Distribution", 176, 0.0, 2.2);
     private IHistogram1D clusterHitCount = aida.histogram1D("GTP(O) Cluster Plots/Cluster Hit Count Distribution", 9, 1, 10);
     private IHistogram1D clusterTotalEnergy = aida.histogram1D("GTP(O) Cluster Plots/Cluster Total Energy Distribution", 176, 0.0, 2.2);
