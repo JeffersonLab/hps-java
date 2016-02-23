@@ -6,7 +6,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,7 +29,6 @@ import org.hps.record.scalers.ScalerUtilities.LiveTimeIndex;
 import org.hps.record.scalers.ScalersEvioProcessor;
 import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.hps.record.triggerbank.HeadBankData;
-import org.hps.record.triggerbank.TiTimeOffsetCalculator;
 import org.hps.record.triggerbank.TiTimeOffsetEvioProcessor;
 import org.hps.record.triggerbank.TriggerConfigData;
 import org.hps.record.triggerbank.TriggerConfigData.Crate;
@@ -42,7 +40,6 @@ import org.srs.datacat.client.Client;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.dataset.DatasetWithViewModel;
-import org.srs.datacat.shared.DatasetLocation;
 
 /**
  * Builds a complete {@link RunSummary} object from various data sources, including the data catalog and the run

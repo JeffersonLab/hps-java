@@ -1,7 +1,6 @@
 package org.hps.run.database;
 
 import java.io.File;
-import java.sql.Connection;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -16,11 +15,12 @@ public class RunBuilderTest extends TestCase {
     private static String SPREADSHEET = "/work/hps/rundb/HPS_Runs_2015_Sheet1.csv";
     private static String FOLDER = "/HPS/test";
     private static String SITE = "SLAC";
+    private static String EVIO_TEST_FILE = "/nfs/slac/g/hps3/data/engrun2015/evio/hps_005403.evio.0";
     
     private static final ConnectionParameters CONNECTION_PARAMETERS = 
             new ConnectionParameters("root", "derp", "hps_run_db", "localhost");
         
-    public void testRunBuilder() throws Exception {
+    public void testRunBuilders() throws Exception {
         
         RunSummaryImpl runSummary = new RunSummaryImpl(RUN);
         
@@ -31,7 +31,6 @@ public class RunBuilderTest extends TestCase {
         datacatBuilder.setSite(SITE);
         datacatBuilder.setRunSummary(runSummary);
         datacatBuilder.build();
-        
         List<File> files = datacatBuilder.getFileList();
         
         // livetime measurements
@@ -50,14 +49,17 @@ public class RunBuilderTest extends TestCase {
         spreadsheetBuilder.setSpreadsheetFile(new File(SPREADSHEET));
         spreadsheetBuilder.setRunSummary(datacatBuilder.getRunSummary());
         spreadsheetBuilder.build();
+                
+        // EPICS and scalers (would actually run this in a separate job/process per file)
+        EvioDataBuilder dataBuilder = new EvioDataBuilder();
+        dataBuilder.setEvioFile(new File(EVIO_TEST_FILE));
+        dataBuilder.build();
         
-        // database updater
-        Connection connection = CONNECTION_PARAMETERS.createConnection();
-        DatabaseUpdater updater = new DatabaseUpdater(connection);
-        updater.setRunSummary(runSummary);
-        System.out.println("built run summary ...");
-        System.out.println(runSummary);
-        //updater.setTriggerConfigData(configBuilder.getTriggerConfigData());
-        //updater.update();
+        // update in database
+        RunManager runManager = new RunManager(CONNECTION_PARAMETERS.createConnection());
+        runManager.updateRunSummary(runSummary, true);
+        runManager.updateTriggerConfig(configBuilder.getTriggerConfigData(), true);
+        runManager.updateEpicsData(dataBuilder.getEpicsData());
+        runManager.updateScalerData(dataBuilder.getScalerData());
     }
 }

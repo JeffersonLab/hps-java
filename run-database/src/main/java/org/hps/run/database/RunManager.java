@@ -15,7 +15,7 @@ import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsListener;
 
 /**
- * Manages read-only access to the run database and creates a {@link RunSummary} for a specific run.
+ * Manages access to the run database.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -38,8 +38,7 @@ public final class RunManager implements ConditionsListener {
     private static final Logger LOGGER = Logger.getLogger(RunManager.class.getPackage().getName());
 
     /**
-     * Get the global instance of the {@link RunManager}.
-     *
+     * Get the global instance of the {@link RunManager}.     
      * @return the global instance of the {@link RunManager}
      */
     public static RunManager getRunManager() {
@@ -53,12 +52,7 @@ public final class RunManager implements ConditionsListener {
      * The active database connection.
      */
     private Connection connection;
-
-    /**
-     * The database connection parameters, initially set to the default parameters.
-     */
-    private final ConnectionParameters connectionParameters = DEFAULT_CONNECTION_PARAMETERS;
-
+   
     /**
      * Factory for creating database API objects.
      */
@@ -70,34 +64,28 @@ public final class RunManager implements ConditionsListener {
     private Integer run = null;
 
     /**
-     * Class constructor using default connection parameters.
-     */
-    public RunManager() {
-        this.connection = DEFAULT_CONNECTION_PARAMETERS.createConnection();
-        this.openConnection();
-        factory = new DaoProvider(this.connection);
-    }
-
-    /**
-     * Class constructor.
-     *
+     * Class constructor.     
      * @param connection the database connection
      */
     public RunManager(final Connection connection) {
+        try {
+            if (connection.isClosed()) {
+                throw new RuntimeException("The connection is already closed and cannot be used.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         this.connection = connection;
-        this.openConnection();
         factory = new DaoProvider(this.connection);
     }
-
+    
     /**
-     * Check if the run number has been set.
+     * Class constructor using default connection parameters.
      */
-    private void checkRunNumber() {
-        if (this.run == null) {
-            throw new IllegalStateException("The run number was never set.");
-        }
+    public RunManager() {
+        this(DEFAULT_CONNECTION_PARAMETERS.createConnection());
     }
-
+        
     /**
      * Close the database connection.
      */
@@ -113,7 +101,6 @@ public final class RunManager implements ConditionsListener {
 
     /**
      * Load new run information when conditions have changed.
-     *
      * @param conditionsEvent the event with new conditions information
      */
     @Override
@@ -122,22 +109,7 @@ public final class RunManager implements ConditionsListener {
     }
 
     /**
-     * Delete a run from the database.
-     *
-     * @param run the run number
-     */
-    void deleteRun() {        
-        factory.getEpicsDataDao().deleteEpicsData(EpicsType.EPICS_2S, run);
-        factory.getEpicsDataDao().deleteEpicsData(EpicsType.EPICS_20S, run);
-        factory.getScalerDataDao().deleteScalerData(run);
-        factory.getSvtConfigDao().deleteSvtConfigs(run);
-        factory.getTriggerConfigDao().deleteTriggerConfig(run);
-        factory.getRunSummaryDao().deleteRunSummary(run);
-    }
-
-    /**
-     * Return the database connection.
-     *
+     * Return the database connection.     
      * @return the database connection
      */
     Connection getConnection() {
@@ -146,38 +118,24 @@ public final class RunManager implements ConditionsListener {
 
     /**
      * Get the EPICS data for the current run.
-     *
      * @param epicsType the type of EPICS data
      * @return the EPICS data for the current run
      */
     public List<EpicsData> getEpicsData(final EpicsType epicsType) {
-        this.checkRunNumber();
         return factory.getEpicsDataDao().getEpicsData(epicsType, this.run);
     }
 
     /**
-     * Get the EPICS variables.
-     *
+     * Get the list of EPICS variables definitions.     
      * @param epicsType the type of EPICS data
-     * @return the EPICS data for the current run
+     * @return the list of EPICS variable definitions
      */
     public List<EpicsVariable> getEpicsVariables(final EpicsType epicsType) {
-        this.checkRunNumber();
         return factory.getEpicsVariableDao().getEpicsVariables(epicsType);
     }
 
     /**
-     * Get the current run number.
-     *
-     * @return the run number
-     */
-    public int getCurrentRun() {
-        return run;
-    }
-
-    /**
-     * Get the complete list of run numbers from the database.
-     *
+     * Get the full list of run numbers from the database.     
      * @return the complete list of run numbers
      */
     public List<Integer> getRuns() {
@@ -185,101 +143,53 @@ public final class RunManager implements ConditionsListener {
     }
   
     /**
-     * Get the run summary for the current run not including its sub-objects like scaler data.
-     *
+     * Get the run summary for the current run.     
      * @return the run summary for the current run
      */
     public RunSummary getRunSummary() {
-        this.checkRunNumber();
         return factory.getRunSummaryDao().getRunSummary(this.run);
     }
 
     /**
-     * Get the scaler data for the current run.
-     *
+     * Get the scaler data for the current run.     
      * @return the scaler data for the current run
      */
     public List<ScalerData> getScalerData() {
-        this.checkRunNumber();
-        return factory.getScalerDataDao().getScalerData(run);
+        return factory.getScalerDataDao().getScalerData(this.run);
     }
     
     /**
-     * Get SVT configuration data.
-     * 
+     * Get SVT configuration data.     
      * @return the SVT configuration data
      */
     public List<SvtConfigData> getSvtConfigData() {
-        this.checkRunNumber();
-        return factory.getSvtConfigDao().getSvtConfigs(run);
+        return factory.getSvtConfigDao().getSvtConfigs(this.run);
     }
     
     /**
-     * Get the DAQ configuration for the run.
-     * 
+     * Get the DAQ (trigger) configuration for the run.
      * @return the DAQ configuration for the run
      */
     public DAQConfig getDAQConfig() {
-        this.checkRunNumber();
-        TriggerConfigData config = factory.getTriggerConfigDao().getTriggerConfig(run);
-        return config.loadDAQConfig(run);
-    }
-     
-    /**
-     * Open a new database connection from the connection parameters if the current one is closed or <code>null</code>.
-     * <p>
-     * This method does nothing if the connection is already open.
-     */
-    public void openConnection() {
-        try {
-            if (this.connection.isClosed()) {
-                LOGGER.info("creating new database connection");
-                this.connection = connectionParameters.createConnection();
-            } 
-        } catch (final SQLException e) {
-            throw new RuntimeException("Error opening database connection.", e);
-        }
-    }
+        TriggerConfigData config = factory.getTriggerConfigDao().getTriggerConfig(this.run);
+        return config.loadDAQConfig(this.run);
+    }   
 
     /**
      * Return <code>true</code> if the run exists in the database.
-     *
      * @return <code>true</code> if the run exists in the database
      */
-    public boolean runExists() {
-        if (factory == null) {
-            throw new RuntimeException("factory is null");
-        }
-        if (factory.getRunSummaryDao() == null) {
-            throw new RuntimeException("RunSummaryDao is null");
-        }
-        if (this.run == null) {
-            throw new RuntimeException("run is null");
-        }
+    public boolean runExists() {      
         return factory.getRunSummaryDao().runSummaryExists(this.run);
     }
 
     /**
-     * Return <code>true</code> if the run exists in the database.
-     *
-     * @param run the run number
-     * @return <code>true</code> if the run exists in the database
-     */
-    boolean runExists(final int run) {
-        return factory.getRunSummaryDao().runSummaryExists(run);
-    }
-
-    /**
      * Set the run number and then load the applicable {@link RunSummary} from the database.
-     *
      * @param run the run number
      */
     public void setRun(final int run) {
-
         if (this.run == null || run != this.run) {
-
-            LOGGER.info("setting new run " + run);
-
+            LOGGER.info("setting run " + run);
             // Set the run number.
             this.run = run;
         }
@@ -292,4 +202,75 @@ public final class RunManager implements ConditionsListener {
     public Integer getRun() {
         return this.run;
     }
+    
+    /**
+     * Create or replace a run summary in the database.
+     * @param runSummary the run summary to update
+     * @param replaceExisting <code>true</code> to allow an existing run summary to be replaced
+     */
+    void updateRunSummary(RunSummary runSummary, boolean replaceExisting) {
+        final RunSummaryDao runSummaryDao = factory.getRunSummaryDao();
+        RunManager runManager = new RunManager();
+        runManager.setRun(runSummary.getRun());
+        if (runManager.runExists()) {
+            if (replaceExisting) {
+                runSummaryDao.updateRunSummary(runSummary);
+            } else {
+                throw new RuntimeException("Run already exists and replacement is not allowed.");
+            }
+        } else {
+            runSummaryDao.insertRunSummary(runSummary);
+        }                
+    }
+    
+    /**
+     * Create or replace the trigger config for the run.
+     * @param triggerConfig the trigger config
+     * @param replaceExisting <code>true</code> to allow an existing trigger to be replaced
+     */
+    void updateTriggerConfig(TriggerConfigData triggerConfig, boolean replaceExisting) {
+        final TriggerConfigDao configDao = factory.getTriggerConfigDao();
+        if (configDao.getTriggerConfig(run) != null) {
+            if (replaceExisting) {
+                configDao.deleteTriggerConfig(run);
+            } else {
+                throw new RuntimeException("Run already exists and replacement is not allowed.");
+            }
+        }
+        configDao.insertTriggerConfig(triggerConfig, run);
+    }
+    
+    /**
+     * Create or replace EPICS data for the run.
+     * @param epicsData the EPICS data
+     */
+    void updateEpicsData(List<EpicsData> epicsData) {
+        if (epicsData != null && !epicsData.isEmpty()) {
+            factory.getEpicsDataDao().insertEpicsData(epicsData, this.run);
+        }
+    }
+    
+    /**
+     * Create or replace scaler data for the run.
+     * @param scalerData the scaler data
+     */
+    void updateScalerData(List<ScalerData> scalerData) {
+        if (scalerData != null) {
+            factory.getScalerDataDao().insertScalerData(scalerData, this.run);
+        } 
+    }     
+    
+    /**
+     * Delete a run from the database.
+     * @param run the run number
+     */
+    void deleteRun() {        
+        factory.getEpicsDataDao().deleteEpicsData(EpicsType.EPICS_2S, run);
+        factory.getEpicsDataDao().deleteEpicsData(EpicsType.EPICS_20S, run);
+        factory.getScalerDataDao().deleteScalerData(run);
+        factory.getSvtConfigDao().deleteSvtConfigs(run);
+        factory.getTriggerConfigDao().deleteTriggerConfig(run);
+        factory.getRunSummaryDao().deleteRunSummary(run);
+    }
+    
 }
