@@ -53,7 +53,7 @@ public class FEEClusterPlotter extends Driver {
         aida.tree().cd("/");
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
             //aida.histogram1D(getHistoName(cc),200,0.5,1.3);
-        	aida.histogram1D(getHistoName(cc),200,0.6,2.8);	
+        	aida.histogram1D(getHistoName(cc),200,0.9,2.8);	
         }
 
     }
@@ -91,7 +91,7 @@ public class FEEClusterPlotter extends Driver {
         		double time = seed.getTime();
         		
         		//if ((seedE/clusE > 0.6) && seedE >0.45 && time>30 && time <70){
-        		if ((seedE/clusE > 0.6) && seedE >0.6 && time>30 && time <70){
+        		if ((seedE/clusE > 0.6) && seedE >0.65 && time>30 && time <70){
         	
         			EcalChannel cc = findChannel(seed);
         			aida.histogram1D(getHistoName(cc)).fill(clusE);
