@@ -13,7 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * This class encapsulates the parameters for connecting to a database, including host name, port, user and password.
+ * This class encapsulates the parameters for connecting to a database,
+ * including host name, port, user and password.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -28,6 +29,12 @@ public final class ConnectionParameters {
      * Number of connection retries allowed.
      */
     private static final int MAX_ATTEMPTS = 10;
+    
+    /**
+     * Wait time (in millis) for the first retry. The nth retry waits for
+     * n*RETRY_WAIT millis.
+     */
+    private static final int RETRY_WAIT = 5000;
 
     /**
      * Configure the connection parameters from a properties file.
@@ -46,7 +53,8 @@ public final class ConnectionParameters {
     }
 
     /**
-     * Configure the connection parameters from an <code>InputStream</code> of properties.
+     * Configure the connection parameters from an <code>InputStream</code> of
+     * properties.
      *
      * @param in the InputStream of the properties
      * @return the connection parameters
@@ -71,7 +79,8 @@ public final class ConnectionParameters {
     }
 
     /**
-     * Configure the connection parameters from an embedded classpath resource which should be a properties file.
+     * Configure the connection parameters from an embedded classpath resource
+     * which should be a properties file.
      *
      * @param resource the resource path
      * @return the connection parameters
@@ -146,8 +155,8 @@ public final class ConnectionParameters {
     }
 
     /**
-     * Create a database connection from these parameters. The caller becomes the "owner" and is responsible for closing
-     * it when finished.
+     * Create a database connection from these parameters. The caller becomes
+     * the "owner" and is responsible for closing it when finished.
      *
      * @return the new <code>Connection</code> object
      */
@@ -166,7 +175,7 @@ public final class ConnectionParameters {
                     throw new RuntimeException("Failed to connect to database after " + attempt + " attempts: " + this.getConnectionString(), x);
                 }
                 try {
-                    Thread.sleep(attempt * 1000);
+                    Thread.sleep(attempt * RETRY_WAIT);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ConnectionParameters.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -247,13 +256,13 @@ public final class ConnectionParameters {
     String getUser() {
         return this.user;
     }
-    
+
     /**
      * Convert to human readable string.
-     * 
+     *
      * @return this object converted to a string
      */
-    public String toString() {                        
+    public String toString() {
         return "ConnectionParameters { database: " + database + ", hostname: " + hostname + ", password: " + password
                 + ", port: " + port + ", user: " + user + " }";
     }
