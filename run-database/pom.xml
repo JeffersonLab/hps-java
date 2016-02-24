@@ -31,7 +31,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <exclude>org/hps/run/database/RunDatabaseBuilderTest.java</exclude>
+                        <exclude>org/hps/run/database/RunBuilderTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
