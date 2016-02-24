@@ -107,7 +107,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
      * @param run the run number
      */
     private void setTiTimeOffsetForRun(int run) {
-        currentTiTimeOffset = null; /* Reset TI offset to null indicating it is not available for the run. */
+        currentTiTimeOffset = null;
         RunManager runManager = RunManager.getRunManager();
         if (runManager.getRun() != null) {
             if (runManager.runExists()) {
@@ -120,6 +120,10 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             }
         } else {
             LOGGER.info("Run manager is not initialized; TI time offset not available.");
+        }
+        try {
+            RunManager.getRunManager().closeConnection();
+        } catch (Exception e) {
         }
     }
 
