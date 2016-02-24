@@ -27,7 +27,8 @@
         <driver name="TrackingMonitoringGBLSingles0"/>  
         <driver name="TrackingResidualsSingles0"/>
         <driver name="FinalStateMonitoringSingles0"/>          
-        <driver name="V0MonitoringSingles0"/>          
+        <driver name="V0MonitoringSingles0"/>              
+        <driver name="V0MonitoringGBLSingles0"/>         
         <driver name="TridentMonitoringSingles0"/>
         <!-- Singles1 -->
         <driver name="EcalMonitoringSingles1"/>  
@@ -48,7 +49,8 @@
         <driver name="TrackingMonitoringGBLPairs0"/>  
         <driver name="TrackingResidualsPairs0"/>
         <driver name="FinalStateMonitoringPairs0"/>          
-        <driver name="V0MonitoringPairs0"/>          
+        <driver name="V0MonitoringPairs0"/>                
+        <driver name="V0MonitoringGBLPairs0"/>         
         <driver name="TridentMonitoringPairs0"/>
         <!-- Pairs1 -->
         <driver name="EcalMonitoringPairs1"/> 
@@ -166,6 +168,11 @@
             <triggerType>singles0</triggerType>
             <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
+         <driver name="V0MonitoringGBLSingles0" type="org.hps.analysis.dataquality.V0Monitoring">
+            <triggerType>singles0</triggerType>
+            <beamEnergy>${beamEnergy}</beamEnergy>
+            <isGBL>true</isGBL>
+        </driver>
         <driver name="TridentMonitoringSingles0" type="org.hps.analysis.dataquality.TridentMonitoring">
             <triggerType>singles0</triggerType>
             <beamEnergy>${beamEnergy}</beamEnergy>
@@ -254,6 +261,11 @@
         <driver name="V0MonitoringPairs0" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>pairs0</triggerType>
             <beamEnergy>${beamEnergy}</beamEnergy>
+        </driver>
+        <driver name="V0MonitoringGBLPairs0" type="org.hps.analysis.dataquality.V0Monitoring">
+            <triggerType>pairs0</triggerType>
+            <beamEnergy>${beamEnergy}</beamEnergy>
+            <isGBL>true</isGBL>
         </driver>
         <driver name="TridentMonitoringPairs0" type="org.hps.analysis.dataquality.TridentMonitoring">
             <triggerType>pairs0</triggerType>
