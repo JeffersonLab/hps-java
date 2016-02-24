@@ -241,11 +241,6 @@
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
-                <artifactId>hps-datacat-client</artifactId>
-                <version>3.6-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hps</groupId>
                 <artifactId>hps-job</artifactId>
                 <version>3.6-SNAPSHOT</version>
             </dependency>
