@@ -25,24 +25,7 @@ public final class EvioFileUtilities {
      * Milliseconds constant for conversion to/from second.
      */
     private static final long MILLISECONDS = 1000L;
-
-    /**
-     * Get a cached file path, assuming that the input file path is on the JLAB MSS e.g. it starts with "/mss".
-     *
-     * @param file the MSS file path
-     * @return the cached file path (prepends "/cache" to the path)
-     * @throws IllegalArgumentException if the file is not on the MSS (e.g. path does not start with "/mss")
-     */
-    public static File getCachedFile(final File file) {
-        if (!isMssFile(file)) {
-            throw new IllegalArgumentException("File " + file.getPath() + " is not on the JLab MSS.");
-        }
-        if (isCachedFile(file)) {
-            throw new IllegalArgumentException("File " + file.getPath() + " is already on the cache disk.");
-        }
-        return new File("/cache" + file.getPath());
-    }
-
+   
     /**
      * Get the run number from the file name.
      *
@@ -70,26 +53,6 @@ public final class EvioFileUtilities {
     }
 
     /**
-     * Return <code>true</code> if this is a file on the cache disk e.g. the path starts with "/cache".
-     *
-     * @param file the file
-     * @return <code>true</code> if the file is a cached file
-     */
-    public static boolean isCachedFile(final File file) {
-        return file.getPath().startsWith("/cache");
-    }
-
-    /**
-     * Return <code>true</code> if this file is on the JLAB MSS e.g. the path starts with "/mss".
-     *
-     * @param file the file
-     * @return <code>true</code> if the file is on the MSS
-     */
-    public static boolean isMssFile(final File file) {
-        return file.getPath().startsWith("/mss");
-    }
-
-    /**
      * Open an EVIO file using an <code>EvioReader</code> in memory mapping mode.
      *
      * @param file the EVIO file
@@ -98,7 +61,7 @@ public final class EvioFileUtilities {
      * @throws EvioException if there is an error reading the EVIO data
      */
     public static EvioReader open(final File file) throws IOException, EvioException {
-        return open(file, false);
+        return open(file, true);
     }
 
     /**
@@ -111,14 +74,11 @@ public final class EvioFileUtilities {
      * @throws EvioException if there is an error reading the EVIO data
      */
     public static EvioReader open(final File file, final boolean sequential) throws IOException, EvioException {
-        File openFile = file;
-        if (isMssFile(file)) {
-            openFile = getCachedFile(file);
-        }
+        LOGGER.info("opening " + file.getPath() + " in " + (sequential ? "sequential" : "mmap" + " mode"));
         final long start = System.currentTimeMillis();
-        final EvioReader reader = new EvioReader(openFile, false, sequential);
+        final EvioReader reader = new EvioReader(file, false, sequential);
         final long end = System.currentTimeMillis() - start;
-        LOGGER.info("opened " + openFile.getPath() + " in " + (double) end / (double) MILLISECONDS + " seconds in "
+        LOGGER.info("opened " + file.getPath() + " in " + (double) end / (double) MILLISECONDS + " seconds in "
                 + (sequential ? "sequential" : "mmap" + " mode"));
         return reader;
     }

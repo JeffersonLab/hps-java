@@ -74,7 +74,6 @@ public final class ScalerUtilities {
         // [67]/[68] = CLOCK
         final double clock = (double) clockGated / (double) clockUngated;
 
-        // Compute the live times.
         final double[] liveTimes = new double[3];
         liveTimes[LiveTimeIndex.FCUP_TDC.ordinal()] = fcupTdc;
         liveTimes[LiveTimeIndex.FCUP_TRG.ordinal()] = fcupTrg;

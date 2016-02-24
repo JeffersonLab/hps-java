@@ -50,7 +50,7 @@ public class PlotAndFitUtilities {
     static void plot(IPlotter plotter, IBaseHistogram histogram, IPlotterStyle style, int region) {
         if (style == null)
             style = getPlotterStyle(histogram);
-        System.out.println("Putting plot in region " + region);
+        //System.out.println("Putting plot in region " + region);
         plotter.region(region).plot(histogram, style);
 
     }

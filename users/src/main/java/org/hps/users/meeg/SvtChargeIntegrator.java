@@ -122,10 +122,13 @@ public class SvtChargeIntegrator {
                 if (runNum != currentRun) {
                     if (useTI && !useCrawlerTI) {
                         RunManager.getRunManager().setRun(runNum);
-                        if (!RunManager.getRunManager().runExists() || RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() == null) {
+                        if (!RunManager.getRunManager().runExists() || RunManager.getRunManager().getRunSummary().getTiTimeOffset() == null) {
                             continue;
                         }
-                        tiTimeOffset = RunManager.getRunManager().getTriggerConfig().getTiTimeOffset();
+                        tiTimeOffset = RunManager.getRunManager().getRunSummary().getTiTimeOffset();
+                        if (tiTimeOffset == 0) {
+                            continue;
+                        }
                         if (tiTimeOffset == 0) {
                             continue;
                         }

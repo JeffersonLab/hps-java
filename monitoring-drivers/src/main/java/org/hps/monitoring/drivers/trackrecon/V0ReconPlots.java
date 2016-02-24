@@ -58,7 +58,7 @@ public class V0ReconPlots extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        System.out.println("V0Monitoring::detectorChanged  Setting up the plotter");
+        //System.out.println("V0Monitoring::detectorChanged  Setting up the plotter");
 
         IAnalysisFactory fac = aida.analysisFactory();
         IPlotterFactory pfac = fac.createPlotterFactory("V0 Recon");

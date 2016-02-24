@@ -13,9 +13,6 @@ import java.util.List;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.daqconfig.EvioDAQParser;
-import org.hps.record.epics.EpicsData;
-import org.hps.record.epics.EpicsHeader;
-import org.hps.record.scalers.ScalerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
@@ -113,23 +110,18 @@ public final class EvioEventUtilities {
     /**
      * Get the run number from an EVIO event.
      *
-     * @return the run number
-     * @throws IllegalArgumentException if event does not have a head bank
+     * @return the run number or <code>null</code> if not present in event
      */
-    public static int getRunNumber(final EvioEvent event) {
+    public static Integer getRunNumber(final EvioEvent event) {
         if (isControlEvent(event)) {
             return getControlEventData(event)[1];
         } else if (isPhysicsEvent(event)) {
             final BaseStructure headBank = EvioEventUtilities.getHeadBank(event);
             if (headBank != null) {
                 return headBank.getIntData()[1];
-            } else {
-                throw new IllegalArgumentException("Head bank is missing from physics event.");
-            }
-        } else {
-            // Not sure if this would ever happen.
-            throw new IllegalArgumentException("Wrong event type: " + event.getHeader().getTag());
-        }
+            } 
+        } 
+        return null;
     }
 
     /**

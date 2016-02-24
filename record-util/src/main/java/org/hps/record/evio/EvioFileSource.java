@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.record.AbstractRecordQueue;
@@ -12,15 +14,15 @@ import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 
 /**
- * A basic implementation of an <tt>AbstractRecordSource</tt> for supplying <tt>EvioEvent</tt> objects to a loop from a
- * list of EVIO files.
- * <p>
- * Unlike the LCIO record source, it has no rewind or indexing capabilities.
+ * A basic implementation of an <code>AbstractRecordSource</code> for supplying <code>EvioEvent</code> objects to a 
+ * loop from a list of EVIO files.
  *
  * @author Jeremy McCormick, SLAC
  */
 public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
 
+    private static final Logger LOGGER = Logger.getLogger(EvioFileSource.class.getPackage().getName());
+    
     /**
      * The current event.
      */
@@ -40,7 +42,12 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
      * The reader to use for reading and parsing the EVIO data.
      */
     private EvioReader reader;
-
+    
+    /**
+     * Whether to continue on parse errors or not.
+     */
+    private boolean continueOnErrors = false;
+   
     /**
      * Constructor taking a single EVIO file.
      *
@@ -60,7 +67,15 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
         this.files.addAll(files);
         this.openReader();
     }
-
+    
+    /**
+     * Set whether to continue on errors or not.
+     * @param continueOnErrors <code>true</code> to continue on errors
+     */
+    public void setContinueOnErrors(boolean continueOnErrors) {
+        this.continueOnErrors = continueOnErrors;
+    }
+    
     /**
      * Close the current reader.
      */
@@ -135,20 +150,26 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
         for (;;) {
             try {
                 this.currentEvent = this.reader.parseNextEvent();
-            } catch (final EvioException e) {
-                throw new IOException(e);
-            }
-            if (this.currentEvent == null) {
-                this.closeReader();
-                this.fileIndex++;
-                if (!this.endOfFiles()) {
-                    this.openReader();
-                    continue;
+                if (this.reader.getNumEventsRemaining() == 0 && this.currentEvent == null) {
+                    this.closeReader();
+                    this.fileIndex++;
+                    if (!this.endOfFiles()) {
+                        this.openReader();
+                    } else {
+                        throw new NoSuchRecordException("End of data.");
+                    }
                 } else {
-                    throw new NoSuchRecordException();
+                    LOGGER.finest("Read EVIO event " + this.currentEvent.getEventNumber() + " okay.");
+                    break;
+                }                   
+            } catch (EvioException | NegativeArraySizeException e) { 
+                LOGGER.log(Level.SEVERE, "Error parsing next EVIO event.", e);
+                if (!continueOnErrors) {
+                    throw new IOException("Fatal error parsing next EVIO event.", e);
                 }
+            } catch (Exception e) {
+                throw new IOException("Error parsing EVIO event.", e);
             }
-            return;
         }
     }
 
@@ -159,10 +180,9 @@ public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
      */
     private void openReader() {
         try {
-            System.out.println("Opening reader for file " + this.files.get(this.fileIndex) + " ...");
-            // FIXME: this should use the reader directly and cached paths should be managed externally
+            // FIXME: This should use the reader directly and MSS paths should be transformed externally.
+            LOGGER.info("opening EVIO file " + this.files.get(this.fileIndex).getPath() + " ...");
             this.reader = EvioFileUtilities.open(this.files.get(this.fileIndex), true);
-            System.out.println("Done opening file.");
         } catch (EvioException | IOException e) {
             throw new RuntimeException(e);
         }

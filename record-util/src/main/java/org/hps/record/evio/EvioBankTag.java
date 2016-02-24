@@ -25,8 +25,10 @@ public enum EvioBankTag {
     /** Scaler data bank. */
     SCALERS(57621),
     /** Trigger configuration bank. */
-    TRIGGER_CONFIG(0xE10E);
-
+    TRIGGER_CONFIG(0xE10E),
+    /** TI trigger bank. */
+    TI_TRIGGER(0xe10a);
+    
     /**
      * The bank's tag value.
      */
@@ -46,7 +48,7 @@ public enum EvioBankTag {
      *
      * @param startBank the starting bank
      * @return the first bank matching the tag or <code>null<code> if not found
-     */
+     */    
     public BaseStructure findBank(final BaseStructure startBank) {
         BaseStructure foundBank = null;
         if (this.equals(startBank)) {
@@ -60,8 +62,8 @@ public enum EvioBankTag {
             }
         }
         return foundBank;
-    }
-
+    }    
+    
     /**
      * Get the bank tag value.
      *

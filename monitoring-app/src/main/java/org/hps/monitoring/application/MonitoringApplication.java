@@ -78,7 +78,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
          */
         @Override
         public void close() throws SecurityException {
-            // Does nothing.
         }
 
         /**
@@ -86,7 +85,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
          */
         @Override
         public void flush() {
-            // Does nothing.
         }
 
         /**
@@ -121,8 +119,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         @Override
         public void publish(final LogRecord record) {
             super.publish(record);
-
-            // FIXME: Is this efficient? Should this always happen here?
             flush();
         }
 
@@ -295,18 +291,18 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             loadConfiguration(new Configuration(DEFAULT_CONFIGURATION), false);
 
             if (userConfiguration != null) {
-                // Load user configuration.
+                // Load user configuration to supplement default settings.
                 loadConfiguration(userConfiguration, true);
             }
 
-            // Enable the GUI now that initialization is complete.
+            // Enable the GUI after initialization.
             this.frame.setEnabled(true);
 
-            LOGGER.info("application initialized successfully");
+            LOGGER.info("Monitoring app initialized successfully.");
 
         } catch (final Exception e) {
-            // Don't use the ErrorHandler here because we don't know that it initialized successfully.
-            System.err.println("MonitoringApplication failed to initialize without errors!");
+            // Initialization failed so print info and die.
+            System.err.println("ERROR: MonitoringApplication failed to initialize!");
             DialogUtil.showErrorDialog(null, "Error Starting Monitoring Application",
                     "Monitoring application failed to initialize.");
             e.printStackTrace();
@@ -321,9 +317,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      */
     @Override
     public void actionPerformed(final ActionEvent e) {
-
-        // logger.finest("actionPerformed - " + e.getActionCommand());
-
         final String command = e.getActionCommand();
         if (Commands.CONNECT.equals(command)) {
             startSession();
@@ -374,7 +367,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
 
     /**
-     * Redirect <code>System.out</code> and <code>System.err</code> to a file chosen by a file chooser.
+     * Redirect <code>System.out</code> and <code>System.err</code> to a chosen file.
      */
     private void chooseLogFile() {
         final JFileChooser fc = new JFileChooser();
@@ -420,7 +413,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
 
     /**
-     * Exit from the application from exit menu item or hitting close window button.
+     * Exit from the application.
      */
     private void exit() {
         if (this.connectionModel.isConnected()) {
@@ -954,7 +947,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
 
             // Add listener to push conditions changes to conditions panel.
             final List<ConditionsListener> conditionsListeners = new ArrayList<ConditionsListener>();
-            //conditionsListeners.add(this.frame.getConditionsPanel().new ConditionsPanelListener());
 
             // Instantiate the event processing wrapper.
             this.processing = new EventProcessing(this, processors, drivers, conditionsListeners);
@@ -973,7 +965,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             // Start the event processing thread.
             this.processing.start();
 
-            LOGGER.info("new session successfully initialized");
+            LOGGER.info("Event processing session started.");
 
         } catch (final Exception e) {
 
@@ -989,7 +981,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                             "There was an error while starting the session." + '\n' + "See the log for details.",
                             "Session Error");
 
-            LOGGER.severe("failed to start new session");
+            LOGGER.severe("Failed to start event processing.");
         }
     }
 

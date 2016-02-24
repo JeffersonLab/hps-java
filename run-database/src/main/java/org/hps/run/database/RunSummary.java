@@ -1,137 +1,129 @@
 package org.hps.run.database;
 
-import java.io.File;
 import java.util.Date;
-import java.util.List;
-
-import org.hps.datacat.client.DatasetFileFormat;
-import org.hps.record.epics.EpicsData;
-import org.hps.record.scalers.ScalerData;
-import org.hps.record.triggerbank.TriggerConfig;
 
 /**
- * This is an API for accessing run summary information which is persisted as a row in the <i>runs</i> table of the run
- * database.
+ * This is an API for accessing run summary information which is persisted as a row in the <i>run_summaries</i> table.
  * <p>
- * This information includes:
- * <ul>
- * <li>run number</li>
- * <li>start date</li>
- * <li>end date</li>
- * <li>number of events</li>
- * <li>number of EVIO files</li>
- * <li>whether the END event was found indicating that the DAQ did not crash</li>
- * <li>whether the run is considered good (all <code>true</code> for now)</li>
- * </ul>
- * <p>
- * It also references several complex objects including lists of {@link org.hps.record.epics.EpicsData} and
- * {@link org.hps.record.scalers.ScalerData} for the run, as well as a list of EVIO files.
+ * All timestamp fields use the Unix convention (seconds since the epoch).
  *
+ * @author Jeremy McCormick, SLAC
  * @see RunSummaryImpl
  * @see RunSummaryDao
  * @see RunSummaryDaoImpl
  * @see RunManager
- * 
- * @author Jeremy McCormick, SLAC
  */
 public interface RunSummary {
-  
+
     /**
-     * Get the creation date of this run record.
+     * Get the creation date of this record.
      *
-     * @return the creation date of this run record
+     * @return the creation date of this record
      */
     Date getCreated();
 
     /**
-     * Get the end date.
-     *
-     * @return the end date
+     * Get the END event timestamp or the timestamp from the last head bank if END is not present.
+     * 
+     * @return the last event timestamp
      */
-    Date getEndDate();
+    Integer getEndTimestamp();
 
     /**
-     * Return <code>true</code> if END event was found in the data.
-     *
-     * @return <code>true</code> if END event was in the data
+     * Get the GO event timestamp.
+     * 
+     * @return the GO event timestamp
      */
-    boolean getEndOkay();
+    Integer getGoTimestamp();
 
     /**
-     * Get the EPICS data from the run.
-     *
-     * @return the EPICS data from the run
+     * Get the livetime computed from the clock scaler.
+     * 
+     * @return the livetime computed from the clock scaler
      */
-    List<EpicsData> getEpicsData();
+    Double getLivetimeClock();
 
     /**
-     * Get the event rate (effectively the trigger rate) which is the total events divided by the number of seconds in
-     * the run.
-     *
-     * @return the event rate
+     * Get the livetime computed from the FCUP_TDC scaler.
+     * 
+     * @return the livetime computed from the FCUP_TDC scaler
      */
-    double getEventRate();
+    Double getLivetimeFcupTdc();
+
+    /**
+     * Get the livetime computed from the FCUP_TRG scaler.
+     * 
+     * @return the livetime computed from the FCUP_TRG scaler
+     */
+    Double getLivetimeFcupTrg();
+
+    /**
+     * Get the notes for the run (from the run spreadsheet).
+     * 
+     * @return the notes for the run
+     */
+    String getNotes();
+
+    /**
+     * Get the PRESTART event timestamp.
+     * 
+     * @return the PRESTART event timestamp
+     */
+    Integer getPrestartTimestamp();
 
     /**
      * Get the run number.
      *
      * @return the run number
      */
-    int getRun();
-
+    Integer getRun();
+   
     /**
-     * Return <code>true</code> if the run was okay (no major errors or data corruption occurred).
-     *
-     * @return <code>true</code> if the run was okay
+     * Get the target setting for the run (string from run spreadsheet).
+     * 
+     * @return the target setting for the run
      */
-    boolean getRunOkay();
+    String getTarget();
 
     /**
-     * Get the scaler data of this run.
-     *
-     * @return the scaler data of this run
+     * Get the TI time offset in ns.
+     * 
+     * @return the TI time offset in ns
      */
-    List<ScalerData> getScalerData();
+    Long getTiTimeOffset();
 
     /**
-     * Get the trigger config int values.
+     * Get the total number of events in the run.
      *
-     * @return the trigger config int values
+     * @return the total number of events in the run
      */
-    TriggerConfig getTriggerConfig();
+    Long getTotalEvents();
 
     /**
-     * Get the start date.
+     * Get the total number of EVIO files in this run.
      *
-     * @return the start date
+     * @return the total number of files in this run
      */
-    Date getStartDate();
+    Integer getTotalFiles();
 
     /**
-     * Get the total events in the run.
-     *
-     * @return the total events in the run
+     * Get the trigger config name (from the run spreadsheet).
+     * 
+     * @return the trigger config name
      */
-    int getTotalEvents();
+    String getTriggerConfigName();
 
     /**
-     * Get the total number of EVIO files for this run.
-     *
-     * @return the total number of files for this run
+     * Get the trigger rate in KHz.
+     * 
+     * @return the trigger rate in KHz
      */
-    int getTotalFiles();
+    Double getTriggerRate();
 
     /**
-     * Get the number of seconds in the run which is the difference between the start and end times.
+     * Get the date when this record was last updated.
      *
-     * @return the total seconds in the run
-     */
-    long getTotalSeconds();
-
-    /**
-     * Get the date when this run record was last updated.
-     *
-     * @return the date when this run record was last updated
+     * @return the date when this record was last updated
      */
     Date getUpdated();
 }

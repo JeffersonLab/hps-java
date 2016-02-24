@@ -3,7 +3,6 @@ package org.hps.conditions.database;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;

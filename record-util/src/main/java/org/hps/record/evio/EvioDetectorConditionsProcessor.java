@@ -39,21 +39,28 @@ public class EvioDetectorConditionsProcessor extends EvioEventProcessor {
      */
     @Override
     public void process(final EvioEvent evioEvent) throws Exception {
+        
         // Get the head head bank from event.
         final BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
 
-        // Is the head bank present?
-        if (headBank != null) {
+        // Initialize from head bank.
+        if (headBank != null) {            
+            initializeConditions(headBank.getIntData()[1]);
+        }
+        
+        // Initialize from PRESTART.
+        if (EventTagConstant.PRESTART.matches(evioEvent)) {
+            int runNumber = EvioEventUtilities.getControlEventData(evioEvent)[1];
+            initializeConditions(runNumber);
+        }
+    }
 
-            // Get the run number from the head bank.
-            final int runNumber = headBank.getIntData()[1];
-
-            // Initialize the conditions system from the detector name and run number.
-            try {
-                ConditionsManager.defaultInstance().setDetector(this.detectorName, runNumber);
-            } catch (final ConditionsNotFoundException e) {
-                throw new RuntimeException("Error setting up conditions from EVIO head bank.", e);
-            }
+    private void initializeConditions(final int runNumber) {
+        // Initialize the conditions system from the detector name and run number.
+        try {
+            ConditionsManager.defaultInstance().setDetector(this.detectorName, runNumber);
+        } catch (final ConditionsNotFoundException e) {
+            throw new RuntimeException("Error setting up conditions from EVIO head bank.", e);
         }
     }
 
@@ -65,6 +72,7 @@ public class EvioDetectorConditionsProcessor extends EvioEventProcessor {
      * @param evioEvent the <code>EvioEvent</code> to process
      */
     @Override
+    // FIXME: not activated by EvioLoop
     public void startRun(final EvioEvent evioEvent) {
         // System.out.println("EvioDetectorConditionsProcessor.startRun");
         if (EvioEventUtilities.isPreStartEvent(evioEvent)) {

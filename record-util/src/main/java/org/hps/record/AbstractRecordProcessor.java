@@ -10,6 +10,8 @@ package org.hps.record;
  */
 public abstract class AbstractRecordProcessor<RecordType> implements RecordProcessor<RecordType> {
 
+    private boolean active = true;
+    
     /**
      * End of job action.
      */
@@ -58,5 +60,13 @@ public abstract class AbstractRecordProcessor<RecordType> implements RecordProce
      */
     @Override
     public void suspend() {
+    }
+    
+    protected void setActive(boolean active) {
+        this.active = active;
+    }
+    
+    public boolean isActive() {
+        return this.active;
     }
 }

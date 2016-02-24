@@ -1,5 +1,7 @@
 package org.hps.record.daqconfig;
 
+import java.io.PrintStream;
+
 /**
  * Class <code>GTPConfig</code> stores GTP configuration settings
  * parsed from the an EVIO file. This class manages the following
@@ -57,14 +59,14 @@ public class GTPConfig extends IDAQConfig {
     }
     
     @Override
-    public void printConfig() {
+    public void printConfig(PrintStream ps) {
         // Print the configuration header.
-        System.out.println("GTP Configuration:");
+        ps.println("GTP Configuration:");
         
         // Print the GTP settings.
-        System.out.printf("\tTime Window Before :: %d clock-cycles%n", windowBefore);
-        System.out.printf("\tTime Window After  :: %d clock-cycles%n", windowAfter);
-        System.out.printf("\tSeed Energy Min    :: %5.3f GeV%n",       seedCut.getLowerBound());
+        ps.printf("\tTime Window Before :: %d clock-cycles%n", windowBefore);
+        ps.printf("\tTime Window After  :: %d clock-cycles%n", windowAfter);
+        ps.printf("\tSeed Energy Min    :: %5.3f GeV%n",       seedCut.getLowerBound());
     }
 
 }

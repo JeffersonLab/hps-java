@@ -38,12 +38,12 @@ final class PrintCommand extends AbstractCommand {
     static Options options = new Options();
 
     static {
-        options.addOption(new Option("h", false, "print help for print command"));
-        options.addOption(new Option("t", true, "table name"));
-        options.addOption(new Option("i", false, "print the ID for the records (off by default)"));
-        options.addOption(new Option("f", true, "write print output to a file (must be used with -t option)"));
-        options.addOption(new Option("H", false, "suppress printing of conditions record and table info"));
-        options.addOption(new Option("d", false, "use tabs for field delimiter instead of spaces"));
+        options.addOption(new Option("h", "help", false, "print help for print command"));
+        options.addOption(new Option("t", "table", true, "table name"));
+        options.addOption(new Option("i", "print-id", false, "print the ID for the records (off by default)"));
+        options.addOption(new Option("f", "file", true, "write print output to a file (must be used with -t option)"));
+        options.addOption(new Option("H", "no-header", false, "suppress printing of conditions record and table info"));
+        options.addOption(new Option("d", "tabs", false, "use tabs for field delimiter instead of spaces"));
     }
 
     /**

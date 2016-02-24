@@ -5,13 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.logging.Logger;
-
-import org.hps.record.epics.EpicsData;
 
 /**
  * Implementation of database operations for {@link RunSummary} objects in the run database.
@@ -21,37 +16,29 @@ import org.hps.record.epics.EpicsData;
 final class RunSummaryDaoImpl implements RunSummaryDao {
 
     /**
-     * SQL query strings.
+     * Delete by run number.
      */
-    private static final class RunSummaryQuery {
-
-        /**
-         * Delete by run number.
-         */
-        private static final String DELETE_RUN = "DELETE FROM runs WHERE run = ?";
-        /**
-         * Insert a record for a run.
-         */
-        private static final String INSERT = "INSERT INTO runs (run, start_date, end_date, nevents, nfiles, end_ok, created) VALUES(?, ?, ?, ?, ?, ?, NOW())";
-        /**
-         * Select all records.
-         */
-        private static final String SELECT_ALL = "SELECT * from runs";
-        /**
-         * Select record by run number.
-         */
-        private static final String SELECT_RUN = "SELECT run, start_date, end_date, nevents, nfiles, end_ok, run_ok, updated, created FROM runs WHERE run = ?";
-        /**
-         * Update information for a run.
-         */
-        private static final String UPDATE_RUN = "UPDATE runs SET start_date, end_date, nevents, nfiles, end_ok, run_ok WHERE run = ?";
-    }
-
+    private static final String DELETE = "DELETE FROM run_summaries WHERE run = ?";
+        
     /**
-     * Eastern time zone.
+     * Insert a record for a run.
      */
-    private static Calendar CALENDAR = new GregorianCalendar(TimeZone.getTimeZone("America/New_York"));
-
+    private static final String INSERT = "INSERT INTO run_summaries (run, nevents, nfiles, prestart_timestamp,"
+            + " go_timestamp, end_timestamp, trigger_rate, trigger_config_name, ti_time_offset," 
+            + " livetime_clock, livetime_fcup_tdc, livetime_fcup_trg, target, notes, created, updated)"
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+    
+    private static final String UPDATE = "UPDATE run_summaries SET nevents = ?, nfiles = ?, prestart_timestamp = ?,"
+            + " go_timestamp = ?, end_timestamp = ?, trigger_rate = ?, trigger_config_name = ?, ti_time_offset = ?," 
+            + " livetime_clock = ?, livetime_fcup_tdc = ?, livetime_fcup_trg = ?, target = ?, notes = ?, updated = NOW()"
+            + " WHERE run = ?";
+    
+                     
+    /**
+     * Select record by run number.
+     */
+    private static final String SELECT = "SELECT * FROM run_summaries WHERE run = ?";
+           
     /**
      * Initialize the logger.
      */
@@ -61,60 +48,17 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
      * The database connection.
      */
     private final Connection connection;
-
-    /**
-     * The database API for EPICS data.
-     */
-    private EpicsDataDao epicsDataDao = null;
-
-    /**
-     * The database API for scaler data.
-     */
-    private ScalerDataDao scalerDataDao = null;
-
-    /**
-     * The database API for integer trigger config.
-     */
-    private TriggerConfigDao triggerConfigIntDao = null;
-
+  
     /**
      * Create a new DAO object for run summary information.
      *
      * @param connection the database connection
      */
     RunSummaryDaoImpl(final Connection connection) {
-        // Set the connection.
         if (connection == null) {
             throw new IllegalArgumentException("The connection is null.");
         }
         this.connection = connection;
-
-        // Setup DAO API objects for managing complex object state.
-        epicsDataDao = new EpicsDataDaoImpl(this.connection);
-        scalerDataDao = new ScalerDataDaoImpl(this.connection);
-        triggerConfigIntDao = new TriggerConfigDaoImpl(this.connection);
-    }
-
-    /**
-     * Delete a run from the database including its referenced objects such as EPICS data.
-     *
-     * @param runSummary the run summary to delete
-     */
-    @Override
-    public void deleteFullRun(int run) {
-
-        // Delete EPICS log.
-        this.epicsDataDao.deleteEpicsData(EpicsType.EPICS_1S, run);
-        this.epicsDataDao.deleteEpicsData(EpicsType.EPICS_10S, run);
-
-        // Delete scaler data.
-        this.scalerDataDao.deleteScalerData(run);
-
-        // Delete trigger config.
-        this.triggerConfigIntDao.deleteTriggerConfigInt(run);
-
-        // Finally delete the run summary information.
-        this.deleteRunSummary(run);
     }
 
     /**
@@ -126,7 +70,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
     public void deleteRunSummary(final int run) {
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = connection.prepareStatement(RunSummaryQuery.DELETE_RUN);
+            preparedStatement = connection.prepareStatement(DELETE);
             preparedStatement.setInt(1, run);
             preparedStatement.executeUpdate();
         } catch (final SQLException e) {
@@ -141,32 +85,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             }
         }
     }
-
-    /**
-     * Delete a run summary but not its objects.
-     *
-     * @param runSummary the run summary object
-     */
-    @Override
-    public void deleteRunSummary(final RunSummary runSummary) {
-        PreparedStatement preparedStatement = null;
-        try {
-            preparedStatement = connection.prepareStatement(RunSummaryQuery.DELETE_RUN);
-            preparedStatement.setInt(1, runSummary.getRun());
-            preparedStatement.executeUpdate();
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (final SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
+   
     /**
      * Get the list of run numbers.
      *
@@ -177,7 +96,7 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         final List<Integer> runs = new ArrayList<Integer>();
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = this.connection.prepareStatement("SELECT distinct(run) FROM runs ORDER BY run");
+            preparedStatement = this.connection.prepareStatement("SELECT distinct(run) FROM run_summaries ORDER BY run");
             final ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 final Integer run = resultSet.getInt(1);
@@ -196,47 +115,9 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         }
         return runs;
     }
-
+   
     /**
-     * Get a list of run summaries without loading their objects such as EPICS data.
-     *
-     * @return the list of run summaries
-     */
-    @Override
-    public List<RunSummary> getRunSummaries() {
-        PreparedStatement statement = null;
-        final List<RunSummary> runSummaries = new ArrayList<RunSummary>();
-        try {
-            statement = this.connection.prepareStatement(RunSummaryQuery.SELECT_ALL);
-            final ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                final RunSummaryImpl runSummary = new RunSummaryImpl(resultSet.getInt("run"));
-                runSummary.setStartDate(resultSet.getTimestamp("start_date"));
-                runSummary.setEndDate(resultSet.getTimestamp("end_date"));
-                runSummary.setTotalEvents(resultSet.getInt("nevents"));
-                runSummary.setTotalFiles(resultSet.getInt("nfiles"));
-                runSummary.setEndOkay(resultSet.getBoolean("end_ok"));
-                runSummary.setRunOkay(resultSet.getBoolean("run_ok"));
-                runSummary.setUpdated(resultSet.getTimestamp("updated"));
-                runSummary.setCreated(resultSet.getTimestamp("created"));
-                runSummaries.add(runSummary);
-            }
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (final SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return runSummaries;
-    }
-
-    /**
-     * Get a run summary by run number without loading object state.
+     * Get a run summary.
      *
      * @param run the run number
      * @return the run summary object
@@ -246,22 +127,28 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         PreparedStatement statement = null;
         RunSummaryImpl runSummary = null;
         try {
-            statement = this.connection.prepareStatement(RunSummaryQuery.SELECT_RUN);
+            statement = this.connection.prepareStatement(SELECT);
             statement.setInt(1, run);
             final ResultSet resultSet = statement.executeQuery();
             if (!resultSet.next()) {
-                throw new IllegalArgumentException("No record exists for run " + run + " in database.");
+                throw new IllegalArgumentException("Run " + run + " does not exist in database.");
             }
-
             runSummary = new RunSummaryImpl(run);
-            runSummary.setStartDate(resultSet.getTimestamp("start_date"));
-            runSummary.setEndDate(resultSet.getTimestamp("end_date"));
-            runSummary.setTotalEvents(resultSet.getInt("nevents"));
+            runSummary.setTotalEvents(resultSet.getLong("nevents"));
             runSummary.setTotalFiles(resultSet.getInt("nfiles"));
-            runSummary.setEndOkay(resultSet.getBoolean("end_ok"));
-            runSummary.setRunOkay(resultSet.getBoolean("run_ok"));
-            runSummary.setUpdated(resultSet.getTimestamp("updated"));
+            runSummary.setPrestartTimestamp(resultSet.getInt("prestart_timestamp"));
+            runSummary.setGoTimestamp(resultSet.getInt("go_timestamp"));
+            runSummary.setEndTimestamp(resultSet.getInt("end_timestamp"));
+            runSummary.setTriggerRate(resultSet.getDouble("trigger_rate"));
+            runSummary.setTriggerConfigName(resultSet.getString("trigger_config_name"));
+            runSummary.setTiTimeOffset(resultSet.getLong("ti_time_offset"));
+            runSummary.setLivetimeClock(resultSet.getDouble("livetime_clock"));
+            runSummary.setLivetimeFcupTdc(resultSet.getDouble("livetime_fcup_tdc"));
+            runSummary.setLivetimeFcupTrg(resultSet.getDouble("livetime_fcup_trg"));
+            runSummary.setTarget(resultSet.getString("target"));
+            runSummary.setNotes(resultSet.getString("notes"));
             runSummary.setCreated(resultSet.getTimestamp("created"));
+            runSummary.setUpdated(resultSet.getTimestamp("updated"));
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -275,129 +162,9 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
         }
         return runSummary;
     }
-
+      
     /**
-     * Insert a list of run summaries along with their complex state such as referenced scaler and EPICS data.
-     *
-     * @param runSummaryList the list of run summaries
-     * @param deleteExisting <code>true</code> to allow deletion and replacement of existing run summaries
-     */
-    @Override
-    public void insertFullRunSummaries(final List<RunSummary> runSummaryList, final boolean deleteExisting) {
-
-        if (runSummaryList == null) {
-            throw new IllegalArgumentException("The run summary list is null.");
-        }
-        if (runSummaryList.isEmpty()) {
-            throw new IllegalArgumentException("The run summary list is empty.");
-        }
-
-        LOGGER.info("inserting " + runSummaryList.size() + " run summaries into database");
-
-        // Turn off auto commit.
-        try {
-            LOGGER.info("turning off auto commit");
-            this.connection.setAutoCommit(false);
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        // Loop over all runs found while crawling.
-        for (final RunSummary runSummary : runSummaryList) {
-
-            final int run = runSummary.getRun();
-
-            LOGGER.info("inserting run summary for run " + run + " into database");
-
-            // Does the run exist in the database already?
-            if (this.runSummaryExists(run)) {
-                // Is deleting existing rows allowed?
-                if (deleteExisting) {
-                    LOGGER.info("deleting existing run summary");
-                    // Delete the existing rows.
-                    this.deleteFullRun(runSummary.getRun());
-                } else {
-                    // Rows exist but updating is disallowed which is a fatal error.
-                    throw new IllegalStateException("Run " + runSummary.getRun()
-                            + " already exists and updates are disallowed.");
-                }
-            }
-
-            // Insert full run summary information including sub-objects.
-            LOGGER.info("inserting run summary");
-            this.insertFullRunSummary(runSummary);
-            LOGGER.info("run summary for " + run + " inserted successfully");
-
-            try {
-                // Commit the transaction for the run.
-                LOGGER.info("committing transaction");
-                this.connection.commit();
-            } catch (final SQLException e1) {
-                try {
-                    LOGGER.severe("rolling back transaction");
-                    // Rollback the transaction if there was an error.
-                    this.connection.rollback();
-                } catch (final SQLException e2) {
-                    throw new RuntimeException(e2);
-                }
-            }
-
-            LOGGER.info("done inserting run summary " + run);
-        }
-
-        try {
-            LOGGER.info("turning auto commit on");
-            // Turn auto commit back on.
-            this.connection.setAutoCommit(true);
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
-
-        LOGGER.info("done inserting run summaries");
-    }
-
-    /**
-     * Insert a run summary including all its objects.
-     *
-     * @param runSummary the run summary object to insert
-     */
-    @Override
-    public void insertFullRunSummary(final RunSummary runSummary) {
-
-        if (runSummary == null) {
-            throw new IllegalArgumentException("The run summary is null.");
-        }
-        
-        // Insert basic run log info.
-        this.insertRunSummary(runSummary);
-
-        // Insert EPICS data.
-        if (runSummary.getEpicsData() != null && !runSummary.getEpicsData().isEmpty()) {
-            LOGGER.info("inserting " + runSummary.getEpicsData().size() + " EPICS records");
-            epicsDataDao.insertEpicsData(runSummary.getEpicsData());
-        } else {
-            LOGGER.warning("no EPICS data to insert");
-        }
-
-        // Insert scaler data.
-        if (runSummary.getScalerData() != null && !runSummary.getScalerData().isEmpty()) {
-            LOGGER.info("inserting " + runSummary.getScalerData().size() + " scaler data records");
-            scalerDataDao.insertScalerData(runSummary.getScalerData(), runSummary.getRun());
-        } else {
-            LOGGER.warning("no scaler data to insert");
-        }
-
-        // Insert trigger config.
-        if (runSummary.getTriggerConfig() != null && !runSummary.getTriggerConfig().isEmpty()) {
-            LOGGER.info("inserting " + runSummary.getTriggerConfig().size() + " trigger config variables");
-            triggerConfigIntDao.insertTriggerConfig(runSummary.getTriggerConfig(), runSummary.getRun());
-        } else {
-            LOGGER.warning("no trigger config to insert");
-        }
-    }
-
-    /**
-     * Insert a run summary but not its objects.
+     * Insert a run summary.
      *
      * @param runSummary the run summary object
      */
@@ -405,13 +172,23 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
     public void insertRunSummary(final RunSummary runSummary) {
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = connection.prepareStatement(RunSummaryQuery.INSERT);
+            preparedStatement = connection.prepareStatement(INSERT);                       
             preparedStatement.setInt(1, runSummary.getRun());
-            preparedStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getStartDate().getTime()), CALENDAR);
-            preparedStatement.setTimestamp(3, new java.sql.Timestamp(runSummary.getEndDate().getTime()), CALENDAR);
-            preparedStatement.setInt(4, runSummary.getTotalEvents());
-            preparedStatement.setInt(5, runSummary.getTotalFiles());
-            preparedStatement.setBoolean(6, runSummary.getEndOkay());
+            preparedStatement.setLong(2, runSummary.getTotalEvents());
+            preparedStatement.setInt(3, runSummary.getTotalFiles());
+            /* Use setObject on the rest as they may be null. */
+            preparedStatement.setObject(4, runSummary.getPrestartTimestamp());
+            preparedStatement.setObject(5, runSummary.getGoTimestamp());
+            preparedStatement.setObject(6, runSummary.getEndTimestamp());
+            preparedStatement.setObject(7, runSummary.getTriggerRate());
+            preparedStatement.setObject(8, runSummary.getTriggerConfigName());
+            preparedStatement.setObject(9, runSummary.getTiTimeOffset());
+            preparedStatement.setObject(10, runSummary.getLivetimeClock());
+            preparedStatement.setObject(11, runSummary.getLivetimeFcupTdc());
+            preparedStatement.setObject(12, runSummary.getLivetimeFcupTrg());
+            preparedStatement.setObject(13, runSummary.getTarget());
+            preparedStatement.setObject(14, runSummary.getNotes());
+            LOGGER.fine(preparedStatement.toString());
             preparedStatement.executeUpdate();
         } catch (final SQLException e) {
             throw new RuntimeException(e);
@@ -425,34 +202,42 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
             }
         }
     }
-
-    /**
-     * Read a run summary and its objects such as scaler data.
-     *
-     * @param run the run number
-     * @return the full run summary
-     */
+    
     @Override
-    public RunSummary readFullRunSummary(final int run) {
-
-        // Read main run summary but not referenced objects.
-        final RunSummaryImpl runSummary = (RunSummaryImpl) this.getRunSummary(run);
-
-        // Read EPICS data and set on RunSummary.
-        final List<EpicsData> epicsDataList = new ArrayList<EpicsData>();
-        epicsDataList.addAll(epicsDataDao.getEpicsData(EpicsType.EPICS_1S, run));
-        epicsDataList.addAll(epicsDataDao.getEpicsData(EpicsType.EPICS_10S, run));
-        runSummary.setEpicsData(epicsDataList);
-
-        // Read scaler data and set on RunSummary.
-        runSummary.setScalerData(scalerDataDao.getScalerData(run));
-
-        // Read trigger config.
-        runSummary.setTriggerConfig(triggerConfigIntDao.getTriggerConfig(run));
-
-        return runSummary;
+    public void updateRunSummary(RunSummary runSummary) {
+        PreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = connection.prepareStatement(UPDATE);                                   
+            preparedStatement.setLong(1, runSummary.getTotalEvents());
+            preparedStatement.setInt(2, runSummary.getTotalFiles());
+            preparedStatement.setObject(3, runSummary.getPrestartTimestamp());
+            preparedStatement.setObject(4, runSummary.getGoTimestamp());
+            preparedStatement.setObject(5, runSummary.getEndTimestamp());
+            preparedStatement.setObject(6, runSummary.getTriggerRate());
+            preparedStatement.setObject(7, runSummary.getTriggerConfigName());
+            preparedStatement.setObject(8, runSummary.getTiTimeOffset());
+            preparedStatement.setObject(9, runSummary.getLivetimeClock());
+            preparedStatement.setObject(10, runSummary.getLivetimeFcupTdc());
+            preparedStatement.setObject(11, runSummary.getLivetimeFcupTrg());
+            preparedStatement.setObject(12, runSummary.getTarget());
+            preparedStatement.setObject(13, runSummary.getNotes());
+            preparedStatement.setInt(14, runSummary.getRun());
+            LOGGER.fine(preparedStatement.toString());
+            preparedStatement.executeUpdate();
+        } catch (final SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (preparedStatement != null) {
+                try {
+                    preparedStatement.close();
+                } catch (final SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
-
+    
+   
     /**
      * Return <code>true</code> if a run summary exists in the database for the run number.
      *
@@ -463,41 +248,10 @@ final class RunSummaryDaoImpl implements RunSummaryDao {
     public boolean runSummaryExists(final int run) {
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = connection.prepareStatement("SELECT run FROM runs where run = ?");
+            preparedStatement = connection.prepareStatement("SELECT run FROM run_summaries where run = ?");
             preparedStatement.setInt(1, run);
             final ResultSet rs = preparedStatement.executeQuery();
             return rs.first();
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (final SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    /**
-     * Update a run summary but not its complex state.
-     *
-     * @param runSummary the run summary to update
-     */
-    @Override
-    public void updateRunSummary(final RunSummary runSummary) {
-        PreparedStatement preparedStatement = null;
-        try {
-            preparedStatement = connection.prepareStatement(RunSummaryQuery.UPDATE_RUN);
-            preparedStatement.setTimestamp(1, new java.sql.Timestamp(runSummary.getStartDate().getTime()), CALENDAR);
-            preparedStatement.setTimestamp(2, new java.sql.Timestamp(runSummary.getEndDate().getTime()), CALENDAR);
-            preparedStatement.setInt(3, runSummary.getTotalEvents());
-            preparedStatement.setInt(4, runSummary.getTotalFiles());
-            preparedStatement.setBoolean(5, runSummary.getEndOkay());
-            preparedStatement.setBoolean(6, runSummary.getRunOkay());
-            preparedStatement.setInt(7, runSummary.getRun());
-            preparedStatement.executeUpdate();
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         } finally {

@@ -49,6 +49,10 @@ final class JSONUtilities {
             dataset.put("eventCount", metadataCopy.get("eventCount"));
             metadataCopy.remove("eventCount");
         }
+        if (metadataCopy.containsKey("scanStatus")) {
+            dataset.put("scanStatus", metadataCopy.get("scanStatus"));
+            metadataCopy.remove("scanStatus");
+        }
         
         if (metadata != null && metadata.size() != 0) {
             JSONArray jsonMetadata = createJSONMetadataArray(metadataCopy);
@@ -84,16 +88,22 @@ final class JSONUtilities {
             JSONObject metadataObject = new JSONObject();
             metadataObject.put("key", entry.getKey());
             Object rawValue = entry.getValue();
+            if (rawValue == null) {
+                throw new IllegalArgumentException("The metadata key " + entry.getKey() + " has a null value.");
+            }
             if (rawValue instanceof String) {
                 metadataObject.put("type", "string");
             } else if (rawValue instanceof Integer | rawValue instanceof Long) {
                 metadataObject.put("type", "integer");
             } else if (rawValue instanceof Float | rawValue instanceof Double) {
                 metadataObject.put("type", "decimal");
+            } else if (rawValue instanceof Boolean) {
+                metadataObject.put("type", "integer");
+                rawValue = (Boolean)rawValue ? 1 : 0;
             } else {
-                throw new IllegalArgumentException("Do not know how to handle type: " + rawValue.getClass().getName());
-            }
-            metadataObject.put("value", entry.getValue());                      
+                throw new IllegalArgumentException("Metadata value " + rawValue + " with key " + entry.getKey() + " has unknown type.");
+            }            
+            metadataObject.put("value", rawValue);                      
             array.put(metadataObject);
         }                
         return array;        

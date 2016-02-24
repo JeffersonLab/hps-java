@@ -1,20 +1,21 @@
 package org.hps.job;
 
-import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.hps.conditions.ConditionsDriver;
-import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.detector.svt.SvtDetectorSetup;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 import org.lcsim.job.JobControlManager;
-import org.lcsim.util.Driver;
 
 /**
- * Extension of standard LCSim job manager which does some HPS-specific management of the conditions system.
+ * Extension of standard LCSim job manager.
+ * <p>
+ * Provides setup of database conditions system and adds option to provide conditions system tags.
  *
  * @author Jeremy McCormick, SLAC
  */
-public class JobManager extends JobControlManager {
-
+public final class JobManager extends JobControlManager {
+    
     /**
      * Run the job manager from the command line.
      *
@@ -31,58 +32,42 @@ public class JobManager extends JobControlManager {
      * Class constructor.
      */
     public JobManager() {
-    }
-
-    /**
-     * Override setup so the conditions system can be reset.
-     * 
-     * @param is the input stream containing config information
-     */
-    public void setup(InputStream is) {
-        
-        // Add class that will setup SVT detector with conditions data (this is awkward but has to be done someplace).
-        DatabaseConditionsManager.getInstance().addConditionsListener(new SvtDetectorSetup());
-        
-        super.setup(is);
-                
-        // Setup the conditions system if there is a ConditionsDriver present.
-        this.setupConditionsDriver();
+        conditionsSetup = new DatabaseConditionsManagerSetup();
     }
     
     /**
-     * Override the parent classes method that runs the job in order to perform conditions system initialization.
-     *
-     * @return <code>true</code> if job was successful
+     * Get the conditions setup.
+     * @return the conditions setup
+     */
+    public DatabaseConditionsManagerSetup getDatabaseConditionsManagerSetup() {
+        return (DatabaseConditionsManagerSetup) this.conditionsSetup;
+    }
+    
+    /**
+     * Override creation of command line options.
+     * @return the overridden command line options
      */
     @Override
-    public final boolean run() {
-        
-        // Run the job.
-        final boolean result = super.run();
-
-        // Close the conditions database connection if it is open.
-        DatabaseConditionsManager.getInstance().closeConnection();
-
-        return result;
+    protected Options createCommandLineOptions() {
+        Options options = super.createCommandLineOptions();
+        options.addOption("t", "tag", true, "conditions system tag (can be used multiple times)");
+        return options;
     }
-
+    
     /**
-     * This method will find the {@link org.hps.conditions.ConditionsDriver} in the list of Drivers registered with the
-     * manager and then execute its initialization method, which may override the default behavior of the conditions
-     * system.
+     * Override command line parsing.
+     * @return the overridden, parsed command line
      */
-    private void setupConditionsDriver() {
-        ConditionsDriver conditionsDriver = null;
-        for (final Driver driver : this.getDriverAdapter().getDriver().drivers()) {
-            if (driver instanceof ConditionsDriver) {
-                conditionsDriver = (ConditionsDriver) driver;
-                break;
+    @Override
+    public CommandLine parse(final String args[]) {
+        CommandLine commandLine = super.parse(args);
+        if (commandLine.hasOption("t")) {
+            Set<String> tags = new HashSet<String>();
+            for (String tag : commandLine.getOptionValues("t")) {
+                tags.add(tag);
             }
+            getDatabaseConditionsManagerSetup().setTags(tags);
         }
-        if (conditionsDriver != null) {
-            LOGGER.config("initializing conditions Driver");            
-            conditionsDriver.initialize();
-            LOGGER.warning("Conditions driver will be removed soon!");
-        }
+        return commandLine;
     }
 }

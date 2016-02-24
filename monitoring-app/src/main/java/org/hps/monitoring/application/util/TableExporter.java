@@ -33,7 +33,7 @@ public final class TableExporter {
 
         // Column headers.
         for (int columnIndex = 0; columnIndex < columnCount; columnIndex++) {
-            buffer.append("\"" + model.getColumnName(columnIndex) + "\"" + fieldDelimiter);
+            buffer.append("\"" + model.getColumnName(columnIndex) + "\"" + fieldDelimiter + ",");
         }
         buffer.setLength(buffer.length() - 1);
         buffer.append('\n');
@@ -47,6 +47,7 @@ public final class TableExporter {
                 } else {
                     buffer.append("\"" + value + "\"" + fieldDelimiter);
                 }
+                buffer.append(",");
             }
             buffer.setLength(buffer.length() - 1);
             buffer.append('\n');

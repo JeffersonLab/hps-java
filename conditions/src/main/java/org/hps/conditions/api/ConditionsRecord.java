@@ -8,6 +8,7 @@ import java.util.Set;
 import org.hps.conditions.database.ConditionsRecordConverter;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
+import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 /**
@@ -232,6 +233,33 @@ public final class ConditionsRecord extends BaseConditionsObject {
          */
         public final ConditionsRecordCollection sortedByUpdated() {
             return (ConditionsRecordCollection) this.sorted(new UpdatedComparator());
+        }
+        
+        /**
+         * Find a unique record using the selected action for disambiguating conditions with the same key.
+         * @param key the name of the key
+         * @param action the disambiguation action
+         * @return the unique conditions record or <code>null</code> if does not exist
+         */
+        public ConditionsRecord findUniqueRecord(String key, MultipleCollectionsAction action) {
+            ConditionsRecord record = null;
+            ConditionsRecordCollection keyRecords = this.findByKey(key);
+            if (keyRecords.size() > 0) {
+                if (keyRecords.size() == 1) {
+                    record = keyRecords.get(0);
+                } else {
+                    if (action.equals(MultipleCollectionsAction.LAST_UPDATED)) {
+                        record = sortedByUpdated().get(this.size() - 1);
+                    } else if (action.equals(MultipleCollectionsAction.LAST_CREATED)) {
+                        record = sortedByCreated().get(this.size() - 1);
+                    } else if (action.equals(MultipleCollectionsAction.LATEST_RUN_START)) {
+                        record = sortedByRunStart().get(this.size() - 1);
+                    } else if (action.equals(MultipleCollectionsAction.ERROR)) {
+                        throw new RuntimeException("Multiple ConditionsRecord object found for conditions key " + key + ".");
+                    }
+                }
+            }
+            return record;
         }
     }
 

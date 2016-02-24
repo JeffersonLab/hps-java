@@ -33,7 +33,10 @@ import org.lcsim.util.Driver;
  * time to achieve the proper behavior.
  *
  * @author Jeremy McCormick, SLAC
+ * 
+ * @deprecated Use built-in options of job manager.
  */
+@Deprecated
 public class ConditionsDriver extends Driver {
 
     /** The name of the detector model. */

@@ -6,11 +6,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.freehep.record.loop.RecordLoop.Command;
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.job.DatabaseConditionsManagerSetup;
 import org.hps.job.JobManager;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.ConnectionStatus;
@@ -34,7 +37,6 @@ import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.exception.EtClosedException;
 import org.jlab.coda.et.exception.EtException;
 import org.lcsim.conditions.ConditionsListener;
-import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.util.Driver;
 
 /**
@@ -194,11 +196,6 @@ final class EventProcessing {
     private SessionState sessionState;
    
     /**
-     * The current conditions manager.
-     */ 
-    private DatabaseConditionsManager conditionsManager;
-
-    /**
      * Class constructor, which will initialize with reference to the current monitoring application and lists of extra
      * processors to add to the loop, as well as supplemental conditions listeners that activate when the conditions
      * change.
@@ -306,7 +303,7 @@ final class EventProcessing {
      *
      * @param configurationModel the current global {@link org.hps.monitoring.application.ConfigurationModel} object
      */
-    private void createEventBuilder(final ConfigurationModel configurationModel) {
+    private LCSimEventBuilder createEventBuilder(final ConfigurationModel configurationModel) {
 
         // Get the class for the event builder.
         final String eventBuilderClassName = configurationModel.getEventBuilderClassName();
@@ -318,9 +315,8 @@ final class EventProcessing {
         } catch (final Exception e) {
             throw new RuntimeException("Failed to create LCSimEventBuilder.", e);
         }
-
-        // Add the builder as a listener so it is notified when conditions change.
-        this.conditionsManager.addConditionsListener(this.sessionState.eventBuilder);
+        
+        return this.sessionState.eventBuilder; 
     }
 
     /**
@@ -475,27 +471,59 @@ final class EventProcessing {
         try {
             // Create the job manager. A new conditions manager is instantiated from this call but not configured.
             this.sessionState.jobManager = new JobManager();
-
-            // Set ref to current conditions manager.
-            this.conditionsManager = DatabaseConditionsManager.getInstance();
             
-            // Add conditions listeners after new database conditions manager is initialized from the job manager.
-            for (final ConditionsListener conditionsListener : this.sessionState.conditionsListeners) {
-                this.logger.config("adding conditions listener " + conditionsListener.getClass().getName());
-                this.conditionsManager.addConditionsListener(conditionsListener);
-            }
-
-            if (configurationModel.hasValidProperty(ConfigurationModel.DETECTOR_ALIAS_PROPERTY)) {
-                // Set a detector alias.
-                ConditionsReader.addAlias(configurationModel.getDetectorName(),
-                        "file://" + configurationModel.getDetectorAlias());
-                this.logger.config("using detector alias " + configurationModel.getDetectorAlias());
-            }
-
+            // Setup class for conditions system.
+            DatabaseConditionsManagerSetup conditions = new DatabaseConditionsManagerSetup();
+            
+            // Disable run manager.
+            conditions.setEnableRunManager(false);
+            
             // Setup the event builder to translate from EVIO to LCIO.
-            // This must happen before Driver setup so the builder's listeners are activated first!
-            this.createEventBuilder(configurationModel);
+            LCSimEventBuilder eventBuilder = this.createEventBuilder(configurationModel);            
+            conditions.addConditionsListener(eventBuilder);
+                        
+            // Add extra conditions listeners.
+            for (final ConditionsListener conditionsListener : this.sessionState.conditionsListeners) {
+                this.logger.config("Adding conditions listener " + conditionsListener.getClass().getName());
+                conditions.addConditionsListener(conditionsListener);
+            }
 
+            // Add detector alias.
+            if (configurationModel.hasValidProperty(ConfigurationModel.DETECTOR_ALIAS_PROPERTY)) {
+                conditions.addAlias(configurationModel.getDetectorName(),
+                        "file://" + configurationModel.getDetectorAlias());
+                this.logger.config("Added detector alias " + configurationModel.getDetectorAlias() 
+                        + " for " + configurationModel.getDetectorName());
+            }
+
+            // Add conditions tag.
+            if (configurationModel.hasValidProperty(ConfigurationModel.CONDITIONS_TAG_PROPERTY)
+                    && !configurationModel.getConditionsTag().equals("")) {
+                Set<String> tags = new HashSet<String>();
+                tags.add(configurationModel.getConditionsTag());
+                this.logger.config("Added conditions tag " + configurationModel.getConditionsTag());
+                conditions.setTags(tags);
+            }
+            
+            // Set user specified job number.
+            if (configurationModel.hasValidProperty(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
+                final int userRun = configurationModel.getUserRunNumber();
+                this.logger.config("User run number set to " + userRun);
+                conditions.setRun(userRun);
+            }
+            
+            // Set detector name.
+            conditions.setDetectorName(configurationModel.getDetectorName());
+            
+            // Freeze the conditions system to ignore run numbers from event data.
+            if (configurationModel.hasPropertyKey(ConfigurationModel.FREEZE_CONDITIONS_PROPERTY)) {
+                this.logger.config("user configured to freeze conditions system");
+                conditions.setFreeze(configurationModel.getFreezeConditions());
+            }
+                        
+            // Register the configured conditions settings with the job manager.
+            this.sessionState.jobManager.setConditionsSetup(conditions);
+                        
             // Configure the job manager for the XML steering.
             this.sessionState.jobManager.setDryRun(true);
             if (steeringType == SteeringType.RESOURCE) {
@@ -503,32 +531,10 @@ final class EventProcessing {
             } else if (steeringType.equals(SteeringType.FILE)) {
                 this.setupSteeringFile(steering);
             }
-
-            // Set conditions tag if applicable.
-            if (configurationModel.hasValidProperty(ConfigurationModel.CONDITIONS_TAG_PROPERTY)
-                    && !configurationModel.getConditionsTag().equals("")) {
-                this.logger.config("conditions tag is set to " + configurationModel.getConditionsTag());
-            } else {
-                this.logger.config("conditions NOT using a tag");
-            }
-
-            // Is there a user specified run number from the JobPanel?
-            if (configurationModel.hasValidProperty(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
-                final int userRunNumber = configurationModel.getUserRunNumber();
-                final String detectorName = configurationModel.getDetectorName();
-                this.logger.config("setting user run number " + userRunNumber + " with detector " + detectorName);
-                conditionsManager.setDetector(detectorName, userRunNumber);
-                if (configurationModel.hasPropertyKey(ConfigurationModel.FREEZE_CONDITIONS_PROPERTY)) {
-                    // Freeze the conditions system to ignore run numbers from the events.
-                    this.logger.config("user configured to freeze conditions system");
-                    this.conditionsManager.freeze();
-                } else {
-                    // Allow run numbers to be picked up from the events.
-                    this.logger.config("user run number provided but conditions system is NOT frozen");
-                    this.conditionsManager.unfreeze();
-                }
-            }
-
+            
+            // Post-init conditions system which may freeze if run and name were provided.
+            this.sessionState.jobManager.getConditionsSetup().postInitialize();
+            
             this.logger.info("lcsim setup was successful");
 
         } catch (final Throwable t) {
@@ -595,15 +601,19 @@ final class EventProcessing {
             this.logger.config("added extra Driver " + driver.getName());
         }
 
-        // Enable conditions system activation from EVIO event data in case the PRESTART is missed.
-        loopConfig.add(new EvioDetectorConditionsProcessor(configurationModel.getDetectorName()));
-        this.logger.config("added EvioDetectorConditionsProcessor to job with detector "
-                + configurationModel.getDetectorName());
+        // Enable conditions activation from EVIO; not needed if conditions are frozen for the job.
+        if (!DatabaseConditionsManager.getInstance().isFrozen()) {
+            loopConfig.add(new EvioDetectorConditionsProcessor(configurationModel.getDetectorName()));
+            this.logger.config("added EvioDetectorConditionsProcessor to job with detector "
+                    + configurationModel.getDetectorName());
+        } else {
+            this.logger.config("Conditions activation from EVIO is disabled.");
+        }
 
         // Create the CompositeLoop with the configuration.
         this.sessionState.loop = new CompositeLoop(loopConfig);
 
-        this.logger.config("record loop is setup");
+        this.logger.config("Record loop is setup.");
     }
 
     /**

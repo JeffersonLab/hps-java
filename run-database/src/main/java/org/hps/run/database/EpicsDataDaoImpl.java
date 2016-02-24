@@ -74,6 +74,9 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
 
     /**
      * Delete all EPICS data for a run from the database.
+     * <p>
+     * Only the <code>epics_header</code> records are deleted and the child records
+     * are deleted automatically via a <code>CASCADE</code>.
      *
      * @param run the run number
      */
@@ -97,12 +100,12 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                 deleteEpicsData.setInt(1, headerId);
                 int rowsAffected = deleteEpicsData.executeUpdate();
                 if (rowsAffected == 0) {
-                    throw new SQLException("Deletion of EPICS data failed; no rows affect.");
+                    throw new SQLException("Deletion of EPICS data failed; no rows affected.");
                 }
                 deleteHeader.setInt(1, headerId);
                 rowsAffected = deleteHeader.executeUpdate();
                 if (rowsAffected == 0) {
-                    throw new SQLException("Deletion of EPICS header failed; no rows affect.");
+                    throw new SQLException("Deletion of EPICS header failed; no rows affected.");
                 }
             }
 
@@ -137,7 +140,7 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
      * Get EPICS data by run.
      *
      * @param run the run number
-     * @param epicsType the type of EPICS data (1s or 10s)
+     * @param epicsType the type of EPICS data (2s or 20s)
      * @return the EPICS data
      */
     @Override
@@ -149,7 +152,7 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
             final List<EpicsVariable> variables = epicsVariableDao.getEpicsVariables(epicsType);
             selectEpicsData = connection.prepareStatement("SELECT * FROM " + epicsType.getTableName() 
                     + " LEFT JOIN epics_headers ON " + epicsType.getTableName() + ".epics_header_id = epics_headers.id"
-                    + " WHERE epics_headers.run = ?");
+                    + " WHERE epics_headers.run = ? ORDER BY epics_headers.sequence");
             selectEpicsData.setInt(1, run);
             ResultSet resultSet = selectEpicsData.executeQuery();
             while (resultSet.next()) {
@@ -189,12 +192,14 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
     /**
      * Insert a list of EPICS data into the database.
      * <p>
-     * The run number comes from the header information.
+     * By default, the run number from the header will be used, but it will be overridden
+     * if it does not match the <code>run</code> argument.  (There are a few data files
+     * where the run in the EPICS header is occassionally wrong.)
      *
      * @param epicsDataList the list of EPICS data
      */
     @Override
-    public void insertEpicsData(final List<EpicsData> epicsDataList) {
+    public void insertEpicsData(final List<EpicsData> epicsDataList, int run) {
         if (epicsDataList.isEmpty()) {
             throw new IllegalArgumentException("The EPICS data list is empty.");
         }
@@ -208,9 +213,11 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                 if (epicsHeader == null) {
                     throw new IllegalArgumentException("The EPICS data is missing a header.");
                 }
-                insertHeaderStatement.setInt(1, epicsHeader.getRun());
+                insertHeaderStatement.setInt(1, run); /* Don't use run from bank as it is sometimes wrong! */
                 insertHeaderStatement.setInt(2, epicsHeader.getSequence());
                 insertHeaderStatement.setInt(3, epicsHeader.getTimestamp());
+                LOGGER.finer("creating EPICs record with run = " + run + " ; seq = " 
+                        + epicsHeader.getSequence() + "; ts = " + epicsHeader.getTimestamp());
                 final int rowsCreated = insertHeaderStatement.executeUpdate();
                 if (rowsCreated == 0) {
                     throw new SQLException("Creation of EPICS header record failed; no rows affected.");
@@ -238,11 +245,11 @@ final class EpicsDataDaoImpl implements EpicsDataDao {
                     insertStatement.setDouble(parameterIndex, value);
                     ++parameterIndex;
                 }
-                final int dataRowsCreated = insertStatement.executeUpdate();                
+                final int dataRowsCreated = insertStatement.executeUpdate();
                 if (dataRowsCreated == 0) {
                     throw new SQLException("Creation of EPICS data failed; no rows affected.");
                 }
-                LOGGER.info("inserted EPICS data with run " + epicsHeader.getRun() + ", seq " + epicsHeader.getSequence() + "timestamp " 
+                LOGGER.finer("inserted EPICS data with run = " + run + "; seq = " + epicsHeader.getSequence() + "; ts = " 
                         + epicsHeader.getTimestamp());
                 insertStatement.close();
             }

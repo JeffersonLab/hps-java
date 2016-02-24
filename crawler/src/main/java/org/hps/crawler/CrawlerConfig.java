@@ -11,13 +11,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.hps.conditions.database.ConnectionParameters;
-import org.hps.datacat.client.DatasetFileFormat;
-import org.hps.datacat.client.DatasetSite;
 
 /**
  * Full configuration information for the {@link Crawler} class.
- * <p>
- * Method chaining of setters is supported.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -41,20 +37,13 @@ final class CrawlerConfig {
 
     /**
      * The name of the folder in the data catalog for inserting data (under "/HPS" root folder).
-     * <p>
-     * Default provided for Eng Run 2015 data.
      */
     private String datacatFolder = null;
 
     /**
-     * Set whether extraction of metadata from files is enabled.
+     * Set of accepted file formats.
      */
-    private boolean enableMetadata;
-
-    /**
-     * Set of file formats for filtering files.
-     */
-    Set<DatasetFileFormat> formats = new HashSet<DatasetFileFormat>();
+    private Set<FileFormat> formats = new HashSet<FileFormat>();
 
     /**
      * The maximum depth to crawl.
@@ -69,7 +58,7 @@ final class CrawlerConfig {
     /**
      * The dataset site for the datacat.
      */
-    private DatasetSite site;
+    private Site site = Site.JLAB;
 
     /**
      * A timestamp to use for filtering input files on their creation date.
@@ -80,6 +69,21 @@ final class CrawlerConfig {
      * A file to use for getting the timestamp date.
      */
     private File timestampFile = null;
+    
+    /**
+     * Dry run for not actually executing updates.
+     */
+    private boolean dryRun = false;
+    
+    /**
+     * Base URL of datacat client.
+     */
+    private String baseUrl = DatacatHelper.DATACAT_URL;
+        
+    /**
+     * Set of paths used for filtering files (file's path must match one of these).
+     */
+    private Set<String> paths = new HashSet<String>();
 
     /**
      * Get the set of runs that will be accepted for the job.
@@ -94,7 +98,7 @@ final class CrawlerConfig {
      * Add the default file formats.
      */
     CrawlerConfig addDefaultFileFormats() {
-        final List<DatasetFileFormat> defaultFormats = Arrays.asList(DatasetFileFormat.values());
+        final List<FileFormat> defaultFormats = Arrays.asList(FileFormat.values());
         this.formats.addAll(defaultFormats);
         return this;
     }
@@ -104,9 +108,8 @@ final class CrawlerConfig {
      *
      * @param format the file format
      */
-    CrawlerConfig addFileFormat(final DatasetFileFormat format) {
+    void addFileFormat(final FileFormat format) {
         this.formats.add(format);
-        return this;
     }
 
     /**
@@ -123,7 +126,7 @@ final class CrawlerConfig {
      *
      * @return the data catalog folder
      */
-    String datacatFolder() {
+    String folder() {
         return this.datacatFolder;
     }
 
@@ -132,17 +135,8 @@ final class CrawlerConfig {
      *
      * @return the dataset site
      */
-    DatasetSite datasetSite() {
+    Site site() {
         return this.site;
-    }
-
-    /**
-     * Return <code>true</code> if metadata extraction from files is enabled.
-     *
-     * @return <code>true</code> if metadata extraction is enabled
-     */
-    boolean enableMetaData() {
-        return this.enableMetadata;
     }
 
     /**
@@ -150,7 +144,7 @@ final class CrawlerConfig {
      *
      * @return the file formats for filtering
      */
-    Set<DatasetFileFormat> getFileFormats() {
+    Set<FileFormat> getFileFormats() {
         return this.formats;
     }
 
@@ -164,7 +158,7 @@ final class CrawlerConfig {
     }
 
     /**
-     * Get the root directory for the file search.
+     * Get the root directory in the file catalog.
      *
      * @return the root directory for the file search
      */
@@ -178,9 +172,8 @@ final class CrawlerConfig {
      * @param acceptRuns the list of acceptable run numbers
      * @return this object
      */
-    CrawlerConfig setAcceptRuns(final Set<Integer> acceptRuns) {
+    void setAcceptRuns(final Set<Integer> acceptRuns) {
         this.acceptRuns = acceptRuns;
-        return this;
     }
 
     /**
@@ -189,9 +182,8 @@ final class CrawlerConfig {
      * @param connectionParameters the database connection parameters
      * @return this object
      */
-    CrawlerConfig setConnection(final ConnectionParameters connectionParameters) {
+    void setConnection(final ConnectionParameters connectionParameters) {
         this.connectionParameters = connectionParameters;
-        return this;
     }
 
     /**
@@ -199,9 +191,8 @@ final class CrawlerConfig {
      *
      * @param datacatFolder the data catalog folder
      */
-    CrawlerConfig setDatacatFolder(final String datacatFolder) {
+    void setDatacatFolder(final String datacatFolder) {
         this.datacatFolder = datacatFolder;
-        return this;
     }
 
     /**
@@ -209,29 +200,28 @@ final class CrawlerConfig {
      *
      * @return this object
      */
-    void setDatasetSite(final DatasetSite site) {
+    void setSite(final Site site) {
         this.site = site;
     }
-
+    
     /**
-     * Set whether metadata extraction is enabled.
-     *
-     * @param enableMetadata <code>true</code> to enable metadata
+     * Enable dry run.
+     * 
+     * @param dryRun set to <code>true</code> to enable dry run
      * @return this object
      */
-    CrawlerConfig setEnableMetadata(final boolean enableMetadata) {
-        this.enableMetadata = enableMetadata;
-        return this;
+    void setDryRun(boolean dryRun) {
+        this.dryRun = dryRun;
     }
+    
 
     /**
      * Set the max depth.
      *
      * @param maxDepth the max depth
      */
-    CrawlerConfig setMaxDepth(final Integer maxDepth) {
+    void setMaxDepth(final Integer maxDepth) {
         this.maxDepth = maxDepth;
-        return this;
     }
 
     /**
@@ -240,9 +230,8 @@ final class CrawlerConfig {
      * @param rootDir the root directory for the file search
      * @return this object
      */
-    CrawlerConfig setRootDir(final File rootDir) {
+    void setRootDir(final File rootDir) {
         this.rootDir = rootDir;
-        return this;
     }
 
     /**
@@ -253,9 +242,8 @@ final class CrawlerConfig {
      * @param timestamp the date for filtering files
      * @return this object
      */
-    CrawlerConfig setTimestamp(final Date timestamp) {
+    void setTimestamp(final Date timestamp) {
         this.timestamp = timestamp;
-        return this;
     }
 
     /**
@@ -267,9 +255,8 @@ final class CrawlerConfig {
      * @param timestamp the date string for filtering files
      * @return this object
      */
-    CrawlerConfig setTimestamp(final String timestampString) throws ParseException {
+    void setTimestamp(final String timestampString) throws ParseException {
         TIMESTAMP_FORMAT.parse(timestampString);
-        return this;
     }
 
     /**
@@ -278,9 +265,8 @@ final class CrawlerConfig {
      * @param timestampFile the timestamp file for date filtering
      * @return this object
      */
-    CrawlerConfig setTimestampFile(final File timestampFile) {
+    void setTimestampFile(final File timestampFile) {
         this.timestampFile = timestampFile;
-        return this;
     }
 
     /**
@@ -301,5 +287,50 @@ final class CrawlerConfig {
      */
     File timestampFile() {
         return timestampFile;
+    }
+    
+    /**
+     * Returns <code>true</code> if dry run which means no updates will occur.
+     * 
+     * @return <code>true</code> if dry run
+     */
+    boolean dryRun() {
+        return this.dryRun;
+    }
+    
+    /**
+     * Set the data catalog URL.
+     * 
+     * @param baseUrl the data catalog URL
+     */
+    void setDatacatUrl(String baseUrl) {
+        this.baseUrl = baseUrl;        
+    }
+    
+    /**
+     * Get the data catalog URL.
+     * 
+     * @return the data catalog URL
+     */
+    String datacatUrl() {
+        return this.baseUrl;
+    }
+        
+    /**
+     * Add a path for filtering files.
+     * 
+     * @param path the path for filtering
+     */
+    void addPath(String path) {
+        this.paths.add(path);
+    }
+    
+    /**
+     * Get the list of paths for filtering. 
+     * 
+     * @return the list of paths for filtering
+     */
+    Set<String> paths() {
+        return this.paths;
     }
 }

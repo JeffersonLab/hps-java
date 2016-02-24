@@ -67,6 +67,11 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
      * Modulus of TI timestamp offset (units of nanoseconds).
      */
     private final long timestampCycle = 24 * 6 * 35;
+    
+    /**
+     * The current TI time offset in nanoseconds from the run manager.
+     */
+    private Long currentTiTimeOffset = null;
 
     /**
      * Class constructor.
@@ -83,36 +88,51 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         intBanks.add(new IntBankDefinition(TIData.class, new int[]{sspCrateBankTag, 0xe10a}));
         intBanks.add(new IntBankDefinition(HeadBankData.class, new int[]{sspCrateBankTag, 0xe10f}));
         intBanks.add(new IntBankDefinition(TDCData.class, new int[]{0x3a, 0xe107}));
-        // ecalReader = new ECalEvioReader(0x25, 0x27);
         triggerConfigReader = new TriggerConfigEvioReader();
         svtEventFlagger = new SvtEventFlagger();
     }
 
     @Override
     public void conditionsChanged(final ConditionsEvent conditionsEvent) {
+        
         super.conditionsChanged(conditionsEvent);
         svtEventFlagger.initialize();
+        
+        // Set TI time offset from run database.
+        setTiTimeOffsetForRun(conditionsEvent.getConditionsManager().getRun());
+    }
+    
+    /**
+     * Get TI time offset from the run database, if available.
+     * @param run the run number
+     */
+    private void setTiTimeOffsetForRun(int run) {
+        currentTiTimeOffset = null; /* Reset TI offset to null indicating it is not available for the run. */
+        RunManager runManager = RunManager.getRunManager();
+        if (runManager.getRun() != null) {
+            if (runManager.runExists()) {
+                currentTiTimeOffset = runManager.getRunSummary().getTiTimeOffset();
+                LOGGER.info("TI time offset set to " + currentTiTimeOffset + " for run "
+                        + run + " from database");
+            } else {
+                LOGGER.warning("Run " + run 
+                        + " does not exist in the run database.");
+            }
+        } else {
+            LOGGER.info("Run manager is not initialized; TI time offset not available.");
+        }
     }
 
     /**
-     * Get the time from the TI data.
+     * Get the time from the TI data with time offset applied from run database.
      *
      * @param triggerList the TI data list
      */
     @Override
     protected long getTime(final List<AbstractIntData> triggerList) {
         long tiTimeOffset = 0;
-        try {
-            if (RunManager.getRunManager().runExists() && RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() != null) {
-                tiTimeOffset = (RunManager.getRunManager().getTriggerConfig().getTiTimeOffset() / timestampCycle) * timestampCycle;
-            }
-            try {
-                RunManager.getRunManager().closeConnection();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } catch (IllegalStateException e) {
-            // May happen if RunManager is not initialized; just ignore.
+        if (currentTiTimeOffset != null) {
+            tiTimeOffset = (currentTiTimeOffset / timestampCycle) * timestampCycle;
         }
         for (final AbstractIntData data : triggerList) {
             if (data instanceof TIData) {

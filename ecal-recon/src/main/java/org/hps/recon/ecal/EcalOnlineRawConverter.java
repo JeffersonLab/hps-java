@@ -46,7 +46,7 @@ public class EcalOnlineRawConverter {
 				System.out.println("======================================================================");
 				System.out.println("=== FADC Pulse-Processing Settings ===================================");
 				System.out.println("======================================================================");
-				config.printConfig();
+				config.printConfig(System.out);
 			}
     	});
     }

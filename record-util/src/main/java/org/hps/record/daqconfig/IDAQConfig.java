@@ -1,5 +1,7 @@
 package org.hps.record.daqconfig;
 
+import java.io.PrintStream;
+
 
 /**
  * Interface <code>DAQConfig</code> represents a configuration bank
@@ -20,5 +22,5 @@ abstract class IDAQConfig {
      * Prints a textual representation of the configuration bank to the
      * terminal.
      */
-    public abstract void printConfig();
+    public abstract void printConfig(PrintStream ps);
 }

@@ -21,6 +21,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.PosixParser;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -373,6 +374,10 @@ public final class EvioToLcio {
 
         // Process the LCSim job variable definitions, if any.
         jobManager = new JobManager();
+        
+        // Initialize run manager and add as listener on conditions system.
+        RunManager runManager = RunManager.getRunManager();
+        DatabaseConditionsManager.getInstance().addConditionsListener(runManager);
         
         // Enable dry run because events will be processed individually.
         jobManager.setDryRun(true);

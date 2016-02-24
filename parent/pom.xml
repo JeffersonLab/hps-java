@@ -12,7 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-        <lcsimVersion>3.1.7</lcsimVersion>
+        <lcsimVersion>3.2-SNAPSHOT</lcsimVersion>
         <skipSite>false</skipSite>
         <skipPlugin>false</skipPlugin>
     </properties>
@@ -35,17 +35,22 @@
         </repository>
         <repository>
             <id>freehep-repo-public</id>
-            <name>FreeHEP Maven Public</name>
+            <name>FreeHEP</name>
             <url>http://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</url>
         </repository>
         <repository>
+            <id>srs-repo-public</id>
+            <name>SRS</name>
+            <url>http://srs.slac.stanford.edu/nexus/content/groups/srs-maven2-public/</url>
+        </repository>        
+        <repository>
             <id>lcsim-repo-public</id>
-            <name>LCSIM Public Maven Repository</name>
+            <name>LCSim</name>
             <url>http://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</url>
         </repository>
         <repository>
             <id>jlab-coda-repo-public</id>
-            <name>JLAB CODA Maven Repository</name>
+            <name>CODA</name>
             <url>https://coda.jlab.org/maven/</url>
         </repository>
     </repositories>
@@ -59,13 +64,13 @@
     <distributionManagement>
         <repository>
             <id>lcsim-repo-releases</id>
-            <name>LCSIM Releases maven repository</name>
+            <name>LCSim Releases</name>
             <!--<url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-releases/</url>-->
             <url>http://scalnx-v01.slac.stanford.edu:8180/nexus/content/repositories/lcsim-maven2-releases/</url>
         </repository>
         <snapshotRepository>
             <id>lcsim-repo-snapshots</id>
-            <name>LCSIM Snapshots maven repository</name>
+            <name>LCSim Snapshots</name>
             <!--<url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>-->
             <url>http://scalnx-v01.slac.stanford.edu:8180/nexus/content/repositories/lcsim-maven2-snapshot/</url>
         </snapshotRepository>
@@ -289,6 +294,11 @@
                         <artifactId>commons-math</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>srs</groupId>
+                <artifactId>org-srs-datacat-client</artifactId>
+                <version>0.5-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

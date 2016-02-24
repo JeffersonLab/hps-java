@@ -16,7 +16,7 @@ interface EpicsDataDao {
      *
      * @param run the run number
      */
-    public void deleteEpicsData(EpicsType epicsType, final int run);
+    public void deleteEpicsData(EpicsType epicsType, int run);
 
     /**
      * Get EPICS data by run.
@@ -34,5 +34,5 @@ interface EpicsDataDao {
      *
      * @param epicsDataList the list of EPICS data
      */
-    void insertEpicsData(List<EpicsData> epicsDataList);   
+    void insertEpicsData(List<EpicsData> epicsDataList, int run);
 }

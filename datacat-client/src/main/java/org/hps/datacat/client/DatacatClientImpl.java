@@ -28,7 +28,7 @@ final class DatacatClientImpl implements DatacatClient {
     private static Logger LOGGER = Logger.getLogger(DatacatClientImpl.class.getPackage().getName());
 
     /**
-     * The root directory (e.g. should be 'HPS').
+     * The root directory (should be 'HPS').
      */
     private final String rootDir;
 
@@ -46,7 +46,7 @@ final class DatacatClientImpl implements DatacatClient {
      * Create client with default parameters.
      */
     DatacatClientImpl() {
-        this(DatacatConstants.BASE_URL, DatasetSite.SLAC, DatacatConstants.ROOT_DIR);
+        this(DatacatConstants.BASE_URL, DatasetSite.JLAB, DatacatConstants.ROOT_FOLDER);
     }
 
     /**
@@ -60,7 +60,7 @@ final class DatacatClientImpl implements DatacatClient {
         try {
             this.url = new URL(url);
         } catch (final MalformedURLException e) {
-            throw new IllegalArgumentException("The URL is bad.", e);
+            throw new IllegalArgumentException("The URL is not valid.", e);
         }
         if (site == null) {
             throw new IllegalArgumentException("The site argument is null.");
@@ -99,14 +99,14 @@ final class DatacatClientImpl implements DatacatClient {
         final Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("dataType", dataType.toString());
         parameters.put("resource", resource);
-        parameters.put("site", DatasetSite.SLAC.name());
+        parameters.put("site", site);
         parameters.put("fileFormat", fileFormat.toString());
         parameters.put("name", name);
         parameters.put("size", size);
         final JSONObject jsonDataset = JSONUtilities.createJSONDataset(parameters, metadata);
         final String urlLocation = url + "/datasets.json/" + this.rootDir + "/" + folder;
-        LOGGER.info("addDataset: " + urlLocation);
-        LOGGER.info("dataset JSON: " + jsonDataset.toString());
+        LOGGER.info("add dataset " + urlLocation);
+        LOGGER.info("dataset JSON " + jsonDataset.toString());
         return HttpUtilities.doPost(urlLocation, jsonDataset.toString());
     }
 
@@ -204,7 +204,7 @@ final class DatacatClientImpl implements DatacatClient {
             }
         }
         
-        LOGGER.info("findDatasets: " + urlLocation);
+        LOGGER.info(urlLocation);
         final StringBuffer outputBuffer = new StringBuffer();
         final int response = HttpUtilities.doGet(urlLocation, outputBuffer);
         if (response >= 400) {
@@ -213,7 +213,7 @@ final class DatacatClientImpl implements DatacatClient {
 
         // Build and return dataset list
         final JSONObject searchResults = new JSONObject(outputBuffer.toString());
-        LOGGER.info("returning search results: " + searchResults.toString());
+        LOGGER.info(searchResults.toString());
         return createDatasetsFromSearch(searchResults);
     }
 
@@ -276,7 +276,7 @@ final class DatacatClientImpl implements DatacatClient {
     @Override
     public int makeFolder(final String path) {
         final Map<String, Object> parameters = new HashMap<String, Object>();
-        parameters.put("path", "/" + DatacatConstants.ROOT_DIR + "/" + path);
+        parameters.put("path", "/" + DatacatConstants.ROOT_FOLDER + "/" + path);
         final String name = new File(path).getName();
         parameters.put("name", name);
         parameters.put("_type", "folder");

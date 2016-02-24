@@ -3,9 +3,6 @@ package org.hps.crawler;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Set;
-import java.util.logging.Logger;
-
-import org.hps.datacat.client.DatasetFileFormat;
 
 /**
  * Filter files on their format.
@@ -17,21 +14,16 @@ import org.hps.datacat.client.DatasetFileFormat;
 public class FileFormatFilter implements FileFilter {
 
     /**
-     * Initialize the logger.
-     */
-    private static final Logger LOGGER = Logger.getLogger(FileFormatFilter.class.getPackage().getName());
-
-    /**
      * The file format.
      */
-    private final Set<DatasetFileFormat> formats;
+    private final Set<FileFormat> formats;
 
     /**
      * Create a new filter with the given format.
      *
      * @param format the file format
      */
-    FileFormatFilter(final Set<DatasetFileFormat> formats) {
+    FileFormatFilter(final Set<FileFormat> formats) {
         if (formats == null) {
             throw new IllegalArgumentException("The formats collection is null.");
         }
@@ -48,13 +40,10 @@ public class FileFormatFilter implements FileFilter {
      */
     @Override
     public boolean accept(final File pathname) {
-        LOGGER.info(pathname.getPath());
-        final DatasetFileFormat fileFormat = DatacatUtilities.getFileFormat(pathname);
+        final FileFormat fileFormat = DatacatHelper.getFileFormat(pathname);
         if (fileFormat != null) {
-            LOGGER.info("file " + pathname.getPath() + " has format " + fileFormat.name());
             return formats.contains(fileFormat);
         } else {
-            LOGGER.info("rejected file " + pathname.getPath() + " with unknown format");
             return false;
         }
     }

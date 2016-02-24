@@ -18,15 +18,9 @@ import org.hps.record.scalers.ScalerDataIndex;
 final class ScalerDataDaoImpl implements ScalerDataDao {
 
     /**
-     * SQL query strings.
+     * Insert a record.
      */
-    private static final class ScalerDataQuery {
-
-        /**
-         * Insert a record.
-         */
-        private static final String INSERT = createInsertSql();
-    }
+    private static final String INSERT = createInsertSql();    
 
     /**
      * Create insert SQL for scaler data.
@@ -102,7 +96,8 @@ final class ScalerDataDaoImpl implements ScalerDataDao {
         PreparedStatement selectScalers = null;
         final List<ScalerData> scalerDataList = new ArrayList<ScalerData>();
         try {
-            selectScalers = this.connection.prepareStatement("SELECT * FROM scalers WHERE run = ? ORDER BY event");
+            selectScalers = this.connection.prepareStatement("SELECT * FROM sc"
+                    + "alers WHERE run = ? ORDER BY event");
             selectScalers.setInt(1, run);
             final ResultSet resultSet = selectScalers.executeQuery();
             while (resultSet.next()) {
@@ -139,7 +134,7 @@ final class ScalerDataDaoImpl implements ScalerDataDao {
     public void insertScalerData(final List<ScalerData> scalerDataList, final int run) {
         PreparedStatement insertScalers = null;
         try {
-            insertScalers = this.connection.prepareStatement(ScalerDataQuery.INSERT);
+            insertScalers = this.connection.prepareStatement(INSERT);
             for (final ScalerData scalerData : scalerDataList) {
                 insertScalers.setInt(1, run);
                 insertScalers.setInt(2, scalerData.getEventId());

@@ -1,40 +1,13 @@
 package org.hps.run.database;
 
-import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-
-import org.hps.datacat.client.DatasetFileFormat;
-import org.hps.record.epics.EpicsData;
-import org.hps.record.scalers.ScalerData;
-import org.hps.record.triggerbank.TriggerConfig;
 
 /**
  * Implementation of {@link RunSummary} for retrieving information from the run database.
  *
  * @author Jeremy McCormick, SLAC
  */
-public final class RunSummaryImpl implements RunSummary {
-
-    /**
-     * Default date display format.
-     */
-    private static final DateFormat DATE_DISPLAY = new SimpleDateFormat();
-
-    static {
-        /**
-         * Set default time zone for display to East Coast (JLAB) where data was
-         * taken.
-         */
-        DATE_DISPLAY.setCalendar(new GregorianCalendar(TimeZone.getTimeZone("America/New_York")));
-    }
+final class RunSummaryImpl implements RunSummary {
 
     /**
      * Date this record was created.
@@ -42,60 +15,80 @@ public final class RunSummaryImpl implements RunSummary {
     private Date created;
 
     /**
-     * End date of run.
+     * Timestamp of END event.
      */
-    private Date endDate;
+    private Integer endTimestamp;
 
     /**
-     * This is <code>true</code> if the END event is found in the data.
+     * Timestamp of GO event.
      */
-    private boolean endOkay;
+    private Integer goTimestamp;
 
     /**
-     * The EPICS data from the run.
+     * Clock livetime calculation.
      */
-    private List<EpicsData> epicsDataList;
+    private Double livetimeClock;
+
+    /**
+     * FCup TDC livetime calculation.
+     */
+    private Double livetimeTdc;
+
+    /**
+     * FCup TRG livetime calculation.
+     */
+    private Double livetimeTrg;
+
+    /**
+     * Notes about the run (from spreadsheet).
+     */
+    private String notes;
+
+    /**
+     * Timestamp of PRESTART event.
+     */
+    private Integer prestartTimestamp;
 
     /**
      * The run number.
      */
-    private final int run;
+    private final Integer run;
 
     /**
-     * Flag to indicate run was okay.
+     * Target setup (string from run spreadsheet).
      */
-    private boolean runOkay = true;
+    private String target;
 
     /**
-     * The scaler data for the run.
+     * TI time offset in ns.
      */
-    private List<ScalerData> scalerDataList;
-
-    /**
-     * The trigger data for the run.
-     */
-    private TriggerConfig triggerConfig;
-
-    /**
-     * Start date of run.
-     */
-    private Date startDate;
+    private Long tiTimeOffset;
 
     /**
      * The total events found in the run across all files.
      */
-    private int totalEvents = -1;
+    private Long totalEvents;
 
     /**
      * The total number of files in the run.
      */
-    private int totalFiles = 0;
+    private Integer totalFiles;
+   
+    /**
+     * Name of the trigger config file.
+     */
+    private String triggerConfigName;
+
+    /**
+     * Trigger rate in KHz.
+     */
+    private double triggerRate;
 
     /**
      * Date when the run record was last updated.
      */
     private Date updated;
-    
+
     /**
      * Create a run summary.
      *
@@ -105,209 +98,174 @@ public final class RunSummaryImpl implements RunSummary {
         this.run = run;
     }
 
-    /**
-     * Get the creation date of this run record.
-     *
-     * @return the creation date of this run record
-     */
+    @Override
     public Date getCreated() {
         return this.created;
     }
 
-    /**
-     * Get the end date.
-     *
-     * @return the end date
-     */
-    public Date getEndDate() {
-        return endDate;
+    @Override
+    public Integer getEndTimestamp() {
+        return endTimestamp;
     }
 
-    /**
-     * Return <code>true</code> if END event was found in the data.
-     *
-     * @return <code>true</code> if END event was in the data
-     */
-    public boolean getEndOkay() {
-        return this.endOkay;
+    @Override
+    public Integer getGoTimestamp() {
+        return goTimestamp;
     }
 
-    /**
-     * Get the EPICS data from the run.
-     *
-     * @return the EPICS data from the run
-     */
-    public List<EpicsData> getEpicsData() {
-        return this.epicsDataList;
+    @Override
+    public Double getLivetimeClock() {
+        return this.livetimeClock;
     }
 
-    /**
-     * Get the event rate (effectively the trigger rate) which is the total
-     * events divided by the number of seconds in the run.
-     *
-     * @return the event rate
-     */
-    public double getEventRate() {
-        if (this.getTotalEvents() <= 0) {
-            throw new RuntimeException("Total events is zero or invalid.");
-        }
-        return (double) this.getTotalEvents() / (double) this.getTotalSeconds();
+    @Override
+    public Double getLivetimeFcupTdc() {
+        return this.livetimeTdc;
     }
 
-    /**
-     * Get the run number.
-     *
-     * @return the run number
-     */
-    public int getRun() {
+    @Override
+    public Double getLivetimeFcupTrg() {
+        return this.livetimeTrg;
+    }
+
+    @Override
+    public String getNotes() {
+        return this.notes;
+    }
+
+    @Override
+    public Integer getPrestartTimestamp() {
+        return prestartTimestamp;
+    }
+
+    @Override
+    public Integer getRun() {
         return this.run;
     }
 
-    /**
-     * Return <code>true</code> if the run was okay (no major errors or data
-     * corruption occurred).
-     *
-     * @return <code>true</code> if the run was okay
-     */
-    public boolean getRunOkay() {
-        return this.runOkay;
+    @Override
+    public String getTarget() {
+        return this.target;
     }
 
-    /**
-     * Get the scaler data of this run.
-     *
-     * @return the scaler data of this run
-     */
-    public List<ScalerData> getScalerData() {
-        return this.scalerDataList;
+    @Override
+    public Long getTiTimeOffset() {
+        return this.tiTimeOffset;
     }
 
-    /**
-     * Get the trigger config of this run.
-     *
-     * @return the trigger config of this run
-     */
-    public TriggerConfig getTriggerConfig() {
-        return triggerConfig;
-    }
-
-    /**
-     * Get the start date.
-     *
-     * @return the start date
-     */
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    /**
-     * Get the total events in the run.
-     *
-     * @return the total events in the run
-     */
-    public int getTotalEvents() {
+    @Override
+    public Long getTotalEvents() {
         return this.totalEvents;
     }
 
-    /**
-     * Get the total number of files for this run.
-     *
-     * @return the total number of files for this run
-     */
-    public int getTotalFiles() {
+    @Override
+    public Integer getTotalFiles() {
         return this.totalFiles;
     }
-
-    /**
-     * Get the number of seconds in the run which is the difference between the
-     * start and end times.
-     *
-     * @return the total seconds in the run
-     */
-    public long getTotalSeconds() {
-        return (endDate.getTime() - startDate.getTime()) / 1000;
+   
+    @Override
+    public String getTriggerConfigName() {
+        return this.triggerConfigName;
     }
 
-    /**
-     * Get the date when this run record was last updated.
-     *
-     * @return the date when this run record was last updated
-     */
+    @Override
+    public Double getTriggerRate() {
+        return this.triggerRate;
+    }
+
+    @Override
     public Date getUpdated() {
         return updated;
     }
-    
+
     /**
-     * Set the creation date of the run record.
-     *
-     * @param created the creation date of the run record
+     * Set the creation date of the run summary.
+     * 
+     * @param created the creation date
      */
-    void setCreated(final Date created) {
+    void setCreated(Date created) {
         this.created = created;
     }
 
     /**
-     * Set the start date.
-     *
-     * @param startDate the start date
+     * Set the end timestamp.
+     * 
+     * @param endTimestamp the end timestamp
      */
-    void setEndDate(final Date endDate) {
-        this.endDate = endDate;
+    void setEndTimestamp(Integer endTimestamp) {
+        this.endTimestamp = endTimestamp;
     }
 
     /**
-     * Set if end is okay.
-     *
-     * @param endOkay <code>true</code> if end is okay
+     * Set the GO timestamp.
+     * 
+     * @param goTimestamp the GO timestamp
      */
-    void setEndOkay(final boolean endOkay) {
-        this.endOkay = endOkay;
-    }
-   
-    /**
-     * Set the EPICS data for the run.
-     *
-     * @param epics the EPICS data for the run
-     */
-    void setEpicsData(final List<EpicsData> epicsDataList) {
-        this.epicsDataList = epicsDataList;
-    }
-    
-    /**
-     * Set whether the run was "okay" meaning the data is usable for physics
-     * analysis.
-     *
-     * @param runOkay <code>true</code> if the run is okay
-     */
-    void setRunOkay(final boolean runOkay) {
-        this.runOkay = runOkay;
+    void setGoTimestamp(Integer goTimestamp) {
+        this.goTimestamp = goTimestamp;
     }
 
     /**
-     * Set the scaler data of the run.
-     *
-     * @param scalerData the scaler data
+     * Set the clock livetime. 
+     * 
+     * @param livetimeClock the clock livetime
      */
-    void setScalerData(final List<ScalerData> scalerDataList) {
-        this.scalerDataList = scalerDataList;
+    void setLivetimeClock(Double livetimeClock) {
+        this.livetimeClock = livetimeClock;
     }
 
     /**
-     * Set the trigger config of the run.
-     *
-     * @param triggerConfig the trigger config
+     * Set the FCUP TDC livetime.
+     * 
+     * @param livetimeTdc the FCUP TDC livetime
      */
-    void setTriggerConfig(final TriggerConfig triggerConfig) {
-        this.triggerConfig = triggerConfig;
+    void setLivetimeFcupTdc(Double livetimeTdc) {
+        this.livetimeTdc = livetimeTdc;
     }
 
     /**
-     * Set the start date.
-     *
-     * @param startDate the start date
+     * Set the FCUP TRG livetime.
+     * 
+     * @param livetimeTrg the FCUP TRG livetime
      */
-    void setStartDate(final Date startDate) {
-        this.startDate = startDate;
+    void setLivetimeFcupTrg(Double livetimeTrg) {
+        this.livetimeTrg = livetimeTrg;
+    }
+
+    /**
+     * Set the notes.
+     * 
+     * @param notes the notes
+     */
+    void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    /**
+     * Set the PRESTART timestamp.
+     * 
+     * @param prestartTimestamp the PRESTART timestamp
+     */
+    void setPrestartTimestamp(Integer prestartTimestamp) {
+        this.prestartTimestamp = prestartTimestamp;
+    }
+
+    /**
+     * Set the target description.
+     * 
+     * @param target the target description
+     */
+    void setTarget(String target) {
+        this.target = target;
+    }
+
+    /**
+     * Set the TI time offset in ns.
+     * 
+     * @param tiTimeOffset the TIM time offset in ns
+     */
+    void setTiTimeOffset(Long tiTimeOffset) {
+        this.tiTimeOffset = tiTimeOffset;
     }
 
     /**
@@ -315,7 +273,7 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param totalEvents the total number of physics events in the run
      */
-    void setTotalEvents(final int totalEvents) {
+    void setTotalEvents(final Long totalEvents) {
         this.totalEvents = totalEvents;
     }
 
@@ -324,37 +282,59 @@ public final class RunSummaryImpl implements RunSummary {
      *
      * @param totalFiles the total number of EVIO files in the run
      */
-    void setTotalFiles(final int totalFiles) {
+    void setTotalFiles(final Integer totalFiles) {
         this.totalFiles = totalFiles;
     }
 
     /**
-     * Set the date when this run record was last updated.
-     *
-     * @param updated the date when the run record was last updated
+     * Set the trigger config file.
+     * 
+     * @param triggerConfigName the trigger config file
      */
-    void setUpdated(final Date updated) {
+    void setTriggerConfigName(String triggerConfigName) {
+        this.triggerConfigName = triggerConfigName;
+    }
+
+    /**
+     * Set the trigger rate in KHz.
+     * 
+     * @param triggerRate the trigger rate in KHz
+     */
+    void setTriggerRate(Double triggerRate) {
+        this.triggerRate = triggerRate;
+    }
+
+    /**
+     * Set the updated date of the summary.
+     * 
+     * @param updated the updated date
+     */
+    void setUpdated(Date updated) {
         this.updated = updated;
     }
-    
+
     /**
-     * Convert this object to a string.
-     *
+     * Convert the object to a string.
+     * 
      * @return this object converted to a string
      */
     @Override
     public String toString() {
         return "RunSummary { " 
                 + "run: " + this.getRun() 
-                + ", startDate: " + (this.getStartDate() != null ? DATE_DISPLAY.format(this.getStartDate()) : null)
-                + ", endDate: " + (this.getEndDate() != null ? DATE_DISPLAY.format(this.getEndDate()) : null) 
-                + ", totalEvents: " + this.getTotalEvents()
-                + ", totalFiles: " + this.getTotalFiles() 
-                + ", endOkay: " + this.getEndOkay() 
-                + ", runOkay: "
-                + this.getRunOkay() 
-                + ", updated: " + this.getUpdated() 
+                + ", events: " + this.getTotalEvents() 
+                + ", files: " + this.getTotalFiles() 
                 + ", created: " + this.getCreated() 
+                + ", updated: " + this.getUpdated()
+                + ", prestartTimestamp: " + this.getPrestartTimestamp()
+                + ", goTimestamp: " + this.getGoTimestamp()
+                + ", endTimestamp: " + this.getEndTimestamp()
+                + ", triggerConfigFile: " + this.getTriggerConfigName()
+                + ", triggerRate: " + this.getTriggerRate()
+                + ", livetimeClock: " + this.getLivetimeClock()
+                + ", livetimeTdc: " + this.getLivetimeFcupTdc()
+                + ", livetimeTrg: " + this.getLivetimeFcupTrg()
+                + ", tiTimeOffset: " + this.getTiTimeOffset() 
                 + " }";
     }
 }

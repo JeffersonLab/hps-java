@@ -88,35 +88,31 @@
                                 </program>
                                 <program>
                                     <mainClass>org.hps.job.JobManager</mainClass>
-                                    <id>job</id>
+                                    <id>job-manager</id>
                                 </program>
                                 <program>
                                     <mainClass>org.hps.conditions.cli.CommandLineTool</mainClass>
-                                    <id>conddb</id>
-                                </program>
-                                <program>
-                                    <mainClass>org.hps.crawler.DatacatCrawler</mainClass>
-                                    <id>crawler</id>
+                                    <id>conditions-cli</id>
                                 </program>
                                 <program>
                                     <mainClass>org.hps.run.database.RunDatabaseCommandLine</mainClass>
-                                    <id>rundb</id>
+                                    <id>run-database-cli</id>
                                 </program>
                                 <program>
                                     <mainClass>org.hps.monitoring.application.Main</mainClass>
-                                    <id>monapp</id>
+                                    <id>monitoring-app</id>
                                 </program>
                                 <program>
                                     <mainClass>org.lcsim.geometry.compact.converter.Main</mainClass>
-                                    <id>detcnv</id>
+                                    <id>detector-converter</id>
                                 </program>
                                 <program>
                                     <mainClass>org.hps.record.evio.EvioFileProducer</mainClass>
-                                    <id>evio_file_producer</id>
+                                    <id>evio-file-producer</id>
                                 </program>
                                 <program>
                                     <mainClass>org.jlab.coda.et.apps.StartEt</mainClass>
-                                    <id>et_server</id>
+                                    <id>et-server</id>
                                     <commandLineArguments>
                                         <commandLineArgument>-f</commandLineArgument>
                                         <commandLineArgument>ETBuffer</commandLineArgument>
@@ -124,6 +120,18 @@
                                         <commandLineArgument>20000</commandLineArgument>
                                         <commandLineArgument>-v</commandLineArgument>
                                     </commandLineArguments>
+                                </program>
+                                <program>
+                                    <mainClass>org.hps.crawler.MetadataWriter</mainClass>
+                                    <id>dc-create-metadata</id>
+                                </program>
+                                <program>
+                                    <mainClass>org.hps.crawler.DatacatAddFile</mainClass>
+                                    <id>dc-add-file</id>
+                                </program>
+                                <program>
+                                    <mainClass>org.hps.crawler.DatacatCrawler</mainClass>
+                                    <id>dc-crawler</id>
                                 </program>
                             </programs>
                         </configuration>

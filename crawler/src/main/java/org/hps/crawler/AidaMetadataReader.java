@@ -12,7 +12,7 @@ import java.util.Map;
  *
  * @author Jeremy McCormick, SLAC
  */
-public class AidaMetadataReader implements FileMetadataReader {
+final class AidaMetadataReader implements FileMetadataReader {
 
     /**
      * Get the metadata for a ROOT DQM file.
@@ -22,7 +22,7 @@ public class AidaMetadataReader implements FileMetadataReader {
     @Override
     public Map<String, Object> getMetadata(final File file) throws IOException {
         final Map<String, Object> metadata = new HashMap<String, Object>();
-        final int run = CrawlerFileUtilities.getRunFromFileName(file);
+        final Long run = FileUtilities.getRunFromFileName(file);
         metadata.put("runMin", run);
         metadata.put("runMax", run);
         return metadata;

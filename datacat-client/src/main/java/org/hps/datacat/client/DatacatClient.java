@@ -9,6 +9,7 @@ import java.util.Set;
  *
  * @author Jeremy McCormick, SLAC
  */
+// TODO: add method for adding a location to an existing dataset
 public interface DatacatClient {
 
     /**

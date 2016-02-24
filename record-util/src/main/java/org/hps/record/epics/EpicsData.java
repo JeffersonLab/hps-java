@@ -276,12 +276,13 @@ public final class EpicsData {
      * @param evioEvent the EVIO event
      * @return the EPICS data or <code>null</code> if it is not present in the event
      */
+    // FIXME: Not currently used.
     public static EpicsData getEpicsData(EvioEvent evioEvent) {
         
         EpicsData epicsData = null;
         
         // Is this an EPICS event?
-        if (EventTagConstant.EPICS.equals(evioEvent)) {
+        if (EventTagConstant.EPICS.matches(evioEvent)) {
 
             // Find the bank with the EPICS data string.
             final BaseStructure epicsBank = EvioBankTag.EPICS_STRING.findBank(evioEvent);

@@ -15,7 +15,7 @@ import org.hps.conditions.database.Field;
  *
  * @author Jeremy McCormick, SLAC
  */
-public class BaseConditionsObject implements ConditionsObject {
+public abstract class BaseConditionsObject implements ConditionsObject {
 
     /**
      * Field name for collection ID.
@@ -439,5 +439,23 @@ public class BaseConditionsObject implements ConditionsObject {
             }
         }
         return rowsUpdated != 0;
+    }
+    
+    public boolean equals(Object object) {
+        // Is it the same object?
+        if (object == this) {
+            return true;
+        }
+        // Are these objects the same class?
+        if (object.getClass().equals(this.getClass())) {
+            BaseConditionsObject otherObject = BaseConditionsObject.class.cast(object);
+            // Do the row IDs and database table name match?
+            if (otherObject.getTableMetaData().getTableName().equals(this.getTableMetaData().getTableName()) &&
+                    this.getRowId() == otherObject.getRowId()) {
+                // These are considered the same object (same database table and row ID).
+                return true;
+            }
+        }
+        return false;
     }
 }

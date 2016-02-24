@@ -6,7 +6,6 @@ import java.util.Set;
 
 import javassist.Modifier;
 
-import org.hps.conditions.api.AbstractConditionsObjectConverter;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.TableRegistry;

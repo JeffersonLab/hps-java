@@ -33,12 +33,10 @@ final class LoadCommand extends AbstractCommand {
      */
     private static final Options OPTIONS = new Options();
     static {
-        OPTIONS.addOption(new Option("h", false, "print help for load command"));
-        OPTIONS.addOption(new Option("t", true, "name of the target table (required)"));
-        OPTIONS.getOption("t").setRequired(true);
-        OPTIONS.addOption(new Option("f", true, "input data file path (required)"));
-        OPTIONS.getOption("f").setRequired(true);
-        OPTIONS.addOption(new Option("d", true, "description for the collection log"));
+        OPTIONS.addOption(new Option("h", "help", false, "print help for load command"));
+        OPTIONS.addOption(new Option("t", "table", true, "name of the target table (required)"));
+        OPTIONS.addOption(new Option("f", "file", true, "input data file path (required)"));
+        OPTIONS.addOption(new Option("d", "description", true, "description for the collection log"));
     }
 
     /**
