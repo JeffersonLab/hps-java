@@ -95,6 +95,9 @@ public class V0Monitoring extends DataQualityMonitor {
     IHistogram2D tarconChi2VsTrkChi2;
 
     IHistogram2D pEleVspPos;
+    IHistogram1D pEle;
+    IHistogram1D pPos;
+    
     IHistogram2D pEleVspPosWithCut;
     IHistogram2D pyEleVspyPos;
     IHistogram2D pxEleVspxPos;
@@ -229,6 +232,11 @@ public class V0Monitoring extends DataQualityMonitor {
         trigTime = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Trigger phase", 6, 0, 24);
 
         pEleVspPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(e) vs P(p)", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
+        
+
+        pEle = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(e)", 50, 0, beamEnergy * maxFactor);
+        pPos = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(p)", 50, 0, beamEnergy * maxFactor);
+        
         pEleVspPosWithCut = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(e) vs P(p): Radiative", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
         pyEleVspyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Py(e) vs Py(p)", 50, -0.04*beamEnergy, 0.04*beamEnergy, 50, -0.04*beamEnergy, 0.04*beamEnergy);
         pxEleVspxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Px(e) vs Px(p)", 50, -0.04*beamEnergy, 0.04*beamEnergy, 50, -0.04*beamEnergy, 0.04*beamEnergy);
@@ -273,9 +281,15 @@ public class V0Monitoring extends DataQualityMonitor {
         mollerUx = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Pair Momentum Direction Ux", 100, .015, .045);
         mollerUy = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Pair Momentum Direction Uy", 100, -.01, .01);
     
-        
+        mollerHiP = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(high)", 100, 0, beamEnergy*maxFactor);
+        mollerLoP = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(low)", 100, 0, beamEnergy*maxFactor);
+
+        mollerEitherP = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(either)", 100, 0, beamEnergy*maxFactor);
+        mollerPsum = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Psum", 100, 0, beamEnergy*maxFactor);
         
     }
+    
+    IHistogram1D mollerHiP, mollerLoP, mollerEitherP, mollerPsum;
 
     @Override
     public void process(EventHeader event) {
@@ -363,6 +377,10 @@ public class V0Monitoring extends DataQualityMonitor {
                 Hep3Vector pPosRot = VecOp.mult(beamAxisRotation, pos.getMomentum());
 
                 pEleVspPos.fill(pe, pp);
+                pEle.fill(pe);
+                pPos.fill(pp);
+                
+                
                 pxEleVspxPos.fill(pEleRot.x(), pPosRot.x());
                 pyEleVspyPos.fill(pEleRot.y(), pPosRot.y());
                 if (pe < v0MaxPCut && pp < v0MaxPCut && (pe + pp) > v0ESumMinCut && (pe + pp) < v0ESumMaxCut)//enrich radiative-like events
@@ -499,6 +517,20 @@ public class V0Monitoring extends DataQualityMonitor {
                 double uy = (ele1.getMomentum().y()+ele2.getMomentum().y())/(ele1.getMomentum().z()+ele2.getMomentum().z());
                 mollerUx.fill(ux);
                 mollerUy.fill(uy);
+                
+                //higher and lower energy electrons in moller pair
+                double pt1 = ele1.getMomentum().magnitude();
+                double pt2 = ele2.getMomentum().magnitude();
+                double ph = (pt1>pt2) ? pt1 : pt2;
+                double pl = (pt1>pt2) ? pt2 : pt1;
+                
+                mollerHiP.fill(ph);
+                mollerLoP.fill(pl);
+
+                mollerEitherP.fill(ph);
+                mollerEitherP.fill(pl);
+                mollerPsum.fill(pt1+pt2);
+                
                 
                 if (Math.abs(bv.getPosition().x()) < 2
                         && Math.abs(bv.getPosition().y()) < 0.5) {
