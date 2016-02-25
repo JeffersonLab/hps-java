@@ -503,10 +503,10 @@ public class V0Monitoring extends DataQualityMonitor {
                 SeedTrack stEle2 = TrackUtils.makeSeedTrackFromBaseTrack(ele2trk);
                 BilliorTrack btEle1 = new BilliorTrack(stEle1.getSeedCandidate().getHelix());
                 BilliorTrack btEle2 = new BilliorTrack(stEle2.getSeedCandidate().getHelix());
-                BilliorVertex bv = fitVertex(btEle1, btEle2);
+                BilliorVertex bv = fitVertex(btEle1, btEle2, TrackUtils.getBField(event.getDetector()).magnitude());
 //                LOGGER.info("ee vertex: "+bv.toString());
-                //mollerMass.fill(bv.getParameters().get("invMass"));
-                double invMass = getInvMass(p1, p2);
+                mollerMass.fill(bv.getParameters().get("invMass"));
+                double invMass = bv.getParameters().get("invMass");
                 mollerMass.fill(invMass);
                 mollerVx.fill(bv.getPosition().x());
                 mollerVy.fill(bv.getPosition().y());
@@ -546,11 +546,6 @@ public class V0Monitoring extends DataQualityMonitor {
             }
         }
     }
-
-    private double getInvMass(Hep3Vector p1, Hep3Vector p2) {
-    	
-		return Math.sqrt(2*(p1.magnitude()*p2.magnitude()-p1.x()*p2.x()-p1.y()*p2.y()-p1.z()*p2.z()));
-	}
 
 	@Override
     public void printDQMData() {
@@ -636,9 +631,8 @@ public class V0Monitoring extends DataQualityMonitor {
         return ifr;
     }
 
-    private BilliorVertex fitVertex(BilliorTrack electron, BilliorTrack positron) {
+    private BilliorVertex fitVertex(BilliorTrack electron, BilliorTrack positron, double bField) {
         // Create a vertex fitter from the magnetic field.
-        double bField = 0.24;
         double[] beamSize = {0.001, 0.2, 0.02};
         BilliorVertexer vtxFitter = new BilliorVertexer(bField);
         // TODO: The beam size should come from the conditions database.
