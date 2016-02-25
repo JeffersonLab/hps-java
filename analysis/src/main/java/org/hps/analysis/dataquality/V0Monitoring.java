@@ -505,7 +505,6 @@ public class V0Monitoring extends DataQualityMonitor {
                 BilliorTrack btEle2 = new BilliorTrack(stEle2.getSeedCandidate().getHelix());
                 BilliorVertex bv = fitVertex(btEle1, btEle2, TrackUtils.getBField(event.getDetector()).magnitude());
 //                LOGGER.info("ee vertex: "+bv.toString());
-                mollerMass.fill(bv.getParameters().get("invMass"));
                 double invMass = bv.getParameters().get("invMass");
                 mollerMass.fill(invMass);
                 mollerVx.fill(bv.getPosition().x());
