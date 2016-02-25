@@ -505,7 +505,9 @@ public class V0Monitoring extends DataQualityMonitor {
                 BilliorTrack btEle2 = new BilliorTrack(stEle2.getSeedCandidate().getHelix());
                 BilliorVertex bv = fitVertex(btEle1, btEle2);
 //                LOGGER.info("ee vertex: "+bv.toString());
-                mollerMass.fill(bv.getParameters().get("invMass"));
+                //mollerMass.fill(bv.getParameters().get("invMass"));
+                double invMass = getInvMass(p1, p2);
+                mollerMass.fill(invMass);
                 mollerVx.fill(bv.getPosition().x());
                 mollerVy.fill(bv.getPosition().y());
                 mollerVz.fill(bv.getPosition().z());
@@ -534,7 +536,7 @@ public class V0Monitoring extends DataQualityMonitor {
                 
                 if (Math.abs(bv.getPosition().x()) < 2
                         && Math.abs(bv.getPosition().y()) < 0.5) {
-                    mollerMassVtxCut.fill(bv.getParameters().get("invMass"));
+                    mollerMassVtxCut.fill(invMass);
                     mollerVzVtxCut.fill(bv.getPosition().z());
                 }
                 pEleVspEleMoller.fill(p1.magnitude(), p2.magnitude());
@@ -545,7 +547,12 @@ public class V0Monitoring extends DataQualityMonitor {
         }
     }
 
-    @Override
+    private double getInvMass(Hep3Vector p1, Hep3Vector p2) {
+    	
+		return Math.sqrt(2*(p1.magnitude()*p2.magnitude()-p1.x()*p2.x()-p1.y()*p2.y()-p1.z()*p2.z()));
+	}
+
+	@Override
     public void printDQMData() {
         LOGGER.info("V0Monitoring::printDQMData");
         for (Entry<String, Double> entry : monitoredQuantityMap.entrySet())

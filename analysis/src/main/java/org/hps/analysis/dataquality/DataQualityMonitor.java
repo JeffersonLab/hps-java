@@ -91,7 +91,7 @@ public class DataQualityMonitor extends Driver {
         printDQMData();
         if (printDQMStrings)
             printDQMStrings();
-        LOGGER.info("Should I write to the database?  " + connectToDB);
+        LOGGER.info("Write to database =  " + connectToDB);
         if (connectToDB) {
             LOGGER.info("Connecting To Database...getting DQMDBManager");
             manager = DQMDatabaseManager.getInstance();
