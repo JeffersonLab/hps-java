@@ -216,13 +216,13 @@ public class SvtHitPlots extends Driver {
         plotters.get("Raw hit counts/Event").createRegions(2, 2);
 
         hitCountPlots.put("Raw hit counts/Event",
-                histogramFactory.createHistogram1D("Raw hit counts", 100, 0, 100));
+                histogramFactory.createHistogram1D("Raw hit counts", 100, 0, 500));
         plotters.get("Raw hit counts/Event").region(0).plot(hitCountPlots.get("Raw hit counts/Event"), SvtPlotUtils.createStyle(plotterFactory, "Number of Raw Hits", ""));
         hitCountPlots.put("SVT top raw hit counts/Event",
-                histogramFactory.createHistogram1D("SVT top raw hit counts", 100, 0, 100));
+                histogramFactory.createHistogram1D("SVT top raw hit counts", 100, 0, 300));
         plotters.get("Raw hit counts/Event").region(2).plot(hitCountPlots.get("SVT top raw hit counts/Event"), SvtPlotUtils.createStyle(plotterFactory, "Number of Raw Hits in Top Volume", ""));
         hitCountPlots.put("SVT bottom raw hit counts/Event",
-                histogramFactory.createHistogram1D("SVT bottom raw hit counts", 100, 0, 100));
+                histogramFactory.createHistogram1D("SVT bottom raw hit counts", 100, 0, 300));
         plotters.get("Raw hit counts/Event").region(3).plot(hitCountPlots.get("SVT bottom raw hit counts/Event"), SvtPlotUtils.createStyle(plotterFactory, "Number of Raw Bits in the Bottom Volume", ""));
 
         plotters.put("First sample distributions (pedestal shifts)", plotterFactory.create("First sample distributions (pedestal shifts)"));
