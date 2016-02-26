@@ -12,13 +12,23 @@ import org.hps.conditions.database.DatabaseConditionsManager;
  */
 public class BeamEnergyTest extends TestCase {
     
+    private static final double[] BEAM_ENERGIES = {1.920, 1.056, 2.306};
+    private static final int[][] RUNS = {{3000, 3500, 3999}, {4000, 6000, 6999}, {7000, 7500, 9999}};
+    private static final String DETECTOR = "HPS-dummy-detector";
+    
     public void testBeamEnergy() throws Exception {
-        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        manager.setDetector("HPS-dummy-detector", 7450);        
-        BeamEnergyCollection beamEnergyCollection = 
-                manager.getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-        double beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
-        System.out.println("read beam energy " + beamEnergy);
-        assertEquals("Beam energy has wrong value.", beamEnergy, 2.3);
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();        
+        for (int i = 0; i < BEAM_ENERGIES.length; i++) {
+            double expectedBeamEnergy = BEAM_ENERGIES[i];
+            for (int j = 0; j < 3; j++) {
+                int run = RUNS[i][j];
+                manager.setDetector(DETECTOR, run);
+                BeamEnergyCollection beamEnergyCollection = 
+                        manager.getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+                double beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+                System.out.println("read beam energy " + beamEnergy + " for run " + run);
+                assertEquals("Beam energy has wrong value.", expectedBeamEnergy, beamEnergy);
+            }
+        }
     }   
 }
