@@ -41,15 +41,39 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
 /**
- * Driver used to create stereo hits from clusters.
- *
+ * This <code>Driver</code> creates 3D hits from SVT strip clusters of stereo pairs, which by default
+ * are read from the <b>StripClusterer_SiTrackerHitStrip1D</b> input collection.
+ * <p>
+ * The following collections will be added to the output event:
+ * <ul>
+ * <li>HelicalTrackHits</li>
+ * <li>RotatedHelicalTrackHits</li>
+ * <li>HelicalTrackHitRelations</li>
+ * <li>RotatedHelicalTrackHitRelations</li>
+ * <li>HelicalTrackMCRelations</li>
+ * <li>RotatedHelicalTrackMCRelations<li>
+ * </ul>
+ * <p>
+ * Class has the following default parameters values in the code (or from <code>EngineeringRun2015FullRecon.lcsim</code>):
+ * <ul>
+ * <li>{@link #setClusterTimeCut(double)} - 12.0 (ns)</li>
+ * <li>{@link #setMaxDt(double)} - 16.0 (ns)</li>
+ * <li>{@link #setClusterAmplitudeCut(double)} - 400.0</li>
+ * <li>{@link #setRejectGhostHits(boolean)} - <code>false</code></li>
+ * <li>{@link #setDebug(boolean)} - <code>false</code></li>
+ * <li>{@link #setEpsParallel(double)} - 0.013</li>
+ * <li>{@link #setEpsStereo(double)} - 0.01</li>
+ * <li>{@link #setSaveAxialHits(boolean)} - <code>false</code></li>
+ * <li>{@link #setStripHitsCollectionName(String)} - StripClusterer_SiTrackerHitStrip1D</li>
+ * <li>{@link #setHelicalTrackHitRelationsCollectionName(String)} - HelicalTrackHitRelations</li>
+ * <li>{@link #setHelicalTrackMCRelationsCollectionName(String)} -  HelicalTrackMCRelations</li>
+ * <li>{@link #setOutputHitCollectionName(String)} - HelicalTrackHits</li>
+ * </ul>
  *
  * @author Mathew Graham <mgraham@slac.stanford.edu>
  * @author Per Hansson <phansson@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
- *
  */
-// TODO: Add class documentation.
 // FIXME: The option to run using the Common geometry should be removed
 public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTrackHitDriver {
 

@@ -18,18 +18,21 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 /**
- * Calculate a running pedestal average for every channel from Mode7 FADCs. Uses
- * pedestals from the database if not available from the data.
- * 
- * May 2015:  Updated to also work on Mode1 data.
- * 
- * TODO: Use Logger.
+ * This <code>Driver</code> takes Mode-1 or Mode-7 ECal data and computes a running pedestal 
+ * average for every channel.  Pedestals from the database will be used if this is not available.
+ * <p>
+ * The following input collections are used:
+ * <ul>
+ * <li>EcalReadoutHits</li>
+ * <li>EcalReadoutExtraDataRelations</li>
+ * </ul>
+ * <p>
+ * Results are by default written to the <b>EcalRunningPedestals</b> output collection.
  * 
  * TODO: Timestamps from EVIO for some runs appear to not be monotonically increasing.
  *       This interferes with minLookbackTime, so it defaults to disabled and its setter
- *       is left private for now.
+ *       is left private for now. (Should be a JIRA item??? --JM)
  * 
- * @version $Id: ECalRunningPedestalDriver.java,v 1.0 2015/02/10 00:00:00
  * @author <baltzell@jlab.org>
  */
 public class EcalRunningPedestalDriver extends Driver {
