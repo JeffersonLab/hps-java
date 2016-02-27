@@ -18,14 +18,18 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * This class is used to convert between collections of {@link org.lcsim.event.RawCalorimeterHit}
- * and {@link org.lcsim.event.RawTrackerHit}, objects with ADC/sample information, and
- * collections of {@link org.lcsim.event.CalorimeterHit}, objects with energy/time information.
- * 
- * org.hps.recon.ecal.EcalRawConverter is called to do most of the lower level work.
- *
- *
-*/
+ * This <code>Driver</code> converts raw ECal data collections to {@link org.lcsim.event.CalorimeterHit} collections 
+ * with energy and time information.  The {@link EcalRawConverter} does most of the low-level work.
+ * <p>
+ * The following input collections are used:
+ * <ul>
+ * <li>EcalReadoutHits<li>
+ * <li>EcalReadoutExtraDataRelations</li>
+ * <li>EcalRunningPedestals</li>
+ * </ul>
+ * <p>
+ * The results are by default written to the <b>EcalCalHits</b> output collection.
+ */
 public class EcalRawConverterDriver extends Driver {
 
     // To import database conditions
