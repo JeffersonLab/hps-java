@@ -499,9 +499,6 @@
                 <role>release manager</role>
             </roles>
             <timezone>-8</timezone>
-            <properties>
-                <aim>jeremyslac</aim>
-            </properties>
         </developer>
         <developer>
             <name>Norman Graf</name>
@@ -512,9 +509,6 @@
                 <role>developer</role>
             </roles>
             <timezone>-8</timezone>
-            <properties>
-                <aim>ngraf137</aim>
-            </properties>
         </developer>
         <developer>
             <name>Maurik Holtrop</name>
