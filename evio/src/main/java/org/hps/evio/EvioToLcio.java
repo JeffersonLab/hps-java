@@ -21,7 +21,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.PosixParser;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.conditions.database.DatabaseConditionsManager;
