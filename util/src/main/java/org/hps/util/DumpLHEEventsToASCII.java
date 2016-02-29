@@ -26,7 +26,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.PosixParser;
 import org.lcsim.detector.IRotation3D;
 import org.lcsim.detector.RotationGeant;
 
@@ -89,7 +89,7 @@ public class DumpLHEEventsToASCII {
         // Set up command line parsing.
         Options options = createCommandLineOptions();
 
-        CommandLineParser parser = new DefaultParser();
+        CommandLineParser parser = new PosixParser();
 
         // Parse command line arguments.
         CommandLine cl = null;

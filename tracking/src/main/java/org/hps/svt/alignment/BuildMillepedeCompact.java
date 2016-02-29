@@ -29,7 +29,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.PosixParser;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.jdom.Attribute;
 import org.jdom.DataConversionException;
@@ -85,7 +85,7 @@ public class BuildMillepedeCompact {
 			printHelpAndExit(options);
 		}
 
-		CommandLineParser parser = new DefaultParser();
+		CommandLineParser parser = new PosixParser();
 		CommandLine cl = null;
 		try {
 			cl = parser.parse(options, args);

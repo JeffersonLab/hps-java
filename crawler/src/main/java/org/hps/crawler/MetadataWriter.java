@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -39,7 +39,7 @@ public final class MetadataWriter {
     private MetadataWriter parse(final String[] args) {
         
         try { 
-            final CommandLine cl = new DefaultParser().parse(OPTIONS, args);
+            final CommandLine cl = new PosixParser().parse(OPTIONS, args);
 
             // Print help.
             if (cl.hasOption("h") || args.length == 0) {

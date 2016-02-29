@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.PosixParser;
 import org.jlab.coda.et.EtAttachment;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtEvent;
@@ -195,7 +195,7 @@ public final class EvioFileProducer {
     public void run(final String[] args) {
 
         // Command line parser.
-        final DefaultParser parser = new DefaultParser();
+        final PosixParser parser = new PosixParser();
 
         try {
 

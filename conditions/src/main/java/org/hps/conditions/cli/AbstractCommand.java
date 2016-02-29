@@ -1,7 +1,7 @@
 package org.hps.conditions.cli;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -32,7 +32,7 @@ abstract class AbstractCommand {
     /**
      * The parser for the options.
      */
-    private final DefaultParser parser = new DefaultParser();
+    private final PosixParser parser = new PosixParser();
 
     /**
      * Class constructor.

@@ -15,7 +15,7 @@ import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -54,7 +54,7 @@ public class MillepedeCompactDump {
 			printHelpAndExit(options);
 		}
 
-		CommandLineParser parser = new DefaultParser();
+		CommandLineParser parser = new PosixParser();
 		CommandLine cl = null;
 		try {
 			cl = parser.parse(options, args);

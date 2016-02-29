@@ -12,7 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -50,7 +50,7 @@ public class SvtChargeIntegrator {
         options.addOption(new Option("t", false, "use TI timestamp instead of Unix time (higher precision, but requires TI time offset in run DB)"));
         options.addOption(new Option("c", false, "get TI time offset from CSV log file instead of run DB"));
 
-        final CommandLineParser parser = new DefaultParser();
+        final CommandLineParser parser = new PosixParser();
         CommandLine cl = null;
         try {
             cl = parser.parse(options, args);

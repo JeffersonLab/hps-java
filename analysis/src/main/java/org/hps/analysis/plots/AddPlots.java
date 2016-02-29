@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.lcsim.util.aida.AIDA;
@@ -43,7 +43,7 @@ public class AddPlots {
     }
     
     public static void main(String[] args) throws Exception {
-        CommandLine cl = new DefaultParser().parse(OPTIONS, args);        
+        CommandLine cl = new PosixParser().parse(OPTIONS, args);        
         if (cl.getArgList().isEmpty()) {
             throw new RuntimeException("No input AIDA files to add.");
         }        

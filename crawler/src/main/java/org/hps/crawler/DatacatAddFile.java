@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -55,7 +55,7 @@ public final class DatacatAddFile {
     /**
      * The options parser.
      */
-    private final DefaultParser parser = new DefaultParser();
+    private final PosixParser parser = new PosixParser();
     
     /**
      * Parse command line options.
