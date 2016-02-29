@@ -86,11 +86,9 @@
         <!-- all triggers  -->
         <driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>all</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="EcalMonitoringCorr" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>all</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
             <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
             <fillHitPlots>false</fillHitPlots>
         </driver>
@@ -106,15 +104,12 @@
         </driver>
         <driver name="FinalStateMonitoring" type="org.hps.analysis.dataquality.FinalStateMonitoring">
             <triggerType>all</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="V0Monitoring" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>all</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="TridentMonitoring" type="org.hps.analysis.dataquality.TridentMonitoring">
             <triggerType>all</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
        <driver name="TrackingMonitoringGBL" type="org.hps.analysis.dataquality.TrackingMonitoring">
             <trackCollectionName>GBLTracks</trackCollectionName>
@@ -122,28 +117,23 @@
         </driver>    
         <driver name="FinalStateMonitoringGBL" type="org.hps.analysis.dataquality.FinalStateMonitoring">
             <triggerType>all</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
             <isGBL>true</isGBL>
         </driver>
         <driver name="V0MonitoringGBL" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="TridentMonitoringGBL" type="org.hps.analysis.dataquality.TridentMonitoring">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
 
         <!-- singles0 triggers  -->
         <driver name="EcalMonitoringSingles0" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>singles0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="EcalMonitoringCorrSingles0" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>singles0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
             <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
             <fillHitPlots>false</fillHitPlots>
         </driver>
@@ -162,30 +152,24 @@
         </driver>
         <driver name="FinalStateMonitoringSingles0" type="org.hps.analysis.dataquality.FinalStateMonitoring">
             <triggerType>singles0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="V0MonitoringSingles0" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>singles0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
          <driver name="V0MonitoringGBLSingles0" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>singles0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
             <isGBL>true</isGBL>
         </driver>
         <driver name="TridentMonitoringSingles0" type="org.hps.analysis.dataquality.TridentMonitoring">
             <triggerType>singles0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
 
         <!-- singles1 triggers  -->
         <driver name="EcalMonitoringSingles1" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>singles1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="EcalMonitoringCorrSingles1" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>singles1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
             <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
             <fillHitPlots>false</fillHitPlots>
         </driver>
@@ -204,40 +188,32 @@
         </driver>
         <driver name="FinalStateMonitoringSingles1" type="org.hps.analysis.dataquality.FinalStateMonitoring">
             <triggerType>singles1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
          <driver name="V0MonitoringSingles1" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>singles1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="TridentMonitoringSingles1" type="org.hps.analysis.dataquality.TridentMonitoring">
-            <triggerType>singles1</triggerType> 
-            <beamEnergy>${beamEnergy}</beamEnergy>           
+            <triggerType>singles1</triggerType>            
         </driver>
        <driver name="FinalStateMonitoringGBLSingles1" type="org.hps.analysis.dataquality.FinalStateMonitoring">
                <triggerType>singles1</triggerType>
             <isGBL>true</isGBL>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="V0MonitoringGBLSingles1" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>singles1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
             <isGBL>true</isGBL>
         </driver>
         <driver name="TridentMonitoringGBLSingles1" type="org.hps.analysis.dataquality.TridentMonitoring">
             <triggerType>singles1</triggerType>
             <isGBL>true</isGBL>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
  
         <!-- pairs0 triggers  -->
         <driver name="EcalMonitoringPairs0" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>pairs0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="EcalMonitoringCorrPairs0" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>pairs0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
             <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
             <fillHitPlots>false</fillHitPlots>
         </driver>
@@ -256,31 +232,25 @@
         </driver>
         <driver name="FinalStateMonitoringPairs0" type="org.hps.analysis.dataquality.FinalStateMonitoring">
             <triggerType>pairs0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="V0MonitoringPairs0" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>pairs0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="V0MonitoringGBLPairs0" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>pairs0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
             <isGBL>true</isGBL>
         </driver>
         <driver name="TridentMonitoringPairs0" type="org.hps.analysis.dataquality.TridentMonitoring">
             <triggerType>pairs0</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
 
 
         <!-- pairs1 triggers  -->
         <driver name="EcalMonitoringPairs1" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>pairs1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="EcalMonitoringCorrPairs1" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>pairs1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
             <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
             <fillHitPlots>false</fillHitPlots>
         </driver>
@@ -299,30 +269,24 @@
         </driver>
         <driver name="FinalStateMonitoringPairs1" type="org.hps.analysis.dataquality.FinalStateMonitoring">
             <triggerType>pairs1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="V0MonitoringPairs1" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>pairs1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="TridentMonitoringPairs1" type="org.hps.analysis.dataquality.TridentMonitoring">
             <triggerType>pairs1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
     <driver name="FinalStateMonitoringGBLPairs1" type="org.hps.analysis.dataquality.FinalStateMonitoring">
             <triggerType>pairs1</triggerType>
             <isGBL>true</isGBL>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
         <driver name="V0MonitoringGBLPairs1" type="org.hps.analysis.dataquality.V0Monitoring">
             <triggerType>pairs1</triggerType>
-            <beamEnergy>${beamEnergy}</beamEnergy>
             <isGBL>true</isGBL>
         </driver>
         <driver name="TridentMonitoringGBLPairs1" type="org.hps.analysis.dataquality.TridentMonitoring">
             <triggerType>pairs1</triggerType>
             <isGBL>true</isGBL>
-            <beamEnergy>${beamEnergy}</beamEnergy>
         </driver>
 
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>

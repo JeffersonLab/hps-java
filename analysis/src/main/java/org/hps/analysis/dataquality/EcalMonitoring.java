@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.math.stat.StatUtils;
+import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -73,13 +74,10 @@ public class EcalMonitoring extends DataQualityMonitor {
     boolean fillHitPlots = true;
     String[] ecalQuantNames = {"avg_N_hits", "avg_Hit_Energy",
         "avg_N_clusters", "avg_N_hitsPerCluster", "avg_Cluster_Energy", "avg_ClusterTime"};
-    double beamEnergy = 1.1;
     
     double maxFactor = 1.5;
     
-    public void setBeamEnergy(double e){
-    	beamEnergy = e;
-    }
+   
     
     private final String plotHitsDir = "EcalHits/";
     private final String plotClustersDir = "EcalClusters/";
@@ -104,6 +102,10 @@ public class EcalMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
+    	BeamEnergyCollection beamEnergyCollection = 
+			this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+		double beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+    	//this.getConditionsManager().getCachedConditions(org.hps.conditions.EcalChannelCollection.class, "ecal_channels").
         LOGGER.info("EcalMonitoring::detectorChanged  Setting up the plotter");
         aida.tree().cd("/");
         if (fillHitPlots) {
@@ -273,5 +275,5 @@ public class EcalMonitoring extends DataQualityMonitor {
     public void printDQMStrings() {
 
     }
-
+    
 }

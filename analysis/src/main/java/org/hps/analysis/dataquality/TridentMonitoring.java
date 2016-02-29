@@ -14,6 +14,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+
+import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
@@ -73,11 +75,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 
     private final static Logger LOGGER = Logger.getLogger(TridentMonitoring.class.getPackage().getName());
 
-    private double ebeam = 1.05;
-
-    public void setBeamEnergy(double ebeam) {
-        this.ebeam = ebeam;
-    }
+   
 
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
 //    private static final int nCuts = 9;
@@ -316,11 +314,16 @@ public class TridentMonitoring extends DataQualityMonitor {
         this.beamSize[2] = beamSizeY;
     }
 
+    
+    double ebeam;
     @Override
     protected void detectorChanged(Detector detector) {
         LOGGER.info("TridendMonitoring::detectorChanged  Setting up the plotter");
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
 
+        BeamEnergyCollection beamEnergyCollection = 
+			this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+		ebeam = beamEnergyCollection.get(0).getBeamEnergy();
         aida.tree().cd("/");
         String trkType = "SeedTrack/";
         if (isGBL) {

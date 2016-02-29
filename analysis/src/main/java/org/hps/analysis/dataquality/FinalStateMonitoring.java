@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
@@ -60,7 +61,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     double sumdelY = 0.0;
     double sumEoverP = 0.0;
     private final String plotDir = "FinalStateParticles/";
-    double beamEnergy = 1.05; //GeV
+   // double beamEnergy = 1.05; //GeV
     double maxFactor = 1.5;
     double feeMomentumCut = 0.75; //this number, multiplied by the beam energy, is the actual cut
 
@@ -98,15 +99,18 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     IHistogram1D nUnAssTracksHisto;
     
     
-    public void setBeamEnergy(double e){
-    	this.beamEnergy = e;
-    }
+   
     public void setFinalStateParticlesColName(String fsp) {
         this.finalStateParticlesColName = fsp;
     }
 
     @Override
     protected void detectorChanged(Detector detector) {
+    	BeamEnergyCollection beamEnergyCollection = 
+			this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+		double beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+    	
+    	
         LOGGER.info("Setting up the plotter");
         aida.tree().cd("/");
           String trkType="SeedTrack/";
