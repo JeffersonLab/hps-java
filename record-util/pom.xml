@@ -7,12 +7,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.6</version>
+        <version>3.7-SNAPSHOT</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.6/record-util</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.6/record-util</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.6/record-util</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/record-util/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/record-util/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/record-util/</developerConnection>
     </scm>
     <build>
         <plugins>
