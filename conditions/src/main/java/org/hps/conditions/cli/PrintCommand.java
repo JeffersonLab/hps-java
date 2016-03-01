@@ -40,16 +40,15 @@ final class PrintCommand extends AbstractCommand {
     static {
         options.addOption(new Option("h", "help", false, "print help for print command"));
         options.addOption(new Option("t", "table", true, "table name"));
-        options.addOption(new Option("i", "print-id", false, "print the ID for the records (off by default)"));
-        options.addOption(new Option("f", "file", true, "write print output to a file (must be used with -t option)"));
+        options.addOption(new Option("i", "print-id", false, "include the row IDs in printouts"));
+        options.addOption(new Option("f", "file", true, "write output to a file (requires -t option)"));
         options.addOption(new Option("H", "no-header", false, "suppress printing of conditions record and table info"));
-        options.addOption(new Option("d", "tabs", false, "use tabs for field delimiter instead of spaces"));
     }
 
     /**
      * The field delimiter for print output.
      */
-    private char fieldDelimiter = ' ';
+    private static final char DELIMITER = ',';    
 
     /**
      * Output file if printing to a file.
@@ -127,11 +126,6 @@ final class PrintCommand extends AbstractCommand {
             this.printHeaders = false;
         }
 
-        // Use tabs instead of spaces for field delimiter.
-        if (commandLine.hasOption("d")) {
-            this.fieldDelimiter = '\t';
-        }
-
         // List of conditions records to print.
         final ConditionsRecordCollection conditionsRecords = new ConditionsRecordCollection();
 
@@ -173,7 +167,7 @@ final class PrintCommand extends AbstractCommand {
             for (final String columnName : collection.getTableMetaData().getFieldNames()) {
                 if (!"collection_id".equals(columnName)) {
                     buffer.append(((ConditionsObject) object).getFieldValue(columnName));
-                    buffer.append(this.fieldDelimiter);
+                    buffer.append(DELIMITER);
                 }
             }
             buffer.setLength(buffer.length() - 1);
@@ -221,15 +215,17 @@ final class PrintCommand extends AbstractCommand {
     private void printColumnNames(final TableMetaData tableMetaData) {
         if (this.printIDs) {
             this.ps.print("id");
-            this.ps.print(this.fieldDelimiter);
+            this.ps.print(DELIMITER);
         }
+        StringBuffer sb = new StringBuffer();
         for (final String columnName : tableMetaData.getFieldNames()) {
             if (!"collection_id".equals(columnName)) {
-                this.ps.print(columnName);
-                this.ps.print(this.fieldDelimiter);
+                sb.append(columnName);
+                sb.append(DELIMITER);
             }
         }
-        this.ps.println();
+        sb.setLength(sb.length() - 1);
+        this.ps.println(sb.toString());
     }
 
     /**
