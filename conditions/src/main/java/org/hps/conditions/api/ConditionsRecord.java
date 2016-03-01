@@ -249,11 +249,11 @@ public final class ConditionsRecord extends BaseConditionsObject {
                     record = keyRecords.get(0);
                 } else {
                     if (action.equals(MultipleCollectionsAction.LAST_UPDATED)) {
-                        record = sortedByUpdated().get(this.size() - 1);
+                        record = keyRecords.sortedByUpdated().get(keyRecords.size() - 1);
                     } else if (action.equals(MultipleCollectionsAction.LAST_CREATED)) {
-                        record = sortedByCreated().get(this.size() - 1);
+                        record = keyRecords.sortedByCreated().get(keyRecords.size() - 1);
                     } else if (action.equals(MultipleCollectionsAction.LATEST_RUN_START)) {
-                        record = sortedByRunStart().get(this.size() - 1);
+                        record = keyRecords.sortedByRunStart().get(keyRecords.size() - 1);
                     } else if (action.equals(MultipleCollectionsAction.ERROR)) {
                         throw new RuntimeException("Multiple ConditionsRecord object found for conditions key " + key + ".");
                     }
