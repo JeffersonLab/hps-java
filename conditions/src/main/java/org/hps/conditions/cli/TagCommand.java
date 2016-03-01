@@ -61,7 +61,7 @@ final class TagCommand extends AbstractCommand {
         OPTIONS.addOption(new Option("e", "run-end", true, "Ending run number (required)"));
         OPTIONS.addOption(new Option("m", "multiple", true, 
                 "set run overlap handling (" + getMultipleCollectionsActionString() + ")"));
-        OPTIONS.addOption(new Option("d", false, "Don't prompt before making tag (careful!)"));
+        OPTIONS.addOption(new Option("D", "dont-prompt", false, "Don't prompt before making tag (careful!)"));
     }
 
     /**
