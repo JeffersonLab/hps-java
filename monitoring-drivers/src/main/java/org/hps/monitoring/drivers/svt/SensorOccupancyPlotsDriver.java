@@ -13,8 +13,8 @@ import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterRegion;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
-import hep.aida.ref.plotter.Plotter;
-import hep.aida.ref.plotter.PlotterRegion;
+import hep.aida.jfree.plotter.Plotter;
+import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.ref.rootwriter.RootFileStore;
 import hep.physics.vec.Hep3Vector;
 
@@ -413,7 +413,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
             occupancyMap.put(sensor.getName(), new int[640]);
 
             if (enableMaxSamplePlots) {
-                maxSamplePositionPlots.put(sensor.getName(), histogramFactory.createHistogram1D(sensor.getName() + " - Max Sample Number", 6, 0, 6));
+                maxSamplePositionPlots.put(sensor.getName(), histogramFactory.createHistogram1D(sensor.getName() + " - Max Sample Number", 6, -0.5, 5.5));
                 plotters.get("Max Sample Number").region(SvtPlotUtils.computePlotterRegion(sensor))
                         .plot(maxSamplePositionPlots.get(sensor.getName()),
                                 this.createOccupancyPlotStyle("Max Sample Number", sensor, false));
@@ -422,12 +422,11 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
         for (IPlotter plotter : plotters.values()) {
             for (int regionN = 0; regionN < plotter.numberOfRegions(); regionN++) {
-                //Plotter l;
-                //PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
-                //if (region..getPlottedObjects().isEmpty()) {
-                //    continue;
-                //}
-                //region.getPanel().addMouseListener(new PopupPlotterListener(region));
+                PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
+                if (region.getPlottedObjects().isEmpty()) {
+                    continue;
+                }
+                region.getPanel().addMouseListener(new PopupPlotterListener(region));
             }
             plotter.show();
         }

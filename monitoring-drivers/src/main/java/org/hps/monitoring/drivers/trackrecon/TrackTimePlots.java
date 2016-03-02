@@ -7,17 +7,14 @@ import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ref.plotter.style.registry.IStyleStore;
 import hep.aida.ref.plotter.style.registry.StyleRegistry;
-
 import java.util.List;
 
 import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
 
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TestRunTriggerData;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
@@ -116,7 +113,7 @@ public class TrackTimePlots extends Driver {
 
         for (int i = 0; i < nlayers; i++) {
             int region = computePlotterRegion(i);
-            trackHit2D[i] = aida.histogram2D("Layer " + i + " trackHit vs dt", 75, -50, 100.0, 50, -20, 20.0);
+            trackHit2D[i] = aida.histogram2D("Layer " + i + " trigger phase vs dt", 80, -20, 20.0, 6, 0, 24.0);
             plot(plotter5, trackHit2D[i], style2d, region);
             trackHitDtChan[i] = aida.histogram2D("Layer " + i + " dt vs position", 200, -20, 20, 50, -20, 20.0);
             plot(plotter6, trackHitDtChan[i], style2d, region);
@@ -124,23 +121,23 @@ public class TrackTimePlots extends Driver {
         plotter.show();
         plotter3.show();
         plotter4.show();
-//         plotter5.show();"Track Time vs. dt"
-//        plotter6.show(); "Track dt vs. Channel"
+        plotter5.show();//"Track Time vs. dt"
+        plotter6.show();// "Track dt vs. Channel"
 
         for (int module = 0; module < 2; module++) {
-            trackT0[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Time", 75, -50, 100.0);
+            trackT0[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Time", 80, -20, 20.0);
             plot(plotter2, trackT0[module], null, module);
-            trackTrigTime[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " Track Time vs. Trig Time", 75, -50, 100.0, 6, -2, 22);
+            trackTrigTime[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " Track Time vs. Trig Time", 80, -20, 20.0, 6, 0, 24);
             plot(plotter2, trackTrigTime[module], style2d, module + 2);
 
             trackTimeRange[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Hit Time Range", 75, 0, 30.0);
             plot(plotter7, trackTimeRange[module], null, module);
-            trackTimeMinMax[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " First and Last Track Hit Times", 75, -50, 100.0, 75, -50, 100.0);
+            trackTimeMinMax[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " First and Last Track Hit Times", 80, -20, 20.0, 80, -20, 20.0);
             plot(plotter7, trackTimeMinMax[module], style2d, module + 2);
         }
 
         plotter2.show();
-//        plotter7.show(); //"Track Hit Time Range"
+        plotter7.show(); //"Track Hit Time Range"
     }
 
     public void setHitCollection(String hitCollection) {
@@ -166,7 +163,7 @@ public class TrackTimePlots extends Driver {
 
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         for (Track track : tracks) {
-            int trackModule = -1;
+            int trackModule;
             if (track.getTrackerHits().get(0).getPosition()[2] > 0) {
                 trackModule = 0;
             } else {
@@ -179,7 +176,8 @@ public class TrackTimePlots extends Driver {
             for (TrackerHit hitCross : track.getTrackerHits()) {
                 for (HelicalTrackStrip hit : ((HelicalTrackCross) hitCross).getStrips()) {
                     int layer = hit.layer();
-                    trackHitT0[trackModule][layer - 1].fill(hit.dEdx() / DopedSilicon.ENERGY_EHPAIR);
+                    int module = ((RawTrackerHit) hit.rawhits().get(0)).getIdentifierFieldValue("module");
+                    trackHitT0[module][layer - 1].fill(hit.dEdx() / DopedSilicon.ENERGY_EHPAIR);
                     trackTime += hit.time();
                     hitCount++;
                     if (hit.time() > maxTime) {
@@ -202,8 +200,9 @@ public class TrackTimePlots extends Driver {
             for (TrackerHit hitCross : track.getTrackerHits()) {
                 for (HelicalTrackStrip hit : ((HelicalTrackCross) hitCross).getStrips()) {
                     int layer = hit.layer();
-                    trackHitDt[trackModule][layer - 1].fill(hit.time() - trackTime);
-                    trackHit2D[layer - 1].fill(trackTime, hit.time() - trackTime);
+                    int module = ((RawTrackerHit) hit.rawhits().get(0)).getIdentifierFieldValue("module");
+                    trackHitDt[module][layer - 1].fill(hit.time() - trackTime);
+                    trackHit2D[layer - 1].fill(hit.time() - trackTime, event.getTimeStamp() % 24);
                     trackHitDtChan[layer - 1].fill(hit.umeas(), hit.time() - trackTime);
                 }
             }

@@ -273,7 +273,7 @@ public class TrackingReconPlots extends Driver {
             HpsHelicalTrackFit hpstrk = new HpsHelicalTrackFit(ht);
             double svt_l12 = 900.00;//mm ~approximately...this doesn't matter much
             double ecal_face = 1393.00;//mm ~approximately ... this matters!  Should use typical shower depth...or, once have cluster match, use that value of Z
-            TrackState stateAtEcal = TrackUtils.extrapolateTrackUsingFieldMap(trk, svt_l12, ecal_face, 5.0, event.getDetector().getFieldMap());
+            TrackState stateAtEcal = TrackUtils.getTrackStateAtECal(trk);
             Hep3Vector posAtEcal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
             //Hep3Vector posAtEcal = hpstrk.getPositionAtZMap(svt_l12, ecal_face, 5.0, event.getDetector().getFieldMap())[0];
             List<Cluster> clusters = event.get(Cluster.class, ecalCollectionName);
@@ -287,11 +287,11 @@ public class TrackingReconPlots extends Driver {
                     Hep3Vector clusterPos = new BasicHep3Vector(clust.getPosition());
                     double zCluster = clusterPos.z();
                     //improve the extrapolation...use the reconstructed cluster z-position
-                    stateAtEcal = TrackUtils.extrapolateTrackUsingFieldMap(trk, svt_l12, zCluster, 5.0, event.getDetector().getFieldMap());
-                    posAtEcal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
+//                    stateAtEcal = TrackUtils.extrapolateTrackUsingFieldMap(trk, svt_l12, zCluster, 5.0, event.getDetector().getFieldMap());
+//                    posAtEcal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
                     double eOverP = clust.getEnergy() / pmag;
-                    double dx = posAtEcal.x() - clusterPos.x();
-                    double dy = posAtEcal.y() - clusterPos.y();
+                    double dx = posAtEcal.y() - clusterPos.x();
+                    double dy = posAtEcal.z() - clusterPos.y();
                     heOverP.fill(eOverP);
                     hdelXECal.fill(dx);
                     hdelYECal.fill(dy);

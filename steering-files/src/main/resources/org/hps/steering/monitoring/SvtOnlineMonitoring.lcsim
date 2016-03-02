@@ -10,6 +10,7 @@
         <driver name="PedestalPlots" />-->
         <driver name="SensorOccupancy" />
         <driver name="RawTrackerHitFitterDriver" />
+        <!--<driver name="SVTPulseFitPlots" />--> 
         <driver name="TrackerHitDriver" />
         <driver name="ClusterPlots" /> 
         <driver name="CleanupDriver" />
@@ -26,10 +27,10 @@
        </driver>
         <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots">
             <doPerChannelsSampleplots>true</doPerChannelsSampleplots>
-            <saveRootFile>false</saveRootFile>
+            <!--<saveRootFile>false</saveRootFile>-->
         </driver>
-        <driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />
-        <driver name="PedestalPlots" type="org.hps.monitoring.drivers.svt.PedestalPlots" />
+        <!--<driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />-->
+        <!--<driver name="PedestalPlots" type="org.hps.monitoring.drivers.svt.PedestalPlots" />-->
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Linear</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
@@ -45,6 +46,7 @@
             <neighborDeltaT>8.0</neighborDeltaT>
             <debug>false</debug>
         </driver>
+        <!--<driver name="SVTPulseFitPlots" type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots" />-->
         <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
             <saveRootFile>false</saveRootFile>
         </driver>
