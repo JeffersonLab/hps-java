@@ -138,18 +138,18 @@ public class SVTHitReconstructionPlots extends Driver {
        
        // TODO: Check if this block of code is equivalent to the block commented out below
        for(SiSensor sensor : sensors){
-    	   
-                int region = computePlotterRegion(sensor);
-                if(region >= plotter1.numberOfRegions()) {
-                    throw new RuntimeException("not enough regions! (" + region + "/"+ plotter1.numberOfRegions()+ ")");
-                }
-                plotter1.region(region).plot(aida.histogram1D(sensor.getName() + "_raw_hits", 10, -0.5, 9.5));
-                plotter3.region(region).plot(aida.histogram1D(sensor.getName() + "_reco_hits", 10, -0.5, 9.5));
-                plotter2.region(region).plot(aida.histogram1D(sensor.getName() + "_cluster_hits", 10, -0.5, 9.5));
-                plotter4.region(region).plot(aida.histogram1D(sensor.getName() + "_cluster_size", 9, 0.5, 9.5));
-                plotter5.region(region).plot(aida.histogram1D(sensor.getName() + "_cluster_amp", 50, 0, 4000.0));
-                ((PlotterRegion) plotter5.region(region)).getPlot().getXAxis().setLabel("Cluster amplitude [ADC counts]");
-                plotter6.region(region).plot(aida.histogram2D(sensor.getName() + "_cluster_vs_strip", 128, 0, 640, 100, -50, 50));
+            int region = computePlotterRegion(sensor);
+            if (region >= plotter1.numberOfRegions()) {
+                throw new RuntimeException("not enough regions! (" + region + "/" + plotter1.numberOfRegions() + ")");
+            }
+            plotter1.region(region).plot(aida.histogram1D(sensor.getName() + "_raw_hits", 10, -0.5, 9.5));
+            plotter3.region(region).plot(aida.histogram1D(sensor.getName() + "_reco_hits", 10, -0.5, 9.5));
+            plotter2.region(region).plot(aida.histogram1D(sensor.getName() + "_cluster_hits", 10, -0.5, 9.5));
+            plotter4.region(region).plot(aida.histogram1D(sensor.getName() + "_cluster_size", 9, 0.5, 9.5));
+            plotter5.region(region).plot(aida.histogram1D(sensor.getName() + "_cluster_amp", 50, 0, 4000.0));
+            plotter5.style().xAxisStyle().setLabel("Cluster amplitude [ADC counts]");
+            plotter6.region(region).plot(
+                    aida.histogram2D(sensor.getName() + "_cluster_vs_strip", 128, 0, 640, 100, -50, 50));
        }
         
         /* ===> 
