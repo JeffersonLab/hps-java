@@ -1,9 +1,5 @@
 package org.lcsim.detector.converter.compact;
 
-import hep.physics.matrix.BasicMatrix;
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.VecOp;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,15 +12,11 @@ import org.lcsim.detector.DetectorElement;
 import org.lcsim.detector.DetectorIdentifierHelper;
 import org.lcsim.detector.DetectorIdentifierHelper.SystemMap;
 import org.lcsim.detector.IDetectorElement;
-
 import org.lcsim.detector.IPhysicalVolume;
 import org.lcsim.detector.IPhysicalVolumePath;
-import org.lcsim.detector.IRotation3D;
-import org.lcsim.detector.ITranslation3D;
 import org.lcsim.detector.LogicalVolume;
 import org.lcsim.detector.PhysicalVolume;
 import org.lcsim.detector.RotationGeant;
-import org.lcsim.detector.RotationPassiveXYZ;
 import org.lcsim.detector.Transform3D;
 import org.lcsim.detector.Translation3D;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
@@ -35,10 +27,7 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.material.IMaterial;
 import org.lcsim.detector.material.MaterialStore;
 import org.lcsim.detector.solids.Box;
-import org.lcsim.detector.solids.Polygon3D;
-import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.SiTrackerModule;
 import org.lcsim.geometry.compact.Detector;

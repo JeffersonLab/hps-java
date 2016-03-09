@@ -6,22 +6,14 @@ package org.hps.svt.alignment;
  * created on 1/15/2014
  */
 
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.VecOp;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -30,24 +22,13 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.hps.recon.tracking.CoordinateTransformations;
-import org.jdom.Attribute;
 import org.jdom.DataConversionException;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.XMLOutputter;
-import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
-import org.lcsim.detector.IDetectorElement;
-import org.lcsim.detector.ITransform3D;
-import org.lcsim.detector.tracker.silicon.ChargeCarrier;
-import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.geometry.Detector;
-import org.lcsim.geometry.GeometryReader;
 import org.lcsim.geometry.compact.converter.MilleParameter;
-import org.lcsim.util.xml.ElementFactory.ElementCreationException;
 
 
 public class BuildMillepedeCompact {

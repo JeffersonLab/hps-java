@@ -1,10 +1,5 @@
 package org.hps.monitoring.drivers.svt;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -17,18 +12,19 @@ import hep.aida.jfree.plotter.Plotter;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.ref.rootwriter.RootFileStore;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.hps.recon.tracking.SvtPlotUtils;
+import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
-import org.hps.recon.tracking.FittedRawTrackerHit;
-import org.hps.recon.tracking.SvtPlotUtils;
-import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.util.aida.AIDA;
 
 /**

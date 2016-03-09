@@ -2,8 +2,6 @@ package org.hps.analysis.trigger.util;
 
 import java.awt.Component;
 
-import org.hps.analysis.trigger.util.TriggerDiagnosticUtil;
-
 /**
  * Class <code>ComponentUtils</code> is a list of utility methods used
  * by the trigger diagnostic GUI.

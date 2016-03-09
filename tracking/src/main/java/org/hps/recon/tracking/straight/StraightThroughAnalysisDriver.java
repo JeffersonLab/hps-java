@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.hps.recon.tracking.straight.STUtils.STStereoTrack;
-import org.hps.recon.tracking.straight.STUtils.STTrack;
 import org.lcsim.detector.converter.compact.subdetector.HpsTracker2;
 import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;

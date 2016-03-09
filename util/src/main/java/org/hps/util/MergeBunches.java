@@ -34,7 +34,6 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.lcio.LCIOUtil;
 import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.lcio.SIOMCParticle;
-import org.lcsim.util.loop.LCIODriver;
 
 public class MergeBunches extends Driver {
 

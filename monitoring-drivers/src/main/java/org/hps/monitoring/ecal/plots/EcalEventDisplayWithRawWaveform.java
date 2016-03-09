@@ -13,14 +13,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.IllegalArgumentException;
 
 import org.hps.monitoring.ecal.eventdisplay.ui.PDataEventViewer;
 import org.hps.monitoring.ecal.eventdisplay.ui.PEventViewer;
 import org.hps.monitoring.ecal.eventdisplay.ui.Viewer;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalEvent;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
-import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
 import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.RawTrackerHit;

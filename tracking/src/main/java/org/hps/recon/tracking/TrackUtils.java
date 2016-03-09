@@ -4,7 +4,6 @@ import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.SpacePoint;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
@@ -65,7 +64,6 @@ import org.lcsim.util.swim.Trajectory;
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 // TODO: Switch to tracking/LCsim coordinates for the extrapolation output!
-// FIXME: This class should probably be broken up into several different sets of utilities by type. --JM
 public class TrackUtils {
 
     /**

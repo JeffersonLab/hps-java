@@ -1,20 +1,20 @@
 package org.hps.monitoring.drivers.trackrecon;
 
+import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.fitAndPutParameters;
+import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
 import hep.aida.IAnalysisFactory;
 import hep.aida.IFitFactory;
-import hep.aida.IFitResult;
-import hep.aida.IFitter;
 import hep.aida.IFunction;
 import hep.aida.IFunctionFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.fitAndPutParameters;
-import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;

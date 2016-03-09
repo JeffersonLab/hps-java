@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.recon.filtering;
 
 import java.util.ArrayList;
@@ -15,7 +12,6 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 
 /**
  * 

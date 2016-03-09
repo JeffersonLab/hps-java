@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
@@ -180,9 +179,7 @@ public final class TrackDataDriver extends Driver {
 
         // Loop over each of the track collections retrieved from the event
         for (List<Track> tracks : trackCollections) {
-            
-            
-
+                        
             // Loop over all the tracks in the event
             for (Track track : tracks) {
 

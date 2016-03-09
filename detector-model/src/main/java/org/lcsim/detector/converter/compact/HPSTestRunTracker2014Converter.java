@@ -11,7 +11,6 @@ import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014JavaBuilder;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.geometry.compact.converter.HPSTrackerJavaBuilder;
-import org.lcsim.geometry.compact.converter.JavaSurveyVolume;
 import org.lcsim.geometry.subdetector.HPSTestRunTracker2014;
 
 /**

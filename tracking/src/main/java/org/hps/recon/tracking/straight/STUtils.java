@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.recon.tracking.straight;
 
 import hep.physics.matrix.BasicMatrix;
@@ -22,8 +19,6 @@ import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.fit.helicaltrack.HelicalTrackCross;
-import org.lcsim.fit.helicaltrack.HitUtils;
 import org.lcsim.fit.line.SlopeInterceptLineFit;
 import org.lcsim.fit.line.SlopeInterceptLineFitter;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
@@ -40,9 +35,7 @@ public class STUtils {
     public final static Logger logger = Logger.getLogger(STUtils.class.getSimpleName());
     protected static final double sensorThickness = 0.7e-2*0.5; // radiation length per sensor
     protected static final double beamEnergy = 1.05;
-        
-
-    
+           
     /**
      * Private constructor to avoid instantiation.
      */
@@ -134,12 +127,9 @@ public class STUtils {
             }
             s += fit.toString();
             return s;
-        }
-        
+        }        
     }
-
-    
-    
+        
     static class STStereoTrack {
         protected static enum VIEW { YZ,XZ };
         private List<STUtils.StereoPair> hits = new ArrayList<STUtils.StereoPair>();
@@ -277,10 +267,7 @@ public class STUtils {
 
         public double getMomentum() {
             return beamEnergy;
-        }
-
-
-       
+        }    
     }
 
     static class StereoPair {

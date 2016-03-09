@@ -1,8 +1,8 @@
 package org.hps.monitoring.drivers.trackrecon;
 
+import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.fitAndPutParameters;
 import hep.aida.IAnalysisFactory;
 import hep.aida.IFitFactory;
-import hep.aida.IFitResult;
 import hep.aida.IFitter;
 import hep.aida.IFunction;
 import hep.aida.IFunctionFactory;
@@ -10,12 +10,13 @@ import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.fitAndPutParameters;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
@@ -24,7 +25,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.performGaussianFit;
 
 /**
  *

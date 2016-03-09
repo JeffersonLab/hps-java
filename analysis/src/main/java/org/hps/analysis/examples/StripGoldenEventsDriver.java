@@ -1,11 +1,11 @@
 package org.hps.analysis.examples;
 
 import java.util.List;
+
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
-import org.lcsim.event.Vertex;
 import org.lcsim.util.Driver;
 
 /**

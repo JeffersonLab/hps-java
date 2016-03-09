@@ -11,8 +11,6 @@ import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.tracking.gbl.GblUtils.ClParams;
-import org.hps.recon.tracking.gbl.GblUtils.PerigeeParams;
 import org.hps.svt.alignment.RunAlignment;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 

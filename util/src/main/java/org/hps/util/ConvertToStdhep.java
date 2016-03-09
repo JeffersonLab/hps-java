@@ -15,7 +15,6 @@ import java.io.StreamTokenizer;
 import java.util.ArrayList;
 import java.util.List;
 
-import hep.io.stdhep.StdhepBeginRun;
 import hep.io.stdhep.StdhepEndRun;
 import hep.io.stdhep.StdhepEvent;
 import hep.io.stdhep.StdhepWriter;

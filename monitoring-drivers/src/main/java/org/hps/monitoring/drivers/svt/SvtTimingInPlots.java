@@ -1,35 +1,31 @@
 package org.hps.monitoring.drivers.svt;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map; 
-
 import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogramFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
 
-import org.lcsim.util.Driver; 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hps.recon.tracking.FittedRawTrackerHit;
+import org.hps.recon.tracking.ShapeFitParameters;
+import org.hps.record.triggerbank.SSPCluster;
+import org.hps.record.triggerbank.SSPData;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.hps.recon.tracking.FittedRawTrackerHit;
-import org.hps.recon.tracking.ShapeFitParameters;
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.SSPCluster;
-import org.hps.record.triggerbank.SSPData;
-import org.hps.record.triggerbank.SSPSinglesTrigger;
-import org.hps.record.triggerbank.TIData;
+import org.lcsim.util.Driver;
 
 /**
  *  Monitoring driver that will be used when 'timing in' the SVT.

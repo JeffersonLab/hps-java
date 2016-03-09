@@ -1,13 +1,9 @@
 package org.hps.monitoring.drivers.svt;
 
-import org.hps.monitoring.drivers.trackrecon.TrackingReconPlots;
 import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
 import hep.aida.IProfile1D;
-import hep.aida.ref.plotter.PlotterRegion;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -16,14 +12,14 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
+import org.hps.monitoring.drivers.trackrecon.TrackingReconPlots;
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
-import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;

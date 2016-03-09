@@ -1,6 +1,5 @@
 package org.hps.recon.tracking.gbl.matrix;
 
-import java.io.PrintWriter;
 
 /**
  * Specializes the Matrix class to a vector.

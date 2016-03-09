@@ -5,7 +5,6 @@
 package org.hps.util;
 import java.io.IOException;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.Track;
 import org.lcsim.util.Driver;
 import org.lcsim.lcio.LCIOWriter;
 

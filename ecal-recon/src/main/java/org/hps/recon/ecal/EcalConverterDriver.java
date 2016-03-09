@@ -6,7 +6,6 @@ import java.util.List;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
-import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;

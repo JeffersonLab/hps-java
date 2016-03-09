@@ -7,21 +7,17 @@ package org.hps.recon.filtering;
 import java.io.File;
 import java.io.IOException;
 
-import org.lcsim.event.Cluster;
+import org.hps.conditions.ConditionsDriver;
+import org.hps.record.epics.EpicsData;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.util.Driver;
-import org.hps.conditions.ConditionsDriver;
-import org.hps.recon.ecal.cluster.ClusterUtilities;
 //import org.hps.recon.ecal.triggerbank.AbstractIntData;
 //import org.hps.recon.ecal.triggerbank.TIData;
-
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TIData;
-import org.hps.record.epics.EpicsData;
-import org.hps.record.scalers.ScalerData;
 
 public class PulserScalerAndEpicsFilter extends Driver{
 

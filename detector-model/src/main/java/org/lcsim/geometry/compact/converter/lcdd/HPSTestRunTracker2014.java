@@ -9,7 +9,6 @@ import org.jdom.JDOMException;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014LCDDBuilder;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
-import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition;
 import org.lcsim.geometry.compact.converter.HPSTrackerLCDDBuilder;
 import org.lcsim.geometry.compact.converter.lcdd.util.Box;
 import org.lcsim.geometry.compact.converter.lcdd.util.LCDD;

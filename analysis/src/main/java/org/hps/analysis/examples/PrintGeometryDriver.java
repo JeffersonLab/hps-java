@@ -2,8 +2,9 @@ package org.hps.analysis.examples;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-import java.util.ArrayList;
+
 import java.util.List;
+
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.Transform3D;
@@ -13,13 +14,7 @@ import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
-import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.SimTrackerHit;
-import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.hps.recon.tracking.MaterialSupervisor;
-import org.hps.recon.tracking.TrackerHitUtils;
-import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.util.Driver;
 
 /**

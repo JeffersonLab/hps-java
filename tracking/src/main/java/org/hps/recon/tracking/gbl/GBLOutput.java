@@ -40,8 +40,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
-import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
-import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
 /**
  * Calculate the input needed for Millepede minimization.

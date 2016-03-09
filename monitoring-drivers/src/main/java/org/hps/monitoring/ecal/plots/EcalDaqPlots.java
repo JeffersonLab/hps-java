@@ -11,16 +11,11 @@ import java.util.List;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
-import org.hps.conditions.ecal.EcalConditions;
-import org.hps.detector.ecal.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
-import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-
-/*Conditions system imports*/
 
 /**
  * The driver <code>EcalDaqPlots</code> implements the histogram shown to the user in the fourth tab of the Monitoring Application, when using the Ecal monitoring lcsim file. It contains only a

@@ -3,7 +3,6 @@ package org.hps.recon.tracking.gbl;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Matrix;
 
-import org.hps.recon.tracking.gbl.GblUtils.PerigeeParams;
 import org.lcsim.event.GenericObject;
 
 /**

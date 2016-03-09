@@ -4,16 +4,13 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.EventHeader.LCMetaData;
+//import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.util.loop.DummyConditionsConverter;
 import org.lcsim.util.loop.DummyDetector;

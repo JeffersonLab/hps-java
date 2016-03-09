@@ -16,7 +16,6 @@ import org.lcsim.detector.PhysicalVolume;
 import org.lcsim.detector.RotationGeant;
 import org.lcsim.detector.Transform3D;
 import org.lcsim.detector.Translation3D;
-import org.lcsim.detector.material.IMaterial;
 import org.lcsim.detector.material.MaterialStore;
 import org.lcsim.detector.solids.Box;
 import org.lcsim.geometry.util.TransformationUtils;
