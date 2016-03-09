@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.lcsim.util.aida.AIDA;
+
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -77,33 +79,39 @@ public class SumEverything {
         
         long timeStart = System.currentTimeMillis();
         IAnalysisFactory af = IAnalysisFactory.create();
+        //AIDA.defaultInstance().
         ITreeFactory tf = af.createTreeFactory();
         new File(out).delete();
-        ITree outtree = tf.create(out, "xml", false, true);
-        //IHistogramFactory hf = af.createHistogramFactory(outtree);
+        ITree outtree = tf.createTree(out, "xml", ITreeFactory.RECREATE);
+        IHistogramFactory hf = af.createHistogramFactory(outtree);
         int j = 0;
         String names[] = null;
         for(File s : files){
+            System.gc();
             if(!s.getAbsolutePath().endsWith("aida"))
                 continue;
             try{
-                ITree tree = tf.create(s.getAbsolutePath(),"xml");
+                
+                ITree tree = tf.createTree(s.getAbsolutePath(), "xml", ITreeFactory.READONLY);//.create(s.getAbsolutePath(),"xml");
 
 
                 if(j == 0){
                     names = tree.listObjectNames("/", true);
                     System.out.println(Arrays.toString(names));
-                    outtree.mount("/tmp", tree, "/");
+                    //outtree.mount("/tmp", tree, "/");
                     for(String name : names){
                         if(name.endsWith("/")){
                             outtree.mkdirs(name);
                             continue;
                         }
                         Object o = tree.find(name);
-                        if(o instanceof IHistogram1D || o instanceof IHistogram2D)
-                            outtree.cp("/tmp" + name, name);
+                        if(o instanceof IHistogram1D)
+                            hf.createCopy(name,(IHistogram1D)o);
+                        if(o instanceof IHistogram2D)
+                            hf.createCopy(name,(IHistogram2D)o);
+                        
                     }
-                    outtree.unmount("/tmp");
+                    //outtree.unmount("/tmp");
                     //tree.close();
 
                 }
@@ -136,7 +144,7 @@ public class SumEverything {
 
                 tree.close();
                 j++;
-                System.out.println(j + " files have been read (" +(System.currentTimeMillis()-timeStart)/j + " ms per event");
+                System.out.println(j + " files have been read (" +(System.currentTimeMillis()-timeStart)/j + " ms per file)");
 
             } catch(IllegalArgumentException e){
                 //print the filename
@@ -145,9 +153,10 @@ public class SumEverything {
                 e.printStackTrace();
             }
 
-            outtree.commit();
-            System.out.println("summed file " + out +" commited.  Total time = " + (System.currentTimeMillis()-timeStart)/1000 + " seconds");
         }
+        outtree.commit();
+        System.out.println("summed file " + out +" commited.  Total time = " + (System.currentTimeMillis()-timeStart)/1000 + " seconds");
+    
     }
 
     static void polyArg(String[] arg) throws IllegalArgumentException, IOException{

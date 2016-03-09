@@ -16,68 +16,77 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 public class MollerBeamtiltAnalysis extends Driver{
+
+    private String[] mollerCollections =  new String[]{
+            "TargetConstrainedMollerVertices",
+            "UnconstrainedMollerVertices",
+            "BeamspotConstrainedMollerVertices",
+    };
+
+
     @Override
     public void process(EventHeader event){
-        List<Vertex> mollers = event.get(Vertex.class, "TargetConstrainedMollerVertices");
-        for(Vertex v : mollers){
-            if(!passesCuts(v))
-                continue;
-            ReconstructedParticle m = v.getAssociatedParticle();
-            ReconstructedParticle top;
-            ReconstructedParticle bottom;
-            if(m.getParticles().get(0).getMomentum().y()>0){
-                top = m.getParticles().get(0);
-                bottom = m.getParticles().get(1);
-            }else{
-                top = m.getParticles().get(1);
-                bottom = m.getParticles().get(0);
-            }
+        for(int i = 0; i< mollerCollections.length; i++){
+            List<Vertex> mollers = event.get(Vertex.class, mollerCollections[i]);
+            for(Vertex v : mollers){
+                if(!passesCuts(v))
+                    continue;
+                ReconstructedParticle m = v.getAssociatedParticle();
+                ReconstructedParticle top;
+                ReconstructedParticle bottom;
+                if(m.getParticles().get(0).getMomentum().y()>0){
+                    top = m.getParticles().get(0);
+                    bottom = m.getParticles().get(1);
+                }else{
+                    top = m.getParticles().get(1);
+                    bottom = m.getParticles().get(0);
+                }
 
-            double pypz = m.getMomentum().y()/m.getMomentum().z();
-            double pxpz = m.getMomentum().x()/m.getMomentum().z();
-            //double pypz = (top.getMomentum().y()+bottom.getMomentum().y())/(top.getMomentum().z()+bottom.getMomentum().z());
-            //double pxpz = (top.getMomentum().x()+bottom.getMomentum().x())/(top.getMomentum().z()+bottom.getMomentum().z());
+                double pypz = m.getMomentum().y()/m.getMomentum().z();
+                double pxpz = m.getMomentum().x()/m.getMomentum().z();
+                //double pypz = (top.getMomentum().y()+bottom.getMomentum().y())/(top.getMomentum().z()+bottom.getMomentum().z());
+                //double pxpz = (top.getMomentum().x()+bottom.getMomentum().x())/(top.getMomentum().z()+bottom.getMomentum().z());
 
-            hpypz.fill(pypz);
-            hpxpz.fill(pxpz);
-
-
-            double diff = top.getMomentum().z()-bottom.getMomentum().z();
-            double sum = m.getMomentum().z();//top.getMomentum().z()+bottom.getMomentum().z();
-            double mass = m.getMass();
-
-            if(diff > -.05 && diff < .05){
-                hpypz_mid.fill(pypz);
-                hpxpz_mid.fill(pxpz);
-            }
-
-            if(diff > .2 && diff < .3){
-                hpypz_topHighE.fill(pypz);
-                hpxpz_topHighE.fill(pxpz);
-            }
-
-            if(diff > -.3 && diff < -.2){
-                hpypz_botHighE.fill(pypz);
-                hpxpz_botHighE.fill(pxpz);
-            }
+                hpypz[i].fill(pypz);
+                hpxpz[i].fill(pxpz);
 
 
-            this.diff.fill(diff);
-            this.sum.fill(sum);
-            this.mass.fill(mass);
-            pypz_vs_diff.fill(diff,pypz );
-            pxpz_vs_diff.fill(diff, pxpz );
+                double diff = top.getMomentum().z()-bottom.getMomentum().z();
+                double sum = m.getMomentum().z();//top.getMomentum().z()+bottom.getMomentum().z();
+                double mass = m.getMass();
+
+                if(diff > -.05 && diff < .05){
+                    hpypz_mid[i].fill(pypz);
+                    hpxpz_mid[i].fill(pxpz);
+                }
+
+                if(diff > .2 && diff < .3){
+                    hpypz_topHighE[i].fill(pypz);
+                    hpxpz_topHighE[i].fill(pxpz);
+                }
+
+                if(diff > -.3 && diff < -.2){
+                    hpypz_botHighE[i].fill(pypz);
+                    hpxpz_botHighE[i].fill(pxpz);
+                }
+
+
+                this.diff[i].fill(diff);
+                this.sum[i].fill(sum);
+                this.mass[i].fill(mass);
+                pypz_vs_diff[i].fill(diff,pypz );
+                pxpz_vs_diff[i].fill(diff, pxpz );
 
 
 
-            pxpz_vs_sum.fill(sum, pxpz );
-            pypz_vs_sum.fill(sum, pypz );
+                pxpz_vs_sum[i].fill(sum, pxpz );
+                pypz_vs_sum[i].fill(sum, pypz );
 
-            pxpz_vs_mass.fill(mass, pxpz );
-            pypz_vs_mass.fill(mass, pypz );
-            timediff.fill(top.getClusters().get(0).getCalorimeterHits().get(0).getTime()
-                    -bottom.getClusters().get(0).getCalorimeterHits().get(0).getTime());
-            /*if(moreEnergetic.getMomentum().y() > 0)
+                pxpz_vs_mass[i].fill(mass, pxpz );
+                pypz_vs_mass[i].fill(mass, pypz );
+                timediff[i].fill(top.getClusters().get(0).getCalorimeterHits().get(0).getTime()
+                        -bottom.getClusters().get(0).getCalorimeterHits().get(0).getTime());
+                /*if(moreEnergetic.getMomentum().y() > 0)
             {
                 pypz_tophighE.fill(pypz);
                 pxpz_tophighE.fill(pxpz);
@@ -87,16 +96,17 @@ public class MollerBeamtiltAnalysis extends Driver{
                 pypz_bottomhighE.fill(pypz);
                 pxpz_bottomhighE.fill(pxpz);
             }*/
+            }
         }
     }
 
-    double _maxVtxChi2 = 15;
-    double _maxTrkChi2 = 30;
-    double _maxMass = .037;
-    double _minMass = .030;
-    double _minPz = 1.0;
-    double _maxPz = 1.1;
-    boolean passesCuts(Vertex vertex){
+    private double _maxVtxChi2 = 15;
+    private double _maxTrkChi2 = 30;
+    private double _maxMass = .037;
+    private double _minMass = .030;
+    private double _minPz = 1.0;
+    private double _maxPz = 1.1;
+    private boolean passesCuts(Vertex vertex){
         ReconstructedParticle m = vertex.getAssociatedParticle();
         if(!TrackType.isGBL(m.getType()))
             return false;
@@ -125,15 +135,10 @@ public class MollerBeamtiltAnalysis extends Driver{
         return true;
     }
 
-    IHistogram1D hpypz, hpxpz, diff, sum, mass,
-    hpypz_topHighE, hpxpz_topHighE,
-    hpypz_botHighE, hpxpz_botHighE,
-    hpypz_mid, hpxpz_mid;
-
-    boolean display = false;
-
-
-
+    private IHistogram1D hpypz[], hpxpz[], diff[], sum[], mass[],
+        hpypz_topHighE[], hpxpz_topHighE[],
+        hpypz_botHighE[], hpxpz_botHighE[],
+        hpypz_mid[], hpxpz_mid[];
 
     public double getMaxVtxChi2() {
         return _maxVtxChi2;
@@ -195,19 +200,10 @@ public class MollerBeamtiltAnalysis extends Driver{
     }
 
 
-    public boolean getDisplay() {
-        return display;
-    }
+    private IHistogram1D vtx_x[], vtx_y[], timediff[];
 
-
-    public void setDisplay(boolean display) {
-        this.display = display;
-    }
-
-    IHistogram1D vtx_x, vtx_y, timediff;
-
-    IProfile1D pxpz_vs_diff, pypz_vs_diff, pxpz_vs_sum, pypz_vs_sum,
-    pxpz_vs_mass, pypz_vs_mass;
+    private IProfile1D pxpz_vs_diff[], pypz_vs_diff[], pxpz_vs_sum[], pypz_vs_sum[],
+    pxpz_vs_mass[], pypz_vs_mass[];
 
 
     //IHistogram1D pypz_tophighE, pxpz_tophighE;
@@ -215,44 +211,74 @@ public class MollerBeamtiltAnalysis extends Driver{
     @Override
     public void startOfData(){
         AIDA aida = AIDA.defaultInstance();
-        hpypz = aida.histogram1D("pypz", 60, -.005,.005);
-        hpxpz = aida.histogram1D("pxpz", 60, .025,.035);
+        hpypz = new IHistogram1D[3];
+        hpxpz = new IHistogram1D[3];
+        hpypz_mid = new IHistogram1D[3];
+        hpxpz_mid = new IHistogram1D[3];
+        hpypz_topHighE = new IHistogram1D[3];
+        hpxpz_topHighE = new IHistogram1D[3];
+        hpypz_botHighE = new IHistogram1D[3];
+        hpxpz_botHighE = new IHistogram1D[3];
+        
+        
+        pxpz_vs_diff= new IProfile1D[3];
+        pypz_vs_diff= new IProfile1D[3];
+
+        diff= new IHistogram1D[3];
+
+        sum= new IHistogram1D[3];
+
+        pxpz_vs_sum= new IProfile1D[3];
+        pypz_vs_sum= new IProfile1D[3];
+
+        pxpz_vs_mass= new IProfile1D[3];
+        pypz_vs_mass= new IProfile1D[3];
+
+        //vtx_x= new IHistogram1D[3];
+        //vtx_y= new IHistogram1D[3];
+        mass= new IHistogram1D[3];
+        timediff= new IHistogram1D[3];
+        
+        for(int i = 0; i< 3; i++){
+            
+            hpypz[i] = aida.histogram1D(mollerCollections[i]+"/"+"pypz", 60, -.005,.005);
+            hpxpz[i] = aida.histogram1D(mollerCollections[i]+"/"+"pxpz", 60, .025,.035);
 
 
-        hpypz_mid = aida.histogram1D("pypz mid", 60, -.005,.005);
-        hpxpz_mid = aida.histogram1D("pxpz mid", 60, .025,.035);
+            hpypz_mid[i] = aida.histogram1D(mollerCollections[i]+"/"+"pypz mid", 60, -.005,.005);
+            hpxpz_mid[i] = aida.histogram1D(mollerCollections[i]+"/"+"pxpz mid", 60, .025,.035);
 
-        hpypz_topHighE = aida.histogram1D("pypz top", 30, -.005,.005);
-        hpxpz_topHighE = aida.histogram1D("pxpz top", 30, .025,.035);
+            hpypz_topHighE[i] = aida.histogram1D(mollerCollections[i]+"/"+"pypz top", 30, -.005,.005);
+            hpxpz_topHighE[i] = aida.histogram1D(mollerCollections[i]+"/"+"pxpz top", 30, .025,.035);
 
-        hpypz_botHighE = aida.histogram1D("pypz bot", 30, -.005,.005);
-        hpxpz_botHighE = aida.histogram1D("pxpz bot", 30, .025,.035);
+            hpypz_botHighE[i] = aida.histogram1D(mollerCollections[i]+"/"+"pypz bot", 30, -.005,.005);
+            hpxpz_botHighE[i] = aida.histogram1D(mollerCollections[i]+"/"+"pxpz bot", 30, .025,.035);
 
 
-        pxpz_vs_diff = aida.profile1D("pxpz vs diff", 25, -.60, .60);
-        pypz_vs_diff = aida.profile1D("pypz vs diff", 25, -.60, .60);
+            pxpz_vs_diff[i] = aida.profile1D(mollerCollections[i]+"/"+"pxpz vs diff", 25, -.60, .60);
+            pypz_vs_diff[i] = aida.profile1D(mollerCollections[i]+"/"+"pypz vs diff", 25, -.60, .60);
 
-        diff = aida.histogram1D("diff", 50, -.60, .60);
+            diff[i] = aida.histogram1D(mollerCollections[i]+"/"+"diff", 50, -.60, .60);
 
-        sum = aida.histogram1D("sum", 50, 1.0, 1.1);
+            sum[i] = aida.histogram1D(mollerCollections[i]+"/"+"sum", 50, 1.0, 1.1);
 
-        pxpz_vs_sum = aida.profile1D("pxpz vs sum", 25, 1.0, 1.1);
-        pypz_vs_sum = aida.profile1D("pypz vs sum", 25, 1.0, 1.1);
+            pxpz_vs_sum[i] = aida.profile1D(mollerCollections[i]+"/"+"pxpz vs sum", 25, 1.0, 1.1);
+            pypz_vs_sum[i] = aida.profile1D(mollerCollections[i]+"/"+"pypz vs sum", 25, 1.0, 1.1);
 
-        pxpz_vs_mass = aida.profile1D("pxpz vs mass", 25, .03, .037);
-        pypz_vs_mass = aida.profile1D("pypz vs mass", 25, .03, .037);
+            pxpz_vs_mass[i] = aida.profile1D(mollerCollections[i]+"/"+"pxpz vs mass", 25, .03, .037);
+            pypz_vs_mass[i] = aida.profile1D(mollerCollections[i]+"/"+"pypz vs mass", 25, .03, .037);
 
-        //vtx_x = aida.histogram1D("vtx x", 60, -1, 1);
-        //vtx_y = aida.histogram1D("vtx y", 60, -1, 1);
-        mass = aida.histogram1D("mass", 60, .030, .037);
-        timediff = aida.histogram1D("time diff", 60, -6, 6);
-
+            //vtx_x[i] = aida.histogram1D(mollerCollections[i]+"/"+"vtx x", 60, -1, 1);
+            //vtx_y[i] = aida.histogram1D(mollerCollections[i]+"/"+"vtx y", 60, -1, 1);
+            mass[i] = aida.histogram1D(mollerCollections[i]+"/"+"mass", 60, .030, .037);
+            timediff[i] = aida.histogram1D(mollerCollections[i]+"/"+"time diff", 60, -6, 6);
+        }
 
         /*pypz_tophighE = aida.histogram1D("topHighE pypz", 60, -.005,.005);
         pxpz_tophighE = aida.histogram1D("topHighE pxpz", 60,  .025,.035);
         pypz_bottomhighE = aida.histogram1D("bottomHighE pypz", 60, -.005,.005);
         pxpz_bottomhighE = aida.histogram1D("bottomHighE pxpz", 60, .025,.035);*/
-        if(display){
+        /*if(display){
             IPlotter p = aida.analysisFactory().createPlotterFactory().create();
             StyleUtil.setSize(p, 1300, 900);
             //p.createRegions(3, 2);
@@ -271,10 +297,6 @@ public class MollerBeamtiltAnalysis extends Driver{
             p.region(9).plot(pypz_vs_mass);
             p.region(10).plot(pxpz_vs_mass);
             p.region(11).plot(mass);
-            /*p.region(2).plot(pypz_tophighE);
-        p.region(3).plot(pxpz_tophighE);
-        p.region(4).plot(pypz_bottomhighE);
-        p.region(5).plot(pxpz_bottomhighE);*/
             StyleUtil.stylize(p.region(0),"py/pz", "py/pz", "#");
             StyleUtil.stylize(p.region(1),"px/pz", "px/pz", "#");
             StyleUtil.stylize(p.region(2),"time diff (t-b)", "diff (ns)", "#");
@@ -310,5 +332,6 @@ public class MollerBeamtiltAnalysis extends Driver{
             StyleUtil.noFillHistogramBars(p2.region(1));
             p2.show();
         }
+         */
     }
 }
