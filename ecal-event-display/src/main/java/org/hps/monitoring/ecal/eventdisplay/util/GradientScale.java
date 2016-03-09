@@ -21,9 +21,9 @@ public final class GradientScale extends ColorScale {
     private int[] drgb = { 255, 255, 255 };
     
     public Color getColor(Double value) {
-    	// If the argument is null, treat it as zero.
-    	if(value == null) { value = 0.0; }
-    	
+        // If the argument is null, treat it as zero.
+        if(value == null) { value = 0.0; }
+        
         // If the value is less than the minimum, return the cold color.
         if (value < min) { return coldColor; }
         

@@ -188,7 +188,7 @@ public abstract class ReconParticleDriver extends Driver {
      * @param nsigma
      */
     public void setNSigmaPositionMatch(double nsigma) {
-    	MAXNSIGMAPOSITIONMATCH=nsigma;
+        MAXNSIGMAPOSITIONMATCH=nsigma;
     }
     
         
@@ -255,7 +255,7 @@ public abstract class ReconParticleDriver extends Driver {
         for (List<Track> tracks : trackCollections) {
        
             for (Track track : tracks) {
-            	
+                
                 // Create a reconstructed particle to represent the track.
                 ReconstructedParticle particle = new BaseReconstructedParticle();
 
@@ -304,7 +304,7 @@ public abstract class ReconParticleDriver extends Driver {
 
                     // prefer using GBL tracks to correct (later) the clusters, for some consistency:
                     if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster)) {
-                    	  clusterToTrack.put(matchedCluster,track);
+                          clusterToTrack.put(matchedCluster,track);
                     }
                 }
 
@@ -365,7 +365,7 @@ public abstract class ReconParticleDriver extends Driver {
                     ClusterUtilities.applyCorrections(ecal, cluster, ypos);
                 }
                 else {
-                    ClusterUtilities.applyCorrections(ecal, cluster);          		
+                    ClusterUtilities.applyCorrections(ecal, cluster);               
                 }
             }
         }

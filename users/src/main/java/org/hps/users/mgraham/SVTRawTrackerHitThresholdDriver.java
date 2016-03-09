@@ -15,7 +15,7 @@ import org.lcsim.util.Driver;
  * @author Matt Graham
  */
 // TODO: Check that this Driver works as expected after it was updated to use 
-// 		 the database conditions system.
+//       the database conditions system.
 public class SVTRawTrackerHitThresholdDriver extends Driver {
 
     private String rawTrackerHitCollectionName = "RawTrackerHitMaker_RawTrackerHits";

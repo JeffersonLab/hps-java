@@ -341,11 +341,11 @@ public class HpsGblRefitter extends Driver {
             // measurement/residual in the measurement system
             // only 1D measurement in u-direction, set strip measurement direction to zero
             Vector meas = new Vector(2);
-//		double uRes = strip->GetUmeas() - strip->GetTrackPos().x(); // how can this be correct?
+//      double uRes = strip->GetUmeas() - strip->GetTrackPos().x(); // how can this be correct?
             double uRes = strip.getMeas() - strip.getTrackPos().x();
             meas.set(0, uRes);
             meas.set(1, 0.);
-//		//meas[0][0] += deltaU[iLayer] # misalignment
+//      //meas[0][0] += deltaU[iLayer] # misalignment
             Vector measErr = new Vector(2);
             measErr.set(0, strip.getMeasErr());
             measErr.set(1, 0.);

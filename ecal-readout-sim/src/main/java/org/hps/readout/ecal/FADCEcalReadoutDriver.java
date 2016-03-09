@@ -383,7 +383,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                     }
                 } else {
                     if (pedestalSubtractedValue < triggerThreshold || triggerPathHitTimes.get(cellID) + delay0 == readoutCounter) {
-//					System.out.printf("sum = %f\n",sum);
+//                  System.out.printf("sum = %f\n",sum);
                         triggerPathDelayQueue.add(new BaseRawCalorimeterHit(cellID,
                                 (int) Math.round((sum + pedestalSubtractedValue) / scaleFactor),
                                 64 * triggerPathHitTimes.get(cellID)));
@@ -460,15 +460,15 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         short[] adcValues = new short[readoutWindow];
         for (int i = 0; i < readoutWindow; i++) {
             adcValues[i] = (short) pipeline.getValue(readoutLatency - i - 1);
-//			if (adcValues[i] != 0) {
-//				System.out.println("getWindow: " + adcValues[i] + " at i = " + i);
-//			}
+//          if (adcValues[i] != 0) {
+//              System.out.println("getWindow: " + adcValues[i] + " at i = " + i);
+//          }
         }
         return adcValues;
     }
 
     protected List<RawTrackerHit> readWindow() {
-//		System.out.println("Reading FADC data");
+//      System.out.println("Reading FADC data");
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
         for (Long cellID : digitalPipelines.keySet()) {
             short[] adcValues = getWindow(cellID);
@@ -488,7 +488,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     protected List<RawTrackerHit> readPulses() {
-//		System.out.println("Reading FADC data");
+//      System.out.println("Reading FADC data");
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
         for (Long cellID : digitalPipelines.keySet()) {
             short[] window = getWindow(cellID);
@@ -522,7 +522,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     protected List<RawCalorimeterHit> readIntegrals() {
-//		System.out.println("Reading FADC data");
+//      System.out.println("Reading FADC data");
         List<RawCalorimeterHit> hits = new ArrayList<RawCalorimeterHit>();
         for (Long cellID : digitalPipelines.keySet()) {
             short[] window = getWindow(cellID);

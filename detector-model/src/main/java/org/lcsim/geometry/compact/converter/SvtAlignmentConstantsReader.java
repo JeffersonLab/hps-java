@@ -14,16 +14,16 @@ import org.hps.conditions.svt.SvtAlignmentConstant.SvtAlignmentConstantCollectio
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class SvtAlignmentConstantsReader {
-	
-	private SvtAlignmentConstantsReader() {
-	}
+    
+    private SvtAlignmentConstantsReader() {
+    }
 
-	/**
-	 * Read SVT alignment constants from the conditions database table <i>svt_alignments</i> and create a list of 
-	 * <code>MilleParameter</code> objects from it.
-	 * 
-	 * @return the Millepede parameter list
-	 */
+    /**
+     * Read SVT alignment constants from the conditions database table <i>svt_alignments</i> and create a list of 
+     * <code>MilleParameter</code> objects from it.
+     * 
+     * @return the Millepede parameter list
+     */
     static List<MilleParameter> readMilleParameters() {
 
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();

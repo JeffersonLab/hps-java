@@ -638,7 +638,7 @@ public abstract class Viewer extends JFrame {
         
         JFileChooser chooser = new JFileChooser();
         if(chooser.showSaveDialog(this) == JFileChooser.CANCEL_OPTION) {
-        	return;
+            return;
         }
         
         // Parse the file name and make sure that it ends in .PNG.
@@ -646,9 +646,9 @@ public abstract class Viewer extends JFrame {
         int index = filepath.lastIndexOf('.');
         if(index == -1) { filepath = filepath + ".png"; }
         else {
-        	if(filepath.substring(index + 1).compareTo("png") != 0) {
-        		filepath = filepath.substring(0, index) + ".png";
-        	}
+            if(filepath.substring(index + 1).compareTo("png") != 0) {
+                filepath = filepath.substring(0, index) + ".png";
+            }
         }
         
         // Get the lowest available file name.

@@ -435,15 +435,15 @@ System.out.println("theta = " + theta + "\n");
      nevents++;
      
      
-    	/* natha's code for trigger
-    	List <AbstractIntData> aids = event.get(AbstractIntData.class, "TriggerBank");
-    	for (AbstractIntData aid : aids) {
-    		if (aid.getTag() == TIData.BANK_TAG) {
-    			TIData tt=(TIData)aid;
-    			if (!tt.isSingle1Trigger()) return;
+        /* natha's code for trigger
+        List <AbstractIntData> aids = event.get(AbstractIntData.class, "TriggerBank");
+        for (AbstractIntData aid : aids) {
+            if (aid.getTag() == TIData.BANK_TAG) {
+                TIData tt=(TIData)aid;
+                if (!tt.isSingle1Trigger()) return;
                         break;
-    		}
-    	}
+            }
+        }
      */ //nathans code for trigger end
      
     

@@ -41,7 +41,7 @@ abstract public class HPSTrackerGeometryDefinition extends HPSTrackerBuilder {
     protected static final boolean use30mradRotation = true;
     protected static final boolean useFakeHalfModuleAxialPos = false;
 
-    // Global position references	
+    // Global position references   
     protected static final double target_pos_wrt_base_plate_x = 162.3; //from Marco's 3D model
     protected static final double target_pos_wrt_base_plate_y = 80.55; //from Tim's sketchup //68.75; //from Marco's 3D model
     protected static final double target_pos_wrt_base_plate_z = 926.59; //from Marco's 3D model

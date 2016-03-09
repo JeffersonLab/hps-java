@@ -84,8 +84,8 @@ public class ClusterDriver extends Driver {
      * @param correctionClusterCollectionName
      */
     public void setCorrectionClusterCollectionName(String correctionClusterCollectionName){
-    	this.correctionClusterCollectionName = correctionClusterCollectionName;
-    	getLogger().config("correctionClusterCollectionName = " + this.correctionClusterCollectionName);
+        this.correctionClusterCollectionName = correctionClusterCollectionName;
+        getLogger().config("correctionClusterCollectionName = " + this.correctionClusterCollectionName);
     }
     
     /**
@@ -147,7 +147,7 @@ public class ClusterDriver extends Driver {
      * @param copyClusterCollection
      */
     public void setCopyClusterCollection(boolean copyClusterCollection) {
-    	this.copyClusterCollection = copyClusterCollection;
+        this.copyClusterCollection = copyClusterCollection;
     }
            
     /**
@@ -267,9 +267,9 @@ public class ClusterDriver extends Driver {
                 event.put(outputClusterCollectionName, clusters, Cluster.class, flags);
                         
                 if (copyClusterCollection 
-                		&& event.hasCollection(Cluster.class, outputClusterCollectionName)){
-                	List<Cluster> clusterCopy = event.get(Cluster.class, outputClusterCollectionName);	
-                	event.put(correctionClusterCollectionName,clusterCopy,Cluster.class,flags);
+                        && event.hasCollection(Cluster.class, outputClusterCollectionName)){
+                    List<Cluster> clusterCopy = event.get(Cluster.class, outputClusterCollectionName);  
+                    event.put(correctionClusterCollectionName,clusterCopy,Cluster.class,flags);
                 }
                                
                 if (!this.writeClusterCollection) {

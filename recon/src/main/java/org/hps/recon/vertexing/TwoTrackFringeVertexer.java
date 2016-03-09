@@ -25,7 +25,7 @@ public class TwoTrackFringeVertexer extends TwoTrackVertexer {
     protected HelixConverter converter = new HelixConverter(0.);
     
     public void setTracks(Track track1, Track track2, FieldMap fieldMap) {
-    	SeedTrack s1 = (SeedTrack) track1;
+        SeedTrack s1 = (SeedTrack) track1;
         HelicalTrackFit htf1 = s1.getSeedCandidate().getHelix();
         HpsHelicalTrackFit hpstrk1 = new HpsHelicalTrackFit(htf1);
         SeedTrack s2 = (SeedTrack) track2;
@@ -71,5 +71,5 @@ public class TwoTrackFringeVertexer extends TwoTrackVertexer {
     }
     
     
-	
+    
 }

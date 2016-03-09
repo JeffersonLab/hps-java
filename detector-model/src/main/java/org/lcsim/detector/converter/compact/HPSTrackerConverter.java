@@ -238,7 +238,7 @@ public class HPSTrackerConverter extends AbstractSubdetectorConverter
     {
         //double moduleX = moduleParameters.getDimension(0);
         //double moduleY = moduleParameters.getDimension(1);        
-    	double moduleY = moduleParameters.getDimension(0);
+        double moduleY = moduleParameters.getDimension(0);
         double moduleX = moduleParameters.getDimension(1);
         Box box = (Box)moduleVolume.getSolid();
         double moduleZ = box.getZHalfLength() * 2;                        
@@ -375,7 +375,7 @@ public class HPSTrackerConverter extends AbstractSubdetectorConverter
     /*
     private void configSensor(SiSensor sensor)
     {
-    	//
+        //
         Box sensorSolid = (Box) sensor.getGeometry().getLogicalVolume().getSolid();                                                        
         
         Polygon3D pside = sensorSolid.getFacesNormalTo(new BasicHep3Vector(0, 0, 1)).get(0);

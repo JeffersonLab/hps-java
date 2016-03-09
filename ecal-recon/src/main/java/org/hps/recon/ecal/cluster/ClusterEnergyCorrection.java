@@ -19,9 +19,9 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class ClusterEnergyCorrection {
-	
-	// Variables for electron energy corrections.
-	static final double par0_em = -0.017;
+    
+    // Variables for electron energy corrections.
+    static final double par0_em = -0.017;
     static final double par1_em[] = {35,-0.06738,-0.0005613,16.42,0.3431,-2.021,74.85,-0.3626};
     static final double par2_em[] = {35, 0.933, 0.003234, 18.06, 0.24, 8.586, 75.08, -0.39};
 
@@ -84,55 +84,55 @@ public final class ClusterEnergyCorrection {
     
     private static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos) {
         //distance to beam gap edge
-    	double r;
-    	//Get these values from the Ecal geometry:
-    	HPSEcalDetectorElement detElement = (HPSEcalDetectorElement) ecal.getDetectorElement();
+        double r;
+        //Get these values from the Ecal geometry:
+        HPSEcalDetectorElement detElement = (HPSEcalDetectorElement) ecal.getDetectorElement();
 //        double BEAMGAPTOP = 22.3;//ecal.getNode().getChild("layout").getAttribute("beamgapTop").getDoubleValue();//mm
         double BEAMGAPTOP=20.0;
-		try {
-			BEAMGAPTOP = ecal.getNode().getChild("layout").getAttribute("beamgapTop").getDoubleValue();
-		} catch (DataConversionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}//mm
+        try {
+            BEAMGAPTOP = ecal.getNode().getChild("layout").getAttribute("beamgapTop").getDoubleValue();
+        } catch (DataConversionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }//mm
         double BEAMGAPBOT=-20.0;
-		try {
-			BEAMGAPBOT = -ecal.getNode().getChild("layout").getAttribute("beamgapBottom").getDoubleValue();
-		} catch (DataConversionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}//mm
+        try {
+            BEAMGAPBOT = -ecal.getNode().getChild("layout").getAttribute("beamgapBottom").getDoubleValue();
+        } catch (DataConversionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }//mm
         double BEAMGAPTOPC = BEAMGAPTOP + 13.0;//mm
         double BEAMGAPBOTC = BEAMGAPBOT - 13.0;//mm
-    	// x-coordinates of crystals on either side of row 1 cut out
+        // x-coordinates of crystals on either side of row 1 cut out
         EcalCrystal crystalM = detElement.getCrystal(-11, 1);
         Hep3Vector posM = crystalM.getPositionFront();
         EcalCrystal crystalP = detElement.getCrystal(-1, 1);
         Hep3Vector posP = crystalP.getPositionFront();
                
-    	if ((xpos<posM.x())||(xpos>posP.x())){
-        	if (ypos>0){
-        		r = Math.abs(ypos-BEAMGAPTOP);}    		
-        	else{
-        		r = Math.abs(ypos-BEAMGAPBOT);}
+        if ((xpos<posM.x())||(xpos>posP.x())){
+            if (ypos>0){
+                r = Math.abs(ypos-BEAMGAPTOP);}         
+            else{
+                r = Math.abs(ypos-BEAMGAPBOT);}
         }
-    	// crystals above row 1 cut out
+        // crystals above row 1 cut out
         else {
-        	if (ypos>0){
-        		if (ypos>(par1_em[0]+BEAMGAPTOP)){
-            		r = Math.abs(ypos-BEAMGAPTOP);}
-        		else{
-            		r = Math.abs(ypos-BEAMGAPTOPC);}
-        	}
-        	else {
-        		if (ypos>(-par1_em[0]+BEAMGAPBOT)){
-        			r = Math.abs(ypos-BEAMGAPBOTC);}
-        		else {
-        			r = Math.abs(ypos-BEAMGAPBOT);}
-        	}
+            if (ypos>0){
+                if (ypos>(par1_em[0]+BEAMGAPTOP)){
+                    r = Math.abs(ypos-BEAMGAPTOP);}
+                else{
+                    r = Math.abs(ypos-BEAMGAPTOPC);}
+            }
+            else {
+                if (ypos>(-par1_em[0]+BEAMGAPBOT)){
+                    r = Math.abs(ypos-BEAMGAPBOTC);}
+                else {
+                    r = Math.abs(ypos-BEAMGAPBOT);}
+            }
         }
-    	   	
-    	switch(pdg) {
+            
+        switch(pdg) {
             case 11: 
                 // electron             
                 return computeCorrectedEnergy(r, rawEnergy, par0_em, par1_em, par2_em);
@@ -158,8 +158,8 @@ public final class ClusterEnergyCorrection {
      */   
     private static double computeCorrectedEnergy(double y, double rawEnergy, double varA, double varB[], double varC[]){
         int ii = y<varB[0] ? 2 : 5;
-    	double corrEnergy = rawEnergy / (varA / rawEnergy + (varB[1]-varB[ii]*Math.exp(-(y-varB[ii+1])*varB[ii+2])) / (Math.sqrt(rawEnergy)) + 
-    			(varC[1]-varC[ii]*Math.exp(-(y-varC[ii+1])*varC[ii+2])));
+        double corrEnergy = rawEnergy / (varA / rawEnergy + (varB[1]-varB[ii]*Math.exp(-(y-varB[ii+1])*varB[ii+2])) / (Math.sqrt(rawEnergy)) + 
+                (varC[1]-varC[ii]*Math.exp(-(y-varC[ii+1])*varC[ii+2])));
         return corrEnergy;
     }                   
 }

@@ -41,9 +41,9 @@ import org.lcsim.geometry.Detector;
  */
 public class EcalRawConverter {
 
-	/**
-	 * If true, time walk correction is performed. 
-	 */
+    /**
+     * If true, time walk correction is performed. 
+     */
     private boolean useTimeWalkCorrection = true;
     
     /**
@@ -149,42 +149,42 @@ public class EcalRawConverter {
      * for trigger emulation.
      */
     public EcalRawConverter() {
-    	// Track changes in the DAQ configuration.
-    	ConfigurationManager.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// If the DAQ configuration should be used, load the
-				// relevant settings into the driver.
-				if(useDAQConfig) {
-					// Get the FADC configuration.
-					config = ConfigurationManager.getInstance().getFADCConfig();
-					
-					// Load the settings.
-					NSB = config.getNSB();
-					NSA = config.getNSA();
-					windowSamples = config.getWindowWidth() / 4;
-					
-					// Get the number of peaks.
-					if(config.getMode() == 1) {
-						nPeak = Integer.MAX_VALUE;
-					} else {
-						nPeak = config.getMaxPulses();
-					}
-					
-					// Print the FADC configuration.
-					System.out.println();
-					System.out.println();
-					System.out.printf("NSA            :: %d ns%n", NSA);
-					System.out.printf("NSB            :: %d ns%n", NSB);
-					System.out.printf("Window Samples :: %d clock-cycles%n", windowSamples);
-					System.out.printf("Max Peaks      :: %d peaks%n", nPeak);
-					System.out.println("======================================================================");
-					System.out.println("=== FADC Pulse-Processing Settings ===================================");
-					System.out.println("======================================================================");
-					config.printConfig(System.out);
-				}
-			}
-    	});
+        // Track changes in the DAQ configuration.
+        ConfigurationManager.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // If the DAQ configuration should be used, load the
+                // relevant settings into the driver.
+                if(useDAQConfig) {
+                    // Get the FADC configuration.
+                    config = ConfigurationManager.getInstance().getFADCConfig();
+                    
+                    // Load the settings.
+                    NSB = config.getNSB();
+                    NSA = config.getNSA();
+                    windowSamples = config.getWindowWidth() / 4;
+                    
+                    // Get the number of peaks.
+                    if(config.getMode() == 1) {
+                        nPeak = Integer.MAX_VALUE;
+                    } else {
+                        nPeak = config.getMaxPulses();
+                    }
+                    
+                    // Print the FADC configuration.
+                    System.out.println();
+                    System.out.println();
+                    System.out.printf("NSA            :: %d ns%n", NSA);
+                    System.out.printf("NSB            :: %d ns%n", NSB);
+                    System.out.printf("Window Samples :: %d clock-cycles%n", windowSamples);
+                    System.out.printf("Max Peaks      :: %d peaks%n", nPeak);
+                    System.out.println("======================================================================");
+                    System.out.println("=== FADC Pulse-Processing Settings ===================================");
+                    System.out.println("======================================================================");
+                    config.printConfig(System.out);
+                }
+            }
+        });
     }
     
  
@@ -313,7 +313,7 @@ public class EcalRawConverter {
      * for trigger emulation.
      */
     public void setUseDAQConfig(boolean state) {
-    	useDAQConfig = state;
+        useDAQConfig = state;
     }
     
 
@@ -325,10 +325,10 @@ public class EcalRawConverter {
         EcalChannelConstants channelData = findChannel(hit.getCellID());
         double pedestal;
         if(useDAQConfig) {
-    		//EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(hit.getCellID());
-    		pedestal = config.getPedestal(hit.getCellID());
+            //EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(hit.getCellID());
+            pedestal = config.getPedestal(hit.getCellID());
         } else {
-        	pedestal = channelData.getCalibration().getPedestal();
+            pedestal = channelData.getCalibration().getPedestal();
         }
         
         int sum = 0;
@@ -356,10 +356,10 @@ public class EcalRawConverter {
      * Choose whether to use static pedestal from database or running pedestal from mode-7.
      */
     public double getSingleSamplePedestal(EventHeader event,long cellID) {
-    	if(useDAQConfig) {
-    		//EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(cellID);
-    		return config.getPedestal(cellID);
-    	}
+        if(useDAQConfig) {
+            //EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(cellID);
+            return config.getPedestal(cellID);
+        }
         if (useRunningPedestal && event!=null) {
             if (event.hasItem("EcalRunningPedestals")) {
                 Map<EcalChannel, Double> runningPedMap = (Map<EcalChannel, Double>) event.get("EcalRunningPedestals");
@@ -536,12 +536,12 @@ public class EcalRawConverter {
         // threshold is pedestal plus threshold configuration parameter:
         final int absoluteThreshold;
         if(useDAQConfig) {
-        	//EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(hit.getCellID());
-        	//int leadingEdgeThreshold = ConfigurationManager.getInstance().getFADCConfig().getThreshold(channel.getChannelId());
-        	int leadingEdgeThreshold = config.getThreshold(cellID);
-        	absoluteThreshold = (int) (getSingleSamplePedestal(event, cellID) + leadingEdgeThreshold);
+            //EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(hit.getCellID());
+            //int leadingEdgeThreshold = ConfigurationManager.getInstance().getFADCConfig().getThreshold(channel.getChannelId());
+            int leadingEdgeThreshold = config.getThreshold(cellID);
+            absoluteThreshold = (int) (getSingleSamplePedestal(event, cellID) + leadingEdgeThreshold);
         } else {
-        	absoluteThreshold = (int) (getSingleSamplePedestal(event, cellID) + leadingEdgeThreshold);
+            absoluteThreshold = (int) (getSingleSamplePedestal(event, cellID) + leadingEdgeThreshold);
         }
         
         ArrayList <Integer> thresholdCrossings = new ArrayList<Integer>();
@@ -562,10 +562,10 @@ public class EcalRawConverter {
                 // search for next threshold crossing begins at end of this pulse:
                 if(useDAQConfig && ConfigurationManager.getInstance().getFADCConfig().getMode() == 1) {
                     // special case, emulating SSP:
-                	ii += 8;
+                    ii += 8;
                 } else {
                     // "normal" case, emulating FADC250:
-                	ii += NSA/nsPerSample - 1;
+                    ii += NSA/nsPerSample - 1;
                 }
 
                 // firmware limit on # of peaks:
@@ -674,8 +674,8 @@ public class EcalRawConverter {
         EcalChannelConstants channelData = findChannel(cellID);
         
         if(useDAQConfig) {
-        	//float gain = ConfigurationManager.getInstance().getFADCConfig().getGain(ecalConditions.getChannelCollection().findGeometric(cellID));
-        	return config.getGain(cellID) * adcSum * EcalUtils.MeV;
+            //float gain = ConfigurationManager.getInstance().getFADCConfig().getGain(ecalConditions.getChannelCollection().findGeometric(cellID));
+            return config.getGain(cellID) * adcSum * EcalUtils.MeV;
         }  else if(use2014Gain) {
             if (constantGain) {
                 return adcSum * EcalUtils.gainFactor * EcalUtils.ecalReadoutPeriod;

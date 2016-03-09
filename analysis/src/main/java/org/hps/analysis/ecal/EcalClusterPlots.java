@@ -17,7 +17,7 @@ import org.lcsim.util.aida.AIDA;
 
 public class EcalClusterPlots extends Driver {
 
-	//AIDAFrame plotterFrame;
+    //AIDAFrame plotterFrame;
     String inputCollection = "EcalClusters";
     AIDA aida = AIDA.defaultInstance();
     IPlotter plotter, plotter2, plotter3, plotter4;
@@ -47,7 +47,7 @@ public class EcalClusterPlots extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
 
-    	//plotterFrame = new AIDAFrame();
+        //plotterFrame = new AIDAFrame();
         //plotterFrame.setTitle("HPS ECal Cluster Plots");
 
         // Setup the plotter.
@@ -172,6 +172,6 @@ public class EcalClusterPlots extends Driver {
 
     @Override
     public void endOfData() {
-    	//plotterFrame.dispose();
+        //plotterFrame.dispose();
     }
 }

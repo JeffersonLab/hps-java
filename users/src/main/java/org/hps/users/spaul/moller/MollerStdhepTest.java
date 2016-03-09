@@ -8,8 +8,8 @@ import hep.io.stdhep.StdhepRecord;
 
 public class MollerStdhepTest 
 {
-	public static void main(String arg[]) throws IOException
-	{
-		
-	}
+    public static void main(String arg[]) throws IOException
+    {
+        
+    }
 }

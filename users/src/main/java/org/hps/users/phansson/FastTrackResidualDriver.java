@@ -78,11 +78,11 @@ public class FastTrackResidualDriver extends Driver {
     }
     
     public void detectorChanged(Detector detector) {
-	// Get the Subdetector.
-	ecal = detector.getSubdetector(ecalName);
+    // Get the Subdetector.
+    ecal = detector.getSubdetector(ecalName);
 
-	// Cache ref to decoder.
-	dec = ecal.getIDDecoder();
+    // Cache ref to decoder.
+    dec = ecal.getIDDecoder();
         
         //Ecal geometry
         crystalX = (13.3 + 16.0) / 2;
@@ -793,7 +793,7 @@ public class FastTrackResidualDriver extends Driver {
                 style.setParameter("hist2DStyle", "colorMap");
                 style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
                 ((PlotterRegion) plotter_ecalhitmult.region(idx)).getPlot().setAllowUserInteraction(false);
-		((PlotterRegion) plotter_ecalhitmult.region(idx)).getPlot().setAllowPopupMenus(false);
+        ((PlotterRegion) plotter_ecalhitmult.region(idx)).getPlot().setAllowPopupMenus(false);
           }
                
         

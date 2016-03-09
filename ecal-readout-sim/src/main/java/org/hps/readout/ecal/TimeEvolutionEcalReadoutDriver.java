@@ -23,7 +23,7 @@ public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<Calorimete
     double t0 = 18.0;
     
     public TimeEvolutionEcalReadoutDriver() {
-		hitClass = CalorimeterHit.class;
+        hitClass = CalorimeterHit.class;
     }
 
     public void setT0(double t0) {
@@ -39,8 +39,8 @@ public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<Calorimete
     protected void readHits(List<CalorimeterHit> hits) {
         for (Long cellID : eDepMap.keySet()) {
             RingBuffer eDepBuffer = eDepMap.get(cellID);
-            if (eDepBuffer.currentValue() > threshold) {            	            	            	
-            	hits.add(CalorimeterHitUtilities.create(eDepBuffer.currentValue(), readoutTime(), cellID, hitType));
+            if (eDepBuffer.currentValue() > threshold) {                                                
+                hits.add(CalorimeterHitUtilities.create(eDepBuffer.currentValue(), readoutTime(), cellID, hitType));
             }
             eDepBuffer.step();
         }

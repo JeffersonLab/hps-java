@@ -25,64 +25,64 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
     // ==================================================================
     // ==== Trigger Cut Default Parameters ==============================
     // ==================================================================
-    private int minHitCount = 1;								// Minimum required cluster hit count threshold. (Hits)			
-    private double seedEnergyHigh = Double.MAX_VALUE;			// Maximum allowed cluster seed energy. (GeV)
-    private double seedEnergyLow = Double.MIN_VALUE;			// Minimum required cluster seed energy. (GeV)
-    private double clusterEnergyHigh = 1.5 * EcalUtils.GeV;		// Maximum allowed cluster total energy. (GeV)
-    private double clusterEnergyLow = .1 * EcalUtils.GeV;		// Minimum required cluster total energy. (GeV)
-    private double energySumHigh = 1.9 * EcalUtils.GeV;			// Maximum allowed pair energy sum. (GeV)
-    private double energySumLow = 0.0 * EcalUtils.GeV;			// Minimum required pair energy sum. (GeV)
-    private double energyDifferenceHigh = 2.2 * EcalUtils.GeV;	// Maximum allowed pair energy difference. (GeV)
-    private double energySlopeLow = 1.1;						// Minimum required pair energy slope value.
-    private double coplanarityHigh = 35;						// Maximum allowed pair coplanarity deviation. (Degrees)
+    private int minHitCount = 1;                                // Minimum required cluster hit count threshold. (Hits)         
+    private double seedEnergyHigh = Double.MAX_VALUE;           // Maximum allowed cluster seed energy. (GeV)
+    private double seedEnergyLow = Double.MIN_VALUE;            // Minimum required cluster seed energy. (GeV)
+    private double clusterEnergyHigh = 1.5 * EcalUtils.GeV;     // Maximum allowed cluster total energy. (GeV)
+    private double clusterEnergyLow = .1 * EcalUtils.GeV;       // Minimum required cluster total energy. (GeV)
+    private double energySumHigh = 1.9 * EcalUtils.GeV;         // Maximum allowed pair energy sum. (GeV)
+    private double energySumLow = 0.0 * EcalUtils.GeV;          // Minimum required pair energy sum. (GeV)
+    private double energyDifferenceHigh = 2.2 * EcalUtils.GeV;  // Maximum allowed pair energy difference. (GeV)
+    private double energySlopeLow = 1.1;                        // Minimum required pair energy slope value.
+    private double coplanarityHigh = 35;                        // Maximum allowed pair coplanarity deviation. (Degrees)
     
     // ==================================================================
     // ==== Trigger General Default Parameters ==========================
     // ==================================================================
-    private String clusterCollectionName = "EcalClusters";		// Name for the LCIO cluster collection.
-    private int pairCoincidence = 2;							// Maximum allowed time difference between clusters. (4 ns clock-cycles)
-    private double energySlopeParamF = 0.005500;				// A parameter value used for the energy slope calculation.
-    private double originX = 1393.0 * Math.tan(0.03052);		// ECal mid-plane, defined by photon beam position (30.52 mrad) at ECal face (z=1393 mm)
-    private int backgroundLevel = -1;							// Automatically sets the cuts to achieve a predetermined background rate.
+    private String clusterCollectionName = "EcalClusters";      // Name for the LCIO cluster collection.
+    private int pairCoincidence = 2;                            // Maximum allowed time difference between clusters. (4 ns clock-cycles)
+    private double energySlopeParamF = 0.005500;                // A parameter value used for the energy slope calculation.
+    private double originX = 1393.0 * Math.tan(0.03052);        // ECal mid-plane, defined by photon beam position (30.52 mrad) at ECal face (z=1393 mm)
+    private int backgroundLevel = -1;                           // Automatically sets the cuts to achieve a predetermined background rate.
     
     // ==================================================================
     // ==== Driver Internal Variables ===================================
     // ==================================================================
-    private Queue<List<Cluster>> topClusterQueue = null;	// Store clusters on the top half of the calorimeter.
-    private Queue<List<Cluster>> botClusterQueue = null;	// Store clusters on the bottom half of the calorimeter.
-    private int allClusters = 0;								// Track the number of clusters processed.
-    private int allPairs = 0;									// Track the number of cluster pairs processed.
-    private int clusterTotalEnergyCount = 0;					// Track the clusters which pass the total energy cut.
-    private int clusterSeedEnergyCount = 0;						// Track the clusters which pass the seed energy cut.
-    private int clusterHitCountCount = 0;						// Track the clusters which pass the hit count cut.
-    private int pairEnergySumCount = 0;							// Track the pairs which pass the energy sum cut.
-    private int pairEnergyDifferenceCount = 0;					// Track the pairs which pass the energy difference cut.
-    private int pairEnergySlopeCount = 0;						// Track the pairs which pass the energy slope cut.
-    private int pairCoplanarityCount = 0;						// Track the pairs which pass the coplanarity cut.
+    private Queue<List<Cluster>> topClusterQueue = null;    // Store clusters on the top half of the calorimeter.
+    private Queue<List<Cluster>> botClusterQueue = null;    // Store clusters on the bottom half of the calorimeter.
+    private int allClusters = 0;                                // Track the number of clusters processed.
+    private int allPairs = 0;                                   // Track the number of cluster pairs processed.
+    private int clusterTotalEnergyCount = 0;                    // Track the clusters which pass the total energy cut.
+    private int clusterSeedEnergyCount = 0;                     // Track the clusters which pass the seed energy cut.
+    private int clusterHitCountCount = 0;                       // Track the clusters which pass the hit count cut.
+    private int pairEnergySumCount = 0;                         // Track the pairs which pass the energy sum cut.
+    private int pairEnergyDifferenceCount = 0;                  // Track the pairs which pass the energy difference cut.
+    private int pairEnergySlopeCount = 0;                       // Track the pairs which pass the energy slope cut.
+    private int pairCoplanarityCount = 0;                       // Track the pairs which pass the coplanarity cut.
     
     /**
      * Prints out the results of the trigger at the end of the run.
      */
     @Override
     public void endOfData() {
-    	// Print out the results of the trigger cuts.
-    	System.out.printf("Trigger Processing Results%n");
-    	System.out.printf("\tSingle-Cluster Cuts%n");
-    	System.out.printf("\t\tTotal Clusters Processed     :: %d%n", allClusters);
-    	System.out.printf("\t\tPassed Seed Energy Cut       :: %d%n", clusterSeedEnergyCount);
-    	System.out.printf("\t\tPassed Hit Count Cut         :: %d%n", clusterHitCountCount);
-    	System.out.printf("\t\tPassed Total Energy Cut      :: %d%n", clusterTotalEnergyCount);
-    	System.out.printf("%n");
-    	System.out.printf("\tCluster Pair Cuts%n");
-    	System.out.printf("\t\tTotal Pairs Processed        :: %d%n", allPairs);
-    	System.out.printf("\t\tPassed Energy Sum Cut        :: %d%n", pairEnergySumCount);
-    	System.out.printf("\t\tPassed Energy Difference Cut :: %d%n", pairEnergyDifferenceCount);
-    	System.out.printf("\t\tPassed Energy Slope Cut      :: %d%n", pairEnergySlopeCount);
-    	System.out.printf("\t\tPassed Coplanarity Cut       :: %d%n", pairCoplanarityCount);
-    	System.out.printf("%n");
-    	System.out.printf("\tTrigger Count :: %d%n", numTriggers);
-    	
-    	// Run the superclass method.
+        // Print out the results of the trigger cuts.
+        System.out.printf("Trigger Processing Results%n");
+        System.out.printf("\tSingle-Cluster Cuts%n");
+        System.out.printf("\t\tTotal Clusters Processed     :: %d%n", allClusters);
+        System.out.printf("\t\tPassed Seed Energy Cut       :: %d%n", clusterSeedEnergyCount);
+        System.out.printf("\t\tPassed Hit Count Cut         :: %d%n", clusterHitCountCount);
+        System.out.printf("\t\tPassed Total Energy Cut      :: %d%n", clusterTotalEnergyCount);
+        System.out.printf("%n");
+        System.out.printf("\tCluster Pair Cuts%n");
+        System.out.printf("\t\tTotal Pairs Processed        :: %d%n", allPairs);
+        System.out.printf("\t\tPassed Energy Sum Cut        :: %d%n", pairEnergySumCount);
+        System.out.printf("\t\tPassed Energy Difference Cut :: %d%n", pairEnergyDifferenceCount);
+        System.out.printf("\t\tPassed Energy Slope Cut      :: %d%n", pairEnergySlopeCount);
+        System.out.printf("\t\tPassed Coplanarity Cut       :: %d%n", pairCoplanarityCount);
+        System.out.printf("%n");
+        System.out.printf("\tTrigger Count :: %d%n", numTriggers);
+        
+        // Run the superclass method.
         super.endOfData();
     }
     
@@ -92,53 +92,53 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      */
     @Override
     public void process(EventHeader event) {
-    	// Process the list of clusters for the event, if it exists.
+        // Process the list of clusters for the event, if it exists.
         if (event.hasCollection(Cluster.class, clusterCollectionName)) {
-        	// Get the collection of clusters.
-        	List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
-        	
-        	// Create a list to hold clusters which pass the single
-        	// cluster cuts.
-        	List<Cluster> goodClusterList = new ArrayList<Cluster>(clusterList.size());
-        	
-        	// Sort through the cluster list and add clusters that pass
-        	// the single cluster cuts to the good list.
-        	clusterLoop:
-        	for(Cluster cluster : clusterList) {
-        		// Increment the number of processed clusters.
-        		allClusters++;
-        		
-        		// ==== Seed Hit Energy Cut ====================================
-        		// =============================================================
-        		// If the cluster fails the cut, skip to the next cluster.
-        		if(!clusterSeedEnergyCut(cluster)) { continue clusterLoop; }
-        		
-        		// Otherwise, note that it passed the cut.
-        		clusterSeedEnergyCount++;
-        		
-        		// ==== Cluster Hit Count Cut ==================================
-        		// =============================================================
-        		// If the cluster fails the cut, skip to the next cluster.
-        		if(!clusterHitCountCut(cluster)) { continue clusterLoop; }
-        		
-        		// Otherwise, note that it passed the cut.
-        		clusterHitCountCount++;
-        		
-        		// ==== Cluster Total Energy Cut ===============================
-        		// =============================================================
-        		// If the cluster fails the cut, skip to the next cluster.
-        		if(!clusterTotalEnergyCut(cluster)) { continue clusterLoop; }
-        		
-        		// Otherwise, note that it passed the cut.
-        		clusterTotalEnergyCount++;
-        		
-        		// A cluster that passes all of the single-cluster cuts
-        		// can be used in cluster pairs.
-        		goodClusterList.add(cluster);
-        	}
-        	
-        	// Put the good clusters into the cluster queue.
-        	updateClusterQueues(goodClusterList);
+            // Get the collection of clusters.
+            List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
+            
+            // Create a list to hold clusters which pass the single
+            // cluster cuts.
+            List<Cluster> goodClusterList = new ArrayList<Cluster>(clusterList.size());
+            
+            // Sort through the cluster list and add clusters that pass
+            // the single cluster cuts to the good list.
+            clusterLoop:
+            for(Cluster cluster : clusterList) {
+                // Increment the number of processed clusters.
+                allClusters++;
+                
+                // ==== Seed Hit Energy Cut ====================================
+                // =============================================================
+                // If the cluster fails the cut, skip to the next cluster.
+                if(!clusterSeedEnergyCut(cluster)) { continue clusterLoop; }
+                
+                // Otherwise, note that it passed the cut.
+                clusterSeedEnergyCount++;
+                
+                // ==== Cluster Hit Count Cut ==================================
+                // =============================================================
+                // If the cluster fails the cut, skip to the next cluster.
+                if(!clusterHitCountCut(cluster)) { continue clusterLoop; }
+                
+                // Otherwise, note that it passed the cut.
+                clusterHitCountCount++;
+                
+                // ==== Cluster Total Energy Cut ===============================
+                // =============================================================
+                // If the cluster fails the cut, skip to the next cluster.
+                if(!clusterTotalEnergyCut(cluster)) { continue clusterLoop; }
+                
+                // Otherwise, note that it passed the cut.
+                clusterTotalEnergyCount++;
+                
+                // A cluster that passes all of the single-cluster cuts
+                // can be used in cluster pairs.
+                goodClusterList.add(cluster);
+            }
+            
+            // Put the good clusters into the cluster queue.
+            updateClusterQueues(goodClusterList);
         }
         
         // Perform the superclass event processing.
@@ -152,7 +152,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * be set. Actual background rates equal about (5 * backgroundLevel) kHz.
      */
     public void setBackgroundLevel(int backgroundLevel) {
-    	this.backgroundLevel = backgroundLevel;
+        this.backgroundLevel = backgroundLevel;
     }
     
     /**
@@ -215,7 +215,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param energySlopeLow - The parameter value.
      */
     public void setEnergySlopeLow(double energySlopeLow) {
-    	this.energySlopeLow = energySlopeLow;
+        this.energySlopeLow = energySlopeLow;
     }
     
     /**
@@ -299,12 +299,12 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      */
     @Override
     public void startOfData() {
-    	// Make sure that a valid cluster collection name has been
-    	// defined. If it has not, throw an exception.
+        // Make sure that a valid cluster collection name has been
+        // defined. If it has not, throw an exception.
         if (clusterCollectionName == null) {
             throw new RuntimeException("The parameter clusterCollectionName was not set!");
         }
-    	
+        
         // Initialize the top and bottom cluster queues.
         topClusterQueue = new LinkedList<List<Cluster>>();
         botClusterQueue = new LinkedList<List<Cluster>>();
@@ -345,9 +345,9 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
         for (Cluster botCluster : botClusterQueue.element()) {
             for (List<Cluster> topClusters : topClusterQueue) {
                 for (Cluster topCluster : topClusters) {
-                	// The first cluster in a pair should always be
-                	// the higher energy cluster. If the top cluster
-                	// is higher energy, it goes first.
+                    // The first cluster in a pair should always be
+                    // the higher energy cluster. If the top cluster
+                    // is higher energy, it goes first.
                     if (topCluster.getEnergy() > botCluster.getEnergy()) {
                         Cluster[] clusterPair = {topCluster, botCluster};
                         clusterPairs.add(clusterPair);
@@ -366,24 +366,24 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
         return clusterPairs;
     }
     
-	/**
-	 * Determines if the event produces a trigger.
-	 * 
-	 * @return Returns <code>true</code> if the event produces a trigger
-	 * and <code>false</code> if it does not.
-	 */
-	@Override
-	protected boolean triggerDecision(EventHeader event) {
-    	// If there is a list of clusters present for this event,
-    	// check whether it passes the trigger conditions.
-    	if (event.hasCollection(Cluster.class, clusterCollectionName)) {
-        	return testTrigger();
+    /**
+     * Determines if the event produces a trigger.
+     * 
+     * @return Returns <code>true</code> if the event produces a trigger
+     * and <code>false</code> if it does not.
+     */
+    @Override
+    protected boolean triggerDecision(EventHeader event) {
+        // If there is a list of clusters present for this event,
+        // check whether it passes the trigger conditions.
+        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
+            return testTrigger();
         }
         
         // Otherwise, this event can not produce a trigger and should
         // return false automatically.
         else { return false; }
-	}
+    }
     
     /**
      * Checks whether the argument cluster possesses the minimum
@@ -394,7 +394,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterHitCountCut(Cluster cluster) {
-    	return (getValueClusterHitCount(cluster) >= minHitCount);
+        return (getValueClusterHitCount(cluster) >= minHitCount);
     }
     
     /**
@@ -406,12 +406,12 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterSeedEnergyCut(Cluster cluster) {
-    	// Get the cluster seed energy.
-    	double energy = getValueClusterSeedEnergy(cluster);
-    	
-    	// Check that it is above the minimum threshold and below the
-    	// maximum threshold.
-    	return (energy < seedEnergyHigh) && (energy > seedEnergyLow);
+        // Get the cluster seed energy.
+        double energy = getValueClusterSeedEnergy(cluster);
+        
+        // Check that it is above the minimum threshold and below the
+        // maximum threshold.
+        return (energy < seedEnergyHigh) && (energy > seedEnergyLow);
     }
     
     /**
@@ -423,12 +423,12 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterTotalEnergyCut(Cluster cluster) {
-    	// Get the total cluster energy.
-    	double energy = getValueClusterTotalEnergy(cluster);
-    	
-    	// Check that it is above the minimum threshold and below the
-    	// maximum threshold.
-    	return (energy < clusterEnergyHigh) && (energy > clusterEnergyLow);
+        // Get the total cluster energy.
+        double energy = getValueClusterTotalEnergy(cluster);
+        
+        // Check that it is above the minimum threshold and below the
+        // maximum threshold.
+        return (energy < clusterEnergyHigh) && (energy > clusterEnergyLow);
     }
     
     /**
@@ -450,7 +450,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueClusterTotalEnergy(Cluster cluster) {
-    	return cluster.getEnergy();
+        return cluster.getEnergy();
     }
     
     /**
@@ -461,7 +461,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private int getValueClusterHitCount(Cluster cluster) {
-    	return cluster.getCalorimeterHits().size();
+        return cluster.getCalorimeterHits().size();
     }
     
     /**
@@ -472,7 +472,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueClusterSeedEnergy(Cluster cluster) {
-    	return cluster.getCalorimeterHits().get(0).getCorrectedEnergy();
+        return cluster.getCalorimeterHits().get(0).getCorrectedEnergy();
     }
     
     /**
@@ -483,16 +483,16 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueCoplanarity(Cluster[] clusterPair) {
-    	// Get the cluster angles.
-    	double[] clusterAngle = new double[2];
-    	for(int i = 0; i < 2; i++) {
+        // Get the cluster angles.
+        double[] clusterAngle = new double[2];
+        for(int i = 0; i < 2; i++) {
             double position[] = clusterPair[i].getCalorimeterHits().get(0).getPosition();
             //clusterAngle[i] = Math.toDegrees(Math.atan2(position[1], position[0] - originX));
             //clusterAngle[i] = (clusterAngle[i] + 180.0) % 180.0;
             clusterAngle[i] = (Math.toDegrees(Math.atan2(position[1], position[0] - originX)) + 180.0) % 180.0;
-    	}
-    	
-    	// Calculate the coplanarity cut value.
+        }
+        
+        // Calculate the coplanarity cut value.
         return Math.abs(clusterAngle[1] - clusterAngle[0]);
     }
     
@@ -504,7 +504,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueEnergyDifference(Cluster[] clusterPair) {
-    	return clusterPair[0].getEnergy() - clusterPair[1].getEnergy();
+        return clusterPair[0].getEnergy() - clusterPair[1].getEnergy();
     }
     
     /**
@@ -515,15 +515,15 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueEnergySlope(Cluster[] clusterPair) {
-    	// E + R*F
-    	// Get the low energy cluster energy.
-    	double slopeParamE = clusterPair[1].getEnergy();
-    	
-    	// Get the low energy cluster radial distance.
-    	double slopeParamR = getClusterDistance(clusterPair[1]);
-    	
-    	// Calculate the energy slope.
-    	return slopeParamE + slopeParamR * energySlopeParamF;
+        // E + R*F
+        // Get the low energy cluster energy.
+        double slopeParamE = clusterPair[1].getEnergy();
+        
+        // Get the low energy cluster radial distance.
+        double slopeParamR = getClusterDistance(clusterPair[1]);
+        
+        // Calculate the energy slope.
+        return slopeParamE + slopeParamR * energySlopeParamF;
     }
     
     /**
@@ -534,7 +534,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueEnergySum(Cluster[] clusterPair) {
-    	return clusterPair[0].getEnergy() + clusterPair[1].getEnergy();
+        return clusterPair[0].getEnergy() + clusterPair[1].getEnergy();
     }
     
     /**
@@ -570,7 +570,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return true if pair is found, false otherwise
      */
     private boolean pairEnergySlopeCut(Cluster[] clusterPair) {
-    	return (getValueEnergySlope(clusterPair) > energySlopeLow);
+        return (getValueEnergySlope(clusterPair) > energySlopeLow);
     }
     
     /**
@@ -582,175 +582,175 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * the cut and <code>false</code> if it does not.
      */
     private boolean pairEnergySumCut(Cluster[] clusterPair) {
-    	// Get the energy sum value.
-    	double energySum = getValueEnergySum(clusterPair);
-    	
-    	// Check that it is within the allowed range.
+        // Get the energy sum value.
+        double energySum = getValueEnergySum(clusterPair);
+        
+        // Check that it is within the allowed range.
         return (energySum < energySumHigh) && (energySum > energySumLow);
     }
-	
+    
     private void setBackgroundCuts(int backgroundLevel) {
-    	// Make sure that the background level is valid.
-    	if(backgroundLevel < 1 || backgroundLevel > 10) {
-    		throw new RuntimeException(String.format("Trigger cuts are undefined for background level %d.", backgroundLevel));
-    	}
-    	
-    	// Otherwise, set the trigger cuts. Certain cuts are constant
-    	// across all background levels.
-    	clusterEnergyLow = 0.000;
-    	seedEnergyLow = 0.100;
-    	
-    	// Set the variable values.
-    	if(backgroundLevel == 1) {
-    		clusterEnergyHigh = 1.700;
-    		seedEnergyHigh = 1.300;
-    		energySumLow = 0.400;
-    		energySumHigh = 2.00;
-    		energyDifferenceHigh = 1.500;
-    		energySlopeLow = 1.0;
-    		coplanarityHigh = 40;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 2) {
-    		clusterEnergyHigh = 1.600;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.300;
-    		energySumHigh = 2.00;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.8;
-    		coplanarityHigh = 40;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 3) {
-    		clusterEnergyHigh = 1.600;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.200;
-    		energySumHigh = 2.000;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.7;
-    		coplanarityHigh = 40;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 4) {
-    		clusterEnergyHigh = 1.500;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.500;
-    		energySumHigh = 1.950;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.6;
-    		coplanarityHigh = 40;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 5) {
-    		clusterEnergyHigh = 1.500;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.400;
-    		energySumHigh = 2.000;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.6;
-    		coplanarityHigh = 45;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 6) {
-    		clusterEnergyHigh = 1.500;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.200;
-    		energySumHigh = 1.950;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.6;
-    		coplanarityHigh = 55;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 7) {
-    		clusterEnergyHigh = 1.700;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.200;
-    		energySumHigh = 2.000;
-    		energyDifferenceHigh = 1.500;
-    		energySlopeLow = 0.6;
-    		coplanarityHigh = 60;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 8) {
-    		clusterEnergyHigh = 1.700;
-    		seedEnergyHigh = 1.300;
-    		energySumLow = 0.200;
-    		energySumHigh = 2.000;
-    		energyDifferenceHigh = 1.500;
-    		energySlopeLow = 0.6;
-    		coplanarityHigh = 65;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 9) {
-    		clusterEnergyHigh = 1.500;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.400;
-    		energySumHigh = 1.950;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.5;
-    		coplanarityHigh = 60;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 10) {
-    		clusterEnergyHigh = 1.500;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.400;
-    		energySumHigh = 2.000;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.5;
-    		coplanarityHigh = 65;
-    		minHitCount = 2;
-    	}
+        // Make sure that the background level is valid.
+        if(backgroundLevel < 1 || backgroundLevel > 10) {
+            throw new RuntimeException(String.format("Trigger cuts are undefined for background level %d.", backgroundLevel));
+        }
+        
+        // Otherwise, set the trigger cuts. Certain cuts are constant
+        // across all background levels.
+        clusterEnergyLow = 0.000;
+        seedEnergyLow = 0.100;
+        
+        // Set the variable values.
+        if(backgroundLevel == 1) {
+            clusterEnergyHigh = 1.700;
+            seedEnergyHigh = 1.300;
+            energySumLow = 0.400;
+            energySumHigh = 2.00;
+            energyDifferenceHigh = 1.500;
+            energySlopeLow = 1.0;
+            coplanarityHigh = 40;
+            minHitCount = 2;
+        } else if(backgroundLevel == 2) {
+            clusterEnergyHigh = 1.600;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.300;
+            energySumHigh = 2.00;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.8;
+            coplanarityHigh = 40;
+            minHitCount = 2;
+        } else if(backgroundLevel == 3) {
+            clusterEnergyHigh = 1.600;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.200;
+            energySumHigh = 2.000;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.7;
+            coplanarityHigh = 40;
+            minHitCount = 2;
+        } else if(backgroundLevel == 4) {
+            clusterEnergyHigh = 1.500;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.500;
+            energySumHigh = 1.950;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.6;
+            coplanarityHigh = 40;
+            minHitCount = 2;
+        } else if(backgroundLevel == 5) {
+            clusterEnergyHigh = 1.500;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.400;
+            energySumHigh = 2.000;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.6;
+            coplanarityHigh = 45;
+            minHitCount = 2;
+        } else if(backgroundLevel == 6) {
+            clusterEnergyHigh = 1.500;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.200;
+            energySumHigh = 1.950;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.6;
+            coplanarityHigh = 55;
+            minHitCount = 2;
+        } else if(backgroundLevel == 7) {
+            clusterEnergyHigh = 1.700;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.200;
+            energySumHigh = 2.000;
+            energyDifferenceHigh = 1.500;
+            energySlopeLow = 0.6;
+            coplanarityHigh = 60;
+            minHitCount = 2;
+        } else if(backgroundLevel == 8) {
+            clusterEnergyHigh = 1.700;
+            seedEnergyHigh = 1.300;
+            energySumLow = 0.200;
+            energySumHigh = 2.000;
+            energyDifferenceHigh = 1.500;
+            energySlopeLow = 0.6;
+            coplanarityHigh = 65;
+            minHitCount = 2;
+        } else if(backgroundLevel == 9) {
+            clusterEnergyHigh = 1.500;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.400;
+            energySumHigh = 1.950;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.5;
+            coplanarityHigh = 60;
+            minHitCount = 2;
+        } else if(backgroundLevel == 10) {
+            clusterEnergyHigh = 1.500;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.400;
+            energySumHigh = 2.000;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.5;
+            coplanarityHigh = 65;
+            minHitCount = 2;
+        }
     }
     
-	/**
-	 * Tests all of the current cluster pairs for triggers.
-	 * 
-	 * @return Returns <code>true</code> if one of the cluster pairs
-	 * passes all of the cluster cuts and <code>false</code> otherwise.
-	 */
+    /**
+     * Tests all of the current cluster pairs for triggers.
+     * 
+     * @return Returns <code>true</code> if one of the cluster pairs
+     * passes all of the cluster cuts and <code>false</code> otherwise.
+     */
     private boolean testTrigger() {
-    	// Get the list of cluster pairs.
-    	List<Cluster[]> clusterPairs = getClusterPairsTopBot();
+        // Get the list of cluster pairs.
+        List<Cluster[]> clusterPairs = getClusterPairsTopBot();
         
         // Iterate over the cluster pairs and perform each of the cluster
         // pair cuts on them. A cluster pair that passes all of the
         // cuts registers as a trigger.
-    	pairLoop:
+        pairLoop:
         for (Cluster[] clusterPair : clusterPairs) {
-    		// Increment the number of processed cluster pairs.
-    		allPairs++;
-    		
-    		// ==== Pair Energy Sum Cut ====================================
-    		// =============================================================
-    		// If the cluster fails the cut, skip to the next pair.
-    		if(!pairEnergySumCut(clusterPair)) { continue pairLoop; }
-    		
-    		// Otherwise, note that it passed the cut.
-    		pairEnergySumCount++;
-        	
-    		// ==== Pair Energy Difference Cut =============================
-    		// =============================================================
-    		// If the cluster fails the cut, skip to the next pair.
-    		if(!pairEnergyDifferenceCut(clusterPair)) { continue pairLoop; }
-    		
-    		// Otherwise, note that it passed the cut.
-    		pairEnergyDifferenceCount++;
-    		
-    		// ==== Pair Energy Slope Cut ==================================
-    		// =============================================================
-    		// If the cluster fails the cut, skip to the next pair.
-    		//if(!energyDistanceCut(clusterPair)) { continue pairLoop; }
-    		if(!pairEnergySlopeCut(clusterPair)) { continue pairLoop; }
-    		
-    		// Otherwise, note that it passed the cut.
-    		pairEnergySlopeCount++;
-    		
-    		// ==== Pair Coplanarity Cut ===================================
-    		// =============================================================
-    		// If the cluster fails the cut, skip to the next pair.
-    		if(!pairCoplanarityCut(clusterPair)) { continue pairLoop; }
-    		
-    		// Otherwise, note that it passed the cut.
-    		pairCoplanarityCount++;
-    		
-    		// Clusters that pass all of the pair cuts produce a trigger.
-    		return true;
+            // Increment the number of processed cluster pairs.
+            allPairs++;
+            
+            // ==== Pair Energy Sum Cut ====================================
+            // =============================================================
+            // If the cluster fails the cut, skip to the next pair.
+            if(!pairEnergySumCut(clusterPair)) { continue pairLoop; }
+            
+            // Otherwise, note that it passed the cut.
+            pairEnergySumCount++;
+            
+            // ==== Pair Energy Difference Cut =============================
+            // =============================================================
+            // If the cluster fails the cut, skip to the next pair.
+            if(!pairEnergyDifferenceCut(clusterPair)) { continue pairLoop; }
+            
+            // Otherwise, note that it passed the cut.
+            pairEnergyDifferenceCount++;
+            
+            // ==== Pair Energy Slope Cut ==================================
+            // =============================================================
+            // If the cluster fails the cut, skip to the next pair.
+            //if(!energyDistanceCut(clusterPair)) { continue pairLoop; }
+            if(!pairEnergySlopeCut(clusterPair)) { continue pairLoop; }
+            
+            // Otherwise, note that it passed the cut.
+            pairEnergySlopeCount++;
+            
+            // ==== Pair Coplanarity Cut ===================================
+            // =============================================================
+            // If the cluster fails the cut, skip to the next pair.
+            if(!pairCoplanarityCut(clusterPair)) { continue pairLoop; }
+            
+            // Otherwise, note that it passed the cut.
+            pairCoplanarityCount++;
+            
+            // Clusters that pass all of the pair cuts produce a trigger.
+            return true;
         }
         
         // If the loop terminates without producing a trigger, there
-    	// are no cluster pairs which meet the trigger conditions.
+        // are no cluster pairs which meet the trigger conditions.
         return false;
     }
     
@@ -761,14 +761,14 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param clusterList - The clusters to add to the queues.
      */
     private void updateClusterQueues(List<Cluster> clusterList) {
-    	// Create lists to store the top and bottom clusters.
+        // Create lists to store the top and bottom clusters.
         ArrayList<Cluster> topClusterList = new ArrayList<Cluster>();
         ArrayList<Cluster> botClusterList = new ArrayList<Cluster>();
         
         // Loop over the clusters in the cluster list.
         for (Cluster cluster : clusterList) {
-        	// If the cluster is on the top of the calorimeter, it
-        	// goes into the top cluster list.
+            // If the cluster is on the top of the calorimeter, it
+            // goes into the top cluster list.
             if (cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") > 0) {
                 topClusterList.add(cluster);
             }

@@ -9,21 +9,21 @@ import org.lcsim.detector.converter.heprep.DetectorElementToHepRepConverter;
 
 public class HPSTestRunTracker2014 extends AbstractTracker {
 
-	public HPSTestRunTracker2014(Element node) throws JDOMException 
-	{
-		super(node);
-	}
+    public HPSTestRunTracker2014(Element node) throws JDOMException 
+    {
+        super(node);
+    }
 
-	public void appendHepRep(HepRepFactory factory, HepRep heprep) 
-	{
+    public void appendHepRep(HepRepFactory factory, HepRep heprep) 
+    {
         DetectorElementToHepRepConverter.convert(getDetectorElement(), factory, heprep, -1, false, getVisAttributes().getColor());
-	}
-	
-	public boolean isEndcap() {
-		return false;
-	}
-	
-	public boolean isBarrel() {
-		return true;
-	}
+    }
+    
+    public boolean isEndcap() {
+        return false;
+    }
+    
+    public boolean isBarrel() {
+        return true;
+    }
 }

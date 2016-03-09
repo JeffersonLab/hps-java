@@ -23,7 +23,7 @@ public final class EcalHit {
      * @param energy - The raw energy of the hit.
      **/
     public EcalHit(int ix, int iy, double energy) {
-    	this(new Point(ix, iy), energy);
+        this(new Point(ix, iy), energy);
     }
     
     /**
@@ -32,7 +32,7 @@ public final class EcalHit {
      * @param energy - The raw energy of the hit.
      **/
     public EcalHit(Point ixy, double energy) {
-    	loc = ixy;
+        loc = ixy;
         this.energy = energy;
     }
     
@@ -44,7 +44,7 @@ public final class EcalHit {
      * @param time - The time-stamp for the hit.
      **/
     public EcalHit(int ix, int iy, double energy, double time) {
-    	this(new Point(ix, iy), energy, time);
+        this(new Point(ix, iy), energy, time);
     }
     
     /**
@@ -54,7 +54,7 @@ public final class EcalHit {
      * @param time - The time-stamp for the hit.
      **/
     public EcalHit(Point ixy, double energy, double time) {
-    	loc = ixy;
+        loc = ixy;
         this.energy = energy;
         this.time = time;
     }

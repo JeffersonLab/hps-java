@@ -49,15 +49,15 @@ import org.lcsim.util.aida.AIDA;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class EcalClusterPlots extends Driver {
-	// Internal variables.
+    // Internal variables.
     private boolean hide = false;
     private boolean logScale = false;
-	private AIDA aida = AIDA.defaultInstance();
+    private AIDA aida = AIDA.defaultInstance();
     private double maxE = 5000 * EcalUtils.MeV;
-	private IPlotter[] plotter = new IPlotter[4];
-	private String clusterCollectionName = "EcalClusters";
-	
-	// Monitoring plot variables.
+    private IPlotter[] plotter = new IPlotter[4];
+    private String clusterCollectionName = "EcalClusters";
+    
+    // Monitoring plot variables.
     private IHistogram1D clusterCountPlot;
     private IHistogram1D clusterSizePlot;
     private IHistogram1D clusterEnergyPlot;
@@ -79,7 +79,7 @@ public class EcalClusterPlots extends Driver {
     private static final int TAB_CLUSTER_TIME = 2;
     private static final int TAB_CLUSTER_PAIR = 3;
     private static final String[] TAB_NAMES = { "Cluster Count Plots", "Cluster Energy Plots",
-    	"Cluster Time Plots", "Cluster Pair Plots" };
+        "Cluster Time Plots", "Cluster Pair Plots" };
     
     /**
      * Resets all of the plots for the new detector.
@@ -110,10 +110,10 @@ public class EcalClusterPlots extends Driver {
         
         // Apply formatting that is constant across all tabs.
         for(int tabIndex = 0; tabIndex < plotter.length; tabIndex++) {
-        	plotter[tabIndex] = plotterFactory.create(TAB_NAMES[tabIndex]);
-        	plotter[tabIndex].setTitle(TAB_NAMES[tabIndex]);
-        	plotter[tabIndex].style().dataStyle().errorBarStyle().setVisible(false);
-        	plotter[tabIndex].style().dataStyle().fillStyle().setParameter("showZeroHeightBins", Boolean.FALSE.toString());
+            plotter[tabIndex] = plotterFactory.create(TAB_NAMES[tabIndex]);
+            plotter[tabIndex].setTitle(TAB_NAMES[tabIndex]);
+            plotter[tabIndex].style().dataStyle().errorBarStyle().setVisible(false);
+            plotter[tabIndex].style().dataStyle().fillStyle().setParameter("showZeroHeightBins", Boolean.FALSE.toString());
             if(logScale) { plotter[tabIndex].style().yAxisStyle().setParameter("scale", "log"); }
         }
         
@@ -145,9 +145,9 @@ public class EcalClusterPlots extends Driver {
         
         // If they should not be hidden, display the tabs.
         if(!hide) {
-        	for(IPlotter tab : plotter) {
-        		tab.show();
-        	}
+            for(IPlotter tab : plotter) {
+                tab.show();
+            }
         }
     }
     
@@ -157,121 +157,121 @@ public class EcalClusterPlots extends Driver {
      */
     @Override
     public void process(EventHeader event) {
-    	// Check whether the event has clusters or not.
-    	if(event.hasCollection(Cluster.class, clusterCollectionName)) {
-    		// Get the list of clusters.
-    		List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
-    		
-    		// Create lists to store the clusters from the top of the
-    		// calorimeter and the bottom.
-    		List<Cluster> topList = new ArrayList<Cluster>();
-    		List<Cluster> bottomList = new ArrayList<Cluster>();
-    		
-    		// Track the highest energy cluster in the event.
-    		double maxEnergy = 0.0;
-    		
-    		// Process each of the clusters.
-    		for(Cluster cluster : clusterList) {
-    			// If this cluster has a higher energy then was seen
-    			// previously, it is now the highest energy cluster.
-				if (cluster.getEnergy() > maxEnergy) {
-					maxEnergy = cluster.getEnergy();
-				}
-				
-				
-				// Get the list of calorimeter hits and its size.
-				List<CalorimeterHit> hitList = cluster.getCalorimeterHits();
-				int hitCount = hitList.size();
-				
-				// Track cluster statistics.
-				double xEnergyWeight = 0.0;
-				double yEnergyWeight = 0.0;
-				double[] hitTimes = new double[hitCount];
-				double totalHitEnergy = 0.0;
-				
-				// Iterate over the hits and extract statistics from them.
-				for(int hitIndex = 0; hitIndex < hitCount; hitIndex++) {
-					hitTimes[hitIndex] = hitList.get(hitIndex).getTime();
-					totalHitEnergy += hitList.get(hitIndex).getRawEnergy();
-					xEnergyWeight += (hitList.get(hitIndex).getRawEnergy() * hitList.get(hitIndex).getIdentifierFieldValue("ix"));
-					yEnergyWeight += (hitList.get(hitIndex).getRawEnergy() * hitList.get(hitIndex).getIdentifierFieldValue("iy"));
-				}
-				
-				// If the cluster energy exceeds zero, plot the cluster
-				// statistics.
-				if(cluster.getEnergy() > 0) {
-					clusterSizePlot.fill(hitCount);
-					clusterTimes.fill(StatUtils.mean(hitTimes, 0, hitCount));
-					clusterTimeSigma.fill(Math.sqrt(StatUtils.variance(hitTimes, 0, hitCount)));
-					edgePlot.fill(xEnergyWeight / totalHitEnergy, yEnergyWeight / totalHitEnergy);
-				}
-				
-				// Fill the single cluster plots.
-				clusterEnergyPlot.fill(cluster.getEnergy());
-				
-    			// Cluster pairs are formed from all top/bottom cluster
-    			// combinations. To create these pairs, separate the
-    			// clusters into two lists based on their y-indices.
-    			if(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix") > 0) {
-    				topList.add(cluster);
-    			} else {
-    				bottomList.add(cluster);
-    			}
-    		}
-    		
-    		// Populate the event plots.
-    		clusterCountPlot.fill(clusterList.size());
-    		if(maxEnergy > 0) { clusterMaxEnergyPlot.fill(maxEnergy); }
-    		
-    		// Create a list to store cluster pairs.
-    		List<Cluster[]> pairList = new ArrayList<Cluster[]>(topList.size() * bottomList.size());
-    		
-    		// Form pairs from all possible combinations of clusters
-    		// from the top and bottom lists.
-    		for(Cluster topCluster : topList) {
-    			for(Cluster bottomCluster : bottomList) {
-    				// Make a cluster pair array.
-    				Cluster[] pair = new Cluster[2];
-    				
-    				// The lower energy cluster goes in the second slot.
-    				if(topCluster.getEnergy() > bottomCluster.getEnergy()) {
-    					pair[0] = topCluster;
-    					pair[1] = bottomCluster;
-    				} else {
-    					pair[0] = bottomCluster;
-    					pair[1] = topCluster;
-    				}
-    				
-    				// Add the pair to the pair list.
-    				pairList.add(pair);
-    			}
-    		}
-    		
-    		// Iterate over each pair and calculate the pair cut values.
-    		for(Cluster[] pair : pairList) {
-    			// Get the energy slope value.
-    			double energySumValue = TriggerModule.getValueEnergySum(pair);
-    			double energyDifferenceValue = TriggerModule.getValueEnergyDifference(pair);
-    			double energySlopeValue = TriggerModule.getValueEnergySlope(pair, 0.005500);
-    			double coplanarityValue = TriggerModule.getValueCoplanarity(pair);
-    			double xMean = ((pair[0].getEnergy() * pair[0].getPosition()[0]) +
-    					(pair[1].getEnergy() * pair[1].getPosition()[0])) / energySumValue;
-    			double yMean = ((pair[0].getEnergy() * pair[0].getPosition()[1]) +
-    					(pair[1].getEnergy() * pair[1].getPosition()[1])) / energySumValue;
-    			
-    			// Populate the cluster pair plots.
-    			pairEnergySum.fill(energySumValue, 1);;
-    			pairEnergyDifference.fill(energyDifferenceValue, 1);
-    			pairEnergySlope.fill(energySlopeValue, 1);
-    			pairCoplanarity.fill(coplanarityValue, 1);
-    			pairEnergyPositionMeanX.fill(xMean);
-    			pairEnergyPositionMeanY.fill(yMean);
-    		}
-    	}
-    	
-    	// If the event does not contain clusters, update the "Event
-    	// Clusters" plot accordingly.
-    	else { clusterCountPlot.fill(0); }
+        // Check whether the event has clusters or not.
+        if(event.hasCollection(Cluster.class, clusterCollectionName)) {
+            // Get the list of clusters.
+            List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
+            
+            // Create lists to store the clusters from the top of the
+            // calorimeter and the bottom.
+            List<Cluster> topList = new ArrayList<Cluster>();
+            List<Cluster> bottomList = new ArrayList<Cluster>();
+            
+            // Track the highest energy cluster in the event.
+            double maxEnergy = 0.0;
+            
+            // Process each of the clusters.
+            for(Cluster cluster : clusterList) {
+                // If this cluster has a higher energy then was seen
+                // previously, it is now the highest energy cluster.
+                if (cluster.getEnergy() > maxEnergy) {
+                    maxEnergy = cluster.getEnergy();
+                }
+                
+                
+                // Get the list of calorimeter hits and its size.
+                List<CalorimeterHit> hitList = cluster.getCalorimeterHits();
+                int hitCount = hitList.size();
+                
+                // Track cluster statistics.
+                double xEnergyWeight = 0.0;
+                double yEnergyWeight = 0.0;
+                double[] hitTimes = new double[hitCount];
+                double totalHitEnergy = 0.0;
+                
+                // Iterate over the hits and extract statistics from them.
+                for(int hitIndex = 0; hitIndex < hitCount; hitIndex++) {
+                    hitTimes[hitIndex] = hitList.get(hitIndex).getTime();
+                    totalHitEnergy += hitList.get(hitIndex).getRawEnergy();
+                    xEnergyWeight += (hitList.get(hitIndex).getRawEnergy() * hitList.get(hitIndex).getIdentifierFieldValue("ix"));
+                    yEnergyWeight += (hitList.get(hitIndex).getRawEnergy() * hitList.get(hitIndex).getIdentifierFieldValue("iy"));
+                }
+                
+                // If the cluster energy exceeds zero, plot the cluster
+                // statistics.
+                if(cluster.getEnergy() > 0) {
+                    clusterSizePlot.fill(hitCount);
+                    clusterTimes.fill(StatUtils.mean(hitTimes, 0, hitCount));
+                    clusterTimeSigma.fill(Math.sqrt(StatUtils.variance(hitTimes, 0, hitCount)));
+                    edgePlot.fill(xEnergyWeight / totalHitEnergy, yEnergyWeight / totalHitEnergy);
+                }
+                
+                // Fill the single cluster plots.
+                clusterEnergyPlot.fill(cluster.getEnergy());
+                
+                // Cluster pairs are formed from all top/bottom cluster
+                // combinations. To create these pairs, separate the
+                // clusters into two lists based on their y-indices.
+                if(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix") > 0) {
+                    topList.add(cluster);
+                } else {
+                    bottomList.add(cluster);
+                }
+            }
+            
+            // Populate the event plots.
+            clusterCountPlot.fill(clusterList.size());
+            if(maxEnergy > 0) { clusterMaxEnergyPlot.fill(maxEnergy); }
+            
+            // Create a list to store cluster pairs.
+            List<Cluster[]> pairList = new ArrayList<Cluster[]>(topList.size() * bottomList.size());
+            
+            // Form pairs from all possible combinations of clusters
+            // from the top and bottom lists.
+            for(Cluster topCluster : topList) {
+                for(Cluster bottomCluster : bottomList) {
+                    // Make a cluster pair array.
+                    Cluster[] pair = new Cluster[2];
+                    
+                    // The lower energy cluster goes in the second slot.
+                    if(topCluster.getEnergy() > bottomCluster.getEnergy()) {
+                        pair[0] = topCluster;
+                        pair[1] = bottomCluster;
+                    } else {
+                        pair[0] = bottomCluster;
+                        pair[1] = topCluster;
+                    }
+                    
+                    // Add the pair to the pair list.
+                    pairList.add(pair);
+                }
+            }
+            
+            // Iterate over each pair and calculate the pair cut values.
+            for(Cluster[] pair : pairList) {
+                // Get the energy slope value.
+                double energySumValue = TriggerModule.getValueEnergySum(pair);
+                double energyDifferenceValue = TriggerModule.getValueEnergyDifference(pair);
+                double energySlopeValue = TriggerModule.getValueEnergySlope(pair, 0.005500);
+                double coplanarityValue = TriggerModule.getValueCoplanarity(pair);
+                double xMean = ((pair[0].getEnergy() * pair[0].getPosition()[0]) +
+                        (pair[1].getEnergy() * pair[1].getPosition()[0])) / energySumValue;
+                double yMean = ((pair[0].getEnergy() * pair[0].getPosition()[1]) +
+                        (pair[1].getEnergy() * pair[1].getPosition()[1])) / energySumValue;
+                
+                // Populate the cluster pair plots.
+                pairEnergySum.fill(energySumValue, 1);;
+                pairEnergyDifference.fill(energyDifferenceValue, 1);
+                pairEnergySlope.fill(energySlopeValue, 1);
+                pairCoplanarity.fill(coplanarityValue, 1);
+                pairEnergyPositionMeanX.fill(xMean);
+                pairEnergyPositionMeanY.fill(yMean);
+            }
+        }
+        
+        // If the event does not contain clusters, update the "Event
+        // Clusters" plot accordingly.
+        else { clusterCountPlot.fill(0); }
     }
     
     /**

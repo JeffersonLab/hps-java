@@ -118,7 +118,7 @@ public class HpsGblFitter {
         // Store the projection from local to measurement frame for each strip cluster
         // need to use pointer for TMatrix here?
 //        Map<Integer, Matrix> proL2m_list = new HashMap<Integer, Matrix>();
-        // Save the association between strip cluster and label	
+        // Save the association between strip cluster and label 
 //        Map<HelicalTrackStrip, Integer> stripLabelMap = new HashMap<HelicalTrackStrip, Integer>();
         //start trajectory at refence point (s=0) - this point has no measurement
         GblPoint ref_point = new GblPoint(jacPointToPoint);
@@ -253,7 +253,7 @@ public class HpsGblFitter {
             BasicMatrix meas = new BasicMatrix(1, 2);
             meas.setElement(0, 0, res_meas.x());
             meas.setElement(0, 1, 0.);
-//			    //meas[0][0] += deltaU[iLayer] # misalignment
+//              //meas[0][0] += deltaU[iLayer] # misalignment
 
             BasicMatrix measErr = new BasicMatrix(1, 2);
             measErr.setElement(0, 0, res_err_meas.x());
@@ -411,7 +411,7 @@ public class HpsGblFitter {
         //double diff = endTime - startTime;
         //double cps = CLOCKS_PER_SEC;
         //if( m_debug ) {
-        //	std::cout << "HpsGblFitter: " << " Time elapsed " << diff / cps << " s" << std::endl;
+        //  std::cout << "HpsGblFitter: " << " Time elapsed " << diff / cps << " s" << std::endl;
         //}
         if (_debug) {
             System.out.printf("%s:  Fit() done successfully.\n", this.getClass().getSimpleName());

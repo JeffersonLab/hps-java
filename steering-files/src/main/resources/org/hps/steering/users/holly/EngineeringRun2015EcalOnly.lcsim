@@ -94,9 +94,9 @@
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
-        	<inputCollectionName>EcalClusters</inputCollectionName>
-    		<outputCollectionName>EcalClustersCopy</outputCollectionName>
-    		<storeHits>false</storeHits>
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCopy</outputCollectionName>
+            <storeHits>false</storeHits>
         </driver>
         <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
             <logLevel>WARNING</logLevel>

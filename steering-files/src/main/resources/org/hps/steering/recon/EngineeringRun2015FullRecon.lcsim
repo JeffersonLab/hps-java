@@ -7,8 +7,8 @@
       @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
     -->
     <execute>
-    	<!--RF driver-->
-    	<driver name="RfFitter"/>
+        <!--RF driver-->
+        <driver name="RfFitter"/>
  
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/>

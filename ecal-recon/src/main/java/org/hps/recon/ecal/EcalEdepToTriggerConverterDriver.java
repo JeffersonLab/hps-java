@@ -29,11 +29,11 @@ import org.lcsim.util.Driver;
  * @author Holly Szumila <hvanc001@odu.edu>
  */
 public class EcalEdepToTriggerConverterDriver extends Driver {
-	
+    
     private EcalConditions ecalConditions = null;
     
     private static final boolean isBadChannelLoaded = true;
-	
+    
     private final String ecalReadoutName = "EcalHits";
     private String inputCollection = "EcalHits";
     private String readoutCollection = "EcalCalHits";
@@ -94,7 +94,7 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
-    	
+        
         // ECAL combined conditions object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
                 
@@ -104,7 +104,7 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
     public boolean isBadCrystal(CalorimeterHit hit) {
         // Get the channel data.
         EcalChannelConstants channelData = findChannel(hit.getCellID());
-    	
+        
         return isBadChannelLoaded ? channelData.isBadChannel() : false;
     }
 
@@ -165,8 +165,8 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
 //        System.out.format("trigger: %f %f\n", amplitude, triggerIntegral);
 
         int truncatedIntegral = (int) Math.floor(triggerIntegral / truncateScale);
-        if (truncatedIntegral > 0) {        	
-        	return CalorimeterHitUtilities.create(truncatedIntegral, hit.getTime(), hit.getCellID());
+        if (truncatedIntegral > 0) {            
+            return CalorimeterHitUtilities.create(truncatedIntegral, hit.getTime(), hit.getCellID());
         }
         return null;
     }

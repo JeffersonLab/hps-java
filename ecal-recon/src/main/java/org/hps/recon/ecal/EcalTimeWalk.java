@@ -39,11 +39,11 @@ public final class EcalTimeWalk {
      * Time walk parameters for pulse fitting
      */
     private static final double[] par = {
-    	0.9509,
-    	-33.21,
-    	0.2614,
-    	-0.9128,
-    	0.6251
+        0.9509,
+        -33.21,
+        0.2614,
+        -0.9128,
+        0.6251
    };
     
     /**
@@ -53,9 +53,9 @@ public final class EcalTimeWalk {
      * @return corrected time (ns)
      */
     public static final double correctTimeWalkPulseFitting(double time, double energy) {
-    	final double polyA = par[0] + par[1]*energy;
-    	final double polyB = par[2] + par[3] * energy + par[4] * Math.pow(energy, 2);
-    	return time - (Math.exp(polyA) + polyB);
+        final double polyA = par[0] + par[1]*energy;
+        final double polyB = par[2] + par[3] * energy + par[4] * Math.pow(energy, 2);
+        return time - (Math.exp(polyA) + polyB);
     }
     
     

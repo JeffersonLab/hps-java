@@ -5,10 +5,10 @@
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-<!--		<driver name="EventMarkerDriver"/>-->
+<!--        <driver name="EventMarkerDriver"/>-->
         <driver name="EcalClusterer" />
         <driver name="EcalTrigger" />
-<!--		<driver name="MCParticlePlots"/>-->
+<!--        <driver name="MCParticlePlots"/>-->
         <driver name="AidaSaveDriver" />
         <driver name="ClockDriver" />
     </execute>

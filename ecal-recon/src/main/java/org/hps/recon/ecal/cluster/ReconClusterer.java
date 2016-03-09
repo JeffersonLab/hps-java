@@ -289,7 +289,7 @@ public class ReconClusterer extends AbstractClusterer {
                 // If the neighboring crystal exists and is not already
                 // in a cluster, add it to the list of neighboring hits.
                 if (secondaryNeighborHit != null && !hitToSeed.containsKey(secondaryNeighborHit)
-                		&& hitList.contains(secondaryNeighborHit)) {
+                        && hitList.contains(secondaryNeighborHit)) {
                     secondaryNeighborHits.add(secondaryNeighborHit);
                 }
             }
@@ -325,7 +325,7 @@ public class ReconClusterer extends AbstractClusterer {
                 // If it exists, add it to the neighboring hit list.
 
                 if (clusteredNeighborHit != null && hitToSeed.get(clusteredNeighborHit) != null
-                		&& hitList.contains(clusteredNeighborHit)) {
+                        && hitList.contains(clusteredNeighborHit)) {
                     clusteredNeighborHits.add(clusteredNeighborHit);
                 }
             }
@@ -383,32 +383,32 @@ public class ReconClusterer extends AbstractClusterer {
             
             // Consider time cut-is this hit in same time window as seed?
             if (useTimeCut){
-            	if(Math.abs(ihit.getTime() - iseed.getTime()) < timeWindow)
-            	{	
-            		icluster.addHit(ihit);
-            	}
+                if(Math.abs(ihit.getTime() - iseed.getTime()) < timeWindow)
+                {   
+                    icluster.addHit(ihit);
+                }
             } // end of using time cut
             else {icluster.addHit(ihit);}           
         }
 
         // Add common hits
         for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> commHit : commonHits.entrySet()) {
-        	// Check that the common hit is in both time windows to their clusters
-        	CalorimeterHit seedA = commHit.getValue().get(0);
+            // Check that the common hit is in both time windows to their clusters
+            CalorimeterHit seedA = commHit.getValue().get(0);
             CalorimeterHit seedB = commHit.getValue().get(1);
-        	
+            
             boolean inTimeWithA = false;
             boolean inTimeWithB = false;
-        	// In time window with seedA?
+            // In time window with seedA?
             if (Math.abs(commHit.getKey().getTime() - seedA.getTime()) < timeWindow){
-            	inTimeWithA = true;
+                inTimeWithA = true;
             }
             
             // In time window with seedB?
             if (Math.abs(commHit.getKey().getTime() - seedB.getTime()) < timeWindow){
-            	inTimeWithB = true;
+                inTimeWithB = true;
             }
-                    	
+                        
             double eclusterA = seedToCluster.get(seedA).getEnergy();
             double eclusterB = seedToCluster.get(seedB).getEnergy();
             double fractionA = eclusterA / (eclusterA + eclusterB);
@@ -420,25 +420,25 @@ public class ReconClusterer extends AbstractClusterer {
             BaseCluster clusterB = seedToCluster.get(seedB);
 
             if (useTimeCut){
-            	// Do this if the hit is in both cluster's windows
-            	if (inTimeWithA && inTimeWithB){
-            		clusterA.addHit(commHit.getKey(), hitcontributionA);
-            		clusterB.addHit(commHit.getKey(), hitcontributionB);
-            	}
+                // Do this if the hit is in both cluster's windows
+                if (inTimeWithA && inTimeWithB){
+                    clusterA.addHit(commHit.getKey(), hitcontributionA);
+                    clusterB.addHit(commHit.getKey(), hitcontributionB);
+                }
             
-            	//If the hit is only in 1 cluster's window, add the full contribution
-            	else if(inTimeWithA ^ inTimeWithB){
-            		if(inTimeWithA){
-            			clusterA.addHit(commHit.getKey());
-            		}
-            		else{
-            			clusterB.addHit(commHit.getKey());
-            		}
-            	}
+                //If the hit is only in 1 cluster's window, add the full contribution
+                else if(inTimeWithA ^ inTimeWithB){
+                    if(inTimeWithA){
+                        clusterA.addHit(commHit.getKey());
+                    }
+                    else{
+                        clusterB.addHit(commHit.getKey());
+                    }
+                }
             } // end of using time cut
             else{
-            	clusterA.addHit(commHit.getKey(), hitcontributionA);
-        		clusterB.addHit(commHit.getKey(), hitcontributionB);           	
+                clusterA.addHit(commHit.getKey(), hitcontributionA);
+                clusterB.addHit(commHit.getKey(), hitcontributionB);            
             }
             
         }

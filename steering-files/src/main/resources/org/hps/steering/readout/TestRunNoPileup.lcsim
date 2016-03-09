@@ -39,7 +39,7 @@
             <clusterCollectionName>EcalTriggerClusters</clusterCollectionName>
             <deadTime>0</deadTime>
             <lcioFile>${outputFile}.slcio</lcioFile>
-        </driver>	
+        </driver>   
         <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
     </drivers>

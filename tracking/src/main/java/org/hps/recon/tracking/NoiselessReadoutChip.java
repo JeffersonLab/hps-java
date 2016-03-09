@@ -164,8 +164,8 @@ public class NoiselessReadoutChip implements ReadoutChip {
 
         // Loop over the channels contained in the SiElectrodeDataCollection
         for (Integer channel : data.keySet()) {
-        	
-        	if(dropBadChannels && ((HpsSiSensor) electrodes.getDetectorElement()).isBadChannel(channel)){
+            
+            if(dropBadChannels && ((HpsSiSensor) electrodes.getDetectorElement()).isBadChannel(channel)){
             //===> if (dropBadChannels && HPSSVTCalibrationConstants.isBadChannel((SiSensor) electrodes.getDetectorElement(), channel)) {
                 // System.out.format("%d bad\n", channel);
                 continue;

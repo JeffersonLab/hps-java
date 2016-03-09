@@ -14,29 +14,29 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-/**	 
+/**  
  * Check tracking geometry.
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  */
 public class TrackingGeometryChecker extends Driver {
 
-	private int debug = 1;
+    private int debug = 1;
 
-	/**
-	 * Check tracking geometry.
-	 */
-	public TrackingGeometryChecker() {
-	}
-	
-	protected void detectorChanged(Detector arg0) {
-		super.detectorChanged(arg0);
-		
-		 // Get all of the sensors composing the SVT and add them to the set of all sensors
+    /**
+     * Check tracking geometry.
+     */
+    public TrackingGeometryChecker() {
+    }
+    
+    protected void detectorChanged(Detector arg0) {
+        super.detectorChanged(arg0);
+        
+         // Get all of the sensors composing the SVT and add them to the set of all sensors
         IDetectorElement detectorElement = arg0.getDetectorElement().findDetectorElement("Tracker");
         IIdentifierHelper helper = detectorElement.getIdentifierHelper();
         List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
-		sensors.addAll(detectorElement.findDescendants(HpsSiSensor.class));
+        sensors.addAll(detectorElement.findDescendants(HpsSiSensor.class));
         System.out.printf("%s: Total number of sensors: %d\n",getClass().getSimpleName(), sensors.size());
 
         IIdentifier sensorIdent;
@@ -70,57 +70,57 @@ public class TrackingGeometryChecker extends Driver {
             IDetectorElement m = sensor;
             int im=0;
             while((m=m.getParent()) != null) {
-            	System.out.printf("%s: DE mother %d name %s\n",getClass().getSimpleName(), im, m.getName());
-            	if(m.hasGeometryInfo()) {
-            		System.out.printf("%s: DE mother %d pos  %s\n",getClass().getSimpleName(), im, m.getGeometry().getPosition().toString());
-            	} else {
-            		System.out.printf("%s: DE mother - no geom info - \n",getClass().getSimpleName(), im);            		
-            	}
+                System.out.printf("%s: DE mother %d name %s\n",getClass().getSimpleName(), im, m.getName());
+                if(m.hasGeometryInfo()) {
+                    System.out.printf("%s: DE mother %d pos  %s\n",getClass().getSimpleName(), im, m.getGeometry().getPosition().toString());
+                } else {
+                    System.out.printf("%s: DE mother - no geom info - \n",getClass().getSimpleName(), im);                  
+                }
                 im++;
             }
 
             
         }
-		
-	}
-	
-	protected void startOfData() {
-		super.startOfData();
-	}
-	
-	protected void process(EventHeader event) {
-		
-	    
-//		List<SimTrackerHit> simTrackerHits = event.get(SimTrackerHit.class, "TrackerHits");
+        
+    }
+    
+    protected void startOfData() {
+        super.startOfData();
+    }
+    
+    protected void process(EventHeader event) {
+        
+        
+//      List<SimTrackerHit> simTrackerHits = event.get(SimTrackerHit.class, "TrackerHits");
 //        if (simTrackerHits == null) {
 //            throw new RuntimeException("Missing SimTrackerHit collection");
 //        }
 //        
 //        if(debug>0) System.out.printf("%s: found %d simTrackerHits\n",getClass().getSimpleName(),simTrackerHits.size());
 //        for(SimTrackerHit simTrackerHit : simTrackerHits) {
-//        	if(debug>0) printSimTrackerHitInfo(simTrackerHit);
+//          if(debug>0) printSimTrackerHitInfo(simTrackerHit);
 //        }
-	}
-	
-	protected void endOfData() {
-		super.endOfData();
-	}
+    }
+    
+    protected void endOfData() {
+        super.endOfData();
+    }
 
-	protected int getDebug() {
-		return debug;
-	}
+    protected int getDebug() {
+        return debug;
+    }
 
-	protected void setDebug(int debug) {
-		this.debug = debug;
-	}
+    protected void setDebug(int debug) {
+        this.debug = debug;
+    }
 
-	private static void printSimTrackerHitInfo(SimTrackerHit simTrackerHit) {
-		System.out.printf("\nSimTrackerHit:\n");
-		System.out.printf("\t position: %s\n",simTrackerHit.getPositionVec().toString());
-		System.out.printf("\t DetectorElement: %s\n",simTrackerHit.getDetectorElement().getName());
-		System.out.printf("\t DetectorElement position: %s\n",simTrackerHit.getDetectorElement().getGeometry().getPosition().toString());
-		System.out.printf("\t PhysVol name at position: %s\n",simTrackerHit.getDetectorElement().getGeometry().getPhysicalVolume(simTrackerHit.getPositionVec()).getName());
-	}
+    private static void printSimTrackerHitInfo(SimTrackerHit simTrackerHit) {
+        System.out.printf("\nSimTrackerHit:\n");
+        System.out.printf("\t position: %s\n",simTrackerHit.getPositionVec().toString());
+        System.out.printf("\t DetectorElement: %s\n",simTrackerHit.getDetectorElement().getName());
+        System.out.printf("\t DetectorElement position: %s\n",simTrackerHit.getDetectorElement().getGeometry().getPosition().toString());
+        System.out.printf("\t PhysVol name at position: %s\n",simTrackerHit.getDetectorElement().getGeometry().getPhysicalVolume(simTrackerHit.getPositionVec()).getName());
+    }
 }
 
 

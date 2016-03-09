@@ -21,11 +21,11 @@
             <eventInterval>1000</eventInterval>
         </driver>       
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-     		<runNumber>0</runNumber>
-    		<freeze>true</freeze>
-    		<detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
-   		 </driver>
-<!--   		 <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
+            <runNumber>0</runNumber>
+            <freeze>true</freeze>
+            <detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
+         </driver>
+<!--         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
             <rejectBackground>true</rejectBackground>
         </driver>-->
@@ -45,7 +45,7 @@
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <use2014Gain>false</use2014Gain>      
-        </driver>	
+        </driver>   
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
@@ -65,4 +65,4 @@
         </driver> 
     </drivers>
 </lcsim>
-	
+    

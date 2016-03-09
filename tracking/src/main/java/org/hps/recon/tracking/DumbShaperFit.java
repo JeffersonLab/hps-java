@@ -34,7 +34,7 @@ public class DumbShaperFit implements ShaperFitAlgorithm {
     }
     
     public Collection<ShapeFitParameters> fitShape(int channel, short[] samples, HpsSiSensor sensor){
-    	
+        
         ShapeFitParameters fitresults = new ShapeFitParameters();
         double[] pedSub = {-99.0, -99.0, -99.0, -99.0, -99.0, -99.0};
         double maxADC = -99999;

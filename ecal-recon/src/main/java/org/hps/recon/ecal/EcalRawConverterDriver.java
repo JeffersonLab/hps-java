@@ -380,8 +380,8 @@ public class EcalRawConverterDriver extends Driver {
      * conditions database.
      */
     public void setUseDAQConfig(boolean state) {
-    	useDAQConfig = state;
-    	converter.setUseDAQConfig(state);
+        useDAQConfig = state;
+        converter.setUseDAQConfig(state);
     }
 
     @Override
@@ -437,12 +437,12 @@ public class EcalRawConverterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-    	// Do not process the event if the DAQ configuration should be
-    	// used for value, but is not initialized.
-    	if(useDAQConfig && !ConfigurationManager.isInitialized()) {
-    		return;
-    	}
-    	
+        // Do not process the event if the DAQ configuration should be
+        // used for value, but is not initialized.
+        if(useDAQConfig && !ConfigurationManager.isInitialized()) {
+            return;
+        }
+        
         final int SYSTEM_TRIGGER = 0;
 //        final int SYSTEM_TRACKER = 1;
         final int SYSTEM_ECAL = 2;

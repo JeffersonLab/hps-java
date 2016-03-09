@@ -18,7 +18,7 @@ import org.lcsim.event.MCParticle;
  */
 public class TwoParticleVertexer extends TwoLineVertexer {
     
-	public TwoParticleVertexer() {
+    public TwoParticleVertexer() {
     }
     public void setParticle(MCParticle track1,MCParticle track2) {
         
@@ -34,8 +34,8 @@ public class TwoParticleVertexer extends TwoLineVertexer {
         Hep3Vector PB2 = this.propAlongLine(PB1, p2, dz);
         
         if(_debug) {
-        	System.out.printf("A1 %s p1 %s B1 %s p2 %s\n", PA1.toString(), p1.toString(), PB1.toString(), p2.toString());
-        	System.out.printf("A2 %s B2 %s\n", PA2.toString(), PB2.toString());
+            System.out.printf("A1 %s p1 %s B1 %s p2 %s\n", PA1.toString(), p1.toString(), PB1.toString(), p2.toString());
+            System.out.printf("A2 %s B2 %s\n", PA2.toString(), PB2.toString());
         }
         
         //set the member variables

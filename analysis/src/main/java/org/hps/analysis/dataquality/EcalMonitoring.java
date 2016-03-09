@@ -102,10 +102,10 @@ public class EcalMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-    	BeamEnergyCollection beamEnergyCollection = 
-			this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-		double beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
-    	//this.getConditionsManager().getCachedConditions(org.hps.conditions.EcalChannelCollection.class, "ecal_channels").
+        BeamEnergyCollection beamEnergyCollection = 
+            this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+        double beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+        //this.getConditionsManager().getCachedConditions(org.hps.conditions.EcalChannelCollection.class, "ecal_channels").
         LOGGER.info("EcalMonitoring::detectorChanged  Setting up the plotter");
         aida.tree().cd("/");
         if (fillHitPlots) {

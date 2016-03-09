@@ -69,8 +69,8 @@ public class GblData
             nExt = extDer.getColumnDimension();
         }
         int nParMax = 5 + nLocal + nExt;
-//	theParameters.reserve(nParMax); // have to be sorted
-//	theDerivatives.reserve(nParMax);
+//  theParameters.reserve(nParMax); // have to be sorted
+//  theDerivatives.reserve(nParMax);
 
         if (derLocal != null) {
             for (int i = 0; i < derLocal.getColumnDimension(); ++i) // local derivatives
@@ -123,8 +123,8 @@ public class GblData
             nExtDer = extDer.getColumnDimension();
         }
         int nParMax = 7 + nExtDer;
-//	theParameters.reserve(nParMax); // have to be sorted
-//	theDerivatives.reserve(nParMax);
+//  theParameters.reserve(nParMax); // have to be sorted
+//  theDerivatives.reserve(nParMax);
 
         if (extDer != null) {
             for (int i = 0; i < extDer.getColumnDimension(); ++i) // external derivatives
@@ -151,14 +151,14 @@ public class GblData
 // * \param [in] derivatives Derivatives (vector)
 // */
 //void addDerivatives(const std::vector<unsigned int> &index,
-//		const std::vector<double> &derivatives) {
-//	for (unsigned int i = 0; i < derivatives.size(); ++i) // any derivatives
-//			{
-//		if (derivatives[i]) {
-//			theParameters.push_back(index[i]);
-//			theDerivatives.push_back(derivatives[i]);
-//		}
-//	}
+//      const std::vector<double> &derivatives) {
+//  for (unsigned int i = 0; i < derivatives.size(); ++i) // any derivatives
+//          {
+//      if (derivatives[i]) {
+//          theParameters.push_back(index[i]);
+//          theDerivatives.push_back(derivatives[i]);
+//      }
+//  }
 //}
 /// Calculate prediction for data from fit (by GblTrajectory::fit).
     void setPrediction(VVector aVector)
@@ -176,27 +176,27 @@ public class GblData
 // */
 //double setDownWeighting(unsigned int aMethod) {
 //
-//	double aWeight = 1.;
-//	double scaledResidual = fabs(theValue - thePrediction) * sqrt(thePrecision);
-//	if (aMethod == 1) // Tukey
-//			{
-//		if (scaledResidual < 4.6851) {
-//			aWeight = (1.0 - 0.045558 * scaledResidual * scaledResidual);
-//			aWeight *= aWeight;
-//		} else {
-//			aWeight = 0.;
-//		}
-//	} else if (aMethod == 2) //Huber
-//			{
-//		if (scaledResidual >= 1.345) {
-//			aWeight = 1.345 / scaledResidual;
-//		}
-//	} else if (aMethod == 3) //Cauchy
-//			{
-//		aWeight = 1.0 / (1.0 + (scaledResidual * scaledResidual / 5.6877));
-//	}
-//	theDownWeight = aWeight;
-//	return aWeight;
+//  double aWeight = 1.;
+//  double scaledResidual = fabs(theValue - thePrediction) * sqrt(thePrecision);
+//  if (aMethod == 1) // Tukey
+//          {
+//      if (scaledResidual < 4.6851) {
+//          aWeight = (1.0 - 0.045558 * scaledResidual * scaledResidual);
+//          aWeight *= aWeight;
+//      } else {
+//          aWeight = 0.;
+//      }
+//  } else if (aMethod == 2) //Huber
+//          {
+//      if (scaledResidual >= 1.345) {
+//          aWeight = 1.345 / scaledResidual;
+//      }
+//  } else if (aMethod == 3) //Cauchy
+//          {
+//      aWeight = 1.0 / (1.0 + (scaledResidual * scaledResidual / 5.6877));
+//  }
+//  theDownWeight = aWeight;
+//  return aWeight;
 //}
 //
 /// Calculate Chi2 contribution.

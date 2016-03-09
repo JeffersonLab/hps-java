@@ -41,7 +41,7 @@ public class DummyEventBuilder implements LCSimEventBuilder {
     public void readEvioEvent(EvioEvent evioEvent) {
     }
 
-	@Override
-	public void conditionsChanged(ConditionsEvent conditionsEvent) {
-	}	
+    @Override
+    public void conditionsChanged(ConditionsEvent conditionsEvent) {
+    }   
 }

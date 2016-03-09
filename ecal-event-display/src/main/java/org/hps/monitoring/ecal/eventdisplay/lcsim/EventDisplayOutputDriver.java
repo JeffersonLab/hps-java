@@ -97,30 +97,30 @@ public class EventDisplayOutputDriver extends Driver {
                 
                 // Only write clusters if the option is selected.
                 if(outputClusters) {
-	                // Process the clusters.
-	                for (org.lcsim.event.Cluster cluster : clusters) {
-	                    // Get the seed hit for the cluster.
-	                    CalorimeterHit seedHit = (CalorimeterHit)cluster.getCalorimeterHits().get(0);
-	                    int ix = seedHit.getIdentifierFieldValue("ix");
-	                    int iy = seedHit.getIdentifierFieldValue("iy");
-	                    double time = seedHit.getTime();
-	                    
-	                    // Get the cluster's total energy.
-	                    double energy = cluster.getEnergy();
-	                    
-	                    // Write the seed hit to start a cluster.
-	                    writer.append(String.format("Cluster\t%d\t%d\t%f\t%f%n", ix, iy, energy, time));
-	                    
-	                    // Write the component hits to the cluster.
-	                    for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
-	                        // Get each component hit's x/y coordinates.
-	                        ix = hit.getIdentifierFieldValue("ix");
-	                        iy = hit.getIdentifierFieldValue("iy");
-	                        
-	                        // Write them as component hits.
-	                        writer.append(String.format("CompHit\t%d\t%d%n", ix, iy));
-	                    }
-	                }
+                    // Process the clusters.
+                    for (org.lcsim.event.Cluster cluster : clusters) {
+                        // Get the seed hit for the cluster.
+                        CalorimeterHit seedHit = (CalorimeterHit)cluster.getCalorimeterHits().get(0);
+                        int ix = seedHit.getIdentifierFieldValue("ix");
+                        int iy = seedHit.getIdentifierFieldValue("iy");
+                        double time = seedHit.getTime();
+                        
+                        // Get the cluster's total energy.
+                        double energy = cluster.getEnergy();
+                        
+                        // Write the seed hit to start a cluster.
+                        writer.append(String.format("Cluster\t%d\t%d\t%f\t%f%n", ix, iy, energy, time));
+                        
+                        // Write the component hits to the cluster.
+                        for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+                            // Get each component hit's x/y coordinates.
+                            ix = hit.getIdentifierFieldValue("ix");
+                            iy = hit.getIdentifierFieldValue("iy");
+                            
+                            // Write them as component hits.
+                            writer.append(String.format("CompHit\t%d\t%d%n", ix, iy));
+                        }
+                    }
                 }
                 
                 // Append the end of event indicator.
@@ -169,7 +169,7 @@ public class EventDisplayOutputDriver extends Driver {
      * indicates that they will be output.
      */
     public void setIgnoreEmptyEvents(boolean ignoreEmptyEvents) {
-    	this.ignoreEmptyEvents = ignoreEmptyEvents;
+        this.ignoreEmptyEvents = ignoreEmptyEvents;
     }
     
     /**
@@ -179,7 +179,7 @@ public class EventDisplayOutputDriver extends Driver {
      * indicates that they will be output.
      */
     public void setIgnoreNoClusterEvents(boolean ignoreNoClusterEvents) {
-    	this.ignoreNoClusterEvents = ignoreNoClusterEvents;
+        this.ignoreNoClusterEvents = ignoreNoClusterEvents;
     }
     
     /**
@@ -196,6 +196,6 @@ public class EventDisplayOutputDriver extends Driver {
      * will be written and <code>false</code> that they will not.
      */
     public void setOutputClusters(boolean outputClusters) {
-    	this.outputClusters = outputClusters;
+        this.outputClusters = outputClusters;
     }
 }

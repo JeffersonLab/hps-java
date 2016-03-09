@@ -15,19 +15,19 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>  
-    	<driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-        	<detectorName>HPS-EngRun2015-Nominal-v1</detectorName>
-         	<runNumber>5772</runNumber>
-        	<freeze>true</freeze>
-    	</driver>  
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <detectorName>HPS-EngRun2015-Nominal-v1</detectorName>
+            <runNumber>5772</runNumber>
+            <freeze>true</freeze>
+        </driver>  
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>            
-        <driver name="FEEFilterDriver" type="org.hps.recon.filtering.FEEFilterDriver">  	
+        <driver name="FEEFilterDriver" type="org.hps.recon.filtering.FEEFilterDriver">      
         </driver>
         <driver name="EcalHitIteration" type="org.hps.recon.ecal.IterateGainFactorDriver">
-        	<inputCollectionName>EcalCalHits</inputCollectionName>
-        	<outputCollectionName>EcalHitsIter1</outputCollectionName>
+            <inputCollectionName>EcalCalHits</inputCollectionName>
+            <outputCollectionName>EcalHitsIter1</outputCollectionName>
             <gainFile>ecalGains.txt</gainFile>
         </driver>       
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
@@ -40,11 +40,11 @@
             <useTimeCut>true</useTimeCut>
         </driver>
         <driver name="FEEPlotter" type="org.hps.analysis.ecal.FEEClusterPlotter">
-        	<inputCollection>EcalClustersIter1</inputCollection>
-        	<outputPlots>yes</outputPlots>
+            <inputCollection>EcalClustersIter1</inputCollection>
+            <outputPlots>yes</outputPlots>
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-        	<ignoreCollections>EcalCalHits EcalClusters</ignoreCollections>
+            <ignoreCollections>EcalCalHits EcalClusters</ignoreCollections>
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">

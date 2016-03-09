@@ -44,8 +44,8 @@ import org.lcsim.event.Cluster;
  * @see SSPCluster
  */
 public final class TriggerModule {
-	/** The calorimeter mid-plane, defined by the photon beam position
-	* (30.52 mrad) at the calorimeter face (z = 1393 mm). */
+    /** The calorimeter mid-plane, defined by the photon beam position
+    * (30.52 mrad) at the calorimeter face (z = 1393 mm). */
     private static final double ORIGIN_X = 1393.0 * Math.tan(0.03052);
     
     /** The value of the parameter "F" in the energy slope equation
@@ -104,23 +104,23 @@ public final class TriggerModule {
      * above zero) will be accepted.
      */
     public TriggerModule() {
-    	// Set the cluster singles cuts to accept all values by default.
-    	cuts.put(CLUSTER_HIT_COUNT_LOW, 0.0);
-    	cuts.put(CLUSTER_SEED_ENERGY_LOW, 0.0);
-    	cuts.put(CLUSTER_SEED_ENERGY_HIGH, Double.MAX_VALUE);
-    	cuts.put(CLUSTER_TOTAL_ENERGY_LOW, 0.0);
-    	cuts.put(CLUSTER_TOTAL_ENERGY_HIGH, Double.MAX_VALUE);
-    	
-    	// Set the cluster pair cuts to accept all values by default.
-    	cuts.put(PAIR_COPLANARITY_HIGH, 180.0);
-    	cuts.put(PAIR_ENERGY_DIFFERENCE_HIGH, Double.MAX_VALUE);
-    	cuts.put(PAIR_ENERGY_SLOPE_LOW, 0.0);
-    	cuts.put(PAIR_ENERGY_SUM_LOW, 0.0);
-    	cuts.put(PAIR_ENERGY_SUM_HIGH, Double.MAX_VALUE);
-    	cuts.put(PAIR_TIME_COINCIDENCE, Double.MAX_VALUE);
-    	
-    	// Set the default value of the energy slope parameter F.
-    	cuts.put(PAIR_ENERGY_SLOPE_F, 0.0055);
+        // Set the cluster singles cuts to accept all values by default.
+        cuts.put(CLUSTER_HIT_COUNT_LOW, 0.0);
+        cuts.put(CLUSTER_SEED_ENERGY_LOW, 0.0);
+        cuts.put(CLUSTER_SEED_ENERGY_HIGH, Double.MAX_VALUE);
+        cuts.put(CLUSTER_TOTAL_ENERGY_LOW, 0.0);
+        cuts.put(CLUSTER_TOTAL_ENERGY_HIGH, Double.MAX_VALUE);
+        
+        // Set the cluster pair cuts to accept all values by default.
+        cuts.put(PAIR_COPLANARITY_HIGH, 180.0);
+        cuts.put(PAIR_ENERGY_DIFFERENCE_HIGH, Double.MAX_VALUE);
+        cuts.put(PAIR_ENERGY_SLOPE_LOW, 0.0);
+        cuts.put(PAIR_ENERGY_SUM_LOW, 0.0);
+        cuts.put(PAIR_ENERGY_SUM_HIGH, Double.MAX_VALUE);
+        cuts.put(PAIR_TIME_COINCIDENCE, Double.MAX_VALUE);
+        
+        // Set the default value of the energy slope parameter F.
+        cuts.put(PAIR_ENERGY_SLOPE_F, 0.0055);
     }
     
     /**
@@ -142,25 +142,25 @@ public final class TriggerModule {
      * </ul>
      */
     public TriggerModule(double... cutValues) {
-    	// Set the cuts to the default values.
-    	this();
-    	
-    	// Define the cuts in the order that they correspond to the
-    	// value arguments.
-    	String[] cutID = { CLUSTER_HIT_COUNT_LOW, CLUSTER_SEED_ENERGY_LOW, CLUSTER_SEED_ENERGY_HIGH,
-    			CLUSTER_TOTAL_ENERGY_LOW, CLUSTER_TOTAL_ENERGY_HIGH, PAIR_ENERGY_SUM_LOW, PAIR_ENERGY_SUM_HIGH,
-    			PAIR_ENERGY_DIFFERENCE_HIGH, PAIR_ENERGY_SLOPE_LOW, PAIR_COPLANARITY_HIGH, PAIR_ENERGY_SLOPE_F };
-    	
-    	// Iterate over the value arguments and assign them to the
-    	// appropriate cut.
-    	for(int i = 0; i < cutValues.length; i++) {
-    		// If more values were given then cuts exist, break from
-    		// the loop.
-    		if(i == 11) { break; }
-    		
-    		// Set the current cut to its corresponding value.
-    		cuts.put(cutID[i], cutValues[i]);
-    	}
+        // Set the cuts to the default values.
+        this();
+        
+        // Define the cuts in the order that they correspond to the
+        // value arguments.
+        String[] cutID = { CLUSTER_HIT_COUNT_LOW, CLUSTER_SEED_ENERGY_LOW, CLUSTER_SEED_ENERGY_HIGH,
+                CLUSTER_TOTAL_ENERGY_LOW, CLUSTER_TOTAL_ENERGY_HIGH, PAIR_ENERGY_SUM_LOW, PAIR_ENERGY_SUM_HIGH,
+                PAIR_ENERGY_DIFFERENCE_HIGH, PAIR_ENERGY_SLOPE_LOW, PAIR_COPLANARITY_HIGH, PAIR_ENERGY_SLOPE_F };
+        
+        // Iterate over the value arguments and assign them to the
+        // appropriate cut.
+        for(int i = 0; i < cutValues.length; i++) {
+            // If more values were given then cuts exist, break from
+            // the loop.
+            if(i == 11) { break; }
+            
+            // Set the current cut to its corresponding value.
+            cuts.put(cutID[i], cutValues[i]);
+        }
     }
     
     /**
@@ -172,14 +172,14 @@ public final class TriggerModule {
      * specified in the argument is not valid.
      */
     public double getCutValue(String cut) throws IllegalArgumentException {
-    	// Try to get the indicated cut.
-    	Double value = cuts.get(cut);
-    	
-    	// If the cut is valid, return it.
-    	if(value != null) { return value.doubleValue(); }
-    	
-    	// Otherwise, produce an exception.
-    	else { throw new IllegalArgumentException(String.format("Cut \"%s\" does not exist.", cut)); }
+        // Try to get the indicated cut.
+        Double value = cuts.get(cut);
+        
+        // If the cut is valid, return it.
+        if(value != null) { return value.doubleValue(); }
+        
+        // Otherwise, produce an exception.
+        else { throw new IllegalArgumentException(String.format("Cut \"%s\" does not exist.", cut)); }
     }
     
     /**
@@ -190,22 +190,22 @@ public final class TriggerModule {
      * @param config - The DAQ configuration settings.
      */
     public void loadDAQConfiguration(SinglesTriggerConfig config) {
-    	// Set the trigger values.
-    	setCutValue(CLUSTER_TOTAL_ENERGY_LOW,  config.getEnergyMinCutConfig().getLowerBound());
-    	setCutValue(CLUSTER_TOTAL_ENERGY_HIGH, config.getEnergyMaxCutConfig().getUpperBound());
-    	setCutValue(CLUSTER_HIT_COUNT_LOW,     config.getHitCountCutConfig().getLowerBound());
-    	
-    	// The remaining triggers should be set to their default values.
-    	// These settings effectively accept all possible clusters.
-    	cuts.put(PAIR_COPLANARITY_HIGH, 180.0);
-    	cuts.put(PAIR_ENERGY_DIFFERENCE_HIGH, Double.MAX_VALUE);
-    	cuts.put(PAIR_ENERGY_SLOPE_LOW, 0.0);
-    	cuts.put(PAIR_ENERGY_SUM_LOW, 0.0);
-    	cuts.put(PAIR_ENERGY_SUM_HIGH, Double.MAX_VALUE);
-    	cuts.put(PAIR_TIME_COINCIDENCE, Double.MAX_VALUE);
-    	
-    	// Set the default value of the energy slope parameter F.
-    	cuts.put(PAIR_ENERGY_SLOPE_F, 0.0055);
+        // Set the trigger values.
+        setCutValue(CLUSTER_TOTAL_ENERGY_LOW,  config.getEnergyMinCutConfig().getLowerBound());
+        setCutValue(CLUSTER_TOTAL_ENERGY_HIGH, config.getEnergyMaxCutConfig().getUpperBound());
+        setCutValue(CLUSTER_HIT_COUNT_LOW,     config.getHitCountCutConfig().getLowerBound());
+        
+        // The remaining triggers should be set to their default values.
+        // These settings effectively accept all possible clusters.
+        cuts.put(PAIR_COPLANARITY_HIGH, 180.0);
+        cuts.put(PAIR_ENERGY_DIFFERENCE_HIGH, Double.MAX_VALUE);
+        cuts.put(PAIR_ENERGY_SLOPE_LOW, 0.0);
+        cuts.put(PAIR_ENERGY_SUM_LOW, 0.0);
+        cuts.put(PAIR_ENERGY_SUM_HIGH, Double.MAX_VALUE);
+        cuts.put(PAIR_TIME_COINCIDENCE, Double.MAX_VALUE);
+        
+        // Set the default value of the energy slope parameter F.
+        cuts.put(PAIR_ENERGY_SLOPE_F, 0.0055);
     }
     
     /**
@@ -215,22 +215,22 @@ public final class TriggerModule {
      * @param config - The DAQ configuration settings.
      */
     public void loadDAQConfiguration(PairTriggerConfig config) {
-    	// Set the trigger values.
-    	setCutValue(CLUSTER_TOTAL_ENERGY_LOW,  config.getEnergyMinCutConfig().getLowerBound());
-    	setCutValue(CLUSTER_TOTAL_ENERGY_HIGH, config.getEnergyMaxCutConfig().getUpperBound());
-    	setCutValue(CLUSTER_HIT_COUNT_LOW,     config.getHitCountCutConfig().getLowerBound());
-    	
-    	// The remaining triggers should be set to their default values.
-    	// These settings effectively accept all possible clusters.
-    	cuts.put(PAIR_COPLANARITY_HIGH, config.getCoplanarityCutConfig().getUpperBound());
-    	cuts.put(PAIR_ENERGY_DIFFERENCE_HIGH, config.getEnergyDifferenceCutConfig().getUpperBound());
-    	cuts.put(PAIR_ENERGY_SLOPE_LOW, config.getEnergySlopeCutConfig().getLowerBound());
-    	cuts.put(PAIR_ENERGY_SUM_LOW, config.getEnergySumCutConfig().getLowerBound());
-    	cuts.put(PAIR_ENERGY_SUM_HIGH, config.getEnergySumCutConfig().getUpperBound());
-    	cuts.put(PAIR_TIME_COINCIDENCE, config.getTimeDifferenceCutConfig().getUpperBound() * 4.0);
-    	
-    	// Set the default value of the energy slope parameter F.
-    	cuts.put(PAIR_ENERGY_SLOPE_F, config.getEnergySlopeCutConfig().getParameterF());
+        // Set the trigger values.
+        setCutValue(CLUSTER_TOTAL_ENERGY_LOW,  config.getEnergyMinCutConfig().getLowerBound());
+        setCutValue(CLUSTER_TOTAL_ENERGY_HIGH, config.getEnergyMaxCutConfig().getUpperBound());
+        setCutValue(CLUSTER_HIT_COUNT_LOW,     config.getHitCountCutConfig().getLowerBound());
+        
+        // The remaining triggers should be set to their default values.
+        // These settings effectively accept all possible clusters.
+        cuts.put(PAIR_COPLANARITY_HIGH, config.getCoplanarityCutConfig().getUpperBound());
+        cuts.put(PAIR_ENERGY_DIFFERENCE_HIGH, config.getEnergyDifferenceCutConfig().getUpperBound());
+        cuts.put(PAIR_ENERGY_SLOPE_LOW, config.getEnergySlopeCutConfig().getLowerBound());
+        cuts.put(PAIR_ENERGY_SUM_LOW, config.getEnergySumCutConfig().getLowerBound());
+        cuts.put(PAIR_ENERGY_SUM_HIGH, config.getEnergySumCutConfig().getUpperBound());
+        cuts.put(PAIR_TIME_COINCIDENCE, config.getTimeDifferenceCutConfig().getUpperBound() * 4.0);
+        
+        // Set the default value of the energy slope parameter F.
+        cuts.put(PAIR_ENERGY_SLOPE_F, config.getEnergySlopeCutConfig().getParameterF());
     }
     
     /**
@@ -244,76 +244,76 @@ public final class TriggerModule {
      * identifier is not valid.
      */
     public void setCutValue(String cut, double value) throws IllegalArgumentException {
-    	// Make sure that the cut exists. If it does, change it to the
-    	// new cut value.
-    	if(cuts.containsKey(cut)) {
-    		cuts.put(cut, value);
-    	}
-    	
-    	// Otherwise, throw an exception.
-    	else { throw new IllegalArgumentException(String.format("Cut \"%s\" does not exist.", cut)); }
+        // Make sure that the cut exists. If it does, change it to the
+        // new cut value.
+        if(cuts.containsKey(cut)) {
+            cuts.put(cut, value);
+        }
+        
+        // Otherwise, throw an exception.
+        else { throw new IllegalArgumentException(String.format("Cut \"%s\" does not exist.", cut)); }
     }
     
-	/**
-	 * Sets the cluster singles cuts to the values parsed from an
-	 * argument string.
-	 * @param isSingles - Indicates whether the parser should expect
-	 * 10 cut values (for pairs) or 3 (for singles).
-	 * @param cutValues - A string representing the cuts values. This
-	 * must be formatted in the style of "Emin Emax Nmin ...".
-	 */
+    /**
+     * Sets the cluster singles cuts to the values parsed from an
+     * argument string.
+     * @param isSingles - Indicates whether the parser should expect
+     * 10 cut values (for pairs) or 3 (for singles).
+     * @param cutValues - A string representing the cuts values. This
+     * must be formatted in the style of "Emin Emax Nmin ...".
+     */
     // TODO: Specify in JavaDoc what the order of these arguments is.
-	public void setCutValues(boolean isSingles, String cutValues) {
-		// Make sure that the string is not null.
-		if(cutValues == null) {
-			throw new NullPointerException(String.format("Cut arguments for trigger are null!"));
-		}
-		
-		// Tokenize the argument string.
-		StringTokenizer tokens = new StringTokenizer(cutValues);
-		
-		// Store the cut values. Entry format is:
-		// clusterEnergyMin clusterEnergyMax hitCountMin
-		// clusterEnergyMin clusterEnergyMax hitCountMin pairSumMin pairSumMax pairDiffMax pairSlopeMin pairSlopeF pairCoplanarityMax pairTimeCoincidence
-		double cuts[];
-		if(isSingles) { cuts = new double[] { 0.0, 8.191, 0 }; }
-		else { cuts = new double[] { 0.0, 8.191, 0, 0, 8.191, 8.191, 0, 0.0055, 180, Double.MAX_VALUE }; }
-		String[] cutNames = { "clusterEnergyMin", "clusterEnergyMax", "hitCountMin",
-				"pairSumMin", "pairSumMax", "pairDiffMax", "pairSlopeMin", "pairSlopeF",
-				"pairCoplanarityMax", "pairTimeCoincidence" };
-		
-		// Iterate over the number of cuts and extract that many values
-		// from the cut value string.
-		for(int cutNum = 0; cutNum < cuts.length; cutNum++) {
-			// If there are no more tokens left, the argument string
-			// is missing some values. Throw an exception!
-			if(tokens.hasMoreTokens()) {
-				// Get the next token from the string.
-				String arg = tokens.nextToken();
-				
-				// Try to parse the token as a double. All cut values
-				// should be rendered as doubles (or integers, which
-				// can be parsed as doubles). If it is not, the string
-				// is improperly formatted.
-				try { cuts[cutNum] = Double.parseDouble(arg); }
-				catch(NumberFormatException e) {
-					throw new NumberFormatException(String.format("Argument for \"%s\" improperly formatted: %s", cutNames[cutNum], arg));
-				}
-			}
-		}
-		
-		// Store the cuts in the trigger.
-		setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW,    cuts[0]);
-		setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH,   cuts[1]);
-		setCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW,       cuts[2]);
-		setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW,         cuts[3]);
-		setCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH,        cuts[4]);
-		setCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH, cuts[5]);
-		setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       cuts[6]);
-		setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F,         cuts[7]);
-		setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH,       cuts[8]);
-		setCutValue(TriggerModule.PAIR_TIME_COINCIDENCE,       cuts[9]);
-	}
+    public void setCutValues(boolean isSingles, String cutValues) {
+        // Make sure that the string is not null.
+        if(cutValues == null) {
+            throw new NullPointerException(String.format("Cut arguments for trigger are null!"));
+        }
+        
+        // Tokenize the argument string.
+        StringTokenizer tokens = new StringTokenizer(cutValues);
+        
+        // Store the cut values. Entry format is:
+        // clusterEnergyMin clusterEnergyMax hitCountMin
+        // clusterEnergyMin clusterEnergyMax hitCountMin pairSumMin pairSumMax pairDiffMax pairSlopeMin pairSlopeF pairCoplanarityMax pairTimeCoincidence
+        double cuts[];
+        if(isSingles) { cuts = new double[] { 0.0, 8.191, 0 }; }
+        else { cuts = new double[] { 0.0, 8.191, 0, 0, 8.191, 8.191, 0, 0.0055, 180, Double.MAX_VALUE }; }
+        String[] cutNames = { "clusterEnergyMin", "clusterEnergyMax", "hitCountMin",
+                "pairSumMin", "pairSumMax", "pairDiffMax", "pairSlopeMin", "pairSlopeF",
+                "pairCoplanarityMax", "pairTimeCoincidence" };
+        
+        // Iterate over the number of cuts and extract that many values
+        // from the cut value string.
+        for(int cutNum = 0; cutNum < cuts.length; cutNum++) {
+            // If there are no more tokens left, the argument string
+            // is missing some values. Throw an exception!
+            if(tokens.hasMoreTokens()) {
+                // Get the next token from the string.
+                String arg = tokens.nextToken();
+                
+                // Try to parse the token as a double. All cut values
+                // should be rendered as doubles (or integers, which
+                // can be parsed as doubles). If it is not, the string
+                // is improperly formatted.
+                try { cuts[cutNum] = Double.parseDouble(arg); }
+                catch(NumberFormatException e) {
+                    throw new NumberFormatException(String.format("Argument for \"%s\" improperly formatted: %s", cutNames[cutNum], arg));
+                }
+            }
+        }
+        
+        // Store the cuts in the trigger.
+        setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW,    cuts[0]);
+        setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH,   cuts[1]);
+        setCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW,       cuts[2]);
+        setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW,         cuts[3]);
+        setCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH,        cuts[4]);
+        setCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH, cuts[5]);
+        setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       cuts[6]);
+        setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F,         cuts[7]);
+        setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH,       cuts[8]);
+        setCutValue(TriggerModule.PAIR_TIME_COINCIDENCE,       cuts[9]);
+    }
     
     /**
      * Checks whether a cluster passes the cluster hit count cut. This
@@ -346,7 +346,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     public boolean clusterSeedEnergyCut(Cluster cluster) {
-    	return clusterSeedEnergyCut(getValueClusterSeedEnergy(cluster));
+        return clusterSeedEnergyCut(getValueClusterSeedEnergy(cluster));
     }
     
     /**
@@ -357,7 +357,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     public boolean clusterSeedEnergyCutHigh(Cluster cluster) {
-    	return clusterSeedEnergyCutHigh(getValueClusterSeedEnergy(cluster));
+        return clusterSeedEnergyCutHigh(getValueClusterSeedEnergy(cluster));
     }
     
     /**
@@ -368,7 +368,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     public boolean clusterSeedEnergyCutLow(Cluster cluster) {
-    	return clusterSeedEnergyCutLow(getValueClusterSeedEnergy(cluster));
+        return clusterSeedEnergyCutLow(getValueClusterSeedEnergy(cluster));
     }
     
     /**
@@ -380,7 +380,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     public boolean clusterTotalEnergyCut(Cluster cluster) {
-    	return clusterTotalEnergyCut(getValueClusterTotalEnergy(cluster));
+        return clusterTotalEnergyCut(getValueClusterTotalEnergy(cluster));
     }
     
     /**
@@ -392,7 +392,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     public boolean clusterTotalEnergyCutHigh(Cluster cluster) {
-    	return clusterTotalEnergyCutHigh(getValueClusterTotalEnergy(cluster));
+        return clusterTotalEnergyCutHigh(getValueClusterTotalEnergy(cluster));
     }
     
     /**
@@ -404,7 +404,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     public boolean clusterTotalEnergyCutLow(Cluster cluster) {
-    	return clusterTotalEnergyCutLow(getValueClusterTotalEnergy(cluster));
+        return clusterTotalEnergyCutLow(getValueClusterTotalEnergy(cluster));
     }
     
     /**
@@ -416,7 +416,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     public boolean clusterTotalEnergyCut(SSPCluster cluster) {
-    	return clusterTotalEnergyCut(getValueClusterTotalEnergy(cluster));
+        return clusterTotalEnergyCut(getValueClusterTotalEnergy(cluster));
     }
     
     /**
@@ -428,7 +428,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     public boolean clusterTotalEnergyCutHigh(SSPCluster cluster) {
-    	return clusterTotalEnergyCutHigh(getValueClusterTotalEnergy(cluster));
+        return clusterTotalEnergyCutHigh(getValueClusterTotalEnergy(cluster));
     }
     
     /**
@@ -440,7 +440,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     public boolean clusterTotalEnergyCutLow(SSPCluster cluster) {
-    	return clusterTotalEnergyCutLow(getValueClusterTotalEnergy(cluster));
+        return clusterTotalEnergyCutLow(getValueClusterTotalEnergy(cluster));
     }
     
     /**
@@ -450,12 +450,12 @@ public final class TriggerModule {
      * @return Returns displacement of the cluster.
      */
     public static double getClusterDistance(Cluster cluster) {
-    	// Get the variables from the cluster.
-    	double x = getClusterX(cluster);
-    	double y = getClusterY(cluster);
-    	
-    	// Perform the calculation.
-    	return getClusterDistance(x, y);
+        // Get the variables from the cluster.
+        double x = getClusterX(cluster);
+        double y = getClusterY(cluster);
+        
+        // Perform the calculation.
+        return getClusterDistance(x, y);
     }
     
     /**
@@ -465,12 +465,12 @@ public final class TriggerModule {
      * @return Returns displacement of the cluster.
      */
     public static double getClusterDistance(SSPCluster cluster) {
-    	// Get the variables from the cluster.
-    	double x = getClusterX(cluster);
-    	double y = getClusterY(cluster);
-    	
-    	// Perform the calculation.
-    	return getClusterDistance(x, y);
+        // Get the variables from the cluster.
+        double x = getClusterX(cluster);
+        double y = getClusterY(cluster);
+        
+        // Perform the calculation.
+        return getClusterDistance(x, y);
     }
     
     /**
@@ -480,7 +480,7 @@ public final class TriggerModule {
      * @return Returns the size as an <code>int</code>.
      */
     public static final double getClusterHitCount(Cluster cluster) {
-    	return cluster.getCalorimeterHits().size();
+        return cluster.getCalorimeterHits().size();
     }
     
     /**
@@ -490,7 +490,7 @@ public final class TriggerModule {
      * @return Returns the size as an <code>int</code>.
      */
     public static final double getClusterHitCount(SSPCluster cluster) {
-    	return cluster.getHitCount();
+        return cluster.getHitCount();
     }
     
     /**
@@ -500,11 +500,11 @@ public final class TriggerModule {
      * object.
      */
     public static final CalorimeterHit getClusterSeedHit(Cluster cluster) {
-    	if(getClusterHitCount(cluster) > 0) {
-    		return cluster.getCalorimeterHits().get(0);
-    	} else {
-    		throw new NullPointerException("Cluster does not define hits!");
-    	}
+        if(getClusterHitCount(cluster) > 0) {
+            return cluster.getCalorimeterHits().get(0);
+        } else {
+            throw new NullPointerException("Cluster does not define hits!");
+        }
     }
     
     /**
@@ -514,7 +514,7 @@ public final class TriggerModule {
      * @return Returns the time as a <code>double</code>.
      */
     public static final double getClusterTime(Cluster cluster) {
-    	return getClusterSeedHit(cluster).getTime();
+        return getClusterSeedHit(cluster).getTime();
     }
     
     /**
@@ -524,7 +524,7 @@ public final class TriggerModule {
      * @return Returns the time as a <code>double</code>.
      */
     public static final double getClusterTime(SSPCluster cluster) {
-    	return cluster.getTime();
+        return cluster.getTime();
     }
     
     /**
@@ -534,7 +534,7 @@ public final class TriggerModule {
      * @return Returns the cluster x-position.
      */
     public static double getClusterX(Cluster cluster) {
-    	return getCrystalPosition(getClusterXIndex(cluster), getClusterYIndex(cluster))[0];
+        return getCrystalPosition(getClusterXIndex(cluster), getClusterYIndex(cluster))[0];
     }
     
     /**
@@ -544,7 +544,7 @@ public final class TriggerModule {
      * @return Returns the cluster x-position.
      */
     public static double getClusterX(SSPCluster cluster) {
-    	return getCrystalPosition(cluster.getXIndex(), cluster.getYIndex())[0];
+        return getCrystalPosition(cluster.getXIndex(), cluster.getYIndex())[0];
     }
     
     /**
@@ -553,7 +553,7 @@ public final class TriggerModule {
      * @return Returns the index as an <code>int</code>.
      */
     public static final int getClusterXIndex(Cluster cluster) {
-    	return getClusterSeedHit(cluster).getIdentifierFieldValue("ix");
+        return getClusterSeedHit(cluster).getIdentifierFieldValue("ix");
     }
     
     /**
@@ -562,7 +562,7 @@ public final class TriggerModule {
      * @return Returns the index as an <code>int</code>.
      */
     public static final int getClusterXIndex(SSPCluster cluster) {
-    	return cluster.getXIndex();
+        return cluster.getXIndex();
     }
     
     /**
@@ -572,7 +572,7 @@ public final class TriggerModule {
      * @return Returns the cluster y-position.
      */
     public static double getClusterY(Cluster cluster) {
-    	return getCrystalPosition(getClusterXIndex(cluster), getClusterYIndex(cluster))[1];
+        return getCrystalPosition(getClusterXIndex(cluster), getClusterYIndex(cluster))[1];
     }
     
     /**
@@ -582,7 +582,7 @@ public final class TriggerModule {
      * @return Returns the cluster y-position.
      */
     public static double getClusterY(SSPCluster cluster) {
-    	return getCrystalPosition(cluster.getXIndex(), cluster.getYIndex())[1];
+        return getCrystalPosition(cluster.getXIndex(), cluster.getYIndex())[1];
     }
     
     /**
@@ -591,7 +591,7 @@ public final class TriggerModule {
      * @return Returns the index as an <code>int</code>.
      */
     public static final int getClusterYIndex(Cluster cluster) {
-    	return getClusterSeedHit(cluster).getIdentifierFieldValue("iy");
+        return getClusterSeedHit(cluster).getIdentifierFieldValue("iy");
     }
     
     /**
@@ -600,7 +600,7 @@ public final class TriggerModule {
      * @return Returns the index as an <code>int</code>.
      */
     public static final int getClusterYIndex(SSPCluster cluster) {
-    	return cluster.getYIndex();
+        return cluster.getYIndex();
     }
     
     /**
@@ -610,7 +610,7 @@ public final class TriggerModule {
      * @return Returns the cluster z-position.
      */
     public static double getClusterZ(Cluster cluster) {
-    	return getCrystalPosition(getClusterXIndex(cluster), getClusterYIndex(cluster))[2];
+        return getCrystalPosition(getClusterXIndex(cluster), getClusterYIndex(cluster))[2];
     }
     
     /**
@@ -620,7 +620,7 @@ public final class TriggerModule {
      * @return Returns the cluster z-position.
      */
     public static double getClusterZ(SSPCluster cluster) {
-    	return getCrystalPosition(cluster.getXIndex(), cluster.getYIndex())[2];
+        return getCrystalPosition(cluster.getXIndex(), cluster.getYIndex())[2];
     }
     
     /**
@@ -632,48 +632,48 @@ public final class TriggerModule {
      * first entry in the array is always the top cluster, with the
      * bottom cluster in the next position.
      */
-	public static <E> List<E[]> getTopBottomPairs(List<E> clusters, Class<E> clusterType) throws IllegalArgumentException {
-		// Ensure that only valid cluster types are processed.
-		if(!clusterType.equals(Cluster.class) && !clusterType.equals(SSPCluster.class)) {
-			throw new IllegalArgumentException("Class \"" + clusterType.getSimpleName() + "\" is not a supported cluster type.");
-		}
-		
-    	// Create a list to store top clusters, bottom clusters, and
-    	// cluster pairs.
-    	List<E> topClusters = new ArrayList<E>();
-    	List<E> botClusters = new ArrayList<E>();
-    	List<E[]> pairClusters = new ArrayList<E[]>();
-    	
-    	// Separate the cluster list into top/bottom clusters.
-    	for(E cluster : clusters) {
-    		// Process LCIO clusters...
-    		if(clusterType.equals(Cluster.class)) {
-				if(getClusterYIndex((Cluster) cluster) > 0) {
-					topClusters.add(cluster);
-				} else { botClusters.add(cluster); }
-    		}
-    		
-    		// Process SSP clusters...
-    		else if(clusterType.equals(SSPCluster.class)) {
-				if(getClusterYIndex((SSPCluster) cluster) > 0) {
-					topClusters.add(cluster);
-				} else { botClusters.add(cluster); }
-    		}
-    	}
-    	
-    	// Form all top/bottom cluster pairs.
-    	for(E topCluster : topClusters) {
-    		for(E botCluster : botClusters) {
-    			@SuppressWarnings("unchecked")
-				E[] pair = (E[]) Array.newInstance(clusterType, 2);
-    			pair[0] = topCluster;
-    			pair[1] = botCluster;
-    			pairClusters.add(pair);
-    		}
-    	}
-    	
-    	// Return the cluster pairs.
-    	return pairClusters;
+    public static <E> List<E[]> getTopBottomPairs(List<E> clusters, Class<E> clusterType) throws IllegalArgumentException {
+        // Ensure that only valid cluster types are processed.
+        if(!clusterType.equals(Cluster.class) && !clusterType.equals(SSPCluster.class)) {
+            throw new IllegalArgumentException("Class \"" + clusterType.getSimpleName() + "\" is not a supported cluster type.");
+        }
+        
+        // Create a list to store top clusters, bottom clusters, and
+        // cluster pairs.
+        List<E> topClusters = new ArrayList<E>();
+        List<E> botClusters = new ArrayList<E>();
+        List<E[]> pairClusters = new ArrayList<E[]>();
+        
+        // Separate the cluster list into top/bottom clusters.
+        for(E cluster : clusters) {
+            // Process LCIO clusters...
+            if(clusterType.equals(Cluster.class)) {
+                if(getClusterYIndex((Cluster) cluster) > 0) {
+                    topClusters.add(cluster);
+                } else { botClusters.add(cluster); }
+            }
+            
+            // Process SSP clusters...
+            else if(clusterType.equals(SSPCluster.class)) {
+                if(getClusterYIndex((SSPCluster) cluster) > 0) {
+                    topClusters.add(cluster);
+                } else { botClusters.add(cluster); }
+            }
+        }
+        
+        // Form all top/bottom cluster pairs.
+        for(E topCluster : topClusters) {
+            for(E botCluster : botClusters) {
+                @SuppressWarnings("unchecked")
+                E[] pair = (E[]) Array.newInstance(clusterType, 2);
+                pair[0] = topCluster;
+                pair[1] = botCluster;
+                pairClusters.add(pair);
+            }
+        }
+        
+        // Return the cluster pairs.
+        return pairClusters;
     }
     
     /**
@@ -685,29 +685,29 @@ public final class TriggerModule {
      * first entry in the array is always the top cluster, with the
      * bottom cluster in the next position.
      */
-	public static List<Cluster[]> getTopBottomPairs(Cluster... clusters) {
-    	// Create a list to store top clusters, bottom clusters, and
-    	// cluster pairs.
-    	List<Cluster> topClusters = new ArrayList<Cluster>();
-    	List<Cluster> botClusters = new ArrayList<Cluster>();
-    	List<Cluster[]> pairClusters = new ArrayList<Cluster[]>();
-    	
-    	// Separate the cluster list into top/bottom clusters.
-    	for(Cluster cluster : clusters) {
-			if(getClusterYIndex(cluster) > 0) {
-				topClusters.add(cluster);
-			} else { botClusters.add(cluster); }
-    	}
-    	
-    	// Form all top/bottom cluster pairs.
-    	for(Cluster topCluster : topClusters) {
-    		for(Cluster botCluster : botClusters) {
-    			pairClusters.add(new Cluster[] { topCluster, botCluster });
-    		}
-    	}
-    	
-    	// Return the cluster pairs.
-    	return pairClusters;
+    public static List<Cluster[]> getTopBottomPairs(Cluster... clusters) {
+        // Create a list to store top clusters, bottom clusters, and
+        // cluster pairs.
+        List<Cluster> topClusters = new ArrayList<Cluster>();
+        List<Cluster> botClusters = new ArrayList<Cluster>();
+        List<Cluster[]> pairClusters = new ArrayList<Cluster[]>();
+        
+        // Separate the cluster list into top/bottom clusters.
+        for(Cluster cluster : clusters) {
+            if(getClusterYIndex(cluster) > 0) {
+                topClusters.add(cluster);
+            } else { botClusters.add(cluster); }
+        }
+        
+        // Form all top/bottom cluster pairs.
+        for(Cluster topCluster : topClusters) {
+            for(Cluster botCluster : botClusters) {
+                pairClusters.add(new Cluster[] { topCluster, botCluster });
+            }
+        }
+        
+        // Return the cluster pairs.
+        return pairClusters;
     }
     
     /**
@@ -719,29 +719,29 @@ public final class TriggerModule {
      * The first entry in the array is always the top cluster, with
      * the bottom cluster in the next position.
      */
-	public static List<SSPCluster[]> getTopBottomPairs(SSPCluster... clusters) {
-    	// Create a list to store top clusters, bottom clusters, and
-    	// cluster pairs.
-    	List<SSPCluster> topClusters = new ArrayList<SSPCluster>();
-    	List<SSPCluster> botClusters = new ArrayList<SSPCluster>();
-    	List<SSPCluster[]> pairClusters = new ArrayList<SSPCluster[]>();
-    	
-    	// Separate the cluster list into top/bottom clusters.
-    	for(SSPCluster cluster : clusters) {
-			if(getClusterYIndex(cluster) > 0) {
-				topClusters.add(cluster);
-			} else { botClusters.add(cluster); }
-    	}
-    	
-    	// Form all top/bottom cluster pairs.
-    	for(SSPCluster topCluster : topClusters) {
-    		for(SSPCluster botCluster : botClusters) {
-    			pairClusters.add(new SSPCluster[] { topCluster, botCluster });
-    		}
-    	}
-    	
-    	// Return the cluster pairs.
-    	return pairClusters;
+    public static List<SSPCluster[]> getTopBottomPairs(SSPCluster... clusters) {
+        // Create a list to store top clusters, bottom clusters, and
+        // cluster pairs.
+        List<SSPCluster> topClusters = new ArrayList<SSPCluster>();
+        List<SSPCluster> botClusters = new ArrayList<SSPCluster>();
+        List<SSPCluster[]> pairClusters = new ArrayList<SSPCluster[]>();
+        
+        // Separate the cluster list into top/bottom clusters.
+        for(SSPCluster cluster : clusters) {
+            if(getClusterYIndex(cluster) > 0) {
+                topClusters.add(cluster);
+            } else { botClusters.add(cluster); }
+        }
+        
+        // Form all top/bottom cluster pairs.
+        for(SSPCluster topCluster : topClusters) {
+            for(SSPCluster botCluster : botClusters) {
+                pairClusters.add(new SSPCluster[] { topCluster, botCluster });
+            }
+        }
+        
+        // Return the cluster pairs.
+        return pairClusters;
     }
     
     /**
@@ -805,12 +805,12 @@ public final class TriggerModule {
      * @return Returns the cut value.
      */
     public static double getValueCoplanarity(Cluster[] clusterPair) {
-    	// Get the variables used by the calculation.
-    	double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
-    	double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
-    	
-    	// Return the calculated value.
-    	return getValueCoplanarity(x, y);
+        // Get the variables used by the calculation.
+        double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
+        double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
+        
+        // Return the calculated value.
+        return getValueCoplanarity(x, y);
     }
     
     /**
@@ -821,12 +821,12 @@ public final class TriggerModule {
      * @return Returns the cut value.
      */
     public static double getValueCoplanarity(SSPCluster[] clusterPair) {
-    	// Get the variables used by the calculation.
-    	double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
-    	double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
-    	
-    	// Return the calculated value.
-    	return getValueCoplanarity(x, y);
+        // Get the variables used by the calculation.
+        double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
+        double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
+        
+        // Return the calculated value.
+        return getValueCoplanarity(x, y);
     }
     
     /**
@@ -838,14 +838,14 @@ public final class TriggerModule {
      */
     @Deprecated
     public static double getValueCoplanarityLegacy(Cluster[] clusterPair) {
-    	// Get the variables used by the calculation.
-    	double x[] = { getClusterSeedHit(clusterPair[0]).getIdentifierFieldValue("ix"),
-    			getClusterSeedHit(clusterPair[1]).getIdentifierFieldValue("ix") };
-    	double y[] = { getClusterSeedHit(clusterPair[0]).getIdentifierFieldValue("iy"),
-    			getClusterSeedHit(clusterPair[1]).getIdentifierFieldValue("iy") };
-    	
-    	// Return the calculated value.
-    	return getValueCoplanarityLegacy(x, y);
+        // Get the variables used by the calculation.
+        double x[] = { getClusterSeedHit(clusterPair[0]).getIdentifierFieldValue("ix"),
+                getClusterSeedHit(clusterPair[1]).getIdentifierFieldValue("ix") };
+        double y[] = { getClusterSeedHit(clusterPair[0]).getIdentifierFieldValue("iy"),
+                getClusterSeedHit(clusterPair[1]).getIdentifierFieldValue("iy") };
+        
+        // Return the calculated value.
+        return getValueCoplanarityLegacy(x, y);
     }
     
     /**
@@ -855,10 +855,10 @@ public final class TriggerModule {
      * @return Returns the difference between the cluster energies.
      */
     public static double getValueEnergyDifference(Cluster[] clusterPair) {
-    	// Get the variables used by the calculation.
-    	double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
-    	
-    	// Perform the calculation.
+        // Get the variables used by the calculation.
+        double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
+        
+        // Perform the calculation.
         return getValueEnergyDifference(energy);
     }
     
@@ -869,10 +869,10 @@ public final class TriggerModule {
      * @return Returns the difference between the cluster energies.
      */
     public static double getValueEnergyDifference(SSPCluster[] clusterPair) {
-    	// Get the variables used by the calculation.
-    	double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
-    	
-    	// Perform the calculation.
+        // Get the variables used by the calculation.
+        double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
+        
+        // Perform the calculation.
         return getValueEnergyDifference(energy);
     }
     
@@ -885,13 +885,13 @@ public final class TriggerModule {
      * @return Returns the energy slope value.
      */
     public static double getValueEnergySlope(Cluster[] clusterPair, double energySlopeParamF) {
-    	// Get the variables used by the calculation.
-    	double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
-    	double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
-    	double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
-    	
-    	// Perform the calculation.
-    	return getValueEnergySlope(energy, x, y, energySlopeParamF);
+        // Get the variables used by the calculation.
+        double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
+        double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
+        double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
+        
+        // Perform the calculation.
+        return getValueEnergySlope(energy, x, y, energySlopeParamF);
     }
     
     /**
@@ -903,13 +903,13 @@ public final class TriggerModule {
      * @return Returns the energy slope value.
      */
     public static double getValueEnergySlope(SSPCluster[] clusterPair, double energySlopeParamF) {
-    	// Get the variables used by the calculation.
-    	double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
-    	double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
-    	double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
-    	
-    	// Perform the calculation.
-    	return getValueEnergySlope(energy, x, y, energySlopeParamF);
+        // Get the variables used by the calculation.
+        double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
+        double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
+        double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
+        
+        // Perform the calculation.
+        return getValueEnergySlope(energy, x, y, energySlopeParamF);
     }
     
     /**
@@ -924,15 +924,15 @@ public final class TriggerModule {
      */
     @Deprecated
     public static double getValueEnergySlopeLegacy(Cluster[] clusterPair, double energySlopeParamF) {
-    	// Get the variables used by the calculation.
-    	double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
-    	double x[] = { getClusterSeedHit(clusterPair[0]).getIdentifierFieldValue("ix"),
-    			getClusterSeedHit(clusterPair[1]).getIdentifierFieldValue("ix") };
-    	double y[] = { getClusterSeedHit(clusterPair[0]).getIdentifierFieldValue("iy"),
-    			getClusterSeedHit(clusterPair[1]).getIdentifierFieldValue("iy") };
-    	
-    	// Perform the calculation.
-    	return getValueEnergySlopeLegacy(energy, x, y, energySlopeParamF);
+        // Get the variables used by the calculation.
+        double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
+        double x[] = { getClusterSeedHit(clusterPair[0]).getIdentifierFieldValue("ix"),
+                getClusterSeedHit(clusterPair[1]).getIdentifierFieldValue("ix") };
+        double y[] = { getClusterSeedHit(clusterPair[0]).getIdentifierFieldValue("iy"),
+                getClusterSeedHit(clusterPair[1]).getIdentifierFieldValue("iy") };
+        
+        // Perform the calculation.
+        return getValueEnergySlopeLegacy(energy, x, y, energySlopeParamF);
     }
     
     /**
@@ -942,11 +942,11 @@ public final class TriggerModule {
      * @return Returns the sum of the cluster energies.
      */
     public static double getValueEnergySum(Cluster[] clusterPair) {
-    	// Get the variables used by the calculation.
-    	double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
-    	
-    	// Perform the calculation.
-    	return getValueEnergySum(energy);
+        // Get the variables used by the calculation.
+        double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
+        
+        // Perform the calculation.
+        return getValueEnergySum(energy);
     }
     
     /**
@@ -956,11 +956,11 @@ public final class TriggerModule {
      * @return Returns the sum of the cluster energies.
      */
     public static double getValueEnergySum(SSPCluster[] clusterPair) {
-    	// Get the variables used by the calculation.
-    	double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
-    	
-    	// Perform the calculation.
-    	return getValueEnergySum(energy);
+        // Get the variables used by the calculation.
+        double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
+        
+        // Perform the calculation.
+        return getValueEnergySum(energy);
     }
     
     /**
@@ -970,12 +970,12 @@ public final class TriggerModule {
      * @return Returns the absolute difference in the cluster times..
      */
     public static double getValueTimeCoincidence(Cluster[] clusterPair) {
-    	// Get the variables used by the calculation.
-    	double[] time = { clusterPair[0].getCalorimeterHits().get(0).getTime(),
-    			clusterPair[1].getCalorimeterHits().get(0).getTime() };
-    	
-    	// Perform the calculation.
-    	return getValueTimeCoincidence(time);
+        // Get the variables used by the calculation.
+        double[] time = { clusterPair[0].getCalorimeterHits().get(0).getTime(),
+                clusterPair[1].getCalorimeterHits().get(0).getTime() };
+        
+        // Perform the calculation.
+        return getValueTimeCoincidence(time);
     }
     
     /**
@@ -985,34 +985,34 @@ public final class TriggerModule {
      * @return Returns the absolute difference in the cluster times..
      */
     public static double getValueTimeCoincidence(SSPCluster[] clusterPair) {
-    	// Get the variables used by the calculation.
-    	double[] time = { clusterPair[0].getTime(), clusterPair[1].getTime() };
-    	
-    	// Perform the calculation.
-    	return getValueTimeCoincidence(time);
+        // Get the variables used by the calculation.
+        double[] time = { clusterPair[0].getTime(), clusterPair[1].getTime() };
+        
+        // Perform the calculation.
+        return getValueTimeCoincidence(time);
     }
     
     /**
-	 * Indicates whether the argument cluster is located in the fiducial
-	 * region or not.
-	 * @param cluster - The cluster to check.
-	 * @return Returns <code>true</code> if the cluster is located in
-	 * the fiducial region and <code>false</code> otherwise.
-	 */
-	public static final boolean inFiducialRegion(Cluster cluster) {
-		return inFiducialRegion(getClusterXIndex(cluster), getClusterYIndex(cluster));
-	}
+     * Indicates whether the argument cluster is located in the fiducial
+     * region or not.
+     * @param cluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster is located in
+     * the fiducial region and <code>false</code> otherwise.
+     */
+    public static final boolean inFiducialRegion(Cluster cluster) {
+        return inFiducialRegion(getClusterXIndex(cluster), getClusterYIndex(cluster));
+    }
     
     /**
-	 * Indicates whether the argument cluster is located in the fiducial
-	 * region or not.
-	 * @param cluster - The cluster to check.
-	 * @return Returns <code>true</code> if the cluster is located in
-	 * the fiducial region and <code>false</code> otherwise.
-	 */
-	public static final boolean inFiducialRegion(SSPCluster cluster) {
-		return inFiducialRegion(getClusterXIndex(cluster), getClusterYIndex(cluster));
-	}
+     * Indicates whether the argument cluster is located in the fiducial
+     * region or not.
+     * @param cluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster is located in
+     * the fiducial region and <code>false</code> otherwise.
+     */
+    public static final boolean inFiducialRegion(SSPCluster cluster) {
+        return inFiducialRegion(getClusterXIndex(cluster), getClusterYIndex(cluster));
+    }
     
     /**
      * Checks if a cluster pair is coplanar to the beam within a given
@@ -1094,7 +1094,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     public boolean pairEnergySumCut(Cluster[] clusterPair) {
-    	return pairEnergySumCut(getValueEnergySum(clusterPair));
+        return pairEnergySumCut(getValueEnergySum(clusterPair));
     }
     
     /**
@@ -1106,7 +1106,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     public boolean pairEnergySumCutHigh(Cluster[] clusterPair) {
-    	return pairEnergySumCutHigh(getValueEnergySum(clusterPair));
+        return pairEnergySumCutHigh(getValueEnergySum(clusterPair));
     }
     
     /**
@@ -1118,7 +1118,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     public boolean pairEnergySumCutLow(Cluster[] clusterPair) {
-    	return pairEnergySumCutLow(getValueEnergySum(clusterPair));
+        return pairEnergySumCutLow(getValueEnergySum(clusterPair));
     }
     
     /**
@@ -1131,7 +1131,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     public boolean pairEnergySumCut(SSPCluster[] clusterPair) {
-    	return pairEnergySumCut(getValueEnergySum(clusterPair));
+        return pairEnergySumCut(getValueEnergySum(clusterPair));
     }
     
     /**
@@ -1143,7 +1143,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     public boolean pairEnergySumCutHigh(SSPCluster[] clusterPair) {
-    	return pairEnergySumCutHigh(getValueEnergySum(clusterPair));
+        return pairEnergySumCutHigh(getValueEnergySum(clusterPair));
     }
     
     /**
@@ -1155,7 +1155,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     public boolean pairEnergySumCutLow(SSPCluster[] clusterPair) {
-    	return pairEnergySumCutLow(getValueEnergySum(clusterPair));
+        return pairEnergySumCutLow(getValueEnergySum(clusterPair));
     }
     
     /**
@@ -1167,7 +1167,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     public boolean pairTimeCoincidenceCut(Cluster[] clusterPair) {
-    	return pairTimeCoincidenceCut(getValueTimeCoincidence(clusterPair));
+        return pairTimeCoincidenceCut(getValueTimeCoincidence(clusterPair));
     }
     
     /**
@@ -1179,7 +1179,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     public boolean pairTimeCoincidenceCut(SSPCluster[] clusterPair) {
-    	return pairTimeCoincidenceCut(getValueTimeCoincidence(clusterPair));
+        return pairTimeCoincidenceCut(getValueTimeCoincidence(clusterPair));
     }
     
     /**
@@ -1280,22 +1280,22 @@ public final class TriggerModule {
      * the x-index and either of the cases where <code>iy == 0</code>
      * or <code>|iy| > 5</code> for the y-index.
      */
-	private static double[] getCrystalPosition(int ix, int iy) throws IndexOutOfBoundsException {
-		// Make sure that the requested crystal is a valid crystal.
-		if(ix == 0 || ix < -23 || ix > 23) {
-			throw new IndexOutOfBoundsException(String.format("Value \"%d\" is invalid for field x-index.", ix));
-		} if(iy == 0 || iy < -5 || iy > 5) {
-			throw new IndexOutOfBoundsException(String.format("Value \"%d\" is invalid for field y-index.", iy));
-		}
-		
-		// Get the position map.
-		double posMap[];
-		if(ix < 1) { posMap = position[5 - iy][22 - ix]; }
-		else { posMap = position[5 - iy][23 - ix]; }
-		
-		// Return the corrected mapped position.
-		return new double[] { posMap[0], posMap[2], posMap[1] };
-	}
+    private static double[] getCrystalPosition(int ix, int iy) throws IndexOutOfBoundsException {
+        // Make sure that the requested crystal is a valid crystal.
+        if(ix == 0 || ix < -23 || ix > 23) {
+            throw new IndexOutOfBoundsException(String.format("Value \"%d\" is invalid for field x-index.", ix));
+        } if(iy == 0 || iy < -5 || iy > 5) {
+            throw new IndexOutOfBoundsException(String.format("Value \"%d\" is invalid for field y-index.", iy));
+        }
+        
+        // Get the position map.
+        double posMap[];
+        if(ix < 1) { posMap = position[5 - iy][22 - ix]; }
+        else { posMap = position[5 - iy][23 - ix]; }
+        
+        // Return the corrected mapped position.
+        return new double[] { posMap[0], posMap[2], posMap[1] };
+    }
     
     /**
      * Calculates the value used by the coplanarity cut.
@@ -1309,7 +1309,7 @@ public final class TriggerModule {
         // Get the cluster angles.
         int[] clusterAngle = new int[2];
         for(int i = 0; i < 2; i++) {
-        	clusterAngle[i] = (int) Math.round(Math.atan(x[i] / y[i]) * 180.0 / Math.PI);
+            clusterAngle[i] = (int) Math.round(Math.atan(x[i] / y[i]) * 180.0 / Math.PI);
         }
         
         // Calculate the coplanarity cut value.
@@ -1357,9 +1357,9 @@ public final class TriggerModule {
      * @return Returns the cut value.
      */
     private static double getValueEnergySlope(double energy[], double x[], double y[], double energySlopeParamF) {
-    	// Determine which cluster is the lower-energy cluster.
-    	int lei = energy[0] < energy[1] ? 0 : 1;
-    	
+        // Determine which cluster is the lower-energy cluster.
+        int lei = energy[0] < energy[1] ? 0 : 1;
+        
         // E + R*F
         // Get the low energy cluster energy.
         double slopeParamE = energy[lei];
@@ -1383,9 +1383,9 @@ public final class TriggerModule {
      */
     @Deprecated
     private static double getValueEnergySlopeLegacy(double energy[], double x[], double y[], double energySlopeParamF) {
-    	// Determine which cluster is the lower-energy cluster.
-    	int lei = energy[0] < energy[1] ? 0 : 1;
-    	
+        // Determine which cluster is the lower-energy cluster.
+        int lei = energy[0] < energy[1] ? 0 : 1;
+        
         // E + R*F
         // Get the low energy cluster energy.
         double slopeParamE = energy[lei];
@@ -1415,52 +1415,52 @@ public final class TriggerModule {
      * the two clusters.
      */
     private static double getValueTimeCoincidence(double[] time) {
-    	return Math.abs(time[0] - time[1]);
+        return Math.abs(time[0] - time[1]);
     }
     
     /**
-	 * Indicates whether the argument cluster is located in the fiducial
-	 * region or not.
-	 * @param cluster - The cluster to check.
-	 * @return Returns <code>true</code> if the cluster is located in
-	 * the fiducial region and <code>false</code> otherwise.
-	 */
-	private static final boolean inFiducialRegion(int ix, int iy) {
-		// Get the x and y indices for the cluster.
-		int absx = Math.abs(ix);
-		int absy = Math.abs(iy);
-		
-		// Check if the cluster is on the top or the bottom of the
-		// calorimeter, as defined by |y| == 5. This is an edge cluster
-		// and is not in the fiducial region.
-		if(absy == 5) {
-			return false;
-		}
-		
-		// Check if the cluster is on the extreme left or right side
-		// of the calorimeter, as defined by |x| == 23. This is also
-		// and edge cluster is not in the fiducial region.
-		if(absx == 23) {
-			return false;
-		}
-		
-		// Check if the cluster is along the beam gap, as defined by
-		// |y| == 1. This is an internal edge cluster and is not in the
-		// fiducial region.
-		if(absy == 1) {
-			return false;
-		}
-		
-		// Lastly, check if the cluster falls along the beam hole, as
-		// defined by clusters with -11 <= x <= -1 and |y| == 2. This
-		// is not the fiducial region.
-		if(absy == 2 && ix <= -1 && ix >= -11) {
-			return false;
-		}
-		
-		// If all checks fail, the cluster is in the fiducial region.
-		return true;
-	}
+     * Indicates whether the argument cluster is located in the fiducial
+     * region or not.
+     * @param cluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster is located in
+     * the fiducial region and <code>false</code> otherwise.
+     */
+    private static final boolean inFiducialRegion(int ix, int iy) {
+        // Get the x and y indices for the cluster.
+        int absx = Math.abs(ix);
+        int absy = Math.abs(iy);
+        
+        // Check if the cluster is on the top or the bottom of the
+        // calorimeter, as defined by |y| == 5. This is an edge cluster
+        // and is not in the fiducial region.
+        if(absy == 5) {
+            return false;
+        }
+        
+        // Check if the cluster is on the extreme left or right side
+        // of the calorimeter, as defined by |x| == 23. This is also
+        // and edge cluster is not in the fiducial region.
+        if(absx == 23) {
+            return false;
+        }
+        
+        // Check if the cluster is along the beam gap, as defined by
+        // |y| == 1. This is an internal edge cluster and is not in the
+        // fiducial region.
+        if(absy == 1) {
+            return false;
+        }
+        
+        // Lastly, check if the cluster falls along the beam hole, as
+        // defined by clusters with -11 <= x <= -1 and |y| == 2. This
+        // is not the fiducial region.
+        if(absy == 2 && ix <= -1 && ix >= -11) {
+            return false;
+        }
+        
+        // If all checks fail, the cluster is in the fiducial region.
+        return true;
+    }
     
     /**
      * Checks if a coplanarity angle is within threshold.
@@ -1536,7 +1536,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     private boolean pairTimeCoincidenceCut(double timeDifference) {
-    	return (timeDifference <= cuts.get(PAIR_TIME_COINCIDENCE));
+        return (timeDifference <= cuts.get(PAIR_TIME_COINCIDENCE));
     }
     
     /**
@@ -1549,193 +1549,193 @@ public final class TriggerModule {
      * Note that in this table, position[][] = { x, z, y } by in the
      * coordinate system employed by the rest of the class.
      */
-	private static final double[][][] position = {
-		{	{ -340.003,   97.065,   87.845 }, { -324.283,   97.450,   87.875 }, { -308.648,   97.810,   87.900 },
-			{ -293.093,   98.150,   87.920 }, { -277.618,   98.470,   87.940 }, { -262.213,   98.765,   87.965 },
-			{ -246.878,   99.040,   87.980 }, { -231.603,   99.290,   87.995 }, { -216.393,   99.520,   88.010 },
-			{ -201.228,   99.725,   88.030 }, { -186.118,   99.905,   88.040 }, { -171.058,  100.070,   88.050 },
-			{ -156.038,  100.205,   88.055 }, { -141.058,  100.325,   88.070 }, { -126.113,  100.415,   88.075 },
-			{ -111.198,  100.485,   88.075 }, {  -96.313,  100.530,   88.080 }, {  -81.453,  100.555,   88.085 },
-			{  -66.608,  100.560,   88.085 }, {  -51.788,  100.540,   88.080 }, {  -36.983,  100.490,   88.075 },
-			{  -22.183,  100.425,   88.075 }, {   -7.393,  100.335,   88.070 }, {    7.393,  100.335,   88.070 },
-			{   22.183,  100.425,   88.075 }, {   36.983,  100.490,   88.075 }, {   51.793,  100.540,   88.080 },
-			{   66.613,  100.560,   88.085 }, {   81.453,  100.555,   88.085 }, {   96.313,  100.530,   88.080 },
-			{  111.198,  100.485,   88.075 }, {  126.113,  100.415,   88.075 }, {  141.053,  100.325,   88.070 },
-			{  156.038,  100.205,   88.055 }, {  171.053,  100.070,   88.050 }, {  186.118,   99.905,   88.040 },
-			{  201.228,   99.725,   88.030 }, {  216.388,   99.520,   88.010 }, {  231.608,   99.290,   87.995 },
-			{  246.878,   99.040,   87.980 }, {  262.218,   98.765,   87.965 }, {  277.623,   98.470,   87.940 },
-			{  293.098,   98.150,   87.920 }, {  308.653,   97.810,   87.900 }, {  324.288,   97.450,   87.875 },
-			{  340.008,   97.065,   87.845 }
-		},
-		{	{ -340.003,   97.040,   72.715 }, { -324.283,   97.420,   72.735 }, { -308.648,   97.785,   72.750 },
-			{ -293.093,   98.125,   72.765 }, { -277.618,   98.450,   72.785 }, { -262.213,   98.745,   72.800 },
-			{ -246.878,   99.015,   72.815 }, { -231.603,   99.265,   72.825 }, { -216.388,   99.495,   72.840 },
-			{ -201.228,   99.700,   72.850 }, { -186.118,   99.885,   72.860 }, { -171.058,  100.045,   72.865 },
-			{ -156.033,  100.185,   72.875 }, { -141.053,  100.300,   72.880 }, { -126.108,  100.395,   72.880 },
-			{ -111.193,  100.460,   72.890 }, {  -96.308,  100.510,   72.890 }, {  -81.448,  100.535,   72.895 },
-			{  -66.608,  100.535,   72.890 }, {  -51.788,  100.510,   72.890 }, {  -36.978,  100.470,   72.890 },
-			{  -22.183,  100.405,   72.880 }, {   -7.388,  100.310,   72.880 }, {    7.393,  100.310,   72.880 },
-			{   22.188,  100.405,   72.885 }, {   36.983,  100.470,   72.890 }, {   51.793,  100.510,   72.890 },
-			{   66.613,  100.535,   72.890 }, {   81.453,  100.535,   72.895 }, {   96.313,  100.510,   72.890 },
-			{  111.198,  100.460,   72.890 }, {  126.113,  100.395,   72.880 }, {  141.063,  100.300,   72.880 },
-			{  156.043,  100.185,   72.875 }, {  171.063,  100.045,   72.865 }, {  186.123,   99.885,   72.860 },
-			{  201.233,   99.700,   72.850 }, {  216.393,   99.495,   72.840 }, {  231.608,   99.265,   72.825 },
-			{  246.883,   99.015,   72.815 }, {  262.218,   98.745,   72.800 }, {  277.623,   98.450,   72.785 },
-			{  293.098,   98.125,   72.765 }, {  308.653,   97.785,   72.750 }, {  324.288,   97.420,   72.735 },
-			{  340.008,   97.040,   72.715 }
-		},
-		{	{ -340.003,   96.990,   57.600 }, { -324.283,   97.375,   57.610 }, { -308.648,   97.740,   57.625 },
-			{ -293.093,   98.080,   57.630 }, { -277.618,   98.395,   57.645 }, { -262.213,   98.700,   57.655 },
-			{ -246.873,   98.970,   57.660 }, { -231.603,   99.220,   57.670 }, { -216.383,   99.450,   57.680 },
-			{ -201.228,   99.660,   57.685 }, { -186.113,   99.840,   57.695 }, { -171.053,  100.005,   57.695 },
-			{ -156.033,  100.140,   57.700 }, { -141.053,  100.255,   57.710 }, { -126.108,  100.345,   57.710 },
-			{ -111.193,  100.420,   57.710 }, {  -96.308,  100.465,   57.715 }, {  -81.448,  100.490,   57.715 },
-			{  -66.608,  100.490,   57.715 }, {  -51.788,  100.470,   57.710 }, {  -36.978,  100.425,   57.710 },
-			{  -22.178,  100.355,   57.710 }, {   -7.388,  100.265,   57.705 }, {    7.398,  100.265,   57.705 },
-			{   22.188,  100.355,   57.710 }, {   36.988,  100.425,   57.710 }, {   51.793,  100.470,   57.710 },
-			{   66.613,  100.490,   57.715 }, {   81.458,  100.490,   57.715 }, {   96.318,  100.465,   57.715 },
-			{  111.198,  100.420,   57.710 }, {  126.118,  100.345,   57.710 }, {  141.063,  100.255,   57.710 },
-			{  156.043,  100.140,   57.700 }, {  171.063,  100.005,   57.695 }, {  186.123,   99.840,   57.695 },
-			{  201.233,   99.660,   57.685 }, {  216.393,   99.450,   57.680 }, {  231.608,   99.220,   57.670 },
-			{  246.883,   98.970,   57.660 }, {  262.218,   98.700,   57.655 }, {  277.623,   98.395,   57.645 },
-			{  293.098,   98.080,   57.630 }, {  308.653,   97.740,   57.625 }, {  324.288,   97.375,   57.610 },
-			{  340.008,   96.990,   57.600 }
-		},
-		{	{ -340.003,   96.925,   42.490 }, { -324.283,   97.305,   42.495 }, { -308.648,   97.675,   42.505 },
-			{ -293.093,   98.010,   42.510 }, { -277.618,   98.330,   42.510 }, { -262.213,   98.625,   42.515 },
-			{ -246.873,   98.900,   42.525 }, { -231.603,   99.155,   42.530 }, { -216.383,   99.385,   42.535 },
-			{ -201.223,   99.590,   42.530 }, { -186.113,   99.775,   42.535 }, { -171.048,   99.930,   42.540 },
-			{ -156.033,  100.070,   42.545 }, { -141.048,  100.185,   42.545 }, { -126.108,  100.280,   42.550 },
-			{ -111.193,  100.350,   42.545 }, {  -96.308,  100.400,   42.545 }, {  -81.448,  100.420,   42.550 },
-			{  -66.608,  100.425,   42.550 }, {  -51.788,  100.405,   42.550 }, {  -36.978,  100.355,   42.545 },
-			{  -22.178,  100.290,   42.545 }, {   -7.388,  100.200,   42.545 }, {    7.398,  100.200,   42.545 },
-			{   22.188,  100.290,   42.545 }, {   36.988,  100.355,   42.545 }, {   51.793,  100.405,   42.550 },
-			{   66.613,  100.425,   42.550 }, {   81.458,  100.420,   42.550 }, {   96.318,  100.400,   42.545 },
-			{  111.198,  100.350,   42.545 }, {  126.118,  100.280,   42.550 }, {  141.063,  100.185,   42.545 },
-			{  156.043,  100.070,   42.545 }, {  171.063,   99.930,   42.540 }, {  186.123,   99.775,   42.535 },
-			{  201.233,   99.590,   42.530 }, {  216.393,   99.385,   42.535 }, {  231.608,   99.155,   42.530 },
-			{  246.883,   98.900,   42.525 }, {  262.218,   98.625,   42.515 }, {  277.628,   98.330,   42.510 },
-			{  293.098,   98.010,   42.510 }, {  308.653,   97.675,   42.505 }, {  324.288,   97.305,   42.495 },
-			{  340.008,   96.925,   42.490 }
-		},
-		{	{ -340.003,   96.830,   27.385 }, { -324.278,   97.215,   27.385 }, { -308.648,   97.575,   27.385 },
-			{ -293.093,   97.915,   27.385 }, { -277.613,   98.240,   27.385 }, { -262.213,   98.535,   27.385 },
-			{ -246.878,   98.810,   27.385 }, { -231.603,   99.060,   27.385 }, { -216.383,   99.290,   27.385 },
-			{ -201.223,   99.495,   27.385 }, { -186.113,   99.680,   27.385 }, { -171.048,   99.840,   27.385 },
-			{ -156.033,   99.980,   27.385 }, { -141.048,  100.095,   27.385 }, { -126.103,  100.185,   27.385 },
-			{ -111.193,  100.255,   27.385 }, {  -96.303,  100.305,   27.385 }, {  -81.448,  100.330,   27.385 },
-			{  -66.608,  100.330,   27.385 }, {  -51.783,  100.310,   27.385 }, {  -36.973,  100.265,   27.385 },
-			{  -22.178,  100.200,   27.385 }, {   -7.388,  100.105,   27.385 }, {    7.403,  100.105,   27.385 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{  156.078,   99.980,   27.385 }, {  171.103,   99.840,   27.385 }, {  186.168,   99.680,   27.385 },
-			{  201.268,   99.495,   27.385 }, {  216.423,   99.290,   27.385 }, {  231.638,   99.060,   27.385 },
-			{  246.913,   98.810,   27.385 }, {  262.248,   98.535,   27.385 }, {  277.658,   98.240,   27.385 },
-			{  293.133,   97.920,   27.385 }, {  308.688,   97.575,   27.385 }, {  324.323,   97.215,   27.385 },
-			{  340.043,   96.830,   27.385 }
-		},
-		{	{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }
-		},
-		{	{ -339.998,   96.840,  -27.330 }, { -324.278,   97.225,  -27.340 }, { -308.643,   97.585,  -27.345 },
-			{ -293.093,   97.925,  -27.350 }, { -277.613,   98.245,  -27.360 }, { -262.213,   98.545,  -27.365 },
-			{ -246.868,   98.820,  -27.365 }, { -231.598,   99.070,  -27.370 }, { -216.383,   99.300,  -27.375 },
-			{ -201.223,   99.505,  -27.380 }, { -186.113,   99.690,  -27.385 }, { -171.048,   99.850,  -27.380 },
-			{ -156.028,   99.990,  -27.385 }, { -141.048,  100.100,  -27.390 }, { -126.103,  100.195,  -27.390 },
-			{ -111.193,  100.265,  -27.395 }, {  -96.303,  100.315,  -27.395 }, {  -81.443,  100.340,  -27.390 },
-			{  -66.603,  100.335,  -27.390 }, {  -51.783,  100.315,  -27.390 }, {  -36.973,  100.275,  -27.395 },
-			{  -22.173,  100.205,  -27.390 }, {   -7.383,  100.115,  -27.385 }, {    7.403,  100.115,  -27.385 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
-			{  156.088,   99.985,  -27.385 }, {  171.103,   99.845,  -27.380 }, {  186.168,   99.680,  -27.385 },
-			{  201.268,   99.495,  -27.380 }, {  216.428,   99.290,  -27.375 }, {  231.643,   99.060,  -27.370 },
-			{  246.913,   98.810,  -27.365 }, {  262.258,   98.535,  -27.365 }, {  277.658,   98.240,  -27.360 },
-			{  293.138,   97.925,  -27.350 }, {  308.688,   97.580,  -27.345 }, {  324.323,   97.215,  -27.340 },
-			{  340.043,   96.835,  -27.330 }
-		},
-		{	{ -339.998,   96.930,  -42.435 }, { -324.278,   97.315,  -42.445 }, { -308.648,   97.680,  -42.455 },
-			{ -293.093,   98.015,  -42.470 }, { -277.613,   98.340,  -42.480 }, { -262.208,   98.635,  -42.490 },
-			{ -246.873,   98.910,  -42.500 }, { -231.593,   99.160,  -42.510 }, { -216.383,   99.390,  -42.515 },
-			{ -201.223,   99.595,  -42.525 }, { -186.113,   99.780,  -42.525 }, { -171.048,   99.940,  -42.535 },
-			{ -156.028,  100.080,  -42.540 }, { -141.048,  100.195,  -42.540 }, { -126.103,  100.290,  -42.545 },
-			{ -111.193,  100.355,  -42.550 }, {  -96.303,  100.405,  -42.550 }, {  -81.443,  100.430,  -42.550 },
-			{  -66.608,  100.430,  -42.550 }, {  -51.783,  100.405,  -42.550 }, {  -36.973,  100.365,  -42.550 },
-			{  -22.178,  100.295,  -42.545 }, {   -7.388,  100.205,  -42.545 }, {    7.403,  100.205,  -42.545 },
-			{   22.193,  100.295,  -42.545 }, {   36.988,  100.365,  -42.550 }, {   51.798,  100.405,  -42.550 },
-			{   66.623,  100.430,  -42.550 }, {   81.458,  100.430,  -42.550 }, {   96.318,  100.405,  -42.550 },
-			{  111.208,  100.355,  -42.550 }, {  126.118,  100.290,  -42.545 }, {  141.063,  100.195,  -42.540 },
-			{  156.043,  100.080,  -42.540 }, {  171.063,   99.940,  -42.535 }, {  186.128,   99.780,  -42.525 },
-			{  201.238,   99.595,  -42.525 }, {  216.398,   99.390,  -42.515 }, {  231.613,   99.160,  -42.510 },
-			{  246.888,   98.910,  -42.500 }, {  262.223,   98.635,  -42.490 }, {  277.628,   98.340,  -42.480 },
-			{  293.108,   98.015,  -42.470 }, {  308.663,   97.680,  -42.455 }, {  324.293,   97.315,  -42.445 },
-			{  340.013,   96.930,  -42.435 }
-		},
-		{	{ -339.998,   97.000,  -57.540 }, { -324.278,   97.385,  -57.560 }, { -308.648,   97.745,  -57.575 },
-			{ -293.093,   98.090,  -57.595 }, { -277.613,   98.410,  -57.610 }, { -262.208,   98.705,  -57.625 },
-			{ -246.873,   98.975,  -57.640 }, { -231.593,   99.225,  -57.655 }, { -216.383,   99.455,  -57.665 },
-			{ -201.223,   99.665,  -57.675 }, { -186.113,   99.845,  -57.685 }, { -171.048,  100.010,  -57.690 },
-			{ -156.028,  100.145,  -57.700 }, { -141.048,  100.265,  -57.705 }, { -126.103,  100.355,  -57.710 },
-			{ -111.193,  100.425,  -57.710 }, {  -96.303,  100.475,  -57.720 }, {  -81.443,  100.495,  -57.715 },
-			{  -66.608,  100.500,  -57.720 }, {  -51.783,  100.480,  -57.715 }, {  -36.973,  100.430,  -57.710 },
-			{  -22.178,  100.365,  -57.710 }, {   -7.388,  100.275,  -57.705 }, {    7.403,  100.275,  -57.705 },
-			{   22.193,  100.365,  -57.710 }, {   36.988,  100.430,  -57.710 }, {   51.798,  100.480,  -57.715 },
-			{   66.623,  100.500,  -57.720 }, {   81.458,  100.495,  -57.715 }, {   96.318,  100.475,  -57.720 },
-			{  111.208,  100.425,  -57.710 }, {  126.118,  100.355,  -57.710 }, {  141.063,  100.265,  -57.705 },
-			{  156.043,  100.145,  -57.700 }, {  171.063,  100.010,  -57.690 }, {  186.128,   99.845,  -57.685 },
-			{  201.238,   99.665,  -57.675 }, {  216.398,   99.455,  -57.665 }, {  231.613,   99.225,  -57.655 },
-			{  246.888,   98.975,  -57.640 }, {  262.223,   98.705,  -57.625 }, {  277.628,   98.410,  -57.610 },
-			{  293.108,   98.090,  -57.595 }, {  308.663,   97.745,  -57.575 }, {  324.293,   97.385,  -57.560 },
-			{  340.013,   97.000,  -57.540 }
-		},
-		{	{ -339.998,   97.045,  -72.655 }, { -324.278,   97.435,  -72.680 }, { -308.648,   97.795,  -72.710 },
-			{ -293.093,   98.135,  -72.730 }, { -277.613,   98.455,  -72.750 }, { -262.208,   98.750,  -72.775 },
-			{ -246.873,   99.020,  -72.795 }, { -231.593,   99.280,  -72.810 }, { -216.383,   99.505,  -72.820 },
-			{ -201.223,   99.710,  -72.840 }, { -186.113,   99.895,  -72.850 }, { -171.048,  100.055,  -72.860 },
-			{ -156.028,  100.190,  -72.870 }, { -141.048,  100.305,  -72.880 }, { -126.103,  100.400,  -72.885 },
-			{ -111.193,  100.470,  -72.890 }, {  -96.303,  100.520,  -72.890 }, {  -81.443,  100.540,  -72.895 },
-			{  -66.608,  100.540,  -72.895 }, {  -51.783,  100.520,  -72.895 }, {  -36.973,  100.480,  -72.890 },
-			{  -22.178,  100.405,  -72.885 }, {   -7.388,  100.320,  -72.880 }, {    7.403,  100.320,  -72.880 },
-			{   22.193,  100.405,  -72.885 }, {   36.988,  100.480,  -72.890 }, {   51.798,  100.520,  -72.895 },
-			{   66.623,  100.540,  -72.895 }, {   81.458,  100.540,  -72.895 }, {   96.318,  100.520,  -72.890 },
-			{  111.208,  100.470,  -72.890 }, {  126.118,  100.400,  -72.885 }, {  141.063,  100.305,  -72.880 },
-			{  156.043,  100.190,  -72.870 }, {  171.063,  100.055,  -72.860 }, {  186.128,   99.895,  -72.850 },
-			{  201.238,   99.710,  -72.840 }, {  216.398,   99.505,  -72.820 }, {  231.613,   99.280,  -72.810 },
-			{  246.888,   99.020,  -72.795 }, {  262.223,   98.750,  -72.775 }, {  277.628,   98.455,  -72.750 },
-			{  293.108,   98.135,  -72.730 }, {  308.663,   97.795,  -72.710 }, {  324.293,   97.435,  -72.680 },
-			{  340.013,   97.045,  -72.655 }
-		},
-		{	{ -339.998,   97.070,  -87.790 }, { -324.278,   97.460,  -87.820 }, { -308.648,   97.820,  -87.850 },
-			{ -293.093,   98.160,  -87.885 }, { -277.613,   98.480,  -87.910 }, { -262.208,   98.775,  -87.935 },
-			{ -246.873,   99.050,  -87.960 }, { -231.593,   99.300,  -87.980 }, { -216.383,   99.530,  -88.000 },
-			{ -201.223,   99.735,  -88.015 }, { -186.113,   99.920,  -88.030 }, { -171.048,  100.080,  -88.045 },
-			{ -156.028,  100.215,  -88.055 }, { -141.048,  100.335,  -88.065 }, { -126.103,  100.420,  -88.070 },
-			{ -111.193,  100.490,  -88.075 }, {  -96.303,  100.540,  -88.085 }, {  -81.443,  100.565,  -88.085 },
-			{  -66.608,  100.560,  -88.085 }, {  -51.783,  100.540,  -88.085 }, {  -36.973,  100.500,  -88.080 },
-			{  -22.178,  100.430,  -88.075 }, {   -7.388,  100.340,  -88.065 }, {    7.403,  100.340,  -88.070 },
-			{   22.193,  100.430,  -88.075 }, {   36.988,  100.500,  -88.080 }, {   51.798,  100.540,  -88.085 },
-			{   66.623,  100.560,  -88.085 }, {   81.458,  100.565,  -88.085 }, {   96.318,  100.540,  -88.085 },
-			{  111.208,  100.490,  -88.075 }, {  126.118,  100.420,  -88.070 }, {  141.063,  100.335,  -88.065 },
-			{  156.043,  100.215,  -88.055 }, {  171.063,  100.080,  -88.045 }, {  186.128,   99.915,  -88.030 },
-			{  201.238,   99.735,  -88.015 }, {  216.398,   99.530,  -88.000 }, {  231.613,   99.300,  -87.980 },
-			{  246.888,   99.050,  -87.960 }, {  262.223,   98.775,  -87.935 }, {  277.628,   98.480,  -87.910 },
-			{  293.108,   98.160,  -87.885 }, {  308.663,   97.820,  -87.850 }, {  324.293,   97.460,  -87.820 },
-			{  340.013,   97.070,  -87.790 }
-		}
-	};
+    private static final double[][][] position = {
+        {   { -340.003,   97.065,   87.845 }, { -324.283,   97.450,   87.875 }, { -308.648,   97.810,   87.900 },
+            { -293.093,   98.150,   87.920 }, { -277.618,   98.470,   87.940 }, { -262.213,   98.765,   87.965 },
+            { -246.878,   99.040,   87.980 }, { -231.603,   99.290,   87.995 }, { -216.393,   99.520,   88.010 },
+            { -201.228,   99.725,   88.030 }, { -186.118,   99.905,   88.040 }, { -171.058,  100.070,   88.050 },
+            { -156.038,  100.205,   88.055 }, { -141.058,  100.325,   88.070 }, { -126.113,  100.415,   88.075 },
+            { -111.198,  100.485,   88.075 }, {  -96.313,  100.530,   88.080 }, {  -81.453,  100.555,   88.085 },
+            {  -66.608,  100.560,   88.085 }, {  -51.788,  100.540,   88.080 }, {  -36.983,  100.490,   88.075 },
+            {  -22.183,  100.425,   88.075 }, {   -7.393,  100.335,   88.070 }, {    7.393,  100.335,   88.070 },
+            {   22.183,  100.425,   88.075 }, {   36.983,  100.490,   88.075 }, {   51.793,  100.540,   88.080 },
+            {   66.613,  100.560,   88.085 }, {   81.453,  100.555,   88.085 }, {   96.313,  100.530,   88.080 },
+            {  111.198,  100.485,   88.075 }, {  126.113,  100.415,   88.075 }, {  141.053,  100.325,   88.070 },
+            {  156.038,  100.205,   88.055 }, {  171.053,  100.070,   88.050 }, {  186.118,   99.905,   88.040 },
+            {  201.228,   99.725,   88.030 }, {  216.388,   99.520,   88.010 }, {  231.608,   99.290,   87.995 },
+            {  246.878,   99.040,   87.980 }, {  262.218,   98.765,   87.965 }, {  277.623,   98.470,   87.940 },
+            {  293.098,   98.150,   87.920 }, {  308.653,   97.810,   87.900 }, {  324.288,   97.450,   87.875 },
+            {  340.008,   97.065,   87.845 }
+        },
+        {   { -340.003,   97.040,   72.715 }, { -324.283,   97.420,   72.735 }, { -308.648,   97.785,   72.750 },
+            { -293.093,   98.125,   72.765 }, { -277.618,   98.450,   72.785 }, { -262.213,   98.745,   72.800 },
+            { -246.878,   99.015,   72.815 }, { -231.603,   99.265,   72.825 }, { -216.388,   99.495,   72.840 },
+            { -201.228,   99.700,   72.850 }, { -186.118,   99.885,   72.860 }, { -171.058,  100.045,   72.865 },
+            { -156.033,  100.185,   72.875 }, { -141.053,  100.300,   72.880 }, { -126.108,  100.395,   72.880 },
+            { -111.193,  100.460,   72.890 }, {  -96.308,  100.510,   72.890 }, {  -81.448,  100.535,   72.895 },
+            {  -66.608,  100.535,   72.890 }, {  -51.788,  100.510,   72.890 }, {  -36.978,  100.470,   72.890 },
+            {  -22.183,  100.405,   72.880 }, {   -7.388,  100.310,   72.880 }, {    7.393,  100.310,   72.880 },
+            {   22.188,  100.405,   72.885 }, {   36.983,  100.470,   72.890 }, {   51.793,  100.510,   72.890 },
+            {   66.613,  100.535,   72.890 }, {   81.453,  100.535,   72.895 }, {   96.313,  100.510,   72.890 },
+            {  111.198,  100.460,   72.890 }, {  126.113,  100.395,   72.880 }, {  141.063,  100.300,   72.880 },
+            {  156.043,  100.185,   72.875 }, {  171.063,  100.045,   72.865 }, {  186.123,   99.885,   72.860 },
+            {  201.233,   99.700,   72.850 }, {  216.393,   99.495,   72.840 }, {  231.608,   99.265,   72.825 },
+            {  246.883,   99.015,   72.815 }, {  262.218,   98.745,   72.800 }, {  277.623,   98.450,   72.785 },
+            {  293.098,   98.125,   72.765 }, {  308.653,   97.785,   72.750 }, {  324.288,   97.420,   72.735 },
+            {  340.008,   97.040,   72.715 }
+        },
+        {   { -340.003,   96.990,   57.600 }, { -324.283,   97.375,   57.610 }, { -308.648,   97.740,   57.625 },
+            { -293.093,   98.080,   57.630 }, { -277.618,   98.395,   57.645 }, { -262.213,   98.700,   57.655 },
+            { -246.873,   98.970,   57.660 }, { -231.603,   99.220,   57.670 }, { -216.383,   99.450,   57.680 },
+            { -201.228,   99.660,   57.685 }, { -186.113,   99.840,   57.695 }, { -171.053,  100.005,   57.695 },
+            { -156.033,  100.140,   57.700 }, { -141.053,  100.255,   57.710 }, { -126.108,  100.345,   57.710 },
+            { -111.193,  100.420,   57.710 }, {  -96.308,  100.465,   57.715 }, {  -81.448,  100.490,   57.715 },
+            {  -66.608,  100.490,   57.715 }, {  -51.788,  100.470,   57.710 }, {  -36.978,  100.425,   57.710 },
+            {  -22.178,  100.355,   57.710 }, {   -7.388,  100.265,   57.705 }, {    7.398,  100.265,   57.705 },
+            {   22.188,  100.355,   57.710 }, {   36.988,  100.425,   57.710 }, {   51.793,  100.470,   57.710 },
+            {   66.613,  100.490,   57.715 }, {   81.458,  100.490,   57.715 }, {   96.318,  100.465,   57.715 },
+            {  111.198,  100.420,   57.710 }, {  126.118,  100.345,   57.710 }, {  141.063,  100.255,   57.710 },
+            {  156.043,  100.140,   57.700 }, {  171.063,  100.005,   57.695 }, {  186.123,   99.840,   57.695 },
+            {  201.233,   99.660,   57.685 }, {  216.393,   99.450,   57.680 }, {  231.608,   99.220,   57.670 },
+            {  246.883,   98.970,   57.660 }, {  262.218,   98.700,   57.655 }, {  277.623,   98.395,   57.645 },
+            {  293.098,   98.080,   57.630 }, {  308.653,   97.740,   57.625 }, {  324.288,   97.375,   57.610 },
+            {  340.008,   96.990,   57.600 }
+        },
+        {   { -340.003,   96.925,   42.490 }, { -324.283,   97.305,   42.495 }, { -308.648,   97.675,   42.505 },
+            { -293.093,   98.010,   42.510 }, { -277.618,   98.330,   42.510 }, { -262.213,   98.625,   42.515 },
+            { -246.873,   98.900,   42.525 }, { -231.603,   99.155,   42.530 }, { -216.383,   99.385,   42.535 },
+            { -201.223,   99.590,   42.530 }, { -186.113,   99.775,   42.535 }, { -171.048,   99.930,   42.540 },
+            { -156.033,  100.070,   42.545 }, { -141.048,  100.185,   42.545 }, { -126.108,  100.280,   42.550 },
+            { -111.193,  100.350,   42.545 }, {  -96.308,  100.400,   42.545 }, {  -81.448,  100.420,   42.550 },
+            {  -66.608,  100.425,   42.550 }, {  -51.788,  100.405,   42.550 }, {  -36.978,  100.355,   42.545 },
+            {  -22.178,  100.290,   42.545 }, {   -7.388,  100.200,   42.545 }, {    7.398,  100.200,   42.545 },
+            {   22.188,  100.290,   42.545 }, {   36.988,  100.355,   42.545 }, {   51.793,  100.405,   42.550 },
+            {   66.613,  100.425,   42.550 }, {   81.458,  100.420,   42.550 }, {   96.318,  100.400,   42.545 },
+            {  111.198,  100.350,   42.545 }, {  126.118,  100.280,   42.550 }, {  141.063,  100.185,   42.545 },
+            {  156.043,  100.070,   42.545 }, {  171.063,   99.930,   42.540 }, {  186.123,   99.775,   42.535 },
+            {  201.233,   99.590,   42.530 }, {  216.393,   99.385,   42.535 }, {  231.608,   99.155,   42.530 },
+            {  246.883,   98.900,   42.525 }, {  262.218,   98.625,   42.515 }, {  277.628,   98.330,   42.510 },
+            {  293.098,   98.010,   42.510 }, {  308.653,   97.675,   42.505 }, {  324.288,   97.305,   42.495 },
+            {  340.008,   96.925,   42.490 }
+        },
+        {   { -340.003,   96.830,   27.385 }, { -324.278,   97.215,   27.385 }, { -308.648,   97.575,   27.385 },
+            { -293.093,   97.915,   27.385 }, { -277.613,   98.240,   27.385 }, { -262.213,   98.535,   27.385 },
+            { -246.878,   98.810,   27.385 }, { -231.603,   99.060,   27.385 }, { -216.383,   99.290,   27.385 },
+            { -201.223,   99.495,   27.385 }, { -186.113,   99.680,   27.385 }, { -171.048,   99.840,   27.385 },
+            { -156.033,   99.980,   27.385 }, { -141.048,  100.095,   27.385 }, { -126.103,  100.185,   27.385 },
+            { -111.193,  100.255,   27.385 }, {  -96.303,  100.305,   27.385 }, {  -81.448,  100.330,   27.385 },
+            {  -66.608,  100.330,   27.385 }, {  -51.783,  100.310,   27.385 }, {  -36.973,  100.265,   27.385 },
+            {  -22.178,  100.200,   27.385 }, {   -7.388,  100.105,   27.385 }, {    7.403,  100.105,   27.385 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {  156.078,   99.980,   27.385 }, {  171.103,   99.840,   27.385 }, {  186.168,   99.680,   27.385 },
+            {  201.268,   99.495,   27.385 }, {  216.423,   99.290,   27.385 }, {  231.638,   99.060,   27.385 },
+            {  246.913,   98.810,   27.385 }, {  262.248,   98.535,   27.385 }, {  277.658,   98.240,   27.385 },
+            {  293.133,   97.920,   27.385 }, {  308.688,   97.575,   27.385 }, {  324.323,   97.215,   27.385 },
+            {  340.043,   96.830,   27.385 }
+        },
+        {   {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }
+        },
+        {   { -339.998,   96.840,  -27.330 }, { -324.278,   97.225,  -27.340 }, { -308.643,   97.585,  -27.345 },
+            { -293.093,   97.925,  -27.350 }, { -277.613,   98.245,  -27.360 }, { -262.213,   98.545,  -27.365 },
+            { -246.868,   98.820,  -27.365 }, { -231.598,   99.070,  -27.370 }, { -216.383,   99.300,  -27.375 },
+            { -201.223,   99.505,  -27.380 }, { -186.113,   99.690,  -27.385 }, { -171.048,   99.850,  -27.380 },
+            { -156.028,   99.990,  -27.385 }, { -141.048,  100.100,  -27.390 }, { -126.103,  100.195,  -27.390 },
+            { -111.193,  100.265,  -27.395 }, {  -96.303,  100.315,  -27.395 }, {  -81.443,  100.340,  -27.390 },
+            {  -66.603,  100.335,  -27.390 }, {  -51.783,  100.315,  -27.390 }, {  -36.973,  100.275,  -27.395 },
+            {  -22.173,  100.205,  -27.390 }, {   -7.383,  100.115,  -27.385 }, {    7.403,  100.115,  -27.385 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 }, {    0.000,    0.000,    0.000 },
+            {  156.088,   99.985,  -27.385 }, {  171.103,   99.845,  -27.380 }, {  186.168,   99.680,  -27.385 },
+            {  201.268,   99.495,  -27.380 }, {  216.428,   99.290,  -27.375 }, {  231.643,   99.060,  -27.370 },
+            {  246.913,   98.810,  -27.365 }, {  262.258,   98.535,  -27.365 }, {  277.658,   98.240,  -27.360 },
+            {  293.138,   97.925,  -27.350 }, {  308.688,   97.580,  -27.345 }, {  324.323,   97.215,  -27.340 },
+            {  340.043,   96.835,  -27.330 }
+        },
+        {   { -339.998,   96.930,  -42.435 }, { -324.278,   97.315,  -42.445 }, { -308.648,   97.680,  -42.455 },
+            { -293.093,   98.015,  -42.470 }, { -277.613,   98.340,  -42.480 }, { -262.208,   98.635,  -42.490 },
+            { -246.873,   98.910,  -42.500 }, { -231.593,   99.160,  -42.510 }, { -216.383,   99.390,  -42.515 },
+            { -201.223,   99.595,  -42.525 }, { -186.113,   99.780,  -42.525 }, { -171.048,   99.940,  -42.535 },
+            { -156.028,  100.080,  -42.540 }, { -141.048,  100.195,  -42.540 }, { -126.103,  100.290,  -42.545 },
+            { -111.193,  100.355,  -42.550 }, {  -96.303,  100.405,  -42.550 }, {  -81.443,  100.430,  -42.550 },
+            {  -66.608,  100.430,  -42.550 }, {  -51.783,  100.405,  -42.550 }, {  -36.973,  100.365,  -42.550 },
+            {  -22.178,  100.295,  -42.545 }, {   -7.388,  100.205,  -42.545 }, {    7.403,  100.205,  -42.545 },
+            {   22.193,  100.295,  -42.545 }, {   36.988,  100.365,  -42.550 }, {   51.798,  100.405,  -42.550 },
+            {   66.623,  100.430,  -42.550 }, {   81.458,  100.430,  -42.550 }, {   96.318,  100.405,  -42.550 },
+            {  111.208,  100.355,  -42.550 }, {  126.118,  100.290,  -42.545 }, {  141.063,  100.195,  -42.540 },
+            {  156.043,  100.080,  -42.540 }, {  171.063,   99.940,  -42.535 }, {  186.128,   99.780,  -42.525 },
+            {  201.238,   99.595,  -42.525 }, {  216.398,   99.390,  -42.515 }, {  231.613,   99.160,  -42.510 },
+            {  246.888,   98.910,  -42.500 }, {  262.223,   98.635,  -42.490 }, {  277.628,   98.340,  -42.480 },
+            {  293.108,   98.015,  -42.470 }, {  308.663,   97.680,  -42.455 }, {  324.293,   97.315,  -42.445 },
+            {  340.013,   96.930,  -42.435 }
+        },
+        {   { -339.998,   97.000,  -57.540 }, { -324.278,   97.385,  -57.560 }, { -308.648,   97.745,  -57.575 },
+            { -293.093,   98.090,  -57.595 }, { -277.613,   98.410,  -57.610 }, { -262.208,   98.705,  -57.625 },
+            { -246.873,   98.975,  -57.640 }, { -231.593,   99.225,  -57.655 }, { -216.383,   99.455,  -57.665 },
+            { -201.223,   99.665,  -57.675 }, { -186.113,   99.845,  -57.685 }, { -171.048,  100.010,  -57.690 },
+            { -156.028,  100.145,  -57.700 }, { -141.048,  100.265,  -57.705 }, { -126.103,  100.355,  -57.710 },
+            { -111.193,  100.425,  -57.710 }, {  -96.303,  100.475,  -57.720 }, {  -81.443,  100.495,  -57.715 },
+            {  -66.608,  100.500,  -57.720 }, {  -51.783,  100.480,  -57.715 }, {  -36.973,  100.430,  -57.710 },
+            {  -22.178,  100.365,  -57.710 }, {   -7.388,  100.275,  -57.705 }, {    7.403,  100.275,  -57.705 },
+            {   22.193,  100.365,  -57.710 }, {   36.988,  100.430,  -57.710 }, {   51.798,  100.480,  -57.715 },
+            {   66.623,  100.500,  -57.720 }, {   81.458,  100.495,  -57.715 }, {   96.318,  100.475,  -57.720 },
+            {  111.208,  100.425,  -57.710 }, {  126.118,  100.355,  -57.710 }, {  141.063,  100.265,  -57.705 },
+            {  156.043,  100.145,  -57.700 }, {  171.063,  100.010,  -57.690 }, {  186.128,   99.845,  -57.685 },
+            {  201.238,   99.665,  -57.675 }, {  216.398,   99.455,  -57.665 }, {  231.613,   99.225,  -57.655 },
+            {  246.888,   98.975,  -57.640 }, {  262.223,   98.705,  -57.625 }, {  277.628,   98.410,  -57.610 },
+            {  293.108,   98.090,  -57.595 }, {  308.663,   97.745,  -57.575 }, {  324.293,   97.385,  -57.560 },
+            {  340.013,   97.000,  -57.540 }
+        },
+        {   { -339.998,   97.045,  -72.655 }, { -324.278,   97.435,  -72.680 }, { -308.648,   97.795,  -72.710 },
+            { -293.093,   98.135,  -72.730 }, { -277.613,   98.455,  -72.750 }, { -262.208,   98.750,  -72.775 },
+            { -246.873,   99.020,  -72.795 }, { -231.593,   99.280,  -72.810 }, { -216.383,   99.505,  -72.820 },
+            { -201.223,   99.710,  -72.840 }, { -186.113,   99.895,  -72.850 }, { -171.048,  100.055,  -72.860 },
+            { -156.028,  100.190,  -72.870 }, { -141.048,  100.305,  -72.880 }, { -126.103,  100.400,  -72.885 },
+            { -111.193,  100.470,  -72.890 }, {  -96.303,  100.520,  -72.890 }, {  -81.443,  100.540,  -72.895 },
+            {  -66.608,  100.540,  -72.895 }, {  -51.783,  100.520,  -72.895 }, {  -36.973,  100.480,  -72.890 },
+            {  -22.178,  100.405,  -72.885 }, {   -7.388,  100.320,  -72.880 }, {    7.403,  100.320,  -72.880 },
+            {   22.193,  100.405,  -72.885 }, {   36.988,  100.480,  -72.890 }, {   51.798,  100.520,  -72.895 },
+            {   66.623,  100.540,  -72.895 }, {   81.458,  100.540,  -72.895 }, {   96.318,  100.520,  -72.890 },
+            {  111.208,  100.470,  -72.890 }, {  126.118,  100.400,  -72.885 }, {  141.063,  100.305,  -72.880 },
+            {  156.043,  100.190,  -72.870 }, {  171.063,  100.055,  -72.860 }, {  186.128,   99.895,  -72.850 },
+            {  201.238,   99.710,  -72.840 }, {  216.398,   99.505,  -72.820 }, {  231.613,   99.280,  -72.810 },
+            {  246.888,   99.020,  -72.795 }, {  262.223,   98.750,  -72.775 }, {  277.628,   98.455,  -72.750 },
+            {  293.108,   98.135,  -72.730 }, {  308.663,   97.795,  -72.710 }, {  324.293,   97.435,  -72.680 },
+            {  340.013,   97.045,  -72.655 }
+        },
+        {   { -339.998,   97.070,  -87.790 }, { -324.278,   97.460,  -87.820 }, { -308.648,   97.820,  -87.850 },
+            { -293.093,   98.160,  -87.885 }, { -277.613,   98.480,  -87.910 }, { -262.208,   98.775,  -87.935 },
+            { -246.873,   99.050,  -87.960 }, { -231.593,   99.300,  -87.980 }, { -216.383,   99.530,  -88.000 },
+            { -201.223,   99.735,  -88.015 }, { -186.113,   99.920,  -88.030 }, { -171.048,  100.080,  -88.045 },
+            { -156.028,  100.215,  -88.055 }, { -141.048,  100.335,  -88.065 }, { -126.103,  100.420,  -88.070 },
+            { -111.193,  100.490,  -88.075 }, {  -96.303,  100.540,  -88.085 }, {  -81.443,  100.565,  -88.085 },
+            {  -66.608,  100.560,  -88.085 }, {  -51.783,  100.540,  -88.085 }, {  -36.973,  100.500,  -88.080 },
+            {  -22.178,  100.430,  -88.075 }, {   -7.388,  100.340,  -88.065 }, {    7.403,  100.340,  -88.070 },
+            {   22.193,  100.430,  -88.075 }, {   36.988,  100.500,  -88.080 }, {   51.798,  100.540,  -88.085 },
+            {   66.623,  100.560,  -88.085 }, {   81.458,  100.565,  -88.085 }, {   96.318,  100.540,  -88.085 },
+            {  111.208,  100.490,  -88.075 }, {  126.118,  100.420,  -88.070 }, {  141.063,  100.335,  -88.065 },
+            {  156.043,  100.215,  -88.055 }, {  171.063,  100.080,  -88.045 }, {  186.128,   99.915,  -88.030 },
+            {  201.238,   99.735,  -88.015 }, {  216.398,   99.530,  -88.000 }, {  231.613,   99.300,  -87.980 },
+            {  246.888,   99.050,  -87.960 }, {  262.223,   98.775,  -87.935 }, {  277.628,   98.480,  -87.910 },
+            {  293.108,   98.160,  -87.885 }, {  308.663,   97.820,  -87.850 }, {  324.293,   97.460,  -87.820 },
+            {  340.013,   97.070,  -87.790 }
+        }
+    };
 }

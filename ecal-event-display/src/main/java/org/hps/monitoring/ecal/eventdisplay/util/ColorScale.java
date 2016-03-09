@@ -47,8 +47,8 @@ public abstract class ColorScale implements ColorMap<Double> {
      * value, if scaling is logarithmic.
      */
     public double getScaledMaximum() {
-    	if(linear) { return max; }
-    	else { return lMax; }
+        if(linear) { return max; }
+        else { return lMax; }
     }
     
     /**
@@ -61,8 +61,8 @@ public abstract class ColorScale implements ColorMap<Double> {
      * value, if scaling is logarithmic.
      */
     public double getScaledMinimum() {
-    	if(linear) { return min; }
-    	else { return lMin; }
+        if(linear) { return min; }
+        else { return lMin; }
     }
     
     /**

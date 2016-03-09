@@ -146,24 +146,24 @@ public class GTPClusterer extends AbstractClusterer {
         // stored in LCIO format properly, it needs to separately store
         // its clusters' hits in a collection.
         if(writeHitCollection) {
-        	// Create a set to store the hits so that each one may be
-        	// stored only once.
-	        Set<CalorimeterHit> hitSet = new HashSet<CalorimeterHit>();
-	        
-	        // Loop over all clusters and add their hits to the set.
-	        for(Cluster cluster : clusterList) {
-	        	for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
-	        		hitSet.add(hit);
-	        	}
-	        }
-	        
-	        // Convert the set into a List object so that it can be stored
-	        // in LCIO.
-	        List<CalorimeterHit> clusterHits = new ArrayList<CalorimeterHit>(hitSet.size());
-	        clusterHits.addAll(hitSet);
-	        
-	        // Place the list of hits into the event stream.
-	        event.put("GTPHits", hits, CalorimeterHit.class, 0);
+            // Create a set to store the hits so that each one may be
+            // stored only once.
+            Set<CalorimeterHit> hitSet = new HashSet<CalorimeterHit>();
+            
+            // Loop over all clusters and add their hits to the set.
+            for(Cluster cluster : clusterList) {
+                for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
+                    hitSet.add(hit);
+                }
+            }
+            
+            // Convert the set into a List object so that it can be stored
+            // in LCIO.
+            List<CalorimeterHit> clusterHits = new ArrayList<CalorimeterHit>(hitSet.size());
+            clusterHits.addAll(hitSet);
+            
+            // Place the list of hits into the event stream.
+            event.put("GTPHits", hits, CalorimeterHit.class, 0);
         }
         
         // Return the clusters.
@@ -260,7 +260,7 @@ public class GTPClusterer extends AbstractClusterer {
      * should not.
      */
     void setVerbose(boolean verbose) {
-    	this.verbose = verbose;
+        this.verbose = verbose;
     }
     
     /**
@@ -271,7 +271,7 @@ public class GTPClusterer extends AbstractClusterer {
      * persisted and <code>false</code> that they will not.
      */
     void setWriteHitCollection(boolean state) {
-    	writeHitCollection = state;
+        writeHitCollection = state;
     }
     
 /**
@@ -291,7 +291,7 @@ private List<Cluster> getClusters() {
     
     // VERBOSE :: Print the cluster window.
     if(verbose) {
-    	// Print the event header.
+        // Print the event header.
         System.out.printf("%n%nEvent:%n");
         
         // Calculate some constants.
@@ -304,9 +304,9 @@ private List<Cluster> getClusters() {
             CalorimeterHit hit = null;
             
             for(Entry<Long, CalorimeterHit> entry : bufferMap.entrySet()) {
-            	hit = entry.getValue();
-            	System.out.printf("\t(%3d, %3d) --> %.4f (%.4f)%n", hit.getIdentifierFieldValue("ix"),
-            			hit.getIdentifierFieldValue("iy"), hit.getCorrectedEnergy(), hit.getRawEnergy());
+                hit = entry.getValue();
+                System.out.printf("\t(%3d, %3d) --> %.4f (%.4f)%n", hit.getIdentifierFieldValue("ix"),
+                        hit.getIdentifierFieldValue("iy"), hit.getCorrectedEnergy(), hit.getRawEnergy());
             }
             
             bufferNum++;
@@ -327,8 +327,8 @@ private List<Cluster> getClusters() {
         // VERBOSE :: Print the current cluster.
         if(verbose) {
             System.out.printf("Cluster Check:%n");
-        	System.out.printf("\t(%3d, %3d) --> %.4f%n", currentHit.getIdentifierFieldValue("ix"),
-        			currentHit.getIdentifierFieldValue("iy"), currentHit.getCorrectedEnergy());
+            System.out.printf("\t(%3d, %3d) --> %.4f%n", currentHit.getIdentifierFieldValue("ix"),
+                    currentHit.getIdentifierFieldValue("iy"), currentHit.getCorrectedEnergy());
         }
         
         // Store the energy of the current hit.
@@ -337,11 +337,11 @@ private List<Cluster> getClusters() {
         // If the hit energy is lower than the minimum threshold,
         // then we immediately reject this hit as a possible cluster.
         if (currentEnergy < seedEnergyThreshold) {
-        	// VERBOSE :: Note the reason the potential seed was
-        	//            rejected.
-        	if(verbose) { System.out.printf("\tREJECT :: Does not exceed seed threshold %.4f.%n", seedEnergyThreshold); }
-        	
-        	// Skip to the next potential seed.
+            // VERBOSE :: Note the reason the potential seed was
+            //            rejected.
+            if(verbose) { System.out.printf("\tREJECT :: Does not exceed seed threshold %.4f.%n", seedEnergyThreshold); }
+            
+            // Skip to the next potential seed.
             continue seedLoop;
         }
         
@@ -368,16 +368,16 @@ private List<Cluster> getClusters() {
                 // is larger than then original hit. If it is, we may
                 // stop the comparison because this is not a cluster.
                 if (bufferHitEnergy > currentEnergy) {
-                	// VERBOSE :: Output the reason the potential
-                	//            seed was rejected along with the
-                	//            hit that caused it.
-                	if(verbose) {
-                    	System.out.printf("\tREJECT :: Buffer hit surpasses hit energy.");
-                    	System.out.printf("\tBUFFER HIT :: (%3d, %3d) --> %.4f%n", bufferHit.getIdentifierFieldValue("ix"),
-                    			bufferHit.getIdentifierFieldValue("iy"), bufferHit.getCorrectedEnergy(), bufferHit.getRawEnergy());
-                	}
-                	
-                	// Skip to the next potential seed.
+                    // VERBOSE :: Output the reason the potential
+                    //            seed was rejected along with the
+                    //            hit that caused it.
+                    if(verbose) {
+                        System.out.printf("\tREJECT :: Buffer hit surpasses hit energy.");
+                        System.out.printf("\tBUFFER HIT :: (%3d, %3d) --> %.4f%n", bufferHit.getIdentifierFieldValue("ix"),
+                                bufferHit.getIdentifierFieldValue("iy"), bufferHit.getCorrectedEnergy(), bufferHit.getRawEnergy());
+                    }
+                    
+                    // Skip to the next potential seed.
                     continue seedLoop;
                 }
                 
@@ -403,16 +403,16 @@ private List<Cluster> getClusters() {
                     // If it is, we may stop the comparison because this
                     // is not a cluster.
                     if (neighborHitEnergy > currentEnergy) {
-                    	// VERBOSE :: Output the reason the potential
-                    	//            seed was rejected along with the
-                    	//            hit that caused it.
-                    	if(verbose) {
-                        	System.out.printf("\tREJECT :: Buffer hit surpasses hit energy.%n");
-                        	System.out.printf("\tBUFFER HIT :: (%3d, %3d) --> %.4f%n", neighborHit.getIdentifierFieldValue("ix"),
-                        			neighborHit.getIdentifierFieldValue("iy"), neighborHit.getCorrectedEnergy(), neighborHit.getRawEnergy());
-                    	}
-                    	
-                    	// Skip to the next potential seed.
+                        // VERBOSE :: Output the reason the potential
+                        //            seed was rejected along with the
+                        //            hit that caused it.
+                        if(verbose) {
+                            System.out.printf("\tREJECT :: Buffer hit surpasses hit energy.%n");
+                            System.out.printf("\tBUFFER HIT :: (%3d, %3d) --> %.4f%n", neighborHit.getIdentifierFieldValue("ix"),
+                                    neighborHit.getIdentifierFieldValue("iy"), neighborHit.getCorrectedEnergy(), neighborHit.getRawEnergy());
+                        }
+                        
+                        // Skip to the next potential seed.
                         continue seedLoop;
                     }
                     
@@ -436,10 +436,10 @@ private List<Cluster> getClusters() {
         if(verbose) {
             System.out.printf("Cluster added.%n");
             System.out.printf("\t(%3d, %3d) --> %.4f GeV --> %d hits%n", cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
-            		cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), cluster.getEnergy(), cluster.getCalorimeterHits().size());
+                    cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), cluster.getEnergy(), cluster.getCalorimeterHits().size());
             for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
-            	System.out.printf("\t\tCLUSTER HIT :: (%3d, %3d) --> %.4f%n", hit.getIdentifierFieldValue("ix"),
-            			hit.getIdentifierFieldValue("iy"), hit.getCorrectedEnergy(), hit.getRawEnergy());
+                System.out.printf("\t\tCLUSTER HIT :: (%3d, %3d) --> %.4f%n", hit.getIdentifierFieldValue("ix"),
+                        hit.getIdentifierFieldValue("iy"), hit.getCorrectedEnergy(), hit.getRawEnergy());
             }
         }
     }

@@ -486,7 +486,7 @@ public class GblPoint
     {
         int ifail = 0;
 // to optimize: need only two last rows of inverse
-//	prevJacobian = aJac.InverseFast(ifail);
+//  prevJacobian = aJac.InverseFast(ifail);
 //  block matrix algebra
         Matrix CA = aJac.sub(2, 3, 3, 0).times(aJac.sub(3, 0, 0).inverse()); // C*A^-1
         Matrix DCAB = aJac.sub(2, 3, 3).minus(CA.times(aJac.sub(3, 2, 0, 3))); // D - C*A^-1 *B
@@ -531,14 +531,14 @@ public class GblPoint
         }
 
         matW.placeAt(matWt.inverse(), 0, 0);
-//	if (!matW.InvertFast()) {
-//		std::cout << " getDerivatives failed to invert matrix: "
-//				<< matW << "\n";
-//		std::cout
-//				<< " Possible reason for singular matrix: multiple GblPoints at same arc-length"
-//				<< "\n";
-//		throw std::overflow_error("Singular matrix inversion exception");
-//	}
+//  if (!matW.InvertFast()) {
+//      std::cout << " getDerivatives failed to invert matrix: "
+//              << matW << "\n";
+//      std::cout
+//              << " Possible reason for singular matrix: multiple GblPoints at same arc-length"
+//              << "\n";
+//      throw std::overflow_error("Singular matrix inversion exception");
+//  }
         matWJ.placeAt(matW.times(matJ), 0, 0);
         vecWd.placeAt(matW.times(vecd), 0, 0);
 

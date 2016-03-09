@@ -14,8 +14,8 @@ import org.lcsim.event.Vertex;
 
 /**
  * 
- *	@author Mathew Thomas Graham <mgraham@slac.stanford.edu>
- *	@version $Id:$
+ *  @author Mathew Thomas Graham <mgraham@slac.stanford.edu>
+ *  @version $Id:$
  *
  */
 public class BilliorVertex implements Vertex {
@@ -74,12 +74,12 @@ public class BilliorVertex implements Vertex {
      * @param particle : The ReconstructedParticle Associated with this Vertex
      */
     public void setAssociatedParticle(ReconstructedParticle particle){
-    	this._particle = particle;
+        this._particle = particle;
     }
 
     @Override
     public boolean isPrimary() {
-    	return _isPrimary; 
+        return _isPrimary; 
     }
 
     @Override
@@ -94,7 +94,7 @@ public class BilliorVertex implements Vertex {
 
     @Override
     public double getProbability() {
-    	return _probability;
+        return _probability;
     }
 
     @Override
@@ -108,7 +108,7 @@ public class BilliorVertex implements Vertex {
     }
 
     // TODO: These should be pulled out and accessed by their own 
-    //		 getter methods.  
+    //       getter methods.  
     @Override
     public Map<String, Double> getParameters() {
         Map<String, Double> pars = new HashMap<String, Double>();
@@ -128,6 +128,6 @@ public class BilliorVertex implements Vertex {
 
     @Override
     public ReconstructedParticle getAssociatedParticle() {
-    	return _particle; 
+        return _particle; 
     }
 }

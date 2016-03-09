@@ -488,7 +488,7 @@
     </define>
     
     <materials>      
-    	<!-- Set the world material to vacuum. -->
+        <!-- Set the world material to vacuum. -->
         <material name="WorldMaterial">
             <D type="density" unit="g/cm3" value="0.0000000000000001"/>
             <fraction n="1.0" ref="Vacuum" />
@@ -578,7 +578,7 @@
             </layer>
             <layer id="2">
                 <module_placement name="TestRunModuleFieldDef" id="0" x="0" y="0" z="endOfFieldZ" rx="0" ry="0" rz="-PI/2"/>
-			</layer>
+            </layer>
         </detector>     
         
         <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">

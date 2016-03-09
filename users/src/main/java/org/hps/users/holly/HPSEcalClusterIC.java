@@ -55,11 +55,11 @@ public class HPSEcalClusterIC extends BaseCluster {
     }
     
     public void addSharedHit(CalorimeterHit sharedHit) {
-    	sharedHitList.add(sharedHit);
+        sharedHitList.add(sharedHit);
     }
     
     public List<CalorimeterHit> getSharedHits() {
-    	return sharedHitList;
+        return sharedHitList;
     }
     
 //    public double[] getPosition() {
@@ -155,12 +155,12 @@ public class HPSEcalClusterIC extends BaseCluster {
         for(int i=0;i<hits.size();i++)
         {
             CalorimeterHit hit = hits.get(i);
-            //	CalorimeterIDDecoder decoder = hit.getDecoder();
-            //	decoder.setID(hit.getCellID());
-            //	double[] pos = new double[3];
-            //	pos[0] = decoder.getX();
-            //	pos[1] = decoder.getY();
-            //	pos[2] = decoder.getZ();
+            //  CalorimeterIDDecoder decoder = hit.getDecoder();
+            //  decoder.setID(hit.getCellID());
+            //  double[] pos = new double[3];
+            //  pos[0] = decoder.getX();
+            //  pos[1] = decoder.getY();
+            //  pos[2] = decoder.getZ();
             //double[] pos = hit.getPosition();
             //Find position at shower max
             IGeometryInfo geom = hit.getDetectorElement().getGeometry();
@@ -296,104 +296,104 @@ public class HPSEcalClusterIC extends BaseCluster {
             EV[1] = E2;
             EV[2] = E3;
             // Now calculate principal axes
-	    // For eigenvalue EV, the axis is (nx, ny, nz) where:
-	    //    (Exx - EV)nx + (Exy)ny + (Exz)nz = 0
-	    //    (Eyx)nx + (Eyy - EV)ny + (Eyz)nz = 0
-	    //    (Ezx)nx + (Ezy)ny + (Ezz - EV)nz = 0
-	    // Setting nx = 1, we have:
-	    //    (Exx - EV) + (Exy)ny + (Exz)nz = 0
-	    //    (Eyx) + (Eyy - EV)ny + (Eyz)nz = 0
-	    //    (Ezx) + (Ezy)ny + (Ezz - EV)nz = 0
-	    // and so
-	    //    (Exy)ny = EV - Exx - (Exz)nz  =>  ny = (EV - Exx - Exz*nz)/Exy
-	    // What if Exy = 0? Then provided Eyz is non-zero we can write:
-	    //    (Ezx) + (Ezy)ny + (Ezz - EV)nz = 0
-	    //    ny = (Exz - (Ezz-EV)*nz)/Eyz
-	    // What if Exy = 0 and Eyz = 0 but (Eyy - EV) is non-zero?
-	    //    (Eyy - EV)ny + (Eyz)nz = 0
-	    //    ny = -(Eyz*nz)/(Eyy-EV)
+        // For eigenvalue EV, the axis is (nx, ny, nz) where:
+        //    (Exx - EV)nx + (Exy)ny + (Exz)nz = 0
+        //    (Eyx)nx + (Eyy - EV)ny + (Eyz)nz = 0
+        //    (Ezx)nx + (Ezy)ny + (Ezz - EV)nz = 0
+        // Setting nx = 1, we have:
+        //    (Exx - EV) + (Exy)ny + (Exz)nz = 0
+        //    (Eyx) + (Eyy - EV)ny + (Eyz)nz = 0
+        //    (Ezx) + (Ezy)ny + (Ezz - EV)nz = 0
+        // and so
+        //    (Exy)ny = EV - Exx - (Exz)nz  =>  ny = (EV - Exx - Exz*nz)/Exy
+        // What if Exy = 0? Then provided Eyz is non-zero we can write:
+        //    (Ezx) + (Ezy)ny + (Ezz - EV)nz = 0
+        //    ny = (Exz - (Ezz-EV)*nz)/Eyz
+        // What if Exy = 0 and Eyz = 0 but (Eyy - EV) is non-zero?
+        //    (Eyy - EV)ny + (Eyz)nz = 0
+        //    ny = -(Eyz*nz)/(Eyy-EV)
 
-	    // In the pathological case where Exz = Eyz = Ezz = 0:
-	    //    (Exx - EV)nx + (Exy)ny = 0  =>  ny/nx = -(Exx-EV)/Exy
-	    //    (Eyx)nx + (Eyy - EV)ny = 0  =>  ny/nx = -Eyx/(Eyy-EV)
-	    //    (EV)nz = 0
-	    // so
-	    //     -ny/nx = (EV-Exx)/Exy = Eyx/(EV-Eyy)
-	    // But watch out for order! Recalculate eigenvalues for this pathological case.
-	    //     (EV-Exx)(EV-Eyy) = Eyx*Exy
-	    //     EV^2 - EV(Exx+Eyy) + Exx*Eyy - Eyx*Exy = 0
-	    // 
-	    // In another pathological case, Exz = Exy = 0:
-	    //    (Exx - EV)nx = 0
-	    //    (Eyy - EV)ny + (Eyz)nz = 0 => ny/nz = -(Eyz)/(Eyy-EV)
-	    //    (Ezy)ny + (Ezz - EV)nz = 0 => ny/nz = -(Ezz-EV)/(Ezy)
-	    // so we cannot set nx = 1. Instead, write:
-	    //    -ny/nz = (Eyz)/(Eyy-EV) = (Ezz-EV)/(Ezy)
-	    // Then
-	    //    (Eyz)(Ezy) = (Eyy-EV)(Ezz-EV)
-	    //    (Eyz)^2 = (Eyy)(Ezz) - (Eyy)(EV) - (Ezz)(EV) + (EV)^2
-	    //    EV^2 - EV(Eyy+Ezz) + Eyy*Ezz - Eyz*Eyz = 0
+        // In the pathological case where Exz = Eyz = Ezz = 0:
+        //    (Exx - EV)nx + (Exy)ny = 0  =>  ny/nx = -(Exx-EV)/Exy
+        //    (Eyx)nx + (Eyy - EV)ny = 0  =>  ny/nx = -Eyx/(Eyy-EV)
+        //    (EV)nz = 0
+        // so
+        //     -ny/nx = (EV-Exx)/Exy = Eyx/(EV-Eyy)
+        // But watch out for order! Recalculate eigenvalues for this pathological case.
+        //     (EV-Exx)(EV-Eyy) = Eyx*Exy
+        //     EV^2 - EV(Exx+Eyy) + Exx*Eyy - Eyx*Exy = 0
+        // 
+        // In another pathological case, Exz = Exy = 0:
+        //    (Exx - EV)nx = 0
+        //    (Eyy - EV)ny + (Eyz)nz = 0 => ny/nz = -(Eyz)/(Eyy-EV)
+        //    (Ezy)ny + (Ezz - EV)nz = 0 => ny/nz = -(Ezz-EV)/(Ezy)
+        // so we cannot set nx = 1. Instead, write:
+        //    -ny/nz = (Eyz)/(Eyy-EV) = (Ezz-EV)/(Ezy)
+        // Then
+        //    (Eyz)(Ezy) = (Eyy-EV)(Ezz-EV)
+        //    (Eyz)^2 = (Eyy)(Ezz) - (Eyy)(EV) - (Ezz)(EV) + (EV)^2
+        //    EV^2 - EV(Eyy+Ezz) + Eyy*Ezz - Eyz*Eyz = 0
 
-	    // Handle pathological case
-	    if (Exz == 0.0 && Eyz == 0.0) {
-		// Recompute eigenvectors.
-		EV[0] = 0.5*(Exx+Eyy) + 0.5*Math.sqrt((Exx+Eyy)*(Exx+Eyy) + 4.0*Exy*Exy);
-		EV[1] = 0.5*(Exx+Eyy) - 0.5*Math.sqrt((Exx+Eyy)*(Exx+Eyy) + 4.0*Exy*Exy);
-		EV[2] = 0.0;
-		for( int i = 0 ; i < 2 ; i++ ) {
-		    double nx_over_ny = Exy / (Exx-EV[i]);
-		    double nx_unnormalized = nx_over_ny;
-		    double ny_unnormalized = 1.0;
-		    double norm = Math.sqrt(nx_unnormalized*nx_unnormalized + ny_unnormalized*ny_unnormalized);
-		    mm_PA[i][0] = ny_unnormalized/norm;
-		    mm_PA[i][1] = nx_unnormalized/norm;
-		    mm_PA[i][2] = 0.0;
-		}
-		// ... and now set third eigenvector to the z direction:
-		mm_PA[2][0] = 0.0;
-		mm_PA[2][1] = 0.0;
-		mm_PA[2][2] = 1.0;
-	    } else if (Exz == 0.0 && Exy == 0.0) {
-		// Another pathological case
-		EV[0] = 0.5*(Eyy+Ezz) + 0.5*Math.sqrt((Eyy+Ezz)*(Eyy+Ezz) + 4.0*Eyz*Eyz);
-		EV[1] = 0.5*(Eyy+Ezz) - 0.5*Math.sqrt((Eyy+Ezz)*(Eyy+Ezz) + 4.0*Eyz*Eyz);
-		EV[2] = 0.0;
-		for( int i = 0 ; i < 2 ; i++ ) {
-		    double ny_over_nz = Eyz / (Eyy-EV[i]);
-		    double ny_unnormalized = ny_over_nz;
-		    double nz_unnormalized = 1.0;
-		    double norm = Math.sqrt(ny_unnormalized*ny_unnormalized + nz_unnormalized*nz_unnormalized);
-		    mm_PA[i][0] = nz_unnormalized/norm;
-		    mm_PA[i][1] = ny_unnormalized/norm;
-		    mm_PA[i][2] = 0.0;
-		}
-		mm_PA[2][0] = 0.0;
-		mm_PA[2][1] = 0.0;
-		mm_PA[2][2] = 1.0;
-	    } else {
-		for( int i = 0 ; i < 3 ; i++ )
-		    {
-			double[] C = new double[3];
-			C[0] = 1.0;
-			C[2] = (Exy*Exy + (Eyy - EV[i])*(EV[i] - Exx))/
-			    ((Eyy - EV[i])*Exz - Eyz*Exy);
-			C[1] = (EV[i] - Exx - Exz*C[2])/Exy;
-			if (Exy == 0.0) {
-			    // Recompute
-			    if (Eyz != 0.0) {
-				// ny = (Exz - (Ezz-EV)*nz)/Eyz
-				C[1] = (Exz - (Ezz-EV[i])*C[2])/Eyz;
-			    } else {
-				// ny = -(Eyz*nz)/(Eyy-EV)
-				C[1] = -(Eyz*C[2])/(Eyy-EV[i]);
-			    }
-			}
-			double norm = Math.sqrt(C[0]*C[0] + C[1]*C[1] + C[2]*C[2]);
-			mm_PA[i][0] = C[0]/norm;
-			mm_PA[i][1] = C[1]/norm;
-			mm_PA[i][2] = C[2]/norm;
-		    }
-	    }
+        // Handle pathological case
+        if (Exz == 0.0 && Eyz == 0.0) {
+        // Recompute eigenvectors.
+        EV[0] = 0.5*(Exx+Eyy) + 0.5*Math.sqrt((Exx+Eyy)*(Exx+Eyy) + 4.0*Exy*Exy);
+        EV[1] = 0.5*(Exx+Eyy) - 0.5*Math.sqrt((Exx+Eyy)*(Exx+Eyy) + 4.0*Exy*Exy);
+        EV[2] = 0.0;
+        for( int i = 0 ; i < 2 ; i++ ) {
+            double nx_over_ny = Exy / (Exx-EV[i]);
+            double nx_unnormalized = nx_over_ny;
+            double ny_unnormalized = 1.0;
+            double norm = Math.sqrt(nx_unnormalized*nx_unnormalized + ny_unnormalized*ny_unnormalized);
+            mm_PA[i][0] = ny_unnormalized/norm;
+            mm_PA[i][1] = nx_unnormalized/norm;
+            mm_PA[i][2] = 0.0;
+        }
+        // ... and now set third eigenvector to the z direction:
+        mm_PA[2][0] = 0.0;
+        mm_PA[2][1] = 0.0;
+        mm_PA[2][2] = 1.0;
+        } else if (Exz == 0.0 && Exy == 0.0) {
+        // Another pathological case
+        EV[0] = 0.5*(Eyy+Ezz) + 0.5*Math.sqrt((Eyy+Ezz)*(Eyy+Ezz) + 4.0*Eyz*Eyz);
+        EV[1] = 0.5*(Eyy+Ezz) - 0.5*Math.sqrt((Eyy+Ezz)*(Eyy+Ezz) + 4.0*Eyz*Eyz);
+        EV[2] = 0.0;
+        for( int i = 0 ; i < 2 ; i++ ) {
+            double ny_over_nz = Eyz / (Eyy-EV[i]);
+            double ny_unnormalized = ny_over_nz;
+            double nz_unnormalized = 1.0;
+            double norm = Math.sqrt(ny_unnormalized*ny_unnormalized + nz_unnormalized*nz_unnormalized);
+            mm_PA[i][0] = nz_unnormalized/norm;
+            mm_PA[i][1] = ny_unnormalized/norm;
+            mm_PA[i][2] = 0.0;
+        }
+        mm_PA[2][0] = 0.0;
+        mm_PA[2][1] = 0.0;
+        mm_PA[2][2] = 1.0;
+        } else {
+        for( int i = 0 ; i < 3 ; i++ )
+            {
+            double[] C = new double[3];
+            C[0] = 1.0;
+            C[2] = (Exy*Exy + (Eyy - EV[i])*(EV[i] - Exx))/
+                ((Eyy - EV[i])*Exz - Eyz*Exy);
+            C[1] = (EV[i] - Exx - Exz*C[2])/Exy;
+            if (Exy == 0.0) {
+                // Recompute
+                if (Eyz != 0.0) {
+                // ny = (Exz - (Ezz-EV)*nz)/Eyz
+                C[1] = (Exz - (Ezz-EV[i])*C[2])/Eyz;
+                } else {
+                // ny = -(Eyz*nz)/(Eyy-EV)
+                C[1] = -(Eyz*C[2])/(Eyy-EV[i]);
+                }
+            }
+            double norm = Math.sqrt(C[0]*C[0] + C[1]*C[1] + C[2]*C[2]);
+            mm_PA[i][0] = C[0]/norm;
+            mm_PA[i][1] = C[1]/norm;
+            mm_PA[i][2] = C[2]/norm;
+            }
+        }
         }
         mm_NE[0] = NE1;
         mm_NE[1] = NE2;
@@ -417,7 +417,7 @@ public class HPSEcalClusterIC extends BaseCluster {
             double dr = Math.sqrt(  (position[0]+mm_PA[0][0])*(position[0]+mm_PA[0][0]) +
                     (position[1]+mm_PA[0][1])*(position[1]+mm_PA[0][1]) +
                     (position[2]+mm_PA[0][2])*(position[2]+mm_PA[0][2]) ) -
-                    Math.sqrt(	(position[0])*(position[0]) +
+                    Math.sqrt(  (position[0])*(position[0]) +
                     (position[1])*(position[1]) +
                     (position[2])*(position[2]) ) ;
             double sign = 1.;

@@ -80,11 +80,11 @@ public class TrigRateDriver extends Driver {
     }
     
     public void detectorChanged(Detector detector) {
-	// Get the Subdetector.
-	ecal = detector.getSubdetector(ecalName);
+    // Get the Subdetector.
+    ecal = detector.getSubdetector(ecalName);
 
-	// Cache ref to decoder.
-	dec = ecal.getIDDecoder();
+    // Cache ref to decoder.
+    dec = ecal.getIDDecoder();
         
         //plotterFrame = new AIDAFrame();
         //plotterFrame.setTitle("TrigRateFrame");

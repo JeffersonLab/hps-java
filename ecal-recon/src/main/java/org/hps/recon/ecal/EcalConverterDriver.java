@@ -17,8 +17,8 @@ import org.lcsim.util.Driver;
  * @version $Id: EcalConverterDriver.java,v 1.1 2013/02/25 22:39:24 meeg Exp $
  */
 public class EcalConverterDriver extends Driver {
-	
-	Detector detector = null;
+    
+    Detector detector = null;
 
     String rawCollectionName;
     String ecalReadoutName = "EcalHits";
@@ -59,7 +59,7 @@ public class EcalConverterDriver extends Driver {
     
     @Override
     public void detectorChanged(Detector detector) {
-    	this.detector = detector;
+        this.detector = detector;
     }
 
     @Override
@@ -87,8 +87,8 @@ public class EcalConverterDriver extends Driver {
     }
 
     private CalorimeterHit HitDtoA(RawCalorimeterHit hit) {
-    	double energy = DtoA(hit.getAmplitude(), hit.getCellID());
-    	return CalorimeterHitUtilities.create(energy, period * hit.getTimeStamp() + dt, hit.getCellID());
+        double energy = DtoA(hit.getAmplitude(), hit.getCellID());
+        return CalorimeterHitUtilities.create(energy, period * hit.getTimeStamp() + dt, hit.getCellID());
     }
 
 //    private RawCalorimeterHit HitAtoD(CalorimeterHit hit) {

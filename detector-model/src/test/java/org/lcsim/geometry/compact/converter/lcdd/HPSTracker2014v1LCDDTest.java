@@ -18,7 +18,7 @@ public class HPSTracker2014v1LCDDTest extends TestCase
 {    
    public HPSTracker2014v1LCDDTest(String name)
    {
-   	super(name);
+    super(name);
    }
    
    public static TestSuite suite()

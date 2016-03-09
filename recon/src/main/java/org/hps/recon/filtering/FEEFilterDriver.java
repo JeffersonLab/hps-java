@@ -45,7 +45,7 @@ public class FEEFilterDriver extends Driver
       //  cc.Delete();
 
       // keep events with a cluster over 600 MeV with seed over 400 MeV (for 2015 running).
-    	// keep events with cluster over 1.2 GeV and seed over 650 MeV for 2016 running.
+        // keep events with cluster over 1.2 GeV and seed over 650 MeV for 2016 running.
       if (cc.getEnergy() > 1.2 && 
           ClusterUtilities.findSeedHit(cc).getCorrectedEnergy() > 0.65)
         return;

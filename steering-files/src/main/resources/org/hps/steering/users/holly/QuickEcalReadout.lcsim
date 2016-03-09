@@ -18,11 +18,11 @@
             <eventInterval>1000</eventInterval>
         </driver>       
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-     		<runNumber>0</runNumber>
-    		<freeze>true</freeze>
-    		<detectorName>HPS-Proposal2014-v7-2pt2</detectorName>
-   		 </driver>
-   		 <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
+            <runNumber>0</runNumber>
+            <freeze>true</freeze>
+            <detectorName>HPS-Proposal2014-v7-2pt2</detectorName>
+         </driver>
+         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
             <rejectBackground>true</rejectBackground>
         </driver>
@@ -44,4 +44,4 @@
         </driver> 
     </drivers>
 </lcsim>
-	
+    

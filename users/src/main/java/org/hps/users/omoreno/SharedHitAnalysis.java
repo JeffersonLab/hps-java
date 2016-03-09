@@ -98,14 +98,14 @@ public class SharedHitAnalysis extends Driver {
     }
     
     
-	protected void detectorChanged(Detector detector){
+    protected void detectorChanged(Detector detector){
 
-	    for (int layer = 1; layer <= 6; layer++) { 
-	        
-	        topLayerToStereoHit.put(layer, new ArrayList<TrackerHit>());
-	        bottomLayerToStereoHit.put(layer, new ArrayList<TrackerHit>());
-	    }
-	    
+        for (int layer = 1; layer <= 6; layer++) { 
+            
+            topLayerToStereoHit.put(layer, new ArrayList<TrackerHit>());
+            bottomLayerToStereoHit.put(layer, new ArrayList<TrackerHit>());
+        }
+        
         tree = IAnalysisFactory.create().createTreeFactory().create();
         histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
         
@@ -159,18 +159,18 @@ public class SharedHitAnalysis extends Driver {
         plotters.get("Track Parameters").region(4).plot(trackPlots.get("tan_lambda"), this.createStyle(1, "", ""));
         plotters.get("Track Parameters").region(4).plot(trackPlots.get("tan_lambda - shared strip hit"),  this.createStyle(2, "", ""));
         plotters.get("Track Parameters").region(4).plot(trackPlots.get("tan_lambda - l1 Isolation"),  this.createStyle(3, "", ""));
-	
-		for (IPlotter plotter : plotters.values()) { 
-			plotter.show();
-		}
-	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+    
+        for (IPlotter plotter : plotters.values()) { 
+            plotter.show();
+        }
+    }
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void process(EventHeader event){
 
         // If the event doesn't have any tracks, skip it    
-		if(!event.hasCollection(Track.class, trackCollectionName)) return;
-    	
+        if(!event.hasCollection(Track.class, trackCollectionName)) return;
+        
         // Get the collection of tracks from the event
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         
@@ -198,13 +198,13 @@ public class SharedHitAnalysis extends Driver {
         this.mapStereoHits(stereoHits);
         
         // Loop over all of the tracks in the event
-    	for(Track track : tracks){
-    	
-    	    boolean sharedHitTrack = false;
+        for(Track track : tracks){
+        
+            boolean sharedHitTrack = false;
            boolean l1Isolation = true;
-    	    
-    	    // Fill the track parameter plots
-    	    
+            
+            // Fill the track parameter plots
+            
             // Loop through all of the stereo hits associated with a track
             for (TrackerHit rotatedStereoHit : track.getTrackerHits()) { 
                
@@ -277,15 +277,15 @@ public class SharedHitAnalysis extends Driver {
                 trackPlots.get("tan_lambda - l1 Isolation").fill(TrackUtils.getTanLambda(track));
                 trackPlots.get("chi2 - l1 Isolation").fill(track.getChi2());
             }
-    	}
-	}
-	
+        }
+    }
+    
     private void mapStereoHits(List<TrackerHit> stereoHits) { 
        
-	    for (int layer = 1; layer <= 6; layer++) { 
-	        topLayerToStereoHit.get(layer).clear();
-	        bottomLayerToStereoHit.get(layer).clear();;
-	    }
+        for (int layer = 1; layer <= 6; layer++) { 
+            topLayerToStereoHit.get(layer).clear();
+            bottomLayerToStereoHit.get(layer).clear();;
+        }
         
         for (TrackerHit stereoHit : stereoHits) {
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stereoHit.getRawHits().get(0)).getDetectorElement();

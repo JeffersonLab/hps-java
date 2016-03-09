@@ -130,13 +130,13 @@ public class FADCConfig extends IDAQConfig {
      * per ADC.
      */
     public float getGain(Point ixy) {
-    	// Get the channel index.
-    	Integer index = indexChannelMap.get(ixy);
-    	
-    	// If the channel index was defined, return the pedestal.
+        // Get the channel index.
+        Integer index = indexChannelMap.get(ixy);
+        
+        // If the channel index was defined, return the pedestal.
         if(index != null) { return getGain(index); }
         else {
-        	throw new IllegalArgumentException(String.format("Crystal (%3d, %3d) does not exist.", ixy.x, ixy.y));
+            throw new IllegalArgumentException(String.format("Crystal (%3d, %3d) does not exist.", ixy.x, ixy.y));
         }
     }
     
@@ -226,13 +226,13 @@ public class FADCConfig extends IDAQConfig {
      * of ADC.
      */
     public float getPedestal(Point ixy) {
-    	// Get the channel index.
-    	Integer index = indexChannelMap.get(ixy);
-    	
-    	// If the channel index was defined, return the pedestal.
+        // Get the channel index.
+        Integer index = indexChannelMap.get(ixy);
+        
+        // If the channel index was defined, return the pedestal.
         if(index != null) { return getPedestal(index); }
         else {
-        	throw new IllegalArgumentException(String.format("Crystal (%3d, %3d) does not exist.", ixy.x, ixy.y));
+            throw new IllegalArgumentException(String.format("Crystal (%3d, %3d) does not exist.", ixy.x, ixy.y));
         }
     }
     
@@ -307,7 +307,7 @@ public class FADCConfig extends IDAQConfig {
     
     @Override
     public void printConfig(PrintStream ps) {
-    	// Print the basic configuration information.
+        // Print the basic configuration information.
         ps.println("FADC Configuration:");
         ps.printf("\tMode          :: %d%n", mode);
         ps.printf("\tNSA           :: %d%n", nsa);
@@ -322,23 +322,23 @@ public class FADCConfig extends IDAQConfig {
         // Iterate over each crystal y-index.
         yLoop:
         for(int iy = -5; iy <= 5; iy++) {
-        	// iy = 0 does not exists; skip it!
-        	if(iy == 0) { continue yLoop; }
-        	
-        	// Iterate over each crystal x-index.
-        	xLoop:
-        	for(int ix = -23; ix <= 23; ix++) {
-        		// ix = 0 and the beam hole do not exist; skip these!
-        		if(ix == 0) { continue xLoop; }
-        		if((ix >= -10 && ix <= -2) && (iy == -1 || iy == 1)) {
-        			continue xLoop;
-        		}
-        		
-        		// Output the crystal indices, pedestal, and gain.
-        		int channelID = indexChannelMap.get(new Point(ix, iy));
-        		ps.printf("\t%3d\t%3d\t%8.3f\t%8.3f\t%4d%n", ix, iy,
-        				getPedestal(channelID), getGain(channelID), getThreshold(channelID));
-        	}
+            // iy = 0 does not exists; skip it!
+            if(iy == 0) { continue yLoop; }
+            
+            // Iterate over each crystal x-index.
+            xLoop:
+            for(int ix = -23; ix <= 23; ix++) {
+                // ix = 0 and the beam hole do not exist; skip these!
+                if(ix == 0) { continue xLoop; }
+                if((ix >= -10 && ix <= -2) && (iy == -1 || iy == 1)) {
+                    continue xLoop;
+                }
+                
+                // Output the crystal indices, pedestal, and gain.
+                int channelID = indexChannelMap.get(new Point(ix, iy));
+                ps.printf("\t%3d\t%3d\t%8.3f\t%8.3f\t%4d%n", ix, iy,
+                        getPedestal(channelID), getGain(channelID), getThreshold(channelID));
+            }
         }
     }
     

@@ -19,33 +19,33 @@ import org.lcsim.util.Driver;
  */
 public class SVTBadChannelFilterDriver extends Driver {
 
-	// RawTrackerHit collection name 
+    // RawTrackerHit collection name 
     private String rawTrackerHitCollection = "SVTRawTrackerHits";
 
     @Override
     public void process(EventHeader event) {
-    	
+        
         if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollection)) {
             
-        	// Get the list of raw hits from the event
-        	List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawTrackerHitCollection);
-        	
-            // Get the hits meta data from the event
-        	LCMetaData meta = event.getMetaData(hits);
+            // Get the list of raw hits from the event
+            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawTrackerHitCollection);
             
-        	// Iterate over all raw hits in the event.  If the raw hit is 
-        	// identified to come from a noisy/bad channel, remove it from
-        	// the list of raw hits.
+            // Get the hits meta data from the event
+            LCMetaData meta = event.getMetaData(hits);
+            
+            // Iterate over all raw hits in the event.  If the raw hit is 
+            // identified to come from a noisy/bad channel, remove it from
+            // the list of raw hits.
             Iterator<RawTrackerHit> hitsIterator = hits.iterator();
             while (hitsIterator.hasNext()) {
                 
-            	RawTrackerHit hit = hitsIterator.next();
+                RawTrackerHit hit = hitsIterator.next();
                 //hit.setMetaData(meta);
                 int strip = hit.getIdentifierFieldValue("strip");
                 HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
 
                 if(sensor.isBadChannel(strip)){
-                	hitsIterator.remove();
+                    hitsIterator.remove();
                 }
 
                 if (!sensor.getReadout().getHits(RawTrackerHit.class).isEmpty()) {

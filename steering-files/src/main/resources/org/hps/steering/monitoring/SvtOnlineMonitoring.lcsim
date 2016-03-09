@@ -17,7 +17,7 @@
     </execute>
     <drivers>
         <driver name="SensorOccupancy" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver" >
-        	<eventRefreshRate>100</eventRefreshRate>
+            <eventRefreshRate>100</eventRefreshRate>
             <enablePositionPlots>false</enablePositionPlots>
             <enableMaxSamplePlots>true</enableMaxSamplePlots>
             <maxSamplePosition>3</maxSamplePosition>

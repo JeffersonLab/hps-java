@@ -178,9 +178,9 @@ public class FileViewer extends Viewer {
             // be displayed.
             Double hitTime = crystalTimeMap.get(crystal);
             if(hitTime != null) {
-            	setStatusField(fieldNames[HIT_TIME], Double.toString(hitTime));
+                setStatusField(fieldNames[HIT_TIME], Double.toString(hitTime));
             } else {
-            	setStatusField(fieldNames[HIT_TIME], ResizableFieldPanel.NULL_VALUE);
+                setStatusField(fieldNames[HIT_TIME], ResizableFieldPanel.NULL_VALUE);
             }
         }
         // Otherwise, clear the field values.
@@ -257,7 +257,7 @@ public class FileViewer extends Viewer {
         // Load hit time map.
         crystalTimeMap.clear();
         for(EcalHit hit : em.getHits()) {
-        	crystalTimeMap.put(new Point(toPanelX(hit.getX()), toPanelY(hit.getY())), hit.getTime());
+            crystalTimeMap.put(new Point(toPanelX(hit.getX()), toPanelY(hit.getY())), hit.getTime());
         }
         
         // Display it.

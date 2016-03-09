@@ -8,13 +8,13 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 
 public class HPSMuonCalorimeter2 extends LCDDSubdetector
 {
-	HPSMuonCalorimeter2(Element e) throws JDOMException 
-	{
-		super(e);
-	}
+    HPSMuonCalorimeter2(Element e) throws JDOMException 
+    {
+        super(e);
+    }
 
-	void addToLCDD(LCDD lcdd, SensitiveDetector sens) throws JDOMException 
-	{
+    void addToLCDD(LCDD lcdd, SensitiveDetector sens) throws JDOMException 
+    {
         String name = node.getAttributeValue("name");
         System.out.println("HPSMuonCalorimeter2.addToLCDD - " + name);
         int id = node.getAttribute("id").getIntValue();
@@ -22,7 +22,7 @@ public class HPSMuonCalorimeter2 extends LCDDSubdetector
         
         Element parameters = node.getChild("parameters");
         if (parameters == null) {
-        	throw new RuntimeException("parameters element missing");
+            throw new RuntimeException("parameters element missing");
         }
                 
         double frontFaceToTarget = parameters.getAttribute("front_face_to_target").getDoubleValue();
@@ -40,16 +40,16 @@ public class HPSMuonCalorimeter2 extends LCDDSubdetector
         System.out.println("stripSpacingZ = " + stripSpacingZ);
         
         for (Object layerObject : node.getChildren("layer")) {
-        	Element layerElement = (Element)layerObject;
-        	int layerId = layerElement.getAttribute("id").getIntValue();
-        	System.out.println("layer = " + layerId);
-        	for (Object sliceObject : layerElement.getChildren("slice")) {
-        		Element sliceElement = (Element)sliceObject;
-        		if (sliceElement.getAttribute("thickness") != null) {
-        			double thickness = sliceElement.getAttribute("thickness").getDoubleValue();
-        			System.out.println("slice thickness = " + thickness);
-        		}
-        	}
+            Element layerElement = (Element)layerObject;
+            int layerId = layerElement.getAttribute("id").getIntValue();
+            System.out.println("layer = " + layerId);
+            for (Object sliceObject : layerElement.getChildren("slice")) {
+                Element sliceElement = (Element)sliceObject;
+                if (sliceElement.getAttribute("thickness") != null) {
+                    double thickness = sliceElement.getAttribute("thickness").getDoubleValue();
+                    System.out.println("slice thickness = " + thickness);
+                }
+            }
         }
-	}
+    }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <StrategyList xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://lcsim.org/recon/tracking/seedtracker/strategybuilder/strategies.xsd">
     <TargetDetector>HPS-Test-All</TargetDetector>
-	
+    
     <Strategy name="Strategy1-1">        
         <MinPT>0.250</MinPT>
         <MinHits>4</MinHits>
@@ -70,7 +70,7 @@
         </Layers>
     </Strategy>
 
-	<Strategy name="Strategy3-1">        
+    <Strategy name="Strategy3-1">        
         <MinPT>0.250</MinPT>
         <MinHits>4</MinHits>
         <MinConfirm>1</MinConfirm>        

@@ -39,9 +39,9 @@ public class LCIOBridgeDriver extends Driver {
      * @param event - The LCIO event.
      */
     public void process(EventHeader event) {
-    	// If we are still updating the display, skip this event.
-    	if(updating) { return; }
-    	
+        // If we are still updating the display, skip this event.
+        if(updating) { return; }
+        
         // Make sure that this event has calorimeter hits.
         if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
             // Get the list of calorimeter hits from the event.
@@ -55,44 +55,44 @@ public class LCIOBridgeDriver extends Driver {
             
             // If this is the correct place to update, do so.
             if(eventsProcessed >= displayInterval) {
-            	// Lock the update method for the duration of the update.
-            	updating = true;
-            	
-            	// Clear the event display.
-            	eventDisplay.resetDisplay();
-            	
-            	// Add all of the hits.
-            	for(CalorimeterHit hit : hits) {
-            		// Get the hit's location and energy.
-            		int ix = hit.getIdentifierFieldValue("ix");
-            		int iy = hit.getIdentifierFieldValue("iy");
-            		double energy = hit.getRawEnergy();
-            		
-            		// Add the hit energy to the event display.
-            		eventDisplay.addHit(new EcalHit(ix, iy, energy));
-            	}
-            	
-            	// Add all the clusters.
-            	for(org.lcsim.event.Cluster cluster : clusters) {
-            		// Get the seed hit.
-            		CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
-            		int ix = seed.getIdentifierFieldValue("ix");
-            		int iy = seed.getIdentifierFieldValue("iy");
-            		double energy = seed.getRawEnergy(); // FIXME: Should this be getCorrectedEnergy() instead? --JM
-            		
-            		// Add the cluster center to the event display.
-            		Cluster cc = new Cluster(ix, iy, energy);
-            		eventDisplay.addCluster(cc);
-            	}
-            	
-            	// Update the display.
-            	eventDisplay.updateDisplay();
-            	
-            	// Reset the number of events we've seen since the last update.
-            	eventsProcessed = 0;
-            	
-            	// Unlock the update method so that more events can be processed.
-            	updating = false;
+                // Lock the update method for the duration of the update.
+                updating = true;
+                
+                // Clear the event display.
+                eventDisplay.resetDisplay();
+                
+                // Add all of the hits.
+                for(CalorimeterHit hit : hits) {
+                    // Get the hit's location and energy.
+                    int ix = hit.getIdentifierFieldValue("ix");
+                    int iy = hit.getIdentifierFieldValue("iy");
+                    double energy = hit.getRawEnergy();
+                    
+                    // Add the hit energy to the event display.
+                    eventDisplay.addHit(new EcalHit(ix, iy, energy));
+                }
+                
+                // Add all the clusters.
+                for(org.lcsim.event.Cluster cluster : clusters) {
+                    // Get the seed hit.
+                    CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
+                    int ix = seed.getIdentifierFieldValue("ix");
+                    int iy = seed.getIdentifierFieldValue("iy");
+                    double energy = seed.getRawEnergy(); // FIXME: Should this be getCorrectedEnergy() instead? --JM
+                    
+                    // Add the cluster center to the event display.
+                    Cluster cc = new Cluster(ix, iy, energy);
+                    eventDisplay.addCluster(cc);
+                }
+                
+                // Update the display.
+                eventDisplay.updateDisplay();
+                
+                // Reset the number of events we've seen since the last update.
+                eventsProcessed = 0;
+                
+                // Unlock the update method so that more events can be processed.
+                updating = false;
             }
         }
     }
@@ -119,14 +119,14 @@ public class LCIOBridgeDriver extends Driver {
      * a new event is displayed.
      */
     public void setDisplayInterval(String displayInterval) {
-    	// Convert the argument to an integer.
-    	int disp = Integer.parseInt(displayInterval);
-    	
-    	// If it is negative, make it zero.
-    	if(disp < 0) { disp = 0; }
-    	
-    	// Set the display interval.
-    	this.displayInterval = disp;
+        // Convert the argument to an integer.
+        int disp = Integer.parseInt(displayInterval);
+        
+        // If it is negative, make it zero.
+        if(disp < 0) { disp = 0; }
+        
+        // Set the display interval.
+        this.displayInterval = disp;
     }
     
     /**

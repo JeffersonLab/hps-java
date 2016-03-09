@@ -161,7 +161,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             double signal = base_hit.getAmp();
             double noiseRMS = 0; 
             for(int sampleN = 0; sampleN < HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES; sampleN++){
-            	noiseRMS += ((HpsSiSensor) rth.getDetectorElement()).getNoise(channel_number, sampleN);
+                noiseRMS += ((HpsSiSensor) rth.getDetectorElement()).getNoise(channel_number, sampleN);
             }
             noiseRMS = noiseRMS/HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
             
@@ -225,7 +225,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
                 cluster_signal += hit.getAmp();
                 double strip_noise = 0; 
                 for(int sampleN = 0; sampleN < HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES; sampleN++){
-                	strip_noise += ((HpsSiSensor) hit.getRawTrackerHit().getDetectorElement()).getNoise(clustered_cell, sampleN);
+                    strip_noise += ((HpsSiSensor) hit.getRawTrackerHit().getDetectorElement()).getNoise(clustered_cell, sampleN);
                 }
                 strip_noise = strip_noise/HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
                 cluster_noise_squared += Math.pow(strip_noise, 2); 

@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <prerequisites>
         <maven>3.0</maven>
     </prerequisites>
@@ -43,7 +44,7 @@
             <id>srs-repo-public</id>
             <name>SRS</name>
             <url>http://srs.slac.stanford.edu/nexus/content/groups/srs-maven2-public/</url>
-        </repository>        
+        </repository>
         <repository>
             <id>lcsim-repo-public</id>
             <name>LCSim</name>
@@ -66,13 +67,13 @@
         <repository>
             <id>lcsim-repo-releases</id>
             <name>LCSim Releases</name>
-            <!--<url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-releases/</url>-->
+            <!--<url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-releases/</url> -->
             <url>http://scalnx-v01.slac.stanford.edu:8180/nexus/content/repositories/lcsim-maven2-releases/</url>
         </repository>
         <snapshotRepository>
             <id>lcsim-repo-snapshots</id>
             <name>LCSim Snapshots</name>
-            <!--<url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>-->
+            <!--<url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url> -->
             <url>http://scalnx-v01.slac.stanford.edu:8180/nexus/content/repositories/lcsim-maven2-snapshot/</url>
         </snapshotRepository>
         <site>
@@ -342,12 +343,8 @@
                 <artifactId>maven-surefire-report-plugin</artifactId>
                 <version>2.17</version>
             </plugin>
-            <!--            
-            <plugin>
-                <groupId>org.kuali.maven.plugins</groupId>
-                <artifactId>graph-maven-plugin</artifactId>
-            </plugin>
-            -->
+            <!-- <plugin> <groupId>org.kuali.maven.plugins</groupId> <artifactId>graph-maven-plugin</artifactId> 
+                </plugin> -->
         </plugins>
     </reporting>
     <build>
@@ -380,7 +377,8 @@
                     <artifactId>maven-antrun-plugin</artifactId>
                     <version>1.7</version>
                 </plugin>
-                <!-- This fixes the lifecycle not covered by plugin execution error in Eclipse. -->
+                <!-- This fixes the lifecycle not covered by plugin execution 
+                    error in Eclipse. -->
                 <plugin>
                     <groupId>org.eclipse.m2e</groupId>
                     <artifactId>lifecycle-mapping</artifactId>
@@ -407,13 +405,8 @@
                         </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
-                <!--                
-                <plugin>
-                    <groupId>org.kuali.maven.plugins</groupId>
-                    <artifactId>graph-maven-plugin</artifactId>
-                    <version>1.2.3</version>
-                </plugin>
-                -->
+                <!-- <plugin> <groupId>org.kuali.maven.plugins</groupId> 
+                    <artifactId>graph-maven-plugin</artifactId> <version>1.2.3</version> </plugin> -->
             </plugins>
         </pluginManagement>
         <plugins>
@@ -433,10 +426,7 @@
                     <target>1.7</target>
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>
-                    <!--                    
-                    <staleMillis>1</staleMillis>
-                    <useIncrementalCompilation>false</useIncrementalCompilation>
-                    -->
+                    <!-- <staleMillis>1</staleMillis> <useIncrementalCompilation>false</useIncrementalCompilation> -->
                 </configuration>
             </plugin>
             <plugin>
@@ -446,7 +436,7 @@
                 <configuration>
                     <argLine>-Xmx1024m</argLine>
                     <forkMode>pertest</forkMode>
-                    <systemPropertyVariables>                    
+                    <systemPropertyVariables>
                         <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
                         <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
                     </systemPropertyVariables>
@@ -469,7 +459,8 @@
                         <configuration>
                             <target>
                                 <!-- Create the directory for test output. -->
-                                <mkdir dir="${project.build.directory}/test-output" />
+                                <mkdir
+                                    dir="${project.build.directory}/test-output" />
                             </target>
                         </configuration>
                         <goals>
@@ -486,7 +477,33 @@
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>2.7</version>
-            </plugin>            
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <configuration>
+                    <logViolationsToConsole>true</logViolationsToConsole>
+                    <consoleOutput>true</consoleOutput>
+                    <includeResources>true</includeResources>
+                    <includeTestResources>true</includeTestResources>
+                    <checkstyleRules>
+                        <module name="Checker">a
+                            <module name="FileTabCharacter">
+                                <property name="fileExtensions" value="java,xml,lcsim"/>
+                            </module>
+                        </module>
+                    </checkstyleRules>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <developers>
@@ -560,7 +577,7 @@
             </roles>
             <timezone>-8</timezone>
         </developer>
-	<developer>
+        <developer>
             <name>Holly Szumila-Vance</name>
             <email>hvanc001@odu.edu</email>
             <organization>Old Dominion University</organization>

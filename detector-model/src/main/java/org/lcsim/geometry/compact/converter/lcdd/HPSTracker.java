@@ -69,7 +69,7 @@ public class HPSTracker extends LCDDSubdetector
         // layer
         for (Iterator i = node.getChildren("layer").iterator(); i.hasNext();)
         {
-        	// Modules are numbered from 0 starting in each layer.
+            // Modules are numbered from 0 starting in each layer.
             int moduleNumber = 0;
 
             Element layerElement = (Element) i.next();

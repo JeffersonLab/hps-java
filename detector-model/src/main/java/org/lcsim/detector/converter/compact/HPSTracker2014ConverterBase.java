@@ -71,7 +71,7 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
      * @see org.lcsim.detector.converter.compact.AbstractSubdetectorConverter#makeIdentifierHelper(org.lcsim.geometry.compact.Subdetector, org.lcsim.detector.DetectorIdentifierHelper.SystemMap)
      */
     public IIdentifierHelper makeIdentifierHelper(Subdetector subdetector, SystemMap systemMap) {
-    	return new SiTrackerIdentifierHelper(subdetector.getDetectorElement(), makeIdentifierDictionary(subdetector), systemMap);
+        return new SiTrackerIdentifierHelper(subdetector.getDetectorElement(), makeIdentifierDictionary(subdetector), systemMap);
     }
 
     

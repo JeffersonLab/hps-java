@@ -244,51 +244,51 @@ public class SvtTimingInPlots extends Driver {
         isEcalTopCluster = false;
         List<SSPCluster> clusters = null;
         SSPData sspData = null;
-		/*if(event.hasCollection(GenericObject.class, triggerBankCollectionName)) {
-		
-		    // Get the list of trigger banks from the event
-			List<GenericObject> triggerBanks = event.get(GenericObject.class, triggerBankCollectionName);
+        /*if(event.hasCollection(GenericObject.class, triggerBankCollectionName)) {
+        
+            // Get the list of trigger banks from the event
+            List<GenericObject> triggerBanks = event.get(GenericObject.class, triggerBankCollectionName);
 
-			System.out.println("Total trigger banks: " + triggerBanks.size());
-			
-			// Loop through the collection of banks and get the SSP and TI banks.
-			for (GenericObject triggerBank : triggerBanks) { 
-			    
-			    // If the bank contains TI data, process it
-			    if (AbstractIntData.getTag(triggerBank) == TIData.BANK_TAG) { 
-			        
-			        TIData tiData = new TIData(triggerBank);
-			      
-			        // Check if the trigger is singles
-			        if (tiData.isSingle0Trigger() || tiData.isSingle1Trigger()) { 
-			            isSingleClusterTrigger = true;
-			        } 
-			        
-			    } else if (AbstractIntData.getTag(triggerBank) == SSPData.BANK_TAG) { 
-			       
-			        sspData = new SSPData(triggerBank);
-			        
-			        clusters = sspData.getClusters();
-			        
-			        for (SSPCluster cluster : clusters) { 
-			            if (cluster.getYIndex() > 0) { 
-			                isEcalTopCluster = true;
-			            }
-			        }
-			    }
-			}
+            System.out.println("Total trigger banks: " + triggerBanks.size());
+            
+            // Loop through the collection of banks and get the SSP and TI banks.
+            for (GenericObject triggerBank : triggerBanks) { 
+                
+                // If the bank contains TI data, process it
+                if (AbstractIntData.getTag(triggerBank) == TIData.BANK_TAG) { 
+                    
+                    TIData tiData = new TIData(triggerBank);
+                  
+                    // Check if the trigger is singles
+                    if (tiData.isSingle0Trigger() || tiData.isSingle1Trigger()) { 
+                        isSingleClusterTrigger = true;
+                    } 
+                    
+                } else if (AbstractIntData.getTag(triggerBank) == SSPData.BANK_TAG) { 
+                   
+                    sspData = new SSPData(triggerBank);
+                    
+                    clusters = sspData.getClusters();
+                    
+                    for (SSPCluster cluster : clusters) { 
+                        if (cluster.getYIndex() > 0) { 
+                            isEcalTopCluster = true;
+                        }
+                    }
+                }
+            }
 
-			if (isSingleClusterTrigger) {
-			    System.out.println("Total number of singles triggers: " + sspData.getSinglesTriggers().size());
-			    for (SSPSinglesTrigger trigger : sspData.getSinglesTriggers()) { 
-			        System.out.println("Trigger: " + trigger.toString());
-			    }
-			    System.out.println("Total number of SSP clusters: " + clusters.size());
-			    for (SSPCluster cluster : clusters) { 
-			        System.out.println("X: " + cluster.getXIndex() + " Y: " + cluster.getYIndex() + " time: " + cluster.getTime());
-			    }
-			}
-		}*/	
+            if (isSingleClusterTrigger) {
+                System.out.println("Total number of singles triggers: " + sspData.getSinglesTriggers().size());
+                for (SSPSinglesTrigger trigger : sspData.getSinglesTriggers()) { 
+                    System.out.println("Trigger: " + trigger.toString());
+                }
+                System.out.println("Total number of SSP clusters: " + clusters.size());
+                for (SSPCluster cluster : clusters) { 
+                    System.out.println("X: " + cluster.getXIndex() + " Y: " + cluster.getYIndex() + " time: " + cluster.getTime());
+                }
+            }
+        }*/ 
         
         // Obtain all relations between an SVT raw hit and its corresponding
         // fit parameters.  The fit parameters are obtained from the fit to

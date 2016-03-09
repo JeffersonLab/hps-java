@@ -305,7 +305,7 @@
             </layer>
             <layer id="2">
                 <module_placement name="TestRunModuleFieldDef" id="0" x="0" y="0" z="endOfFieldZ" rx="0" ry="0" rz="-PI/2"/>
-			</layer>
+            </layer>
             
            
         </detector>     

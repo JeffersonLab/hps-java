@@ -12,8 +12,8 @@
         
         <driver name="UnblinderTriggerSkimmer"/>
         
-    	<!--RF driver-->
-    	<driver name="RfFitter"/>
+        <!--RF driver-->
+        <driver name="RfFitter"/>
  
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />

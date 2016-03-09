@@ -26,15 +26,15 @@ import org.lcsim.util.Driver;
  */
 
 public class IterateGainFactorDriver extends Driver {
-	
-	private EcalConditions ecalConditions  = null;
-		
-	/**
+    
+    private EcalConditions ecalConditions  = null;
+        
+    /**
      * Set the input collection name (source).
      *
      * @param inputCollectionName the input collection name
      */
-	private String inputCollectionName = "EcalCalHits";
+    private String inputCollectionName = "EcalCalHits";
     public void setInputCollectionName(final String inputCollectionName) {
         this.inputCollectionName = inputCollectionName;
     }
@@ -116,14 +116,14 @@ public class IterateGainFactorDriver extends Driver {
      * @return the output hit collection with gain corrected energies
      */
     public List<CalorimeterHit> iterateHits(final List<CalorimeterHit> hits) {
-    	ArrayList<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
+        ArrayList<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
         for (final CalorimeterHit hit : hits) {
-        	double time = hit.getTime();        	
-        	long cellID = hit.getCellID();
-        	double energy = hit.getCorrectedEnergy()*gainFileGains.get(findChannelId(cellID));
-        	CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
-        	newHits.add(newHit);	
-        	
+            double time = hit.getTime();            
+            long cellID = hit.getCellID();
+            double energy = hit.getCorrectedEnergy()*gainFileGains.get(findChannelId(cellID));
+            CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
+            newHits.add(newHit);    
+            
         }
         return newHits;
     }
@@ -134,26 +134,26 @@ public class IterateGainFactorDriver extends Driver {
      */
     @Override
     public void process(final EventHeader event) {
-    	readGainFile();
-    	
-    	        // Check if output collection already exists in event which is an error.
+        readGainFile();
+        
+                // Check if output collection already exists in event which is an error.
         if (event.hasItem(outputCollectionName)) {
             throw new RuntimeException("collection " + outputCollectionName + " already exists in event");
         }
 
         // Get the input collection.
         if (event.hasCollection(CalorimeterHit.class,inputCollectionName)){
-        	final List<CalorimeterHit> inputHitCollection = event.get(CalorimeterHit.class, inputCollectionName);
+            final List<CalorimeterHit> inputHitCollection = event.get(CalorimeterHit.class, inputCollectionName);
 
-        	// Iterate the gain correction coefficient on each hit.
-        	final List<CalorimeterHit> outputHitCollection = this.iterateHits(inputHitCollection);
-        	
+            // Iterate the gain correction coefficient on each hit.
+            final List<CalorimeterHit> outputHitCollection = this.iterateHits(inputHitCollection);
+            
             int flags = 0;
             flags += 1 << LCIOConstants.RCHBIT_TIME; //store hit time
             flags += 1 << LCIOConstants.RCHBIT_LONG; //store hit position; this flag has no effect for RawCalorimeterHits
-        	
-        	// Put the collection into the event.
-        	event.put(outputCollectionName, outputHitCollection, CalorimeterHit.class, flags, ecalReadoutName);
+            
+            // Put the collection into the event.
+            event.put(outputCollectionName, outputHitCollection, CalorimeterHit.class, flags, ecalReadoutName);
         }
     }
    

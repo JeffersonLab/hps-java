@@ -190,17 +190,17 @@ public class EcalHitPlots extends Driver {
                 GenericObject triggerData = triggerList.get(0);
                
                 if (triggerData instanceof SSPData){
-                	// TODO: TOP, BOTTOM, OR, and AND triggers are test
-                	// run specific parameters and are not supported
-                	// by SSPData.
-                	orTrigTime  = 0; //((SSPData)triggerData).getOrTrig();
-                	topTrigTime = 0; //((SSPData)triggerData).getTopTrig();
-                	botTrigTime = 0; //((SSPData)triggerData).getBotTrig(); 
+                    // TODO: TOP, BOTTOM, OR, and AND triggers are test
+                    // run specific parameters and are not supported
+                    // by SSPData.
+                    orTrigTime  = 0; //((SSPData)triggerData).getOrTrig();
+                    topTrigTime = 0; //((SSPData)triggerData).getTopTrig();
+                    botTrigTime = 0; //((SSPData)triggerData).getBotTrig(); 
 
-                	
-                	orTrigTimePlot.fill(orTrigTime);
+                    
+                    orTrigTimePlot.fill(orTrigTime);
                     topTrigTimePlot.fill(topTrigTime);
-                	botTrigTimePlot.fill(botTrigTime);
+                    botTrigTimePlot.fill(botTrigTime);
 
                 }       
                 

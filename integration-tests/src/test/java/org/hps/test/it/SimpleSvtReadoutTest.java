@@ -26,14 +26,14 @@ public class SimpleSvtReadoutTest extends TestCase {
     // Collection Names
     static final String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     
-	public void testSimpleSvtReadout() throws Exception { 
-				
-		File inputFile = new TestDataUtility().getTestData("ReadoutToLcioTest.slcio");
-			        
+    public void testSimpleSvtReadout() throws Exception { 
+                
+        File inputFile = new TestDataUtility().getTestData("ReadoutToLcioTest.slcio");
+                    
         outputDir.mkdirs();
         if(!outputDir.exists()){ 
-        	this.printDebug("Failed to create directory " + outputDir.getPath());
-        	throw new RuntimeException("Failed to create output directory.");
+            this.printDebug("Failed to create directory " + outputDir.getPath());
+            throw new RuntimeException("Failed to create output directory.");
         }
         
         FinalCheckDriver checker = new FinalCheckDriver();
@@ -54,25 +54,25 @@ public class SimpleSvtReadoutTest extends TestCase {
         this.printDebug("");
         this.printDebug("===============================");
         
-	}
-	
-	class FinalCheckDriver extends Driver { 
-	
-		private int totalRawTrackerHits = 0; 
-		
-		public void process(EventHeader event){
-			if(!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) return;
-			List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
-		
-			totalRawTrackerHits += rawHits.size();
-		}
-		
-		public int getTotalNumberOfRawTrackerHits(){
-			return totalRawTrackerHits;
-		}
-	}
-	
-	private void printDebug(String message){
-		System.out.println("[ SimpleSvtReadoutTest ]: " + message);
-	}
+    }
+    
+    class FinalCheckDriver extends Driver { 
+    
+        private int totalRawTrackerHits = 0; 
+        
+        public void process(EventHeader event){
+            if(!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) return;
+            List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
+        
+            totalRawTrackerHits += rawHits.size();
+        }
+        
+        public int getTotalNumberOfRawTrackerHits(){
+            return totalRawTrackerHits;
+        }
+    }
+    
+    private void printDebug(String message){
+        System.out.println("[ SimpleSvtReadoutTest ]: " + message);
+    }
 }

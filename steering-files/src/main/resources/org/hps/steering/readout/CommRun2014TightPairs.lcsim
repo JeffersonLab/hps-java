@@ -44,7 +44,7 @@
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <use2014Gain>false</use2014Gain>      
             <debug>true</debug>
-        </driver>	
+        </driver>   
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.GTPClusterDriver">
             <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
             <clusterWindow>1</clusterWindow>
@@ -62,7 +62,7 @@
             <energySlopeParamF>0.005500</energySlopeParamF>
             <energySlopeLow>0.4</energySlopeLow>
             <outputFileName>${outputFile}.triggers</outputFileName>
-        </driver>	      
+        </driver>         
         <driver name="AidaSaveDriver"
                 type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}_triggerPlots</outputFileName>
@@ -73,4 +73,4 @@
         </driver> 
     </drivers>
 </lcsim>
-	
+    

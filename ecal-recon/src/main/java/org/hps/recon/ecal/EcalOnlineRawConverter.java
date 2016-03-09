@@ -27,28 +27,28 @@ public class EcalOnlineRawConverter {
     private int nPeak = 3;
     
     public EcalOnlineRawConverter() {
-    	// Track changes in the DAQ configuration.
-    	ConfigurationManager.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// Get the FADC configuration.
-				config = ConfigurationManager.getInstance().getFADCConfig();
-				// Get the number of peaks.
-				if(config.getMode() == 1) nPeak = Integer.MAX_VALUE;
-				else                      nPeak = config.getMaxPulses();
-				// Print the FADC configuration.
-				System.out.println();
-				System.out.println();
-				System.out.printf("NSA            :: %d ns%n", config.getNSA());
-				System.out.printf("NSB            :: %d ns%n", config.getNSB());
-				System.out.printf("Window Samples :: %d clock-cycles%n", config.getWindowWidth());
-				System.out.printf("Max Peaks      :: %d peaks%n", nPeak);
-				System.out.println("======================================================================");
-				System.out.println("=== FADC Pulse-Processing Settings ===================================");
-				System.out.println("======================================================================");
-				config.printConfig(System.out);
-			}
-    	});
+        // Track changes in the DAQ configuration.
+        ConfigurationManager.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Get the FADC configuration.
+                config = ConfigurationManager.getInstance().getFADCConfig();
+                // Get the number of peaks.
+                if(config.getMode() == 1) nPeak = Integer.MAX_VALUE;
+                else                      nPeak = config.getMaxPulses();
+                // Print the FADC configuration.
+                System.out.println();
+                System.out.println();
+                System.out.printf("NSA            :: %d ns%n", config.getNSA());
+                System.out.printf("NSB            :: %d ns%n", config.getNSB());
+                System.out.printf("Window Samples :: %d clock-cycles%n", config.getWindowWidth());
+                System.out.printf("Max Peaks      :: %d peaks%n", nPeak);
+                System.out.println("======================================================================");
+                System.out.println("=== FADC Pulse-Processing Settings ===================================");
+                System.out.println("======================================================================");
+                config.printConfig(System.out);
+            }
+        });
     }
 
     /**
@@ -137,10 +137,10 @@ public class EcalOnlineRawConverter {
                 // search for next threshold crossing begins at end of this pulse:
                 if (ConfigurationManager.getInstance().getFADCConfig().getMode() == 1) {
                     // special case, emulating SSP:
-                	ii += 8;
+                    ii += 8;
                 } else {
                     // "normal" case, emulating FADC250:
-                	ii += config.getNSA()/nsPerSample - 1;
+                    ii += config.getNSA()/nsPerSample - 1;
                 }
 
                 // firmware limit on # of peaks:

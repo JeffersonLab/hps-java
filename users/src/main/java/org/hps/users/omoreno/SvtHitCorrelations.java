@@ -28,12 +28,12 @@ import org.lcsim.util.Driver;
  */
 public class SvtHitCorrelations extends Driver {
 
-	// TODO: Add documentation
-	static { 
-	    hep.aida.jfree.AnalysisFactory.register();
-	}
+    // TODO: Add documentation
+    static { 
+        hep.aida.jfree.AnalysisFactory.register();
+    }
    
-	// Plotting
+    // Plotting
     ITree tree; 
     IHistogramFactory histogramFactory;
     IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
@@ -59,46 +59,46 @@ public class SvtHitCorrelations extends Driver {
     boolean enableBottomAxialAxial = false;
     boolean enableBottomAxialStereo = false;
     
-	/**
-	 * 
-	 */
-	public void setEnableTopAxialAxial(boolean enableTopAxialAxial){
-		this.enableTopAxialAxial = enableTopAxialAxial;
-	}
+    /**
+     * 
+     */
+    public void setEnableTopAxialAxial(boolean enableTopAxialAxial){
+        this.enableTopAxialAxial = enableTopAxialAxial;
+    }
 
-	/**
-	 * 
-	 */
-	public void setEnableTopAxialStereo(boolean enableTopAxialStereo){
-	    this.enableTopAxialStereo = enableTopAxialStereo; 
-	}
-	
-	/**
-	 * 
-	 */
-	public void setEnableBottomAxialAxial(boolean enableBottomAxialAxial){
-		this.enableBottomAxialAxial = enableBottomAxialAxial;
-	}
-	
-	/**
-	 * 
-	 */
-	public void setEnableBottomAxialStereo(boolean enableBottomAxialStereo){
-	    this.enableBottomAxialStereo = enableBottomAxialStereo; 
-	}
+    /**
+     * 
+     */
+    public void setEnableTopAxialStereo(boolean enableTopAxialStereo){
+        this.enableTopAxialStereo = enableTopAxialStereo; 
+    }
     
-	/**
-	 * 
-	 */
-	private int computePlotterRegion(HpsSiSensor firstSensor, HpsSiSensor secondSensor) {
-	    return (this.getLayerNumber(firstSensor) - 1) + (this.getLayerNumber(secondSensor) - 1)*6;    
-	}
-	
-	protected void detectorChanged(Detector detector){
-	   
+    /**
+     * 
+     */
+    public void setEnableBottomAxialAxial(boolean enableBottomAxialAxial){
+        this.enableBottomAxialAxial = enableBottomAxialAxial;
+    }
+    
+    /**
+     * 
+     */
+    public void setEnableBottomAxialStereo(boolean enableBottomAxialStereo){
+        this.enableBottomAxialStereo = enableBottomAxialStereo; 
+    }
+    
+    /**
+     * 
+     */
+    private int computePlotterRegion(HpsSiSensor firstSensor, HpsSiSensor secondSensor) {
+        return (this.getLayerNumber(firstSensor) - 1) + (this.getLayerNumber(secondSensor) - 1)*6;    
+    }
+    
+    protected void detectorChanged(Detector detector){
+       
         tree = IAnalysisFactory.create().createTreeFactory().create();
         histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
-	
+    
         sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
 
         if (sensors.size() == 0) {
@@ -178,55 +178,55 @@ public class SvtHitCorrelations extends Driver {
         }
 
         for (IPlotter plotter : plotters.values()) plotter.show();
-	}
-	
-	public void process(EventHeader event){
-	
+    }
+    
+    public void process(EventHeader event){
+    
         if (runNumber == -1) runNumber = event.getRunNumber();
-	    
-		if(!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) return;
-	
-		List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
-		
-		String plotName = "";
-		for(RawTrackerHit firstRawHit : rawHits){
-	
-			HpsSiSensor firstSensor = (HpsSiSensor) firstRawHit.getDetectorElement();
-			int firstChannel = firstRawHit.getIdentifierFieldValue("strip");
-			
-			for(RawTrackerHit secondRawHit : rawHits){
-			
-				HpsSiSensor secondSensor = (HpsSiSensor) secondRawHit.getDetectorElement();
-				int secondChannel = secondRawHit.getIdentifierFieldValue("strip");
-			
-				if(firstSensor.isTopLayer() && secondSensor.isTopLayer()){
-					if(enableTopAxialAxial && firstSensor.isAxial() && secondSensor.isAxial()){
-						
-					    plotName = "Top Axial Layer " + this.getLayerNumber(firstSensor) 
-					                + " vs Top Axial Layer " + this.getLayerNumber(secondSensor); 
-					    topAxialAxialPlots.get(plotName).fill(firstChannel, secondChannel);
-					} else if (enableTopAxialStereo && firstSensor.isAxial() && secondSensor.isStereo()) { 
-					    
-					    plotName = "Top Axial Layer " + this.getLayerNumber(firstSensor) 
-					                + " vs Top Stereo Layer " + this.getLayerNumber(secondSensor); 
-					    topAxialStereoPlots.get(plotName).fill(firstChannel, secondChannel);
-					}
-				} else if (firstSensor.isBottomLayer() && secondSensor.isBottomLayer()) { 
-					if(enableBottomAxialAxial && firstSensor.isAxial() && secondSensor.isAxial()){
-						
-					    plotName = "Bottom Axial Layer " + this.getLayerNumber(firstSensor) 
-					                + " vs Bottom Axial Layer " + this.getLayerNumber(secondSensor); 
-					    bottomAxialAxialPlots.get(plotName).fill(firstChannel, secondChannel);
-					} else if (enableBottomAxialStereo && firstSensor.isAxial() && secondSensor.isStereo()) { 
-					    
-					    plotName = "Bottom Axial Layer " + this.getLayerNumber(firstSensor) 
-					                + " vs Bottom Stereo Layer " + this.getLayerNumber(secondSensor); 
-					    bottomAxialStereoPlots.get(plotName).fill(firstChannel, secondChannel);
-					}
-				}
-			}
-		}
-	}
+        
+        if(!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) return;
+    
+        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
+        
+        String plotName = "";
+        for(RawTrackerHit firstRawHit : rawHits){
+    
+            HpsSiSensor firstSensor = (HpsSiSensor) firstRawHit.getDetectorElement();
+            int firstChannel = firstRawHit.getIdentifierFieldValue("strip");
+            
+            for(RawTrackerHit secondRawHit : rawHits){
+            
+                HpsSiSensor secondSensor = (HpsSiSensor) secondRawHit.getDetectorElement();
+                int secondChannel = secondRawHit.getIdentifierFieldValue("strip");
+            
+                if(firstSensor.isTopLayer() && secondSensor.isTopLayer()){
+                    if(enableTopAxialAxial && firstSensor.isAxial() && secondSensor.isAxial()){
+                        
+                        plotName = "Top Axial Layer " + this.getLayerNumber(firstSensor) 
+                                    + " vs Top Axial Layer " + this.getLayerNumber(secondSensor); 
+                        topAxialAxialPlots.get(plotName).fill(firstChannel, secondChannel);
+                    } else if (enableTopAxialStereo && firstSensor.isAxial() && secondSensor.isStereo()) { 
+                        
+                        plotName = "Top Axial Layer " + this.getLayerNumber(firstSensor) 
+                                    + " vs Top Stereo Layer " + this.getLayerNumber(secondSensor); 
+                        topAxialStereoPlots.get(plotName).fill(firstChannel, secondChannel);
+                    }
+                } else if (firstSensor.isBottomLayer() && secondSensor.isBottomLayer()) { 
+                    if(enableBottomAxialAxial && firstSensor.isAxial() && secondSensor.isAxial()){
+                        
+                        plotName = "Bottom Axial Layer " + this.getLayerNumber(firstSensor) 
+                                    + " vs Bottom Axial Layer " + this.getLayerNumber(secondSensor); 
+                        bottomAxialAxialPlots.get(plotName).fill(firstChannel, secondChannel);
+                    } else if (enableBottomAxialStereo && firstSensor.isAxial() && secondSensor.isStereo()) { 
+                        
+                        plotName = "Bottom Axial Layer " + this.getLayerNumber(firstSensor) 
+                                    + " vs Bottom Stereo Layer " + this.getLayerNumber(secondSensor); 
+                        bottomAxialStereoPlots.get(plotName).fill(firstChannel, secondChannel);
+                    }
+                }
+            }
+        }
+    }
 
     public void endOfData() { 
       
@@ -240,12 +240,12 @@ public class SvtHitCorrelations extends Driver {
             e.printStackTrace();
         }
     }
-	
-	
-	private int getLayerNumber(HpsSiSensor sensor) {
-	   return (int) Math.ceil(((double) sensor.getLayerNumber())/2); 
-	}
-	
+    
+    
+    private int getLayerNumber(HpsSiSensor sensor) {
+       return (int) Math.ceil(((double) sensor.getLayerNumber())/2); 
+    }
+    
     IPlotterStyle createStyle(String xAxisTitle, String yAxisTitle) { 
        
         // Create a default style
@@ -279,5 +279,5 @@ public class SvtHitCorrelations extends Driver {
        
         return style;
     }
-	
+    
 }

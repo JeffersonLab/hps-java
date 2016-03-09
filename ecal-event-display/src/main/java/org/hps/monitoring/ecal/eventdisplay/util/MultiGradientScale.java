@@ -29,9 +29,9 @@ public final class MultiGradientScale extends ColorScale {
     }
     
     public Color getColor(Double value) {
-    	// If the value is null, treat it as zero.
-    	if(value == null) { value = 0.0; }
-    	
+        // If the value is null, treat it as zero.
+        if(value == null) { value = 0.0; }
+        
         // Get the number of colors and scales.
         int colors = colorList.size();
         int scales = scaleList.size();
@@ -48,7 +48,7 @@ public final class MultiGradientScale extends ColorScale {
         else { sValue = Math.log10(scale * value); }
         
         if(value < 1 && (Double.isNaN(sValue) || Double.isInfinite(sValue))) {
-        	return scaleList.get(0).getColor(0.0);
+            return scaleList.get(0).getColor(0.0);
         }
         
         // Otherwise, determine which scale should get the value.

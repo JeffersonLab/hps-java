@@ -32,7 +32,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class SVTHitRecoCorrelations extends Driver {
 
-	//private List<AIDAFrame> plotterFrame = new ArrayList<AIDAFrame>();
+    //private List<AIDAFrame> plotterFrame = new ArrayList<AIDAFrame>();
     private List<IPlotter> plotters = new ArrayList<IPlotter>();
     private AIDA aida = AIDA.defaultInstance();                  
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
@@ -225,7 +225,7 @@ public class SVTHitRecoCorrelations extends Driver {
         */
         
         //for(int i=0;i<2;++i) {
-       	//plotterFrame.get(i).pack();
+        //plotterFrame.get(i).pack();
         //    plotterFrame.get(i).setVisible(true);
         //}
     }

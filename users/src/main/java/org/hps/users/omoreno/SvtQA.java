@@ -54,7 +54,7 @@ public class SvtQA extends Driver {
 
     int channelNumber = 0;
     int plotterIndex = 0;
-    int apvNumber = 0;	
+    int apvNumber = 0;  
     double totalNumberEvents = 0;
     double totalNumberOfRawHitEvents = 0;
     double[] totalTopSamples = new double[6];
@@ -210,7 +210,7 @@ public class SvtQA extends Driver {
      * 
      */
     public void setEnableTotalNumberOfHitsPlots(boolean enableTotalNumberOfHitsPlots){
-    	this.enableTotalNumberOfHitsPlots = enableTotalNumberOfHitsPlots;
+        this.enableTotalNumberOfHitsPlots = enableTotalNumberOfHitsPlots;
     }
 
     /**
@@ -391,13 +391,13 @@ public class SvtQA extends Driver {
         }
         
         if(enableTotalNumberOfHitsPlots){
-        	title = "Total Number of RawTrackerHits";
-        	plotters.add(PlotUtils.setupPlotter(title, 0, 0));
-        	plotters.get(plotterIndex).style().statisticsBoxStyle().setVisible(true);
-        	histo1D = aida.histogram1D(title, 100, 0, 75);
-        	histos1D.add(histo1D);
-        	PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, 0, "Number of RawTrackerHits", histo1D);
-        	plotterIndex++;
+            title = "Total Number of RawTrackerHits";
+            plotters.add(PlotUtils.setupPlotter(title, 0, 0));
+            plotters.get(plotterIndex).style().statisticsBoxStyle().setVisible(true);
+            histo1D = aida.histogram1D(title, 100, 0, 75);
+            histos1D.add(histo1D);
+            PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, 0, "Number of RawTrackerHits", histo1D);
+            plotterIndex++;
         }
 
         for(IPlotter plotter : plotters) plotter.show();
@@ -488,7 +488,7 @@ public class SvtQA extends Driver {
                     aida.histogram1D(title).fill(sample);
                 }
                 title = "Shaper Signal Amplitude";
-                aida.histogram1D(title).fill(fit.getAmp());	    
+                aida.histogram1D(title).fill(fit.getAmp());     
                 System.out.println("Amplitude: " + fit.getAmp());
                 title="t0";
                 aida.histogram1D(title).fill(fit.getT0());
@@ -595,9 +595,9 @@ public class SvtQA extends Driver {
                                 topSamples[sampleN-1] += samples[sampleN-1] - sensor.getPedestal(channel, sampleN-1);
                             }
                             else{
-                            	aida.histogram2D("APV Sample Number vs Sample Amplitude - Bottom").fill(sampleN, samples[sampleN-1] - sensor.getPedestal(channel, sampleN-1));
-                            	totalBottomSamples[sampleN-1]++;
-                            	bottomSamples[sampleN-1] += samples[sampleN - 1] - sensor.getPedestal(channel, sampleN-1);
+                                aida.histogram2D("APV Sample Number vs Sample Amplitude - Bottom").fill(sampleN, samples[sampleN-1] - sensor.getPedestal(channel, sampleN-1));
+                                totalBottomSamples[sampleN-1]++;
+                                bottomSamples[sampleN-1] += samples[sampleN - 1] - sensor.getPedestal(channel, sampleN-1);
                             }
                         }
                     }
@@ -659,7 +659,7 @@ public class SvtQA extends Driver {
                         int channel = ((RawTrackerHit) hts.rawhits().get(0)).getIdentifierFieldValue("strip");
                         
                         if(sensorName.equals("all")){
-                        	aida.histogram2D(sensor.getName() + " - t0 Resolution vs Channel #").fill(channel, meanT0 - hts.time());
+                            aida.histogram2D(sensor.getName() + " - t0 Resolution vs Channel #").fill(channel, meanT0 - hts.time());
                         } else {
                         if(sensor.getName().equals(sensorName)){
                             aida.histogram1D(sensorName + " - Hit Time Resolution").fill(meanT0 - hts.time());
@@ -675,67 +675,67 @@ public class SvtQA extends Driver {
 
     @Override
         public void endOfData(){
-    		String title;
-    		
+            String title;
+            
 
-    		
+            
             String plotName;
-    		if(enableOccupancy){
-    			for(HpsSiSensor sensor : sensors){
-    				title = sensor.getName() + " - Occupancy";
-    				// Scale the hits per channel by the number of events
-    				aida.histogram1D(title).scale(1/totalNumberEvents);
-    				
-    				// Write the occupancies to a file
-    				if(sensor.isTopLayer()){
-    					plotName = outputFile + "_top_";
-    				} else { 
-    					plotName = outputFile + "_bottom_";
-    				}
-    				
-					if(sensor.getLayerNumber() < 10){
-						plotName += "0" + sensor.getLayerNumber() + ".dat";
-					} else {
-						plotName += sensor.getLayerNumber() + ".dat";
-					}
-    			
-	    			// Open the output files stream
-	                if(plotName != null){
-	                	try{
-	                		output = new BufferedWriter(new FileWriter(plotName)); 
-                			for(int channel = 0; channel < 640; channel++){
-                				output.write(channel + " " + aida.histogram1D(title).binHeight(channel) + "\n");
-                			}
-                			output.close();
-	                	} catch(Exception e) {
-	                		System.out.println(this.getClass().getSimpleName() + " :Error! " + e.getMessage());
-	                	}
-	                }
-    			}
-    		}
-    		
-    		if(enableT0Plots){
-    			int bins = aida.histogram1D(sensorName + " - Hit Time Resolution").axis().bins();
-    			for(int bin = 0; bin < bins; bin++){
-    				System.out.println(bin + "        " + aida.histogram1D(sensorName + " - Hit Time Resolution").binHeight(bin));
-    			}
-    		}
-    	
-            	
-            	/*
+            if(enableOccupancy){
                 for(HpsSiSensor sensor : sensors){
-                    	if(outputFile != null && sensorName.equals(sensor.getName())){
-                    		try{
-                    			for(int channel = 0; channel < 639; channel++){
-    								output.write(channel + " " + this.getOccupancy(sensor, channel) + "\n");
-    							}
-                    			output.close();
-                    		} catch(IOException e){
-                    			System.out.println(this.getClass().getSimpleName() + ": Error! " + e.getMessage());
-                    		}
-                    	}
-                	
-                	System.out.println("%===================================================================%");
+                    title = sensor.getName() + " - Occupancy";
+                    // Scale the hits per channel by the number of events
+                    aida.histogram1D(title).scale(1/totalNumberEvents);
+                    
+                    // Write the occupancies to a file
+                    if(sensor.isTopLayer()){
+                        plotName = outputFile + "_top_";
+                    } else { 
+                        plotName = outputFile + "_bottom_";
+                    }
+                    
+                    if(sensor.getLayerNumber() < 10){
+                        plotName += "0" + sensor.getLayerNumber() + ".dat";
+                    } else {
+                        plotName += sensor.getLayerNumber() + ".dat";
+                    }
+                
+                    // Open the output files stream
+                    if(plotName != null){
+                        try{
+                            output = new BufferedWriter(new FileWriter(plotName)); 
+                            for(int channel = 0; channel < 640; channel++){
+                                output.write(channel + " " + aida.histogram1D(title).binHeight(channel) + "\n");
+                            }
+                            output.close();
+                        } catch(Exception e) {
+                            System.out.println(this.getClass().getSimpleName() + " :Error! " + e.getMessage());
+                        }
+                    }
+                }
+            }
+            
+            if(enableT0Plots){
+                int bins = aida.histogram1D(sensorName + " - Hit Time Resolution").axis().bins();
+                for(int bin = 0; bin < bins; bin++){
+                    System.out.println(bin + "        " + aida.histogram1D(sensorName + " - Hit Time Resolution").binHeight(bin));
+                }
+            }
+        
+                
+                /*
+                for(HpsSiSensor sensor : sensors){
+                        if(outputFile != null && sensorName.equals(sensor.getName())){
+                            try{
+                                for(int channel = 0; channel < 639; channel++){
+                                    output.write(channel + " " + this.getOccupancy(sensor, channel) + "\n");
+                                }
+                                output.close();
+                            } catch(IOException e){
+                                System.out.println(this.getClass().getSimpleName() + ": Error! " + e.getMessage());
+                            }
+                        }
+                    
+                    System.out.println("%===================================================================%");
                     System.out.println(sensor.getName() + " Bad Channels");
                     System.out.println("%===================================================================%");
                     for(int index = 0; index < 640; index++){
@@ -769,21 +769,21 @@ public class SvtQA extends Driver {
             }
             
             if(enableSamples){
-            	double sigma = 0;
-            	double[] topMean = new double[6];
-            	double[] bottomMean = new double[6];
-            	
+                double sigma = 0;
+                double[] topMean = new double[6];
+                double[] bottomMean = new double[6];
+                
                 System.out.println("%===================================================================% \n");
-            	for(int index = 0; index < topSamples.length; index++){
-            		topMean[index] = topSamples[index]/totalTopSamples[index];
-            		System.out.println("Top sample " + index + " mean: " + topMean[index]);
-            	}
-            	
+                for(int index = 0; index < topSamples.length; index++){
+                    topMean[index] = topSamples[index]/totalTopSamples[index];
+                    System.out.println("Top sample " + index + " mean: " + topMean[index]);
+                }
+                
                 System.out.println("\n%===================================================================% \n");
-            	for(int index = 0; index < bottomSamples.length; index++){
-            		bottomMean[index] = bottomSamples[index]/totalBottomSamples[index];
-            		System.out.println("Bottom sample " + index + " mean: " + bottomMean[index]);
-            	}
+                for(int index = 0; index < bottomSamples.length; index++){
+                    bottomMean[index] = bottomSamples[index]/totalBottomSamples[index];
+                    System.out.println("Bottom sample " + index + " mean: " + bottomMean[index]);
+                }
                 System.out.println("\n%===================================================================% \n");
             }
         }

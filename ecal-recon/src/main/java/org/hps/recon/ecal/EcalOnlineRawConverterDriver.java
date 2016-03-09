@@ -85,12 +85,12 @@ public class EcalOnlineRawConverterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-    	// Do not process the event if the DAQ configuration should be
-    	// used for value, but is not initialized.
-    	if(!ConfigurationManager.isInitialized()) {
-    		return;
-    	}
-    	
+        // Do not process the event if the DAQ configuration should be
+        // used for value, but is not initialized.
+        if(!ConfigurationManager.isInitialized()) {
+            return;
+        }
+        
         double timeOffset = 0.0;
         int flags = 0;
         flags += 1 << LCIOConstants.RCHBIT_TIME; //store hit time
@@ -102,12 +102,12 @@ public class EcalOnlineRawConverterDriver extends Driver {
          * This is for FADC Mode-1 data:    
          */
         if (event.hasCollection(RawTrackerHit.class, rawCollectionName)) {
-        	List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawCollectionName);
+            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawCollectionName);
 
-        	for (RawTrackerHit hit : hits) {
-        		newHits.addAll(converter.HitDtoA(event,hit));
-        	}
-        	event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
+            for (RawTrackerHit hit : hits) {
+                newHits.addAll(converter.HitDtoA(event,hit));
+            }
+            event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
         }
 
         /*
@@ -115,26 +115,26 @@ public class EcalOnlineRawConverterDriver extends Driver {
          */
         if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) { 
 
-        	/*
-        	 * This is for FADC Mode-7 data:
-        	 */
-        	if (event.hasCollection(LCRelation.class, extraDataRelationsName)) { // extra information available from mode 7 readout
-        		List<LCRelation> extraDataRelations = event.get(LCRelation.class, extraDataRelationsName);
-        		for (LCRelation rel : extraDataRelations) {
-        			RawCalorimeterHit hit = (RawCalorimeterHit) rel.getFrom();
-        			GenericObject extraData = (GenericObject) rel.getTo();
-        			newHits.add(converter.HitDtoA(event,hit, extraData, timeOffset));
-        		}
-        	} else {
-        		/*
-        		 * This is for FADC Mode-3 data:
-        		 */
-        		List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
-        		for (RawCalorimeterHit hit : hits) {
-        			newHits.add(converter.HitDtoA(event, hit, timeOffset));
-        		}
-        	}
-        	event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
+            /*
+             * This is for FADC Mode-7 data:
+             */
+            if (event.hasCollection(LCRelation.class, extraDataRelationsName)) { // extra information available from mode 7 readout
+                List<LCRelation> extraDataRelations = event.get(LCRelation.class, extraDataRelationsName);
+                for (LCRelation rel : extraDataRelations) {
+                    RawCalorimeterHit hit = (RawCalorimeterHit) rel.getFrom();
+                    GenericObject extraData = (GenericObject) rel.getTo();
+                    newHits.add(converter.HitDtoA(event,hit, extraData, timeOffset));
+                }
+            } else {
+                /*
+                 * This is for FADC Mode-3 data:
+                 */
+                List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
+                for (RawCalorimeterHit hit : hits) {
+                    newHits.add(converter.HitDtoA(event, hit, timeOffset));
+                }
+            }
+            event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
         }
     }
 

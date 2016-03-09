@@ -82,6 +82,11 @@ public final class HPSJavaProperties {
         return this.properties.getProperty("timestamp");
     }
 
+    /**
+     * Convert this object to a string.
+     *
+     * @return this object converted to a string
+     */
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer();

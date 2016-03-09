@@ -20,7 +20,7 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
-        <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" /> 		
+        <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" />      
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <coincidenceWindow>8</coincidenceWindow>
             <ecalName>Ecal</ecalName>
@@ -39,7 +39,7 @@
             <rawCollectionName>EcalRawHits</rawCollectionName>
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
             <scale>1</scale>
-        </driver>	
+        </driver>   
         <driver name="EcalTriggerFilter" type="org.hps.recon.ecal.EcalTriggerFilterDriver">
             <inputCollection>EcalCorrectedHits</inputCollection>
             <outputCollection>EcalFilteredHits</outputCollection>
@@ -55,7 +55,7 @@
             <clusterCollectionName>EcalClusters</clusterCollectionName>
             <deadTime>10</deadTime>
             <outputFileName>${outputFile}.triggers</outputFileName>
-        </driver>	
+        </driver>   
         <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout" />
         <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
         <driver name="TestRunReconToEvio" type="org.hps.evio.TestRunTriggeredReconToEvio">

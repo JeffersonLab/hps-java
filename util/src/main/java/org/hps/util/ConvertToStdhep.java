@@ -502,10 +502,10 @@ public class ConvertToStdhep {
     }*/
 
     static private double getDecayLength(double gamma){
-    	Random generator = new Random();
-    	double a = generator.nextDouble();
-    	double l = -gamma*_declength*Math.log(1-a);
-    	return l; 
+        Random generator = new Random();
+        double a = generator.nextDouble();
+        double l = -gamma*_declength*Math.log(1-a);
+        return l; 
     }
     
     /*
@@ -724,7 +724,7 @@ public class ConvertToStdhep {
                     double gamma = ApEnergy / ApMass;
                     if (expDecay) {
                         decLen = getDecayLength(gamma);
-                    	// decLen = getDecayLength(maxWght, gamma);
+                        // decLen = getDecayLength(maxWght, gamma);
                     }
                     if (flatDecay) {
                         decLen = generator.nextDouble() * maxLen;

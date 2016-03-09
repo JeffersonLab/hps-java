@@ -5,7 +5,7 @@
   @author Holly Szumila <hvanc001@odu.edu>
 -->
     <execute>
-    	<driver name="EventMarkerDriver"/>
+        <driver name="EventMarkerDriver"/>
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
@@ -13,7 +13,7 @@
         <driver name="LCIOWriter"/>
     </execute>    
     <drivers>    
-   		<driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">

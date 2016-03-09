@@ -93,7 +93,7 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
     }
 
     private void setupPlots() {
-    	System.out.println("ECAL WINDOW PLOTS START");
+        System.out.println("ECAL WINDOW PLOTS START");
         //if (plotterFrame != null) {
         //    plotterFrame.dispose();
         //}
@@ -108,8 +108,8 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
         IPlotterStyle pstyle = plotter.style();
         pstyle.dataStyle().errorBarStyle().setVisible(false);
         plotter.createRegions(1,1);     
-    	windowPlot1 = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : dummy", 1, -0.5, 1 - 0.5);
-    	plotter.region(0).plot(windowPlot1);
+        windowPlot1 = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : dummy", 1, -0.5, 1 - 0.5);
+        plotter.region(0).plot(windowPlot1);
         plotter.show();
     }
 
@@ -126,15 +126,15 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
                 dec.setID(hit.getCellID());
                 int x = dec.getValue("ix");
                 int y = dec.getValue("iy");
-//				System.out.println("got hit: x= " + x + ", y= " + y);
+//              System.out.println("got hit: x= " + x + ", y= " + y);
                 if (isFirst) {
-                	System.out.println("FIRST!!!");
+                    System.out.println("FIRST!!!");
                     isFirst=false;
-                	window=hit.getADCValues().length;
-                	windowPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Window Mode Data", window, -0.5, window - 0.5);
-                	plotter.region(0).clear();
-                	plotter.region(0).plot(windowPlot);
-                	plotter.region(0).refresh();
+                    window=hit.getADCValues().length;
+                    windowPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Window Mode Data", window, -0.5, window - 0.5);
+                    plotter.region(0).clear();
+                    plotter.region(0).plot(windowPlot);
+                    plotter.region(0).refresh();
                 
                 }
                 if (testX && x != plotX) {

@@ -36,8 +36,8 @@ public class HPSTracker2ConverterTest extends TestCase {
     private static final int TOTAL_NUMBER_OF_STEREO_LAYERS = 10; 
     private static final String SUBDETECTOR_NAME = "Tracker";
     
-	public static final int NUMBER_OF_READOUT_STRIPS = 639;
-	public static final int NUMBER_OF_SENSE_STRIPS = 1277;
+    public static final int NUMBER_OF_READOUT_STRIPS = 639;
+    public static final int NUMBER_OF_SENSE_STRIPS = 1277;
     
     //-----------------//
     //-----------------//
@@ -74,12 +74,12 @@ public class HPSTracker2ConverterTest extends TestCase {
         for(HpsSiSensor sensor : sensors) {
             assertTrue("[ " + this.getClass().getSimpleName() + " ]: Sensor is of wrong type: " + sensor.getClass().getSimpleName(),
                         sensor instanceof HpsSiSensor);
-			assertTrue("[ " + this.getClass().getSimpleName() + " ]: Wrong number of readout electrodes found.",
-					sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getNCells() == NUMBER_OF_READOUT_STRIPS);
-			
-			assertTrue("[ " + this.getClass().getSimpleName() + " ]: Wrong number of sense electrodes found.",
-					sensor.getSenseElectrodes(ChargeCarrier.HOLE).getNCells() == NUMBER_OF_SENSE_STRIPS);
-			LOGGER.info(sensor.toString());
+            assertTrue("[ " + this.getClass().getSimpleName() + " ]: Wrong number of readout electrodes found.",
+                    sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getNCells() == NUMBER_OF_READOUT_STRIPS);
+            
+            assertTrue("[ " + this.getClass().getSimpleName() + " ]: Wrong number of sense electrodes found.",
+                    sensor.getSenseElectrodes(ChargeCarrier.HOLE).getNCells() == NUMBER_OF_SENSE_STRIPS);
+            LOGGER.info(sensor.toString());
         }
         LOGGER.info("Sensors were all initialized correctly.");
         

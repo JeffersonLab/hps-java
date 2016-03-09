@@ -11,27 +11,27 @@ import java.util.EventListener;
  * @author Kyle McCarty
  */
 public interface CrystalListener extends EventListener {
-	/**
-	 * <b>crystalActivated</b><br/><br/>
-	 * <code>public void <b>crystalActivated</b>(CrystalEvent e)</code><br/><br/>
-	 * Invoked when a crystal becomes highlighted.
-	 * @param e - An object describing the event.
-	 */
-	public void crystalActivated(CrystalEvent e);
-	
-	/**
-	 * <b>crystalDeactivated</b><br/><br/>
-	 * <code>public void <b>crystalDeactivated</b>(CrystalEvent e)</code><br/><br/>
-	 * Invoked when a crystal ceases to be highlighted.
-	 * @param e - An object describing the event.
-	 */
-	public void crystalDeactivated(CrystalEvent e);
-	
-	/**
-	 * <b>crystalClicked</b><br/><br/>
-	 * <code>public void <b>crystalClicked</b>(CrystalEvent e)</code><br/><br/>
-	 * Invoked when a crystal is clicked
-	 * @param e - An object describing the event.
-	 */
-	public void crystalClicked(CrystalEvent e);
+    /**
+     * <b>crystalActivated</b><br/><br/>
+     * <code>public void <b>crystalActivated</b>(CrystalEvent e)</code><br/><br/>
+     * Invoked when a crystal becomes highlighted.
+     * @param e - An object describing the event.
+     */
+    public void crystalActivated(CrystalEvent e);
+    
+    /**
+     * <b>crystalDeactivated</b><br/><br/>
+     * <code>public void <b>crystalDeactivated</b>(CrystalEvent e)</code><br/><br/>
+     * Invoked when a crystal ceases to be highlighted.
+     * @param e - An object describing the event.
+     */
+    public void crystalDeactivated(CrystalEvent e);
+    
+    /**
+     * <b>crystalClicked</b><br/><br/>
+     * <code>public void <b>crystalClicked</b>(CrystalEvent e)</code><br/><br/>
+     * Invoked when a crystal is clicked
+     * @param e - An object describing the event.
+     */
+    public void crystalClicked(CrystalEvent e);
 }

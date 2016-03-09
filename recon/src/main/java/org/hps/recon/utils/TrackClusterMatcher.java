@@ -230,7 +230,7 @@ public class TrackClusterMatcher {
      */
     public double getDistance(Cluster cluster,Track track) {
         
-    	// Get the cluster position
+        // Get the cluster position
         Hep3Vector cPos = new BasicHep3Vector(cluster.getPosition());
         
         // Extrapolate the track to the Ecal cluster position
@@ -260,8 +260,8 @@ public class TrackClusterMatcher {
     public double getNSigmaPosition(Cluster cluster,ReconstructedParticle particle) {
 
         if (particle.getTracks().size()<1) return Double.MAX_VALUE;
-    	  Track track=particle.getTracks().get(0);
-    	
+          Track track=particle.getTracks().get(0);
+        
         if (this.useAnalyticExtrapolator)
             throw new RuntimeException("This is to be used with non-analytic extrapolator only.");
 
@@ -532,11 +532,11 @@ public class TrackClusterMatcher {
      * Class to store track-cluster matching qualities.
      */
     public class TrackClusterMatch {
-    	private double nSigmaPositionMatch=Double.MAX_VALUE;
-    	public TrackClusterMatch(ReconstructedParticle pp, Cluster cc) {
-    	    nSigmaPositionMatch = getNSigmaPosition(cc,pp);
-    	}
-    	public double getNSigmaPositionMatch() { return nSigmaPositionMatch; }
+        private double nSigmaPositionMatch=Double.MAX_VALUE;
+        public TrackClusterMatch(ReconstructedParticle pp, Cluster cc) {
+            nSigmaPositionMatch = getNSigmaPosition(cc,pp);
+        }
+        public double getNSigmaPositionMatch() { return nSigmaPositionMatch; }
     }
     
 }

@@ -53,79 +53,79 @@ public class HPSTracker2 extends LCDDSubdetector {
     }
 
     // Place modules within the tracking volume.
-	private void createModulePlacements(LCDD lcdd, int sysId, String subdetName) throws DataConversionException {
-		//Volume trackingVolume = lcdd.getTrackingVolume();
-		Volume momVolume = lcdd.pickMotherVolume(this);
-		// Loop over layers.
+    private void createModulePlacements(LCDD lcdd, int sysId, String subdetName) throws DataConversionException {
+        //Volume trackingVolume = lcdd.getTrackingVolume();
+        Volume momVolume = lcdd.pickMotherVolume(this);
+        // Loop over layers.
         for (Iterator i = node.getChildren("layer").iterator(); i.hasNext();) {        
-        	Element layerElement = (Element)i.next();
-        	int layerNumber = layerElement.getAttribute("id").getIntValue();
-        	// Loop over modules within layer.
-        	for (Iterator j = layerElement.getChildren("module_placement").iterator(); j.hasNext();) {
-        	    
-        		Element modulePlacementElement = (Element)j.next();
-        		String moduleName = modulePlacementElement.getAttributeValue("name");
-        		int moduleNumber = modulePlacementElement.getAttribute("id").getIntValue();
-        		
-        		// Get the position and rotation parameters.  All must be explicitly specified.
-        		double x, y, z;
-        		double rx, ry, rz;
-        		x = modulePlacementElement.getAttribute("x").getDoubleValue();
-        		y = modulePlacementElement.getAttribute("y").getDoubleValue();
-        		z = modulePlacementElement.getAttribute("z").getDoubleValue();
-        		rx = modulePlacementElement.getAttribute("rx").getDoubleValue();
-        		ry = modulePlacementElement.getAttribute("ry").getDoubleValue();
-        		rz = modulePlacementElement.getAttribute("rz").getDoubleValue();
-        		
-        		// Place the module with position and rotation from above.
-        		String modulePlacementName = subdetName + "_" + moduleName + "_layer" + layerNumber + "_module" + moduleNumber;
-        		Position p = new Position(modulePlacementName + "_position", x, y, z);
-        		Rotation r = new Rotation(modulePlacementName + "_rotation", rx, ry, rz);
-        		lcdd.add(p);
-        		lcdd.add(r);        		        		
-        		//PhysVol modulePhysVol = new PhysVol(modules.get(moduleName), trackingVolume, p, r);
-        		PhysVol modulePhysVol = new PhysVol(modules.get(moduleName), momVolume, p, r);
-        		
-        		// Add identifier values to the placement volume.
-        		modulePhysVol.addPhysVolID("system", sysId);
-        		modulePhysVol.addPhysVolID("barrel", 0);
-        		modulePhysVol.addPhysVolID("layer", layerNumber);
-        		modulePhysVol.addPhysVolID("module", moduleNumber);        		
-        	}
+            Element layerElement = (Element)i.next();
+            int layerNumber = layerElement.getAttribute("id").getIntValue();
+            // Loop over modules within layer.
+            for (Iterator j = layerElement.getChildren("module_placement").iterator(); j.hasNext();) {
+                
+                Element modulePlacementElement = (Element)j.next();
+                String moduleName = modulePlacementElement.getAttributeValue("name");
+                int moduleNumber = modulePlacementElement.getAttribute("id").getIntValue();
+                
+                // Get the position and rotation parameters.  All must be explicitly specified.
+                double x, y, z;
+                double rx, ry, rz;
+                x = modulePlacementElement.getAttribute("x").getDoubleValue();
+                y = modulePlacementElement.getAttribute("y").getDoubleValue();
+                z = modulePlacementElement.getAttribute("z").getDoubleValue();
+                rx = modulePlacementElement.getAttribute("rx").getDoubleValue();
+                ry = modulePlacementElement.getAttribute("ry").getDoubleValue();
+                rz = modulePlacementElement.getAttribute("rz").getDoubleValue();
+                
+                // Place the module with position and rotation from above.
+                String modulePlacementName = subdetName + "_" + moduleName + "_layer" + layerNumber + "_module" + moduleNumber;
+                Position p = new Position(modulePlacementName + "_position", x, y, z);
+                Rotation r = new Rotation(modulePlacementName + "_rotation", rx, ry, rz);
+                lcdd.add(p);
+                lcdd.add(r);                                
+                //PhysVol modulePhysVol = new PhysVol(modules.get(moduleName), trackingVolume, p, r);
+                PhysVol modulePhysVol = new PhysVol(modules.get(moduleName), momVolume, p, r);
+                
+                // Add identifier values to the placement volume.
+                modulePhysVol.addPhysVolID("system", sysId);
+                modulePhysVol.addPhysVolID("barrel", 0);
+                modulePhysVol.addPhysVolID("layer", layerNumber);
+                modulePhysVol.addPhysVolID("module", moduleNumber);             
+            }
         }
-	}
+    }
 
     // Create the module logical volumes.
-	private void createModules(LCDD lcdd, SensitiveDetector sd) {
+    private void createModules(LCDD lcdd, SensitiveDetector sd) {
         for (Iterator i = node.getChildren("module").iterator(); i.hasNext();) {
             Element module = (Element) i.next();
             String moduleName = module.getAttributeValue("name");
             moduleParameters.put(moduleName, new ModuleParameters(module));
             modules.put(moduleName, makeModule(moduleParameters.get(moduleName), sd, lcdd));
         }
-	}
+    }
 
-	private Volume makeModule(ModuleParameters params, SensitiveDetector sd, LCDD lcdd) {
-		double thickness = params.getThickness();
-		double x, y;
-		// x = params.getDimension(0);
-		// y = params.getDimension(1);
-		y = params.getDimension(0); // Y is in X plane in world coordinates.
-		x = params.getDimension(1); // X is in Y plane in world coordinates.
-		// System.out.println("making module with x = " + x + " and y = " + y);
-		Box box = new Box(params.getName() + "Box", x, y, thickness);
-		lcdd.add(box);
+    private Volume makeModule(ModuleParameters params, SensitiveDetector sd, LCDD lcdd) {
+        double thickness = params.getThickness();
+        double x, y;
+        // x = params.getDimension(0);
+        // y = params.getDimension(1);
+        y = params.getDimension(0); // Y is in X plane in world coordinates.
+        x = params.getDimension(1); // X is in Y plane in world coordinates.
+        // System.out.println("making module with x = " + x + " and y = " + y);
+        Box box = new Box(params.getName() + "Box", x, y, thickness);
+        lcdd.add(box);
 
-		Volume moduleVolume = new Volume(params.getName() + "Volume", box, vacuum);
-		makeModuleComponents(moduleVolume, params, sd, lcdd);
-		lcdd.add(moduleVolume);
+        Volume moduleVolume = new Volume(params.getName() + "Volume", box, vacuum);
+        makeModuleComponents(moduleVolume, params, sd, lcdd);
+        lcdd.add(moduleVolume);
 
-		if (params.getVis() != null) {
-			moduleVolume.setVisAttributes(lcdd.getVisAttributes(params.getVis()));
-		}
+        if (params.getVis() != null) {
+            moduleVolume.setVisAttributes(lcdd.getVisAttributes(params.getVis()));
+        }
 
-		return moduleVolume;
-	}
+        return moduleVolume;
+    }
 
     private void makeModuleComponents(Volume moduleVolume, ModuleParameters moduleParameters, SensitiveDetector sd, LCDD lcdd) {
         Box envelope = (Box) lcdd.getSolid(moduleVolume.getSolidRef());

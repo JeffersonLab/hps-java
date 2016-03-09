@@ -19,63 +19,63 @@ import org.lcsim.util.Driver;
  */
 public class EcalCellIDPrintDriver extends Driver {
 
-	Subdetector ecal;
-	IDDecoder dec;
-	String ecalName = "Ecal";
-	String ecalCollectionName = "EcalReadoutHits";
-	String outputFileName;
-	PrintWriter outputStream = null;
+    Subdetector ecal;
+    IDDecoder dec;
+    String ecalName = "Ecal";
+    String ecalCollectionName = "EcalReadoutHits";
+    String outputFileName;
+    PrintWriter outputStream = null;
 
-	public EcalCellIDPrintDriver() {
-	}
+    public EcalCellIDPrintDriver() {
+    }
 
-	public void setEcalCollectionName(String ecalCollectionName) {
-		this.ecalCollectionName = ecalCollectionName;
-	}
+    public void setEcalCollectionName(String ecalCollectionName) {
+        this.ecalCollectionName = ecalCollectionName;
+    }
 
-	public void setEcalName(String ecalName) {
-		this.ecalName = ecalName;
-	}
+    public void setEcalName(String ecalName) {
+        this.ecalName = ecalName;
+    }
 
-	public void setOutputFileName(String outputFileName) {
-		this.outputFileName = outputFileName;
-	}
+    public void setOutputFileName(String outputFileName) {
+        this.outputFileName = outputFileName;
+    }
 
-	public void startOfData() {
-		if (outputFileName != null) {
-			try {
-				outputStream = new PrintWriter(outputFileName);
-			} catch (IOException ex) {
-				throw new RuntimeException("Invalid outputFilePath!");
-			}
-		} else {
-			outputStream = new PrintWriter(System.out, true);
-		}
-	}
+    public void startOfData() {
+        if (outputFileName != null) {
+            try {
+                outputStream = new PrintWriter(outputFileName);
+            } catch (IOException ex) {
+                throw new RuntimeException("Invalid outputFilePath!");
+            }
+        } else {
+            outputStream = new PrintWriter(System.out, true);
+        }
+    }
 
-	public void detectorChanged(Detector detector) {
-		// Get the Subdetector.
-		ecal = (Subdetector) detector.getSubdetector(ecalName);
-		dec = ecal.getIDDecoder();
-	}
+    public void detectorChanged(Detector detector) {
+        // Get the Subdetector.
+        ecal = (Subdetector) detector.getSubdetector(ecalName);
+        dec = ecal.getIDDecoder();
+    }
 
-	public void process(EventHeader event) {
-		// Get the list of ECal hits.
-		if (event.hasCollection(RawCalorimeterHit.class, ecalCollectionName)) {
-			List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, ecalCollectionName);
-			//outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
-			for (RawCalorimeterHit hit : hits) {
-				dec.setID(hit.getCellID());
-				outputStream.printf("x=%d\ty=%d\n", dec.getValue("ix"), dec.getValue("iy"));
-			}
-		}
-		if (event.hasCollection(RawTrackerHit.class, ecalCollectionName)) {
-			List<RawTrackerHit> hits = event.get(RawTrackerHit.class, ecalCollectionName);
-			//outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
-			for (RawTrackerHit hit : hits) {
-				dec.setID(hit.getCellID());
-				outputStream.printf("x=%d\ty=%d\n", dec.getValue("ix"), dec.getValue("iy"));
-			}
-		}
-	}
+    public void process(EventHeader event) {
+        // Get the list of ECal hits.
+        if (event.hasCollection(RawCalorimeterHit.class, ecalCollectionName)) {
+            List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, ecalCollectionName);
+            //outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
+            for (RawCalorimeterHit hit : hits) {
+                dec.setID(hit.getCellID());
+                outputStream.printf("x=%d\ty=%d\n", dec.getValue("ix"), dec.getValue("iy"));
+            }
+        }
+        if (event.hasCollection(RawTrackerHit.class, ecalCollectionName)) {
+            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, ecalCollectionName);
+            //outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
+            for (RawTrackerHit hit : hits) {
+                dec.setID(hit.getCellID());
+                outputStream.printf("x=%d\ty=%d\n", dec.getValue("ix"), dec.getValue("iy"));
+            }
+        }
+    }
 }

@@ -22,68 +22,68 @@ import org.lcsim.util.Driver;
  */
 public class HPSEcalRawTrackerHitPrintDriver extends Driver {
 
-	Subdetector ecal;
-	IDDecoder dec;
-	String ecalName = "Ecal";
-	String ecalReadoutName = "EcalHits";
-	String ecalCollectionName = "EcalRawHits";
-	String outputFileName;
-	PrintWriter outputStream = null;
-	int flags;
+    Subdetector ecal;
+    IDDecoder dec;
+    String ecalName = "Ecal";
+    String ecalReadoutName = "EcalHits";
+    String ecalCollectionName = "EcalRawHits";
+    String outputFileName;
+    PrintWriter outputStream = null;
+    int flags;
 
-	public HPSEcalRawTrackerHitPrintDriver() {
-	}
+    public HPSEcalRawTrackerHitPrintDriver() {
+    }
 
-	public void setEcalCollectionName(String ecalCollectionName) {
-		this.ecalCollectionName = ecalCollectionName;
-	}
+    public void setEcalCollectionName(String ecalCollectionName) {
+        this.ecalCollectionName = ecalCollectionName;
+    }
 
-	public void setEcalName(String ecalName) {
-		this.ecalName = ecalName;
-	}
+    public void setEcalName(String ecalName) {
+        this.ecalName = ecalName;
+    }
 
-	public void setOutputFileName(String outputFileName) {
-		this.outputFileName = outputFileName;
-	}
+    public void setOutputFileName(String outputFileName) {
+        this.outputFileName = outputFileName;
+    }
 
-	public void startOfData() {
-		if (ecalCollectionName == null) {
-			throw new RuntimeException("The parameter ecalCollectionName was not set!");
-		}
+    public void startOfData() {
+        if (ecalCollectionName == null) {
+            throw new RuntimeException("The parameter ecalCollectionName was not set!");
+        }
 
-		if (ecalName == null) {
-			throw new RuntimeException("The parameter ecalName was not set!");
-		}
+        if (ecalName == null) {
+            throw new RuntimeException("The parameter ecalName was not set!");
+        }
 
-		if (outputFileName != null) {
-			try {
-				outputStream = new PrintWriter(outputFileName);
-			} catch (IOException ex) {
-				throw new RuntimeException("Invalid outputFilePath!");
-			}
-		} else {
-			outputStream = new PrintWriter(System.out, true);
-		}
-	}
+        if (outputFileName != null) {
+            try {
+                outputStream = new PrintWriter(outputFileName);
+            } catch (IOException ex) {
+                throw new RuntimeException("Invalid outputFilePath!");
+            }
+        } else {
+            outputStream = new PrintWriter(System.out, true);
+        }
+    }
 
-	public void detectorChanged(Detector detector) {
-		// Get the Subdetector.
-		ecal = (Subdetector) detector.getSubdetector(ecalName);
-		dec = ecal.getIDDecoder();
-	}
+    public void detectorChanged(Detector detector) {
+        // Get the Subdetector.
+        ecal = (Subdetector) detector.getSubdetector(ecalName);
+        dec = ecal.getIDDecoder();
+    }
 
-	public void process(EventHeader event) {
-		// Get the list of ECal hits.
-		if (event.hasCollection(RawTrackerHit.class, ecalCollectionName)) {
-			//outputStream.println("Reading RawTrackerHits from event " + event.getEventNumber());
-			List<RawTrackerHit> hits = event.get(RawTrackerHit.class, ecalCollectionName);
-			for (RawTrackerHit hit : hits) {
-				dec.setID(hit.getCellID());
-				outputStream.printf("%d\t%d\t%d\t%d\n", dec.getValue("ix"), dec.getValue("iy"), hit.getTime(), hit.getADCValues().length);
-				for (int i = 0; i < hit.getADCValues().length; i++) {
-					outputStream.printf("%d\n", hit.getADCValues()[i]);
-				}
-			}
-		}
-	}
+    public void process(EventHeader event) {
+        // Get the list of ECal hits.
+        if (event.hasCollection(RawTrackerHit.class, ecalCollectionName)) {
+            //outputStream.println("Reading RawTrackerHits from event " + event.getEventNumber());
+            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, ecalCollectionName);
+            for (RawTrackerHit hit : hits) {
+                dec.setID(hit.getCellID());
+                outputStream.printf("%d\t%d\t%d\t%d\n", dec.getValue("ix"), dec.getValue("iy"), hit.getTime(), hit.getADCValues().length);
+                for (int i = 0; i < hit.getADCValues().length; i++) {
+                    outputStream.printf("%d\n", hit.getADCValues()[i]);
+                }
+            }
+        }
+    }
 }

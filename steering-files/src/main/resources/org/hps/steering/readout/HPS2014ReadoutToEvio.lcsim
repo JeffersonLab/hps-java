@@ -44,7 +44,7 @@
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <use2014Gain>true</use2014Gain>
             <!--            <debug>true</debug>-->
-        </driver>	
+        </driver>   
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.GTPClusterDriver">
             <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
             <clusterWindow>1</clusterWindow>
@@ -54,7 +54,7 @@
             <deadTime>10</deadTime>
             <pairCoincidence>2</pairCoincidence>
             <outputFileName>${outputFile}.triggers</outputFileName>
-        </driver>	
+        </driver>   
         <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout" />
         <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
@@ -62,4 +62,4 @@
         </driver> 
     </drivers>
 </lcsim>
-	
+    

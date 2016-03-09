@@ -22,70 +22,70 @@ import org.lcsim.util.Driver;
  */
 public class HPSEcalDigitalPrintDriver extends Driver {
 
-	Subdetector ecal;
-	IDDecoder dec;
-	String ecalName = "Ecal";
-	String ecalReadoutName = "EcalHits";
-	String ecalCollectionName = "EcalRawHits";
-	String outputFileName;
-	PrintWriter outputStream = null;
-	int timeScale = 1;
-	int flags;
+    Subdetector ecal;
+    IDDecoder dec;
+    String ecalName = "Ecal";
+    String ecalReadoutName = "EcalHits";
+    String ecalCollectionName = "EcalRawHits";
+    String outputFileName;
+    PrintWriter outputStream = null;
+    int timeScale = 1;
+    int flags;
 
-	public HPSEcalDigitalPrintDriver() {
-	}
+    public HPSEcalDigitalPrintDriver() {
+    }
 
-	public void setTimeScale(int timeScale) {
-		this.timeScale = timeScale;
-	}
+    public void setTimeScale(int timeScale) {
+        this.timeScale = timeScale;
+    }
 
-	public void setEcalCollectionName(String ecalCollectionName) {
-		this.ecalCollectionName = ecalCollectionName;
-	}
+    public void setEcalCollectionName(String ecalCollectionName) {
+        this.ecalCollectionName = ecalCollectionName;
+    }
 
-	public void setEcalName(String ecalName) {
-		this.ecalName = ecalName;
-	}
+    public void setEcalName(String ecalName) {
+        this.ecalName = ecalName;
+    }
 
-	public void setOutputFileName(String outputFileName) {
-		this.outputFileName = outputFileName;
-	}
+    public void setOutputFileName(String outputFileName) {
+        this.outputFileName = outputFileName;
+    }
 
-	public void startOfData() {
-		if (ecalCollectionName == null) {
-			throw new RuntimeException("The parameter ecalCollectionName was not set!");
-		}
+    public void startOfData() {
+        if (ecalCollectionName == null) {
+            throw new RuntimeException("The parameter ecalCollectionName was not set!");
+        }
 
-		if (ecalName == null) {
-			throw new RuntimeException("The parameter ecalName was not set!");
-		}
+        if (ecalName == null) {
+            throw new RuntimeException("The parameter ecalName was not set!");
+        }
 
-		if (outputFileName != null) {
-			try {
-				outputStream = new PrintWriter(outputFileName);
-			} catch (IOException ex) {
-				throw new RuntimeException("Invalid outputFilePath!");
-			}
-		} else {
-			outputStream = new PrintWriter(System.out, true);
-		}
-	}
+        if (outputFileName != null) {
+            try {
+                outputStream = new PrintWriter(outputFileName);
+            } catch (IOException ex) {
+                throw new RuntimeException("Invalid outputFilePath!");
+            }
+        } else {
+            outputStream = new PrintWriter(System.out, true);
+        }
+    }
 
-	public void detectorChanged(Detector detector) {
-		// Get the Subdetector.
-		ecal = (Subdetector) detector.getSubdetector(ecalName);
-		dec = ecal.getIDDecoder();
-	}
+    public void detectorChanged(Detector detector) {
+        // Get the Subdetector.
+        ecal = (Subdetector) detector.getSubdetector(ecalName);
+        dec = ecal.getIDDecoder();
+    }
 
-	public void process(EventHeader event) {
-		// Get the list of ECal hits.
-		if (event.hasCollection(RawCalorimeterHit.class, ecalCollectionName)) {
-			List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, ecalCollectionName);
-			//outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
-			for (RawCalorimeterHit hit : hits) {
-				dec.setID(hit.getCellID());
-				outputStream.printf("%d\t%d\t%d\t%d\n", dec.getValue("ix"), dec.getValue("iy"), hit.getTimeStamp() * timeScale, hit.getAmplitude());
-			}
-		}
-	}
+    public void process(EventHeader event) {
+        // Get the list of ECal hits.
+        if (event.hasCollection(RawCalorimeterHit.class, ecalCollectionName)) {
+            List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, ecalCollectionName);
+            //outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
+            for (RawCalorimeterHit hit : hits) {
+                dec.setID(hit.getCellID());
+                outputStream.printf("%d\t%d\t%d\t%d\n", dec.getValue("ix"), dec.getValue("iy"), hit.getTimeStamp() * timeScale, hit.getAmplitude());
+            }
+        }
+    }
 }

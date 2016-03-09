@@ -29,7 +29,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
     protected static final boolean use30mradRotation = true;
     protected static final boolean useFakeHalfModuleAxialPos = false;
 
-    // Global position references	
+    // Global position references   
     protected static final double target_pos_wrt_base_plate_x = 162.3; //from Marco's 3D model
     protected static final double target_pos_wrt_base_plate_y = 80.55; //from Tim's sketchup //68.75; //from Marco's 3D model
     protected static final double target_pos_wrt_base_plate_z = 926.59; //from Marco's 3D model
@@ -208,7 +208,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         protected void setPos() {
             final double ball_pos_base_x = -1.0*target_pos_wrt_base_plate_x;
             final double ball_pos_base_y = -1.0*target_pos_wrt_base_plate_y;
-            final double ball_pos_base_z = target_pos_wrt_base_plate_z;		
+            final double ball_pos_base_z = target_pos_wrt_base_plate_z;     
             final double vee_pos_base_x = ball_pos_base_x + BasePlate.base_plate_width;
             final double vee_pos_base_y = ball_pos_base_y;
             final double vee_pos_base_z = ball_pos_base_z;
@@ -230,7 +230,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
 
 
     public static class BasePlate extends SurveyVolume {
-        // Base plate references	
+        // Base plate references    
         public static final double base_plate_thickness = 0.25*inch;
         public static final double base_plate_width = 385.00;
         public static final double base_plate_length = 1216.00;
@@ -281,7 +281,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         public CSupport(String name, SurveyVolume mother) {
             super(name,mother, null);
             init();
-        }			
+        }           
         private void calcAndSetFlatPos() {
             if(use30mradRotation) {
                 // find the rotation to place the flat point
@@ -462,7 +462,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         // this is referenced to the pin position of the c-support
         private static final double ball_pos_csup_bearings_bottom_x = 240.0 - 265.0 + 14.0;
         private static final double ball_pos_csup_bearings_bottom_y = (-6.0 + 22.0);
-        private static final double ball_pos_csup_bearings_bottom_z = 14.7;		
+        private static final double ball_pos_csup_bearings_bottom_z = 14.7;     
         private static final double vee_pos_csup_bearings_bottom_x = 240.0- 129.0;
         private static final double vee_pos_csup_bearings_bottom_y = (-6.0 + 22.0);
         private static final double vee_pos_csup_bearings_bottom_z = 14.7;
@@ -499,12 +499,12 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
 
             // make vectors
             setBallPos(ball_pos_csup_bearings_bottom_x,ball_pos_csup_bearings_bottom_y,ball_pos_csup_bearings_bottom_z);
-            setVeePos(vee_pos_csup_bearings_bottom_x,vee_pos_csup_bearings_bottom_y,vee_pos_csup_bearings_bottom_z);	
+            setVeePos(vee_pos_csup_bearings_bottom_x,vee_pos_csup_bearings_bottom_y,vee_pos_csup_bearings_bottom_z);    
             setFlatPos(flat_pos_csup_bearings_bottom_x,flat_pos_csup_bearings_bottom_y,flat_pos_csup_bearings_bottom_z);
 
 
             // create the coordinate system of the c-support bearings
-            //HPSTestRunTracker2014GeomDef.Coord csup_bearings_bottom_coord = new HPSTestRunTracker2014GeomDef.Coord(ball_pos_csup_bearings_bottom, vee_pos_csup_bearings_bottom, flat_pos_csup_bearings_bottom);		
+            //HPSTestRunTracker2014GeomDef.Coord csup_bearings_bottom_coord = new HPSTestRunTracker2014GeomDef.Coord(ball_pos_csup_bearings_bottom, vee_pos_csup_bearings_bottom, flat_pos_csup_bearings_bottom);       
 
             // since we don't care (no volume is built) about the local position of the bearings in the pin coord system we'll get rid of it
             // and find the bearings position in the base coordinate system directly
@@ -579,11 +579,11 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
 
         public SupportPlateBottom(String name, SurveyVolume mother, SurveyVolume referenceGeom, String material) {
             super(mother, referenceGeom, name, material);
-            init();				
+            init();             
         }
         public SupportPlateBottom(String name, SurveyVolume mother, List<SurveyVolume> referenceGeom, String material) {
             super(mother, referenceGeom, name, material);
-            init();				
+            init();             
         }
         protected void setPos() {
             if(debug) System.out.printf("%s: setPos for %s\n",this.getClass().getSimpleName(),getName());
@@ -755,11 +755,11 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         public TestRunModule(String name, SurveyVolume mother, int layer, String half) {
             super(name, mother,null,layer, half);
             init();
-        }			
+        }           
         public TestRunModule(String name, SurveyVolume mother, SurveyVolume ref, int layer, String half) {
             super(name, mother,null,ref,layer, half);
             init();
-        }			
+        }           
         protected abstract double getColdBlockThickness();
         protected abstract double getModuleBoxLength();
         protected abstract double getModuleBoxWidth();
@@ -771,7 +771,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         }
         protected void setCenter() {
             setCenter(getModuleBoxLength()/2.0-5.0, 0.0, getModuleBoxWidth()/2.0-box_extra_width/5.0); 
-        }			
+        }           
         protected void setPos() {
 
             if(debug) System.out.printf("%s: setPos for %s\n",this.getClass().getSimpleName(),getName());
@@ -787,7 +787,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
                 case 2:
                     ballPos = new BasicHep3Vector(25.0, 561.1, SupportPlateBottom.pedestal_height_L2-SupportPlateBottom.support_plate_pocket_depth);
                     veePos = new BasicHep3Vector(95.0, 561.1, SupportPlateBottom.pedestal_height_L2-SupportPlateBottom.support_plate_pocket_depth);
-                    flatPos = new BasicHep3Vector(60.0, 567.10, SupportPlateBottom.pedestal_height_L2-SupportPlateBottom.support_plate_pocket_depth);	
+                    flatPos = new BasicHep3Vector(60.0, 567.10, SupportPlateBottom.pedestal_height_L2-SupportPlateBottom.support_plate_pocket_depth);   
                     break;
                 case 3:
                     ballPos = new BasicHep3Vector(25.0, 461.1, SupportPlateBottom.pedestal_height_L3-SupportPlateBottom.support_plate_pocket_depth);
@@ -938,7 +938,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         // Distance from CF edge to screw hole: 30mm
         // Distance from screw hole to edge of cold block: 33.75mm
         // Distance from edge of cold block to hole/ball position: 5mm
-        protected static final double dist_sensor_center_to_coldblock_hole_vdir = (180.0 - 30.0 + (33.75 - 5.0)) - Sensor.length/2.0;	
+        protected static final double dist_sensor_center_to_coldblock_hole_vdir = (180.0 - 30.0 + (33.75 - 5.0)) - Sensor.length/2.0;   
         protected static final double half_module_thickness = TestRunHalfModule.getHybridThickness() + TestRunHalfModule.getCFThickness() + HalfModuleLamination.thickness;
         protected static final double half_module_length = TestRunHalfModule.getCFLength();
         protected static final double half_module_width = 6.83 + Sensor.width;
@@ -1038,7 +1038,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
             if(useFakeHalfModuleAxialPos) {
                 ball_pos_halfmod_local_x = ball_pos_halfmod_local_x*2.0;
                 ball_pos_halfmod_local_y = -2.0*ball_pos_halfmod_local_y;
-            }				
+            }               
             final double ball_pos_halfmod_local_z =  dist_lower_sensor_edge_to_cold_block_mounting_surface + Sensor.width/2.0;
             
             
@@ -1118,7 +1118,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
 //            final double vee_pos_halfmod_local_z =  ball_pos_halfmod_local_z;
 //            final double flat_pos_halfmod_local_x =  ball_pos_halfmod_local_x;
 //            final double flat_pos_halfmod_local_y =  ball_pos_halfmod_local_y + Sensor.getSensorThickness()/2.0;
-//            final double flat_pos_halfmod_local_z =  ball_pos_halfmod_local_z;		
+//            final double flat_pos_halfmod_local_z =  ball_pos_halfmod_local_z;        
 //            ballPos = new BasicHep3Vector(ball_pos_halfmod_local_x, ball_pos_halfmod_local_y, ball_pos_halfmod_local_z);
 //            veePos = new BasicHep3Vector(vee_pos_halfmod_local_x, vee_pos_halfmod_local_y,vee_pos_halfmod_local_z);
 //            flatPos = new BasicHep3Vector(flat_pos_halfmod_local_x, flat_pos_halfmod_local_y,flat_pos_halfmod_local_z);
@@ -1235,7 +1235,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
 
     }
 
-    public static abstract class TestRunColdBlock extends SurveyVolume {		
+    public static abstract class TestRunColdBlock extends SurveyVolume {        
         private int layer;
         public TestRunColdBlock(String name, SurveyVolume mother, int layer) {
             super(name, mother, null);
@@ -1284,7 +1284,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         }
     }
 
-    public static class TestRunColdBlockL13 extends TestRunColdBlock {			
+    public static class TestRunColdBlockL13 extends TestRunColdBlock {          
         protected static final double coldblock_L13_length = 82.00;
         protected static final double coldblock_L13_width = 52.50;
         protected static final double coldblock_L13_thickness = 6.00;
@@ -1306,7 +1306,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         }
     }
 
-    public static class TestRunColdBlockL45 extends TestRunColdBlock {			
+    public static class TestRunColdBlockL45 extends TestRunColdBlock {          
         protected static final double coldblock_L45_length = 82.00;
         protected static final double coldblock_L45_width = 51.00;
         protected static final double coldblock_L45_thickness = 6.00;
@@ -1358,7 +1358,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
 //            if(useSiStripsConvention) {
 //                setBallPos(0,0,0);
 //                setVeePos(ballPos.x(), ballPos.y(), ballPos.z() + getSensorWidth()/2.0);
-//                setFlatPos(ballPos.x() + getSensorLength()/2.0,ballPos.y(), ballPos.z());					
+//                setFlatPos(ballPos.x() + getSensorLength()/2.0,ballPos.y(), ballPos.z());                 
 //            } else {
 //                setBallPos(0,0,0);
 //                setVeePos(ballPos.x() + getSensorLength()/2.0, ballPos.y(), ballPos.z());
@@ -1392,7 +1392,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         }
         protected double getLength() {
             return length;
-        }			
+        }           
     }
 
     /**

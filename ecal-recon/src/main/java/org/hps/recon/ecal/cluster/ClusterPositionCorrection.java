@@ -95,6 +95,6 @@ public final class ClusterPositionCorrection {
     */    
     private static double positionCorrection(double xCl, double rawEnergy, double varA1, double varA2, double varB1, double varB2, double varB3) {
         //return ((xCl - (varB1 * rawEnergy + varB2 / Math.sqrt(rawEnergy) + varB3))/(varA1 / Math.sqrt(rawEnergy) + varA2 + 1));
-    	return ((xCl - (varB1 * rawEnergy + varB2 / Math.sqrt(rawEnergy) + varB3))/(varA1 / Math.sqrt(rawEnergy) + varA2 + 1));
+        return ((xCl - (varB1 * rawEnergy + varB2 / Math.sqrt(rawEnergy) + varB3))/(varA1 / Math.sqrt(rawEnergy) + varA2 + 1));
     }
 }

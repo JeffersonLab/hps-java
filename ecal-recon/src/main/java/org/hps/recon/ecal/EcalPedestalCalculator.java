@@ -114,11 +114,11 @@ public class EcalPedestalCalculator extends Driver {
             }
         }
         if (uploadToDB) {
-        	try {
-        		uploadToDB();
-        	} catch (DatabaseObjectException | ConditionsObjectException | SQLException e) {
-        		throw new RuntimeException("Error uploading to database.", e);
-        	}
+            try {
+                uploadToDB();
+            } catch (DatabaseObjectException | ConditionsObjectException | SQLException e) {
+                throw new RuntimeException("Error uploading to database.", e);
+            }
         } else {
             System.out.println("!!!!!!!!!!!!!!!!!!!!!!! Not Writing Database !!!!!!!!!!!!!!!!!!!!!!!!!!");
         }

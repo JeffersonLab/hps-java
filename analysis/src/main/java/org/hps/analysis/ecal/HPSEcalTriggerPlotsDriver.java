@@ -23,7 +23,7 @@ import org.lcsim.util.aida.AIDA;
  * Exp $
  */
 public class HPSEcalTriggerPlotsDriver extends Driver {
-	// LCSim collection names.
+    // LCSim collection names.
     String ecalCollectionName = "EcalHits";
     String clusterCollectionName = "EcalClusters";
     
@@ -55,46 +55,46 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
     }
     
     public void startOfData() {
-    	// Initialize a hit histogram for each declared energy.
-    	for(int e = 0; e < energyCut.length; e++) {
-    		hitXYPlot[e] = aida.histogram2D("Trigger Plots: " + ecalCollectionName +
-    				" : Hits above " + energyCut[e] + " MeV", 46, -23, 23, 11, -5.5, 5.5);
-    	}
-    	// Initialize the remaining plots.
+        // Initialize a hit histogram for each declared energy.
+        for(int e = 0; e < energyCut.length; e++) {
+            hitXYPlot[e] = aida.histogram2D("Trigger Plots: " + ecalCollectionName +
+                    " : Hits above " + energyCut[e] + " MeV", 46, -23, 23, 11, -5.5, 5.5);
+        }
+        // Initialize the remaining plots.
         crystalDeadTime = aida.histogram2D("Trigger Plots: " + ecalCollectionName +
-        		" : Crystal dead time", 46, -23, 23, 11, -5.5, 5.5);
+                " : Crystal dead time", 46, -23, 23, 11, -5.5, 5.5);
         clusterHitXYPlot = aida.histogram2D("Trigger Plots: " + clusterCollectionName +
-        		" : Crystals in clusters", 47, -23.5, 23.5, 11, -5.5, 5.5);
+                " : Crystals in clusters", 47, -23.5, 23.5, 11, -5.5, 5.5);
         seedHitXYPlot = aida.histogram2D("Trigger Plots: " + clusterCollectionName +
-        		" : Seed hits", 47, -23.5, 23.5, 11, -5.5, 5.5);
+                " : Seed hits", 47, -23.5, 23.5, 11, -5.5, 5.5);
         triggerClusterHitXYPlot = aida.histogram2D("Trigger Plots: " + clusterCollectionName +
                 " : Crystals in clusters, with trigger", 47, -23.5, 23.5, 11, -5.5, 5.5);
         triggerSeedHitXYPlot = aida.histogram2D("Trigger Plots: " + clusterCollectionName +
-        		" : Seed hits, with trigger", 47, -23.5, 23.5, 11, -5.5, 5.5);
+                " : Seed hits, with trigger", 47, -23.5, 23.5, 11, -5.5, 5.5);
     }
     
     public void process(EventHeader event) {
-    	// If the current event has the indicated hit collection,
-    	// use it as the hit list.
-    	List<CalorimeterHit> hits;
-    	if(event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
-    		hits = event.get(CalorimeterHit.class, ecalCollectionName);
-    	}
-    	// If it does not, then use an empty list to avoid crashing.
-    	else { hits = new ArrayList<CalorimeterHit>(0); }
-    	
-    	// If the current event has the indicated cluster collection,
-    	// use it as the cluster list.
-    	List<Cluster> clusters;
-    	if(event.hasCollection(Cluster.class, clusterCollectionName)) {
-    		clusters = event.get(Cluster.class, clusterCollectionName);
-    	}
-    	// If it does not, then use an empty list to avoid crashing.
-    	else { clusters = new ArrayList<Cluster>(0); }
+        // If the current event has the indicated hit collection,
+        // use it as the hit list.
+        List<CalorimeterHit> hits;
+        if(event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
+            hits = event.get(CalorimeterHit.class, ecalCollectionName);
+        }
+        // If it does not, then use an empty list to avoid crashing.
+        else { hits = new ArrayList<CalorimeterHit>(0); }
+        
+        // If the current event has the indicated cluster collection,
+        // use it as the cluster list.
+        List<Cluster> clusters;
+        if(event.hasCollection(Cluster.class, clusterCollectionName)) {
+            clusters = event.get(Cluster.class, clusterCollectionName);
+        }
+        // If it does not, then use an empty list to avoid crashing.
+        else { clusters = new ArrayList<Cluster>(0); }
         
         // Populate hit plots.
         for (CalorimeterHit hit : hits) {
-        	// Get the hit crystal position.
+            // Get the hit crystal position.
             int ix = hit.getIdentifierFieldValue("ix");
             int iy = hit.getIdentifierFieldValue("iy");
             double energy = hit.getRawEnergy();
@@ -102,9 +102,9 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
             // Loop through the energy plots and fill them if the hit
             // is over the current energy threshold/
             for(int e = 0; e < energyCut.length; e++) {
-            	if(energy > energyCut[e] * EcalUtils.MeV) {
-            		hitXYPlot[e].fill(ix - 0.5 * Math.signum(ix), iy);
-            	}
+                if(energy > energyCut[e] * EcalUtils.MeV) {
+                    hitXYPlot[e].fill(ix - 0.5 * Math.signum(ix), iy);
+                }
             }
             
             // Generate the dead time plot.
@@ -121,8 +121,8 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
         
         // Populate cluster based plots.
         for (Cluster cluster : clusters) {
-        	// Get the cluster's seed hit position.
-        	CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
+            // Get the cluster's seed hit position.
+            CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
             int ix = seed.getIdentifierFieldValue("ix");
             int iy = seed.getIdentifierFieldValue("iy");
             
@@ -135,7 +135,7 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
             
             // Populate the component hit histogram.
             for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
-            	// Get the component hit location.
+                // Get the component hit location.
                 ix = hit.getIdentifierFieldValue("ix");
                 iy = hit.getIdentifierFieldValue("iy");
                 

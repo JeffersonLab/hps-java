@@ -17,52 +17,52 @@ import org.lcsim.util.Driver;
  */
 public class SVTCellIDPrintDriver extends Driver {
 
-	String rawTrackerHitCollectionName = "SVTData";
-	String outputFileName;
-	PrintWriter outputStream = null;
+    String rawTrackerHitCollectionName = "SVTData";
+    String outputFileName;
+    PrintWriter outputStream = null;
 
-	public SVTCellIDPrintDriver() {
-	}
+    public SVTCellIDPrintDriver() {
+    }
 
-	public void setRawTrackerHitCollectionName(String rawTrackerHitCollectionName) {
-		this.rawTrackerHitCollectionName = rawTrackerHitCollectionName;
-	}
+    public void setRawTrackerHitCollectionName(String rawTrackerHitCollectionName) {
+        this.rawTrackerHitCollectionName = rawTrackerHitCollectionName;
+    }
 
-	public void setOutputFileName(String outputFileName) {
-		this.outputFileName = outputFileName;
-	}
+    public void setOutputFileName(String outputFileName) {
+        this.outputFileName = outputFileName;
+    }
 
-	public void startOfData() {
-		if (rawTrackerHitCollectionName == null) {
-			throw new RuntimeException("The parameter ecalCollectionName was not set!");
-		}
+    public void startOfData() {
+        if (rawTrackerHitCollectionName == null) {
+            throw new RuntimeException("The parameter ecalCollectionName was not set!");
+        }
 
-		if (outputFileName != null) {
-			try {
-				outputStream = new PrintWriter(outputFileName);
-			} catch (IOException ex) {
-				throw new RuntimeException("Invalid outputFilePath!");
-			}
-		} else {
-			outputStream = new PrintWriter(System.out, true);
-		}
-	}
+        if (outputFileName != null) {
+            try {
+                outputStream = new PrintWriter(outputFileName);
+            } catch (IOException ex) {
+                throw new RuntimeException("Invalid outputFilePath!");
+            }
+        } else {
+            outputStream = new PrintWriter(System.out, true);
+        }
+    }
 
-	public void process(EventHeader event) {
-		// Get the list of ECal hits.
-		if (event.hasCollection(SVTData.class, rawTrackerHitCollectionName)) {
-			List<SVTData> hits = event.get(SVTData.class, rawTrackerHitCollectionName);
-			//outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
-			for (SVTData hit : hits) {
-				outputStream.printf("FPGA=%d\thybrid=%d\tchannel=%d\n", hit.getFPGAAddress(), hit.getHybridNumber(), hit.getChannelNumber());
-			}
-		}
-		if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
-			List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
-			//outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
-			for (RawTrackerHit hit : hits) {
-				outputStream.printf("name=%s\tside=%d\tstrip=%d\n", hit.getDetectorElement().getName(), hit.getIdentifierFieldValue("side"), hit.getIdentifierFieldValue("strip"));
-			}
-		}
-	}
+    public void process(EventHeader event) {
+        // Get the list of ECal hits.
+        if (event.hasCollection(SVTData.class, rawTrackerHitCollectionName)) {
+            List<SVTData> hits = event.get(SVTData.class, rawTrackerHitCollectionName);
+            //outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
+            for (SVTData hit : hits) {
+                outputStream.printf("FPGA=%d\thybrid=%d\tchannel=%d\n", hit.getFPGAAddress(), hit.getHybridNumber(), hit.getChannelNumber());
+            }
+        }
+        if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
+            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
+            //outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
+            for (RawTrackerHit hit : hits) {
+                outputStream.printf("name=%s\tside=%d\tstrip=%d\n", hit.getDetectorElement().getName(), hit.getIdentifierFieldValue("side"), hit.getIdentifierFieldValue("strip"));
+            }
+        }
+    }
 }

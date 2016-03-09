@@ -10,16 +10,16 @@ package org.hps.record.triggerbank;
  * @see SSPTrigger
  */
 public abstract class SSPNumberedTrigger extends SSPTrigger {
-	/**
-	 * Instantiates the <code>SSPNumberedTrigger</code>.
+    /**
+     * Instantiates the <code>SSPNumberedTrigger</code>.
      * @param type - The type of trigger.
      * @param time - The time at which the trigger occurred in ns.
      * @param data - The trigger bit data.
-	 */
-	public SSPNumberedTrigger(int type, int time, int data) {
-		super(type, time, data);
-	}
-	
+     */
+    public SSPNumberedTrigger(int type, int time, int data) {
+        super(type, time, data);
+    }
+    
     /**
      * Indicates whether the trigger was reported by the first of the
      * singles triggers.

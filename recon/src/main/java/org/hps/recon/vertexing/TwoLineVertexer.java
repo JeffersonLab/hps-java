@@ -20,21 +20,21 @@ import hep.physics.matrix.SymmetricMatrix;
  */
 public class TwoLineVertexer extends BaseSimpleVertexer {
     protected Hep3Vector A1,A2,B1,B2;
-	
-	public TwoLineVertexer() {
-		
-	}
-	
+    
+    public TwoLineVertexer() {
+        
+    }
+    
     public void setLines(Hep3Vector PA1, Hep3Vector PA2, Hep3Vector PB1, Hep3Vector PB2) {
-    	this.A1 = PA1;
-    	this.A2 = PA2;
-    	this.B1 = PB1;
-    	this.B2 = PB2;
+        this.A1 = PA1;
+        this.A2 = PA2;
+        this.B1 = PB1;
+        this.B2 = PB2;
     }
   
     public void clear() {
-    	super.clear();
-    	setLines(null,null,null,null);
+        super.clear();
+        setLines(null,null,null,null);
     }
     
     public boolean isValid() {
@@ -44,11 +44,11 @@ public class TwoLineVertexer extends BaseSimpleVertexer {
     
     @Override
     public void fitVertex() {
-    	assert isValid();
-    	Hep3Vector vtxPosition = getPOCALineToLine();
-		if (vtxPosition!=null) {
-			_fitted_vertex = new BaseVertex(true, "Two Line Vertexer", 0, 0, new SymmetricMatrix(0), vtxPosition, null); 
-    	}
+        assert isValid();
+        Hep3Vector vtxPosition = getPOCALineToLine();
+        if (vtxPosition!=null) {
+            _fitted_vertex = new BaseVertex(true, "Two Line Vertexer", 0, 0, new SymmetricMatrix(0), vtxPosition, null); 
+        }
     }
     
     /**
@@ -94,57 +94,57 @@ public class TwoLineVertexer extends BaseSimpleVertexer {
      */
     private Hep3Vector getPOCALineToLine() {
 
-		if(_debug) System.out.printf("%s: A1=%s A2=%s B1=%s B2=%s\n", this.getClass().getSimpleName(), A1.toString(), A2.toString(), B1.toString(), B2.toString());
+        if(_debug) System.out.printf("%s: A1=%s A2=%s B1=%s B2=%s\n", this.getClass().getSimpleName(), A1.toString(), A2.toString(), B1.toString(), B2.toString());
 
-    	double ya[][] = {VecOp.mult(-1,VecOp.sub(B1, A1)).v()};
-    	BasicMatrix y = (BasicMatrix)MatrixOp.transposed(new BasicMatrix(ya));
-    	Hep3Vector dB = VecOp.sub(B2, B1);
-    	Hep3Vector dA = VecOp.sub(A2, A1);
-    	BasicMatrix X = new BasicMatrix(3,2);
-    	for(int col=0;col<2;++col) {
-    		if(col==0) {
-    			X.setElement(0, col, dB.x());
-    			X.setElement(1, col, dB.y());
-    			X.setElement(2, col, dB.z());
-    		} else {
-    			X.setElement(0, col, -1*dA.x());
-    			X.setElement(1, col, -1*dA.y());
-    			X.setElement(2, col, -1*dA.z());
-    		}
-    	}
+        double ya[][] = {VecOp.mult(-1,VecOp.sub(B1, A1)).v()};
+        BasicMatrix y = (BasicMatrix)MatrixOp.transposed(new BasicMatrix(ya));
+        Hep3Vector dB = VecOp.sub(B2, B1);
+        Hep3Vector dA = VecOp.sub(A2, A1);
+        BasicMatrix X = new BasicMatrix(3,2);
+        for(int col=0;col<2;++col) {
+            if(col==0) {
+                X.setElement(0, col, dB.x());
+                X.setElement(1, col, dB.y());
+                X.setElement(2, col, dB.z());
+            } else {
+                X.setElement(0, col, -1*dA.x());
+                X.setElement(1, col, -1*dA.y());
+                X.setElement(2, col, -1*dA.z());
+            }
+        }
 
-    	BasicMatrix X_T = (BasicMatrix)MatrixOp.transposed(X);
-    	BasicMatrix XX_T = (BasicMatrix)MatrixOp.mult(X_T, X);
-		BasicMatrix IXX_T = null;
-		try {
-			IXX_T = (BasicMatrix)MatrixOp.inverse(XX_T);
-		} 
-		catch(MatrixOp.IndeterminateMatrixException e) {
-			System.out.printf("%s: caught indeterminate exception %s\n",this.getClass().getSimpleName(),e.getMessage());
-			return null;
-		}
-    	BasicMatrix X_Ty = (BasicMatrix)MatrixOp.mult(X_T,y);
-    	BasicMatrix b = (BasicMatrix)MatrixOp.mult(IXX_T, X_Ty);
-    	double t = b.e(0, 0);
-    	double s = b.e(1, 0);
-    	Hep3Vector Bpca = VecOp.add(B1, VecOp.mult(t, dB));
-    	Hep3Vector Apca = VecOp.add(A1, VecOp.mult(s, dA));
+        BasicMatrix X_T = (BasicMatrix)MatrixOp.transposed(X);
+        BasicMatrix XX_T = (BasicMatrix)MatrixOp.mult(X_T, X);
+        BasicMatrix IXX_T = null;
+        try {
+            IXX_T = (BasicMatrix)MatrixOp.inverse(XX_T);
+        } 
+        catch(MatrixOp.IndeterminateMatrixException e) {
+            System.out.printf("%s: caught indeterminate exception %s\n",this.getClass().getSimpleName(),e.getMessage());
+            return null;
+        }
+        BasicMatrix X_Ty = (BasicMatrix)MatrixOp.mult(X_T,y);
+        BasicMatrix b = (BasicMatrix)MatrixOp.mult(IXX_T, X_Ty);
+        double t = b.e(0, 0);
+        double s = b.e(1, 0);
+        Hep3Vector Bpca = VecOp.add(B1, VecOp.mult(t, dB));
+        Hep3Vector Apca = VecOp.add(A1, VecOp.mult(s, dA));
         Hep3Vector vertex = VecOp.add(Apca, VecOp.mult(0.5, VecOp.sub(Bpca, Apca)));
-    	if(_debug) {
-    		System.out.printf("y:\n%s\n",y.toString());
-    		System.out.printf("X:\n%s\n",X.toString());
-    		System.out.printf("b:\n%s\n",b.toString());
-        	Hep3Vector ymin = VecOp.add(VecOp.mult(t, dB) , VecOp.mult(s, dA) );
-        	Hep3Vector yminprime = VecOp.add(VecOp.sub(B1, A1), ymin);
-        	System.out.printf("ymin:\n%s\n",ymin.toString());
-        	System.out.printf("yminprime:\n%s\n",yminprime.toString());
-        	System.out.printf("Apca:\n%s\n",Apca.toString());
-        	System.out.printf("Bpca:\n%s\n",Bpca.toString());
-        	System.out.printf("vertex:\n%s\n",vertex.toString());
-    	}
-    	return vertex;
-    	
-    	
+        if(_debug) {
+            System.out.printf("y:\n%s\n",y.toString());
+            System.out.printf("X:\n%s\n",X.toString());
+            System.out.printf("b:\n%s\n",b.toString());
+            Hep3Vector ymin = VecOp.add(VecOp.mult(t, dB) , VecOp.mult(s, dA) );
+            Hep3Vector yminprime = VecOp.add(VecOp.sub(B1, A1), ymin);
+            System.out.printf("ymin:\n%s\n",ymin.toString());
+            System.out.printf("yminprime:\n%s\n",yminprime.toString());
+            System.out.printf("Apca:\n%s\n",Apca.toString());
+            System.out.printf("Bpca:\n%s\n",Bpca.toString());
+            System.out.printf("vertex:\n%s\n",vertex.toString());
+        }
+        return vertex;
+        
+        
     }
 
     

@@ -39,7 +39,7 @@
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-		    <!--<strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-All.xml</strategyResource>-->
+            <!--<strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-All.xml</strategyResource>-->
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-TestRun-357.xml</strategyResource>
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">

@@ -28,122 +28,122 @@ import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.Trackin
  */
 public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder {
 
-	
-	
-	/**
-	 * Default constructor
-	 * @param node 
-	 */
-	public HPSTracker2014JavaBuilder(boolean debugFlag, Element node) {
-		super(debugFlag, node);
-	}
-	
-	
-	
-	
-	/**
-	 * Build the JAVA geometry objects from the geometry definition.
-	 * @param trackingVolume - the reference volume.
-	 */
-	public void build(ILogicalVolume trackingVolume) {
+    
+    
+    /**
+     * Default constructor
+     * @param node 
+     */
+    public HPSTracker2014JavaBuilder(boolean debugFlag, Element node) {
+        super(debugFlag, node);
+    }
+    
+    
+    
+    
+    /**
+     * Build the JAVA geometry objects from the geometry definition.
+     * @param trackingVolume - the reference volume.
+     */
+    public void build(ILogicalVolume trackingVolume) {
 
-		// build geometry
+        // build geometry
         setBuilder(createGeometryDefinition(this._debug, node));
-		
-		if(_builder==null) throw new RuntimeException("need to set builder class before calling build!");
+        
+        if(_builder==null) throw new RuntimeException("need to set builder class before calling build!");
 
-		if(isDebug()) System.out.printf("%s: build the base geometry objects\n", getClass().getSimpleName());
-		
-		_builder.build();
+        if(isDebug()) System.out.printf("%s: build the base geometry objects\n", getClass().getSimpleName());
+        
+        _builder.build();
 
-		if(isDebug()) System.out.printf("%s: DONE build the base geometry objects\n", getClass().getSimpleName());
+        if(isDebug()) System.out.printf("%s: DONE build the base geometry objects\n", getClass().getSimpleName());
 
-		if(isDebug()) System.out.printf("%s: build the JAVA geometry objects\n", getClass().getSimpleName());
-		
-		// initialize the list to store a reference to each object
-		javaSurveyVolumes = new ArrayList<JavaSurveyVolume>();
+        if(isDebug()) System.out.printf("%s: build the JAVA geometry objects\n", getClass().getSimpleName());
+        
+        // initialize the list to store a reference to each object
+        javaSurveyVolumes = new ArrayList<JavaSurveyVolume>();
 
-		// Go through the list of volumes to build that is created in the generic builder class
-		JavaSurveyVolume tracking = new JavaSurveyVolume(_builder.getSurveyVolume(TrackingVolume.class), trackingVolume);
-		add(tracking);
-		JavaSurveyVolume chamber = new JavaGhostSurveyVolume(_builder.getSurveyVolume(PSVacuumChamber.class), tracking);
-		add(chamber);
-		setBaseTrackerGeometry(new JavaSurveyVolume(_builder.getSurveyVolume(SvtBox.class), chamber,1));
-		add(getBaseTrackerGeometry());
-		JavaSurveyVolume svtBoxBasePlate = new JavaGhostSurveyVolume(_builder.getSurveyVolume(SvtBoxBasePlate.class), getBaseTrackerGeometry());
-		add(svtBoxBasePlate);
+        // Go through the list of volumes to build that is created in the generic builder class
+        JavaSurveyVolume tracking = new JavaSurveyVolume(_builder.getSurveyVolume(TrackingVolume.class), trackingVolume);
+        add(tracking);
+        JavaSurveyVolume chamber = new JavaGhostSurveyVolume(_builder.getSurveyVolume(PSVacuumChamber.class), tracking);
+        add(chamber);
+        setBaseTrackerGeometry(new JavaSurveyVolume(_builder.getSurveyVolume(SvtBox.class), chamber,1));
+        add(getBaseTrackerGeometry());
+        JavaSurveyVolume svtBoxBasePlate = new JavaGhostSurveyVolume(_builder.getSurveyVolume(SvtBoxBasePlate.class), getBaseTrackerGeometry());
+        add(svtBoxBasePlate);
 
-		
-		// build modules	
-		
-		if(isDebug()) System.out.printf("%s: build JAVA modules\n", getClass().getSimpleName());
+        
+        // build modules    
+        
+        if(isDebug()) System.out.printf("%s: build JAVA modules\n", getClass().getSimpleName());
 
-		// Loop over all modules created
-		for(BaseModuleBundle mod : _builder.modules) {
-			BaseModuleBundle m = mod;
-		    if(isDebug()) { 
-				System.out.printf("%s: build module %s (layer %d half %s)\n", getClass().getSimpleName(),m.module.getName(),m.getLayer(),m.getHalf());
-				m.print();
-			}
+        // Loop over all modules created
+        for(BaseModuleBundle mod : _builder.modules) {
+            BaseModuleBundle m = mod;
+            if(isDebug()) { 
+                System.out.printf("%s: build module %s (layer %d half %s)\n", getClass().getSimpleName(),m.module.getName(),m.getLayer(),m.getHalf());
+                m.print();
+            }
 
-			// Find the mother among the objects using its name, should probably have a better way...
-			String name_mother = m.getMother().getName();
-			JavaSurveyVolume mother = null;
-			for(JavaSurveyVolume g : javaSurveyVolumes) {
-				if(g.getName().equals(name_mother)) {
-					mother = g;
-					break;
-				}
-			}
-			// Check that it had a mother
-			if(mother==null) throw new RuntimeException("Cound't find mother to module " + m.module.getName());
+            // Find the mother among the objects using its name, should probably have a better way...
+            String name_mother = m.getMother().getName();
+            JavaSurveyVolume mother = null;
+            for(JavaSurveyVolume g : javaSurveyVolumes) {
+                if(g.getName().equals(name_mother)) {
+                    mother = g;
+                    break;
+                }
+            }
+            // Check that it had a mother
+            if(mother==null) throw new RuntimeException("Cound't find mother to module " + m.module.getName());
 
-			if(isDebug()) System.out.printf("%s: found mother %s to module %s\n", getClass().getSimpleName(),mother.getName(),m.module.getName());
-			
-			// put the module in the list of objects that will be added to LCDD
-			addModule(m, mother);
-			
-			if(isDebug()) System.out.printf("%s: DONE build module %s\n", getClass().getSimpleName(), m.module.getName());
+            if(isDebug()) System.out.printf("%s: found mother %s to module %s\n", getClass().getSimpleName(),mother.getName(),m.module.getName());
+            
+            // put the module in the list of objects that will be added to LCDD
+            addModule(m, mother);
+            
+            if(isDebug()) System.out.printf("%s: DONE build module %s\n", getClass().getSimpleName(), m.module.getName());
 
-			
-		}
-		
-		if(isDebug()) System.out.printf("%s: DONE build JAVA modules\n", getClass().getSimpleName());
+            
+        }
+        
+        if(isDebug()) System.out.printf("%s: DONE build JAVA modules\n", getClass().getSimpleName());
 
-		
-		//System.out.printf("%s: Built %d JAVA geometry objects\n", getClass().getSimpleName(),javaSurveyVolumes.size());
-		
-		if(isDebug()) {
-		    System.out.printf("%s: DONE building the JAVA geometry objects\n", getClass().getSimpleName());
-		    System.out.printf("%s: List of all the JAVA geometry objects built\n", this.getClass().getSimpleName());
-		    for(JavaSurveyVolume bg : javaSurveyVolumes) {
-		        System.out.printf("-------\n%s\n", bg.toString());
-		    }
-		}
-
-
-		// Set visualization features
-		//setVis();
+        
+        //System.out.printf("%s: Built %d JAVA geometry objects\n", getClass().getSimpleName(),javaSurveyVolumes.size());
+        
+        if(isDebug()) {
+            System.out.printf("%s: DONE building the JAVA geometry objects\n", getClass().getSimpleName());
+            System.out.printf("%s: List of all the JAVA geometry objects built\n", this.getClass().getSimpleName());
+            for(JavaSurveyVolume bg : javaSurveyVolumes) {
+                System.out.printf("-------\n%s\n", bg.toString());
+            }
+        }
 
 
-	}
+        // Set visualization features
+        //setVis();
 
-	/**
-	 * Rules for adding the JAVA module geometry.
-	 * @param bundle - module to be added
-	 * @param mother - mother JAVA geometry object
-	 */
-	private void addModule(BaseModuleBundle bundle, JavaSurveyVolume mother) {
-	    if(bundle instanceof TestRunModuleBundle) {
-	           addTestRunModule((TestRunModuleBundle) bundle, mother);
-	       } else if(bundle instanceof LongModuleBundle) {
-	           addLongModule((LongModuleBundle) bundle, mother);
-	       } else {
-	           throw new RuntimeException("The bundle is of unknown class type!");
-	       }
-	}
-	
-	/**
+
+    }
+
+    /**
+     * Rules for adding the JAVA module geometry.
+     * @param bundle - module to be added
+     * @param mother - mother JAVA geometry object
+     */
+    private void addModule(BaseModuleBundle bundle, JavaSurveyVolume mother) {
+        if(bundle instanceof TestRunModuleBundle) {
+               addTestRunModule((TestRunModuleBundle) bundle, mother);
+           } else if(bundle instanceof LongModuleBundle) {
+               addLongModule((LongModuleBundle) bundle, mother);
+           } else {
+               throw new RuntimeException("The bundle is of unknown class type!");
+           }
+    }
+    
+    /**
      * Rules for adding the LCDD module geometry.
      * @param bundle - module to be added
      * @param mother - mother LCDD geometry object
@@ -191,12 +191,12 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
         
         
     }
-	
+    
     @Override
     public HPSTrackerGeometryDefinition createGeometryDefinition(boolean debug, Element node) {
         return new HPSTracker2014GeometryDefinition(debug, node);
     }
-	
-	
+    
+    
 
 }

@@ -13,47 +13,47 @@ import org.lcsim.event.Cluster;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SimTriggerData {
-	private final SimTriggerModule<Cluster> reconTriggers;
-	private final SimTriggerModule<SSPCluster> sspTriggers;
-	
-	/**
-	 * Instantiates a new <code>SimTriggerData</code> object with empty
-	 * trigger results modules.
-	 */
-	SimTriggerData() {
-		reconTriggers = new SimTriggerModule<Cluster>();
-		sspTriggers = new SimTriggerModule<SSPCluster>();
-	}
-	
-	/**
-	 * Instantiates a new <code>SimTriggerData</code> object that will
-	 * contain the argument trigger modules.
-	 * @param reconTriggers - The simulated reconstructed cluster
-	 * triggers module.
-	 * @param sspTriggers - The simulated SSP cluster triggers module.
-	 */
-	SimTriggerData(SimTriggerModule<Cluster> reconTriggers, SimTriggerModule<SSPCluster> sspTriggers) {
-		this.reconTriggers = reconTriggers;
-		this.sspTriggers = sspTriggers;
-	}
-	
-	/**
-	 * Gets the module containing all simulated SSP trigger data for
-	 * each of the four primary triggers.
-	 * @return Returns the trigger data in a <code>SimTriggerModule</code>
-	 * object.
-	 */
-	public SimTriggerModule<SSPCluster> getSimSSPTriggers() {
-		return sspTriggers;
-	}
-	
-	/**
-	 * Gets the module containing all simulated LCSim trigger data for
-	 * each of the four primary triggers.
-	 * @return Returns the trigger data in a <code>SimTriggerModule</code>
-	 * object.
-	 */
-	public SimTriggerModule<Cluster> getSimReconTriggers() {
-		return reconTriggers;
-	}
+    private final SimTriggerModule<Cluster> reconTriggers;
+    private final SimTriggerModule<SSPCluster> sspTriggers;
+    
+    /**
+     * Instantiates a new <code>SimTriggerData</code> object with empty
+     * trigger results modules.
+     */
+    SimTriggerData() {
+        reconTriggers = new SimTriggerModule<Cluster>();
+        sspTriggers = new SimTriggerModule<SSPCluster>();
+    }
+    
+    /**
+     * Instantiates a new <code>SimTriggerData</code> object that will
+     * contain the argument trigger modules.
+     * @param reconTriggers - The simulated reconstructed cluster
+     * triggers module.
+     * @param sspTriggers - The simulated SSP cluster triggers module.
+     */
+    SimTriggerData(SimTriggerModule<Cluster> reconTriggers, SimTriggerModule<SSPCluster> sspTriggers) {
+        this.reconTriggers = reconTriggers;
+        this.sspTriggers = sspTriggers;
+    }
+    
+    /**
+     * Gets the module containing all simulated SSP trigger data for
+     * each of the four primary triggers.
+     * @return Returns the trigger data in a <code>SimTriggerModule</code>
+     * object.
+     */
+    public SimTriggerModule<SSPCluster> getSimSSPTriggers() {
+        return sspTriggers;
+    }
+    
+    /**
+     * Gets the module containing all simulated LCSim trigger data for
+     * each of the four primary triggers.
+     * @return Returns the trigger data in a <code>SimTriggerModule</code>
+     * object.
+     */
+    public SimTriggerModule<Cluster> getSimReconTriggers() {
+        return reconTriggers;
+    }
 }

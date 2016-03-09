@@ -22,8 +22,8 @@ package org.hps.recon.ecal.cluster;
  * @see GTPClusterer
  */
 public class GTPClusterDriver extends ClusterDriver {
-	/** An instance of the clustering algorithm object for producing
-	 * cluster objects. */
+    /** An instance of the clustering algorithm object for producing
+     * cluster objects. */
     private final GTPClusterer gtp;
     
     /**
@@ -112,11 +112,11 @@ public class GTPClusterDriver extends ClusterDriver {
      */
     @Override
     public void setWriteClusterCollection(boolean state) {
-    	// Set the flag as appropriate with the superclass.
-    	super.setWriteClusterCollection(state);
-    	
-    	// Also tell the clusterer whether it should persist its hit
-    	// collection or not.
-    	gtp.setWriteHitCollection(state);
+        // Set the flag as appropriate with the superclass.
+        super.setWriteClusterCollection(state);
+        
+        // Also tell the clusterer whether it should persist its hit
+        // collection or not.
+        gtp.setWriteHitCollection(state);
     }
 }

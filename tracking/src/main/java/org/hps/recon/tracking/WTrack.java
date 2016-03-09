@@ -38,8 +38,8 @@ public class WTrack {
      * @param bfield value and sign of magnetic field
      */
     public WTrack(HelicalTrackFit track, double bfield) {
-    	_htf = track;
-    	//_bfield = flip ? -1.0 * bfield : bfield; // flip if needed
+        _htf = track;
+        //_bfield = flip ? -1.0 * bfield : bfield; // flip if needed
         _bfield = bfield; 
         _a = -1 * Constants.fieldConversion * _bfield * Math.signum(track.R());
         double p = track.p(Math.abs(_bfield));
@@ -228,8 +228,8 @@ public class WTrack {
     }
 
     /*
-    	Calculate the exact position of the new helix parameters at path length s in an arbitrarily oriented, 
-    	constant magnetic field point xp is the point h is a unit vector in the direction of the magnetic field.         
+        Calculate the exact position of the new helix parameters at path length s in an arbitrarily oriented, 
+        constant magnetic field point xp is the point h is a unit vector in the direction of the magnetic field.         
      * @param s - path length
      * @param h - magnetic field unit vector
      * @return track parameters

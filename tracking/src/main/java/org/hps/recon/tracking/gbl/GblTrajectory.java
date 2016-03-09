@@ -268,7 +268,7 @@ public class GblTrajectory
             List<GblPoint> list = thePoints.get(iTraj);
             int size = list.size();
             // first point is offset
-            list.get(0).setOffset(numOffsets++);		// intermediate scatterers are offsets
+            list.get(0).setOffset(numOffsets++);        // intermediate scatterers are offsets
             for (int i = 1; i < size - 1; ++i) {
                 GblPoint p = list.get(i);
                 if (p.hasScatterer()) {
@@ -434,7 +434,7 @@ public class GblTrajectory
             aPoint.getDerivatives(0, prevW, prevWJ, prevWd); // W-, W- * J-, W- * d-
             aPoint.getDerivatives(1, nextW, nextWJ, nextWd); // W-, W- * J-, W- * d-
             Matrix sumWJ = prevWJ.plus(nextWJ);
-//?		matN = sumWJ.inverse(ierr); // N = (W- * J- + W+ * J+)^-1
+//?     matN = sumWJ.inverse(ierr); // N = (W- * J- + W+ * J+)^-1
             // derivatives for u_int
             Matrix prevNW = matN.times(prevW); // N * W-
             Matrix nextNW = matN.times(nextW); // N * W+

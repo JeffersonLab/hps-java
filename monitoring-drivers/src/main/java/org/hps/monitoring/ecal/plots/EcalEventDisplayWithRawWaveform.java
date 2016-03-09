@@ -54,7 +54,7 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
     // Plotter objects and variables.
     private IPlotter plotter;
     private IPlotterFactory plotterFactory;
-    private AIDA aida = AIDA.defaultInstance();	
+    private AIDA aida = AIDA.defaultInstance(); 
 
     // LCIO Collection names.
     private String inputCollection = "EcalCalHits";
@@ -69,16 +69,16 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
     private ArrayList<IHistogram2D> channelTimeVsEnergyPlot;
 
     // Internal variables.
-    private PEventViewer viewer;								 // Single event display.
-    private int pedSamples = 10;								 // 
-    private IPlotterStyle pstyle;								 // The plotter style for all plots.
-    private long lastEventTime = 0;								 // Tracks the time at which the last event occurred.
-    private int eventRefreshRate = 1;							 // The number of seconds before an update occurs.
-    private boolean resetOnUpdate = true;						 // Clears the event display on each update.
-    private double minEch = 10 * EcalUtils.MeV;					 // The energy scale minimum.
-    private double maxEch = 3500 * EcalUtils.MeV;				 // The energy scale maximum.
-    private int[] windowRaw = new int[NUM_CHANNELS];			 // The number of samples in a waveform for each channel.
-    private boolean[] isFirstRaw = new boolean[NUM_CHANNELS];	 // Whether a waveform plot was initiated for each channel.
+    private PEventViewer viewer;                                 // Single event display.
+    private int pedSamples = 10;                                 // 
+    private IPlotterStyle pstyle;                                // The plotter style for all plots.
+    private long lastEventTime = 0;                              // Tracks the time at which the last event occurred.
+    private int eventRefreshRate = 1;                            // The number of seconds before an update occurs.
+    private boolean resetOnUpdate = true;                        // Clears the event display on each update.
+    private double minEch = 10 * EcalUtils.MeV;                  // The energy scale minimum.
+    private double maxEch = 3500 * EcalUtils.MeV;                // The energy scale maximum.
+    private int[] windowRaw = new int[NUM_CHANNELS];             // The number of samples in a waveform for each channel.
+    private boolean[] isFirstRaw = new boolean[NUM_CHANNELS];    // Whether a waveform plot was initiated for each channel.
 
     // Plot style and title variables.
     private static final String NO_TITLE = "";

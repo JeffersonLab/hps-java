@@ -25,138 +25,138 @@ import org.lcsim.util.aida.AIDA;
  */
 public class HPSMCParticlePlotsDriver extends Driver {
 
-	AIDA aida = AIDA.defaultInstance();
+    AIDA aida = AIDA.defaultInstance();
         //private AIDAFrame pFrame;
         IAnalysisFactory af = aida.analysisFactory();
         public boolean _hideFrame = false;
         // MCParticle plots.
-	ICloud1D primaryEPlot;
-	ICloud1D fsCountPlot;
-	IHistogram1D fsCountVsEventPlot;
-	ICloud1D fsCountTypePlot;
-	ICloud1D fsCountEventTypePlot;
-	ICloud1D fsCountEventTypePlot2;
-	ICloud1D fsCountTypePlot500;
-	IHistogram1D fsEPlot;
-	IHistogram1D fsGammaEPlot;
-	IHistogram1D fsElectronEPlot;
-	IHistogram1D fsPositronEPlot;
-	IHistogram1D fsThetayPlot;
-	ICloud1D fsGammaThetaPlot;
-	IHistogram1D fsGammaThetayPlot;
-	IHistogram1D fsGammaThetayTrigPlot;
-	ICloud2D fsGammaThetayEPlot;
-	ICloud1D fsElectronThetaPlot;
-	IHistogram1D fsElectronThetayPlot;
-	IHistogram1D fsElectronThetayTrigPlot;
-	ICloud2D fsElectronThetayEPlot;
-	ICloud1D fsPositronThetaPlot;
-	IHistogram1D fsPositronThetayPlot;
-	IHistogram1D fsPositronThetayTrigPlot;
-	ICloud2D fsPositronThetayEPlot;
+    ICloud1D primaryEPlot;
+    ICloud1D fsCountPlot;
+    IHistogram1D fsCountVsEventPlot;
+    ICloud1D fsCountTypePlot;
+    ICloud1D fsCountEventTypePlot;
+    ICloud1D fsCountEventTypePlot2;
+    ICloud1D fsCountTypePlot500;
+    IHistogram1D fsEPlot;
+    IHistogram1D fsGammaEPlot;
+    IHistogram1D fsElectronEPlot;
+    IHistogram1D fsPositronEPlot;
+    IHistogram1D fsThetayPlot;
+    ICloud1D fsGammaThetaPlot;
+    IHistogram1D fsGammaThetayPlot;
+    IHistogram1D fsGammaThetayTrigPlot;
+    ICloud2D fsGammaThetayEPlot;
+    ICloud1D fsElectronThetaPlot;
+    IHistogram1D fsElectronThetayPlot;
+    IHistogram1D fsElectronThetayTrigPlot;
+    ICloud2D fsElectronThetayEPlot;
+    ICloud1D fsPositronThetaPlot;
+    IHistogram1D fsPositronThetayPlot;
+    IHistogram1D fsPositronThetayTrigPlot;
+    ICloud2D fsPositronThetayEPlot;
         ICloud1D eventEPlot;
 
-	class MCParticleEComparator implements Comparator<MCParticle> {
+    class MCParticleEComparator implements Comparator<MCParticle> {
 
-		public int compare(MCParticle p1, MCParticle p2) {
-			double e1 = p1.getEnergy();
-			double e2 = p2.getEnergy();
-			if (e1 < e2) {
-				return -1;
-			} else if (e1 == e2) {
-				return 0;
-			} else {
-				return 1;
-			}
-		}
-	}
+        public int compare(MCParticle p1, MCParticle p2) {
+            double e1 = p1.getEnergy();
+            double e2 = p2.getEnergy();
+            if (e1 < e2) {
+                return -1;
+            } else if (e1 == e2) {
+                return 0;
+            } else {
+                return 1;
+            }
+        }
+    }
 
         public void setHideFrame(boolean hideFrame) {
             this._hideFrame = hideFrame;
         }
         
         
-	@Override
-	public void startOfData() {
-		fsCountPlot = aida.cloud1D("MCParticle: Number of Final State Particles");
-		fsCountPlot.annotation().addItem("xAxisLabel", "Number of FS Particles");
+    @Override
+    public void startOfData() {
+        fsCountPlot = aida.cloud1D("MCParticle: Number of Final State Particles");
+        fsCountPlot.annotation().addItem("xAxisLabel", "Number of FS Particles");
                 
                 fsCountVsEventPlot = aida.histogram1D("MCParticle: Number of Final State Particles vs Event Nr", 501, -0.5, 500.5);
-		fsCountVsEventPlot.annotation().addItem("xAxisLabel", "Event Number");
+        fsCountVsEventPlot.annotation().addItem("xAxisLabel", "Event Number");
 
                 fsCountTypePlot = aida.cloud1D("MCParticle: Number of Final State Particles Type");
-		fsCountTypePlot.annotation().addItem("xAxisLabel", "Number of FS Particles of Type");
+        fsCountTypePlot.annotation().addItem("xAxisLabel", "Number of FS Particles of Type");
 
                 fsCountTypePlot500 = aida.cloud1D("MCParticle: Number of Final State Particles Type E>0.5GeV");
-		fsCountTypePlot500.annotation().addItem("xAxisLabel", "Number of FS Particles of Type E>0.5GeV");
+        fsCountTypePlot500.annotation().addItem("xAxisLabel", "Number of FS Particles of Type E>0.5GeV");
 
                 fsCountEventTypePlot = aida.cloud1D("MCParticle: Number of Final State Types");
-		fsCountEventTypePlot.annotation().addItem("xAxisLabel", "Number of FS Types");
+        fsCountEventTypePlot.annotation().addItem("xAxisLabel", "Number of FS Types");
 
                 fsCountEventTypePlot2 = aida.cloud1D("MCParticle: Number of Final State Types Gamma E>500");
-		fsCountEventTypePlot2.annotation().addItem("xAxisLabel", "Number of FS Types Gamma E>500");                
+        fsCountEventTypePlot2.annotation().addItem("xAxisLabel", "Number of FS Types Gamma E>500");                
                 
-		fsEPlot = aida.histogram1D("MCParticle: FS Particle E",100,0,3);
-		fsEPlot.annotation().addItem("xAxisLabel", "Particle E [GeV]");
+        fsEPlot = aida.histogram1D("MCParticle: FS Particle E",100,0,3);
+        fsEPlot.annotation().addItem("xAxisLabel", "Particle E [GeV]");
 
-		fsGammaEPlot = aida.histogram1D("MCParticle: FS Gamma E",100,0,3);
-		fsGammaEPlot.annotation().addItem("xAxisLabel", "Particle E [GeV]");
+        fsGammaEPlot = aida.histogram1D("MCParticle: FS Gamma E",100,0,3);
+        fsGammaEPlot.annotation().addItem("xAxisLabel", "Particle E [GeV]");
 
-		fsElectronEPlot = aida.histogram1D("MCParticle: FS Electron E",100,0,3);
-		fsElectronEPlot.annotation().addItem("xAxisLabel", "Particle E [GeV]");
+        fsElectronEPlot = aida.histogram1D("MCParticle: FS Electron E",100,0,3);
+        fsElectronEPlot.annotation().addItem("xAxisLabel", "Particle E [GeV]");
 
-		fsPositronEPlot = aida.histogram1D("MCParticle: FS Positron E",100,0,3);
-		fsPositronEPlot.annotation().addItem("xAxisLabel", "Particle E [GeV]");
+        fsPositronEPlot = aida.histogram1D("MCParticle: FS Positron E",100,0,3);
+        fsPositronEPlot.annotation().addItem("xAxisLabel", "Particle E [GeV]");
 
-		fsGammaThetaPlot = aida.cloud1D("MCParticle: FS Gamma Theta");
-		fsGammaThetaPlot.annotation().addItem("xAxisLabel", "Particle angle [rad]");
+        fsGammaThetaPlot = aida.cloud1D("MCParticle: FS Gamma Theta");
+        fsGammaThetaPlot.annotation().addItem("xAxisLabel", "Particle angle [rad]");
 
                 fsThetayPlot = aida.histogram1D("MCParticle: FS Particle Thetay",100,0,0.1);
-		fsThetayPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
+        fsThetayPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
 
                 
                 fsGammaThetayPlot = aida.histogram1D("MCParticle: FS Gamma Thetay",100,0,0.1);
-		fsGammaThetayPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
+        fsGammaThetayPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
 
                 fsGammaThetayTrigPlot = aida.histogram1D("MCParticle: FS Gamma Thetay Trig",100,0,0.1);
-		fsGammaThetayTrigPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
+        fsGammaThetayTrigPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
              
                 fsGammaThetayEPlot = aida.cloud2D("MCParticle: FS Gamma Thetay vs E");
-		fsGammaThetayEPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
-		fsGammaThetayEPlot.annotation().addItem("yAxisLabel", "Particle Energy [GeV]");
+        fsGammaThetayEPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
+        fsGammaThetayEPlot.annotation().addItem("yAxisLabel", "Particle Energy [GeV]");
                 
-		fsElectronThetaPlot = aida.cloud1D("MCParticle: FS Electron Theta");
-		fsElectronThetaPlot.annotation().addItem("xAxisLabel", "Particle angle [rad]");
+        fsElectronThetaPlot = aida.cloud1D("MCParticle: FS Electron Theta");
+        fsElectronThetaPlot.annotation().addItem("xAxisLabel", "Particle angle [rad]");
 
                 fsElectronThetayPlot = aida.histogram1D("MCParticle: FS Electron Thetay",100,0,0.1);
-		fsElectronThetayPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
+        fsElectronThetayPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
 
                 fsElectronThetayTrigPlot = aida.histogram1D("MCParticle: FS Electron Thetay Trig",100,0,0.1);
-		fsElectronThetayTrigPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
+        fsElectronThetayTrigPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
 
                 fsElectronThetayEPlot = aida.cloud2D("MCParticle: FS Electron Thetay vs E");
-		fsElectronThetayEPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
-		fsElectronThetayEPlot.annotation().addItem("yAxisLabel", "Particle Energy [GeV]");
+        fsElectronThetayEPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
+        fsElectronThetayEPlot.annotation().addItem("yAxisLabel", "Particle Energy [GeV]");
 
-		fsPositronThetaPlot = aida.cloud1D("MCParticle: FS Positron Theta");
-		fsPositronThetaPlot.annotation().addItem("xAxisLabel", "Particle angle [rad]");
+        fsPositronThetaPlot = aida.cloud1D("MCParticle: FS Positron Theta");
+        fsPositronThetaPlot.annotation().addItem("xAxisLabel", "Particle angle [rad]");
 
                 fsPositronThetayPlot = aida.histogram1D("MCParticle: FS Positron Thetay",100,0,0.1);
-		fsPositronThetayPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
+        fsPositronThetayPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
 
                 fsPositronThetayTrigPlot = aida.histogram1D("MCParticle: FS Positron Thetay Trig",100,0,0.1);
-		fsPositronThetayTrigPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
+        fsPositronThetayTrigPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
 
                 fsPositronThetayEPlot = aida.cloud2D("MCParticle: FS Positron Thetay vs E");
-		fsPositronThetayEPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
-		fsPositronThetayEPlot.annotation().addItem("yAxisLabel", "Particle Energy [GeV]");
+        fsPositronThetayEPlot.annotation().addItem("xAxisLabel", "Particle Thetay angle [rad]");
+        fsPositronThetayEPlot.annotation().addItem("yAxisLabel", "Particle Energy [GeV]");
 
                 
-		primaryEPlot = aida.cloud1D("MCParticle: Highest Primary E in Event");
-		primaryEPlot.annotation().addItem("xAxisLabel", "E [GeV]");
+        primaryEPlot = aida.cloud1D("MCParticle: Highest Primary E in Event");
+        primaryEPlot.annotation().addItem("xAxisLabel", "E [GeV]");
 
-		eventEPlot = aida.cloud1D("MCParticle: Total Gen FS Electron E in Event");
-		eventEPlot.annotation().addItem("xAxisLabel", "E [GeV]");
+        eventEPlot = aida.cloud1D("MCParticle: Total Gen FS Electron E in Event");
+        eventEPlot.annotation().addItem("xAxisLabel", "E [GeV]");
 
                 
                 //pFrame = new AIDAFrame();
@@ -205,19 +205,19 @@ public class HPSMCParticlePlotsDriver extends Driver {
                 
                 
                 
-	}
+    }
 
-	@Override
-	public void process(EventHeader event) {
+    @Override
+    public void process(EventHeader event) {
 
-		// MCParticles
-		List<MCParticle> mcparticles = event.get(MCParticle.class).get(0);
+        // MCParticles
+        List<MCParticle> mcparticles = event.get(MCParticle.class).get(0);
 
-		// Final State particles.
-		List<MCParticle> fsParticles = makeGenFSParticleList(mcparticles);
+        // Final State particles.
+        List<MCParticle> fsParticles = makeGenFSParticleList(mcparticles);
 
-		//System.out.println("fsParticles="+fsParticles.size());
-		fsCountPlot.fill(fsParticles.size());
+        //System.out.println("fsParticles="+fsParticles.size());
+        fsCountPlot.fill(fsParticles.size());
                 
                 for (int i=0;i<fsParticles.size();++i) fsCountVsEventPlot.fill(event.getEventNumber());
                 
@@ -229,69 +229,69 @@ public class HPSMCParticlePlotsDriver extends Driver {
                 int[] ngammas = {0,0};
                 int count = 0;
                 double trigThr = 0.2;
-		for (MCParticle fs : fsParticles) {
+        for (MCParticle fs : fsParticles) {
                         //System.out.println("Index " + count);
 
-			double fsE = fs.getEnergy();
-			double theta = Math.atan2(Math.sqrt(fs.getPX() * fs.getPX() + fs.getPY() * fs.getPY()), fs.getPZ());
-			double thetay = Math.atan2(fs.getPY(), fs.getPZ());
-			int fsPdg = fs.getPDGID();
-			fsEPlot.fill(fsE);
+            double fsE = fs.getEnergy();
+            double theta = Math.atan2(Math.sqrt(fs.getPX() * fs.getPX() + fs.getPY() * fs.getPY()), fs.getPZ());
+            double thetay = Math.atan2(fs.getPY(), fs.getPZ());
+            int fsPdg = fs.getPDGID();
+            fsEPlot.fill(fsE);
                         this.fsThetayPlot.fill(Math.abs(thetay));
                         fsCountTypePlot.fill(fsPdg);
                         if(fsE>0.5) fsCountTypePlot500.fill(fsPdg);
-			if (ParticleTypeClassifier.isElectron(fsPdg)) {
-				fsElectronEPlot.fill(fsE);
-				fsElectronThetaPlot.fill(theta);
-				fsElectronThetayPlot.fill(Math.abs(thetay));
-				if(fsE>trigThr) fsElectronThetayTrigPlot.fill(Math.abs(thetay));
-				fsElectronThetayEPlot.fill(Math.abs(thetay),fsE);
+            if (ParticleTypeClassifier.isElectron(fsPdg)) {
+                fsElectronEPlot.fill(fsE);
+                fsElectronThetaPlot.fill(theta);
+                fsElectronThetayPlot.fill(Math.abs(thetay));
+                if(fsE>trigThr) fsElectronThetayTrigPlot.fill(Math.abs(thetay));
+                fsElectronThetayEPlot.fill(Math.abs(thetay),fsE);
                                 nelectrons[0]++;
                                 if(fsGammaEmax>0.5) nelectrons[1]++; 
-			} else if (ParticleTypeClassifier.isPositron(fsPdg)) {
-				fsPositronEPlot.fill(fsE);
-				fsPositronThetaPlot.fill(theta);
-				fsPositronThetayPlot.fill(Math.abs(thetay));
-				if(fsE>trigThr) fsPositronThetayTrigPlot.fill(Math.abs(thetay));
-				fsPositronThetayEPlot.fill(Math.abs(thetay),fsE);
+            } else if (ParticleTypeClassifier.isPositron(fsPdg)) {
+                fsPositronEPlot.fill(fsE);
+                fsPositronThetaPlot.fill(theta);
+                fsPositronThetayPlot.fill(Math.abs(thetay));
+                if(fsE>trigThr) fsPositronThetayTrigPlot.fill(Math.abs(thetay));
+                fsPositronThetayEPlot.fill(Math.abs(thetay),fsE);
                                 npositrons[0]++;
                                 if(fsGammaEmax>0.5) npositrons[1]++; 
-			} else if (ParticleTypeClassifier.isPhoton(fsPdg)) {
-				fsGammaEPlot.fill(fsE);
-				fsGammaThetaPlot.fill(theta);
-				fsGammaThetayPlot.fill(Math.abs(thetay));
-				if(fsE>trigThr) fsGammaThetayTrigPlot.fill(Math.abs(thetay));
-				fsGammaThetayEPlot.fill(Math.abs(thetay),fsE);
+            } else if (ParticleTypeClassifier.isPhoton(fsPdg)) {
+                fsGammaEPlot.fill(fsE);
+                fsGammaThetaPlot.fill(theta);
+                fsGammaThetayPlot.fill(Math.abs(thetay));
+                if(fsE>trigThr) fsGammaThetayTrigPlot.fill(Math.abs(thetay));
+                fsGammaThetayEPlot.fill(Math.abs(thetay),fsE);
                                 ngammas[0]++;
                                 if(fsGammaEmax>0.5) {
                                     ngammas[1]++;
                                     //System.out.println("Counting high E gamma at count "+ count);
                                 } 
-			}
-		}
+            }
+        }
 
                 fsCountEventTypePlot.fill(getEventTypeId(nelectrons[0],npositrons[0],ngammas[0]));
                 fsCountEventTypePlot2.fill(getEventTypeId(nelectrons[1],npositrons[1],ngammas[1]));
 
-		// Sort MCParticles on energy.
-		//Collections.sort(fsParticles, new MCParticleEComparator());
+        // Sort MCParticles on energy.
+        //Collections.sort(fsParticles, new MCParticleEComparator());
 
-		// Energy of top two FS particles.
-		//double e2 = fsParticles.get(0).getEnergy() + fsParticles.get(1).getEnergy();
+        // Energy of top two FS particles.
+        //double e2 = fsParticles.get(0).getEnergy() + fsParticles.get(1).getEnergy();
 
-		// Energy of top three FS particles.
-		//double e3 = e2 + fsParticles.get(2).getEnergy();
+        // Energy of top three FS particles.
+        //double e3 = e2 + fsParticles.get(2).getEnergy();
 
-		if (!fsParticles.isEmpty()) {
-			// primary particle with most E
-			double primaryE = getPrimary(fsParticles).getEnergy();
-			primaryEPlot.fill(primaryE);
-		}
+        if (!fsParticles.isEmpty()) {
+            // primary particle with most E
+            double primaryE = getPrimary(fsParticles).getEnergy();
+            primaryEPlot.fill(primaryE);
+        }
 
-		// event electron energy
-		double eventE = getPrimaryElectronE(fsParticles);
-		eventEPlot.fill(eventE);
-	}
+        // event electron energy
+        double eventE = getPrimaryElectronE(fsParticles);
+        eventEPlot.fill(eventE);
+    }
 
         
         public int getEventTypeId(int ne, int np, int ng) {
@@ -314,57 +314,57 @@ public class HPSMCParticlePlotsDriver extends Driver {
             return 0;
         }
         
-	public double getHighestPhotonE(List<MCParticle> particles) {
-		double Emax = -1;
+    public double getHighestPhotonE(List<MCParticle> particles) {
+        double Emax = -1;
                 double E=0;
                 int count = 0;
-		for (MCParticle particle : particles) {
-			if (ParticleTypeClassifier.isPhoton(particle.getPDGID())) {
-				E = particle.getEnergy();
+        for (MCParticle particle : particles) {
+            if (ParticleTypeClassifier.isPhoton(particle.getPDGID())) {
+                E = particle.getEnergy();
                                 if(E>Emax) {
                                     Emax = E;
                                     //System.out.println("Emax from photon with index " + count);
                                 }
-			count++;
+            count++;
                         }
-		}
-		return Emax;
-	}
+        }
+        return Emax;
+    }
 
         private double getPrimaryElectronE(List<MCParticle> particles) {
-		double totalE = 0;
-		for (MCParticle particle : particles) {
-			if (Math.abs(particle.getPDGID()) == 11) {
-				totalE += particle.getEnergy();
-			}
-		}
-		return totalE;
-	}
+        double totalE = 0;
+        for (MCParticle particle : particles) {
+            if (Math.abs(particle.getPDGID()) == 11) {
+                totalE += particle.getEnergy();
+            }
+        }
+        return totalE;
+    }
 
-	private MCParticle getPrimary(List<MCParticle> particles) {
-		double maxE = 0;
-		MCParticle primary = null;
-		for (MCParticle particle : particles) {
-			if (particle.getEnergy() > maxE) {
-				maxE = particle.getEnergy();
-				primary = particle;
-			}
-		}
-		return primary;
-	}
+    private MCParticle getPrimary(List<MCParticle> particles) {
+        double maxE = 0;
+        MCParticle primary = null;
+        for (MCParticle particle : particles) {
+            if (particle.getEnergy() > maxE) {
+                maxE = particle.getEnergy();
+                primary = particle;
+            }
+        }
+        return primary;
+    }
 
-	public static List<MCParticle> makeGenFSParticleList(List<MCParticle> mcparticles) {
-		List<MCParticle> fsParticles = new ArrayList<MCParticle>();
-		for (MCParticle mcparticle : mcparticles) {
-			if (mcparticle.getGeneratorStatus() == MCParticle.FINAL_STATE) {
-				double theta = Math.atan2(Math.sqrt(mcparticle.getPX() * mcparticle.getPX() + mcparticle.getPY() * mcparticle.getPY()), mcparticle.getPZ());
-				if (theta > 1e-3) {
-					fsParticles.add(mcparticle);
-				}
-			}
-		}
-		return fsParticles;
-	}
+    public static List<MCParticle> makeGenFSParticleList(List<MCParticle> mcparticles) {
+        List<MCParticle> fsParticles = new ArrayList<MCParticle>();
+        for (MCParticle mcparticle : mcparticles) {
+            if (mcparticle.getGeneratorStatus() == MCParticle.FINAL_STATE) {
+                double theta = Math.atan2(Math.sqrt(mcparticle.getPX() * mcparticle.getPX() + mcparticle.getPY() * mcparticle.getPY()), mcparticle.getPZ());
+                if (theta > 1e-3) {
+                    fsParticles.add(mcparticle);
+                }
+            }
+        }
+        return fsParticles;
+    }
         
         
         public void endOfData() {

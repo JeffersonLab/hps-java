@@ -50,7 +50,7 @@
 <!--
         <constant name="tracking_region_radius" value="200.0*cm"/>
         <constant name="tracking_region_min" value="5.0*cm"/>
-        <constant name="tracking_region_zmax" value="100.0*cm"/>	
+        <constant name="tracking_region_zmax" value="100.0*cm"/>    
 
         <constant name="xCent1" value="10*cm" />
         <constant name="xCent2" value="20*cm" />

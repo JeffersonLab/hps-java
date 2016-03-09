@@ -28,7 +28,7 @@
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
         </driver>
-			
+            
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <coincidenceWindow>1</coincidenceWindow>
             <ecalName>Ecal</ecalName>
@@ -46,7 +46,7 @@
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <use2014Gain>true</use2014Gain>
 <!--            <debug>true</debug>-->
-        </driver>	
+        </driver>   
 
         <driver name="EcalClusterer" type="org.hps.recon.ecal.GTPEcalClusterer">
             <ecalName>Ecal</ecalName>
@@ -59,7 +59,7 @@
             <deadTime>10</deadTime>
             <pairCoincidence>2</pairCoincidence>
             <outputFileName>${outputFile}.triggers</outputFileName>
-        </driver>	
+        </driver>   
         <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
             <addNoise>false</addNoise>
         </driver>
@@ -70,4 +70,4 @@
         </driver> 
     </drivers>
 </lcsim>
-	
+    

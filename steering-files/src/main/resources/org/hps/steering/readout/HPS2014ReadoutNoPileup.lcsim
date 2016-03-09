@@ -48,7 +48,7 @@
             <deadTime>0</deadTime>
             <pairCoincidence>0</pairCoincidence>
             <lcioFile>${outputFile}.slcio</lcioFile>
-        </driver>	
+        </driver>   
         <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
             <noPileup>true</noPileup>
         </driver>

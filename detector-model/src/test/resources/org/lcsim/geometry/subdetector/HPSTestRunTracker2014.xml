@@ -7,9 +7,9 @@
   </info>
   
   <define>
-	<!-- units -->
-	<constant name="mm" value="0.1*cm"/>
-	<constant name="inch" value="25.4*mm"/>
+    <!-- units -->
+    <constant name="mm" value="0.1*cm"/>
+    <constant name="inch" value="25.4*mm"/>
 
     <!-- world -->
     <constant name="world_side" value="500.0*cm" />
@@ -17,8 +17,8 @@
     <constant name="world_y" value="world_side" />
     <constant name="world_z" value="world_side" />
   
- 	 <!-- tracking region -->
- 	<constant name="tracking_region_radius" value="200.0*cm"/>
+     <!-- tracking region -->
+    <constant name="tracking_region_radius" value="200.0*cm"/>
     <constant name="tracking_region_min" value="5.0*cm"/>
     <constant name="tracking_region_zmax" value="131.8*cm"/>
  
@@ -34,7 +34,7 @@
   </materials>
   
   <display>
-	
+    
     <vis name="SensorVis" alpha="1.0" r="1.0" g="0.0" b="0.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true"/>
     <vis name="ActiveSensorVis" alpha="1.0" r="1.0" g="0.0" b="0.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true"/>
     <vis name="CarbonFiberVis" alpha="1.0" r="0.88" g="0.88" b="0.88" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true"/>
@@ -48,7 +48,7 @@
     <vis name="BasePlateVis" alpha="1.0" r="0.35" g="0.35" b="0.35" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true"/>
     <vis name="LayerVis" alpha="0.0" r="0.0" g="0.0" b="1.0" drawingStyle="wireframe" showDaughters="true" visible="false"/>
     <vis name="ComponentVis" alpha="0.0" r="0.0" g="0.2" b="0.4" drawingStyle="solid" showDaughters="false" visible="false"/>
-	<vis name="BeamPlaneVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="false" visible="true"/>
+    <vis name="BeamPlaneVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="false" visible="true"/>
     
   </display>
   

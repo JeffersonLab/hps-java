@@ -70,9 +70,9 @@ public class TriggerTurnOnDriver extends Driver {
     public TriggerTurnOnDriver() {
     }
     
-	public void setShowPlots(boolean showPlots) {
-		this.showPlots = showPlots;
-	}
+    public void setShowPlots(boolean showPlots) {
+        this.showPlots = showPlots;
+    }
 
     @Override
     protected void detectorChanged(Detector detector) {

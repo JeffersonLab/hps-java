@@ -21,16 +21,16 @@ public interface EventManager {
      * may be read.
      * @throws IOException Occurs if there is an error closing the file stream.
      **/
-	public void close() throws IOException;
-	
-	/**
-	 * <b>getEventNumber</b><br/><br/>
+    public void close() throws IOException;
+    
+    /**
+     * <b>getEventNumber</b><br/><br/>
      * <code>public int <b>getEventNumber</b>()</code><br/><br/>
      * Gets the ordinal number for the currently displayed event.
-	 * @return Returns the current event's ordinal number.
-	 */
-	public int getEventNumber();
-	
+     * @return Returns the current event's ordinal number.
+     */
+    public int getEventNumber();
+    
     /**
      * <b>getClusters</b><br/><br/>
      * <code>public ArrayList<Cluster> <b>getClusters</b>()</code><br/><br/>
@@ -38,17 +38,17 @@ public interface EventManager {
      * @return Returns the current clusters as an <code>ArrayList
      * </code> object.
      **/
-	public List<Cluster> getClusters();
-	
-	/**
+    public List<Cluster> getClusters();
+    
+    /**
      * <b>getHits</b><br/><br/>
      * <code>public ArrayList<EcalHit> <b>getHits</b>()</code><br/><br/>
      * Allows access to the current event's list of hits.
      * @return Returns the current hits as an <code>ArrayList</code> object.
      **/
-	public List<EcalHit> getHits();
-	
-	/**
+    public List<EcalHit> getHits();
+    
+    /**
      * <b>nextEvent</b><br/><br/>
      * <code>public boolean <b>nextEvent</b>()</code><br/><br/>
      * Populates the event manager with hits and clusters from the next event.
@@ -56,8 +56,8 @@ public interface EventManager {
      * </code> if it was not.
      * @throws IOException Occurs if there was a file read error.
      **/
-	public boolean nextEvent() throws IOException;
-	
+    public boolean nextEvent() throws IOException;
+    
     /**
      * <b>previousEvent</b><br/><br/>
      * <code>public boolean <b>previousEvent</b>()</code><br/><br/>
@@ -66,5 +66,5 @@ public interface EventManager {
      * </code> if it was not.
      * @throws IOException Occurs if there was a file read error.
      **/
-	public boolean previousEvent() throws IOException;
+    public boolean previousEvent() throws IOException;
 }

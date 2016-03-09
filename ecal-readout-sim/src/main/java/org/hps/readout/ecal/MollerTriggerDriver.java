@@ -56,8 +56,8 @@ public class MollerTriggerDriver extends TriggerDriver {
     
     @Override
     public void process(EventHeader event) {
-    	// Run the superclass process event.
-    	super.process(event);
+        // Run the superclass process event.
+        super.process(event);
     }
     
     @Override
@@ -87,29 +87,29 @@ public class MollerTriggerDriver extends TriggerDriver {
         aMomentumAngle = aida.histogram2D("Trigger Plots :: Particle Momentum Distribution (t = 0, Passed All Cuts)", 500, -0.01, 0.06, 500, -0.04, 0.04);
         
         // Add the allowed seed crystal positions to the seed set.
-		if(useVersionOne) {
-	        // Add the allowed seed crystal positions to the seed set.
-	        // y = +/- 1, x = -11 -> -15
-	        for(int ix = -15; ix <= -11; ix++) {
-	            allowedSeedSet.add(new Point(ix, 1));
-	            allowedSeedSet.add(new Point(ix, -1));
-	        } // y = +/- 2, x = -9 -> -15
-	        for(int ix = -15; ix <= -9; ix++) {
-	            allowedSeedSet.add(new Point(ix, 2));
-	            allowedSeedSet.add(new Point(ix, -2));
-	        }
-		}
-		else {
-	        // y = +/- 1, x = -11 -> -13
-	        for(int ix = -13; ix <= -11; ix++) {
-	            allowedSeedSet.add(new Point(ix, 1));
-	            allowedSeedSet.add(new Point(ix, -1));
-	        } // y = +/- 2, x = -10 -> -14
-	        for(int ix = -14; ix <= -10; ix++) {
-	            allowedSeedSet.add(new Point(ix, 2));
-	            allowedSeedSet.add(new Point(ix, -2));
-	        }
-		}
+        if(useVersionOne) {
+            // Add the allowed seed crystal positions to the seed set.
+            // y = +/- 1, x = -11 -> -15
+            for(int ix = -15; ix <= -11; ix++) {
+                allowedSeedSet.add(new Point(ix, 1));
+                allowedSeedSet.add(new Point(ix, -1));
+            } // y = +/- 2, x = -9 -> -15
+            for(int ix = -15; ix <= -9; ix++) {
+                allowedSeedSet.add(new Point(ix, 2));
+                allowedSeedSet.add(new Point(ix, -2));
+            }
+        }
+        else {
+            // y = +/- 1, x = -11 -> -13
+            for(int ix = -13; ix <= -11; ix++) {
+                allowedSeedSet.add(new Point(ix, 1));
+                allowedSeedSet.add(new Point(ix, -1));
+            } // y = +/- 2, x = -10 -> -14
+            for(int ix = -14; ix <= -10; ix++) {
+                allowedSeedSet.add(new Point(ix, 2));
+                allowedSeedSet.add(new Point(ix, -2));
+            }
+        }
     }
     
     @Override
@@ -201,31 +201,31 @@ public class MollerTriggerDriver extends TriggerDriver {
             // Require that the cluster pass each of the cuts in
             // order to qualify for a trigger.
             if(totalEnergyCut && seedEnergyCut && hitCountCut && positionCut) {
-            	// Increment the number of events that have passed
-            	// the cuts.
-            	passedEvents++;
-            	
-            	// If the number of passed events exceeds the prescaling
-            	// threshold, throw a trigger.
-            	if(passedEvents >= prescale) {
-            		// Reset the number of passed events.
-            		passedEvents = 0;
-            		
-	                // Add the clusters to the cut histograms.
-	                aClusterHitCount.fill(cluster.getCalorimeterHits().size());
-	                aClusterTotalEnergy.fill(cluster.getEnergy());
-	                aClusterSeedEnergy.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy());
-	                aClusterDistribution.fill(ix > 0 ? ix - 1 : ix, iy, 1);
-	                
-	                // Increment the trigger count.
-	                triggers++;
-	                
-	                // VERBOSE :: Indicate that a trigger occurred.
-	                if(verbose) { System.out.printf("\tTriggered!%n%n"); }
-	                
-	                // Return a trigger.
-	                return true;
-            	}
+                // Increment the number of events that have passed
+                // the cuts.
+                passedEvents++;
+                
+                // If the number of passed events exceeds the prescaling
+                // threshold, throw a trigger.
+                if(passedEvents >= prescale) {
+                    // Reset the number of passed events.
+                    passedEvents = 0;
+                    
+                    // Add the clusters to the cut histograms.
+                    aClusterHitCount.fill(cluster.getCalorimeterHits().size());
+                    aClusterTotalEnergy.fill(cluster.getEnergy());
+                    aClusterSeedEnergy.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy());
+                    aClusterDistribution.fill(ix > 0 ? ix - 1 : ix, iy, 1);
+                    
+                    // Increment the trigger count.
+                    triggers++;
+                    
+                    // VERBOSE :: Indicate that a trigger occurred.
+                    if(verbose) { System.out.printf("\tTriggered!%n%n"); }
+                    
+                    // Return a trigger.
+                    return true;
+                }
             }
         }
         
@@ -371,7 +371,7 @@ public class MollerTriggerDriver extends TriggerDriver {
      * will be thrown.
      */
     public void setPrescale(int prescale) {
-    	this.prescale = prescale;
+        this.prescale = prescale;
     }
     
     /**
@@ -383,7 +383,7 @@ public class MollerTriggerDriver extends TriggerDriver {
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
-	
+    
     /**
      * Toggles whether the more inclusive acceptance region version 1
      * is used, or the slightly smaller and more exclusive acceptance
@@ -392,9 +392,9 @@ public class MollerTriggerDriver extends TriggerDriver {
      * 1 of the acceptance region should be used and <code>false</code>
      * that version 2 should be used.
      */
-	public void setUseVersionOne(boolean useVersionOne) {
-		this.useVersionOne = useVersionOne;
-	}
+    public void setUseVersionOne(boolean useVersionOne) {
+        this.useVersionOne = useVersionOne;
+    }
     
     // ==================================================================
     // ==== AIDA Plots ==================================================

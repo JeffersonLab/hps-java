@@ -19,36 +19,36 @@ import org.lcsim.geometry.GeometryReader;
  */
 public class HPSTestRunTracker2014Test extends TestCase {
 
-	
-	Detector det;
-	public HPSTestRunTracker2014Test(String name) {
-		super(name);
-	}
-	
-	protected void setUp() throws Exception {
-		GeometryReader geometryReader = new GeometryReader();
-		geometryReader.setBuildDetailed(true);
-		String pathToCompactFile = "/org/lcsim/geometry/subdetector/HPSTestRunTracker2014.xml";
+    
+    Detector det;
+    public HPSTestRunTracker2014Test(String name) {
+        super(name);
+    }
+    
+    protected void setUp() throws Exception {
+        GeometryReader geometryReader = new GeometryReader();
+        geometryReader.setBuildDetailed(true);
+        String pathToCompactFile = "/org/lcsim/geometry/subdetector/HPSTestRunTracker2014.xml";
 
-		InputStream in = HPSTestRunTracker2014Test.class.getResourceAsStream(pathToCompactFile);
-		det = geometryReader.read(in);
-		
-		System.out.printf("%s: detector name converted: %s\n",this.getClass().getSimpleName(), det.getName());
-		
-		
-	}
-	
-	public void test() {
-		
-		
-//	    IDetectorElementStore store =  DetectorElementStore.getInstance();
-//	    System.out.printf("%s: Printing %d DE:\n",this.getClass().getSimpleName(), store.size());
-//	    System.out.printf("%s: %50s %40s %50s %50s\n",this.getClass().getSimpleName(), "name", "pos", "path","mother");
-//	    for(IDetectorElement e : store) {
-//	        System.out.printf("%s: %50s %40s %50s %50s \n",this.getClass().getSimpleName(), e.getName(),e.hasGeometryInfo()?e.getGeometry().getPosition().toString():" - ",e.hasGeometryInfo()?((PhysicalVolumePath)e.getGeometry().getPath()).toString():" - ",e.getParent()==null?" - ":e.getParent().getName());
-//	    }
-		
-		IDetectorElementStore store =  DetectorElementStore.getInstance();
+        InputStream in = HPSTestRunTracker2014Test.class.getResourceAsStream(pathToCompactFile);
+        det = geometryReader.read(in);
+        
+        System.out.printf("%s: detector name converted: %s\n",this.getClass().getSimpleName(), det.getName());
+        
+        
+    }
+    
+    public void test() {
+        
+        
+//      IDetectorElementStore store =  DetectorElementStore.getInstance();
+//      System.out.printf("%s: Printing %d DE:\n",this.getClass().getSimpleName(), store.size());
+//      System.out.printf("%s: %50s %40s %50s %50s\n",this.getClass().getSimpleName(), "name", "pos", "path","mother");
+//      for(IDetectorElement e : store) {
+//          System.out.printf("%s: %50s %40s %50s %50s \n",this.getClass().getSimpleName(), e.getName(),e.hasGeometryInfo()?e.getGeometry().getPosition().toString():" - ",e.hasGeometryInfo()?((PhysicalVolumePath)e.getGeometry().getPath()).toString():" - ",e.getParent()==null?" - ":e.getParent().getName());
+//      }
+        
+        IDetectorElementStore store =  DetectorElementStore.getInstance();
         System.out.printf("%s: Printing %d DE:\n",this.getClass().getSimpleName(), store.size());
         System.out.printf("%s: %50s %40s %50s %50s %s\n",this.getClass().getSimpleName(), "name", "pos", "path","mother", "expId");
         for(IDetectorElement e : store) {
@@ -58,8 +58,8 @@ public class HPSTestRunTracker2014Test extends TestCase {
                 expId = e.getExpandedIdentifier();
             System.out.printf("%s: %50s %40s %50s %50s %s\n",this.getClass().getSimpleName(), e.getName(),e.hasGeometryInfo()?e.getGeometry().getPosition().toString():" - ",e.hasGeometryInfo()?((PhysicalVolumePath)e.getGeometry().getPath()).toString():" - ",e.getParent()==null?" - ":e.getParent().getName(),expId==null?" no expId ":expId.toString());
         }
-		
-	}
+        
+    }
    
 
 }

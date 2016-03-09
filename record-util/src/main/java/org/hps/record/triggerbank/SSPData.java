@@ -175,7 +175,7 @@ public class SSPData extends AbstractIntData {
      * of <code>SSPCosmicTrigger</code> objects.
      */
     public List<SSPCosmicTrigger> getCosmicTriggers() {
-    	return cosmicList;
+        return cosmicList;
     }
     
     /**
@@ -184,7 +184,7 @@ public class SSPData extends AbstractIntData {
      * of <code>SSPPairTrigger</code> objects.
      */
     public List<SSPPairTrigger> getPairTriggers() {
-    	return pairList;
+        return pairList;
     }
     
     /**
@@ -193,7 +193,7 @@ public class SSPData extends AbstractIntData {
      * of <code>SSPSinglesTrigger</code> objects.
      */
     public List<SSPSinglesTrigger> getSinglesTriggers() {
-    	return singlesList;
+        return singlesList;
     }
     
     /**

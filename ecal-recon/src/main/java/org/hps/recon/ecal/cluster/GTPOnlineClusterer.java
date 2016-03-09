@@ -69,10 +69,10 @@ import org.lcsim.util.aida.AIDA;
  * @see GTPClusterer
  */
 public class GTPOnlineClusterer extends AbstractClusterer {
-	/**
-	 * The length of the temporal window for inclusing clusters that
-	 * occur before the seed hit.
-	 */
+    /**
+     * The length of the temporal window for inclusing clusters that
+     * occur before the seed hit.
+     */
     private double timeBefore = 4;
     
     /**
@@ -128,29 +128,29 @@ public class GTPOnlineClusterer extends AbstractClusterer {
      */
     @Override
     public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hitList) {
-    	// VERBOSE :: Print the driver header.
-    	if(verbose) {
-    		System.out.println();
-    		System.out.println();
-    		System.out.println("======================================================================");
-    		System.out.println("=== GTP Readout Clusterer ============================================");
-    		System.out.println("======================================================================");
-    		
-    		// Sort the hits by x-index and then by y-index.
-        	Collections.sort(hitList, new Comparator<CalorimeterHit>() {
-				@Override
-				public int compare(CalorimeterHit firstHit, CalorimeterHit secondHit) {
-					int[] ix = { firstHit.getIdentifierFieldValue("ix"), secondHit.getIdentifierFieldValue("ix") };
-					if(ix[0] != ix[1]) { return Integer.compare(ix[0], ix[1]); }
-					else {
-						int iy[] = { firstHit.getIdentifierFieldValue("iy"), secondHit.getIdentifierFieldValue("iy") };
-						return Integer.compare(iy[0], iy[1]);
-					}
-				}
-        	});
-        	
-        	// Print the hit collection.
-        	System.out.println("Event Hit Collection:");
+        // VERBOSE :: Print the driver header.
+        if(verbose) {
+            System.out.println();
+            System.out.println();
+            System.out.println("======================================================================");
+            System.out.println("=== GTP Readout Clusterer ============================================");
+            System.out.println("======================================================================");
+            
+            // Sort the hits by x-index and then by y-index.
+            Collections.sort(hitList, new Comparator<CalorimeterHit>() {
+                @Override
+                public int compare(CalorimeterHit firstHit, CalorimeterHit secondHit) {
+                    int[] ix = { firstHit.getIdentifierFieldValue("ix"), secondHit.getIdentifierFieldValue("ix") };
+                    if(ix[0] != ix[1]) { return Integer.compare(ix[0], ix[1]); }
+                    else {
+                        int iy[] = { firstHit.getIdentifierFieldValue("iy"), secondHit.getIdentifierFieldValue("iy") };
+                        return Integer.compare(iy[0], iy[1]);
+                    }
+                }
+            });
+            
+            // Print the hit collection.
+            System.out.println("Event Hit Collection:");
             for(CalorimeterHit hit : hitList) {
                 int ix = hit.getIdentifierFieldValue("ix");
                 int iy = hit.getIdentifierFieldValue("iy");
@@ -161,7 +161,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
             }
             System.out.println();
         }
-    	
+        
         // Track the valid clusters.
         List<Cluster> clusterList = new ArrayList<Cluster>();
         
@@ -183,10 +183,10 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         // Iterate over each hit and see if it qualifies as a seed hit.
         seedLoop:
             for(CalorimeterHit seed : hitList) {
-            	// Put the hit energy into the hit energy distribution.
-            	hitEnergy.fill(seed.getCorrectedEnergy());
-            	hitDistribution.fill(seed.getIdentifierFieldValue("ix"), seed.getIdentifierFieldValue("iy"));
-            	
+                // Put the hit energy into the hit energy distribution.
+                hitEnergy.fill(seed.getCorrectedEnergy());
+                hitDistribution.fill(seed.getIdentifierFieldValue("ix"), seed.getIdentifierFieldValue("iy"));
+                
                 // Check whether the potential seed passes the seed
                 // energy cut.
                 if(seed.getCorrectedEnergy() < seedThreshold) {
@@ -204,16 +204,16 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 // energies.
                 hitLoop:
                 for(CalorimeterHit hit : hitList) {
-                	// Negative energy hits are never valid. Skip them.
-                	if(hit.getCorrectedEnergy() < 0) {
-                		continue hitLoop;
-                	}
-                	
-                	// Do not compare the potential seed hit to itself.
-                	if(hit == seed) {
-                		continue hitLoop;
-                	}
-                	
+                    // Negative energy hits are never valid. Skip them.
+                    if(hit.getCorrectedEnergy() < 0) {
+                        continue hitLoop;
+                    }
+                    
+                    // Do not compare the potential seed hit to itself.
+                    if(hit == seed) {
+                        continue hitLoop;
+                    }
+                    
                     // Check if the hit is within the spatiotemporal
                     // clustering window.
                     if(withinTimeVerificationWindow(seed, hit) && withinSpatialWindow(seed, hit)) {
@@ -246,25 +246,25 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 clusterTotalEnergy.fill(protoCluster.getEnergy());
                 clusterHitCount.fill(protoCluster.getCalorimeterHits().size());
                 clusterDistribution.fill(protoCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
-                		protoCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
+                        protoCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
                 
                 // Determine how much energy in the cluster is negative
                 // and how is positive.
                 double nenergy = 0.0;
                 double penergy = 0.0;
                 for(CalorimeterHit hit : protoCluster.getCalorimeterHits()) {
-                	if(hit.getCorrectedEnergy() > 0) { penergy += hit.getCorrectedEnergy(); }
-                	else { nenergy += hit.getCorrectedEnergy(); }
+                    if(hit.getCorrectedEnergy() > 0) { penergy += hit.getCorrectedEnergy(); }
+                    else { nenergy += hit.getCorrectedEnergy(); }
                 }
                 energyDistribution.fill(Math.abs(nenergy) / (penergy + Math.abs(nenergy)));
             }
         
         // VERBOSE :: Print out all the clusters in the event.
         if(verbose) {
-        	// Print the clusters.
-        	System.out.println("Event Cluster Collection:");
+            // Print the clusters.
+            System.out.println("Event Cluster Collection:");
             for(Cluster cluster : clusterList) {
-            	// Output basic cluster positional and energy data.
+                // Output basic cluster positional and energy data.
                 CalorimeterHit seedHit = cluster.getCalorimeterHits().get(0);
                 int ix = seedHit.getIdentifierFieldValue("ix");
                 int iy = seedHit.getIdentifierFieldValue("iy");
@@ -281,7 +281,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                     System.out.printf("\t\tCompHit --> %.3f GeV at (%3d, %3d) and at t = %.2f%n", henergy, hix, hiy, htime);
                 }
             }
-        	System.out.println();
+            System.out.println();
         }
         
         // VERBOSE :: Print a new line.
@@ -366,11 +366,11 @@ public class GTPOnlineClusterer extends AbstractClusterer {
      * the seed hit in clock cycles.
      */
     void setWindowBefore(int cyclesBefore) {
-    	// The cluster window can not be negative.
-    	if(cyclesBefore < 0) { cyclesBefore = 0; }
-    	
-    	// Convert the window to nanoseconds and set the two time
-    	// windows appropriately.
+        // The cluster window can not be negative.
+        if(cyclesBefore < 0) { cyclesBefore = 0; }
+        
+        // Convert the window to nanoseconds and set the two time
+        // windows appropriately.
         timeBefore = cyclesBefore * 4;
         timeWindow = Math.max(timeBefore, timeAfter);
     }
@@ -384,11 +384,11 @@ public class GTPOnlineClusterer extends AbstractClusterer {
      * the seed hit in clock cycles.
      */
     void setWindowAfter(int cyclesAfter) {
-    	// The cluster window can not be negative.
-    	if(cyclesAfter < 0) { cyclesAfter = 0; }
-    	
-    	// Convert the window to nanoseconds and set the two time
-    	// windows appropriately.
+        // The cluster window can not be negative.
+        if(cyclesAfter < 0) { cyclesAfter = 0; }
+        
+        // Convert the window to nanoseconds and set the two time
+        // windows appropriately.
         timeAfter = cyclesAfter * 4;
         timeWindow = Math.max(timeBefore, timeAfter);
     }
@@ -494,9 +494,9 @@ public class GTPOnlineClusterer extends AbstractClusterer {
             // considered to be adjacent to ix = -1 rather than the
             // expected ix = 0. (ix = 0 does not exist.)
             else {
-            	// ix = -1 is adjacent to ix = 1 and vice versa.
+                // ix = -1 is adjacent to ix = 1 and vice versa.
                 if((six == -1 && hix == 1) || (six == 1 && hix == -1)) {
-                	return true;
+                    return true;
                 }
                 
                 // Any other combination that reaches this point is not

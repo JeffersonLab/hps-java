@@ -63,14 +63,14 @@ public class FADCTriggerVariableDriver extends FADCTriggerDriver {
 
             //System.out.printf("%d ecal clusters in event\n", clusters.size());
             //System.out.printf("%s: %d clusters\n",this.getClass().getSimpleName(),clusters.size());
-        	//for(Cluster cl : clusters) {
-        	//	System.out.printf("%s: cl E %f x %f y %f \n",this.getClass().getSimpleName(),cl.getEnergy(),cl.getPosition()[0],cl.getPosition()[1]);
-        	//}
-        	List<Cluster> unique_clusters = this.getUniqueClusters(clusters);
-        	//System.out.printf("%s: %d unique clusters\n",this.getClass().getSimpleName(),unique_clusters.size());
-        	//for(Cluster cl : unique_clusters) {
-        	//	System.out.printf("%s: cl E %f x %f y %f \n",this.getClass().getSimpleName(),cl.getEnergy(),cl.getPosition()[0],cl.getPosition()[1]);
-        	//}
+            //for(Cluster cl : clusters) {
+            //  System.out.printf("%s: cl E %f x %f y %f \n",this.getClass().getSimpleName(),cl.getEnergy(),cl.getPosition()[0],cl.getPosition()[1]);
+            //}
+            List<Cluster> unique_clusters = this.getUniqueClusters(clusters);
+            //System.out.printf("%s: %d unique clusters\n",this.getClass().getSimpleName(),unique_clusters.size());
+            //for(Cluster cl : unique_clusters) {
+            //  System.out.printf("%s: cl E %f x %f y %f \n",this.getClass().getSimpleName(),cl.getEnergy(),cl.getPosition()[0],cl.getPosition()[1]);
+            //}
 
             updateClusterQueues(unique_clusters);
             List<Cluster[]> clusterPairs = getClusterPairsTopBot();
@@ -122,47 +122,47 @@ public class FADCTriggerVariableDriver extends FADCTriggerDriver {
     
     
     private List<Cluster> getUniqueClusters(List<Cluster> clusters) {
-    	List<Cluster> unique = new ArrayList<Cluster>();
-    	for(Cluster loop_cl : clusters) {
-			ClusterCmp loop_clCmp = new ClusterCmp(loop_cl);
-    		boolean found = false;
-			for(Cluster cl : unique) {
-    			if( loop_clCmp.compareTo(cl) == 0 ) {
-    				found = true;
-    			}
-    		}
-			if( !found ) {
-				unique.add(loop_cl);
-			}
-    	}
-    	return unique;
+        List<Cluster> unique = new ArrayList<Cluster>();
+        for(Cluster loop_cl : clusters) {
+            ClusterCmp loop_clCmp = new ClusterCmp(loop_cl);
+            boolean found = false;
+            for(Cluster cl : unique) {
+                if( loop_clCmp.compareTo(cl) == 0 ) {
+                    found = true;
+                }
+            }
+            if( !found ) {
+                unique.add(loop_cl);
+            }
+        }
+        return unique;
     }
 
 
     private static class ClusterCmp implements Comparable<Cluster> {
-    	private Cluster _cluster;
-		public ClusterCmp(Cluster cl) {
-			set_cluster(cl);
-		}
-		@Override
-		public int compareTo(Cluster cl) {
-				if(cl.getEnergy()==get_cluster().getEnergy() && cl.getPosition()[0]==get_cluster().getPosition()[0] && cl.getPosition()[1]==get_cluster().getPosition()[1] ) {
-					return 0;
-				} else {
-					if( cl.getEnergy() > get_cluster().getEnergy()) {
-						return 1;
-					} else {
-						return -1;
-					}
-				}
-		}
-		public Cluster get_cluster() {
-			return _cluster;
-		}
-		public void set_cluster(Cluster _cluster) {
-			this._cluster = _cluster;
-		}
-    	
+        private Cluster _cluster;
+        public ClusterCmp(Cluster cl) {
+            set_cluster(cl);
+        }
+        @Override
+        public int compareTo(Cluster cl) {
+                if(cl.getEnergy()==get_cluster().getEnergy() && cl.getPosition()[0]==get_cluster().getPosition()[0] && cl.getPosition()[1]==get_cluster().getPosition()[1] ) {
+                    return 0;
+                } else {
+                    if( cl.getEnergy() > get_cluster().getEnergy()) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                }
+        }
+        public Cluster get_cluster() {
+            return _cluster;
+        }
+        public void set_cluster(Cluster _cluster) {
+            this._cluster = _cluster;
+        }
+        
     }
     
 }

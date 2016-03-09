@@ -28,8 +28,8 @@ import org.lcsim.util.aida.AIDA;
 */
 
 public class FEEClusterPlotter extends Driver {
-	
-	//private AIDAFrame plotterFrame;
+    
+    //private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
     IPlotter plotter;
     IAnalysisFactory fac = aida.analysisFactory();
@@ -53,7 +53,7 @@ public class FEEClusterPlotter extends Driver {
         aida.tree().cd("/");
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
             //aida.histogram1D(getHistoName(cc),200,0.5,1.3);
-        	aida.histogram1D(getHistoName(cc),200,0.9,2.8);	
+            aida.histogram1D(getHistoName(cc),200,0.9,2.8); 
         }
 
     }
@@ -67,39 +67,39 @@ public class FEEClusterPlotter extends Driver {
 
         //only keep singles triggers:
         if (!event.hasCollection(GenericObject.class,"TriggerBank"))
-        	throw new Driver.NextEventException();
+            throw new Driver.NextEventException();
         boolean isSingles=false;
         for (GenericObject gob : event.get(GenericObject.class,"TriggerBank"))
-        {	
-        	if (!(AbstractIntData.getTag(gob) == TIData.BANK_TAG)) continue;
-        	TIData tid = new TIData(gob);
-        	if (tid.isSingle0Trigger()  || tid.isSingle1Trigger())
-        	{
-        		isSingles=true;
-        		break;
-        	}
+        {   
+            if (!(AbstractIntData.getTag(gob) == TIData.BANK_TAG)) continue;
+            TIData tid = new TIData(gob);
+            if (tid.isSingle0Trigger()  || tid.isSingle1Trigger())
+            {
+                isSingles=true;
+                break;
+            }
         }
         
         if (isSingles){
-        	List<Cluster> clusters = event.get(Cluster.class, inputCollection);
-        	for (Cluster clus : clusters) {
-        		List<CalorimeterHit> hits = clus.getCalorimeterHits();
-        		CalorimeterHit seed = hits.get(0);
-        	
-        		double seedE = seed.getCorrectedEnergy();
-        		double clusE = clus.getEnergy();
-        		double time = seed.getTime();
-        		
-        		//if ((seedE/clusE > 0.6) && seedE >0.45 && time>30 && time <70){
-        		if ((seedE/clusE > 0.6) && seedE >0.65 && time>30 && time <70){
-        	
-        			EcalChannel cc = findChannel(seed);
-        			aida.histogram1D(getHistoName(cc)).fill(clusE);
-        		}
-        	}
+            List<Cluster> clusters = event.get(Cluster.class, inputCollection);
+            for (Cluster clus : clusters) {
+                List<CalorimeterHit> hits = clus.getCalorimeterHits();
+                CalorimeterHit seed = hits.get(0);
+            
+                double seedE = seed.getCorrectedEnergy();
+                double clusE = clus.getEnergy();
+                double time = seed.getTime();
+                
+                //if ((seedE/clusE > 0.6) && seedE >0.45 && time>30 && time <70){
+                if ((seedE/clusE > 0.6) && seedE >0.65 && time>30 && time <70){
+            
+                    EcalChannel cc = findChannel(seed);
+                    aida.histogram1D(getHistoName(cc)).fill(clusE);
+                }
+            }
         }
     }
-	
+    
     public void setOutputPlots(String output) {
         this.outputPlots = output;
     }
@@ -121,5 +121,5 @@ public class FEEClusterPlotter extends Driver {
                 Logger.getLogger(FEEClusterPlotter.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }	
+    }   
 }

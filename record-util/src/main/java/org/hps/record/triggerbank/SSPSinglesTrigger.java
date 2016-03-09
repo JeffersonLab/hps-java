@@ -27,12 +27,12 @@ public class SSPSinglesTrigger extends SSPNumberedTrigger {
     
     @Override
     public boolean isFirstTrigger() {
-    	return (type == SSPData.TRIG_TYPE_SINGLES0_BOT) || (type == SSPData.TRIG_TYPE_SINGLES0_TOP);
+        return (type == SSPData.TRIG_TYPE_SINGLES0_BOT) || (type == SSPData.TRIG_TYPE_SINGLES0_TOP);
     }
     
     @Override
     public boolean isSecondTrigger() {
-    	return (type == SSPData.TRIG_TYPE_SINGLES1_BOT) || (type == SSPData.TRIG_TYPE_SINGLES1_TOP);
+        return (type == SSPData.TRIG_TYPE_SINGLES1_BOT) || (type == SSPData.TRIG_TYPE_SINGLES1_TOP);
     }
     
     /**
@@ -67,8 +67,8 @@ public class SSPSinglesTrigger extends SSPNumberedTrigger {
     
     @Override
     public String toString() {
-		return String.format("Trigger %d :: %3d ns :: EClusterLow: %d; EClusterHigh %d; HitCount: %d",
-				isFirstTrigger() ? 1 : 2, getTime(), passCutEnergyMin() ? 1 : 0,
-				passCutEnergyMax() ? 1 : 0, passCutHitCount() ? 1 : 0);
+        return String.format("Trigger %d :: %3d ns :: EClusterLow: %d; EClusterHigh %d; HitCount: %d",
+                isFirstTrigger() ? 1 : 2, getTime(), passCutEnergyMin() ? 1 : 0,
+                passCutEnergyMax() ? 1 : 0, passCutHitCount() ? 1 : 0);
     }
 }

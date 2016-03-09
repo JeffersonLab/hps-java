@@ -61,7 +61,7 @@ public class MinimumHitsFilter extends EventReconFilter{
 
 
     private boolean isHitOnTop(RawTrackerHit hit){
-    	HpsSiSensor sensor=(HpsSiSensor) hit.getDetectorElement();
+        HpsSiSensor sensor=(HpsSiSensor) hit.getDetectorElement();
         IIdentifier id=hit.getIdentifier();
         SiTrackerIdentifierHelper _sid_helper=(SiTrackerIdentifierHelper) sensor.getIdentifierHelper();
 

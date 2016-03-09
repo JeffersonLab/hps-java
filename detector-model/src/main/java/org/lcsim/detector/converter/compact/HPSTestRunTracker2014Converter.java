@@ -21,21 +21,21 @@ import org.lcsim.geometry.subdetector.HPSTestRunTracker2014;
  */
 public class HPSTestRunTracker2014Converter extends HPSTracker2014ConverterBase {
 
-	public HPSTestRunTracker2014Converter() {
-		super();
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.lcsim.detector.converter.compact.HPSTracker2014ConverterBase#initializeBuilder(org.jdom.Element)
-	 */
-	protected HPSTrackerJavaBuilder initializeBuilder(Element node) {
-	     return new HPSTestRunTracker2014JavaBuilder(_debug,node);
-	 }
+    public HPSTestRunTracker2014Converter() {
+        super();
+    }
     
-	/* (non-Javadoc)
-	 * @see org.lcsim.detector.converter.compact.AbstractSubdetectorConverter#getSubdetectorType()
-	 */
-	public Class getSubdetectorType() {
+    /* (non-Javadoc)
+     * @see org.lcsim.detector.converter.compact.HPSTracker2014ConverterBase#initializeBuilder(org.jdom.Element)
+     */
+    protected HPSTrackerJavaBuilder initializeBuilder(Element node) {
+         return new HPSTestRunTracker2014JavaBuilder(_debug,node);
+     }
+    
+    /* (non-Javadoc)
+     * @see org.lcsim.detector.converter.compact.AbstractSubdetectorConverter#getSubdetectorType()
+     */
+    public Class getSubdetectorType() {
         return HPSTestRunTracker2014.class;
     }
 
@@ -53,5 +53,5 @@ public class HPSTestRunTracker2014Converter extends HPSTracker2014ConverterBase 
     protected int getModuleNumber(String surveyVolume) {
         return HPSTrackerBuilder.getHalfFromName(surveyVolume).equals("top") ? 0 : 1;
     }
-	
+    
 }

@@ -100,7 +100,7 @@ public class SvtTrackRecoEfficiency extends Driver {
      * Set the name of the file to output efficiency data to
      */
     public void setEfficiencyOutputFile(String efficiencyOutputFile){
-    	this.efficiencyOutputFile = efficiencyOutputFile;
+        this.efficiencyOutputFile = efficiencyOutputFile;
     }
 
     /**
@@ -124,31 +124,31 @@ public class SvtTrackRecoEfficiency extends Driver {
      * @param message : debug message
      */
     private void printDebug(String message){
-    	if(debug){
-    		System.out.println(this.getClass().getSimpleName() + ": " + message);
-    	}
+        if(debug){
+            System.out.println(this.getClass().getSimpleName() + ": " + message);
+        }
     }
     
     /**
      * 
      */
     protected void detectorChanged(Detector detector){
-    	super.detectorChanged(detector);
-    	
-    	sensors = detector.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
-    	
+        super.detectorChanged(detector);
+        
+        sensors = detector.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
+        
         // setup AIDA
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
         
         // Open the output file stream
         if(efficiencyOutputFile != null && momentumOutputFile != null){
-        	try{
-        		efficiencyOutput = new BufferedWriter(new FileWriter(efficiencyOutputFile));
+            try{
+                efficiencyOutput = new BufferedWriter(new FileWriter(efficiencyOutputFile));
                 momentumOutput = new BufferedWriter(new FileWriter(momentumOutputFile));
-        	} catch(Exception e){
-        		System.out.println(this.getClass().getSimpleName() + ": Error! " + e.getMessage());
-        	}
+            } catch(Exception e){
+                System.out.println(this.getClass().getSimpleName() + ": Error! " + e.getMessage());
+            }
         }
         
         // Get the total number of SVT layers
@@ -164,28 +164,28 @@ public class SvtTrackRecoEfficiency extends Driver {
         }
 
         if(trackingEfficiencyPlots){
-        	plotters.add(PlotUtils.setupPlotter("Track Momentum", 0, 0));
-        	histo1D.add(aida.histogram1D("Momentum - Reconstructed Tracks", 14, 0, 5.6));
-        	PlotUtils.setup1DRegion(plotters.get(plotterIndex), "Reconstructed Tracks", 0, "Momentum [GeV]", histo1D.get(histo1DIndex));
+            plotters.add(PlotUtils.setupPlotter("Track Momentum", 0, 0));
+            histo1D.add(aida.histogram1D("Momentum - Reconstructed Tracks", 14, 0, 5.6));
+            PlotUtils.setup1DRegion(plotters.get(plotterIndex), "Reconstructed Tracks", 0, "Momentum [GeV]", histo1D.get(histo1DIndex));
             histo1DIndex++;            
             histo1D.add(aida.histogram1D("Momentum - Findable Tracks", 14, 0, 5.6));
-        	PlotUtils.setup1DRegion(plotters.get(plotterIndex), "Findable Tracks", 0, "Momentum [GeV]", histo1D.get(histo1DIndex));
-        	plotterIndex++;
-        	histo1DIndex++;
+            PlotUtils.setup1DRegion(plotters.get(plotterIndex), "Findable Tracks", 0, "Momentum [GeV]", histo1D.get(histo1DIndex));
+            plotterIndex++;
+            histo1DIndex++;
         }
         
         for(IPlotter plotter : plotters){
-        	plotter.show();
+            plotter.show();
         }
     }
     
     private String samplesToString(short[] samples){
-    	String sampleList = "[ ";
-    	for(short sample : samples){
-    		sampleList += Short.toString(sample) + ", ";
-    	}
-    	sampleList += "]";
-    	return sampleList;
+        String sampleList = "[ ";
+        for(short sample : samples){
+            sampleList += Short.toString(sample) + ", ";
+        }
+        sampleList += "]";
+        return sampleList;
     }
 
     /**
@@ -196,7 +196,7 @@ public class SvtTrackRecoEfficiency extends Driver {
     @Override
     protected void process(EventHeader event){
         
-    	// For now, only look at events with a single track
+        // For now, only look at events with a single track
         if(event.get(Track.class, trackCollectionName).size() > 1) return;
         eventNumber++;
 
@@ -204,46 +204,46 @@ public class SvtTrackRecoEfficiency extends Driver {
         if(!event.hasCollection(SimTrackerHit.class, simTrackerHitCollectionName)) return;
         List<SimTrackerHit> simTrackerHits = event.get(SimTrackerHit.class, simTrackerHitCollectionName);
         this.printDebug("\nEvent " + eventNumber + " contains " + simTrackerHits.size() + " SimTrackerHits");
-    	// Loop through all SimTrackerHits and confirm that a corresponding RawTrackerHit was created
-    	for(SimTrackerHit simTrackHit : simTrackerHits){
-    		
-    		this.printDebug("SimTrackerHit Layer Number: " + simTrackHit.getLayerNumber());
-    	}
+        // Loop through all SimTrackerHits and confirm that a corresponding RawTrackerHit was created
+        for(SimTrackerHit simTrackHit : simTrackerHits){
+            
+            this.printDebug("SimTrackerHit Layer Number: " + simTrackHit.getLayerNumber());
+        }
 
         // Get the list of RawTrackerHits and add them to the sensor readout
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
         String volume; 
         for(RawTrackerHit rawHit : rawHits){
-        	HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
-        	if(sensor.isTopLayer()){
-        		volume = "Top Volume ";
-        	} else { 
-        		volume = "Bottom Volume ";
-        	}
-    		this.printDebug(volume + "RawTrackerHit Channel #: " + rawHit.getIdentifierFieldValue("strip") + " Layer Number: " + rawHit.getLayerNumber()
-    				+ " Samples: " + samplesToString(rawHit.getADCValues()));
+            HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+            if(sensor.isTopLayer()){
+                volume = "Top Volume ";
+            } else { 
+                volume = "Bottom Volume ";
+            }
+            this.printDebug(volume + "RawTrackerHit Channel #: " + rawHit.getIdentifierFieldValue("strip") + " Layer Number: " + rawHit.getLayerNumber()
+                    + " Samples: " + samplesToString(rawHit.getADCValues()));
             ((HpsSiSensor) rawHit.getDetectorElement()).getReadout().addHit(rawHit);
         }
         
         if(event.hasCollection(SiTrackerHit.class, siTrackerHitCollectionName)){
-        	List<SiTrackerHit> hitlist = event.get(SiTrackerHit.class, siTrackerHitCollectionName);
-        	for(SiTrackerHit siTrackerHit : hitlist){
-    			this.printDebug("Cluster is comprised by the following raw hits:");
-        		for(RawTrackerHit rawHit : siTrackerHit.getRawHits()){
-            		this.printDebug("RawTrackerHit Channel #: " + rawHit.getIdentifierFieldValue("strip") + " Layer Number: " + rawHit.getLayerNumber());
-        		}
-        	}
+            List<SiTrackerHit> hitlist = event.get(SiTrackerHit.class, siTrackerHitCollectionName);
+            for(SiTrackerHit siTrackerHit : hitlist){
+                this.printDebug("Cluster is comprised by the following raw hits:");
+                for(RawTrackerHit rawHit : siTrackerHit.getRawHits()){
+                    this.printDebug("RawTrackerHit Channel #: " + rawHit.getIdentifierFieldValue("strip") + " Layer Number: " + rawHit.getLayerNumber());
+                }
+            }
         }
         
         // Get the MC Particles associated with the SimTrackerHits
         List<MCParticle> mcParticles = event.getMCParticles();
         if(debug){
-        	String particleList = "[ ";
-        	for(MCParticle mcParticle : mcParticles){
-        		particleList += mcParticle.getPDGID() + ", ";
-        	}
-        	particleList += "]";
-        	this.printDebug("MC Particles: " + particleList);
+            String particleList = "[ ";
+            for(MCParticle mcParticle : mcParticles){
+                particleList += mcParticle.getPDGID() + ", ";
+            }
+            particleList += "]";
+            this.printDebug("MC Particles: " + particleList);
         }
         
         // Get the magnetic field
@@ -264,10 +264,10 @@ public class SvtTrackRecoEfficiency extends Driver {
                 Set<SimTrackerHit> trackerHits = findable.getSimTrackerHits(mcParticle);
                 if(this.isSameSvtVolume(trackerHits)){
                     if(debug){
-                    	this.printDebug("Track is findable");
-                    	this.printDebug("MC particle momentum: " + mcParticle.getMomentum().toString());
+                        this.printDebug("Track is findable");
+                        this.printDebug("MC particle momentum: " + mcParticle.getMomentum().toString());
                     }
-                    	
+                        
                     findableTracks++;
                     trackIsFindable = true;      
                 }
@@ -303,8 +303,8 @@ public class SvtTrackRecoEfficiency extends Driver {
         
         if(!mcParticles.isEmpty() && trackingEfficiencyPlots){
             // If the list still contains MC Particles, a matching track wasn't found
-        	this.printDebug("No matching track found");
-        	
+            this.printDebug("No matching track found");
+            
             // Check that all stereoHits were correctly assigned to an MCParticle
             for(MCParticle mcParticle : mcParticles){
                 
@@ -326,7 +326,7 @@ public class SvtTrackRecoEfficiency extends Driver {
                 
                 // Determine if the MC particle passed through the top or bottom SVT volume
                 for(SimTrackerHit simHit : simHits){
-                	HpsSiSensor sensor = (HpsSiSensor) simHit.getDetectorElement();
+                    HpsSiSensor sensor = (HpsSiSensor) simHit.getDetectorElement();
                     if(sensor.isTopLayer()){
                         this.printDebug("MC Particle passed through the top layer");
                         isTopTrack = true;
@@ -376,7 +376,7 @@ public class SvtTrackRecoEfficiency extends Driver {
     {
         int volumeIndex = 0;
         for(SimTrackerHit simTrackerHit : simTrackerHits){
-        	HpsSiSensor sensor = (HpsSiSensor) simTrackerHit.getDetectorElement();
+            HpsSiSensor sensor = (HpsSiSensor) simTrackerHit.getDetectorElement();
             if(sensor.isTopLayer()) volumeIndex++;
             else volumeIndex--;
         }
@@ -454,24 +454,24 @@ public class SvtTrackRecoEfficiency extends Driver {
    @Override
    public void endOfData()
    { 
-	   
+       
        if(trackingEfficiencyPlots && efficiencyOutputFile != null && momentumOutputFile != null){
-	   	   try{ 
-	   		   int bins = aida.histogram1D("Momentum - Findable Tracks").axis().bins();
-	   		   for(int index = 0; index < bins; index++){
-	   			   if(aida.histogram1D("Momentum - Reconstructed Tracks").binEntries(index) == 0) efficiencyOutput.write(index + " " + 0 + "\n");
-	   			   else	efficiencyOutput.write(index + " " + aida.histogram1D("Momentum - Reconstructed Tracks").binEntries(index) + "\n");
-	   			   
+           try{ 
+               int bins = aida.histogram1D("Momentum - Findable Tracks").axis().bins();
+               for(int index = 0; index < bins; index++){
+                   if(aida.histogram1D("Momentum - Reconstructed Tracks").binEntries(index) == 0) efficiencyOutput.write(index + " " + 0 + "\n");
+                   else efficiencyOutput.write(index + " " + aida.histogram1D("Momentum - Reconstructed Tracks").binEntries(index) + "\n");
+                   
                    if(aida.histogram1D("Momentum - Findable Tracks").binEntries(index) == 0) momentumOutput.write(index + " " + 0 + "\n");
-	   			   else momentumOutput.write(index + " " + aida.histogram1D("Momentum - Findable Tracks").binEntries(index) + "\n");
-	   		   }
-	   		   efficiencyOutput.close();
+                   else momentumOutput.write(index + " " + aida.histogram1D("Momentum - Findable Tracks").binEntries(index) + "\n");
+               }
+               efficiencyOutput.close();
                momentumOutput.close();
-	   	   } catch(IOException e){
-	   		   System.out.println(this.getClass().getSimpleName() + ": Error! " + e.getMessage());
-	   	   }
+           } catch(IOException e){
+               System.out.println(this.getClass().getSimpleName() + ": Error! " + e.getMessage());
+           }
        } 
-	   
+       
         System.out.println("%===============================================================%");
         System.out.println("%============== Track Reconstruction Efficiencies ==============%");
         System.out.println("%===============================================================%\n%");

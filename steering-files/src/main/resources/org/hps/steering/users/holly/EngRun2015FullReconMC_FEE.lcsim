@@ -74,11 +74,11 @@
             <eventInterval>1000</eventInterval>
         </driver>   
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
-        <driver name="FEEFilterDriver" type="org.hps.recon.filtering.FEEFilterDriver">  	
+        <driver name="FEEFilterDriver" type="org.hps.recon.filtering.FEEFilterDriver">      
         </driver>   
         <driver name="FEEPlotter" type="org.hps.analysis.ecal.FEEClusterPlotter">
-        	<inputCollection>EcalClusters</inputCollection>
-        	<outputPlots>yes</outputPlots>
+            <inputCollection>EcalClusters</inputCollection>
+            <outputPlots>yes</outputPlots>
         </driver>  
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>

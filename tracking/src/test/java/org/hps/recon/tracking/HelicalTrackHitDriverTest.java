@@ -34,9 +34,9 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class HelicalTrackHitDriverTest extends TestCase {
 
-	File commonOutputFile; 
-	File splitOutputFile; 
-	
+    File commonOutputFile; 
+    File splitOutputFile; 
+    
     /**
      * 
      */
@@ -124,9 +124,9 @@ public class HelicalTrackHitDriverTest extends TestCase {
             int numberTopClusters = 0; 
             int numberBotClusters = 0; 
             for(SiTrackerHit cluster : clusters){
-            	if(cluster.getPositionAsVector().y() > 0)
-            		numberTopClusters++; 
-            	else numberBotClusters++; 
+                if(cluster.getPositionAsVector().y() > 0)
+                    numberTopClusters++; 
+                else numberBotClusters++; 
             }
             
             if(!event.hasCollection(HelicalTrackHit.class, stereoHitsCollectionName)) return;
@@ -135,9 +135,9 @@ public class HelicalTrackHitDriverTest extends TestCase {
             int numberTopStereoHits = 0; 
             int numberBotStereoHits = 0; 
             for(HelicalTrackHit stereoHit : stereoHits){
-            	if(stereoHit.getPosition()[1] > 0)
-            		numberTopStereoHits++; 
-            	else numberBotStereoHits++; 
+                if(stereoHit.getPosition()[1] > 0)
+                    numberTopStereoHits++; 
+                else numberBotStereoHits++; 
             }
             
             nTopClusters.fill(numberTopClusters);
@@ -183,26 +183,26 @@ public class HelicalTrackHitDriverTest extends TestCase {
      * "Split" layer geometry are equivalent
      */
     public void testLayerGeometry() throws IOException, IllegalArgumentException {
-    	
-    	IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory(); 
-		
-    	ITree commonTree = analysisFactory.createTreeFactory().create(commonOutputFile.getAbsolutePath());
-    	ITree splitTree  = analysisFactory.createTreeFactory().create(splitOutputFile.getAbsolutePath());
-    	
-    	double ksPvalue = CompareHistograms.getKolmogorovPValue( (IHistogram1D) splitTree.find("Number of Top Clusters"),
-    															 (IHistogram1D) commonTree.find("Number of Top Clusters"));	
-    	assertTrue("Number of top clusters is unequal!", ksPvalue > 0.05 );
+        
+        IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory(); 
+        
+        ITree commonTree = analysisFactory.createTreeFactory().create(commonOutputFile.getAbsolutePath());
+        ITree splitTree  = analysisFactory.createTreeFactory().create(splitOutputFile.getAbsolutePath());
+        
+        double ksPvalue = CompareHistograms.getKolmogorovPValue( (IHistogram1D) splitTree.find("Number of Top Clusters"),
+                                                                 (IHistogram1D) commonTree.find("Number of Top Clusters")); 
+        assertTrue("Number of top clusters is unequal!", ksPvalue > 0.05 );
     
-    	ksPvalue = CompareHistograms.getKolmogorovPValue((IHistogram1D) commonTree.find("Number of Bottom Clusters"),
-    				                                     (IHistogram1D) splitTree.find("Number of Bottom Clusters"));
-    	assertTrue("Number of bottom clusters is unequal!", ksPvalue > 0.05 );
-    	
-    	ksPvalue = CompareHistograms.getKolmogorovPValue((IHistogram1D) commonTree.find("Number of Top Stereo Hits"),
-    				                                     (IHistogram1D) splitTree.find("Number of Top Stereo Hits"));
-    	assertTrue("Number of top stereo hits is unequal!", ksPvalue > 0.05 );
+        ksPvalue = CompareHistograms.getKolmogorovPValue((IHistogram1D) commonTree.find("Number of Bottom Clusters"),
+                                                         (IHistogram1D) splitTree.find("Number of Bottom Clusters"));
+        assertTrue("Number of bottom clusters is unequal!", ksPvalue > 0.05 );
+        
+        ksPvalue = CompareHistograms.getKolmogorovPValue((IHistogram1D) commonTree.find("Number of Top Stereo Hits"),
+                                                         (IHistogram1D) splitTree.find("Number of Top Stereo Hits"));
+        assertTrue("Number of top stereo hits is unequal!", ksPvalue > 0.05 );
     
-    	ksPvalue = CompareHistograms.getKolmogorovPValue((IHistogram1D) commonTree.find("Number of Bottom Stereo Hits"),
-    				                                     (IHistogram1D) splitTree.find("Number of Bottom Stereo Hits"));
-    	assertTrue("Number of bottom stereo hits is unequal!", ksPvalue > 0.05 );
+        ksPvalue = CompareHistograms.getKolmogorovPValue((IHistogram1D) commonTree.find("Number of Bottom Stereo Hits"),
+                                                         (IHistogram1D) splitTree.find("Number of Bottom Stereo Hits"));
+        assertTrue("Number of bottom stereo hits is unequal!", ksPvalue > 0.05 );
     }
 }

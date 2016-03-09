@@ -39,8 +39,8 @@ import org.lcsim.event.EventHeader;
  * @see org.hps.record.daqconfig.DAQConfigDriver
  */
 public class GTPOnlineClusterDriver extends ClusterDriver {
-	/** An instance of the clustering algorithm object for producing
-	 * cluster objects. */
+    /** An instance of the clustering algorithm object for producing
+     * cluster objects. */
     private final GTPOnlineClusterer gtp;
     /** Indicates whether the <code>ConfigurationManager</code> object
      * should be used for clustering settings or not. */
@@ -53,29 +53,29 @@ public class GTPOnlineClusterDriver extends ClusterDriver {
      * @see GTPOnlineClusterer
      */
     public GTPOnlineClusterDriver() {
-    	// Instantiate the clusterer.
+        // Instantiate the clusterer.
         clusterer = ClustererFactory.create("GTPOnlineClusterer");
         gtp = (GTPOnlineClusterer) clusterer;
         
         // Track the DAQ configuration status.
         ConfigurationManager.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// If DAQ configuration settings should be used, then
-				// update the clusterer.
-				if(useDAQConfig) {
-					// Get the GTP settings.
-					GTPConfig config = ConfigurationManager.getInstance().getGTPConfig();
-					
-					// Send the DAQ configuration settings to the clusterer.
-					gtp.setSeedLowThreshold(config.getSeedEnergyCutConfig().getLowerBound());
-					gtp.setWindowAfter(config.getTimeWindowAfter());
-					gtp.setWindowBefore(config.getTimeWindowBefore());
-					
-					// Print the updated settings.
-					logSettings();
-				}
-			}
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // If DAQ configuration settings should be used, then
+                // update the clusterer.
+                if(useDAQConfig) {
+                    // Get the GTP settings.
+                    GTPConfig config = ConfigurationManager.getInstance().getGTPConfig();
+                    
+                    // Send the DAQ configuration settings to the clusterer.
+                    gtp.setSeedLowThreshold(config.getSeedEnergyCutConfig().getLowerBound());
+                    gtp.setWindowAfter(config.getTimeWindowAfter());
+                    gtp.setWindowBefore(config.getTimeWindowBefore());
+                    
+                    // Print the updated settings.
+                    logSettings();
+                }
+            }
         });
     }
     
@@ -90,11 +90,11 @@ public class GTPOnlineClusterDriver extends ClusterDriver {
      */
     @Override
     public void process(EventHeader event) {
-    	// Only process an event if either the DAQ configuration is not
-    	// in use or if it has been initialized.
-    	if((useDAQConfig && ConfigurationManager.isInitialized()) || !useDAQConfig) {
-    		super.process(event);
-    	}
+        // Only process an event if either the DAQ configuration is not
+        // in use or if it has been initialized.
+        if((useDAQConfig && ConfigurationManager.isInitialized()) || !useDAQConfig) {
+            super.process(event);
+        }
     }
     
     /**
@@ -103,8 +103,8 @@ public class GTPOnlineClusterDriver extends ClusterDriver {
      */
     @Override
     public void startOfData() {
-    	// VERBOSE :: Output the driver settings.
-    	if(gtp.isVerbose()) { logSettings(); }
+        // VERBOSE :: Output the driver settings.
+        if(gtp.isVerbose()) { logSettings(); }
     }
     
     /**
@@ -168,23 +168,23 @@ public class GTPOnlineClusterDriver extends ClusterDriver {
      * @see org.hps.record.daqconfig.DAQConfigDriver
      */
     public void setUseDAQConfig(boolean state) {
-    	useDAQConfig = state;
+        useDAQConfig = state;
     }
     
     /**
      * Outputs the current GTP settings to the terminal.
      */
     private void logSettings() {
-		// Print the cluster driver header.
-		System.out.println();
-		System.out.println();
-		System.out.println("======================================================================");
-		System.out.println("=== GTP Readout Clusterer Settings ===================================");
-		System.out.println("======================================================================");
-		
-		// Output the driver settings.
-		System.out.printf("Seed Energy Threshold :: %.3f GeV%n", gtp.getSeedLowThreshold());
-		System.out.printf("Time Window (Before)  :: %.0f ns%n", gtp.getWindowBefore());
-		System.out.printf("Time Window (After)   :: %.0f ns%n", gtp.getWindowAfter());
+        // Print the cluster driver header.
+        System.out.println();
+        System.out.println();
+        System.out.println("======================================================================");
+        System.out.println("=== GTP Readout Clusterer Settings ===================================");
+        System.out.println("======================================================================");
+        
+        // Output the driver settings.
+        System.out.printf("Seed Energy Threshold :: %.3f GeV%n", gtp.getSeedLowThreshold());
+        System.out.printf("Time Window (Before)  :: %.0f ns%n", gtp.getWindowBefore());
+        System.out.printf("Time Window (After)   :: %.0f ns%n", gtp.getWindowAfter());
     }
 }

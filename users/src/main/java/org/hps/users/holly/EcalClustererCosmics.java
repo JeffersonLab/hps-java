@@ -124,13 +124,13 @@ public class EcalClustererCosmics extends Driver {
 
         // Loop over ECal hits to find cluster seeds.
         for (CalorimeterHit hit : map.values()) {
-        //	int ix = hit.getIdentifierFieldValue("ix");
+        //  int ix = hit.getIdentifierFieldValue("ix");
          //   int iy = hit.getIdentifierFieldValue("iy");
       //      System.out.println("ix = "+ix);
       //      System.out.println("iy = "+iy);
             
-              	
-        	// Cut on min seed E.
+                
+            // Cut on min seed E.
             if (hit.getRawEnergy() < seedEMin) {
                 continue;
             }

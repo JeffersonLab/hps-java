@@ -73,14 +73,14 @@ public class TruthResiduals {
         Map<Integer, List<SimTrackerHit>> simHitsLayerMap = new HashMap<Integer, List<SimTrackerHit> >();
         Map<MCParticle, List<SimTrackerHit> > mcPartSimHitsMap = new HashMap<MCParticle, List<SimTrackerHit > >();
         for(SimTrackerHit sh : simTrackerHits) {
-        	 Hep3Vector shpos = CoordinateTransformations.transformVectorToTracking(sh.getPositionVec());
-        	if(Math.abs(shpos.x()) < 50.0) {
-        		 System.out.printf("%s: Weird hit at %s (%s) in layer %d for MC part %d org %s p %s\n",
+             Hep3Vector shpos = CoordinateTransformations.transformVectorToTracking(sh.getPositionVec());
+            if(Math.abs(shpos.x()) < 50.0) {
+                 System.out.printf("%s: Weird hit at %s (%s) in layer %d for MC part %d org %s p %s\n",
                          this.getClass().getSimpleName(),sh.getPositionVec().toString(),shpos.toString(),sh.getIdentifierFieldValue("layer"),
                          sh.getMCParticle().getPDGID(),sh.getMCParticle().getOrigin().toString(),sh.getMCParticle().getMomentum().toString());
-        		 System.exit(1);
-        	}
-        	
+                 System.exit(1);
+            }
+            
             int layer  = sh.getIdentifierFieldValue("layer");
             if(!simHitsLayerMap.containsKey(layer)) {
                 simHitsLayerMap.put(layer, new ArrayList<SimTrackerHit>());
@@ -96,28 +96,28 @@ public class TruthResiduals {
 
         
         for(MCParticle mcp : mcPartSimHitsMap.keySet()) {
-        	this.h_mcp_org.fill(mcp.getOriginX(), mcp.getOriginY());
+            this.h_mcp_org.fill(mcp.getOriginX(), mcp.getOriginY());
         }
 
         // Find the particle responsible for the hit in each layer and compute the residual
         
         for(int layer=1;layer<13;++layer) {
-        	//System.out.printf("layer %d: \n",layer);
+            //System.out.printf("layer %d: \n",layer);
             
             List<SimTrackerHit> simHitsLayer = simHitsLayerMap.get(layer);
-        	
+            
             
             if(simHitsLayer != null ) {
-            	
-            	if(simHitsLayer.size()==2) continue;
-            	
+                
+                if(simHitsLayer.size()==2) continue;
+                
                 for(SimTrackerHit simHit : simHitsLayer) {
-                	
-                	 // Find the MC particle
+                    
+                     // Find the MC particle
                     MCParticle mcp = simHit.getMCParticle();
                     
                     if(mcp.getMomentum().magnitude()<0.5) continue;
-                	
+                    
                     // Position in tracking coord
                     Hep3Vector simHitPosTracking = CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec());
                     
@@ -171,24 +171,24 @@ public class TruthResiduals {
                     }
                     
                     if(layer == 1 && res.y() > 0.1 && this.firstWeirdTrack) {
-                    	double dx = 1.0;
-                    	double xpos = mcp.getOriginZ();
-                    	while(xpos< 100.) {
-                    		xpos += dx;
-                    		trkposExtraPolator = CoordinateTransformations.transformVectorToTracking(TrackUtils.extrapolateTrack(htfTruth,xpos));
-                    		double ypos = trkposExtraPolator.y();
-                    		trkpos_y_vs_x.fill(xpos,ypos);
-                    	}
-                    	
-                    	int idummy = 0;
-                    	while(idummy<2) {
-                    		trkpos_y_vs_x.fill(simHitPosTracking.x(),simHitPosTracking.y());
-                    		idummy++;
-                    		//System.out.printf("weird simhit res pos %s \n", simHitPosTracking.toString());
-                    	}
-                    	
-                    	this.firstWeirdTrack = false;
-                    	
+                        double dx = 1.0;
+                        double xpos = mcp.getOriginZ();
+                        while(xpos< 100.) {
+                            xpos += dx;
+                            trkposExtraPolator = CoordinateTransformations.transformVectorToTracking(TrackUtils.extrapolateTrack(htfTruth,xpos));
+                            double ypos = trkposExtraPolator.y();
+                            trkpos_y_vs_x.fill(xpos,ypos);
+                        }
+                        
+                        int idummy = 0;
+                        while(idummy<2) {
+                            trkpos_y_vs_x.fill(simHitPosTracking.x(),simHitPosTracking.y());
+                            idummy++;
+                            //System.out.printf("weird simhit res pos %s \n", simHitPosTracking.toString());
+                        }
+                        
+                        this.firstWeirdTrack = false;
+                        
                     }
                     
                 
@@ -200,12 +200,12 @@ public class TruthResiduals {
 
   
     public IHistogram getResidual(int layer,String coord) {
-    	if( !this.res_truthsimhit.containsKey(layer) ) 
-    		throw new RuntimeException("Error the layer number is not valid");
-    	if( coord!="x" || coord!="y")
-    		throw new RuntimeException("Error the coord is not valid");
-    	IHistogram1D h = this.res_truthsimhit.get(layer).get(coord=="x"?0:1);
-    	return h;
+        if( !this.res_truthsimhit.containsKey(layer) ) 
+            throw new RuntimeException("Error the layer number is not valid");
+        if( coord!="x" || coord!="y")
+            throw new RuntimeException("Error the coord is not valid");
+        IHistogram1D h = this.res_truthsimhit.get(layer).get(coord=="x"?0:1);
+        return h;
     }
     
 

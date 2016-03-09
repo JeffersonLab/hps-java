@@ -47,11 +47,11 @@ public class GBLFileIO {
         }
     }
     private void openFile(String fileName) {
-    	if(fileName.equalsIgnoreCase("")) {
-    		System.out.printf("%s: no file name specified \n", this.getClass().getSimpleName());
-    		System.exit(1);
-    	}
-    	try {
+        if(fileName.equalsIgnoreCase("")) {
+            System.out.printf("%s: no file name specified \n", this.getClass().getSimpleName());
+            System.exit(1);
+        }
+        try {
             _fWriter = new FileWriter(fileName);
             _pWriter = new PrintWriter(_fWriter);
         } catch (IOException ex) {

@@ -12,25 +12,25 @@ import org.lcsim.event.Vertex;
 public abstract class BaseSimpleVertexer implements SimpleVertexer {
 
 
-	protected boolean _debug = false;
-	protected Vertex _fitted_vertex = null;
+    protected boolean _debug = false;
+    protected Vertex _fitted_vertex = null;
 
-	public BaseSimpleVertexer() {
-	}
+    public BaseSimpleVertexer() {
+    }
 
-	@Override
-	public abstract void fitVertex();
+    @Override
+    public abstract void fitVertex();
 
-	@Override
-	public Vertex getFittedVertex() {
-		return _fitted_vertex;
-	}
-	
-	public void clear() {
-		_fitted_vertex = null;
-	}
-	
-	public abstract boolean isValid();
-	
+    @Override
+    public Vertex getFittedVertex() {
+        return _fitted_vertex;
+    }
+    
+    public void clear() {
+        _fitted_vertex = null;
+    }
+    
+    public abstract boolean isValid();
+    
 
 }

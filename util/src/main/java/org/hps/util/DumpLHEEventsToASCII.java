@@ -108,7 +108,7 @@ public class DumpLHEEventsToASCII {
         String sigyString = String.valueOf(sigy);
         eptString = convertDecimal(eptString);
         if (cl.hasOption("t")) {
-	    trident=true;
+        trident=true;
         }
         if (cl.hasOption("m")) {
             massString = cl.getOptionValue("m");
@@ -475,7 +475,7 @@ public class DumpLHEEventsToASCII {
             throw new RuntimeException("Unexpected entry for number of particles");
         }
         int nhep = nums.get(0).intValue();
-	//        System.out.println("Number of particles for event " + nevhep + ": " + nhep);
+    //        System.out.println("Number of particles for event " + nevhep + ": " + nhep);
 
         double decLen = 0;
         double maxWght = 0;
@@ -503,14 +503,14 @@ public class DumpLHEEventsToASCII {
             if (vals.size() != 13) {
                 throw new RuntimeException("Unexpected entry for a particle");
             }
-	    idhepTmp = vals.get(0).intValue();
-//	    System.out.println(idhepTmp);
+        idhepTmp = vals.get(0).intValue();
+//      System.out.println(idhepTmp);
             if (vals.get(1).intValue() == 9) {//apparently, vertices aren't counted in nhep
-		nhep++;
-	    }
+        nhep++;
+        }
 
             if (vals.get(1).intValue() == 1) {//ignore initial  & intermediate state particles
-		//		System.out.println("Ok...good"+idhepTmp);
+        //      System.out.println("Ok...good"+idhepTmp);
 
 
 
@@ -523,8 +523,8 @@ public class DumpLHEEventsToASCII {
                         phepRec[j] = vals.get(j + 6);
                     if (idhepTmp == -623){
                         phepNuc[j] = vals.get(j + 6);
-			//			System.out.println("Found the recoil nucleus");
-		    }
+            //          System.out.println("Found the recoil nucleus");
+            }
                 }
 
 

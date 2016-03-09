@@ -234,7 +234,7 @@ public class GblUtils {
         /*
          Simple jacobian: quadratic in arc length difference.
          using lambda phi as directions
-	    
+        
          @param ds: arc length difference
          @type ds: float
          @param cosl: cos(lambda)

@@ -24,60 +24,60 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class LCSimEngRunEventBuilderTest extends TestCase {
 
-	public void testLCSimEngRunEventBuilder() throws Exception {
-	    
-		// Setup database conditions.
-		DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-		conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_dev.xml");
-		conditionsManager.setDetector("HPS-Proposal2014-v8-6pt6", 2000);
+    public void testLCSimEngRunEventBuilder() throws Exception {
+        
+        // Setup database conditions.
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_dev.xml");
+        conditionsManager.setDetector("HPS-Proposal2014-v8-6pt6", 2000);
 
-		// Configure LCIO writer.
-		new TestOutputFile(getClass().getSimpleName()).mkdirs();
-		File lcioFile = new TestOutputFile(getClass().getSimpleName() + File.separator + getClass().getSimpleName() + "_output.slcio");
-		LCIOWriter writer;
-		try {
-			writer = new LCIOWriter(lcioFile);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+        // Configure LCIO writer.
+        new TestOutputFile(getClass().getSimpleName()).mkdirs();
+        File lcioFile = new TestOutputFile(getClass().getSimpleName() + File.separator + getClass().getSimpleName() + "_output.slcio");
+        LCIOWriter writer;
+        try {
+            writer = new LCIOWriter(lcioFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-		// Create event builder.
-		LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
-		conditionsManager.addConditionsListener(builder);
-		//builder.setDetectorName("HPS-Proposal2014-v8-6pt6");
-		conditionsManager.setDetector("HPS-Proposal2014-v8-6pt6", 2744);
+        // Create event builder.
+        LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
+        conditionsManager.addConditionsListener(builder);
+        //builder.setDetectorName("HPS-Proposal2014-v8-6pt6");
+        conditionsManager.setDetector("HPS-Proposal2014-v8-6pt6", 2744);
 
-		// Get remote test file.
-		FileCache cache = new FileCache();
-		File evioFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/LCSimEngRunEventBuilderTest/hps_002744.evio.0"));
+        // Get remote test file.
+        FileCache cache = new FileCache();
+        File evioFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/LCSimEngRunEventBuilderTest/hps_002744.evio.0"));
 
-		// Open the EVIO reader.
-		System.out.println("Opening file " + evioFile);
-		EvioReader reader = null;
-		try {
-			reader = new EvioReader(evioFile);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+        // Open the EVIO reader.
+        System.out.println("Opening file " + evioFile);
+        EvioReader reader = null;
+        try {
+            reader = new EvioReader(evioFile);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
-		// Run the event builder on the EVIO.
-		EvioEvent evioEvent = null;
-		while ((evioEvent = reader.nextEvent()) != null) {
-			reader.parseEvent(evioEvent);
-			builder.readEvioEvent(evioEvent);
-			if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
-				try {
-					EventHeader lcsimEvent = builder.makeLCSimEvent(evioEvent);
-					System.out.println("created LCSim event #" + lcsimEvent.getEventNumber());
-					writer.write(lcsimEvent);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
+        // Run the event builder on the EVIO.
+        EvioEvent evioEvent = null;
+        while ((evioEvent = reader.nextEvent()) != null) {
+            reader.parseEvent(evioEvent);
+            builder.readEvioEvent(evioEvent);
+            if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
+                try {
+                    EventHeader lcsimEvent = builder.makeLCSimEvent(evioEvent);
+                    System.out.println("created LCSim event #" + lcsimEvent.getEventNumber());
+                    writer.write(lcsimEvent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
-		// Close the LCIO writer.
-		writer.flush();
-		writer.close();
-	}
+        // Close the LCIO writer.
+        writer.flush();
+        writer.close();
+    }
 }

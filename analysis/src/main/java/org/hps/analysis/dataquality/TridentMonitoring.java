@@ -322,8 +322,8 @@ public class TridentMonitoring extends DataQualityMonitor {
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
 
         BeamEnergyCollection beamEnergyCollection = 
-			this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-		ebeam = beamEnergyCollection.get(0).getBeamEnergy();
+            this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+        ebeam = beamEnergyCollection.get(0).getBeamEnergy();
         aida.tree().cd("/");
         String trkType = "SeedTrack/";
         if (isGBL) {

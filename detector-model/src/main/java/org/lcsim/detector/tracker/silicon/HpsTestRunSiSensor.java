@@ -14,85 +14,85 @@ import org.lcsim.detector.identifier.IIdentifier;
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class HpsTestRunSiSensor extends HpsSiSensor {
-	
-	
-	protected int fpgaID;
-	protected int hybridID;
-			
-	
-	/**
-	 * This class constructor matches the signature of <code>SiSensor</code>.
-	 * @param sensorid The sensor ID.
-	 * @param name The name of the sensor.
-	 * @param parent The parent DetectorElement.
-	 * @param support The physical support path.
-	 * @param id The identifier of the sensor.
-	 */
-	public HpsTestRunSiSensor(
+    
+    
+    protected int fpgaID;
+    protected int hybridID;
+            
+    
+    /**
+     * This class constructor matches the signature of <code>SiSensor</code>.
+     * @param sensorid The sensor ID.
+     * @param name The name of the sensor.
+     * @param parent The parent DetectorElement.
+     * @param support The physical support path.
+     * @param id The identifier of the sensor.
+     */
+    public HpsTestRunSiSensor(
             int sensorid,
             String name,
             IDetectorElement parent,
             String support,
             IIdentifier id)
     {
-		super(sensorid, name, parent, support, id);
+        super(sensorid, name, parent, support, id);
     }
-	
-	
+    
+    
 
-	/**
-	 * Get the FPGA ID associated with this sensor.
-	 * 
-	 * @return The FPGA ID
-	 */
-	public int getFpgaID() {
-		return fpgaID;
-	}
+    /**
+     * Get the FPGA ID associated with this sensor.
+     * 
+     * @return The FPGA ID
+     */
+    public int getFpgaID() {
+        return fpgaID;
+    }
 
-	/**
-	 * Get the hybrid ID associated with this sensor.
-	 * 
-	 * @return The hybrid ID
-	 */
-	public int getHybridID() {
-		return hybridID;
-	}
+    /**
+     * Get the hybrid ID associated with this sensor.
+     * 
+     * @return The hybrid ID
+     */
+    public int getHybridID() {
+        return hybridID;
+    }
 
-	@Override
-	public int getFebID(){
-	    throw new RuntimeException("This method is not supported for the HpsTestRunSiSensor.");
-	}
-	
-	@Override
-	public int getFebHybridID(){
-	    throw new RuntimeException("This method is not supported for the HpsTestRunSiSensor.");
-	}
+    @Override
+    public int getFebID(){
+        throw new RuntimeException("This method is not supported for the HpsTestRunSiSensor.");
+    }
+    
+    @Override
+    public int getFebHybridID(){
+        throw new RuntimeException("This method is not supported for the HpsTestRunSiSensor.");
+    }
 
-	/**
-	 * Set the FPGA ID associated with this sensor.
-	 * 
-	 * @param The FPGA ID
-	 */
-	public void setFpgaID(int fpgaID) {
-		this.fpgaID = fpgaID;
-	}
+    /**
+     * Set the FPGA ID associated with this sensor.
+     * 
+     * @param The FPGA ID
+     */
+    public void setFpgaID(int fpgaID) {
+        this.fpgaID = fpgaID;
+    }
 
-	/**
-	 * Set the hybrid ID associated with this sensor.
-	 * 
-	 * @param The hybrid ID.
-	 */
-	public void setHybridID(int hybridID) {
-		this.hybridID = hybridID;
-	}
-	
-	@Override
-	public void setFebID(int febID) {
-	    throw new RuntimeException("This method is not supported for the HpsTestRunSiSensor.");
-	}
-	
-	@Override
-	public void setFebHybridID(int febHybridID) {
-	    throw new RuntimeException("This method is not supported for the HpsTestRunSiSensor.");
-	}
+    /**
+     * Set the hybrid ID associated with this sensor.
+     * 
+     * @param The hybrid ID.
+     */
+    public void setHybridID(int hybridID) {
+        this.hybridID = hybridID;
+    }
+    
+    @Override
+    public void setFebID(int febID) {
+        throw new RuntimeException("This method is not supported for the HpsTestRunSiSensor.");
+    }
+    
+    @Override
+    public void setFebHybridID(int febHybridID) {
+        throw new RuntimeException("This method is not supported for the HpsTestRunSiSensor.");
+    }
 }

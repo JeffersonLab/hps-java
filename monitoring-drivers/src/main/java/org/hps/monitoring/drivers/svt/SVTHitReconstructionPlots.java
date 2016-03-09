@@ -38,7 +38,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class SVTHitReconstructionPlots extends Driver {
 
-	//private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
     private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
     private String trackerHitCollectionName = "StripClusterer_SiTrackerHitStrip1D";

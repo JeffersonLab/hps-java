@@ -212,10 +212,10 @@ public class EcalHitWriter implements HitWriter {
         Map<Integer, List<Long>> slotMap = new HashMap<Integer, List<Long>>();
         for (Long id : hitMap.keySet()) {
             dec.setID(id);
-//			System.out.println(dec.getIDDescription());
-//			System.out.printf("ix = %d, iy = %d\n", dec.getValue("ix"), dec.getValue("iy"));
+//          System.out.println(dec.getIDDescription());
+//          System.out.printf("ix = %d, iy = %d\n", dec.getValue("ix"), dec.getValue("iy"));
 //            Long daqID = EcalConditions.physicalToDaqID(id);
-//			System.out.printf("physicalID %d, daqID %d\n", id, daqID);
+//          System.out.printf("physicalID %d, daqID %d\n", id, daqID);
             int slot = getSlot(id);
             if (slotMap.get(slot) == null) {
                 slotMap.put(slot, new ArrayList<Long>());
@@ -231,7 +231,7 @@ public class EcalHitWriter implements HitWriter {
         for (int slot : slotMap.keySet()) {
             data.addUchar((byte) slot); // slot #
             data.addUint(0); // trigger #
-            data.addUlong(0); // timestamp    		
+            data.addUlong(0); // timestamp          
             List<Long> hitIDs = slotMap.get(slot);
             int nhits = hitIDs.size();
             data.addN(nhits); // number of channels
@@ -285,10 +285,10 @@ public class EcalHitWriter implements HitWriter {
         Map<Integer, List<Long>> slotMap = new HashMap<Integer, List<Long>>();
         for (Long id : hitMap.keySet()) {
             dec.setID(id);
-//			System.out.println(dec.getIDDescription());
-//			System.out.printf("ix = %d, iy = %d\n", dec.getValue("ix"), dec.getValue("iy"));
+//          System.out.println(dec.getIDDescription());
+//          System.out.printf("ix = %d, iy = %d\n", dec.getValue("ix"), dec.getValue("iy"));
 //            Long daqID = EcalConditions.physicalToDaqID(id);
-//			System.out.printf("physicalID %d, daqID %d\n", id, daqID);
+//          System.out.printf("physicalID %d, daqID %d\n", id, daqID);
             int slot = getSlot(id);
             if (slotMap.get(slot) == null) {
                 slotMap.put(slot, new ArrayList<Long>());
@@ -304,7 +304,7 @@ public class EcalHitWriter implements HitWriter {
         for (int slot : slotMap.keySet()) {
             data.addUchar((byte) slot); // slot #
             data.addUint(0); // trigger #
-            data.addUlong(0); // timestamp    		
+            data.addUlong(0); // timestamp          
             List<Long> hitIDs = slotMap.get(slot);
             int nhits = hitIDs.size();
             data.addN(nhits); // number of channels
@@ -358,10 +358,10 @@ public class EcalHitWriter implements HitWriter {
         Map<Integer, List<Long>> slotMap = new HashMap<Integer, List<Long>>();
         for (Long id : hitMap.keySet()) {
             dec.setID(id);
-//			System.out.println(dec.getIDDescription());
-//			System.out.printf("ix = %d, iy = %d\n", dec.getValue("ix"), dec.getValue("iy"));
+//          System.out.println(dec.getIDDescription());
+//          System.out.printf("ix = %d, iy = %d\n", dec.getValue("ix"), dec.getValue("iy"));
 //            Long daqID = EcalConditions.physicalToDaqID(id);
-//			System.out.printf("physicalID %d, daqID %d\n", id, daqID);
+//          System.out.printf("physicalID %d, daqID %d\n", id, daqID);
             int slot = getSlot(id);
             if (slotMap.get(slot) == null) {
                 slotMap.put(slot, new ArrayList<Long>());
@@ -380,7 +380,7 @@ public class EcalHitWriter implements HitWriter {
 //            EvioBank slotBank = new EvioBank(EventConstants.ECAL_WINDOW_BANK_TAG, DataType.COMPOSITE, slot);
             data.addUchar((byte) slot); // slot #
             data.addUint(0); // trigger #
-            data.addUlong(0); // timestamp    		
+            data.addUlong(0); // timestamp          
             List<Long> hitIDs = slotMap.get(slot);
             int nhits = hitIDs.size();
             data.addN(nhits); // number of channels

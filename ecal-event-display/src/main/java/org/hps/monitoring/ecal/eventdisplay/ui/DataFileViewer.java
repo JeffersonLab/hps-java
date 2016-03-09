@@ -97,9 +97,9 @@ public class DataFileViewer extends FileViewer {
         filterPanel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	// Suppress panel redrawing until the highlights are set.
-            	ecalPanel.setSuppressRedraw(true);
-            	
+                // Suppress panel redrawing until the highlights are set.
+                ecalPanel.setSuppressRedraw(true);
+                
                 // Clear the panel highlighting.
                 ecalPanel.clearHighlight();
                 

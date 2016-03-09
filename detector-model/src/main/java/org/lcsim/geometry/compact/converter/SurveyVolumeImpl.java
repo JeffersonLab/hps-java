@@ -21,7 +21,7 @@ public abstract class SurveyVolumeImpl extends SurveyVolumeVisualization {
     public abstract void setPositionAndRotation(SurveyVolume base);
 
     public String getName() {
-    	return surveyVolume.getName();
+        return surveyVolume.getName();
     }
     
     protected Hep3Vector getBoxDim() {
@@ -33,7 +33,7 @@ public abstract class SurveyVolumeImpl extends SurveyVolumeVisualization {
     }
 
     public boolean isDebug() {
-    	return debug;
+        return debug;
     }
 
     public abstract String toString();

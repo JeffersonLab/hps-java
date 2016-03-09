@@ -42,7 +42,7 @@ public class EvioDAQParser {
      * 
      * TODO: Restructure, clean up...
      */
-	/** The EvIO bank identification tag for DAQ configuration banks. */
+    /** The EvIO bank identification tag for DAQ configuration banks. */
     public static final int BANK_TAG = 0xE10E;
     
     // Stores the hardware codes for each trigger type.
@@ -204,7 +204,7 @@ public class EvioDAQParser {
      * Instantiates the <code>EvioDAQParser</code>.
      */
     public EvioDAQParser() {
-    	// Create a map to map crystals to their database channel object.
+        // Create a map to map crystals to their database channel object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         for (int ii = 0; ii < 442; ii++) {
             channels.add(findChannel(ii + 1));
@@ -220,9 +220,9 @@ public class EvioDAQParser {
      * parameters.
      */
     public void parse(int crate, int runNumber, String[] configurationTables) {
-    	// Track the number of banks that have been parsed. If the
-    	// parameter values have not been populated after a certain
-    	// number of banks, there is missing information.
+        // Track the number of banks that have been parsed. If the
+        // parameter values have not been populated after a certain
+        // number of banks, there is missing information.
         nBanks++;
         
         // Create a map that maps an identifier for each configuration
@@ -256,10 +256,10 @@ public class EvioDAQParser {
      * contain the DAQ configuration parameters.
      */
     private void loadConfigMap(int crate, String[] configTables) {
-    	// Iterate over each configuration table.
+        // Iterate over each configuration table.
         for(String configTable : configTables) {
-        	// Split each table into rows and iterate over the rows.
-        	rowLoop:
+            // Split each table into rows and iterate over the rows.
+            rowLoop:
             for(String line : configTable.trim().split("\n")) {
                 // Split the first column from the row.
                 String[] cols = line.trim().split(" +", 2);
@@ -290,8 +290,8 @@ public class EvioDAQParser {
                 // This entry indicates which triggers are enabled and
                 // needs to be parsed differently than normal.
                 else if(key.startsWith("SSP_HPS_SET_IO_SRC")) {
-                	// The first "parameter value" is a hardware code
-                	// that identifies the trigger. Obtain it.
+                    // The first "parameter value" is a hardware code
+                    // that identifies the trigger. Obtain it.
                     int trig = Integer.valueOf(vals.get(1));
                     
                     // There are two trigger of each type, singles and
@@ -313,8 +313,8 @@ public class EvioDAQParser {
                 // This indicates a regular parameter that does not
                 // require any special parsing.
                 if(vals.size() > 1 && key.startsWith("SSP")) {
-                	// List the parameter by "[ROW NAME]_[KEY]" and
-                	// remove the key so that only the values remain.
+                    // List the parameter by "[ROW NAME]_[KEY]" and
+                    // remove the key so that only the values remain.
                     key += "_" + vals.remove(0);
                 }
                 
@@ -330,7 +330,7 @@ public class EvioDAQParser {
      * format of <code>[PARAMETER KEY] --> { [PARAMETER VALUES] }</code>.
      */
     public void parseConfigMap() {
-    	// Parse simple FADC data.
+        // Parse simple FADC data.
         fadcNSA    = Integer.valueOf(getConfigParameter("FADC250_NSA",      0));
         fadcNSB    = Integer.valueOf(getConfigParameter("FADC250_NSB",      0));
         fadcNPEAK  = Integer.valueOf(getConfigParameter("FADC250_NPEAK",    0));
@@ -345,12 +345,12 @@ public class EvioDAQParser {
         
         // Parse trigger data.
         for(int ii = 0; ii < 2; ii++) {
-        	// Check singles trigger cuts enabled status.
+            // Check singles trigger cuts enabled status.
             singlesNhitsEn[ii]         = getBoolConfigSSP(ii,  "SINGLES_NMIN",          1);
             singlesEnergyMinEn[ii]     = getBoolConfigSSP(ii,  "SINGLES_EMIN",          1);
             singlesEnergyMaxEn[ii]     = getBoolConfigSSP(ii,  "SINGLES_EMAX",          1);
             
-        	// Check pair trigger cuts enabled status.
+            // Check pair trigger cuts enabled status.
             pairsEnergySumMaxMinEn[ii] = getBoolConfigSSP(ii,  "PAIRS_SUMMAX_MIN",      2);
             pairsEnergyDiffEn[ii]      = getBoolConfigSSP(ii,  "PAIRS_DIFFMAX",         1);
             pairsCoplanarityEn[ii]     = getBoolConfigSSP(ii,  "PAIRS_COPLANARITY",     1);
@@ -383,7 +383,7 @@ public class EvioDAQParser {
      * used to determine if the run is a "bugged" run.
      */
     private void fixConfigMap2014Run(int runNumber) {
-    	// If this is a good run, noting should be done. Return.
+        // If this is a good run, noting should be done. Return.
         if(runNumber > 3470 || runNumber < 3100) { return; }
         
         // Populate missing GTP entries.
@@ -412,10 +412,10 @@ public class EvioDAQParser {
      * the FADC channel with which they are associated.
      */
     private void parseFADC(int crate, String key, List<String> vals) {
-    	// The FADC slot is not stored on the same line as the other
-    	// data and must be parsed and retained, as it is necessary
-    	// for handling the subsequent lines. If this line is the
-    	// FADC slot, store it.
+        // The FADC slot is not stored on the same line as the other
+        // data and must be parsed and retained, as it is necessary
+        // for handling the subsequent lines. If this line is the
+        // FADC slot, store it.
         if(key.equals("FADC250_SLOT")) {
             thisFadcSlot = Integer.valueOf(vals.get(0));
         }
@@ -449,8 +449,8 @@ public class EvioDAQParser {
      * to FADC channels 0 - 15.
      */
     private void setChannelParsFloat(int crate, int slot, Map<EcalChannel, Float> map, List<String> vals) {
-    	// Iterate over each channel and map the database channel object
-    	// to the corresponding list value.
+        // Iterate over each channel and map the database channel object
+        // to the corresponding list value.
         for(int ii = 0; ii < 16; ii++) {
             map.put(findChannel(crate, slot, ii), Float.valueOf(vals.get(ii)));
         }
@@ -468,8 +468,8 @@ public class EvioDAQParser {
      * objects representing the channel values.
      */
     private void setChannelParsInt(int crate, int slot, Map<EcalChannel, Integer> map, List<String> vals) {
-    	// Iterate over each channel and map the database channel object
-    	// to the corresponding list value.
+        // Iterate over each channel and map the database channel object
+        // to the corresponding list value.
         for(int ii = 0; ii < 16; ii++) {
             map.put(findChannel(crate, slot, ii), Integer.valueOf(vals.get(ii)));
         }
@@ -619,9 +619,9 @@ public class EvioDAQParser {
      * can not be found, an error message is passed to the logger.
      */
     public String getConfigParameter(String key, int ival) {
-    	// Check the parameter map for the requested parameter key.
+        // Check the parameter map for the requested parameter key.
         if(configMap.containsKey(key)) {
-        	// Get the list of values associated with this parameter key.
+            // Get the list of values associated with this parameter key.
             List<String> vals = configMap.get(key);
             
             // Check that the list of values contains a parameter for
@@ -639,7 +639,7 @@ public class EvioDAQParser {
         // If the key is not present...
         else {
             // If more than 2 banks have been read, the absence of a
-        	// key represents an error. Log that this has occurred.
+            // key represents an error. Log that this has occurred.
             if(nBanks > 2) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "ConfigMap MISSING KEY:   " + key);
             }
@@ -659,13 +659,13 @@ public class EvioDAQParser {
      * if it exists, and <code>null</code> if it does not.
      */
     public EcalChannel findChannel(int crate, int fadcSlot, int fadcChan) {
-    	// Search through the database channels for a channel that
-    	// matches the the argument parameters.
+        // Search through the database channels for a channel that
+        // matches the the argument parameters.
         for (EcalChannel cc : channels) {
-        	// A channel matches the argument if the slot and channel
-        	// values are the same. Crate number must also match, but
-        	// note that EcalChannel follows a different convention
-        	// with respect to crate numbering.
+            // A channel matches the argument if the slot and channel
+            // values are the same. Crate number must also match, but
+            // note that EcalChannel follows a different convention
+            // with respect to crate numbering.
             if( ((cc.getCrate() - 1) * 2 == crate - 37) && (cc.getSlot() == fadcSlot) && (cc.getChannel() == fadcChan) ) {
                 return cc;
             }

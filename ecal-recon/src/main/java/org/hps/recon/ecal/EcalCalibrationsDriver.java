@@ -222,9 +222,9 @@ public class EcalCalibrationsDriver extends Driver {
             // Create a new calibration object and add it to the collection, using mean for pedestal
             // and sigma for noise.
             try {
-            	calibrations.add(new EcalCalibration(channelId, mean, sigma));
+                calibrations.add(new EcalCalibration(channelId, mean, sigma));
             } catch (ConditionsObjectException e) {
-            	throw new RuntimeException("Error adding new calibration object.", e);
+                throw new RuntimeException("Error adding new calibration object.", e);
             }
         } 
         

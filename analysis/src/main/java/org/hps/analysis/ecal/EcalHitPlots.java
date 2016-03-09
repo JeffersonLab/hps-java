@@ -192,8 +192,8 @@ public class EcalHitPlots extends Driver {
                 } else if (AbstractIntData.getTag(data) == SSPData.BANK_TAG) {
                     //SSPData triggerData = new SSPData(data);
                     // TODO: TOP, BOTTOM, AND, and OR trigger are test
-                	// run-specific parameters and are not supported by
-                	// SSPData.
+                    // run-specific parameters and are not supported by
+                    // SSPData.
                     int orTrig = 0; //triggerData.getOrTrig();
                     if(orTrig != 0) {
                         for (int i = 0; i < 32; i++) {
@@ -237,7 +237,7 @@ public class EcalHitPlots extends Driver {
             double botTime = Double.POSITIVE_INFINITY;
             double orTime = Double.POSITIVE_INFINITY;
             for (CalorimeterHit hit : hits) {
-            	/*
+                /*
                 if (hit.getIdentifierFieldValue("iy") > 0) {
                     topX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
                     topY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);

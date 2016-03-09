@@ -16,23 +16,23 @@ public class HPSTrackerHit extends BaseRawTrackerHit{
         double t0;
         double amp;                
       public HPSTrackerHit(
-    		long id,
-    		int time,
-    		short[] adcValues, double t0, double Amp) {
-    	this.cellId = id;
-    	this.packedID = new Identifier(id);
-    	this.time = time;
-    	this.adcValues = adcValues;
+            long id,
+            int time,
+            short[] adcValues, double t0, double Amp) {
+        this.cellId = id;
+        this.packedID = new Identifier(id);
+        this.time = time;
+        this.adcValues = adcValues;
         this.t0=t0;
         this.amp=Amp;        
     }
       
       public HPSTrackerHit(
-    		RawTrackerHit rth, double t0, double Amp) {
-    	this.cellId = rth.getCellID();
-    	this.packedID = new Identifier(rth.getCellID());
-    	this.time = rth.getTime();
-    	this.adcValues = rth.getADCValues();
+            RawTrackerHit rth, double t0, double Amp) {
+        this.cellId = rth.getCellID();
+        this.packedID = new Identifier(rth.getCellID());
+        this.time = rth.getTime();
+        this.adcValues = rth.getADCValues();
         this.t0=t0;
         this.amp=Amp;        
     }

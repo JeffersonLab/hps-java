@@ -106,11 +106,11 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-    	BeamEnergyCollection beamEnergyCollection = 
-			this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-		double beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
-    	
-    	
+        BeamEnergyCollection beamEnergyCollection = 
+            this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+        double beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+        
+        
         LOGGER.info("Setting up the plotter");
         aida.tree().cd("/");
           String trkType="SeedTrack/";

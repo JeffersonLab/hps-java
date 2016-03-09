@@ -50,28 +50,28 @@ public class SvtClusterAnalysis extends Driver {
     // Plotting
     ITree tree; 
     IHistogramFactory histogramFactory; 
-	IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
-	protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>(); 
-	
-	// All clusters
-	private Map<String, IHistogram1D> clusterChargePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram1D> singleHitClusterChargePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram1D> multHitClusterChargePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram1D> signalToNoisePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram1D> singleHitSignalToNoisePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram1D> multHitSignalToNoisePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram1D> clusterSizePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram1D> clusterTimePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram2D> clusterChargeVsTimePlots = new HashMap<String, IHistogram2D>();
+    IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
+    protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>(); 
+    
+    // All clusters
+    private Map<String, IHistogram1D> clusterChargePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram1D> singleHitClusterChargePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram1D> multHitClusterChargePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram1D> signalToNoisePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram1D> singleHitSignalToNoisePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram1D> multHitSignalToNoisePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram1D> clusterSizePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram1D> clusterTimePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram2D> clusterChargeVsTimePlots = new HashMap<String, IHistogram2D>();
 
-	// Clusters on track
-	private Map<String, IHistogram1D> trackClusterChargePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram1D> trackHitSignalToNoisePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram1D> trackClusterTimePlots = new HashMap<String, IHistogram1D>();
-	private Map<String, IHistogram2D> trackClusterChargeVsMomentum = new HashMap<String, IHistogram2D>();
-	private Map<String, IHistogram2D> trackClusterChargeVsCosTheta = new HashMap<String, IHistogram2D>();
-	private Map<String, IHistogram2D> trackClusterChargeVsSinPhi = new HashMap<String, IHistogram2D>();
-	
+    // Clusters on track
+    private Map<String, IHistogram1D> trackClusterChargePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram1D> trackHitSignalToNoisePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram1D> trackClusterTimePlots = new HashMap<String, IHistogram1D>();
+    private Map<String, IHistogram2D> trackClusterChargeVsMomentum = new HashMap<String, IHistogram2D>();
+    private Map<String, IHistogram2D> trackClusterChargeVsCosTheta = new HashMap<String, IHistogram2D>();
+    private Map<String, IHistogram2D> trackClusterChargeVsSinPhi = new HashMap<String, IHistogram2D>();
+    
     // Detector name
     private static final String SUBDETECTOR_NAME = "Tracker";
     
@@ -92,29 +92,29 @@ public class SvtClusterAnalysis extends Driver {
     
     private int computePlotterRegion(HpsSiSensor sensor) {
 
-		if (sensor.getLayerNumber() < 7) {
-			if (sensor.isTopLayer()) {
-				return 6*(sensor.getLayerNumber() - 1); 
-			} else { 
-				return 6*(sensor.getLayerNumber() - 1) + 1;
-			} 
-		} else { 
-		
-			if (sensor.isTopLayer()) {
-				if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
-					return 6*(sensor.getLayerNumber() - 7) + 2;
-				} else { 
-					return 6*(sensor.getLayerNumber() - 7) + 3;
-				}
-			} else if (sensor.isBottomLayer()) {
-				if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
-					return 6*(sensor.getLayerNumber() - 7) + 4;
-				} else {
-					return 6*(sensor.getLayerNumber() - 7) + 5;
-				}
-			}
-		}
-		return -1; 
+        if (sensor.getLayerNumber() < 7) {
+            if (sensor.isTopLayer()) {
+                return 6*(sensor.getLayerNumber() - 1); 
+            } else { 
+                return 6*(sensor.getLayerNumber() - 1) + 1;
+            } 
+        } else { 
+        
+            if (sensor.isTopLayer()) {
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
+                    return 6*(sensor.getLayerNumber() - 7) + 2;
+                } else { 
+                    return 6*(sensor.getLayerNumber() - 7) + 3;
+                }
+            } else if (sensor.isBottomLayer()) {
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
+                    return 6*(sensor.getLayerNumber() - 7) + 4;
+                } else {
+                    return 6*(sensor.getLayerNumber() - 7) + 5;
+                }
+            }
+        }
+        return -1; 
     }
     
     protected void detectorChanged(Detector detector) {
@@ -249,12 +249,12 @@ public class SvtClusterAnalysis extends Driver {
                                                           .get(sensor.getName()));
         }
         
-		for (IPlotter plotter : plotters.values()) { 
-			plotter.show();
-		}
+        for (IPlotter plotter : plotters.values()) { 
+            plotter.show();
+        }
     }
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void process(EventHeader event) { 
      
         if (runNumber == -1) runNumber = event.getRunNumber();
@@ -354,18 +354,18 @@ public class SvtClusterAnalysis extends Driver {
         this.mapReconstructedParticlesToTracks(tracks, fsParticles);
        
         // Loop over all of the tracks in the event
-    	for(Track track : tracks){
+        for(Track track : tracks){
 
             // Calculate the momentum of the track
             double p = this.getReconstructedParticle(track).getMomentum().magnitude();
-    	    
-    	    for (TrackerHit rotatedStereoHit : track.getTrackerHits()) { 
-    	    
-    	        // Get the HelicalTrackHit corresponding to the RotatedHelicalTrackHit
-    	        // associated with a track
+            
+            for (TrackerHit rotatedStereoHit : track.getTrackerHits()) { 
+            
+                // Get the HelicalTrackHit corresponding to the RotatedHelicalTrackHit
+                // associated with a track
                 Set<TrackerHit> trackClusters = stereoHitToClusters.allFrom(hthToRotatedHth.from(rotatedStereoHit));
-    	        
-    	        for (TrackerHit trackCluster : trackClusters) { 
+                
+                for (TrackerHit trackCluster : trackClusters) { 
                 
                     // Get the raw hits composing this cluster and use them to calculate the amplitude of the hit
                     double amplitudeSum = 0;
@@ -405,9 +405,9 @@ public class SvtClusterAnalysis extends Driver {
                     trackClusterChargeVsCosTheta.get(sensor.getName()).fill(TrackUtils.getCosTheta(track), amplitudeSum);
                     trackClusterChargeVsSinPhi.get(sensor.getName()).fill(Math.sin(TrackUtils.getPhi0(track)), amplitudeSum);
                     //trackClusterTimePlots.get(sensor.getName()).fill(trackCluster.time());
-    	        }
-    	    }
-    	}
+                }
+            }
+        }
     }
     
     public void endOfData() { 

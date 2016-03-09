@@ -21,12 +21,12 @@ public class SSPPairTrigger extends SSPNumberedTrigger {
     
     @Override
     public boolean isFirstTrigger() {
-    	return (type == SSPData.TRIG_TYPE_PAIR0);
+        return (type == SSPData.TRIG_TYPE_PAIR0);
     }
     
     @Override
     public boolean isSecondTrigger() {
-    	return (type == SSPData.TRIG_TYPE_PAIR1);
+        return (type == SSPData.TRIG_TYPE_PAIR1);
     }
     
     /**
@@ -71,9 +71,9 @@ public class SSPPairTrigger extends SSPNumberedTrigger {
     
     @Override
     public String toString() {
-		return String.format("Trigger %d :: %3d ns :: ESum: %d, EDiff: %d, ESlope: %d, Coplanarity: %d",
-				isFirstTrigger() ? 1 : 2, getTime(), passCutEnergySum() ? 1 : 0,
-				passCutEnergyDifference() ? 1 : 0, passCutEnergySlope() ? 1 : 0,
-				passCutCoplanarity() ? 1 : 0);
+        return String.format("Trigger %d :: %3d ns :: ESum: %d, EDiff: %d, ESlope: %d, Coplanarity: %d",
+                isFirstTrigger() ? 1 : 2, getTime(), passCutEnergySum() ? 1 : 0,
+                passCutEnergyDifference() ? 1 : 0, passCutEnergySlope() ? 1 : 0,
+                passCutCoplanarity() ? 1 : 0);
     }
 }

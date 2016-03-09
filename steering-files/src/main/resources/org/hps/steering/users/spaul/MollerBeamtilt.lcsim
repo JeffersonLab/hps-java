@@ -15,13 +15,13 @@
             <eventInterval>1000</eventInterval>
         </driver>
         
-       	<driver name="MollerBeamtilt" type="org.hps.users.spaul.moller.MollerBeamtiltAnalysis">
-       		<maxVtxChi2>15</maxVtxChi2>
-       		<maxTrkChi2>30</maxTrkChi2>
-       		<minMass>.030</minMass>
-      		<maxMass>.036</maxMass>
-       		<minPz>1.0</minPz>
-       		<maxPz>1.1</maxPz>
+        <driver name="MollerBeamtilt" type="org.hps.users.spaul.moller.MollerBeamtiltAnalysis">
+            <maxVtxChi2>15</maxVtxChi2>
+            <maxTrkChi2>30</maxTrkChi2>
+            <minMass>.030</minMass>
+            <maxMass>.036</maxMass>
+            <minPz>1.0</minPz>
+            <maxPz>1.1</maxPz>
         </driver>
          <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}</outputFileName>
