@@ -1,43 +1,53 @@
-    <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-           xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">         
-        <execute>
-            <driver name="EventMarkerDriver"/>
-            <driver name="EcalRunningPedestal"/>
-            <driver name="EcalRawConverter" />    
-            <driver name="LedAnalysisDriver"/>
-            <driver name="AidaSaveDriver"/>      
-        </execute>           
-        <drivers>    
-            <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-                <eventInterval>100000</eventInterval>            
-            </driver>
-             <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
-                <minLookbackEvents>10</minLookbackEvents>
-                <maxLookbackEvents>50</maxLookbackEvents>
-            </driver>
-            <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-                <ecalCollectionName>EcalCalHits</ecalCollectionName>
-                <useTimestamps>false</useTimestamps>
-                <useTruthTime>false</useTruthTime>
-                <useRunningPedestal>true</useRunningPedestal>
-                <useTimeWalkCorrection>true</useTimeWalkCorrection>
-                <nsa>60</nsa>  <!-- these are critical since the defaults in software are 100 - 20, as in prod. runs -->
-                <nsb>16</nsb>
-            </driver>       
-            <driver name="LedAnalysisDriver" type="org.hps.monitoring.ecal.plots.EcalLedSequenceMonitor">
-               <isMonitoringApp>false</isMonitoringApp>
-               <doFullAnalysis>false</doFullAnalysis>
-               <skipMin>0.2</skipMin>
-               <skipInitial>0.05</skipInitial>    
-               <useRawEnergy>true</useRawEnergy>
-               <energyCut>2.0</energyCut>
-               <nEventsMin>300</nEventsMin>
-               <evnMinDraw>0.</evnMinDraw>
-               <evnMaxDraw>80000.</evnMaxDraw>
-               <saveTuple>false</saveTuple>
-            </driver>
-            <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-                <outputFileName>${outputFile}.LedAnalysis.aida</outputFileName>
-            </driver>        
-        </drivers>
-    </lcsim>
+	<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+	       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">         
+	    <execute>
+	    	<driver name="EventMarkerDriver"/>
+	        <driver name="EcalRunningPedestal"/>
+	  	    <driver name="EcalRawConverter" />    
+	        <driver name="LedAnalysisDriver"/>
+	        <driver name="AidaSaveDriver"/>	     
+	    </execute>           
+	    <drivers>    
+	        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+	            <eventInterval>100000</eventInterval>            
+	        </driver>
+	         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+	            <minLookbackEvents>10</minLookbackEvents>
+	            <maxLookbackEvents>50</maxLookbackEvents>
+	        </driver>
+	        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+	            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+	            <useTimestamps>false</useTimestamps>
+	            <useTruthTime>false</useTruthTime>
+	            <useRunningPedestal>true</useRunningPedestal>
+	            <useTimeWalkCorrection>true</useTimeWalkCorrection>
+	            <nsa>60</nsa>  <!-- these are critical since the defaults in software are 100 - 20, as in prod. runs -->
+       		    <nsb>16</nsb>
+	        </driver>       
+	  <!--     <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
+	            <inputCollection>EcalCalHits</inputCollection>
+	            <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
+	            <inputClusterCollection>EcalClusters</inputClusterCollection>
+	            <pedSamples>20</pedSamples>
+	            <maxEch>15.0</maxEch>
+	            <minEch>0.005</minEch>
+	            <eventRefreshRate>2</eventRefreshRate>
+	        </driver>
+	        -->
+	        <driver name="LedAnalysisDriver" type="org.hps.monitoring.ecal.plots.EcalLedSequenceMonitor">
+	           <isMonitoringApp>false</isMonitoringApp>
+	           <doFullAnalysis>false</doFullAnalysis>
+	           <skipMin>0.2</skipMin>
+	           <skipInitial>0.05</skipInitial>    
+	           <useRawEnergy>true</useRawEnergy>
+	           <energyCut>2.0</energyCut>
+	           <nEventsMin>300</nEventsMin>
+	           <evnMinDraw>0.</evnMinDraw>
+	           <evnMaxDraw>80000.</evnMaxDraw>
+	           <saveTuple>false</saveTuple>
+	        </driver>
+	        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+	            <outputFileName>${outputFile}.LedAnalysis.aida</outputFileName>
+	        </driver>        
+		</drivers>
+	</lcsim>
