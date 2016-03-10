@@ -36,6 +36,7 @@ public final class DatacatAddFile {
         OPTIONS.addOption("f", "folder", true, "datacat folder");
         OPTIONS.addOption("s", "site", true, "datacat site");
         OPTIONS.addOption("u", "base-url", true, "provide a base URL of the datacat server");
+        OPTIONS.addOption("D", "dry-run", false, "dry run mode which will not updated the datacat");
     }
 
     /**
@@ -136,9 +137,13 @@ public final class DatacatAddFile {
     /**
      * Run the job.
      */
-    private void run() {
-        List<DatasetModel> datasets = DatacatHelper.createDatasets(paths, config.folder(), config.site().toString());
-        DatacatHelper.addDatasets(datasets, config.folder(), config.datacatUrl());
-        LOGGER.info("added " + datasets.size() + " datasets");
-    }
+    private void run() {        
+        List<DatasetModel> datasets = DatacatHelper.createDatasets(paths, config.folder(), config.site().toString());        
+        if (!config.dryRun()) {
+            DatacatHelper.addDatasets(datasets, config.folder(), config.datacatUrl());
+            LOGGER.info("Added " + datasets.size() + " datasets to datacat.");
+        } else {
+            LOGGER.info("Dry run mode; skipped adding dataset.");
+        }
+     }
 }
