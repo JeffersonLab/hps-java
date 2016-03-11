@@ -368,7 +368,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the maximum deviation from coplanarity that a cluster pair
      * may possess and still pass the coplanarity pair cut. Value uses
      * units of degrees.
-     * @param maxCoplanarityAngle - The parameter value.
+     * @param coplanarityHigh - The parameter value.
      */
     public void setCoplanarityHigh(double coplanarityHigh) {
         triggerModule.setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH, coplanarityHigh);
@@ -407,7 +407,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the lowest allowed energy a cluster pair may have and
      * still pass the cluster pair energy sum cluster cut. Value uses
      * units of GeV.
-     * @param energySumHigh - The parameter value.
+     * @param energySumLow - The parameter value.
      */
     public void setEnergySumLow(double energySumLow) {
         triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW, energySumLow * EcalUtils.GeV);

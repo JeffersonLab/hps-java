@@ -532,7 +532,6 @@ public class FADCTriggerDriver extends TriggerDriver {
     /**
      * Get a list of all unique cluster pairs in the event
      *
-     * @param ecalClusters : List of ECal clusters
      * @return list of cluster pairs
      */
     protected List<Cluster[]> getClusterPairsTopBot() {
@@ -584,7 +583,7 @@ public class FADCTriggerDriver extends TriggerDriver {
      * Checks if the ECal clusters making up a cluster pair both have at least
      * the minimum number of hits.
      *
-     * @param clusterPair: pair of clusters
+     * @param clusterPair the pair of clusters
      * @return true if pair passes cut, false if fail
      */
     protected boolean clusterHitCount(Cluster[] clusterPair) {
