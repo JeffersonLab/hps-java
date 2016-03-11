@@ -11,8 +11,8 @@ import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
  * This class is explicitly for HPS where the length of the
  * sensors are (mostly) along the detector 
  * y-dimension ( == HelicalTrackFit x-dimension);
- * @author Matt Graham <mgraham@slac.stanford.edu>
  * Copied/Modified from org.lcsim.recon.tracking.helicaltrack.HelicalTrack2DHit.java
+ * @author Matt Graham <mgraham@slac.stanford.edu>
  */
 public class HelicalTrack2DHit  extends HelicalTrackHit {
     private double _axmin;//min value along the bend-direction..
@@ -27,8 +27,6 @@ public class HelicalTrack2DHit  extends HelicalTrackHit {
      * @param dEdx deposited energy
      * @param time hit time
      * @param rawhits list of raw hits
-     * @param axmin minimum z for the strip
-     * @param axmax maximum z for the strip
      * @param detname detector name
      * @param layer layer number
      * @param beflag

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Enum constants for different {@link Track}s based on what tracking
+ * Enum constants for different {@link org.lcsim.event.Track} objects based on what tracking
  * strategy was used.  The type is defined by comparing the tracking strategy
  * name to the name of all the enum constants.
  *  

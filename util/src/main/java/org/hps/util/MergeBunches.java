@@ -454,7 +454,6 @@ public class MergeBunches extends Driver {
      * Copies an mc particle and stores it together with  the copy in a map.
      * Adds it to the list of mc particles as well as the overlay mc particles.
      * Also copies and keeps all ancestors.
-     * @param event
      * @param particle
      */
     protected void addOverlayMcParticle(MCParticle particle) {

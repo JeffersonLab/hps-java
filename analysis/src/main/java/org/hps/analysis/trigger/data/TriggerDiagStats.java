@@ -89,7 +89,7 @@ public class TriggerDiagStats {
      * Gets the total number of events where the TI reported a trigger
      * of the specified type.
      * @param triggerID - The identifier for the type of trigger.
-     * @param unique - <code>true</code> returns only the number of
+     * @param hierarchical - <code>true</code> returns only the number of
      * events where this trigger type was the <i>only</i> type seen by
      * the TI while <code>false</code> returns the number of events
      * that saw this trigger type without regards for other trigger

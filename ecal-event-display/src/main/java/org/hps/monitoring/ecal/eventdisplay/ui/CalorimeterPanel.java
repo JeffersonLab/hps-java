@@ -503,8 +503,8 @@ public final class CalorimeterPanel extends JPanel {
     /**
      * Determines if the crystal at the given coordinates is a active
      * or not.
-     * @param xCoor - The x-index of the crystal.
-     * @param yCoor - The y-index of the crystal.
+     * @param ix - The x-index of the crystal.
+     * @param iy - The y-index of the crystal.
      * @return Returns <code>true</code> if the crystal is active
      * and <code>false</code> if it is not.
      * @throws IndexOutOfBoundsException Occurs when either of the given
@@ -740,28 +740,28 @@ public final class CalorimeterPanel extends JPanel {
     
     /**
      * Sets whether to mirror the x-axis on the calorimeter display.
-     * @param state - <code>true</code> indicates that the axis should
+     * @param mirrorX - <code>true</code> indicates that the axis should
      * be mirrored and <code>false</code> that it should not.
      */
     public void setMirrorX(boolean mirrorX) {
-            // Process the change.
-            setMirror(mirrorX, mirrorY);
-            
-            // Throw an event.
-            throwSettingsEvent(SettingsEvent.PROPERTY_X_ORIENTATION);
+        // Process the change.
+        setMirror(mirrorX, mirrorY);
+        
+        // Throw an event.
+        throwSettingsEvent(SettingsEvent.PROPERTY_X_ORIENTATION);
     }
     
     /**
      * Sets whether to mirror the y-axis on the calorimeter display.
-     * @param state - <code>true</code> indicates that the axis should
+     * @param mirrorY - <code>true</code> indicates that the axis should
      * be mirrored and <code>false</code> that it should not.
      */
     public void setMirrorY(boolean mirrorY) {
-            // Process the change.
-            setMirror(mirrorX, mirrorY);
+        // Process the change.
+        setMirror(mirrorX, mirrorY);
             
-            // Throw an event.
-            throwSettingsEvent(SettingsEvent.PROPERTY_Y_ORIENTATION);
+        // Throw an event.
+        throwSettingsEvent(SettingsEvent.PROPERTY_Y_ORIENTATION);
     }
     
     /**

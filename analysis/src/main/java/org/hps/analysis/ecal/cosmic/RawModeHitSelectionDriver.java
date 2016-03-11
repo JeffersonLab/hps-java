@@ -54,7 +54,7 @@ public class RawModeHitSelectionDriver extends Driver {
 
     /**
      * Set the number of ADC samples in a row which must be above the threshold.
-     * @param selectedHits The minimum number of samples above threshold.
+     * @param minimumSelectedSamples The minimum number of samples above threshold.
      */
     public void setMinimumSelectedSamples(int minimumSelectedSamples) {
         this.minimumSelectedSamples = minimumSelectedSamples;

@@ -609,7 +609,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     /**
      * Set the table meta data of the collection.
      *
-     * @param the table meta data of the collection
+     * @param tableMetaData the table meta data of the collection
      * @see TableMetaData
      */
     @Override

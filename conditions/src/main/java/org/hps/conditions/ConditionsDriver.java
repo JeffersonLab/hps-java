@@ -28,8 +28,8 @@ import org.lcsim.util.Driver;
  * This is a "special" Driver which must have its initialization occur at the right time. It has a custom initialization
  * method {@link #initialize()} which should be called after all Driver setup has occurred, but before the job actually
  * begins. This is so the conditions system functions properly, including the activation of registered listeners. The
- * setup is performed by in the class {@link org.hps.job.JobManager}, which is used in the default command line front
- * end of the hps-distribution. If that class is not being used, then the method must be executed manually at the right
+ * setup is performed by the <code>JobManager</code>, which is used in the default command line front end of the 
+ * hps-distribution. If that class is not being used, then the method must be executed manually at the right
  * time to achieve the proper behavior.
  *
  * @author Jeremy McCormick, SLAC

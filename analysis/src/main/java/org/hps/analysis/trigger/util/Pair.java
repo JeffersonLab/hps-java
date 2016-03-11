@@ -13,8 +13,8 @@ public class Pair<E, F> {
     
     /**
      * Creates a pair of the two indicated objects.
-     * @param firstObject - The first object.
-     * @param secondObject - The second object.
+     * @param firstElement - The first object.
+     * @param secondElement - The second object.
      */
     public Pair(E firstElement, F secondElement) {
         this.firstObject = firstElement;

@@ -78,7 +78,7 @@ public class TrackUtils {
      *
      * @param track
      * @param x
-     * @return
+     * @return the position along the x-axis
      */
     public static Hep3Vector extrapolateHelixToXPlane(Track track, double x) {
         return extrapolateHelixToXPlane(getHTF(track), x);
@@ -153,9 +153,9 @@ public class TrackUtils {
     /**
      * Extrapolate helix to a position along the x-axis. Re-use HelixUtils.
      *
-     * @param track
+     * @param htf
      * @param x
-     * @return
+     * @return the position along the x-axis
      */
     public static Hep3Vector extrapolateHelixToXPlane(HelicalTrackFit htf, double x) {
         double s = HelixUtils.PathToXPlane(htf, x, 0., 0).get(0);
@@ -346,7 +346,7 @@ public class TrackUtils {
      *
      * @param track - to be extrapolated
      * @param z
-     * @return
+     * @return extrapolated position
      */
     public static Hep3Vector extrapolateTrack(Track track, double z) {
         return extrapolateTrack(track.getTrackStates().get(0),z);
@@ -357,7 +357,7 @@ public class TrackUtils {
      *
      * @param track - to be extrapolated
      * @param z
-     * @return
+     * @return extrapolated position
      */
     public static Hep3Vector extrapolateTrack(TrackState track, double z) {
 
@@ -393,10 +393,8 @@ public class TrackUtils {
     /**
      * Extrapolate track to given position, using dipole position from geometry.
      *
-     * @param helix - to be extrapolated
-     * @param track - position along the x-axis of the helix in lcsim
-     * coordiantes
-     * @return
+     * @param track - position along the x-axis of the helix in lcsim coordinates
+     * @return extrapolated position
      */
     public static Hep3Vector extrapolateTrack(Track track, double z, Detector detector) {
 
@@ -439,7 +437,7 @@ public class TrackUtils {
      *
      * @param helix - to be extrapolated
      * @param z - position along the x-axis of the helix in lcsim coordiantes
-     * @return
+     * @return the extrapolated position
      */
     public static Hep3Vector extrapolateTrack(HelicalTrackFit helix, double z) {
         SeedTrack trk = new SeedTrack();
@@ -1161,7 +1159,7 @@ public class TrackUtils {
      * @param trk
      * @param hitToStrips
      * @param hitToRotated
-     * @return
+     * @return isolations for all 12 strip layers
      */
     public static Double[] getIsolations(Track trk, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         Double[] isolations = new Double[12];
@@ -1333,7 +1331,7 @@ public class TrackUtils {
      * @param r0
      * @param q
      * @param B
-     * @return
+     * @return the created trajectory
      */
     public static Trajectory getTrajectory(Hep3Vector p0, org.lcsim.spacegeom.SpacePoint r0, double q, double B) {
         SpaceVector p = new CartesianVector(p0.v());

@@ -404,18 +404,17 @@ public class EcalRawConverterDriver extends Driver {
 
     /**
      * @return false if the channel is a good one, true if it is a bad one
-     * @param CalorimeterHit
+     * @param hit the <code>CalorimeterHit</code> pointing to the channel
      */
     public boolean isBadCrystal(CalorimeterHit hit) {
         // Get the channel data.
         EcalChannelConstants channelData = findChannel(hit.getCellID());
-
         return channelData.isBadChannel();
     }
 
     /**
      * @return false if the ADC is a good one, true if it is a bad one
-     * @param CalorimeterHit
+     * @param hit the <code>CalorimeterHit</code> pointing to the FADC
      */
     public boolean isBadFADC(CalorimeterHit hit) {
         return (getCrate(hit.getCellID()) == 1 && getSlot(hit.getCellID()) == 3);

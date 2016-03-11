@@ -81,7 +81,7 @@ public class GBLStripClusterData implements GenericObject {
         }
     
     /**
-     * @param set track id to val
+     * @param val set track id to val
      */
     public void setId(int val) {
         bank_int[GBLINT.ID] = val;
@@ -193,7 +193,7 @@ public class GBLStripClusterData implements GenericObject {
     /**
      * Set track direction at this cluster
      * 
-     * @param tDir
+     * @param v the track direction
      */
     public void setTrackDir(Hep3Vector v) {
         bank_double[GBLDOUBLE.TDIRX] = v.x();

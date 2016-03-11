@@ -150,7 +150,7 @@ public class HPSEcal3 extends AbstractSubdetector {
     /**
      * The number of crystals in X in one section.
      * 
-     * @return
+     * @return the number of crystals in X in one section
      */
     public double nx() {
         return nx;
@@ -159,7 +159,7 @@ public class HPSEcal3 extends AbstractSubdetector {
     /**
      * The number of crystals in y in one section.
      * 
-     * @return
+     * @return the number of crystals in Y in one section
      */
     public double ny() {
         return ny;

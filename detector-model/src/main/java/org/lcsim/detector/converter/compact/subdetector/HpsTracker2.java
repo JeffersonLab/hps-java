@@ -8,7 +8,7 @@ import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.converter.compact.SubdetectorDetectorElement;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 /**
- * Class describing an {@link HPSTracker2} subdetector. 
+ * Detector element for <code>HPSTracker2</code> type.
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>

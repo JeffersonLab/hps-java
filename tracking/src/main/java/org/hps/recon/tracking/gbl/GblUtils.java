@@ -316,17 +316,13 @@ public class GblUtils {
             throw new UnsupportedOperationException("Should not happen. This problem is only solved with the MaterialSupervisor.");
         }
     }
-    
-
-
-
 
     /**
      * Calculate the Jacobian from Curvilinear to Perigee frame. 
      * @param helicalTrackFit - original helix
      * @param helicalTrackFitAtIPCorrected - corrected helix at this point
      * @param bfield - magnitude of B-field
-     * @return
+     * @return the Jacobian matrix from Curvilinear to Perigee frame
      */
     public static Matrix getCLToPerigeeJacobian(HelicalTrackFit helicalTrackFit, HpsHelicalTrackFit helicalTrackFitAtIPCorrected, double bfield) {
         

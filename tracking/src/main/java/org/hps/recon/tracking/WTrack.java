@@ -15,10 +15,9 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
  * Track representation based on paper
  * Paul Avery, CBX 98-39, June 9, 1998
  *  
- *  Used primarily for the algorithm to intersect a helix with a generic plane in space.
+ * Used primarily for the algorithm to intersect a helix with a generic plane in space.
  *  
  * @author phansson <phansson@slac.stanford.edu>
-
  */
 public class WTrack {
 
@@ -29,7 +28,6 @@ public class WTrack {
     private boolean _debug = false;
     private final int max_iterations_intercept = 10;
     private final double epsilon_intercept = 1e-4;
-
       
     /**
      * Constructor. Assumes that b-field is in detector z direction. 
@@ -189,7 +187,7 @@ public class WTrack {
      * Get point on helix at path length s in arbitrary oriented, constant magnetic field with unit vector h
      * @param s - path length
      * @param h - magnetic field unit vector
-     * @return
+     * @return get a 3D point along the helix
      */
     private Hep3Vector getPointOnHelix(double s, Hep3Vector h) {
         WTrack track = this;
@@ -266,11 +264,9 @@ public class WTrack {
      * @param xp point on the plane
      * @param eta unit vector of the plane 
      * @param h unit vector of magnetic field
-     * @return
+     * @return the intersection point of the helix with the plane
      */
     public Hep3Vector getHelixAndPlaneIntercept(Hep3Vector xp, Hep3Vector eta, Hep3Vector h) {
-
-        
 
         int iteration = 1;
         double s_total = 0.;

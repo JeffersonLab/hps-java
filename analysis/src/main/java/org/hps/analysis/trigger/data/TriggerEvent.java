@@ -57,8 +57,6 @@ public class TriggerEvent extends TriggerStatModule {
      * was successfully matched to a trigger in the SSP bank.
      * @param tiFlags - An array of size 6 indicating which TI bank
      * flags are active and which are not.
-     * @param triggerTypeID - An identifier indicating the type of
-     * trigger that was matched.
      */
     public void matchedReconTrigger(boolean[] tiFlags) {
         matchedTriggers(tiFlags, RECON);
@@ -70,8 +68,6 @@ public class TriggerEvent extends TriggerStatModule {
      * which cuts did and did not match.
      * @param tiFlags - An array of size 6 indicating which TI bank
      * flags are active and which are not.
-     * @param triggerTypeID - An identifier indicating the type of
-     * trigger that was matched.
      * @param matchedCuts - An array of size 3 or 4 indicating which
      * cuts did and did not align between the triggers.
      */
@@ -97,8 +93,6 @@ public class TriggerEvent extends TriggerStatModule {
      * cuts did and did not match.
      * @param tiFlags - An array of size 6 indicating which TI bank
      * flags are active and which are not.
-     * @param triggerTypeID - An identifier indicating the type of
-     * trigger that was matched.
      * @param matchedCuts - An array of size 3 or 4 indicating which
      * cuts did and did not align between the triggers.
      */

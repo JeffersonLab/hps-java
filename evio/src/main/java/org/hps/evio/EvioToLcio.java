@@ -463,8 +463,6 @@ public final class EvioToLcio {
      * This method will execute the EVIO to LCIO conversion and optionally process the events with LCSim Drivers from a
      * steering file. Then the resultant LCIO events will be written to disk if this option is enabled in the command
      * line arguments.
-     *
-     * @param args The command line arguments.
      */
     public void run() {
 

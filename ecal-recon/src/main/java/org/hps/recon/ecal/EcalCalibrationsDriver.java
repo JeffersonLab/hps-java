@@ -35,7 +35,7 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * This Driver will generate a {@link org.hps.conditions.EcalCalibration} collection
+ * This Driver will generate a {@link org.hps.conditions.ecal.EcalCalibration} collection
  * from the ADC value distributions of raw ECAL data.  It may optionally insert this
  * information into the conditions database using the file's run number.
  * 
@@ -46,20 +46,20 @@ import org.lcsim.util.aida.AIDA;
  */
 public class EcalCalibrationsDriver extends Driver {
     
-    EcalConditions ecalConditions = null;
-    DatabaseConditionsManager conditionsManager = null;
-    AIDA aida = AIDA.defaultInstance();
-    IFunctionFactory functionFactory = aida.analysisFactory().createFunctionFactory(null);
-    IFitFactory fitFactory = aida.analysisFactory().createFitFactory();
-    boolean loadCalibrations = false;
-    boolean performFit = true;
-    Integer runStart = null;
-    Integer runEnd = null;
-    File outputFile = null;
-    Set<Integer> runs = new HashSet<Integer>();
-    static DecimalFormat decimalFormat = new DecimalFormat("#.####");
-    String inputHitsCollectionName = "EcalReadoutHits";
-    static String ECAL_CALIBRATIONS = "ecal_calibrations";
+    private EcalConditions ecalConditions = null;
+    private DatabaseConditionsManager conditionsManager = null;
+    private AIDA aida = AIDA.defaultInstance();
+    private IFunctionFactory functionFactory = aida.analysisFactory().createFunctionFactory(null);
+    private IFitFactory fitFactory = aida.analysisFactory().createFitFactory();
+    private boolean loadCalibrations = false;
+    private boolean performFit = true;
+    private Integer runStart = null;
+    private Integer runEnd = null;
+    private File outputFile = null;
+    private Set<Integer> runs = new HashSet<Integer>();
+    private static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.####");
+    private String inputHitsCollectionName = "EcalReadoutHits";
+    private static String ECAL_CALIBRATIONS = "ecal_calibrations";
     
     /**
      * Set the RawTrackerHit collection of hits to be used for the calibration.
@@ -216,8 +216,8 @@ public class EcalCalibrationsDriver extends Driver {
             }
             
             // Truncate to 4 decimal places.
-            mean = Double.valueOf(decimalFormat.format(mean));
-            sigma = Double.valueOf(decimalFormat.format(sigma));
+            mean = Double.valueOf(DECIMAL_FORMAT.format(mean));
+            sigma = Double.valueOf(DECIMAL_FORMAT.format(sigma));
             
             // Create a new calibration object and add it to the collection, using mean for pedestal
             // and sigma for noise.

@@ -230,7 +230,7 @@ public abstract class ReconParticleDriver extends Driver {
      * clusters. Clusters will be matched with tracks when this is possible.
      *
      * @param clusters - The list of event clusters.
-     * @param tracks - The list of event tracks.
+     * @param trackCollections - The list of event tracks.
      * @return Returns a <code>List</code> collection containing all of the
      * <code>ReconstructedParticle</code> objects generated from the argument
      * data.

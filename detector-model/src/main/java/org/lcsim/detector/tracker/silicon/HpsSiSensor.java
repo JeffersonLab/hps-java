@@ -303,9 +303,8 @@ public class HpsSiSensor extends SiSensor {
     /**
      * Generate an ID for a channel (strip) on a sensor.
      *
-     * @param sensor
      * @param channel : Physical channel number
-     * @return ID
+     * @return the channel ID
      */
     public long makeChannelID(final int channel) {
         final int sideNumber = this.hasElectrodesOnSide(ChargeCarrier.HOLE) ? ChargeCarrier.HOLE.charge()
@@ -385,7 +384,7 @@ public class HpsSiSensor extends SiSensor {
     /**
      * Set the front end board (FEB) ID of the sensor.
      * 
-     * @param FEB ID The FEB ID of the sensor.
+     * @param febID FEB ID The FEB ID of the sensor.
      */
     public void setFebID(final int febID) {
         this.febID = febID;
@@ -394,7 +393,7 @@ public class HpsSiSensor extends SiSensor {
     /**
      * Set the FEB hybrid ID of the sensor.
      * 
-     * @param FEB hybrid ID The FEB hybrid ID.
+     * @param febHybridID FEB hybrid ID The FEB hybrid ID.
      */
     public void setFebHybridID(final int febHybridID) {
         this.febHybridID = febHybridID;
@@ -412,7 +411,7 @@ public class HpsSiSensor extends SiSensor {
     /**
      * Flag the sensor as being axial.
      * 
-     * @param true if the sensor is Axial, false otherwise
+     * @param isAxial true if the sensor is Axial, false otherwise
      */
     public void setAxial(final boolean isAxial) {
         this.isAxial = isAxial;
@@ -421,7 +420,7 @@ public class HpsSiSensor extends SiSensor {
     /**
      * Flag the sensor as being stereo
      * 
-     * @param true is the sensor is stereo, false otherwise
+     * @param isStereo true is the sensor is stereo, false otherwise
      */
     public void setStereo(final boolean isStereo) {
         this.isStereo = isStereo;

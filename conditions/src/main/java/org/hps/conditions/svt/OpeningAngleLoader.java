@@ -30,7 +30,7 @@ public class OpeningAngleLoader {
      * Check if the run record looks good.
      *
      * @param data
-     * @return
+     * @return whether to accept the run or not
      */
     private static boolean acceptRun(final RunData data) {
         return !data.getRecord().get("to_tape").equals("JUNK")

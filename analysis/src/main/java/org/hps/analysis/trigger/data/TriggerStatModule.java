@@ -135,7 +135,6 @@ public class TriggerStatModule {
      * bank flag was active.
      * @param tiTypeID - The identifier for the type of TI bank trigger
      * that should be active.
-     * @param triggerTypeID - The identifier for the type of trigger.
      * @return Returns the number of triggers as an <code>int</code>.
      */
     public int getMatchedReconSimulatedTriggers(int tiTypeID) {
@@ -157,7 +156,6 @@ public class TriggerStatModule {
      * bank flag was active.
      * @param tiTypeID - The identifier for the type of TI bank trigger
      * that should be active.
-     * @param triggerTypeID - The identifier for the type of trigger.
      * @return Returns the number of triggers as an <code>int</code>.
      */
     public int getMatchedSSPSimulatedTriggers(int tiTypeID) {
@@ -208,7 +206,6 @@ public class TriggerStatModule {
      * flag was active.
      * @param tiTypeID - The identifier for the type of TI bank trigger
      * that should be active.
-     * @param triggerTypeID - The identifier for the type of trigger.
      * @return Returns the number of triggers as an <code>int</code>.
      */
     public int getReconSimulatedTriggers(int tiTypeID) {
@@ -249,7 +246,6 @@ public class TriggerStatModule {
      * flag was active.
      * @param tiTypeID - The identifier for the type of TI bank trigger
      * that should be active.
-     * @param triggerTypeID - The identifier for the type of trigger.
      * @return Returns the number of triggers as an <code>int</code>.
      */
     public int getSSPSimulatedTriggers(int tiTypeID) {

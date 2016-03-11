@@ -206,8 +206,8 @@ public abstract class BaseConditionsObject implements ConditionsObject {
      * Get a field value.
      *
      * @param name the field name
-     * @param T the field value
-     * @param <T> the implicit return return
+     * @param <T> the implicit return type
+     * @return the value of field cast to given type
      */
     @Override
     public <T> T getFieldValue(final String name) {
@@ -247,7 +247,7 @@ public abstract class BaseConditionsObject implements ConditionsObject {
     /**
      * Return <code>true</code> if collection ID is valid.
      *
-     * @param <code>true</code> if collection ID is valid
+     * @return <code>true</code> if collection ID is valid
      */
     @Override
     public boolean hasValidCollectionId() {

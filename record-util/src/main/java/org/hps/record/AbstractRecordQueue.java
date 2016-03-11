@@ -45,7 +45,8 @@ public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSour
     /**
      * Class constructor with the timeout in seconds.
      *
-     * @param timeoutSeconds the timeout in seconds
+     * @param timeOutMillis the timeout in seconds
+     * @param maxSize the maximum size of the queue
      */
     public AbstractRecordQueue(final long timeOutMillis, final int maxSize) {
         this.timeOutMillis = timeOutMillis;
@@ -55,7 +56,7 @@ public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSour
     /**
      * Add a record to the queue if there is space.
      *
-     * @param event the LCIO event to add
+     * @param record the LCIO event to add
      */
     // FIXME: Should drain queue if over capacity.
     public void addRecord(final RecordType record) {

@@ -406,7 +406,7 @@ public class STUtils {
      * @param origin
      * @param strip1
      * @param strip2
-     * @return
+     * @return the stereo hit position
      */
     static Hep3Vector getStereoHitPositionFromReference(Hep3Vector origin, SiTrackerHitStrip1D strip1, SiTrackerHitStrip1D strip2) {
         SiTrackerHitStrip1D s1 = strip1;
@@ -499,7 +499,6 @@ public class STUtils {
      * @param origin
      * @param strip1
      * @param strip2
-     * @return
      */
     static Hep3Vector getPosition(Hep3Vector t, SiTrackerHitStrip1D strip1, SiTrackerHitStrip1D strip2) {
         SiTrackerHitStrip1D s1 = strip1;
@@ -592,7 +591,8 @@ public class STUtils {
     }
 
     /**
-     * Fit the {@link STStereoTrack} track with the supplied {@link STTrackFitter} and add the fit to the track.
+     * Fit the {@link STUtils.STStereoTrack} track with the supplied {@link STUtils.STTrackFitter} 
+     * and add the fit to the track.
      * @param regressionFitter
      * @param track
      */
@@ -741,7 +741,7 @@ public class STUtils {
      * Calculate the multiple scattering angle for a given momentum and thickness
      * @param p
      * @param radlength
-     * @return
+     * @return the multiple scattering angle for a given momentum and thickness
      */
     public static double msangle(double p, double radlength) {
         double angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength));
@@ -781,10 +781,11 @@ public class STUtils {
     }
     
     /**
-     * Finds point of intercept between a {@link STStereoTrack} and a sensor obtained from a {@link SiTrackerHitStrip1D}.
+     * Finds point of intercept between a {@link STUtils.STStereoTrack} and a sensor obtained from a 
+     * {@link org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D}.
      * @param strip
      * @param track
-     * @return point of intercept.
+     * @return the point of intercept
      */
     private static Hep3Vector getLinePlaneIntercept(SiTrackerHitStrip1D strip, STStereoTrack track) {
         // line description
@@ -797,14 +798,13 @@ public class STUtils {
         Hep3Vector trkpos = getLinePlaneIntercept(l, l0, p0, n);
         logger.finest("\ntrkpos " + trkpos.toString() + "\n l " + l.toString() + "\n l0 " + l0.toString() + "\n p0 " + p0.toString() + "\n n " + n.toString());
         return trkpos;
-    }
-    
+    }    
     
     /**
      * Calculate the residual (measured - predicted) for this hit in the measurement frame.
      * @param strip
      * @param track
-     * @return
+     * @return the residual (measured - predicted) for the hit
      */
     protected static double getUResidual(SiTrackerHitStrip1D strip, STStereoTrack track) {
         
@@ -864,7 +864,7 @@ public class STUtils {
      * Path length to this point along the {@link STStereoTrack}.
      * @param z
      * @param track
-     * @return
+     * @return path length to the point along the track
      */
     private static double getPathLength(double z, STStereoTrack track) {
         final double C = z / track.getDirection().z();
@@ -876,7 +876,7 @@ public class STUtils {
 
 
     /**
-     * Get a vector of track parameters for a {@link STStereoTrack} in the tracking frame.
+     * Get a vector of track parameters for a {@link STUtils.STStereoTrack} in the tracking frame.
      * @param track
      * @return array of intercept YX, intercept ZX, slope YX and slope ZX.
      */
@@ -1037,7 +1037,7 @@ public class STUtils {
     }
     
     /**
-     * Get curvilinear track parameters for this {@link STStereoTrack}.
+     * Get curvilinear track parameters for this {@link STUtils.STStereoTrack}.
      * @param track
      * @return array of track parameters
      */
@@ -1089,14 +1089,5 @@ public class STUtils {
         
         double clPars[] = new double[]{1.0/p, lambda, phi, xT, yT,};
         return clPars;
-    }
-
-    
-   
-    
-    
-    
-
-    
-    
+    }    
 }

@@ -53,7 +53,7 @@ public final class TextManager implements EventManager {
     
     /**
      * Initializes an event manager that will read from the indicated file.
-     * @param filename - The path to the file containing hit information.
+     * @param file - The path to the file containing hit information.
      */
     public TextManager(File file) throws IOException {
         reader = new AdvancedReader(file);

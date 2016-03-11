@@ -16,7 +16,7 @@ public abstract class PassiveViewer extends Viewer {
     
     /**
      * Adds a new hit to the display.
-     * @param hit - The hit to be added.
+     * @param lcioHit - The hit to be added.
      */
     public abstract void addHit(CalorimeterHit lcioHit);
     

@@ -11,7 +11,7 @@ import org.lcsim.geometry.Subdetector;
  * settings, per crystal.
  * <p>
  * Unlike most conditions data types, it does not extend {@link org.hps.conditions.api.ConditionsObject}, because it is
- * a composite object containing data assembled from many other {@link org.hps.conditions.ConditionsObjects} and has a
+ * a composite object containing data assembled from many other {@link org.hps.conditions.api.ConditionsObject} and has a
  * special data converter {@link EcalConditionsConverter}.
  *
  * @author Jeremy McCormick, SLAC

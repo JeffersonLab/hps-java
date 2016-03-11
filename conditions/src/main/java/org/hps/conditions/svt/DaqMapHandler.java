@@ -96,7 +96,7 @@ public final class DaqMapHandler extends DefaultHandler {
      * Method that is triggered when the end of a tag is encountered.
      *
      * @param uri the Namespace URI.
-     * @param locaName the local name (without prefix)
+     * @param localName the local name (without prefix)
      * @param qName the qualified name (with prefix)
      * @throws SAXException if there is an error processing the element
      */

@@ -44,7 +44,7 @@ public abstract class RecordProcessorAdapter<RecordType> extends CompositeLoopAd
     /**
      * Activate the <code>endJob</code> methods of the registered processors.
      *
-     * @param the <code>LoopEvent</code> which activated <code>finish</code>
+     * @param loopEvent the <code>LoopEvent</code> which activated <code>finish</code>
      */
     @Override
     public void finish(final LoopEvent loopEvent) {
@@ -80,7 +80,7 @@ public abstract class RecordProcessorAdapter<RecordType> extends CompositeLoopAd
     /**
      * Activate the <code>startJob</code> methods of the registered processors.
      *
-     * @param the <code>LoopEvent</code> which activated the start
+     * @param loopEvent the <code>LoopEvent</code> which activated the start
      */
     @Override
     public void start(final LoopEvent loopEvent) {
@@ -103,7 +103,7 @@ public abstract class RecordProcessorAdapter<RecordType> extends CompositeLoopAd
     /**
      * Activate the <code>suspend</code> methods of the registered processors.
      *
-     * @param the <code>LoopEvent</code> which activated <code>suspend</code>.
+     * @param loopEvent the <code>LoopEvent</code> which activated <code>suspend</code>.
      */
     @Override
     public void suspend(final LoopEvent loopEvent) {

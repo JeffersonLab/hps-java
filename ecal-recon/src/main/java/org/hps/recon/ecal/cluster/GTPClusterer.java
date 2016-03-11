@@ -124,7 +124,7 @@ public class GTPClusterer extends AbstractClusterer {
      * forms a collection of <code>Cluster</code> objects according to
      * the GTP clustering algorithm.
      * @param event - The object containing event data.
-     * @param hitList - A list of <code>CalorimeterHit</code> objects
+     * @param hits - A list of <code>CalorimeterHit</code> objects
      * from which clusters should be formed.
      */
     public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits) {

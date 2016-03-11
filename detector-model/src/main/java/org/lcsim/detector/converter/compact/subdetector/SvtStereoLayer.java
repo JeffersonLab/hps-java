@@ -21,7 +21,7 @@ public class SvtStereoLayer {
     /**
      * Ctor
      * 
-     * @param layerNumber  Layer number to which the stereo pair belongs to
+     * @param stereoLayerNumber  Layer number to which the stereo pair belongs
      * @param firstSensor  The first sensor in the stereo layer 
      * @param secondSensor The second sensor in the stereo layer
      */

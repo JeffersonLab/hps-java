@@ -337,7 +337,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Clear the tags used to filter the {@link org.hps.conditons.api.ConditionsRecord}s.
+     * Clear the tags used to filter the {@link org.hps.conditions.api.ConditionsRecord}s.
      */
     public void clearTags() {
         this.tags.clear();
@@ -504,9 +504,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
     /**
      * Add a row for a new collection and return the new collection ID assigned to it.
-     *
-     * @param tableName the name of the table
-     * @param comment an optional comment about this new collection
+     * @param collection the conditions object collection
+     * @param description text description for the new collection ID record in the database
      * @return the collection's ID
      * @throws SQLException
      */

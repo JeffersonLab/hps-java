@@ -13,10 +13,8 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 
 /**
- * Encapsulates the {@HelicalTrackStrip} to make sure that the local unit vectors are 
+ * Encapsulates the {@link org.lcsim.fit.helicaltrack.HelicalTrackStrip} to make sure that the local unit vectors are
  * coming from the underlying geometry.
- * 
- * I think the base calss should change but whatever.
  * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *

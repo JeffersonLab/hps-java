@@ -45,7 +45,7 @@ public class LCDDSurveyVolume extends SurveyVolumeImpl  {
     /**
      * Initialize this object with a known volume and no mother. Typically the world volume would use this.
      * @param surveyVolume - core geometry definitions
-     * @param vol - given volume
+     * @param volume - given volume
      */
     public LCDDSurveyVolume(SurveyVolume surveyVolume, Volume volume) {
         super(surveyVolume);

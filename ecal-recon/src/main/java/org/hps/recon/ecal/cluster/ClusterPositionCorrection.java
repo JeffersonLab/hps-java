@@ -58,7 +58,7 @@ public final class ClusterPositionCorrection {
      * @param pdg Particle id as per PDG
      * @param xCl Calculated x centroid position of the cluster, uncorrected, at face
      * @param rawEnergy Raw energy of the cluster (sum of hits with shared hit distribution)
-     * @return Corrected x position
+     * @return the corrected x position
      */
     private static double computeCorrectedPosition(int pdg, double xPos, double rawEnergy) {
         //double xCl = xPos / 10.0;//convert to cm
@@ -91,7 +91,7 @@ public final class ClusterPositionCorrection {
     * @param varB1
     * @param varB2
     * @param varB3
-    * @return
+    * @return the cluster position correction
     */    
     private static double positionCorrection(double xCl, double rawEnergy, double varA1, double varA2, double varB1, double varB2, double varB3) {
         //return ((xCl - (varB1 * rawEnergy + varB2 / Math.sqrt(rawEnergy) + varB3))/(varA1 / Math.sqrt(rawEnergy) + varA2 + 1));

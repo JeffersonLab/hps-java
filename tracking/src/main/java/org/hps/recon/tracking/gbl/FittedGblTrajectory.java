@@ -88,7 +88,7 @@ public class FittedGblTrajectory {
     /**
      * Find the index (or label) of the GBL point on the trajectory from the {@link GBLPOINT}.
      * @param point
-     * @return
+     * @return the index of the GBL point on the trajectory from the enum
      */
     public int getPointIndex(GBLPOINT point) {
         int gblPointIndex;

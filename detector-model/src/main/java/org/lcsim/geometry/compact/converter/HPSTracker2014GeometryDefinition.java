@@ -27,8 +27,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
  *
  */
  public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefinition {
-
-     private static final Logger LOGGER = Logger.getLogger(HPSTracker2014GeometryDefinition.class.getPackage().getName());
+    
+    private static final Logger LOGGER = Logger.getLogger(HPSTracker2014GeometryDefinition.class.getPackage().getName());
 
     public HPSTracker2014GeometryDefinition(boolean debug, Element node) {
         super(debug, node);
@@ -38,8 +38,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         doBottom = true;
         doTop = true;
         layerBitMask = 0x3F;
-    }
-
+     }
 
     /* (non-Javadoc)
      * @see org.lcsim.geometry.compact.converter.HPSTrackerBuilder#build()
@@ -47,12 +46,11 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     public void build() {
 
         if(isDebug()) System.out.printf("%s: constructing the geometry objects\n", this.getClass().getSimpleName());
-
         
         // Create alignment correction objects
         // THis is really a ugly approach with MP corrections initialized before and 
         // the survey corrections based on the XML node
-        // FIX THIS! //TODO
+        // TODO: FIX THIS!
         AlignmentCorrection alignmentCorrections = new AlignmentCorrection();
         alignmentCorrections.setNode(node);
         AlignmentCorrection supBotCorr = getL13UChannelAlignmentCorrection(false);
@@ -74,25 +72,19 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
         SvtBoxBasePlate svtBoxBasePlate = new SvtBoxBasePlate("base_plate",svtBox,null);
         surveyVolumes.add(svtBoxBasePlate);
-                
-        
-        
+                             
         SupportRingL13BottomKinMount supportRingKinL13Bottom = new SupportRingL13BottomKinMount("c_support_kin_L13b", svtBox, supBotCorr); 
-        surveyVolumes.add(supportRingKinL13Bottom);
-        
+        surveyVolumes.add(supportRingKinL13Bottom);        
         
         UChannelL13 uChannelL13Bottom = new UChannelL13Bottom("support_bottom_L13", svtBox, alignmentCorrections, supportRingKinL13Bottom); 
         surveyVolumes.add(uChannelL13Bottom);
         
         UChannelL13Plate uChannelL13BottomPlate = new UChannelL13BottomPlate("support_plate_bottom_L13", svtBox, null, uChannelL13Bottom); 
         surveyVolumes.add(uChannelL13BottomPlate);
-
         
         SupportRingL13TopKinMount supportRingKinL13Top = new SupportRingL13TopKinMount("c_support_kin_L13t", svtBox, supTopCorr); 
         surveyVolumes.add(supportRingKinL13Top);
-
-        
-        
+                
         UChannelL13Top uChannelL13Top = new UChannelL13Top("support_top_L13", svtBox, alignmentCorrections, supportRingKinL13Top); 
         surveyVolumes.add(uChannelL13Top);
         
@@ -110,7 +102,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         
         UChannelL46Plate uChannelL46TopPlate = new UChannelL46TopPlate("support_plate_top_L46", svtBox, null, uChannelL46Top);
         surveyVolumes.add(uChannelL46TopPlate);
-
         
         for(int l=1; l<=6;++l) {
             if(doLayer(l)) {
@@ -135,30 +126,20 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
                 bundle.print();
             }
         }
-        
-        
-        
-        
-
     }
-
     
     /**
      * {@link SurveyVolume} volume defining the pair spectrometer (PS) vacuum chamber
      * Reference: tracking volume coordinate system
      * Origin: same as reference
      * Orientation:  u - points in x direction (towards positron side), v - points upstream
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class PSVacuumChamber extends SurveyVolume {
+        
         public static final double height = PS_vac_box_inner_height; 
         public static final double width = PS_vac_box_inner_width;
         public static final double length = PS_vac_box_inner_length;
-        
-        
-        
+                       
         public PSVacuumChamber(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection) {
             super(name, mother, alignmentCorrection);
             init();
@@ -184,9 +165,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      * Reference: PS vacuum chamber coordinate system. Note that the PS vacuum chamber box is placed w.r.t. this box and the target positions.
      * Origin: intersection of midplanes vertically and horizontally
      * Orientation: same as reference
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class SvtBox extends SurveyVolume {
         public static final double height = 6.740*inch;
@@ -198,10 +176,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         public static final double center_to_target_z = 13.777*inch;
         public static final double center_to_target_x = 0.84*inch;
         public static final double center_to_target_y = 0.0;
-        
-        
-        
-        
+                               
         public SvtBox(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection) {
             super(name, mother, alignmentCorrection);
             init();
@@ -217,8 +192,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             
             ballPos = new BasicHep3Vector(0, 0, 0);
             veePos = new BasicHep3Vector(ballPos.x()+1, ballPos.y(), ballPos.z());
-            flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y()+1, ballPos.z());
-            
+            flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y()+1, ballPos.z());            
         }
     }
     
@@ -228,9 +202,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      * Reference: {@link SvtBox}  coordinate system.
      * Origin: surface of base plate intersection with center of hole for adjustment screw on positron side
      * Orientation: same as reference
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class SvtBoxBasePlate extends SurveyVolume {
         public static final double length = 50.5*inch;
@@ -268,16 +239,11 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         
     }
     
-    
-    
-    
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the support ring
      *  Reference: @SvtBoxBasePlate
      *  Origin: pin position of support ring (electron side)
      *  Orientation: slot position is vee position (positron side) i.e u points towards the positron side and v in the upstream beam direction
-     *  
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class SupportRing extends SurveyVolume {
@@ -315,14 +281,9 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             flatPos = VecOp.add(ballPos, vPrime);
         }
     }
-   
-    
-    
+        
     /**
      * Abstract {@link SurveyVolume} volume defining a coordinate system from the kinematic mount positions for support channels
-     *  
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public abstract static class SupportRingL13KinMount extends SurveyVolume {
 
@@ -360,9 +321,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      *  Reference: {@link SvtBox} coordinate system
      *  Origin: cone mount (it's on the electron side)
      *  Orientation: ball is cone mount, slot mount is vee position and flat is along beam line pointing upstream
-     *  
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class SupportRingL13BottomKinMount extends SupportRingL13KinMount {
 
@@ -385,9 +343,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      *  Reference: @SupportRing coordinate system
      *  Origin: cone mount (it's on the electron side)
      *  Orientation: ball is cone mount, slot mount is vee position and flat is along beamline pointing upstream
-     *  
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class SupportRingL13TopKinMount extends SupportRingL13KinMount {
         //public static final double mount_surface_wrt_baseplate_vertically = 5.388*inch;
@@ -420,12 +375,9 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 //            flatPos = new BasicHep3Vector(flat_pos_x,flat_pos_y,flat_pos_z);
 //        }
     }
-    
-    
+        
     /**
-     * Abstract {@link SurveyVolume} volume defining the coordinate system of the L1-3 u-channels 
-     *  
-     *  @author Per Hansson Adrian <phansson@slac.stanford.edu>
+     * Abstract {@link SurveyVolume} volume defining the coordinate system of the L1-3 u-channels
      */
     public abstract static class UChannelL13 extends SurveyVolume {
         public final static double length = UChannelL13Plate.length;
@@ -457,9 +409,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      *  Reference: {@link SupportRingL13BottomKinMount} coordinate system
      *  Origin: midpoint between upstream survey cones
      *  Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
-     *  
-     *  @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class UChannelL13Bottom extends UChannelL13 {
         private final static double cone_to_edge_of_plate_y = 12.25*inch; 
@@ -489,14 +438,9 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         }
     }
     
-    
-    
     /**
      * Position of the center of the survey balls when engaging the cones in the side plates of the U-channel. 
      * This is at nominal position.
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     private static class UChannelL13BottomSurveyBalls  {
         
@@ -523,18 +467,12 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         }
     }
     
-    
-  
-    
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the top L1-3 u-channel 
      *  Reference: SupportRingL13TopKinMount coordinate system
      *  Origin: midpoint between upstream survey cones
      *  Orientation: u - width pointing towards positron side, v - pointing along the U-channel in the beam direction
      *  Note that this is flipped w.r.t. bottom support.
-     *  
-     *  @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class UChannelL13Top extends UChannelL13 {
         private final static Hep3Vector ball_kinMount = new BasicHep3Vector(SupportRingL13TopKinMount.kin_mount_pos_x,SupportRingL13TopKinMount.kin_mount_pos_y,SupportRingL13TopKinMount.kin_mount_pos_z);
@@ -567,15 +505,10 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
            return length;
         }
     }
-
-    
-    
+       
     /**
      * Position of the center of the survey balls when engaging the cones in the side plates of the U-channel. 
      * This is at nominal position.
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     private static class UChannelL13TopSurveyBalls  {
         
@@ -602,16 +535,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         }
     }
     
-    
-    
-    
-    
-
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of the u-channel plate
-
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public abstract static class UChannelPlate extends SurveyVolume {
         public UChannelPlate(String name, SurveyVolume m,
@@ -626,9 +551,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of the u-channel plate
-
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public abstract static class UChannelL13Plate extends UChannelPlate {
         private final static double pocket_depth_L1 = 0.025;
@@ -689,9 +611,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      * Reference:  @UChannelL13Bottom coordinate system
      * Origin:  same as reference
      * Orientation: same as reference
-     *
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class UChannelL13BottomPlate extends UChannelL13Plate {
         protected final static double L1_module_pin_to_edge_of_plate = (16.0-4.126)*inch;
@@ -715,10 +634,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      * {@link SurveyVolume} volume defining the coordinate system of the bottom u-channel plate
      * Reference:  @UChannelL13Bottom coordinate system
      * Origin:  same as reference
-     * Orientation: same as reference
-     *
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
+     * Orientation: same as reference     
      */
     public static class UChannelL13TopPlate extends UChannelL13Plate {
         protected final static double L1_module_pin_to_edge_of_plate = (16.0-2.75)*inch;
@@ -737,12 +653,9 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         }
        
     }
-    
-    
+        
     /**
      * Abstract {@link SurveyVolume} volume defining the L4-6 u-channel volume
-     * 
-     *  @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class UChannelL46 extends SurveyVolume {
 
@@ -760,26 +673,18 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
         protected void setBoxDim() {
             setBoxDim(width,length,height);
-        }
-        
+        }        
     }
-    
-    
-   
-   
-    
+                 
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the u-channel 
      *  Reference: SVTBox coordinate system
      *  Origin: midpoint between upstream survey cones
      *  Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
-     *  
-     *  @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class UChannelL46Bottom extends UChannelL46 {
-        
-        
+                
         protected static final double cone_to_edge_of_plate_y = 2.75*inch;
 
         public UChannelL46Bottom(String name, SurveyVolume m, AlignmentCorrection alignmentCorrection) {
@@ -803,15 +708,12 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     /**
      * Position of the center of the survey balls when engaging the cones in the side plates of the U-channel.
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     private static class UChannelL46BottomSurveyBalls  {
         
-     // Shawn's calculated point at midpoint between two forward survey balls
+        // Shawn's calculated point at midpoint between two forward survey balls
         protected final static Hep3Vector ball_pos = new BasicHep3Vector(-5.857, -157.776, -8.423);
-
         
         private static final double cone_fwd_right_x = -7.019*inch;
         private static final double cone_fwd_right_y = -6.419*inch;
@@ -841,22 +743,14 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             return VecOp.sub(bwd_left, fwd_left);
         }
     }
-    
-    
-    
   
-    
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the u-channel 
-     *  Reference: {@link SVTBox} coordinate system
-     *  Origin: midpoint between upstream survey cones
-     *  Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
-     *  
-     *  @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
+     * Reference: {@link #SVTBox} coordinate system
+     * Origin: midpoint between upstream survey cones
+     * Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
      */
     public static class UChannelL46Top extends UChannelL46 {
-
         
         private static final double cone_to_side_plate_pin_y = (0.875-0.25)*inch;
         private static final double side_plate_pin_to_edge_of_plate_y = 1.5*inch;
@@ -886,8 +780,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             //flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y()-1, ballPos.z()); // random offset
         }
     }
-    
-    
+        
     /**
      * Position of the center of the survey balls when engaging the cones in the side plates of the U-channel.
      * 
@@ -898,7 +791,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
         // Shawn's calculated point at midpoint between two forward survey balls
         protected final static Hep3Vector ball_pos = new BasicHep3Vector(-6.341, -141.909, 8.423);
-
 
         protected static final double cone_fwd_right_x = -7.038*inch;
         protected static final double cone_fwd_right_y = -5.794*inch;
@@ -928,14 +820,9 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             return VecOp.sub(bwd_right, fwd_right);
         }
     }
-
-
     
     /**
-     * Abstract {@link SurveyVolume}  defining the coordinate system of the u-channel plates
-
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
+     * Abstract {@link SurveyVolume}  defining the coordinate system of the u-channel plates     
      */
     public abstract static class UChannelL46Plate extends UChannelPlate {
         public final static double pocket_depth_L4 = 0.1;
@@ -1043,16 +930,12 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         }
        
     }
-
-    
-
+  
     /**
      * {@link SurveyVolume} volume defining the coordinate system of module L1-3
      * Reference:  @UChannelL13Bottom coordinate system
      * Origin:  hole position on mounting surface (on electron side)
      * Orientation: u - is normal to the surface pointing vertically down, v - points along module away from hybrid side (i.e. positron direction).
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public abstract static class ModuleL13 extends BaseModule {
@@ -1119,8 +1002,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         protected double getHoleModuleCenterOffset() {
             return UChannelL13Bottom.cone_to_edge_of_plate_y - UChannelL13BottomPlate.L1_module_pin_to_edge_of_plate;
         }
-    }
-    
+    }    
     
     public static class ModuleL1Bot extends ModuleL13Bot {
 
@@ -1136,8 +1018,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             return new BasicHep3Vector(x, y, z);
         }
         
-    }
-    
+    }    
    
     public static class ModuleL1Top extends ModuleL13Top {
 
@@ -1155,9 +1036,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         }
         
     }
-    
-    
-    
+        
     public static class ModuleL2Bot extends ModuleL13Bot {
 
         public ModuleL2Bot(String name, SurveyVolume mother,
@@ -1190,10 +1069,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         }
         
     }
-    
-    
-    
-    
+        
     public static class ModuleL3Bot extends ModuleL13Bot {
 
         public ModuleL3Bot(String name, SurveyVolume mother,
@@ -1226,11 +1102,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         }
         
     }
-    
-    
-    
-   
-    
+                
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of module L4-6
      * 
@@ -1628,8 +1500,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      * Reference:  @ModuleL13Bot coordinate system
      * Origin:  sensor center
      * Orientation: w - is normal to the surface pointing from p-side to n-side, v - points along strips away from signal bond pads
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class HalfModuleAxial extends HPSTestRunTracker2014GeometryDefinition.TestRunHalfModule {
@@ -1668,8 +1538,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      * Reference:  @ModuleL13Bot coordinate system
      * Origin:  sensor center
      * Orientation: same as axial - the module is rotated later.
-     * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class HalfModuleStereo extends HPSTestRunTracker2014GeometryDefinition.TestRunHalfModule {
@@ -1873,23 +1741,21 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
     }
 
-
-
-
-
     /**
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
+     *    
      */
     public static class LongModuleBundle extends BaseModuleBundle {
+        
         public HalfModuleBundle halfModuleAxialHole = null;
         public HalfModuleBundle halfModuleStereoHole = null;
         public HalfModuleBundle halfModuleAxialSlot = null;
         public HalfModuleBundle halfModuleStereoSlot = null;
         protected SurveyVolume coldBlock = null;
+        
         public LongModuleBundle(BaseModule m) {
             super(m);
         }
+        
         public void print() {
             if(module!=null) System.out.printf("%s: %s\n", this.getClass().getSimpleName(),module.toString());
             if(halfModuleAxialHole!=null) halfModuleAxialHole.print();
@@ -1897,13 +1763,11 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             if(coldBlock!=null)System.out.printf("%s: %s\n", this.getClass().getSimpleName(),coldBlock.getName());
             if(halfModuleStereoHole!=null) halfModuleStereoHole.print();
             if(halfModuleStereoSlot!=null) halfModuleStereoSlot.print();
-            }
         }
-
+    }
 
     /**
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
+     *     
      */
     public static class LongHalfModuleBundle extends HalfModuleBundle {
         public LongHalfModuleBundle() {
@@ -1913,9 +1777,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             super(hm);
         }
     }
-    
-    
-    
+        
     /**
      * Create the half-module.
      * @param side - stereo or axial
@@ -1956,9 +1818,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         //TestRunHalfModuleBundle halfModuleBundle;
         LongModuleBundle bundle  = (LongModuleBundle)getModuleBundle(mother);
         
-       
-        
-        
         // Build the half-module bundle and half-module
         //TODO clean this up to a separate method
         LongHalfModule halfModule;
@@ -1983,9 +1842,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
             }
         } 
         halfModuleBundle.halfModule = halfModule;
-        
-        
-    
     
         // create the half module components 
         makeHalfModuleComponentSensor(halfModule);
@@ -1994,13 +1850,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
         //makeHalfModuleComponentCF(halfModule);
     
-        //makeHalfModuleComponentHybrid(halfModule);
-    
-    
-    
-    
+        //makeHalfModuleComponentHybrid(halfModule);    
     }
-
 
     protected void makeLongHalfModuleComponentKapton(BaseModule mother) {
         
@@ -2022,10 +1873,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
     
     }
 
-    
-    
-    
-    
     protected HPSTestRunTracker2014GeometryDefinition.TestRunHalfModule createTestRunHalfModuleAxial(String volName,
             BaseModule mother, AlignmentCorrection alignmentCorrection,
             int layer, String half) {
@@ -2047,7 +1894,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      * @param alignmentCorrection
      * @param layer
      * @param half
-     * @return
      */
     protected LongHalfModule createLongAxialSlotHalfModule(String name, SurveyVolume mother,
             AlignmentCorrection alignmentCorrection, int layer,
@@ -2062,16 +1908,13 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      * @param alignmentCorrection
      * @param layer
      * @param half
-     * @return
      */
     protected LongHalfModule createLongStereoSlotHalfModule(String name, SurveyVolume mother,
             AlignmentCorrection alignmentCorrection, int layer,
             String half) {
         return new LongStereoSlotHalfModule(name, mother, alignmentCorrection, layer, half);
     }
-    
-    
-    
+
     /* (non-Javadoc)
      * @see org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition#getHalfModuleBundle(org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseModule, java.lang.String)
      */
@@ -2121,9 +1964,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         }
         return hm;
     }
-
-
-    
     
     /* (non-Javadoc)
      * @see org.lcsim.geometry.compact.converter.HPSTrackerBuilder#getMillepedeLayer(java.lang.String)
@@ -2149,8 +1989,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         return  getMillepedeLayer(isTopLayer, layer, isAxial, isHole);
 
     }
-    
-    
 
     /**
      * Definition relating the sensors and layer number used in millepede for this detector.
@@ -2158,7 +1996,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
      * @param layer
      * @param isAxial
      * @param isHole
-     * @return
      */
     public int getMillepedeLayer(boolean isTopLayer, int layer, boolean isAxial, boolean isHole) {
         int l = -1;
@@ -2208,16 +2045,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
         if(l<0) throw new RuntimeException("Error getting the millepede layer.");
         
         if(isDebug()) System.out.printf("%s: %s %d %s %s -> MP layer %d\n",getClass().getSimpleName(),isTopLayer?"top":"bottom", layer, isAxial?"axial":"stereo", isHole?"hole":"slot", l);
-
         
         return l;
     }
-
-
-   
-
 }
-
-
-
-

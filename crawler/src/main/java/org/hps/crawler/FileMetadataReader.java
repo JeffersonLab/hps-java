@@ -14,8 +14,8 @@ public interface FileMetadataReader {
     /**
      * Create a metadata map with keys and values from the contents of a file.
      * 
-     * @param the input file for extracting metadata 
-     * @return the metadata map
+     * @param file the input file from which to extract metadata
+     * @return the metadata map of field names to values
      * @throws IOException if there is an error reading the file
      */
     Map<String, Object> getMetadata(File file) throws IOException;

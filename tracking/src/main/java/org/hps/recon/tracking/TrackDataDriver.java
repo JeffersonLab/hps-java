@@ -23,8 +23,8 @@ import org.lcsim.geometry.FieldMap;
 import org.lcsim.util.Driver;
 
 /**
- * Driver used to persist additional {@link Track} information via a
- * {@link GenericObject}.
+ * Driver used to persist additional {@link org.lcsim.event.Track} information via a 
+ * {@link org.lcsim.event.GenericObject} collection.
  *
  * @author Omar Moreno, UCSC
  * @author Sho Uemura, SLAC

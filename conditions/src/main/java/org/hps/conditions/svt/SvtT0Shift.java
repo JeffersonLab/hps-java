@@ -23,7 +23,7 @@ public final class SvtT0Shift extends AbstractSvtT0Shift {
         /**
          * Get the {@link SvtT0Shift} associated with a given DAQ pair.
          *
-         * @param DAQ pair for a given sensor
+         * @param pair DAQ pair for a given sensor
          * @return the {@link SvtT0Shift} associated with the DAQ pair or null if does not exist
          */
         @Override

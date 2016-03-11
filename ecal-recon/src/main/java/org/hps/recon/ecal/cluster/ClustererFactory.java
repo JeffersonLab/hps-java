@@ -38,7 +38,7 @@ public final class ClustererFactory {
      * @param name The name of the clustering algorithm.
      * @param cuts The set of cuts (can be null).
      * @return The clustering algorithm.
-     * @throw IllegalArgumentException if there is no Clusterer found with name.
+     * @throws IllegalArgumentException if there is no Clusterer found with name.
      */
     public static Clusterer create(String name, double[] cuts) {
         Clusterer clusterer;

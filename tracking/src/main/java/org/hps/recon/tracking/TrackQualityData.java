@@ -17,10 +17,7 @@ public class TrackQualityData implements GenericObject {
     private final double[] doubles;
 
     /**
-     * Default Ctor
-     *
-     * @param trackerVolume : The SVT volume to which the track used to
-     * calculate the residuals corresponds to.
+     * Default Ctor    
      */
     public TrackQualityData() {
         doubles = new double[2];

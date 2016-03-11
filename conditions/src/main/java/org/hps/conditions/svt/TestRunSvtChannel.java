@@ -26,7 +26,7 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
         /**
          * Find a collection of channels by their DAQ pair assignment.
          *
-         * @param the DAQ pair (FEB ID and FEB Hybrid ID)
+         * @param pair the DAQ pair (FEB ID and FEB Hybrid ID)
          * @return the collection of channels
          */
         @Override

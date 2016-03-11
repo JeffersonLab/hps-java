@@ -199,7 +199,7 @@ public final class ClusterUtilities {
     
     /**
      * Find the unique set of MCParticles that are referenced by the hits of the Cluster.
-     * @param clusters The input Cluster.
+     * @param cluster The input Cluster.
      * @return The set of unique MCParticles.
      */
     public static Set<MCParticle> findMCParticles(Cluster cluster) {  
@@ -428,7 +428,7 @@ public final class ClusterUtilities {
     
     /**
      * Get the set of hits from a list of clusters.
-     * @param The input cluster list.
+     * @param clusters The input cluster list.
      * @return The list of hits from all the clusters.
      */
     public static Set<CalorimeterHit> getHits(List<Cluster> clusters) {

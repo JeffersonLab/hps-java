@@ -14,12 +14,12 @@ import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
- * Implementation of default conversion from database tables to a {@link ConditionsObject} class.
- * <p>
- * This class actually returns collections and not individual objects.
+ * Implementation of default conversion from database tables records to a 
+ * {@link org.hps.conditions.api.ConditionsObjectCollection}.
  *
  * @author Jeremy McCormick, SLAC
- * @param <T> The type of the returned data which should be a class extending {@link BaseConditionsObjectCollection}.
+ * @param <T> The type of the returned data which should be a class extending 
+ * {@link org.hps.conditions.api.BaseConditionsObjectCollection}.
  */
 public abstract class AbstractConditionsObjectConverter<T> implements ConditionsConverter<T> {
 

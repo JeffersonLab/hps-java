@@ -48,9 +48,9 @@ import org.lcsim.util.Driver;
  * output object is not persisted into LCIO after runtime.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
- * @see DAQConfigDriver
- * @see EcalOnlineRawConverterDriver
- * @see GTPOnlineClusterDriver
+ * @see org.hps.record.daqconfig.DAQConfigDriver
+ * @see org.hps.recon.ecal.EcalOnlineRawConverterDriver
+ * @see org.hps.recon.ecal.cluster.GTPOnlineClusterDriver
  * @see SimTriggerData
  */
 public class DataTriggerSimDriver extends Driver {

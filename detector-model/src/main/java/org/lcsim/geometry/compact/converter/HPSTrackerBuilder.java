@@ -632,7 +632,7 @@ public abstract class HPSTrackerBuilder {
     /**
      * Get hole or slot key name from string
      * 
-     * @param name.
+     * @param name "hole" or "slot"
      * @return hole or not boolean
      */
     public static boolean isHoleFromName(String name) {
@@ -649,10 +649,7 @@ public abstract class HPSTrackerBuilder {
     /**
      * Extract old definition of Test Run sensor number.
      * 
-     * @param isTopLayer - top or bottom layer
-     * @param l - layer
-     * @param isAxial - axial or stereo sensor
-     * @return
+     * @return the geometric layer according to Test Run definition
      */
     public int getOldGeomDefLayerFromVolumeName(String name) {
 
@@ -672,8 +669,7 @@ public abstract class HPSTrackerBuilder {
     /**
      * Get the layer number consistent with the old geometry definition.
      * 
-     * @param module name that contains layer and half information.
-     * @return the layer.
+     * @return the older layer definition
      */
     public int getOldLayerDefinition(boolean isTopLayer, int l, boolean isAxial) {
         int layer = -1;

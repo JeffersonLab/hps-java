@@ -71,7 +71,7 @@ public class HpsTestRunSiSensor extends HpsSiSensor {
     /**
      * Set the FPGA ID associated with this sensor.
      * 
-     * @param The FPGA ID
+     * @param fpgaID The FPGA ID
      */
     public void setFpgaID(int fpgaID) {
         this.fpgaID = fpgaID;
@@ -80,7 +80,7 @@ public class HpsTestRunSiSensor extends HpsSiSensor {
     /**
      * Set the hybrid ID associated with this sensor.
      * 
-     * @param The hybrid ID.
+     * @param hybridID The hybrid ID.
      */
     public void setHybridID(int hybridID) {
         this.hybridID = hybridID;

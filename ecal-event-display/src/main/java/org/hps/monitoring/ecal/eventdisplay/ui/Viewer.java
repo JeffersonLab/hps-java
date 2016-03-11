@@ -122,8 +122,6 @@ public abstract class Viewer extends JFrame {
     
     /**
      * Initializes the viewer window and calorimeter panel.
-     * @param statusFields - Additional fields to display in the status
-     * panel. This can not be <code>null</code>.
      * @throws NullPointerException Occurs if any of the additional field
      * arguments are <code>null</code>.
      **/

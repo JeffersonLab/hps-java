@@ -53,9 +53,9 @@ public final class EpicsVariable {
      * Create an EPICs variable.
      *
      * @param variableName the name of the variable
-     * @param columnName the column name in the run db
+     * @param columnName the column name in the run database
      * @param description the variable's description
-     * @param variableType the type of the variable
+     * @param type the integer encoding of the type
      */
     public EpicsVariable(final String variableName, final String columnName, final String description, final int type) {
         this.variableName = variableName;

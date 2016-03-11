@@ -60,7 +60,7 @@ public class GBLTrackData implements GenericObject {
     }
 
     /**
-     * @param set track id to val
+     * @param val track ID value
      */
     public void setTrackId(int val) {
         bank_int[GBLINT.ID] = val;

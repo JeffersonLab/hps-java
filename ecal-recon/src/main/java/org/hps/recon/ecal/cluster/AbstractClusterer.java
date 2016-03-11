@@ -16,7 +16,7 @@ import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 /**
  * This is an abstract class that {@link Clusterer} classes should implement
  * to perform a clustering algorithm on a <code>CalorimeterHit</code> collection.
- * The sub-class should implement {@link #createClusters(List)} which is 
+ * The sub-class should implement {@link #createClusters(EventHeader, List)} which is 
  * the method that should perform the clustering algorithm.
  * 
  * @see Clusterer
@@ -69,8 +69,8 @@ public abstract class AbstractClusterer implements Clusterer {
     
     /**
      * This is the primary method for sub-classes to implement their clustering algorithm.
-     * @param hits
-     * @return
+     * @param hits the list of hits
+     * @return the list of created clusters
      */
     public abstract List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits);
     

@@ -148,7 +148,7 @@ public class MakeGblTracks {
      * @param _scattering - estimation of the multiple scattering {@link MultipleScattering}.
      * @param bfield - magnitude of B-field.
      * @param debug - debug flag.
-     * @return
+     * @return the fitted GBL trajectory
      */
     public static FittedGblTrajectory doGBLFit(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double bfield, int debug) {
         List<GBLStripClusterData> stripData = makeStripData(htf, stripHits, _scattering, bfield, debug);
@@ -165,7 +165,7 @@ public class MakeGblTracks {
      * @param _scattering
      * @param _B
      * @param _debug
-     * @return
+     * @return the list of GBL strip cluster data
      */
     public static List<GBLStripClusterData> makeStripData(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double _B, int _debug) {
         List<GBLStripClusterData> stripClusterDataList = new ArrayList<GBLStripClusterData>();

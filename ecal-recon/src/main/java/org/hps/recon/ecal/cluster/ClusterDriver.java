@@ -73,7 +73,7 @@ public class ClusterDriver extends Driver {
     
     /**
      * Set the name of the input CalorimeterHit collection to use for clustering.
-     * @param inputHitcollectionName The name of the input hit collection.
+     * @param inputHitCollectionName The name of the input hit collection.
      */
     public void setInputHitCollectionName(String inputHitCollectionName) {
         this.inputHitCollectionName = inputHitCollectionName;
@@ -128,7 +128,7 @@ public class ClusterDriver extends Driver {
      * This will use a factory method which first tries to use some hard-coded names from 
      * the cluster package.  As a last resort, it will interpret the name as a canonical 
      * class name and try to instantiate it using the Class API.
-     * @param The name or canonical class name of the Clusterer.
+     * @param name The name or canonical class name of the Clusterer.
      */
     public void setClustererName(String name) {
         clusterer = ClustererFactory.create(name);

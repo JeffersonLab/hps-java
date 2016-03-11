@@ -20,7 +20,7 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
     @SuppressWarnings("serial")
     public static abstract class AbstractSvtDaqMappingCollection<T extends AbstractSvtDaqMapping> extends
             BaseConditionsObjectCollection<T> {
-      
+
         /**
          * Get the orientation of a sensor.
          *
@@ -65,8 +65,8 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
     /**
      * Get the orientation of an SVT sensor (AXIAL or STEREO).
      *
-     * @see AXIAL
-     * @see STEREO
+     * @see #AXIAL
+     * @see #STEREO
      * @return the orientation of the SVT sensor
      */
     @Field(names = {"orientation"})
@@ -87,7 +87,7 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
     /**
      * Set the SVT sensor layer number (1-10 for test run and 1-12 for engineering run).
      *
-     * @param layer : SVT sensor layer number
+     * @param layer SVT sensor layer number
      */
     public final void setLayerNumber(final int layer) {
         this.setFieldValue("layer", layer);
@@ -109,8 +109,8 @@ public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
      * Set the SVT half that the sensor belongs to.
      *
      * @param svtHalf the SVT half (TOP or BOTTOM)
-     * @see TOP_HALF
-     * @see BOTTOM_HALF
+     * @see #TOP_HALF
+     * @see #BOTTOM_HALF
      */
     public final void setSvtHalf(final String svtHalf) {
         if (!svtHalf.equals(AbstractSvtDaqMapping.TOP_HALF) && !svtHalf.equals(AbstractSvtDaqMapping.BOTTOM_HALF)) {

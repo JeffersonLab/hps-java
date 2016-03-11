@@ -22,6 +22,7 @@ import org.lcsim.geometry.Detector;
  *
  * @author Jeremy McCormick, SLAC
  * @author Omar Moreno, UCSC
+ * 
  * @see EcalConditions
  * @see EcalChannel
  * @see EcalGain
@@ -38,8 +39,7 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
        
     /**
      * Create combined ECAL conditions object containing all data for the current run.
-     *
-     * @param manager the conditions manager
+     * 
      * @param name the conditions set name (unused but must satisfy conditions API)
      */
     @Override
@@ -129,7 +129,6 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
     /**
      * Get the default collections of {@link EcalBadChannel} objects.
      *
-     * @param manager the conditions manager
      * @return the collections of ECAL bad channel objects
      */
     protected ConditionsSeries<EcalBadChannel, EcalBadChannelCollection> getEcalBadChannelSeries() {
@@ -139,7 +138,6 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
     /**
      * Get the default {@link EcalCalibration} collection.
      *
-     * @param manager the conditions manager
      * @return the collection of ECAL channel calibration objects
      */
     protected EcalCalibrationCollection getEcalCalibrationCollection() {
@@ -149,7 +147,6 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
     /**
      * Get the default {@link EcalChannel} collection.
      *
-     * @param manager the conditions manager
      * @return the default ECAL channel object collection
      */
     protected EcalChannelCollection getEcalChannelCollection() {
@@ -159,7 +156,6 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
     /**
      * Get the default {@link EcalGain} collection.
      *
-     * @param manager the conditions manager
      * @return the ECAL channel gain collection
      */
     protected EcalGainCollection getEcalGainCollection() {
@@ -169,7 +165,6 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
     /**
      * Get the default {@link EcalTimeShift} collection.
      *
-     * @param manager the conditions manager
      * @return the collection of ECAL time shift objects
      */
     protected EcalTimeShiftCollection getEcalTimeShiftCollection() {
@@ -177,9 +172,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
     }
     
     /**
-     * Get the default {@link EcalPulseWith} collection.
+     * Get the default {@link EcalPulseWidth} collection.
      *
-     * @param manager the conditions manager
      * @return the collection of ECAL pulse widths
      */
     protected EcalPulseWidthCollection getEcalPulseWidthCollection() {

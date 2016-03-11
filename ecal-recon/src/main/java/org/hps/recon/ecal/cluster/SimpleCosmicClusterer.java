@@ -125,9 +125,8 @@ public class SimpleCosmicClusterer extends AbstractClusterer {
     }    
 
     /**
-     * This method takes a list of potential cluster hits and applies selection cuts,
-     * returning a new list that has the hit lists which did not pass the cuts removed.
-     * @param clusteredHitLists The input hit lists. 
+     * Apply selection cuts to cluster list and return filtered list.
+     * @param clusterList The input hit lists. 
      * @return The hit lists that passed the cuts.
      */
     protected List<Cluster> applyCuts(List<Cluster> clusterList) {

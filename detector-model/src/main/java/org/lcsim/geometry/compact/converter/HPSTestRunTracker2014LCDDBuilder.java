@@ -143,7 +143,7 @@ public class HPSTestRunTracker2014LCDDBuilder extends HPSTrackerLCDDBuilder {
 
     /**
      * Rules for adding the LCDD half module geometry.
-     * @param bundle - module to be added
+     * @param bundle2 - module to be added
      * @param mother - mother LCDD geometry object
      */
     protected void addTestRunHalfModule(HalfModuleBundle bundle2, LCDDSurveyVolume mother) {

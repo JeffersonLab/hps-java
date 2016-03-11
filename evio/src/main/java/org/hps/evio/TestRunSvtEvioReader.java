@@ -18,8 +18,6 @@ import org.lcsim.geometry.Subdetector;
  *  objects.
  * 
  *  @author Omar Moreno <omoreno1@ucsc.edu>
- *  @date November 20, 2014
- *
  */
 public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 

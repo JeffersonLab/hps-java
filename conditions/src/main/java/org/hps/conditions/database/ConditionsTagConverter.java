@@ -23,14 +23,14 @@ public class ConditionsTagConverter extends AbstractConditionsObjectConverter<Co
     private static final String SELECT_SQL = "SELECT conditions_id, tag from conditions_tags where tag = ?";
    
     /**
-     * Get a {@link org.hps.conditions.api.ConditionsTagCollection} which specifies a group of collections
+     * Get a {@link org.hps.conditions.api.ConditionsTag#ConditionsTagCollection} which specifies a group of collections
      * that are tagged in the <i>conditions_tags</i> table in the database.
      * <p>
      * The run number is not used, and the <code>name</code> argument specifies the tag name.
      *
-     * @param manager The current conditions manager.
-     * @param name The name of the conditions set.
-     * @return The matching ConditionsRecords.
+     * @param manager the current conditions manager
+     * @param name the name of the conditions set
+     * @return the matching <code>ConditionsRecord</code> objects
      */
     @Override
     public ConditionsTagCollection getData(final ConditionsManager manager, final String name) {

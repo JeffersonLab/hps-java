@@ -16,7 +16,7 @@ public final class ConditionsObjectException extends Exception {
     /**
      * Error with a message.
      *
-     * @param message the error message
+     * @param e the original exception
      */
     public ConditionsObjectException(Exception e) {
         super(e);

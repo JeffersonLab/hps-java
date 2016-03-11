@@ -64,7 +64,6 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
      * Load collection from a CSV file.
      *
      * @param file the input CSV file
-     * @param delimiter the field delimiter (leave blank for default which is comma-delimited)
      * @throws IOException if there is an error closing the reader
      * @throws FileNotFoundException if the input file does not exist
      * @throws ConditionsObjectException if there is an error creating a conditions object
@@ -104,7 +103,6 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
      * Write the collection contents to a text file.
      *
      * @param file the output text file
-     * @param delimiter the field delimiter (leave blank for default which is comma-delimited)
      */
     void writeCsv(File file) throws IOException;
 }

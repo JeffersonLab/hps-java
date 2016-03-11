@@ -182,7 +182,7 @@ public class DualThresholdSignalFitDriver extends Driver {
      * Process the event, performing a signal fit for every raw data hit in the input collection.
      * The hits that pass the sigma selection cut are added to a new hits collection, which can be
      * converted to a CalorimeterHit collection and then clustered.
-     * @throw NextEventException if there are not enough hits that pass the selection cut.
+     * @throws NextEventException if there are not enough hits that pass the selection cut.
      */
     public void process(EventHeader event) {
         if (event.hasCollection(RawTrackerHit.class, inputHitsCollectionName)) {

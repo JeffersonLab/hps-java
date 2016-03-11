@@ -34,8 +34,6 @@ public abstract class ActiveViewer extends Viewer {
      * events from the indicated data source with additional status
      * fields defined by the <code>fieldNames</code> argument.
      * @param em - The data source event manager.
-     * @param fieldNames - An array of additional status fields
-     * that should be displayed.
      */
     public ActiveViewer(EventManager em) {
         // Pass any additional field values to the super class.

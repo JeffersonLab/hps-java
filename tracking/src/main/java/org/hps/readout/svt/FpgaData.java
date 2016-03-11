@@ -39,8 +39,9 @@ public class FpgaData implements GenericObject {
 
     /**
      * 
-     * @param temperature : array containing hybrid temperatures
-     * @param tail : word present at the end of a FPGA data set
+     * @param fpgaID FPGA ID
+     * @param data : array containing hybrid temperatures
+     * @param tail : word present at the end of a FPGA data set     
      */
     public FpgaData(int fpgaID, int[] data, int tail) {
         this.fpgaID = fpgaID;

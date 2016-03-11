@@ -20,7 +20,6 @@ public final class TestRunEcalConditionsConverter extends EcalConditionsConverte
     /**
      * Get the collections of {@link EcalBadChannel} objects for Test Run.
      *
-     * @param manager the conditions manager
      * @return the Test Run bad channel collections
      */
     @Override
@@ -31,7 +30,6 @@ public final class TestRunEcalConditionsConverter extends EcalConditionsConverte
     /**
      * Get the {@link EcalCalibration} collection for Test Run.
      *
-     * @param manager the conditions manager
      * @return the Test Run ECAL calibration collection
      */
     @Override
@@ -43,7 +41,6 @@ public final class TestRunEcalConditionsConverter extends EcalConditionsConverte
     /**
      * Get the {@link EcalChannel} collection for Test Run.
      *
-     * @param manager the conditions manager
      * @return the Test Run ECAL channel collection
      */
     @Override
@@ -54,7 +51,6 @@ public final class TestRunEcalConditionsConverter extends EcalConditionsConverte
     /**
      * Get the {@link EcalGain} collection for Test Run.
      *
-     * @param manager the conditions manager
      * @return the Test Run ECAL gain collection
      */
     @Override
@@ -65,7 +61,6 @@ public final class TestRunEcalConditionsConverter extends EcalConditionsConverte
     /**
      * Get the {@link EcalTimeShift} collection for Test Run.
      *
-     * @param manager the conditions manager
      * @return the Test Run ECAL time shift collection
      */
     @Override

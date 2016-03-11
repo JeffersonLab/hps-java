@@ -129,8 +129,8 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
     /**
      * Get the side of the sensor (ELECTRON or POSITRON).
      *
-     * @see ELECTRON
-     * @see POSITRON
+     * @see #ELECTRON
+     * @see #POSITRON
      * @return sensor side (ELECTRON or POSITRON)
      */
     @Field(names = {"side"})
@@ -160,8 +160,8 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      * Set the side of the sensor (ELECTRON or POSITRON).
      *
      * @param side the sensor side (ELECTRON or POSITRON)
-     * @see {@link #ELECTRON}
-     * @see {@link #POSITRON}
+     * @see #ELECTRON
+     * @see #POSITRON
      */
     public final void setSide(final String side) {
         if (!side.equals(SvtDaqMapping.ELECTRON) && !side.equals(SvtDaqMapping.POSITRON)) {

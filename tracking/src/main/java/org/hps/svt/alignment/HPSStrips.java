@@ -255,7 +255,7 @@ public class HPSStrips  extends SiStrips
      * Capacitance for a particular cell.  Units are pF.
      *
      * @param cell_id
-     * @return
+     * @return the capacitance for the cell (pF)
      */
     public double getCapacitance(int cell_id) // capacitance in pF
     {
@@ -266,7 +266,7 @@ public class HPSStrips  extends SiStrips
      * Nominal capacitance used for throwing random noise in the sensor.
      * Calculated using middle strip.  Units are pF.
      *
-     * @return
+     * @return the nominal capacitance used for noise generation in the sensor (pF)
      */
     public double getCapacitance() {
         return getCapacitance(getNCells(0) / 2);

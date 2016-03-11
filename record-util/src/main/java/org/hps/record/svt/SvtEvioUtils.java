@@ -5,7 +5,6 @@ package org.hps.record.svt;
  *  A set of static utility methods used to decode SVT data.
  * 
  *  @author Omar Moreno <omoreno1@ucsc.edu>
- *  @date November 20, 2014
  */
 public class SvtEvioUtils {
 
@@ -19,9 +18,7 @@ public class SvtEvioUtils {
     private static final int APV_HEADER_BUFFER_ADDRESS_MASK  = 0xFF; //[8:1]
     private static final int APV_HEADER_DATA_FRAME_COUNT_MASK = 0xF; //[12:9]
     private static final int APV_HEADER_DATA_APV_NR_MASK = 0x3; //[15:13]
-    
-
-   
+      
     // TODO: Move these to constants class
     public static final int APV25_PER_HYBRID = 5;
     public static final int CHANNELS_PER_APV25 = 128;
@@ -90,13 +87,12 @@ public class SvtEvioUtils {
      *  Extract and return the front end board (FEB) ID associated with the
      *  multisample tail
      *  
-     *  @param data : a multisample header
+     *  @param multisampleTail : a multisample header
      *  @return A FEB ID in the range 0-10
      */
     public static int getFebIDFromMultisampleTail(int multisampleTail) { 
         return (multisampleTail >>> 8) & FEB_MASK; 
     }
-
     
     /**
      *  Extract and return the front end board (FEB) hybrid ID associated with 
@@ -113,7 +109,7 @@ public class SvtEvioUtils {
      *  Extract and return the front end board (FEB) hybrid ID associated with 
      *  the multisample tail 
      *
-     *  @param multisample : a  multisample tail
+     *  @param multisampleTail : a  multisample tail
      *  @return A FEB hybrid ID in the range 0-3
      */
     public static int getFebHybridIDFromMultisampleTail(int multisampleTail) { 
@@ -258,7 +254,7 @@ public class SvtEvioUtils {
     /**
      *  Extract the error bit from the multisample header.
      *
-     *  @param data : multisample of data
+     *  @param multisampleHeader : multisample of data
      *  @return value of the error bit.  This is non-zero if there is an error.
      */
     public static int getErrorBitFromMultisampleHeader(int multisampleHeader) { 

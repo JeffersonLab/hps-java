@@ -59,7 +59,7 @@ public class EcalMonitoringPlots extends Driver {
 
     /**
      * Set the refresh rate for histograms in this driver
-     * @param eventRefreshRate: the refresh rate, defined as number of events to accumulate before
+     * @param eventRefreshRate the refresh rate, defined as number of events to accumulate before
      *        refreshing the plot
      */
     public void setEventRefreshRate(int eventRefreshRate) {

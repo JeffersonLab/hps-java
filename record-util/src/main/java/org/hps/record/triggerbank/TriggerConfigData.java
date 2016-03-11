@@ -93,7 +93,7 @@ public final class TriggerConfigData {
     /**
      * Load DAQ config object from trigger config string data.
      * 
-     * @param the run number (needed by configuration manager)
+     * @param run the run number (needed by configuration manager)
      * @return the DAQ config object
      */
     public DAQConfig loadDAQConfig(int run) {

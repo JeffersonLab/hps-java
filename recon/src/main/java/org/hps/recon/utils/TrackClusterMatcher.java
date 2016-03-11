@@ -253,11 +253,11 @@ public class TrackClusterMatcher {
      * and uncorrected cluster positions.
      * 
      * @param cluster = position-uncorrected cluster
-     * @param track
+     * @param particle recon particle with tracks
      *
      * @return #sigma between cluster and track positions
      */
-    public double getNSigmaPosition(Cluster cluster,ReconstructedParticle particle) {
+    public double getNSigmaPosition(Cluster cluster, ReconstructedParticle particle) {
 
         if (particle.getTracks().size()<1) return Double.MAX_VALUE;
           Track track=particle.getTracks().get(0);

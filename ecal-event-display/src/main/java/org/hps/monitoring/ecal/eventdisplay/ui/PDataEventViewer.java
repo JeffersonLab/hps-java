@@ -57,7 +57,6 @@ public class PDataEventViewer extends PEventViewer {
      * Initializes a new <code>DataFileViewer</code> that reads from
      * the given event manager for event data and the given hardware
      * data file for crystal hardware data readout.
-     * @param dataSource - The manager for event data.
      * @param crystalDataFilePath - The data file for crystal hardware
      * information.
      * @throws IOException Occurs if there is an error reading from

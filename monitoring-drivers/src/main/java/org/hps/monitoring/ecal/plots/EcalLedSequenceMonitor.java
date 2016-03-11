@@ -707,7 +707,7 @@ public class EcalLedSequenceMonitor extends Driver{
     /**
      * This function returns the driver number (from 0 to 3) given the LED id.
      * @param led
-     * @return
+     * @return the driver number from the LED id
      */
     public int getDriver(int led){
         int ret=-1;    
@@ -723,7 +723,7 @@ public class EcalLedSequenceMonitor extends Driver{
      * If the gain changes (because we do a re-calibration), I do not want to include this in the LED analysis
      * @param energy
      * @param cellID
-     * @return
+     * @return the pedestal-subtracted raw energy
      */
     public double getRawADCSum(double energy,long cellID){
         EcalChannelConstants channelData = ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));

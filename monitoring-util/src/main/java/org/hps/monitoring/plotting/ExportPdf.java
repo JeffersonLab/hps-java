@@ -45,12 +45,10 @@ public final class ExportPdf {
     /**
      * Save a set of tabs containing plots to a file.
      *
-     * @param plotTabs the top level tab component (plots are actually in a set
-     * of tabs without these tabs)
+     * @param plotters the list of plotters to save (from plots in the regions)
      * @param fileName the file name
      * @param runData the list of run data to save on the cover page
-     * @throws IOException if there is a problem with the IO (e.g. writing to
-     * PDF file)
+     * @throws IOException if there is a problem with the IO (e.g. writing to PDF file)
      */
     public static void write(List<IPlotter> plotters, String fileName, List<String> runData)
             throws IOException {

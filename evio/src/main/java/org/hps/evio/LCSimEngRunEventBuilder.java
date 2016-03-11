@@ -121,10 +121,6 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         } else {
             LOGGER.info("Run manager is not initialized; TI time offset not available.");
         }
-        try {
-            RunManager.getRunManager().closeConnection();
-        } catch (Exception e) {
-        }
     }
 
     /**

@@ -18,8 +18,8 @@ public abstract class EvioReader {
     protected String hitCollectionName = null;
 
     /**
-     *  Make a LCIO hit collection (e.g. {@link RawTrackerHit}, 
-     *  {@link CalorimeterHit} from raw EVIO data.
+     *  Make a LCIO hit collection (e.g. {@link org.lcsim.event.RawTrackerHit}, 
+     *  {@link org.lcsim.event.CalorimeterHit} from raw EVIO data.
      * 
      *  @param event : The EVIO event to read the raw data from
      *  @param lcsimEvent : The LCSim event to write the collections to

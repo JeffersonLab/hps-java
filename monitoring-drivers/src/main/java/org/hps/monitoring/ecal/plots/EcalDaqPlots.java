@@ -18,11 +18,12 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * The driver <code>EcalDaqPlots</code> implements the histogram shown to the user in the fourth tab of the Monitoring Application, when using the Ecal monitoring lcsim file. It contains only a
- * sub-tab, showing the number of hits recorded by the different FADC channels. It is a very preliminary driver to monitor the DAQ status. These plots are updated continuosly.
- * @author Andrea Celentano
- * @TODO: integrate with the new conditions system.
+ * The driver <code>EcalDaqPlots</code> implements the histogram shown to the user in the fourth tab of the 
+ * Monitoring Application, when using the Ecal monitoring lcsim file. It contains only a sub-tab, showing
+ * the number of hits recorded by the different FADC channels. It is a very preliminary driver to monitor
+ * the DAQ status. These plots are updated continuously.
  * 
+ * @author Andrea Celentano
  */
 public class EcalDaqPlots extends Driver {
 

@@ -31,7 +31,6 @@ import org.lcsim.lcio.LCIOUtil;
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @date November 20, 2014
  *
  */
 public abstract class AbstractSvtEvioReader extends EvioReader {
@@ -322,7 +321,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
      * @param samples
      * @param index
      * @param multisampleHeaderData
-     * @return
+     * @return the length of the extracted samples or 0 if not a multisample header
      */
     protected int extractMultisampleHeaderData(int[] samples, int index, int[] multisampleHeaderData) {
         LOGGER.finest("extractMultisampleHeaderData: index " + index);

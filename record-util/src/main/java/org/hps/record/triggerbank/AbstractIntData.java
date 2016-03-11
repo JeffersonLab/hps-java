@@ -74,7 +74,6 @@ public abstract class AbstractIntData implements GenericObject {
      * Return the int bank of an AbstractIntData read from LCIO.
      *
      * @param object
-     * @return
      */
     public static int[] getBank(GenericObject object) {
         int N = object.getNInt() - 1;
