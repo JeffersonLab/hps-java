@@ -3,6 +3,10 @@ package org.hps.job;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.lcsim.util.Driver;
+
+import org.hps.conditions.ConditionsDriver;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.lcsim.job.JobControlManager;
@@ -70,4 +74,18 @@ public final class JobManager extends JobControlManager {
         }
         return commandLine;
     }
+
+    /**
+     * Initialize <code>ConditionsDriver</code> if necessary.
+     **/
+    protected void setupDrivers() {
+        super.setupDrivers();
+        for (Driver driver : this.getDriverExecList()) {
+            if (driver instanceof ConditionsDriver) {
+                ((ConditionsDriver) driver).initialize();
+                break;
+            }
+        }
+    }
+
 }
