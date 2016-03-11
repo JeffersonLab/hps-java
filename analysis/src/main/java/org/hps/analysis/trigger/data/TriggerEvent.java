@@ -80,8 +80,6 @@ public class TriggerEvent extends TriggerStatModule {
      * successfully matched to a trigger in the SSP bank.
      * @param tiFlags - An array of size 6 indicating which TI bank
      * flags are active and which are not.
-     * @param triggerTypeID - An identifier indicating the type of
-     * trigger that was matched.
      */
     public void matchedSSPTrigger(boolean[] tiFlags) {
         matchedTriggers(tiFlags, SSP);

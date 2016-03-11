@@ -746,7 +746,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
   
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the u-channel 
-     * Reference: {@link #SVTBox} coordinate system
+     * Reference: {@link HPSTracker2014GeometryDefinition.SVTBox} coordinate system
      * Origin: midpoint between upstream survey cones
      * Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
      */

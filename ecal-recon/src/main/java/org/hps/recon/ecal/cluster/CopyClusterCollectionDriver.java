@@ -112,7 +112,7 @@ public class CopyClusterCollectionDriver extends Driver {
     /**
      * Set to <code>true</code> to store hits in the output clusters.
      * 
-     * @param store <code>true</code> to store hits; <code>false</code> to not store hits
+     * @param storeHits <code>true</code> to store hits; <code>false</code> to not store hits
      */
     public void setStoreHits(final boolean storeHits) {
         this.storeHits = storeHits;

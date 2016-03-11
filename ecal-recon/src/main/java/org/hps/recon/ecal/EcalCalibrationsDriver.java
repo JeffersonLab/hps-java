@@ -91,7 +91,7 @@ public class EcalCalibrationsDriver extends Driver {
     /**
      * Set the end run number for the conditions record.  
      * It must be >= the runEnd.
-     * @param runStart The run start number.
+     * @param runEnd The run end number.
      */
     public void setRunEnd(int runEnd) {
         if (runEnd < 0) {

@@ -196,7 +196,7 @@ public class FittedGblTrajectory {
      * @param htf - helix to be corrected
      * @param point - {@link GBLPOINT} on the trajectory
      * @param bfield - magnitude of B-field.
-     * @return
+     * @return the corrected perigee parameters and covariance matrix
      */
     public Pair<double[], SymmetricMatrix> getCorrectedPerigeeParameters(HelicalTrackFit htf, GBLPOINT point, double bfield) {
         
