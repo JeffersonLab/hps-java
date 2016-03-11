@@ -107,7 +107,7 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
     /**
      * Do cleanup of conditions system after job.
      * <p>
-     * Shuts down the database connections to the run manager and conditions manager, if necessary.
+     * Shuts down the database connection to the conditions manager.
      */
     @Override
     public void cleanup() {
@@ -124,11 +124,6 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
             LOGGER.log(Level.WARNING, e.getMessage(), e);
         }
                         
-        // Close the run manager connection.
-        if (enableRunManager) {
-            RunManager.getRunManager().closeConnection();
-        }
-
         LOGGER.config("done cleaning up");
     }
 }

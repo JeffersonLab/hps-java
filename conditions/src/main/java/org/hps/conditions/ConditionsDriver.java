@@ -145,4 +145,12 @@ public class ConditionsDriver extends Driver {
     public final void setXmlConfigResource(final String xmlConfigResource) {
         this.xmlConfigResource = xmlConfigResource;
     }
+
+    public int getRunNumber() {
+        return this.runNumber;
+    }
+
+    public String getDetectorName() {
+        return this.detectorName;
+    }
 }

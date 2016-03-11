@@ -82,7 +82,9 @@ public final class JobManager extends JobControlManager {
         super.setupDrivers();
         for (Driver driver : this.getDriverExecList()) {
             if (driver instanceof ConditionsDriver) {
-                ((ConditionsDriver) driver).initialize();
+                ConditionsDriver conditions = (ConditionsDriver) driver;
+                getConditionsSetup().setRun(conditions.getRunNumber());
+                getConditionsSetup().setDetectorName(conditions.getDetectorName());
                 break;
             }
         }
