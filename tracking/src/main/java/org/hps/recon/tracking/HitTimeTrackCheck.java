@@ -28,9 +28,15 @@ public class HitTimeTrackCheck implements TrackCheck {
         this.rmsTimeCut = rmsTimeCut;
     }
 
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
     @Override
     public boolean checkSeed(SeedCandidate candidate) {
-//        System.out.format("seed with %d hits\n", candidate.getHits().size());
+        if (debug) {
+            System.out.format("%s: seed with %d hits\n", this.getClass().getSimpleName(), candidate.getHits().size());
+        }
         int nStrips = 0;
         double meanTime = 0;
         for (HelicalTrackHit hth : candidate.getHits()) {
@@ -50,15 +56,16 @@ public class HitTimeTrackCheck implements TrackCheck {
         }
 //        if (nStrips<6) return true;
         seedsChecked++;
-//        rmsTime = Math.sqrt(rmsTime / nStrips);
-//        System.out.format("seed RMS %f on %d hits\n",rmsTime,nStrips);
+        if (debug) {
+            System.out.format("%s: seed RMS %f on %d hits\n", this.getClass().getSimpleName(), Math.sqrt(rmsTime / nStrips), nStrips);
+        }
         boolean passCheck = (rmsTime < minTrackHits * rmsTimeCut * rmsTimeCut);
 //        boolean passCheck = (rmsTime < minTrackHits * rmsTimeCut);
         if (passCheck) {
             seedsPassed++;
         }
         if (debug && seedsChecked % 10000 == 0) {
-            System.out.format("Checked %d seeds, %d passed (%d failed)\n", seedsChecked, seedsPassed, seedsChecked - seedsPassed);
+            System.out.format("%s: Checked %d seeds, %d passed (%d failed)\n", this.getClass().getSimpleName(), seedsChecked, seedsPassed, seedsChecked - seedsPassed);
         }
         return passCheck;
 
@@ -66,7 +73,9 @@ public class HitTimeTrackCheck implements TrackCheck {
 
     @Override
     public boolean checkTrack(SeedTrack track) {
-//        System.out.format("track with %d hits\n", track.getTrackerHits().size());
+        if (debug) {
+            System.out.format("%s: track with %d hits\n", this.getClass().getSimpleName(), track.getTrackerHits().size());
+        }
         tracksChecked++;
         int nStrips = 0;
         double meanTime = 0;
@@ -87,13 +96,15 @@ public class HitTimeTrackCheck implements TrackCheck {
         }
         rmsTime = Math.sqrt(rmsTime / nStrips);
 //        rmsTime = rmsTime / nStrips;
-//        System.out.format("track RMS %f on %d hits\n", rmsTime, nStrips);
+        if (debug) {
+            System.out.format("%s: track RMS %f on %d hits\n", this.getClass().getSimpleName(), rmsTime, nStrips);
+        }
         boolean passCheck = (rmsTime < rmsTimeCut);
         if (passCheck) {
             tracksPassed++;
         }
         if (debug && tracksChecked % 100 == 0) {
-            System.out.format("Checked %d tracks, %d passed (%d failed)\n", tracksChecked, tracksPassed, tracksChecked - tracksPassed);
+            System.out.format("%s: Checked %d tracks, %d passed (%d failed)\n", this.getClass().getSimpleName(), tracksChecked, tracksPassed, tracksChecked - tracksPassed);
         }
         return passCheck;
     }

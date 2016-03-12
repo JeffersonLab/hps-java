@@ -35,7 +35,7 @@ import org.lcsim.util.Driver;
 public final class TrackerReconDriver extends Driver {
 
     private static final Logger LOGGER = Logger.getLogger(TrackerReconDriver.class.getPackage().getName());
-    
+
     // Debug flag.
     private boolean debug = false;
     // Tracks found across all events.
@@ -143,10 +143,8 @@ public final class TrackerReconDriver extends Driver {
 
         // Get B-field Y with no sign. Seed Tracker doesn't like signed B-field components.
         // FIXME Is this always right?
-//        this.bfield = Math.abs((detector.getFieldMap().getField(new BasicHep3Vector(0, 0, 0)).y()));
-        double zvalInTracker=500.0;//50cm...about the middle
-        Hep3Vector fieldInTracker=detector.getFieldMap().getField(new BasicHep3Vector(0, 0, zvalInTracker));
-        LOGGER.config("fieldInTracker at "+zvalInTracker+": Bx = "+fieldInTracker.x()+"; By = "+fieldInTracker.y()+"; Bz = "+fieldInTracker.z());      
+        Hep3Vector fieldInTracker = TrackUtils.getBField(detector);
+        LOGGER.config("fieldInTracker: Bx = " + fieldInTracker.x() + "; By = " + fieldInTracker.y() + "; Bz = " + fieldInTracker.z());
         this.bfield = Math.abs(fieldInTracker.y());
         LOGGER.config(String.format("%s: Set B-field to %.6f\n", this.getClass().getSimpleName(), this.bfield));
 
@@ -184,7 +182,9 @@ public final class TrackerReconDriver extends Driver {
         add(stFinal);
 
         if (rmsTimeCut > 0) {
-            stFinal.setTrackCheck(new HitTimeTrackCheck(rmsTimeCut));
+            HitTimeTrackCheck timeCheck = new HitTimeTrackCheck(rmsTimeCut);
+            timeCheck.setDebug(debug);
+            stFinal.setTrackCheck(timeCheck);
         }
     }
 
@@ -301,7 +301,7 @@ public final class TrackerReconDriver extends Driver {
     public void endOfData() {
         if (debug) {
             System.out.println("-------------------------------------------");
-            System.out.println(this.getName() + " found " + ntracks + " tracks in " + nevents + " events which is " + ((double) ntracks / (double) nevents) + " tracks per event.");
+            System.out.println(this.getName() + " with strategy " + strategyResource + " found " + ntracks + " tracks in " + nevents + " events which is " + ((double) ntracks / (double) nevents) + " tracks per event.");
         }
     }
 }
