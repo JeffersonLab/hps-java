@@ -1,5 +1,11 @@
 package org.hps.record.svt;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.jlab.coda.jevio.BaseStructure;
+import org.jlab.coda.jevio.DataType;
+import org.jlab.coda.jevio.StructureType;
+
 
 /**
  *  A set of static utility methods used to decode SVT data.
@@ -437,6 +443,56 @@ public class SvtEvioUtils {
         return samples;
     }
 
+    /**
+     *  Retrieve all the banks in an event that match the given tag in their
+     *  header and are not data banks. 
+     *
+     *  @param evioEvent : The event/bank being queried
+     *  @param tag : The tag to match
+     *  @return A collection of all bank structures that pass the filter 
+     *          provided by the event
+     */
+    public static List<BaseStructure> getROCBanks(BaseStructure evioEvent, int minROCTag, int maxROCTag) {
+        List<BaseStructure> matchingBanks = new ArrayList<BaseStructure>();
+        if (evioEvent.getChildCount() > 0) {
+            for (BaseStructure childBank : evioEvent.getChildrenList()) {
+                if (childBank.getStructureType() == StructureType.BANK
+                        && childBank.getHeader().getDataType() == DataType.ALSOBANK
+                        && childBank.getHeader().getTag() >= minROCTag
+                        && childBank.getHeader().getTag() <= maxROCTag) {
+                    matchingBanks.add(childBank);
+                }
+            }
+        }
+        return matchingBanks;
+    }
+
+    public static List<BaseStructure> getDataBanks(BaseStructure evioEvent, int minROCTag, int maxROCTag, int minDataTag, int maxDataTag) {
+        List<BaseStructure> rocBanks = getROCBanks(evioEvent, minROCTag, maxROCTag);
+        List<BaseStructure> matchingBanks = new ArrayList<BaseStructure>();
+        for (BaseStructure rocBank : rocBanks) {
+            if (rocBank.getChildCount() > 0) {
+                for (BaseStructure childBank : rocBank.getChildrenList()) {
+                    if (childBank.getHeader().getTag() >= minDataTag
+                            && childBank.getHeader().getTag() <= maxDataTag) {
+                        matchingBanks.add(childBank);
+                    }
+                }
+            }
+        }
+        return matchingBanks;
+    }
+    
+    public static List<int[]> getMultisamples(int[] data, int sampleCount, int headerLength) {
+        List<int[]> sampleList = new ArrayList<int[]>();
+        // Loop through all of the samples and make hits
+        for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
+            int[] samples = new int[4];
+            System.arraycopy(data, headerLength + samplesN, samples, 0, samples.length);
+            sampleList.add(samples);
+        }
+        return sampleList;
+    }
 
     /**
      *  Private constructor to prevent the class from being instantiated.

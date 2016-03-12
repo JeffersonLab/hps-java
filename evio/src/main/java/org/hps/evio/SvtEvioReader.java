@@ -7,7 +7,6 @@ import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderException;
 import org.hps.record.svt.SvtEvioExceptions.SvtEvioReaderException;
 import org.hps.util.Pair;
-import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -28,6 +27,7 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     private static final int DATA_TAIL_LENGTH = 1; 
     public static final int MIN_ROC_BANK_TAG = 51;
     public static final int MAX_ROC_BANK_TAG = 66;
+    public static final int DATA_BANK_TAG = 3;
     private static final int ROC_BANK_NUMBER = 0; 
     
     /**
@@ -50,6 +50,16 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
         return MAX_ROC_BANK_TAG; 
     }
     
+    @Override
+    protected int getMinDataBankTag() {
+        return DATA_BANK_TAG;
+    }
+
+    @Override
+    protected int getMaxDataBankTag() {
+        return DATA_BANK_TAG;
+    }
+
     /**
      *  Get the SVT ROC bank number of the bank encapsulating the SVT samples.
      * 
@@ -125,36 +135,13 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     }
     
     /**
-     *  Check whether a data bank is valid i.e. contains SVT samples only.  For
-     *  the engineering run, a valid data bank has a tag of 3.
-     * 
-     *  @param dataBank - An EVIO bank containing integer data
-     *  @return true if the bank is valid, false otherwise
-     * 
-     */
-    @Override
-    protected boolean isValidDataBank(BaseStructure dataBank) { 
-        
-        // The SVT configuration is stored in a bank with tag equal to 57614.
-        // All other event banks are invalid
-        if (dataBank.getHeader().getTag() == 57614) { 
-            
-            // Store the event bank for processing later.
-            eventBanks.add(dataBank);
-            
-            return false;
-        } else if (dataBank.getHeader().getTag() != 3) return false; 
-        
-        return true; 
-    }
-    
-    /**
      * Check whether the samples are valid. Specifically, check if the samples
      * are APV header or tails.
      * 
      * @param data : sample block of data
      * @return true if the samples are valid, false otherwise
      */
+    @Override
     protected boolean isValidSampleSet(int[] data) {
         return !(SvtEvioUtils.isMultisampleHeader(data) || SvtEvioUtils.isMultisampleTail(data));        
     }
@@ -188,9 +175,6 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
                }
            }
         }*/
-        
-        // Clear out the event banks after they have been processed
-        eventBanks.clear();
         
         return success;
     }

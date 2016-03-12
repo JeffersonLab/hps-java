@@ -6,7 +6,6 @@ import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderException;
 import org.hps.record.svt.SvtEvioUtils;
 import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.util.Pair;
-import org.jlab.coda.jevio.BaseStructure;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.event.EventHeader;
@@ -28,6 +27,7 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
     private static final int DATA_HEADER_LENGTH = 7;
     private static final int DATA_TAIL_LENGTH = 1; 
     private static final int MAX_FPGA_ID = 6;
+    public static final int MIN_DATA_BANK_TAG = 0;
     private static final int ROC_BANK_TAG = 3;
     private static final int ROC_BANK_NUMBER = -1; 
     
@@ -54,6 +54,16 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
     @Override 
     protected int getMaxRocBankTag() { 
         return ROC_BANK_TAG; 
+    }
+    
+    @Override
+    protected int getMinDataBankTag() {
+        return MIN_DATA_BANK_TAG;
+    }
+
+    @Override
+    protected int getMaxDataBankTag() {
+        return MAX_FPGA_ID;
     }
     
     /**
@@ -129,26 +139,12 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
     }
 
     /**
-     *  Check whether a data bank is valid i.e. contains SVT samples only.  For
-     *  the test run, a valid data bank has a tag in the range 0-6.
-     * 
-     *  @param dataBank - An EVIO bank containing integer data
-     *  @return true if the bank is valid, false otherwise
-     * 
-     */
-    @Override
-    protected boolean isValidDataBank(BaseStructure dataBank) { 
-        if (dataBank.getHeader().getTag() < 0 
-                || dataBank.getHeader().getTag() >= MAX_FPGA_ID) return false; 
-        return true; 
-    }
-    
-    /**
      * Check whether the samples are valid.
      * 
      * @param data : sample block of data
      * @return true if the samples are valid, false otherwise
      */
+    @Override
     protected boolean isValidSampleSet(int[] data) { 
         return true;        
     }

@@ -12,12 +12,7 @@ import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderException;
 import org.hps.record.svt.SvtEvioExceptions.SvtEvioReaderException;
 import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
-import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EvioEvent;
-import org.jlab.coda.jevio.IEvioFilter;
-import org.jlab.coda.jevio.IEvioStructure;
-import org.jlab.coda.jevio.StructureFinder;
-import org.jlab.coda.jevio.StructureType;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -38,7 +33,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
     public static final String SVT_HEADER_COLLECTION_NAME = "SvtHeaders";
     
     // Initialize the logger
-    public static Logger LOGGER = Logger.getLogger(AbstractSvtEvioReader.class.getPackage().getName());
+    public static final Logger LOGGER = Logger.getLogger(AbstractSvtEvioReader.class.getPackage().getName());
     
     // A Map from DAQ pair (FPGA/Hybrid or FEB ID/FEB Hybrid ID) to the
     // corresponding sensor
@@ -46,16 +41,11 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
                   HpsSiSensor /* Sensor */> daqPairToSensor 
                       = new HashMap<Pair<Integer, Integer>, HpsSiSensor>();
     
-    // A collection of banks that should be processed after all hits have been made
-    protected List<BaseStructure> eventBanks = new ArrayList<BaseStructure>();
-
     // Flag indicating whether the DAQ map has been setup
     protected boolean isDaqMapSetup = false;
 
     // Collections and names
     private static final String SVT_HIT_COLLECTION_NAME = "SVTRawTrackerHits";
-    List<RawTrackerHit> rawHits = new ArrayList<RawTrackerHit>();
-    List<SvtHeaderDataInfo> headers = new ArrayList<SvtHeaderDataInfo>();
 
     // Constants
     private static final String SUBDETECTOR_NAME = "Tracker";
@@ -75,6 +65,19 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
      */
     abstract protected int getMaxRocBankTag(); 
     
+    /**
+     *  Get the minimum SVT ROC bank tag in the event.
+     *
+     *  @return Minimum SVT ROC bank tag
+     */
+    abstract protected int getMinDataBankTag(); 
+    
+    /**
+     *  Get the maximum SVT ROC bank tag in the event.
+     *
+     *  @return Maximum SVT ROC bank tag
+     */
+    abstract protected int getMaxDataBankTag(); 
 
     /**
      *  Get the SVT ROC bank number of the bank encapsulating the SVT samples.
@@ -116,14 +119,6 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
     abstract protected HpsSiSensor getSensor(int[] data);
 
     /**
-     *  Check whether a data bank is valid i.e. contains SVT samples only.
-     * 
-     *  @param dataBank - An EVIO bank containing integer data
-     *  @return true if the bank is valid, false otherwise
-     */
-    abstract protected boolean isValidDataBank(BaseStructure dataBank);
-    
-    /**
      * Check whether the samples are valid
      * 
      * @param data : sample block of data
@@ -153,125 +148,88 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
      *  @return true if the raw hits were created successfully, false otherwise 
      * @throws SvtEvioReaderException 
      */
+    @Override
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) throws SvtEvioReaderException {
 
         LOGGER.finest("Physics Event: " + event.toString());
         
-        // Retrieve the ROC banks encapsulated by the physics bank.  The ROC
+        // Retrieve the data banks encapsulated by the physics bank.  The ROC
         // bank range is set in the subclass.
-        List<BaseStructure> rocBanks = new ArrayList<BaseStructure>();
-        for (int rocBankTag = this.getMinRocBankTag(); 
-                rocBankTag <= this.getMaxRocBankTag(); rocBankTag++) { 
-            
-            LOGGER.finest("Retrieving ROC bank: " + rocBankTag);
-            List<BaseStructure> matchingRocBanks = this.getMatchingBanks(event, rocBankTag);
-            if (matchingRocBanks == null) { 
-                LOGGER.finest("ROC bank " + rocBankTag + " was not found!");
-                continue;
-            }
-            rocBanks.addAll(matchingRocBanks);
-        }
-        LOGGER.finest("Total ROC banks found: " + rocBanks.size());
+        List<BaseStructure> dataBanks = SvtEvioUtils.getDataBanks(event, this.getMinRocBankTag(), this.getMaxRocBankTag(), this.getMinDataBankTag(), this.getMaxDataBankTag());
         
-        // Return false if ROC banks weren't found
-        if (rocBanks.isEmpty()) return false;  
+        // Return false if data banks weren't found
+        if (dataBanks.isEmpty()) return false;  
     
         // Setup the DAQ map if it's not setup
         if (!this.isDaqMapSetup)
             this.setupDaqMap(lcsimEvent.getDetector().getSubdetector(
                     SUBDETECTOR_NAME));
 
-        // Clear the list of raw tracker hits
-        rawHits.clear();
-        
-        // Clear the list of headers
-        headers.clear();
+        List<RawTrackerHit> rawHits = new ArrayList<RawTrackerHit>();
+        List<SvtHeaderDataInfo> headers = new ArrayList<SvtHeaderDataInfo>();
 
-        // Loop over the SVT ROC banks and process all samples
-        for (BaseStructure rocBank : rocBanks) { 
-            
-            LOGGER.finest("ROC bank: " + rocBank.toString());
-            
-            LOGGER.finest("Processing ROC bank " + rocBank.getHeader().getTag());
-            
-            // If the ROC bank doesn't contain any data, raise an exception
-            if (rocBank.getChildCount() == 0) { 
-                throw new SvtEvioReaderException("[ " + this.getClass().getSimpleName() 
-                                + " ]: SVT bank doesn't contain any data banks.");
-            }
-            
-            // Get the data banks containing the SVT samples.  
-            List<BaseStructure> dataBanks = rocBank.getChildren(); 
-            LOGGER.finest("Total data banks found: " + dataBanks.size());
-            
+        LOGGER.finest("Total data banks found: " + dataBanks.size());
+
             // Loop over all of the data banks contained by the ROC banks and 
-            // processed them
-            for (BaseStructure dataBank : dataBanks) { 
-        
-                LOGGER.finest("Processing data bank: " + dataBank.toString());
-                
-                // Check that the bank is valid
-                if (!this.isValidDataBank(dataBank)) continue;
-                
-                // Get the int data encapsulated by the data bank
-                int[] data = dataBank.getIntData();
-                LOGGER.finest("Total number of integers contained by the data bank: " + data.length);
-        
-                // Check that a complete set of samples exist
-                int sampleCount = data.length - this.getDataHeaderLength()
-                        - this.getDataTailLength();
-                LOGGER.finest("Total number of  samples: " + sampleCount);
-                if (sampleCount % 4 != 0) {
-                    throw new SvtEvioReaderException("[ "
-                            + this.getClass().getSimpleName()
-                            + " ]: Size of samples array is not divisible by 4");
-                }
-                
-                // extract header and tail information
-                SvtHeaderDataInfo headerData = this.extractSvtHeader(dataBank.getHeader().getNumber(), data);
-                
-                // Check that the multisample count is consistent
-                this.checkSvtSampleCount(sampleCount, headerData);
-                
-                // Add header to list
-                headers.add(headerData);
-                
-                
-                // Store the multisample headers
-                // Note that the length is not known but can't be longer than the multisample count
-                // in other words the data can be only header multisamples for example.
-                int multisampleHeaderData[] = new int[sampleCount];
-                int multisampleHeaderIndex = 0;
+        // processed them
+        for (BaseStructure dataBank : dataBanks) {
 
-                LOGGER.finest("sampleCount " + sampleCount);
-                
-                // Loop through all of the samples and make hits
-                for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
-                    
-                    int[] samples = new int[4];
-                    System.arraycopy(data, this.getDataHeaderLength() + samplesN, samples, 0, samples.length);
-                    
-                    LOGGER.finest("samplesN " + samplesN + " multisampleHeaderCount " + multisampleHeaderIndex);
-                    if(SvtEvioUtils.isMultisampleHeader(samples))
-                        LOGGER.finest("this is a header multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
-                    else 
-                        LOGGER.finest("this is a data multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
-                    
-                    
+            LOGGER.finest("Processing data bank: " + dataBank.toString());
+
+            // Get the int data encapsulated by the data bank
+            int[] data = dataBank.getIntData();
+            LOGGER.finest("Total number of integers contained by the data bank: " + data.length);
+
+            // Check that a complete set of samples exist
+            int sampleCount = data.length - this.getDataHeaderLength()
+                    - this.getDataTailLength();
+            LOGGER.finest("Total number of  samples: " + sampleCount);
+            if (sampleCount % 4 != 0) {
+                throw new SvtEvioReaderException("[ "
+                        + this.getClass().getSimpleName()
+                        + " ]: Size of samples array is not divisible by 4");
+            }
+
+            // extract header and tail information
+            SvtHeaderDataInfo headerData = this.extractSvtHeader(dataBank.getHeader().getNumber(), data);
+
+            // Check that the multisample count is consistent
+            this.checkSvtSampleCount(sampleCount, headerData);
+
+            // Add header to list
+            headers.add(headerData);
+
+            // Store the multisample headers
+            // Note that the length is not known but can't be longer than the multisample count
+            // in other words the data can be only header multisamples for example.
+            int multisampleHeaderData[] = new int[sampleCount];
+            int multisampleHeaderIndex = 0;
+
+            LOGGER.finest("sampleCount " + sampleCount);
+
+            List<int[]> multisampleList = SvtEvioUtils.getMultisamples(data, sampleCount, this.getDataHeaderLength());
+            // Loop through all of the samples and make hits
+            for (int[] samples:multisampleList) {
+                if (SvtEvioUtils.isMultisampleHeader(samples)) {
+                    LOGGER.finest("this is a header multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
                     // Extract data words from multisample header and update index
                     multisampleHeaderIndex += this.extractMultisampleHeaderData(samples, multisampleHeaderIndex, multisampleHeaderData);
-                    
-                    // If a set of samples is associated with an APV header or tail, skip it
-                    if (!this.isValidSampleSet(samples)) continue;
-                    rawHits.add(this.makeHit(samples));
+                } else {
+                    LOGGER.finest("this is a data multisample for apv " + SvtEvioUtils.getApvFromMultiSample(samples) + " ch " + SvtEvioUtils.getChannelNumber(samples));
                 }
-                
-                LOGGER.finest("got " +  multisampleHeaderIndex + " multisampleHeaderIndex for " + sampleCount + " sampleCount");
-                
-                // add multisample header tails to header data object
-                this.setMultiSampleHeaders(headerData, multisampleHeaderIndex, multisampleHeaderData);
 
+                // If a set of samples is associated with an APV header or tail, skip it
+                if (!this.isValidSampleSet(samples)) {
+                    continue;
+                }
+                rawHits.add(this.makeHit(samples));
             }
+
+            LOGGER.finest("got " + multisampleHeaderIndex + " multisampleHeaderIndex for " + sampleCount + " sampleCount");
+
+            // add multisample header tails to header data object
+            this.setMultiSampleHeaders(headerData, multisampleHeaderIndex, multisampleHeaderData);
+
         }
         
         LOGGER.finest("Total number of RawTrackerHits created: " + rawHits.size());
@@ -281,13 +239,9 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         // Add the collection of raw hits to the LCSim event
         lcsimEvent.put(SVT_HIT_COLLECTION_NAME, rawHits, RawTrackerHit.class, flag, READOUT_NAME);
 
-        
         // Process SVT headers
         this.processSvtHeaders(headers, lcsimEvent);
         
-       
-        
-
         return true;
     }
 
@@ -393,26 +347,4 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         // Create and return a RawTrackerHit
         return new BaseRawTrackerHit(hitTime, cellID, SvtEvioUtils.getSamples(data), null, sensor);
     }
-    
-    /**
-     *  Retrieve all the banks in an event that match the given tag in their
-     *  header and are not data banks. 
-     *
-     *  @param structure : The event/bank being queried
-     *  @param tag : The tag to match
-     *  @return A collection of all bank structures that pass the filter 
-     *          provided by the event
-     */
-    protected List<BaseStructure> getMatchingBanks(BaseStructure structure, final int tag) { 
-        IEvioFilter filter = new IEvioFilter() { 
-            public boolean accept(StructureType type, IEvioStructure struc) { 
-                return (type == StructureType.BANK) 
-                        && (tag == struc.getHeader().getTag())
-                        && (struc.getHeader().getDataType() == DataType.ALSOBANK);
-            }
-        };
-        return StructureFinder.getMatchingStructures(structure, filter);
-    }
-
-   
 }
