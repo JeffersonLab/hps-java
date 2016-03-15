@@ -19,7 +19,9 @@
         <driver name="TrackingMonitoringGBL"/>  
         <driver name="FinalStateMonitoringGBL"/>          
         <driver name="V0MonitoringGBL"/>          
-        <driver name="TridentMonitoringGBL"/>
+        <driver name="TridentMonitoringGBL"/>             
+        <driver name="MuonCandidateMonitoring"/>       
+        <driver name="MuonCandidateMonitoringGBL"/>
         <!-- Singles0 -->
         <driver name="EcalMonitoringSingles0"/>  
         <driver name="EcalMonitoringCorrSingles0"/> 
@@ -86,6 +88,14 @@
         <!-- all triggers  -->
         <driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>all</triggerType>
+        </driver>
+         <driver name="MuonCandidateMonitoringGBL" type="org.hps.analysis.dataquality.MuonCandidateMonitoring">         
+            <triggerType>all</triggerType>
+            <isGBL>true</isGBL>
+        </driver>
+          <driver name="MuonCandidateMonitoring" type="org.hps.analysis.dataquality.MuonCandidateMonitoring">         
+            <triggerType>all</triggerType>
+            <isGBL>false</isGBL>
         </driver>
         <driver name="EcalMonitoringCorr" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>all</triggerType>
