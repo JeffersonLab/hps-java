@@ -34,6 +34,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
     private final int nPulses;
     final double[] amplitudes;
     final double[] amplitudeErrors;
+    private double pedestal;
     //===> private ChannelConstants channelConstants;
     private HpsSiSensor sensor;
     private int channel;
@@ -44,6 +45,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
     private int nUsedSamples;
     private int firstFittedPulse;
     private int nFittedPulses;
+    private boolean fitPedestal = false;
     private boolean debug = false;
     private static final Logger minuitLoggger = Logger.getLogger("org.freehep.math.minuit");
 
@@ -61,6 +63,18 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         } else {
             minuitLoggger.setLevel(Level.OFF);
         }
+    }
+
+    public void setFitPedestal(boolean fitPedestal) {
+        this.fitPedestal = fitPedestal;
+    }
+
+    public boolean fitsPedestal() {
+        return fitPedestal;
+    }
+
+    public double getPedestal() {
+        return pedestal;
     }
 
     @Override
@@ -120,7 +134,11 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             ShapeFitParameters fit = new ShapeFitParameters();
             fit.setAmp(amplitudes[i]);
             fit.setAmpErr(amplitudeErrors[i]);
-            fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses, chisq));
+            if (fitPedestal) {
+                fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses - 1, chisq));
+            } else {
+                fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses, chisq));
+            }
 
             fit.setT0(min.userState().value(i));
 
@@ -177,15 +195,22 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
                 nUsedSamples = split;
                 //fit only the first pulse
                 nFittedPulses = 1;
-                FunctionMinimum frontFit = doRecursiveFit(fitData);
+                FunctionMinimum frontFit;
+                frontFit = doRecursiveFit(fitData);
                 if (debug) {
-                    System.out.format("front fit:\tt0=%f,\tA=%f,\tchisq=%f\n", frontFit.userState().value(0), amplitudes[firstFittedPulse], frontFit.fval());
+                    if (fitPedestal) {
+                        System.out.format("front fit:\tt0=%f,\tA=%f,\tchisq=%f,\tpedestal=%f\n", frontFit.userState().value(0), amplitudes[firstFittedPulse], frontFit.fval(), pedestal);
+                    } else {
+                        System.out.format("front fit:\tt0=%f,\tA=%f,\tchisq=%f\n", frontFit.userState().value(0), amplitudes[firstFittedPulse], frontFit.fval());
+                    }
                 }
-
                 //subtract first pulse from fit input
                 for (int i = 0; i < samples.length; i++) {
                     //===> fitData[i] -= amplitudes[firstFittedPulse] * getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * i - frontFit.userState().value(0), channelConstants);
                     fitData[i] -= amplitudes[firstFittedPulse] * shape.getAmplitudePeakNorm(HPSSVTConstants.SAMPLING_INTERVAL * i - frontFit.userState().value(0));
+                    if (fitPedestal) {
+                        fitData[i] -= pedestal;
+                    }
                 }
 
                 if (debug) {
@@ -201,7 +226,14 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
                 //fit the rest of the pulses
                 firstFittedPulse++;
                 nFittedPulses = nPulses - firstFittedPulse;
-                FunctionMinimum backFit = doRecursiveFit(fitData);
+                FunctionMinimum backFit;
+                if (fitPedestal) {
+                    fitPedestal = false;
+                    backFit = doRecursiveFit(fitData);
+                    fitPedestal = true;
+                } else {
+                    backFit = doRecursiveFit(fitData);
+                }
 
                 if (debug) {
                     System.out.format("back fit:\tt0=%f,\tA=%f,\tchisq=%f\n", backFit.userState().value(0), amplitudes[firstFittedPulse], backFit.fval());
@@ -221,7 +253,11 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
                 FunctionMinimum combinedFit = minuitFit(combinedGuess);
 
                 if (debug) {
-                    System.out.format("combined fit:\tt0=%f,\tA=%f,\tt0=%f,\tA=%f,\tchisq=%f\n", combinedFit.userState().value(0), amplitudes[firstFittedPulse], combinedFit.userState().value(1), amplitudes[firstFittedPulse + 1], combinedFit.fval());
+                    if (fitPedestal) {
+                        System.out.format("combined fit:\tt0=%f,\tA=%f,\tt0=%f,\tA=%f,\tchisq=%f,\tpedestal=%f\n", combinedFit.userState().value(0), amplitudes[firstFittedPulse], combinedFit.userState().value(1), amplitudes[firstFittedPulse + 1], combinedFit.fval(), pedestal);
+                    } else {
+                        System.out.format("combined fit:\tt0=%f,\tA=%f,\tt0=%f,\tA=%f,\tchisq=%f\n", combinedFit.userState().value(0), amplitudes[firstFittedPulse], combinedFit.userState().value(1), amplitudes[firstFittedPulse + 1], combinedFit.fval());
+                    }
                 }
 
                 double newchisq = evaluateMinimum(combinedFit);
@@ -234,8 +270,11 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
 //            double newchisq = evaluateMinimum(bestFit);
             if (debug) {
-                System.out.println("new chisq:\t" + bestChisq);
-                System.out.format("best fit:\tt0=%f,\tA=%f,\tt0=%f,\tA=%f,\tchisq=%f\n", bestFit.userState().value(0), amplitudes[firstFittedPulse], bestFit.userState().value(1), amplitudes[firstFittedPulse + 1], bestFit.fval());
+                if (fitPedestal) {
+                    System.out.format("best fit:\tt0=%f,\tA=%f,\tt0=%f,\tA=%f,\tchisq=%f,\tpedestal=%f\n", bestFit.userState().value(0), amplitudes[firstFittedPulse], bestFit.userState().value(1), amplitudes[firstFittedPulse + 1], bestFit.fval(), pedestal);
+                } else {
+                    System.out.format("best fit:\tt0=%f,\tA=%f,\tt0=%f,\tA=%f,\tchisq=%f\n", bestFit.userState().value(0), amplitudes[firstFittedPulse], bestFit.userState().value(1), amplitudes[firstFittedPulse + 1], bestFit.fval());
+                }
             }
             return bestFit;
         }
@@ -322,7 +361,8 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         if (times.length != nFittedPulses) {
             throw new RuntimeException("wrong number of parameters in doLinFit");
         }
-        RealMatrix sc_mat = new Array2DRowRealMatrix(nFittedPulses, nUsedSamples);
+        int nAmplitudes = fitPedestal ? nFittedPulses + 1 : nFittedPulses;
+        RealMatrix sc_mat = new Array2DRowRealMatrix(nAmplitudes, nUsedSamples);
         RealVector y_vec = new ArrayRealVector(nUsedSamples);
         RealVector var_vec = new ArrayRealVector(nUsedSamples);
 
@@ -330,6 +370,9 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             for (int i = 0; i < nFittedPulses; i++) {
                 //===> sc_mat.setEntry(i, j, getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i], channelConstants) / sigma[firstUsedSample + j]);
                 sc_mat.setEntry(i, j, shape.getAmplitudePeakNorm(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i]) / sigma[firstUsedSample + j]);
+            }
+            if (fitPedestal) {
+                sc_mat.setEntry(nFittedPulses, j, 1.0 / sigma[firstUsedSample + j]);
             }
             y_vec.setEntry(j, y[firstUsedSample + j] / sigma[firstUsedSample + j]);
             var_vec.setEntry(j, sigma[firstUsedSample + j] * sigma[firstUsedSample + j]);
@@ -344,7 +387,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             a_solver = a_cholesky.getSolver();
             solved_amplitudes = a_solver.solve(a_vec);
             amplitude_err = a_solver.solve(sc_mat.operate(var_vec));
-            if (solved_amplitudes.getMinValue() < 0) {
+            if (solved_amplitudes.getSubVector(0, nFittedPulses).getMinValue() < 0) {
                 goodFit = false;
             }
         } catch (NonPositiveDefiniteMatrixException e) {
@@ -352,8 +395,8 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         }
 
         if (!goodFit) {
-            solved_amplitudes = new ArrayRealVector(nFittedPulses, 0.0);
-            amplitude_err = new ArrayRealVector(nFittedPulses, Double.POSITIVE_INFINITY);
+            solved_amplitudes = new ArrayRealVector(nAmplitudes, 0.0);
+            amplitude_err = new ArrayRealVector(nAmplitudes, Double.POSITIVE_INFINITY);
         }
 
         double chisq = y_vec.subtract(sc_mat.preMultiply(solved_amplitudes)).getNorm();
@@ -361,6 +404,9 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         for (int i = 0; i < nFittedPulses; i++) {
             amplitudes[firstFittedPulse + i] = solved_amplitudes.getEntry(i);
             amplitudeErrors[firstFittedPulse + i] = Math.sqrt(amplitude_err.getEntry(i));
+        }
+        if (fitPedestal) {
+            pedestal = solved_amplitudes.getEntry(nFittedPulses);
         }
         return chisq;
     }
