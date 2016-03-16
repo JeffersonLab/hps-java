@@ -1,14 +1,13 @@
 package org.hps.recon.filtering;
 
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TIData;
-import org.lcsim.event.GenericObject;
-
 import org.lcsim.event.Cluster;
-import org.lcsim.event.EventHeader;
-import org.lcsim.util.Driver;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.record.epics.EpicsData;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TIData;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
+import org.lcsim.util.Driver;
 public class FEEFilterDriver extends Driver
 {
   public void process(EventHeader event) {
@@ -46,8 +45,8 @@ public class FEEFilterDriver extends Driver
 
       // keep events with a cluster over 600 MeV with seed over 400 MeV (for 2015 running).
         // keep events with cluster over 1.2 GeV and seed over 650 MeV for 2016 running.
-      if (cc.getEnergy() > 1.2 && 
-          ClusterUtilities.findSeedHit(cc).getCorrectedEnergy() > 0.65)
+      if (cc.getEnergy() > 0.6 && 
+          ClusterUtilities.findSeedHit(cc).getCorrectedEnergy() > 0.4 )
         return;
     }
 
