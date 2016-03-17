@@ -10,6 +10,29 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.util.Driver;
 public class FEEFilterDriver extends Driver
 {
+    //Set min seed energy value, default to 2015 run
+    private double seedCut = 0.4;
+    
+    //set min cluster energy value, default to 2015 run
+    private double clusterCut = 0.6;
+    
+    /**
+     * Set the cut value for seed energy in GeV
+     * @param seedCut
+     */
+    void setSeedCut(double seedCut) {
+        this.seedCut = seedCut;
+    }
+    
+    /**
+     * Set the cut value for cluster energy in GeV
+     * @param clusterCut
+     */
+    void setClusterCut(double clusterCut) {
+        this.clusterCut = clusterCut;
+    }
+    
+    
   public void process(EventHeader event) {
 
     // don't drop any events with EPICS data:
@@ -45,8 +68,8 @@ public class FEEFilterDriver extends Driver
 
       // keep events with a cluster over 600 MeV with seed over 400 MeV (for 2015 running).
         // keep events with cluster over 1.2 GeV and seed over 650 MeV for 2016 running.
-      if (cc.getEnergy() > 0.6 && 
-          ClusterUtilities.findSeedHit(cc).getCorrectedEnergy() > 0.4 )
+      if (cc.getEnergy() > clusterCut && 
+          ClusterUtilities.findSeedHit(cc).getCorrectedEnergy() > seedCut )
         return;
     }
 
