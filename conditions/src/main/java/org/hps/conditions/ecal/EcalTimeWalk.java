@@ -24,7 +24,7 @@ public final class EcalTimeWalk extends BaseConditionsObject {
      * @return parameter 0 value
      */
     @Field(names = {"p0"})
-    public Integer getP0() {
+    public Double getP0() {
         return this.getFieldValue("p0");
     }
     
@@ -33,7 +33,7 @@ public final class EcalTimeWalk extends BaseConditionsObject {
      * @return parameter 1 value
      */
     @Field(names = {"p1"})
-    public Integer getP1() {
+    public Double getP1() {
         return this.getFieldValue("p1");
     }
     
@@ -42,7 +42,7 @@ public final class EcalTimeWalk extends BaseConditionsObject {
      * @return parameter 2 value
      */
     @Field(names = {"p2"})
-    public Integer getP2() {
+    public Double getP2() {
         return this.getFieldValue("p2");
     }
     
@@ -51,7 +51,7 @@ public final class EcalTimeWalk extends BaseConditionsObject {
      * @return parameter 3 value
      */
     @Field(names = {"p3"})
-    public Integer getP3() {
+    public Double getP3() {
         return this.getFieldValue("p3");
     }
     
@@ -60,7 +60,7 @@ public final class EcalTimeWalk extends BaseConditionsObject {
      * @return parameter 4 value
      */
     @Field(names = {"p4"})
-    public Integer getP4() {
+    public Double getP4() {
         return this.getFieldValue("p4");
     }
 }
