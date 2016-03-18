@@ -6,17 +6,19 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -49,6 +51,7 @@ public class SvtChargeIntegrator {
         options.addOption(new Option("r", false, "use per-run CSV log file (default is per-file)"));
         options.addOption(new Option("t", false, "use TI timestamp instead of Unix time (higher precision, but requires TI time offset in run DB)"));
         options.addOption(new Option("c", false, "get TI time offset from CSV log file instead of run DB"));
+        options.addOption(new Option("e", true, "header error file"));
 
         final CommandLineParser parser = new PosixParser();
         CommandLine cl = null;
@@ -61,6 +64,26 @@ public class SvtChargeIntegrator {
         boolean perRun = cl.hasOption("r");
         boolean useTI = cl.hasOption("t");
         boolean useCrawlerTI = cl.hasOption("c");
+
+        Map<Integer, Long> runErrorMap = new HashMap<Integer, Long>();
+        if (cl.hasOption("e")) {
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(cl.getOptionValue("e")));
+                String line;
+                System.err.println("header error file header: " + br.readLine()); //discard the first line
+                while ((line = br.readLine()) != null) {
+                    String arr[] = line.split(" +");
+                    int run = Integer.parseInt(arr[1]);
+                    long errorTime = Long.parseLong(arr[4]);
+                    runErrorMap.put(run, errorTime);
+//                    System.out.format("%d %d\n", run, errorTime);
+                }
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(SvtChargeIntegrator.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(SvtChargeIntegrator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
 
         if (cl.getArgs().length != 2) {
             printUsage(options);
@@ -89,9 +112,9 @@ public class SvtChargeIntegrator {
             String line;
             System.err.println("myaData header: " + br.readLine()); //discard the first line
             if (perRun) {
-                System.out.println("run_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgoodQ\tgoodQ_withbias\tgoodQ_atnom");
+                System.out.println("run_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\ttotalQ_noerror\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgatedQ_noerror\tgoodQ\tgoodQ_withbias\tgoodQ_atnom\tgoodQ_noerror");
             } else {
-                System.out.println("run_num\tfile_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgoodQ\tgoodQ_withbias\tgoodQ_atnom");
+                System.out.println("run_num\tfile_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\ttotalQ_noerror\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgatedQ_noerror\tgoodQ\tgoodQ_withbias\tgoodQ_atnom\tgoodQ_noerror");
             }
 
             int currentRun = 0;
@@ -126,9 +149,6 @@ public class SvtChargeIntegrator {
                             continue;
                         }
                         tiTimeOffset = RunManager.getRunManager().getRunSummary().getTiTimeOffset();
-                        if (tiTimeOffset == 0) {
-                            continue;
-                        }
                         if (tiTimeOffset == 0) {
                             continue;
                         }
@@ -212,8 +232,8 @@ public class SvtChargeIntegrator {
                     if (firstTI == 0 || lastTI == 0) {
                         continue;
                     }
-                    startDate = new Date((long) ((firstTI + tiTimeOffset) / 1e6));
-                    endDate = new Date((long) ((lastTI + tiTimeOffset) / 1e6));
+                    startDate = new Date((firstTI + tiTimeOffset) / 1000000);
+                    endDate = new Date((lastTI + tiTimeOffset) / 1000000);
                 } else {
                     if (firstTime == 0 || lastTime == 0) {
                         continue;
@@ -222,15 +242,30 @@ public class SvtChargeIntegrator {
                     endDate = new Date(lastTime * 1000);
                 }
 
+                Long errorTime = runErrorMap.get(runNum);
+                Date errorDate = null;
+                if (errorTime != null) {
+                    errorDate = new Date(errorTime / 1000000);
+                    boolean isGood = Math.abs(errorDate.getTime() - startDate.getTime()) < 10 * 60 * 60 * 1000; //10 hours
+                    if (!isGood && useTI) {
+                        errorDate = new Date((errorTime + tiTimeOffset) / 1000000);
+//                        boolean isPlusOffsetGood = Math.abs(errorDatePlusOffset.getTime() - startDate.getTime()) < 10 * 60 * 60 * 1000; //10 hours
+//                        System.out.format("%d, %d, %d: %s (good: %b), %s (good: %b)\n", runNum, errorTime, tiTimeOffset, errorDate, isGood, errorDatePlusOffset, isPlusOffsetGood);
+                    }
+                }
+
                 double totalCharge = 0;
                 double totalChargeWithBias = 0;
                 double totalChargeWithBiasAtNominal = 0;
+                double totalChargeWithBiasAtNominalNoError = 0;
                 double totalGatedCharge = 0;
                 double totalGatedChargeWithBias = 0;
                 double totalGatedChargeWithBiasAtNominal = 0;
+                double totalGatedChargeWithBiasAtNominalNoError = 0;
                 double totalGoodCharge = 0;
                 double totalGoodChargeWithBias = 0;
                 double totalGoodChargeWithBiasAtNominal = 0;
+                double totalGoodChargeWithBiasAtNominalNoError = 0;
                 br.mark(1000);
 
                 while ((line = br.readLine()) != null) {
@@ -289,14 +324,23 @@ public class SvtChargeIntegrator {
                         long dtStart = Math.max(startDate.getTime(), lastDate.getTime());
                         long dtEnd = Math.min(date.getTime(), endDate.getTime());
                         double dt = (dtEnd - dtStart) / 1000.0;
+                        double errorDt = 0;
                         if (biasConstant != null) {
                             long biasStart = Math.max(dtStart, biasConstant.getStart());
                             long biasEnd = Math.min(dtEnd, biasConstant.getEnd());
-                            biasDt = (biasEnd - biasStart) / 1000.0;
+                            biasDt = Math.max(0, biasEnd - biasStart) / 1000.0;
                             if (positionConstant != null) {
                                 long positionStart = Math.max(biasStart, positionConstant.getStart());
                                 long positionEnd = Math.min(biasEnd, positionConstant.getEnd());
-                                positionDt = (positionEnd - positionStart) / 1000.0;
+                                positionDt = Math.max(0, positionEnd - positionStart) / 1000.0;
+
+                                long errorEnd = positionStart;
+                                if (errorDate == null) {
+                                    errorEnd = positionEnd;
+                                } else if (errorDate.getTime() > dtStart) {
+                                    errorEnd = Math.min(positionEnd, errorDate.getTime());
+                                }
+                                errorDt = Math.max(0, errorEnd - positionStart) / 1000.0;
                             }
                         }
 //                        System.out.format("start %d end %d date %d lastDate %d current %f dt %f\n", startDate.getTime(), endDate.getTime(), date.getTime(), lastDate.getTime(), current, dt);
@@ -311,6 +355,10 @@ public class SvtChargeIntegrator {
                                 totalChargeWithBiasAtNominal += positionDt * current;
                                 totalGatedChargeWithBiasAtNominal += positionDt * current * livetime;
                                 totalGoodChargeWithBiasAtNominal += positionDt * current * livetime * efficiency;
+
+                                totalChargeWithBiasAtNominalNoError += errorDt * current;
+                                totalGatedChargeWithBiasAtNominalNoError += errorDt * current * livetime;
+                                totalGoodChargeWithBiasAtNominalNoError += errorDt * current * livetime * efficiency;
                             }
                         }
                     }
@@ -326,11 +374,11 @@ public class SvtChargeIntegrator {
                 }
                 if (perRun) {
                     int nEvents = Integer.parseInt(record.get(9));
-                    System.out.format("%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal);
+                    System.out.format("%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalChargeWithBiasAtNominalNoError, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGatedChargeWithBiasAtNominalNoError, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal, totalGoodChargeWithBiasAtNominalNoError);
                 } else {
                     int fileNum = Integer.parseInt(record.get(1));
                     int nEvents = Integer.parseInt(record.get(2));
-                    System.out.format("%d\t%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, fileNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal);
+                    System.out.format("%d\t%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, fileNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalChargeWithBiasAtNominalNoError, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGatedChargeWithBiasAtNominalNoError, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal, totalGoodChargeWithBiasAtNominalNoError);
                 }
             }
         } catch (Exception ex) {
