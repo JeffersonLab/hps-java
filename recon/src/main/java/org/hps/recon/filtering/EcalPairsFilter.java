@@ -18,6 +18,7 @@ public class EcalPairsFilter extends EventReconFilter {
 
     private String clusterCollectionName = "EcalClusters";
     private double maxDt = 2.5;
+    private boolean strictPairs = false;
 
     public void setClusterCollectionName(String clusterCollectionName) {
         this.clusterCollectionName = clusterCollectionName;
@@ -27,12 +28,19 @@ public class EcalPairsFilter extends EventReconFilter {
         this.maxDt = maxDt;
     }
 
+    public void setStrictPairs(boolean strictPairs) {
+        this.strictPairs = strictPairs;
+    }
+
     @Override
     public void process(EventHeader event) {
         incrementEventProcessed();
         if (event.hasCollection(Cluster.class, clusterCollectionName)) {
             List<Cluster> clusters = event.get(Cluster.class, clusterCollectionName);
             if (clusters.size() < 2) {
+                skipEvent();
+            }
+            if (strictPairs && clusters.size() > 2) {
                 skipEvent();
             }
             List<Double> clusterTimes = new ArrayList<Double>();
@@ -52,7 +60,7 @@ public class EcalPairsFilter extends EventReconFilter {
                 skipEvent();
             }
         } else {
-                skipEvent();
+            skipEvent();
         }
         incrementEventPassed();
     }
