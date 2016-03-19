@@ -30,6 +30,7 @@ public class SVTPhaseOffsetReader {
         Options options = new Options();
         options.addOption(new Option("d", false, "debug"));
         options.addOption(new Option("o", true, "output ROOT file name"));
+        options.addOption(new Option("n", true, "max events"));
 
         // Parse the command line options.
         if (args.length == 0) {
@@ -48,14 +49,19 @@ public class SVTPhaseOffsetReader {
         }
 
         AIDA aida = AIDA.defaultInstance();
-        IHistogram2D ratioVsPhase = aida.histogram2D("ratio vs phase", 200, -1.0, 2.0, 6, 0.0, 24.0);
+        IHistogram2D ratioVsPhase = aida.histogram2D("ratio vs phase", 100, -1.0, 2.0, 6, 0.0, 24.0);
         IHistogram1D[] ratios = new IHistogram1D[6];
+        IHistogram2D hitsVsPhase = aida.histogram2D("hits vs phase", 300, 0.0, 300.0, 35, 0.0, 840.0);
         for (int i = 0; i < 6; i++) {
-            ratios[i] = aida.histogram1D("ratio, phase " + i, 200, -1.0, 2.0);
+            ratios[i] = aida.histogram1D("ratio, phase " + i, 100, -1.0, 2.0);
         }
 
         boolean debug = cl.hasOption("d");
         boolean seqRead = true;
+        int maxEvents = -1;
+        if (cl.hasOption("n")) {
+            maxEvents = Integer.parseInt(cl.getOptionValue("n"));
+        }
 
         IntBankDefinition tiBankDefinition = new IntBankDefinition(TIData.class, new int[]{0x2e, 0xe10a});
 
@@ -68,7 +74,6 @@ public class SVTPhaseOffsetReader {
         try {
             org.jlab.coda.jevio.EvioReader reader = new org.jlab.coda.jevio.EvioReader(evioFile, true, seqRead);
             int eventN = 1;
-            fileLoop:
             while (true) {
                 if (debug) {
                     System.out.println("Reading event " + eventN);
@@ -76,10 +81,11 @@ public class SVTPhaseOffsetReader {
                 try {
                     EvioEvent event = reader.nextEvent();
                     if (event == null) {
-                        break fileLoop;
+                        break;
                     }
                     reader.parseEvent(event);
                     //printBytes(event.getRawBytes()); // DEBUG
+                    int nHits = 0;
                     if (EvioEventUtilities.isPhysicsEvent(event)) {
                         BaseStructure tiBank = tiBankDefinition.findBank(event);
                         TIData tiData = null;
@@ -97,6 +103,7 @@ public class SVTPhaseOffsetReader {
                                 if (SvtEvioUtils.isMultisampleHeader(multisample) || SvtEvioUtils.isMultisampleTail(multisample)) {
                                     continue;
                                 }
+                                nHits++;
                                 short[] samples = SvtEvioUtils.getSamples(multisample);
 //                                    System.out.format("%d %d %d %d %d %d\n", samples[0], samples[1], samples[2], samples[3], samples[4], samples[5]);
 
@@ -107,18 +114,25 @@ public class SVTPhaseOffsetReader {
                                 }
                             }
                         }
+                        if (tiData != null) {
+                            hitsVsPhase.fill(nHits, tiData.getTime() % 840);
+
+                        }
                     }
                 } catch (Exception e) {
                     System.out.println("Caught Exception processing event " + eventN + " which was...");
                     e.printStackTrace();
                 }
                 ++eventN;
+                if (maxEvents > 0 && eventN > maxEvents) {
+                    break;
+                }
                 if (debug) {
                     System.out.println("-------");
                 }
             }
             double[] peaks = new double[6];
-            double minPeak = Double.MIN_VALUE;
+            double minPeak = Double.MAX_VALUE;
             int minPhase = -1;
             for (int i = 0; i < 6; i++) {
                 peaks[i] = -1;
@@ -136,14 +150,18 @@ public class SVTPhaseOffsetReader {
                 }
             }
             boolean isGood = true;
-            System.out.format("phase %d: peak at %f\n", (minPhase) % 6, peaks[(minPhase) % 6]);
+            for (int i = 0; i < 6; i++) {
+                System.out.format("phase %d: mean %f, peak at %f\n", (minPhase + i) % 6, ratios[(minPhase + i) % 6].mean(), peaks[(minPhase + i) % 6]);
+            }
             for (int i = 0; i < 5; i++) {
-                System.out.format("phase %d: peak at %f\n", (minPhase + i + 1) % 6, peaks[(minPhase + i + 1) % 6]);
-                if (peaks[(minPhase + i) % 6] > peaks[(minPhase + i + 1) % 6]) {
+                if (peaks[(minPhase + i + 1) % 6] - peaks[(minPhase + i) % 6] < 0.1) { //should be strictly increasing
+                    isGood = false;
+                }
+                if (ratios[(minPhase + i + 1) % 6].mean() < ratios[(minPhase + i) % 6].mean()) { //should be strictly increasing
                     isGood = false;
                 }
             }
-            System.out.format("offset phase %d, isGood = %b,\n", minPhase, isGood);
+            System.out.format("offset phase %d, isGood = %b\n", minPhase, isGood);
             reader.close();
         } catch (Exception e) {
             e.printStackTrace();
