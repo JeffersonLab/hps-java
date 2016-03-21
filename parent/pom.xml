@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <prerequisites>
         <maven>3.0</maven>
     </prerequisites>
@@ -7,7 +6,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.7-SNAPSHOT</version>
+    <version>3.7</version>
     <name>parent</name>
     <description>HPS Java parent POM</description>
     <properties>
@@ -19,9 +18,9 @@
         <skipPlugin>false</skipPlugin>
     </properties>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/parent/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/parent/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/parent/</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.7/parent</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.7/parent</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.7/parent</developerConnection>
     </scm>
     <repositories>
         <repository>
@@ -144,112 +143,112 @@
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-util</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-detector-data</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-detector-model</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-conditions</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-recon</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-readout-sim</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-tracking</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-evio</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-recon</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-analysis</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-drivers</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-app</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-users</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-steering-files</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-distribution</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-event-display</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-record-util</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-util</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-run-database</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-crawler</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-job</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-logging</artifactId>
-                <version>3.7-SNAPSHOT</version>
+                <version>3.7</version>
             </dependency>
             <!-- Next are external dependencies used in multiple modules. -->
             <dependency>
@@ -459,8 +458,7 @@
                         <configuration>
                             <target>
                                 <!-- Create the directory for test output. -->
-                                <mkdir
-                                    dir="${project.build.directory}/test-output" />
+                                <mkdir dir="${project.build.directory}/test-output" />
                             </target>
                         </configuration>
                         <goals>
@@ -491,16 +489,16 @@
                     <checkstyleRules>
                         <module name="Checker">
                             <module name="FileTabCharacter">
-                                <property name="fileExtensions" value="java,xml,lcsim,prop,properties"/>
+                                <property name="fileExtensions" value="java,xml,lcsim,prop,properties" />
                             </module>
                             <module name="TreeWalker">
                                 <module name="UnusedImports">
-                                    <property name="processJavadoc" value="false"/>
+                                    <property name="processJavadoc" value="false" />
                                 </module>
-                                <module name="RedundantImport"/>
+                                <module name="RedundantImport" />
                                 <!--                                
-                                <module name="EmptyBlock"/>
-                                <module name="EmptyStatement"/>
+                                <module name="EmptyBlock" />
+                                <module name="EmptyStatement" />
                                 -->
                             </module>
                         </module>
