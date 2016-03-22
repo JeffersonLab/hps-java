@@ -7,12 +7,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.8</version>
+        <version>3.9-SNAPSHOT</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.8/monitoring-drivers</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.8/monitoring-drivers</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.8/monitoring-drivers</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/monitoring-drivers/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/monitoring-drivers/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/monitoring-drivers/</developerConnection>
     </scm>
     <dependencies>
         <dependency>

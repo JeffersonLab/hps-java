@@ -8,7 +8,7 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.8</version>
+        <version>3.9-SNAPSHOT</version>
     </parent>
     <build>
         <plugins>
@@ -52,9 +52,9 @@
         </plugins>
     </build>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.8/detector-model</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.8/detector-model</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.8/detector-model</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/detector-model/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/detector-model/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/detector-model/</developerConnection>
     </scm>
     <dependencies>
         <dependency>

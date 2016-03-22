@@ -7,12 +7,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.8</version>
+        <version>3.9-SNAPSHOT</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.8/ecal-event-display</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.8/ecal-event-display</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.8/ecal-event-display</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/ecal-event-display/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/ecal-event-display/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/ecal-event-display/</developerConnection>
     </scm>
     <dependencies>
         <dependency>
