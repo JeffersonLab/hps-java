@@ -16,7 +16,8 @@ import org.lcsim.constants.Constants;
 
 /**
  * @version $Id: BilliorVertexer.java,v 1.3 2013/03/13 19:24:20 mgraham Exp $
- * @version Vertex tracks using least-squares method laid out by billior etal used in the HPS Java package.
+ * @version Vertex tracks using least-squares method laid out by billior etal
+ * used in the HPS Java package.
  */
 public class BilliorVertexer {
     // the value of the magnetic field in the vicinity of the vertex
@@ -51,184 +52,193 @@ public class BilliorVertexer {
     private Matrix _constrainedFit;
     private Matrix _constrainedCov;
     private double _chiSq;
-     private String _constraintType="Unspecified";
+    private String _constraintType = "Unspecified";
+
     // constructor
+
     public BilliorVertexer() {
     }
 
     public BilliorVertexer(double bField) {
         _bField = bField;
-        _constraintType="Unconstrained";
-        _beamspotConstraint =false;
+        _constraintType = "Unconstrained";
+        _beamspotConstraint = false;
         _targetConstraint = false;
     }
-    
-    public BilliorVertexer(double bField,boolean bsConst, boolean constToBS) {
+
+    public BilliorVertexer(double bField, boolean bsConst, boolean constToBS) {
         _bField = bField;
-        _beamspotConstraint =bsConst;
+        _beamspotConstraint = bsConst;
         _targetConstraint = constToBS;
-        if(_beamspotConstraint&&_targetConstraint)
+        if (_beamspotConstraint && _targetConstraint) {
             System.out.println("BilliorVertexer::Warning!!!  Setting both _beamspotConstraint and _targetConstraint to true!");
-        if(_beamspotConstraint)
-            _constraintType="BeamspotConstrained";
-        if(_targetConstraint)
-            _constraintType="TargetConstrained";
+        }
+        if (_beamspotConstraint) {
+            _constraintType = "BeamspotConstrained";
+        }
+        if (_targetConstraint) {
+            _constraintType = "TargetConstrained";
+        }
+    }
+
+    public void setDebug(boolean debug) {
+        _debug = debug;
     }
 
     public BilliorVertex fitVertex(List<BilliorTrack> tracks) {
         _ntracks = tracks.size();
         follow1985Paper(tracks);
-        if (_beamspotConstraint)
-            addV0fromBSConstraint();
-        else if (_targetConstraint)
-            constrainV0toBS();
-        Map<Integer,Hep3Vector> pFitMap=new HashMap<Integer,Hep3Vector>();
-        for(int i=0;i<tracks.size();i++){
-            Hep3Vector pFit=new BasicHep3Vector(this.getFittedMomentum(i));
-            pFitMap.put(i, pFit);            
+        if (_beamspotConstraint) {
+            addV0fromBSConstraint(true);
+        } else if (_targetConstraint) {
+            addV0fromBSConstraint(false);
         }
-        Hep3Vector vert=new BasicHep3Vector(_vertexPosition.e(0, 0),_vertexPosition.e(1, 0),_vertexPosition.e(2, 0));
-        Hep3Vector vertDet=CoordinateTransformations.transformVectorToDetector(vert);
-        SymmetricMatrix covVtxDet=CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix( _covVtx));
-        return new BilliorVertex(vertDet,covVtxDet,_chiSq,getInvMass(),pFitMap,_constraintType);
+        Map<Integer, Hep3Vector> pFitMap = new HashMap<Integer, Hep3Vector>();
+        for (int i = 0; i < tracks.size(); i++) {
+            Hep3Vector pFit = new BasicHep3Vector(this.getFittedMomentum(i));
+            pFitMap.put(i, pFit);
+        }
+        Hep3Vector vert = new BasicHep3Vector(_vertexPosition.e(0, 0), _vertexPosition.e(1, 0), _vertexPosition.e(2, 0));
+        Hep3Vector vertDet = CoordinateTransformations.transformVectorToDetector(vert);
+        SymmetricMatrix covVtxDet = CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix(_covVtx));
+        return new BilliorVertex(vertDet, covVtxDet, _chiSq, getInvMass(), pFitMap, _constraintType);
     }
 
     public BilliorVertex fitFastVertex(List<BilliorTrack> tracks) {
         _ntracks = tracks.size();
         fastVertex(tracks);
-     Hep3Vector vert=new BasicHep3Vector(_vertexPosition.e(0, 0),_vertexPosition.e(1, 0),_vertexPosition.e(2, 0));
-     return new BilliorVertex((Hep3Vector)_vertexPosition,_covVtx,_chiSq,getInvMass());
+        Hep3Vector vert = new BasicHep3Vector(_vertexPosition.e(0, 0), _vertexPosition.e(1, 0), _vertexPosition.e(2, 0));
+        return new BilliorVertex((Hep3Vector) _vertexPosition, _covVtx, _chiSq, getInvMass());
     }
 
-    private void calculateCovariance() {
-        for (int i = 0; i < _ntracks; i++) {
-            BasicMatrix b = (BasicMatrix) BList.get(i);
-            BasicMatrix cinv = (BasicMatrix) CinvList.get(i);
-            BasicMatrix bt = (BasicMatrix) MatrixOp.transposed(b);
-            covVtxMomList.add((MatrixOp.mult(-1, MatrixOp.mult(_covVtx, MatrixOp.mult(b, cinv)))));
-            for (int j = 0; j < _ntracks; j++) {
-                BasicMatrix bj = (BasicMatrix) BList.get(j);
-                BasicMatrix cjinv = (BasicMatrix) CinvList.get(j);
-                BasicMatrix tmp = (BasicMatrix) MatrixOp.mult(cinv, MatrixOp.mult(bt, MatrixOp.mult(_covVtx, MatrixOp.mult(bj, cjinv))));
-                if (i == j)
-                    tmp = (BasicMatrix) MatrixOp.add(tmp, cinv);
-                covMomList[i][j] = tmp;
-            }
-        }
-    }
-
-    private void calculateMomenta() {
-
-        for (int i = 0; i < _ntracks; i++) {
-            BasicMatrix params = (BasicMatrix) paramList.get(i);
-            BasicMatrix b = (BasicMatrix) BList.get(i);
-            BasicMatrix cinv = (BasicMatrix) CinvList.get(i);
-            BasicMatrix u = (BasicMatrix) UList.get(i);
-            //not sure following line is correct...mg 10/21/10
-            BasicMatrix CinvU = (BasicMatrix) MatrixOp.mult(cinv, u);
-            BasicMatrix CinvBTdV = (BasicMatrix) MatrixOp.mult(-1, MatrixOp.mult(cinv, MatrixOp.mult(MatrixOp.transposed(b), _vertexPosition)));
-//            if(_debug)System.out.println(" B = "+b.toString());
-//            if(_debug)System.out.println(" cinv = "+cinv.toString());
-//            if(_debug)System.out.println(" u = "+u.toString());
-//            if(_debug)System.out.println(" CinvU = "+CinvU.toString());
-//            if(_debug)System.out.println(" CinvBTdV = "+CinvBTdV.toString());
-            BasicMatrix tmpP = (BasicMatrix) MatrixOp.add(CinvBTdV, CinvU);
-            tmpP.setElement(0, 0, tmpP.e(0, 0) + params.e(2, 0));
-            tmpP.setElement(1, 0, tmpP.e(1, 0) + params.e(3, 0));
-            tmpP.setElement(2, 0, tmpP.e(2, 0) + params.e(4, 0));
-            _pFit.add(tmpP);
-//            if(_debug)System.out.println("Track "+i+" orig parameters  = "+params);
-//            if(_debug)System.out.println("Track "+i+" deltaP  = "+MatrixOp.add(CinvBTdV, CinvU));
-//            if(_debug)System.out.println("Track " + i + " _pFit  = " + tmpP);
-        }
-    }
-
-    private void calculateVertexPosition() {
-        BasicMatrix tmpcov = new BasicMatrix(3, 3);
-        BasicMatrix tmp = new BasicMatrix(3, 1);
-        for (int i = 0; i < _ntracks; i++) {
-            BasicMatrix b = (BasicMatrix) BList.get(i);
-            BasicMatrix cinv = (BasicMatrix) CinvList.get(i);
-            BasicMatrix u = (BasicMatrix) UList.get(i);
-//            if(_debug)System.out.println("Cinv matrix " + cinv.toString());
-//            if(_debug)System.out.println("B matrix " + b.toString());
-//            if(_debug)System.out.println("U matrix " + u.toString());
-            BasicMatrix bt = (BasicMatrix) MatrixOp.transposed(b);
-            //           if(_debug)System.out.println("Adding this to tmpcov : " + MatrixOp.mult(-1, MatrixOp.mult(b, MatrixOp.mult(cinv, bt))));
-            if (i == 0) {
-                tmpcov = (BasicMatrix) MatrixOp.mult(-1, MatrixOp.mult(b, MatrixOp.mult(cinv, bt)));
-                tmp = (BasicMatrix) MatrixOp.mult(-1, MatrixOp.mult(b, MatrixOp.mult(cinv, u)));
-            } else {
-                tmpcov = (BasicMatrix) MatrixOp.add(tmpcov, MatrixOp.mult(-1, MatrixOp.mult(b, MatrixOp.mult(cinv, bt))));
-                tmp = (BasicMatrix) MatrixOp.add(tmp, MatrixOp.mult(-1, MatrixOp.mult(b, MatrixOp.mult(cinv, u))));
-            }
-//            if(_debug)System.out.println("tmpCov matrix " + tmpcov.toString());
-//            if(_debug)System.out.println("tmp matrix " + tmp.toString());
-        }
+//    private void calculateCovariance() {
+//        for (int i = 0; i < _ntracks; i++) {
+//            BasicMatrix b = (BasicMatrix) BList.get(i);
+//            BasicMatrix cinv = (BasicMatrix) CinvList.get(i);
+//            BasicMatrix bt = (BasicMatrix) MatrixOp.transposed(b);
+//            covVtxMomList.add((MatrixOp.mult(-1, MatrixOp.mult(_covVtx, MatrixOp.mult(b, cinv)))));
+//            for (int j = 0; j < _ntracks; j++) {
+//                BasicMatrix bj = (BasicMatrix) BList.get(j);
+//                BasicMatrix cjinv = (BasicMatrix) CinvList.get(j);
+//                BasicMatrix tmp = (BasicMatrix) MatrixOp.mult(cinv, MatrixOp.mult(bt, MatrixOp.mult(_covVtx, MatrixOp.mult(bj, cjinv))));
+//                if (i == j)
+//                    tmp = (BasicMatrix) MatrixOp.add(tmp, cinv);
+//                covMomList[i][j] = tmp;
+//            }
+//        }
+//    }
 //
-//        if(_debug)System.out.println("A matrix " + A.toString());
-//        if(_debug)System.out.println("tmpCov matrix " + tmpcov.toString());
-//        if(_debug)System.out.println("sum of A and tmpCov = " + MatrixOp.add(A, tmpcov).toString());
-        _covVtx = MatrixOp.inverse(MatrixOp.add(A, tmpcov));
-//        if(_debug)System.out.println("_covVtx matrix " + _covVtx.toString());
-//        if(_debug)System.out.println("T matrix " + T.toString());
-        _vertexPosition = (BasicMatrix) MatrixOp.mult(_covVtx, MatrixOp.add(T, tmp));
-
-    }
-
-    private void makeOtherMatrices() {
-        BasicMatrix tmpA = new BasicMatrix(3, 3);
-        BasicMatrix tmpT = new BasicMatrix(3, 1);
-
-        for (int i = 0; i < _ntracks; i++) {
-            BasicMatrix tmpD = (BasicMatrix) DList.get(i);
-            BasicMatrix tmpE = (BasicMatrix) EList.get(i);
-            BasicMatrix dq = (BasicMatrix) dqList.get(i);
-            BasicMatrix tmpW = (BasicMatrix) WList.get(i);
-
-            if (i == 0) {
-                tmpA = (BasicMatrix) MatrixOp.mult(MatrixOp.transposed(tmpD), MatrixOp.mult(tmpW, tmpD));
-                tmpT = (BasicMatrix) MatrixOp.mult(MatrixOp.transposed(tmpD), MatrixOp.mult(tmpW, dq));
-            } else {
-                tmpT = (BasicMatrix) MatrixOp.add(tmpT, MatrixOp.mult(MatrixOp.transposed(tmpD), MatrixOp.mult(tmpW, dq)));
-                tmpA = (BasicMatrix) MatrixOp.add(tmpA, MatrixOp.mult(MatrixOp.transposed(tmpD), MatrixOp.mult(tmpW, tmpD)));
-            }
-            BList.add(MatrixOp.mult(MatrixOp.transposed(tmpD), MatrixOp.mult(tmpW, tmpE)));
-            BasicMatrix tmpC = (BasicMatrix) MatrixOp.mult(MatrixOp.transposed(tmpE), MatrixOp.mult(tmpW, tmpE));
-            CList.add(tmpC);
-            CinvList.add(MatrixOp.inverse(tmpC));
-            UList.add(MatrixOp.mult(MatrixOp.transposed(tmpE), MatrixOp.mult(tmpW, dq)));
-
-        }
-        A = tmpA;
-        T = tmpT;
-    }
-
-    private void calculateChisq() {
-        _chiSq = 0;
-        for (int i = 0; i < _ntracks; i++) {
-            BasicMatrix params = (BasicMatrix) paramList.get(i);
-            BasicMatrix d = (BasicMatrix) DList.get(i);
-            BasicMatrix e = (BasicMatrix) EList.get(i);
-            BasicMatrix w = (BasicMatrix) WList.get(i);
-            BasicMatrix pi = (BasicMatrix) _pFit.get(i);
-            BasicMatrix Vtilde = (BasicMatrix) MatrixOp.mult(d, _vertexPosition);
-            BasicMatrix Trtilde = (BasicMatrix) MatrixOp.mult(e, pi);
-            BasicMatrix ptilde = (BasicMatrix) MatrixOp.add(Vtilde, Trtilde);
-            //          if(_debug)System.out.println("Vtilde = "+Vtilde);
-            //          if(_debug)System.out.println("Trtilde = "+Trtilde);
-            BasicMatrix resid = (BasicMatrix) MatrixOp.add(params, MatrixOp.mult(-1, ptilde));
-            BasicMatrix residT = (BasicMatrix) MatrixOp.transposed(resid);
-//            if(_debug)System.out.println("ptilde = "+ptilde);
-//              if(_debug)System.out.println("params = "+params);
-//            if(_debug)System.out.println("resid = "+resid);
-//            if(_debug)System.out.println("Covariance = "+MatrixOp.inverse(w));
-//             if(_debug)System.out.println("Weight = "+w);
-            _chiSq = _chiSq + (MatrixOp.mult(residT, MatrixOp.mult(w, resid))).e(0, 0);
-//            if(_debug)System.out.println("_chiSq = "+_chiSq);
-        }
-    }
-
+//    private void calculateMomenta() {
+//
+//        for (int i = 0; i < _ntracks; i++) {
+//            BasicMatrix params = (BasicMatrix) paramList.get(i);
+//            BasicMatrix b = (BasicMatrix) BList.get(i);
+//            BasicMatrix cinv = (BasicMatrix) CinvList.get(i);
+//            BasicMatrix u = (BasicMatrix) UList.get(i);
+//            //not sure following line is correct...mg 10/21/10
+//            BasicMatrix CinvU = (BasicMatrix) MatrixOp.mult(cinv, u);
+//            BasicMatrix CinvBTdV = (BasicMatrix) MatrixOp.mult(-1, MatrixOp.mult(cinv, MatrixOp.mult(MatrixOp.transposed(b), _vertexPosition)));
+////            if(_debug)System.out.println(" B = "+b.toString());
+////            if(_debug)System.out.println(" cinv = "+cinv.toString());
+////            if(_debug)System.out.println(" u = "+u.toString());
+////            if(_debug)System.out.println(" CinvU = "+CinvU.toString());
+////            if(_debug)System.out.println(" CinvBTdV = "+CinvBTdV.toString());
+//            BasicMatrix tmpP = (BasicMatrix) MatrixOp.add(CinvBTdV, CinvU);
+//            tmpP.setElement(0, 0, tmpP.e(0, 0) + params.e(2, 0));
+//            tmpP.setElement(1, 0, tmpP.e(1, 0) + params.e(3, 0));
+//            tmpP.setElement(2, 0, tmpP.e(2, 0) + params.e(4, 0));
+//            _pFit.add(tmpP);
+////            if(_debug)System.out.println("Track "+i+" orig parameters  = "+params);
+////            if(_debug)System.out.println("Track "+i+" deltaP  = "+MatrixOp.add(CinvBTdV, CinvU));
+////            if(_debug)System.out.println("Track " + i + " _pFit  = " + tmpP);
+//        }
+//    }
+//
+//    private void calculateVertexPosition() {
+//        BasicMatrix tmpcov = new BasicMatrix(3, 3);
+//        BasicMatrix tmp = new BasicMatrix(3, 1);
+//        for (int i = 0; i < _ntracks; i++) {
+//            BasicMatrix b = (BasicMatrix) BList.get(i);
+//            BasicMatrix cinv = (BasicMatrix) CinvList.get(i);
+//            BasicMatrix u = (BasicMatrix) UList.get(i);
+////            if(_debug)System.out.println("Cinv matrix " + cinv.toString());
+////            if(_debug)System.out.println("B matrix " + b.toString());
+////            if(_debug)System.out.println("U matrix " + u.toString());
+//            BasicMatrix bt = (BasicMatrix) MatrixOp.transposed(b);
+//            //           if(_debug)System.out.println("Adding this to tmpcov : " + MatrixOp.mult(-1, MatrixOp.mult(b, MatrixOp.mult(cinv, bt))));
+//            if (i == 0) {
+//                tmpcov = (BasicMatrix) MatrixOp.mult(-1, MatrixOp.mult(b, MatrixOp.mult(cinv, bt)));
+//                tmp = (BasicMatrix) MatrixOp.mult(-1, MatrixOp.mult(b, MatrixOp.mult(cinv, u)));
+//            } else {
+//                tmpcov = (BasicMatrix) MatrixOp.add(tmpcov, MatrixOp.mult(-1, MatrixOp.mult(b, MatrixOp.mult(cinv, bt))));
+//                tmp = (BasicMatrix) MatrixOp.add(tmp, MatrixOp.mult(-1, MatrixOp.mult(b, MatrixOp.mult(cinv, u))));
+//            }
+////            if(_debug)System.out.println("tmpCov matrix " + tmpcov.toString());
+////            if(_debug)System.out.println("tmp matrix " + tmp.toString());
+//        }
+////
+////        if(_debug)System.out.println("A matrix " + A.toString());
+////        if(_debug)System.out.println("tmpCov matrix " + tmpcov.toString());
+////        if(_debug)System.out.println("sum of A and tmpCov = " + MatrixOp.add(A, tmpcov).toString());
+//        _covVtx = MatrixOp.inverse(MatrixOp.add(A, tmpcov));
+////        if(_debug)System.out.println("_covVtx matrix " + _covVtx.toString());
+////        if(_debug)System.out.println("T matrix " + T.toString());
+//        _vertexPosition = (BasicMatrix) MatrixOp.mult(_covVtx, MatrixOp.add(T, tmp));
+//
+//    }
+//
+//    private void makeOtherMatrices() {
+//        BasicMatrix tmpA = new BasicMatrix(3, 3);
+//        BasicMatrix tmpT = new BasicMatrix(3, 1);
+//
+//        for (int i = 0; i < _ntracks; i++) {
+//            BasicMatrix tmpD = (BasicMatrix) DList.get(i);
+//            BasicMatrix tmpE = (BasicMatrix) EList.get(i);
+//            BasicMatrix dq = (BasicMatrix) dqList.get(i);
+//            BasicMatrix tmpW = (BasicMatrix) WList.get(i);
+//
+//            if (i == 0) {
+//                tmpA = (BasicMatrix) MatrixOp.mult(MatrixOp.transposed(tmpD), MatrixOp.mult(tmpW, tmpD));
+//                tmpT = (BasicMatrix) MatrixOp.mult(MatrixOp.transposed(tmpD), MatrixOp.mult(tmpW, dq));
+//            } else {
+//                tmpT = (BasicMatrix) MatrixOp.add(tmpT, MatrixOp.mult(MatrixOp.transposed(tmpD), MatrixOp.mult(tmpW, dq)));
+//                tmpA = (BasicMatrix) MatrixOp.add(tmpA, MatrixOp.mult(MatrixOp.transposed(tmpD), MatrixOp.mult(tmpW, tmpD)));
+//            }
+//            BList.add(MatrixOp.mult(MatrixOp.transposed(tmpD), MatrixOp.mult(tmpW, tmpE)));
+//            BasicMatrix tmpC = (BasicMatrix) MatrixOp.mult(MatrixOp.transposed(tmpE), MatrixOp.mult(tmpW, tmpE));
+//            CList.add(tmpC);
+//            CinvList.add(MatrixOp.inverse(tmpC));
+//            UList.add(MatrixOp.mult(MatrixOp.transposed(tmpE), MatrixOp.mult(tmpW, dq)));
+//
+//        }
+//        A = tmpA;
+//        T = tmpT;
+//    }
+//
+//    private void calculateChisq() {
+//        _chiSq = 0;
+//        for (int i = 0; i < _ntracks; i++) {
+//            BasicMatrix params = (BasicMatrix) paramList.get(i);
+//            BasicMatrix d = (BasicMatrix) DList.get(i);
+//            BasicMatrix e = (BasicMatrix) EList.get(i);
+//            BasicMatrix w = (BasicMatrix) WList.get(i);
+//            BasicMatrix pi = (BasicMatrix) _pFit.get(i);
+//            BasicMatrix Vtilde = (BasicMatrix) MatrixOp.mult(d, _vertexPosition);
+//            BasicMatrix Trtilde = (BasicMatrix) MatrixOp.mult(e, pi);
+//            BasicMatrix ptilde = (BasicMatrix) MatrixOp.add(Vtilde, Trtilde);
+//            //          if(_debug)System.out.println("Vtilde = "+Vtilde);
+//            //          if(_debug)System.out.println("Trtilde = "+Trtilde);
+//            BasicMatrix resid = (BasicMatrix) MatrixOp.add(params, MatrixOp.mult(-1, ptilde));
+//            BasicMatrix residT = (BasicMatrix) MatrixOp.transposed(resid);
+////            if(_debug)System.out.println("ptilde = "+ptilde);
+////              if(_debug)System.out.println("params = "+params);
+////            if(_debug)System.out.println("resid = "+resid);
+////            if(_debug)System.out.println("Covariance = "+MatrixOp.inverse(w));
+////             if(_debug)System.out.println("Weight = "+w);
+//            _chiSq = _chiSq + (MatrixOp.mult(residT, MatrixOp.mult(w, resid))).e(0, 0);
+////            if(_debug)System.out.println("_chiSq = "+_chiSq);
+//        }
+//    }
     private void fastVertex(List<BilliorTrack> tracks) {
         boolean firstTrack = true;
         BasicMatrix sumwi = new BasicMatrix(3, 3);
@@ -274,8 +284,9 @@ public class BilliorVertexer {
             firstTrack = false;
         }
         _covVtx = MatrixOp.inverse(sumwi);
-        if (_debug)
+        if (_debug) {
             System.out.println("fastVertex::_covVtx matrix " + _covVtx.toString());
+        }
         _vertexPosition = (BasicMatrix) MatrixOp.mult(_covVtx, sumwiXi);
         _chiSq = 0;
         //get the chisq
@@ -312,80 +323,80 @@ public class BilliorVertexer {
         }
     }
 
-    private void makeDerivativeMatrices(List<BilliorTrack> tracks) {
-
-        //DList.clear();
-        //EList.clear();
-        //paramList.clear();
-        //dqList.clear();
-        //WList.clear();
-        BasicMatrix dq = new BasicMatrix(5, 1);
-        BasicMatrix tmpW = new BasicMatrix(5, 5);
-        for (BilliorTrack bt : tracks) {
-            double[] par = bt.parameters();
-            BasicMatrix tmpPar = new BasicMatrix(5, 1);
-            tmpPar.setElement(0, 0, par[0]);
-            tmpPar.setElement(1, 0, par[1]);
-            tmpPar.setElement(2, 0, par[2]);
-            tmpPar.setElement(3, 0, par[3]);
-            tmpPar.setElement(4, 0, par[4]);
-            paramList.add(tmpPar);
-            double cotth = 1. / tan(par[2]);
-            double uu = _v0[0] * cos(par[3]) + _v0[1] * sin(par[3]);//Q
-            double vv = _v0[1] * cos(par[3]) - _v0[0] * sin(par[3]);//R
-            double eps = -vv - .5 * uu * uu * par[4];
-            double zp = _v0[2] - uu * (1 - vv * par[4]) * cotth;
-            // * phi at vertex with these parameters
-            double phiv = par[3] + uu * par[4];
-            double cosf = cos(phiv);
-            double sinf = sin(phiv);
-
-            BasicMatrix tmpD = new BasicMatrix(5, 3);
-            tmpD.setElement(0, 0, sinf);
-            tmpD.setElement(0, 1, -cosf);
-            tmpD.setElement(1, 0, -cotth * cosf);
-            tmpD.setElement(1, 1, -cotth * sinf);
-            tmpD.setElement(1, 2, 1);
-            tmpD.setElement(3, 0, -par[4] * cosf);
-            tmpD.setElement(3, 1, -par[4] * sinf);
-
-            BasicMatrix tmpE = new BasicMatrix(5, 3);
-            tmpE.setElement(0, 1, uu);
-            tmpE.setElement(0, 2, -uu * uu / 2);
-            tmpE.setElement(1, 0, uu * (1 + cotth * cotth));
-            tmpE.setElement(1, 1, -vv * cotth);
-            tmpE.setElement(1, 2, uu * vv * cotth);
-            tmpE.setElement(3, 1, 1);
-            tmpE.setElement(3, 2, -uu);
-            tmpE.setElement(2, 0, 1);  //partial(theta)/dtheta
-            tmpE.setElement(4, 2, 1); //partial (rho)/drho
-            DList.add(tmpD);
-            EList.add(tmpE);
-
-            double deps = par[0] - eps;
-            double dzp = par[1] - zp;
-            double dphi = par[3] - phiv;
-
-            dq.setElement(0, 0, deps);
-            dq.setElement(1, 0, dzp);
-            dq.setElement(3, 0, dphi);
-            dqList.add(dq);
-            tmpW = (BasicMatrix) MatrixOp.inverse(bt.covariance());
-            WList.add(tmpW);
-
-            if (_debug)
-                System.out.println("makeDerivativeMatrices::Params = \n" + tmpPar);
-            if (_debug)
-                System.out.println("D = \n" + tmpD);
-            if (_debug)
-                System.out.println("E = \n" + tmpE);
-            if (_debug)
-                System.out.println("dq = \n" + dq);
-            if (_debug)
-                System.out.println("W = \n" + tmpW);
-        }
-
-    }
+//    private void makeDerivativeMatrices(List<BilliorTrack> tracks) {
+//
+//        //DList.clear();
+//        //EList.clear();
+//        //paramList.clear();
+//        //dqList.clear();
+//        //WList.clear();
+//        BasicMatrix dq = new BasicMatrix(5, 1);
+//        BasicMatrix tmpW = new BasicMatrix(5, 5);
+//        for (BilliorTrack bt : tracks) {
+//            double[] par = bt.parameters();
+//            BasicMatrix tmpPar = new BasicMatrix(5, 1);
+//            tmpPar.setElement(0, 0, par[0]);
+//            tmpPar.setElement(1, 0, par[1]);
+//            tmpPar.setElement(2, 0, par[2]);
+//            tmpPar.setElement(3, 0, par[3]);
+//            tmpPar.setElement(4, 0, par[4]);
+//            paramList.add(tmpPar);
+//            double cotth = 1. / tan(par[2]);
+//            double uu = _v0[0] * cos(par[3]) + _v0[1] * sin(par[3]);//Q
+//            double vv = _v0[1] * cos(par[3]) - _v0[0] * sin(par[3]);//R
+//            double eps = -vv - .5 * uu * uu * par[4];
+//            double zp = _v0[2] - uu * (1 - vv * par[4]) * cotth;
+//            // * phi at vertex with these parameters
+//            double phiv = par[3] + uu * par[4];
+//            double cosf = cos(phiv);
+//            double sinf = sin(phiv);
+//
+//            BasicMatrix tmpD = new BasicMatrix(5, 3);
+//            tmpD.setElement(0, 0, sinf);
+//            tmpD.setElement(0, 1, -cosf);
+//            tmpD.setElement(1, 0, -cotth * cosf);
+//            tmpD.setElement(1, 1, -cotth * sinf);
+//            tmpD.setElement(1, 2, 1);
+//            tmpD.setElement(3, 0, -par[4] * cosf);
+//            tmpD.setElement(3, 1, -par[4] * sinf);
+//
+//            BasicMatrix tmpE = new BasicMatrix(5, 3);
+//            tmpE.setElement(0, 1, uu);
+//            tmpE.setElement(0, 2, -uu * uu / 2);
+//            tmpE.setElement(1, 0, uu * (1 + cotth * cotth));
+//            tmpE.setElement(1, 1, -vv * cotth);
+//            tmpE.setElement(1, 2, uu * vv * cotth);
+//            tmpE.setElement(3, 1, 1);
+//            tmpE.setElement(3, 2, -uu);
+//            tmpE.setElement(2, 0, 1);  //partial(theta)/dtheta
+//            tmpE.setElement(4, 2, 1); //partial (rho)/drho
+//            DList.add(tmpD);
+//            EList.add(tmpE);
+//
+//            double deps = par[0] - eps;
+//            double dzp = par[1] - zp;
+//            double dphi = par[3] - phiv;
+//
+//            dq.setElement(0, 0, deps);
+//            dq.setElement(1, 0, dzp);
+//            dq.setElement(3, 0, dphi);
+//            dqList.add(dq);
+//            tmpW = (BasicMatrix) MatrixOp.inverse(bt.covariance());
+//            WList.add(tmpW);
+//
+//            if (_debug)
+//                System.out.println("makeDerivativeMatrices::Params = \n" + tmpPar);
+//            if (_debug)
+//                System.out.println("D = \n" + tmpD);
+//            if (_debug)
+//                System.out.println("E = \n" + tmpE);
+//            if (_debug)
+//                System.out.println("dq = \n" + dq);
+//            if (_debug)
+//                System.out.println("W = \n" + tmpW);
+//        }
+//
+//    }
 
     /*  Add the constraint that V0 points back to beamspot
      *  this method is based on progressive least squares fit
@@ -394,16 +405,17 @@ public class BilliorVertexer {
      *  all notation is taken from:
      * W. Hulsbergen, NIM 552 (2005) 566-575
      */
-    private void addV0fromBSConstraint() {
-        BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
+    private void addV0fromBSConstraint(boolean bscon) {
+        String methodName = bscon ? "addV0fromBSConstraint" : "constrainV0toBS";
         BasicMatrix Ckm1 = new BasicMatrix(3 * (_ntracks + 1), 3 * (_ntracks + 1));
         BasicMatrix Xkm1 = new BasicMatrix(3 * (_ntracks + 1), 1);
         MatrixOp.setSubMatrix(Ckm1, _covVtx, 0, 0);
         MatrixOp.setSubMatrix(Xkm1, _vertexPosition, 0, 0);
         int n = 1;
         for (Matrix covVtxMom : covVtxMomList) {
-            if (_debug)
-                System.out.println("addV0fromBSConstraint::Track " + n + "  covVtxMom : " + covVtxMom.toString());
+            if (_debug) {
+                System.out.println(methodName + "::Track " + n + "  covVtxMom : " + covVtxMom.toString());
+            }
             MatrixOp.setSubMatrix(Ckm1, covVtxMom, 0, 3 * n);
             MatrixOp.setSubMatrix(Ckm1, MatrixOp.transposed(covVtxMom), 3 * n, 0);
             n++;
@@ -411,10 +423,12 @@ public class BilliorVertexer {
         for (int i = 0; i < _ntracks; i++) {
             BasicMatrix pi = (BasicMatrix) _pFit.get(i);
             MatrixOp.setSubMatrix(Xkm1, pi, 3 * (i + 1), 0);
-            if (_debug)
-                System.out.println("addV0fromBSConstraint::Track " + i + "  p : " + pi.toString());
-            for (int j = 0; j < _ntracks; j++)
+            if (_debug) {
+                System.out.println(methodName + "::Track " + i + "  p : " + pi.toString());
+            }
+            for (int j = 0; j < _ntracks; j++) {
                 MatrixOp.setSubMatrix(Ckm1, covMomList[i][j], 3 * (i + 1), 3 * (j + 1));
+            }
         }
 
         //  now calculate the derivative matrix for the beam constraint.
@@ -443,56 +457,10 @@ public class BilliorVertexer {
             pztot += pz;
         }
         //calculate the position of the A' at X=0
-        BasicMatrix rk = new BasicMatrix(3, 1);
-        if (_debug)
-            System.out.println("addV0fromBSConstraint::Vx = " + Vx + "; Vy = " + Vy + "; Vz = " + Vz + "; pxtot = " + pxtot + "; pytot = " + pytot + "; pztot = " + pztot);
-        rk.setElement(0, 0, 0);
-        rk.setElement(1, 0, 0 - (Vy - pytot / pxtot * Vx));
-        rk.setElement(2, 0, 0 - (Vz - pztot / pxtot * Vx));
+        BasicMatrix rk = makeRk(Vx, Vy, Vz, pxtot, pytot, pztot, bscon);
 
-//  ok, can set the derivitives wrt to V
-        Hk.setElement(0, 0, 0);
-        Hk.setElement(0, 1, pytot / pxtot);
-        Hk.setElement(0, 2, pztot / pxtot);
-        Hk.setElement(1, 0, 0);
-        Hk.setElement(1, 1, 1);
-        Hk.setElement(1, 2, 0);
-        Hk.setElement(2, 0, 0);
-        Hk.setElement(2, 1, 0);
-        Hk.setElement(2, 2, 1);
-//ok, loop over tracks again to set the derivitives wrt track momenta (theta,phi,rho)
-        for (int i = 0; i < _ntracks; i++) {
-            BasicMatrix pi = (BasicMatrix) _pFit.get(i);
-            double theta = pi.e(0, 0);
-            double phiv = pi.e(1, 0);
-            double rho = pi.e(2, 0);
-            double Pt = Math.abs((1. / rho) * _bField * Constants.fieldConversion);
-            double px = Pt * Math.cos(phiv);
-            double py = Pt * Math.sin(phiv);
-            double pz = Pt * 1 / Math.tan(theta);
-            //derivities wrt theta
-            Hk.setElement(3 * (i + 1), 0, 0);
-            Hk.setElement(3 * (i + 1), 1, 0);
-            Hk.setElement(3 * (i + 1), 2, -Pt / Math.pow(sin(theta), 2) * Vx);
-            //derivities wrt phi
-            Hk.setElement(3 * (i + 1) + 1, 0, 0);
-            Hk.setElement(3 * (i + 1) + 1, 1,
-                    (Pt * Pt * cos(phiv) * sin(phiv) / (pxtot * pxtot)) * Vx);
-            Hk.setElement(3 * (i + 1) + 1, 2, (Pt * sin(phiv) / (pxtot * pxtot)) * Vx * pztot);
-            //derivities wrt rho
-            Hk.setElement(3 * (i + 1) + 2, 0, 0);
-//            Hk.setElement(3 * (i + 1) + 2, 1,
-//                    (pytot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
-//            Hk.setElement(3 * (i + 1) + 2, 2,
-//                    (pztot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
-            Hk.setElement(3 * (i + 1) + 2, 1,
-                    (cos(phiv) * pytot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * Vx);
-            Hk.setElement(3 * (i + 1) + 2, 2,
-                    (cos(phiv) * pztot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * Vx);
-            //                   if(_debug)System.out.println("pxtot = "+pxtot+"; rho = "+rho+"; Pt = "+Pt);
-            //                   if(_debug)System.out.println("cos(phiv)*pytot / pxtot - sin(phiv) = "+(cos(phiv)*pytot / pxtot - sin(phiv)));
-            //                   if(_debug)System.out.println("Pt/(rho*pxtot) = "+(Pt / rho) * (1 / pxtot));
-        }
+        BasicMatrix Hk = makeHk(_ntracks, pxtot, pytot, pztot, bscon);
+
         // the beam covariance
         BasicMatrix Vk = new BasicMatrix(3, 3);
         Vk.setElement(0, 0, _beamSize[0] * _beamSize[0]);
@@ -501,15 +469,18 @@ public class BilliorVertexer {
 
         //now do the matrix operations to get the constrained parameters
         BasicMatrix Hkt = (BasicMatrix) MatrixOp.transposed(Hk);
-        if (_debug)
-            System.out.println("addV0fromBSConstraint::Ckm1Hk = " + MatrixOp.mult(Ckm1, Hk));
+        if (_debug) {
+            System.out.println(methodName + "::Ckm1Hk = " + MatrixOp.mult(Ckm1, Hk));
+        }
 
         BasicMatrix Rk = (BasicMatrix) MatrixOp.mult(Hkt, MatrixOp.mult(Ckm1, Hk));
-        if (_debug)
+        if (_debug) {
             System.out.println("Pre Vk:  Rk = " + Rk.toString());
+        }
         Rk = (BasicMatrix) MatrixOp.add(Rk, Vk);
-        if (_debug)
+        if (_debug) {
             System.out.println("Post Vk:  Rk = " + Rk.toString());
+        }
         BasicMatrix Rkinv = (BasicMatrix) MatrixOp.inverse(Rk);
         BasicMatrix Kk = (BasicMatrix) MatrixOp.mult(Ckm1, MatrixOp.mult(Hk, Rkinv));
 
@@ -547,70 +518,138 @@ public class BilliorVertexer {
 
 //        if(_debug)System.out.println("Unconstrained chi^2 = "+_chiSq);
         //ok...add to the chi^2
-        if (_debug)
+        if (_debug) {
             System.out.println(MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)));
+        }
         _chiSq += MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)).e(0, 0);
 //        if(_debug)System.out.println("Constrained chi^2 = "+_chiSq);
     }
 
-    private void constrainV0toBS() {
-        BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
-        BasicMatrix Ckm1 = new BasicMatrix(3 * (_ntracks + 1), 3 * (_ntracks + 1));
-        BasicMatrix Xkm1 = new BasicMatrix(3 * (_ntracks + 1), 1);
-        MatrixOp.setSubMatrix(Ckm1, _covVtx, 0, 0);
-        MatrixOp.setSubMatrix(Xkm1, _vertexPosition, 0, 0);
-
-        int n = 1;
-        for (Matrix covVtxMom : covVtxMomList) {
-            if (_debug)
-                System.out.println("constrainV0toBS::Track " + n + "  covVtxMom : " + covVtxMom.toString());
-            MatrixOp.setSubMatrix(Ckm1, covVtxMom, 0, 3 * n);
-            MatrixOp.setSubMatrix(Ckm1, MatrixOp.transposed(covVtxMom), 3 * n, 0);
-            n++;
-        }
-        for (int i = 0; i < _ntracks; i++) {
-            BasicMatrix pi = (BasicMatrix) _pFit.get(i);
-            MatrixOp.setSubMatrix(Xkm1, pi, 3 * (i + 1), 0);
-            //           if(_debug)System.out.println("Track "+i+"  p : " + pi.toString());
-            for (int j = 0; j < _ntracks; j++)
-                MatrixOp.setSubMatrix(Ckm1, covMomList[i][j], 3 * (i + 1), 3 * (j + 1));
-        }
-        //  now calculate the derivative matrix for the beam constraint.
-        //  the beamspot is assumed to be at bvec=(0,0,0)
-        //  the V0 production position is Vbvec=(0,0,0)
-        //  where ptot=sum_i (pi)
-        //  need derivites wrt to the vertex position and momentum (theta,phi_v,rho)
+//    private void constrainV0toBS() {
+//        BasicMatrix Ckm1 = new BasicMatrix(3 * (_ntracks + 1), 3 * (_ntracks + 1));
+//        BasicMatrix Xkm1 = new BasicMatrix(3 * (_ntracks + 1), 1);
+//        MatrixOp.setSubMatrix(Ckm1, _covVtx, 0, 0);
+//        MatrixOp.setSubMatrix(Xkm1, _vertexPosition, 0, 0);
+//
+//        int n = 1;
+//        for (Matrix covVtxMom : covVtxMomList) {
+//            if (_debug)
+//                System.out.println("constrainV0toBS::Track " + n + "  covVtxMom : " + covVtxMom.toString());
+//            MatrixOp.setSubMatrix(Ckm1, covVtxMom, 0, 3 * n);
+//            MatrixOp.setSubMatrix(Ckm1, MatrixOp.transposed(covVtxMom), 3 * n, 0);
+//            n++;
+//        }
+//        for (int i = 0; i < _ntracks; i++) {
+//            BasicMatrix pi = (BasicMatrix) _pFit.get(i);
+//            MatrixOp.setSubMatrix(Xkm1, pi, 3 * (i + 1), 0);
+//            //           if(_debug)System.out.println("Track "+i+"  p : " + pi.toString());
+//            for (int j = 0; j < _ntracks; j++)
+//                MatrixOp.setSubMatrix(Ckm1, covMomList[i][j], 3 * (i + 1), 3 * (j + 1));
+//        }
+//        //  now calculate the derivative matrix for the beam constraint.
+//        //  the beamspot is assumed to be at bvec=(0,0,0)
+//        //  the V0 production position is Vbvec=(0,0,0)
+//        //  where ptot=sum_i (pi)
+//        //  need derivites wrt to the vertex position and momentum (theta,phi_v,rho)
+//        double Vx = _vertexPosition.e(0, 0);
+//        double Vy = _vertexPosition.e(1, 0);
+//        double Vz = _vertexPosition.e(2, 0);
+//        //first, get the sum of momenta...
+//        double pxtot = 0;
+//        double pytot = 0;
+//        double pztot = 0;
+//        for (int i = 0; i < _ntracks; i++) {
+//            BasicMatrix pi = (BasicMatrix) _pFit.get(i);
+//            double theta = pi.e(0, 0);
+//            double phiv = pi.e(1, 0);
+//            double rho = pi.e(2, 0);
+//            double Pt = Math.abs((1. / rho) * _bField * Constants.fieldConversion);
+//            double px = Pt * Math.cos(phiv);
+//            double py = Pt * Math.sin(phiv);
+//            double pz = Pt * 1 / Math.tan(theta);
+//            pxtot += px;
+//            pytot += py;
+//            pztot += pz;
+//        }
+//        BasicMatrix rk = makeRk(Vx,Vy,Vz,pxtot,pytot,pztot,false);
+////        //calculate the position of the A' at X=0
+////        BasicMatrix rk = new BasicMatrix(3, 1);
+////        //       if(_debug)System.out.println("Vx = " + Vx + "; Vy = " + Vy + "; Vz = " + Vz + "; pxtot = " + pxtot + "; pytot = " + pytot + "; pztot = " + pztot);
+////        rk.setElement(0, 0, -Vx);
+////        rk.setElement(1, 0, -Vy);
+////        rk.setElement(2, 0, -Vz);
+//
+//        BasicMatrix Hk = makeHk(_ntracks,pxtot,pytot,pztot,false);
+//
+//        // the beam covariance
+//        BasicMatrix Vk = new BasicMatrix(3, 3);
+//        Vk.setElement(0, 0, _beamSize[0] * _beamSize[0]);
+//        Vk.setElement(1, 1, _beamSize[1] * _beamSize[1]);
+//        Vk.setElement(2, 2, _beamSize[2] * _beamSize[2]);
+//
+//        //now do the matrix operations to get the constrained parameters
+//        BasicMatrix Hkt = (BasicMatrix) MatrixOp.transposed(Hk);
+////         if(_debug)System.out.println("Ckm1Hk = " + MatrixOp.mult(Ckm1, Hk));
+//
+//        BasicMatrix Rk = (BasicMatrix) MatrixOp.mult(Hkt, MatrixOp.mult(Ckm1, Hk));
+////        if(_debug)System.out.println("Pre Vk:  Rk = " + Rk.toString());
+//        Rk = (BasicMatrix) MatrixOp.add(Rk, Vk);
+//        BasicMatrix Rkinv = (BasicMatrix) MatrixOp.inverse(Rk);
+//        BasicMatrix Kk = (BasicMatrix) MatrixOp.mult(Ckm1, MatrixOp.mult(Hk, Rkinv));
+//
+////        if(_debug)System.out.println("Ckm1 = " + Ckm1.toString());
+////        if(_debug)System.out.println("Hk = " + Hk.toString());
+////        if(_debug)System.out.println("Rk = " + Rk.toString());
+////        if(_debug)System.out.println("Vk = " + Vk.toString());
+////        if(_debug)System.out.println("rk = " + rk.toString());
+////        if(_debug)System.out.println("Kk = " + Kk.toString());
+//        _constrainedFit = MatrixOp.mult(Kk, rk);
+//        _constrainedFit = MatrixOp.add(_constrainedFit, Xkm1);//Xk
+//
+//        //ok, get the new covariance
+//        BasicMatrix RkKkt = (BasicMatrix) MatrixOp.mult(Rk, MatrixOp.transposed(Kk));
+//        BasicMatrix HkCkm1 = (BasicMatrix) MatrixOp.mult(Hkt, Ckm1);
+//        RkKkt = (BasicMatrix) MatrixOp.mult(1, RkKkt);
+//        HkCkm1 = (BasicMatrix) MatrixOp.mult(-2, HkCkm1);
+//        BasicMatrix sumMatrix = (BasicMatrix) MatrixOp.mult(Kk, MatrixOp.add(HkCkm1, RkKkt));
+//        _constrainedCov = (BasicMatrix) MatrixOp.add(Ckm1, sumMatrix);
+//
+//        //update the regular parameter names to the constrained result
+////        if(_debug)System.out.println("Without Constraint : " + _vertexPosition.toString());
+////        if(_debug)System.out.println("Without Constraint:  x= "+_vertexPosition.e(0,0));
+//        //        if(_debug)System.out.println(_constrainedFit.toString());
+////         if(_debug)System.out.println("Without Constraint : " + _covVtx.toString());
+//        _vertexPosition = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedFit, 0, 0, 3, 1);
+//        _covVtx = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 0, 3, 3);
+////        if(_debug)System.out.println("With Constraint : " + _vertexPosition.toString());
+////        if(_debug)System.out.println("With Constraint : " + _covVtx.toString());
+//
+//        for (int i = 0; i < _ntracks; i++) {
+//            BasicMatrix ptmp = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedFit, 3 * (i + 1), 0, 3, 1);
+//            _pFit.set(i, ptmp);
+//        }
+//
+////        if(_debug)System.out.println("Unconstrained chi^2 = "+_chiSq);
+//        //ok...add to the chi^2
+//        if (_debug)
+//            System.out.println(MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)));
+//        _chiSq += MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)).e(0, 0);
+////        if(_debug)System.out.println("Constrained chi^2 = "+_chiSq);
+//    }
+    private BasicMatrix makeHk(int ntracks, double pxtot, double pytot, double pztot, boolean bscon) {
         double Vx = _vertexPosition.e(0, 0);
-        double Vy = _vertexPosition.e(1, 0);
-        double Vz = _vertexPosition.e(2, 0);
-        //first, get the sum of momenta...
-        double pxtot = 0;
-        double pytot = 0;
-        double pztot = 0;
-        for (int i = 0; i < _ntracks; i++) {
-            BasicMatrix pi = (BasicMatrix) _pFit.get(i);
-            double theta = pi.e(0, 0);
-            double phiv = pi.e(1, 0);
-            double rho = pi.e(2, 0);
-            double Pt = Math.abs((1. / rho) * _bField * Constants.fieldConversion);
-            double px = Pt * Math.cos(phiv);
-            double py = Pt * Math.sin(phiv);
-            double pz = Pt * 1 / Math.tan(theta);
-            pxtot += px;
-            pytot += py;
-            pztot += pz;
-        }
-        //calculate the position of the A' at X=0
-        BasicMatrix rk = new BasicMatrix(3, 1);
-        //       if(_debug)System.out.println("Vx = " + Vx + "; Vy = " + Vy + "; Vz = " + Vz + "; pxtot = " + pxtot + "; pytot = " + pytot + "; pztot = " + pztot);
-        rk.setElement(0, 0, -Vx);
-        rk.setElement(1, 0, -Vy);
-        rk.setElement(2, 0, -Vz);
-
+//        double Vy = _vertexPosition.e(1, 0);
+//        double Vz = _vertexPosition.e(2, 0);
+        BasicMatrix Hk = new BasicMatrix(3 * (ntracks + 1), 3);
 //  ok, can set the derivitives wrt to V
-        Hk.setElement(0, 0, 1);
-        Hk.setElement(0, 1, 0);
-        Hk.setElement(0, 2, 0);
+        Hk.setElement(0, 0, 0);
+        if (bscon) {
+            Hk.setElement(0, 1, pytot / pxtot);
+            Hk.setElement(0, 2, pztot / pxtot);
+        } else {
+            Hk.setElement(0, 1, 0);
+            Hk.setElement(0, 2, 0);
+        }
         Hk.setElement(1, 0, 0);
         Hk.setElement(1, 1, 1);
         Hk.setElement(1, 2, 0);
@@ -618,92 +657,71 @@ public class BilliorVertexer {
         Hk.setElement(2, 1, 0);
         Hk.setElement(2, 2, 1);
 //ok, loop over tracks again to set the derivitives wrt track momenta (theta,phi,rho)
-        for (int i = 0; i < _ntracks; i++) {
+        for (int i = 0; i < ntracks; i++) {
             BasicMatrix pi = (BasicMatrix) _pFit.get(i);
             double theta = pi.e(0, 0);
             double phiv = pi.e(1, 0);
             double rho = pi.e(2, 0);
             double Pt = Math.abs((1. / rho) * _bField * Constants.fieldConversion);
-            double px = Pt * Math.cos(phiv);
-            double py = Pt * Math.sin(phiv);
-            double pz = Pt * 1 / Math.tan(theta);
+//            double px = Pt * Math.cos(phiv);
+//            double py = Pt * Math.sin(phiv);
+//            double pz = Pt * 1 / Math.tan(theta);
             //derivities wrt theta
             Hk.setElement(3 * (i + 1), 0, 0);
             Hk.setElement(3 * (i + 1), 1, 0);
-            Hk.setElement(3 * (i + 1), 2, 0);
+            if (bscon) {
+                Hk.setElement(3 * (i + 1), 2, -Pt / Math.pow(sin(theta), 2) * Vx);
+            } else {
+                Hk.setElement(3 * (i + 1), 2, 0);
+            }
             //derivities wrt phi
             Hk.setElement(3 * (i + 1) + 1, 0, 0);
-            Hk.setElement(3 * (i + 1) + 1, 1,
-                    0);
-            Hk.setElement(3 * (i + 1) + 1, 2, 0);
+            if (bscon) {
+                Hk.setElement(3 * (i + 1) + 1, 1,
+                        (Pt * Pt * cos(phiv) * sin(phiv) / (pxtot * pxtot)) * Vx);
+                Hk.setElement(3 * (i + 1) + 1, 2, (Pt * sin(phiv) / (pxtot * pxtot)) * Vx * pztot);
+            } else {
+                Hk.setElement(3 * (i + 1) + 1, 1, 0);
+                Hk.setElement(3 * (i + 1) + 1, 2, 0);
+            }
             //derivities wrt rho
             Hk.setElement(3 * (i + 1) + 2, 0, 0);
 //            Hk.setElement(3 * (i + 1) + 2, 1,
 //                    (pytot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
 //            Hk.setElement(3 * (i + 1) + 2, 2,
 //                    (pztot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
-            Hk.setElement(3 * (i + 1) + 2, 1,
-                    0);
-            Hk.setElement(3 * (i + 1) + 2, 2,
-                    0);
+            if (bscon) {
+                Hk.setElement(3 * (i + 1) + 2, 1,
+                        (cos(phiv) * pytot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * Vx);
+                Hk.setElement(3 * (i + 1) + 2, 2,
+                        (cos(phiv) * pztot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * Vx);
+            } else {
+                Hk.setElement(3 * (i + 1) + 2, 1, 0);
+                Hk.setElement(3 * (i + 1) + 2, 2, 0);
+            }
             //                   if(_debug)System.out.println("pxtot = "+pxtot+"; rho = "+rho+"; Pt = "+Pt);
             //                   if(_debug)System.out.println("cos(phiv)*pytot / pxtot - sin(phiv) = "+(cos(phiv)*pytot / pxtot - sin(phiv)));
             //                   if(_debug)System.out.println("Pt/(rho*pxtot) = "+(Pt / rho) * (1 / pxtot));
         }
-        // the beam covariance
-        BasicMatrix Vk = new BasicMatrix(3, 3);
-        Vk.setElement(0, 0, _beamSize[0] * _beamSize[0]);
-        Vk.setElement(1, 1, _beamSize[1] * _beamSize[1]);
-        Vk.setElement(2, 2, _beamSize[2] * _beamSize[2]);
+        return Hk;
+    }
 
-        //now do the matrix operations to get the constrained parameters
-        BasicMatrix Hkt = (BasicMatrix) MatrixOp.transposed(Hk);
-//         if(_debug)System.out.println("Ckm1Hk = " + MatrixOp.mult(Ckm1, Hk));
-
-        BasicMatrix Rk = (BasicMatrix) MatrixOp.mult(Hkt, MatrixOp.mult(Ckm1, Hk));
-//        if(_debug)System.out.println("Pre Vk:  Rk = " + Rk.toString());
-        Rk = (BasicMatrix) MatrixOp.add(Rk, Vk);
-        BasicMatrix Rkinv = (BasicMatrix) MatrixOp.inverse(Rk);
-        BasicMatrix Kk = (BasicMatrix) MatrixOp.mult(Ckm1, MatrixOp.mult(Hk, Rkinv));
-
-//        if(_debug)System.out.println("Ckm1 = " + Ckm1.toString());
-//        if(_debug)System.out.println("Hk = " + Hk.toString());
-//        if(_debug)System.out.println("Rk = " + Rk.toString());
-//        if(_debug)System.out.println("Vk = " + Vk.toString());
-//        if(_debug)System.out.println("rk = " + rk.toString());
-//        if(_debug)System.out.println("Kk = " + Kk.toString());
-        _constrainedFit = MatrixOp.mult(Kk, rk);
-        _constrainedFit = MatrixOp.add(_constrainedFit, Xkm1);//Xk
-
-        //ok, get the new covariance
-        BasicMatrix RkKkt = (BasicMatrix) MatrixOp.mult(Rk, MatrixOp.transposed(Kk));
-        BasicMatrix HkCkm1 = (BasicMatrix) MatrixOp.mult(Hkt, Ckm1);
-        RkKkt = (BasicMatrix) MatrixOp.mult(1, RkKkt);
-        HkCkm1 = (BasicMatrix) MatrixOp.mult(-2, HkCkm1);
-        BasicMatrix sumMatrix = (BasicMatrix) MatrixOp.mult(Kk, MatrixOp.add(HkCkm1, RkKkt));
-        _constrainedCov = (BasicMatrix) MatrixOp.add(Ckm1, sumMatrix);
-
-        //update the regular parameter names to the constrained result
-//        if(_debug)System.out.println("Without Constraint : " + _vertexPosition.toString());
-//        if(_debug)System.out.println("Without Constraint:  x= "+_vertexPosition.e(0,0));
-        //        if(_debug)System.out.println(_constrainedFit.toString());
-//         if(_debug)System.out.println("Without Constraint : " + _covVtx.toString());
-        _vertexPosition = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedFit, 0, 0, 3, 1);
-        _covVtx = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 0, 3, 3);
-//        if(_debug)System.out.println("With Constraint : " + _vertexPosition.toString());
-//        if(_debug)System.out.println("With Constraint : " + _covVtx.toString());
-
-        for (int i = 0; i < _ntracks; i++) {
-            BasicMatrix ptmp = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedFit, 3 * (i + 1), 0, 3, 1);
-            _pFit.set(i, ptmp);
+    public BasicMatrix makeRk(double Vx, double Vy, double Vz, double pxtot, double pytot, double pztot, boolean bscon) {
+        //calculate the position of the A' at X=0
+        BasicMatrix rk = new BasicMatrix(3, 1);
+        if (_debug) {
+            System.out.println("addV0fromBSConstraint::Vx = " + Vx + "; Vy = " + Vy + "; Vz = " + Vz + "; pxtot = " + pxtot + "; pytot = " + pytot + "; pztot = " + pztot);
         }
-
-//        if(_debug)System.out.println("Unconstrained chi^2 = "+_chiSq);
-        //ok...add to the chi^2
-        if (_debug)
-            System.out.println(MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)));
-        _chiSq += MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)).e(0, 0);
-//        if(_debug)System.out.println("Constrained chi^2 = "+_chiSq);
+        if (bscon) {
+            rk.setElement(0, 0, 0);
+            rk.setElement(1, 0, 0 - (Vy - pytot / pxtot * Vx));
+            rk.setElement(2, 0, 0 - (Vz - pztot / pxtot * Vx));
+        } else {
+            rk.setElement(0, 0, -Vx);
+            rk.setElement(1, 0, -Vy);
+            rk.setElement(2, 0, -Vz);
+        }
+        return rk;
     }
 
     public void setV0(double[] v0) {
@@ -718,13 +736,13 @@ public class BilliorVertexer {
 
     public void doBeamSpotConstraint(boolean bsconst) {
         _beamspotConstraint = bsconst;
-         _constraintType="BeamspotConstrained";
-        
+        _constraintType = "BeamspotConstrained";
+
     }
 
     public void doTargetConstraint(boolean bsconst) {
         _targetConstraint = bsconst;
-         _constraintType="TargetConstrained";
+        _constraintType = "TargetConstrained";
     }
 
     public double getChiSq() {
@@ -742,12 +760,12 @@ public class BilliorVertexer {
         mom[0] = Pt * Math.cos(phiv);
         mom[1] = Pt * Math.sin(phiv);
         mom[2] = Pt * 1 / Math.tan(theta);
-        if (_debug){
-            System.out.println("getFittedMomentum::  "+mom[0] + "; " + mom[1] + "; " + mom[2]);
+        if (_debug) {
+            System.out.println("getFittedMomentum::  " + mom[0] + "; " + mom[1] + "; " + mom[2]);
 
-            System.out.println("pT= "+Pt+"; phi = "+phiv+"; B = "+ _bField);
+            System.out.println("pT= " + Pt + "; phi = " + phiv + "; B = " + _bField);
         }
-      return mom;
+        return mom;
     }
 
     private double getInvMass() {
@@ -772,10 +790,11 @@ public class BilliorVertexer {
         double psum = Math.sqrt(pxsum * pxsum + pysum * pysum + pzsum * pzsum);
         double evtmass = esum * esum - psum * psum;
 
-        if (evtmass > 0)
+        if (evtmass > 0) {
             return Math.sqrt(evtmass);
-        else
+        } else {
             return -99;
+        }
     }
 
     public String toString() {
@@ -815,8 +834,6 @@ public class BilliorVertexer {
             double rho = par[4];
             double Pt = Math.abs((1. / rho) * _bField * Constants.fieldConversion);
 
-
-
             double cotth = 1. / tan(par[2]);
             double uu = v0.e(0, 0) * cos(par[3]) + v0.e(1, 0) * sin(par[3]);//Q
             double vv = v0.e(1, 0) * cos(par[3]) - v0.e(0, 0) * sin(par[3]);//R
@@ -833,10 +850,10 @@ public class BilliorVertexer {
 
             BasicMatrix q0 = new BasicMatrix(3, 1);
             /*   this looks just wrong...
-            q0.setElement(0, 0, Pt * Math.cos(phiv));
-            q0.setElement(1, 0, Pt * Math.sin(phiv));
-            q0.setElement(2, 0, Pt * 1 / Math.tan(theta));
-            q0s.add(q0);
+             q0.setElement(0, 0, Pt * Math.cos(phiv));
+             q0.setElement(1, 0, Pt * Math.sin(phiv));
+             q0.setElement(2, 0, Pt * 1 / Math.tan(theta));
+             q0s.add(q0);
              */
             q0.setElement(0, 0, theta);
             q0.setElement(1, 0, phiVert);
@@ -875,10 +892,11 @@ public class BilliorVertexer {
             BasicMatrix tmpG = (BasicMatrix) MatrixOp.inverse(bt.covariance());
             Gs.add(tmpG);
 
-            if (firstTrack)
+            if (firstTrack) {
                 D0 = (BasicMatrix) MatrixOp.mult(MatrixOp.transposed(tmpA), MatrixOp.mult(tmpG, tmpA));
-            else
+            } else {
                 D0 = (BasicMatrix) MatrixOp.add(D0, MatrixOp.mult(MatrixOp.transposed(tmpA), MatrixOp.mult(tmpG, tmpA)));
+            }
 
             BasicMatrix tmpDi = (BasicMatrix) MatrixOp.mult(MatrixOp.transposed(tmpA), MatrixOp.mult(tmpG, tmpB));
             BasicMatrix tmpEi = (BasicMatrix) MatrixOp.mult(MatrixOp.transposed(tmpB), MatrixOp.mult(tmpG, tmpB));
@@ -904,15 +922,17 @@ public class BilliorVertexer {
             BasicMatrix beIbTg = (BasicMatrix) MatrixOp.mult(b, MatrixOp.mult(MatrixOp.inverse(e), MatrixOp.mult(MatrixOp.transposed(b), g)));
             BasicMatrix MinusaTgbeIbTg = (BasicMatrix) MatrixOp.mult(-1, MatrixOp.mult(aTg, beIbTg));
 
-            if (firstTrack)
+            if (firstTrack) {
                 bigsum = (BasicMatrix) MatrixOp.mult(MatrixOp.add(aTg, MinusaTgbeIbTg), p);
-            else
+            } else {
                 bigsum = (BasicMatrix) MatrixOp.add(bigsum, MatrixOp.mult(MatrixOp.add(aTg, MinusaTgbeIbTg), p));
+            }
         }
         BasicMatrix covVtx = (BasicMatrix) MatrixOp.inverse(tmpCovVtx);
         BasicMatrix xtilde = (BasicMatrix) MatrixOp.mult(covVtx, bigsum);
-        if (_debug)
+        if (_debug) {
             System.out.println("follow1985Paper::Vertex at : \nx= " + xtilde.e(0, 0) + " +/- " + Math.sqrt(covVtx.e(0, 0)) + "\ny= " + xtilde.e(1, 0) + " +/- " + Math.sqrt(covVtx.e(1, 1)) + "\nz= " + xtilde.e(2, 0) + " +/- " + Math.sqrt(covVtx.e(2, 2)));
+        }
 
         //ok, now the momentum
         List<Matrix> qtildes = new ArrayList<Matrix>();
@@ -938,18 +958,24 @@ public class BilliorVertexer {
             BasicMatrix ptilde = (BasicMatrix) MatrixOp.add(MatrixOp.mult(a, xtilde), MatrixOp.mult(b, qtilde));
             ptildes.add(ptilde);
             chisq += MatrixOp.mult(MatrixOp.transposed(MatrixOp.add(p, MatrixOp.mult(-1, ptilde))), MatrixOp.mult(g, MatrixOp.add(p, MatrixOp.mult(-1, ptilde)))).e(0, 0);
-            if (_debug)
+            if (_debug) {
                 System.out.println("\n\nfollow1985Paper::Track #" + j);
-            if (_debug)
+            }
+            if (_debug) {
                 System.out.println("eps(meas)    = " + p.e(0, 0) + "        eps(fit)   =" + ptilde.e(0, 0));
-            if (_debug)
+            }
+            if (_debug) {
                 System.out.println("zp(meas)     = " + p.e(1, 0) + "        zp(fit)    =" + ptilde.e(1, 0));
-            if (_debug)
+            }
+            if (_debug) {
                 System.out.println("theta(meas)  = " + p.e(2, 0) + "        theta(fit) =" + ptilde.e(2, 0));
-            if (_debug)
+            }
+            if (_debug) {
                 System.out.println("phi(meas)    = " + p.e(3, 0) + "        phi(fit)   =" + ptilde.e(3, 0));
-            if (_debug)
+            }
+            if (_debug) {
                 System.out.println("rho(meas)    = " + p.e(4, 0) + "        rho(fit)   =" + ptilde.e(4, 0));
+            }
 
             BasicMatrix tmpC0j = (BasicMatrix) MatrixOp.mult(-1, MatrixOp.mult(covVtx, MatrixOp.mult(d, MatrixOp.inverse(e))));
             C0j.add(tmpC0j);
@@ -970,8 +996,9 @@ public class BilliorVertexer {
             pfit.add(tmppfit);
         }
 
-        if (_debug)
+        if (_debug) {
             System.out.println("follow1985Paper::chi^2 = " + chisq);
+        }
 
         _chiSq = chisq;
         _covVtx = covVtx;

@@ -573,7 +573,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Indicates whether debug text should be output or not.
      */
-    private boolean debug = false;
+    protected boolean debug = false;
 
     /**
      * The simple name of the class used for debug print statements.

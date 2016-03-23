@@ -242,6 +242,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         BilliorVertexer vtxFitter = new BilliorVertexer(bField);
         // TODO: The beam size should come from the conditions database.
         vtxFitter.setBeamSize(beamSize);
+        vtxFitter.setDebug(debug);
 
         // Perform the vertexing based on the specified constraint.
         switch (constraint) {
