@@ -21,12 +21,38 @@ public abstract class SSPNumberedTrigger extends SSPTrigger {
     }
     
     /**
+     * Gets the number of the trigger which generated this object.
+     * @return Returns either <code>0</code> or </code>1</code>.
+     */
+    public abstract int getTriggerNumber();
+    
+    /**
+     * Indicates whether the trigger was reported by the trigger number
+     * 0 trigger.
+     * @return <code>true</code> if the trigger was reported by the
+     * trigger number 0 trigger and <code>false</code> if by either
+     * the trigger number 1 or an unknown trigger.
+     */
+    public abstract boolean isTrigger0();
+    
+    /**
+     * Indicates whether the trigger was reported by the trigger number
+     * 1 trigger.
+     * @return <code>true</code> if the trigger was reported by the
+     * trigger number 1 trigger and <code>false</code> if by either
+     * the trigger number 0 or an unknown trigger.
+     */
+    public abstract boolean isTrigger1();
+    
+    
+    /**
      * Indicates whether the trigger was reported by the first of the
      * singles triggers.
      * @return <code>true</code> if the trigger was reported by the
      * first trigger and <code>false</code> if it was reported by the
      * second trigger.
      */
+    @Deprecated
     public abstract boolean isFirstTrigger();
     
     /**
@@ -36,5 +62,6 @@ public abstract class SSPNumberedTrigger extends SSPTrigger {
      * second trigger and <code>false</code> if it was reported by
      * the first trigger.
      */
+    @Deprecated
     public abstract boolean isSecondTrigger();
 }

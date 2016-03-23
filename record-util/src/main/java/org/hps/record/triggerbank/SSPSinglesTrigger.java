@@ -26,13 +26,30 @@ public class SSPSinglesTrigger extends SSPNumberedTrigger {
     }
     
     @Override
-    public boolean isFirstTrigger() {
+    public int getTriggerNumber() {
+        if(isFirstTrigger()) { return 0; }
+        else if(isSecondTrigger()) { return 1; }
+        else { return -1; }
+    }
+    
+    @Override
+    public boolean isTrigger0() {
         return (type == SSPData.TRIG_TYPE_SINGLES0_BOT) || (type == SSPData.TRIG_TYPE_SINGLES0_TOP);
     }
     
     @Override
-    public boolean isSecondTrigger() {
+    public boolean isTrigger1() {
         return (type == SSPData.TRIG_TYPE_SINGLES1_BOT) || (type == SSPData.TRIG_TYPE_SINGLES1_TOP);
+    }
+    
+    @Override
+    public boolean isFirstTrigger() {
+        return isTrigger0();
+    }
+    
+    @Override
+    public boolean isSecondTrigger() {
+        return isTrigger1();
     }
     
     /**

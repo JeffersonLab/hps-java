@@ -444,6 +444,38 @@ public final class TriggerModule {
     }
     
     /**
+     * Gets the angle between the cluster and the centerpoint of the
+     * calorimeter.
+     * @param cluster - The cluster for which to calculate the angle.
+     * @return Returns the cluster angle as an <code>int</code> in units
+     * of degrees.
+     */
+    public static int getClusterAngle(Cluster cluster) {
+        // Get the cluster position.
+        double x = getClusterX(cluster);
+        double y = getClusterY(cluster);
+        
+        // Return the cluster angle.
+        return getClusterAngle(x, y);
+    }
+    
+    /**
+     * Gets the angle between the cluster and the centerpoint of the
+     * calorimeter.
+     * @param cluster - The cluster for which to calculate the angle.
+     * @return Returns the cluster angle as an <code>int</code> in units
+     * of degrees.
+     */
+    public static int getClusterAngle(SSPCluster cluster) {
+        // Get the cluster position.
+        double x = getClusterX(cluster);
+        double y = getClusterY(cluster);
+        
+        // Return the cluster angle.
+        return getClusterAngle(x, y);
+    }
+    
+    /**
      * Calculates the distance between the origin and a cluster.
      * @param cluster - The cluster pair from which the value should
      * be calculated.
@@ -1260,6 +1292,18 @@ public final class TriggerModule {
     }
     
     /**
+     * Gets the angle between the cluster and the centerpoint of the
+     * calorimeter.
+     * @param x - The cluster seed x-position.
+     * @param y - The cluster seed y-position.
+     * @return Returns the cluster angle as an <code>int</code> in units
+     * of degrees.
+     */
+    private static int getClusterAngle(double x, double y) {
+        return (int) Math.round(Math.atan(x / y) * 180.0 / Math.PI);
+    }
+    
+    /**
      * Calculates the distance between the origin and a cluster.
      * @param x - The cluster's x-position.
      * @param z - The cluster's z-position.
@@ -1309,7 +1353,7 @@ public final class TriggerModule {
         // Get the cluster angles.
         int[] clusterAngle = new int[2];
         for(int i = 0; i < 2; i++) {
-            clusterAngle[i] = (int) Math.round(Math.atan(x[i] / y[i]) * 180.0 / Math.PI);
+            clusterAngle[i] = getClusterAngle(x[i], y[i]); //(int) Math.round(Math.atan(x[i] / y[i]) * 180.0 / Math.PI);
         }
         
         // Calculate the coplanarity cut value.

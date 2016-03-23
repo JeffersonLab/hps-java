@@ -20,13 +20,30 @@ public class SSPPairTrigger extends SSPNumberedTrigger {
     }
     
     @Override
-    public boolean isFirstTrigger() {
+    public int getTriggerNumber() {
+        if(isFirstTrigger()) { return 0; }
+        else if(isSecondTrigger()) { return 1; }
+        else { return -1; }
+    }
+    
+    @Override
+    public boolean isTrigger0() {
         return (type == SSPData.TRIG_TYPE_PAIR0);
     }
     
     @Override
-    public boolean isSecondTrigger() {
+    public boolean isTrigger1() {
         return (type == SSPData.TRIG_TYPE_PAIR1);
+    }
+    
+    @Override
+    public boolean isFirstTrigger() {
+        return isTrigger0();
+    }
+    
+    @Override
+    public boolean isSecondTrigger() {
+        return isTrigger1();
     }
     
     /**
