@@ -51,6 +51,28 @@ public class SimTriggerModule<E> {
     }
     
     /**
+     * Gets the simulated trigger results for the indicated singles
+     * trigger. Note that only inputs of <code>0</code> and <code>1</code>
+     * are allowed.
+     * @param triggerNumber - A value of either <code>0</code>, to
+     * obtain the singles 0 trigger results, or <code>1</code>, to
+     * obtain the singles 1 trigger results.
+     * @return Returns the trigger results as a <code>List</code> of
+     * <code>SinglesTrigger</code> objects.
+     * @throws IllegalArgumentException Occurs if the input argument
+     * is not either <code>0</code> or <code>1</code>.
+     */
+    public List<SinglesTrigger<E>> getSinglesTriggers(int triggerNumber) {
+        // Return the appropriate trigger list.
+        if(triggerNumber == 0) { return getSingles0Triggers(); }
+        else if(triggerNumber == 1) { return getSingles1Triggers(); }
+        
+        // Any other trigger number is not valid and should produce an
+        // exception.
+        throw new IllegalArgumentException("Trigger number " + triggerNumber + " is not valid.");
+    }
+    
+    /**
      * Gets the simulated trigger results for the singles 0 trigger.
      * @return Returns the trigger results as a <code>List</code> of
      * <code>SinglesTrigger</code> objects.
@@ -66,6 +88,28 @@ public class SimTriggerModule<E> {
      */
     public List<SinglesTrigger<E>> getSingles1Triggers() {
         return singles1;
+    }
+    
+    /**
+     * Gets the simulated trigger results for the indicated pair trigger.
+     * Note that only inputs of <code>0</code> and <code>1</code> are
+     * allowed.
+     * @param triggerNumber - A value of either <code>0</code>, to
+     * obtain the pair 0 trigger results, or <code>1</code>, to obtain
+     * the pair 1 trigger results.
+     * @return Returns the trigger results as a <code>List</code> of
+     * <code>PairTrigger</code> objects.
+     * @throws IllegalArgumentException Occurs if the input argument
+     * is not either <code>0</code> or <code>1</code>.
+     */
+    public List<PairTrigger<E[]>> getPairTriggers(int triggerNumber) {
+        // Return the appropriate trigger list.
+        if(triggerNumber == 0) { return getPair0Triggers(); }
+        else if(triggerNumber == 1) { return getPair1Triggers(); }
+        
+        // Any other trigger number is not valid and should produce an
+        // exception.
+        throw new IllegalArgumentException("Trigger number " + triggerNumber + " is not valid.");
     }
     
     /**
