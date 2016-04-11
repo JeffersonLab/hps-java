@@ -170,7 +170,11 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         LOGGER.finest("created new LCSim event " + lcsimEvent.getEventNumber());
 
         // Put DAQ Configuration info into lcsimEvent.
-        triggerConfigReader.getDAQConfig(evioEvent, lcsimEvent);
+        try {
+            triggerConfigReader.getDAQConfig(evioEvent, lcsimEvent);
+        } catch (final Exception e) {
+            LOGGER.log(Level.SEVERE,"DAQ CONFIG BROKEN.",e);
+        }
 
         // Make RawCalorimeterHit collection, combining top and bottom section
         // of ECal into one list.
