@@ -320,7 +320,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
             // Generate a candidate vertex and particle.
             BilliorVertex vtxFit = fitVertex(constraint, firstElectronBTrack, secondElectronBTrack);
-            ReconstructedParticle candidate = this.makeReconstructedParticle(topElectron, botElectron, vtxFit);
+            ReconstructedParticle candidate = makeReconstructedParticle(topElectron, botElectron, vtxFit);
 
             // Add the candidate vertex and particle to the
             // appropriate LCIO collection.
@@ -355,7 +355,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      * @return Returns a reconstructed particle with properties generated from
      * the child particles and vertex given as an argument.
      */
-    private ReconstructedParticle makeReconstructedParticle(ReconstructedParticle electron, ReconstructedParticle positron, BilliorVertex vtxFit) {
+    public static ReconstructedParticle makeReconstructedParticle(ReconstructedParticle electron, ReconstructedParticle positron, BilliorVertex vtxFit) {
 
         // Create a new reconstructed particle to represent the V0
         // candidate and populate it with the electron and positron.
@@ -397,9 +397,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         ((BaseReconstructedParticle) candidate).setCharge(particleCharge);
 
         // VERBOSE :: Output the fitted momentum data.
-        printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
-        printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());
-
+//        printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
+//        printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());
         // Add the ReconstructedParticle to the vertex.
         vtxFit.setAssociatedParticle(candidate);
 

@@ -153,7 +153,7 @@ public class BilliorVertexer {
             System.out.println(methodName + "::rk = " + rk);
         }
 
-        BasicMatrix Hk = makeHk(_ntracks, pxtot, pytot, pztot, pointback);
+        BasicMatrix Hk = makeHk(Vx, pxtot, pytot, pztot, pointback);
         if (_debug) {
             System.out.println(methodName + "::Hk = " + Hk);
         }
@@ -226,11 +226,8 @@ public class BilliorVertexer {
 //        if(_debug)System.out.println("Constrained chi^2 = "+_chiSq);
     }
 
-    private BasicMatrix makeHk(int ntracks, double pxtot, double pytot, double pztot, boolean bscon) {
-        double Vx = _vertexPosition.e(0, 0);
-//        double Vy = _vertexPosition.e(1, 0);
-//        double Vz = _vertexPosition.e(2, 0);
-        BasicMatrix Hk = new BasicMatrix(3 * (ntracks + 1), 3);
+    private BasicMatrix makeHk(double Vx, double pxtot, double pytot, double pztot, boolean bscon) {
+        BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
 //  ok, can set the derivitives wrt to V
         if (bscon) {
             Hk.setElement(0, 0, 0);
@@ -248,7 +245,7 @@ public class BilliorVertexer {
         Hk.setElement(2, 1, 0);
         Hk.setElement(2, 2, 1);
 //ok, loop over tracks again to set the derivitives wrt track momenta (theta,phi,rho)
-        for (int i = 0; i < ntracks; i++) {
+        for (int i = 0; i < _ntracks; i++) {
             BasicMatrix pi = (BasicMatrix) _pFit.get(i);
             double theta = pi.e(0, 0);
             double phiv = pi.e(1, 0);
@@ -262,7 +259,7 @@ public class BilliorVertexer {
             Hk.setElement(3 * (i + 1), 1, 0);
             if (bscon) {
                 Hk.setElement(3 * (i + 1), 2,
-                        -Pt / Math.pow(sin(theta), 2) * Vx);
+                        -Pt / Math.pow(sin(theta), 2) * (Vx - _beamPosition[0]));
             } else {
                 Hk.setElement(3 * (i + 1), 2, 0);
             }
@@ -270,9 +267,9 @@ public class BilliorVertexer {
             Hk.setElement(3 * (i + 1) + 1, 0, 0);
             if (bscon) {
                 Hk.setElement(3 * (i + 1) + 1, 1,
-                        (Pt * Pt * cos(phiv) * sin(phiv) / (pxtot * pxtot)) * Vx);
+                        (Pt * Pt * cos(phiv) * sin(phiv) / (pxtot * pxtot)) * (Vx - _beamPosition[0]));
                 Hk.setElement(3 * (i + 1) + 1, 2,
-                        (Pt * sin(phiv) / (pxtot * pxtot)) * Vx * pztot);
+                        (Pt * sin(phiv) / (pxtot * pxtot)) * (Vx - _beamPosition[0]) * pztot);
             } else {
                 Hk.setElement(3 * (i + 1) + 1, 1, 0);
                 Hk.setElement(3 * (i + 1) + 1, 2, 0);
@@ -285,9 +282,9 @@ public class BilliorVertexer {
 //                    (pztot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
             if (bscon) {
                 Hk.setElement(3 * (i + 1) + 2, 1,
-                        (cos(phiv) * pytot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * Vx);
+                        (cos(phiv) * pytot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * (Vx - _beamPosition[0]));
                 Hk.setElement(3 * (i + 1) + 2, 2,
-                        (cos(phiv) * pztot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * Vx);
+                        (cos(phiv) * pztot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * (Vx - _beamPosition[0]));
             } else {
                 Hk.setElement(3 * (i + 1) + 2, 1, 0);
                 Hk.setElement(3 * (i + 1) + 2, 2, 0);
@@ -299,7 +296,7 @@ public class BilliorVertexer {
         return Hk;
     }
 
-    public BasicMatrix makeRk(double Vx, double Vy, double Vz, double pxtot, double pytot, double pztot, boolean bscon) {
+    private BasicMatrix makeRk(double Vx, double Vy, double Vz, double pxtot, double pytot, double pztot, boolean bscon) {
         //calculate the position of the A' at X=0
         BasicMatrix rk = new BasicMatrix(3, 1);
         if (_debug) {
