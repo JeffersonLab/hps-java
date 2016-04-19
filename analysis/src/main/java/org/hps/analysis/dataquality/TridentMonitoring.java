@@ -14,15 +14,16 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
-
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.particle.HpsReconParticleDriver;
 import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
@@ -201,7 +202,11 @@ public class TridentMonitoring extends DataQualityMonitor {
     private IHistogram1D maxTrkChi2;
     private IHistogram2D zVsMaxTrkChi2;
     private IHistogram1D v0Chi2;
+    private IHistogram1D bsconV0Chi2;
     private IHistogram2D zVsV0Chi2;
+    private IHistogram2D zVsBsconV0Chi2;
+    private IHistogram1D v0Chi2Diff;
+    private IHistogram2D zVsV0Chi2Diff;
     private IHistogram1D trackTimeDiff;
     private IHistogram2D zVsTrackTimeDiff;
     private IHistogram1D hitTimeStdDev;
@@ -260,7 +265,12 @@ public class TridentMonitoring extends DataQualityMonitor {
 
     private double l1IsoMin = 0.5;
 
-    private double[] beamSize = {0.001, 0.130, 0.050}; //rough estimate from harp scans during engineering run production running
+    private final double tupleTrkPCut = 0.9;
+    private final double tupleMaxSumCut = 1.3;
+
+    private final double[] beamSize = {0.001, 0.130, 0.050}; //rough estimate from harp scans during engineering run production running
+    private final double[] beamPos = {0.0, 0.0, 0.0};
+    private final double[] vzcBeamSize = {0.001, 100, 100};
 
 //cluster matching
 //    private boolean reqCluster = false;
@@ -271,6 +281,31 @@ public class TridentMonitoring extends DataQualityMonitor {
     private float nEvents = 0;
     private float nRecoV0 = 0;
     private final float[] nPassCut = new float[Cut.nCuts];
+
+    public TridentMonitoring() {
+        this.tupleVariables = new String[]{"run/I", "event/I",
+            "nTrk/I", "nPos/I",
+            "uncPX/D", "uncPY/D", "uncPZ/D", "uncP/D",
+            "uncVX/D", "uncVY/D", "uncVZ/D", "uncChisq/D", "uncM/D",
+            "bscPX/D", "bscPY/D", "bscPZ/D", "bscP/D",
+            "bscVX/D", "bscVY/D", "bscVZ/D", "bscChisq/D", "bscM/D",
+            "tarPX/D", "tarPY/D", "tarPZ/D", "tarP/D",
+            "tarVX/D", "tarVY/D", "tarVZ/D", "tarChisq/D", "tarM/D",
+            "vzcPX/D", "vzcPY/D", "vzcPZ/D", "vzcP/D",
+            "vzcVX/D", "vzcVY/D", "vzcVZ/D", "vzcChisq/D", "vzcM/D",
+            "elePX/D", "elePY/D", "elePZ/D", "eleP/D",
+            "eleTrkChisq/D", "eleTrkHits/I", "eleTrkType/I", "eleTrkT/D",
+            "eleTrkD0/D", "eleTrkZ0/D", "eleTrkEcalX/D", "eleTrkEcalY/D",
+            "eleHasL1/B", "eleHasL2/B",
+            "eleMatchChisq/D", "eleClT/D", "eleClE/D", "eleClHits/I",
+            "posPX/D", "posPY/D", "posPZ/D", "posP/D",
+            "posTrkChisq/D", "posTrkHits/I", "posTrkType/I", "posTrkT/D",
+            "posTrkD0/D", "posTrkZ0/D", "posTrkEcalX/D", "posTrkEcalY/D",
+            "posHasL1/B", "posHasL2/B",
+            "posMatchChisq/D", "posClT/D", "posClE/D", "posClHits/I",
+            "minL1Iso/D"
+        };
+    }
 
     public void setMaxChi2GBLTrack(double maxChi2GBLTrack) {
         this.maxChi2GBLTrack = maxChi2GBLTrack;
@@ -312,6 +347,14 @@ public class TridentMonitoring extends DataQualityMonitor {
         this.beamSize[2] = beamSizeY;
     }
 
+    public void setBeamPosX(double beamPosX) {
+        this.beamPos[1] = beamPosX;
+    }
+
+    public void setBeamPosY(double beamPosY) {
+        this.beamPos[2] = beamPosY;
+    }
+
     double ebeam;
 
     @Override
@@ -319,8 +362,8 @@ public class TridentMonitoring extends DataQualityMonitor {
         LOGGER.info("TridendMonitoring::detectorChanged  Setting up the plotter");
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
 
-        BeamEnergyCollection beamEnergyCollection = 
-            this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+        BeamEnergyCollection beamEnergyCollection
+                = this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
         ebeam = beamEnergyCollection.get(0).getBeamEnergy();
         aida.tree().cd("/");
         String trkType = "SeedTrack/";
@@ -451,6 +494,10 @@ public class TridentMonitoring extends DataQualityMonitor {
 
         v0Chi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: V0 Chi2", 50, 0.0, 25.0);
         zVsV0Chi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs V0 Chi2", 50, 0.0, 25.0, 50, -v0VzMax, v0VzMax);
+        bsconV0Chi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: Bscon V0 Chi2", 50, 0.0, 25.0);
+        zVsBsconV0Chi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs Bscon V0 Chi2", 50, 0.0, 25.0, 50, -v0VzMax, v0VzMax);
+        v0Chi2Diff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: Bscon-Uncon V0 Chi2 Diff", 50, 0.0, 25.0);
+        zVsV0Chi2Diff = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs Bscon-Uncon V0 Chi2 Diff", 50, 0.0, 25.0, 50, -v0VzMax, v0VzMax);
 
         trackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: Trk Time Diff", 50, 0.0, 10.0);
         hitTimeStdDev = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: Hit Time Std Dev", 50, 0.0, 10.0);
@@ -462,8 +509,8 @@ public class TridentMonitoring extends DataQualityMonitor {
         zVsEventTrkCount = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs Num Tracks", 10, 0.5, 10.5, 50, -v0VzMax, v0VzMax);
         zVsEventPosCount = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs Num Positrons", 5, 0.5, 5.5, 50, -v0VzMax, v0VzMax);
 
-        l1Iso = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: L1 Isolation", 50, 0.0, 5.0);
-        zVsL1Iso = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs L1 Isolation", 50, 0.0, 5.0, 50, -v0VzMax, v0VzMax);
+        l1Iso = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: L1 Isolation", 100, 0.0, 5.0);
+        zVsL1Iso = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs L1 Isolation", 100, 0.0, 5.0, 50, -v0VzMax, v0VzMax);
 
         for (Cut cut : Cut.values()) {
             for (int i = 0; i < 2; i++) {
@@ -549,11 +596,9 @@ public class TridentMonitoring extends DataQualityMonitor {
             if (tracks.size() != 2) {
                 throw new RuntimeException("expected two tracks in vertex, got " + tracks.size());
             }
-            List<Double> trackTimes = new ArrayList<Double>();
             List<Double> hitTimes = new ArrayList<Double>();
             double mean = 0;
             for (Track track : tracks) {
-                trackTimes.add(TrackUtils.getTrackTime(track, hitToStrips, hitToRotated));
                 for (TrackerHit hit : TrackUtils.getStripHits(track, hitToStrips, hitToRotated)) {
                     mean += hit.getTime();
                     hitTimes.add(hit.getTime());
@@ -576,18 +621,144 @@ public class TridentMonitoring extends DataQualityMonitor {
                 minL1Iso = Math.min(eleL1Iso, posL1Iso);
             }
 
+            double tEle = TrackUtils.getTrackTime(electron.getTracks().get(0), hitToStrips, hitToRotated);
+            double tPos = TrackUtils.getTrackTime(positron.getTracks().get(0), hitToStrips, hitToRotated);
+            Hep3Vector pEleRot = VecOp.mult(beamAxisRotation, electron.getMomentum());
+            Hep3Vector pPosRot = VecOp.mult(beamAxisRotation, positron.getMomentum());
+
+            Hep3Vector eleAtEcal = TrackUtils.getTrackPositionAtEcal(electron.getTracks().get(0));
+            Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(positron.getTracks().get(0));
+
             BilliorVertexer vtxFitter = new BilliorVertexer(TrackUtils.getBField(event.getDetector()).y());
             vtxFitter.setBeamSize(beamSize);
+            vtxFitter.setBeamPosition(beamPos);
             List<BilliorTrack> billiorTracks = new ArrayList<BilliorTrack>();
             billiorTracks.add(new BilliorTrack(electron.getTracks().get(0)));
             billiorTracks.add(new BilliorTrack(positron.getTracks().get(0)));
+
             vtxFitter.doBeamSpotConstraint(true);
             BilliorVertex bsconVertex = vtxFitter.fitVertex(billiorTracks);
+            ReconstructedParticle bscV0 = HpsReconParticleDriver.makeReconstructedParticle(electron, positron, bsconVertex);
+            Hep3Vector bscMomRot = VecOp.mult(beamAxisRotation, bscV0.getMomentum());
+            Hep3Vector bscVtx = VecOp.mult(beamAxisRotation, bscV0.getStartVertex().getPosition());
+
+            vtxFitter.doTargetConstraint(true);
+            BilliorVertex tarVertex = vtxFitter.fitVertex(billiorTracks);
+            ReconstructedParticle tarV0 = HpsReconParticleDriver.makeReconstructedParticle(electron, positron, tarVertex);
+            Hep3Vector tarMomRot = VecOp.mult(beamAxisRotation, tarV0.getMomentum());
+            Hep3Vector tarVtx = VecOp.mult(beamAxisRotation, tarV0.getStartVertex().getPosition());
+
+            vtxFitter.setBeamSize(vzcBeamSize);
+            vtxFitter.doTargetConstraint(true);
+            BilliorVertex vzcVertex = vtxFitter.fitVertex(billiorTracks);
+            ReconstructedParticle vzcV0 = HpsReconParticleDriver.makeReconstructedParticle(electron, positron, vzcVertex);
+            Hep3Vector vzcMomRot = VecOp.mult(beamAxisRotation, vzcV0.getMomentum());
+            Hep3Vector vzcVtx = VecOp.mult(beamAxisRotation, vzcV0.getStartVertex().getPosition());
+
+            if (tupleWriter != null) {
+                boolean trkCut = electron.getMomentum().magnitude() < tupleTrkPCut * ebeam && positron.getMomentum().magnitude() < tupleTrkPCut * ebeam;
+                boolean sumCut = electron.getMomentum().magnitude() + positron.getMomentum().magnitude() < tupleMaxSumCut * ebeam;
+                if (!cutTuple || (trkCut && sumCut)) {
+
+                    tupleMap.put("run/I", (double) event.getRunNumber());
+                    tupleMap.put("event/I", (double) event.getEventNumber());
+
+                    tupleMap.put("uncPX/D", v0MomRot.x());
+                    tupleMap.put("uncPY/D", v0MomRot.y());
+                    tupleMap.put("uncPZ/D", v0MomRot.z());
+                    tupleMap.put("uncP/D", v0MomRot.magnitude());
+                    tupleMap.put("uncVX/D", v0Vtx.x());
+                    tupleMap.put("uncVY/D", v0Vtx.y());
+                    tupleMap.put("uncVZ/D", v0Vtx.z());
+                    tupleMap.put("uncChisq/D", uncV0.getStartVertex().getChi2());
+                    tupleMap.put("uncM/D", uncV0.getMass());
+
+                    tupleMap.put("bscPX/D", bscMomRot.x());
+                    tupleMap.put("bscPY/D", bscMomRot.y());
+                    tupleMap.put("bscPZ/D", bscMomRot.z());
+                    tupleMap.put("bscP/D", bscMomRot.magnitude());
+                    tupleMap.put("bscVX/D", bscVtx.x());
+                    tupleMap.put("bscVY/D", bscVtx.y());
+                    tupleMap.put("bscVZ/D", bscVtx.z());
+                    tupleMap.put("bscChisq/D", bscV0.getStartVertex().getChi2());
+                    tupleMap.put("bscM/D", bscV0.getMass());
+
+                    tupleMap.put("tarPX/D", tarMomRot.x());
+                    tupleMap.put("tarPY/D", tarMomRot.y());
+                    tupleMap.put("tarPZ/D", tarMomRot.z());
+                    tupleMap.put("tarP/D", tarMomRot.magnitude());
+                    tupleMap.put("tarVX/D", tarVtx.x());
+                    tupleMap.put("tarVY/D", tarVtx.y());
+                    tupleMap.put("tarVZ/D", tarVtx.z());
+                    tupleMap.put("tarChisq/D", tarV0.getStartVertex().getChi2());
+                    tupleMap.put("tarM/D", tarV0.getMass());
+
+                    tupleMap.put("vzcPX/D", vzcMomRot.x());
+                    tupleMap.put("vzcPY/D", vzcMomRot.y());
+                    tupleMap.put("vzcPZ/D", vzcMomRot.z());
+                    tupleMap.put("vzcP/D", vzcMomRot.magnitude());
+                    tupleMap.put("vzcVX/D", vzcVtx.x());
+                    tupleMap.put("vzcVY/D", vzcVtx.y());
+                    tupleMap.put("vzcVZ/D", vzcVtx.z());
+                    tupleMap.put("vzcChisq/D", vzcV0.getStartVertex().getChi2());
+                    tupleMap.put("vzcM/D", vzcV0.getMass());
+
+                    tupleMap.put("elePX/D", pEleRot.x());
+                    tupleMap.put("elePY/D", pEleRot.y());
+                    tupleMap.put("elePZ/D", pEleRot.z());
+                    tupleMap.put("eleP/D", pEleRot.magnitude());
+                    tupleMap.put("eleTrkD0/D", electron.getTracks().get(0).getTrackStates().get(0).getD0());
+                    tupleMap.put("eleTrkZ0/D", electron.getTracks().get(0).getTrackStates().get(0).getZ0());
+                    tupleMap.put("eleTrkEcalX/D", eleAtEcal.x());
+                    tupleMap.put("eleTrkEcalY/D", eleAtEcal.y());
+                    tupleMap.put("eleTrkChisq/D", electron.getTracks().get(0).getChi2());
+                    tupleMap.put("eleTrkHits/I", (double) electron.getTracks().get(0).getTrackerHits().size());
+                    tupleMap.put("eleTrkType/I", (double) electron.getType());
+                    tupleMap.put("eleTrkT/D", tEle);
+                    tupleMap.put("eleHasL1/B", eleIso[0] != null ? 1.0 : 0.0);
+                    tupleMap.put("eleHasL2/B", eleIso[2] != null ? 1.0 : 0.0);
+                    tupleMap.put("eleMatchChisq/D", electron.getGoodnessOfPID());
+                    if (!electron.getClusters().isEmpty()) {
+                        Cluster eleC = electron.getClusters().get(0);
+                        tupleMap.put("eleClT/D", ClusterUtilities.getSeedHitTime(eleC));
+                        tupleMap.put("eleClE/D", eleC.getEnergy());
+                        tupleMap.put("eleClHits/I", (double) eleC.getCalorimeterHits().size());
+                    }
+
+                    tupleMap.put("posPX/D", pPosRot.x());
+                    tupleMap.put("posPY/D", pPosRot.y());
+                    tupleMap.put("posPZ/D", pPosRot.z());
+                    tupleMap.put("posP/D", pPosRot.magnitude());
+                    tupleMap.put("posTrkD0/D", positron.getTracks().get(0).getTrackStates().get(0).getD0());
+                    tupleMap.put("posTrkZ0/D", positron.getTracks().get(0).getTrackStates().get(0).getZ0());
+                    tupleMap.put("posTrkEcalX/D", posAtEcal.x());
+                    tupleMap.put("posTrkEcalY/D", posAtEcal.y());
+                    tupleMap.put("posTrkChisq/D", positron.getTracks().get(0).getChi2());
+                    tupleMap.put("posTrkHits/I", (double) positron.getTracks().get(0).getTrackerHits().size());
+                    tupleMap.put("posTrkType/I", (double) positron.getType());
+                    tupleMap.put("posTrkT/D", tPos);
+                    tupleMap.put("posHasL1/B", posIso[0] != null ? 1.0 : 0.0);
+                    tupleMap.put("posHasL2/B", posIso[2] != null ? 1.0 : 0.0);
+                    tupleMap.put("posMatchChisq/D", positron.getGoodnessOfPID());
+                    if (!positron.getClusters().isEmpty()) {
+                        Cluster posC = positron.getClusters().get(0);
+                        tupleMap.put("posClT/D", ClusterUtilities.getSeedHitTime(posC));
+                        tupleMap.put("posClE/D", posC.getEnergy());
+                        tupleMap.put("posClHits/I", (double) posC.getCalorimeterHits().size());
+                    }
+
+                    tupleMap.put("minL1Iso/D", minL1Iso);
+
+                    tupleMap.put("nTrk/I", (double) ntrk);
+                    tupleMap.put("nPos/I", (double) npos);
+                    writeTuple();
+                }
+            }
 
             //start applying cuts
             EnumSet<Cut> bits = EnumSet.noneOf(Cut.class);
 
-            boolean trackQualityCut = Math.max(tracks.get(0).getChi2(), tracks.get(1).getChi2()) < (isGBL ? maxChi2GBLTrack : maxChi2SeedTrack);
+            boolean trackQualityCut = Math.max(electron.getTracks().get(0).getChi2(), positron.getTracks().get(0).getChi2()) < (isGBL ? maxChi2GBLTrack : maxChi2SeedTrack);
             if (trackQualityCut) {
                 bits.add(Cut.TRK_QUALITY);
             }
@@ -598,12 +769,12 @@ public class TridentMonitoring extends DataQualityMonitor {
             }
 
             boolean vertexMomentumCut = v0MomRot.z() < v0PzMaxCut * ebeam && v0MomRot.z() > v0PzMinCut * ebeam && Math.abs(v0MomRot.x()) < v0PxCut * ebeam && Math.abs(v0MomRot.y()) < v0PyCut * ebeam;
-            boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0UnconVxCut && Math.abs(v0Vtx.y()) < v0UnconVyCut && Math.abs(v0Vtx.z()) < v0UnconVzCut && Math.abs(bsconVertex.getPosition().x()) < v0BsconVxCut && Math.abs(bsconVertex.getPosition().y()) < v0BsconVyCut;
+            boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0UnconVxCut && Math.abs(v0Vtx.y()) < v0UnconVyCut && Math.abs(v0Vtx.z()) < v0UnconVzCut && Math.abs(bscVtx.x()) < v0BsconVxCut && Math.abs(bscVtx.y()) < v0BsconVyCut;
             if (vertexMomentumCut && vertexPositionCut) {
                 bits.add(Cut.VERTEX_CUTS);
             }
 
-            boolean trackTimeDiffCut = Math.abs(trackTimes.get(0) - trackTimes.get(1)) < trkTimeDiff;
+            boolean trackTimeDiffCut = Math.abs(tEle - tPos) < trkTimeDiff;
             if (trackTimeDiffCut) {
                 bits.add(Cut.TIMING);
             }
@@ -653,7 +824,7 @@ public class TridentMonitoring extends DataQualityMonitor {
                 EnumSet<Cut> allButThisCut = EnumSet.allOf(Cut.class);
                 allButThisCut.remove(cut);
                 if (bits.containsAll(allButThisCut)) {
-                    if (uncV0.getMass() > plotsMinMass * ebeam && uncV0.getMass() < plotsMaxMass * ebeam) {
+                    if (uncV0.getMass() > plotsMinMass * ebeam && uncV0.getMass() < plotsMaxMass * ebeam && uncV0.getMomentum().magnitude() > radCut * ebeam) {
                         switch (cut) {
                             case ISOLATION:
                                 l1Iso.fill(minL1Iso);
@@ -666,14 +837,18 @@ public class TridentMonitoring extends DataQualityMonitor {
                                 zVsEventPosCount.fill(npos, v0Vtx.z());
                                 break;
                             case TIMING:
-                                trackTimeDiff.fill(Math.abs(trackTimes.get(0) - trackTimes.get(1)));
+                                trackTimeDiff.fill(Math.abs(tEle - tPos));
                                 hitTimeStdDev.fill(stdDev);
-                                zVsTrackTimeDiff.fill(Math.abs(trackTimes.get(0) - trackTimes.get(1)), v0Vtx.z());
+                                zVsTrackTimeDiff.fill(Math.abs(tEle - tPos), v0Vtx.z());
                                 zVsHitTimeStdDev.fill(stdDev, v0Vtx.z());
                                 break;
                             case VTX_QUALITY:
                                 v0Chi2.fill(uncVert.getChi2());
                                 zVsV0Chi2.fill(uncVert.getChi2(), v0Vtx.z());
+                                bsconV0Chi2.fill(bsconVertex.getChi2());
+                                zVsBsconV0Chi2.fill(bsconVertex.getChi2(), v0Vtx.z());
+                                v0Chi2Diff.fill(bsconVertex.getChi2() - uncVert.getChi2());
+                                zVsV0Chi2Diff.fill(bsconVertex.getChi2() - uncVert.getChi2(), v0Vtx.z());
                                 break;
                             case TRK_QUALITY:
                                 maxTrkChi2.fill(Math.max(tracks.get(0).getChi2(), tracks.get(1).getChi2()));
@@ -828,6 +1003,8 @@ public class TridentMonitoring extends DataQualityMonitor {
 
                 BilliorVertexer vtxFitter = new BilliorVertexer(TrackUtils.getBField(event.getDetector()).y());
                 vtxFitter.setBeamSize(beamSize);
+                vtxFitter.setBeamPosition(beamPos);
+//                vtxFitter.setDebug(false);
                 List<BilliorTrack> billiorTracks = new ArrayList<BilliorTrack>();
                 billiorTracks.add(new BilliorTrack(electron.getTracks().get(0)));
                 billiorTracks.add(new BilliorTrack(positron.getTracks().get(0)));

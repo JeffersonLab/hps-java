@@ -373,9 +373,8 @@ public class TrackingMonitoring extends DataQualityMonitor {
         int cntPos = 0;
         int cntTop = 0;
         int cntBot = 0;
-        double ecalFace = 1393.0;//mm
         for (Track trk : tracks) {
-            Hep3Vector trackPosAtEcalFace = TrackUtils.extrapolateTrack(trk, ecalFace);
+            Hep3Vector trackPosAtEcalFace = TrackUtils.getTrackPositionAtEcal(trk);
             double xAtECal = trackPosAtEcalFace.x();
             double yAtECal = trackPosAtEcalFace.y();
             if (yAtECal > 0) {

@@ -1,5 +1,7 @@
 package org.hps.analysis.dataquality;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -7,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import org.apache.commons.lang3.StringUtils;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
@@ -23,8 +25,8 @@ import org.lcsim.util.aida.AIDA;
  * calculateEndOfRunQuantities & printDQMData i.e. useful methods
  */
 public class DataQualityMonitor extends Driver {
-    
-    private static Logger LOGGER = Logger.getLogger(DataQualityMonitor.class.getPackage().getName());
+
+    private static final Logger LOGGER = Logger.getLogger(DataQualityMonitor.class.getPackage().getName());
 
     protected AIDA aida = AIDA.defaultInstance();
     protected DQMDatabaseManager manager;
@@ -37,6 +39,11 @@ public class DataQualityMonitor extends Driver {
     protected boolean debug = false;
     protected boolean outputPlots = false;
     protected String outputPlotDir = "DQMOutputPlots/";
+
+    protected PrintWriter tupleWriter = null;
+    protected String[] tupleVariables = {};
+    protected final Map<String, Double> tupleMap = new HashMap<String, Double>();
+    protected boolean cutTuple = false;
 
     String triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
     public boolean isGBL = false;
@@ -58,7 +65,7 @@ public class DataQualityMonitor extends Driver {
     }
 
     public void setRunNumber(int run) {
-        this.runNumber = run;
+        DataQualityMonitor.runNumber = run;
     }
 
     public void setOverwriteDB(boolean overwrite) {
@@ -81,16 +88,14 @@ public class DataQualityMonitor extends Driver {
         this.outputPlotDir = dir;
     }
 
-    public void DataQualityMonitor() {
-
-    }
-
+    @Override
     public void endOfData() {
         calculateEndOfRunQuantities();
         fillEndOfRunPlots();
         printDQMData();
-        if (printDQMStrings)
+        if (printDQMStrings) {
             printDQMStrings();
+        }
         LOGGER.info("Write to database =  " + connectToDB);
         if (connectToDB) {
             LOGGER.info("Connecting To Database...getting DQMDBManager");
@@ -99,17 +104,21 @@ public class DataQualityMonitor extends Driver {
             boolean entryExists = false;
             try {
                 entryExists = checkRowExists();
-                if (entryExists)
+                if (entryExists) {
                     LOGGER.info("Found an existing run/reco entry in the dqm database; overwrite = " + overwriteDB);
+                }
             } catch (SQLException ex) {
                 Logger.getLogger(DataQualityMonitor.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            if (!entryExists)
+            if (!entryExists) {
                 makeNewRow();
+            }
             dumpDQMData();
         }
-
+        if (tupleWriter != null) {
+            tupleWriter.close();
+        }
     }
 
     private void makeNewRow() {
@@ -127,9 +136,7 @@ public class DataQualityMonitor extends Driver {
     private boolean checkRowExists() throws SQLException {
         String ins = "select * from dqm where " + getRunRecoString();
         ResultSet res = manager.selectQuery(ins);
-        if (res.next()) //this is a funny way of determining if the ResultSet has any entries
-            return true;
-        return false;
+        return res.next(); //this is a funny way of determining if the ResultSet has any entries
     }
 
     public boolean checkSelectionIsNULL(String var) throws SQLException {
@@ -137,8 +144,9 @@ public class DataQualityMonitor extends Driver {
         ResultSet res = manager.selectQuery(ins);
         res.next();
         double result = res.getDouble(var);
-        if (res.wasNull())
+        if (res.wasNull()) {
             return true;
+        }
         LOGGER.info("checkSelectionIsNULL::" + var + " = " + result);
         return false;
     }
@@ -183,16 +191,21 @@ public class DataQualityMonitor extends Driver {
     }
 
     public boolean matchTriggerType(TIData triggerData) {
-        if (triggerType.contentEquals("") || triggerType.contentEquals("all"))
+        if (triggerType.contentEquals("") || triggerType.contentEquals("all")) {
             return true;
-        if (triggerData.isSingle0Trigger() && triggerType.contentEquals("singles0"))
+        }
+        if (triggerData.isSingle0Trigger() && triggerType.contentEquals("singles0")) {
             return true;
-        if (triggerData.isSingle1Trigger() && triggerType.contentEquals("singles1"))
+        }
+        if (triggerData.isSingle1Trigger() && triggerType.contentEquals("singles1")) {
             return true;
-        if (triggerData.isPair0Trigger() && triggerType.contentEquals("pairs0"))
+        }
+        if (triggerData.isPair0Trigger() && triggerType.contentEquals("pairs0")) {
             return true;
-        if (triggerData.isPair1Trigger() && triggerType.contentEquals("pairs1"))
+        }
+        if (triggerData.isPair1Trigger() && triggerType.contentEquals("pairs1")) {
             return true;
+        }
         return false;
 
     }
@@ -201,14 +214,18 @@ public class DataQualityMonitor extends Driver {
         boolean match = true;
         if (event.hasCollection(GenericObject.class, "TriggerBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
-            for (GenericObject data : triggerList)
+            for (GenericObject data : triggerList) {
                 if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
                     TIData triggerData = new TIData(data);
                     if (!matchTriggerType(triggerData))//only process singles0 triggers...
+                    {
                         match = false;
+                    }
                 }
-        } else if (debug)
+            }
+        } else if (debug) {
             LOGGER.info(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
+        }
         return match;
     }
 
@@ -223,4 +240,42 @@ public class DataQualityMonitor extends Driver {
     public void printDQMStrings() {
     }
 
+    protected void writeTuple() {
+        for (String variable : tupleVariables) {
+            Double value = tupleMap.get(variable);
+            if (value == null) {
+                value = -9999.0;
+            }
+            if (variable.endsWith("/I") || variable.endsWith("/B")) {
+                tupleWriter.format("%d\t", Math.round(value));
+            } else {
+                tupleWriter.format("%f\t", value);
+            }
+        }
+        tupleWriter.println();
+        tupleMap.clear();
+    }
+
+    public void setTupleFile(String tupleFile) {
+        try {
+            tupleWriter = new PrintWriter(tupleFile);
+        } catch (FileNotFoundException e) {
+            tupleWriter = null;
+        }
+        tupleWriter.println(StringUtils.join(tupleVariables, ":"));
+//        for (String variable : tupleVariables) {
+//            tupleWriter.format("%s:", variable);
+//        }
+//        tupleWriter.println();
+    }
+
+    /**
+     * apply loose cuts to the tuple (cuts to be defined in the specific DQM
+     * driver)
+     *
+     * @param cutTuple
+     */
+    public void setCutTuple(boolean cutTuple) {
+        this.cutTuple = cutTuple;
+    }
 }
