@@ -20,7 +20,7 @@ public class FEEFilterDriver extends Driver
      * Set the cut value for seed energy in GeV
      * @param seedCut
      */
-    void setSeedCut(double seedCut) {
+    public void setSeedCut(double seedCut) {
         this.seedCut = seedCut;
     }
     
@@ -28,7 +28,7 @@ public class FEEFilterDriver extends Driver
      * Set the cut value for cluster energy in GeV
      * @param clusterCut
      */
-    void setClusterCut(double clusterCut) {
+    public void setClusterCut(double clusterCut) {
         this.clusterCut = clusterCut;
     }
     
