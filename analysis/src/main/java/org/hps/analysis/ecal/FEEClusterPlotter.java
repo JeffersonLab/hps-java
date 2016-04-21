@@ -54,7 +54,7 @@ public class FEEClusterPlotter extends Driver {
      * Set the minimum histogram energy
      * @param minHistoE
      */
-    void setMinHistoE(double minHistoE) {
+    public void setMinHistoE(double minHistoE) {
         this.minHistoE = minHistoE;
     }
     
@@ -62,7 +62,7 @@ public class FEEClusterPlotter extends Driver {
      * Set the maximum histogram energy
      * @param maxHistoE
      */
-    void setMaxHistoE(double maxHistoE) {
+    public void setMaxHistoE(double maxHistoE) {
         this.maxHistoE = maxHistoE;
     }
     
@@ -91,20 +91,20 @@ public class FEEClusterPlotter extends Driver {
     private double minTime = 30;
     
     //set max cluster time in window, default to 2015 run
-    private double maxTime = 070;
+    private double maxTime = 70;
     
   //set min number of hits in a cluster in row 1, default to 2015 run
     private int hitCut = 5;
     
     //hit cut is only used in 2016 data, not 2015
-    boolean useHitCut = false;
+    private boolean useHitCut = false;
     
     
     /**
      * Set the cut value for seed energy in GeV
      * @param seedCut
      */
-    void setSeedCut(double seedCut) {
+    public void setSeedCut(double seedCut) {
         this.seedCut = seedCut;
     }
     
@@ -112,7 +112,7 @@ public class FEEClusterPlotter extends Driver {
      * Set the min time in window to look for cluster
      * @param minTime
      */
-    void setMinTime(double minTime) {
+    public void setMinTime(double minTime) {
         this.minTime = minTime;
     }
     
@@ -120,7 +120,7 @@ public class FEEClusterPlotter extends Driver {
      * Set the max time in window to look for cluster
      * @param maxTime
      */
-    void setMaxTime(double maxTime) {
+    public void setMaxTime(double maxTime) {
         this.maxTime = maxTime;
     }
     
@@ -129,7 +129,7 @@ public class FEEClusterPlotter extends Driver {
      * This cut is used in 2016 running (not 2015)
      * @param hitCut
      */
-    void setHitCut(int hitCut) {
+    public void setHitCut(int hitCut) {
         this.hitCut = hitCut;
     }
     
@@ -138,7 +138,7 @@ public class FEEClusterPlotter extends Driver {
      * This cut is used in 2016 running (not 2015)
      * @param hitCut
      */
-    void setUseHitCut(boolean useHitCut) {
+    public void setUseHitCut(boolean useHitCut) {
         this.useHitCut = useHitCut;
     }
     
@@ -178,7 +178,7 @@ public class FEEClusterPlotter extends Driver {
                         EcalChannel cc = findChannel(seed);
                         aida.histogram1D(getHistoName(cc)).fill(clusE);
                     }
-                    else if (Math.abs(seed.getIdentifierFieldValue("iy"))==1 && (seedE/clusE > 0.6) && seedE >seedCut 
+                    else if (Math.abs(seed.getIdentifierFieldValue("iy"))>1 && (seedE/clusE > 0.6) && seedE >seedCut 
                         && time>minTime && time <maxTime && hits.size()>(hitCut) ){
                         
                         EcalChannel cc = findChannel(seed);
