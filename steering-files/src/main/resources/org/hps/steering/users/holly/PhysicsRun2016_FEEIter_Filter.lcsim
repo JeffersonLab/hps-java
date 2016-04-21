@@ -11,13 +11,13 @@
         <driver name="ReconClusterer" />
         <driver name="FEEPlotter" />
         <driver name="FEEFilterDriver" />       
-        <!--driver name="LCIOWriter"/-->
+        <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>  
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <detectorName>HPS-EngRun2015-Nominal-v1</detectorName>
-            <runNumber>5772</runNumber>
+            <detectorName>HPS-PhysicsRun2016-Nominal-v4-4</detectorName>
+            <runNumber>7448</runNumber>
             <freeze>true</freeze>
         </driver>  
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
@@ -51,7 +51,7 @@
             <outputPlots>yes</outputPlots>
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-            <ignoreCollections>EcalCalHits EcalClusters</ignoreCollections>
+            <!--ignoreCollections>EcalCalHits EcalClusters</ignoreCollections-->
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
