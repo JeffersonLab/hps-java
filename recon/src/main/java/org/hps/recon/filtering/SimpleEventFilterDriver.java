@@ -10,7 +10,7 @@ import org.lcsim.event.Track;
 import org.lcsim.util.Driver;
 
 /**
- * This is a Driver for rejecting recon events using simple criteria on the output collections.
+ * This is a Driver for selecting/rejecting recon events using simple criteria on the output collections.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -20,12 +20,16 @@ public class SimpleEventFilterDriver extends Driver {
     int minReconParticles = 0;
     int minClusters = 0;
     
+    int maxTracks = 999;
+    int maxReconParticles = 999;
+    int maxClusters = 999;
+    
     int nRejected = 0;
     int nAccepted = 0;
     
-    static final String trackCollectionName = "MatchedTracks";
-    static final String reconParticleCollectionName = "FinalStateParticles";
-    static final String clusterCollectionName = "EcalClusters";
+     String trackCollectionName = "MatchedTracks";
+     String reconParticleCollectionName = "FinalStateParticles";
+     String clusterCollectionName = "EcalClusters";
     
     List<EventFilter> filters = new ArrayList<EventFilter>();
     
@@ -60,14 +64,38 @@ public class SimpleEventFilterDriver extends Driver {
     public void setMinTracks(int minTracks) {
         this.minTracks = minTracks;
     }
+    public void setMaxTracks(int maxTracks) {
+        this.maxTracks = maxTracks;
+    }
     
     public void setMinClusters(int minClusters) {
         this.minClusters = minClusters;
+    }
+    public void setMaxClusters(int maxClusters) {
+        this.maxClusters = maxClusters;
     }
     
     public void setMinReconParticles(int minReconParticles) {
         this.minReconParticles = minReconParticles;
     }
+    public void setMaxReconParticles(int maxReconParticles) {
+        this.maxReconParticles = maxReconParticles;
+    }
+    
+    public void setTrackCollectionName(String s)
+    {
+        trackCollectionName = s;
+    }
+    public void setReconParticleCollectionName(String s)
+    {
+        reconParticleCollectionName = s;
+    }
+    
+    public void setClusterCollectionName(String s)
+    {
+        clusterCollectionName = s;
+    }
+    
     
     static interface EventFilter {
         
@@ -84,7 +112,8 @@ public class SimpleEventFilterDriver extends Driver {
         
         public boolean accept(EventHeader event) {
             if (event.hasCollection(Track.class, trackCollectionName)) {
-                if (event.get(Track.class, trackCollectionName).size() >= minTracks) {
+                int n = event.get(Track.class, trackCollectionName).size() ;
+                if ( n >= minTracks && n <= maxTracks) {
                     return true;
                 }
             }
@@ -100,7 +129,8 @@ public class SimpleEventFilterDriver extends Driver {
         
         public boolean accept(EventHeader event) {
             if (event.hasCollection(Cluster.class, clusterCollectionName)) {
-                if (event.get(Track.class, clusterCollectionName).size() >= minClusters) {
+                int n = event.get(Cluster.class, clusterCollectionName).size();
+                if (n >= minClusters && n <= maxClusters) {
                     return true;
                 }
             }
@@ -116,7 +146,8 @@ public class SimpleEventFilterDriver extends Driver {
         
         public boolean accept(EventHeader event) {
             if (event.hasCollection(ReconstructedParticle.class, reconParticleCollectionName)) {
-                if (event.get(Track.class, reconParticleCollectionName).size() >= minReconParticles) {
+                int n = event.get(ReconstructedParticle.class, reconParticleCollectionName).size();
+                if ( n >= minReconParticles && n <= maxReconParticles) {
                     return true;
                 }
             }
