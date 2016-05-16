@@ -45,6 +45,15 @@ public class ShowCustomBinningXY extends ShowCustomBinning{
             }
         }
     }
+    
+    protected void drawLine(Graphics g, double ux1, double uy1, double ux2, double uy2){
+    	
+    	ux1+=.0305;
+    	ux2+=.0305;
+    	
+    	g.drawLine(getX(ux1), getY(uy1), getX(ux2), getY(uy2));
+    }
+    
     private void drawLineFromPolar(double theta1, double phi1, double theta2,
             double phi2, Graphics g, Polygon p) {
         double[] xy1 = toXY(theta1, phi1);

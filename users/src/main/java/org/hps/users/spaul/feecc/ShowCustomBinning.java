@@ -70,13 +70,63 @@ public class ShowCustomBinning extends Canvas{
         
         drawEcalOutline(g);
         drawFidEcalOutline(g);
+        drawSVTOutline5(g);
         drawCustomBinRectangles(g);
         g.setColor(Color.BLACK);
         drawXAxis(g);
         drawYAxis(g);
     }
     
-    void drawFidEcalOutline(Graphics g){
+    private void drawSVTOutline5(Graphics g) {
+    	g.setColor(Color.RED);
+		double x_edge_high = 0.160;
+		double y_edge_low =  0.008;
+		double y_edge_high = 0.059;
+		double x_edge_low = -.119;
+		
+		double ux1,uy1, ux2, uy2;
+        double nPoints = 200;
+        for(int i = 0; i< nPoints-1; i++){
+            ux1 = x_edge_high;
+            ux2 = x_edge_high;
+            uy1 = y_edge_low + i*(y_edge_high-y_edge_low)/nPoints;
+            uy2 = y_edge_low+ (i+1)*(y_edge_high-y_edge_low)/nPoints;
+            drawLine(g, ux1, uy1, ux2, uy2);
+            drawLine(g, ux1, -uy1, ux2, -uy2);
+            
+            ux1 = x_edge_low;
+            ux2 = x_edge_low;
+            uy1 = y_edge_low + i*(y_edge_high-y_edge_low)/nPoints;
+            uy2 = y_edge_low+ (i+1)*(y_edge_high-y_edge_low)/nPoints;
+            drawLine(g, ux1, uy1, ux2, uy2);
+            drawLine(g, ux1, -uy1, ux2, -uy2);
+            
+            ux1 = x_edge_low + i*(x_edge_high-x_edge_low)/nPoints;
+            ux2 = x_edge_low + (i+1)*(x_edge_high-x_edge_low)/nPoints;
+            uy1 = y_edge_low;
+            uy2 = y_edge_low;
+            drawLine(g, ux1, uy1, ux2, uy2);
+            drawLine(g, ux1, -uy1, ux2, -uy2);
+            
+            ux1 = x_edge_low + i*(x_edge_high-x_edge_low)/nPoints;
+            ux2 = x_edge_low + (i+1)*(x_edge_high-x_edge_low)/nPoints;
+            uy1 = y_edge_high;
+            uy2 = y_edge_high;
+            drawLine(g, ux1, uy1, ux2, uy2);
+            drawLine(g, ux1, -uy1, ux2, -uy2);
+        }
+	}
+        
+    protected void drawLine(Graphics g, double ux1, double uy1, double ux2, double uy2){
+    	double theta1 = Math.atan(Math.hypot(ux1, uy1));
+    	double theta2 = Math.atan(Math.hypot(ux2, uy2));
+    	
+    	double phi1 = Math.atan2(uy1, ux1);
+    	double phi2 = Math.atan2(uy2, ux2);
+    	
+    	g.drawLine(getX(theta1), getY(phi1), getX(theta2), getY(phi2));
+    }
+	void drawFidEcalOutline(Graphics g){
         g.setColor(Color.GRAY);
         double x_edge_low = -262.74;
         double x_edge_high = 347.7;

@@ -21,7 +21,7 @@ public class BinGenerator {
             }
             pw.println();
         }
-        ShowCustomBinning.main(new String[]{"generatedbins.txt"});
+        ShowCustomBinning.main(new String[]{"generatedbins.txt", "."});
 
     }
 
@@ -60,10 +60,11 @@ public class BinGenerator {
             // make the angular cuts on the tracks such that the particles that go into that cut 
             // are expected to be within 4 mm (~= 2 times the angular resolution of 1.5 mrad) of 
             // the ecal cuts.  
-            double d = 4;
+            double d = 0;
             
             boolean inRange = EcalUtil.fid_ECal_spherical_more_strict(thetaMin, phi, d) && EcalUtil.fid_ECal_spherical_more_strict(thetaMax, phi, d)
-                                && EcalUtil.fid_ECal_spherical_more_strict(thetaMin, -phi, d) && EcalUtil.fid_ECal_spherical_more_strict(thetaMax, -phi, d);
+                                && EcalUtil.fid_ECal_spherical_more_strict(thetaMin, -phi, d) && EcalUtil.fid_ECal_spherical_more_strict(thetaMax, -phi, d)
+                                && svt_fiducial(thetaMin, phi)&& svt_fiducial(thetaMin, -phi)&& svt_fiducial(thetaMax, phi) && svt_fiducial(thetaMax, -phi);
             if(inRange && !prevInRange)
                 phiBins[edgeNumber++] = phi;
             if(prevInRange && !inRange)
@@ -86,5 +87,16 @@ public class BinGenerator {
         
         
     }
+
+	private static boolean svt_fiducial(double theta, double phi) {
+		double ux = Math.sin(theta)*Math.cos(phi);
+		double uy = Math.sin(theta)*Math.sin(phi);
+		double uz = Math.cos(theta);
+		
+		ux/= uz;
+		uy/= uz;
+		
+		return Math.abs(uy)> 0.008 && Math.abs(uy)<0.059 && ux < 0.1600 && ux > -.119;
+	}
 
 }
