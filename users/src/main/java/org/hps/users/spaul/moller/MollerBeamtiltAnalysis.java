@@ -86,6 +86,23 @@ public class MollerBeamtiltAnalysis extends Driver{
                 pypz_vs_mass[i].fill(mass, pypz );
                 timediff[i].fill(top.getClusters().get(0).getCalorimeterHits().get(0).getTime()
                         -bottom.getClusters().get(0).getCalorimeterHits().get(0).getTime());
+                
+                
+                double theta, phi;
+                double pxpz_top = top.getMomentum().x()/top.getMomentum().z();
+                double pypz_top = top.getMomentum().y()/top.getMomentum().z();
+                
+                theta = Math.hypot(pypz_top-(-.0008), pxpz_top-.0295);
+                phi = Math.atan2(pypz_top-(-.0008), pxpz_top-.0295);
+                thetaPhi[i].fill(theta, phi);
+                
+                double pxpz_bot = bottom.getMomentum().x()/bottom.getMomentum().z();
+                double pypz_bot = bottom.getMomentum().y()/bottom.getMomentum().z();
+                
+                theta = Math.hypot(pypz_bot-(-.0008), pxpz_bot-.0295);
+                phi = Math.atan2(pypz_bot-(-.0008), pxpz_bot-.0295);
+                thetaPhi[i].fill(theta, phi);
+                
                 /*if(moreEnergetic.getMomentum().y() > 0)
             {
                 pypz_tophighE.fill(pypz);
@@ -140,6 +157,8 @@ public class MollerBeamtiltAnalysis extends Driver{
         hpypz_botHighE[], hpxpz_botHighE[],
         hpypz_mid[], hpxpz_mid[];
 
+    private IHistogram2D[] thetaPhi;
+    
     public double getMaxVtxChi2() {
         return _maxVtxChi2;
     }
@@ -211,6 +230,11 @@ public class MollerBeamtiltAnalysis extends Driver{
     @Override
     public void startOfData(){
         AIDA aida = AIDA.defaultInstance();
+        
+        
+        
+        thetaPhi = new IHistogram2D[3];
+        
         hpypz = new IHistogram1D[3];
         hpxpz = new IHistogram1D[3];
         hpypz_mid = new IHistogram1D[3];
@@ -240,6 +264,8 @@ public class MollerBeamtiltAnalysis extends Driver{
         timediff= new IHistogram1D[3];
         
         for(int i = 0; i< 3; i++){
+        	
+        	thetaPhi[i] = aida.histogram2D(mollerCollections[i]+"/"+"theta vs phi", 100, 0, .2, 628, -3.14, 3.14);
             
             hpypz[i] = aida.histogram1D(mollerCollections[i]+"/"+"pypz", 60, -.005,.005);
             hpxpz[i] = aida.histogram1D(mollerCollections[i]+"/"+"pxpz", 60, .025,.035);
