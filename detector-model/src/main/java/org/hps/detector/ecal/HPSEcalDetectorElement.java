@@ -16,7 +16,6 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 
 /**
- * <p>
  * This is an implementation of a basic geometry API for the HPS ECAL.
  * <p>
  * The neighboring API and conventions are based on the page 7 diagram from the 

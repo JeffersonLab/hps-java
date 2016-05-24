@@ -2,6 +2,11 @@ package org.hps.detector.ecal;
 
 import org.jdom.Element;
 
+/**
+ * Simplistic representation of a range of ECal XY crystal indices.
+ * 
+ * @author Jeremy McCormick
+ */
 public class CrystalRange {
 
     int xIndexMax;

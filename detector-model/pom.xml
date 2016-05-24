@@ -46,6 +46,7 @@
                     <excludes>
                         <exclude>org/hps/detector/svt/TestRunSvtDetectorSetupTest.java</exclude>
                         <exclude>org/hps/detector/SvtAlignmentTest.java</exclude>
+                        <exclude>org/hps/detector/ecal/EcalCrystalPositionTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

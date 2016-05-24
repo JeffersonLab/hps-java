@@ -1,0 +1,67 @@
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+    <info name="HPSEcal4Test" />
+    <define>   
+        <!-- world volume -->
+        <constant name="world_side" value="10000.0*cm" />
+        <constant name="world_x" value="world_side" />
+        <constant name="world_y" value="world_side" />
+        <constant name="world_z" value="world_side" />
+        <!-- tracking region -->
+        <constant name="tracking_region_radius" value="200.0*cm" />
+        <constant name="tracking_region_min" value="5.0*cm" />
+        <constant name="tracking_region_zmax" value="100.0*cm" />
+        <!-- ECal placement parameters -->
+        <constant name="beam_angle" value="0.03052"/>
+         <constant name="ecal_front" value="13.3/2*mm" />
+        <constant name="ecal_back" value="16/2*mm" />
+        <constant name="ecal_z" value="160/2*mm" />
+        <constant name="ecal_dface" value="139.3*cm"/>
+	<!-- ECal Modules translation parameters -->
+	<constant name="top_tr_x" value="-0.710000000000008"/>
+	<constant name="top_tr_y" value="2.7249999999999943"/>
+	<constant name="top_tr_z" value="4.9375"/>
+	<constant name="bot_tr_x" value="-0.4049999999999727"/>
+	<constant name="bot_tr_y" value="-0.9124999999999659"/>
+	<constant name="bot_tr_z" value="2.6224999999999454"/>
+	<!-- ECal Modules rotation parameters(Rz(alpha)Ry(beta)Rx(gamma)) -->
+	<constant name="top_rot_alpha" value="0.00064964212772"/>
+	<constant name="top_rot_beta" value="0.0"/>
+	<constant name="top_rot_gamma" value="-0.00046882347412"/>
+	<constant name="bot_rot_alpha" value="0.0005150274940439"/>
+	<constant name="bot_rot_beta" value="0.0"/>
+	<constant name="bot_rot_gamma" value="0.0013469727279283583"/>
+    </define>
+    <materials>
+        <material name="LeadTungstate">
+            <D value="8.28" unit="g/cm3" />
+            <composite n="1" ref="Pb" />
+            <composite n="1" ref="W" />
+            <composite n="4" ref="O" />
+        </material>
+    </materials>
+    <detectors>
+    
+
+
+    <detector id="13" name="Ecal" type="HPSEcal4" insideTrackingVolume="false" readout="EcalHits">
+        <comment>The crystal ECal</comment>
+        <material name="LeadTungstate" />
+        <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" /> 
+	<translations top_tr_x="top_tr_x" top_tr_y="top_tr_y" top_tr_z="top_tr_z" bot_tr_x="bot_tr_x" bot_tr_y="bot_tr_y" bot_tr_z="bot_tr_z" />
+	<rotations top_rot_alpha="top_rot_alpha" top_rot_beta="top_rot_beta" top_rot_gamma="top_rot_gamma" bot_rot_alpha="bot_rot_alpha" bot_rot_beta="bot_rot_beta" bot_rot_gamma="bot_rot_gamma" />          
+            <layout beamgap="20.0*mm" nx="46" ny="5" dface="ecal_dface">
+                <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
+                <top dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+                <bottom dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+            </layout>
+        </detector>
+
+
+    </detectors>
+    <readouts>
+        <readout name="EcalHits">
+            <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
+            <id>system:6,side:-2,layer:4,ix:-8,iy:-6</id>
+        </readout>
+    </readouts>
+</lccdd>

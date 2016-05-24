@@ -12,9 +12,10 @@ import org.lcsim.detector.solids.Trd;
 
 /**
  * This class implements the geometry API for ECal crystals in the HPS experiment. 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * 
+ * @author Jeremy McCormick
  */
-public class EcalCrystal extends DetectorElement {
+public final class EcalCrystal extends DetectorElement {
     
     private Hep3Vector positionFront;
 

@@ -3,6 +3,7 @@ package org.hps.conditions.ecal;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.hps.conditions.api.AbstractIdentifier;
 import org.hps.conditions.api.BaseConditionsObject;
@@ -29,6 +30,8 @@ import org.lcsim.geometry.Subdetector;
 @Table(names = {"ecal_channels", "test_run_ecal_channels"})
 @Converter(converter = EcalChannel.EcalChannelConverter.class)
 public final class EcalChannel extends BaseConditionsObject {
+    
+    private static Logger LOGGER = Logger.getLogger(EcalChannel.class.getPackage().getName());
 
     /**
      * The <code>ChannelId</code> is a unique number identifying the channel within its conditions collection. The
@@ -298,9 +301,10 @@ public final class EcalChannel extends BaseConditionsObject {
                     throw new IllegalStateException("The ECal subdetector's detector element is not setup.");
                 }
             } else {
+                LOGGER.warning("ECal subdetector is not accessible so geometry map was not initialized.");
                 // Bad detector or conditions system not initialized properly.
-                throw new IllegalStateException("The ECal subdetector object is null.");
-            }
+                //throw new IllegalStateException("The ECal subdetector object is null.");
+            }            
             return collection;
         }
 
