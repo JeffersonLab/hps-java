@@ -101,7 +101,7 @@ public class HPSEcal4 extends LCDDSubdetector {
             EcalChannel channel = channels.findChannel((long) channelId);
             int iy = channel.getY();
             int ix = channel.getX();                                    
-            String baseName = "crystal" + ix + "_" + iy;
+            String baseName = "crystal_" + ix + "_" + iy;
             
             // z axis rotation parameter of the whole module
             double zrot_cry = rotBot[0];
