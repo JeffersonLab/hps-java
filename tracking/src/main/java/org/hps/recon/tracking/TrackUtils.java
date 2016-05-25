@@ -341,6 +341,10 @@ public class TrackUtils {
         return extrapolateTrack(track, BeamlineConstants.ECAL_FACE);
     }
 
+    public static Hep3Vector getTrackPositionAtEcal(TrackState track) {
+        return extrapolateTrack(track, BeamlineConstants.ECAL_FACE);
+    }
+
     /**
      * Extrapolate track to given position. For backwards compatibility.
      *

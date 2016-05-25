@@ -6,7 +6,6 @@ package org.hps.recon.vertexing;
  * $Id: BilliorTrack.java,v 1.1 2011/06/01 17:10:13 jeremy Exp $
  */
 
-
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
 import hep.physics.matrix.MatrixOp;
@@ -21,8 +20,9 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.MultipleScatter;
 
 /**
- * Converts from HelicalTrackFit formalism to formalism in Billior paper
- * See (e.g.) Billior, Qian NIM A311, 1992
+ * Converts from HelicalTrackFit formalism to formalism in Billior paper See
+ * (e.g.) Billior, Qian NIM A311, 1992
+ *
  * @author Matt Graham
  * @version 1.0
  */
@@ -53,8 +53,8 @@ public class BilliorTrack {
     private double[] _chisq = new double[2];
     private double _nhchisq;
     private int[] _ndf = new int[2];
-    private double[] _parameters;
-    private Matrix _covmatrix;
+    private final double[] _parameters;
+    private final Matrix _covmatrix;
     private Map<HelicalTrackHit, Double> _smap;
     private Map<HelicalTrackHit, MultipleScatter> _msmap;
     /**
@@ -83,19 +83,31 @@ public class BilliorTrack {
         _msmap = helix.ScatterMap();
     }
 
-      public BilliorTrack(Track track) {
-         TrackState ts=track.getTrackStates().get(0);
+    public BilliorTrack(Track track) {
+        TrackState ts = track.getTrackStates().get(0);
         double[] helixparameters = ts.getParameters();
         _parameters = convertParsToBillior(helixparameters);
-        SymmetricMatrix helixcovmatrix = new SymmetricMatrix(5,ts.getCovMatrix(),true);
+        SymmetricMatrix helixcovmatrix = new SymmetricMatrix(5, ts.getCovMatrix(), true);
         _covmatrix = convertCovarianceToBillior(helixcovmatrix, helixparameters);
-        _chisq[0]= track.getChi2();
+        _chisq[0] = track.getChi2();
         _nhchisq = 0.;
         _ndf[0] = track.getNDF();
 //        _smap = helix.PathMap();
 //        _msmap = helix.ScatterMap();
     }
-    
+
+    public BilliorTrack(TrackState ts, double chisq, int ndf) {
+        double[] helixparameters = ts.getParameters();
+        _parameters = convertParsToBillior(helixparameters);
+        SymmetricMatrix helixcovmatrix = new SymmetricMatrix(5, ts.getCovMatrix(), true);
+        _covmatrix = convertCovarianceToBillior(helixcovmatrix, helixparameters);
+        _chisq[0] = chisq;
+        _nhchisq = 0.;
+        _ndf[0] = ndf;
+//        _smap = helix.PathMap();
+//        _msmap = helix.ScatterMap();
+    }
+
     private double[] convertParsToBillior(double[] helixpars) {
         double[] billior = {0, 0, 0, 0, 0};
         billior[0] = -helixpars[0];
@@ -124,6 +136,7 @@ public class BilliorTrack {
 
     /**
      * Return the helix parameters as an array.
+     *
      * @return helix parameters
      */
     public double[] parameters() {
@@ -132,6 +145,7 @@ public class BilliorTrack {
 
     /**
      * Return the signed helix DCA.
+     *
      * @return DCA
      */
     public double eps() {
@@ -140,6 +154,7 @@ public class BilliorTrack {
 
     /**
      * Return the azimuthal direction at the DCA
+     *
      * @return azimuthal direction
      */
     public double phi0() {
@@ -148,6 +163,7 @@ public class BilliorTrack {
 
     /**
      * Return the signed helix curvature.
+     *
      * @return helix curvature
      */
     public double curvature() {
@@ -156,6 +172,7 @@ public class BilliorTrack {
 
     /**
      * Return the z coordinate for the DCA.
+     *
      * @return z coordinate
      */
     public double z0() {
@@ -164,6 +181,7 @@ public class BilliorTrack {
 
     /**
      * Return the helix slope tan(lambda).
+     *
      * @return slope
      */
     public double theta() {
@@ -172,6 +190,7 @@ public class BilliorTrack {
 
     /**
      * Return the helix covariance matrix.
+     *
      * @return covariance matrix
      */
     public Matrix covariance() {
@@ -179,8 +198,9 @@ public class BilliorTrack {
     }
 
     /**
-     * Return the helix fit chisqs.  chisq[0] is for the circle fit, chisq[1] is
+     * Return the helix fit chisqs. chisq[0] is for the circle fit, chisq[1] is
      * for the s-z fit.
+     *
      * @return chisq array
      */
     public double[] chisq() {
@@ -189,15 +209,16 @@ public class BilliorTrack {
 
     /**
      * Set the chisq for non-holonomic constraints (e.g., pT > xx).
+     *
      * @param nhchisq non-holonomic constraint chisq
      */
     public void setnhchisq(double nhchisq) {
         _nhchisq = nhchisq;
-        return;
     }
 
     /**
      * Return the non-holenomic constraint chisq.
+     *
      * @return non-holenomic constraint chisq
      */
     public double nhchisq() {
@@ -206,6 +227,7 @@ public class BilliorTrack {
 
     /**
      * Return the total chisq: chisq[0] + chisq[1] + nhchisq.
+     *
      * @return total chisq
      */
     public double chisqtot() {
@@ -213,8 +235,9 @@ public class BilliorTrack {
     }
 
     /**
-     * Return the degrees of freedom for the fits.  ndf[0] is for the circle fit
+     * Return the degrees of freedom for the fits. ndf[0] is for the circle fit
      * and ndf[1] is for the s-z fit.
+     *
      * @return dof array
      */
     public int[] ndf() {
@@ -223,6 +246,7 @@ public class BilliorTrack {
 
     /**
      * Return cos(theta).
+     *
      * @return cos(theta)
      */
     public double cth() {
@@ -231,6 +255,7 @@ public class BilliorTrack {
 
     /**
      * Return sin(theta).
+     *
      * @return sin(theta)
      */
     public double sth() {
@@ -239,6 +264,7 @@ public class BilliorTrack {
 
     /**
      * Return transverse momentum pT for the helix.
+     *
      * @param bfield magnetic field
      * @return pT
      */
@@ -248,6 +274,7 @@ public class BilliorTrack {
 
     /**
      * Return the momentum.
+     *
      * @param bfield magnetic field
      * @return momentum
      */
@@ -257,6 +284,7 @@ public class BilliorTrack {
 
     /**
      * Return the radius of curvature for the helix.
+     *
      * @return radius of curvature
      */
     public double R() {
@@ -265,6 +293,7 @@ public class BilliorTrack {
 
     /**
      * Return the x coordinate of the helix center/axis.
+     *
      * @return x coordinate of the helix axis
      */
     public double xc() {
@@ -273,6 +302,7 @@ public class BilliorTrack {
 
     /**
      * Return the y coordinate of the helix center/axis.
+     *
      * @return y coordinate of the helix axis
      */
     public double yc() {
@@ -289,6 +319,7 @@ public class BilliorTrack {
 
     /**
      * Return a map of x-y path lengths for the hits used in the helix fit.
+     *
      * @return path length map
      */
     public Map<HelicalTrackHit, Double> PathMap() {
@@ -297,6 +328,7 @@ public class BilliorTrack {
 
     /**
      * Return a map of the MultipleScatter objects supplied for the fit.
+     *
      * @return map of multiple scattering uncertainties
      */
     public Map<HelicalTrackHit, MultipleScatter> ScatterMap() {
@@ -305,6 +337,7 @@ public class BilliorTrack {
 
     /**
      * Return the error for curvature, omega
+     *
      * @return a double curveerror
      */
     public double getCurveError() {
@@ -314,6 +347,7 @@ public class BilliorTrack {
 
     /**
      * Return the error for slope dz/ds, tan(lambda)
+     *
      * @return double a slopeerror
      */
     public double getThetaError() {
@@ -323,6 +357,7 @@ public class BilliorTrack {
 
     /**
      * Return the error for distance of closest approach, dca
+     *
      * @return a double dcaerror
      */
     public double getEpsError() {
@@ -331,7 +366,9 @@ public class BilliorTrack {
     }
 
     /**
-     * Return the error for phi0, azimuthal angle of the momentum at the DCA ref. point
+     * Return the error for phi0, azimuthal angle of the momentum at the DCA
+     * ref. point
+     *
      * @return a double phi0error
      */
     public double getPhi0Error() {
@@ -341,6 +378,7 @@ public class BilliorTrack {
 
     /**
      * Return the error for z0, the z position of the particle at the DCA
+     *
      * @return a double z0error
      */
     public double getZ0Error() {
@@ -348,9 +386,9 @@ public class BilliorTrack {
         return z0error;
     }
 
-        /**
-     * Returns the transpose of the matrix (inexplicably not handled by
-     * the matrix package for non-square matrices).
+    /**
+     * Returns the transpose of the matrix (inexplicably not handled by the
+     * matrix package for non-square matrices).
      *
      * @param m matrix to be transposed
      * @return transposed matrix
@@ -367,6 +405,7 @@ public class BilliorTrack {
 
     /**
      * Create a string with the helix parameters.
+     *
      * @return string containing the helix parameters
      */
     public String toString() {
