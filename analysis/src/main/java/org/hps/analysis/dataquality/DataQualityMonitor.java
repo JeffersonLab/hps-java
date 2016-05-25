@@ -1,7 +1,5 @@
 package org.hps.analysis.dataquality;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -9,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang3.StringUtils;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
@@ -39,11 +36,6 @@ public class DataQualityMonitor extends Driver {
     protected boolean debug = false;
     protected boolean outputPlots = false;
     protected String outputPlotDir = "DQMOutputPlots/";
-
-    protected PrintWriter tupleWriter = null;
-    protected String[] tupleVariables = {};
-    protected final Map<String, Double> tupleMap = new HashMap<String, Double>();
-    protected boolean cutTuple = false;
 
     String triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
     public boolean isGBL = false;
@@ -115,9 +107,6 @@ public class DataQualityMonitor extends Driver {
                 makeNewRow();
             }
             dumpDQMData();
-        }
-        if (tupleWriter != null) {
-            tupleWriter.close();
         }
     }
 
@@ -238,44 +227,5 @@ public class DataQualityMonitor extends Driver {
     //like print the DQM db variable strings in a good 
     //format for making the db column headers
     public void printDQMStrings() {
-    }
-
-    protected void writeTuple() {
-        for (String variable : tupleVariables) {
-            Double value = tupleMap.get(variable);
-            if (value == null) {
-                value = -9999.0;
-            }
-            if (variable.endsWith("/I") || variable.endsWith("/B")) {
-                tupleWriter.format("%d\t", Math.round(value));
-            } else {
-                tupleWriter.format("%f\t", value);
-            }
-        }
-        tupleWriter.println();
-        tupleMap.clear();
-    }
-
-    public void setTupleFile(String tupleFile) {
-        try {
-            tupleWriter = new PrintWriter(tupleFile);
-        } catch (FileNotFoundException e) {
-            tupleWriter = null;
-        }
-        tupleWriter.println(StringUtils.join(tupleVariables, ":"));
-//        for (String variable : tupleVariables) {
-//            tupleWriter.format("%s:", variable);
-//        }
-//        tupleWriter.println();
-    }
-
-    /**
-     * apply loose cuts to the tuple (cuts to be defined in the specific DQM
-     * driver)
-     *
-     * @param cutTuple
-     */
-    public void setCutTuple(boolean cutTuple) {
-        this.cutTuple = cutTuple;
     }
 }

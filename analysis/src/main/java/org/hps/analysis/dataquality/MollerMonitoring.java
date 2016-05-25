@@ -10,7 +10,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Logger;
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
-import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.HpsReconParticleDriver;
 import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
@@ -18,7 +17,6 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
-import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
@@ -177,39 +175,10 @@ public class MollerMonitoring extends DataQualityMonitor {
     private final double trkTimeDiff = 5.0;
 //    private final double clusterTimeDiffCut = 2.5;
 
-    private final double tupleTrkPCut = 0.9;
-    private final double tupleMinSumCut = 0.7;
-    private final double tupleMaxSumCut = 1.3;
-
 //    private double l1IsoMin = 0.5;
     private final double[] beamSize = {0.001, 0.130, 0.050}; //rough estimate from harp scans during engineering run production running
     private final double[] beamPos = {0.0, 0.0, 0.0};
     private final double[] vzcBeamSize = {0.001, 100, 100};
-
-    public MollerMonitoring() {
-        this.tupleVariables = new String[]{"run/I", "event/I",
-            "nTrk/I", "nPos/I",
-            "uncPX/D", "uncPY/D", "uncPZ/D", "uncP/D",
-            "uncVX/D", "uncVY/D", "uncVZ/D", "uncChisq/D", "uncM/D",
-            "bscPX/D", "bscPY/D", "bscPZ/D", "bscP/D",
-            "bscVX/D", "bscVY/D", "bscVZ/D", "bscChisq/D", "bscM/D",
-            "tarPX/D", "tarPY/D", "tarPZ/D", "tarP/D",
-            "tarVX/D", "tarVY/D", "tarVZ/D", "tarChisq/D", "tarM/D",
-            "vzcPX/D", "vzcPY/D", "vzcPZ/D", "vzcP/D",
-            "vzcVX/D", "vzcVY/D", "vzcVZ/D", "vzcChisq/D", "vzcM/D",
-            "topPX/D", "topPY/D", "topPZ/D", "topP/D",
-            "topTrkChisq/D", "topTrkHits/I", "topTrkType/I", "topTrkT/D",
-            "topTrkD0/D", "topTrkZ0/D", "topTrkEcalX/D", "topTrkEcalY/D",
-            "topHasL1/B", "topHasL2/B",
-            "topMatchChisq/D", "topClT/D", "topClE/D", "topClX/D", "topClY/D", "topClZ/D", "topClHits/I",
-            "botPX/D", "botPY/D", "botPZ/D", "botP/D",
-            "botTrkChisq/D", "botTrkHits/I", "botTrkType/I", "botTrkT/D",
-            "botTrkD0/D", "botTrkZ0/D", "botTrkEcalX/D", "botTrkEcalY/D",
-            "botHasL1/B", "botHasL2/B",
-            "botMatchChisq/D", "botClT/D", "botClE/D", "botClX/D", "botClY/D", "botClZ/D", "botClHits/I",
-            "minL1Iso/D"
-        };
-    }
 
     public void setMaxChi2GBLTrack(double maxChi2GBLTrack) {
         this.maxChi2GBLTrack = maxChi2GBLTrack;
@@ -444,110 +413,6 @@ public class MollerMonitoring extends DataQualityMonitor {
             ReconstructedParticle vzcV0 = HpsReconParticleDriver.makeReconstructedParticle(top, bot, vzcVertex);
             Hep3Vector vzcMomRot = VecOp.mult(beamAxisRotation, vzcV0.getMomentum());
             Hep3Vector vzcVtx = VecOp.mult(beamAxisRotation, vzcV0.getStartVertex().getPosition());
-
-            if (tupleWriter != null) {
-                boolean trkCut = top.getMomentum().magnitude() < tupleTrkPCut * ebeam && bot.getMomentum().magnitude() < tupleTrkPCut * ebeam;
-                boolean sumCut = top.getMomentum().magnitude() + bot.getMomentum().magnitude() > tupleMinSumCut * ebeam && top.getMomentum().magnitude() + bot.getMomentum().magnitude() < tupleMaxSumCut * ebeam;
-
-                if (!cutTuple || (trkCut && sumCut)) {
-
-                    tupleMap.put("run/I", (double) event.getRunNumber());
-                    tupleMap.put("event/I", (double) event.getEventNumber());
-
-                    tupleMap.put("uncPX/D", v0MomRot.x());
-                    tupleMap.put("uncPY/D", v0MomRot.y());
-                    tupleMap.put("uncPZ/D", v0MomRot.z());
-                    tupleMap.put("uncP/D", v0MomRot.magnitude());
-                    tupleMap.put("uncVX/D", v0Vtx.x());
-                    tupleMap.put("uncVY/D", v0Vtx.y());
-                    tupleMap.put("uncVZ/D", v0Vtx.z());
-                    tupleMap.put("uncChisq/D", uncV0.getStartVertex().getChi2());
-                    tupleMap.put("uncM/D", uncV0.getMass());
-
-                    tupleMap.put("bscPX/D", bscMomRot.x());
-                    tupleMap.put("bscPY/D", bscMomRot.y());
-                    tupleMap.put("bscPZ/D", bscMomRot.z());
-                    tupleMap.put("bscP/D", bscMomRot.magnitude());
-                    tupleMap.put("bscVX/D", bscVtx.x());
-                    tupleMap.put("bscVY/D", bscVtx.y());
-                    tupleMap.put("bscVZ/D", bscVtx.z());
-                    tupleMap.put("bscChisq/D", bscV0.getStartVertex().getChi2());
-                    tupleMap.put("bscM/D", bscV0.getMass());
-
-                    tupleMap.put("tarPX/D", tarMomRot.x());
-                    tupleMap.put("tarPY/D", tarMomRot.y());
-                    tupleMap.put("tarPZ/D", tarMomRot.z());
-                    tupleMap.put("tarP/D", tarMomRot.magnitude());
-                    tupleMap.put("tarVX/D", tarVtx.x());
-                    tupleMap.put("tarVY/D", tarVtx.y());
-                    tupleMap.put("tarVZ/D", tarVtx.z());
-                    tupleMap.put("tarChisq/D", tarV0.getStartVertex().getChi2());
-                    tupleMap.put("tarM/D", tarV0.getMass());
-
-                    tupleMap.put("vzcPX/D", vzcMomRot.x());
-                    tupleMap.put("vzcPY/D", vzcMomRot.y());
-                    tupleMap.put("vzcPZ/D", vzcMomRot.z());
-                    tupleMap.put("vzcP/D", vzcMomRot.magnitude());
-                    tupleMap.put("vzcVX/D", vzcVtx.x());
-                    tupleMap.put("vzcVY/D", vzcVtx.y());
-                    tupleMap.put("vzcVZ/D", vzcVtx.z());
-                    tupleMap.put("vzcChisq/D", vzcV0.getStartVertex().getChi2());
-                    tupleMap.put("vzcM/D", vzcV0.getMass());
-
-                    tupleMap.put("topPX/D", pTopRot.x());
-                    tupleMap.put("topPY/D", pTopRot.y());
-                    tupleMap.put("topPZ/D", pTopRot.z());
-                    tupleMap.put("topP/D", pTopRot.magnitude());
-                    tupleMap.put("topTrkD0/D", top.getTracks().get(0).getTrackStates().get(0).getD0());
-                    tupleMap.put("topTrkZ0/D", top.getTracks().get(0).getTrackStates().get(0).getZ0());
-                    tupleMap.put("topTrkEcalX/D", topAtEcal.x());
-                    tupleMap.put("topTrkEcalY/D", topAtEcal.y());
-                    tupleMap.put("topTrkChisq/D", top.getTracks().get(0).getChi2());
-                    tupleMap.put("topTrkHits/I", (double) top.getTracks().get(0).getTrackerHits().size());
-                    tupleMap.put("topTrkType/I", (double) top.getType());
-                    tupleMap.put("topTrkT/D", tTop);
-                    tupleMap.put("topHasL1/B", topIso[0] != null ? 1.0 : 0.0);
-                    tupleMap.put("topHasL2/B", topIso[2] != null ? 1.0 : 0.0);
-                    tupleMap.put("topMatchChisq/D", top.getGoodnessOfPID());
-                    if (!top.getClusters().isEmpty()) {
-                        Cluster topC = top.getClusters().get(0);
-                        tupleMap.put("topClT/D", ClusterUtilities.getSeedHitTime(topC));
-                        tupleMap.put("topClE/D", topC.getEnergy());
-                        tupleMap.put("topClX/D", topC.getPosition()[0]);
-                        tupleMap.put("topClY/D", topC.getPosition()[1]);
-                        tupleMap.put("topClZ/D", topC.getPosition()[2]);
-                        tupleMap.put("topClHits/I", (double) topC.getCalorimeterHits().size());
-                    }
-
-                    tupleMap.put("botPX/D", pBotRot.x());
-                    tupleMap.put("botPY/D", pBotRot.y());
-                    tupleMap.put("botPZ/D", pBotRot.z());
-                    tupleMap.put("botP/D", pBotRot.magnitude());
-                    tupleMap.put("botTrkD0/D", bot.getTracks().get(0).getTrackStates().get(0).getD0());
-                    tupleMap.put("botTrkZ0/D", bot.getTracks().get(0).getTrackStates().get(0).getZ0());
-                    tupleMap.put("botTrkEcalX/D", botAtEcal.x());
-                    tupleMap.put("botTrkEcalY/D", botAtEcal.y());
-                    tupleMap.put("botTrkChisq/D", bot.getTracks().get(0).getChi2());
-                    tupleMap.put("botTrkHits/I", (double) bot.getTracks().get(0).getTrackerHits().size());
-                    tupleMap.put("botTrkType/I", (double) bot.getType());
-                    tupleMap.put("botTrkT/D", tBot);
-                    tupleMap.put("botHasL1/B", botIso[0] != null ? 1.0 : 0.0);
-                    tupleMap.put("botHasL2/B", botIso[2] != null ? 1.0 : 0.0);
-                    tupleMap.put("botMatchChisq/D", bot.getGoodnessOfPID());
-                    if (!bot.getClusters().isEmpty()) {
-                        Cluster botC = bot.getClusters().get(0);
-                        tupleMap.put("botClT/D", ClusterUtilities.getSeedHitTime(botC));
-                        tupleMap.put("botClE/D", botC.getEnergy());
-                        tupleMap.put("botClHits/I", (double) botC.getCalorimeterHits().size());
-                    }
-
-                    tupleMap.put("minL1Iso/D", minL1Iso);
-
-                    tupleMap.put("nTrk/I", (double) ntrk);
-                    tupleMap.put("nPos/I", (double) npos);
-                    writeTuple();
-                }
-            }
 
             //start applying cuts
             EnumSet<Cut> bits = EnumSet.noneOf(Cut.class);
