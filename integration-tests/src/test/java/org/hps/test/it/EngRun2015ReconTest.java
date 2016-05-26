@@ -26,7 +26,7 @@ public class EngRun2015ReconTest extends TestCase {
     public void testEngRun2015Recon() throws Exception {
         File inputFile = new TestDataUtility().getTestData("run5772_integrationTest.evio");        
         File outputFile = new TestOutputFile("EngRun2015ReconTest");
-        String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullRecon_Pass2.lcsim", "-d",
+        String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim", "-d",
                 "HPS-EngRun2015-Nominal-v2", "-D", "outputFile=" + outputFile.getPath(), "-n", "1000",
                 inputFile.getPath()};
         System.out.println("Running EngRun2015ReconTest.main ...");
