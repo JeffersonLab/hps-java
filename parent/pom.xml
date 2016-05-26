@@ -12,8 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-        <lcsimVersion>3.6</lcsimVersion>
+        <lcsimVersion>3.7-SNAPSHOT</lcsimVersion>
         <skipSite>false</skipSite>
         <skipPlugin>false</skipPlugin>
     </properties>
@@ -454,7 +453,6 @@
                     <argLine>-Xmx1024m</argLine>
                     <forkMode>pertest</forkMode>
                     <systemPropertyVariables>
-                        <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
                         <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
                     </systemPropertyVariables>
                 </configuration>
