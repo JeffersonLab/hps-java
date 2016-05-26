@@ -250,6 +250,11 @@
                 <artifactId>hps-logging</artifactId>
                 <version>3.9-SNAPSHOT</version>
             </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-integration-tests</artifactId>
+                <version>3.9-SNAPSHOT</version>
+            </dependency>
             <!-- Next are external dependencies used in multiple modules. -->
             <dependency>
                 <groupId>org.jlab.coda</groupId>

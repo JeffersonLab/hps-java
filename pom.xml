@@ -128,7 +128,9 @@
         <module>tracking</module>
         <module>users</module>
         <module>util</module>
+        <module>integration-tests</module>
     </modules>
+    <!--    
     <profiles>
         <profile>
             <id>integration-tests</id>
@@ -140,4 +142,5 @@
             </modules>
         </profile>
     </profiles>
+    -->
 </project>
