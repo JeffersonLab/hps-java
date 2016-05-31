@@ -454,6 +454,7 @@
                     <forkMode>pertest</forkMode>
                     <systemPropertyVariables>
                         <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
+                        <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
