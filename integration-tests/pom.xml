@@ -23,7 +23,7 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-test-data</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0</version>
             <scope>test</scope>
             <classifier>archive</classifier>
             <type>jar</type>
@@ -31,7 +31,7 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-test-data</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0</version>
             <scope>test</scope>
             <type>jar</type>
         </dependency>
