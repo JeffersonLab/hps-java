@@ -667,6 +667,17 @@
     </ciManagement>
     <profiles>
         <profile>
+            <id>default-cache-dir</id>
+            <activation>
+                <property>
+                    <name>!org.lcsim.cacheDir</name>
+                </property>
+            </activation>
+            <properties>
+                <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
+            </properties>
+        </profile>            
+        <profile>
             <id>no-plugin</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
@@ -677,4 +688,3 @@
         </profile>
     </profiles>
 </project>
-
