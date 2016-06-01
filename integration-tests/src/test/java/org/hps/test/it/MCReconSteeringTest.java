@@ -19,7 +19,6 @@ public class MCReconSteeringTest extends TestCase {
      * List of steering files to run.
      */
     static String[] STEERING_FILES = {        
-        "EngineeringRun2015FullReconMC_Pass2.lcsim",
         "EngineeringRun2015FullReconMC.lcsim"
     };
             
