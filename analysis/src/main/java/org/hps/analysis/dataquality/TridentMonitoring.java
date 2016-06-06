@@ -14,7 +14,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
-import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
+// import org.hps.UnusedImportCheckstyleViolation
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.HpsReconParticleDriver;
 import org.hps.recon.particle.ReconParticleDriver;
@@ -327,22 +327,15 @@ public class TridentMonitoring extends DataQualityMonitor {
         this.beamPos[2] = beamPosY;
     }
 
-    public void setEbeam(double ebeam) {
-        this.ebeam = ebeam;
-    }
-
-    private double ebeam = Double.NaN;
+    
 
     @Override
     protected void detectorChanged(Detector detector) {
-        LOGGER.info("TridendMonitoring::detectorChanged  Setting up the plotter");
+        super.detectorChanged(detector);
+    /*tab*/LOGGER.info("TridendMonitoring::detectorChanged  Setting up the plotter");
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
 
-        BeamEnergyCollection beamEnergyCollection
-                = this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
-        if (Double.isNaN(ebeam)) {
-            ebeam = beamEnergyCollection.get(0).getBeamEnergy();
-        }
+        
         aida.tree().cd("/");
         String trkType = "SeedTrack/";
         if (isGBL) {
@@ -367,16 +360,16 @@ public class TridentMonitoring extends DataQualityMonitor {
 
 //        triTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Track time difference", 100, -10, 10);
 //        triTrackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Track time vs. track time", 100, -10, 10, 100, -10, 10);
-        triTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Positron vs. electron momentum", 100, 0, v0PzMax * ebeam, 100, 0, v0PzMax * ebeam);
-        triDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Positron - electron momentum", 100, -ebeam, ebeam);
-        triSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Positron + electron momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam);
-        triPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Py(e) vs Py(p)", 50, -v0PyMax * ebeam, v0PyMax * ebeam, 50, -v0PyMax * ebeam, v0PyMax * ebeam);
-        triPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Px(e) vs Px(p)", 50, -v0PxMax * ebeam, v0PxMax * ebeam, 50, -v0PxMax * ebeam, v0PxMax * ebeam);
+        triTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Positron vs. electron momentum", 100, 0, v0PzMax * beamEnergy, 100, 0, v0PzMax * beamEnergy);
+        triDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Positron - electron momentum", 100, -beamEnergy, beamEnergy);
+        triSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Positron + electron momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy);
+        triPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Py(e) vs Py(p)", 50, -v0PyMax * beamEnergy, v0PyMax * beamEnergy, 50, -v0PyMax * beamEnergy, v0PyMax * beamEnergy);
+        triPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Px(e) vs Px(p)", 50, -v0PxMax * beamEnergy, v0PxMax * beamEnergy, 50, -v0PxMax * beamEnergy, v0PxMax * beamEnergy);
 
-        triMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex mass vs. vertex momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam, 100, 0, 0.1 * ebeam);
-        triZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Z vs. vertex momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam, 100, -v0VzMax, v0VzMax);
-        triMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex mass", 100, 0, 0.1 * ebeam);
-        triZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Z vs. mass", 100, 0, 0.1 * ebeam, 100, -v0VzMax, v0VzMax);
+        triMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex mass vs. vertex momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy, 100, 0, 0.1 * beamEnergy);
+        triZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Z vs. vertex momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy, 100, -v0VzMax, v0VzMax);
+        triMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex mass", 100, 0, 0.1 * beamEnergy);
+        triZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Z vs. mass", 100, 0, 0.1 * beamEnergy, 100, -v0VzMax, v0VzMax);
 //        triX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex X", 100, -v0VxMax, v0VxMax);
 //        triY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Y", 100, -v0VyMax, v0VyMax);
 //        triZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Z", 100, -v0VzMax, v0VzMax);
@@ -392,40 +385,40 @@ public class TridentMonitoring extends DataQualityMonitor {
         triRadTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Track time difference", 100, -10, 10);
         triRadTrackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Track time vs. track time", 100, -10, 10, 100, -10, 10);
 
-        triRadTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Positron vs. electron momentum", 100, 0, v0PzMax * ebeam, 100, 0, v0PzMax * ebeam);
-        triRadDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Positron - electron momentum", 100, -ebeam, ebeam);
-        triRadSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Positron + electron momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam);
-        triRadPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Py(e) vs Py(p)", 50, -v0PyMax * ebeam, v0PyMax * ebeam, 50, -v0PyMax * ebeam, v0PyMax * ebeam);
-        triRadPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Px(e) vs Px(p)", 50, -v0PxMax * ebeam, v0PxMax * ebeam, 50, -v0PxMax * ebeam, v0PxMax * ebeam);
+        triRadTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Positron vs. electron momentum", 100, 0, v0PzMax * beamEnergy, 100, 0, v0PzMax * beamEnergy);
+        triRadDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Positron - electron momentum", 100, -beamEnergy, beamEnergy);
+        triRadSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Positron + electron momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy);
+        triRadPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Py(e) vs Py(p)", 50, -v0PyMax * beamEnergy, v0PyMax * beamEnergy, 50, -v0PyMax * beamEnergy, v0PyMax * beamEnergy);
+        triRadPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Px(e) vs Px(p)", 50, -v0PxMax * beamEnergy, v0PxMax * beamEnergy, 50, -v0PxMax * beamEnergy, v0PxMax * beamEnergy);
 
 //        triRadMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex mass vs. vertex momentum", 100, v0PzMin, v0PzMax, 100, 0, 0.1);
 //        triRadZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Z vs. vertex momentum", 100, v0PzMin, v0PzMax, 100, -v0VzMax, v0VzMax);
-        triRadMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex mass", 100, 0, 0.1 * ebeam);
-        triRadZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Z vs. mass", 100, 0, 0.1 * ebeam, 100, -v0VzMax, v0VzMax);
+        triRadMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex mass", 100, 0, 0.1 * beamEnergy);
+        triRadZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Z vs. mass", 100, 0, 0.1 * beamEnergy, 100, -v0VzMax, v0VzMax);
 //        triRadX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex X", 100, -v0VxMax, v0VxMax);
 //        triRadY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Y", 100, -v0VyMax, v0VyMax);
 //        triRadZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Z", 100, -v0VzMax, v0VzMax);
 //        triRadXY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Y vs. X", 100, -v0VxMax, v0VxMax, 100, -v0VyMax, v0VyMax);
 //        triRadZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
-        triRadPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Px", 100, -v0PxMax * ebeam, v0PxMax * ebeam);
-        triRadPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Py", 100, -v0PyMax * ebeam, v0PyMax * ebeam);
-        triRadPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Pz", 100, v0PzMin * ebeam, v0PzMax * ebeam);
-        triRadPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Py vs. Px", 100, -v0PxMax * ebeam, v0PxMax * ebeam, 100, -v0PyMax * ebeam, v0PyMax * ebeam);
+        triRadPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Px", 100, -v0PxMax * beamEnergy, v0PxMax * beamEnergy);
+        triRadPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Py", 100, -v0PyMax * beamEnergy, v0PyMax * beamEnergy);
+        triRadPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Pz", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy);
+        triRadPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Py vs. Px", 100, -v0PxMax * beamEnergy, v0PxMax * beamEnergy, 100, -v0PyMax * beamEnergy, v0PyMax * beamEnergy);
         triRadU = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Px over Ptot", 100, -0.1, 0.1);
         triRadV = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative trident: Vertex Py over Ptot", 100, -0.1, 0.1);
 
 //        vertTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Track time difference", 100, -10, 10);
 //        vertTrackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Track time vs. track time", 100, -10, 10, 100, -10, 10);
-        vertTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Positron vs. electron momentum", 100, 0, v0PzMax * ebeam, 100, 0, v0PzMax * ebeam);
-        vertDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Positron - electron momentum", 100, -ebeam, ebeam);
-        vertSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Positron + electron momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam);
-        vertPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Py(e) vs Py(p)", 50, -v0PyMax * ebeam, v0PyMax * ebeam, 50, -v0PyMax * ebeam, v0PyMax * ebeam);
-        vertPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Px(e) vs Px(p)", 50, -v0PxMax * ebeam, v0PxMax * ebeam, 50, -v0PxMax * ebeam, v0PxMax * ebeam);
+        vertTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Positron vs. electron momentum", 100, 0, v0PzMax * beamEnergy, 100, 0, v0PzMax * beamEnergy);
+        vertDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Positron - electron momentum", 100, -beamEnergy, beamEnergy);
+        vertSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Positron + electron momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy);
+        vertPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Py(e) vs Py(p)", 50, -v0PyMax * beamEnergy, v0PyMax * beamEnergy, 50, -v0PyMax * beamEnergy, v0PyMax * beamEnergy);
+        vertPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Px(e) vs Px(p)", 50, -v0PxMax * beamEnergy, v0PxMax * beamEnergy, 50, -v0PxMax * beamEnergy, v0PxMax * beamEnergy);
 
-        vertMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass vs. vertex momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam, 100, 0, 0.1 * ebeam);
-        vertZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. vertex momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam, 100, -v0VzMax, v0VzMax);
-        vertMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass", 100, 0, 0.1 * ebeam);
-        vertZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. mass", 100, 0, 0.1 * ebeam, 100, -v0VzMax, v0VzMax);
+        vertMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass vs. vertex momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy, 100, 0, 0.1 * beamEnergy);
+        vertZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. vertex momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy, 100, -v0VzMax, v0VzMax);
+        vertMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass", 100, 0, 0.1 * beamEnergy);
+        vertZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. mass", 100, 0, 0.1 * beamEnergy, 100, -v0VzMax, v0VzMax);
 //        vertX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex X", 100, -v0VxMax, v0VxMax);
         vertY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Y", 100, -v0VyMax, v0VyMax);
 //        vertZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z", 100, -v0VzMax, v0VzMax);
@@ -441,25 +434,25 @@ public class TridentMonitoring extends DataQualityMonitor {
         vertRadTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Track time difference", 100, -10, 10);
         vertRadTrackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Track time vs. track time", 100, -10, 10, 100, -10, 10);
 
-        vertRadTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Positron vs. electron momentum", 100, 0, v0PzMax * ebeam, 100, 0, v0PzMax * ebeam);
-        vertRadDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Positron - electron momentum", 100, -ebeam, ebeam);
-        vertRadSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Positron + electron momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam);
-        vertRadPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Py(e) vs Py(p)", 50, -v0PyMax * ebeam, v0PyMax * ebeam, 50, -v0PyMax * ebeam, v0PyMax * ebeam);
-        vertRadPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Px(e) vs Px(p)", 50, -v0PxMax * ebeam, v0PxMax * ebeam, 50, -v0PxMax * ebeam, v0PxMax * ebeam);
+        vertRadTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Positron vs. electron momentum", 100, 0, v0PzMax * beamEnergy, 100, 0, v0PzMax * beamEnergy);
+        vertRadDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Positron - electron momentum", 100, -beamEnergy, beamEnergy);
+        vertRadSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Positron + electron momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy);
+        vertRadPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Py(e) vs Py(p)", 50, -v0PyMax * beamEnergy, v0PyMax * beamEnergy, 50, -v0PyMax * beamEnergy, v0PyMax * beamEnergy);
+        vertRadPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Px(e) vs Px(p)", 50, -v0PxMax * beamEnergy, v0PxMax * beamEnergy, 50, -v0PxMax * beamEnergy, v0PxMax * beamEnergy);
 
-        vertRadMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex mass vs. vertex momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam, 100, 0, 0.1 * ebeam);
-        vertRadZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Z vs. vertex momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam, 100, -v0VzMax, v0VzMax);
-        vertRadMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex mass", 100, 0, 0.1 * ebeam);
-        vertRadZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Z vs. mass", 100, 0, 0.1 * ebeam, 100, -v0VzMax, v0VzMax);
+        vertRadMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex mass vs. vertex momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy, 100, 0, 0.1 * beamEnergy);
+        vertRadZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Z vs. vertex momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy, 100, -v0VzMax, v0VzMax);
+        vertRadMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex mass", 100, 0, 0.1 * beamEnergy);
+        vertRadZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Z vs. mass", 100, 0, 0.1 * beamEnergy, 100, -v0VzMax, v0VzMax);
         vertRadX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex X", 100, -v0VxMax, v0VxMax);
         vertRadY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Y", 100, -v0VyMax, v0VyMax);
         vertRadZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Z", 100, -v0VzMax, v0VzMax);
         vertRadXY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Y vs. X", 100, -v0VxMax, v0VxMax, 100, -v0VyMax, v0VyMax);
         vertRadZY = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Z vs. Y", 100, -v0VyMax, v0VyMax, 100, -v0VzMax, v0VzMax);
-        vertRadPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Px", 100, -v0PxMax * ebeam, v0PxMax * ebeam);
-        vertRadPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Py", 100, -v0PyMax * ebeam, v0PyMax * ebeam);
-        vertRadPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Pz", 100, v0PzMin * ebeam, v0PzMax * ebeam);
-        vertRadPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Py vs. Px", 100, -v0PxMax * ebeam, v0PxMax * ebeam, 100, -v0PyMax * ebeam, v0PyMax * ebeam);
+        vertRadPx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Px", 100, -v0PxMax * beamEnergy, v0PxMax * beamEnergy);
+        vertRadPy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Py", 100, -v0PyMax * beamEnergy, v0PyMax * beamEnergy);
+        vertRadPz = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Pz", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy);
+        vertRadPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Py vs. Px", 100, -v0PxMax * beamEnergy, v0PxMax * beamEnergy, 100, -v0PyMax * beamEnergy, v0PyMax * beamEnergy);
         vertRadU = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Px over Ptot", 100, -0.1, 0.1);
         vertRadV = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Radiative vertex: Vertex Py over Ptot", 100, -0.1, 0.1);
 
@@ -495,9 +488,9 @@ public class TridentMonitoring extends DataQualityMonitor {
                 cutVertexZ[cut.ordinal()][i] = aida.histogram1D(String.format("%s%s%s/failed cut %d: %s/%s: Vertex Z position (mm)", plotDir, trkType, triggerType, cut.ordinal(), cut.name, i == VERTEX ? "vertex" : "trident"),
                         100, -v0VzMax, v0VzMax);
                 cutVertexMass[cut.ordinal()][i] = aida.histogram1D(String.format("%s%s%s/failed cut %d: %s/%s: Vertex mass (GeV)", plotDir, trkType, triggerType, cut.ordinal(), cut.name, i == VERTEX ? "vertex" : "trident"),
-                        100, 0, 0.1 * ebeam);
+                        100, 0, 0.1 * beamEnergy);
                 cutVertexZVsMass[cut.ordinal()][i] = aida.histogram2D(String.format("%s%s%s/failed cut %d: %s/%s: Vertex Z vs. mass", plotDir, trkType, triggerType, cut.ordinal(), cut.name, i == VERTEX ? "vertex" : "trident"),
-                        100, 0, 0.1 * ebeam, 100, -v0VzMax, v0VzMax);
+                        100, 0, 0.1 * beamEnergy, 100, -v0VzMax, v0VzMax);
             }
         }
     }
@@ -695,7 +688,7 @@ public class TridentMonitoring extends DataQualityMonitor {
                 bits.add(Cut.VTX_QUALITY);
             }
 
-            boolean vertexMomentumCut = v0MomRot.z() < v0PzMaxCut * ebeam && v0MomRot.z() > v0PzMinCut * ebeam && Math.abs(v0MomRot.x()) < v0PxCut * ebeam && Math.abs(v0MomRot.y()) < v0PyCut * ebeam;
+            boolean vertexMomentumCut = v0MomRot.z() < v0PzMaxCut * beamEnergy && v0MomRot.z() > v0PzMinCut * beamEnergy && Math.abs(v0MomRot.x()) < v0PxCut * beamEnergy && Math.abs(v0MomRot.y()) < v0PyCut * beamEnergy;
             boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0UnconVxCut && Math.abs(v0Vtx.y()) < v0UnconVyCut && Math.abs(v0Vtx.z()) < v0UnconVzCut && Math.abs(bscVtx.x()) < v0BsconVxCut && Math.abs(bscVtx.y()) < v0BsconVyCut;
             if (vertexMomentumCut && vertexPositionCut) {
                 bits.add(Cut.VERTEX_CUTS);
@@ -707,8 +700,8 @@ public class TridentMonitoring extends DataQualityMonitor {
             }
 
             boolean topBottomCut = electron.getMomentum().y() * positron.getMomentum().y() < 0;
-            boolean pMinCut = electron.getMomentum().magnitude() > minPCut * ebeam && positron.getMomentum().magnitude() > minPCut * ebeam;
-            boolean pMaxCut = electron.getMomentum().magnitude() < beamPCut * ebeam && positron.getMomentum().magnitude() < beamPCut * ebeam;
+            boolean pMinCut = electron.getMomentum().magnitude() > minPCut * beamEnergy && positron.getMomentum().magnitude() > minPCut * beamEnergy;
+            boolean pMaxCut = electron.getMomentum().magnitude() < beamPCut * beamEnergy && positron.getMomentum().magnitude() < beamPCut * beamEnergy;
             if (topBottomCut && pMaxCut && pMinCut) {
                 bits.add(Cut.TRACK_CUTS);
             }
@@ -751,7 +744,7 @@ public class TridentMonitoring extends DataQualityMonitor {
                 EnumSet<Cut> allButThisCut = EnumSet.allOf(Cut.class);
                 allButThisCut.remove(cut);
                 if (bits.containsAll(allButThisCut)) {
-                    if (uncV0.getMass() > plotsMinMass * ebeam && uncV0.getMass() < plotsMaxMass * ebeam && uncV0.getMomentum().magnitude() > radCut * ebeam) {
+                    if (uncV0.getMass() > plotsMinMass * beamEnergy && uncV0.getMass() < plotsMaxMass * beamEnergy && uncV0.getMomentum().magnitude() > radCut * beamEnergy) {
                         switch (cut) {
                             case ISOLATION:
                                 l1Iso.fill(minIso);
@@ -784,7 +777,7 @@ public class TridentMonitoring extends DataQualityMonitor {
                         }
                     }
                     if (!bits.contains(cut)) {
-                        if (uncV0.getMass() > plotsMinMass * ebeam && uncV0.getMass() < plotsMaxMass * ebeam) {
+                        if (uncV0.getMass() > plotsMinMass * beamEnergy && uncV0.getMass() < plotsMaxMass * beamEnergy) {
                             cutVertexZ[cut.ordinal()][VERTEX].fill(v0Vtx.z());
                         }
                         cutVertexMass[cut.ordinal()][VERTEX].fill(uncV0.getMass());
@@ -796,7 +789,7 @@ public class TridentMonitoring extends DataQualityMonitor {
                 allTriCutsButThisCut.remove(cut);
                 if (bits.containsAll(allTriCutsButThisCut)) {
                     if (!bits.contains(cut)) {
-                        if (uncV0.getMass() > plotsMinMass * ebeam && uncV0.getMass() < plotsMaxMass * ebeam) {
+                        if (uncV0.getMass() > plotsMinMass * beamEnergy && uncV0.getMass() < plotsMaxMass * beamEnergy) {
                             cutVertexZ[cut.ordinal()][TRIDENT].fill(v0Vtx.z());
                         }
                         cutVertexMass[cut.ordinal()][TRIDENT].fill(uncV0.getMass());
@@ -857,7 +850,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 //            triV.fill(pBestV0Rot.y() / pBestV0Rot.magnitude());
 //            triXY.fill(v0Vtx.x(), v0Vtx.y());
 //            triZY.fill(v0Vtx.y(), v0Vtx.z());
-            if (bestCandidate.getMomentum().magnitude() > radCut * ebeam) {
+            if (bestCandidate.getMomentum().magnitude() > radCut * beamEnergy) {
                 triRadTrackTime2D.fill(tEle, tPos);
                 triRadTrackTimeDiff.fill(tEle - tPos);
 //                triRadZVsMomentum.fill(bestCandidate.getMomentum().magnitude(), v0Vtx.z());
@@ -926,7 +919,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 //            vertV.fill(pBestV0Rot.y() / pBestV0Rot.magnitude());
             vertXY.fill(v0Vtx.x(), v0Vtx.y());
             vertZY.fill(v0Vtx.y(), v0Vtx.z());
-            if (bestCandidate.getMomentum().magnitude() > radCut * ebeam) {
+            if (bestCandidate.getMomentum().magnitude() > radCut * beamEnergy) {
 
                 BilliorVertexer vtxFitter = new BilliorVertexer(TrackUtils.getBField(event.getDetector()).y());
                 vtxFitter.setBeamSize(beamSize);

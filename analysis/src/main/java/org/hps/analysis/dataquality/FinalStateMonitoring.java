@@ -17,7 +17,6 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
@@ -104,14 +103,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-    	double beamEnergy = 6.6; //maximum possible beam energy is used as a default if the beam energy is unknown
-        BeamEnergyCollection beamEnergyCollection = 
-            this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-        if(beamEnergyCollection != null && beamEnergyCollection.size() != 0)
-        	beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
-        else
-        	LOGGER.log(Level.WARNING, "warning:  beam energy not found.  Assuming it is 6.6 GeV");
-       
+        super.detectorChanged(detector);
         double maxFactor = 1.5;
         double feeMomentumCut = 0.75; //this number, multiplied by the beam energy, is the actual cut
 

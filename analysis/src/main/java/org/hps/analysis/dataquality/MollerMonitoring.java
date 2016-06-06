@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Logger;
-import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.particle.HpsReconParticleDriver;
 import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
@@ -224,16 +223,14 @@ public class MollerMonitoring extends DataQualityMonitor {
         this.beamPos[2] = beamPosY;
     }
 
-    double ebeam;
 
     @Override
     protected void detectorChanged(Detector detector) {
-        LOGGER.info("MollerMonitoring::detectorChanged  Setting up the plotter");
+        super.detectorChanged(detector);
+        
+    /*tab*/LOGGER.info("MollerMonitoring::detectorChanged  Setting up the plotter");
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
 
-        BeamEnergyCollection beamEnergyCollection
-                = this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
-        ebeam = beamEnergyCollection.get(0).getBeamEnergy();
         aida.tree().cd("/");
         String trkType = "SeedTrack/";
         if (isGBL) {
@@ -258,16 +255,16 @@ public class MollerMonitoring extends DataQualityMonitor {
 
 //        triTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Track time difference", 100, -10, 10);
 //        triTrackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Trident: Track time vs. track time", 100, -10, 10, 100, -10, 10);
-        triTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Bottom vs. top momentum", 100, 0, v0PzMax * ebeam, 100, 0, v0PzMax * ebeam);
-        triDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Moller: Bottom - top momentum", 100, -ebeam, ebeam);
-        triSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Moller: Bottom + top momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam);
-        triPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Py(t) vs Py(b)", 50, -2 * v0PyMax * ebeam, 2 * v0PyMax * ebeam, 50, -2 * v0PyMax * ebeam, 2 * v0PyMax * ebeam);
-        triPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Px(t) vs Px(b)", 50, -2 * v0PxMax * ebeam, 2 * v0PxMax * ebeam, 50, -2 * v0PxMax * ebeam, 2 * v0PxMax * ebeam);
+        triTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Bottom vs. top momentum", 100, 0, v0PzMax * beamEnergy, 100, 0, v0PzMax * beamEnergy);
+        triDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Moller: Bottom - top momentum", 100, -beamEnergy, beamEnergy);
+        triSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Moller: Bottom + top momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy);
+        triPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Py(t) vs Py(b)", 50, -2 * v0PyMax * beamEnergy, 2 * v0PyMax * beamEnergy, 50, -2 * v0PyMax * beamEnergy, 2 * v0PyMax * beamEnergy);
+        triPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Px(t) vs Px(b)", 50, -2 * v0PxMax * beamEnergy, 2 * v0PxMax * beamEnergy, 50, -2 * v0PxMax * beamEnergy, 2 * v0PxMax * beamEnergy);
 
-        triMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Vertex mass vs. vertex momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam, 100, 0, 0.1 * ebeam);
-        triZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Vertex Z vs. vertex momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam, 100, -v0VzMax, v0VzMax);
-        triMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Moller: Vertex mass", 100, 0, 0.1 * ebeam);
-        triZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Vertex Z vs. mass", 100, 0, 0.1 * ebeam, 100, -v0VzMax, v0VzMax);
+        triMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Vertex mass vs. vertex momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy, 100, 0, 0.1 * beamEnergy);
+        triZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Vertex Z vs. vertex momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy, 100, -v0VzMax, v0VzMax);
+        triMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Moller: Vertex mass", 100, 0, 0.1 * beamEnergy);
+        triZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Moller: Vertex Z vs. mass", 100, 0, 0.1 * beamEnergy, 100, -v0VzMax, v0VzMax);
 //        triX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex X", 100, -v0VxMax, v0VxMax);
 //        triY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Y", 100, -v0VyMax, v0VyMax);
 //        triZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Vertex Z", 100, -v0VzMax, v0VzMax);
@@ -282,16 +279,16 @@ public class MollerMonitoring extends DataQualityMonitor {
 
 //        vertTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Track time difference", 100, -10, 10);
 //        vertTrackTime2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Track time vs. track time", 100, -10, 10, 100, -10, 10);
-        vertTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Bottom vs. top momentum", 100, 0, v0PzMax * ebeam, 100, 0, v0PzMax * ebeam);
-        vertDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Bottom - top momentum", 100, -ebeam, ebeam);
-        vertSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Bottom + top momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam);
-        vertPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Py(t) vs Py(b)", 50, -2 * v0PyMax * ebeam, 2 * v0PyMax * ebeam, 50, -2 * v0PyMax * ebeam, 2 * v0PyMax * ebeam);
-        vertPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Px(t) vs Px(b)", 50, -2 * v0PxMax * ebeam, 2 * v0PxMax * ebeam, 50, -2 * v0PxMax * ebeam, 2 * v0PxMax * ebeam);
+        vertTrackMomentum2D = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Bottom vs. top momentum", 100, 0, v0PzMax * beamEnergy, 100, 0, v0PzMax * beamEnergy);
+        vertDeltaP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Bottom - top momentum", 100, -beamEnergy, beamEnergy);
+        vertSumP = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Bottom + top momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy);
+        vertPyEleVsPyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Py(t) vs Py(b)", 50, -2 * v0PyMax * beamEnergy, 2 * v0PyMax * beamEnergy, 50, -2 * v0PyMax * beamEnergy, 2 * v0PyMax * beamEnergy);
+        vertPxEleVsPxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Px(t) vs Px(b)", 50, -2 * v0PxMax * beamEnergy, 2 * v0PxMax * beamEnergy, 50, -2 * v0PxMax * beamEnergy, 2 * v0PxMax * beamEnergy);
 
-        vertMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass vs. vertex momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam, 100, 0, 0.1 * ebeam);
-        vertZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. vertex momentum", 100, v0PzMin * ebeam, v0PzMax * ebeam, 100, -v0VzMax, v0VzMax);
-        vertMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass", 100, 0, 0.1 * ebeam);
-        vertZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. mass", 100, 0, 0.1 * ebeam, 100, -v0VzMax, v0VzMax);
+        vertMassMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass vs. vertex momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy, 100, 0, 0.1 * beamEnergy);
+        vertZVsMomentum = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. vertex momentum", 100, v0PzMin * beamEnergy, v0PzMax * beamEnergy, 100, -v0VzMax, v0VzMax);
+        vertMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex mass", 100, 0, 0.1 * beamEnergy);
+        vertZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z vs. mass", 100, 0, 0.1 * beamEnergy, 100, -v0VzMax, v0VzMax);
         vertX = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex X", 100, -v0VxMax, v0VxMax);
         vertY = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Y", 100, -v0VyMax, v0VyMax);
 //        vertZ = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Vertex: Vertex Z", 100, -v0VzMax, v0VzMax);
@@ -427,7 +424,7 @@ public class MollerMonitoring extends DataQualityMonitor {
                 bits.add(Cut.VTX_QUALITY);
             }
 
-            boolean vertexMomentumCut = v0MomRot.z() < v0PzMaxCut * ebeam && v0MomRot.z() > v0PzMinCut * ebeam && Math.abs(v0MomRot.x()) < v0PxCut * ebeam && Math.abs(v0MomRot.y()) < v0PyCut * ebeam;
+            boolean vertexMomentumCut = v0MomRot.z() < v0PzMaxCut * beamEnergy && v0MomRot.z() > v0PzMinCut * beamEnergy && Math.abs(v0MomRot.x()) < v0PxCut * beamEnergy && Math.abs(v0MomRot.y()) < v0PyCut * beamEnergy;
             boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0UnconVxCut && Math.abs(v0Vtx.y()) < v0UnconVyCut && Math.abs(v0Vtx.z()) < v0UnconVzCut && Math.abs(bscVtx.x()) < v0BsconVxCut && Math.abs(bscVtx.y()) < v0BsconVyCut;
             if (vertexMomentumCut && vertexPositionCut) {
                 bits.add(Cut.VERTEX_CUTS);
@@ -439,10 +436,10 @@ public class MollerMonitoring extends DataQualityMonitor {
             }
 
 //            boolean topBottomCut = top.getMomentum().y() * bot.getMomentum().y() < 0;
-//            boolean pMinCut = top.getMomentum().magnitude() > minTrkPCut * ebeam && bot.getMomentum().magnitude() > minTrkPCut * ebeam;
-            boolean pMaxCut = top.getMomentum().magnitude() < maxTrkPCut * ebeam && bot.getMomentum().magnitude() < maxTrkPCut * ebeam;
-//            boolean pSumCut = top.getMomentum().magnitude() + bot.getMomentum().magnitude() < maxPSumCut * ebeam && top.getMomentum().magnitude() + bot.getMomentum().magnitude() < minPSumCut * ebeam;
-//            boolean pMaxCut = top.getMomentum().magnitude() < maxTrkPCut * ebeam && bot.getMomentum().magnitude() < maxTrkPCut * ebeam;
+//            boolean pMinCut = top.getMomentum().magnitude() > minTrkPCut * beamEnergy && bot.getMomentum().magnitude() > minTrkPCut * beamEnergy;
+            boolean pMaxCut = top.getMomentum().magnitude() < maxTrkPCut * beamEnergy && bot.getMomentum().magnitude() < maxTrkPCut * beamEnergy;
+//            boolean pSumCut = top.getMomentum().magnitude() + bot.getMomentum().magnitude() < maxPSumCut * beamEnergy && top.getMomentum().magnitude() + bot.getMomentum().magnitude() < minPSumCut * beamEnergy;
+//            boolean pMaxCut = top.getMomentum().magnitude() < maxTrkPCut * beamEnergy && bot.getMomentum().magnitude() < maxTrkPCut * beamEnergy;
             if (pMaxCut) {
                 bits.add(Cut.TRACK_CUTS);
             }

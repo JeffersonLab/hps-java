@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.math.stat.StatUtils;
-import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -102,9 +101,7 @@ public class EcalMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        BeamEnergyCollection beamEnergyCollection = 
-            this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-        double beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+    /*tab*/super.detectorChanged(detector);
         //this.getConditionsManager().getCachedConditions(org.hps.conditions.EcalChannelCollection.class, "ecal_channels").
         LOGGER.info("EcalMonitoring::detectorChanged  Setting up the plotter");
         aida.tree().cd("/");
@@ -126,7 +123,7 @@ public class EcalMonitoring extends DataQualityMonitor {
         twoclusterTotEnergy = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Two Cluster Energy Sum", 100, 0, beamEnergy*maxFactor);
         twoclusterEnergyAsymmetry = aida.histogram1D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Two Cluster Energy Asymmetry", 100, 0, beamEnergy*maxFactor);
         energyVsT = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs time", 400, 0.0, 200.0, 100, -0.1, beamEnergy*maxFactor);
-        xVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " X vs Y (NHits >1)", 200, -200.0, 200.0, 85, -85.0, 85.0);
+        xVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " X vs Y (NHits >1)", 320, -270.0, 370.0, 90, -90.0, 90.0);
         energyVsX = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs X", 50, 0, maxFactor*beamEnergy, 50, .0, 200.0);
         energyVsY = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + " Energy vs Y", 50, 0, maxFactor*beamEnergy, 50, 20.0, 85.0);
         pairsE1vsE2 = aida.histogram2D(plotClustersDir +  triggerType + "/"+clusterCollectionName + "Pair E1 vs E2", 50, 0, beamEnergy*maxFactor, 50, 0, beamEnergy*maxFactor);

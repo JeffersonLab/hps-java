@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
+import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -25,6 +28,14 @@ public class DataQualityMonitor extends Driver {
 
     private static final Logger LOGGER = Logger.getLogger(DataQualityMonitor.class.getPackage().getName());
 
+    protected Double beamEnergy;
+    public void setBeamEnergy(double e){
+    this.beamEnergy = e;
+    }
+    public double getBeamEnergy(){
+    return this.beamEnergy;
+    }
+    
     protected AIDA aida = AIDA.defaultInstance();
     protected DQMDatabaseManager manager;
     protected String recoVersion = "v0.0";
@@ -37,6 +48,18 @@ public class DataQualityMonitor extends Driver {
     protected boolean outputPlots = false;
     protected String outputPlotDir = "DQMOutputPlots/";
 
+    @Override
+    protected void detectorChanged(Detector detector){
+        BeamEnergyCollection beamEnergyCollection = 
+            this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+        if(beamEnergyCollection != null && beamEnergyCollection.size() != 0)
+            beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+        else
+            LOGGER.log(Level.WARNING, "warning:  beam energy not found");
+       
+    }
+    
+    
     String triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
     public boolean isGBL = false;
 
