@@ -62,9 +62,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     double sumEoverP = 0.0;
     private final String plotDir = "FinalStateParticles/";
    // double beamEnergy = 1.05; //GeV
-    double maxFactor = 1.5;
-    double feeMomentumCut = 0.75; //this number, multiplied by the beam energy, is the actual cut
-
+    
     IHistogram1D elePx;
     IHistogram1D elePy;
     IHistogram1D elePz;
@@ -106,10 +104,17 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
+    	double beamEnergy = 6.6; //maximum possible beam energy is used as a default if the beam energy is unknown
         BeamEnergyCollection beamEnergyCollection = 
             this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-        double beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
-        
+        if(beamEnergyCollection != null && beamEnergyCollection.size() != 0)
+        	beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+        else
+        	LOGGER.log(Level.WARNING, "warning:  beam energy not found.  Assuming it is 6.6 GeV");
+       
+        double maxFactor = 1.5;
+        double feeMomentumCut = 0.75; //this number, multiplied by the beam energy, is the actual cut
+
         
         LOGGER.info("Setting up the plotter");
         aida.tree().cd("/");
@@ -117,6 +122,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         if(isGBL)
             trkType="GBLTrack/";
        
+        
         /*  Final State Particle Quantities   */
         /*  plot electron & positron momentum separately  */
         elePx = aida.histogram1D(plotDir +trkType+ triggerType + "/" + "Electron Px (GeV)", 100, -0.1*beamEnergy, 0.200*beamEnergy);
