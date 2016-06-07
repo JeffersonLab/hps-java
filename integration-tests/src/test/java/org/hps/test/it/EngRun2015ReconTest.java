@@ -97,7 +97,7 @@ public class EngRun2015ReconTest extends TestCase {
 
         public void endOfData() {
             System.out.println(nFail + " of " + nProcessed + " events failed");
-            assertEquals("Expected no events to fail", nFail, 0);
+            assertEquals("Expected no events to fail", 0, nFail);
         }
     }
 }
