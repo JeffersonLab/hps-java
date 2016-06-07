@@ -12,7 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <lcsimVersion>3.6</lcsimVersion>
+        <lcsimVersion>3.7-SNAPSHOT</lcsimVersion>
         <skipSite>false</skipSite>
         <skipPlugin>false</skipPlugin>
     </properties>
