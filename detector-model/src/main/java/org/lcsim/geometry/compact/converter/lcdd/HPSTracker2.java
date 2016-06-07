@@ -67,15 +67,29 @@ public class HPSTracker2 extends LCDDSubdetector {
                 String moduleName = modulePlacementElement.getAttributeValue("name");
                 int moduleNumber = modulePlacementElement.getAttribute("id").getIntValue();
                 
-                // Get the position and rotation parameters.  All must be explicitly specified.
-                double x, y, z;
-                double rx, ry, rz;
-                x = modulePlacementElement.getAttribute("x").getDoubleValue();
-                y = modulePlacementElement.getAttribute("y").getDoubleValue();
-                z = modulePlacementElement.getAttribute("z").getDoubleValue();
-                rx = modulePlacementElement.getAttribute("rx").getDoubleValue();
-                ry = modulePlacementElement.getAttribute("ry").getDoubleValue();
-                rz = modulePlacementElement.getAttribute("rz").getDoubleValue();
+                // Get the position and rotation parameters.
+                double x, y, z, rx, ry, rz;
+                x = y = z = rx = ry = rz = 0;
+                
+                // If not specified, default value of zero will be used for each parameter.
+                if (modulePlacementElement.getAttribute("x") != null) {
+                    x = modulePlacementElement.getAttribute("x").getDoubleValue();
+                }
+                if (modulePlacementElement.getAttribute("y") != null) {
+                    y = modulePlacementElement.getAttribute("y").getDoubleValue();
+                }
+                if (modulePlacementElement.getAttribute("z") != null) {
+                    z = modulePlacementElement.getAttribute("z").getDoubleValue();
+                }
+                if (modulePlacementElement.getAttribute("rx") != null) {
+                    rx = modulePlacementElement.getAttribute("rx").getDoubleValue();
+                }
+                if (modulePlacementElement.getAttribute("ry") != null) {
+                    ry = modulePlacementElement.getAttribute("ry").getDoubleValue();
+                }
+                if (modulePlacementElement.getAttribute("rz") != null) {
+                    rz = modulePlacementElement.getAttribute("rz").getDoubleValue();
+                }
                 
                 // Place the module with position and rotation from above.
                 String modulePlacementName = subdetName + "_" + moduleName + "_layer" + layerNumber + "_module" + moduleNumber;
@@ -83,9 +97,8 @@ public class HPSTracker2 extends LCDDSubdetector {
                 Rotation r = new Rotation(modulePlacementName + "_rotation", rx, ry, rz);
                 lcdd.add(p);
                 lcdd.add(r);                                
-                //PhysVol modulePhysVol = new PhysVol(modules.get(moduleName), trackingVolume, p, r);
                 PhysVol modulePhysVol = new PhysVol(modules.get(moduleName), momVolume, p, r);
-                
+                    
                 // Add identifier values to the placement volume.
                 modulePhysVol.addPhysVolID("system", sysId);
                 modulePhysVol.addPhysVolID("barrel", 0);
