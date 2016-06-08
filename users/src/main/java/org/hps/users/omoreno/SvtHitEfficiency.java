@@ -1,5 +1,6 @@
 package org.hps.users.omoreno;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import hep.aida.IPlotterFactory;
 import hep.aida.IPlotter;
 import hep.aida.IHistogram1D;
 import hep.aida.ITree;
+import hep.aida.ref.rootwriter.RootFileStore;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -32,7 +34,6 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
-
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 
@@ -103,6 +104,40 @@ public class SvtHitEfficiency extends Driver {
     // By default, require that all tracks have 5 hits
     int hitsOnTrack = 5;
 
+    
+    // Layer 1
+    /*double topXResidualOffset = .153060; 
+    double topYResidualOffset = -.0153772; 
+    double botXResidualOffset = -.42722;; 
+    double botYResidualOffset = -.042571; 
+    
+    double topXResidualCut = .60168;
+    double topYResidualCut = .222750;
+    double botXResidualCut = .57399;
+    double botYResidualCut = .20142;*/
+
+    
+    // Layer 2
+    /*double topXResidualOffset = .110117; 
+    double topYResidualOffset = .004153; 
+    double botXResidualOffset = .141392;; 
+    double botYResidualOffset = .0016898; 
+    
+    double topXResidualCut = .30105;
+    double topYResidualCut = .14859;
+    double botXResidualCut = .30523;
+    double botYResidualCut = .142789;*/
+    
+    double topXResidualOffset = .151985; 
+    double topYResidualOffset = .02071; 
+    double botXResidualOffset = -.260434; 
+    double botYResidualOffset = -.000359426; 
+    
+    double topXResidualCut = .349872;
+    double topYResidualCut = .143411;
+    double botXResidualCut = .343664;
+    double botYResidualCut = .143596;
+    
     /**
      * Default Constructor
      */
@@ -167,14 +202,26 @@ public class SvtHitEfficiency extends Driver {
         }
     
         plotters.put("Event Information", plotterFactory.create("Event information"));
-        plotters.get("Event Information").createRegions(2, 3);
+        plotters.get("Event Information").createRegions(3, 3);
 
         trackPlots.put("Number of tracks", histogramFactory.createHistogram1D("Number of tracks", 10, 0, 10));
         plotters.get("Event Information").region(0).plot(trackPlots.get("Number of tracks"));
 
         trackPlots.put("Unused Layer", histogramFactory.createHistogram1D("Unused Layer", 6, 1, 7));
         plotters.get("Event Information").region(1).plot(trackPlots.get("Unused Layer"));
+        
+        trackPlots.put("Unbiased Residual x - Top", histogramFactory.createHistogram1D("Unbiased Residual x - Top", 100, -10, 10));
+        plotters.get("Event Information").region(2).plot(trackPlots.get("Unbiased Residual x - Top"));
 
+        trackPlots.put("Unbiased Residual x - Bottom", histogramFactory.createHistogram1D("Unbiased Residual x - Bottom", 100, -10, 10));
+        plotters.get("Event Information").region(3).plot(trackPlots.get("Unbiased Residual x - Bottom"));
+
+        trackPlots.put("Unbiased Residual y - Top", histogramFactory.createHistogram1D("Unbiased Residual y - Top", 100, -10, 10));
+        plotters.get("Event Information").region(4).plot(trackPlots.get("Unbiased Residual y - Top"));
+
+        trackPlots.put("Unbiased Residual y - Bottom", histogramFactory.createHistogram1D("Unbiased Residual y - Bottom", 100, -10, 10));
+        plotters.get("Event Information").region(5).plot(trackPlots.get("Unbiased Residual y - Bottom"));
+        
         plotters.put("Track Momentum", plotterFactory.create("Track Momentum"));
         plotters.get("Track Momentum").createRegions(2, 2);
 
@@ -345,7 +392,8 @@ public class SvtHitEfficiency extends Driver {
             }
             
             trackMomentumPlots.get("Track Momentum - Tracks Within Acceptance").fill(p); 
-           
+          
+            
             // Check if there is a stereo hit within some distance of the track 
             // in the unused layer
             for (TrackerHit stereoHit : stereoHits) {
@@ -356,16 +404,32 @@ public class SvtHitEfficiency extends Driver {
            
                 if ((trackSensor.isTopLayer() && hitSensor.isBottomLayer()) 
                         || (trackSensor.isBottomLayer() && hitSensor.isTopLayer())) continue;
-                
+            
+               
                 // Retrieve the layer number by using the sensor
                 int layer = (hitSensor.getLayerNumber() + 1)/2;
                 
                 if (unusedLayer == layer) { 
-                    trackMomentumPlots.get("Track Momentum - All Layers Hit").fill(p);
-                    
+              
+                Hep3Vector stereoHitPosition = new BasicHep3Vector(stereoHit.getPosition());
+                Hep3Vector trackPosition = TrackUtils.extrapolateTrack(track, stereoHitPosition.z());
+                double xResidual = trackPosition.x() - stereoHitPosition.x();
+                double yResidual = trackPosition.y() - stereoHitPosition.y();
+                
+                
                     if (hitSensor.isTopLayer()) { 
+                        trackPlots.get("Unbiased Residual x - Top").fill(xResidual);
+                        trackPlots.get("Unbiased Residual y - Top").fill(yResidual);
+                        if (Math.abs(xResidual+this.topXResidualOffset) > 3*this.topXResidualCut 
+                                && Math.abs(yResidual + this.topYResidualOffset) > 3*this.topYResidualCut) continue;
+                        trackMomentumPlots.get("Track Momentum - All Layers Hit").fill(p);
                         numberOfTopTracksWithHitOnMissingLayer++;
                     } else { 
+                        trackPlots.get("Unbiased Residual x - Bottom").fill(xResidual);
+                        trackPlots.get("Unbiased Residual y - Bottom").fill(yResidual);
+                        if (Math.abs(xResidual+this.botXResidualOffset) > 3*this.botXResidualCut 
+                                && Math.abs(yResidual + this.botYResidualOffset) > 3*this.botYResidualCut) continue;
+                        trackMomentumPlots.get("Track Momentum - All Layers Hit").fill(p);
                         numberOfBottomTracksWithHitOnMissingLayer++;
                     }
                     
@@ -697,6 +761,19 @@ public class SvtHitEfficiency extends Driver {
                 System.out.println("% Bottom Layer " + (index+1) + ": " + (bottomTracksWithHitOnMissingLayer[index]/bottomTracksPerMissingLayer[index])*100 + "%");
         }*/
         System.out.println("% \n%===================================================================%");
+        
+        
+        String rootFile = "run" + "_cluster_analysis.root";
+        RootFileStore store = new RootFileStore(rootFile);
+        try {
+            store.open();
+            store.add(tree);
+            store.close(); 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        
     }
 
     /**
