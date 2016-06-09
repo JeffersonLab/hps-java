@@ -387,7 +387,7 @@
                     <configuration>
                         <lifecycleMappingMetadata>
                             <pluginExecutions>
-                                <!--  <pluginExecution>
+                                <pluginExecution>
                                     <pluginExecutionFilter>
                                         <groupId>org.apache.maven.plugins</groupId>
                                         <artifactId>maven-checkstyle-plugin</artifactId>
@@ -401,7 +401,7 @@
                                     <action>
                                         <ignore />
                                     </action>
-                                </pluginExecution> --> 
+                                </pluginExecution>
                                 <pluginExecution>
                                     <pluginExecutionFilter>
                                         <groupId>org.apache.maven.plugins</groupId>
@@ -493,7 +493,7 @@
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>2.7</version>
             </plugin>
-            <!-- <plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>2.17</version>
@@ -514,8 +514,10 @@
                                     <property name="processJavadoc" value="false" />
                                 </module>
                                 <module name="RedundantImport" />
+                                <!--
                                 <module name="EmptyBlock" />
                                 <module name="EmptyStatement" />
+                                -->
                             </module>
                         </module>
                     </checkstyleRules>
@@ -528,7 +530,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin> -->
+            </plugin>
         </plugins>
     </build>
     <developers>
