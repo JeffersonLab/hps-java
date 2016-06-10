@@ -36,32 +36,48 @@ public final class TrackerReconDriver extends Driver {
 
     private static final Logger LOGGER = Logger.getLogger(TrackerReconDriver.class.getPackage().getName());
 
+    private String subdetectorName = "Tracker";
+    
     // Debug flag.
     private boolean debug = false;
+    
     // Tracks found across all events.
     int ntracks = 0;
+    
     // Number of events processed.
     int nevents = 0;
+    
     // Cache detector object.
     Detector detector = null;
+    
     // Default B-field value.
     private double bfield = 0.5;
+    
     // Tracking strategies resource path.
     private String strategyResource = "HPS-Test-4pt1.xml";
+    
     // Output track collection.
     private String trackCollectionName = "MatchedTracks";
+    
     // HelicalTrackHit input collection.
     private String stInputCollectionName = "RotatedHelicalTrackHits";
+    
     // Include MS (done by removing XPlanes from the material manager results)
     private boolean includeMS = true;
+    
     // number of repetitive fits on confirmed/extended tracks
     private int _iterativeConfirmed = 3;
+    
     // use HPS implementation of material manager
     private boolean _useHPSMaterialManager = true;
+    
     // enable the use of sectoring using sector binning in SeedTracker
     private boolean _applySectorBinning = true;
+    
     private double rmsTimeCut = -1;
+    
     private boolean rejectUncorrectedHits = true;
+    
     private boolean rejectSharedHits = false;
 
     public TrackerReconDriver() {
@@ -69,6 +85,10 @@ public final class TrackerReconDriver extends Driver {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+    
+    public void setSubdetectorName(String subdetectorName) {
+        this.subdetectorName = subdetectorName;
     }
 
     /**
@@ -158,14 +178,14 @@ public final class TrackerReconDriver extends Driver {
      */
     private void initialize() {
 
-        //
-        // 1) Driver to run Seed Tracker.
-        //
+        System.out.println("TrackerReconDriver: initializing");
+        
         if (!strategyResource.startsWith("/")) {
             strategyResource = "/org/hps/recon/tracking/strategies/" + strategyResource;
         }
         List<SeedStrategy> sFinallist = StrategyXMLUtils.getStrategyListFromInputStream(this.getClass().getResourceAsStream(strategyResource));
         SeedTracker stFinal = new SeedTracker(sFinallist, this._useHPSMaterialManager, this.includeMS);
+        stFinal.setSubdetectorName(subdetectorName);
         stFinal.setApplySectorBinning(_applySectorBinning);
         stFinal.setUseDefaultXPlane(false);
         stFinal.setDebug(this.debug);
@@ -185,7 +205,7 @@ public final class TrackerReconDriver extends Driver {
             HitTimeTrackCheck timeCheck = new HitTimeTrackCheck(rmsTimeCut);
             timeCheck.setDebug(debug);
             stFinal.setTrackCheck(timeCheck);
-        }
+        }        
     }
 
     /**

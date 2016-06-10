@@ -23,73 +23,75 @@ import org.lcsim.detector.tracker.silicon.SiTrackerModule;
 import org.lcsim.geometry.Detector;
 
 /**
- * Material manager using the detector geometry.
- *
- * Uses a private class to set up detector volumes. This can probably make use
- * of the DetectorGeometry classes from lcsim instead for the model. Something
- * to consider in the future.
+ * Material manager using the detector geometry. Uses a private class to set up detector volumes. This can probably make
+ * use of the DetectorGeometry classes from lcsim instead for the model. Something to consider in the future.
  *
  * @author Per Hansson <phansson@slac.stanford.edu>
  */
-public class MaterialSupervisor extends MaterialManager
-{
+public class MaterialSupervisor extends MaterialManager {
 
     private List<ScatteringDetectorVolume> _detectorVolumes = new ArrayList<ScatteringDetectorVolume>();
+    private String subdetectorName = "Tracker";
 
-    public MaterialSupervisor()
-    {
+    public MaterialSupervisor() {
         super();
         this._includeMS = true;
-    }
+    }    
 
-    public MaterialSupervisor(boolean includeMS)
-    {
+    public MaterialSupervisor(boolean includeMS) {
         super(includeMS);
     }
 
     @Override
-    public void setDebug(boolean debug)
-    {
+    public void setDebug(boolean debug) {
         super.setDebug(debug);
     }
+    
+    public void setSubdetectorName(String subdetectorName) {
+        this.subdetectorName = subdetectorName;
+    }
 
-    public List<ScatteringDetectorVolume> getMaterialVolumes()
-    {
+    public List<ScatteringDetectorVolume> getMaterialVolumes() {
         return _detectorVolumes;
     }
 
     @Override
-    public void buildModel(Detector det)
-    {
+    public void buildModel(Detector det) {
         boolean local_debug = false;
         // super.buildModel(det);
         if (DEBUG || local_debug) {
-            System.out.printf("%s: ###########################################################\n", this.getClass().getSimpleName());
+            System.out.printf("%s: ###########################################################\n", this.getClass()
+                    .getSimpleName());
             System.out.printf("%s: Build detector model\n", this.getClass().getSimpleName());
         }
-        List<SiSensor> sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(SiSensor.class);
-        // List<SiTrackerModule> modules =
-        // det.getDetectorElement().findDescendants(SiTrackerModule.class);
+        
+        List<SiSensor> sensors = det.getSubdetector(subdetectorName).getDetectorElement()
+                .findDescendants(SiSensor.class);
+
         if (DEBUG || local_debug) {
             System.out.printf("%s: %d SiSensors:\n", this.getClass().getSimpleName(), sensors.size());
-            System.out.printf("%s: %45s %35s %35s %35s %35s\n", this.getClass().getSimpleName(), "DE", "Origin", "u", "v", "w");
+            System.out.printf("%s: %45s %35s %35s %35s %35s\n", this.getClass().getSimpleName(), "DE", "Origin", "u",
+                    "v", "w");
         }
         for (SiSensor module : sensors) {
 
             SiStripPlane plane = new SiStripPlane(module);
 
             if (DEBUG || local_debug) {
-                System.out.printf("%s: %45s %35s %35s %35s %35s\n", this.getClass().getSimpleName(), plane.getDetectorElement().getName(), plane.getGeometry().getPosition().toString(), plane.getMeasuredCoordinate().toString(), plane.getUnmeasuredCoordinate().toString(),plane.getPsidePlane().getNormal().toString());
+                System.out.printf("%s: %45s %35s %35s %35s %35s\n", this.getClass().getSimpleName(), plane
+                        .getDetectorElement().getName(), plane.getGeometry().getPosition().toString(), plane
+                        .getMeasuredCoordinate().toString(), plane.getUnmeasuredCoordinate().toString(), plane
+                        .getPsidePlane().getNormal().toString());
             }
             _detectorVolumes.add(plane);
         }
         if (DEBUG || local_debug) {
-            System.out.printf("%s: ###########################################################\n", this.getClass().getSimpleName());
+            System.out.printf("%s: ###########################################################\n", this.getClass()
+                    .getSimpleName());
         }
     }
 
-    public interface ScatteringDetectorVolume
-    {
+    public interface ScatteringDetectorVolume {
 
         public String getName();
 
@@ -103,8 +105,7 @@ public class MaterialSupervisor extends MaterialManager
     }
 
     // public abstract class DetectorPlane extends SiSensor {
-    public interface DetectorPlane extends ScatteringDetectorVolume
-    {
+    public interface DetectorPlane extends ScatteringDetectorVolume {
 
         public double getThickness();
 
@@ -122,14 +123,12 @@ public class MaterialSupervisor extends MaterialManager
 
     }
 
-    private abstract class SiPlane implements DetectorPlane
-    {
+    private abstract class SiPlane implements DetectorPlane {
 
         abstract void addMaterial();
     }
 
-    public class SiStripPlane extends SiPlane
-    {
+    public class SiStripPlane extends SiPlane {
 
         private Hep3Vector _org = null; // origin
         private Hep3Vector _w = null; // normal to plane
@@ -140,8 +139,7 @@ public class MaterialSupervisor extends MaterialManager
         private double _length;
         private double _width;
 
-        public SiStripPlane(SiSensor module)
-        {
+        public SiStripPlane(SiSensor module) {
             _sensor = module;
             setOrigin();
             setNormal();
@@ -153,39 +151,32 @@ public class MaterialSupervisor extends MaterialManager
         }
 
         @Override
-        public IDetectorElement getDetectorElement()
-        {
+        public IDetectorElement getDetectorElement() {
             return getSensor();
         }
 
-        private SiTrackerModule getModule()
-        {
+        private SiTrackerModule getModule() {
             return (SiTrackerModule) getGeometry().getDetectorElement().getParent();
         }
 
-        private IGeometryInfo getGeometry()
-        {
+        private IGeometryInfo getGeometry() {
             return getSensor().getGeometry();
         }
 
-        public SiSensor getSensor()
-        {
+        public SiSensor getSensor() {
             return _sensor;
         }
 
-        public Polygon3D getPsidePlane()
-        {
+        public Polygon3D getPsidePlane() {
             return getSensor().getBiasSurface(ChargeCarrier.HOLE);
         }
 
-        public Polygon3D getNsidePlane()
-        {
+        public Polygon3D getNsidePlane() {
             return getSensor().getBiasSurface(ChargeCarrier.ELECTRON);
         }
 
         @Override
-        public double getMaterialTraversed(Hep3Vector dir)
-        {
+        public double getMaterialTraversed(Hep3Vector dir) {
             // the distance inside the plane (note I don't care about sign of unit vector only
             // projection distance)
             double cth = Math.abs(VecOp.dot(dir, _w));
@@ -194,8 +185,7 @@ public class MaterialSupervisor extends MaterialManager
         }
 
         @Override
-        public double getMaterialTraversedInRL(Hep3Vector dir)
-        {
+        public double getMaterialTraversedInRL(Hep3Vector dir) {
             // the distance inside the plane (note I don't care about sign of unit vector only
             // projection distance)
             double cth = Math.abs(VecOp.dot(dir, _w));
@@ -204,8 +194,7 @@ public class MaterialSupervisor extends MaterialManager
         }
 
         @Override
-        protected void addMaterial()
-        {
+        protected void addMaterial() {
 
             IPhysicalVolume parent = getModule().getGeometry().getPhysicalVolume();
             IPhysicalVolumeContainer daughters = parent.getLogicalVolume().getDaughters();
@@ -222,25 +211,21 @@ public class MaterialSupervisor extends MaterialManager
             }
         }
 
-        public void addMaterial(String type, double density, double radLen, double t)
-        {
+        public void addMaterial(String type, double density, double radLen, double t) {
             _materials.add(type, density, radLen, t);
         }
 
         @Override
-        public double getThickness()
-        {
+        public double getThickness() {
             return _materials.getThickness();
         }
 
         @Override
-        public double getThicknessInRL()
-        {
+        public double getThicknessInRL() {
             return _materials.getThicknessInRL();
         }
 
-        private void setDimensions()
-        {
+        private void setDimensions() {
             // The dimensions are taken from the full module
             IPhysicalVolume physVol_parent = getModule().getGeometry().getPhysicalVolume();
             ILogicalVolume logVol_parent = physVol_parent.getLogicalVolume();
@@ -257,176 +242,162 @@ public class MaterialSupervisor extends MaterialManager
         }
 
         @Override
-        public Hep3Vector origin()
-        {
+        public Hep3Vector origin() {
 
             return _org;
         }
 
-        public void setOrigin(Hep3Vector org)
-        {
+        public void setOrigin(Hep3Vector org) {
 
             this._org = org;
         }
 
-        private void setOrigin()
-        {
+        private void setOrigin() {
             // Use origin of p-side surface
             Hep3Vector origin = VecOp.mult(CoordinateTransformations.getMatrix(), _sensor.getGeometry().getPosition());
             // transform to p-side
             Polygon3D psidePlane = this.getPsidePlane();
-            Translation3D transformToPside = new Translation3D(VecOp.mult(-1 * psidePlane.getDistance(), psidePlane.getNormal()));
+            Translation3D transformToPside = new Translation3D(VecOp.mult(-1 * psidePlane.getDistance(),
+                    psidePlane.getNormal()));
             this._org = transformToPside.translated(origin);
         }
 
         @Override
-        public Hep3Vector normal()
-        {
+        public Hep3Vector normal() {
             if (_w == null) {
                 _w = this.getPsidePlane().getNormal();
                 System.out.printf("setting normal from pside normal %s\n", _w.toString());
-                _w = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal().getRotation().getRotationMatrix()), _w);
+                _w = VecOp.mult(
+                        VecOp.mult(CoordinateTransformations.getMatrix(),
+                                getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal().getRotation()
+                                        .getRotationMatrix()), _w);
                 System.out.printf("normal after local to global to tracking rotation %s\n", _w.toString());
             }
             return this._w;
         }
 
-        private void setNormal()
-        {
+        private void setNormal() {
             _w = this.getPsidePlane().getNormal();
-            _w = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal().getRotation().getRotationMatrix()), _w);
+            _w = VecOp.mult(
+                    VecOp.mult(CoordinateTransformations.getMatrix(),
+                            getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal().getRotation()
+                                    .getRotationMatrix()), _w);
         }
 
-        public void setNormal(Hep3Vector w)
-        {
+        public void setNormal(Hep3Vector w) {
             this._w = w;
         }
 
         @Override
-        public void print()
-        {
-            System.out.printf("DetectorPlane:  org %s normal vector %s %.2fx%.2fmm  thickness %f R.L. (%fmm)\n", origin().toString(), normal().toString(), getLength(), getWidth(), getThicknessInRL(), getThickness());
+        public void print() {
+            System.out.printf("DetectorPlane:  org %s normal vector %s %.2fx%.2fmm  thickness %f R.L. (%fmm)\n",
+                    origin().toString(), normal().toString(), getLength(), getWidth(), getThicknessInRL(),
+                    getThickness());
         }
 
         @Override
-        public int getId()
-        {
+        public int getId() {
             return _sensor.getSensorID();
         }
 
         @Override
-        public String getName()
-        {
+        public String getName() {
             return _sensor.getName();
         }
 
         @Override
-        public double getLength()
-        {
+        public double getLength() {
             return _length;
         }
 
         @Override
-        public double getWidth()
-        {
+        public double getWidth() {
             return _width;
         }
 
-        public double getMeasuredDimension()
-        {
+        public double getMeasuredDimension() {
             return getLength();
         }
 
-        public double getUnmeasuredDimension()
-        {
+        public double getUnmeasuredDimension() {
             return getWidth();
         }
 
-        public Hep3Vector getUnmeasuredCoordinate()
-        {
+        public Hep3Vector getUnmeasuredCoordinate() {
             return _v;
         }
 
-        public Hep3Vector getMeasuredCoordinate()
-        {
+        public Hep3Vector getMeasuredCoordinate() {
             return _u;
         }
 
-        private void setMeasuredCoordinate()
-        {
+        private void setMeasuredCoordinate() {
             // p-side unit vector
             ITransform3D electrodes_to_global = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
-            Hep3Vector measuredCoordinate = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getMeasuredCoordinate(0);
-            measuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global.getRotation().getRotationMatrix()), measuredCoordinate);
+            Hep3Vector measuredCoordinate = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getMeasuredCoordinate(
+                    0);
+            measuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global
+                    .getRotation().getRotationMatrix()), measuredCoordinate);
             _u = measuredCoordinate;
         }
 
-        private void setUnmeasuredCoordinate()
-        {
+        private void setUnmeasuredCoordinate() {
             // p-side unit vector
             ITransform3D electrodes_to_global = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
-            Hep3Vector unmeasuredCoordinate = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getUnmeasuredCoordinate(0);
-            unmeasuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global.getRotation().getRotationMatrix()), unmeasuredCoordinate);
+            Hep3Vector unmeasuredCoordinate = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE)
+                    .getUnmeasuredCoordinate(0);
+            unmeasuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global
+                    .getRotation().getRotationMatrix()), unmeasuredCoordinate);
             _v = unmeasuredCoordinate;
         }
 
     }
 
-    private static class Material
-    {
+    private static class Material {
 
         private String _name;
         private double _X0;
         private double _density;
         private double _thickness;
 
-        public Material(String _name, double _X0, double _density, double _thickness)
-        {
+        public Material(String _name, double _X0, double _density, double _thickness) {
             this._name = _name;
             this._X0 = _X0;
             this._density = _density;
             this._thickness = _thickness;
         }
 
-        private void add(double t)
-        {
+        private void add(double t) {
             _thickness += t;
         }
 
-        public double getThickness()
-        {
+        public double getThickness() {
             return _thickness;
         }
 
-        public double getDensity()
-        {
+        public double getDensity() {
             return _density;
         }
 
-        public double getX0()
-        {
+        public double getX0() {
             return _X0;
         }
 
     }
 
-    private static class Materials
-    {
+    private static class Materials {
 
         private List<Material> _materials = new ArrayList<Material>();
         private double _tot_X0 = -1;
 
-        public Materials()
-        {
+        public Materials() {
         }
 
-        public int numberOfMaterials()
-        {
+        public int numberOfMaterials() {
             return _materials.size();
         }
 
-        public void add(String mat, double density, double radLen, double t)
-        {
+        public void add(String mat, double density, double radLen, double t) {
             boolean found = false;
             for (Material m : _materials) {
                 if (m._name == mat) {
@@ -442,8 +413,7 @@ public class MaterialSupervisor extends MaterialManager
 
         }
 
-        public double getThicknessInRL()
-        {
+        public double getThicknessInRL() {
             if (_materials.isEmpty()) {
                 return 0;
             }
@@ -464,8 +434,7 @@ public class MaterialSupervisor extends MaterialManager
             return _tot_X0;
         }
 
-        private double getThickness()
-        {
+        private double getThickness() {
             double t_tot = 0.;
             for (Material m : _materials) {
                 t_tot += m.getThickness();
