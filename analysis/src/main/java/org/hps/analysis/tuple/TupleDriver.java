@@ -83,6 +83,10 @@ public class TupleDriver extends Driver {
         this.beamPos[2] = beamPosY;
     }
 
+    public void setBeamPosZ(double beamPosZ) {
+        this.beamPos[0] = beamPosZ;
+    }
+
     public void setTopDZ0(double topDZ0) {
         topTrackCorrection[HelicalTrackFit.z0Index] = topDZ0;
     }
@@ -176,13 +180,13 @@ public class TupleDriver extends Driver {
     protected void writeTuple() {
         for (String variable : tupleVariables) {
             Double value = tupleMap.get(variable);
-            if (value == null) {
+            if (value == null || Double.isNaN(value)) {
                 value = -9999.0;
             }
             if (variable.endsWith("/I") || variable.endsWith("/B")) {
                 tupleWriter.format("%d\t", Math.round(value));
             } else {
-                tupleWriter.format("%f\t", value);
+                tupleWriter.format("%g\t", value);
             }
         }
         tupleWriter.println();
