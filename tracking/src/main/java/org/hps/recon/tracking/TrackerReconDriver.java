@@ -178,8 +178,6 @@ public final class TrackerReconDriver extends Driver {
      */
     private void initialize() {
 
-        System.out.println("TrackerReconDriver: initializing");
-        
         if (!strategyResource.startsWith("/")) {
             strategyResource = "/org/hps/recon/tracking/strategies/" + strategyResource;
         }
