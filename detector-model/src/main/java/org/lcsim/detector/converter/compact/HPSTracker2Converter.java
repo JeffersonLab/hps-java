@@ -147,7 +147,11 @@ public class HPSTracker2Converter extends AbstractSubdetectorConverter {
                         System.out.println("made module: " + modulePhysVol.getName());
                     
                     // Module DetectorElement.
-                    String modulePath = "/" + detector.getTrackingVolume().getName() + "/" + modulePlacementName;                                                        
+                    String modulePath = "/";
+                    if (subdet.isInsideTrackingVolume()) {
+                        modulePath += detector.getTrackingVolume().getName() + "/";
+                    }
+                    modulePath += modulePlacementName;
                     SiTrackerModule moduleDe = new SiTrackerModule(modulePlacementName, layerDe, modulePath, moduleNumber);
                     
                     if (debug)
