@@ -63,9 +63,14 @@ public class HPSTracker2Converter extends AbstractSubdetectorConverter {
         if (trackingMaterial == null) {
             trackingMaterial = MaterialStore.getInstance().get("Air");
         }
-        
-        // Get the tracking volume for module placement.
-        ILogicalVolume trackingVolume = detector.getTrackingVolume().getLogicalVolume();
+
+        // Get the mother volume.
+        ILogicalVolume motherVolume = null;
+        if (subdet.isInsideTrackingVolume()) {
+            motherVolume = detector.getTrackingVolume().getLogicalVolume();
+        } else {            
+            motherVolume = detector.getWorldVolume().getLogicalVolume();
+        }
                 
         // Get ID helper and dictionary for subdetector.
         DetectorIdentifierHelper helper = (DetectorIdentifierHelper) subdet.getDetectorElement().getIdentifierHelper();
@@ -136,7 +141,7 @@ public class HPSTracker2Converter extends AbstractSubdetectorConverter {
                     String modulePlacementName = subdet.getName() + "_" + moduleName + "_layer" + layerId + "_module" + moduleNumber;
                     
                     LogicalVolume lv = modules.get(moduleName);
-                    IPhysicalVolume modulePhysVol = new PhysicalVolume(new Transform3D(pos,rot), modulePlacementName, lv, trackingVolume, 0);
+                    IPhysicalVolume modulePhysVol = new PhysicalVolume(new Transform3D(pos,rot), modulePlacementName, lv, motherVolume, 0);
                     
                     if (debug)
                         System.out.println("made module: " + modulePhysVol.getName());
