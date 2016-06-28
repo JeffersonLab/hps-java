@@ -80,7 +80,7 @@ public class MollerTupleDriver extends TupleDriver {
             billiorTracks.add(new BilliorTrack(botTSTweaked, botTrack.getChi2(), botTrack.getNDF()));
 
             double minPositiveIso = Math.min(tupleMap.get("topMinPositiveIso/D"), tupleMap.get("botMinPositiveIso/D"));
-            double minNegativeIso = Math.max(Math.min(tupleMap.get("topMinPositiveIso/D"), 9999), Math.min(tupleMap.get("botMinPositiveIso/D"), 9999));
+            double minNegativeIso = Math.max(Math.min(tupleMap.get("topMinNegativeIso/D"), 9999), Math.min(tupleMap.get("botMinNegativeIso/D"), 9999));
             double minIso = Math.min(Math.abs(minPositiveIso), Math.abs(minNegativeIso));
 
             fillVertexVariables(event, billiorTracks, top, bot);
