@@ -79,6 +79,7 @@ public class StripEventDriver extends Driver
                 skipEvent = true;
             }
 
+            // add capability to require all tracking layers to have been hit
             if (!skipEvent && _selectAllLayers) {
                 setupSensors(event);
                 Set<Integer> topLayers = new TreeSet<Integer>();
@@ -105,6 +106,14 @@ public class StripEventDriver extends Driver
                 if(_selectBottomHits)
                 {
                   if(bottomLayers.size() != 12) skipEvent = true;  
+                }
+                // if we don't explicitly request top or bottom, 
+                // only keep event if either the top or the bottom has all twelve layers hit
+                if(!_selectTopHits && !_selectBottomHits)
+                {
+                    skipEvent = true; 
+                    if(topLayers.size() == 12) skipEvent = false;
+                    if(bottomLayers.size() == 12) skipEvent = false;     
                 }
             }
         }
@@ -200,7 +209,7 @@ public class StripEventDriver extends Driver
         _selectBottomHits = b;
     }
     
-    private void setSelectAllLayers(boolean b)
+    public void setSelectAllLayers(boolean b)
     {
         _selectAllLayers = b;
     }
