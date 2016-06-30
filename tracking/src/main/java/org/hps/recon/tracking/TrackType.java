@@ -41,8 +41,15 @@ public final class TrackType {
      *
      * ZZZZZZZZZZZZZZZZZZZZZZZZZZGSSSSS
      *
+     * The types are bit-packed, according to the {@link org.hps.recon.tracking.StrategyType} enum, so:
+     * bit0 = MATCHED_TRACKS
+     * bit1 = S345_C2_E16
+     * bit2 = S456_C3_E21
+     * bit3 = S123_C4_E56
+     * bit4 = S123_C5_E46
+     * bit5 = GBL Track.
      * @param strategyType The StrategyType associated with the tracking
-     * tracking strategy of interest.
+     * strategy of interest.
      * @param isGblTrack Flag indicating whether the track is a GBL track
      * @return The enoded track type value
      */
