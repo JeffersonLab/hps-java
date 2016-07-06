@@ -3,7 +3,6 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="CleanupDriver"/>
-        <driver name="EventFlagFilter"/>
         <driver name="RawTrackerHitSensorSetup"/>
     
         <driver name="TridentTuple"/>
@@ -15,9 +14,6 @@
             <eventInterval>1000</eventInterval>
         </driver>        
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-        <driver name="EventFlagFilter" 
-                type="org.hps.recon.filtering.EventFlagFilter">
-        </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
@@ -27,44 +23,19 @@
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_tri.txt</tupleFile>
             <cutTuple>true</cutTuple>
-            <topDOmega>-1.04e-6</topDOmega>
-            <botDOmega>0.83e-6</botDOmega>
-            <topDLambda>-5e-4</topDLambda>
-            <botDLambda>13e-4</botDLambda>
-            <topDPhi>1.5e-3</topDPhi>
-            <botDPhi>-0.3e-3</botDPhi>
-            <topDZ0>0.14</topDZ0>
-            <botDZ0>-0.16</botDZ0>
         </driver>
         <driver name="MollerTuple" type="org.hps.analysis.tuple.MollerTupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_moller.txt</tupleFile>
             <cutTuple>true</cutTuple>
-            <topDOmega>-1.04e-6</topDOmega>
-            <botDOmega>0.83e-6</botDOmega>
-            <topDLambda>-5e-4</topDLambda>
-            <botDLambda>13e-4</botDLambda>
-            <topDPhi>1.5e-3</topDPhi>
-            <botDPhi>-0.3e-3</botDPhi>
-            <topDZ0>0.14</topDZ0>
-            <botDZ0>-0.16</botDZ0>
         </driver>
         <driver name="FEETuple" type="org.hps.analysis.tuple.FEETupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_fee.txt</tupleFile>
             <cutTuple>true</cutTuple>
-            <topDOmega>-1.04e-6</topDOmega>
-            <botDOmega>0.83e-6</botDOmega>
-            <topDLambda>-5e-4</topDLambda>
-            <botDLambda>13e-4</botDLambda>
-            <topDPhi>1.5e-3</topDPhi>
-            <botDPhi>-0.3e-3</botDPhi>
-            <topDZ0>0.14</topDZ0>
-            <botDZ0>-0.16</botDZ0>
         </driver>
-
     </drivers>
 </lcsim>
 

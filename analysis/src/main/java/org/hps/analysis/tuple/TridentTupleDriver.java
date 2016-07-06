@@ -76,8 +76,8 @@ public class TridentTupleDriver extends TupleDriver {
             billiorTracks.add(new BilliorTrack(posTSTweaked, posTrack.getChi2(), posTrack.getNDF()));
 
             double minPositiveIso = Math.min(tupleMap.get("eleMinPositiveIso/D"), tupleMap.get("posMinPositiveIso/D"));
-            double minNegativeIso = Math.max(Math.min(tupleMap.get("eleMinNegativeIso/D"), 9999), Math.min(tupleMap.get("posMinNegativeIso/D"), 9999));
-            double minIso = Math.min(Math.abs(minPositiveIso), Math.abs(minNegativeIso));
+            double minNegativeIso = Math.min(Math.abs(tupleMap.get("eleMinNegativeIso/D")), Math.abs(tupleMap.get("posMinNegativeIso/D")));
+            double minIso = Math.min(minPositiveIso, minNegativeIso);
 
             fillVertexVariables(event, billiorTracks, electron, positron);
 

@@ -246,7 +246,7 @@ public class TupleDriver extends Driver {
             "PhiKink1/D", "PhiKink2/D", "PhiKink3/D",
             "IsoStereo/D", "IsoAxial/D",
             "MinPositiveIso/D", "MinNegativeIso/D",
-            "MatchChisq/D", "ClT/D", "ClE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I"};
+            "MatchChisq/D", "ClT/D", "ClE/D", "ClSeedE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I"};
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
         }
@@ -364,6 +364,7 @@ public class TupleDriver extends Driver {
             Cluster cluster = particle.getClusters().get(0);
             tupleMap.put(prefix + "ClT/D", ClusterUtilities.getSeedHitTime(cluster));
             tupleMap.put(prefix + "ClE/D", cluster.getEnergy());
+            tupleMap.put(prefix + "ClSeedE/D", ClusterUtilities.findSeedHit(cluster).getCorrectedEnergy());
             tupleMap.put(prefix + "ClX/D", cluster.getPosition()[0]);
             tupleMap.put(prefix + "ClY/D", cluster.getPosition()[1]);
             tupleMap.put(prefix + "ClZ/D", cluster.getPosition()[2]);
