@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 /**
  * Provider for creating database API objects for interacting with the run database.
+ * 
  * @author jeremym
  */
 public final class DaoProvider {
