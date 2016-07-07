@@ -3,6 +3,7 @@ package org.hps.analysis.tuple;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.HepLorentzVector;
 import hep.physics.vec.VecOp;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -26,6 +27,7 @@ import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
@@ -41,10 +43,11 @@ import org.lcsim.util.Driver;
  * @author mgraham on Apr 15, 2014 update mgraham on May 15, 2014 to include
  * calculateEndOfRunQuantities & printDQMData i.e. useful methods
  */
-public class TupleDriver extends Driver {
+public abstract class TupleDriver extends Driver {
 
     protected boolean debug = false;
 
+    protected String tupleFile = null;
     protected PrintWriter tupleWriter = null;
     protected final List<String> tupleVariables = new ArrayList<String>();
     protected final Map<String, Double> tupleMap = new HashMap<String, Double>();
@@ -139,6 +142,8 @@ public class TupleDriver extends Driver {
         this.debug = debug;
     }
 
+    abstract protected void setupVariables();
+
     @Override
     protected void detectorChanged(Detector detector) {
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
@@ -148,6 +153,15 @@ public class TupleDriver extends Driver {
                 = this.getConditionsManager().getCachedConditions(BeamEnergy.BeamEnergyCollection.class, "beam_energies").getCachedData();
         if (Double.isNaN(ebeam)) {
             ebeam = beamEnergyCollection.get(0).getBeamEnergy();
+        }
+        setupVariables();
+        if (tupleFile != null) {
+            try {
+                tupleWriter = new PrintWriter(tupleFile);
+            } catch (FileNotFoundException e) {
+                tupleWriter = null;
+            }
+            tupleWriter.println(StringUtils.join(tupleVariables, ":"));
         }
     }
 
@@ -194,12 +208,7 @@ public class TupleDriver extends Driver {
     }
 
     public void setTupleFile(String tupleFile) {
-        try {
-            tupleWriter = new PrintWriter(tupleFile);
-        } catch (FileNotFoundException e) {
-            tupleWriter = null;
-        }
-        tupleWriter.println(StringUtils.join(tupleVariables, ":"));
+        this.tupleFile = tupleFile;
 //        for (String variable : tupleVariables) {
 //            tupleWriter.format("%s:", variable);
 //        }
@@ -443,5 +452,96 @@ public class TupleDriver extends Driver {
         tupleMap.put("vzcVZ/D", vzcVtx.z());
         tupleMap.put("vzcChisq/D", vzcV0.getStartVertex().getChi2());
         tupleMap.put("vzcM/D", vzcV0.getMass());
+    }
+
+    protected void addMCTridentVariables() {
+        String[] newVars = new String[]{"triStartX/D", "triStartY/D", "triStartZ/D",
+            "triEndX/D", "triEndY/D", "triEndZ/D",
+            "triPX/D", "triPY/D", "triPZ/D", "triP/D", "triM/D", "triE/D",
+            "pair1PX/D", "pair1PY/D", "pair1PZ/D", "pair1P/D", "pair1M/D", "pair1E/D",
+            "pair2PX/D", "pair2PY/D", "pair2PZ/D", "pair2P/D", "pair2M/D", "pair2E/D"};
+        tupleVariables.addAll(Arrays.asList(newVars));
+    }
+
+    protected void fillMCTridentVariables(EventHeader event) {
+        List<MCParticle> MCParticles = event.getMCParticles();
+
+        MCParticle trident = null;
+
+        MCParticle ele1 = null;//highest-energy electron daughter
+        MCParticle ele2 = null;//second-highest-energy electron daughter (if any)
+        MCParticle pos = null;//highest-energy positron daughter
+
+        List<MCParticle> tridentParticles = null;
+
+        for (MCParticle particle : MCParticles) {
+            if (particle.getPDGID() == 622) {
+                trident = particle;
+                tridentParticles = particle.getDaughters();
+                break;
+            }
+        }
+        if (trident == null) {
+            return;
+        }
+
+        Hep3Vector tridentStart = VecOp.mult(beamAxisRotation, trident.getOrigin());
+        Hep3Vector tridentEnd = VecOp.mult(beamAxisRotation, trident.getEndPoint());
+        Hep3Vector tridentP = VecOp.mult(beamAxisRotation, trident.getMomentum());
+
+        tupleMap.put("triStartX/D", tridentStart.x());
+        tupleMap.put("triStartY/D", tridentStart.y());
+        tupleMap.put("triStartZ/D", tridentStart.z());
+        tupleMap.put("triEndX/D", tridentEnd.x());
+        tupleMap.put("triEndY/D", tridentEnd.y());
+        tupleMap.put("triEndZ/D", tridentEnd.z());
+        tupleMap.put("triPX/D", tridentP.x());
+        tupleMap.put("triPY/D", tridentP.y());
+        tupleMap.put("triPZ/D", tridentP.z());
+        tupleMap.put("triP/D", tridentP.magnitude());
+        tupleMap.put("triM/D", trident.getMass());
+        tupleMap.put("triE/D", trident.getEnergy());
+
+        for (MCParticle particle : tridentParticles) {
+            switch (particle.getPDGID()) {
+                case -11:
+                    if (pos == null || particle.getEnergy() > pos.getEnergy()) {
+                        pos = particle;
+                    }
+                    break;
+                case 11:
+                    if (ele1 == null || particle.getEnergy() > ele1.getEnergy()) {
+                        ele2 = ele1;
+                        ele1 = particle;
+                    } else if (ele2 == null || particle.getEnergy() > ele2.getEnergy()) {
+                        ele2 = particle;
+                    }
+                    break;
+            }
+        }
+
+        if (pos != null && ele1 != null) {
+            {
+                HepLorentzVector vtx = VecOp.add(pos.asFourVector(), ele1.asFourVector());
+                Hep3Vector vtxP = VecOp.mult(beamAxisRotation, vtx.v3());
+                tupleMap.put("pair1PX/D", vtxP.x());
+                tupleMap.put("pair1PY/D", vtxP.y());
+                tupleMap.put("pair1PY/D", vtxP.z());
+                tupleMap.put("pair1P/D", vtxP.magnitude());
+                tupleMap.put("pair1M/D", vtx.magnitude());
+                tupleMap.put("pair1E/D", vtx.t());
+            }
+            if (ele2 != null) {
+                HepLorentzVector vtx = VecOp.add(pos.asFourVector(), ele2.asFourVector());
+                Hep3Vector vtxP = VecOp.mult(beamAxisRotation, vtx.v3());
+                tupleMap.put("pair2PX/D", vtxP.x());
+                tupleMap.put("pair2PY/D", vtxP.y());
+                tupleMap.put("pair2PY/D", vtxP.z());
+                tupleMap.put("pair2P/D", vtxP.magnitude());
+                tupleMap.put("pair2M/D", vtx.magnitude());
+                tupleMap.put("pair2E/D", vtx.t());
+            }
+        }
+
     }
 }

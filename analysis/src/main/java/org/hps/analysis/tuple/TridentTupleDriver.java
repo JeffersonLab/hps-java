@@ -20,14 +20,24 @@ public class TridentTupleDriver extends TupleDriver {
 
     private final double tupleTrkPCut = 0.9;
     private final double tupleMaxSumCut = 1.3;
+    private boolean getMC = false;
 
-    public TridentTupleDriver() {
+    @Override
+    protected void setupVariables() {
+        tupleVariables.clear();
         addEventVariables();
         addVertexVariables();
         addParticleVariables("ele");
         addParticleVariables("pos");
         String[] newVars = new String[]{"minPositiveIso/D", "minNegativeIso/D", "minIso/D"};
         tupleVariables.addAll(Arrays.asList(newVars));
+        if (getMC) {
+            addMCTridentVariables();
+        }
+    }
+
+    public void setGetMC(boolean getMC) {
+        this.getMC = getMC;
     }
 
     @Override
@@ -84,6 +94,11 @@ public class TridentTupleDriver extends TupleDriver {
             tupleMap.put("minPositiveIso/D", minPositiveIso);
             tupleMap.put("minNegativeIso/D", minNegativeIso);
             tupleMap.put("minIso/D", minIso);
+
+            if (getMC) {
+                fillMCTridentVariables(event);
+            }
+
             if (tupleWriter != null) {
                 boolean trkCut = tupleMap.get("eleP/D") < tupleTrkPCut * ebeam && tupleMap.get("posP/D") < tupleTrkPCut * ebeam;
                 boolean sumCut = tupleMap.get("eleP/D") + tupleMap.get("posP/D") < tupleMaxSumCut * ebeam;

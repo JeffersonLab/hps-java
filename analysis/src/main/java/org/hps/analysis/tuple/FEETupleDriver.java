@@ -13,7 +13,8 @@ public class FEETupleDriver extends TupleDriver {
     private final String finalStateParticlesColName = "FinalStateParticles";
     private final double tupleTrkPCut = 0.7;
 
-    public FEETupleDriver() {
+    @Override
+    protected void setupVariables() {
         tupleVariables.clear();
         addEventVariables();
         addParticleVariables("fsp");

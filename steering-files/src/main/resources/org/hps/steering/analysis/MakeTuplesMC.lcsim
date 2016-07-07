@@ -23,6 +23,7 @@
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_tri.txt</tupleFile>
             <cutTuple>true</cutTuple>
+            <getMC>true</getMC>
         </driver>
         <driver name="MollerTuple" type="org.hps.analysis.tuple.MollerTupleDriver">
             <triggerType>all</triggerType>

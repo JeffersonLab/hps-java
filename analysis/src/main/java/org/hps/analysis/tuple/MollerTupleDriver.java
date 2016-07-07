@@ -23,7 +23,8 @@ public class MollerTupleDriver extends TupleDriver {
     private final double tupleMinSumCut = 0.7;
     private final double tupleMaxSumCut = 1.3;
 
-    public MollerTupleDriver() {
+    @Override
+    protected void setupVariables() {
         tupleVariables.clear();
         addEventVariables();
         addVertexVariables();
