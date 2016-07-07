@@ -2,23 +2,15 @@ package org.hps.crawler;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.srs.datacat.client.Client;
-import org.srs.datacat.client.ClientBuilder;
+import org.hps.datacat.DataType;
+import org.hps.datacat.DatacatUtilities;
+import org.hps.datacat.FileFormat;
 import org.srs.datacat.model.DatasetModel;
-import org.srs.datacat.model.DatasetView.VersionId;
-import org.srs.datacat.shared.Dataset;
-import org.srs.datacat.shared.Provider;
 
 /**
  * Datacat helper functions for the crawler.
@@ -28,39 +20,7 @@ import org.srs.datacat.shared.Provider;
 class DatacatHelper {
     
     private static final Logger LOGGER = Logger.getLogger(DatacatHelper.class.getPackage().getName());
-    
-    /*
-     * Default base URL for datacat.
-     */
-    static final String DATACAT_URL = "http://hpsweb.jlab.org/datacat/r";
-
-    /*
-     * Static map of strings to file formats.
-     */
-    private static final Map<String, FileFormat> FORMATS = new HashMap<String, FileFormat>();
-    static {
-        for (final FileFormat format : FileFormat.values()) {
-            FORMATS.put(format.extension(), format);
-        }
-    }
-    
-    /* 
-     * System metadata fields. 
-     */
-    static final Set<String> SYSTEM_METADATA = new HashSet<String>();
-    static {
-        SYSTEM_METADATA.add("eventCount");
-        SYSTEM_METADATA.add("size");
-        SYSTEM_METADATA.add("runMin");
-        SYSTEM_METADATA.add("runMax");
-        SYSTEM_METADATA.add("checksum");
-        SYSTEM_METADATA.add("scanStatus");
-    }
-    
-    static final boolean isSystemMetadata(String name) {
-        return SYSTEM_METADATA.contains(name);
-    }
-           
+                 
     /**
      * Create metadata for a file using its {@link FileMetadataReader}.
      *
@@ -68,7 +28,7 @@ class DatacatHelper {
      * @return the metadata for the file
      */
     static Map<String, Object> createMetadata(final File file) {
-        LOGGER.fine("creating metadata for " + file.getPath());
+        LOGGER.fine("creating metadata for " + file.getPath() + " ...");
         File actualFile = file;
         if (FileUtilities.isMssFile(file)) {
             actualFile = FileUtilities.getCachedFile(file);
@@ -133,7 +93,7 @@ class DatacatHelper {
             name = stripEvioFileNumber(name);
         }
         final String extension = name.substring(name.lastIndexOf(".") + 1);
-        return FORMATS.get(extension);
+        return FileFormat.findFormat(extension);
     }
 
     /**
@@ -172,72 +132,7 @@ class DatacatHelper {
         }
         return strippedName;
     }
-           
-    
-    
-    /**
-     * Create a dataset for insertion into the data catalog.
-     * 
-     * @param file the file on disk
-     * @param metadata the metadata map 
-     * @param folder the datacat folder
-     * @param site the datacat site
-     * @param dataType the data type 
-     * @param fileFormat the file format
-     * @return the created dataset
-     */
-    static DatasetModel createDataset(
-            File file,
-            Map<String, Object> metadata,
-            String folder,
-            String site,
-            String dataType,
-            String fileFormat) {
-        
-        LOGGER.info("creating dataset for " + file.getPath());
-        
-        Provider provider = new Provider();                                              
-        Dataset.Builder datasetBuilder = provider.getDatasetBuilder();
-        
-        // Set basic info on new dataset.
-        datasetBuilder.versionId(VersionId.valueOf("new"))
-            .master(true)
-            .name(file.getName())
-            .resource(file.getPath())
-            .dataType(dataType)
-            .fileFormat(fileFormat)
-            .site(site)
-            .scanStatus("OK");
-        
-        // Set system metadata from the provided metadata map.
-        if (metadata.get("eventCount") != null) {
-            datasetBuilder.eventCount((Long) metadata.get("eventCount"));
-        }
-        if (metadata.get("checksum") != null) {
-            datasetBuilder.checksum((String) metadata.get("checksum"));
-        }
-        if (metadata.get("runMin") != null) {                   
-            datasetBuilder.runMin((Long) metadata.get("runMin"));
-        }
-        if (metadata.get("runMax") != null) {
-            datasetBuilder.runMax((Long) metadata.get("runMax"));
-        }
-        if (metadata.get("size") != null) {
-            datasetBuilder.size((Long) metadata.get("size"));
-        }
-                                
-        // Create user metadata, leaving out system metadata fields.
-        Map<String, Object> userMetadata = new HashMap<String, Object>();
-        for (Entry<String, Object> metadataEntry : metadata.entrySet()) {
-            if (!SYSTEM_METADATA.contains(metadataEntry.getKey())) {
-                userMetadata.put(metadataEntry.getKey(), metadataEntry.getValue());
-            }
-        }
-        datasetBuilder.versionMetadata(userMetadata);
-        
-        return datasetBuilder.build();
-    }
-    
+                  
     /**
      * Create datasets from a list of files.
      * 
@@ -250,7 +145,7 @@ class DatacatHelper {
             Map<String, Object> metadata = createMetadata(file);
             DataType dataType = DatacatHelper.getDataType(file);
             FileFormat fileFormat = DatacatHelper.getFileFormat(file);
-            DatasetModel dataset = DatacatHelper.createDataset(
+            DatasetModel dataset = DatacatUtilities.createDataset(
                     file,
                     metadata,
                     folder,
@@ -260,28 +155,5 @@ class DatacatHelper {
             datasets.add(dataset);
         }
         return datasets;
-    }
-    
-    /**
-     * Add datasets to the data catalog.
-     * 
-     * @param datasets the list of datasets
-     * @param folder the target folder
-     * @param url the datacat URL
-     */
-    static void addDatasets(List<DatasetModel> datasets, String folder, String url) {
-        Client client = null;
-        try {
-            client = new ClientBuilder().setUrl(url).build();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("Bad datacat URL.", e);
-        }
-        for (DatasetModel dataset : datasets) {
-            try {
-                client.createDataset(folder, dataset);
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            }
-        }
-    }
+    }    
 }

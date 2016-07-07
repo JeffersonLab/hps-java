@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.hps.conditions.database.ConnectionParameters;
+import org.hps.datacat.DatacatConstants;
+import org.hps.datacat.FileFormat;
+import org.hps.datacat.Site;
 
 /**
  * Full configuration information for the {@link Crawler} class.
@@ -78,7 +81,7 @@ final class CrawlerConfig {
     /**
      * Base URL of datacat client.
      */
-    private String baseUrl = DatacatHelper.DATACAT_URL;
+    private String baseUrl = DatacatConstants.DATACAT_URL;
         
     /**
      * Set of paths used for filtering files (file's path must match one of these).

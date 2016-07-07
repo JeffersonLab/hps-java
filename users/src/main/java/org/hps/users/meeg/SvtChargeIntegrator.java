@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -29,7 +30,7 @@ import org.hps.conditions.svt.SvtBiasConstant.SvtBiasConstantCollection;
 import org.hps.conditions.svt.SvtMotorPosition;
 import org.hps.conditions.svt.SvtMotorPosition.SvtMotorPositionCollection;
 import org.hps.conditions.svt.SvtTimingConstants;
-import org.hps.run.database.RunManager;
+import org.hps.rundb.RunManager;
 
 /**
  * @author Sho Uemura <meeg@slac.stanford.edu>

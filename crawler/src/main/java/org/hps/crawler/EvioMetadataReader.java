@@ -58,10 +58,11 @@ final class EvioMetadataReader implements FileMetadataReader {
         Integer lastHeadTimestamp = null;
         Integer lastPhysicsEvent = null;
         Integer firstPhysicsEvent = null;
-        Integer prestartTimestamp = null;
+        Integer prestartTimestamp = null;        
         Integer endTimestamp = null;
         Integer goTimestamp = null;
         Double triggerRate = null;
+        Integer endEventCount = null;
         
         // Processor for calculating TI time offsets.
         TiTimeOffsetEvioProcessor tiProcessor = new TiTimeOffsetEvioProcessor();
@@ -168,16 +169,21 @@ final class EvioMetadataReader implements FileMetadataReader {
                         ++physicsEvents;
                     } else if (EvioEventUtilities.isControlEvent(evioEvent)) {
                         int[] controlData = EvioEventUtilities.getControlEventData(evioEvent);
-                        if (controlData[0] != 0) {
-                            if (EventTagConstant.PRESTART.isEventTag(evioEvent)) {
-                                prestartTimestamp = controlData[0];
-                            }                        
-                            if (EventTagConstant.GO.isEventTag(evioEvent)) {
-                                goTimestamp = controlData[0];
+                        if (controlData != null) { /* Why is this null sometimes? */
+                            if (controlData[0] != 0) {
+                                if (EventTagConstant.PRESTART.isEventTag(evioEvent)) {
+                                    prestartTimestamp = controlData[0];
+                                }                        
+                                if (EventTagConstant.GO.isEventTag(evioEvent)) {
+                                    goTimestamp = controlData[0];
+                                }
+                                if (EventTagConstant.END.isEventTag(evioEvent)) {
+                                    endTimestamp = controlData[0];
+                                    endEventCount = controlData[2];
+                                }
                             }
-                            if (EventTagConstant.END.isEventTag(evioEvent)) {
-                                endTimestamp = controlData[0];
-                            }
+                        } else {
+                            LOGGER.warning("Event " + evioEvent.getEventNumber() + " is missing valid control data bank.");
                         }
                     }
 
@@ -193,9 +199,12 @@ final class EvioMetadataReader implements FileMetadataReader {
                     tiProcessor.process(evioEvent);
                     
                 } catch (Exception e) {  
-                    // Trap all event processing errors.
+                    
+                    // Log event processing errors.
+                    LOGGER.log(Level.WARNING, "Error processing EVIO event " + evioEvent.getEventNumber(), e);
+                    
+                    // Increment bad event count.
                     badEvents++;
-                    LOGGER.warning("Error processing EVIO event " + evioEvent.getEventNumber());
                 }
             }
         } catch (final EvioException e) {
@@ -278,19 +287,23 @@ final class EvioMetadataReader implements FileMetadataReader {
         if (goTimestamp != null) {
             metadataMap.put("GO_TIMESTAMP", goTimestamp);
         }
+        
+        if (endEventCount != null) {
+            metadataMap.put("END_EVENT_COUNT", endEventCount);
+        }
 
         // TI times and offset.
         metadataMap.put("TI_TIME_MIN_OFFSET", new Long(tiProcessor.getMinOffset()).toString());
         metadataMap.put("TI_TIME_MAX_OFFSET", new Long(tiProcessor.getMaxOffset()).toString());
         metadataMap.put("TI_TIME_N_OUTLIERS", tiProcessor.getNumOutliers());
         
-        // Event counts.
+        // Bad event count.
         metadataMap.put("BAD_EVENTS", badEvents);
         
         // Physics event count.
         metadataMap.put("PHYSICS_EVENTS", physicsEvents);
         
-        // Rough trigger rate.
+        // Rough trigger rate calculation.
         if (triggerRate != null && !Double.isInfinite(triggerRate) && !Double.isNaN(triggerRate)) {
             DecimalFormat df = new DecimalFormat("#.##");
             df.setRoundingMode(RoundingMode.CEILING);
@@ -323,7 +336,7 @@ final class EvioMetadataReader implements FileMetadataReader {
      * @param firstTimestamp the first physics timestamp
      * @param lastTimestamp the last physics timestamp
      * @param events the number of physics events
-     * @return the trigger rate calculation in KHz
+     * @return the trigger rate in Hz
      */
     private double calculateTriggerRate(Integer firstTimestamp, Integer lastTimestamp, long events) {
         return ((double) events / ((double) lastTimestamp - (double) firstTimestamp));

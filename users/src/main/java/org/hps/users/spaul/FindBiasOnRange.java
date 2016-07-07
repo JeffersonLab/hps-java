@@ -4,19 +4,18 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
 import org.hps.record.epics.EpicsData;
-import org.hps.run.database.EpicsType;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
 public class FindBiasOnRange extends Driver{
-    /*tab*//*tab*//*tab*/
+    
     String svtBiasName = "SVT:bias:top:0:v_sens";
     
     String outfile = "bias_on.txt";
     @Override 
     public void process(EventHeader event){
         final EpicsData edata = EpicsData.read(event);
-        if (edata == null) 
+        if (edata == null)
             return;
         System.out.println(edata.getKeys());
         if(!edata.hasKey(svtBiasName))

@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.hps.datacat.DatacatUtilities;
+import org.hps.datacat.Site;
 import org.srs.datacat.model.DatasetModel;
 
 /**
@@ -23,6 +25,11 @@ public final class DatacatAddFile {
     
     private List<File> paths = new ArrayList<File>();
     
+    private String folder = null;
+    private Site site = Site.JLAB;
+    private String datacatUrl = "http://hpsweb.jlab.org/datacat/r";
+    private boolean dryRun = false;
+    
     /**
      * Command line options.
      */
@@ -32,11 +39,12 @@ public final class DatacatAddFile {
      * Statically define the command options.
      */
     static {
-        OPTIONS.addOption("h", "help", false, "print help and exit (overrides all other arguments)");
-        OPTIONS.addOption("f", "folder", true, "datacat folder");
-        OPTIONS.addOption("s", "site", true, "datacat site");
-        OPTIONS.addOption("u", "base-url", true, "provide a base URL of the datacat server");
-        OPTIONS.addOption("D", "dry-run", false, "dry run mode which will not updated the datacat");
+        OPTIONS.addOption("h", "help", false, "Print help and exit (overrides all other arguments).");
+        OPTIONS.addOption("f", "folder", true, "Datacat folder (required)");
+        OPTIONS.addOption("s", "site", true, "Datacat site (default is JLAB)");
+        OPTIONS.addOption("u", "url", true, "Set the URL of a datacat server (default is JLAB prod server)");
+        OPTIONS.addOption("D", "dry-run", false, "Dry run mode which will not update the datacat");
+        OPTIONS.addOption("p", "patch", false, "Allow patching of existing records in the datacat");
     }
 
     /**
@@ -49,14 +57,11 @@ public final class DatacatAddFile {
     }
 
     /**
-     * The crawler configuration.
-     */
-    private CrawlerConfig config;
-
-    /**
      * The options parser.
      */
     private final PosixParser parser = new PosixParser();
+    
+    private boolean patch = false;
     
     /**
      * Parse command line options.
@@ -68,8 +73,6 @@ public final class DatacatAddFile {
         
         LOGGER.config("parsing command line options");
 
-        this.config = new CrawlerConfig();
-
         try {
             final CommandLine cl = this.parser.parse(OPTIONS, args);
 
@@ -80,15 +83,15 @@ public final class DatacatAddFile {
 
             // Datacat folder.
             if (cl.hasOption("f")) {
-                config.setDatacatFolder(cl.getOptionValue("f"));
-                LOGGER.config("set datacat folder to " + config.folder());
+                folder = cl.getOptionValue("f");
+                LOGGER.config("set datacat folder to " + folder);
             } else {
                 throw new RuntimeException("The -f argument with the datacat folder is required.");
             }
 
             // Dry run.
             if (cl.hasOption("D")) {
-                config.setDryRun(true);
+                this.dryRun = true;
             }
                         
             // List of paths.
@@ -103,21 +106,23 @@ public final class DatacatAddFile {
             }
             
             // Dataset site (defaults to JLAB).
-            Site site = Site.JLAB;
             if (cl.hasOption("s")) {
-                site = Site.valueOf(cl.getOptionValue("s"));
+                this.site = Site.valueOf(cl.getOptionValue("s"));
             }
-            LOGGER.config("dataset site " + site);
-            config.setSite(site);
-            
+            LOGGER.config("datacat site: " + site);
+                        
             // Data catalog URL.
             if (cl.hasOption("u")) {
-                config.setDatacatUrl(cl.getOptionValue("u"));
-                LOGGER.config("datacat URL " + config.datacatUrl());
+                datacatUrl = cl.getOptionValue("u");
             }
+            LOGGER.config("datacat url: " + datacatUrl);
 
+            if (cl.hasOption("p")) {
+                this.patch = true;
+            }
+            
         } catch (final ParseException e) {
-            throw new RuntimeException("Error parsing options.", e);
+            throw new RuntimeException("Error parsing the command line options.", e);
         }
 
         LOGGER.info("Done parsing command line options.");
@@ -138,12 +143,12 @@ public final class DatacatAddFile {
      * Run the job.
      */
     private void run() {        
-        List<DatasetModel> datasets = DatacatHelper.createDatasets(paths, config.folder(), config.site().toString());        
-        if (!config.dryRun()) {
-            DatacatHelper.addDatasets(datasets, config.folder(), config.datacatUrl());
-            LOGGER.info("Added " + datasets.size() + " datasets to datacat.");
+        List<DatasetModel> datasets = DatacatHelper.createDatasets(paths, folder, site.toString());
+        if (!dryRun) {
+            DatacatUtilities.updateDatasets(datasets, folder, datacatUrl, patch);
+            //LOGGER.info("Added " + datasets.size() + " datasets to datacat.");
         } else {
-            LOGGER.info("Dry run mode; skipped adding dataset.");
+            LOGGER.info("Dry run is enabled; skipped adding dataset.");
         }
      }
 }

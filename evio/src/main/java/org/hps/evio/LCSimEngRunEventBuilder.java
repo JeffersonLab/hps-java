@@ -17,7 +17,7 @@ import org.hps.record.triggerbank.HeadBankData;
 import org.hps.record.triggerbank.SSPData;
 import org.hps.record.triggerbank.TDCData;
 import org.hps.record.triggerbank.TIData;
-import org.hps.run.database.RunManager;
+import org.hps.rundb.RunManager;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.event.EventHeader;

@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>hps-crawler</artifactId>
-    <name>crawler</name>
-    <description>file crawler</description>
+    <artifactId>hps-datacat</artifactId>
+    <name>datacat</name>
+    <description>SRS data catalog utilities</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
@@ -10,18 +10,18 @@
         <version>3.10-SNAPSHOT</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/crawler/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/crawler/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/crawler/</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/datacat/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/datacat/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/datacat/</developerConnection>
     </scm>    
     <dependencies>
         <dependency>
-            <groupId>org.hps</groupId>
-            <artifactId>hps-record-util</artifactId>
+            <groupId>srs</groupId>
+            <artifactId>org-srs-datacat-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-datacat</artifactId>
+            <artifactId>hps-logging</artifactId>
         </dependency>
     </dependencies>
 </project>

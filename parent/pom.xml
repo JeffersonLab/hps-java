@@ -254,6 +254,11 @@
                 <artifactId>hps-integration-tests</artifactId>
                 <version>3.10-SNAPSHOT</version>
             </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-datacat</artifactId>
+                <version>3.10-SNAPSHOT</version>
+            </dependency>
             <!-- Next are external dependencies used in multiple modules. -->
             <dependency>
                 <groupId>org.jlab.coda</groupId>
@@ -298,7 +303,7 @@
             <dependency>
                 <groupId>srs</groupId>
                 <artifactId>org-srs-datacat-client</artifactId>
-                <version>0.5-TEST3</version>
+                <version>0.5-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

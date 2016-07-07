@@ -15,7 +15,7 @@ import org.hps.record.evio.EvioDetectorConditionsProcessor;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.scalers.ScalerUtilities;
 import org.hps.record.scalers.ScalerUtilities.LiveTimeIndex;
-import org.hps.run.database.RunManager;
+import org.hps.rundb.RunManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;

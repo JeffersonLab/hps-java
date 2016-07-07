@@ -29,7 +29,7 @@ import org.hps.logging.config.DefaultLoggingConfig;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventQueue;
 import org.hps.record.evio.EvioEventUtilities;
-import org.hps.run.database.RunManager;
+import org.hps.rundb.RunManager;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;

@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.Set;
 
+import org.hps.datacat.FileFormat;
+
 /**
  * Filter files on their format.
  * <p>

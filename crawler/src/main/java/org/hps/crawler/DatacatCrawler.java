@@ -13,10 +13,13 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.hps.datacat.DatacatUtilities;
+import org.hps.datacat.FileFormat;
+import org.hps.datacat.Site;
 import org.srs.datacat.model.DatasetModel;
 
 /**
@@ -63,7 +66,7 @@ public final class DatacatCrawler {
         OPTIONS.addOption("t", "timestamp-file", true, "existing or new timestamp file name");
         OPTIONS.addOption("x", "max-depth", true, "max depth to crawl");
         OPTIONS.addOption("D", "dry-run", false, "dry run which will not update the datacat");
-        OPTIONS.addOption("u", "base-url", true, "provide a base URL of the datacat server");
+        OPTIONS.addOption("u", "url", true, "provide a base URL of the datacat server");
     }
 
     /**
@@ -300,7 +303,7 @@ public final class DatacatCrawler {
         if (!visitor.getFiles().isEmpty()) {
             List<DatasetModel> datasets = DatacatHelper.createDatasets(visitor.getFiles(), config.folder(), config.site().toString());
             LOGGER.info("built " + datasets.size() + " datasets");
-            DatacatHelper.addDatasets(datasets, config.folder(), config.datacatUrl());
+            DatacatUtilities.updateDatasets(datasets, config.folder(), config.datacatUrl(), false);
             LOGGER.info("added datasets to datacat");
         } else {
             LOGGER.warning("No files were found by the crawler.");

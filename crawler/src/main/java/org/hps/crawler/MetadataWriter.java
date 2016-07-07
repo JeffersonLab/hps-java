@@ -9,10 +9,11 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.hps.datacat.DatacatConstants;
 
 /**
  * Creates metadata for a file and writes the results to a Python snippet that can be used as input to the SRS datacat.
@@ -95,7 +96,7 @@ public final class MetadataWriter {
     private static String toPyDict(Map<String, Object> metadata) {
         StringBuffer sb = new StringBuffer();
         sb.append("{");
-        for (String name : DatacatHelper.SYSTEM_METADATA) {
+        for (String name : DatacatConstants.getSystemMetadata()) {
             if (metadata.containsKey(name)) {
                 Object value = metadata.get(name);
                 if (value instanceof Number) {
@@ -108,7 +109,7 @@ public final class MetadataWriter {
         sb.setLength(sb.length() - 2);
         sb.append(", \"versionMetadata\" : {");
         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-            if (!DatacatHelper.isSystemMetadata(entry.getKey())) {
+            if (!DatacatConstants.isSystemMetadata(entry.getKey())) {
                Object value = entry.getValue();
                String name = entry.getKey();
                if (value instanceof Number) {

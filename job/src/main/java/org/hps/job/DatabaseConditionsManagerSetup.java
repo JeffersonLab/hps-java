@@ -8,15 +8,13 @@ import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
-import org.hps.run.database.RunManager;
+import org.hps.rundb.RunManager;
 import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.job.DefaultConditionsSetup;
 
 /**
  * Provides setup for HPS specific conditions manager.
- * 
- * @author Jeremy McCormick, SLAC
- *
+ * @author jeremym
  */
 public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup {
 

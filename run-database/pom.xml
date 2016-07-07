@@ -20,6 +20,10 @@
             <artifactId>hps-record-util</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-datacat</artifactId>
+        </dependency>
+        <dependency>
             <groupId>srs</groupId>
             <artifactId>org-srs-datacat-client</artifactId>
         </dependency>
