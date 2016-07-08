@@ -455,12 +455,71 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void addMCTridentVariables() {
-        String[] newVars = new String[]{"triStartX/D", "triStartY/D", "triStartZ/D",
-            "triEndX/D", "triEndY/D", "triEndZ/D",
-            "triPX/D", "triPY/D", "triPZ/D", "triP/D", "triM/D", "triE/D",
-            "pair1PX/D", "pair1PY/D", "pair1PZ/D", "pair1P/D", "pair1M/D", "pair1E/D",
-            "pair2PX/D", "pair2PY/D", "pair2PZ/D", "pair2P/D", "pair2M/D", "pair2E/D"};
+        addMCParticleVariables("tri");
+        addMCParticleVariables("triEle1");
+        addMCParticleVariables("triEle2");
+        addMCParticleVariables("triPos");
+        addMCPairVariables("triPair1");
+        addMCPairVariables("triPair2");
+    }
+
+    protected void addMCParticleVariables(String prefix) {
+        String[] newVars = new String[]{"StartX/D", "StartY/D", "StartZ/D",
+            "EndX/D", "EndY/D", "EndZ/D",
+            "PX/D", "PY/D", "PZ/D", "P/D", "M/D", "E/D"};
+
+        for (int i = 0; i < newVars.length; i++) {
+            newVars[i] = prefix + newVars[i];
+        }
         tupleVariables.addAll(Arrays.asList(newVars));
+    }
+
+    protected void addMCPairVariables(String prefix) {
+        String[] newVars = new String[]{"PX/D", "PY/D", "PZ/D", "P/D", "M/D", "E/D"};
+
+        for (int i = 0; i < newVars.length; i++) {
+            newVars[i] = prefix + newVars[i];
+        }
+        tupleVariables.addAll(Arrays.asList(newVars));
+    }
+
+    protected void fillMCParticleVariables(String prefix, MCParticle particle) {
+//        System.out.format("%d %x\n", particle.getGeneratorStatus(), particle.getSimulatorStatus().getValue());
+        Hep3Vector start = VecOp.mult(beamAxisRotation, particle.getOrigin());
+        Hep3Vector end;
+        try {
+            end = VecOp.mult(beamAxisRotation, particle.getEndPoint());
+        } catch (RuntimeException e) {
+            end = null;
+        }
+
+        Hep3Vector p = VecOp.mult(beamAxisRotation, particle.getMomentum());
+
+        tupleMap.put(prefix + "StartX/D", start.x());
+        tupleMap.put(prefix + "StartY/D", start.y());
+        tupleMap.put(prefix + "StartZ/D", start.z());
+        if (end != null) {
+            tupleMap.put(prefix + "EndX/D", end.x());
+            tupleMap.put(prefix + "EndY/D", end.y());
+            tupleMap.put(prefix + "EndZ/D", end.z());
+        }
+        tupleMap.put(prefix + "PX/D", p.x());
+        tupleMap.put(prefix + "PY/D", p.y());
+        tupleMap.put(prefix + "PZ/D", p.z());
+        tupleMap.put(prefix + "P/D", p.magnitude());
+        tupleMap.put(prefix + "M/D", particle.getMass());
+        tupleMap.put(prefix + "E/D", particle.getEnergy());
+    }
+
+    protected void fillMCPairVariables(String prefix, MCParticle ele, MCParticle pos) {
+        HepLorentzVector vtx = VecOp.add(ele.asFourVector(), pos.asFourVector());
+        Hep3Vector vtxP = VecOp.mult(beamAxisRotation, vtx.v3());
+        tupleMap.put(prefix + "PX/D", vtxP.x());
+        tupleMap.put(prefix + "PY/D", vtxP.y());
+        tupleMap.put(prefix + "PY/D", vtxP.z());
+        tupleMap.put(prefix + "P/D", vtxP.magnitude());
+        tupleMap.put(prefix + "M/D", vtx.magnitude());
+        tupleMap.put(prefix + "E/D", vtx.t());
     }
 
     protected void fillMCTridentVariables(EventHeader event) {
@@ -485,22 +544,7 @@ public abstract class TupleDriver extends Driver {
             return;
         }
 
-        Hep3Vector tridentStart = VecOp.mult(beamAxisRotation, trident.getOrigin());
-        Hep3Vector tridentEnd = VecOp.mult(beamAxisRotation, trident.getEndPoint());
-        Hep3Vector tridentP = VecOp.mult(beamAxisRotation, trident.getMomentum());
-
-        tupleMap.put("triStartX/D", tridentStart.x());
-        tupleMap.put("triStartY/D", tridentStart.y());
-        tupleMap.put("triStartZ/D", tridentStart.z());
-        tupleMap.put("triEndX/D", tridentEnd.x());
-        tupleMap.put("triEndY/D", tridentEnd.y());
-        tupleMap.put("triEndZ/D", tridentEnd.z());
-        tupleMap.put("triPX/D", tridentP.x());
-        tupleMap.put("triPY/D", tridentP.y());
-        tupleMap.put("triPZ/D", tridentP.z());
-        tupleMap.put("triP/D", tridentP.magnitude());
-        tupleMap.put("triM/D", trident.getMass());
-        tupleMap.put("triE/D", trident.getEnergy());
+        fillMCParticleVariables("tri", trident);
 
         for (MCParticle particle : tridentParticles) {
             switch (particle.getPDGID()) {
@@ -520,26 +564,20 @@ public abstract class TupleDriver extends Driver {
             }
         }
 
+        if (ele1 != null) {
+            fillMCParticleVariables("triEle1", ele1);
+        }
+        if (ele2 != null) {
+            fillMCParticleVariables("triEle2", ele2);
+        }
+        if (pos != null) {
+            fillMCParticleVariables("triPos", pos);
+        }
+
         if (pos != null && ele1 != null) {
-            {
-                HepLorentzVector vtx = VecOp.add(pos.asFourVector(), ele1.asFourVector());
-                Hep3Vector vtxP = VecOp.mult(beamAxisRotation, vtx.v3());
-                tupleMap.put("pair1PX/D", vtxP.x());
-                tupleMap.put("pair1PY/D", vtxP.y());
-                tupleMap.put("pair1PY/D", vtxP.z());
-                tupleMap.put("pair1P/D", vtxP.magnitude());
-                tupleMap.put("pair1M/D", vtx.magnitude());
-                tupleMap.put("pair1E/D", vtx.t());
-            }
+            fillMCPairVariables("triPair1", ele1, pos);
             if (ele2 != null) {
-                HepLorentzVector vtx = VecOp.add(pos.asFourVector(), ele2.asFourVector());
-                Hep3Vector vtxP = VecOp.mult(beamAxisRotation, vtx.v3());
-                tupleMap.put("pair2PX/D", vtxP.x());
-                tupleMap.put("pair2PY/D", vtxP.y());
-                tupleMap.put("pair2PY/D", vtxP.z());
-                tupleMap.put("pair2P/D", vtxP.magnitude());
-                tupleMap.put("pair2M/D", vtx.magnitude());
-                tupleMap.put("pair2E/D", vtx.t());
+                fillMCPairVariables("triPair2", ele2, pos);
             }
         }
 

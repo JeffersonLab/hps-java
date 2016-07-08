@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.stat.descriptive.StatisticalSummaryValues;
 import org.apache.commons.math.stat.inference.TTestImpl;
-import org.apache.commons.math3.distribution.KolmogorovSmirnovDistribution;
+import org.apache.commons.math3.stat.inference.KolmogorovSmirnovTest;
 
 /**
  *
@@ -81,7 +81,7 @@ public class CompareHistograms {
             }
         }
         int n = (int) Math.ceil(Math.sqrt((reference.allEntries() * test.allEntries()) / (reference.allEntries() + test.allEntries())));
-        KolmogorovSmirnovDistribution dist = new KolmogorovSmirnovDistribution(n);
-        return 1.0 - dist.cdf(integralMax);
+        KolmogorovSmirnovTest dist = new KolmogorovSmirnovTest();
+        return 1.0 - dist.cdf(integralMax, n);
     }
 }

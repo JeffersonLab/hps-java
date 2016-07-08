@@ -113,9 +113,17 @@ public class SvtChargeIntegrator {
             String line;
             System.err.println("myaData header: " + br.readLine()); //discard the first line
             if (perRun) {
-                System.out.println("run_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\ttotalQ_noerror\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgatedQ_noerror\tgoodQ\tgoodQ_withbias\tgoodQ_atnom\tgoodQ_noerror");
+                if (cl.hasOption("e")) {
+                    System.out.println("run_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\ttotalQ_noerror\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgatedQ_noerror\tgoodQ\tgoodQ_withbias\tgoodQ_atnom\tgoodQ_noerror");
+                } else {
+                    System.out.println("run_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgoodQ\tgoodQ_withbias\tgoodQ_atnom");
+                }
             } else {
-                System.out.println("run_num\tfile_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\ttotalQ_noerror\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgatedQ_noerror\tgoodQ\tgoodQ_withbias\tgoodQ_atnom\tgoodQ_noerror");
+                if (cl.hasOption("e")) {
+                    System.out.println("run_num\tfile_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\ttotalQ_noerror\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgatedQ_noerror\tgoodQ\tgoodQ_withbias\tgoodQ_atnom\tgoodQ_noerror");
+                } else {
+                    System.out.println("run_num\tfile_num\tnominal_position\tnEvents\ttotalQ\ttotalQ_withbias\ttotalQ_atnom\tgatedQ\tgatedQ_withbias\tgatedQ_atnom\tgoodQ\tgoodQ_withbias\tgoodQ_atnom");
+                }
             }
 
             int currentRun = 0;
@@ -375,11 +383,19 @@ public class SvtChargeIntegrator {
                 }
                 if (perRun) {
                     int nEvents = Integer.parseInt(record.get(9));
-                    System.out.format("%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalChargeWithBiasAtNominalNoError, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGatedChargeWithBiasAtNominalNoError, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal, totalGoodChargeWithBiasAtNominalNoError);
+                    if (cl.hasOption("e")) {
+                        System.out.format("%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalChargeWithBiasAtNominalNoError, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGatedChargeWithBiasAtNominalNoError, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal, totalGoodChargeWithBiasAtNominalNoError);
+                    } else {
+                        System.out.format("%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal);
+                    }
                 } else {
                     int fileNum = Integer.parseInt(record.get(1));
                     int nEvents = Integer.parseInt(record.get(2));
-                    System.out.format("%d\t%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, fileNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalChargeWithBiasAtNominalNoError, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGatedChargeWithBiasAtNominalNoError, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal, totalGoodChargeWithBiasAtNominalNoError);
+                    if (cl.hasOption("e")) {
+                        System.out.format("%d\t%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, fileNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalChargeWithBiasAtNominalNoError, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGatedChargeWithBiasAtNominalNoError, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal, totalGoodChargeWithBiasAtNominalNoError);
+                    } else {
+                        System.out.format("%d\t%d\t%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n", runNum, fileNum, nominalPosition, nEvents, totalCharge, totalChargeWithBias, totalChargeWithBiasAtNominal, totalGatedCharge, totalGatedChargeWithBias, totalGatedChargeWithBiasAtNominal, totalGoodCharge, totalGoodChargeWithBias, totalGoodChargeWithBiasAtNominal);
+                    }
                 }
             }
         } catch (Exception ex) {
