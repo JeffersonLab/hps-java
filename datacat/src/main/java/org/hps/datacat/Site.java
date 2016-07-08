@@ -3,7 +3,7 @@ package org.hps.datacat;
 /**
  * Site of a dataset (SLAC or JLAB).
  * 
- * @author Jeremy McCormick, SLAC
+ * @author jeremym
  */
 public enum Site {
     /**

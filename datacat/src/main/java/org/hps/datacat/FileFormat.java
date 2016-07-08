@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Dataset file formats for HPS.
  * 
- * @author Jeremy McCormick, SLAC
+ * @author jeremym
  */
 public enum FileFormat {
 

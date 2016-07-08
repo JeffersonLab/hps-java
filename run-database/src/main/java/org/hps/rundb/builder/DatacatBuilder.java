@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.datacat.DatacatUtilities;
+import org.hps.datacat.Site;
 import org.hps.record.triggerbank.TiTimeOffsetCalculator;
 import org.srs.datacat.client.Client;
 import org.srs.datacat.client.exception.DcClientException;
@@ -36,7 +38,7 @@ public final class DatacatBuilder extends AbstractRunBuilder {
     };
     
     private Client datacatClient;
-    private String site;
+    private Site site;
     private String folder;    
     private List<File> files;
                 
@@ -197,21 +199,15 @@ public final class DatacatBuilder extends AbstractRunBuilder {
         
         LOGGER.info("finding EVIO datasets for run " + getRun() + " in " + this.folder + " at " + this.site + " ...");
         
-        DatasetResultSetModel results = datacatClient.searchForDatasets(
-                this.folder,
-                "current", /* dataset version */
-                this.site,
-                "fileFormat eq 'EVIO' AND dataType eq 'RAW' AND runMin eq " + getRun(), /* basic query */
-                new String[] {"FILE"}, /* sort on file number */
-                METADATA_FIELDS /* metadata field values to return from query */
-                );
-        
+        DatasetResultSetModel results = DatacatUtilities.findEvioDatasets(datacatClient, this.folder, this.site, 
+                METADATA_FIELDS, new String[] {"FILE"}, getRun());
+                
         LOGGER.info("found " + results.getResults().size() + " EVIO datasets for run " + getRun());
                                
         return results;
     }    
     
-    void setSite(String site) {
+    void setSite(Site site) {
         this.site = site;
     }
     

@@ -3,7 +3,7 @@ package org.hps.datacat;
 /**
  * Dataset types for HPS.
  * 
- * @author Jeremy McCormick, SLAC
+ * @author jeremym
  */
 public enum DataType {
     /**

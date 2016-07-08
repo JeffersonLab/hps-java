@@ -20,6 +20,7 @@ import org.srs.datacat.shared.Provider;
 
 /**
  * Data Catalog utility functions.
+ * 
  * @author jeremym
  */
 public class DatacatUtilities {

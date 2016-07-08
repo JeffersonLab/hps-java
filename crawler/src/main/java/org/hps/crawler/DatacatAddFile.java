@@ -10,6 +10,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.datacat.DatacatConstants;
 import org.hps.datacat.DatacatUtilities;
 import org.hps.datacat.Site;
 import org.srs.datacat.model.DatasetModel;
@@ -27,7 +28,7 @@ public final class DatacatAddFile {
     
     private String folder = null;
     private Site site = Site.JLAB;
-    private String datacatUrl = "http://hpsweb.jlab.org/datacat/r";
+    private String datacatUrl = DatacatConstants.DATACAT_URL;
     private boolean dryRun = false;
     
     /**

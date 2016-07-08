@@ -12,14 +12,13 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.database.ConnectionParameters;
+import org.hps.datacat.DatacatConstants;
+import org.hps.datacat.Site;
 import org.hps.rundb.DaoProvider;
 import org.hps.rundb.RunManager;
 import org.hps.rundb.RunSummaryDao;
 import org.hps.rundb.RunSummaryImpl;
 import org.srs.datacat.client.ClientBuilder;
-
-import org.hps.datacat.DatacatConstants;
-import org.hps.datacat.Site;
 
 /**
  * Creates a basic run database record from information in the data catalog 
@@ -75,7 +74,7 @@ public class BuilderCommandLine {
     /**
      * Data catalog site.
      */
-    private String site = Site.JLAB.toString();
+    private Site site = Site.JLAB;
     
     /**
      * Data catalog URL.
@@ -136,7 +135,7 @@ public class BuilderCommandLine {
             
             // Site in the data catalog.
             if (cl.hasOption("S")) {
-                site = cl.getOptionValue("S");
+                site = Site.valueOf(cl.getOptionValue("S"));
             }
             
             // Set folder for dataset search.

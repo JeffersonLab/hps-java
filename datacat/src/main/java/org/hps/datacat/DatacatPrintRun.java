@@ -4,8 +4,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.srs.datacat.client.Client;
-import org.srs.datacat.client.ClientBuilder;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.dataset.DatasetLocationModel;
@@ -13,6 +11,7 @@ import org.srs.datacat.model.dataset.DatasetWithViewModel;
 
 /**
  * Example of printing information from all files for a given run in the datacat.
+ * 
  * @author jeremym
  */
 public final class DatacatPrintRun {
@@ -26,20 +25,9 @@ public final class DatacatPrintRun {
     }
     
     private static void printRun(int run) throws Exception {
-        
-        /* initialize datacat client */
-        Client client = new ClientBuilder().setUrl("http://hpsweb.jlab.org/datacat/r").build();
-        
-        /* perform dataset search */
-        DatasetResultSetModel results = client.searchForDatasets(
-                "/HPS/data/raw",
-                "current", /* dataset version */
-                "JLAB",
-                "fileFormat eq 'EVIO' AND dataType eq 'RAW' AND runMin eq " + run, /* basic query */
-                new String[] {"FILE"}, /* sort on file number */
-                DatacatConstants.EVIO_METADATA /* metadata field values to return from query */
-                );
-        
+                
+        DatasetResultSetModel results = DatacatUtilities.findEvioDatasets(run);
+                
         /* print results including metadata */
         for (DatasetModel dataset : results) {            
             DatasetWithViewModel datasetView = (DatasetWithViewModel) dataset;

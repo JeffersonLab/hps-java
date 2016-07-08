@@ -6,6 +6,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.ConnectionParameters;
+import org.hps.datacat.Site;
 import org.hps.rundb.RunManager;
 import org.hps.rundb.RunSummaryImpl;
 import org.srs.datacat.client.ClientBuilder;
@@ -16,7 +17,7 @@ public class RunBuilderTest extends TestCase {
     private static String DATACAT_URL = "http://localhost:8080/datacat-v0.5-SNAPSHOT/r";
     private static String SPREADSHEET = "/work/hps/rundb/HPS_Runs_2015_Sheet1.csv";
     private static String FOLDER = "/HPS/test";
-    private static String SITE = "SLAC";
+    private static Site SITE = Site.SLAC;
     private static String EVIO_TEST_FILE = "/nfs/slac/g/hps3/data/engrun2015/evio/hps_005403.evio.0";
     
     private static final ConnectionParameters CONNECTION_PARAMETERS = 
