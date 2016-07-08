@@ -149,10 +149,13 @@ public abstract class TupleDriver extends Driver {
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
         bfield = TrackUtils.getBField(detector).magnitude();
 
-        BeamEnergy.BeamEnergyCollection beamEnergyCollection
-                = this.getConditionsManager().getCachedConditions(BeamEnergy.BeamEnergyCollection.class, "beam_energies").getCachedData();
         if (Double.isNaN(ebeam)) {
-            ebeam = beamEnergyCollection.get(0).getBeamEnergy();
+            try {
+                BeamEnergy.BeamEnergyCollection beamEnergyCollection
+                        = this.getConditionsManager().getCachedConditions(BeamEnergy.BeamEnergyCollection.class, "beam_energies").getCachedData();
+                ebeam = beamEnergyCollection.get(0).getBeamEnergy();
+            } catch (Exception e) {
+            }
         }
         setupVariables();
         if (tupleFile != null) {

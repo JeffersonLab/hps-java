@@ -1,0 +1,21 @@
+<!--
+This steering file dumps truth information to ROOT tuple format. It only uses the MCParticle collection, so it should work on any MC LCIO file (SLIC output, readout sim, recon).
+-->
+
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="TruthTuple"/>
+    </execute>    
+    <drivers>    
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>        
+
+        <driver name="TruthTuple" type="org.hps.analysis.tuple.TridentTruthTupleDriver">
+            <tupleFile>${outputFile}_truth.txt</tupleFile>
+        </driver>
+    </drivers>
+</lcsim>
+
