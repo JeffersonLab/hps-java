@@ -180,7 +180,7 @@ public class SvtClusterAnalysis extends Driver {
         
         // Get the list of clusters in the event
         List<TrackerHit> clusters = event.get(TrackerHit.class, clusterCollectionName);
-        System.out.println("Number of clusters: " + clusters.size()); 
+        //System.out.println("Number of clusters: " + clusters.size()); 
        
         for (TrackerHit cluster : clusters) { 
            
@@ -189,20 +189,20 @@ public class SvtClusterAnalysis extends Driver {
             
             Cluster clusterObject = this.calculateSignalToNoise(cluster.getRawHits());
             
-            clusterSizePlots.get(sensor.getName()).fill(cluster.getRawHits().size());
+            clusterSizePlots.get(sensor).fill(cluster.getRawHits().size());
             
             // Fill all plots
-            clusterChargePlots.get(sensor.getName()).fill(clusterObject.getAmplitude());
-            signalToNoisePlots.get(sensor.getName()).fill(clusterObject.getSignalToNoise());
-            clusterTimePlots.get(sensor.getName()).fill(cluster.getTime());
-            clusterChargeVsTimePlots.get(sensor.getName()).fill(clusterObject.getAmplitude(), cluster.getTime());
+            clusterChargePlots.get(sensor).fill(clusterObject.getAmplitude());
+            signalToNoisePlots.get(sensor).fill(clusterObject.getSignalToNoise());
+            clusterTimePlots.get(sensor).fill(cluster.getTime());
+            clusterChargeVsTimePlots.get(sensor).fill(clusterObject.getAmplitude(), cluster.getTime());
             
             if (cluster.getRawHits().size() == 1) { 
-                singleHitClusterChargePlots.get(sensor.getName()).fill(clusterObject.getAmplitude());
-                singleHitSignalToNoisePlots.get(sensor.getName()).fill(clusterObject.getSignalToNoise());
+                singleHitClusterChargePlots.get(sensor).fill(clusterObject.getAmplitude());
+                singleHitSignalToNoisePlots.get(sensor).fill(clusterObject.getSignalToNoise());
             } else { 
-                multHitClusterChargePlots.get(sensor.getName()).fill(clusterObject.getAmplitude());
-                multHitSignalToNoisePlots.get(sensor.getName()).fill(clusterObject.getSignalToNoise());
+                multHitClusterChargePlots.get(sensor).fill(clusterObject.getAmplitude());
+                multHitSignalToNoisePlots.get(sensor).fill(clusterObject.getSignalToNoise());
             }
         }
        
@@ -255,12 +255,12 @@ public class SvtClusterAnalysis extends Driver {
                     Cluster clusterObject = this.calculateSignalToNoise(trackCluster.getRawHits());
                    
                     // Fill all plots
-                    trackClusterChargePlots.get(sensor.getName()).fill(clusterObject.getAmplitude());
-                    trackHitSignalToNoisePlots.get(sensor.getName()).fill(clusterObject.getSignalToNoise());
-                    trackClusterChargeVsMomentum.get(sensor.getName()).fill(p, clusterObject.getAmplitude());
-                    trackClusterChargeVsCosTheta.get(sensor.getName()).fill(TrackUtils.getCosTheta(track), clusterObject.getAmplitude());
-                    trackClusterChargeVsSinPhi.get(sensor.getName()).fill(Math.sin(TrackUtils.getPhi0(track)), clusterObject.getAmplitude());
-                    trackClusterTimePlots.get(sensor.getName()).fill(trackCluster.getTime());
+                    trackClusterChargePlots.get(sensor).fill(clusterObject.getAmplitude());
+                    trackHitSignalToNoisePlots.get(sensor).fill(clusterObject.getSignalToNoise());
+                    trackClusterChargeVsMomentum.get(sensor).fill(p, clusterObject.getAmplitude());
+                    trackClusterChargeVsCosTheta.get(sensor).fill(TrackUtils.getCosTheta(track), clusterObject.getAmplitude());
+                    trackClusterChargeVsSinPhi.get(sensor).fill(Math.sin(TrackUtils.getPhi0(track)), clusterObject.getAmplitude());
+                    trackClusterTimePlots.get(sensor).fill(trackCluster.getTime());
                 }
             }
         }
