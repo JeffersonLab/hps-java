@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventUtilities;
@@ -20,6 +21,8 @@ import org.lcsim.event.GenericObject;
  * @author Jeremy McCormick, SLAC
  */
 public final class ScalerData {
+
+    private static Logger LOGGER = Logger.getLogger(ScalerData.class.getPackage().getName());
 
     /**
      * Fixed array size of scaler data in the EVIO bank.
@@ -266,10 +269,13 @@ public final class ScalerData {
                             final int eventId = EvioEventUtilities.getEventIdData(evioEvent)[0];
 
                             // Get event's timestamp.
-                            final int timestamp = EvioEventUtilities.getHeadBankData(evioEvent)[3];
+                            final int timestamp = EvioEventUtilities.getHeadBankData(evioEvent)[3];                            
 
                             // Create scaler data.
                             scalerData = new ScalerData(subBank.getIntData(), eventId, timestamp);
+                            
+                            LOGGER.info("Scaler data found in event " + evioEvent.getEventNumber()
+                                    + " with timestamp " + timestamp);
 
                             break outerBankLoop;
                         }

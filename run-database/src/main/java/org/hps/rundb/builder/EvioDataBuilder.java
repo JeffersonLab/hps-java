@@ -49,7 +49,8 @@ public class EvioDataBuilder extends AbstractRunBuilder {
         EvioFileSource src = new EvioFileSource(evioFile);
         loop.setEvioFileSource(src);
         ScalersEvioProcessor scalersProcessor = new ScalersEvioProcessor();
-        scalersProcessor.setResetEveryEvent(false);        
+        scalersProcessor.setResetEveryEvent(false);
+        loop.addProcessor(scalersProcessor);
         EpicsRunProcessor epicsProcessor = new EpicsRunProcessor();
         loop.addProcessor(epicsProcessor);
         TriggerConfigEvioProcessor configProcessor = new TriggerConfigEvioProcessor();
