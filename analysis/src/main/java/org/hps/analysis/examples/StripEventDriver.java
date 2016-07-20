@@ -41,6 +41,7 @@ public class StripEventDriver extends Driver
     private String _clusterCollectionName = "EcalClusters";
     
     private boolean _selectAllLayers = false;
+    private int _requireNLayers = 12;
     private boolean _selectTopHits = false;
     private boolean _selectBottomHits = false;
 
@@ -101,19 +102,19 @@ public class StripEventDriver extends Driver
                 }
                 if(_selectTopHits)
                 {
-                  if(topLayers.size() != 12) skipEvent = true;  
+                  if(topLayers.size() != _requireNLayers) skipEvent = true;  
                 }
                 if(_selectBottomHits)
                 {
-                  if(bottomLayers.size() != 12) skipEvent = true;  
+                  if(bottomLayers.size() != _requireNLayers) skipEvent = true;  
                 }
                 // if we don't explicitly request top or bottom, 
                 // only keep event if either the top or the bottom has all twelve layers hit
                 if(!_selectTopHits && !_selectBottomHits)
                 {
                     skipEvent = true; 
-                    if(topLayers.size() == 12) skipEvent = false;
-                    if(bottomLayers.size() == 12) skipEvent = false;     
+                    if(topLayers.size() == _requireNLayers) skipEvent = false;
+                    if(bottomLayers.size() == _requireNLayers) skipEvent = false;     
                 }
             }
         }
@@ -212,6 +213,11 @@ public class StripEventDriver extends Driver
     public void setSelectAllLayers(boolean b)
     {
         _selectAllLayers = b;
+    }
+    
+    public void setSelectNumberOfLayers(int i)
+    {
+        _requireNLayers = i;
     }
     
     private void setupSensors(EventHeader event)
