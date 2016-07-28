@@ -23,9 +23,26 @@ import org.srs.datacat.shared.Provider;
  * 
  * @author jeremym
  */
-public class DatacatUtilities {
+public final class DatacatUtilities {
     
     private static final Logger LOGGER = Logger.getLogger(DatacatUtilities.class.getPackage().getName());
+    
+    private Client client;    
+    private Site site = DatacatConstants.DEFAULT_SITE;
+    
+    public DatacatUtilities(Client client, Site site) {
+        this.client = client;
+        this.site = site;
+    }
+    
+    public DatacatUtilities(String url, Site site) {
+        createClient(url);
+        this.site = site;
+    }
+    
+    public DatacatUtilities() {
+        createDefaultClient();
+    }
                   
     /**
      * Add datasets to the data catalog or patch existing ones.
@@ -35,14 +52,8 @@ public class DatacatUtilities {
      * @param url the datacat URL
      * @param patch <code>true</code> to allow patching existing datasets
      */
-    public static final void updateDatasets(List<DatasetModel> datasets, String folder, String url, boolean patch) {
+    public void updateDatasets(List<DatasetModel> datasets, String folder, boolean patch) {
         int nUpdated = 0;
-        Client client = null;
-        try {
-            client = new ClientBuilder().setUrl(url).build();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("Invalid datacat URL.", e);
-        }
         for (DatasetModel dataset : datasets) {
             try {
                 if (client.exists(folder + "/" + dataset.getName())) {
@@ -76,16 +87,14 @@ public class DatacatUtilities {
      * @param file the file on disk
      * @param metadata the metadata map 
      * @param folder the datacat folder
-     * @param site the datacat site
      * @param dataType the data type 
      * @param fileFormat the file format
      * @return the created dataset
      */
-    public static final DatasetModel createDataset(
+    public final DatasetModel createDataset(
             File file,
             Map<String, Object> metadata,
             String folder,
-            String site,
             String dataType,
             String fileFormat) {
         
@@ -101,7 +110,7 @@ public class DatacatUtilities {
             .resource(file.getPath())
             .dataType(dataType)
             .fileFormat(fileFormat)
-            .site(site)
+            .site(site.toString())
             .scanStatus("OK");
         
         // Set system metadata from the provided metadata map.
@@ -132,18 +141,23 @@ public class DatacatUtilities {
         return datasetBuilder.build();
     }
     
-    public static Client createDefaultClient() {
+    private Client createDefaultClient() {        
+        this.client = createClient(DatacatConstants.DATACAT_URL);
+        return this.client;
+    }
+    
+    private Client createClient(String url) {
+        Client client;
         try {
-            return new ClientBuilder().setUrl(DatacatConstants.DATACAT_URL).build();
+            client = new ClientBuilder().setUrl(url).build();
         } catch (URISyntaxException e) {
             throw new RuntimeException("Error initializing datacat client.", e);
         }
+        this.client = client;
+        return this.client;
     }
     
-    public static DatasetResultSetModel findEvioDatasets(Client client, String folder, Site site, String[] metadata, String[] sort, int run) {
-        if (client == null) {
-            client = createDefaultClient();
-        }
+    public DatasetResultSetModel findEvioDatasets(String folder, String[] metadata, String[] sort, int run) {        
         return client.searchForDatasets(
                 folder,
                 "current", /* dataset version */
@@ -154,11 +168,9 @@ public class DatacatUtilities {
                 );
     }
     
-    public static DatasetResultSetModel findEvioDatasets(int run) {        
+    public DatasetResultSetModel findEvioDatasets(int run) {        
         return findEvioDatasets(
-                null,
                 DatacatConstants.RAW_DATA_FOLDER,
-                DatacatConstants.DEFAULT_SITE,
                 DatacatConstants.EVIO_METADATA,
                 new String[] {"FILE"},
                 run

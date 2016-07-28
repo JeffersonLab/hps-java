@@ -26,7 +26,7 @@ public final class DatacatPrintRun {
     
     private static void printRun(int run) throws Exception {
                 
-        DatasetResultSetModel results = DatacatUtilities.findEvioDatasets(run);
+        DatasetResultSetModel results = new DatacatUtilities().findEvioDatasets(run);
                 
         /* print results including metadata */
         for (DatasetModel dataset : results) {            

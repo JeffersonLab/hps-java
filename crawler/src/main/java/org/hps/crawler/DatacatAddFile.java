@@ -145,8 +145,9 @@ public final class DatacatAddFile {
      */
     private void run() {        
         List<DatasetModel> datasets = DatacatHelper.createDatasets(paths, folder, site.toString());
+        DatacatUtilities util = new DatacatUtilities();
         if (!dryRun) {
-            DatacatUtilities.updateDatasets(datasets, folder, datacatUrl, patch);
+            util.updateDatasets(datasets, folder, patch);
             //LOGGER.info("Added " + datasets.size() + " datasets to datacat.");
         } else {
             LOGGER.info("Dry run is enabled; skipped adding dataset.");

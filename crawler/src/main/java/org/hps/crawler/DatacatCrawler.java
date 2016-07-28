@@ -303,7 +303,8 @@ public final class DatacatCrawler {
         if (!visitor.getFiles().isEmpty()) {
             List<DatasetModel> datasets = DatacatHelper.createDatasets(visitor.getFiles(), config.folder(), config.site().toString());
             LOGGER.info("built " + datasets.size() + " datasets");
-            DatacatUtilities.updateDatasets(datasets, config.folder(), config.datacatUrl(), false);
+            DatacatUtilities util = new DatacatUtilities(config.datacatUrl(), config.site());
+            util.updateDatasets(datasets, config.folder(), false);
             LOGGER.info("added datasets to datacat");
         } else {
             LOGGER.warning("No files were found by the crawler.");

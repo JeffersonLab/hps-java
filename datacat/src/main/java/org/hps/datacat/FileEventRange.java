@@ -7,7 +7,6 @@ import java.util.Map;
 import org.srs.datacat.model.DatasetModel;
 import org.srs.datacat.model.DatasetResultSetModel;
 import org.srs.datacat.model.dataset.DatasetWithViewModel;
-import org.srs.datacat.shared.DatasetLocation;
 
 /**
  * Utility class for assocating a file in the datacat to its event ID range.
@@ -18,16 +17,16 @@ public final class FileEventRange {
     
     private long startEvent;
     private long endEvent;
-    private String path;
+    private DatasetModel dataset;
     
-    FileEventRange(long startEvent, long endEvent, String path) {
+    FileEventRange(DatasetModel dataset, long startEvent, long endEvent) {
         this.startEvent = startEvent;
         this.endEvent = endEvent;
-        this.path = path;
+        this.dataset = dataset;
     }
     
-    public String getPath() {
-        return path;
+    public DatasetModel getDataset() {
+        return dataset;
     }
     
     public long getStartEvent() {
@@ -49,13 +48,12 @@ public final class FileEventRange {
             Map<String, Object> metadata = view.getMetadataMap();
             long firstPhysicsEvent = (Long) metadata.get("FIRST_PHYSICS_EVENT");
             long lastPhysicsEvent = (Long) metadata.get("LAST_PHYSICS_EVENT");
-            DatasetLocation loc = (DatasetLocation) view.getViewInfo().getLocations().iterator().next();
-            ranges.add(new FileEventRange(firstPhysicsEvent, lastPhysicsEvent, loc.getPath()));
+            ranges.add(new FileEventRange(ds, firstPhysicsEvent, lastPhysicsEvent));
         }
         return ranges;
     }
     
-    public static FileEventRange findEventRage(List<FileEventRange> ranges, long eventId) {
+    public static FileEventRange findEventRange(List<FileEventRange> ranges, long eventId) {
         FileEventRange match = null;
         for (FileEventRange range : ranges) {
             if (range.matches(eventId)) {

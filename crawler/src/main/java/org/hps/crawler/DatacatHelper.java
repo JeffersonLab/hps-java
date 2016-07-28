@@ -141,15 +141,15 @@ class DatacatHelper {
      */
     static List<DatasetModel> createDatasets(List<File> files, String folder, String site) {
         List<DatasetModel> datasets = new ArrayList<DatasetModel>();
+        DatacatUtilities util = new DatacatUtilities();
         for (File file : files) {
             Map<String, Object> metadata = createMetadata(file);
             DataType dataType = DatacatHelper.getDataType(file);
             FileFormat fileFormat = DatacatHelper.getFileFormat(file);
-            DatasetModel dataset = DatacatUtilities.createDataset(
+            DatasetModel dataset = util.createDataset(
                     file,
                     metadata,
                     folder,
-                    site,
                     dataType.toString(),
                     fileFormat.toString());
             datasets.add(dataset);

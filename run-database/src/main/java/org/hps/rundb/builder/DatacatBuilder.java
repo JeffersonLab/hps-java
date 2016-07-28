@@ -199,9 +199,8 @@ public final class DatacatBuilder extends AbstractRunBuilder {
         
         LOGGER.info("finding EVIO datasets for run " + getRun() + " in " + this.folder + " at " + this.site + " ...");
         
-        DatasetResultSetModel results = DatacatUtilities.findEvioDatasets(datacatClient, this.folder, this.site, 
-                METADATA_FIELDS, new String[] {"FILE"}, getRun());
-                
+        DatacatUtilities util = new DatacatUtilities(datacatClient, this.site);        
+        DatasetResultSetModel results = util.findEvioDatasets(this.folder, METADATA_FIELDS, new String[] {"FILE"}, getRun());
         LOGGER.info("found " + results.getResults().size() + " EVIO datasets for run " + getRun());
                                
         return results;
