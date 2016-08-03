@@ -4,6 +4,7 @@ import java.awt.Point;
 
 import org.hps.analysis.trigger.data.TriggerStatModule;
 import org.hps.record.triggerbank.SSPCluster;
+import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 
@@ -190,6 +191,25 @@ public class TriggerDiagnosticUtil {
      */
     public static final int getYIndex(SSPCluster cluster) {
         return cluster.getYIndex();
+    }
+    
+    /**
+     * Checks whether a cluster is within the safe region of the FADC
+     * output window.
+     * @param sspCluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster is safe and
+     * returns <code>false</code> otherwise.
+     */
+    public static final boolean isVerifiable(SSPCluster sspCluster, int nsa, int nsb, int windowWidth) {
+        // Check that none of the hits are within the disallowed
+        // region of the FADC readout window.
+        if(TriggerModule.getClusterTime(sspCluster) <= nsb || TriggerModule.getClusterTime(sspCluster) >= (windowWidth - nsa)) {
+            return false;
+        }
+        
+        // If all of the cluster hits pass the time cut, the cluster
+        // is valid.
+        return true;
     }
     
     /**
