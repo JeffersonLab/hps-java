@@ -35,11 +35,16 @@ public final class EvioDatasetIndex {
         }
     }
 
-    public EvioDatasetIndex(DatacatUtilities util, int run) {
+    public EvioDatasetIndex(int run) {
+        this.util = new DatacatUtilities();
+        load(run);
+    }
+   
+    public EvioDatasetIndex(int run, DatacatUtilities util) {
         this.util = util;
         load(run);
     }
-
+    
     public List<DatasetModel> findByTimestamp(long timestamp) {
         List<DatasetModel> datasets = new ArrayList<DatasetModel>();
         for (Entry<TimestampRange, DatasetModel> entry : datasetTimestamps.entrySet()) {
@@ -90,8 +95,7 @@ public final class EvioDatasetIndex {
     // This is a test and not a command line interface!
     public static void main(String[] args) {
 
-        DatacatUtilities util = new DatacatUtilities();
-        EvioDatasetIndex datasetIndex = new EvioDatasetIndex(util, 5772);
+        EvioDatasetIndex datasetIndex = new EvioDatasetIndex(5772);
         DatasetResultSetModel datasets = datasetIndex.getDatasets();
 
         for (DatasetModel dataset : datasets) {
@@ -133,7 +137,7 @@ public final class EvioDatasetIndex {
                 System.out.println("found " + lastTimestampDataset.getName() + " for timestamp = "
                         + lastTimestamp);
             }
-
+            
             long midTimestamp = firstTimestamp + (lastTimestamp - firstTimestamp);
             List<DatasetModel> midTimestampDatasets = datasetIndex.findByTimestamp(midTimestamp);
             for (DatasetModel midTimestampDataset : midTimestampDatasets) {
