@@ -25,11 +25,11 @@ import org.apache.commons.cli.PosixParser;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
+import org.hps.rundb.RunManager;
 import org.hps.logging.config.DefaultLoggingConfig;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventQueue;
 import org.hps.record.evio.EvioEventUtilities;
-import org.hps.rundb.RunManager;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
@@ -57,14 +57,14 @@ import org.lcsim.lcio.LCIOWriter;
  * the correct event builder. It will not handle jobs correctly with files from both the Test and Engineering Run, so
  * don't do this!
  * <p>
- * The conditions system can be initialized in one of three ways.<br/>
+ * The run number in the conditions system can be initialized in one of three ways.<br/>
  * <ol>
  * <li>user specified run number in which case the conditions system is frozen for the rest of the job</li>
- * <li>run number from an EVIO pre start event</li>
- * <li>run number from a header bank in an event</li>
+ * <li>run number from an EVIO PRESTART event</li>
+ * <li>run number from a header bank in a physics event</li>
  * </ol>
  * <p>
- * In the case where a file has no pre start event and there are header banks present, the "-m" command line option can
+ * In the case where a file has no PRESTART event and there are header banks present, the "-m" command line option can
  * be used to buffer a number of EVIO events. If there is a head bank found while adding these events to queue, the
  * conditions system will be initialized from it.
  *
@@ -117,7 +117,6 @@ public final class EvioToLcio {
         OPTIONS.addOption(new Option("d", true, "detector name (required)"));
         OPTIONS.getOption("d").setRequired(true);
         OPTIONS.addOption(new Option("f", true, "text file containing a list of EVIO files"));
-        OPTIONS.addOption(new Option("L", true, "log level (INFO, FINE, etc.)"));
         OPTIONS.addOption(new Option("x", true, "LCSim steeering file for processing the LCIO events"));
         OPTIONS.addOption(new Option("r", false, "interpret steering from -x argument as a resource instead of a file"));
         OPTIONS.addOption(new Option("D", true, "define a steering file variable with format -Dname=value"));
@@ -129,16 +128,19 @@ public final class EvioToLcio {
         OPTIONS.addOption(new Option("m", true, "set the max event buffer size"));
         OPTIONS.addOption(new Option("t", true, "specify a conditions tag to use"));
         OPTIONS.addOption(new Option("M", false, "use memory mapping instead of sequential reading"));
+        OPTIONS.addOption(new Option("s", true, "skip a number of events in each EVIO input file before starting"));
+        OPTIONS.addOption(new Option("e", true, "event printing interval"));
     }
 
     /**
      * The run number for conditions.
-     */
-    private Integer runNumber = null;
-
-    private int maxEvents = -1;
+     */    
     private int nEvents = 0;
+    private int maxEvents = -1;
+    private int skipEvents = 0;
     private int maxBufferSize = 40;
+    private Long eventPrintInterval;
+    private Integer runNumber = null;    
     private List<String> evioFileList = null;
     private boolean printXml = false;
     private boolean useMemoryMapping = false;
@@ -146,6 +148,7 @@ public final class EvioToLcio {
     private String lcioFileName = null;
     private LCIOWriter writer = null;
     private InputStream steeringStream = null;
+    
 
     /**
      * The default constructor, which defines command line arguments and sets the default log level.
@@ -269,19 +272,6 @@ public final class EvioToLcio {
             this.printUsage();
         }
 
-        // Set the log level.
-        // TODO: Remove this argument; use java logging prop instead.
-        if (cl.hasOption("L")) {
-            final Level level = Level.parse(cl.getOptionValue("L").toUpperCase());
-
-            // Set log level on this class.
-            LOGGER.config("setting log level to " + level);
-            LOGGER.setLevel(level);
-
-            // Set log level on conditions manager.
-            Logger.getLogger(DatabaseConditionsManager.class.getPackage().getName()).setLevel(level);
-        }
-
         // Add all extra arguments to the EVIO file list.
         evioFileList = new ArrayList<String>(Arrays.asList(cl.getArgs()));
 
@@ -381,6 +371,20 @@ public final class EvioToLcio {
         // Enable dry run because events will be processed individually.
         jobManager.setDryRun(true);
         
+        // Event marker printing from command line arg.
+        if (cl.hasOption("e")) {
+            eventPrintInterval = Long.parseLong(cl.getOptionValue("e"));
+            jobManager.setEventPrintInterval(eventPrintInterval);
+            LOGGER.config("Set event print interval to " + this.eventPrintInterval);
+        }
+        
+        // Enable headless mode so no plots are shown.
+        if (cl.hasOption("b")) {
+            LOGGER.config("Headless mode is enabled.  No plots will be shown.");
+            jobManager.enableHeadlessMode();
+        }
+        
+        // Set a steering variable and value using "key=value" format.
         if (cl.hasOption("D")) {
             final String[] steeringOptions = cl.getOptionValues("D");
             for (final String def : steeringOptions) {
@@ -395,12 +399,6 @@ public final class EvioToLcio {
                 jobManager.addVariableDefinition(key, value);
                 LOGGER.config("set steering variable: " + key + "=" + value);
             }
-        }
-
-        // Enable headless mode so no plots are shown.
-        if (cl.hasOption("b")) {
-            LOGGER.config("Headless mode is enabled.  No plots will be shown.");
-            jobManager.enableHeadlessMode();
         }
 
         // Configure the LCSim job manager.
@@ -453,10 +451,17 @@ public final class EvioToLcio {
             LOGGER.config("max event buffer size set to " + maxBufferSize);
         }
 
+        // memory mapping
         if (cl.hasOption("M")) {
             useMemoryMapping = true;
             LOGGER.config("EVIO reader memory mapping is enabled.");
         }
+        
+        // skip events
+        if (cl.hasOption("s")) {
+            skipEvents = Integer.parseInt(cl.getOptionValue("s"));
+            LOGGER.config("Skip events set to " + skipEvents);
+        }        
     }
 
     /**
@@ -492,10 +497,28 @@ public final class EvioToLcio {
 
             boolean firstEvent = true;
             long eventTime = 0; // in ms
+            
+            // Skip some events in each file first if requested.
+            if (skipEvents > 0) {
+                LOGGER.info("Skipping " + skipEvents + " events ...");
+                for (int i = 0; i < skipEvents; i++) {
+                    try {
+                        EvioEvent event = reader.nextEvent();
+                        if (event == null) {
+                            LOGGER.log(Level.WARNING, "Got null event object when skipping event num " + i);
+                            //throw new RuntimeException("Got null event object when skipping events.");
+                        }
+                    } catch (EvioException | IOException e) { /* error when skipping events */
+                        LOGGER.log(Level.SEVERE, e.getMessage(), e);
+                        throw new RuntimeException(e); // Stop the job.
+                    }
+                }
+                LOGGER.info("Done skipping events.");
+            }
 
             // Loop over events.
             final EvioEventQueue eventQueue = new EvioEventQueue(-1L, maxBufferSize);
-            eventLoop: for (;;) {
+            eventLoop: for (;;) {                
 
                 // Buffer the EVIO events into the queue.
                 this.bufferEvents(reader, eventQueue, maxBufferSize);
@@ -539,7 +562,7 @@ public final class EvioToLcio {
                         LOGGER.info(evioEvent.toXML());
                     }
 
-                    // Is this a pre start event?
+                    // Is this a PRESTART event?
                     if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
 
                         LOGGER.info("got PRESTART event");
@@ -549,14 +572,14 @@ public final class EvioToLcio {
 
                         if (data == null) {
                             // This should never happen but just ignore it.
-                            LOGGER.severe("Pre start event is missing a data bank.");
+                            LOGGER.severe("PRESTART event is missing a data bank.");
                         } else {
                             // Check if conditions system needs to be updated from the pre start data.
                             this.checkConditions(data[1], false);
                         }
                     }
 
-                    // Is this an end event?
+                    // Is this an END event?
                     if (EvioEventUtilities.isEndEvent(evioEvent)) {
                         
                         LOGGER.info("got END event");
@@ -564,11 +587,11 @@ public final class EvioToLcio {
                         final int[] data = EvioEventUtilities.getControlEventData(evioEvent);
                         if (data == null) {
                             // This should never happen but just ignore it.
-                            LOGGER.severe("The end event is missing a data bank.");
+                            LOGGER.severe("The END event is missing a data bank.");
                         } else {
                             final int seconds = data[0];
                             final int totalEvents = data[2];
-                            LOGGER.info("EVIO end event with " + totalEvents + " events and " + seconds + " seconds");
+                            LOGGER.info("EVIO END event with " + totalEvents + " events and " + seconds + " seconds");
                         }
                     }
 
@@ -583,7 +606,7 @@ public final class EvioToLcio {
 
                         // Print physics event number, which is actually a sequence number from
                         // the reader, not the actual event number from the data.
-                        LOGGER.finer("got physics event " + evioEvent.getEventNumber());
+                        LOGGER.finer("got physics event number " + evioEvent.getEventNumber());
 
                         // Is the event builder initialized?
                         if (eventBuilder == null) {
