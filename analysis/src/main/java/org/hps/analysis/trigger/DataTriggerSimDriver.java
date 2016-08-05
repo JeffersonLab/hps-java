@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.hps.analysis.trigger.util.PairTrigger;
 import org.hps.analysis.trigger.util.SinglesTrigger;
+import org.hps.analysis.trigger.util.Trigger;
 import org.hps.analysis.trigger.util.TriggerDiagnosticUtil;
 import org.hps.record.daqconfig.ConfigurationManager;
 import org.hps.record.daqconfig.DAQConfig;
@@ -20,6 +21,9 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
+
+import hep.aida.IHistogram1D;
 
 /**
  * Class <code>DataTriggerSimDriver</code> takes in clusters of both
@@ -55,6 +59,7 @@ import org.lcsim.util.Driver;
  */
 public class DataTriggerSimDriver extends Driver {
     // Store the LCIO collection names for the needed objects.
+    private boolean verbose = false;
     private boolean filterUnverifiable = false;
     private String bankCollectionName = "TriggerBank";
     private String clusterCollectionName = "EcalClusters";
@@ -84,6 +89,40 @@ public class DataTriggerSimDriver extends Driver {
     private static final int ENERGY_DIFF  = TriggerDiagnosticUtil.PAIR_ENERGY_DIFF;
     private static final int ENERGY_SLOPE = TriggerDiagnosticUtil.PAIR_ENERGY_SLOPE;
     private static final int COPLANARITY  = TriggerDiagnosticUtil.PAIR_COPLANARITY;
+    
+    // Plots
+    private AIDA aida = AIDA.defaultInstance();
+    private IHistogram1D[][] triggerTime = {
+            {
+                aida.histogram1D("Trigger Sim/Sim Cluster/Singles 0 Trigger Time", 51, -2, 202),
+                aida.histogram1D("Trigger Sim/Sim Cluster/Singles 1 Trigger Time", 51, -2, 202),
+                aida.histogram1D("Trigger Sim/Sim Cluster/Pair 0 Trigger Time", 51, -2, 202),
+                aida.histogram1D("Trigger Sim/Sim Cluster/Pair 1 Trigger Time", 51, -2, 202)
+            },
+            {
+                aida.histogram1D("Trigger Sim/SSP Cluster/Singles 0 Trigger Time", 51, -2, 202),
+                aida.histogram1D("Trigger Sim/SSP Cluster/Singles 1 Trigger Time", 51, -2, 202),
+                aida.histogram1D("Trigger Sim/SSP Cluster/Pair 0 Trigger Time", 51, -2, 202),
+                aida.histogram1D("Trigger Sim/SSP Cluster/Pair 1 Trigger Time", 51, -2, 202)
+            }
+    };
+    private IHistogram1D[][] triggerCount = {
+            {
+                aida.histogram1D("Trigger Sim/Sim Cluster/Singles 0 Trigger Count", 10, -0.5, 9.5),
+                aida.histogram1D("Trigger Sim/Sim Cluster/Singles 1 Trigger Count", 10, -0.5, 9.5),
+                aida.histogram1D("Trigger Sim/Sim Cluster/Pair 0 Trigger Count", 10, -0.5, 9.5),
+                aida.histogram1D("Trigger Sim/Sim Cluster/Pair 1 Trigger Count", 10, -0.5, 9.5)
+            },
+            {
+                aida.histogram1D("Trigger Sim/SSP Cluster/Singles 0 Trigger Count", 10, -0.5, 9.5),
+                aida.histogram1D("Trigger Sim/SSP Cluster/Singles 1 Trigger Count", 10, -0.5, 9.5),
+                aida.histogram1D("Trigger Sim/SSP Cluster/Pair 0 Trigger Count", 10, -0.5, 9.5),
+                aida.histogram1D("Trigger Sim/SSP Cluster/Pair 1 Trigger Count", 10, -0.5, 9.5)
+            }
+    };
+    private IHistogram1D sspClusterTime = aida.histogram1D("Trigger Sim/SSP Cluster/Cluster Time", 51, -2, 202);
+    private IHistogram1D simClusterAllTime = aida.histogram1D("Trigger Sim/Sim Cluster/Cluster Time", 51, -2, 202);
+    private IHistogram1D simClusterVerifiedTime = aida.histogram1D("Trigger Sim/Sim Cluster/Verified Cluster Time", 51, -2, 202);
     
     /**
      * Connects the driver to the the <code>ConfigurationManager</code>
@@ -175,6 +214,9 @@ public class DataTriggerSimDriver extends Driver {
                     pairCutsEnabled[i][3 + ENERGY_SLOPE] = pairs[i].getEnergySlopeCutConfig().isEnabled();
                     pairCutsEnabled[i][3 + COPLANARITY] = pairs[i].getCoplanarityCutConfig().isEnabled();
                 }
+                
+                // Output the DAQ settings.
+                logSettings();
             }
         });
     }
@@ -218,9 +260,36 @@ public class DataTriggerSimDriver extends Driver {
         }
         
         // Get a list of SSPClusters.
+        /**
+        List<SSPCluster> tempSSPClusters = null;
+        List<SSPCluster> sspClusters = null;
+        if(sspBank != null) { tempSSPClusters = sspBank.getClusters(); }
+        else { tempSSPClusters = new ArrayList<SSPCluster>(0); }
+        
+        sspClusters = new ArrayList<SSPCluster>();
+        for(SSPCluster cluster : tempSSPClusters) {
+            if(TriggerDiagnosticUtil.isVerifiable(cluster, nsa, nsb, windowWidth)) { sspClusters.add(cluster); }
+        }
+        **/
         List<SSPCluster> sspClusters = null;
         if(sspBank != null) { sspClusters = sspBank.getClusters(); }
         else { sspClusters = new ArrayList<SSPCluster>(0); }
+        
+        // Plot the SSP cluster time distribution.
+        for(SSPCluster cluster : sspClusters) {
+            sspClusterTime.fill(TriggerModule.getClusterTime(cluster));
+        }
+        
+        // DEBUG :: Print the SSP clusters.
+        if(verbose) {
+            System.out.println("SSP Clusters:");
+            for(SSPCluster cluster : sspClusters) {
+                System.out.printf("\t(%3d, %3d);  E = %5.3f;  N = %1.0f;  t = %3.0f%n",
+                        TriggerModule.getClusterXIndex(cluster), TriggerModule.getClusterYIndex(cluster),
+                        TriggerModule.getValueClusterTotalEnergy(cluster), TriggerModule.getClusterHitCount(cluster),
+                        TriggerModule.getClusterTime(cluster));
+            }
+        }
         
         // Get reconstructed clusters.
         List<Cluster> reconClusters = null;
@@ -237,10 +306,28 @@ public class DataTriggerSimDriver extends Driver {
             
             // Iterate over all the clusters and test them to see if
             // they are verifiable.
+            if(verbose) { System.out.println("Sim Clusters:"); }
             for(Cluster cluster : reconClusters) {
-                if(TriggerDiagnosticUtil.isVerifiable(cluster, nsa, nsb, windowWidth)) {
-                    goodClusters.add(cluster);
+                // Plot the cluster time.
+                simClusterAllTime.fill(TriggerModule.getClusterTime(cluster));
+                
+                // DEBUG :: Print the cluster.
+                if(verbose) { 
+                    System.out.printf("\t(%3d, %3d);  E = %5.3f;  N = %1.0f;  t = %3.0f;  ",
+                            TriggerModule.getClusterXIndex(cluster), TriggerModule.getClusterYIndex(cluster),
+                            TriggerModule.getValueClusterTotalEnergy(cluster), TriggerModule.getClusterHitCount(cluster),
+                            TriggerModule.getClusterTime(cluster));
                 }
+                
+                // Check if the cluster is at risk of pulse-clipping.
+                if(TriggerDiagnosticUtil.isVerifiable(cluster, nsa, nsb, windowWidth)) {
+                    // Add the cluster to the good clusters list.
+                    goodClusters.add(cluster);
+                    if(verbose) { System.out.println("[ passed ]"); }
+                    
+                    // Plot the cluster time.
+                    simClusterVerifiedTime.fill(TriggerModule.getClusterTime(cluster));
+                } else if(verbose) { System.out.println("[ failed ]"); }
             }
             
             // Replace the old cluster list with the new one.
@@ -248,8 +335,29 @@ public class DataTriggerSimDriver extends Driver {
         }
         
         // Generate simulated triggers.
+        if(verbose) { System.out.println("\nSim Cluster Triggers:"); }
         SimTriggerModule<Cluster> reconModule = constructTriggers(reconClusters, Cluster.class);
+        if(verbose) { System.out.println("\nSSP Cluster Triggers:"); }
         SimTriggerModule<SSPCluster> sspModule = constructTriggers(sspClusters, SSPCluster.class);
+        if(verbose) { System.out.println("\n\n\n\n"); }
+        
+        // Plot trigger counts and trigger times.
+        triggerCount[0][0].fill(reconModule.getSingles0Triggers().size());
+        for(SinglesTrigger<Cluster> trigger : reconModule.getSingles0Triggers()) { triggerTime[0][0].fill(getTriggerTime(trigger)); }
+        triggerCount[0][1].fill(reconModule.getSingles1Triggers().size());
+        for(SinglesTrigger<Cluster> trigger : reconModule.getSingles1Triggers()) { triggerTime[0][1].fill(getTriggerTime(trigger)); }
+        triggerCount[0][2].fill(reconModule.getPair0Triggers().size());
+        for(PairTrigger<Cluster[]> trigger : reconModule.getPair0Triggers()) { triggerTime[0][2].fill(getTriggerTime(trigger)); }
+        triggerCount[0][3].fill(reconModule.getPair1Triggers().size());
+        for(PairTrigger<Cluster[]> trigger : reconModule.getPair1Triggers()) { triggerTime[0][3].fill(getTriggerTime(trigger)); }
+        triggerCount[1][0].fill(sspModule.getSingles0Triggers().size());
+        for(SinglesTrigger<SSPCluster> trigger : sspModule.getSingles0Triggers()) { triggerTime[1][0].fill(getTriggerTime(trigger)); }
+        triggerCount[1][1].fill(sspModule.getSingles1Triggers().size());
+        for(SinglesTrigger<SSPCluster> trigger : sspModule.getSingles1Triggers()) { triggerTime[1][1].fill(getTriggerTime(trigger)); }
+        triggerCount[1][2].fill(sspModule.getPair0Triggers().size());
+        for(PairTrigger<SSPCluster[]> trigger : sspModule.getPair0Triggers()) { triggerTime[1][2].fill(getTriggerTime(trigger)); }
+        triggerCount[1][3].fill(sspModule.getPair1Triggers().size());
+        for(PairTrigger<SSPCluster[]> trigger : sspModule.getPair1Triggers()) { triggerTime[1][3].fill(getTriggerTime(trigger)); }
         
         // Insert the trigger results in the data stream.
         SimTriggerData triggerData = new SimTriggerData(reconModule, sspModule);
@@ -311,6 +419,13 @@ public class DataTriggerSimDriver extends Driver {
                     passClusterLow = singlesTrigger[triggerNum].clusterTotalEnergyCutLow(c);
                     passClusterHigh = singlesTrigger[triggerNum].clusterTotalEnergyCutHigh(c);
                     passHitCount = singlesTrigger[triggerNum].clusterHitCountCut(c);
+                    
+                    if(verbose) { 
+                        System.out.printf("Singles %d :: (%3d, %3d);  E = %5.3f;  N = %1.0f;  t = %3.0f%n", triggerNum,
+                                TriggerModule.getClusterXIndex(c), TriggerModule.getClusterYIndex(c),
+                                TriggerModule.getValueClusterTotalEnergy(c), TriggerModule.getClusterHitCount(c),
+                                TriggerModule.getClusterTime(c));
+                    }
                 } else if(cluster instanceof SSPCluster) {
                     // Cast the cluster to the appropriate type.
                     SSPCluster c = (SSPCluster) cluster;
@@ -319,6 +434,13 @@ public class DataTriggerSimDriver extends Driver {
                     passClusterLow = singlesTrigger[triggerNum].clusterTotalEnergyCutLow(c);
                     passClusterHigh = singlesTrigger[triggerNum].clusterTotalEnergyCutHigh(c);
                     passHitCount = singlesTrigger[triggerNum].clusterHitCountCut(c);
+                    
+                    if(verbose) { 
+                        System.out.printf("Singles %d :: (%3d, %3d);  E = %5.3f;  N = %1.0f;  t = %3.0f%n", triggerNum,
+                                TriggerModule.getClusterXIndex(c), TriggerModule.getClusterYIndex(c),
+                                TriggerModule.getValueClusterTotalEnergy(c), TriggerModule.getClusterHitCount(c),
+                                TriggerModule.getClusterTime(c));
+                    }
                 }
                 
                 // Make a trigger to store the results.
@@ -328,6 +450,13 @@ public class DataTriggerSimDriver extends Driver {
                 trigger.setStateClusterEnergyLow(passClusterLow);
                 trigger.setStateClusterEnergyHigh(passClusterHigh);
                 trigger.setStateHitCount(passHitCount);
+                
+                if(verbose) { 
+                    System.out.printf("\t         N >= %1.0f     :: [ %5b ]%n", singlesTrigger[triggerNum].getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW),
+                            passHitCount);
+                    System.out.printf("\t%5.3f <= E <= %5.3f :: [ %5b ]%n", singlesTrigger[triggerNum].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW),
+                            singlesTrigger[triggerNum].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH), (passClusterLow && passClusterHigh));
+                }
                 
                 // A trigger will only be reported by the SSP if it
                 // passes all of the enabled cuts for that trigger.
@@ -379,6 +508,17 @@ public class DataTriggerSimDriver extends Driver {
                         continue pairTriggerLoop;
                     }
                     
+                    if(verbose) { 
+                        System.out.printf("Pair %d :: (%3d, %3d);  E = %5.3f;  N = %1.0f;  t = %3.0f%n", triggerIndex,
+                                TriggerModule.getClusterXIndex(reconPair[0]), TriggerModule.getClusterYIndex(reconPair[0]),
+                                TriggerModule.getValueClusterTotalEnergy(reconPair[0]), TriggerModule.getClusterHitCount(reconPair[0]),
+                                TriggerModule.getClusterTime(reconPair[0]));
+                        System.out.printf("Pair %d :: (%3d, %3d);  E = %5.3f;  N = %1.0f;  t = %3.0f%n", triggerIndex,
+                                TriggerModule.getClusterXIndex(reconPair[1]), TriggerModule.getClusterYIndex(reconPair[1]),
+                                TriggerModule.getValueClusterTotalEnergy(reconPair[1]), TriggerModule.getClusterHitCount(reconPair[1]),
+                                TriggerModule.getClusterTime(reconPair[1]));
+                    }
+                    
                     passClusterLow = pairsTrigger[triggerIndex].clusterTotalEnergyCutLow(reconPair[0])
                             && pairsTrigger[triggerIndex].clusterTotalEnergyCutLow(reconPair[1]);
                     passClusterHigh = pairsTrigger[triggerIndex].clusterTotalEnergyCutHigh(reconPair[0])
@@ -400,6 +540,17 @@ public class DataTriggerSimDriver extends Driver {
                     // destroyed.
                     if(!pairsTrigger[triggerIndex].pairTimeCoincidenceCut(sspPair)) {
                         continue pairTriggerLoop;
+                    }
+                    
+                    if(verbose) { 
+                        System.out.printf("Pair %d :: (%3d, %3d);  E = %5.3f;  N = %1.0f;  t = %3.0f%n", triggerIndex,
+                                TriggerModule.getClusterXIndex(sspPair[0]), TriggerModule.getClusterYIndex(sspPair[0]),
+                                TriggerModule.getValueClusterTotalEnergy(sspPair[0]), TriggerModule.getClusterHitCount(sspPair[0]),
+                                TriggerModule.getClusterTime(sspPair[0]));
+                        System.out.printf("Pair %d :: (%3d, %3d);  E = %5.3f;  N = %1.0f;  t = %3.0f%n", triggerIndex,
+                                TriggerModule.getClusterXIndex(sspPair[1]), TriggerModule.getClusterYIndex(sspPair[1]),
+                                TriggerModule.getValueClusterTotalEnergy(sspPair[1]), TriggerModule.getClusterHitCount(sspPair[1]),
+                                TriggerModule.getClusterTime(sspPair[1]));
                     }
                     
                     // Perform each trigger cut.
@@ -430,6 +581,23 @@ public class DataTriggerSimDriver extends Driver {
                 trigger.setStateEnergySlope(passPairEnergySlope);
                 trigger.setStateCoplanarity(passPairCoplanarity);
                 trigger.setStateTimeCoincidence(passTimeCoincidence);
+                
+                if(verbose) { 
+                    System.out.printf("\t%-5.0f >= N          :: [ %5b ]%n", pairsTrigger[triggerIndex].getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW),
+                            passHitCount);
+                    System.out.printf("\t%5.3f <= E <= %5.3f :: [ %5b ]%n", pairsTrigger[triggerIndex].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW),
+                            pairsTrigger[triggerIndex].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH), (passClusterLow && passClusterHigh));
+                    System.out.printf("\t%5.3f <= S <= %5.3f :: [ %5b ]%n", pairsTrigger[triggerIndex].getCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW),
+                            pairsTrigger[triggerIndex].getCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH), (passPairEnergySumLow && passPairEnergySumHigh));
+                    System.out.printf("\t         D <= %5.3f :: [ %5b ]%n", pairsTrigger[triggerIndex].getCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH),
+                            passPairEnergyDifference);
+                    System.out.printf("\t%5.3f <= L          :: [ %5b ]%n", pairsTrigger[triggerIndex].getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW),
+                            passPairEnergySlope);
+                    System.out.printf("\t         C <= %-5.0f :: [ %5b ]%n", pairsTrigger[triggerIndex].getCutValue(TriggerModule.PAIR_COPLANARITY_HIGH),
+                            passPairCoplanarity);
+                    System.out.printf("\t         t <= %-5.0f :: [ %5b ]%n", pairsTrigger[triggerIndex].getCutValue(TriggerModule.PAIR_TIME_COINCIDENCE),
+                            passTimeCoincidence);
+                }
                 
                 // A trigger will only be reported by the SSP if it
                 // passes all of the enabled cuts for that trigger.
@@ -497,5 +665,124 @@ public class DataTriggerSimDriver extends Driver {
      */
     public void setTriggerCollectionName(String triggerCollection) {
         this.simTriggerCollectionName = triggerCollection;
+    }
+    
+    /**
+     * Gets the trigger time of an arbitrary trigger, so long as its
+     * source is either a <code>Cluster</code> or <code>SSPCluster</code>
+     * object. Method also supports pairs of these objects as a size
+     * two array.
+     * @param trigger - The trigger.
+     * @return Returns the trigger time of the trigger as a
+     * <code>double</code>.
+     */
+    private static final double getTriggerTime(Trigger<?> trigger) {
+        // Get the trigger source and calculate the trigger time based
+        // on its object type.
+        Object triggerSource = trigger.getTriggerSource();
+        
+        // If the trigger is simulated sim singles trigger...
+        if(triggerSource instanceof Cluster) {
+            return TriggerModule.getClusterTime((Cluster) triggerSource);
+        }
+        
+        // If the trigger is a simulated SSP singles trigger...
+        if(triggerSource instanceof SSPCluster) {
+            return TriggerModule.getClusterTime((SSPCluster) triggerSource);
+        }
+        
+        // If the trigger is a simulated sim pair trigger...
+        if(triggerSource instanceof Cluster[]) {
+            // Get the bottom cluster.
+            Cluster bottomCluster = null;
+            Cluster[] source = (Cluster[]) triggerSource;
+            if(TriggerModule.getClusterYIndex(source[0]) < 0) {
+                bottomCluster = source[0];
+            } else {
+                bottomCluster = source[1];
+            }
+            
+            // Return the time of the bottom cluster.
+            return TriggerModule.getClusterTime(bottomCluster);
+        }
+        
+        // If the trigger is a simulated SSP pair trigger...
+        if(triggerSource instanceof SSPCluster[]) {
+            // Get the bottom cluster.
+            SSPCluster bottomCluster = null;
+            SSPCluster[] source = (SSPCluster[]) triggerSource;
+            if(TriggerModule.getClusterYIndex(source[0]) < 0) {
+                bottomCluster = source[0];
+            } else {
+                bottomCluster = source[1];
+            }
+            
+            // Return the time of the bottom cluster.
+            return TriggerModule.getClusterTime(bottomCluster);
+        }
+        
+        // Otherwise, return negative MIN_VALUE to indicate an invalid
+        // trigger type.
+        return Double.MIN_VALUE;
+    }
+    
+    /**
+     * Outputs all of the verification parameters currently in use by
+     * the software. A warning will be issued if the values for NSA and
+     * NSB, along with the FADC window, preclude clusters from being
+     * verified.
+     */
+    private void logSettings() {
+        // Print a DAQ configuration settings header.
+        System.out.println();
+        System.out.println();
+        System.out.println("======================================================================");
+        System.out.println("=== DAQ Configuration Settings =======================================");
+        System.out.println("======================================================================");
+        
+        // Output window settings.
+        System.out.println("FADC Timing Window Settings");
+        System.out.printf("\tNSB                    :: %3d ns%n", nsb);
+        System.out.printf("\tNSA                    :: %3d ns%n", nsa);
+        System.out.printf("\tFADC Window            :: %3d ns%n", windowWidth);
+        
+        // Output the singles trigger settings.
+        for(int i = 0; i < 2; i++) {
+            // Print the settings.
+            System.out.printf("Singles Trigger %d Settings%23s[%5b]%n", (i + 1), "", singlesTriggerEnabled[i]);
+            System.out.printf("\tCluster Energy Low     :: %.3f GeV      [%5b]%n",
+                    singlesTrigger[i].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW), singlesCutsEnabled[i][0]);
+            System.out.printf("\tCluster Energy High    :: %.3f GeV      [%5b]%n",
+                    singlesTrigger[i].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH), singlesCutsEnabled[i][1]);
+            System.out.printf("\tCluster Hit Count      :: %.0f hit(s)       [%5b]%n",
+                    singlesTrigger[i].getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW), singlesCutsEnabled[i][2]);
+            System.out.println();
+        }
+        
+        // Output the pair trigger settings.
+        for(int i = 0; i < 2; i++) {
+            System.out.printf("Pairs Trigger %d Settings%25s[%5b]%n", (i + 1), "", pairTriggerEnabled[i]);
+            System.out.printf("\tCluster Energy Low     :: %.3f GeV      [%5b]%n",
+                    pairsTrigger[i].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW), pairCutsEnabled[i][0]);
+            System.out.printf("\tCluster Energy High    :: %.3f GeV      [%5b]%n",
+                    pairsTrigger[i].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH), pairCutsEnabled[i][1]);
+            System.out.printf("\tCluster Hit Count      :: %.0f hit(s)       [%5b]%n",
+                    pairsTrigger[i].getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW), pairCutsEnabled[i][2]);
+            System.out.printf("\tPair Energy Sum Low    :: %.3f GeV      [%5b]%n",
+                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW), pairCutsEnabled[i][3]);
+            System.out.printf("\tPair Energy Sum High   :: %.3f GeV      [%5b]%n",
+                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH), pairCutsEnabled[i][3]);
+            System.out.printf("\tPair Energy Difference :: %.3f GeV      [%5b]%n",
+                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH), pairCutsEnabled[i][4]);
+            System.out.printf("\tPair Energy Slope      :: %.3f GeV      [%5b]%n",
+                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW), pairCutsEnabled[i][5]);
+            System.out.printf("\tPair Energy Slope F    :: %.4f GeV / mm%n",
+                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F));
+            System.out.printf("\tPair Coplanarity       :: %3.0f Degrees    [%5b]%n",
+                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_COPLANARITY_HIGH), pairCutsEnabled[i][6]);
+            System.out.printf("\tPair Time Coincidence  :: %2.0f ns          [%5b]%n",
+                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_TIME_COINCIDENCE), true);
+            System.out.println();
+        }
     }
 }
