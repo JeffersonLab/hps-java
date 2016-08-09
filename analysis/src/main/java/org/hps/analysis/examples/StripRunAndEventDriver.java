@@ -60,6 +60,16 @@ public class StripRunAndEventDriver extends Driver
     @Override
     protected void process(EventHeader event)
     {
+        boolean skipEvent = true;
+        int runNum = event.getRunNumber();
+        int eventNum = event.getEventNumber();
+        Pair<Integer,Integer> pair = new Pair<Integer,Integer>(runNum, eventNum);
+        if(_eventsToStrip.contains(pair)) skipEvent = false;
+        if (skipEvent) {
+            throw new Driver.NextEventException();
+        } else {
+            _nEventsStripped++;
+        }
     }
 
     @Override
