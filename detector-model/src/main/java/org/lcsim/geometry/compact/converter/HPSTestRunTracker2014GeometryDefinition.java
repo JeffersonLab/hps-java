@@ -1467,8 +1467,8 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
      *
      */
     public static class HalfModuleLamination extends HalfModuleComponent {
-        protected static final double length = 184.0;
-        protected static final double width = 40.0; // -2.0; // width under the sensor, 2mm wider under hybrid.
+        protected static final double length = Sensor.length; //184.0;
+        protected static final double width = Sensor.width - 2.34;//40.0; // -2.0; // width under the sensor, 2mm wider under hybrid.
         protected static final double thickness = 0.050;
         public HalfModuleLamination(String name, SurveyVolume m, int id) {
             super(name, m, null, id);
@@ -1498,8 +1498,12 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
 //            double flat_pos_kapton_local_y =  ball_pos_kapton_local_y + Sensor.getSensorLength(); // arbitrary distance
 //            double flat_pos_kapton_local_z =  ball_pos_kapton_local_z;
 
-            double ball_pos_kapton_local_x =  Sensor.width/2.0 + 6.83 - 6.0 - width/2.0;
-            double ball_pos_kapton_local_y =  Sensor.length/2.0 - 170.0 - 10.0 + 8.5 + length/2.0;
+            //double ball_pos_kapton_local_x =  Sensor.width/2.0 + 6.83 - 6.0 - width/2.0;
+            //double ball_pos_kapton_local_y =  Sensor.length/2.0 - 170.0 - 10.0 + 8.5 + length/2.0;
+            //double ball_pos_kapton_local_z = -1.0 * (Sensor.getSensorThickness()/2.0 + HalfModuleLamination.thickness/2.0);
+
+            double ball_pos_kapton_local_x =  0;
+            double ball_pos_kapton_local_y =  0;
             double ball_pos_kapton_local_z = -1.0 * (Sensor.getSensorThickness()/2.0 + HalfModuleLamination.thickness/2.0);
             
             //ballPos = new BasicHep3Vector(ball_pos_kapton_local_x,ball_pos_kapton_local_y,ball_pos_kapton_local_z);
@@ -1546,9 +1550,9 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
      *
      */
     public static class CarbonFiber extends HalfModuleComponent {
-        protected static  final double length = 200.;
-        protected static  final double width = 45.;
-        protected static  final double thickness = 0.250;
+        protected static  final double length = Sensor.length;
+        protected static  final double width = 36.02;
+        protected static  final double thickness = 0.203;
         public CarbonFiber(String name, SurveyVolume m, int id) {
             super(name, m, null, id);
             init();
@@ -1584,8 +1588,12 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
 //            setFlatPos(flat_pos_cf_local_x,flat_pos_cf_local_y,flat_pos_cf_local_z);
  
             
-            final double ball_pos_cf_local_x =  Sensor.width/2.0 + 6.83 - width/2.0;
-            final double ball_pos_cf_local_y =  Sensor.length/2.0 - 170.0 - 10.0 + length/2.0;
+            //final double ball_pos_cf_local_x =  Sensor.width/2.0 + 6.83 - width/2.0;
+            //final double ball_pos_cf_local_y =  Sensor.length/2.0 - 170.0 - 10.0 + length/2.0;
+            //final double ball_pos_cf_local_z =  -1 * ( Sensor.getSensorThickness()/2.0 + HalfModuleLamination.thickness + TestRunHalfModule.getCFThickness()/2.0 );
+
+            final double ball_pos_cf_local_x =  0;
+            final double ball_pos_cf_local_y =  0;
             final double ball_pos_cf_local_z =  -1 * ( Sensor.getSensorThickness()/2.0 + HalfModuleLamination.thickness + TestRunHalfModule.getCFThickness()/2.0 );
             
             ballPos = new BasicHep3Vector(ball_pos_cf_local_x, ball_pos_cf_local_y, ball_pos_cf_local_z);
