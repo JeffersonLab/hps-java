@@ -541,16 +541,16 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put("uncVZ/D", uncVtx.z());
         tupleMap.put("uncChisq/D", uncV0.getStartVertex().getChi2());
         tupleMap.put("uncM/D", uncV0.getMass());
-        tupleMap.put("uncElePX/D", uncVertex.getParameters().get("p1X"));
-        tupleMap.put("uncElePY/D", uncVertex.getParameters().get("p1Y"));
-        tupleMap.put("uncElePZ/D", uncVertex.getParameters().get("p1Z"));
-        tupleMap.put("uncEleP/D", Math.sqrt(Math.pow(uncVertex.getParameters().get("p1X"), 2)+Math.pow(uncVertex.getParameters().get("p1Y"), 2)
-                +Math.pow(uncVertex.getParameters().get("p1Z"), 2)));
-        tupleMap.put("uncPosPX/D", uncVertex.getParameters().get("p2X"));
-        tupleMap.put("uncPosPY/D", uncVertex.getParameters().get("p2Y"));
-        tupleMap.put("uncPosPZ/D", uncVertex.getParameters().get("p2Z"));
-        tupleMap.put("uncPosP/D", Math.sqrt(Math.pow(uncVertex.getParameters().get("p2X"), 2)+Math.pow(uncVertex.getParameters().get("p2Y"), 2)
-                +Math.pow(uncVertex.getParameters().get("p2Z"), 2)));
+        tupleMap.put("uncElePX/D", uncV0.getStartVertex().getParameters().get("p1X"));
+        tupleMap.put("uncElePY/D", uncV0.getStartVertex().getParameters().get("p1Y"));
+        tupleMap.put("uncElePZ/D", uncV0.getStartVertex().getParameters().get("p1Z"));
+        tupleMap.put("uncEleP/D", Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p1X"), 2)+Math.pow(uncV0.getStartVertex().getParameters().get("p1Y"), 2)
+                +Math.pow(uncV0.getStartVertex().getParameters().get("p1Z"), 2)));
+        tupleMap.put("uncPosPX/D", uncV0.getStartVertex().getParameters().get("p2X"));
+        tupleMap.put("uncPosPY/D", uncV0.getStartVertex().getParameters().get("p2Y"));
+        tupleMap.put("uncPosPZ/D", uncV0.getStartVertex().getParameters().get("p2Z"));
+        tupleMap.put("uncPosP/D", Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2)+Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
+                +Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2)));
                
         tupleMap.put("bscPX/D", bscMomRot.x());
         tupleMap.put("bscPY/D", bscMomRot.y());
@@ -561,16 +561,16 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put("bscVZ/D", bscVtx.z());
         tupleMap.put("bscChisq/D", bscV0.getStartVertex().getChi2());
         tupleMap.put("bscM/D", bscV0.getMass());
-        tupleMap.put("bscElePX/D", bsconVertex.getParameters().get("p1X"));
-        tupleMap.put("bscElePY/D", bsconVertex.getParameters().get("p1Y"));
-        tupleMap.put("bscElePZ/D", bsconVertex.getParameters().get("p1Z"));
-        tupleMap.put("bscEleP/D", Math.sqrt(Math.pow(bsconVertex.getParameters().get("p1X"), 2)+Math.pow(bsconVertex.getParameters().get("p1Y"), 2)
-                +Math.pow(bsconVertex.getParameters().get("p1Z"), 2)));
-        tupleMap.put("bscPosPX/D", bsconVertex.getParameters().get("p2X"));
-        tupleMap.put("bscPosPY/D", bsconVertex.getParameters().get("p2Y"));
-        tupleMap.put("bscPosPZ/D", bsconVertex.getParameters().get("p2Z"));
-        tupleMap.put("bscPosP/D", Math.sqrt(Math.pow(bsconVertex.getParameters().get("p2X"), 2)+Math.pow(bsconVertex.getParameters().get("p2Y"), 2)
-                +Math.pow(bsconVertex.getParameters().get("p2Z"), 2)));
+        tupleMap.put("bscElePX/D", bscV0.getStartVertex().getParameters().get("p1X"));
+        tupleMap.put("bscElePY/D", bscV0.getStartVertex().getParameters().get("p1Y"));
+        tupleMap.put("bscElePZ/D", bscV0.getStartVertex().getParameters().get("p1Z"));
+        tupleMap.put("bscEleP/D", Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p1X"), 2)+Math.pow(bscV0.getStartVertex().getParameters().get("p1Y"), 2)
+                +Math.pow(bscV0.getStartVertex().getParameters().get("p1Z"), 2)));
+        tupleMap.put("bscPosPX/D", bscV0.getStartVertex().getParameters().get("p2X"));
+        tupleMap.put("bscPosPY/D", bscV0.getStartVertex().getParameters().get("p2Y"));
+        tupleMap.put("bscPosPZ/D", bscV0.getStartVertex().getParameters().get("p2Z"));
+        tupleMap.put("bscPosP/D", Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2)+Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
+                +Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2)));
         
         tupleMap.put("tarPX/D", tarMomRot.x());
         tupleMap.put("tarPY/D", tarMomRot.y());
@@ -581,16 +581,16 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put("tarVZ/D", tarVtx.z());
         tupleMap.put("tarChisq/D", tarV0.getStartVertex().getChi2());
         tupleMap.put("tarM/D", tarV0.getMass());
-        tupleMap.put("tarElePX/D", tarVertex.getParameters().get("p1X"));
-        tupleMap.put("tarElePY/D", tarVertex.getParameters().get("p1Y"));
-        tupleMap.put("tarElePZ/D", tarVertex.getParameters().get("p1Z"));
-        tupleMap.put("tarEleP/D", Math.sqrt(Math.pow(tarVertex.getParameters().get("p1X"), 2)+Math.pow(tarVertex.getParameters().get("p1Y"), 2)
-                +Math.pow(tarVertex.getParameters().get("p1Z"), 2)));
-        tupleMap.put("tarPosPX/D", tarVertex.getParameters().get("p2X"));
-        tupleMap.put("tarPosPY/D", tarVertex.getParameters().get("p2Y"));
-        tupleMap.put("tarPosPZ/D", tarVertex.getParameters().get("p2Z"));
-        tupleMap.put("tarPosP/D", Math.sqrt(Math.pow(tarVertex.getParameters().get("p2X"), 2)+Math.pow(tarVertex.getParameters().get("p2Y"), 2)
-                +Math.pow(tarVertex.getParameters().get("p2Z"), 2)));
+        tupleMap.put("tarElePX/D", tarV0.getStartVertex().getParameters().get("p1X"));
+        tupleMap.put("tarElePY/D", tarV0.getStartVertex().getParameters().get("p1Y"));
+        tupleMap.put("tarElePZ/D", tarV0.getStartVertex().getParameters().get("p1Z"));
+        tupleMap.put("tarEleP/D", Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p1X"), 2)+Math.pow(tarV0.getStartVertex().getParameters().get("p1Y"), 2)
+                +Math.pow(tarV0.getStartVertex().getParameters().get("p1Z"), 2)));
+        tupleMap.put("tarPosPX/D", tarV0.getStartVertex().getParameters().get("p2X"));
+        tupleMap.put("tarPosPY/D", tarV0.getStartVertex().getParameters().get("p2Y"));
+        tupleMap.put("tarPosPZ/D", tarV0.getStartVertex().getParameters().get("p2Z"));
+        tupleMap.put("tarPosP/D", Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2)+Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
+                +Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2)));
         
         tupleMap.put("vzcPX/D", vzcMomRot.x());
         tupleMap.put("vzcPY/D", vzcMomRot.y());
@@ -601,16 +601,16 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put("vzcVZ/D", vzcVtx.z());
         tupleMap.put("vzcChisq/D", vzcV0.getStartVertex().getChi2());
         tupleMap.put("vzcM/D", vzcV0.getMass());
-        tupleMap.put("vzcElePX/D", vzcVertex.getParameters().get("p1X"));
-        tupleMap.put("vzcElePY/D", vzcVertex.getParameters().get("p1Y"));
-        tupleMap.put("vzcElePZ/D", vzcVertex.getParameters().get("p1Z"));
-        tupleMap.put("vzcEleP/D", Math.sqrt(Math.pow(vzcVertex.getParameters().get("p1X"), 2)+Math.pow(vzcVertex.getParameters().get("p1Y"), 2)
-                +Math.pow(vzcVertex.getParameters().get("p1Z"), 2)));
-        tupleMap.put("vzcPosPX/D", vzcVertex.getParameters().get("p2X"));
-        tupleMap.put("vzcPosPY/D", vzcVertex.getParameters().get("p2Y"));
-        tupleMap.put("vzcPosPZ/D", vzcVertex.getParameters().get("p2Z"));
-        tupleMap.put("vzcPosP/D", Math.sqrt(Math.pow(vzcVertex.getParameters().get("p2X"), 2)+Math.pow(vzcVertex.getParameters().get("p2Y"), 2)
-                +Math.pow(vzcVertex.getParameters().get("p2Z"), 2)));
+        tupleMap.put("vzcElePX/D", vzcV0.getStartVertex().getParameters().get("p1X"));
+        tupleMap.put("vzcElePY/D", vzcV0.getStartVertex().getParameters().get("p1Y"));
+        tupleMap.put("vzcElePZ/D", vzcV0.getStartVertex().getParameters().get("p1Z"));
+        tupleMap.put("vzcEleP/D", Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p1X"), 2)+Math.pow(vzcV0.getStartVertex().getParameters().get("p1Y"), 2)
+                +Math.pow(vzcV0.getStartVertex().getParameters().get("p1Z"), 2)));
+        tupleMap.put("vzcPosPX/D", vzcV0.getStartVertex().getParameters().get("p2X"));
+        tupleMap.put("vzcPosPY/D", vzcV0.getStartVertex().getParameters().get("p2Y"));
+        tupleMap.put("vzcPosPZ/D", vzcV0.getStartVertex().getParameters().get("p2Z"));
+        tupleMap.put("vzcPosP/D", Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2)+Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
+                +Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2)));
         
         //////////////////////////////////////////////////////////////////////////////////////////
         int nEleClusters = electron.getClusters().size();
