@@ -55,6 +55,7 @@ public abstract class TupleDriver extends Driver {
 
     protected String triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
     public boolean isGBL = false;
+    private boolean applyBeamRotation = true;
 
     private final String finalStateParticlesColName = "FinalStateParticles";
     protected double bfield;
@@ -63,8 +64,12 @@ public abstract class TupleDriver extends Driver {
     private final double[] vzcBeamSize = {0.001, 100, 100};
     private final double[] topTrackCorrection = {0, 0, 0, 0, 0};
     private final double[] botTrackCorrection = {0, 0, 0, 0, 0};
-    protected final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
+    protected final BasicHep3Matrix beamAxisRotation = BasicHep3Matrix.identity();
     protected double ebeam = Double.NaN;
+
+    public void setApplyBeamRotation(boolean applyBeamRotation) {
+        this.applyBeamRotation = applyBeamRotation;
+    }
 
     public void setEbeam(double ebeam) {
         this.ebeam = ebeam;
@@ -146,7 +151,9 @@ public abstract class TupleDriver extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
+        if (applyBeamRotation) {
+            beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
+        }
         bfield = TrackUtils.getBField(detector).magnitude();
 
         if (Double.isNaN(ebeam)) {
