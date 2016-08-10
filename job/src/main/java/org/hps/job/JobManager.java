@@ -3,13 +3,12 @@ package org.hps.job;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.lcsim.util.Driver;
-
-import org.hps.conditions.ConditionsDriver;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
+import org.hps.conditions.ConditionsDriver;
+import org.hps.logging.config.DefaultLoggingConfig;
 import org.lcsim.job.JobControlManager;
+import org.lcsim.util.Driver;
 
 /**
  * Extension of standard LCSim job manager.
@@ -25,7 +24,11 @@ public final class JobManager extends JobControlManager {
      *
      * @param args the command line arguments
      */
-    public static void main(final String args[]) {
+    public static void main(final String args[]) {    
+        
+        // Initialize default logging config.
+        DefaultLoggingConfig.initialize();
+       
         // Run the job.
         final JobManager job = new JobManager();
         job.parse(args);
