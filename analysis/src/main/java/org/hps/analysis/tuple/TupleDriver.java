@@ -406,10 +406,10 @@ public abstract class TupleDriver extends Driver {
         return tweakedTrackState;
     }
 
-  //  protected TrackState fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix) {
-    protected ReconstructedParticle fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix) {
+    protected TrackState fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix) {
+  //  protected ReconstructedParticle fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix) {
 
-    if (!particle.getTracks().isEmpty()){
+    //if (!particle.getTracks().isEmpty()){
         Track track = particle.getTracks().get(0);
         TrackState trackState = track.getTrackStates().get(0);
         double[] param = new double[5];
@@ -486,7 +486,7 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put(prefix + "MinPositiveIso/D", minPositiveIso);
         tupleMap.put(prefix + "MinNegativeIso/D", minNegativeIso);
         tupleMap.put(prefix + "MatchChisq/D", particle.getGoodnessOfPID());
-        }
+        
         if (!particle.getClusters().isEmpty()) {
             Cluster cluster = particle.getClusters().get(0);
             tupleMap.put(prefix + "ClT/D", ClusterUtilities.getSeedHitTime(cluster));
@@ -497,9 +497,10 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "ClZ/D", cluster.getPosition()[2]);
             tupleMap.put(prefix + "ClHits/I", (double) cluster.getCalorimeterHits().size());
         }
-
-        //return tweakedTrackState;
-        return particle;    
+    
+        return tweakedTrackState;
+           
+        //return particle;    
     }
 
     protected void fillVertexVariables(EventHeader event, List<BilliorTrack> billiorTracks, ReconstructedParticle electron, ReconstructedParticle positron) {
