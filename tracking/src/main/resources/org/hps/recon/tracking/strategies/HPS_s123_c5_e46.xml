@@ -9,8 +9,8 @@
         <MinHits>5</MinHits>
         <MinConfirm>1</MinConfirm>
         
-        <MaxDCA>4.0</MaxDCA>
-        <MaxZ0>4.0</MaxZ0>
+        <MaxDCA>15.0</MaxDCA>
+        <MaxZ0>15.0</MaxZ0>
 
         <MaxChisq>100.0</MaxChisq>
         <BadHitChisq>10.0</BadHitChisq>
