@@ -38,6 +38,11 @@ import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.TrackerHit;
+import java.util.Collection;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.RawTrackerHit;
 
 /**
  * sort of an interface for DQM analysis drivers creates the DQM database
@@ -270,6 +275,9 @@ public abstract class TupleDriver extends Driver {
             "TrkEcalX/D", "TrkEcalY/D",
             "HasL1/B", "HasL2/B", "HasL3/B",
             "FirstHitX/D", "FirstHitY/D",
+            "FirstHitT1/D", "FirstHitT2/D",
+            "FirstHitDEDx1/D", "FirstHitDEDx2/D",
+            "FirstClusterSize1/I", "FirstClusterSize2/I",
             "LambdaKink1/D", "LambdaKink2/D", "LambdaKink3/D",
             "PhiKink1/D", "PhiKink2/D", "PhiKink3/D",
             "IsoStereo/D", "IsoAxial/D",
@@ -454,6 +462,23 @@ public abstract class TupleDriver extends Driver {
         Hep3Vector atEcal = TrackUtils.getTrackPositionAtEcal(tweakedTrackState);
         Hep3Vector firstHitPosition = VecOp.mult(beamAxisRotation, CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(track.getTrackerHits().get(0).getPosition())));
         GenericObject kinks = GBLKinkData.getKinkData(event, track);
+        
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        
+        double hitTimes[] = new double[2];
+        double hitdEdx[] = new double[2];
+        int hitClusterSize[] = new int[2];
+        
+        track.getTrackerHits().get(0);
+        TrackerHit hit = track.getTrackerHits().get(0);
+        Collection<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
+        for (TrackerHit hts : htsList) {
+            int layer = ((HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+            hitTimes[layer % 2] = hts.getTime();
+            hitdEdx[layer % 2] = hts.getdEdx();
+            hitClusterSize[layer % 2] = hts.getRawHits().size();
+        }
 
         tupleMap.put(prefix + "PX/D", pRot.x());
         tupleMap.put(prefix + "PY/D", pRot.y());
@@ -474,7 +499,13 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put(prefix + "HasL2/B", iso[2] != null ? 1.0 : 0.0);
         tupleMap.put(prefix + "HasL3/B", iso[4] != null ? 1.0 : 0.0);
         tupleMap.put(prefix + "FirstHitX/D", firstHitPosition.x());
-        tupleMap.put(prefix + "FirstHitY/D", firstHitPosition.y());
+        tupleMap.put(prefix + "FirstHitY/D", firstHitPosition.y());     
+        tupleMap.put(prefix + "FirstHitT1/D", hitTimes[0]);
+        tupleMap.put(prefix + "FirstHitT2/D", hitTimes[1]);        
+        tupleMap.put(prefix + "FirstHitDEDx1/D", hitdEdx[0]);
+        tupleMap.put(prefix + "FirstHitDEDx2/D", hitdEdx[1]);
+        tupleMap.put(prefix + "FirstClusterSize1/I", (double) hitClusterSize[0]);
+        tupleMap.put(prefix + "FirstClusterSize2/I", (double) hitClusterSize[1]);
         tupleMap.put(prefix + "LambdaKink1/D", kinks!=null ? GBLKinkData.getLambdaKink(kinks, 1) : 0);
         tupleMap.put(prefix + "LambdaKink2/D", kinks!=null ? GBLKinkData.getLambdaKink(kinks, 2) : 0);
         tupleMap.put(prefix + "LambdaKink3/D", kinks!=null ? GBLKinkData.getLambdaKink(kinks, 3) : 0);
