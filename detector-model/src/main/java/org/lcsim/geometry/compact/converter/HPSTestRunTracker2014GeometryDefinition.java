@@ -940,7 +940,7 @@ public class HPSTestRunTracker2014GeometryDefinition extends HPSTrackerGeometryD
         // Distance from edge of cold block to hole/ball position: 5mm
         protected static final double dist_sensor_center_to_coldblock_hole_vdir = (180.0 - 30.0 + (33.75 - 5.0)) - Sensor.length/2.0;   
         protected static final double half_module_thickness = TestRunHalfModule.getHybridThickness() + TestRunHalfModule.getCFThickness() + HalfModuleLamination.thickness;
-        protected static final double half_module_length = TestRunHalfModule.getCFLength();
+        protected static final double half_module_length = 200.0;
         protected static final double half_module_width = 6.83 + Sensor.width;
 
         protected double stereo_angle = 0.0;
