@@ -38,7 +38,7 @@ public class DetectorConverter {
         OPTIONS.getOption("i").setRequired(true);
         OPTIONS.addOption(new Option("o", "ouput-file", true, "output file"));
         OPTIONS.getOption("o").setRequired(true);
-        OPTIONS.addOption(new Option("f", "format", true, "input compact.xml file"));
+        OPTIONS.addOption(new Option("f", "format", true, "output format (lcdd, etc.)"));
         OPTIONS.addOption(new Option("r", "run-number", true, "run number for conditions initialization"));
     }
     
