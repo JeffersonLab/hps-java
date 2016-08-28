@@ -52,10 +52,12 @@ public class DataQualityMonitor extends Driver {
     protected void detectorChanged(Detector detector){
         BeamEnergyCollection beamEnergyCollection = 
             this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-        if(beamEnergyCollection != null && beamEnergyCollection.size() != 0)
+        if(beamEnergy== null && beamEnergyCollection != null && beamEnergyCollection.size() != 0)
             beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
-        else
-            LOGGER.log(Level.WARNING, "warning:  beam energy not found");
+        else{
+            LOGGER.log(Level.WARNING, "warning:  beam energy not found.  Using a 6.6 GeV as the default energy");
+            beamEnergy = 6.6;
+        }
        
     }
     
