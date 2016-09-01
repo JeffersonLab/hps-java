@@ -62,12 +62,7 @@ public class MollerCandidateFilter extends EventReconFilter
 
     private double _clusterDeltaTimeCut = 2.5;
 
-    @Override
-    protected void detectorChanged(Detector detector)
-    {
-        ecal = (HPSEcal3) DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector("Ecal");
-        neighborMap = ecal.getNeighborMap();
-    }
+    
 
     @Override
     protected void process(EventHeader event)
@@ -407,4 +402,25 @@ public class MollerCandidateFilter extends EventReconFilter
         _clusterEDiffHi = d;
     }
 
+    protected void detectorChanged(Detector detector){
+    /*tab*/
+        super.detectorChanged(detector);
+        ecal = (HPSEcal3) DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector("Ecal");
+        neighborMap = ecal.getNeighborMap();
+        _mollerMomentumSumMin = 0.80*beamEnergy;
+        _mollerMomentumSumMax = 1.25*beamEnergy;
+        _fullEnergyCut = 0.80*beamEnergy;
+        
+        _clusterESumLo = 0.80*beamEnergy;
+        _clusterESumHi = 1.05*beamEnergy;
+        _clusterEDiffLo = -0.3*beamEnergy;
+        _clusterEDiffHi = 0.3*beamEnergy;
+        
+        //this is a temporary fix.  TODO get Jeremy to put cluster time offset
+        //in the run database
+        if(beamEnergy > 1.5){
+            _clusterTimeHi = 62;
+            _clusterTimeLo = 54;
+        }
+    }
 }

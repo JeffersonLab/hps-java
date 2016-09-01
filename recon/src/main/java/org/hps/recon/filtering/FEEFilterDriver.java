@@ -7,8 +7,9 @@ import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
-import org.lcsim.util.Driver;
-public class FEEFilterDriver extends Driver
+import org.lcsim.geometry.Detector;
+
+public class FEEFilterDriver extends EventReconFilter
 {
     //Set min seed energy value, default to 2015 run
     private double seedCut = 0.4;
@@ -42,7 +43,7 @@ public class FEEFilterDriver extends Driver
 
     // only keep singles triggers:
     if (!event.hasCollection(GenericObject.class,"TriggerBank"))
-      throw new Driver.NextEventException();
+        skipEvent();
     boolean isSingles=false;
     for (GenericObject gob : event.get(GenericObject.class,"TriggerBank"))
     {
@@ -54,10 +55,10 @@ public class FEEFilterDriver extends Driver
         break;
       }
     }
-    if (!isSingles) throw new Driver.NextEventException();
+    if (!isSingles) skipEvent();
 
     if (!event.hasCollection(Cluster.class, "EcalClusters"))
-      throw new Driver.NextEventException();
+        skipEvent();
     
     for (Cluster cc : event.get(Cluster.class,"EcalClusters"))
     {
@@ -73,6 +74,14 @@ public class FEEFilterDriver extends Driver
         return;
     }
 
-    throw new Driver.NextEventException();
+    skipEvent();
   }
+  
+  protected void detectorChanged(Detector detector){
+      super.detectorChanged(detector);
+      //seedCut = .38*beamEnergy;
+      seedCut = 0;
+      clusterCut = .57*beamEnergy;
+  }
+  
 }

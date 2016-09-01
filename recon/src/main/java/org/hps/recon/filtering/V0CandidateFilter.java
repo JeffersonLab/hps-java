@@ -10,6 +10,7 @@ import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.geometry.Detector;
 
 /**
  * Class to strip off trident candidates. Currently defined as: e+ e- events
@@ -187,4 +188,10 @@ public class V0CandidateFilter extends EventReconFilter {
     public void setKeepEpicsDataEvents(boolean b) {
         _keepEpicsDataEvents = b;
     }
+    
+    protected void detectorChanged(Detector detector){
+          super.detectorChanged(detector);
+          trackPMax = 0.85*beamEnergy;
+          v0PMax = 1.35*beamEnergy;
+      }
 }
