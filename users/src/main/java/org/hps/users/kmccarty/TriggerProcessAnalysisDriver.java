@@ -22,15 +22,15 @@ import org.lcsim.util.aida.AIDA;
 
 public class TriggerProcessAnalysisDriver extends Driver {
     private int eventsProcessed = 0;
-    private int møllersProcessed = 0;
+    private int mollersProcessed = 0; 
     private boolean checkSVT = false;
     private int tridentsProcessed = 0;
-    private int gblMøllersProcessed = 0;
+    private int gblMollersProcessed = 0;
     private int gblTridentsProcessed = 0;
     private double timeCoincidence = 2.5;
     private double elasticThreshold = 0.800;
-    private double møllerLowerRange = 0.900;
-    private double møllerUpperRange = 1.200;
+    private double mollerLowerRange = 0.900;
+    private double mollerUpperRange = 1.200;
     private AIDA aida = AIDA.defaultInstance();
     private boolean checkTriggerTimeWindow = false;
     private String clusterCollectionName = "EcalClustersCorr";
@@ -53,30 +53,30 @@ public class TriggerProcessAnalysisDriver extends Driver {
     private IHistogram2D trctmESumCoplanarity = aida.histogram2D("Tridents CTMatched/Cluster Energy Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
     private IHistogram2D trctmPSumCoplanarity = aida.histogram2D("Tridents CTMatched/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
     
-    // Define the Møller cluster-track matched condition plots.
-    private IHistogram1D møctmInvariantMass = aida.histogram1D("Møller CTMatched/Invariant Mass", 140, 0.0, 0.070);
-    private IHistogram1D møctmInstancesInEvent = aida.histogram1D("Møller CTMatched/Instances in Event", 9, 0.5, 9.5);
-    private IHistogram1D møctmEnergySum1D = aida.histogram1D("Møller CTMatched/Cluster Energy Sum", 150, 0.000, 1.500);
-    private IHistogram1D møctmMomentumSum1D = aida.histogram1D("Møller CTMatched/Track Momentum Sum", 150, 0.000, 1.500);
-    private IHistogram1D møctmElectronEnergy = aida.histogram1D("Møller CTMatched/Electron Cluster Energy", 150, 0.000, 1.500);
-    private IHistogram1D møctmElectronMomentum = aida.histogram1D("Møller CTMatched/Electron Track Momentum", 150, 0.000, 1.500);
-    private IHistogram1D møctmTimeCoincidence = aida.histogram1D("Møller CTMatched/Time Coincidence", 100, -4, 4);
-    private IHistogram2D møctmClusterPosition = aida.histogram2D("Møller CTMatched/Cluster Seed Position", 46, -23, 23, 11, -5.5, 5.5);
-    private IHistogram2D møctmEnergySum2D = aida.histogram2D("Møller CTMatched/Cluster Energy Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
-    private IHistogram2D møctmTrackPosition = aida.histogram2D("Møller CTMatched/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
-    private IHistogram2D møctmMomentumSum2D = aida.histogram2D("Møller CTMatched/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
-    private IHistogram2D møctmESumCoplanarity = aida.histogram2D("Møller CTMatched/Cluster Energy Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
-    private IHistogram2D møctmPSumCoplanarity = aida.histogram2D("Møller CTMatched/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
+    // Define the Moller cluster-track matched condition plots.
+    private IHistogram1D moctmInvariantMass = aida.histogram1D("Moller CTMatched/Invariant Mass", 140, 0.0, 0.070);
+    private IHistogram1D moctmInstancesInEvent = aida.histogram1D("Moller CTMatched/Instances in Event", 9, 0.5, 9.5);
+    private IHistogram1D moctmEnergySum1D = aida.histogram1D("Moller CTMatched/Cluster Energy Sum", 150, 0.000, 1.500);
+    private IHistogram1D moctmMomentumSum1D = aida.histogram1D("Moller CTMatched/Track Momentum Sum", 150, 0.000, 1.500);
+    private IHistogram1D moctmElectronEnergy = aida.histogram1D("Moller CTMatched/Electron Cluster Energy", 150, 0.000, 1.500);
+    private IHistogram1D moctmElectronMomentum = aida.histogram1D("Moller CTMatched/Electron Track Momentum", 150, 0.000, 1.500);
+    private IHistogram1D moctmTimeCoincidence = aida.histogram1D("Moller CTMatched/Time Coincidence", 100, -4, 4);
+    private IHistogram2D moctmClusterPosition = aida.histogram2D("Moller CTMatched/Cluster Seed Position", 46, -23, 23, 11, -5.5, 5.5);
+    private IHistogram2D moctmEnergySum2D = aida.histogram2D("Moller CTMatched/Cluster Energy Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
+    private IHistogram2D moctmTrackPosition = aida.histogram2D("Moller CTMatched/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
+    private IHistogram2D moctmMomentumSum2D = aida.histogram2D("Moller CTMatched/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
+    private IHistogram2D moctmESumCoplanarity = aida.histogram2D("Moller CTMatched/Cluster Energy Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
+    private IHistogram2D moctmPSumCoplanarity = aida.histogram2D("Moller CTMatched/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
     
-    // Define the Møller track-only condition plots.
-    private IHistogram1D møgblTimeCoincidence = aida.histogram1D("Møller Track-Only/Time Coincidence", 100, -4, 4);
-    private IHistogram1D møgblInvariantMass = aida.histogram1D("Møller Track-Only/Invariant Mass", 140, 0.0, 0.070);
-    private IHistogram1D møgblInstancesInEvent = aida.histogram1D("Møller Track-Only/Instances in Event", 9, 0.5, 9.5);
-    private IHistogram1D møgblMomentumSum1D = aida.histogram1D("Møller Track-Only/Track Momentum Sum", 150, 0.000, 1.500);
-    private IHistogram1D møgblElectronMomentum = aida.histogram1D("Møller Track-Only/Electron Track Momentum", 150, 0.000, 1.500);
-    private IHistogram2D møgblTrackPosition = aida.histogram2D("Møller Track-Only/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
-    private IHistogram2D møgblMomentumSum2D = aida.histogram2D("Møller Track-Only/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
-    private IHistogram2D møgblPSumCoplanarity = aida.histogram2D("Møller Track-Only/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
+    // Define the Moller track-only condition plots.
+    private IHistogram1D mogblTimeCoincidence = aida.histogram1D("Moller Track-Only/Time Coincidence", 100, -4, 4);
+    private IHistogram1D mogblInvariantMass = aida.histogram1D("Moller Track-Only/Invariant Mass", 140, 0.0, 0.070);
+    private IHistogram1D mogblInstancesInEvent = aida.histogram1D("Moller Track-Only/Instances in Event", 9, 0.5, 9.5);
+    private IHistogram1D mogblMomentumSum1D = aida.histogram1D("Moller Track-Only/Track Momentum Sum", 150, 0.000, 1.500);
+    private IHistogram1D mogblElectronMomentum = aida.histogram1D("Moller Track-Only/Electron Track Momentum", 150, 0.000, 1.500);
+    private IHistogram2D mogblTrackPosition = aida.histogram2D("Moller Track-Only/Extrapolated Track Position", 200, -400, 400, 55, -110, 110);
+    private IHistogram2D mogblMomentumSum2D = aida.histogram2D("Moller Track-Only/Track Momentum Sum 2D", 300, 0.000, 1.500, 300, 0.000, 1.500);
+    private IHistogram2D mogblPSumCoplanarity = aida.histogram2D("Moller Track-Only/Track Momentum Sum vs. Coplanarity", 300, 0.000, 1.500, 360, 0, 360);
     
     // Define the GBL trident condition plots.
     private IHistogram1D trgblInvariantMass = aida.histogram1D("Tridents Track-Only/Invariant Mass", 140, 0.0, 0.070);
@@ -95,22 +95,59 @@ public class TriggerProcessAnalysisDriver extends Driver {
         double scale = 19000.0 / eventsProcessed;
         
         System.out.println("Processed " + eventsProcessed + " events.");
-        System.out.println("Processed " + møllersProcessed + " Møller events");
-        System.out.println("\tAcceptance :: " + (100.0 * møllersProcessed / eventsProcessed) + "%");
-        System.out.println("\tRate       :: " + (møllersProcessed * scale) + " Hz");
+        System.out.println("Processed " + mollersProcessed + " Moller events");
+        System.out.println("\tAcceptance :: " + (100.0 * mollersProcessed / eventsProcessed) + "%");
+        System.out.println("\tRate       :: " + (mollersProcessed * scale) + " Hz");
         
         System.out.println("Processed " + tridentsProcessed + " trident events");
         System.out.println("\tAcceptance :: " + (100.0 * tridentsProcessed / eventsProcessed) + "%");
         System.out.println("\tRate       :: " + (tridentsProcessed * scale) + " Hz");
         
-        System.out.println("Processed " + gblMøllersProcessed + " track-only Møller events");
-        System.out.println("\tAcceptance :: " + (100.0 * gblMøllersProcessed / eventsProcessed) + "%");
-        System.out.println("\tRate       :: " + (gblMøllersProcessed * scale) + " Hz");
+        System.out.println("Processed " + gblMollersProcessed + " track-only Moller events");
+        System.out.println("\tAcceptance :: " + (100.0 * gblMollersProcessed / eventsProcessed) + "%");
+        System.out.println("\tRate       :: " + (gblMollersProcessed * scale) + " Hz");
         
         System.out.println("Processed " + gblTridentsProcessed + " Rafo trident events");
         System.out.println("\tAcceptance :: " + (100.0 * gblTridentsProcessed / eventsProcessed) + "%");
         System.out.println("\tRate       :: " + (gblTridentsProcessed * scale) + " Hz");
     }
+    
+/*
+    @Override
+    public void process(EventHeader event) {
+        // Check whether the SVT was active in this event and, if so,
+        // skip it. This can be disabled through the steering file for
+        // Monte Carlo data, where the "SVT" is always active.
+        if(checkSVT) {
+            final String[] flagNames = { "svt_bias_good", "svt_burstmode_noise_good", "svt_position_good" };
+            boolean svtGood = true;
+            for(int i = 0; i < flagNames.length; i++) {
+                int[] flag = event.getIntegerParameters().get(flagNames[i]);
+                if(flag == null || flag[0] == 0) {
+                    svtGood = false;
+                }
+            }
+            if(!svtGood) { return; }
+        }
+        
+        System.out.println("Processed " + eventsProcessed + " events.");
+        System.out.println("Processed " + mollersProcessed + " Moller events");
+        System.out.println("\tAcceptance :: " + (100.0 * mollersProcessed / eventsProcessed) + "%");
+        System.out.println("\tRate       :: " + (mollersProcessed * scale) + " Hz");
+        
+        System.out.println("Processed " + tridentsProcessed + " trident events");
+        System.out.println("\tAcceptance :: " + (100.0 * tridentsProcessed / eventsProcessed) + "%");
+        System.out.println("\tRate       :: " + (tridentsProcessed * scale) + " Hz");
+        
+        System.out.println("Processed " + gblMollersProcessed + " track-only Moller events");
+        System.out.println("\tAcceptance :: " + (100.0 * gblMollersProcessed / eventsProcessed) + "%");
+        System.out.println("\tRate       :: " + (gblMollersProcessed * scale) + " Hz");
+        
+        System.out.println("Processed " + gblTridentsProcessed + " Rafo trident events");
+        System.out.println("\tAcceptance :: " + (100.0 * gblTridentsProcessed / eventsProcessed) + "%");
+        System.out.println("\tRate       :: " + (gblTridentsProcessed * scale) + " Hz");
+    }
+    */
     
     @Override
     public void process(EventHeader event) {
@@ -153,45 +190,45 @@ public class TriggerProcessAnalysisDriver extends Driver {
         System.out.println("CTM Pairs :: " + ctMatchedPairs.size());
         System.out.println("GBL Pairs :: " + gblMatchedPairs.size());
         
-        // Get the trident and Møller tracks for the matched track
+        // Get the trident and Moller tracks for the matched track
         // and cluster pair condition sets.
-        List<ReconstructedParticle[]> møllers     = getMøllerTracksCTMatched(ctMatchedPairs);
-        List<ReconstructedParticle[]> møllersGBL  = getMøllerTracksGBL(gblMatchedPairs, event);
+        List<ReconstructedParticle[]> mollers     = getMollerTracksCTMatched(ctMatchedPairs);
+        List<ReconstructedParticle[]> mollersGBL  = getMollerTracksGBL(gblMatchedPairs, event);
         List<ReconstructedParticle[]> tridents    = getTridentTracksCTMatched(ctMatchedPairs);
         List<ReconstructedParticle[]> tridentsGBL = getTridentClustersGBL(gblMatchedPairs, TriggerModule.getTopBottomPairs(clusterList, Cluster.class), event);
         
-        // Track how many events had tridents and Møllers.
-        if(!møllers.isEmpty()) { møllersProcessed++; }
+        // Track how many events had tridents and Mollers.
+        if(!mollers.isEmpty()) { mollersProcessed++; }
         if(!tridents.isEmpty()) { tridentsProcessed++; }
-        if(!møllersGBL.isEmpty()) { gblMøllersProcessed++; }
+        if(!mollersGBL.isEmpty()) { gblMollersProcessed++; }
         if(!tridentsGBL.isEmpty()) { gblTridentsProcessed++; }
         
-        // Produce Møller cluster-track matched plots.
-        møctmInstancesInEvent.fill(møllers.size());
-        for(ReconstructedParticle[] pair : møllers) {
+        // Produce Moller cluster-track matched plots.
+        moctmInstancesInEvent.fill(mollers.size());
+        for(ReconstructedParticle[] pair : mollers) {
             // Get the track clusters.
             Track[] tracks = { pair[0].getTracks().get(0), pair[1].getTracks().get(0) };
             Cluster[] trackClusters = { pair[0].getClusters().get(0), pair[1].getClusters().get(0) };
             
             // Populate the cluster plots.
-            møctmElectronEnergy.fill(trackClusters[0].getEnergy());
-            møctmElectronEnergy.fill(trackClusters[1].getEnergy());
-            møctmEnergySum1D.fill(TriggerModule.getValueEnergySum(trackClusters));
-            møctmEnergySum2D.fill(trackClusters[0].getEnergy(), trackClusters[1].getEnergy());
-            møctmESumCoplanarity.fill(TriggerModule.getValueEnergySum(trackClusters), getCalculatedCoplanarity(trackClusters));
-            møctmTimeCoincidence.fill(TriggerModule.getClusterTime(trackClusters[0]) - TriggerModule.getClusterTime(trackClusters[1]));
-            møctmClusterPosition.fill(TriggerModule.getClusterXIndex(trackClusters[0]), TriggerModule.getClusterYIndex(trackClusters[0]));
-            møctmClusterPosition.fill(TriggerModule.getClusterXIndex(trackClusters[1]), TriggerModule.getClusterYIndex(trackClusters[1]));
+            moctmElectronEnergy.fill(trackClusters[0].getEnergy());
+            moctmElectronEnergy.fill(trackClusters[1].getEnergy());
+            moctmEnergySum1D.fill(TriggerModule.getValueEnergySum(trackClusters));
+            moctmEnergySum2D.fill(trackClusters[0].getEnergy(), trackClusters[1].getEnergy());
+            moctmESumCoplanarity.fill(TriggerModule.getValueEnergySum(trackClusters), getCalculatedCoplanarity(trackClusters));
+            moctmTimeCoincidence.fill(TriggerModule.getClusterTime(trackClusters[0]) - TriggerModule.getClusterTime(trackClusters[1]));
+            moctmClusterPosition.fill(TriggerModule.getClusterXIndex(trackClusters[0]), TriggerModule.getClusterYIndex(trackClusters[0]));
+            moctmClusterPosition.fill(TriggerModule.getClusterXIndex(trackClusters[1]), TriggerModule.getClusterYIndex(trackClusters[1]));
             
             // Populate the momentum plots.
-            møctmInvariantMass.fill(getInvariantMass(pair));
-            møctmElectronMomentum.fill(pair[0].getMomentum().magnitude());
-            møctmElectronMomentum.fill(pair[1].getMomentum().magnitude());
-            møctmMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
-            møctmMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
-            møctmTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
-            møctmTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
-            møctmPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
+            moctmInvariantMass.fill(getInvariantMass(pair));
+            moctmElectronMomentum.fill(pair[0].getMomentum().magnitude());
+            moctmElectronMomentum.fill(pair[1].getMomentum().magnitude());
+            moctmMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
+            moctmMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+            moctmTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
+            moctmTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
+            moctmPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
                     getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
         }
         
@@ -230,28 +267,28 @@ public class TriggerProcessAnalysisDriver extends Driver {
                     getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
         }
         
-        // Produce the Møller track-only plots.
-        møgblInstancesInEvent.fill(møllersGBL.size());
+        // Produce the Moller track-only plots.
+        mogblInstancesInEvent.fill(mollersGBL.size());
         RelationalTable<?, ?> hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable<?, ?> hitToRotated = TrackUtils.getHitToRotatedTable(event);
-        for(ReconstructedParticle pair[] : møllersGBL) {
+        for(ReconstructedParticle pair[] : mollersGBL) {
             // Get the tracks and track times.
             Track[] tracks = { pair[0].getTracks().get(0), pair[1].getTracks().get(0) };
             double times[] = {
                     TrackUtils.getTrackTime(tracks[0], hitToStrips, hitToRotated),
-                    TrackUtils.getTrackTime(tracks[1], hitToStrips, hitToRotated)   
+                    TrackUtils.getTrackTime(tracks[1], hitToStrips, hitToRotated)    
             };
             
             // Fill the plots.
-            møgblTimeCoincidence.fill(times[0] - times[1]);
-            møgblInvariantMass.fill(getInvariantMass(pair));
-            møgblElectronMomentum.fill(pair[0].getMomentum().magnitude());
-            møgblElectronMomentum.fill(pair[1].getMomentum().magnitude());
-            møgblMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
-            møgblMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
-            møgblTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
-            møgblTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
-            møgblPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
+            mogblTimeCoincidence.fill(times[0] - times[1]);
+            mogblInvariantMass.fill(getInvariantMass(pair));
+            mogblElectronMomentum.fill(pair[0].getMomentum().magnitude());
+            mogblElectronMomentum.fill(pair[1].getMomentum().magnitude());
+            mogblMomentumSum1D.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude());
+            mogblMomentumSum2D.fill(pair[0].getMomentum().magnitude(), pair[1].getMomentum().magnitude());
+            mogblTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[0]).x(), TrackUtils.getTrackPositionAtEcal(tracks[0]).y());
+            mogblTrackPosition.fill(TrackUtils.getTrackPositionAtEcal(tracks[1]).x(), TrackUtils.getTrackPositionAtEcal(tracks[1]).y());
+            mogblPSumCoplanarity.fill(VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude(),
                     getCalculatedCoplanarity(new Track[] { pair[0].getTracks().get(0), pair[1].getTracks().get(0) }));
         }
         
@@ -262,7 +299,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
             Track[] tracks = { pair[0].getTracks().get(0), pair[1].getTracks().get(0) };
             double times[] = {
                     TrackUtils.getTrackTime(tracks[0], hitToStrips, hitToRotated),
-                    TrackUtils.getTrackTime(tracks[1], hitToStrips, hitToRotated)   
+                    TrackUtils.getTrackTime(tracks[1], hitToStrips, hitToRotated)    
             };
             
             // Get the positron and the electron.
@@ -449,7 +486,7 @@ public class TriggerProcessAnalysisDriver extends Driver {
             // Check that the track pair passes the time cut.
             double times[] = {
                 TrackUtils.getTrackTime(pair[0].getTracks().get(0), hitToStrips, hitToRotated),
-                TrackUtils.getTrackTime(pair[1].getTracks().get(0), hitToStrips, hitToRotated)  
+                TrackUtils.getTrackTime(pair[1].getTracks().get(0), hitToStrips, hitToRotated)    
             };
             
             if(Math.abs(times[0] - times[1]) > timeCoincidence) {
@@ -550,59 +587,59 @@ public class TriggerProcessAnalysisDriver extends Driver {
         return tridentTracks;
     }
     
-    private final List<ReconstructedParticle[]> getMøllerTracksGBL(List<ReconstructedParticle[]> pairList, EventHeader event) {
-        // Store the set of track pairs that meet the Møller condition.
-        List<ReconstructedParticle[]> møllerTracks = new ArrayList<ReconstructedParticle[]>();
+    private final List<ReconstructedParticle[]> getMollerTracksGBL(List<ReconstructedParticle[]> pairList, EventHeader event) {
+        // Store the set of track pairs that meet the Moller condition.
+        List<ReconstructedParticle[]> mollerTracks = new ArrayList<ReconstructedParticle[]>();
         
         // Extract track relational tables from the event object.
         RelationalTable<?, ?> hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable<?, ?> hitToRotated = TrackUtils.getHitToRotatedTable(event);
         
-        // Loop over the filtered pair list and apply the Møller
+        // Loop over the filtered pair list and apply the Moller
         // condition test.
-        møllerLoop:
+        mollerLoop:
         for(ReconstructedParticle[] pair : pairList) {
             // Both tracks must be negatively charged.
             if(pair[0].getCharge() > 0 || pair[1].getCharge() > 0) {
-                continue møllerLoop;
+                continue mollerLoop;
             }
             
             // The clusters must within a limited time window.
             double times[] = {
                 TrackUtils.getTrackTime(pair[0].getTracks().get(0), hitToStrips, hitToRotated),
-                TrackUtils.getTrackTime(pair[1].getTracks().get(0), hitToStrips, hitToRotated)  
+                TrackUtils.getTrackTime(pair[1].getTracks().get(0), hitToStrips, hitToRotated)    
             };
             
             if(Math.abs(times[0] - times[1]) > timeCoincidence) {
-                continue møllerLoop;
+                continue mollerLoop;
             }
             
             // Require that the electrons in the pair have energies
             // below the elastic threshold to exclude said electrons.
             if(pair[0].getMomentum().magnitude() > elasticThreshold || pair[1].getMomentum().magnitude() > elasticThreshold) {
-                continue møllerLoop;
+                continue mollerLoop;
             }
             
             // Require that the energy of the pair be within a range
-            // that is sufficiently "Møller-like."
+            // that is sufficiently "Moller-like."
             double momentumSum = VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude();
-            if(momentumSum < møllerLowerRange || momentumSum > møllerUpperRange) {
-                continue møllerLoop;
+            if(momentumSum < mollerLowerRange || momentumSum > mollerUpperRange) {
+                continue mollerLoop;
             }
             
             // If all the above conditions are met, the pair is to be
             // considered a trident pair. Add it to the list.
-            møllerTracks.add(pair);
+            mollerTracks.add(pair);
         }
         
         // Return the list of pairs that passed the condition.
-        return møllerTracks;
+        return mollerTracks;
     }
     
     /**
-     * Gets a list track pairs that meet the Møller condition defined
+     * Gets a list track pairs that meet the Moller condition defined
      * using tracks with matched calorimeter clusters. A pair meets the
-     * cluster/track matched Møller condition is it meets the following:
+     * cluster/track matched Moller condition is it meets the following:
      * <ul><li>Both tracks have matched clusters.</li>
      * <li>Both tracks are negative.</li>
      * <li>Clusters have a time coincidence of 2.5 ns or less.</li>
@@ -614,26 +651,26 @@ public class TriggerProcessAnalysisDriver extends Driver {
      * top/bottom pairs of tracks with matched clusters. These will be
      * tested to see if they meet the process criteria.
      * @return Returns a list containing pairs of tracks that meet the
-     * Møller condition.
+     * Moller condition.
      */
-    private final List<ReconstructedParticle[]> getMøllerTracksCTMatched(List<ReconstructedParticle[]> pairList) {
-        // Store the set of track pairs that meet the Møller condition.
-        List<ReconstructedParticle[]> møllerTracks = new ArrayList<ReconstructedParticle[]>();
+    private final List<ReconstructedParticle[]> getMollerTracksCTMatched(List<ReconstructedParticle[]> pairList) {
+        // Store the set of track pairs that meet the Moller condition.
+        List<ReconstructedParticle[]> mollerTracks = new ArrayList<ReconstructedParticle[]>();
         
-        // Loop over the filtered pair list and apply the Møller
+        // Loop over the filtered pair list and apply the Moller
         // condition test.
-        møllerLoop:
+        mollerLoop:
         for(ReconstructedParticle[] pair : pairList) {
             // Both tracks must be negatively charged.
             if(pair[0].getCharge() > 0 || pair[1].getCharge() > 0) {
-                continue møllerLoop;
+                continue mollerLoop;
             }
             
             // The clusters must within a limited time window.
             /*
             Cluster[] trackClusters = { pair[0].getClusters().get(0), pair[1].getClusters().get(0) };
             if(TriggerModule.getValueTimeCoincidence(trackClusters) > timeCoincidence) {
-                continue møllerLoop;
+                continue mollerLoop;
             }
             */
             
@@ -641,37 +678,37 @@ public class TriggerProcessAnalysisDriver extends Driver {
             // dependent coincidence window.
             Cluster[] trackClusters = { pair[0].getClusters().get(0), pair[1].getClusters().get(0) };
             if(!isCoincidental(trackClusters)) {
-                continue møllerLoop;
+                continue mollerLoop;
             }
             
             // Require that the electrons in the pair have energies
             // below the elastic threshold to exclude said electrons.
             if(pair[0].getMomentum().magnitude() > elasticThreshold || pair[1].getMomentum().magnitude() > elasticThreshold) {
-                continue møllerLoop;
+                continue mollerLoop;
             }
             
             // Require that the energy of the pair be within a range
-            // that is sufficiently "Møller-like."
+            // that is sufficiently "Moller-like."
             double momentumSum = VecOp.add(pair[0].getMomentum(), pair[1].getMomentum()).magnitude();
-            if(momentumSum < møllerLowerRange || momentumSum > møllerUpperRange) {
-                continue møllerLoop;
+            if(momentumSum < mollerLowerRange || momentumSum > mollerUpperRange) {
+                continue mollerLoop;
             }
             
             // Require that all clusters occur within the trigger time
             // window to exclude accidentals.
             if(checkTriggerTimeWindow) {
                 if(!inTriggerWindow(trackClusters[0]) || !inTriggerWindow(trackClusters[1])) {
-                    continue møllerLoop;
+                    continue mollerLoop;
                 }
             }
             
             // If all the above conditions are met, the pair is to be
             // considered a trident pair. Add it to the list.
-            møllerTracks.add(pair);
+            mollerTracks.add(pair);
         }
         
         // Return the list of pairs that passed the condition.
-        return møllerTracks;
+        return mollerTracks;
     }
     
     /**

@@ -1,4 +1,4 @@
-package org.hps.users.spaul.feecc;
+package org.hps.users.spaul.fee_old;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
