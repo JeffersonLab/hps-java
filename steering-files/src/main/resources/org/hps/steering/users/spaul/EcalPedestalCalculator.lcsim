@@ -7,34 +7,20 @@
     </control>
     <execute>
         <driver name="EventMarkerDriver"/>
-         <driver name="TriggerFilter"/>
-       
-        <driver name="MollerBeamtilt"/>
+        <driver name="Pedestal"/>
         <driver name="AidaSaveDriver"/>
-        
     </execute>
     <drivers>
-        <driver name="TriggerFilter" type="org.hps.recon.filtering.Single1TriggerFilterDriver"/>
-        
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
-        <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"/>
+         <driver name="Pedestal" type="org.hps.recon.ecal.EcalPedestalCalculator">
+            <batch>true</batch>
+         </driver>
        
-        <driver name="MollerBeamtilt" type="org.hps.users.spaul.moller.MollerBeamtiltAnalysis">
-            <maxVtxChi2>15</maxVtxChi2>
-            <maxTrkChi2>30</maxTrkChi2>
-            <minMass>.030</minMass>
-            <maxMass>.036</maxMass>
-            <minPz>1.0</minPz>
-            <maxPz>1.1</maxPz>
-        </driver>
          <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>${outputFile}</outputFileName>
-            
+            <outputFileName>${outputFile}</outputFileName>    
         </driver>
-        
-        
         
     </drivers>
 </lcsim>
