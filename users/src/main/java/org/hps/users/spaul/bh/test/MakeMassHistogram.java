@@ -11,8 +11,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.hps.conditions.ConditionsDriver;
-import org.hps.users.spaul.feecc.CustomBinning;
-import org.hps.users.spaul.feecc.RemoveDuplicateParticles;
+import org.hps.users.spaul.fee_old.CustomBinning;
+import org.hps.users.spaul.fee_old.RemoveDuplicateParticles;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.ReconstructedParticle;
