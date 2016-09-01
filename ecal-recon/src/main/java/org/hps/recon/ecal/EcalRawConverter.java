@@ -93,6 +93,13 @@ public class EcalRawConverter {
      * The pulse fitter class.
      */
     private EcalPulseFitter pulseFitter = new EcalPulseFitter();
+    /**
+     * activates a display of all the fits in AIDA.  
+     * @param display
+     */
+    public void setDisplay(boolean display){
+        pulseFitter.setDebug(display);
+    }
     
     /**
      * The time for one FADC sample (units = ns).
@@ -710,6 +717,11 @@ public class EcalRawConverter {
      */
     public EcalChannelConstants findChannel(long cellID) {
         return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
+    }
+
+
+    public void setFixedWidth(boolean fixedWidth) {
+       this.pulseFitter.fixShapeParameter = fixedWidth;
     }
     
 }

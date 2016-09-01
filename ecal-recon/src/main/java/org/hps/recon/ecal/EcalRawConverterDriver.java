@@ -180,6 +180,10 @@ public class EcalRawConverterDriver extends Driver {
     public void setUseRunningPedestal(boolean useRunningPedestal) {
         converter.setUseRunningPedestal(useRunningPedestal);
     }
+    
+    public void setFixedWidth(boolean fixedWidth){
+        this.converter.setFixedWidth(fixedWidth);
+    }
 
     /**
      * Set to <code>true</code> to generate a {@link org.lcsim.event.CalorimeterHit} 
@@ -344,6 +348,13 @@ public class EcalRawConverterDriver extends Driver {
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
+    
+    public void setDisplay(boolean display){
+        this.display = display;
+        converter.setDisplay(display);
+    }
+    private boolean display;
+    
 
     /**
      * Set to <code>true</code> to use timestamp information from the ECal or trigger.
