@@ -37,6 +37,8 @@ public class StripEventDriver extends Driver
     private int _maxNumberOfClusters = Integer.MAX_VALUE;
     private double _minClusterEnergy = 0.;
     private double _maxClusterEnergy = 12.;
+    private boolean _selectTopClusters = false;
+    private boolean _selectBottomClusters = false;
 
     private String _clusterCollectionName = "EcalClusters";
     
@@ -135,6 +137,9 @@ public class StripEventDriver extends Driver
                 if (e > _maxClusterEnergy) {
                     skipEvent = true;
                 }
+                double y = clus.getPosition()[1];
+                if(_selectTopClusters && y<0) skipEvent = true;
+                if(_selectBottomClusters && y>0) skipEvent = true;
             }
         }
         if (skipEvent) {
@@ -209,6 +214,16 @@ public class StripEventDriver extends Driver
     {
         _selectBottomHits = b;
     }
+    
+    public void setSelectTopClusters(boolean b)
+    {
+        _selectTopClusters = b;
+    }
+
+    public void setSelectBottomClusters(boolean b)
+    {
+        _selectBottomClusters = b;
+    }    
     
     public void setSelectAllLayers(boolean b)
     {
