@@ -13,7 +13,7 @@ import org.hps.conditions.database.Table;
  *
  * @author Jeremy McCormick, SLAC
  */
-@Table(names = {"ecal_gains", "test_run_ecal_gains"})
+@Table(names = {"ecal_gains", "test_run_ecal_gains", "ecal_trigger_gains"})
 public final class EcalGain extends BaseConditionsObject {
 
     /**
