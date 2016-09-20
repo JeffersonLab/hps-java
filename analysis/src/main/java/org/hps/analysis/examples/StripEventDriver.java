@@ -33,6 +33,7 @@ public class StripEventDriver extends Driver
     String _triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
 
     private int _minNumberOfTracks = 0;
+    private int _maxNumberOfTracks = Integer.MAX_VALUE;
     private int _minNumberOfHitsOnTrack = 0;
     private int _numberOfEventsWritten = 0;
     private int _minNumberOfUnconstrainedV0Vertices = 0;
@@ -63,7 +64,7 @@ public class StripEventDriver extends Driver
         } else {
             if (event.hasCollection(Track.class, "MatchedTracks")) {
                 nTracks = event.get(Track.class, "MatchedTracks").size();
-                if (nTracks >= _minNumberOfTracks) {
+                if (nTracks >= _minNumberOfTracks && nTracks <= _maxNumberOfTracks) {
                     List<Track> tracks = event.get(Track.class, "MatchedTracks");
                     for (Track t : tracks) {
                         int nhits = t.getTrackerHits().size();
@@ -120,7 +121,7 @@ public class StripEventDriver extends Driver
                             skipEvent = true;
                         }
                     }
-                // if we don't explicitly request top or bottom, 
+                    // if we don't explicitly request top or bottom, 
                     // only keep event if either the top or the bottom has all twelve layers hit
                     if (!_selectTopHits && !_selectBottomHits) {
                         skipEvent = true;
@@ -176,6 +177,11 @@ public class StripEventDriver extends Driver
     public void setMinNumberOfTracks(int nTracks)
     {
         _minNumberOfTracks = nTracks;
+    }
+
+    public void setMaxNumberOfTracks(int nTracks)
+    {
+        _maxNumberOfTracks = nTracks;
     }
 
     public void setMinNumberOfHitsOnTrack(int nHits)
