@@ -41,7 +41,7 @@ import org.hps.users.meeg.SvtChargeIntegrator;
 public class ScalerAttenuationCalculator {
 	//after the value of scalerS2b drops below this value, (at a beam trip)
 	// take 10 samples, and use the 10th sample is the zero point value
-	static double zp_threshold = 500;
+	//static double zp_threshold = 500;
 
 	/**
 	 *

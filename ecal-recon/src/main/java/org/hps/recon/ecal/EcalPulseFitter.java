@@ -116,6 +116,10 @@ public class EcalPulseFitter {
     private IPlotter plotter1;
     private IPlotter plotter2;
     private IHistogram1D chi2Hist;
+
+    private IHistogram1D pedestal_fit;
+    private IHistogram1D pedestal_prefit;
+    
     private IHistogram1D widthOffsetHist;
     private IHistogram1D widthOffsets[];
     private int skipHits = 100000;
@@ -128,14 +132,19 @@ public class EcalPulseFitter {
             plotter1.show();
             this.plotter2 = aida.analysisFactory().createPlotterFactory().create();
             plotter2.createRegions(2,2);
-            chi2Hist = aida.histogram1D("chi2", 100, 0, 100);
+            chi2Hist = aida.histogram1D("chi2", 100, 0, 200);
             widthOffsetHist = aida.histogram1D("width offset", 200, -1, 1);
             widthOffsets = new IHistogram1D[442];
             for(int i = 0; i< 442; i++){
                 widthOffsets[i] = aida.histogram1D("width offset " + (i+1), 200, -1, 1);
             }
+            pedestal_prefit = aida.histogram1D("pedestal_prefit", 200, 0, 200);
+            pedestal_fit = aida.histogram1D("pedestal_fit", 200, 0, 200);
+            
             plotter2.region(0).plot(chi2Hist);
             plotter2.region(1).plot(widthOffsetHist);
+            plotter2.region(2).plot(pedestal_prefit);
+            plotter2.region(3).plot(pedestal_fit);
             plotter2.show();
         }
         else{
@@ -319,13 +328,15 @@ public class EcalPulseFitter {
                     System.out.println("chi2\t" + chi2);
                     System.out.println("dof\t" + dof);
                     System.out.println("chi2 per dof\t" + chi2/dof);
+                    System.out.println("fit quality: " + fitResult.quality());
                 }
 
                 chi2Hist.fill(chi2);
                 widthOffsetHist.fill(fitResult.fittedParameter("width")-threePoleWidths[cid-1]);
                 widthOffsets[cid-1].fill(fitResult.fittedParameter("width")-threePoleWidths[cid-1]);
-
-
+                pedestal_prefit.fill(ped);
+                pedestal_fit.fill(fitResult.fittedFunction().parameters()[0]);
+                
                 if(hitCount % displayHits == 0){
                     System.out.println("Press enter to continue");
                     try{
