@@ -41,10 +41,15 @@ public class TimeDependentEcalGains2016 extends TimeDependentEcalGains {
             15844.2,
             25784.6
     };
+    
+    private double beamEnergy2016 = 2.306;
     protected double getGain(long timeStamp) {
         for(int i = 0; i<rangeStarts.length; i++){
             if(timeStamp > rangeStarts[i] && timeStamp<rangeEnds[i]){
-                return A[i]-B[i]*Math.exp(-(timeStamp-rangeStarts[i])/C[i]);
+            	
+            	//this is from fitting the fee peak position as a function of time.  
+            	double fittedFeePeak = A[i]-B[i]*Math.exp(-(timeStamp-rangeStarts[i])/C[i]);
+                return beamEnergy2016/fittedFeePeak;
             }
         }
         return 1;
