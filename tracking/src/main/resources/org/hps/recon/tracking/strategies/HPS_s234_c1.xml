@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <StrategyList xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://lcsim.org/recon/tracking/seedtracker/strategybuilder/strategies.xsd">
     <TargetDetector>HPS-Full</TargetDetector>
-    <Strategy name="S123_C4">
+    <Strategy name="S234_C1">
         
         <!--Cutoffs-->
         
@@ -18,10 +18,10 @@
         <!--Layers-->
 
         <Layers>                 
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
             <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
             <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
-            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
-            <Layer type="Confirm" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
         </Layers>
     </Strategy>
 </StrategyList>
