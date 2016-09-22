@@ -36,7 +36,7 @@ public class LcioEventSkimmer extends Driver
                 System.out.println(_inputFileName);
             }
             Scanner scan = new Scanner(new File(_inputFileName));
-            while (scan.hasNextLine()) {
+            while (scan.hasNextLine()&& !scan.nextLine().isEmpty()) {
                 int runNum = scan.nextInt();
                 int eventNum = scan.nextInt();
                 if (_debug) {
