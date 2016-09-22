@@ -4,7 +4,7 @@ import hep.physics.vec.Hep3Vector;
 
 import org.hps.detector.ecal.EcalCrystal;
 import org.hps.detector.ecal.HPSEcalDetectorElement;
-import org.jdom.DataConversionException;
+//import org.jdom.DataConversionException;
 // import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.base.BaseCluster;
@@ -119,19 +119,27 @@ public final class ClusterEnergyCorrection {
         double BEAMGAPTOP = 20.0;
         try {
             BEAMGAPTOP = ecal.getNode().getChild("layout")
-                    .getAttribute("beamgapTop").getDoubleValue();
-        } catch (DataConversionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }// mm
+                .getAttribute("beamgapTop").getDoubleValue();
+        } catch (Exception e) {
+            try {
+                BEAMGAPTOP = ecal.getNode().getChild("layout")
+                      .getAttribute("beamgap").getDoubleValue();
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            }
+        }
         double BEAMGAPBOT = -20.0;
         try {
             BEAMGAPBOT = -ecal.getNode().getChild("layout")
-                    .getAttribute("beamgapBottom").getDoubleValue();
-        } catch (DataConversionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }// mm
+                .getAttribute("beamgapBottom").getDoubleValue();
+        } catch (Exception e) {
+            try {
+                BEAMGAPBOT = ecal.getNode().getChild("layout")
+                    .getAttribute("beamgap").getDoubleValue();
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            }
+        }
         double BEAMGAPTOPC = BEAMGAPTOP + 13.0;// mm
         double BEAMGAPBOTC = BEAMGAPBOT - 13.0;// mm
         // x-coordinates of crystals on either side of row 1 cut out
