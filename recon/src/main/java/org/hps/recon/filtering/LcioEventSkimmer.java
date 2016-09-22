@@ -36,7 +36,7 @@ public class LcioEventSkimmer extends Driver
                 System.out.println(_inputFileName);
             }
             Scanner scan = new Scanner(new File(_inputFileName));
-            while (scan.hasNextLine()&& !scan.nextLine().isEmpty()) {
+            while (scan.hasNextInt()) {
                 int runNum = scan.nextInt();
                 int eventNum = scan.nextInt();
                 if (_debug) {
@@ -64,9 +64,10 @@ public class LcioEventSkimmer extends Driver
         skipEvent = true;
         int runNum = event.getRunNumber();
         int eventNum = event.getEventNumber();
-        if(_eventsToSkimMap.containsKey(runNum))
-        {
-           if(_eventsToSkimMap.get(runNum).contains(eventNum)) skipEvent = false; 
+        if (_eventsToSkimMap.containsKey(runNum)) {
+            if (_eventsToSkimMap.get(runNum).contains(eventNum)) {
+                skipEvent = false;
+            }
         }
         if (skipEvent) {
             throw new Driver.NextEventException();
