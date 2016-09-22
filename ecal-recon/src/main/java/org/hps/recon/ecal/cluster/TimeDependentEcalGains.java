@@ -1,4 +1,4 @@
-package org.hps.recon.ecal;
+package org.hps.recon.ecal.cluster;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseCluster;
@@ -10,7 +10,7 @@ import org.lcsim.util.Driver;
  *
  */
 public abstract class TimeDependentEcalGains extends Driver{
-    String ecalClusterCollectionName = "EcalClustersCorr";
+    private String ecalClusterCollectionName = "EcalClustersCorr";
     public void setEcalClusterCollectionName(String name){
         this.ecalClusterCollectionName = name;
     }

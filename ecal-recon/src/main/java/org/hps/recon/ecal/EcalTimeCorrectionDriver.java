@@ -21,6 +21,7 @@ import org.lcsim.util.Driver;
 public class EcalTimeCorrectionDriver extends Driver {
 
     private String inputHitsCollectionName = "EcalCalHits";
+    
     private String outputHitsCollectionName = "TimeCorrEcalHits";
 
     /**
@@ -47,12 +48,20 @@ public class EcalTimeCorrectionDriver extends Driver {
     }
 
     /**
-     * Set the output {@link org.lcsim.event.CalorimeterHit} collection name,
+     * Set the input {@link org.lcsim.event.CalorimeterHit} collection name,
      * 
      * @param ecalCollectionName The <code>CalorimeterHit</code> collection name.
      */
     public void setInputHitsCollectionName(String inputHitsCollectionName) {
         this.inputHitsCollectionName = inputHitsCollectionName;
+    }
+    /**
+     * Set the output {@link org.lcsim.event.CalorimeterHit} collection name,
+     * 
+     * @param ecalCollectionName The <code>CalorimeterHit</code> collection name.
+     */
+    public void setOutputHitsCollectionName(String name){
+        this.outputHitsCollectionName = name;
     }
 
     // Time walk default parameters for mode 3. Not studied since 2014 run.
