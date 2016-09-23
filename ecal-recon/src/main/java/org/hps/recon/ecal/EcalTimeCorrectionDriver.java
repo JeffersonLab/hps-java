@@ -20,9 +20,9 @@ import org.lcsim.util.Driver;
  */
 public class EcalTimeCorrectionDriver extends Driver {
 
-    private String inputHitsCollectionName = "EcalCalHits";
+    private String inputHitsCollectionName = "EcalUncalHits";
     
-    private String outputHitsCollectionName = "TimeCorrEcalHits";
+    private String outputHitsCollectionName = "EcalCalHits";
 
     /**
      * ecalCollectionName "type" (must match detector-data) 
