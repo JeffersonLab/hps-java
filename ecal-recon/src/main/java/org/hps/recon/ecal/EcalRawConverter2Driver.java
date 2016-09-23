@@ -48,7 +48,7 @@ public class EcalRawConverter2Driver extends Driver {
      * Output collection name (unless runBackwards=true, then it's input). Always a
      * {@link org.lcsim.event.CalorimeterHit} This has energy (GeV) and ns time information.
      */
-    private String ecalCollectionName = "EcalCalHits";
+    private String ecalCollectionName = "EcalUncalHits";
 
     /**
      * ecalCollectionName "type" (must match detector-data)
