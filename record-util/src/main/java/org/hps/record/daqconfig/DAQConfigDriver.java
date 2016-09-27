@@ -161,10 +161,39 @@ public class DAQConfigDriver extends Driver {
             reader[i] = new BufferedReader(fr[i]);
         }
         
+        // Convert the reader streams into line-delimited strings.
+        String[][] data = getDataFileArrays(reader);
+        
+        // Close the readers.
+        for(int i = 0; i < dataFiles.length; i++) {
+            reader[i].close();
+            fr[i].close();
+        }
+        
+        // Return the data array.
+        return data;
+    }
+    
+    /**
+     * Converts DAQ configuration data streams into an array of strings
+     * where each array entry represents a line in the configuration
+     * file. The first array index of the returned object corresponds
+     * to the stream, and the second array index corresponds to the line.
+     * @param reader - An array of <code>BufferedReader</code> objects
+     * containing DAQ trigger configuration crate data.
+     * @return Returns a two-dimensional array of <code>String</code>
+     * objects where the first array index corresponds to the object
+     * of the same index in the <code>BufferedReader</code> array and
+     * the second array index corresponds to the lines in the stream
+     * referenced by the <code>BufferedReader</code> object.
+     * @throws IOException Occurs if there is an issue with reading
+     * data stream.
+     */
+    protected static final String[][] getDataFileArrays(BufferedReader[] reader) throws IOException {
         // Generate String arrays where each entry in the array is
         // a line from the data file.
-        String[][] data = new String[dataFiles.length][0];
-        for(int i = 0; i < dataFiles.length; i++) {
+        String[][] data = new String[reader.length][0];
+        for(int i = 0; i < reader.length; i++) {
             // Create a list to hold the raw strings.
             List<String> rawData = new ArrayList<String>();
             
@@ -182,6 +211,16 @@ public class DAQConfigDriver extends Driver {
         // Return the data array.
         return data;
     }
+    
+    /**
+     * Gets the run number that the DAQConfigDriver is set to use. This
+     * will be <code>-1</code> in the event that the driver reads from
+     * an EvIO file.
+     * @return Returns the run number as an <code>int</code> primitive.
+     * Will return <code>-1</code> if the driver is set to read from an
+     * EvIO file.
+     */
+    protected final int getRunNumber() { return runNumber; }
     
     /**
      * Sets the run number of the DAQ configuration being processed.
