@@ -79,9 +79,6 @@ public class FEEFilterDriver extends EventReconFilter
   
   protected void detectorChanged(Detector detector){
       super.detectorChanged(detector);
-      //seedCut = .38*beamEnergy;
-      seedCut = 0;
-      clusterCut = .57*beamEnergy;
   }
   
 }

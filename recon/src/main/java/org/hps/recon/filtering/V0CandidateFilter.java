@@ -191,7 +191,5 @@ public class V0CandidateFilter extends EventReconFilter {
     
     protected void detectorChanged(Detector detector){
           super.detectorChanged(detector);
-          trackPMax = 0.85*beamEnergy;
-          v0PMax = 1.35*beamEnergy;
       }
 }

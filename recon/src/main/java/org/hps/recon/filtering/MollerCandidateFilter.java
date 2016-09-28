@@ -85,44 +85,57 @@ public class MollerCandidateFilter extends EventReconFilter
             if (mollerCandidates.size() == 0) {
                 skipEvent();
             }
+            boolean goodPair = false;
             for (ReconstructedParticle rp : mollerCandidates) {
                 ReconstructedParticle e1 = null;
                 ReconstructedParticle e2 = null;
+                
                 List<ReconstructedParticle> electrons = rp.getParticles();
                 if (electrons.size() != 2) {
-                    skipEvent();
+                    //skipEvent();
+                    continue;
                 }
                 // require both electrons to be associated with an ECal cluster
                 e1 = electrons.get(0);
                 if (e1.getClusters().size() == 0) {
-                    skipEvent();
+                    //skipEvent();
+                    continue;
                 }
                 e2 = electrons.get(1);
                 if (e2.getClusters().size() == 0) {
-                    skipEvent();
+                    //skipEvent();
+                    continue;
                 }
                 // remove full energy electrons
                 double p1 = e1.getMomentum().magnitude();
                 if (p1 > _fullEnergyCut) {
-                    skipEvent();
+                    //skipEvent();
+                    continue;
                 }
                 double p2 = e2.getMomentum().magnitude();
                 if (p2 > _fullEnergyCut) {
-                    skipEvent();
+                    //skipEvent();
+                    continue;
                 }
                 // require momentum sum to be approximately the beam energy
                 double pSum = p1 + p2;
                 if (pSum < _mollerMomentumSumMin || pSum > _mollerMomentumSumMax) {
-                    skipEvent();
+                    //skipEvent();
+                    continue;
                 }
                 // calorimeter cluster timing cut
                 // first CalorimeterHit in the list is the seed crystal
                 double t1 = e1.getClusters().get(0).getCalorimeterHits().get(0).getTime();
                 double t2 = e2.getClusters().get(0).getCalorimeterHits().get(0).getTime();
                 if (abs(t1 - t2) > _clusterDeltaTimeCut) {
-                    skipEvent();
+                    //skipEvent();
+                    continue;
                 }
+                goodPair = true;
+                break;
             }
+            if(!goodPair)
+                skipEvent();
         } // end of tight selection cuts
         else // apply only calorimeter-based cuts
         {
@@ -403,24 +416,10 @@ public class MollerCandidateFilter extends EventReconFilter
     }
 
     protected void detectorChanged(Detector detector){
-    /*tab*/
+    
         super.detectorChanged(detector);
         ecal = (HPSEcal3) DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector("Ecal");
         neighborMap = ecal.getNeighborMap();
-        _mollerMomentumSumMin = 0.80*beamEnergy;
-        _mollerMomentumSumMax = 1.25*beamEnergy;
-        _fullEnergyCut = 0.80*beamEnergy;
         
-        _clusterESumLo = 0.80*beamEnergy;
-        _clusterESumHi = 1.05*beamEnergy;
-        _clusterEDiffLo = -0.3*beamEnergy;
-        _clusterEDiffHi = 0.3*beamEnergy;
-        
-        //this is a temporary fix.  TODO get Jeremy to put cluster time offset
-        //in the run database
-        if(beamEnergy > 1.5){
-            _clusterTimeHi = 62;
-            _clusterTimeLo = 54;
-        }
     }
 }
