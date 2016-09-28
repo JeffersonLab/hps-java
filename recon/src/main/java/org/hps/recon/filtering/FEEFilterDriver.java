@@ -11,11 +11,18 @@ import org.lcsim.geometry.Detector;
 
 public class FEEFilterDriver extends EventReconFilter
 {
-    //Set min seed energy value, default to 2015 run
-    private double seedCut = 0.4;
+    //Set min seed energy value, default to 2015 run 
+    private double seedCut = 0; //= 0.4
     
     //set min cluster energy value, default to 2015 run
     private double clusterCut = 0.6;
+    
+    //minimum number of hits per cluster
+    private int minHits = 0; // = 3;
+    
+    public void setMinHits(int minHits){
+        this.minHits = minHits;
+    }
     
     /**
      * Set the cut value for seed energy in GeV
@@ -70,7 +77,7 @@ public class FEEFilterDriver extends EventReconFilter
       // keep events with a cluster over 600 MeV with seed over 400 MeV (for 2015 running).
         // keep events with cluster over 1.2 GeV and seed over 650 MeV for 2016 running.
       if (cc.getEnergy() > clusterCut && 
-          ClusterUtilities.findSeedHit(cc).getCorrectedEnergy() > seedCut )
+          ClusterUtilities.findSeedHit(cc).getCorrectedEnergy() > seedCut && cc.getCalorimeterHits().size() >= minHits)
         return;
     }
 
