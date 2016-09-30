@@ -1,31 +1,52 @@
 package org.hps.recon.ecal;
 
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.hps.record.daqconfig.ConfigurationManager;
 import org.hps.record.daqconfig.FADCConfig;
 import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 
 /**
+ * <code>EcalOnlineRawConverter</code> handles the conversion of raw
+ * hits of all modes to energy hit <code>CalorimeterHit</code> objects.
+ * This converter will employ the runtime values for all parameters and
+ * is intended to emulate the firmware specifically.<br/>
+ * <br/>
+ * The converter requires the presence of the DAQ configuration manager,
+ * which is activated by either <code>DatabaseDAQConfigDriver</code>
+ * or <code>DAQConfigDriver</code> depending on from where it is to
+ * obtain the configuration.<br/>
+ * <br/>
+ * This converter is primarily employed in the trigger and hardware
+ * diagnostic processes as well as the readout simulation in Monte
+ * Carlo.
  * 
- * This is a EcalRawConverter used only for pure firmware emulation for
- * studying trigger efficiency from real data.  It requires the DAQ
- * configuration to be read from EVIO in order to set the parameters.
- * 
+ * @author Nathan Baltzell <baltzell@jlab.org>
+ * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class EcalOnlineRawConverter {
-
-    private FADCConfig config = null;
-    private static final int nsPerSample = 4;
+    // Defines the maximum number of peaks that may be extracted from
+    // a single waveform.
     private int nPeak = 3;
+    // The DAQ configuration manager for FADC parameters.
+    private FADCConfig config = null;
+    // Whether or not a constant integration window should be assumed
+    // for the purpose of pedestal calculations/
+    private boolean constantWindow = false;
+    // The number of nanoseconds in a clock-cycle (sample).
+    private static final int nsPerSample = 4;
     
+    /**
+     * Instantiates the <code>EcalOnlineRawConverter</code> and connects
+     * it to the <code>ConfigurationManager</code> to receive settings
+     * from the DAQ configuration.
+     */
     public EcalOnlineRawConverter() {
         // Track changes in the DAQ configuration.
         ConfigurationManager.addActionListener(new ActionListener() {
@@ -33,174 +54,275 @@ public class EcalOnlineRawConverter {
             public void actionPerformed(ActionEvent e) {
                 // Get the FADC configuration.
                 config = ConfigurationManager.getInstance().getFADCConfig();
+                
                 // Get the number of peaks.
-                if(config.getMode() == 1) nPeak = Integer.MAX_VALUE;
-                else                      nPeak = config.getMaxPulses();
-                // Print the FADC configuration.
-                System.out.println();
-                System.out.println();
-                System.out.printf("NSA            :: %d ns%n", config.getNSA());
-                System.out.printf("NSB            :: %d ns%n", config.getNSB());
-                System.out.printf("Window Samples :: %d clock-cycles%n", config.getWindowWidth());
-                System.out.printf("Max Peaks      :: %d peaks%n", nPeak);
-                System.out.println("======================================================================");
-                System.out.println("=== FADC Pulse-Processing Settings ===================================");
-                System.out.println("======================================================================");
-                config.printConfig(System.out);
+                if(config.getMode() == 1) { nPeak = Integer.MAX_VALUE; }
+                else { nPeak = config.getMaxPulses(); }
             }
         });
     }
-
+    
     /**
-     * Get pedestal for entire pulse integral.  Account for clipping if
-     * windowSamples is greater than zero.
+     * Gets the pedestal for a given crystal and threshold crossing.
+     * @param cellID - The cell ID of the crystal.
+     * @param windowSamples - The size of the readout window. A value
+     * of <code>-1</code> indicates an infinite readout window.
+     * @param thresholdCrossing - The time of the threshold crossing in
+     * 4-nanosecond clock-cycles (samples).
+     * @return Returns the pedestal for the crystal and threshold
+     * crossing.
      */
-    public double getPulsePedestal(EventHeader event,long cellID,int windowSamples,int thresholdCrossing) {
-        int firstSample,lastSample;
-        if ( windowSamples>0 && (config.getNSA()+config.getNSB())/nsPerSample >= windowSamples ) {
-            // special case where firmware always integrates entire window
+    public double getPulsePedestal(long cellID, int windowSamples, int thresholdCrossing) {
+        // Track the starting and ending samples over which integration
+        // will occur. Only the intermediary samples need be considered
+        // for pedestal calculation.
+        int firstSample, lastSample;
+        
+        // For finite readout windows, calculate the pedestal based on
+        // the size of the full readout window in the event that the
+        // integration window is larger than the readout window.
+        if(windowSamples > 0 && (config.getNSA() + config.getNSB()) / nsPerSample >= windowSamples) {
             firstSample = 0;
-            lastSample = windowSamples-1;
-        } else {
-            firstSample = thresholdCrossing - config.getNSB()/nsPerSample;
-            lastSample  = thresholdCrossing + config.getNSA()/nsPerSample-1;
-            if (windowSamples > 0) {
-                // properly pedestal subtract pulses clipped by edge(s) of readout window:
-                if (firstSample < 0) firstSample=0;
-                if (lastSample >= windowSamples) lastSample=windowSamples-1;
+            lastSample = windowSamples - 1;
+        }
+        
+        // Otherwise, the pedestal should be calculated based on the
+        // integration window size.
+        else {
+            // Define the sample width as equivalent to the integration
+            // window size.
+            firstSample = thresholdCrossing - config.getNSB() / nsPerSample;
+            lastSample  = thresholdCrossing + config.getNSA() / nsPerSample - 1;
+            
+            // In the event of a finite readout window, ignore any
+            // samples that fall outside the readout window. Since these
+            // are clipped and will not be integrated, these pedestals
+            // do not contribute.
+            if(windowSamples > 0) {
+                if(firstSample < 0) { firstSample = 0; }
+                if(lastSample >= windowSamples) { lastSample = windowSamples - 1; }
             }
         }
-        return (lastSample-firstSample+1)*config.getPedestal(cellID);
+        
+        // Calculate and return the pedestal.
+        return(lastSample - firstSample + 1) * config.getPedestal(cellID);
     }
-   
+    
+    /**
+     * Converts a mode-1 digitized waveform into standard energy hit.
+     * @param hit - The "hit" object representing the digitized waveform
+     * for a given crystal.
+     * @return Returns a list of <code>CalorimeterHit</code> objects
+     * parsed from the waveform.
+     */
+    public List<CalorimeterHit> HitDtoA(RawTrackerHit hit) {
+        // Get the cell ID for the crystal as well as the digitized
+        // waveform samples.
+        final long cellID = hit.getCellID();
+        final short[] waveform = hit.getADCValues();
+        
+        // If there are no samples, then there is nothing to integrate.
+        if(waveform.length == 0) { return null; }
+        
+        // The pulse integration threshold is defined as the combination
+        // of the pedestal and the threshold configuration parameter.
+        final int absoluteThreshold = (int) (config.getPedestal(cellID) + config.getThreshold(cellID));
+        
+        // Store each instance of a threshold crossing in that can be
+        // found within the digitized waveform.
+        List<Integer> thresholdCrossings = new ArrayList<Integer>();
+        
+        // Check for the special case of the first sample exceeding
+        // the integration threshold.
+        if(waveform[0] > absoluteThreshold) {
+            thresholdCrossings.add(0);
+        } 
+        
+        // Search the remaining samples for threshold crossings.
+        thresholdLoop:
+        for(int sample = 1; sample < waveform.length; ++sample) {
+            if(waveform[sample] > absoluteThreshold && waveform[sample - 1] <= absoluteThreshold) {
+                // Add the sample index to the list of threshold crossing.
+                thresholdCrossings.add(sample);
+                
+                // No new threshold crossings can be registered within
+                // this pulse. In the case of mode-1 data, the end of
+                // the pulse is considered to be 8 samples past the
+                // crossing, as the per the SSP. Otherwise, it is defined
+                // by the integration window.
+                if(config.getMode() == 1) { sample += 8; }
+                else { sample += config.getNSA() / nsPerSample - 1; }
+                
+                // If there is a limit defined on the maximum number
+                // of peaks that may be processed, terminate the search
+                // after this number of peaks have been found.
+                if(thresholdCrossings.size() >= nPeak) { break thresholdLoop; }
+            }
+        }
+        
+        // Use the previously located threshold crossing to generate
+        // calorimeter hits.
+        List<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
+        for(int thresholdCrossing : thresholdCrossings) {
+            // Perform the pulse integral.
+            final double[] data = convertWaveformToPulse(waveform, thresholdCrossing);
+            double time = data[0];
+            double sum = data[1];
+            
+            // Perform pedestal subtraction.
+            sum -= getPulsePedestal(cellID, waveform.length, thresholdCrossing);
+          
+            // Perform gain scaling.
+            double energy = adcToEnergy(sum, cellID);
+            
+            // Create a new hit and add it to the list.
+            newHits.add(CalorimeterHitUtilities.create(energy, time, cellID));
+        }
+        
+        // Return the list of hits.
+        return newHits;
+    }
+    
+    /**
+     * Converts a raw mode-3 hit to a proper calorimeter hit in units
+     * of energy.
+     * @param hit - The raw hit that is to be converted.
+     * @param timeOffset - The time offset for the hit.
+     * @return Returns a <code>CalorimeterHit</code> hit object that
+     * represents the raw mode-3 hit with units of energy and a correct
+     * time-stamp.
+     */
+    public CalorimeterHit HitDtoA(RawCalorimeterHit hit, double timeOffset) {
+        // Verify the validity of the time-stamp.
+        if(hit.getTimeStamp() % 64 != 0) {
+            System.out.println("Unexpected time-stamp: " + hit.getTimeStamp());
+        }
+        
+        // Get the pedestal. In the case of a constant integration window
+        // (i.e. infinite readout window size, so no risk of clipping),
+        // the window width should be given as -1. Otherwise, the real
+        // readout window size should be used.
+        long id = hit.getCellID();
+        double time = hit.getTimeStamp() / 16.0;
+        double pedestal = getPulsePedestal(id, constantWindow ? -1 : config.getWindowWidth(), (int) time / nsPerSample);
+        
+        // Calculate the total ADC value for the pulse and convert it
+        // to energy.
+        double adcSum = hit.getAmplitude() - pedestal;
+        double rawEnergy = adcToEnergy(adcSum, id);
+        
+        // Create a calorimeter hit from the result and return it.
+        return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
+    }
+    
+    /**
+     * Converts a raw mode-7 hit to a proper calorimeter hit in units
+     * of energy.
+     * @param hit - The raw hit that is to be converted.
+     * @param mode7Data - Additional mode-7 data object.
+     * @param timeOffset - The time offset for the hit.
+     * @return Returns a <code>CalorimeterHit</code> hit object that
+     * represents the raw mode-7 hit with units of energy and a correct
+     * time-stamp.
+     */
+    public CalorimeterHit HitDtoA(RawCalorimeterHit hit, GenericObject mode7Data, double timeOffset) {
+        // Get the time and crystal cell ID for the hit. Note that the
+        // time-stamps use the full 62.5 ps resolution.
+        double time = hit.getTimeStamp() / 16.0;
+        long id = hit.getCellID();
+        
+        // Get the pedestal. In the case of a constant integration window
+        // (i.e. infinite readout window size, so no risk of clipping),
+        // the window width should be given as -1. Otherwise, the real
+        // readout window size should be used.
+        double pedestal = getPulsePedestal(id, constantWindow ? -1 : config.getWindowWidth(), (int) time / nsPerSample);
+        
+        // Calculate the total ADC value for the pulse and convert it
+        // to energy.
+        double adcSum = hit.getAmplitude() - pedestal;
+        double rawEnergy = adcToEnergy(adcSum, id);
+        
+        // Create a calorimeter hit from the result and return it.
+        return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
+    }
+    
+    /**
+     * Converts a value in ADC in a crystal to energy in units of GeV.
+     * @param adcSum - The ADC value to convert.
+     * @param cellID - The cell ID of the crystal containing the value.
+     * @return Returns the ADC value as an energy in units of GeV.
+     */
+    private double adcToEnergy(double adcSum, long cellID) {
+        return config.getGain(cellID) * adcSum * EcalUtils.MeV;
+    }
     
     /**
      * Emulate the FADC250 firmware in conversion of Mode-1 waveform to a Mode-3/7 pulse,
      * given a time for threshold crossing.
      */
-    public double[] convertWaveformToPulse(RawTrackerHit hit,int thresholdCrossing,boolean mode7) {
-       
-        short samples[] = hit.getADCValues();
-        // choose integration range:
-        int firstSample,lastSample;
-        if ((config.getNSA()+config.getNSB())/nsPerSample >= samples.length) {
-            // firmware treats this case specially:
-            firstSample = 0;
-            lastSample = samples.length-1;
-        } else {
-            firstSample = thresholdCrossing - config.getNSB()/nsPerSample;
-            lastSample  = thresholdCrossing + config.getNSA()/nsPerSample - 1;
-        }
-        
-        // pulse integral:
-        double sumADC = 0;
-        for (int jj=firstSample; jj<=lastSample; jj++) {
-            if (jj<0) continue;
-            if (jj>=samples.length) break;
-            sumADC += samples[jj];
-        }
-
-        // pulse time with 4ns resolution:
-        double pulseTime=thresholdCrossing*nsPerSample;
-        return new double []{pulseTime,sumADC};
-    }
-   
     
     /**
-     *
+     * Converts a mode-1 digitized waveform to a mode-3/7 pulse for a
+     * a given threshold crossing.
+     * @param waveform - The digitized waveform. Each array value should
+     * correspond to a sample of the waveform in units of ADC.
+     * @param thresholdCrossing - The time of the threshold crossing
+     * in samples.
+     * @return Returns a <code>double</code> primitive of size 2. The
+     * first value represents the time in nanoseconds of the pulser and
+     * the second value the total integrated value of the pulse in ADC.
      */
-    public ArrayList <CalorimeterHit> HitDtoA(EventHeader event, RawTrackerHit hit) {
-        final long cellID = hit.getCellID();
-        final short samples[] = hit.getADCValues();
-        if(samples.length == 0) return null;
+    private double[] convertWaveformToPulse(short[] waveform, int thresholdCrossing) {
+        // Store the integration range.
+        int firstSample, lastSample;
         
-        // threshold is pedestal plus threshold configuration parameter:
-        final int absoluteThreshold;
-        int leadingEdgeThreshold = config.getThreshold(cellID);
-        absoluteThreshold = (int) (config.getPedestal(cellID) + leadingEdgeThreshold);
-        
-        ArrayList <Integer> thresholdCrossings = new ArrayList<Integer>();
-        
-        // special case, first sample is above threshold:
-        if (samples[0] > absoluteThreshold) {
-            thresholdCrossings.add(0);
-        } 
-        
-        // search for threshold crossings:
-        for(int ii = 1; ii < samples.length; ++ii) {
-            if ( samples[ii]   >  absoluteThreshold && 
-                 samples[ii-1] <= absoluteThreshold) {
-                
-                // found one:
-                thresholdCrossings.add(ii);
-
-                // search for next threshold crossing begins at end of this pulse:
-                if (ConfigurationManager.getInstance().getFADCConfig().getMode() == 1) {
-                    // special case, emulating SSP:
-                    ii += 8;
-                } else {
-                    // "normal" case, emulating FADC250:
-                    ii += config.getNSA()/nsPerSample - 1;
-                }
-
-                // firmware limit on # of peaks:
-                if (thresholdCrossings.size() >= nPeak) break;
-            }
+        // If the integration range is larger than the number of samples,
+        // then all the samples are used for pulse integration.
+        if((config.getNSA() + config.getNSB()) / nsPerSample >= waveform.length) {
+            firstSample = 0;
+            lastSample = waveform.length - 1;
         }
         
-        // make hits
-        ArrayList <CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
-        for(int thresholdCrossing : thresholdCrossings) {
-            // do pulse integral:
-            final double[] data = convertWaveformToPulse(hit, thresholdCrossing, false);
-            double time = data[0];
-            double sum = data[1];
+        // Otherwise, the integration range covers a number of samples
+        // before and after the threshold crossing as defined by the
+        // run parameters.
+        else {
+            firstSample = thresholdCrossing - config.getNSB() / nsPerSample;
+            lastSample  = thresholdCrossing + config.getNSA() / nsPerSample - 1;
+        }
+        
+        // Perform the pulse integral.
+        double sumADC = 0;
+        integrationLoop:
+        for (int sample = firstSample; sample <= lastSample; sample++) {
+            // If the current sample occurs before the readout window,
+            // then it does not exist and can not be integrated. Skip it.
+            if(sample < 0) { continue integrationLoop; }
             
-            // do pedestal subtraction:
-            sum -= getPulsePedestal(event, cellID, samples.length, thresholdCrossing);
-          
-            // do gain scaling:
-            double energy = adcToEnergy(sum, cellID);
+            // Likewise, samples that occur after the readout window are
+            // not retained and must be skipped.
+            if(sample >= waveform.length) { break integrationLoop; }
             
-            newHits.add(CalorimeterHitUtilities.create(energy,time,cellID));
+            // Otherwise, add the sample to the pulse total.
+            sumADC += waveform[sample];
         }
         
-        return newHits;
+        // Calculate the pulse time with a 4 nanosecond resolution.
+        double pulseTime = thresholdCrossing * nsPerSample;
+        
+        // Return both the pulse time and the total integrated pulse ADC.
+        return new double [] { pulseTime, sumADC };
     }
-
+    
     /**
-     * This HitDtoA is for Mode-3 data.
+     * Sets whether to use a constant integration window for the the
+     * purpose of determining the correct pedestal. This should be used
+     * in conjunction with Monte Carlo data during the readout cycle.
+     * @param state - <code>true</code> ignores the size of the readout
+     * window when calculating pedestals, and <code>false</code> accounts
+     * for it in the case of pulse-clipping.
      */
-    public CalorimeterHit HitDtoA(EventHeader event,RawCalorimeterHit hit, double timeOffset) {
-        if (hit.getTimeStamp() % 64 != 0) {
-            System.out.println("unexpected timestamp " + hit.getTimeStamp());
-        }
-        double time = hit.getTimeStamp() / 16.0;
-        long id = hit.getCellID();
-        double pedestal = getPulsePedestal(event,id,config.getWindowWidth(),(int)time/nsPerSample);
-        double adcSum = hit.getAmplitude() - pedestal;
-        double rawEnergy = adcToEnergy(adcSum, id);
-        return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
+    void setUseConstantWindow(boolean state) {
+        constantWindow = state;
     }
-
-    /**
-     * This HitDtoA is exclusively for Mode-7 data, hence the GenericObject parameter.
-     */
-    public CalorimeterHit HitDtoA(EventHeader event,RawCalorimeterHit hit, GenericObject mode7Data, double timeOffset) {
-        double time = hit.getTimeStamp() / 16.0; //timestamps use the full 62.5 ps resolution
-        long id = hit.getCellID();
-        double pedestal = getPulsePedestal(event,id,config.getWindowWidth(),(int)time/nsPerSample);
-        double adcSum = hit.getAmplitude() - pedestal;
-        double rawEnergy = adcToEnergy(adcSum, id);       
-        return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
-    }
-
-
-    /**
-     * return energy (units of GeV) corresponding to the ADC sum and crystal ID
-     */
-    private double adcToEnergy(double adcSum, long cellID) {
-        return config.getGain(cellID) * adcSum * EcalUtils.MeV;
-    }
-
 }
