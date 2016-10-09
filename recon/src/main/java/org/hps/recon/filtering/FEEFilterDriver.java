@@ -11,6 +11,12 @@ import org.lcsim.geometry.Detector;
 
 public class FEEFilterDriver extends EventReconFilter
 {
+    String clusterCollection = "EcalClusters";
+    
+    public void setClusterCollection(String val){
+        this.clusterCollection = val;
+    }
+    
     //Set min seed energy value, default to 2015 run 
     private double seedCut = 0; //= 0.4
     
@@ -64,10 +70,10 @@ public class FEEFilterDriver extends EventReconFilter
     }
     if (!isSingles) skipEvent();
 
-    if (!event.hasCollection(Cluster.class, "EcalClusters"))
+    if (!event.hasCollection(Cluster.class, clusterCollection))
         skipEvent();
     
-    for (Cluster cc : event.get(Cluster.class,"EcalClusters"))
+    for (Cluster cc : event.get(Cluster.class,clusterCollection))
     {
       // try to drop clusters:
       //if (cc.getEnergy() < 0.6 ||
