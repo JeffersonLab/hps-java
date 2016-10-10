@@ -6,7 +6,7 @@ import hep.physics.vec.VecOp;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +67,7 @@ public class ReconClusterer extends AbstractClusterer {
     double timeWindow = 8.0;
 
     // Make a map for quick calculation of the x-y position of crystal face
-    Map<Point, double[]> correctedPositionMap = new HashMap<Point, double[]>();
+    Map<Point, double[]> correctedPositionMap = new LinkedHashMap<Point, double[]>();
 
     List<CalorimeterHit> rejectedHitList = new ArrayList<CalorimeterHit>();
 
@@ -136,7 +136,7 @@ public class ReconClusterer extends AbstractClusterer {
         
 //        Map<Long, CalorimeterHit> hitMap = ClusterUtilities.createHitMap(hitList);
         
-        HashMap<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();
+        LinkedHashMap<Long, CalorimeterHit> hitMap = new LinkedHashMap<Long, CalorimeterHit>();
         
         //boolean multihit = false;
         //for (int ii = hitList.size() - 1; ii >= 0; ii--) {
@@ -159,13 +159,13 @@ public class ReconClusterer extends AbstractClusterer {
         //}
 
         // Create a map to connect a seed hit to its cluster.
-        Map<CalorimeterHit, BaseCluster> seedToCluster = new HashMap<CalorimeterHit, BaseCluster>();
+        Map<CalorimeterHit, BaseCluster> seedToCluster = new LinkedHashMap<CalorimeterHit, BaseCluster>();
 
         // Map a crystal to a list of all clusters in which it is a member.
-        Map<CalorimeterHit, List<CalorimeterHit>> commonHits = new HashMap<CalorimeterHit, List<CalorimeterHit>>();
+        Map<CalorimeterHit, List<CalorimeterHit>> commonHits = new LinkedHashMap<CalorimeterHit, List<CalorimeterHit>>();
 
         // Map a crystal to the seed of the cluster of which it is a member.
-        HashMap<CalorimeterHit, CalorimeterHit> hitToSeed = new HashMap<CalorimeterHit, CalorimeterHit>();
+        LinkedHashMap<CalorimeterHit, CalorimeterHit> hitToSeed = new LinkedHashMap<CalorimeterHit, CalorimeterHit>();
 
         // Loop through all calorimeter hits to locate seeds and perform
         // first pass calculations for component and common hits.
@@ -308,6 +308,7 @@ public class ReconClusterer extends AbstractClusterer {
         } // End component hits loop.
 
         // Performs second pass calculations for common hits.
+        // TODO make this loop keySet-order independent
         commonHitsLoop: for (CalorimeterHit clusteredHit : hitToSeed.keySet()) {
 
             // Get the current clustered hit's neighboring crystals.
@@ -367,6 +368,7 @@ public class ReconClusterer extends AbstractClusterer {
         } // End common hits loop.
 
         // Remove any common hits from the clustered hits collection.
+        // Note: this does not depend on the order of the commonHits key set
         for (CalorimeterHit commonHit : commonHits.keySet()) {
             hitToSeed.remove(commonHit);
             hitList.remove(commonHit);
@@ -392,6 +394,7 @@ public class ReconClusterer extends AbstractClusterer {
         }
 
         // Add common hits
+        // Note: the order of the entry set in this loop does not affect the output.
         for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> commHit : commonHits.entrySet()) {
             // Check that the common hit is in both time windows to their clusters
             CalorimeterHit seedA = commHit.getValue().get(0);
