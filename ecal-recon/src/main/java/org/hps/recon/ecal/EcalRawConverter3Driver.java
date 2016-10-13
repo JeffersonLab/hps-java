@@ -431,7 +431,7 @@ public class EcalRawConverter3Driver extends Driver {
         int flags = 0;
         flags += 1 << LCIOConstants.RCHBIT_TIME; // store hit time
         flags += 1 << LCIOConstants.RCHBIT_LONG; // store hit position; this flag has no effect for RawCalorimeterHits
-
+        
         if (!runBackwards) {
             ArrayList<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
 
@@ -467,6 +467,8 @@ public class EcalRawConverter3Driver extends Driver {
                     }
                 }
                 event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
+                event.getMetaData(newHits).setTransient(true);
+               
             }
 
             /*
@@ -528,6 +530,7 @@ public class EcalRawConverter3Driver extends Driver {
                     }
                 }
                 event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
+                event.getMetaData(newHits).setTransient(true);
             }
         } else {
             ArrayList<RawCalorimeterHit> newHits = new ArrayList<RawCalorimeterHit>();
@@ -547,6 +550,7 @@ public class EcalRawConverter3Driver extends Driver {
                     }
                 }
                 event.put(rawCollectionName, newHits, RawCalorimeterHit.class, flags, ecalReadoutName);
+                event.getMetaData(newHits).setTransient(true);
             }
         }
 

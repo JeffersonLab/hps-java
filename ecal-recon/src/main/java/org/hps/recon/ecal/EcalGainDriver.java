@@ -35,7 +35,7 @@ public class EcalGainDriver extends Driver{
         }
 
         event.put(this.outputHitsCollectionName, newHits, CalorimeterHit.class, event.getMetaData(hits).getFlags(), ecalReadoutName);
-
+        event.getMetaData(newHits).setTransient(true);
     }
     
 
