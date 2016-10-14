@@ -258,9 +258,12 @@ public class TrackClusterMatcher {
      * @return #sigma between cluster and track positions
      */
     public double getNSigmaPosition(Cluster cluster, ReconstructedParticle particle) {
-
         if (particle.getTracks().size()<1) return Double.MAX_VALUE;
-          Track track=particle.getTracks().get(0);
+        Track track=particle.getTracks().get(0);
+        return getNSigmaPosition(cluster, track);
+    }
+    public double getNSigmaPosition(Cluster cluster, Track track){
+        
         
         if (this.useAnalyticExtrapolator)
             throw new RuntimeException("This is to be used with non-analytic extrapolator only.");
@@ -282,9 +285,10 @@ public class TrackClusterMatcher {
         // whether it's a GBL track:
         final boolean isGBL = track.getType() >= 32;
        
+        
         // choose which parameterization of mean and sigma to use:
         double dxMean[],dyMean[],dxSigm[],dySigm[];
-        if (particle.getCharge()>0) {
+        if (track.getCharge()>0) {
             if (isTopTrack) {
                 dxMean = isGBL ? dxMeanTopPosiGBL : dxMeanTopPosiSeed;
                 dxSigm = isGBL ? dxSigmTopPosiGBL : dxSigmTopPosiSeed;
@@ -298,7 +302,7 @@ public class TrackClusterMatcher {
                 dySigm = isGBL ? dySigmBotPosiGBL : dySigmBotPosiSeed;
             }
         }
-        else if (particle.getCharge()<0) {
+        else if (track.getCharge()<0) {
             if (isTopTrack) {
                 dxMean = isGBL ? dxMeanTopElecGBL : dxMeanTopElecSeed;
                 dxSigm = isGBL ? dxSigmTopElecGBL : dxSigmTopElecSeed;
