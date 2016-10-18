@@ -248,6 +248,10 @@ public class TrackUtils {
     public static double getCosTheta(TrackState track) {
         return getTanLambda(track) / Math.sqrt(1 + Math.pow(getTanLambda(track), 2));
     }
+    
+    public static int getCharge(Track track){
+        return -(int)Math.signum(getR(track));
+    }
 
     // ==========================================================================
     /**
