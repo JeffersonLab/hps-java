@@ -27,6 +27,14 @@ public class MergeTrackCollections extends Driver {
     private String partialTrackCollectionName = "PartialTracks";
     private boolean removeCollections = true;
     private double badHitChisq = 10.0;
+    boolean isTransient = false;
+    /**
+     * determines if the output collections will be transient or not
+     * @param val
+     */
+    public void setIsTransient(boolean val){
+        this.isTransient = val;
+    }
 
     /**
      * Name of the LCIO collection containing all good tracks.
@@ -139,5 +147,9 @@ public class MergeTrackCollections extends Driver {
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputCollectionName, deduplicatedTracks, Track.class, flag);
         event.put(partialTrackCollectionName, partialTracks, Track.class, flag);
+        if(isTransient){
+            event.getMetaData(deduplicatedTracks).setTransient(isTransient);
+            event.getMetaData(partialTracks).setTransient(isTransient);
+        }
     }
 }
