@@ -1,0 +1,21 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    
+    <execute>
+        <driver name="TriggerSkimmer"/>
+        <driver name="V0Skimmer"/>
+        <driver name="LCIOWriter"/>
+    </execute>    
+
+    <drivers>
+        <driver name="TriggerSkimmer" type="org.hps.recon.filtering.Pair1TriggerFilterDriver">
+        </driver>
+        <driver name="V0Skimmer" type = "org.hps.recon.filtering.CollectionSizeFilter">
+        	<collectionName>UnconstrainedV0Candidates</collectionName>
+        	<minSize>1</minSize>
+        </driver>
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+    </drivers>   
+</lcsim>
