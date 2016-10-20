@@ -288,7 +288,8 @@ public class TrackClusterMatcher {
         
         // choose which parameterization of mean and sigma to use:
         double dxMean[],dyMean[],dxSigm[],dySigm[];
-        if (track.getCharge()>0) {
+        int charge = TrackUtils.getCharge(track);
+        if (charge>0) {
             if (isTopTrack) {
                 dxMean = isGBL ? dxMeanTopPosiGBL : dxMeanTopPosiSeed;
                 dxSigm = isGBL ? dxSigmTopPosiGBL : dxSigmTopPosiSeed;
@@ -302,7 +303,7 @@ public class TrackClusterMatcher {
                 dySigm = isGBL ? dySigmBotPosiGBL : dySigmBotPosiSeed;
             }
         }
-        else if (track.getCharge()<0) {
+        else if (charge<0) {
             if (isTopTrack) {
                 dxMean = isGBL ? dxMeanTopElecGBL : dxMeanTopElecSeed;
                 dxSigm = isGBL ? dxSigmTopElecGBL : dxSigmTopElecSeed;
