@@ -18,6 +18,12 @@ public class EcalGainDriver extends Driver{
     
     private String outputHitsCollectionName = "EcalCalHits";
     
+    private boolean isTransient = true;
+    
+    public void setIsTransient(boolean val){
+        this.isTransient = val;
+    }
+    
     public void process(EventHeader event) {
         
         List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitsCollectionName);
@@ -35,7 +41,7 @@ public class EcalGainDriver extends Driver{
         }
 
         event.put(this.outputHitsCollectionName, newHits, CalorimeterHit.class, event.getMetaData(hits).getFlags(), ecalReadoutName);
-        event.getMetaData(newHits).setTransient(true);
+        event.getMetaData(newHits).setTransient(isTransient);
     }
     
 
