@@ -1,8 +1,5 @@
 package org.hps.analysis.trigger.util;
 
-import java.awt.Point;
-
-import org.hps.analysis.trigger.data.TriggerStatModule;
 import org.hps.record.triggerbank.SSPCluster;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.CalorimeterHit;
@@ -33,15 +30,6 @@ public class TriggerDiagnosticUtil {
     public static final int PAIR_ENERGY_SLOPE = 2;
     public static final int PAIR_COPLANARITY = 3;
     
-    // Trigger type variables.
-    public static final int TRIGGER_PULSER    = TriggerStatModule.PULSER;
-    public static final int TRIGGER_COSMIC    = TriggerStatModule.COSMIC;
-    public static final int TRIGGER_SINGLES_0 = TriggerStatModule.SINGLES_0;
-    public static final int TRIGGER_SINGLES_1 = TriggerStatModule.SINGLES_1;
-    public static final int TRIGGER_PAIR_0    = TriggerStatModule.PAIR_0;
-    public static final int TRIGGER_PAIR_1    = TriggerStatModule.PAIR_1;
-    public static final String[] TRIGGER_NAME = { "Singles 0", "Singles 1", "Pair 0", "Pair 1", "Pulser", "Cosmic" };
-    
     /**
      * Convenience method that writes the position of a cluster in the
      * form (ix, iy).
@@ -49,9 +37,7 @@ public class TriggerDiagnosticUtil {
      * @return Returns the cluster position as a <code>String</code>.
      */
     public static final String clusterPositionString(Cluster cluster) {
-        return String.format("(%3d, %3d)",
-                cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
-                cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
+        return String.format("(%3d, %3d)", TriggerModule.getClusterXIndex(cluster), TriggerModule.getClusterYIndex(cluster));
     }
     
     /**
@@ -61,7 +47,7 @@ public class TriggerDiagnosticUtil {
      * @return Returns the cluster position as a <code>String</code>.
      */
     public static final String clusterPositionString(SSPCluster cluster) {
-        return String.format("(%3d, %3d)", cluster.getXIndex(), cluster.getYIndex());
+        return String.format("(%3d, %3d)", TriggerModule.getClusterXIndex(cluster), TriggerModule.getClusterYIndex(cluster));
     }
     
     /**
@@ -71,11 +57,10 @@ public class TriggerDiagnosticUtil {
      * @return Returns the cluster information as a <code>String</code>.
      */
     public static final String clusterToString(Cluster cluster) {
-        return String.format("Cluster at (%3d, %3d) with %.3f GeV and %d hits at %4.0f ns.",
-                cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
-                cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"),
-                cluster.getEnergy(), cluster.getCalorimeterHits().size(),
-                cluster.getCalorimeterHits().get(0).getTime());
+        return String.format("Cluster at (%3d, %3d) with %.3f GeV and %.0f hits at %4.0f ns.",
+                TriggerModule.getClusterXIndex(cluster), TriggerModule.getClusterYIndex(cluster),
+                TriggerModule.getValueClusterTotalEnergy(cluster), TriggerModule.getClusterHitCount(cluster),
+                TriggerModule.getClusterTime(cluster));
     }
     
     /**
@@ -85,45 +70,10 @@ public class TriggerDiagnosticUtil {
      * @return Returns the cluster information as a <code>String</code>.
      */
     public static final String clusterToString(SSPCluster cluster) {
-        return String.format("Cluster at (%3d, %3d) with %.3f GeV and %d hits at %4d ns.",
-                cluster.getXIndex(), cluster.getYIndex(), cluster.getEnergy(),
-                cluster.getHitCount(), cluster.getTime());
-    }
-    
-    /**
-     * Gets the x/y-indices of the cluster.
-     * @param cluster -  The cluster of which to obtain the indices.
-     * @return Returns the indices as a <code>Point</code> object.
-     */
-    public static final Point getClusterPosition(Cluster cluster) {
-        return new Point(getXIndex(cluster), getYIndex(cluster));
-    }
-    
-    /**
-     * Gets the x/y-indices of the cluster.
-     * @param cluster -  The cluster of which to obtain the indices.
-     * @return Returns the indices as a <code>Point</code> object.
-     */
-    public static final Point getClusterPosition(SSPCluster cluster) {
-        return new Point(cluster.getXIndex(), cluster.getYIndex());
-    }
-    
-    /**
-     * Gets the time stamp of the cluster in nanoseconds.
-     * @param cluster - The cluster.
-     * @return Returns the time-stamp.
-     */
-    public static final double getClusterTime(Cluster cluster) {
-        return cluster.getCalorimeterHits().get(0).getTime();
-    }
-    
-    /**
-     * Gets the time stamp of the cluster in nanoseconds.
-     * @param cluster - The cluster.
-     * @return Returns the time-stamp.
-     */
-    public static final int getClusterTime(SSPCluster cluster) {
-        return cluster.getTime();
+        return String.format("Cluster at (%3d, %3d) with %.3f GeV and %.0f hits at %4.0f ns.",
+                TriggerModule.getClusterXIndex(cluster), TriggerModule.getClusterYIndex(cluster),
+                TriggerModule.getValueClusterTotalEnergy(cluster), TriggerModule.getClusterHitCount(cluster),
+                TriggerModule.getClusterTime(cluster));
     }
     
     /**
@@ -137,60 +87,6 @@ public class TriggerDiagnosticUtil {
     public static final int getDigits(int value) {
         if(value < 0) { return Integer.toString(value).length() - 1; }
         else { return Integer.toString(value).length(); }
-    }
-    
-    /**
-     * Gets the number of hits in a cluster.
-     * @param cluster - The cluster.
-     * @return Returns the number of hits in the cluster.
-     */
-    public static final int getHitCount(Cluster cluster) {
-        return cluster.getCalorimeterHits().size();
-    }
-    
-    /**
-     * Gets the number of hits in a cluster.
-     * @param cluster - The cluster.
-     * @return Returns the number of hits in the cluster.
-     */
-    public static final int getHitCount(SSPCluster cluster) {
-        return cluster.getHitCount();
-    }
-    
-    /**
-     * Gets the x-index of the cluster's seed hit.
-     * @param cluster - The cluster.
-     * @return Returns the x-index.
-     */
-    public static final int getXIndex(Cluster cluster) {
-        return cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
-    }
-    
-    /**
-     * Gets the x-index of the cluster's seed hit.
-     * @param cluster - The cluster.
-     * @return Returns the x-index.
-     */
-    public static final int getXIndex(SSPCluster cluster) {
-        return cluster.getXIndex();
-    }
-    
-    /**
-     * Gets the y-index of the cluster's seed hit.
-     * @param cluster - The cluster.
-     * @return Returns the y-index.
-     */
-    public static final int getYIndex(Cluster cluster) {
-        return cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
-    }
-    
-    /**
-     * Gets the y-index of the cluster's seed hit.
-     * @param cluster - The cluster.
-     * @return Returns the y-index.
-     */
-    public static final int getYIndex(SSPCluster cluster) {
-        return cluster.getYIndex();
     }
     
     /**
