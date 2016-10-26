@@ -97,7 +97,8 @@ final class MonitoringApplicationFrame extends JFrame {
     /**
      * The trigger diagnostics panel.
      */
-    private final TriggerDiagnosticsPanel triggerPanel;
+    // TODO: Trigger diagnostics panel is now removed; to-be-replaced with plots.
+    //private final TriggerDiagnosticsPanel triggerPanel;
 
     /**
      * Class constructor.
@@ -146,8 +147,9 @@ final class MonitoringApplicationFrame extends JFrame {
         tableTabbedPane.addTab("Log Messages", this.logPanel);
 
         // Add the trigger diagnostics tables.
-        this.triggerPanel = new TriggerDiagnosticsPanel();
-        tableTabbedPane.addTab("Trigger Diagnostics", this.triggerPanel);
+        // TODO: Trigger diagnostics panel is removed.
+        //this.triggerPanel = new TriggerDiagnosticsPanel();
+        //tableTabbedPane.addTab("Trigger Diagnostics", this.triggerPanel);
 
         // Add the conditions panel.
         //this.conditionsPanel = new ConditionsPanel();
@@ -281,9 +283,10 @@ final class MonitoringApplicationFrame extends JFrame {
      *
      * @return the trigger diagnostics panel
      */
-    TriggerDiagnosticsPanel getTriggerPanel() {
-        return this.triggerPanel;
-    }
+    // TODO: Trigger diagnostics panel is removed.
+    //TriggerDiagnosticsPanel getTriggerPanel() {
+    //    return this.triggerPanel;
+    //}
 
     /**
      * Restore default window settings.

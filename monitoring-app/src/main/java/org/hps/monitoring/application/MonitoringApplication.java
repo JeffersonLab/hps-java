@@ -943,7 +943,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
 
             // Add Driver to update the trigger diagnostics tables.
             final List<Driver> drivers = new ArrayList<Driver>();
-            drivers.add(this.frame.getTriggerPanel().new TriggerDiagnosticGUIDriver());
 
             // Add listener to push conditions changes to conditions panel.
             final List<ConditionsListener> conditionsListeners = new ArrayList<ConditionsListener>();
