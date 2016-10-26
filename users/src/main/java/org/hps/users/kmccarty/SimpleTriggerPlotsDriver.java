@@ -46,11 +46,14 @@ import org.lcsim.util.aida.AIDA;
 public class SimpleTriggerPlotsDriver extends Driver {
 	private int nsa = Integer.MIN_VALUE;
 	private int nsb = Integer.MIN_VALUE;
-	private int events = 0;
-	private int windowWidth = Integer.MIN_VALUE;
 	private boolean useDAQConfig = false;
-	private double energySlopeParam = Double.NaN;
+	private int windowWidth = Integer.MIN_VALUE;
 	private String clusterCollectionName = null;
+	private boolean requireLeftRightPair = false;
+	private double energySlopeParam = Double.NaN;
+	private double pairFEEThreshold = Double.NaN;
+	private double pairTimeThreshold = Double.NaN;
+	private boolean requireFiducialClusters = false;
 	
 	// Define cluster type and cut type reference variables.
 	private static final int CLUSTER_TOTAL_ENERGY  = 0;
@@ -93,25 +96,6 @@ public class SimpleTriggerPlotsDriver extends Driver {
 	// Define plotting objects.
 	private AIDA aida = AIDA.defaultInstance();
 	private static final String BASE_FOLDER_NAME = "Simple Trigger Cut Plots/";
-	
-	/**
-	 * Runs at the end of the run. Calculates the total event time
-	 * processed and scales all trigger cut plots by this value to
-	 * convert their y-axis scale to units of Hertz.
-	 */
-	@Override
-	public void endOfData() {
-		// Determine the total amount of time that was processed. This
-		// is calculated by multiplying the number of events by the size
-		// of the readout window that is not pulse-clipped.
-		double scalingFactor = 1.0 / (events * (windowWidth - nsa - nsb));
-		
-		// Scale each trigger plot by the amount of time it represents
-		// to convert the y-axis scale to units of Hertz.
-		for(int triggerCut = CLUSTER_TOTAL_ENERGY; triggerCut <= PAIR_TIME_COINCIDENCE; triggerCut++) {
-			aida.histogram1D(getTriggerPlotName(triggerCut)).scale(scalingFactor);
-		}
-	}
 	
 	/**
 	 * Runs at the beginning of the run. Instantiates all trigger cut
@@ -204,7 +188,17 @@ public class SimpleTriggerPlotsDriver extends Driver {
         // clipping region.
         List<Cluster> goodClusters = new ArrayList<Cluster>();
         for(Cluster cluster : clusters) {
-        	if(isVerifiable(cluster, nsa, nsb, windowWidth)) { goodClusters.add(cluster); }
+        	// First, check if the cluster is outside the pulse-clipping
+        	// region.
+        	if(isVerifiable(cluster, nsa, nsb, windowWidth)) {
+        		// Next, check that it is fiducial if the fiducial
+        		// requirement is active. If so, add the cluster to
+        		// the list of good clusters. Otherwise, just add the
+        		// the list immediately.
+        		if(!requireFiducialClusters || (requireFiducialClusters && TriggerModule.inFiducialRegion(cluster))) {
+        			goodClusters.add(cluster);
+        		}
+        	}
         }
         
         // Populate the cluster singles plots.
@@ -218,18 +212,47 @@ public class SimpleTriggerPlotsDriver extends Driver {
         List<Cluster[]> pairs = TriggerModule.getTopBottomPairs(clusters, Cluster.class);
         
         // Populate the cluster pair plots.
+        pairPlotsLoop:
         for(Cluster[] pair : pairs) {
+        	// If a left-right cluster pair is required, check that the
+        	// condition is met.
+        	if(requireLeftRightPair) {
+        		boolean hasLeft = (TriggerModule.getClusterXIndex(pair[0]) < 0|| TriggerModule.getClusterXIndex(pair[1]) < 0);
+        		boolean hasRight = (TriggerModule.getClusterXIndex(pair[0]) > 0|| TriggerModule.getClusterXIndex(pair[1]) > 0);
+        		if(!hasLeft || !hasRight) { continue pairPlotsLoop; }
+        	}
+        	
+        	// If FEE clusters are to be excluded, check if any are present.
+        	if(!Double.isNaN(pairFEEThreshold)) {
+        		for(Cluster cluster : pair) {
+        			// The FEE cut only applies to left clusters.
+        			if(TriggerModule.getClusterXIndex(cluster) < 0) {
+        				// The pair is invalid if the cluster has more
+        				// energy than the threshold.
+        				if(TriggerModule.getValueClusterTotalEnergy(cluster) > pairFEEThreshold) {
+        					continue pairPlotsLoop;
+        				}
+        			}
+        		}
+        	}
+        	
+        	// If the time coincidence threshold is active, check that
+        	// the pair meets the requirement.
+        	if(!Double.isNaN(pairTimeThreshold)) {
+        		if(TriggerModule.getValueTimeCoincidence(pair) > pairTimeThreshold) {
+        			continue pairPlotsLoop;
+        		}
+        	}
+        	
+        	// Populate the plots.
         	aida.histogram1D(getTriggerPlotName(PAIR_ENERGY_SUM)).fill(TriggerModule.getValueEnergySum(pair));
         	aida.histogram1D(getTriggerPlotName(PAIR_ENERGY_DIFF)).fill(TriggerModule.getValueEnergyDifference(pair));
         	aida.histogram1D(getTriggerPlotName(PAIR_ENERGY_SLOPE)).fill(TriggerModule.getValueEnergySlope(pair, energySlopeParam));
         	aida.histogram1D(getTriggerPlotName(PAIR_COPLANARITY)).fill(TriggerModule.getValueCoplanarity(pair));
         	aida.histogram1D(getTriggerPlotName(PAIR_TIME_COINCIDENCE)).fill(TriggerModule.getValueTimeCoincidence(pair));
         }
-        
-        // Increment the number of processed events.
-        events++;
 	}
-    
+	
     /**
      * Checks whether all of the hits in a cluster are within the safe
      * region of the FADC output window.
@@ -329,6 +352,44 @@ public class SimpleTriggerPlotsDriver extends Driver {
      */
     public void setEnergySlopeConversionParameter(double value) {
     	energySlopeParam = value;
+    }
+    
+    public void setRequireFiducialClusters(boolean state) {
+    	requireFiducialClusters = state;
+    }
+    
+    /**
+     * Sets whether plotted pairs should carry the additional requirement
+     * of having one cluster on the left side of the calorimeter and
+     * one cluster on the right. This is disabled by default.
+     * @param state - <code>true</code> requires one cluster on each
+     * and <code>false</code> does not.
+     */
+    public void setRequireLeftRightPair(boolean state) {
+    	requireLeftRightPair = state;
+    }
+    
+    /**
+     * Defines a threshold for FEE electrons for plotted pair values.
+     * Pairs with a left-side cluster exceeding this value will not be
+     * included in the plots. This can be disabled by setting the value
+     * to <code>Double.NaN</code>. This is the default behavior.
+     * @param value - The threshold above which left-side clusters are
+     * excluded.
+     */
+    public void setPairFEEThreshold(double value) {
+    	pairFEEThreshold = value;
+    }
+    
+    /**
+     * Defines a time-coincidence threshold in which cluster pairs must
+     * fall in order to be plotted. This can be disabled by setting the
+     * value to <code>Double.NaN</code>. This is the default behavior.
+     * @param value - The absolute difference in time clusters must fall
+     * within in order to be plotted in pair plots.
+     */
+    public void setPairTimeThreshold(double value) {
+    	pairTimeThreshold = value;
     }
     
     public void setClusterSeedEnergyXMax(double value)   { xMax[CLUSTER_SEED_ENERGY]   = value; }

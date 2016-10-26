@@ -182,7 +182,13 @@ public class AddPlots {
             // and add each bin entry to the compiled plot.
             for(int i = 0; i < histogramNames1D.size(); i++) {
                 // Get the histogram object.
-                IHistogram1D histogram = (IHistogram1D) fileTree.find(histogramNames1D.get(i));
+            	IHistogram1D histogram = null;
+                try { histogram = (IHistogram1D) fileTree.find(histogramNames1D.get(i)); }
+                catch(Exception e) {
+                	e.printStackTrace();
+                	System.err.println("Could not find required plot in file " + file.getName());
+                	System.exit(1);
+                }
                 
                 // Iterate over the bins.
                 for(int x = 0; x < xBins1D.get(i); x++) {
