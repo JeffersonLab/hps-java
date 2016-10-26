@@ -48,6 +48,9 @@ public class DAQConfig extends IDAQConfig {
         sspConfig.loadConfig(parser);
         gtpConfig.loadConfig(parser);
         fadcConfig.loadConfig(parser);
+        
+        // Print the loaded configuration to the terminal.
+        printConfig(System.out);
     }
 
     @Override
