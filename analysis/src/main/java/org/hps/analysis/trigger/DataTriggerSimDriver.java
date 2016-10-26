@@ -82,13 +82,13 @@ public class DataTriggerSimDriver extends Driver {
     private TriggerModule[] singlesTrigger = new TriggerModule[2];
     
     // Reference variables.
-    private static final int ENERGY_MIN   = TriggerDiagnosticUtil.SINGLES_ENERGY_MIN;
-    private static final int ENERGY_MAX   = TriggerDiagnosticUtil.SINGLES_ENERGY_MAX;
-    private static final int HIT_COUNT    = TriggerDiagnosticUtil.SINGLES_HIT_COUNT;
-    private static final int ENERGY_SUM   = TriggerDiagnosticUtil.PAIR_ENERGY_SUM;
-    private static final int ENERGY_DIFF  = TriggerDiagnosticUtil.PAIR_ENERGY_DIFF;
-    private static final int ENERGY_SLOPE = TriggerDiagnosticUtil.PAIR_ENERGY_SLOPE;
-    private static final int COPLANARITY  = TriggerDiagnosticUtil.PAIR_COPLANARITY;
+    private static final int ENERGY_MIN   = 0;
+    private static final int ENERGY_MAX   = 1;
+    private static final int HIT_COUNT    = 2;
+    private static final int ENERGY_SUM   = 0;
+    private static final int ENERGY_DIFF  = 1;
+    private static final int ENERGY_SLOPE = 2;
+    private static final int COPLANARITY  = 3;
     
     // Plots
     private AIDA aida = AIDA.defaultInstance();

@@ -13,23 +13,6 @@ import org.lcsim.event.Cluster;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class TriggerDiagnosticUtil {
-    // Cluster match state variables.
-    public static final byte CLUSTER_STATE_MATCHED        = 0;
-    public static final byte CLUSTER_STATE_FAIL_POSITION  = 1;
-    public static final byte CLUSTER_STATE_FAIL_ENERGY    = 2;
-    public static final byte CLUSTER_STATE_FAIL_HIT_COUNT = 3;
-    public static final byte CLUSTER_STATE_FAIL_TIME      = 4;
-    public static final byte CLUSTER_STATE_FAIL_UNKNOWN   = 5;
-    
-    // Trigger match cut IDs.
-    public static final int SINGLES_ENERGY_MIN = 0;
-    public static final int SINGLES_ENERGY_MAX = 1;
-    public static final int SINGLES_HIT_COUNT = 2;
-    public static final int PAIR_ENERGY_SUM = 0;
-    public static final int PAIR_ENERGY_DIFF = 1;
-    public static final int PAIR_ENERGY_SLOPE = 2;
-    public static final int PAIR_COPLANARITY = 3;
-    
     /**
      * Convenience method that writes the position of a cluster in the
      * form (ix, iy).
@@ -74,19 +57,6 @@ public class TriggerDiagnosticUtil {
                 TriggerModule.getClusterXIndex(cluster), TriggerModule.getClusterYIndex(cluster),
                 TriggerModule.getValueClusterTotalEnergy(cluster), TriggerModule.getClusterHitCount(cluster),
                 TriggerModule.getClusterTime(cluster));
-    }
-    
-    /**
-     * Gets the number of digits in the base-10 String representation
-     * of an integer primitive. Negative signs are not included in the
-     * digit count.
-     * @param value - The value of which to obtain the length.
-     * @return Returns the number of digits in the String representation
-     * of the argument value.
-     */
-    public static final int getDigits(int value) {
-        if(value < 0) { return Integer.toString(value).length() - 1; }
-        else { return Integer.toString(value).length(); }
     }
     
     /**
