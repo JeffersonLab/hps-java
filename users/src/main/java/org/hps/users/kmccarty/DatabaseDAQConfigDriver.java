@@ -14,11 +14,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 
+/**
+ * Driver <code>DatabaseDAQConfigDriver</code> is a variant of the
+ * standard DAQ configuration driver that reads configuration data from
+ * the run database instead of either local files or an EvIO file.
+ * 
+ * @author Kyle McCarty <mccarty@jlab.org>
+ */
 public class DatabaseDAQConfigDriver extends DAQConfigDriver {
     // Define the crate enumerables by crate number. Crates are
     // in the order 46, 37, 39.
     private static final Crate[] CRATES = { Crate.CONFIG3, Crate.CONFIG1, Crate.CONFIG2 };
     
+    /**
+     * Updates the DAQ configuration manager with DAQ settings from the
+     * run database.
+     * @param detector - The detector object. This is not actually used.
+     */
     @Override
     public void detectorChanged(Detector detector) {
         // Make sure that the run number is defined.
@@ -51,9 +63,25 @@ public class DatabaseDAQConfigDriver extends DAQConfigDriver {
         manager.closeConnection();
     }
     
+    /**
+     * When loading from the database, information is pulled on detector
+     * change rather than by looking for a specific object in event data.
+     * As such, <code>process</code> is overwritten to do nothing.
+     * @param event - Object containing event data.
+     */
     @Override
     public void process(EventHeader event) { }
     
+    /**
+     * Parses the text dump containing the DAQ configuration and parses
+     * it into lines. Data is returned as an array of strings. The first
+     * array index corresponds to the crate dump and the second array
+     * to the line.
+     * @param triggerConfig - The DAQ configuration dump object.
+     * @return Returns the DAQ configuration parsed as a String array.
+     * @throws IOException Occurs if there is an error reading the dump
+     * stream.
+     */
     private static final String[][] getDataFileArrays(TriggerConfigData triggerConfig) throws IOException {
         // Create file readers to process the data files.
         StringReader[] fr = new StringReader[3];
