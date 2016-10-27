@@ -7,12 +7,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.10-SNAPSHOT</version>
+        <version>3.10</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/crawler/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/crawler/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/crawler/</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.10/crawler</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.10/crawler</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.10/crawler</developerConnection>
     </scm>    
     <dependencies>
         <dependency>

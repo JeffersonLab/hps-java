@@ -7,12 +7,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.10-SNAPSHOT</version>
+        <version>3.10</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/datacat/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/datacat/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/datacat/</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-3.10/datacat</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.10/datacat</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-3.10/datacat</developerConnection>
     </scm>    
     <dependencies>
         <dependency>
