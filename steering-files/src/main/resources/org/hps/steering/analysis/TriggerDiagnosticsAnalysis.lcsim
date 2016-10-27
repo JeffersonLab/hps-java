@@ -9,28 +9,31 @@
         <driver name="EventMarkerDriver"/>
         <driver name="DAQConfig"/>
         <driver name="EcalRawConverter"/>
-        <driver name="GTPTestDriver"/>
+        <driver name="GTPClusterer"/>
         <driver name="TriggerSimDriver"/>
-        <driver name="TriggerDiagnostics"/>
-        <driver name="RawPlotsDriver"/>
+        <driver name="ClusterDiagnostics"/>
+		<driver name="Singles0Diagnostics"/>
+		<driver name="Singles1Diagnostics"/>
+		<driver name="Pair0Diagnostics"/>
+		<driver name="Pair1Diagnostics"/>
         <driver name="AidaSaveDriver"/>
-        <driver name="ClockDriver"/>
-        <driver name="CleanupDriver"/>
     </execute>
      
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
-        
-        <driver name="DAQConfig" type="org.hps.record.daqconfig.DAQConfigDriver"/>
+		
+        <driver name="DAQConfig" type="org.hps.recon.ecal.DatabaseDAQConfigDriver">
+            <runNumber>${run}</runNumber>
+        </driver>
         
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalOnlineRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <rawCollectionName>EcalReadoutHits</rawCollectionName>
         </driver>
         
-        <driver name="GTPTestDriver" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
+        <driver name="GTPClusterer" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
             <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
             <seedEnergyThreshold>0.010</seedEnergyThreshold>
             <windowBefore>2</windowBefore>
@@ -46,34 +49,208 @@
             <triggerCollectionName>SimTriggers</triggerCollectionName>
         </driver>
         
-        <driver name="TriggerDiagnostics" type="org.hps.analysis.trigger.TriggerDiagnosticDriver">
-            <hitAcceptanceWindow>0</hitAcceptanceWindow>
-            <noiseThresholdCount>100</noiseThresholdCount>
-            <energyAcceptanceWindow>0.009</energyAcceptanceWindow>
-            <printOnClusterFailure>false</printOnClusterFailure>
-            <printOnSinglesSSPFailure>false</printOnSinglesSSPFailure>
-            <printOnSinglesEfficiencyFailure>false</printOnSinglesEfficiencyFailure>
-            <printOnPairSSPFailure>false</printOnPairSSPFailure>
-            <printOnPairEfficiencyFailure>false</printOnPairEfficiencyFailure>
-            <enforceStrictTimeCompliance>true</enforceStrictTimeCompliance>
-            <readDAQConfig>true</readDAQConfig>
-            <verbose>false</verbose>
-        </driver>
-        
-        <driver name="RawPlotsDriver" type="org.hps.users.kmccarty.EvioAnalysis">
-            <clusterCollectionName>EcalClusters</clusterCollectionName>
+        <driver name="ClusterDiagnostics" type="org.hps.analysis.trigger.ClusterDiagnosticDriver">
+			<!-- Define the collection names to be used by the diagnostic driver.
+			     By default, these are:
+				     > hitCollectionName     = "EcalCalHits"
+					 > bankCollectionName    = "TriggerBank"
+					 > clusterCollectionName = "EcalClusters"
+			-->
+            <hitCollectionName>EcalCalHits</hitCollectionName>
             <bankCollectionName>TriggerBank</bankCollectionName>
-            <energySlopeParamF>0.0055</energySlopeParamF>
+            <clusterCollectionName>EcalClusters</clusterCollectionName>
+			
+			<!-- Define the verification settings used by the diagnostics. These
+			     indicate how closely two matched clusters must fall in energy and
+				 hit count in order to be verified as correct.
+			-->
+            <hitVerificationThreshold>0</hitVerificationThreshold>
+            <energyVerificationThreshold>0.009</energyVerificationThreshold>
+			
+			<!-- Define whether events with more than a certain number of hits
+			     should be ignored as noise. Noise event culling occurs when
+				 skipNoiseEvents is enabled, and the threshold for a noise event
+				 is defined by noiseThreshold in units of hits.
+			-->
+            <noiseThreshold>100</noiseThreshold>
+			<skipNoiseEvents>true</skipNoiseEvents>
+			
+			<!-- Determines the size of the local samplings used to populate
+			     the trigger efficiency over time plot. Units are in ms.
+			-->
+			<localWindowSize>300</localWindowSize>
+			
+			<!-- Define verbosity settings. When verbose is enabled, every event
+			     will produce a full event summary. When printOnVerificationFailure
+				 is enabled, events which include at least one cluster which fails
+				 verification will produce an event summary.
+			-->
+            <verbose>false</verbose>
+            <printOnVerificationFailure>false</printOnVerificationFailure>
         </driver>
         
+		<driver name="Singles0Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnosticDriver">
+			<!-- Define the collection names to be used by the diagnostic driver.
+			     By default, these are:
+				     > hitCollectionName     = "EcalCalHits"
+					 > bankCollectionName    = "TriggerBank"
+					 > triggerCollectionName = "SimTriggers"
+			-->
+            <hitCollectionName>EcalCalHits</hitCollectionName>
+            <bankCollectionName>TriggerBank</bankCollectionName>
+            <triggerCollectionName>SimTriggers</triggerCollectionName>
+			
+			<!-- Define whether events with more than a certain number of hits
+			     should be ignored as noise. Noise event culling occurs when
+				 skipNoiseEvents is enabled, and the threshold for a noise event
+				 is defined by noiseThreshold in units of hits.
+			-->
+            <noiseThreshold>100</noiseThreshold>
+			<skipNoiseEvents>true</skipNoiseEvents>
+			
+			<!-- Defines on which trigger verification should be performed.
+			     Allowed values are "SINGLES0", "SINGLES1", "PAIR0", and
+				 "PAIR1" only. These are case-sensitive.
+			-->
+			<triggerType>SINGLES0</triggerType>
+			
+			<!-- Define verbosity settings. When verbose is enabled, every event
+			     will produce a full event summary. When printOnVerificationFailure
+				 is enabled, events which include at least one cluster which fails
+				 verification will produce an event summary.
+			-->
+            <verbose>false</verbose>
+			<printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+			<printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+			
+			<!-- Determines the size of the local samplings used to populate
+			     the trigger efficiency over time plot. Units are in ms.
+			-->
+			<localWindowSize>300</localWindowSize>
+        </driver>
+        
+		<driver name="Singles1Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnosticDriver">
+			<!-- Define the collection names to be used by the diagnostic driver.
+			     By default, these are:
+				     > hitCollectionName     = "EcalCalHits"
+					 > bankCollectionName    = "TriggerBank"
+					 > triggerCollectionName = "SimTriggers"
+			-->
+            <hitCollectionName>EcalCalHits</hitCollectionName>
+            <bankCollectionName>TriggerBank</bankCollectionName>
+            <triggerCollectionName>SimTriggers</triggerCollectionName>
+			
+			<!-- Define whether events with more than a certain number of hits
+			     should be ignored as noise. Noise event culling occurs when
+				 skipNoiseEvents is enabled, and the threshold for a noise event
+				 is defined by noiseThreshold in units of hits.
+			-->
+            <noiseThreshold>100</noiseThreshold>
+			<skipNoiseEvents>true</skipNoiseEvents>
+			
+			<!-- Defines on which trigger verification should be performed.
+			     Allowed values are "SINGLES0", "SINGLES1", "PAIR0", and
+				 "PAIR1" only. These are case-sensitive.
+			-->
+			<triggerType>SINGLES1</triggerType>
+			
+			<!-- Define verbosity settings. When verbose is enabled, every event
+			     will produce a full event summary. When printOnVerificationFailure
+				 is enabled, events which include at least one cluster which fails
+				 verification will produce an event summary.
+			-->
+            <verbose>false</verbose>
+			<printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+			<printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+			
+			<!-- Determines the size of the local samplings used to populate
+			     the trigger efficiency over time plot. Units are in ms.
+			-->
+			<localWindowSize>300</localWindowSize>
+        </driver>
+        
+		<driver name="Pair0Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnosticDriver">
+			<!-- Define the collection names to be used by the diagnostic driver.
+			     By default, these are:
+				     > hitCollectionName     = "EcalCalHits"
+					 > bankCollectionName    = "TriggerBank"
+					 > triggerCollectionName = "SimTriggers"
+			-->
+            <hitCollectionName>EcalCalHits</hitCollectionName>
+            <bankCollectionName>TriggerBank</bankCollectionName>
+            <triggerCollectionName>SimTriggers</triggerCollectionName>
+			
+			<!-- Define whether events with more than a certain number of hits
+			     should be ignored as noise. Noise event culling occurs when
+				 skipNoiseEvents is enabled, and the threshold for a noise event
+				 is defined by noiseThreshold in units of hits.
+			-->
+            <noiseThreshold>100</noiseThreshold>
+			<skipNoiseEvents>true</skipNoiseEvents>
+			
+			<!-- Defines on which trigger verification should be performed.
+			     Allowed values are "SINGLES0", "SINGLES1", "PAIR0", and
+				 "PAIR1" only. These are case-sensitive.
+			-->
+			<triggerType>PAIR0</triggerType>
+			
+			<!-- Define verbosity settings. When verbose is enabled, every event
+			     will produce a full event summary. When printOnVerificationFailure
+				 is enabled, events which include at least one cluster which fails
+				 verification will produce an event summary.
+			-->
+            <verbose>false</verbose>
+			<printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+			<printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+			
+			<!-- Determines the size of the local samplings used to populate
+			     the trigger efficiency over time plot. Units are in ms.
+			-->
+			<localWindowSize>300</localWindowSize>
+        </driver>
+        
+		<driver name="Pair1Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnosticDriver">
+			<!-- Define the collection names to be used by the diagnostic driver.
+			     By default, these are:
+				     > hitCollectionName     = "EcalCalHits"
+					 > bankCollectionName    = "TriggerBank"
+					 > triggerCollectionName = "SimTriggers"
+			-->
+            <hitCollectionName>EcalCalHits</hitCollectionName>
+            <bankCollectionName>TriggerBank</bankCollectionName>
+            <triggerCollectionName>SimTriggers</triggerCollectionName>
+			
+			<!-- Define whether events with more than a certain number of hits
+			     should be ignored as noise. Noise event culling occurs when
+				 skipNoiseEvents is enabled, and the threshold for a noise event
+				 is defined by noiseThreshold in units of hits.
+			-->
+            <noiseThreshold>100</noiseThreshold>
+			<skipNoiseEvents>true</skipNoiseEvents>
+			
+			<!-- Defines on which trigger verification should be performed.
+			     Allowed values are "SINGLES0", "SINGLES1", "PAIR0", and
+				 "PAIR1" only. These are case-sensitive.
+			-->
+			<triggerType>PAIR1</triggerType>
+			
+			<!-- Define verbosity settings. When verbose is enabled, every event
+			     will produce a full event summary. When printOnVerificationFailure
+				 is enabled, events which include at least one cluster which fails
+				 verification will produce an event summary.
+			-->
+            <verbose>false</verbose>
+			<printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+			<printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+			
+			<!-- Determines the size of the local samplings used to populate
+			     the trigger efficiency over time plot. Units are in ms.
+			-->
+			<localWindowSize>300</localWindowSize>
+        </driver>
+		
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>${outputFile}_triggerPlots.aida</outputFileName>
-        </driver>
-        
-        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
-        
-        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
-            <collectionNames>TrackerHits</collectionNames>
+            <outputFileName>${outputFile}.aida</outputFileName>
         </driver> 
     </drivers>
 </lcsim>
