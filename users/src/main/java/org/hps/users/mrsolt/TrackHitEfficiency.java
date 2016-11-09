@@ -74,6 +74,14 @@ public class TrackHitEfficiency extends Driver {
     IHistogram1D trackMomentumPlots_bot;
     IHistogram1D HitEfficiency_top;
     IHistogram1D HitEfficiency_bot;
+    IHistogram1D HitEfficiency_topElec;
+    IHistogram1D HitEfficiency_botElec;
+    IHistogram1D HitEfficiency_topPosi;
+    IHistogram1D HitEfficiency_botPosi;
+    IHistogram1D HitEfficiencyError_topElec;
+    IHistogram1D HitEfficiencyError_botElec;
+    IHistogram1D HitEfficiencyError_topPosi;
+    IHistogram1D HitEfficiencyError_botPosi;
     IHistogram1D HitEfficiencyError_top;
     IHistogram1D HitEfficiencyError_bot;
     IHistogram1D HitEfficiency_Momentum_top;
@@ -111,6 +119,15 @@ public class TrackHitEfficiency extends Driver {
     IHistogram1D TrackYTop;
     IHistogram1D TrackXBot;
     IHistogram1D TrackYBot;
+    
+    IHistogram2D TrackResidualXvsMomentumTop;
+    IHistogram2D TrackResidualYvsMomentumTop;
+    IHistogram2D TrackResidualXvsMomentumBot;
+    IHistogram2D TrackResidualYvsMomentumBot;
+    
+    IHistogram2D TrackResidualXvsTrackResdidualYTop;
+    IHistogram2D TrackResidualXvsTrackResdidualYBot;  
+    
     Map<Integer, IHistogram1D> trackMomentum = new HashMap<Integer,IHistogram1D>();
     Map<Integer, IHistogram1D> trackMomentum_top = new HashMap<Integer,IHistogram1D>();
     Map<Integer, IHistogram1D> trackMomentum_bot = new HashMap<Integer,IHistogram1D>();
@@ -130,10 +147,22 @@ public class TrackHitEfficiency extends Driver {
     Map<Integer, IHistogram1D> UnbiasedResidualX_bot = new HashMap<Integer,IHistogram1D>();
     Map<Integer, IHistogram1D> UnbiasedResidualY_top = new HashMap<Integer,IHistogram1D>();
     Map<Integer, IHistogram1D> UnbiasedResidualY_bot = new HashMap<Integer,IHistogram1D>();
+    Map<Integer, IHistogram2D> Momentum_UnbiasedResidualX_top = new HashMap<Integer,IHistogram2D>();
+    Map<Integer, IHistogram2D> Momentum_UnbiasedResidualX_bot = new HashMap<Integer,IHistogram2D>();
+    Map<Integer, IHistogram2D> Momentum_UnbiasedResidualY_top = new HashMap<Integer,IHistogram2D>();
+    Map<Integer, IHistogram2D> Momentum_UnbiasedResidualY_bot = new HashMap<Integer,IHistogram2D>();
     Map<Integer, IHistogram1D> HitEfficiency_MomentumLay_top = new HashMap<Integer,IHistogram1D>();
     Map<Integer, IHistogram1D> HitEfficiency_MomentumLay_bot = new HashMap<Integer,IHistogram1D>();
     Map<Integer, IHistogram1D> HitEfficiency_MomentumLayError_top = new HashMap<Integer,IHistogram1D>();
     Map<Integer, IHistogram1D> HitEfficiency_MomentumLayError_bot = new HashMap<Integer,IHistogram1D>();
+    Map<Integer, IHistogram1D> HitEfficiency_MomentumLay_topElec = new HashMap<Integer,IHistogram1D>();
+    Map<Integer, IHistogram1D> HitEfficiency_MomentumLay_botElec = new HashMap<Integer,IHistogram1D>();
+    Map<Integer, IHistogram1D> HitEfficiency_MomentumLayError_topElec = new HashMap<Integer,IHistogram1D>();
+    Map<Integer, IHistogram1D> HitEfficiency_MomentumLayError_botElec = new HashMap<Integer,IHistogram1D>();
+    Map<Integer, IHistogram1D> HitEfficiency_MomentumLay_topPosi = new HashMap<Integer,IHistogram1D>();
+    Map<Integer, IHistogram1D> HitEfficiency_MomentumLay_botPosi = new HashMap<Integer,IHistogram1D>();
+    Map<Integer, IHistogram1D> HitEfficiency_MomentumLayError_topPosi = new HashMap<Integer,IHistogram1D>();
+    Map<Integer, IHistogram1D> HitEfficiency_MomentumLayError_botPosi = new HashMap<Integer,IHistogram1D>();
     
     int num_lay = 6;
     
@@ -157,15 +186,77 @@ public class TrackHitEfficiency extends Driver {
     double[] botXResidualCut = new double[num_lay];
     double[] botYResidualCut = new double[num_lay];
     
-    double topXResidualOffset1 = 0; 
+    double topXResidualOffset1; 
+    double topYResidualOffset1; 
+    double botXResidualOffset1; 
+    double botYResidualOffset1; 
+    
+    double topXResidualCut1;
+    double topYResidualCut1;
+    double botXResidualCut1;
+    double botYResidualCut1;
+    
+    double topXResidualOffset2; 
+    double topYResidualOffset2; 
+    double botXResidualOffset2; 
+    double botYResidualOffset2; 
+    
+    double topXResidualCut2;
+    double topYResidualCut2;
+    double botXResidualCut2;
+    double botYResidualCut2;
+    
+    double topXResidualOffset3; 
+    double topYResidualOffset3; 
+    double botXResidualOffset3; 
+    double botYResidualOffset3; 
+    
+    double topXResidualCut3;
+    double topYResidualCut3;
+    double botXResidualCut3;
+    double botYResidualCut3;
+    
+    double topXResidualOffset4; 
+    double topYResidualOffset4; 
+    double botXResidualOffset4; 
+    double botYResidualOffset4; 
+    
+    double topXResidualCut4;
+    double topYResidualCut4;
+    double botXResidualCut4;
+    double botYResidualCut4;
+    
+    double topXResidualOffset5; 
+    double topYResidualOffset5; 
+    double botXResidualOffset5; 
+    double botYResidualOffset5; 
+    
+    double topXResidualCut5;
+    double topYResidualCut5;
+    double botXResidualCut5;
+    double botYResidualCut5;
+    
+    double topXResidualOffset6; 
+    double topYResidualOffset6; 
+    double botXResidualOffset6; 
+    double botYResidualOffset6; 
+    
+    double topXResidualCut6;
+    double topYResidualCut6;
+    double botXResidualCut6;
+    double botYResidualCut6;
+    
+    
+    
+    /*double topXResidualOffset1 = 0; 
     double topYResidualOffset1 = 0; 
     double botXResidualOffset1 = 0; 
     double botYResidualOffset1 = 0; 
     
-    double topXResidualCut1 = 3;
-    double topYResidualCut1 = 2;
-    double botXResidualCut1 = 3;
-    double botYResidualCut1 = 2;
+    double topXResidualCut1 = 4;
+    double topYResidualCut1 = 3;
+    double botXResidualCut1 = 4;
+    double botYResidualCut1 = 3;
     
     double topXResidualOffset2 = 0; 
     double topYResidualOffset2 = 0; 
@@ -173,9 +264,9 @@ public class TrackHitEfficiency extends Driver {
     double botYResidualOffset2 = 0; 
     
     double topXResidualCut2 = 2;
-    double topYResidualCut2 = 1;
+    double topYResidualCut2 = 2;
     double botXResidualCut2 = 2;
-    double botYResidualCut2 = 1;
+    double botYResidualCut2 = 2;
     
     double topXResidualOffset3 = 0; 
     double topYResidualOffset3 = 0; 
@@ -183,29 +274,29 @@ public class TrackHitEfficiency extends Driver {
     double botYResidualOffset3 = 0; 
     
     double topXResidualCut3 = 2;
-    double topYResidualCut3 = 1;
+    double topYResidualCut3 = 2;
     double botXResidualCut3 = 2;
-    double botYResidualCut3 = 1;
+    double botYResidualCut3 = 2;
     
     double topXResidualOffset4 = 0; 
     double topYResidualOffset4 = 0; 
     double botXResidualOffset4 = 0; 
     double botYResidualOffset4 = 0; 
     
-    double topXResidualCut4 = 2;
-    double topYResidualCut4 = 1;
-    double botXResidualCut4 = 2;
-    double botYResidualCut4 = 1;
+    double topXResidualCut4 = 3;
+    double topYResidualCut4 = 2;
+    double botXResidualCut4 = 3;
+    double botYResidualCut4 = 2;
     
     double topXResidualOffset5 = 0; 
     double topYResidualOffset5 = 0; 
     double botXResidualOffset5 = 0; 
     double botYResidualOffset5 = 0; 
     
-    double topXResidualCut5 = 2;
-    double topYResidualCut5 = 2;
-    double botXResidualCut5 = 2;
-    double botYResidualCut5 = 2;
+    double topXResidualCut5 = 3;
+    double topYResidualCut5 = 4;
+    double botXResidualCut5 = 3;
+    double botYResidualCut5 = 4;
     
     double topXResidualOffset6 = 0; 
     double topYResidualOffset6 = 0; 
@@ -213,11 +304,11 @@ public class TrackHitEfficiency extends Driver {
     double botYResidualOffset6 = 0; 
     
     double topXResidualCut6 = 6;
-    double topYResidualCut6 = 3;
+    double topYResidualCut6 = 6;
     double botXResidualCut6 = 6;
-    double botYResidualCut6 = 3;
+    double botYResidualCut6 = 6;*/
     
-    int nSigCut = 1;
+    int nSigCut;
     
     double[] gapXtop = new double[num_lay];
     double[] gapXbot = new double[num_lay];
@@ -233,6 +324,7 @@ public class TrackHitEfficiency extends Driver {
     
     boolean debug = false;
     boolean ecalClusterTrackMatch = false;
+    boolean cleanTridents = false;
     
     // Plot flags
     boolean enableMomentumPlots = true;
@@ -251,7 +343,7 @@ public class TrackHitEfficiency extends Driver {
 
     int nBinx = 500;
     int nBiny = 700;
-    int nP = 50;
+    int nP = 20;
     int[] numberOfTopTracks = new int[num_lay];
     int[] numberOfBotTracks = new int[num_lay];
     int[] numberOfTopTracksWithHitOnMissingLayer = new int[num_lay];
@@ -260,6 +352,24 @@ public class TrackHitEfficiency extends Driver {
     double[] hitEfficiencyBot = new double[num_lay];
     double[] errorTop = new double[num_lay];
     double[] errorBot = new double[num_lay];
+    
+    int[] numberOfTopTracksElectron = new int[num_lay];
+    int[] numberOfBotTracksElectron = new int[num_lay];
+    int[] numberOfTopTracksWithHitOnMissingLayerElectron = new int[num_lay];
+    int[] numberOfBotTracksWithHitOnMissingLayerElectron = new int[num_lay];
+    double[] hitEfficiencyTopElectron = new double[num_lay];
+    double[] hitEfficiencyBotElectron = new double[num_lay];
+    double[] errorTopElectron = new double[num_lay];
+    double[] errorBotElectron = new double[num_lay];
+    
+    int[] numberOfTopTracksPositron = new int[num_lay];
+    int[] numberOfBotTracksPositron = new int[num_lay];
+    int[] numberOfTopTracksWithHitOnMissingLayerPositron = new int[num_lay];
+    int[] numberOfBotTracksWithHitOnMissingLayerPositron = new int[num_lay];
+    double[] hitEfficiencyTopPositron = new double[num_lay];
+    double[] hitEfficiencyBotPositron = new double[num_lay];
+    double[] errorTopPositron = new double[num_lay];
+    double[] errorBotPositron = new double[num_lay];
     
     int[] numberOfTopTracksElec = new int[num_lay];
     int[] numberOfTopTracksPosi = new int[num_lay];
@@ -335,11 +445,31 @@ public class TrackHitEfficiency extends Driver {
     Map<Integer, double[]> hitEfficiencyMomentumLayBot = new HashMap<Integer,double[]>();
     Map<Integer, double[]> hitEfficiencyErrorMomentumLayTop = new HashMap<Integer,double[]>();
     Map<Integer, double[]> hitEfficiencyErrorMomentumLayBot = new HashMap<Integer,double[]>();
+    Map<Integer, int[]> numberOfTopTracksWithHitOnMissingLayerMomentumLayElec = new HashMap<Integer,int[]>();
+    Map<Integer, int[]> numberOfBotTracksWithHitOnMissingLayerMomentumLayElec = new HashMap<Integer,int[]>();
+    Map<Integer, int[]> numberOfTopTracksMomentumLayElec = new HashMap<Integer,int[]>();
+    Map<Integer, int[]> numberOfBotTracksMomentumLayElec = new HashMap<Integer,int[]>();
+    Map<Integer, int[]> numberOfTopTracksWithHitOnMissingLayerMomentumLayPosi = new HashMap<Integer,int[]>();
+    Map<Integer, int[]> numberOfBotTracksWithHitOnMissingLayerMomentumLayPosi = new HashMap<Integer,int[]>();
+    Map<Integer, int[]> numberOfTopTracksMomentumLayPosi = new HashMap<Integer,int[]>();
+    Map<Integer, int[]> numberOfBotTracksMomentumLayPosi = new HashMap<Integer,int[]>();
+    Map<Integer, double[]> hitEfficiencyMomentumLayTopElec = new HashMap<Integer,double[]>();
+    Map<Integer, double[]> hitEfficiencyMomentumLayBotElec = new HashMap<Integer,double[]>();
+    Map<Integer, double[]> hitEfficiencyErrorMomentumLayTopElec = new HashMap<Integer,double[]>();
+    Map<Integer, double[]> hitEfficiencyErrorMomentumLayBotElec = new HashMap<Integer,double[]>();
+    Map<Integer, double[]> hitEfficiencyMomentumLayTopPosi = new HashMap<Integer,double[]>();
+    Map<Integer, double[]> hitEfficiencyMomentumLayBotPosi = new HashMap<Integer,double[]>();
+    Map<Integer, double[]> hitEfficiencyErrorMomentumLayTopPosi = new HashMap<Integer,double[]>();
+    Map<Integer, double[]> hitEfficiencyErrorMomentumLayBotPosi = new HashMap<Integer,double[]>();
     
     double lowerLimX = -100;
     double upperLimX = 130;
     double lowerLimY = -70;
     double upperLimY = 70;
+    /*double lowerLimX = -10;
+    double upperLimX = 20;
+    double lowerLimY = -10;
+    double upperLimY = 10;*/
     double lowerLimP;
     double upperLimP;
    
@@ -367,6 +497,11 @@ public class TrackHitEfficiency extends Driver {
     Hep3Vector[] zPointonPlaneBot = new Hep3Vector[num_lay];
     double[] zBot = new double[num_lay];
     
+    double BadRegionXLow = 0;
+    double BadRegionYLow = 0;
+    double BadRegionXHigh = 0;
+    double BadRegionYHigh = 0;
+    
     Hep3Vector trackPos = null;
     Hep3Vector frontTrackPos = null;
     Hep3Vector rearTrackPos = null;
@@ -375,6 +510,7 @@ public class TrackHitEfficiency extends Driver {
     private String fsParticlesCollectionName = "FinalStateParticles";
     private String stereoHitCollectionName = "HelicalTrackHits";
     private String trackCollectionName = "MatchedTracks";
+    private String clusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
    
     // Constants
     public static final double SENSOR_LENGTH = 98.33; // mm
@@ -399,6 +535,205 @@ public class TrackHitEfficiency extends Driver {
         this.hitsOnTrack = hitsOnTrack;
     }
     
+    public void setTridentsOnly(boolean cleanTridents) { 
+        this.cleanTridents = cleanTridents;
+    }
+    
+    public void setTopXResidualOffset1(double topXResidualOffset1) { 
+        this.topXResidualOffset1 = topXResidualOffset1;
+    }
+    
+    public void setTopXResidualOffset2(double topXResidualOffset2) { 
+        this.topXResidualOffset2 = topXResidualOffset2;
+    }
+    
+    public void setTopXResidualOffset3(double topXResidualOffset3) { 
+        this.topXResidualOffset3 = topXResidualOffset3;
+    }
+    
+    public void setTopXResidualOffset4(double topXResidualOffset4) { 
+        this.topXResidualOffset4 = topXResidualOffset4;
+    }
+    
+    public void setTopXResidualOffset5(double topXResidualOffset5) { 
+        this.topXResidualOffset5 = topXResidualOffset5;
+    }
+    
+    public void setTopXResidualOffset6(double topXResidualOffset6) { 
+        this.topXResidualOffset6 = topXResidualOffset6;
+    }
+    
+    public void setBotXResidualOffset1(double botXResidualOffset1) { 
+        this.botXResidualOffset1 = botXResidualOffset1;
+    }
+    
+    public void setBotXResidualOffset2(double botXResidualOffset2) { 
+        this.botXResidualOffset2 = botXResidualOffset2;
+    }
+    
+    public void setBotXResidualOffset3(double botXResidualOffset3) { 
+        this.botXResidualOffset3 = botXResidualOffset3;
+    }
+    
+    public void setBotXResidualOffset4(double botXResidualOffset4) { 
+        this.botXResidualOffset4 = botXResidualOffset4;
+    }
+    
+    public void setBotXResidualOffset5(double botXResidualOffset5) { 
+        this.botXResidualOffset5 = botXResidualOffset5;
+    }
+    
+    public void setBotXResidualOffset6(double botXResidualOffset6) { 
+        this.botXResidualOffset6 = botXResidualOffset6;
+    }
+    
+    public void setTopYResidualOffset1(double topYResidualOffset1) { 
+        this.topYResidualOffset1 = topYResidualOffset1;
+    }
+    
+    public void setTopYResidualOffset2(double topYResidualOffset2) { 
+        this.topYResidualOffset2 = topYResidualOffset2;
+    }
+    
+    public void setTopYResidualOffset3(double topYResidualOffset3) { 
+        this.topYResidualOffset3 = topYResidualOffset3;
+    }
+    
+    public void setTopYResidualOffset4(double topYResidualOffset4) { 
+        this.topYResidualOffset4 = topYResidualOffset4;
+    }
+    
+    public void setTopYResidualOffset5(double topYResidualOffset5) { 
+        this.topYResidualOffset5 = topYResidualOffset5;
+    }
+    
+    public void setTopYResidualOffset6(double topYResidualOffset6) { 
+        this.topYResidualOffset6 = topYResidualOffset6;
+    }
+    
+    public void setBotYResidualOffset1(double botYResidualOffset1) { 
+        this.botYResidualOffset1 = botYResidualOffset1;
+    }
+    
+    public void setBotYResidualOffset2(double botYResidualOffset2) { 
+        this.botYResidualOffset2 = botYResidualOffset2;
+    }
+    
+    public void setBotYResidualOffset3(double botYResidualOffset3) { 
+        this.botYResidualOffset3 = botYResidualOffset3;
+    }
+    
+    public void setBotYResidualOffset4(double botYResidualOffset4) { 
+        this.botYResidualOffset4 = botYResidualOffset4;
+    }
+    
+    public void setBotYResidualOffset5(double botYResidualOffset5) { 
+        this.botYResidualOffset5 = botYResidualOffset5;
+    }
+    
+    public void setBotYResidualOffset6(double botYResidualOffset6) { 
+        this.botYResidualOffset6 = botYResidualOffset6;
+    }
+    
+    public void setTopXResidualCut1(double topXResidualCut1) { 
+        this.topXResidualCut1 = topXResidualCut1;
+    }
+    
+    public void setTopXResidualCut2(double topXResidualCut2) { 
+        this.topXResidualCut2 = topXResidualCut2;
+    }
+    
+    public void setTopXResidualCut3(double topXResidualCut3) { 
+        this.topXResidualCut3 = topXResidualCut3;
+    }
+    
+    public void setTopXResidualCut4(double topXResidualCut4) { 
+        this.topXResidualCut4 = topXResidualCut4;
+    }
+    
+    public void setTopXResidualCut5(double topXResidualCut5) { 
+        this.topXResidualCut5 = topXResidualCut5;
+    }
+    
+    public void setTopXResidualCut6(double topXResidualCut6) { 
+        this.topXResidualCut6 = topXResidualCut6;
+    }
+    
+    public void setBotXResidualCut1(double botXResidualCut1) { 
+        this.botXResidualCut1 = botXResidualCut1;
+    }
+    
+    public void setBotXResidualCut2(double botXResidualCut2) { 
+        this.botXResidualCut2 = botXResidualCut2;
+    }
+    
+    public void setBotXResidualCut3(double botXResidualCut3) { 
+        this.botXResidualCut3 = botXResidualCut3;
+    }
+    
+    public void setBotXResidualCut4(double botXResidualCut4) { 
+        this.botXResidualCut4 = botXResidualCut4;
+    }
+    
+    public void setBotXResidualCut5(double botXResidualCut5) { 
+        this.botXResidualCut5 = botXResidualCut5;
+    }
+    
+    public void setBotXResidualCut6(double botXResidualCut6) { 
+        this.botXResidualCut6 = botXResidualCut6;
+    }
+    
+    public void setTopYResidualCut1(double topYResidualCut1) { 
+        this.topYResidualCut1 = topYResidualCut1;
+    }
+    
+    public void setTopYResidualCut2(double topYResidualCut2) { 
+        this.topYResidualCut2 = topYResidualCut2;
+    }
+    
+    public void setTopYResidualCut3(double topYResidualCut3) { 
+        this.topYResidualCut3 = topYResidualCut3;
+    }
+    
+    public void setTopYResidualCut4(double topYResidualCut4) { 
+        this.topYResidualCut4 = topYResidualCut4;
+    }
+    
+    public void setTopYResidualCut5(double topYResidualCut5) { 
+        this.topYResidualCut5 = topYResidualCut5;
+    }
+    
+    public void setTopYResidualCut6(double topYResidualCut6) { 
+        this.topYResidualCut6 = topYResidualCut6;
+    }
+    
+    public void setBotYResidualCut1(double botYResidualCut1) { 
+        this.botYResidualCut1 = botYResidualCut1;
+    }
+    
+    public void setBotYResidualCut2(double botYResidualCut2) { 
+        this.botYResidualCut2 = botYResidualCut2;
+    }
+    
+    public void setBotYResidualCut3(double botYResidualCut3) { 
+        this.botYResidualCut3 = botYResidualCut3;
+    }
+    
+    public void setBotYResidualCut4(double botYResidualCut4) { 
+        this.botYResidualCut4 = botYResidualCut4;
+    }
+    
+    public void setBotYResidualCut5(double botYResidualCut5) { 
+        this.botYResidualCut5 = botYResidualCut5;
+    }
+    
+    public void setBotYResidualCut6(double botYResidualCut6) { 
+        this.botYResidualCut6 = botYResidualCut6;
+    }
+
+    public void setNSigCut(int nSigCut) { 
+        this.nSigCut = nSigCut;
+    }
     /**
      *  Enable/Disable debug 
      */
@@ -461,65 +796,65 @@ public class TrackHitEfficiency extends Driver {
         zPointonPlaneBot[4] = zPointonPlaneLay5Top;
         zPointonPlaneBot[5] = zPointonPlaneLay6Top;
         
-        topXResidualOffset[0] = topXResidualOffset1;
-        topYResidualOffset[0] = topYResidualOffset1; 
-        botXResidualOffset[0] = botXResidualOffset1; 
-        botYResidualOffset[0] = botYResidualOffset1; 
+        topXResidualOffset[0] = this.topXResidualOffset1;
+        topYResidualOffset[0] = this.topYResidualOffset1; 
+        botXResidualOffset[0] = this.botXResidualOffset1; 
+        botYResidualOffset[0] = this.botYResidualOffset1; 
         
-        topXResidualCut[0] = topXResidualCut1;
-        topYResidualCut[0] = topYResidualCut1;
-        botXResidualCut[0] = botXResidualCut1;
-        botYResidualCut[0] = botYResidualCut1;
+        topXResidualCut[0] = this.topXResidualCut1;
+        topYResidualCut[0] = this.topYResidualCut1;
+        botXResidualCut[0] = this.botXResidualCut1;
+        botYResidualCut[0] = this.botYResidualCut1;
         
-        topXResidualOffset[1] = topXResidualOffset2;
-        topYResidualOffset[1] = topYResidualOffset2; 
-        botXResidualOffset[1] = botXResidualOffset2; 
-        botYResidualOffset[1] = botYResidualOffset2; 
+        topXResidualOffset[1] = this.topXResidualOffset2;
+        topYResidualOffset[1] = this.topYResidualOffset2; 
+        botXResidualOffset[1] = this.botXResidualOffset2; 
+        botYResidualOffset[1] = this.botYResidualOffset2; 
         
-        topXResidualCut[1] = topXResidualCut2;
-        topYResidualCut[1] = topYResidualCut2;
-        botXResidualCut[1] = botXResidualCut2;
-        botYResidualCut[1] = botYResidualCut2;
+        topXResidualCut[1] = this.topXResidualCut2;
+        topYResidualCut[1] = this.topYResidualCut2;
+        botXResidualCut[1] = this.botXResidualCut2;
+        botYResidualCut[1] = this.botYResidualCut2;
         
-        topXResidualOffset[2] = topXResidualOffset3;
-        topYResidualOffset[2] = topYResidualOffset3; 
-        botXResidualOffset[2] = botXResidualOffset3; 
-        botYResidualOffset[2] = botYResidualOffset3; 
+        topXResidualOffset[2] = this.topXResidualOffset3;
+        topYResidualOffset[2] = this.topYResidualOffset3; 
+        botXResidualOffset[2] = this.botXResidualOffset3; 
+        botYResidualOffset[2] = this.botYResidualOffset3; 
         
-        topXResidualCut[2] = topXResidualCut3;
-        topYResidualCut[2] = topYResidualCut3;
-        botXResidualCut[2] = botXResidualCut3;
-        botYResidualCut[2] = botYResidualCut3;
+        topXResidualCut[2] = this.topXResidualCut3;
+        topYResidualCut[2] = this.topYResidualCut3;
+        botXResidualCut[2] = this.botXResidualCut3;
+        botYResidualCut[2] = this.botYResidualCut3;
         
-        topXResidualOffset[3] = topXResidualOffset4;
-        topYResidualOffset[3] = topYResidualOffset4; 
-        botXResidualOffset[3] = botXResidualOffset4; 
-        botYResidualOffset[3] = botYResidualOffset4; 
+        topXResidualOffset[3] = this.topXResidualOffset4;
+        topYResidualOffset[3] = this.topYResidualOffset4; 
+        botXResidualOffset[3] = this.botXResidualOffset4; 
+        botYResidualOffset[3] = this.botYResidualOffset4; 
         
-        topXResidualCut[3] = topXResidualCut4;
-        topYResidualCut[3] = topYResidualCut4;
-        botXResidualCut[3] = botXResidualCut4;
-        botYResidualCut[3] = botYResidualCut4;
+        topXResidualCut[3] = this.topXResidualCut4;
+        topYResidualCut[3] = this.topYResidualCut4;
+        botXResidualCut[3] = this.botXResidualCut4;
+        botYResidualCut[3] = this.botYResidualCut4;
         
-        topXResidualOffset[4] = topXResidualOffset5;
-        topYResidualOffset[4] = topYResidualOffset5; 
-        botXResidualOffset[4] = botXResidualOffset5; 
-        botYResidualOffset[4] = botYResidualOffset5; 
+        topXResidualOffset[4] = this.topXResidualOffset5;
+        topYResidualOffset[4] = this.topYResidualOffset5; 
+        botXResidualOffset[4] = this.botXResidualOffset5; 
+        botYResidualOffset[4] = this.botYResidualOffset5; 
         
-        topXResidualCut[4] = topXResidualCut5;
-        topYResidualCut[4] = topYResidualCut5;
-        botXResidualCut[4] = botXResidualCut5;
-        botYResidualCut[4] = botYResidualCut5;
+        topXResidualCut[4] = this.topXResidualCut5;
+        topYResidualCut[4] = this.topYResidualCut5;
+        botXResidualCut[4] = this.botXResidualCut5;
+        botYResidualCut[4] = this.botYResidualCut5;
         
-        topXResidualOffset[5] = topXResidualOffset6;
-        topYResidualOffset[5] = topYResidualOffset6; 
-        botXResidualOffset[5] = botXResidualOffset6; 
-        botYResidualOffset[5] = botYResidualOffset6; 
+        topXResidualOffset[5] = this.topXResidualOffset6;
+        topYResidualOffset[5] = this.topYResidualOffset6; 
+        botXResidualOffset[5] = this.botXResidualOffset6; 
+        botYResidualOffset[5] = this.botYResidualOffset6; 
         
-        topXResidualCut[5] = topXResidualCut6;
-        topYResidualCut[5] = topYResidualCut6;
-        botXResidualCut[5] = botXResidualCut6;
-        botYResidualCut[5] = botYResidualCut6;
+        topXResidualCut[5] = this.topXResidualCut6;
+        topYResidualCut[5] = this.topYResidualCut6;
+        botXResidualCut[5] = this.botXResidualCut6;
+        botYResidualCut[5] = this.botYResidualCut6;
         
         gapXtop[0] = 0;
         gapXtop[1] = 0;
@@ -609,6 +944,14 @@ public class TrackHitEfficiency extends Driver {
         HitEfficiency_bot = aida.histogram1D("Hit Efficiency Bot", num_lay, 0, num_lay);
         HitEfficiencyError_top = aida.histogram1D("Hit Efficiency Error Top", num_lay, 0, num_lay);
         HitEfficiencyError_bot = aida.histogram1D("Hit Efficiency Error Bot", num_lay, 0, num_lay);
+        HitEfficiency_topElec = aida.histogram1D("Hit Efficiency Top Electrons", num_lay, 0, num_lay);
+        HitEfficiency_botElec = aida.histogram1D("Hit Efficiency Bot Electrons", num_lay, 0, num_lay);
+        HitEfficiencyError_topElec = aida.histogram1D("Hit Efficiency Error Top Electrons", num_lay, 0, num_lay);
+        HitEfficiencyError_botElec = aida.histogram1D("Hit Efficiency Error Bot Electrons", num_lay, 0, num_lay);
+        HitEfficiency_topPosi = aida.histogram1D("Hit Efficiency Top Positrons", num_lay, 0, num_lay);
+        HitEfficiency_botPosi = aida.histogram1D("Hit Efficiency Bot Positrons", num_lay, 0, num_lay);
+        HitEfficiencyError_topPosi = aida.histogram1D("Hit Efficiency Error Top Positrons", num_lay, 0, num_lay);
+        HitEfficiencyError_botPosi = aida.histogram1D("Hit Efficiency Error Bot Positrons", num_lay, 0, num_lay);
         HitEfficiencyElec_top = aida.histogram1D("Hit Efficiency Top Electron Side", num_lay, 0, num_lay);
         HitEfficiencyPosi_top = aida.histogram1D("Hit Efficiency Top Positron Side", num_lay, 0, num_lay);
         HitEfficiencyElec_bot = aida.histogram1D("Hit Efficiency Bot Electron Side", num_lay, 0, num_lay);
@@ -645,6 +988,14 @@ public class TrackHitEfficiency extends Driver {
         TrackXBot = aida.histogram1D("Extrapolated Track X Bot", 50, lowerLimX, upperLimX);
         TrackYBot = aida.histogram1D("Extrapolated Track Y Bot", 50, lowerLimY, upperLimY);
         
+        TrackResidualXvsMomentumTop = aida.histogram2D("Track Residual X vs Momentum Top", nP, lowerLimP, upperLimP, 50, -10, 10);
+        TrackResidualYvsMomentumTop = aida.histogram2D("Track Residual Y vs Momentum Top", nP, lowerLimP, upperLimP, 50, -10, 10);
+        TrackResidualXvsMomentumBot = aida.histogram2D("Track Residual X vs Momentum Top", nP, lowerLimP, upperLimP, 50, -10, 10);
+        TrackResidualYvsMomentumBot = aida.histogram2D("Track Residual Y vs Momentum Bot", nP, lowerLimP, upperLimP, 50, -10, 10);
+        
+        TrackResidualXvsTrackResdidualYTop = aida.histogram2D("Track Residuals X vs Y Top",50,-10, 10, 50, -10, 10);
+        TrackResidualXvsTrackResdidualYBot = aida.histogram2D("Track Residuals X vs Y Bot",50,-10, 10, 50, -10, 10);
+        
         for(int i = 0; i < num_lay; i++){
         	trackMomentum.put((i+1),histogramFactory.createHistogram1D("Track Momentum Layer #" + (i+1), 50, 0, ebeam*1.3));
         	trackMomentum_top.put((i+1),histogramFactory.createHistogram1D("Track Momentum Top Layer #" + (i+1), 50, 0, ebeam*1.3));
@@ -669,14 +1020,42 @@ public class TrackHitEfficiency extends Driver {
         	HitEfficiency_MomentumLay_bot.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Momentum Bot Layer #"+ (i+1),nP, lowerLimP, upperLimP));
         	HitEfficiency_MomentumLayError_top.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Error Momentum Top Layer #"+ (i+1),nP, lowerLimP, upperLimP));
         	HitEfficiency_MomentumLayError_bot.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Error Momentum Bot Layer #"+ (i+1),nP, lowerLimP, upperLimP));
+        	HitEfficiency_MomentumLay_topElec.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Momentum Top Electrons Layer #"+ (i+1),nP, lowerLimP, upperLimP));
+        	HitEfficiency_MomentumLay_botElec.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Momentum Bot Electrons Layer #"+ (i+1),nP, lowerLimP, upperLimP));
+        	HitEfficiency_MomentumLayError_topElec.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Error Momentum Top Electrons Layer #"+ (i+1),nP, lowerLimP, upperLimP));
+        	HitEfficiency_MomentumLayError_botElec.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Error Momentum Bot Electrons Layer #"+ (i+1),nP, lowerLimP, upperLimP));
+        	HitEfficiency_MomentumLay_topPosi.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Momentum Top Positrons Layer #"+ (i+1),nP, lowerLimP, upperLimP));
+        	HitEfficiency_MomentumLay_botPosi.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Momentum Bot Positrons Layer #"+ (i+1),nP, lowerLimP, upperLimP));
+        	HitEfficiency_MomentumLayError_topPosi.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Error Momentum Top Positrons Layer #"+ (i+1),nP, lowerLimP, upperLimP));
+        	HitEfficiency_MomentumLayError_botPosi.put((i+1), histogramFactory.createHistogram1D("Hit Efficiency Error Momentum Bot Positrons Layer #"+ (i+1),nP, lowerLimP, upperLimP));
         	numberOfTopTracksMomentumLay.put((i+1),new int[nP]);
         	numberOfBotTracksMomentumLay.put((i+1),new int[nP]);
         	numberOfTopTracksWithHitOnMissingLayerMomentumLay.put((i+1),new int[nP]);
         	numberOfBotTracksWithHitOnMissingLayerMomentumLay.put((i+1),new int[nP]);
+        	numberOfTopTracksMomentumLayElec.put((i+1),new int[nP]);
+        	numberOfBotTracksMomentumLayElec.put((i+1),new int[nP]);
+        	numberOfTopTracksWithHitOnMissingLayerMomentumLayElec.put((i+1),new int[nP]);
+        	numberOfBotTracksWithHitOnMissingLayerMomentumLayElec.put((i+1),new int[nP]);
+        	numberOfTopTracksMomentumLayPosi.put((i+1),new int[nP]);
+        	numberOfBotTracksMomentumLayPosi.put((i+1),new int[nP]);
+        	numberOfTopTracksWithHitOnMissingLayerMomentumLayPosi.put((i+1),new int[nP]);
+        	numberOfBotTracksWithHitOnMissingLayerMomentumLayPosi.put((i+1),new int[nP]);
         	hitEfficiencyMomentumLayTop.put((i+1),new double[nP]);
         	hitEfficiencyMomentumLayBot.put((i+1),new double[nP]);
         	hitEfficiencyErrorMomentumLayTop.put((i+1),new double[nP]);
         	hitEfficiencyErrorMomentumLayBot.put((i+1),new double[nP]);
+        	hitEfficiencyMomentumLayTopElec.put((i+1),new double[nP]);
+        	hitEfficiencyMomentumLayBotElec.put((i+1),new double[nP]);
+        	hitEfficiencyErrorMomentumLayTopElec.put((i+1),new double[nP]);
+        	hitEfficiencyErrorMomentumLayBotElec.put((i+1),new double[nP]);
+        	hitEfficiencyMomentumLayTopPosi.put((i+1),new double[nP]);
+        	hitEfficiencyMomentumLayBotPosi.put((i+1),new double[nP]);
+        	hitEfficiencyErrorMomentumLayTopPosi.put((i+1),new double[nP]);
+        	hitEfficiencyErrorMomentumLayBotPosi.put((i+1),new double[nP]);
+        	Momentum_UnbiasedResidualX_top.put((i+1), histogramFactory.createHistogram2D("Track Residuals X vs Momentum Top Layer #" + (i+1),  nP, lowerLimP, upperLimP, 50, -10, 10));
+        	Momentum_UnbiasedResidualX_bot.put((i+1), histogramFactory.createHistogram2D("Track Residuals X vs Momentum Bot Layer #" + (i+1),  nP, lowerLimP, upperLimP, 50, -10, 10));
+        	Momentum_UnbiasedResidualY_top.put((i+1), histogramFactory.createHistogram2D("Track Residuals Y vs Momentum Top Layer #" + (i+1),  nP, lowerLimP, upperLimP, 50, -10, 10));
+        	Momentum_UnbiasedResidualY_bot.put((i+1), histogramFactory.createHistogram2D("Track Residuals Y vs Momentum Bot Layer #" + (i+1),  nP, lowerLimP, upperLimP, 50, -10, 10));
         }
         
         for (IPlotter plotter : plotters.values()) { 
@@ -695,7 +1074,7 @@ public void process(EventHeader event){
        
         // Get the list of final state particles from the event.  These will
         // be used to obtain the track momentum.
-        List<ReconstructedParticle> fsParticles = event.get(ReconstructedParticle.class, fsParticlesCollectionName);
+        //List<ReconstructedParticle> fsParticles = event.get(ReconstructedParticle.class, fsParticlesCollectionName);
       
         //this.mapReconstructedParticlesToTracks(tracks, fsParticles);
         
@@ -705,6 +1084,18 @@ public void process(EventHeader event){
         List<TrackerHit> stereoHits = event.get(TrackerHit.class, stereoHitCollectionName);
 
         for (List<Track> tracks : trackCollections) {
+        	
+    		if(cleanTridents){
+    			// Require an event to have exactly two tracks
+    			if (tracks.size() != 2) continue;
+
+    			// Require the two tracks to be in opposite volumes
+    			if (tracks.get(0).getTrackStates().get(0).getTanLambda()*tracks.get(1).getTrackStates().get(0).getTanLambda() >= 0) continue;
+
+    			// Require the two tracks to be oppositely charged
+    			if (tracks.get(0).getTrackStates().get(0).getOmega()*tracks.get(1).getTrackStates().get(0).getOmega() >= 0) continue;
+    		}
+    			
         	for(Track track : tracks){
         		// Check that the track has the required number of hits.  The number of hits
         		// required to make a track is set in the tracking strategy.
@@ -713,8 +1104,7 @@ public void process(EventHeader event){
         			continue;
         		}          
         		//HpsSiSensor trackSensor = (HpsSiSensor) ((RawTrackerHit)((HelicalTrackCross) track.getTrackerHits().get(0)).getStrips().get(0).rawhits().get(0)).getDetectorElement();
-        				
-        				
+        			
         		HpsSiSensor trackSensor = (HpsSiSensor) ((RawTrackerHit)track.getTrackerHits().get(0).getRawHits().get(0)).getDetectorElement();
         		//HpsSiSensor hitSensor = (HpsSiSensor) ((RawTrackerHit) stereoHit.getRawHits().get(0)).getDetectorElement();
         		
@@ -741,11 +1131,105 @@ public void process(EventHeader event){
         		} else{
         			trackMomentum_bot.get(unusedLayer).fill(p);
         		}
+        		
+        		if (trackSensor.isTopLayer()) {   
+        			Hep3Vector extrapTrackPos = TrackUtils.extrapolateTrack(track,  zTop[unusedLayer-1]);                
+           	 		double extrapTrackX = extrapTrackPos.x();
+        			if(extrapTrackX < gapXtop[unusedLayer-1]){        				
+           	 			if(trackSensor.isAxial()){
+           	        		if(isWithinSensorAcceptance(track,unusedLayer,true)){
+           	        			numberOfTopTracksElecAxial[unusedLayer-1]++;
+           	        		}
+           	 			}
+           	 			else{
+           	        		if(isWithinSensorAcceptance(track,unusedLayer,false)){
+           	        			numberOfTopTracksElecStereo[unusedLayer-1]++;
+           	        		}
+           	 			}
+           	 		}
+           	 		else{
+           	 			if(trackSensor.isAxial()){
+           	        		if(isWithinSensorAcceptance(track,unusedLayer,true)){
+           	        			numberOfTopTracksPosiAxial[unusedLayer-1]++;
+           	        		}
+           	 			}
+           	 			else{
+           	        		if(isWithinSensorAcceptance(track,unusedLayer,false)){
+           	        			numberOfTopTracksPosiStereo[unusedLayer-1]++;
+           	        		}
+           	 			}
+           	 		}
+        		}
+        		
+        		if (trackSensor.isBottomLayer()) {   
+        			Hep3Vector extrapTrackPos = TrackUtils.extrapolateTrack(track,  zBot[unusedLayer-1]);                
+           	 		double extrapTrackX = extrapTrackPos.x();
+        			if(extrapTrackX < gapXbot[unusedLayer-1]){        				
+           	 			if(trackSensor.isAxial()){
+           	        		if(isWithinSensorAcceptance(track,unusedLayer,true)){
+           	        			numberOfBotTracksElecAxial[unusedLayer-1]++;
+           	        		}
+           	 			}
+           	 			else{
+           	        		if(isWithinSensorAcceptance(track,unusedLayer,false)){
+           	        			numberOfBotTracksElecStereo[unusedLayer-1]++;
+           	        		}
+           	 			}
+           	 		}
+           	 		else{
+           	 			if(trackSensor.isAxial()){
+           	        		if(isWithinSensorAcceptance(track,unusedLayer,true)){
+           	        			numberOfBotTracksPosiAxial[unusedLayer-1]++;
+           	        		}
+           	 			}
+           	 			else{
+           	        		if(isWithinSensorAcceptance(track,unusedLayer,false)){
+           	        			numberOfBotTracksPosiStereo[unusedLayer-1]++;
+           	        		}
+           	 			}
+           	 		}
+        		}
+        		
+        		/*for (TrackerHit stereoHit : stereoHits) {
+        			HpsSiSensor hitSensor = (HpsSiSensor) ((RawTrackerHit) stereoHit.getRawHits().get(0)).getDetectorElement();
+            	          
+        			if ((trackSensor.isTopLayer() && hitSensor.isBottomLayer()) 
+        					|| (trackSensor.isBottomLayer() && hitSensor.isTopLayer())) continue;
+        			
+        			// Retrieve the layer number by using the sensor
+               	 	int layer = (hitSensor.getLayerNumber() + 1)/2;
+               	 	
+               	 	if (unusedLayer != layer) continue;              	 	
+               	 	Hep3Vector stereoHitPosition = new BasicHep3Vector(stereoHit.getPosition());
+               	 	Hep3Vector trackPosition = TrackUtils.extrapolateTrack(track, stereoHitPosition.z());
+               	 	double xResidual = trackPosition.x() - stereoHitPosition.x();
+               	 	double yResidual = trackPosition.y() - stereoHitPosition.y();                    
+               	 	if (hitSensor.isTopLayer()) {
+               	 		if (Math.abs(xResidual+topXResidualOffset[unusedLayer-1]) > this.nSigCut*topXResidualCut[unusedLayer-1] 
+       	 					|| Math.abs(yResidual + topYResidualOffset[unusedLayer-1]) > this.nSigCut*topYResidualCut[unusedLayer-1]) continue;
+               	 		//if (countTop > 0){
+               	 			//continue;
+               	 		//}
+               	 		if(trackPosition.x() < gapXtop[unusedLayer-1]){ 
+               	 			if(trackSensor.isAxial()){
+               	 				if(isWithinSensorAcceptance(track,unusedLayer,true)){
+               	 					List<TrackerHit> clusters = event.get(TrackerHit.class, clusterCollectionName);
+               	 					for (TrackerHit cluster : clusters) {
+               	 						for (Object rawHitObject : cluster.getRawHits()) {
+               	 							numberOfTopTracksWithHitOnMissingLayerPosiStereo[unusedLayer-1]++;
+               	 						}
+               	 					}
+               	 				}
+               	            }
+               	 		}
+               	 	}
+               	 		//countTop++;               	                	 		
+               	 } */
+        		
         		if(!isWithinAcceptance(track, unusedLayer)) continue;
         		
            	 	trackMomentum_accepted.get(unusedLayer).fill(p);
-           	 	if (trackSensor.isTopLayer()) {
-           	 		
+           	 	if (trackSensor.isTopLayer()) {           	 		
            	 		Hep3Vector extrapTrackPos = TrackUtils.extrapolateTrack(track,  zTop[unusedLayer-1]);                
            	 		double extrapTrackX = extrapTrackPos.x();
            	 		double extrapTrackY = extrapTrackPos.y();
@@ -753,6 +1237,12 @@ public void process(EventHeader event){
            	 		TrackYTop.fill(extrapTrackY);
            	 		trackMomentum_accepted_top.get(unusedLayer).fill(p);
            	 		numberOfTopTracks[unusedLayer-1]++;
+           	 		if(track.getTrackStates().get(0).getOmega() > 0){
+           	 			numberOfTopTracksElectron[unusedLayer-1]++;
+           	 		}
+           	 		else{
+           	 			numberOfTopTracksPositron[unusedLayer-1]++;
+           	 		}
            	 		for(int i = 0; i<nP;i++){
            	 			double mP = (upperLimP - lowerLimP)/((double) nP);
            	 			double lowerP = mP * i + lowerLimP;
@@ -762,6 +1252,12 @@ public void process(EventHeader event){
            	 				for(int j = 0; j<num_lay;j++){
            	 					if(unusedLayer == j + 1){
            	 						numberOfTopTracksMomentumLay.get(j+1)[i]++;
+           	 						if(track.getTrackStates().get(0).getOmega() > 0){
+           	 							numberOfTopTracksMomentumLayElec.get(j+1)[i]++;
+           	 						}
+           	 						else{
+           	 							numberOfTopTracksMomentumLayPosi.get(j+1)[i]++;
+           	 						}
            	 					}
            	 				}
            	 			}
@@ -800,13 +1296,19 @@ public void process(EventHeader event){
            	 			}
            	 		}
            	 	} else{
-           	 		Hep3Vector extrapTrackPos = TrackUtils.extrapolateTrack(track,  zTop[unusedLayer-1]);                
+           	 		Hep3Vector extrapTrackPos = TrackUtils.extrapolateTrack(track,  zBot[unusedLayer-1]);                
            	 		double extrapTrackX = extrapTrackPos.x();
            	 		double extrapTrackY = extrapTrackPos.y();
            	 		TrackXBot.fill(extrapTrackX);
            	 		TrackYBot.fill(extrapTrackY);
            	 		trackMomentum_accepted_bot.get(unusedLayer).fill(p);
            	 		numberOfBotTracks[unusedLayer-1]++;
+           	 		if(track.getTrackStates().get(0).getOmega() > 0){
+           	 			numberOfBotTracksElectron[unusedLayer-1]++;
+           	 		}
+           	 		else{
+           	 			numberOfBotTracksPositron[unusedLayer-1]++;
+           	 		}
            	 		for(int i = 0; i<nP;i++){
            	 			double mP = (upperLimP - lowerLimP)/((double) nP);
            	 			double lowerP = mP * i + lowerLimP;
@@ -816,6 +1318,12 @@ public void process(EventHeader event){
            	 				for(int j = 0; j<num_lay;j++){
            	 					if(unusedLayer == j + 1){
            	 						numberOfBotTracksMomentumLay.get(j+1)[i]++;
+           	 						if(track.getTrackStates().get(0).getOmega() > 0){
+           	 							numberOfBotTracksMomentumLayElec.get(j+1)[i]++;
+           	 						}
+           	 						else{
+           	 							numberOfBotTracksMomentumLayPosi.get(j+1)[i]++;
+           	 						}
            	 					}
            	 				}
            	 			}
@@ -874,20 +1382,36 @@ public void process(EventHeader event){
              
                	 	trackMomentum_final.get(unusedLayer).fill(p);                        
                	 	if (hitSensor.isTopLayer()) {
+               	 		if (countTop > 0){
+               	 			//System.out.println("Top " + unusedLayer);
+               	 			continue;
+               	 		}
                	 		UnbiasedResidualX_top.get(unusedLayer).fill(xResidual);
                	 		UnbiasedResidualY_top.get(unusedLayer).fill(yResidual);
                	 		HitPosition_top.get(unusedLayer).fill(stereoHitPosition.z());
                	 		trackPlots.get("Unbiased Residual x - Top").fill(xResidual);
                	 		trackPlots.get("Unbiased Residual y - Top").fill(yResidual);
-               	 		if (Math.abs(xResidual+topXResidualOffset[unusedLayer-1]) > nSigCut*topXResidualCut[unusedLayer-1] 
-       	 					|| Math.abs(yResidual + topYResidualOffset[unusedLayer-1]) > nSigCut*topYResidualCut[unusedLayer-1]) continue;
-               	 		if (countTop > 0){
-               	 			//System.out.println("Top " + unusedLayer);
-               	 			continue;
-               	 		}
+               	 		TrackResidualXvsMomentumTop.fill(p,xResidual);
+               	 		TrackResidualYvsMomentumTop.fill(p,yResidual);
+               	 		TrackResidualXvsTrackResdidualYTop.fill(xResidual,yResidual);
+               	 		Momentum_UnbiasedResidualX_top.get(unusedLayer).fill(p,xResidual);
+               	 		Momentum_UnbiasedResidualY_top.get(unusedLayer).fill(p,yResidual);
+               	 		if (Math.abs(xResidual+topXResidualOffset[unusedLayer-1]) > this.nSigCut*topXResidualCut[unusedLayer-1] 
+       	 					|| Math.abs(yResidual + topYResidualOffset[unusedLayer-1]) > this.nSigCut*topYResidualCut[unusedLayer-1]) continue;
+               	 		//trackPlots.get("Unbiased Residual x - Top").fill(xResidual);
+               	 		//trackPlots.get("Unbiased Residual y - Top").fill(yResidual);
+               	 		//TrackResidualXvsMomentumTop.fill(p,xResidual);
+               	 		//TrackResidualYvsMomentumTop.fill(p,yResidual);
+               	 		//TrackResidualXvsTrackResdidualYTop.fill(xResidual,yResidual);
                	 		trackMomentumPlots.get("Track Momentum - All Layers Hit").fill(p);
                	 		trackMomentum_final_top.get(unusedLayer).fill(p);
                	 		numberOfTopTracksWithHitOnMissingLayer[unusedLayer-1]++;
+               	 		if(track.getTrackStates().get(0).getOmega() > 0){
+               	 			numberOfTopTracksWithHitOnMissingLayerElectron[unusedLayer-1]++;
+               	 		}
+               	 		else{
+               	 			numberOfTopTracksWithHitOnMissingLayerPositron[unusedLayer-1]++;
+               	 		}
                	 		for(int i = 0; i<nP;i++){
                	 			double mP = (upperLimP - lowerLimP)/((double) nP);
                	 			double lowerP = mP * i + lowerLimP;
@@ -897,6 +1421,12 @@ public void process(EventHeader event){
                	 				for(int j = 0; j<num_lay;j++){
                	 					if(unusedLayer == j + 1){
                	 						numberOfTopTracksWithHitOnMissingLayerMomentumLay.get(j+1)[i]++;
+               	 						if(track.getTrackStates().get(0).getOmega() > 0){
+               	 							numberOfTopTracksWithHitOnMissingLayerMomentumLayElec.get(j+1)[i]++;
+               	 						}
+               	 						else{
+               	 							numberOfTopTracksWithHitOnMissingLayerMomentumLayPosi.get(j+1)[i]++;
+               	 						}
                	 					}
                	 				}
                	 			}
@@ -924,20 +1454,35 @@ public void process(EventHeader event){
                	 		}
                	 		countTop++;               	                	 		
                	 	} else {
+               	 		if (countBot > 0){
+               	 			continue;
+               	 		}
                	 		UnbiasedResidualX_bot.get(unusedLayer).fill(xResidual);
                	 		UnbiasedResidualY_bot.get(unusedLayer).fill(yResidual);
                	 		HitPosition_bot.get(unusedLayer).fill(stereoHitPosition.z());
                	 		trackPlots.get("Unbiased Residual x - Bottom").fill(xResidual);
                	 		trackPlots.get("Unbiased Residual y - Bottom").fill(yResidual);
-               	 		if (Math.abs(xResidual+botXResidualOffset[unusedLayer-1]) > nSigCut*botXResidualCut[unusedLayer-1] 
-       	 					|| Math.abs(yResidual + botYResidualOffset[unusedLayer-1]) > nSigCut*botYResidualCut[unusedLayer-1]) continue;
-               	 		if (countBot > 0){
-           	 				//System.out.println("Bot " + unusedLayer);
-           	 				continue;
-           	 			}
+               	 		TrackResidualXvsMomentumBot.fill(p,xResidual);
+               	 		TrackResidualYvsMomentumBot.fill(p,yResidual);
+               	 		TrackResidualXvsTrackResdidualYBot.fill(xResidual,yResidual);
+               	 		Momentum_UnbiasedResidualX_bot.get(unusedLayer).fill(p,xResidual);
+               	 		Momentum_UnbiasedResidualY_bot.get(unusedLayer).fill(p,yResidual);
+               	 		if (Math.abs(xResidual+botXResidualOffset[unusedLayer-1]) > this.nSigCut*botXResidualCut[unusedLayer-1] 
+       	 					|| Math.abs(yResidual + botYResidualOffset[unusedLayer-1]) > this.nSigCut*botYResidualCut[unusedLayer-1]) continue;
+               	 		//trackPlots.get("Unbiased Residual x - Bottom").fill(xResidual);
+               	 		//trackPlots.get("Unbiased Residual y - Bottom").fill(yResidual);
+               	 		//TrackResidualXvsMomentumBot.fill(p,xResidual);
+               	 		//TrackResidualYvsMomentumBot.fill(p,yResidual);
+               	 		//TrackResidualXvsTrackResdidualYBot.fill(xResidual,yResidual);
                	 		trackMomentumPlots.get("Track Momentum - All Layers Hit").fill(p);
                	 		trackMomentum_final_bot.get(unusedLayer).fill(p);
                	 		numberOfBotTracksWithHitOnMissingLayer[unusedLayer-1]++;
+               	 		if(track.getTrackStates().get(0).getOmega() > 0){
+               	 			numberOfBotTracksWithHitOnMissingLayerElectron[unusedLayer-1]++;
+               	 		}
+               	 		else{
+               	 			numberOfBotTracksWithHitOnMissingLayerPositron[unusedLayer-1]++;
+               	 		}
                	 		for(int i = 0; i<nP;i++){
                	 			double mP = (upperLimP - lowerLimP)/((double) nP);
                	 			double lowerP = mP * i + lowerLimP;
@@ -947,6 +1492,12 @@ public void process(EventHeader event){
                	 				for(int j = 0; j<num_lay;j++){
                	 					if(unusedLayer == j + 1){
                	 						numberOfBotTracksWithHitOnMissingLayerMomentumLay.get(j+1)[i]++;
+               	 						if(track.getTrackStates().get(0).getOmega() > 0){
+               	 							numberOfBotTracksWithHitOnMissingLayerMomentumLayElec.get(j+1)[i]++;
+               	 						}
+               	 						else{
+               	 							numberOfBotTracksWithHitOnMissingLayerMomentumLayPosi.get(j+1)[i]++;
+               	 						}
                	 					}
                	 				}
                	 			}
@@ -1020,6 +1571,46 @@ private int getUnusedSvtLayer(List<TrackerHit> stereoHits) {
     // is wrong with the file
     // TODO: This should probably throw an exception
     return -1;
+}
+
+private boolean isWithinSensorAcceptance(Track track, int layer,boolean axial) {
+	   
+	//Axial is true if the sensor is axial
+    HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit)track.getTrackerHits().get(0).getRawHits().get(0)).getDetectorElement();
+    
+    // Get the sensors associated with the layer that the track
+    // will be extrapolated to
+    List<SvtStereoLayer> stereoLayers = null;
+    
+    if (sensor.isTopLayer()) {
+        stereoLayers = this.topStereoLayers.get(layer);
+    } else {
+        stereoLayers = this.bottomStereoLayers.get(layer);
+    }
+    
+    for (SvtStereoLayer stereoLayer : stereoLayers) { 
+        Hep3Vector axialSensorPosition = stereoLayer.getAxialSensor().getGeometry().getPosition();
+        Hep3Vector stereoSensorPosition = stereoLayer.getStereoSensor().getGeometry().getPosition();
+        
+        Hep3Vector axialTrackPos = TrackUtils.extrapolateTrack(track,  axialSensorPosition.z());
+        Hep3Vector stereoTrackPos = TrackUtils.extrapolateTrack(track, stereoSensorPosition.z());
+        
+        if(this.sensorContainsTrack(axialTrackPos, stereoLayer.getAxialSensor()) && axial){
+        	return true;
+        }
+       		
+        if(this.sensorContainsTrack(stereoTrackPos, stereoLayer.getStereoSensor()) && !axial){
+            return true;
+        }
+    }
+    
+    return false;
+    
+    /*int layerNumber = (layer - 1)/2 + 1;
+    String title = "Track Position - Layer " + layerNumber + " - Tracks Within Acceptance";
+    //aida.histogram2D(title).fill(trackPos.y(), trackPos.z());
+    //aida.cloud2D(title).fill(frontTrackPos.y(), frontTrackPos.z()); */
+    
 }
 
 /**
@@ -1208,16 +1799,32 @@ public void endOfData(){
     for(int i = 0; i<num_lay; i++){
     	hitEfficiencyTop[i] = numberOfTopTracksWithHitOnMissingLayer[i]/(double) numberOfTopTracks[i];
     	hitEfficiencyBot[i] = numberOfBotTracksWithHitOnMissingLayer[i]/(double) numberOfBotTracks[i];
+    	hitEfficiencyTopElectron[i] = numberOfTopTracksWithHitOnMissingLayerElectron[i]/(double) numberOfTopTracksElectron[i];
+    	hitEfficiencyBotElectron[i] = numberOfBotTracksWithHitOnMissingLayerElectron[i]/(double) numberOfBotTracksElectron[i];
+    	hitEfficiencyTopPositron[i] = numberOfTopTracksWithHitOnMissingLayerPositron[i]/(double) numberOfTopTracksPositron[i];
+    	hitEfficiencyBotPositron[i] = numberOfBotTracksWithHitOnMissingLayerPositron[i]/(double) numberOfBotTracksPositron[i];
     	numberOfTopTracksTot = numberOfTopTracksTot + numberOfTopTracks[i];
     	numberOfBotTracksTot = numberOfBotTracksTot + numberOfBotTracks[i];
     	numberOfTopTracksWithHitOnMissingLayerTot = numberOfTopTracksWithHitOnMissingLayerTot + numberOfTopTracksWithHitOnMissingLayer[i];
     	numberOfBotTracksWithHitOnMissingLayerTot = numberOfBotTracksWithHitOnMissingLayerTot + numberOfBotTracksWithHitOnMissingLayer[i];
     	errorTop[i] = Math.sqrt(1/(double) numberOfTopTracks[i] + 1/(double) numberOfTopTracksWithHitOnMissingLayer[i]);
     	errorBot[i] = Math.sqrt(1/(double) numberOfBotTracks[i] + 1/(double) numberOfBotTracksWithHitOnMissingLayer[i]);   	
+    	errorTopElectron[i] = Math.sqrt(1/(double) numberOfTopTracksElectron[i] + 1/(double) numberOfTopTracksWithHitOnMissingLayerElectron[i]);
+    	errorBotElectron[i] = Math.sqrt(1/(double) numberOfBotTracksElectron[i] + 1/(double) numberOfBotTracksWithHitOnMissingLayerElectron[i]);
+    	errorTopPositron[i] = Math.sqrt(1/(double) numberOfTopTracksPositron[i] + 1/(double) numberOfTopTracksWithHitOnMissingLayerPositron[i]);
+    	errorBotPositron[i] = Math.sqrt(1/(double) numberOfBotTracksPositron[i] + 1/(double) numberOfBotTracksWithHitOnMissingLayerPositron[i]); 
     	HitEfficiency_top.fill(i,hitEfficiencyTop[i]);
     	HitEfficiency_bot.fill(i,hitEfficiencyBot[i]);
     	HitEfficiencyError_top.fill(i,errorTop[i]);
     	HitEfficiencyError_bot.fill(i,errorBot[i]);
+    	HitEfficiency_topElec.fill(i,hitEfficiencyTopElectron[i]);
+    	HitEfficiency_botElec.fill(i,hitEfficiencyBotElectron[i]);
+    	HitEfficiencyError_topElec.fill(i,errorTopElectron[i]);
+    	HitEfficiencyError_botElec.fill(i,errorBotElectron[i]);
+    	HitEfficiency_topPosi.fill(i,hitEfficiencyTopPositron[i]);
+    	HitEfficiency_botPosi.fill(i,hitEfficiencyBotPositron[i]);
+    	HitEfficiencyError_topPosi.fill(i,errorTopPositron[i]);
+    	HitEfficiencyError_botPosi.fill(i,errorBotPositron[i]);
     	hitEfficiencyTopElecStereo[i] = numberOfTopTracksWithHitOnMissingLayerElecStereo[i]/(double) numberOfTopTracksElecStereo[i];
     	hitEfficiencyTopElecAxial[i] = numberOfTopTracksWithHitOnMissingLayerElecAxial[i]/(double) numberOfTopTracksElecAxial[i];
 		hitEfficiencyTopPosiStereo[i] = numberOfTopTracksWithHitOnMissingLayerPosiStereo[i]/(double) numberOfTopTracksPosiStereo[i];
@@ -1312,6 +1919,10 @@ public void endOfData(){
     	for(int j = 0; j<num_lay; j++){
     		hitEfficiencyMomentumLayTop.get(j+1)[i] = numberOfTopTracksWithHitOnMissingLayerMomentumLay.get(j+1)[i]/(double) numberOfTopTracksMomentumLay.get(j+1)[i];
     		hitEfficiencyMomentumLayBot.get(j+1)[i] = numberOfBotTracksWithHitOnMissingLayerMomentumLay.get(j+1)[i]/(double) numberOfBotTracksMomentumLay.get(j+1)[i];
+    		hitEfficiencyMomentumLayTopElec.get(j+1)[i] = numberOfTopTracksWithHitOnMissingLayerMomentumLayElec.get(j+1)[i]/(double) numberOfTopTracksMomentumLayElec.get(j+1)[i];
+    		hitEfficiencyMomentumLayTopPosi.get(j+1)[i] = numberOfTopTracksWithHitOnMissingLayerMomentumLayPosi.get(j+1)[i]/(double) numberOfTopTracksMomentumLayPosi.get(j+1)[i];
+    		hitEfficiencyMomentumLayBotElec.get(j+1)[i] = numberOfBotTracksWithHitOnMissingLayerMomentumLayElec.get(j+1)[i]/(double) numberOfBotTracksMomentumLayElec.get(j+1)[i];
+    		hitEfficiencyMomentumLayBotPosi.get(j+1)[i] = numberOfBotTracksWithHitOnMissingLayerMomentumLayPosi.get(j+1)[i]/(double) numberOfBotTracksMomentumLayPosi.get(j+1)[i];
     		if(numberOfTopTracksWithHitOnMissingLayerMomentumLay.get(j+1)[i] != 0 && numberOfTopTracksMomentumLay.get(j+1)[i] != 0){
     			hitEfficiencyErrorMomentumLayTop.get(j+1)[i] = Math.sqrt(1/(double) numberOfTopTracksWithHitOnMissingLayerMomentumLay.get(j+1)[i] + 1/(double) numberOfTopTracksMomentumLay.get(j+1)[i]);
     		}
@@ -1324,10 +1935,42 @@ public void endOfData(){
     		else{
     			hitEfficiencyErrorMomentumLayBot.get(j+1)[i] = 0;
     		}
+    		if(numberOfTopTracksWithHitOnMissingLayerMomentumLayElec.get(j+1)[i] != 0 && numberOfTopTracksMomentumLayElec.get(j+1)[i] != 0){
+    			hitEfficiencyErrorMomentumLayTopElec.get(j+1)[i] = Math.sqrt(1/(double) numberOfTopTracksWithHitOnMissingLayerMomentumLayElec.get(j+1)[i] + 1/(double) numberOfTopTracksMomentumLayElec.get(j+1)[i]);
+    		}
+    		else{
+    			hitEfficiencyErrorMomentumLayTopElec.get(j+1)[i] = 0;
+    		}   		
+    		if(numberOfTopTracksWithHitOnMissingLayerMomentumLayPosi.get(j+1)[i] != 0 && numberOfTopTracksMomentumLayPosi.get(j+1)[i] != 0){
+    			hitEfficiencyErrorMomentumLayTopPosi.get(j+1)[i] = Math.sqrt(1/(double) numberOfTopTracksWithHitOnMissingLayerMomentumLayPosi.get(j+1)[i] + 1/(double) numberOfTopTracksMomentumLayPosi.get(j+1)[i]);
+    		}
+    		else{
+    			hitEfficiencyErrorMomentumLayTopPosi.get(j+1)[i] = 0;
+    		}
+    		if(numberOfBotTracksWithHitOnMissingLayerMomentumLayElec.get(j+1)[i] != 0 && numberOfBotTracksMomentumLayElec.get(j+1)[i] != 0){
+    			hitEfficiencyErrorMomentumLayBotElec.get(j+1)[i] = Math.sqrt(1/(double) numberOfBotTracksWithHitOnMissingLayerMomentumLayElec.get(j+1)[i] + 1/(double) numberOfBotTracksMomentumLayElec.get(j+1)[i]);
+    		}
+    		else{
+    			hitEfficiencyErrorMomentumLayBotElec.get(j+1)[i] = 0;
+    		}   		
+    		if(numberOfBotTracksWithHitOnMissingLayerMomentumLayPosi.get(j+1)[i] != 0 && numberOfBotTracksMomentumLayPosi.get(j+1)[i] != 0){
+    			hitEfficiencyErrorMomentumLayBotPosi.get(j+1)[i] = Math.sqrt(1/(double) numberOfBotTracksWithHitOnMissingLayerMomentumLayPosi.get(j+1)[i] + 1/(double) numberOfBotTracksMomentumLayPosi.get(j+1)[i]);
+    		}
+    		else{
+    			hitEfficiencyErrorMomentumLayBotPosi.get(j+1)[i] = 0;
+    		}
     		HitEfficiency_MomentumLay_top.get(j+1).fill(p,hitEfficiencyMomentumLayTop.get(j+1)[i]);
     		HitEfficiency_MomentumLay_bot.get(j+1).fill(p,hitEfficiencyMomentumLayBot.get(j+1)[i]);
     		HitEfficiency_MomentumLayError_top.get(j+1).fill(p,hitEfficiencyErrorMomentumLayTop.get(j+1)[i]);
     		HitEfficiency_MomentumLayError_bot.get(j+1).fill(p,hitEfficiencyErrorMomentumLayBot.get(j+1)[i]);
+    		HitEfficiency_MomentumLay_topElec.get(j+1).fill(p,hitEfficiencyMomentumLayTopElec.get(j+1)[i]);
+    		HitEfficiency_MomentumLay_botElec.get(j+1).fill(p,hitEfficiencyMomentumLayBotElec.get(j+1)[i]);
+    		HitEfficiency_MomentumLayError_topElec.get(j+1).fill(p,hitEfficiencyErrorMomentumLayTopElec.get(j+1)[i]);
+    		HitEfficiency_MomentumLayError_botElec.get(j+1).fill(p,hitEfficiencyErrorMomentumLayBotElec.get(j+1)[i]);
+    		HitEfficiency_MomentumLay_topPosi.get(j+1).fill(p,hitEfficiencyMomentumLayTopPosi.get(j+1)[i]);
+    		HitEfficiency_MomentumLay_botPosi.get(j+1).fill(p,hitEfficiencyMomentumLayBotPosi.get(j+1)[i]);
+    		HitEfficiency_MomentumLayError_topPosi.get(j+1).fill(p,hitEfficiencyErrorMomentumLayTopPosi.get(j+1)[i]);
+    		HitEfficiency_MomentumLayError_botPosi.get(j+1).fill(p,hitEfficiencyErrorMomentumLayBotPosi.get(j+1)[i]);
     	}
     }
    System.out.println("%===================================================================%");
