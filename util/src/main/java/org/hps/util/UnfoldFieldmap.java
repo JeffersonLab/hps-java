@@ -1,6 +1,7 @@
 package org.hps.util;
 
 
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -19,6 +20,7 @@ import static java.lang.Math.abs;
  *
  * @author Norman A Graf
  *
+ * @version $Id:
  */
 public class UnfoldFieldmap
 {
@@ -71,6 +73,7 @@ public class UnfoldFieldmap
         System.out.println("\n-----------------------------------------------------------"
                 + "\n      Reading Magnetic Field map "+_map2read
                 + "\n      Scaling values by "+_scaleFactor
+                + "\n      Flipping sign of By "
                 + "\n-----------------------------------------------------------");
 
         try {
@@ -81,13 +84,9 @@ public class UnfoldFieldmap
             // ignore the first blank line
             //thisLine = myInput.readLine();
             // next line has table dimensions
-            thisLine = myInput.readLine();
-            System.out.println(thisLine);
-            // read in the table dimensions of the file
-            StringTokenizer st = new StringTokenizer(thisLine, " ");
-            _nx = Integer.parseInt(st.nextToken());
-            _ny = Integer.parseInt(st.nextToken());
-            _nz = Integer.parseInt(st.nextToken());
+            _nx = 51;
+            _ny = 15;
+            _nz = 301;
 
             Bx = new double[_nx][_nz];
             By = new double[_nx][_nz];
@@ -103,16 +102,16 @@ public class UnfoldFieldmap
             // Ignore other header information    
             // The first line whose second character is '0' is considered to
             // be the last line of the header.
-            do {
-                thisLine = myInput.readLine();
-                st = new StringTokenizer(thisLine, " ");
-            } while (!st.nextToken().trim().equals("0"));
+//            do {
+//                thisLine = myInput.readLine();
+//                st = new StringTokenizer(thisLine, " ");
+//            } while (!st.nextToken().trim().equals("0"));
 
             // now ready to read in the values in the table
             // format is:
             // x y z Bx By Bz
             //
-            // TOSCA files have distance measured in cm
+            // TOSCA files have distance measured
             // TOSCA files have field in OERSTED 
             // Geant4 requires mm and .0001T, so need to convert
             // OERSTED to Tesla = 10000
@@ -130,13 +129,21 @@ public class UnfoldFieldmap
                 for (iy = 0; iy < _ny; iy++) {
                     for (iz = 0; iz < _nz; iz++) {
                         thisLine = myInput.readLine();
-                        st = new StringTokenizer(thisLine, " ");
+//System.out.println(thisLine);
+                        StringTokenizer st = new StringTokenizer(thisLine, " ");
+//System.out.println("xval "+xval);
                         xval = Double.parseDouble(st.nextToken());
+//System.out.println("xval "+xval);
                         yval = Double.parseDouble(st.nextToken());
+//System.out.println("yval "+yval);
                         zval = Double.parseDouble(st.nextToken());
+//System.out.println("zval "+zval);
                         bx = Double.parseDouble(st.nextToken());
-                        by = Double.parseDouble(st.nextToken());
+//System.out.println("bx "+bx);
+                        by = -Double.parseDouble(st.nextToken());
+//System.out.println("by "+by);
                         bz = Double.parseDouble(st.nextToken());
+//System.out.println("bz "+bz);
                         double[] line = {xval, yval, zval, bx, by, bz};
                         lines.add(line);
                         Bx[ix][iz] = _scaleFactor*bx/fieldConversionFactor; // convert to magnetic field units used by Geant4
@@ -241,8 +248,6 @@ public class UnfoldFieldmap
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
     }
     
 //    public void writeoutGnuplot()
