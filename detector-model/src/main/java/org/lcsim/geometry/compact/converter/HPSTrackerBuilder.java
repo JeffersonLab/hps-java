@@ -21,7 +21,7 @@ public abstract class HPSTrackerBuilder {
 
     private static final Logger LOGGER = Logger.getLogger(HPSTrackerBuilder.class.getPackage().getName());
 
-    private boolean debug = true;
+    private boolean debug = false;
     public List<BaseModuleBundle> modules = new ArrayList<BaseModuleBundle>();
     protected List<SurveyVolume> surveyVolumes = new ArrayList<SurveyVolume>();
     protected Element node;
@@ -266,51 +266,37 @@ public abstract class HPSTrackerBuilder {
     }
     
     public static String getHalfFromName(String name) {
-        String half = "";
-        if (name.contains("bottom")) {
-            half = "bottom";
-        }
-        if (name.contains("top")) {
-            // check that both sides are not found
-            if (half.equals("bottom")) {
-                throw new RuntimeException("found both halfs from name  " + name);
-            } else {
-                half = "top";
-            }
-        }
-        // check for other signatures
-        if (half.isEmpty()) {
-            Pattern pattern = Pattern.compile(".*_L[1-6][1-6]?([a-z]).*");
-            Matcher matcher = pattern.matcher(name);
-            if(matcher.matches()) {
-                if(matcher.group(1).equals("t")) {
-                    half = "top";
-                } else if(matcher.group(1).equals("b")) {
-                    half = "bottom";
-                }
-            }
-        }
-        if (half.isEmpty()) {
-            System.out.println("found no half from " + name);
-            throw new RuntimeException("found no half from " + name);
-        } else {
-            return half;
+        boolean matchBottom = Pattern.matches(".*bottom.*", name);
+        boolean matchTop = Pattern.matches(".*top.*", name);
+        
+        if(matchBottom && matchTop)
+            throw new RuntimeException("found both halfs from name  " + name);
 
-        }
+        if(matchBottom)
+            return "bottom";
+        if(matchTop)
+            return "top";
+
+        // check for other signatures
+        Pattern pattern = Pattern.compile(".*_L\\d\\d?(t|b).*");
+        Matcher matcher = pattern.matcher(name);
+        if(matcher.matches()) {
+            if(matcher.group(1).equals("t"))
+                return "top";
+            else if(matcher.group(1).equals("b"))
+                return "bottom";
+            else
+                throw new RuntimeException("I should never get here from name " + name);
+        } 
+        throw new RuntimeException("Couldn't find half from " + name);
     }
 
     public static int getLayerFromVolumeName(String name) {
-        int layer = -1;
-        for (int i = 1; i <= 6; ++i) {
-            if (name.contains(String.format("module_L%d", i))) {
-                layer = i;
-            }
-        }
-        if (layer == -1) {
-            System.out.println("cannot find layer from " + name);
-            System.exit(1);
-        }
-        return layer;
+        Matcher matcher = Pattern.compile(".*module_L(\\d+).*").matcher(name);
+        if(matcher.matches())
+            return Integer.parseInt( matcher.group(1));
+        else
+            throw new RuntimeException("cannot find layer from " + name);
     }
 
     public static boolean isBase(String name) {
@@ -330,7 +316,7 @@ public abstract class HPSTrackerBuilder {
     }
     
     public static boolean isModule(String name) {
-        return Pattern.matches("module_L[1-6][bt]$", name);
+        return Pattern.matches("module_L\\d+[bt]$", name);
     }
     
     public static int getUChannelSupportLayer(String name) {
@@ -632,7 +618,7 @@ public abstract class HPSTrackerBuilder {
     /**
      * Get hole or slot key name from string
      * 
-     * @param name "hole" or "slot"
+     * @param name.
      * @return hole or not boolean
      */
     public static boolean isHoleFromName(String name) {
@@ -649,7 +635,10 @@ public abstract class HPSTrackerBuilder {
     /**
      * Extract old definition of Test Run sensor number.
      * 
-     * @return the geometric layer according to Test Run definition
+     * @param isTopLayer - top or bottom layer
+     * @param l - layer
+     * @param isAxial - axial or stereo sensor
+     * @return
      */
     public int getOldGeomDefLayerFromVolumeName(String name) {
 
@@ -669,7 +658,8 @@ public abstract class HPSTrackerBuilder {
     /**
      * Get the layer number consistent with the old geometry definition.
      * 
-     * @return the older layer definition
+     * @param module name that contains layer and half information.
+     * @return the layer.
      */
     public int getOldLayerDefinition(boolean isTopLayer, int l, boolean isAxial) {
         int layer = -1;

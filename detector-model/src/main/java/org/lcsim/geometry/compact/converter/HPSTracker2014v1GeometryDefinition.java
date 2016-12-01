@@ -7,7 +7,7 @@ import org.jdom.Element;
 /**
  * 
  * Updated geometry information for the HPS tracker 2014
- * 
+
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  */
@@ -93,9 +93,10 @@ public class HPSTracker2014v1GeometryDefinition extends HPSTracker2014GeometryDe
 
     
     /**
-     * PI rotation around generic z-axis 
+     * PI rotation around generic z-axis
+     * @return
      */
-    private static Rotation getSlotRotation() {
+    protected static Rotation getSlotRotation() {
         return new Rotation(new Vector3D(0,0,1),Math.PI);
     }
     
