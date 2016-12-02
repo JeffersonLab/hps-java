@@ -38,6 +38,7 @@
                         <exclude>org/hps/conditions/HPSJAVA_529_Test.java</exclude>
                         <exclude>org/hps/conditions/dummy/**.java</exclude>
                         <exclude>org/hps/conditions/beam/BeamEnergyTest.java</exclude>
+                        <exclude>org/hps/conditions/trigger/TriggerTimeWindowTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
