@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Offline reconstruction for 2015 (engineering run with SVT+ECal) MC
+  corresponding to the Pass-2 reconstruction
+  @author Sho Uemura <meeg@slac.stanford.edu>
+  @author Matt Graham <mgraham@slac.stanford.edu>
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+    
+        <driver name="ConditionsDriver"/>
+        <driver name="EventMarkerDriver"/>
+        <driver name="RfFitter"/>
+        <!-- Ecal reconstruction drivers -->        
+        <driver name="EcalRawConverter" />
+        <driver name="ReconClusterer" />
+        <driver name="GTPOnlineClusterer" />
+        <driver name="CopyCluster" />
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver"/>
+        <driver name="HelicalTrackHitDriver"/>     
+        <!-- 
+            Will run track finding algorithm using layers 456 as a seed, 
+            layer 3 to confirm and layers 1, 2, and 7 to extend. The collection
+            name of the tracks found with this strategy will be "MatchedTracks".
+        -->
+        <driver name="TrackReconSeed456Conf3Extd127"/>       
+        <!-- 
+            Will run track finding algorithm using layers 567 as a seed, 
+            layer 4 to confirm and layers 1, 2, and 3 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s567_c4_e123"
+        -->
+        <driver name="TrackReconSeed567Conf4Extd123"/>
+        <!-- 
+            Will run track finding algorithm using layers 234 as a seed, 
+            layer 5 to confirm and layers 1, 6, and 7 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s234_c5_e167"
+        -->
+        <driver name="TrackReconSeed234Conf5Extd167"/>
+        <!-- 
+            Will run track finding algorithm using layers 234 as a seed, 
+            layer 6 to confirm and layers 1, 5, and 7 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s234_c6_e157"
+        --> 
+        <driver name="TrackReconSeed234Conf6Extd157"/>
+        <!-- 
+            TrackDataDriver needs to be run before ReconParticleDriver so the
+            ReconstructedParticle types are properly set.
+         -->
+        <driver name="MergeTrackCollections"/>
+        <driver name="GBLRefitterDriver" />
+        <driver name="TrackDataDriver" />
+        <driver name="ReconParticleDriver" />   
+        <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>    
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <detectorName>${detector}</detectorName>
+            <runNumber>${run}</runNumber>
+            <freeze>true</freeze>
+        </driver>
+
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>   
+        <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
+             
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>false</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>false</correctChanT0>
+            <debug>false</debug>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+        </driver>
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <clusterTimeCut>12.0</clusterTimeCut>
+            <maxDt>16.0</maxDt>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+        </driver>
+          <!-- SVT Track finding -->
+        <driver name="TrackReconSeed456Conf3Extd127" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s456_c3_e127</trackCollectionName>
+            <strategyResource>HPS_s456_c3_e127.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>                
+        <driver name="TrackReconSeed567Conf4Extd123" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s567_c4_e123</trackCollectionName>
+            <strategyResource>HPS_s567_c4_e123.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>                
+        <driver name="TrackReconSeed234Conf5Extd167" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s234_c5_e167</trackCollectionName>
+            <strategyResource>HPS_s234_c5_e167.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>                
+        <driver name="TrackReconSeed234Conf6Extd157" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s234_c6_e157</trackCollectionName>
+            <strategyResource>HPS_s234_c6_e157.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>       
+        <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <fixShapeParameter>true</fixShapeParameter>
+            <globalFixedPulseWidth>2.4</globalFixedPulseWidth>
+        </driver>       
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver>
+        <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <clustererName>GTPOnlineClusterer</clustererName>
+            <outputClusterCollectionName>EcalClustersGTP</outputClusterCollectionName>
+            <!-- seedMinEnergy -->
+            <cuts>0.100</cuts>
+        </driver> 
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>       
+        <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver"> 
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>         
+            <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
+        </driver>
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+    </drivers>
+</lcsim>
