@@ -214,9 +214,6 @@ public class DataTriggerSimDriver extends Driver {
                     pairCutsEnabled[i][3 + ENERGY_SLOPE] = pairs[i].getEnergySlopeCutConfig().isEnabled();
                     pairCutsEnabled[i][3 + COPLANARITY] = pairs[i].getCoplanarityCutConfig().isEnabled();
                 }
-                
-                // Output the DAQ settings.
-                logSettings();
             }
         });
     }
@@ -519,6 +516,7 @@ public class DataTriggerSimDriver extends Driver {
                                 TriggerModule.getClusterTime(reconPair[1]));
                     }
                     
+                    // Perform each trigger cut.
                     passClusterLow = pairsTrigger[triggerIndex].clusterTotalEnergyCutLow(reconPair[0])
                             && pairsTrigger[triggerIndex].clusterTotalEnergyCutLow(reconPair[1]);
                     passClusterHigh = pairsTrigger[triggerIndex].clusterTotalEnergyCutHigh(reconPair[0])
@@ -724,65 +722,5 @@ public class DataTriggerSimDriver extends Driver {
         // Otherwise, return negative MIN_VALUE to indicate an invalid
         // trigger type.
         return Double.MIN_VALUE;
-    }
-    
-    /**
-     * Outputs all of the verification parameters currently in use by
-     * the software. A warning will be issued if the values for NSA and
-     * NSB, along with the FADC window, preclude clusters from being
-     * verified.
-     */
-    private void logSettings() {
-        // Print a DAQ configuration settings header.
-        System.out.println();
-        System.out.println();
-        System.out.println("======================================================================");
-        System.out.println("=== DAQ Configuration Settings =======================================");
-        System.out.println("======================================================================");
-        
-        // Output window settings.
-        System.out.println("FADC Timing Window Settings");
-        System.out.printf("\tNSB                    :: %3d ns%n", nsb);
-        System.out.printf("\tNSA                    :: %3d ns%n", nsa);
-        System.out.printf("\tFADC Window            :: %3d ns%n", windowWidth);
-        
-        // Output the singles trigger settings.
-        for(int i = 0; i < 2; i++) {
-            // Print the settings.
-            System.out.printf("Singles Trigger %d Settings%23s[%5b]%n", (i + 1), "", singlesTriggerEnabled[i]);
-            System.out.printf("\tCluster Energy Low     :: %.3f GeV      [%5b]%n",
-                    singlesTrigger[i].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW), singlesCutsEnabled[i][0]);
-            System.out.printf("\tCluster Energy High    :: %.3f GeV      [%5b]%n",
-                    singlesTrigger[i].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH), singlesCutsEnabled[i][1]);
-            System.out.printf("\tCluster Hit Count      :: %.0f hit(s)       [%5b]%n",
-                    singlesTrigger[i].getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW), singlesCutsEnabled[i][2]);
-            System.out.println();
-        }
-        
-        // Output the pair trigger settings.
-        for(int i = 0; i < 2; i++) {
-            System.out.printf("Pairs Trigger %d Settings%25s[%5b]%n", (i + 1), "", pairTriggerEnabled[i]);
-            System.out.printf("\tCluster Energy Low     :: %.3f GeV      [%5b]%n",
-                    pairsTrigger[i].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW), pairCutsEnabled[i][0]);
-            System.out.printf("\tCluster Energy High    :: %.3f GeV      [%5b]%n",
-                    pairsTrigger[i].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH), pairCutsEnabled[i][1]);
-            System.out.printf("\tCluster Hit Count      :: %.0f hit(s)       [%5b]%n",
-                    pairsTrigger[i].getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW), pairCutsEnabled[i][2]);
-            System.out.printf("\tPair Energy Sum Low    :: %.3f GeV      [%5b]%n",
-                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW), pairCutsEnabled[i][3]);
-            System.out.printf("\tPair Energy Sum High   :: %.3f GeV      [%5b]%n",
-                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH), pairCutsEnabled[i][3]);
-            System.out.printf("\tPair Energy Difference :: %.3f GeV      [%5b]%n",
-                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH), pairCutsEnabled[i][4]);
-            System.out.printf("\tPair Energy Slope      :: %.3f GeV      [%5b]%n",
-                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW), pairCutsEnabled[i][5]);
-            System.out.printf("\tPair Energy Slope F    :: %.4f GeV / mm%n",
-                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F));
-            System.out.printf("\tPair Coplanarity       :: %3.0f Degrees    [%5b]%n",
-                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_COPLANARITY_HIGH), pairCutsEnabled[i][6]);
-            System.out.printf("\tPair Time Coincidence  :: %2.0f ns          [%5b]%n",
-                    pairsTrigger[i].getCutValue(TriggerModule.PAIR_TIME_COINCIDENCE), true);
-            System.out.println();
-        }
     }
 }

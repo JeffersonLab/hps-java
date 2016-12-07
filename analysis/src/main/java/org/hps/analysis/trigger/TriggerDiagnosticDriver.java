@@ -89,6 +89,50 @@ public class TriggerDiagnosticDriver extends Driver {
      * array index corresponding to the trigger of the same trigger number. */
     private TriggerModule[] pairTrigger = new TriggerModule[2];
     
+    // === Plotting variables. ==========================================================
+    // ==================================================================================
+    /** Defines the basic directory structure for all plots used in the
+     * class. This is instantiated in <code>startOfData</code>. */
+    private String moduleHeader;
+    /** Stores the number of bins used by the efficiency plots for each
+     * conventional trigger cut. Array index corresponds to the ordinal
+     * value of the <code>CutType</code> enumerable for all values for
+     * which <code>isSpecial()</code> is false. Note that this variable
+     * is defined as a function of the variable arrays <code>xMax</code>
+     * and <code>binSize</code> during <code>startOfData()</code>. */
+    private int[] bins = new int[8];
+    /** Stores the x-axis maximum used by the efficiency plots for each
+     * conventional trigger cut. Array index corresponds to the ordinal
+     * value of the <code>CutType</code> enumerable for all values for
+     * which <code>isSpecial()</code> is false. */
+    private double[] xMax = {
+            2.200,          // Seed energy,        xMax = 2.2 GeV
+            2.200,          // Cluster energy,     xMax = 2.2 GeV
+            9.5,            // Hit count,          xMax = 9.5 hits
+            2.200,          // Energy sum,         xMax = 2.2 GeV
+            2.200,          // Energy difference,  xMax = 2.2 GeV
+            4.000,          // Energy slope,       xMax = 4.0 GeV
+            180.0,          // Coplanarity,        xMax = 180 degrees
+            30.0            // Time coincidence,   xMax = 30 ns
+    };
+    /** Store the size of a bin used by the efficiency plots for each
+     * conventional trigger cut. Array index corresponds to the ordinal
+     * value of the <code>CutType</code> enumerable for all values for
+     * which <code>isSpecial()</code> is false. */
+    private double[] binSize = {
+            0.050,          // Seed energy,        binSize = 50 MeV
+            0.050,          // Cluster energy,     binSize = 50 MeV
+            1,              // Hit count,          binSize = 1 hit
+            0.050,          // Energy sum,         binSize = 50 MeV
+            0.050,          // Energy difference,  binSize = 50 MeV
+            0.050,          // Energy slope,       binSize = 50 MeV
+            5,              // Coplanarity,        binSize = 5 degrees
+            4               // Time coincidence,   binSize = 2 ns
+    };
+    /** Stores a list of all trigger types that are used for plotting
+     * efficiency plots. This is filled in <code>startOfData</code>. */
+    private List<TriggerType> triggerTypes = new ArrayList<TriggerType>(TriggerType.values().length + 1);
+    
     // === Trigger matching statistics. =================================================
     // ==================================================================================
     private static final int SOURCE_SIM_CLUSTER = 0;
@@ -158,13 +202,13 @@ public class TriggerDiagnosticDriver extends Driver {
     // ==================================================================================
     /** The number of samples before a pulse-crossing event to integrate
      * during hit formation. Used to determine the risk of pulse-clipping. */
-    private int nsb =  20;
+    private int nsb =  -1;
     /** The number of samples after a pulse-crossing event to integrate
      * during hit formation. Used to determine the risk of pulse-clipping. */
-    private int nsa = 100;
+    private int nsa = -1;
     /** The width of the pulse integration window used to form hits.
      * Used to determine the risk of pulse-clipping. */
-    private int windowWidth = 200;
+    private int windowWidth = -1;
     /** The number of hits that must be present in event in order for
      * it to be ignored as a "noise event." */
     private int noiseEventThreshold = 50;
@@ -203,6 +247,94 @@ public class TriggerDiagnosticDriver extends Driver {
      */
     private List<Pair<Long, int[][]>> efficiencyPlotEntries = new ArrayList<Pair<Long, int[][]>>();
     
+    /**
+     * Enumerable <code>CutType</code> represents a type of cut which
+     * against which trigger efficiency may be plotted. It also provides
+     * mechanisms by which a human-readable name may be acquired and
+     * also whether or not the cut is a real trigger cut, or a special
+     * cut used for plotting efficiency only.
+     * 
+     * @author Kyle McCarty <mccarty@jlab.org>
+     */
+    private enum CutType {
+        CLUSTER_SEED_ENERGY("Cluster Seed Energy", true, false), CLUSTER_TOTAL_ENERGY("Cluster Total Energy", true, false),
+        CLUSTER_HIT_COUNT("Cluster Hit Count", true, false), PAIR_ENERGY_SUM("Pair Energy Sum", false, true),
+        PAIR_ENERGY_DIFF("Pair Energy Difference", false, true), PAIR_ENERGY_SLOPE("Pair Energy Slope", false, true),
+        PAIR_COPLANARITY("Pair Coplanarity", false, true), PAIR_TIME_COINCIDENCE("Pair Time Coincidence", false, true),
+        PAIR_LOW_ENERGY("Pair Lower Cluster Energy", false, true, true), PAIR_HIGH_ENERGY("Pair Upper Cluster Energy", false, true, true),
+        EVENT_TIME("Event Time", true, true, true);
+        
+        private final String name;
+        private final boolean isPair;
+        private final boolean isSpecial;
+        private final boolean isSingles;
+        
+        /**
+         * Instantiates a cut. The cut is assumed to be a real trigger
+         * cut, and not a "special cut" included for plotting purposes.
+         * @param name - The name of the cut in a human-readable form.
+         * @param isSingles - Whether or not this is a singles cut.
+         * <code>true</code> means that it is and <code>false</code>
+         * that it is not.
+         * @param isPair - Whether or not this is a pair cut.
+         * <code>true</code> means that it is and <code>false</code>
+         * that it is not.
+         */
+        private CutType(String name, boolean isSingles, boolean isPair) {
+            this.name = name;
+            isSpecial = false;
+            this.isPair = isPair;
+            this.isSingles = isSingles;
+        }
+        
+        /**
+         * Instantiates a cut.
+         * @param name - The name of the cut in a human-readable form.
+         * @param isSingles - Whether or not this is a singles cut.
+         * <code>true</code> means that it is and <code>false</code>
+         * that it is not.
+         * @param isPair - Whether or not this is a pair cut.
+         * <code>true</code> means that it is and <code>false</code>
+         * that it is not.
+         * @param isSpecial - Whether or not the cut is a real trigger
+         * cut or not. <code>true</code> indicates that it is a trigger
+         * cut and <code>false</code> that it is not.
+         */
+        private CutType(String name, boolean isSingles, boolean isPair, boolean isSpecial) {
+            this.name = name;
+            this.isPair = isPair;
+            this.isSingles = isSingles;
+            this.isSpecial = isSpecial;
+        }
+        
+        /**
+         * Indicates whether this is a singles cut.
+         * @return Returns <code>true</code> to indicate that it is
+         * and <code>false</code> that it is not.
+         */
+        public boolean isSingles() { return isSingles; }
+        
+        /**
+         * Indicates whether this is a pair cut.
+         * @return Returns <code>true</code> to indicate that it is
+         * and <code>false</code> that it is not.
+         */
+        public boolean isPair() { return isPair; }
+        
+        /**
+         * Indicates whether this is an actual trigger cut or not. Some
+         * "special cuts" are included because they provide useful data
+         * when efficiency is plotted against them, but they are not
+         * properly trigger cuts.
+         * @return Returns whether or not the cut is a real trigger cut
+         * or not. <code>true</code> indicates that it is a trigger cut
+         * and <code>false</code> that it is not.
+         */
+        public boolean isSpecial() { return isSpecial; }
+        
+        @Override
+        public String toString() { return name; }
+    }
     
     /**
      * Enumerable <code>TriggerType</code> represents the supported
@@ -249,6 +381,15 @@ public class TriggerDiagnosticDriver extends Driver {
         public boolean isSinglesTrigger() { return (this.equals(SINGLES0) || this.equals(SINGLES1)); }
         
         /**
+         * Indicates whether this trigger type is a pair trigger.
+         * @return Returns <code>true</code> if the trigger is of type
+         * <code>TriggerType.PAIR0</code> or
+         * <code>TriggerType.PAIR1</code>. Otherwise, returns
+         * <code>false</code>.
+         */
+        public boolean isPairTrigger() { return (this.equals(PAIR0) || this.equals(PAIR1)); }
+        
+        /**
          * Gets the trigger number for this trigger type.
          * @return Returns either <code>0</code> or <code>1</code> as
          * appropriate for singles and pair trigger types. For cosmic
@@ -270,7 +411,7 @@ public class TriggerDiagnosticDriver extends Driver {
         int largestValue = max(hardwareTriggerCount[ALL_TRIGGERS], simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
                 simTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS], matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
                 matchedTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS]);
-        int maxChars = getDigits(largestValue);
+        int maxChars = TriggerDiagnosticUtil.getDigits(largestValue);
         String charDisplay = "%" + maxChars + "d";
         
         // Calculate the efficiencies and determine the display value.
@@ -319,7 +460,7 @@ public class TriggerDiagnosticDriver extends Driver {
                     matchedTriggerCount[SOURCE_SIM_CLUSTER][trigger.ordinal()], simTriggerCount[SOURCE_SSP_CLUSTER][trigger.ordinal()],
                     matchedTriggerCount[SOURCE_SSP_CLUSTER][trigger.ordinal()]);
         }
-        int tiMaxChars = getDigits(tiMaxValue);
+        int tiMaxChars = TriggerDiagnosticUtil.getDigits(tiMaxValue);
         
         // Define the column width and column headers for the TI-bit
         // specific efficiencies.
@@ -381,7 +522,6 @@ public class TriggerDiagnosticDriver extends Driver {
         }
         
         // Create and populate the efficiency over time plot.
-        final String moduleHeader = "Trigger Diagnostics/Trigger Verification/" + triggerType.toString() + "/";
         AIDA.defaultInstance().cloud2D(moduleHeader + "Software Sim Trigger Efficiency", efficiencyPlotEntries.size());
         AIDA.defaultInstance().cloud2D(moduleHeader + "Hardware Sim Trigger Efficiency", efficiencyPlotEntries.size());
         for(Pair<Long, int[][]> entry : efficiencyPlotEntries) {
@@ -399,6 +539,24 @@ public class TriggerDiagnosticDriver extends Driver {
                 AIDA.defaultInstance().cloud2D(moduleHeader + "Software Sim Trigger Efficiency").fill(time, softwareEfficiency);
             } if(!Double.isNaN(hardwareEfficiency)) {
                 AIDA.defaultInstance().cloud2D(moduleHeader + "Hardware Sim Trigger Efficiency").fill(time, hardwareEfficiency);
+            }
+        }
+        
+        // Create the efficiency plots from the observed and verified
+        // trigger plots, as appropriate.
+        for(TriggerType trigger : triggerTypes) {
+            for(CutType cut : CutType.values()) {
+                // Only process plots appropriate to the trigger type.
+                if((triggerType.isSinglesTrigger() && !cut.isSingles()) || (triggerType.isPairTrigger() && !cut.isPair())) {
+                    continue;
+                }
+                
+                // Define the plot for the current TI-bit and cut.
+                for(int type = SOURCE_SIM_CLUSTER; type <= SOURCE_SSP_CLUSTER; type++) {
+                    AIDA.defaultInstance().histogramFactory().divide(getPlotNameEfficiency(cut, trigger, type),
+                            AIDA.defaultInstance().histogram1D(getPlotNameVerified(cut, trigger, type)),
+                            AIDA.defaultInstance().histogram1D(getPlotNameTotal(cut, trigger, type)));
+                }
             }
         }
     }
@@ -583,6 +741,22 @@ public class TriggerDiagnosticDriver extends Driver {
                 // Get the DAQ configuration.
                 DAQConfig daq = ConfigurationManager.getInstance();
                 
+                // If the event time plots are not instantiated, do so.
+                if(nsa == -1) {
+                    // Calculate the bin count and x-axis maximum.
+                    int bins = (daq.getFADCConfig().getWindowWidth() / 4) + 1;
+                    int xMax = daq.getFADCConfig().getWindowWidth() + 2;
+                    
+                    // Instantiate the plots for each trigger bit.
+                    for(TriggerType trigger : triggerTypes) {
+                        for(int type = SOURCE_SIM_CLUSTER; type <= SOURCE_SSP_CLUSTER; type++) {
+                            AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.EVENT_TIME, trigger, type), bins, -2, xMax);
+                            AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.EVENT_TIME, trigger, type), bins, -2, xMax);
+                            AIDA.defaultInstance().histogram1D(getPlotNameEfficiency(CutType.EVENT_TIME, trigger, type), bins, -2, xMax);
+                        }
+                    }
+                }
+                
                 // Load the DAQ settings from the configuration manager.
                 singlesTrigger[0].loadDAQConfiguration(daq.getSSPConfig().getSingles1Config());
                 singlesTrigger[1].loadDAQConfiguration(daq.getSSPConfig().getSingles2Config());
@@ -631,6 +805,72 @@ public class TriggerDiagnosticDriver extends Driver {
         pairTrigger[1].setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F, 0.001);
         pairTrigger[1].setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH, 180);
         pairTrigger[1].setCutValue(TriggerModule.PAIR_TIME_COINCIDENCE, 8);
+        
+        // Set the trigger plots module name.
+        moduleHeader = "Trigger Diagnostics/Trigger Verification/" + triggerType.toString() + "/";
+        
+        // Instantiate the trigger efficiency plots. Note that the time
+        // coincidence plot is instantiated in the ConfigurationManager
+        // listener, as it needs to know the event readout window size.
+        for(TriggerType trigger : TriggerType.values()) { triggerTypes.add(trigger); }
+        triggerTypes.add(null);
+        for(TriggerType trigger : triggerTypes) {
+            for(CutType cut : CutType.values()) {
+                // Skip "special" plotting cuts. These are defined in
+                // other locations.
+                if(cut.isSpecial()) { continue; }
+                
+                // Make sure that the maximum x-axis values for the efficiency
+                // plots are evenly divisible by the bin size.
+                if(Math.floor(1.0 * xMax[cut.ordinal()] / binSize[cut.ordinal()]) != (xMax[cut.ordinal()] / binSize[cut.ordinal()])) {
+                    xMax[cut.ordinal()] = Math.ceil(xMax[cut.ordinal()] / binSize[cut.ordinal()]) * binSize[cut.ordinal()];
+                }
+                
+                // Define the bin counts for each plot.
+                bins[cut.ordinal()] = (int) Math.ceil(xMax[cut.ordinal()] / binSize[cut.ordinal()]);
+                
+                // Only generate plots appropriate to the trigger type.
+                if((triggerType.isSinglesTrigger() && !cut.isSingles()) || (triggerType.isPairTrigger() && !cut.isPair())) {
+                    continue;
+                }
+                
+                // Define the plot for the current TI-bit and cut.
+                for(int type = SOURCE_SIM_CLUSTER; type <= SOURCE_SSP_CLUSTER; type++) {
+                    AIDA.defaultInstance().histogram1D(getPlotNameTotal(cut, trigger, type), bins[cut.ordinal()],
+                            0.0, bins[cut.ordinal()] * binSize[cut.ordinal()]);
+                    AIDA.defaultInstance().histogram1D(getPlotNameVerified(cut, trigger, type), bins[cut.ordinal()],
+                            0.0, bins[cut.ordinal()] * binSize[cut.ordinal()]);
+                    AIDA.defaultInstance().histogram1D(getPlotNameEfficiency(cut, trigger, type), bins[cut.ordinal()],
+                            0.0, bins[cut.ordinal()] * binSize[cut.ordinal()]);
+                }
+            }
+            
+            // Define the pair cluster high and low energy plots. These
+            // use the same values as the cluster total energy plot.
+            // These plots are only initialized for pair triggers.
+            if(triggerType.isPairTrigger()) {
+                for(int type = SOURCE_SIM_CLUSTER; type <= SOURCE_SSP_CLUSTER; type++) {
+                    AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_LOW_ENERGY, trigger, type),
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()], 0.0,
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()] * binSize[CutType.CLUSTER_TOTAL_ENERGY.ordinal()]);
+                    AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.PAIR_LOW_ENERGY, trigger, type),
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()], 0.0,
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()] * binSize[CutType.CLUSTER_TOTAL_ENERGY.ordinal()]);
+                    AIDA.defaultInstance().histogram1D(getPlotNameEfficiency(CutType.PAIR_LOW_ENERGY, trigger, type),
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()], 0.0,
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()] * binSize[CutType.CLUSTER_TOTAL_ENERGY.ordinal()]);
+                    AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_HIGH_ENERGY, trigger, type),
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()], 0.0,
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()] * binSize[CutType.CLUSTER_TOTAL_ENERGY.ordinal()]);
+                    AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.PAIR_HIGH_ENERGY, trigger, type),
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()], 0.0,
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()] * binSize[CutType.CLUSTER_TOTAL_ENERGY.ordinal()]);
+                    AIDA.defaultInstance().histogram1D(getPlotNameEfficiency(CutType.PAIR_HIGH_ENERGY, trigger, type),
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()], 0.0,
+                            bins[CutType.CLUSTER_TOTAL_ENERGY.ordinal()] * binSize[CutType.CLUSTER_TOTAL_ENERGY.ordinal()]);
+                }
+            }
+        }
     }
     
     /**
@@ -771,6 +1011,9 @@ public class TriggerDiagnosticDriver extends Driver {
                 logger.printf(" [ trigger verified   ]%n");
                 matchedTriggers.add(hardwareTrigger);
                 
+                // Plot the trigger for the verified plots.
+                plotTrigger(simTrigger, tiFlags, true);
+                
                 // Update the verified count for each type of trigger
                 // for the local and global windows.
                 if(clusterType == Cluster.class || clusterType == Cluster[].class) {
@@ -879,19 +1122,6 @@ public class TriggerDiagnosticDriver extends Driver {
     }
     
     /**
-     * Gets the number of digits in the base-10 String representation
-     * of an integer primitive. Negative signs are not included in the
-     * digit count.
-     * @param value - The value of which to obtain the length.
-     * @return Returns the number of digits in the String representation
-     * of the argument value.
-     */
-    private static final int getDigits(int value) {
-        if(value < 0) { return Integer.toString(value).length() - 1; }
-        else { return Integer.toString(value).length(); }
-    }
-    
-    /**
      * A helper method associated with <code>getTriggerTime</code> that
      * handles pair triggers, which have either <code>Cluster[]</code>
      * or <code>SSPCluster[]</code> objects as their source type. <b>This
@@ -934,6 +1164,52 @@ public class TriggerDiagnosticDriver extends Driver {
         } else {
             throw new IllegalArgumentException("Ambiguous cluster pair; both top clusters.");
         }
+    }
+    
+    private final String getPlotName(String footer, CutType cut, TriggerType tiBit, int sourceType) {
+        // Make sure that a cut was defined.
+        if(cut == null) {
+            throw new NullPointerException("Plot cut type was not defined.");
+        }
+        
+        // Make sure a valid source type is defined.
+        if(sourceType != SOURCE_SIM_CLUSTER && sourceType != SOURCE_SSP_CLUSTER) {
+            throw new NullPointerException("\"" + sourceType + "\" is not a valid source type index.");
+        }
+        
+        // Get the appropriate name for the TI bit.
+        String tiName = getPlotTIName(tiBit);
+        
+        // Define the source type name.
+        String sourceName;
+        if(sourceType == SOURCE_SIM_CLUSTER) { sourceName = "Software Sim Distributions/"; }
+        else { sourceName = "Hardware Sim Distributions/"; }
+        
+        // Return the name of the coplanarity plot.
+        return moduleHeader + sourceName + tiName + "/" + cut.toString() + footer;
+    }
+    
+    private final String getPlotNameEfficiency(CutType cut, TriggerType tiBit, int sourceType) {
+        return getPlotName(" Efficiency", cut, tiBit, sourceType);
+    }
+    
+    private final String getPlotNameTotal(CutType cut, TriggerType tiBit, int sourceType) {
+        return getPlotName(" (Observed)", cut, tiBit, sourceType);
+    }
+    
+    private final String getPlotNameVerified(CutType cut, TriggerType tiBit, int sourceType) {
+        return getPlotName(" (Verified)", cut, tiBit, sourceType);
+    }
+    
+    /**
+     * Returns the name of the trigger type in the argument, or "All"
+     * if a null argument is given.
+     * @param tiBit - The trigger type.
+     * @return Returns either the name of the trigger type or "All."
+     */
+    private static final String getPlotTIName(TriggerType tiBit) {
+        if(tiBit == null) { return "All"; }
+        else { return tiBit.toString(); }
     }
     
     /**
@@ -1162,6 +1438,139 @@ public class TriggerDiagnosticDriver extends Driver {
         return maxValue;
     }
     
+    private void plotTrigger(Trigger<?> trigger, boolean[] activeTIBits, boolean verified) {
+        // Which plots are to be populated depends on the type of
+        // trigger. First, handle singles triggers.
+        if(trigger.getTriggerSource() instanceof Cluster || trigger.getTriggerSource() instanceof SSPCluster) {
+            // Define the plot values.
+            int sourceType;
+            double clusterEnergy;
+            double hitCount;
+            double eventTime = getTriggerTime(trigger);
+            
+            // Get the values. This will depend on the cluster type.
+            if(trigger.getTriggerSource() instanceof Cluster) {
+                // Fill the plot value variables.
+                Cluster cluster = (Cluster) trigger.getTriggerSource();
+                clusterEnergy = TriggerModule.getValueClusterTotalEnergy(cluster);
+                hitCount = TriggerModule.getClusterHitCount(cluster);
+                
+                // Note that the source type is a sim cluster.
+                sourceType = SOURCE_SIM_CLUSTER;
+                
+                // Seed energy is also plotted here, as it does not exist
+                // for SSP clusters.
+                double seedEnergy = TriggerModule.getValueClusterSeedEnergy(cluster);
+                for(TriggerType tiBit : triggerTypes) {
+                    if(tiBit == null || activeTIBits[tiBit.ordinal()]) {
+                        if(verified) {
+                            AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.CLUSTER_SEED_ENERGY, tiBit, sourceType)).fill(seedEnergy);
+                        } else {
+                            AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.CLUSTER_SEED_ENERGY, tiBit, sourceType)).fill(seedEnergy);
+                        }
+                    }
+                }
+            } else if(trigger.getTriggerSource() instanceof SSPCluster) {
+                // Fill the plot value variables.
+                SSPCluster cluster = (SSPCluster) trigger.getTriggerSource();
+                clusterEnergy = TriggerModule.getValueClusterTotalEnergy(cluster);
+                hitCount = TriggerModule.getClusterHitCount(cluster);
+                
+                // Note that the source type is an SSP cluster.
+                sourceType = SOURCE_SSP_CLUSTER;
+            } else {
+                throw new IllegalArgumentException("Trigger source " + trigger.getTriggerSource().getClass().getSimpleName() + " is not recognized.");
+            }
+            
+            // Populate the appropriate trigger plot.
+            for(TriggerType tiBit : triggerTypes) {
+                if(tiBit == null || activeTIBits[tiBit.ordinal()]) {
+                    if(verified) {
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.EVENT_TIME, tiBit, sourceType)).fill(eventTime);
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.CLUSTER_HIT_COUNT, tiBit, sourceType)).fill(hitCount);
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.CLUSTER_TOTAL_ENERGY, tiBit, sourceType)).fill(clusterEnergy);
+                    } else {
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.EVENT_TIME, tiBit, sourceType)).fill(eventTime);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.CLUSTER_HIT_COUNT, tiBit, sourceType)).fill(hitCount);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.CLUSTER_TOTAL_ENERGY, tiBit, sourceType)).fill(clusterEnergy);
+                    }
+                }
+            }
+        } else if(trigger.getTriggerSource() instanceof Cluster[] || trigger.getTriggerSource() instanceof SSPCluster[]) {
+            // Define the plot values.
+            int sourceType;
+            double energySum;
+            double energyDiff;
+            double energySlope;
+            double coplanarity;
+            double timeCoincidence;
+            double clusterLow;
+            double clusterHigh;
+            double eventTime = getTriggerTime(trigger);
+            
+            // How the values are filled depends on the source cluster
+            // type.
+            if(trigger.getTriggerSource() instanceof Cluster[]) {
+                // Fill the plot value variables.
+                Cluster[] pair = (Cluster[]) trigger.getTriggerSource();
+                energySum = TriggerModule.getValueEnergySum(pair);
+                energyDiff = TriggerModule.getValueEnergyDifference(pair);
+                energySlope = TriggerModule.getValueEnergySlope(pair,
+                        pairTrigger[triggerType.getTriggerNumber()].getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F));
+                coplanarity = TriggerModule.getValueCoplanarity(pair);
+                timeCoincidence = TriggerModule.getValueTimeCoincidence(pair);
+                clusterLow = Math.min(TriggerModule.getValueClusterTotalEnergy(pair[0]), TriggerModule.getValueClusterTotalEnergy(pair[1]));
+                clusterHigh = Math.max(TriggerModule.getValueClusterTotalEnergy(pair[0]), TriggerModule.getValueClusterTotalEnergy(pair[1]));
+                
+                // Note that the source type is a sim cluster.
+                sourceType = SOURCE_SIM_CLUSTER;
+            } else if(trigger.getTriggerSource() instanceof SSPCluster[]) {
+                // Fill the plot value variables.
+                SSPCluster[] pair = (SSPCluster[]) trigger.getTriggerSource();
+                energySum = TriggerModule.getValueEnergySum(pair);
+                energyDiff = TriggerModule.getValueEnergyDifference(pair);
+                energySlope = TriggerModule.getValueEnergySlope(pair,
+                        pairTrigger[triggerType.getTriggerNumber()].getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F));
+                coplanarity = TriggerModule.getValueCoplanarity(pair);
+                timeCoincidence = TriggerModule.getValueTimeCoincidence(pair);
+                clusterLow = Math.min(TriggerModule.getValueClusterTotalEnergy(pair[0]), TriggerModule.getValueClusterTotalEnergy(pair[1]));
+                clusterHigh = Math.max(TriggerModule.getValueClusterTotalEnergy(pair[0]), TriggerModule.getValueClusterTotalEnergy(pair[1]));
+                
+                // Note that the source type is an SSP cluster.
+                sourceType = SOURCE_SSP_CLUSTER;
+            } else {
+                throw new IllegalArgumentException("Trigger source " + trigger.getTriggerSource().getClass().getSimpleName() + " is not recognized.");
+            }
+            
+            // Fill the appropriate plots.
+            for(TriggerType tiBit : triggerTypes) {
+                if(tiBit == null || activeTIBits[tiBit.ordinal()]) {
+                    if(verified) {
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.EVENT_TIME, tiBit, sourceType)).fill(eventTime);
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.PAIR_ENERGY_SUM, tiBit, sourceType)).fill(energySum);
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.PAIR_ENERGY_DIFF, tiBit, sourceType)).fill(energyDiff);
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.PAIR_ENERGY_SLOPE, tiBit, sourceType)).fill(energySlope);
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.PAIR_COPLANARITY, tiBit, sourceType)).fill(coplanarity);
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.PAIR_TIME_COINCIDENCE, tiBit, sourceType)).fill(timeCoincidence);
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.PAIR_LOW_ENERGY, tiBit, sourceType)).fill(clusterLow);
+                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.PAIR_HIGH_ENERGY, tiBit, sourceType)).fill(clusterHigh);
+                    } else {
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.EVENT_TIME, tiBit, sourceType)).fill(eventTime);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_ENERGY_SUM, tiBit, sourceType)).fill(energySum);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_ENERGY_DIFF, tiBit, sourceType)).fill(energyDiff);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_ENERGY_SLOPE, tiBit, sourceType)).fill(energySlope);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_COPLANARITY, tiBit, sourceType)).fill(coplanarity);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_TIME_COINCIDENCE, tiBit, sourceType)).fill(timeCoincidence);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_LOW_ENERGY, tiBit, sourceType)).fill(clusterLow);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_HIGH_ENERGY, tiBit, sourceType)).fill(clusterHigh);
+                    }
+                }
+            }
+        } else {
+            throw new IllegalArgumentException("Trigger type " + trigger.getClass().getSimpleName() + " is not recognized.");
+        }
+    }
+    
     /**
      * Sets the TI-bit flags for each trigger type and also indicates
      * whether or not at least one TI-bit was found active.
@@ -1311,6 +1720,10 @@ public class TriggerDiagnosticDriver extends Driver {
                 simTriggerCount[SOURCE_SSP_CLUSTER][trigger.ordinal()] += hardwareSimTriggers.size();
             }
         }
+        
+        // Print the observed trigger distributions.
+        for(Trigger<?> trigger : softwareSimTriggers) { plotTrigger(trigger, tiFlags, false); }
+        for(Trigger<?> trigger : hardwareSimTriggers) { plotTrigger(trigger, tiFlags, false); }
         
         // Run the trigger verification for each simulated trigger type.
         logger.printNewLine(2);
@@ -1467,4 +1880,22 @@ public class TriggerDiagnosticDriver extends Driver {
     public void setVerbose(boolean state) {
         verbose = state;
     }
+    
+    public void setClusterSeedEnergyXMax(double value)   { xMax[CutType.CLUSTER_SEED_ENERGY.ordinal()]   = value; }
+    public void setClusterTotalEnergyXMax(double value)  { xMax[CutType.CLUSTER_TOTAL_ENERGY.ordinal()]  = value; }
+    public void setClusterHitCountXMax(double value)     { xMax[CutType.CLUSTER_HIT_COUNT.ordinal()]     = value; }
+    public void setPairEnergySumXMax(double value)       { xMax[CutType.PAIR_ENERGY_SUM.ordinal()]       = value; }
+    public void setPairEnergyDiffXMax(double value)      { xMax[CutType.PAIR_ENERGY_DIFF.ordinal()]      = value; }
+    public void setPairEnergySlopeXMax(double value)     { xMax[CutType.PAIR_ENERGY_SLOPE.ordinal()]     = value; }
+    public void setPairCoplanarityXMax(double value)     { xMax[CutType.PAIR_COPLANARITY.ordinal()]      = value; }
+    public void setPairTimeCoincidenceXMax(double value) { xMax[CutType.PAIR_TIME_COINCIDENCE.ordinal()] = value; }
+    
+    public void setClusterSeedEnergyBinSize(double value)   { binSize[CutType.CLUSTER_SEED_ENERGY.ordinal()]   = value; }
+    public void setClusterTotalEnergyBinSize(double value)  { binSize[CutType.CLUSTER_TOTAL_ENERGY.ordinal()]  = value; }
+    public void setClusterHitCountBinSize(double value)     { binSize[CutType.CLUSTER_HIT_COUNT.ordinal()]     = value; }
+    public void setPairEnergySumBinSize(double value)       { binSize[CutType.PAIR_ENERGY_SUM.ordinal()]       = value; }
+    public void setPairEnergyDiffBinSize(double value)      { binSize[CutType.PAIR_ENERGY_DIFF.ordinal()]      = value; }
+    public void setPairEnergySlopeBinSize(double value)     { binSize[CutType.PAIR_ENERGY_SLOPE.ordinal()]     = value; }
+    public void setPairCoplanarityBinSize(double value)     { binSize[CutType.PAIR_COPLANARITY.ordinal()]      = value; }
+    public void setPairTimeCoincidenceBinSize(double value) { binSize[CutType.PAIR_TIME_COINCIDENCE.ordinal()] = value; }
 }

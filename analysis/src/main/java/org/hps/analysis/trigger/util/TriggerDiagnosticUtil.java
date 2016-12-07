@@ -60,6 +60,19 @@ public class TriggerDiagnosticUtil {
     }
     
     /**
+     * Gets the number of digits in the base-10 String representation
+     * of an integer primitive. Negative signs are not included in the
+     * digit count.
+     * @param value - The value of which to obtain the length.
+     * @return Returns the number of digits in the String representation
+     * of the argument value.
+     */
+    public static final int getDigits(int value) {
+        if(value < 0) { return Integer.toString(value).length() - 1; }
+        else { return Integer.toString(value).length(); }
+    }
+    
+    /**
      * Checks whether a cluster is within the safe region of the FADC
      * output window.
      * @param sspCluster - The cluster to check.

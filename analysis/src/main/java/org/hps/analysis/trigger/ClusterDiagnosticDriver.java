@@ -1,11 +1,14 @@
 package org.hps.analysis.trigger;
 
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hps.analysis.trigger.util.ClusterMatchedPair;
@@ -80,6 +83,21 @@ public final class ClusterDiagnosticDriver extends Driver {
      * not verify because no two clusters were found with a matching
      * seed position. */
     private int failedMatchPosition = 0;
+    /** Indicates the number of failed cluster events that have a seed
+     * hit near the seed energy threshold. */
+    private int failedNearSeedThreshold = 0;
+    /** Indicates the number of failed cluster events that occur within
+     * the dead time window of the event start and also have a t = 0
+     * cluster with a hit on the same channel. */
+    private int failedPositionDeadtime = 0;
+    /** Indicates the number of failed cluster events that may have
+     * lost a hit due to deadtime issues. */
+    private int failedHitCountDeadtime = 0;
+    /** Indicates the number of failed cluster events where the energies
+     * were identical, but hit count differed. */
+    private int failedNegativeEnergyHit = 0;
+    // TODO: Add description.
+    private int failedCloneBug = 0;
     
     // === Local window values. =========================================================
     // ==================================================================================
@@ -181,12 +199,77 @@ public final class ClusterDiagnosticDriver extends Driver {
     private static final String matchedClustersEnergyDiffPlot = MODULE_HEADER + "Matched Clusters Energy Difference Distribution";
     /** Plots the difference in hit count between matched clusters. */
     private static final String matchedClustersHitDiffPlot = MODULE_HEADER + "Matched Clusters Hit Count Difference Distribution";
+    /** Plots the difference in energy between matched clusters which failed due to energy. */
+    private static final String failedEnergyEnergyDiffPlot = MODULE_HEADER + "Energy-Match Failure Energy Difference Distribution";
+    /** Plots the difference in energy between matched clusters which failed due to hit count. */
+    private static final String failedHitCountEnergyDiffPlot = MODULE_HEADER + "Hit Count-Match Failure Energy Difference Distribution";
+    /** Plots the difference in hit count between matched clusters which failed due to energy. */
+    private static final String failedEnergyHitDiffPlot = MODULE_HEADER + "Energy-Match Failure Hit Count Difference Distribution";
+    /** Plots the difference in hit count between matched clusters which failed due to hit count. */
+    private static final String failedHitCountHitDiffPlot = MODULE_HEADER + "Hit Count-Match Failure Hit Count Difference Distribution";
     /** Plots the 2D difference in energy between matched clusters. */
     private static final String matchedClusters2DEnergyDiffPlot = MODULE_HEADER + "Matched Clusters 2D Energy Difference Distribution";
     /** Plots the 2D difference in hit count between matched clusters. */
     private static final String matchedClusters2DHitDiffPlot = MODULE_HEADER + "Matched Clusters 2D Hit Count Difference Distribution";
-    
+    /** Plots the efficiency over the course of the run. **/
     private static final String runtimeEfficiencyPlot = MODULE_HEADER + "Matched Clusters Run Time Efficiency";
+    
+    private static final Set<Point> getClusterHitIndices(Cluster cluster) {
+        // Store the possible hits in a set. The seed hit is excluded.
+        Set<Point> hitSet = new HashSet<Point>(8);
+        
+        // Iterate over the cluster hits and add any existing positions
+        // to the hit set.
+        for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
+            hitSet.add(new Point(hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy")));
+        }
+        
+        // Return the set of constituent hits.
+        return hitSet;
+    }
+    
+    private static final Set<Point> getClusterPossibleHitIndices(Cluster cluster) {
+        // Get the cluster seed position.
+        int ix = TriggerModule.getClusterXIndex(cluster);
+        int iy = TriggerModule.getClusterYIndex(cluster);
+        
+        // Store the possible hits in a set. The seed hit is excluded.
+        Set<Point> hitSet = new HashSet<Point>(8);
+        
+        // Get all eight adjacent hits.
+        xLoop:
+        for(int xMod = -1; xMod <= 2; xMod++) {
+            // Get the modified x position.
+            int hix = ix + xMod;
+            
+            // Values where |x| > 23 do not exist.
+            if(Math.abs(hix) > 23) { continue xLoop; }
+            
+            // Values of x = 0 do not exist. x = 1 and x = -1 are to
+            // be treated as adjacent.
+            if(hix == 0) { hix = ix == -1 ? 1 : -1; }
+            
+            yLoop:
+            for(int yMod = -1; yMod <= 2; yMod++) {
+                // Get the modified y position.
+                int hiy = iy + yMod;
+                
+                // Values of y = 0 and |y| > 5 do not exist.
+                if(hiy == 0 || Math.abs(hiy) > 5) { continue yLoop; }
+                
+                // Add the potential hit position to the set.
+                hitSet.add(new Point(hix, hiy));
+            }
+        }
+        
+        // Return the set of possible hit positions.
+        return hitSet;
+    }
+    
+    private static final double getRatioError(double num, double sigmaNum, double den, double sigmaDen) {
+        double ratio = num / den;
+        return Math.abs(ratio) * Math.sqrt(Math.pow(sigmaNum / num, 2) + Math.pow(sigmaDen / den, 2));
+    }
     
     /**
      * Prints out final run verification statistics and generates
@@ -202,20 +285,108 @@ public final class ClusterDiagnosticDriver extends Driver {
         AIDA.defaultInstance().histogramFactory().divide(matchedClustersEnergyEfficiencyPlot,
                 AIDA.defaultInstance().histogram1D(matchedClustersEnergyPlot), AIDA.defaultInstance().histogram1D(softwareClustersEnergyPlot));
         
+        // Calculate errors for efficiencies and failure rates.
+        double sigmaSimCount         = Math.sqrt(goodSimulatedClusterCount);
+        double sigmaMatched          = Math.sqrt(matchedClusters);
+        double sigmaFailedPosition   = Math.sqrt(failedMatchPosition);
+        double sigmaFailedTime       = Math.sqrt(failedMatchTime);
+        double sigmaFailedHitCount   = Math.sqrt(failedMatchHitCount);
+        double sigmaFailedEnergy     = Math.sqrt(failedMatchEnergy);
+        double sigmaFailedNearSeed   = Math.sqrt(failedNearSeedThreshold);
+        double sigmaFailedDeadtime   = Math.sqrt(failedPositionDeadtime);
+        double sigmaFailedNegative   = Math.sqrt(failedNegativeEnergyHit);
+        double sigmaFailedHCDeadtime = Math.sqrt(failedHitCountDeadtime);
+        double sigmaFailedCloneBug   = Math.sqrt(failedCloneBug);
+        
+        // Get the maximum number of digits needed to display the
+        // largest of the counts. This should always be either the
+        // total number hardware or simulated clusters.
+        String countDisp = "%" + TriggerDiagnosticUtil.getDigits(Math.max(simulatedClusterCount, goodSimulatedClusterCount)) + "d";
+        
         // Print the global run statistics for cluster verification.
         System.out.println("Cluster Verification:");
-        System.out.printf("\tSimulated Clusters     :: %d%n", simulatedClusterCount);
-        System.out.printf("\tUnclipped Sim Clusters :: %d%n", goodSimulatedClusterCount);
-        System.out.printf("\tHardware Clusters      :: %d%n", hardwareClusterCount);
-        System.out.printf("\tClusters Matched       :: %d%n", matchedClusters);
-        System.out.printf("\tFailed (Position)      :: %d%n", failedMatchPosition);
-        System.out.printf("\tFailed (Time)          :: %d%n", failedMatchTime);
-        System.out.printf("\tFailed (Energy)        :: %d%n", failedMatchEnergy);
-        System.out.printf("\tFailed (Hit Count)     :: %d%n", failedMatchHitCount);
-        if(simulatedClusterCount == 0) {
-            System.out.printf("\tCluster Efficiency     :: N/A%n");
+        System.out.printf("\tSimulated Clusters     :: " + countDisp + "%n", simulatedClusterCount);
+        System.out.printf("\tUnclipped Sim Clusters :: " + countDisp + "%n", goodSimulatedClusterCount);
+        System.out.printf("\tHardware Clusters      :: " + countDisp + "%n", hardwareClusterCount);
+        System.out.printf("\tClusters Matched       :: " + countDisp + "%n", matchedClusters);
+        
+        System.out.printf("\tFailed (Position)      :: " + countDisp, failedMatchPosition);
+        if(failedMatchPosition == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
         } else {
-            System.out.printf("\tCluster Efficiency     :: %7.3f%%%n", 100.0 * matchedClusters / goodSimulatedClusterCount);
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedMatchPosition / goodSimulatedClusterCount,
+                    getRatioError(failedMatchPosition, sigmaFailedPosition, goodSimulatedClusterCount, sigmaSimCount));
+        }
+        
+        System.out.printf("\t> Failed (Deadtime)    :: " + countDisp, failedPositionDeadtime);
+        if(failedPositionDeadtime == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedPositionDeadtime / goodSimulatedClusterCount,
+                    getRatioError(failedPositionDeadtime, sigmaFailedDeadtime, goodSimulatedClusterCount, sigmaSimCount));
+        }
+        
+        System.out.printf("\t> Failed (Clone Bug)   :: " + countDisp, failedCloneBug);
+        if(failedPositionDeadtime == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedCloneBug / goodSimulatedClusterCount,
+                    getRatioError(failedCloneBug, sigmaFailedCloneBug, goodSimulatedClusterCount, sigmaSimCount));
+        }
+        
+        System.out.printf("\t> Failed (Seed Thresh) :: " + countDisp, failedNearSeedThreshold);
+        if(failedNearSeedThreshold == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedNearSeedThreshold / goodSimulatedClusterCount,
+                    getRatioError(failedNearSeedThreshold, sigmaFailedNearSeed, goodSimulatedClusterCount, sigmaSimCount));
+        }
+        
+        System.out.printf("\tFailed (Time)          :: " + countDisp, failedMatchTime);
+        if(failedMatchTime == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedMatchTime / goodSimulatedClusterCount,
+                    getRatioError(failedMatchTime, sigmaFailedTime, goodSimulatedClusterCount, sigmaSimCount));
+        }
+        
+        System.out.printf("\tFailed (Hit Count)     :: " + countDisp, failedMatchHitCount);
+        if(failedMatchHitCount == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedMatchHitCount / goodSimulatedClusterCount,
+                    getRatioError(failedMatchHitCount, sigmaFailedHitCount, goodSimulatedClusterCount, sigmaSimCount));
+        }
+        
+        System.out.printf("\t> Failed (Deadtime)    :: " + countDisp, failedHitCountDeadtime);
+        if(failedPositionDeadtime == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedHitCountDeadtime / goodSimulatedClusterCount,
+                    getRatioError(failedHitCountDeadtime, sigmaFailedHCDeadtime, goodSimulatedClusterCount, sigmaSimCount));
+        }
+        
+        System.out.printf("\t> Failed (Negative En) :: " + countDisp, failedNegativeEnergyHit);
+        if(failedNegativeEnergyHit == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedNegativeEnergyHit / goodSimulatedClusterCount,
+                    getRatioError(failedNegativeEnergyHit, sigmaFailedNegative, goodSimulatedClusterCount, sigmaSimCount));
+        }
+        
+        System.out.printf("\tFailed (Energy)        :: " + countDisp, failedMatchEnergy);
+        if(failedMatchEnergy == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedMatchEnergy / goodSimulatedClusterCount,
+                    getRatioError(failedMatchEnergy, sigmaFailedEnergy, goodSimulatedClusterCount, sigmaSimCount));
+        }
+        
+        if(simulatedClusterCount == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("\tCluster Efficiency     :: %7.3f%% ± %7.3f%%%n", 0.0, 0.0);
+        } else {
+            System.out.printf("\tCluster Efficiency     :: %7.3f%% ± %7.3f%%%n", 100.0 * matchedClusters / goodSimulatedClusterCount,
+                    100.0 * getRatioError(matchedClusters, sigmaMatched, goodSimulatedClusterCount, sigmaSimCount));
         }
         
         // Create and populate the efficiency over time plot.
@@ -303,7 +474,7 @@ public final class ClusterDiagnosticDriver extends Driver {
         if(hits.isEmpty()) { logger.println("\tNone"); }
         
         // Output the simulated clusters from the software.
-        logger.printNewLine(2);
+        logger.printNewLine(1);
         logger.println("Software Clusters:");
         for(Cluster cluster : simulatedClusters) {
             logger.printf("\t%s%n", TriggerDiagnosticUtil.clusterToString(cluster));
@@ -314,7 +485,7 @@ public final class ClusterDiagnosticDriver extends Driver {
         if(simulatedClusters.isEmpty()) { logger.println("\tNone"); }
         
         // Output the reported clusters from the hardware.
-        logger.printNewLine(2);
+        logger.printNewLine(1);
         logger.println("Hardware Clusters:");
         for(SSPCluster cluster : hardwareClusters) {
             logger.printf("\t%s%n", TriggerDiagnosticUtil.clusterToString(cluster));
@@ -337,7 +508,6 @@ public final class ClusterDiagnosticDriver extends Driver {
         // Iterate through each simulated cluster and keep only the
         // clusters safe from pulse-clipping.
         List<Cluster> goodSimulatedClusters = new ArrayList<Cluster>();
-        logger.printNewLine(2);
         logger.println("Simulated Cluster Pulse-Clipping Check:");
         for(Cluster cluster : simulatedClusters) {
             boolean isSafe = TriggerDiagnosticUtil.isVerifiable(cluster, nsa, nsb, windowWidth);
@@ -374,8 +544,161 @@ public final class ClusterDiagnosticDriver extends Driver {
             if(pair.isMatch()) { matchedClusters++; }
             if(pair.isTimeFailState()) { failedMatchTime++; }
             if(pair.isEnergyFailState()) { failedMatchEnergy++; }
-            if(pair.isHitCountFailState()) { failedMatchHitCount++; }
-            if(pair.isPositionFailState()) { failedMatchPosition++; }
+            if(pair.isHitCountFailState()) {
+                // Increment the general hit count fail state count.
+                failedMatchHitCount++;
+                
+                // If the simulated cluster is different in hit count,
+                // but has the same energy, it is likely caused by a
+                // near-zero energy hit that registered as negative to
+                // the simulation, and was consequently ignored.
+                if(Math.abs(TriggerModule.getValueClusterTotalEnergy(pair.getReconstructedCluster())
+                        - TriggerModule.getValueClusterTotalEnergy(pair.getSSPCluster())) <= energyVerificationThreshold) {
+                    failedNegativeEnergyHit++;
+                }
+                
+                // Deadtime can also cause a failure in hit count. A
+                // simple check of this is to see if either the cluster
+                // occurred within 32 ns of the event start, or if any
+                // channel that would be included by the cluster for
+                // which there is no hit has a hit within this time
+                // frame that is also within 32 ns of the cluster.
+                else {
+                    // Check for the case that the cluster itself is
+                    // within the deadtime uncertainty region.
+                    if(TriggerModule.getClusterTime(pair.getReconstructedCluster()) < 32) {
+                        failedHitCountDeadtime++;
+                    }
+                    
+                    // Otherwise, determine which hits are not included
+                    // in the cluster and see if a hit exists which could
+                    // produce a deadtime error in that channel.
+                    else {
+                        // Get a list of the hits that could exist in
+                        // the cluster.
+                        Set<Point> actualHits = getClusterHitIndices(pair.getReconstructedCluster());
+                        Set<Point> possibleHits = getClusterPossibleHitIndices(pair.getReconstructedCluster());
+                        
+                        // Iterate over each hit and look for one that
+                        // could produce a deadtime error.
+                        hitLoop:
+                        for(CalorimeterHit hit : hits) {
+                            // The hit is required to be within the
+                            // first 32 of the event.
+                            if(hit.getTime() >= 32) { continue hitLoop; }
+                            
+                            // The hit must be within 32 ns of the
+                            // cluster  time and also occur before
+                            // the cluster time or simultaneously.
+                            if((TriggerModule.getClusterTime(pair.getReconstructedCluster()) < hit.getTime()) 
+                                    || (TriggerModule.getClusterTime(pair.getReconstructedCluster()) - hit.getTime() >= 32)) {
+                                continue hitLoop;
+                            }
+                            
+                            // The hit must occur on a channel that
+                            // falls within the 3x3 cluster range, and
+                            // there must not already be a hit on that
+                            // channel in the cluster.
+                            Point ixy = new Point(hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"));
+                            if(possibleHits.contains(ixy) && !actualHits.contains(ixy)) {
+                                failedHitCountDeadtime++;
+                                break hitLoop;
+                            }
+                        }
+                    }
+                }
+            }
+            if(pair.isPositionFailState()) {
+                // Increment the general position fail state count.
+                failedMatchPosition++;
+                
+                // If the simulated cluster is within the allowed energy
+                // range of the seed energy threshold, it is likely to
+                // have failed because of energy differences between the
+                // hardware and the simulation. Track these.
+                double energyDifference = Math.abs(TriggerModule.getValueClusterTotalEnergy(pair.getReconstructedCluster())
+                        - ConfigurationManager.getInstance().getGTPConfig().getSeedEnergyCutConfig().getLowerBound());
+                if(energyDifference <= energyVerificationThreshold) {
+                    failedNearSeedThreshold++;
+                }
+                
+                // If the simulated cluster has a seed hit which is
+                // less than 32 ns in time, it is possible that it was
+                // missed by the hardware due to a dead time issue.
+                // This is most likely to the case for any cluster where
+                // there exists a t = 0 cluster with a hit on the same
+                // channel. Check for this case and track the instances
+                // where it occurred.
+                else if(TriggerModule.getClusterTime(pair.getReconstructedCluster()) < 32) {
+                    // Get the cluster channel.
+                    int ix = TriggerModule.getClusterXIndex(pair.getReconstructedCluster());
+                    int iy = TriggerModule.getClusterYIndex(pair.getReconstructedCluster());
+                    
+                    // Check for a t = 0 cluster with a hit on the same
+                    // channel.
+                    deadtimeLoop:
+                    for(Cluster cluster : simulatedClusters) {
+                        if(TriggerModule.getClusterTime(cluster) == 0) {
+                            if(TriggerModule.getClusterXIndex(cluster) == ix && TriggerModule.getClusterYIndex(cluster) == iy) {
+                                failedPositionDeadtime++;
+                                break deadtimeLoop;
+                            }
+                        }
+                    }
+                }
+                
+                // Check for more complicated fail state causes.
+                else {
+                    // The "clone bug" occurs when the hardware reports
+                    // a fake cluster at the same position as an existing
+                    // cluster, but at the same time as a cluster which
+                    // should exist, but is missed.
+                    // Check if more than SSP cluster exists at the
+                    // same position as another cluster, and one of them
+                    // matches in time.
+                    double time = TriggerModule.getClusterTime(pair.getReconstructedCluster());
+                    Map<Point, Integer> countMap = new HashMap<Point, Integer>();
+                    Map<Point, SSPCluster> timeMap = new HashMap<Point, SSPCluster>();
+                    for(SSPCluster sspCluster : hardwareClusters) {
+                        Point ixy = new Point(TriggerModule.getClusterXIndex(sspCluster), TriggerModule.getClusterYIndex(sspCluster));
+                        if(countMap.containsKey(ixy)) { countMap.put(ixy, countMap.get(ixy) + 1); }
+                        else { countMap.put(ixy, new Integer(1)); }
+                        if(TriggerModule.getClusterTime(sspCluster) == time) { timeMap.put(ixy, sspCluster); }
+                    }
+                    
+                    // Check each cluster position. If there are more
+                    // clusters than one at that position, and one of
+                    // them has the same time as the position failure
+                    // cluster, the clone bug could have occurred.
+                    unmatchedLoop:
+                    for(Map.Entry<Point, Integer> entry : countMap.entrySet()) {
+                    	// Check that at least two clusters exist at
+                    	// this position and that one of them matched
+                    	// the fail state cluster in time.
+                        if(entry.getValue() >= 2 && timeMap.containsKey(entry.getKey())) {
+                        	// Get the matching cluster.
+                            SSPCluster cloneTestCluster = timeMap.get(entry.getKey());
+                            
+                            // The cluster that matched the fail state
+                            // cluster in time must be itself unmatched.
+                            for(ClusterMatchedPair match : matchedPairs) {
+                            	// If the cluster matching the fail state
+                            	// cluster in time is matched, this is
+                            	// not the clone bug.
+                                if(match.getSSPCluster() == cloneTestCluster) {
+                                    continue unmatchedLoop;
+                                }
+                            }
+                            
+                            // If not match was found for the cluster
+                            // that matches the fail state cluster in
+                            // time, this is probably the clone bug.
+                            failedCloneBug++;
+                            break unmatchedLoop;
+                        }
+                    }
+                }
+            }
         }
         
         // Increment the statistics.
@@ -504,12 +827,16 @@ public final class ClusterDiagnosticDriver extends Driver {
         
         // The hit count comparison plots are binned by individual hit
         // and run from 0 to 9 hits.
+        AIDA.defaultInstance().histogram1D(failedEnergyHitDiffPlot, 10, -0.5, 9.5);
+        AIDA.defaultInstance().histogram1D(failedHitCountHitDiffPlot, 10, -0.5, 9.5);
         AIDA.defaultInstance().histogram1D(matchedClustersHitDiffPlot, 10, -0.5, 9.5);
         AIDA.defaultInstance().histogram2D(matchedClusters2DHitDiffPlot, 10, -0.5, 9.5, 10, -0.5, 9.5);
         
         // The energy difference plots are binned on a reduced energy
         // scale, as hits typically are close in energy.
-        AIDA.defaultInstance().histogram1D(matchedClustersEnergyDiffPlot, 200, 0, 0.100);
+        AIDA.defaultInstance().histogram1D(failedEnergyEnergyDiffPlot, 67, 0, 0.201);
+        AIDA.defaultInstance().histogram1D(failedHitCountEnergyDiffPlot, 67, 0, 0.201);
+        AIDA.defaultInstance().histogram1D(matchedClustersEnergyDiffPlot, 67, 0, 0.201);
         AIDA.defaultInstance().histogram2D(matchedClusters2DEnergyDiffPlot, 34, 0, 0.102, 34, 0, 0.102);
     }
     
@@ -579,6 +906,29 @@ public final class ClusterDiagnosticDriver extends Driver {
         
         // Return the simulated cluster collection.
         return simulatedClusters;
+    }
+    
+    /**
+     * Performs the verification check for cluster hit counts.
+     * @param simCluster - The simulated cluster to check.
+     * @param sspCluster - The hardware cluster to check.
+     * @param hitWindow - The range by which hit counts are allowed to
+     * differ between the clusters.
+     * @return Returns <code>true</code> if the hit counts match to
+     * within threshold and <code>false</code> otherwise.
+     */
+    private static final boolean isHitMatch(Cluster simCluster, SSPCluster sspCluster, int hitWindow) {
+        // Get the hit counts for both clusters.
+        double simHitCount = TriggerModule.getClusterHitCount(simCluster);
+        double sspHitCount = TriggerModule.getClusterHitCount(sspCluster);
+        
+        // The hardware does not store cluster hit counts as higher than
+        // 7, so if the software hit count is 8 or 9, we must treat it
+        // as 7 instead to match this behavior.
+        if(simHitCount > 7) { simHitCount = 7; }
+        
+        // Perform the hit count check.
+        return (sspHitCount >= simHitCount - hitWindow && sspHitCount <= simHitCount + hitWindow);
     }
     
     /**
@@ -685,16 +1035,17 @@ public final class ClusterDiagnosticDriver extends Driver {
                 // While time and position matched clusters are considered
                 // to be the same cluster, the clusters must have similar
                 // energies and hit counts to be properly verified. First
-                // perform the energy check. The hardware cluster must
-                // match the simulated cluster energy to within a given
+                // perform the hit count check. The hardware cluster must
+                // match the simulated cluster hit count to within a given
                 // bound.
-                if(TriggerModule.getValueClusterTotalEnergy(hardwareCluster) >= TriggerModule.getValueClusterTotalEnergy(simCluster) - energyWindow
-                        && TriggerModule.getValueClusterTotalEnergy(hardwareCluster) <= TriggerModule.getValueClusterTotalEnergy(simCluster) + energyWindow) {
+                //if(TriggerModule.getClusterHitCount(hardwareCluster) >= TriggerModule.getClusterHitCount(simCluster) - hitWindow &&
+                //        TriggerModule.getClusterHitCount(hardwareCluster) <= TriggerModule.getClusterHitCount(simCluster) + hitWindow) {
+                if(isHitMatch(simCluster, hardwareCluster, hitWindow)) {
                     // Next, check that the hardware cluster matches the
-                    // simulated cluster in hit count to within a given
+                    // simulated cluster in energy to within a given
                     // bound.
-                    if(TriggerModule.getClusterHitCount(hardwareCluster) >= TriggerModule.getClusterHitCount(simCluster) - hitWindow &&
-                            TriggerModule.getClusterHitCount(hardwareCluster) <= TriggerModule.getClusterHitCount(simCluster) + hitWindow) {
+                    if(TriggerModule.getValueClusterTotalEnergy(hardwareCluster) >= TriggerModule.getValueClusterTotalEnergy(simCluster) - energyWindow
+                            && TriggerModule.getValueClusterTotalEnergy(hardwareCluster) <= TriggerModule.getValueClusterTotalEnergy(simCluster) + energyWindow) {
                         // The cluster is a match.
                         pairList.add(new ClusterMatchedPair(simCluster, hardwareCluster, ClusterMatchedPair.CLUSTER_STATE_MATCHED));
                         logger.printf("[ %7s; %9s ]%n", "success", "matched");
@@ -708,22 +1059,30 @@ public final class ClusterDiagnosticDriver extends Driver {
                         continue softwareLoop;
                     }
                     
-                    // If the hit counts of the two clusters are not
+                    // If the energies of the two clusters are not
                     // sufficiently close, the clusters fail to verify.
                     else {
-                        pairList.add(new ClusterMatchedPair(simCluster, hardwareCluster, ClusterMatchedPair.CLUSTER_STATE_FAIL_HIT_COUNT));
-                        logger.printf("[ %7s; %9s ]%n", "fail", "hit count");
+                        pairList.add(new ClusterMatchedPair(simCluster, hardwareCluster, ClusterMatchedPair.CLUSTER_STATE_FAIL_ENERGY));
+                        logger.printf("[ %7s; %9s ]%n", "fail", "energy");
+                        AIDA.defaultInstance().histogram1D(failedEnergyHitDiffPlot).fill(Math.abs(TriggerModule.getClusterHitCount(simCluster)
+                                - TriggerModule.getClusterHitCount(hardwareCluster)));
+                        AIDA.defaultInstance().histogram1D(failedEnergyEnergyDiffPlot).fill(Math.abs(TriggerModule.getValueClusterTotalEnergy(simCluster)
+                                - TriggerModule.getValueClusterTotalEnergy(hardwareCluster)));
                         continue softwareLoop;
-                    } // End hit count check.
+                    } // End energy check.
                 }
                 
-                // If the energies of the two clusters are not
+                // If the hit counts of the two clusters are not
                 // sufficiently close, the clusters fail to verify.
                 else {
-                    pairList.add(new ClusterMatchedPair(simCluster, hardwareCluster, ClusterMatchedPair.CLUSTER_STATE_FAIL_ENERGY));
-                    logger.printf("[ %7s; %9s ]%n", "fail", "energy");
+                    pairList.add(new ClusterMatchedPair(simCluster, hardwareCluster, ClusterMatchedPair.CLUSTER_STATE_FAIL_HIT_COUNT));
+                    logger.printf("[ %7s; %9s ]%n", "fail", "hit count");
+                    AIDA.defaultInstance().histogram1D(failedHitCountHitDiffPlot).fill(Math.abs(TriggerModule.getClusterHitCount(simCluster)
+                            - TriggerModule.getClusterHitCount(hardwareCluster)));
+                    AIDA.defaultInstance().histogram1D(failedHitCountEnergyDiffPlot).fill(Math.abs(TriggerModule.getValueClusterTotalEnergy(simCluster)
+                            - TriggerModule.getValueClusterTotalEnergy(hardwareCluster)));
                     continue softwareLoop;
-                } // End energy check.
+                } // End hit count check.
             } // End hardware loop.
             
             // This point may only be reached if a cluster failed to
