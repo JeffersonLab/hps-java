@@ -22,8 +22,8 @@ import org.lcsim.util.Driver;
  *
  *
 */
-public class EcalOnlineRawConverterDriver2 extends Driver {
-    private EcalOnlineRawConverter2 converter = null;
+public class EcalOnlineRawConverterDriver extends Driver {
+    private EcalOnlineRawConverter converter = null;
     /**
      * The input LCIO collection name. This can be either a
      * {@link org.lcsim.event.RawTrackerHit} or
@@ -53,7 +53,7 @@ public class EcalOnlineRawConverterDriver2 extends Driver {
      * Instantiates the <code>EcalOnlineRawConverter2</code> for this
      * driver.
      */
-    public EcalOnlineRawConverterDriver2() { converter = new EcalOnlineRawConverter2(); }
+    public EcalOnlineRawConverterDriver() { converter = new EcalOnlineRawConverter(); }
     
     /**
      * Checks that the required LCIO collection names are defined.

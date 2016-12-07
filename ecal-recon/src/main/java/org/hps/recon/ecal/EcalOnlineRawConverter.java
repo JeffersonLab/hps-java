@@ -32,7 +32,7 @@ import org.lcsim.event.RawTrackerHit;
  * @author Nathan Baltzell <baltzell@jlab.org>
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-public class EcalOnlineRawConverter2 {
+public class EcalOnlineRawConverter {
     // Defines the maximum number of peaks that may be extracted from
     // a single waveform.
     private int nPeak = 3;
@@ -49,7 +49,7 @@ public class EcalOnlineRawConverter2 {
      * it to the <code>ConfigurationManager</code> to receive settings
      * from the DAQ configuration.
      */
-    public EcalOnlineRawConverter2() {
+    public EcalOnlineRawConverter() {
         // Track changes in the DAQ configuration.
         ConfigurationManager.addActionListener(new ActionListener() {
             @Override
