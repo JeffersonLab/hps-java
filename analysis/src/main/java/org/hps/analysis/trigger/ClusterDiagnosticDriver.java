@@ -672,19 +672,19 @@ public final class ClusterDiagnosticDriver extends Driver {
                     // cluster, the clone bug could have occurred.
                     unmatchedLoop:
                     for(Map.Entry<Point, Integer> entry : countMap.entrySet()) {
-                    	// Check that at least two clusters exist at
-                    	// this position and that one of them matched
-                    	// the fail state cluster in time.
+                        // Check that at least two clusters exist at
+                        // this position and that one of them matched
+                        // the fail state cluster in time.
                         if(entry.getValue() >= 2 && timeMap.containsKey(entry.getKey())) {
-                        	// Get the matching cluster.
+                            // Get the matching cluster.
                             SSPCluster cloneTestCluster = timeMap.get(entry.getKey());
                             
                             // The cluster that matched the fail state
                             // cluster in time must be itself unmatched.
                             for(ClusterMatchedPair match : matchedPairs) {
-                            	// If the cluster matching the fail state
-                            	// cluster in time is matched, this is
-                            	// not the clone bug.
+                                // If the cluster matching the fail state
+                                // cluster in time is matched, this is
+                                // not the clone bug.
                                 if(match.getSSPCluster() == cloneTestCluster) {
                                     continue unmatchedLoop;
                                 }
