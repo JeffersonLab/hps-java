@@ -4,6 +4,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.record.daqconfig.ConfigurationManager;
 import org.hps.record.daqconfig.FADCConfig;
@@ -30,7 +32,7 @@ import org.lcsim.event.RawTrackerHit;
  * @author Nathan Baltzell <baltzell@jlab.org>
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-public class EcalOnlineRawConverter {
+public class EcalOnlineRawConverter2 {
     // Defines the maximum number of peaks that may be extracted from
     // a single waveform.
     private int nPeak = 3;
@@ -47,7 +49,7 @@ public class EcalOnlineRawConverter {
      * it to the <code>ConfigurationManager</code> to receive settings
      * from the DAQ configuration.
      */
-    public EcalOnlineRawConverter() {
+    public EcalOnlineRawConverter2() {
         // Track changes in the DAQ configuration.
         ConfigurationManager.addActionListener(new ActionListener() {
             @Override
@@ -72,7 +74,7 @@ public class EcalOnlineRawConverter {
      * @return Returns the pedestal for the crystal and threshold
      * crossing.
      */
-    public double getPulsePedestal(long cellID, int windowSamples, int thresholdCrossing) {
+    public int getPulsePedestal(long cellID, int windowSamples, int thresholdCrossing) {
         // Track the starting and ending samples over which integration
         // will occur. Only the intermediary samples need be considered
         // for pedestal calculation.
@@ -104,8 +106,10 @@ public class EcalOnlineRawConverter {
             }
         }
         
-        // Calculate and return the pedestal.
-        return(lastSample - firstSample + 1) * config.getPedestal(cellID);
+        // Calculate and return the pedestal. The extra 1 MeV added to
+        // the pedestal offsets the rounding error that is incurred when
+        // converting it to an integer.
+        return (int) ((lastSample - firstSample + 1) * (config.getPedestal(cellID) + 0.001));
     }
     
     /**
@@ -140,7 +144,7 @@ public class EcalOnlineRawConverter {
         
         // Search the remaining samples for threshold crossings.
         thresholdLoop:
-        for(int sample = 1; sample < waveform.length; ++sample) {
+        for(int sample = 1; sample < waveform.length; sample++) {
             if(waveform[sample] > absoluteThreshold && waveform[sample - 1] <= absoluteThreshold) {
                 // Add the sample index to the list of threshold crossing.
                 thresholdCrossings.add(sample);
@@ -164,16 +168,24 @@ public class EcalOnlineRawConverter {
         // calorimeter hits.
         List<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
         for(int thresholdCrossing : thresholdCrossings) {
+            // Obtain the pedestal for the pulse.
+            int pedestal = getPulsePedestal(cellID, waveform.length, thresholdCrossing);
+            
             // Perform the pulse integral.
-            final double[] data = convertWaveformToPulse(waveform, thresholdCrossing);
-            double time = data[0];
-            double sum = data[1];
+            final int[] data = convertWaveformToPulse(waveform, thresholdCrossing);
+            int time = data[0];
+            int sum = data[1];
             
             // Perform pedestal subtraction.
-            sum -= getPulsePedestal(cellID, waveform.length, thresholdCrossing);
-          
+            sum -= pedestal;
+            
             // Perform gain scaling.
             double energy = adcToEnergy(sum, cellID);
+            
+            // Hits should not have less than zero energy.
+            if(energy < 0) {
+                Logger.getGlobal().log(Level.WARNING, "A hit was produced with " + energy + " GeV energy!");
+            }
             
             // Create a new hit and add it to the list.
             newHits.add(CalorimeterHitUtilities.create(energy, time, cellID));
@@ -204,11 +216,11 @@ public class EcalOnlineRawConverter {
         // readout window size should be used.
         long id = hit.getCellID();
         double time = hit.getTimeStamp() / 16.0;
-        double pedestal = getPulsePedestal(id, constantWindow ? -1 : config.getWindowWidth(), (int) time / nsPerSample);
+        int pedestal = getPulsePedestal(id, constantWindow ? -1 : config.getWindowWidth(), (int) time / nsPerSample);
         
         // Calculate the total ADC value for the pulse and convert it
         // to energy.
-        double adcSum = hit.getAmplitude() - pedestal;
+        int adcSum = hit.getAmplitude() - pedestal;
         double rawEnergy = adcToEnergy(adcSum, id);
         
         // Create a calorimeter hit from the result and return it.
@@ -235,11 +247,11 @@ public class EcalOnlineRawConverter {
         // (i.e. infinite readout window size, so no risk of clipping),
         // the window width should be given as -1. Otherwise, the real
         // readout window size should be used.
-        double pedestal = getPulsePedestal(id, constantWindow ? -1 : config.getWindowWidth(), (int) time / nsPerSample);
+        int pedestal = getPulsePedestal(id, constantWindow ? -1 : config.getWindowWidth(), (int) time / nsPerSample);
         
         // Calculate the total ADC value for the pulse and convert it
         // to energy.
-        double adcSum = hit.getAmplitude() - pedestal;
+        int adcSum = hit.getAmplitude() - pedestal;
         double rawEnergy = adcToEnergy(adcSum, id);
         
         // Create a calorimeter hit from the result and return it.
@@ -252,8 +264,19 @@ public class EcalOnlineRawConverter {
      * @param cellID - The cell ID of the crystal containing the value.
      * @return Returns the ADC value as an energy in units of GeV.
      */
-    private double adcToEnergy(double adcSum, long cellID) {
-        return config.getGain(cellID) * adcSum * EcalUtils.MeV;
+    private double adcToEnergy(int adcSum, long cellID) {
+        // Define the gain. To mimic the hardware, this is done through
+        // manipulation of integer values only. We multiply by 256 to
+        // preserve extra digits of accuracy.
+        int gain = (int) (256.0 * (config.getGain(cellID) + 0.001));
+        
+        // Multiply the gain by the pulse-subtracted energy sum. Also
+        // remove the extra factor of 256. This gives the energy in units
+        // of MeV.
+        int energy = (int) ((adcSum * gain) / 256.0);
+        
+        // Return the final energy as a double in units of GeV.
+        return energy * EcalUtils.MeV;
     }
     
     /**
@@ -272,7 +295,7 @@ public class EcalOnlineRawConverter {
      * first value represents the time in nanoseconds of the pulser and
      * the second value the total integrated value of the pulse in ADC.
      */
-    private double[] convertWaveformToPulse(short[] waveform, int thresholdCrossing) {
+    private int[] convertWaveformToPulse(short[] waveform, int thresholdCrossing) {
         // Store the integration range.
         int firstSample, lastSample;
         
@@ -292,7 +315,7 @@ public class EcalOnlineRawConverter {
         }
         
         // Perform the pulse integral.
-        double sumADC = 0;
+        int sumADC = 0;
         integrationLoop:
         for (int sample = firstSample; sample <= lastSample; sample++) {
             // If the current sample occurs before the readout window,
@@ -308,10 +331,10 @@ public class EcalOnlineRawConverter {
         }
         
         // Calculate the pulse time with a 4 nanosecond resolution.
-        double pulseTime = thresholdCrossing * nsPerSample;
+        int pulseTime = thresholdCrossing * nsPerSample;
         
         // Return both the pulse time and the total integrated pulse ADC.
-        return new double [] { pulseTime, sumADC };
+        return new int[] { pulseTime, sumADC };
     }
     
     /**

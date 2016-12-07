@@ -108,7 +108,6 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     private IHistogram1D clusterTotalEnergy = aida.histogram1D("GTP(O) Cluster Plots/Cluster Total Energy Distribution", 176, 0.0, 2.2);
     private IHistogram2D hitDistribution = aida.histogram2D("GTP(O) Cluster Plots/Hit Distribution", 46, -23, 23, 11, -5.5, 5.5);
     private IHistogram2D clusterDistribution = aida.histogram2D("GTP(O) Cluster Plots/Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
-    private IHistogram1D energyDistribution = aida.histogram1D("GTP(O) Cluster Plots/Percent Negative Energy Distribution", 100, 0.0, 1.0);
     
     /**
      * Instantiates a new instance of a readout GTP clustering algorithm.
@@ -140,10 +139,10 @@ public class GTPOnlineClusterer extends AbstractClusterer {
             Collections.sort(hitList, new Comparator<CalorimeterHit>() {
                 @Override
                 public int compare(CalorimeterHit firstHit, CalorimeterHit secondHit) {
-                    int[] ix = { firstHit.getIdentifierFieldValue("ix"), secondHit.getIdentifierFieldValue("ix") };
+                    int[] ix = { getHitX(firstHit), getHitX(secondHit) };
                     if(ix[0] != ix[1]) { return Integer.compare(ix[0], ix[1]); }
                     else {
-                        int iy[] = { firstHit.getIdentifierFieldValue("iy"), secondHit.getIdentifierFieldValue("iy") };
+                        int iy[] = { getHitY(firstHit), getHitY(secondHit) };
                         return Integer.compare(iy[0], iy[1]);
                     }
                 }
@@ -152,12 +151,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
             // Print the hit collection.
             System.out.println("Event Hit Collection:");
             for(CalorimeterHit hit : hitList) {
-                int ix = hit.getIdentifierFieldValue("ix");
-                int iy = hit.getIdentifierFieldValue("iy");
-                double energy = hit.getCorrectedEnergy();
-                double time = hit.getTime();
-                
-                System.out.printf("\tHit --> %6.3f GeV at (%3d, %3d) and at t = %.2f%n", energy, ix, iy, time);
+                System.out.printf("\t%s%n", getHitText(hit));
             }
             System.out.println();
         }
@@ -169,7 +163,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         Collections.sort(hitList, new Comparator<CalorimeterHit>() {
             @Override
             public int compare(CalorimeterHit firstHit, CalorimeterHit secondHit) {
-                return Double.compare(secondHit.getTime(), firstHit.getTime());
+                return Double.compare(getHitTime(secondHit), getHitTime(firstHit));
             }
         });
         
@@ -183,15 +177,24 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         // Iterate over each hit and see if it qualifies as a seed hit.
         seedLoop:
             for(CalorimeterHit seed : hitList) {
+                // VERBOSE :: Output the seed that is being considered.
+                if(verbose) {
+                    System.out.println("\n");
+                    System.out.println("Considering seed " + getHitText(seed));
+                }
+                
                 // Put the hit energy into the hit energy distribution.
-                hitEnergy.fill(seed.getCorrectedEnergy());
-                hitDistribution.fill(seed.getIdentifierFieldValue("ix"), seed.getIdentifierFieldValue("iy"));
+                hitEnergy.fill(getHitEnergy(seed));
+                hitDistribution.fill(getHitX(seed), getHitY(seed));
                 
                 // Check whether the potential seed passes the seed
                 // energy cut.
-                if(seed.getCorrectedEnergy() < seedThreshold) {
+                if(verbose) { System.out.printf("Checking seed energy threshold %5.3f >= %5.3f... ", getHitEnergy(seed), seedThreshold); }
+                if(getHitEnergy(seed) < seedThreshold) {
+                    if(verbose) { System.out.println("[fail]"); }
                     continue seedLoop;
                 }
+                if(verbose) { System.out.println("[pass]"); }
                 
                 // Create a cluster for the potential seed.
                 BaseCluster protoCluster = createBasicCluster();
@@ -247,16 +250,6 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 clusterHitCount.fill(protoCluster.getCalorimeterHits().size());
                 clusterDistribution.fill(protoCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
                         protoCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
-                
-                // Determine how much energy in the cluster is negative
-                // and how is positive.
-                double nenergy = 0.0;
-                double penergy = 0.0;
-                for(CalorimeterHit hit : protoCluster.getCalorimeterHits()) {
-                    if(hit.getCorrectedEnergy() > 0) { penergy += hit.getCorrectedEnergy(); }
-                    else { nenergy += hit.getCorrectedEnergy(); }
-                }
-                energyDistribution.fill(Math.abs(nenergy) / (penergy + Math.abs(nenergy)));
             }
         
         // VERBOSE :: Print out all the clusters in the event.
@@ -391,6 +384,26 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         // windows appropriately.
         timeAfter = cyclesAfter * 4;
         timeWindow = Math.max(timeBefore, timeAfter);
+    }
+    
+    private static final String getHitText(CalorimeterHit hit) {
+        return String.format("Hit --> %6.3f GeV at (%3d, %3d) and at t = %.2f", getHitEnergy(hit), getHitX(hit), getHitY(hit), getHitTime(hit));
+    }
+    
+    private static final double getHitEnergy(CalorimeterHit hit) {
+        return hit.getCorrectedEnergy();
+    }
+    
+    private static final int getHitX(CalorimeterHit hit) {
+        return hit.getIdentifierFieldValue("ix");
+    }
+    
+    private static final int getHitY(CalorimeterHit hit) {
+        return hit.getIdentifierFieldValue("iy");
+    }
+    
+    private static final double getHitTime(CalorimeterHit hit) {
+        return hit.getTime();
     }
     
     /**
