@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StrategyList xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://lcsim.org/recon/tracking/seedtracker/strategybuilder/strategies.xsd">
+    <TargetDetector>HPS-Full</TargetDetector>
+    <Strategy name="S456_C3_E721">
+        
+        <!--Cutoffs-->
+        
+        <MinPT>0.100</MinPT>
+        <MinHits>5</MinHits>
+        <MinConfirm>1</MinConfirm>
+
+        <MaxDCA>15.0</MaxDCA>
+        <MaxZ0>15.0</MaxZ0>
+
+        <MaxChisq>100.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+
+        <!--Layers-->
+
+        <Layers>                 
+            <Layer type="Seed" layer_number="13" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="11" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+</StrategyList>
+
