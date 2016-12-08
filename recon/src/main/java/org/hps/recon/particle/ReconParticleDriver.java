@@ -54,6 +54,20 @@ public abstract class ReconParticleDriver extends Driver {
 
     HPSEcal3 ecal;
 
+    
+    protected boolean isMC = false;
+    
+    /**
+     * Sets the condition of whether the data is Monte Carlo or not.
+     * This is used to smear the cluster energy corrections so that
+     * the energy resolution is consistent with data. False by default.
+     * @param isMC
+     */
+    public void setIsMC(boolean state) {
+        isMC = state;
+    }   
+    
+    
     /**
      * Sets the name of the LCIO collection for beam spot constrained V0
      * candidate particles.
@@ -362,10 +376,10 @@ public abstract class ReconParticleDriver extends Driver {
                 if (clusterToTrack.containsKey(cluster)){
                     Track matchedT = clusterToTrack.get(cluster);
                     double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
-                    ClusterUtilities.applyCorrections(ecal, cluster, ypos);
+                    ClusterUtilities.applyCorrections(ecal, cluster, ypos,isMC);
                 }
                 else {
-                    ClusterUtilities.applyCorrections(ecal, cluster);               
+                    ClusterUtilities.applyCorrections(ecal, cluster,isMC);               
                 }
             }
         }
@@ -575,6 +589,11 @@ public abstract class ReconParticleDriver extends Driver {
      */
     protected boolean debug = false;
 
+    /**
+     * Indicates whether this is Monte Carlo or data
+     */
+    public boolean isMonteCarlo = false;
+    
     /**
      * The simple name of the class used for debug print statements.
      */
