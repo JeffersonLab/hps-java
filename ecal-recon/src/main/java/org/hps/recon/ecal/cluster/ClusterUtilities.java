@@ -334,7 +334,7 @@ public final class ClusterUtilities {
      * Apply HPS-specific energy and position corrections to a list of clusters in place.
      * @param clusters The list of clusters.
      */
-    public static void applyCorrections(HPSEcal3 ecal, List<Cluster> clusters) {
+    public static void applyCorrections(HPSEcal3 ecal, List<Cluster> clusters, boolean isMC) {
                 
         // Loop over the clusters.
         for (Cluster cluster : clusters) {
@@ -347,7 +347,7 @@ public final class ClusterUtilities {
                 ClusterPositionCorrection.setCorrectedPosition(baseCluster);
             
                 // Apply PID based energy correction.
-                ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster);
+                ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
             }
         }
     }
@@ -356,7 +356,7 @@ public final class ClusterUtilities {
      * Apply HPS-specific energy and position corrections to a cluster without track information.
      * @param cluster The input cluster.
      */
-    public static void applyCorrections(HPSEcal3 ecal, Cluster cluster) {
+    public static void applyCorrections(HPSEcal3 ecal, Cluster cluster, boolean isMC) {
                             
         if (cluster instanceof BaseCluster) {
             
@@ -366,7 +366,7 @@ public final class ClusterUtilities {
             ClusterPositionCorrection.setCorrectedPosition(baseCluster);
             
             // Apply PID based energy correction.
-            ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster);
+            ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
         }        
     }   
     
@@ -374,7 +374,7 @@ public final class ClusterUtilities {
      * Apply HPS-specific energy and position corrections to a cluster with track information.
      * @param cluster The input cluster.
      */
-    public static void applyCorrections(HPSEcal3 ecal, Cluster cluster, double ypos) {
+    public static void applyCorrections(HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
         
         if (cluster instanceof BaseCluster) {
             
@@ -384,7 +384,7 @@ public final class ClusterUtilities {
             ClusterPositionCorrection.setCorrectedPosition(baseCluster);
             
             // Apply PID based energy correction.
-            ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, ypos);
+            ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);
         }        
     }    
         
@@ -512,6 +512,31 @@ public final class ClusterUtilities {
             }
         }       
     }
+    
+    /**
+     * Comparator of cluster energies.
+     */
+    static final class ClusterSeedComparator implements Comparator<Cluster> {
+
+        /**
+         * Compare cluster seed energies.
+         * 
+         * @return -1, 0, or 1 if first cluster's seed energy is less than, equal to, or greater than the first's
+         */
+        @Override
+        public int compare(Cluster o1, Cluster o2) {
+            if (findSeedHit(o1).getCorrectedEnergy() < findSeedHit(o2).getCorrectedEnergy()){
+                return -1;
+            } else if (findSeedHit(o1).getCorrectedEnergy() > findSeedHit(o2).getCorrectedEnergy()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }       
+    }
+    
+    
+    
     
     /**
      * Sort a list of clusters.
