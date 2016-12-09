@@ -217,6 +217,10 @@ public class TriggerDiagnosticDriver extends Driver {
     /** Whether events with more than <code>noiseEventThreshold</code>
      * hits should be skipped. */
     private boolean skipNoiseEvents = false;
+    /** Defines the (inclusive) end of the trigger window range. */
+    private int triggerWindowEnd = 80;
+    /** Defines the (inclusive) start of the trigger window range. */
+    private int triggerWindowStart = 56;
     
     // === Local window values. =========================================================
     // ==================================================================================
@@ -425,10 +429,10 @@ public class TriggerDiagnosticDriver extends Driver {
             
             // If there were no triggers, then the efficiency is not
             // defined. Display "N/A."
-            if(Double.isNaN(efficiency[i])) { efficiencyDisp[i] = "  N/A  "; }
+            if(Double.isNaN(efficiency[i])) { efficiencyDisp[i] = "   N/A   "; }
             
             // Otherwise, display the value as a percentage.
-            else { efficiencyDisp[i] = String.format("%5.3f%%", efficiency[i]); }
+            else { efficiencyDisp[i] = String.format("%7.3f%%", efficiency[i]); }
         }
         
         // Output the trigger efficiency statistics header.
@@ -445,12 +449,32 @@ public class TriggerDiagnosticDriver extends Driver {
         System.out.printf("Total Hardware Sim Triggers   :: " + charDisplay + "%n", simTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS]);
         System.out.printf("Matched Software Sim Triggers :: " + charDisplay + "%n", matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]);
         System.out.printf("Matched Hardware Sim Triggers :: " + charDisplay + "%n", matchedTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS]);
-        System.out.printf("Software Sim Efficiency       :: " + charDisplay + " / " + charDisplay + " (%s)%n",
-                simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS], matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
-                efficiencyDisp[SOURCE_SIM_CLUSTER]);
-        System.out.printf("Hardware Sim Efficiency       :: " + charDisplay + " / " + charDisplay + " (%s)%n",
-                simTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS], matchedTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS],
-                efficiencyDisp[SOURCE_SSP_CLUSTER]);
+        
+        System.out.printf("Software Sim Efficiency       :: " + charDisplay + " / " + charDisplay,
+                simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS], matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]);
+        if(simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS] == 0 || matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS] == 0) {
+            System.out.printf(" (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf(" (%7.3f%% ± %7.3f%%)%n",
+                    100.0 * matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS] / simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
+                    getRatioError(matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
+                            Math.sqrt(matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]),
+                            simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
+                            Math.sqrt(simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS])));
+        }
+        
+        System.out.printf("Hardware Sim Efficiency       :: " + charDisplay + " / " + charDisplay,
+                simTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS], matchedTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS]);
+        if(simTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS] == 0 || matchedTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS] == 0) {
+            System.out.printf(" (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf(" (%7.3f%% ± %7.3f%%)%n",
+                    100.0 * matchedTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS] / simTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS],
+                    getRatioError(matchedTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS],
+                            Math.sqrt(matchedTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS]),
+                            simTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS],
+                            Math.sqrt(simTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS])));
+        }
         
         // Get the largest number of spaces needed to display the TI
         // bit specific values.
@@ -479,18 +503,18 @@ public class TriggerDiagnosticDriver extends Driver {
         // The second and third columns display the total number of
         // matched triggers versus the total number of expected triggers
         // as well as the percentage of two. This takes the form of the
-        // string [MATCHED] / [EXPECTED] (NNN.NN%). The width needed
+        // string [MATCHED] / [EXPECTED] (NNN.NNN% + NNN.NNN%). The width needed
         // to display this will vary based on the numbers of triggers.
         // The width should be set to wither the largest size of the
         // largest of these values, or to the width of the header text.
         // whichever is larger.
-        columnWidth[1] = max(header[1].length(), tiMaxChars + tiMaxChars + 14);
-        columnWidth[2] = max(header[2].length(), tiMaxChars + tiMaxChars + 14);
+        columnWidth[1] = max(header[1].length(), tiMaxChars + tiMaxChars + 22);
+        columnWidth[2] = max(header[2].length(), tiMaxChars + tiMaxChars + 22);
         
         // Finally, define the column size strings and the individual
         // value size strings.
         String valueString = "%" + tiMaxChars + "d";
-        String efficiencyString = valueString + " / " + valueString + "  (%7s)";
+        String efficiencyString = valueString + " / " + valueString + "  (%19s)";
         String[] columnString = { "%-" + columnWidth[0] + "s", "%-" + columnWidth[1] + "s", "%-" + columnWidth[2] + "s" };
         
         // Output the efficiency as a function of active TI bit.
@@ -506,8 +530,18 @@ public class TriggerDiagnosticDriver extends Driver {
             // The efficiency value strings are either the efficiency
             // rounded to two decimal points, or "N/A" if there were
             // no triggers found.
-            String softwareSimString = Double.isNaN(softwareSimEfficiency) ? "  N/A  " : String.format("%6.2f%%", softwareSimEfficiency);
-            String hardwareSimString = Double.isNaN(hardwareSimEfficiency) ? "  N/A  " : String.format("%6.2f%%", hardwareSimEfficiency);
+            String softwareSimString = Double.isNaN(softwareSimEfficiency)
+                    ? String.format("%7.3f%% ± %7.3f%%", 0.0, 0.0) : String.format("%7.3f%% ± %7.3f%%", softwareSimEfficiency,
+                    getRatioError(matchedTriggerCount[SOURCE_SIM_CLUSTER][trigger.ordinal()],
+                            Math.sqrt(matchedTriggerCount[SOURCE_SIM_CLUSTER][trigger.ordinal()]),
+                            simTriggerCount[SOURCE_SIM_CLUSTER][trigger.ordinal()],
+                            Math.sqrt(simTriggerCount[SOURCE_SIM_CLUSTER][trigger.ordinal()])));
+            String hardwareSimString = Double.isNaN(hardwareSimEfficiency)
+                    ? String.format("%7.3f%% ± %7.3f%%", 0.0, 0.0) : String.format("%7.3f%% ± %7.3f%%", hardwareSimEfficiency,
+                    getRatioError(matchedTriggerCount[SOURCE_SSP_CLUSTER][trigger.ordinal()],
+                            Math.sqrt(matchedTriggerCount[SOURCE_SSP_CLUSTER][trigger.ordinal()]),
+                            simTriggerCount[SOURCE_SSP_CLUSTER][trigger.ordinal()],
+                            Math.sqrt(simTriggerCount[SOURCE_SSP_CLUSTER][trigger.ordinal()])));
             
             // The efficiency column strings take the form "[MATCHED] /
             // [EXPECTED] (NNN.NN%)".
@@ -1016,21 +1050,23 @@ public class TriggerDiagnosticDriver extends Driver {
                 
                 // Update the verified count for each type of trigger
                 // for the local and global windows.
-                if(clusterType == Cluster.class || clusterType == Cluster[].class) {
-                    matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]++;
-                    matchedTriggerCount[SOURCE_SIM_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
-                } else {
-                    matchedTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS]++;
-                    matchedTriggerCount[SOURCE_SSP_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
-                }
-                
-                // Update the verified count for each active TI bit.
-                for(TriggerType trigger : TriggerType.values()) {
-                    if(tiFlags[trigger.ordinal()]) {
-                        if(clusterType == Cluster.class || clusterType == Cluster[].class) {
-                            matchedTriggerCount[SOURCE_SIM_CLUSTER][trigger.ordinal()]++;
-                        } else {
-                            matchedTriggerCount[SOURCE_SSP_CLUSTER][trigger.ordinal()]++;
+                if(getTriggerTime(simTrigger) >= triggerWindowStart && getTriggerTime(simTrigger) <= triggerWindowEnd) {
+                    if(clusterType == Cluster.class || clusterType == Cluster[].class) {
+                        matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]++;
+                        matchedTriggerCount[SOURCE_SIM_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
+                    } else {
+                        matchedTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS]++;
+                        matchedTriggerCount[SOURCE_SSP_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
+                    }
+                    
+                    // Update the verified count for each active TI bit.
+                    for(TriggerType trigger : TriggerType.values()) {
+                        if(tiFlags[trigger.ordinal()]) {
+                            if(clusterType == Cluster.class || clusterType == Cluster[].class) {
+                                matchedTriggerCount[SOURCE_SIM_CLUSTER][trigger.ordinal()]++;
+                            } else {
+                                matchedTriggerCount[SOURCE_SSP_CLUSTER][trigger.ordinal()]++;
+                            }
                         }
                     }
                 }
@@ -1210,6 +1246,11 @@ public class TriggerDiagnosticDriver extends Driver {
     private static final String getPlotTIName(TriggerType tiBit) {
         if(tiBit == null) { return "All"; }
         else { return tiBit.toString(); }
+    }
+    
+    private static final double getRatioError(double num, double sigmaNum, double den, double sigmaDen) {
+        double ratio = num / den;
+        return Math.abs(ratio) * Math.sqrt(Math.pow(sigmaNum / num, 2) + Math.pow(sigmaDen / den, 2));
     }
     
     /**
@@ -1707,6 +1748,27 @@ public class TriggerDiagnosticDriver extends Driver {
         // and global windows.
         hardwareTriggerCount[ALL_TRIGGERS] += hardwareTriggers.size();
         hardwareTriggerCount[LOCAL_WINDOW_TRIGGERS] += hardwareTriggers.size();
+        for(TriggerType tiBit : TriggerType.values()) { hardwareTriggerCount[tiBit.ordinal()] += hardwareTriggers.size(); }
+        for(Trigger<?> trigger : softwareSimTriggers) {
+            if(getTriggerTime(trigger) >= triggerWindowStart && getTriggerTime(trigger) <= triggerWindowEnd) {
+                simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]++;
+                simTriggerCount[SOURCE_SIM_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
+                for(TriggerType tiBit : TriggerType.values()) {
+                    simTriggerCount[SOURCE_SIM_CLUSTER][tiBit.ordinal()] += tiFlags[tiBit.ordinal()] ? 1 : 0;
+                }
+            }
+        }
+        for(Trigger<?> trigger : hardwareSimTriggers) {
+            if(getTriggerTime(trigger) >= triggerWindowStart && getTriggerTime(trigger) <= triggerWindowEnd) {
+                simTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS]++;
+                simTriggerCount[SOURCE_SSP_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
+                for(TriggerType tiBit : TriggerType.values()) {
+                    simTriggerCount[SOURCE_SSP_CLUSTER][tiBit.ordinal()] += tiFlags[tiBit.ordinal()] ? 1 : 0;
+                }
+            }
+        }
+        
+        /*
         simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS] += softwareSimTriggers.size();
         simTriggerCount[SOURCE_SSP_CLUSTER][ALL_TRIGGERS] += hardwareSimTriggers.size();
         simTriggerCount[SOURCE_SIM_CLUSTER][LOCAL_WINDOW_TRIGGERS] += softwareSimTriggers.size();
@@ -1720,6 +1782,7 @@ public class TriggerDiagnosticDriver extends Driver {
                 simTriggerCount[SOURCE_SSP_CLUSTER][trigger.ordinal()] += hardwareSimTriggers.size();
             }
         }
+        */
         
         // Print the observed trigger distributions.
         for(Trigger<?> trigger : softwareSimTriggers) { plotTrigger(trigger, tiFlags, false); }
@@ -1869,6 +1932,26 @@ public class TriggerDiagnosticDriver extends Driver {
         } else {
             throw new IllegalArgumentException("Trigger type \"" + type + "\" is not supported.");
         }
+    }
+    
+    /**
+     * Sets the end of the trigger window range. This is used during
+     * hardware-cluster simulated trigger verification.
+     * @param value - The end of the trigger window range. This value
+     * is inclusive.
+     */
+    public void setTriggerWindowEnd(int value) {
+        triggerWindowEnd = value;
+    }
+    
+    /**
+     * Sets the start of the trigger window range. This is used during
+     * hardware-cluster simulated trigger verification.
+     * @param value - The start of the trigger window range. This value
+     * is inclusive.
+     */
+    public void setTriggerWindowStart(int value) {
+        triggerWindowStart = value;
     }
     
     /**
