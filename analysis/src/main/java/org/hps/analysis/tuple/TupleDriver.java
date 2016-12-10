@@ -246,7 +246,7 @@ public abstract class TupleDriver extends Driver {
     protected void addEventVariables() {
         String[] newVars = new String[]{"run/I", "event/I",
             "nTrk/I", "nPos/I",
-            "isCalib/B", "isPulser/B", "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B"};
+            "isCalib/B", "isPulser/B", "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B","evTime/D","evTx/I","evTy/I"};
         tupleVariables.addAll(Arrays.asList(newVars));
     }
 
@@ -322,6 +322,16 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put("isPair0/B", triggerData.isPair0Trigger() ? 1.0 : 0.0);
             tupleMap.put("isPair1/B", triggerData.isPair1Trigger() ? 1.0 : 0.0);
         }
+       
+        if (event.hasCollection(GenericObject.class, "TriggerTime")){
+            if (event.get(GenericObject.class, "TriggerTime") != null){
+                List <GenericObject> triggT = event.get(GenericObject.class, "TriggerTime");
+                tupleMap.put("evTime/D", triggT.get(0).getDoubleVal(0));
+                tupleMap.put("evTx/I", (double) triggT.get(0).getIntVal(0));
+                tupleMap.put("evTy/I", (double) triggT.get(0).getIntVal(1));
+            }
+        }
+         
     }
 
 //    protected TrackState fillParticleVariablesT(EventHeader event, ReconstructedParticle particle, String prefix) {
