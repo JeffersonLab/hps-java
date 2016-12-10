@@ -92,7 +92,7 @@
         <!-- Global Millepede tweak parameters-->
         <constant name="dOmega_top" value="-0.00000104" />
         <constant name="dLambda_top" value="-0.0005" />
-        <constant name="dPhi_top" value="-0.0015" />
+        <constant name="dPhi_top" value="0.0015" />
         <constant name="dD0_top" value="0.0" />
         <constant name="dZ0_top" value="0.14" />
         <constant name="dOmega_bot" value="0.00000083" />
