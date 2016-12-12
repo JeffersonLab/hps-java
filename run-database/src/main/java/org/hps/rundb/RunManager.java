@@ -1,8 +1,10 @@
 package org.hps.rundb;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.ConnectionParameters;
@@ -22,10 +24,20 @@ import org.lcsim.conditions.ConditionsListener;
 public final class RunManager implements ConditionsListener {
 
     /**
+     * Name of system property that can be used to specify custom database connection parameters.
+     */
+    private static final String CONNECTION_PROPERTY_FILE = "org.hps.conditions.connection.file";
+    
+    /**
      * The default connection parameters for read-only access to the run database.
      */
     private static ConnectionParameters DEFAULT_CONNECTION_PARAMETERS = new ConnectionParameters("hpsuser",
             "darkphoton", "hps_run_db_v2", "hpsdb.jlab.org");
+    
+    /**
+     * Database connection parameters.
+     */
+    private ConnectionParameters connectionParameters = DEFAULT_CONNECTION_PARAMETERS;
 
     /**
      * The singleton instance of the RunManager.
@@ -77,14 +89,30 @@ public final class RunManager implements ConditionsListener {
         }
         this.connection = connection;
         factory = new DaoProvider(this.connection);
+        LOGGER.log(Level.INFO, this.connectionParameters.toString());
     }
     
     /**
      * Class constructor using default connection parameters.
      */
     public RunManager() {
-        this(DEFAULT_CONNECTION_PARAMETERS.createConnection());
-    }
+        
+        /**
+         * Read database URL from system prop setting.
+         * The database, password and user from that file are overridden.
+         */
+        if (System.getProperties().get(CONNECTION_PROPERTY_FILE) != null) {
+            final String propFile = (String) System.getProperties().get(CONNECTION_PROPERTY_FILE);
+            this.connectionParameters = ConnectionParameters.fromProperties(new File(propFile));
+            this.connectionParameters.setDatabase("hps_run_db_v2");
+            this.connectionParameters.setPassword("darkphoton");
+            this.connectionParameters.setUser("hpsuser");
+            
+        }        
+        this.connection = this.connectionParameters.createConnection();
+        factory = new DaoProvider(this.connection);
+        LOGGER.log(Level.INFO, this.connectionParameters.toString());
+    }   
         
     /**
      * Close the database connection.

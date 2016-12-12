@@ -21,6 +21,16 @@ import java.util.logging.Logger;
 public final class ConnectionParameters {
 
     /**
+     * Name of system property that can be used to specify custom database connection parameters.
+     */
+    public static final String CONNECTION_PROPERTY_FILE = "org.hps.conditions.connection.file";
+    
+    /**
+     * Connection property resource.
+     */
+    public static final String CONNECTION_PROPERTY_RESOURCE = "org.hps.conditions.connection.resource";
+    
+    /**
      * The default port number.
      */
     public static final int DEFAULT_PORT = 3306;
@@ -266,4 +276,17 @@ public final class ConnectionParameters {
         return "ConnectionParameters { database: " + database + ", hostname: " + hostname + ", password: " + password
                 + ", port: " + port + ", user: " + user + " }";
     }
+    
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
 }

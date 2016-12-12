@@ -43,6 +43,8 @@ import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.util.loop.DetectorConditionsConverter;
+import static org.hps.conditions.database.ConnectionParameters.CONNECTION_PROPERTY_FILE;
+import static org.hps.conditions.database.ConnectionParameters.CONNECTION_PROPERTY_RESOURCE;
 
 /**
  * <p>
@@ -57,17 +59,7 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  */
 @SuppressWarnings("rawtypes")
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
-
-    /**
-     * Name of system property that can be used to specify custom database connection parameters.
-     */
-    private static final String CONNECTION_PROPERTY_FILE = "org.hps.conditions.connection.file";
-
-    /**
-     * Connection property resource.
-     */
-    private static final String CONNECTION_PROPERTY_RESOURCE = "org.hps.conditions.connection.resource";
-
+   
     /**
      * The default XML config.
      */
