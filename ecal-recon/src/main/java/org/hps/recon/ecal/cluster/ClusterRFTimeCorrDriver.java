@@ -51,32 +51,34 @@ public class ClusterRFTimeCorrDriver extends Driver {
         double clT = parameter[0];
         double selectedClT = parameter[0];
         double rfT = parameter[0];
-        int seedX = 1;
-        int seedY = 1;
+        int seedX = 0;
+        int seedY = 0;
         int jj=0;
         //read in ecal clusters, choose the highest energy cluster in the trigger time window
         if (event.hasCollection(Cluster.class, "EcalClusters")){
-            while (foundTdiff==false){
-                jj++;
-            // Get the list of clusters in the event
+            // Get the list of clusters in the event   
             List<Cluster> cl = event.get(Cluster.class, "EcalClusters");
             // Sort the clusters as highest to lowest energy
             Comparator<Cluster> comparator = new ClusterUtilities.ClusterSeedComparator();            
-            ClusterUtilities.sort(cl,comparator, true,true);            
+            ClusterUtilities.sort(cl,comparator, true,true); 
+            int listSize = cl.size();   
+            while (foundTdiff==false){
+                if (listSize==0){break;}
+                //choose the highest seed energy cluster in the time window
+                for (Cluster cc : cl){
+                    clT = ClusterUtilities.getSeedHitTime(cc); 
+                    if (clT>parameter[1]-jj*10 && clT<parameter[2]+jj*10){
+                        foundTdiff = true;
+                        selectedClT = clT;
+                        seedX = ClusterUtilities.findSeedHit(cc).getIdentifierFieldValue("ix");
+                        seedY = ClusterUtilities.findSeedHit(cc).getIdentifierFieldValue("iy");
+                        break;
+                        }//end if
+                    }//end for
+                jj++;
+                }//end while
+        }//end if has clusters
         
-            //choose the highest seed energy cluster in the time window
-            for (Cluster cc : cl){
-                clT = ClusterUtilities.getSeedHitTime(cc);             
-                if (clT>parameter[1]-jj*10 && clT<parameter[2]+jj*10){
-                    foundTdiff = true;
-                    selectedClT = clT;
-                    seedX = ClusterUtilities.findSeedHit(cc).getIdentifierFieldValue("ix");
-                    seedY = ClusterUtilities.findSeedHit(cc).getIdentifierFieldValue("iy");
-                    break;
-                    }
-                }
-            }//end if cluster
-        }
         double jitter=0;
         //read in rf time
         if (event.hasCollection(GenericObject.class, "RFHits")) {
@@ -87,10 +89,8 @@ public class ClusterRFTimeCorrDriver extends Driver {
             jitter = ((rfT-selectedClT+400*2.004) % 2.004) - 1.002; 
             selectedClT-=jitter;
             }
-            
-        if (foundTdiff){
-            triggerTime.add(new TriggerTime(selectedClT, seedX,seedY));
-        }
+        
+        triggerTime.add(new TriggerTime(selectedClT, seedX,seedY));    
         event.put("TriggerTime", triggerTime, TriggerTime.class, 1);
         
     }//end process event
