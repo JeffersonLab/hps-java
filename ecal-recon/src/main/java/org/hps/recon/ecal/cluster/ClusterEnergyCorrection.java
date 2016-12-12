@@ -25,9 +25,9 @@ public final class ClusterEnergyCorrection {
     
     // Variables derived as the difference between data and mc noise in 
     // ecal cluster energy resolution.
-    static final double A = -0.0000981;
-    static final double B = 0.0013725;
-    static final double C = 0.00301;
+    static final double A = -0.00000981;
+    static final double B = 0.00013725;
+    static final double C = 0.000301;
     
     // Calculate the noise factor to smear the Ecal energy by
     private static double calcNoise(double energy){
