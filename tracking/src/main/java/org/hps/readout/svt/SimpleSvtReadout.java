@@ -48,7 +48,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
     private SimTrackerHitReadoutDriver readoutDriver = new SimTrackerHitReadoutDriver();
     private SiSensorSim siSimulation = new CDFSiSensorSim();
     private Map<SiSensor, PriorityQueue<StripHit>[]> hitMap = new HashMap<SiSensor, PriorityQueue<StripHit>[]>();
-    private List<SiSensor> sensors = null;
+    private List<HpsSiSensor> sensors = null;
 
     // readout period time offset in ns
     private double readoutOffset = 0.0;
@@ -146,16 +146,15 @@ public class SimpleSvtReadout extends TriggerableDriver {
         super.detectorChanged(detector);
 
         // Get the collection of all SiSensors from the SVT 
-        sensors
-                = detector.getSubdetector(SVT_SUBDETECTOR_NAME).
-                getDetectorElement().findDescendants(SiSensor.class);
+        sensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
 
         String[] readouts = {readout};
         readoutDriver.setCollections(readouts);
 
         if (!noPileup) {
-            for (SiSensor sensor : sensors) {
-                PriorityQueue<StripHit>[] hitQueues = new PriorityQueue[HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR];
+            for (HpsSiSensor sensor : sensors) {
+                @SuppressWarnings("unchecked")
+                PriorityQueue<StripHit>[] hitQueues = new PriorityQueue[sensor.getNumberOfChannels()];
                 hitMap.put(sensor, hitQueues);
             }
         }
@@ -460,7 +459,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
         return firstSample;
     }
 
-    private class StripHit implements Comparable {
+    private class StripHit implements Comparable<Object> {
 
         SiSensor sensor;
         int channel;
