@@ -1,6 +1,10 @@
 package org.lcsim.detector.converter.compact;
 
 import org.jdom.Element;
+import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.HpsThinSiSensor;
 import org.lcsim.geometry.compact.converter.HPSTracker2017JavaBuilder;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.geometry.compact.converter.HPSTrackerJavaBuilder;
@@ -30,6 +34,16 @@ public class HPSTracker2017Converter extends HPSTracker2014v1Converter {
      */
     public Class getSubdetectorType() {
         return HPSTracker2017.class;
+    }
+    
+    @Override
+    HpsSiSensor createSiSensor(int sensorid, String name,
+            IDetectorElement parent, String support, IIdentifier id) {
+        int layer = HPSTrackerBuilder.getLayerFromVolumeName(name);
+        if(layer == 1)  
+            return new HpsThinSiSensor(sensorid, name, parent, support, id);
+        else
+            return new HpsSiSensor(sensorid, name, parent, support, id);
     }
 
     /*
