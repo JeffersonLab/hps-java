@@ -35,9 +35,9 @@ public class HpsSiSensor extends SiSensor {
     // --- Constants ---//
     // -----------------//
 
-    public final static int STRIPS_PER_SENSOR = 639;
+    private final static int STRIPS_PER_SENSOR = 639;
     public final static int NUMBER_OF_SAMPLES = 6;
-    public final static int NUMBER_OF_SHAPE_FIT_PARAMETERS = 4;
+    private final static int NUMBER_OF_SHAPE_FIT_PARAMETERS = 4;
 
     public final static int AMPLITUDE_INDEX = 0;
     public final static int T0_INDEX = 1;
@@ -46,10 +46,22 @@ public class HpsSiSensor extends SiSensor {
     public final static String ELECTRON_SIDE = "ELECTRON";
     public final static String POSITRON_SIDE = "POSITRON";
 
-    public final static double READOUT_STRIP_PITCH = 0.060; // mm
-    public final static double SENSE_STRIP_PITCH = 0.030; // mm
-    public final static double READOUT_TRANSFER_EFFICIENCY = .986; // %
-    public final static double SENSE_TRANSFER_EFFICIENCY = 0.419; // %
+    private final static double READOUT_STRIP_PITCH = 0.060; // mm
+    private final static double SENSE_STRIP_PITCH = 0.030; // mm
+    private final static double READOUT_TRANSFER_EFFICIENCY = .986; // %
+    private final static double SENSE_TRANSFER_EFFICIENCY = 0.419; // %
+    
+    public double getReadoutStripPitch() {
+        return READOUT_STRIP_PITCH;
+    }
+    
+    public double getSenseStripPitch() {
+        return SENSE_STRIP_PITCH;
+    }
+    
+    public double getStripsPerSensor() {
+        return STRIPS_PER_SENSOR;
+    }
 
     // -----------------//
     // -----------------//
@@ -487,9 +499,9 @@ public class HpsSiSensor extends SiSensor {
         final Transform3D electrodesTransform = new Transform3D(electrodesPosition, electrodesRotation);
 
         // Set the number of readout and sense electrodes.
-        final SiStrips readoutElectrodes = new SiStrips(ChargeCarrier.HOLE, READOUT_STRIP_PITCH, this,
+        final SiStrips readoutElectrodes = new SiStrips(ChargeCarrier.HOLE, getReadoutStripPitch(), this,
                 electrodesTransform);
-        final SiStrips senseElectrodes = new SiStrips(ChargeCarrier.HOLE, SENSE_STRIP_PITCH,
+        final SiStrips senseElectrodes = new SiStrips(ChargeCarrier.HOLE, getSenseStripPitch(),
                 readoutElectrodes.getNCells() * 2 - 1, this, electrodesTransform);
 
         final double readoutCapacitance = this.getStripLength() > this.longSensorLengthThreshold ? this.readoutLongStripCapacitanceSlope
