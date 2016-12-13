@@ -5,29 +5,28 @@ import org.lcsim.detector.identifier.IIdentifier;
 
 public class HpsThinSiSensor extends HpsSiSensor {
 
-    private final static double READOUT_STRIP_PITCH = 0.055; // mm
-    private final static double SENSE_STRIP_PITCH = 0.055; // mm
-    private final static double STRIPS_PER_SENSOR = 255;// mm
+    private final double readoutStripPitch = 0.055; // mm
+    private final double senseStripPitch = 0.055;   // mm
+    private final int numberOfSenseStrips = 256;
 
-    public HpsThinSiSensor(int sensorid, String name, IDetectorElement parent,
-            String support, IIdentifier id) {
+    public HpsThinSiSensor(int sensorid, String name, IDetectorElement parent, String support, IIdentifier id) {
         super(sensorid, name, parent, support, id);
 
     }
 
     @Override
+    public int getNumberOfSenseStrips() {
+        return this.numberOfSenseStrips;
+    }
+
+    @Override
     public double getReadoutStripPitch() {
-        return READOUT_STRIP_PITCH;
+        return readoutStripPitch;
     }
 
     @Override
     public double getSenseStripPitch() {
-        return SENSE_STRIP_PITCH;
+        return senseStripPitch;
     }
-    
-    @Override
-    public double getStripsPerSensor() {
-        return STRIPS_PER_SENSOR;
-    }
+}    
 
-}

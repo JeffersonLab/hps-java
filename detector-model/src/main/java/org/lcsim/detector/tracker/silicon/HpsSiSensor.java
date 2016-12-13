@@ -35,7 +35,6 @@ public class HpsSiSensor extends SiSensor {
     // --- Constants ---//
     // -----------------//
 
-    private final static int STRIPS_PER_SENSOR = 639;
     public final static int NUMBER_OF_SAMPLES = 6;
     private final static int NUMBER_OF_SHAPE_FIT_PARAMETERS = 4;
 
@@ -46,23 +45,9 @@ public class HpsSiSensor extends SiSensor {
     public final static String ELECTRON_SIDE = "ELECTRON";
     public final static String POSITRON_SIDE = "POSITRON";
 
-    private final static double READOUT_STRIP_PITCH = 0.060; // mm
-    private final static double SENSE_STRIP_PITCH = 0.030; // mm
     private final static double READOUT_TRANSFER_EFFICIENCY = .986; // %
     private final static double SENSE_TRANSFER_EFFICIENCY = 0.419; // %
-    
-    public double getReadoutStripPitch() {
-        return READOUT_STRIP_PITCH;
-    }
-    
-    public double getSenseStripPitch() {
-        return SENSE_STRIP_PITCH;
-    }
-    
-    public double getStripsPerSensor() {
-        return STRIPS_PER_SENSOR;
-    }
-
+     
     // -----------------//
     // -----------------//
 
@@ -76,7 +61,11 @@ public class HpsSiSensor extends SiSensor {
     private final double readoutStripCapacitanceSlope = 0.16; // pf/mm
     private final double senseStripCapacitanceIntercept = 0;
     private final double senseStripCapacitanceSlope = 0.16; // pf/mm
-
+    
+    private final int numberOfSenseStrips = 1277;
+    private final double readoutStripPitch = 0.060; // mm
+    private final double senseStripPitch = 0.030;   // mm
+    
     /*
      * Adding separate strip capacitance for long detectors following S/N = mip_charge/(270e- + 36*C[pf/cm]*L[cm] e.g.
      * for expected S/N=16 and L=20cm -> C=0.1708pf/mm e.g. for expected S/N=8 and L=20cm -> C=0.39pf/mm FIXME: This
@@ -254,9 +243,13 @@ public class HpsSiSensor extends SiSensor {
      * @return The total number of channels in the sensor.
      */
     public int getNumberOfChannels() {
-        return STRIPS_PER_SENSOR;
+        return this.getReadoutElectrodes(ChargeCarrier.HOLE).getNCells();
     }
 
+    public int getNumberOfSenseStrips() {
+        return this.numberOfSenseStrips;
+    }
+    
     /**
      * Get whether the given channel number if valid.
      * 
@@ -264,7 +257,7 @@ public class HpsSiSensor extends SiSensor {
      * @return True if channel number is valid; false if not.
      */
     public boolean isValidChannel(final int channel) {
-        return STRIPS_PER_SENSOR >= 0 && channel < STRIPS_PER_SENSOR;
+        return this.getNumberOfChannels() >= 0 && channel < this.getNumberOfChannels();
     }
 
     /**
@@ -312,6 +305,16 @@ public class HpsSiSensor extends SiSensor {
         return this.getModuleNumber() < 2 ? ELECTRON_SIDE : POSITRON_SIDE;
     }
 
+    /** @return The readout strip pitch. */
+    public double getReadoutStripPitch() {
+        return readoutStripPitch;
+    }
+    
+    /** @return The sense strip pitch. */
+    public double getSenseStripPitch() {
+        return senseStripPitch;
+    }
+    
     /**
      * Generate an ID for a channel (strip) on a sensor.
      *
@@ -502,7 +505,7 @@ public class HpsSiSensor extends SiSensor {
         final SiStrips readoutElectrodes = new SiStrips(ChargeCarrier.HOLE, getReadoutStripPitch(), this,
                 electrodesTransform);
         final SiStrips senseElectrodes = new SiStrips(ChargeCarrier.HOLE, getSenseStripPitch(),
-                readoutElectrodes.getNCells() * 2 - 1, this, electrodesTransform);
+                this.getNumberOfSenseStrips(), this, electrodesTransform);
 
         final double readoutCapacitance = this.getStripLength() > this.longSensorLengthThreshold ? this.readoutLongStripCapacitanceSlope
                 : this.readoutStripCapacitanceSlope;
