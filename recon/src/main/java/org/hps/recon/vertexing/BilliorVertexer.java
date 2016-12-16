@@ -333,14 +333,14 @@ public class BilliorVertexer {
     public void doBeamSpotConstraint(boolean bsconst) {
         _beamspotConstraint = bsconst;
         _targetConstraint = false;
-        _constraintType = "BeamspotConstrained";
+        if(bsconst == true) _constraintType = "BeamspotConstrained";
 
     }
 
-    public void doTargetConstraint(boolean bsconst) {
+    public void doTargetConstraint(boolean tconst) {
         _beamspotConstraint = false;
-        _targetConstraint = bsconst;
-        _constraintType = "TargetConstrained";
+        _targetConstraint = tconst;
+        if(tconst == true) _constraintType = "TargetConstrained";
     }
 
     public double getChiSq() {
