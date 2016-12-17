@@ -29,10 +29,10 @@ import org.lcsim.util.Driver;
 
 
 /**
- * Driver framework for generating reconstructed particles and matching clusters
+ * Driver used to create reconstructed particles and matching clusters
  * and tracks.
  *
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a>
  * @author Mathew Graham <mgraham@slac.stanford.edu>
  */
 public abstract class ReconParticleDriver extends Driver {
@@ -54,8 +54,8 @@ public abstract class ReconParticleDriver extends Driver {
 
     HPSEcal3 ecal;
 
-    
     protected boolean isMC = false;
+    private boolean disablePID = false;
     
     /**
      * Sets the condition of whether the data is Monte Carlo or not.
@@ -205,7 +205,10 @@ public abstract class ReconParticleDriver extends Driver {
         MAXNSIGMAPOSITIONMATCH=nsigma;
     }
     
-        
+    /** Disable setting the PID of an Ecal cluster. */
+    public void setDisablePID(boolean disablePID) { 
+        this.disablePID = disablePID;
+    }
     
     /**
      * Updates the magnetic field parameters to match the appropriate values for
@@ -334,7 +337,7 @@ public abstract class ReconParticleDriver extends Driver {
                     // propogate pid to the cluster:
                     final int pid = particle.getParticleIDUsed().getPDG();
                     if (Math.abs(pid) == 11) {
-                        ((BaseCluster) matchedCluster).setParticleId(pid);
+                        if (!disablePID) ((BaseCluster) matchedCluster).setParticleId(pid);
                     }
 
                     // unmatched clusters will (later) be used to create photon particles:
@@ -357,7 +360,7 @@ public abstract class ReconParticleDriver extends Driver {
 
             int pid = particle.getParticleIDUsed().getPDG();
             if (Math.abs(pid) != 11) {
-                ((BaseCluster) unmatchedCluster).setParticleId(pid);
+                if (!disablePID) ((BaseCluster) unmatchedCluster).setParticleId(pid);
             }
 
             // Add the cluster to the particle.
