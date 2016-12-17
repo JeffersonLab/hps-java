@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      @brief Steering file used to apply track parameter tweaks and rerun the
+             vertexing. 
+      @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a>
+    -->
+    <execute>
+        <driver name="TrackTweakDriver" />
+        <driver name="ReconParticleDriver" />
+        <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>   
+        <driver name="TrackTweakDriver"    type="org.hps.recon.tracking.TrackTweakDriver" >
+            <topOmegaCorrection>-1.04e-6</topOmegaCorrection>
+            <botOmegaCorrection>0.83e-6</botOmegaCorrection>
+            <topLambdaCorrection>-5e-4</topLambdaCorrection>
+            <botLambdaCorrection>13e-4</botLambdaCorrection>
+            <topPhiCorrection>1.5e-3</topPhiCorrection>
+            <botPhiCorrection>-0.3e-3</botPhiCorrection>
+            <topZ0Correction>0.14</topZ0Correction>
+            <botZ0Correction>-0.16</botZ0Correction>
+            <removeCollections>
+                FinalStateParticles
+                UnconstrainedV0Candidates 
+                UnconstrainedV0Vertices
+                UnconstrainedMollerCandidates 
+                UnconstrainedMollerVertices
+                TargetConstrainedV0Candidates 
+                TargetConstrainedV0Vertices
+                TargetConstrainedMollerCandidates 
+                TargetConstrainedMollerVertices
+                BeamspotConstrainedV0Candidates 
+                BeamspotConstrainedV0Vertices
+                BeamspotConstrainedMollerCandidates 
+                BeamspotConstrainedMollerVertices
+                TrackData
+                TrackDataRelations
+                TrackResiduals
+                TrackResidualsRelations
+            </removeCollections>
+        </driver> 
+        <driver name="TrackDataDriver"     type="org.hps.recon.tracking.TrackDataDriver"  />
+        <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
+            <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
+            <disablePID>true</disablePID>
+        </driver>  
+        <driver name="LCIOWriter"           type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver"        type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+    </drivers>
+</lcsim>
