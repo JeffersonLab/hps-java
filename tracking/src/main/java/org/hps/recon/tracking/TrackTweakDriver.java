@@ -30,12 +30,6 @@ public final class TrackTweakDriver extends Driver {
 
     /** Name of the SVT subdetector volume. */
     private static final String SUBDETECTOR_NAME = "Tracker";
-   
-    /** Layer 1 track state index. */
-    private static final int LAYER1_TS_INDEX = 6;
-
-    /** Layer 2 track state index. */
-    private static final int LAYER2_TS_INDEX = 7;
     
     /** The B field map */
     FieldMap bFieldMap = null;
