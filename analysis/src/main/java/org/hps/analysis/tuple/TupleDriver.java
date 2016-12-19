@@ -30,6 +30,7 @@ import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
+import org.lcsim.event.Hit;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
@@ -245,8 +246,8 @@ public abstract class TupleDriver extends Driver {
 
     protected void addEventVariables() {
         String[] newVars = new String[]{"run/I", "event/I",
-            "nTrk/I", "nPos/I",
-            "isCalib/B", "isPulser/B", "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B","evTime/D","evTx/I","evTy/I"};
+            "nTrk/I", "nPos/I","nCl/I",
+            "isCalib/B", "isPulser/B", "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B","evTime/D","evTx/I","evTy/I","rfT1/D","rfT2/D"};
         tupleVariables.addAll(Arrays.asList(newVars));
     }
 
@@ -282,7 +283,7 @@ public abstract class TupleDriver extends Driver {
             "PhiKink1/D", "PhiKink2/D", "PhiKink3/D",
             "IsoStereo/D", "IsoAxial/D",
             "MinPositiveIso/D", "MinNegativeIso/D",
-            "MatchChisq/D", "ClT/D", "ClE/D", "ClSeedE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I"};
+            "MatchChisq/D", "ClT/D", "ClE/D", "ClSeedE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I", "Clix/I","Cliy/I"};
 
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
@@ -296,6 +297,7 @@ public abstract class TupleDriver extends Driver {
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         int npos = 0;
         int ntrk = 0;
+        int ncl = 0;
         for (ReconstructedParticle fsp : fspList) {
             if (isGBL != TrackType.isGBL(fsp.getType())) {
                 continue;
@@ -309,10 +311,12 @@ public abstract class TupleDriver extends Driver {
             if (fsp.getCharge() > 0) {
                 npos++;
             }
+            ncl = fsp.getClusters().size();
         }
 
         tupleMap.put("nTrk/I", (double) ntrk);
         tupleMap.put("nPos/I", (double) npos);
+        tupleMap.put("nCl/I", (double) ncl);
 
         if (triggerData != null) {
             tupleMap.put("isCalib/B", triggerData.isCalibTrigger() ? 1.0 : 0.0);
@@ -331,6 +335,11 @@ public abstract class TupleDriver extends Driver {
                 tupleMap.put("evTy/I", (double) triggT.get(0).getIntVal(1));
             }
         }
+        if (event.hasCollection(GenericObject.class, "RFHits")) {
+            List<GenericObject> rfTimes = event.get(GenericObject.class, "RFHits");
+            tupleMap.put("rfT1/D",rfTimes.get(0).getDoubleVal(0));
+            tupleMap.put("rfT2/D",rfTimes.get(0).getDoubleVal(1));
+            }
          
     }
 
@@ -540,6 +549,8 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "ClY/D", cluster.getPosition()[1]);
             tupleMap.put(prefix + "ClZ/D", cluster.getPosition()[2]);
             tupleMap.put(prefix + "ClHits/I", (double) cluster.getCalorimeterHits().size());
+            tupleMap.put(prefix + "Clix/I", (double) ClusterUtilities.findSeedHit(cluster).getIdentifierFieldValue("ix"));
+            tupleMap.put(prefix + "Cliy/I", (double) ClusterUtilities.findSeedHit(cluster).getIdentifierFieldValue("iy"));
         }
 
         return returnTrackState;
