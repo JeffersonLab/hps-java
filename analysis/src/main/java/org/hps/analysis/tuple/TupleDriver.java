@@ -30,7 +30,6 @@ import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
-import org.lcsim.event.Hit;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
@@ -340,7 +339,6 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put("rfT1/D",rfTimes.get(0).getDoubleVal(0));
             tupleMap.put("rfT2/D",rfTimes.get(0).getDoubleVal(1));
             }
-         
     }
 
 //    protected TrackState fillParticleVariablesT(EventHeader event, ReconstructedParticle particle, String prefix) {
