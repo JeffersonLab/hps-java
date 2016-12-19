@@ -168,7 +168,6 @@ public final class TrackTweakDriver extends Driver {
         // the sensors of layers 1 & 2.  This will be used to set the track 
         // states at those layers.
         for (SvtStereoLayer stereoLayer : stereoLayers) { 
-            System.out.println("Layer: " + stereoLayer.getLayerNumber());
             if (stereoLayer.getLayerNumber() > 2) continue;
             
             HpsSiSensor axialSensor = stereoLayer.getAxialSensor();
