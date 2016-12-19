@@ -270,7 +270,7 @@ public abstract class ReconParticleDriver extends Driver {
         // the best match is.
         // TODO: At some point, pull this out to it's own method
         for (List<Track> tracks : trackCollections) {
-       
+            
             for (Track track : tracks) {
                 
                 // Create a reconstructed particle to represent the track.
@@ -278,14 +278,15 @@ public abstract class ReconParticleDriver extends Driver {
 
                 // Store the track in the particle.
                 particle.addTrack(track);
-
+                
                 // Set the type of the particle.  This is used to identify
                 // the tracking strategy used in finding the track associated with
                 // this particle.
                 ((BaseReconstructedParticle) particle).setType(track.getType());
 
                 // Derive the charge of the particle from the track.
-                ((BaseReconstructedParticle) particle).setCharge(track.getCharge() * flipSign);
+                int charge = (int) Math.signum(track.getTrackStates().get(0).getOmega());
+                ((BaseReconstructedParticle) particle).setCharge(charge * flipSign);
 
                 // initialize PID quality to a junk value:
                 ((BaseReconstructedParticle)particle).setGoodnessOfPid(9999);
