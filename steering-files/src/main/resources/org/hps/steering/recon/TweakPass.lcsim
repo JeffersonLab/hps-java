@@ -8,6 +8,7 @@
     <execute>
         <driver name="TrackTweakDriver" />
         <driver name="ReconParticleDriver" />
+        <driver name="RFCorrection" />
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -42,6 +43,8 @@
             <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
             <disablePID>true</disablePID>
         </driver>  
+        <driver name="RFCorrection" type="org.hps.recon.ecal.cluster.ClusterRFTimeCorrDriver">
+        </driver>   
         <driver name="LCIOWriter"           type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
