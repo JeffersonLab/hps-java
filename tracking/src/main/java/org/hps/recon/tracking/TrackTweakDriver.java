@@ -9,6 +9,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseTrack;
+import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
@@ -201,7 +202,7 @@ public final class TrackTweakDriver extends Driver {
         
         // Loop through all tracks in an event and tweak the track parameters
         for (Track track : tracks) { 
-           
+            
            // Get the track state at the target
            TrackState trackState = track.getTrackStates().get(0);
            
@@ -230,11 +231,13 @@ public final class TrackTweakDriver extends Driver {
            // Get the track state at the first layer
            double layer1Z = trackState.getTanLambda() > 0 ? topLayer1Z : botLayer1Z; 
            TrackState stateLayer1 = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, layer1Z, stepSize, bFieldMap);
+           ((BaseTrackState) stateLayer1).setLocation(TrackState.AtFirstHit);
            track.getTrackStates().add(stateLayer1);
 
            // Get the track state at the first layer
            double layer2Z = trackState.getTanLambda() > 0 ? topLayer2Z : botLayer2Z; 
            TrackState stateLayer2 = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, layer2Z, stepSize, bFieldMap);
+           ((BaseTrackState) stateLayer2).setLocation(TrackState.AtOther);
            track.getTrackStates().add(stateLayer2);
         }
     
