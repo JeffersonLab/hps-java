@@ -7,7 +7,6 @@
     -->
     <execute>
         <driver name="TrackTweakDriver" />
-        <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
@@ -38,7 +37,6 @@
                 BeamspotConstrainedMollerVertices
             </removeCollections>
         </driver> 
-        <driver name="TrackDataDriver"     type="org.hps.recon.tracking.TrackDataDriver"  />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
             <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
