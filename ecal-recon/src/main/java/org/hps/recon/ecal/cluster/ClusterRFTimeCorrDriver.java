@@ -83,11 +83,10 @@ public class ClusterRFTimeCorrDriver extends Driver {
         //read in rf time
         if (event.hasCollection(GenericObject.class, "RFHits")) {
             List<GenericObject> rfTimes = event.get(GenericObject.class, "RFHits");
-            //0.1724 is the average mod of the offset between 1 and 0. Calibration used 0, but 1 is more stable here.
-            //This shift will account for using the different RF channel.
-            rfT = rfTimes.get(0).getDoubleVal(1)-0.1724;
+           
+            rfT = rfTimes.get(0).getDoubleVal(1);
             jitter = ((rfT-selectedClT+400*2.004) % 2.004) - 1.002; 
-            selectedClT-=jitter;
+            selectedClT+=jitter;
             }
         
         triggerTime.add(new TriggerTime(selectedClT, seedX,seedY));    
