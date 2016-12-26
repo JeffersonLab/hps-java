@@ -60,7 +60,10 @@ public final class TrackTweakDriver extends Driver {
     private double botLayer2Z = 0;
     
     /** Name of the collection of tracks to apply corrections to. */
-    private String trackCollectionName = "GBLTracks";
+    private String gblTrackCollectionName = "GBLTracks";
+   
+    /** Name of the collection of seed tracks. */
+    private String seedTrackCollectionName = "MatchedTracks";
 
     /** 
      * The track parameter corrections that will be applied to all top 
@@ -193,12 +196,12 @@ public final class TrackTweakDriver extends Driver {
     
         // If the event doesn't have the specified collection of tracks, throw
         // an exception.
-        if (!event.hasCollection(Track.class, trackCollectionName)) {
-            throw new RuntimeException("Track collection " + trackCollectionName + " doesn't exist");
+        if (!event.hasCollection(Track.class, gblTrackCollectionName)) {
+            throw new RuntimeException("Track collection " + gblTrackCollectionName + " doesn't exist");
         }
         
         // Get the collection of tracks from the event
-        List<Track> tracks = event.get(Track.class, trackCollectionName);
+        List<Track> tracks = event.get(Track.class, gblTrackCollectionName);
         
         // Loop through all tracks in an event and tweak the track parameters
         for (Track track : tracks) { 
@@ -240,7 +243,29 @@ public final class TrackTweakDriver extends Driver {
            ((BaseTrackState) stateLayer2).setLocation(TrackState.AtOther);
            track.getTrackStates().add(stateLayer2);
         }
-    
+   
+        // If the event doesn't have the specified collection of tracks, throw
+        // an exception.
+        if (!event.hasCollection(Track.class, seedTrackCollectionName)) {
+            throw new RuntimeException("Track collection " + seedTrackCollectionName + " doesn't exist");
+        }
+        
+        // Get the collection of seed tracks from the event and force 
+        // the recomputation of the momentum.  This is a hack to force
+        // the persistence of the momentum, otherwise, a bogus momentum
+        // value is used.
+        List<Track> seedTracks = event.get(Track.class, seedTrackCollectionName);
+        for (Track seedTrack : seedTracks) { 
+            
+            // Get the track state at the target
+            TrackState trackState = seedTrack.getTrackStates().get(0);
+            
+            // Force re-computation of momentum using the correct B-field, 
+            // otherwise, a bogus value is returned. 
+            ((BaseTrack) seedTrack).setTrackParameters(seedTrack.getTrackStates().get(0).getParameters(), bField);
+        }
+        
+        
         for (String collection : removeCollections) { 
             event.remove(collection);
         }
