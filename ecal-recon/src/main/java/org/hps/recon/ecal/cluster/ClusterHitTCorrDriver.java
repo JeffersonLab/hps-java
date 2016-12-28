@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
-//import org.lcsim.event.base.BaseCalorimeterHit;
+import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.util.Driver;
 
 public class ClusterHitTCorrDriver extends Driver {
@@ -40,9 +40,7 @@ public class ClusterHitTCorrDriver extends Driver {
             if (iy>=0){iy -= 1;}
             double toffset = OFFSETS[ix+23][iy+5];
             System.out.println("old time\t"+oldT+"\toffset\t"+toffset+"\t ix\t"+ix+"\tiy\t"+iy);
-           //((BaseCalorimeterHit) iHit).setTime(oldT-toffset);
-        }
-           
-    }
-    
+           ((BaseCalorimeterHit) iHit).setTime(oldT-toffset);
+        }    
+    } 
 }
