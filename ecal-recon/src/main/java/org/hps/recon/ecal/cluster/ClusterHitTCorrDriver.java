@@ -7,6 +7,17 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.util.Driver;
 
+/**
+ * This driver specifically alters the time offsets of each crystal for 2015 data relative to pass 6.
+ * This is done because the original calibration had a few crystals that were out of time and was calibrated
+ * with the first RF signal. These offsets make all crystals relative to the second rf time which is used 
+ * to set the event time for a triggered cluster.
+ * 
+ * TODO: This should be combined with pass6 and put into the database after the final tweak pass is complete. 
+ *  
+ * @author Holly Szumila <hszumila@jlab.org>
+ *
+ */
 public class ClusterHitTCorrDriver extends Driver {
     
     //These offsets are relative to what was used from the database for pass6
@@ -36,11 +47,13 @@ public class ClusterHitTCorrDriver extends Driver {
             double oldT = iHit.getTime();
             int ix = iHit.getIdentifierFieldValue("ix");
             int iy = iHit.getIdentifierFieldValue("iy");
+
             if (ix>=0){ix -= 1;}
             if (iy>=0){iy -= 1;}
-            double toffset = OFFSETS[ix+23][iy+5];
-            System.out.println("old time\t"+oldT+"\toffset\t"+toffset+"\t ix\t"+ix+"\tiy\t"+iy);
+            double toffset = OFFSETS[iy+5][ix+23];
            ((BaseCalorimeterHit) iHit).setTime(oldT-toffset);
+           //System.out.println("old time\t"+oldT+"\t offset\t"+toffset+"\tix\t"+ix+"\tiy\t"+iy);
+
         }    
     } 
 }
