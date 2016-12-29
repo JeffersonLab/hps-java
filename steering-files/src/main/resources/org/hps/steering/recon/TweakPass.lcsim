@@ -6,13 +6,16 @@
       @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a>
     -->
     <execute>
+        <driver name="ClusterHitTCorrDriver"/>
         <driver name="TrackTweakDriver" />
         <driver name="ReconParticleDriver" />
         <driver name="RFCorrection" />
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
-    <drivers>   
+    <drivers>  
+        <driver name="ClusterHitTCorrDriver" type="org.hps.recon.ecal.cluster.ClusterHitTCorrDriver"> 
+        </driver>
         <driver name="TrackTweakDriver"    type="org.hps.recon.tracking.TrackTweakDriver" >
             <topOmegaCorrection>-1.04e-6</topOmegaCorrection>
             <botOmegaCorrection>0.83e-6</botOmegaCorrection>
