@@ -27,7 +27,7 @@ public class HitTMCSmearDriver extends Driver {
     public void process(EventHeader event) {
             
         //Get the hits in the event       
-        List<CalorimeterHit> hits = event.get(CalorimeterHit.class, "EcalCalHits");
+        List<CalorimeterHit> hits = event.get(CalorimeterHit.class, "EcalCorrectedHits");
             
         for (CalorimeterHit iHit : hits){
             double oldT = iHit.getTime();
