@@ -15,6 +15,17 @@ import org.lcsim.event.base.BaseCalorimeterHit;
  *
  */
 public class HitTMCSmearDriver extends Driver {
+    
+    /*
+     * This is the default class when used in readout. Recon MC requires EcalCalHits. 
+     */
+    private String inputHitCollection = "EcalCorrectedHits";
+    
+    public void setInputHitCollection(String inputHitCollection) {
+        this.inputHitCollection = inputHitCollection;
+    }
+    
+    
    
     // Time resolution as derived for 2016 data
     private static double calcSmear(double energy){
@@ -27,7 +38,7 @@ public class HitTMCSmearDriver extends Driver {
     public void process(EventHeader event) {
             
         //Get the hits in the event       
-        List<CalorimeterHit> hits = event.get(CalorimeterHit.class, "EcalCorrectedHits");
+        List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitCollection);
             
         for (CalorimeterHit iHit : hits){
             double oldT = iHit.getTime();
