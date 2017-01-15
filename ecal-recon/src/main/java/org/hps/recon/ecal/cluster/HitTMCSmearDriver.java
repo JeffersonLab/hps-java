@@ -19,7 +19,9 @@ public class HitTMCSmearDriver extends Driver {
     /*
      * This is the default class when used in readout. Recon MC requires EcalCalHits. 
      */
-    private String inputHitCollection = "EcalCorrectedHits";
+    private String inputHitCollection = "EcalCalHits";
+    //not EcalRawHits or GTPHits
+    //EcalCorrectedHits keeps increasing in time
     
     public void setInputHitCollection(String inputHitCollection) {
         this.inputHitCollection = inputHitCollection;
@@ -28,25 +30,27 @@ public class HitTMCSmearDriver extends Driver {
     
    
     // Time resolution as derived for 2016 data
-    private static double calcSmear(double energy){
+    private static double calcSmear(double energy, double time){
         Random r = new Random();
         double sigT = r.nextGaussian()*Math.sqrt(Math.pow(0.188/energy, 2) + Math.pow(0.152, 2));
-        return sigT;
+        return time + sigT;
     }
             
     //Call the offset, correct the time, and set the time
     public void process(EventHeader event) {
+        
+        if (event.hasCollection(CalorimeterHit.class, inputHitCollection)){
+            //Get the hits in the event       
+            List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitCollection);
             
-        //Get the hits in the event       
-        List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitCollection);
-            
-        for (CalorimeterHit iHit : hits){
-            double oldT = iHit.getTime();
-            double energy = iHit.getRawEnergy();
-                            
-            double sigT = calcSmear(energy);
-            ((BaseCalorimeterHit) iHit).setTime(oldT+sigT);
+            for (CalorimeterHit iHit : hits){
+                double oldT = iHit.getTime();
+                double energy = iHit.getRawEnergy();          
+                double newT = calcSmear(energy, oldT);
+                
+                ((BaseCalorimeterHit) iHit).setTime(newT);
 
-        }    
-    }    
+            }    
+        } 
+    }
 }
