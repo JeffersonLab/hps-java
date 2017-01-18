@@ -336,9 +336,11 @@ public abstract class TupleDriver extends Driver {
         }
         if (event.hasCollection(GenericObject.class, "RFHits")) {
             List<GenericObject> rfTimes = event.get(GenericObject.class, "RFHits");
-            tupleMap.put("rfT1/D",rfTimes.get(0).getDoubleVal(0));
-            tupleMap.put("rfT2/D",rfTimes.get(0).getDoubleVal(1));
+            if (rfTimes.size()>0){
+                tupleMap.put("rfT1/D",rfTimes.get(0).getDoubleVal(0));
+                tupleMap.put("rfT2/D",rfTimes.get(0).getDoubleVal(1));
             }
+        }
     }
 
 //    protected TrackState fillParticleVariablesT(EventHeader event, ReconstructedParticle particle, String prefix) {
