@@ -1,2 +1,2 @@
-# hps-java
-port of hps-java to git
+[HPS Java](https://confluence.slac.stanford.edu/display/hpsg/HPS+Java) - Confluence documentation
+
