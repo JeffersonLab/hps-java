@@ -10,11 +10,6 @@
         <relativePath>../parent/pom.xml</relativePath>
         <version>3.11-SNAPSHOT</version>
     </parent>
-    <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/ecal-recon/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/ecal-recon/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/ecal-recon/</developerConnection>
-    </scm>
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>

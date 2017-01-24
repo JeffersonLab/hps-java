@@ -16,11 +16,6 @@
         <skipSite>false</skipSite>
         <skipPlugin>false</skipPlugin>
     </properties>
-    <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/parent/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/parent/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/parent/</developerConnection>
-    </scm>
     <repositories>
         <repository>
             <id>maven-central-repo</id>

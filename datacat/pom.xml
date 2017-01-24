@@ -9,11 +9,6 @@
         <relativePath>../parent/pom.xml</relativePath>
         <version>3.11-SNAPSHOT</version>
     </parent>
-    <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/datacat/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/datacat/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/datacat/</developerConnection>
-    </scm>    
     <dependencies>
         <dependency>
             <groupId>srs</groupId>
