@@ -12,9 +12,9 @@
         <version>3.11-SNAPSHOT</version>
     </parent>
     <scm>
-        <url>svn://svn.freehep.org/hps/java/trunk/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</developerConnection>
+        <connection>scm:git:git@github.com:jeffersonlab/hps-java.git</connection>
+        <developerConnection>scm:git:git@github.com:jeffersonlab/hps-java.git</developerConnection>
+        <url>http://github.com/jeffersonlab/hps-java</url>
     </scm>
     <distributionManagement>
         <site>
