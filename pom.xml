@@ -11,11 +11,6 @@
         <relativePath>parent/pom.xml</relativePath>
         <version>3.11-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>scm:git:git@github.com:jeffersonlab/hps-java.git</connection>
-        <developerConnection>scm:git:git@github.com:jeffersonlab/hps-java.git</developerConnection>
-        <url>http://github.com/jeffersonlab/hps-java</url>
-    </scm>
     <distributionManagement>
         <site>
             <id>lcsim-site</id>

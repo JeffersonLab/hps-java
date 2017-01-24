@@ -17,6 +17,11 @@
         <skipSite>false</skipSite>
         <skipPlugin>false</skipPlugin>        
     </properties>
+    <scm>
+        <connection>scm:git:git@github.com:jeffersonlab/hps-java.git</connection>
+        <developerConnection>scm:git:git@github.com:jeffersonlab/hps-java.git</developerConnection>
+        <url>http://github.com/jeffersonlab/hps-java</url>
+    </scm>
     <repositories>
         <repository>
             <id>maven-central-repo</id>
