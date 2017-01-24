@@ -35,7 +35,7 @@ public class DefaultLoggingConfigTest extends TestCase {
         "org.hps.record.triggerbank",    
         "org.hps.recon.tracking",
         "org.hps.recon.tracking.gbl",    
-        "org.hps.run.database",
+        "org.hps.rundb",
         "org.hps.monitoring.application.model",
         "org.hps.monitoring.application",        
         "org.lcsim.detector.converter.compact",
