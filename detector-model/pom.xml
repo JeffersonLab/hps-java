@@ -47,6 +47,8 @@
                         <exclude>org/hps/detector/svt/TestRunSvtDetectorSetupTest.java</exclude>
                         <exclude>org/hps/detector/SvtAlignmentTest.java</exclude>
                         <exclude>org/hps/detector/ecal/EcalCrystalPositionTest.java</exclude>
+                        <exclude>org/lcsim/geometry/compact/converter/lcdd/HPSTestRunTracker2014LCDDTest.java</exclude>
+                        <exclude>org/lcsim/geometry/subdetector/HPSTestRunTracker2014Test.java</exclude>                          
                     </excludes>
                 </configuration>
             </plugin>
