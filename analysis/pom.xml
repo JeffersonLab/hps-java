@@ -1,32 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>hps-analysis</artifactId>
-    <name>analysis</name>
-    <description>common analysis code</description>
-    <parent>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-parent</artifactId>
-        <relativePath>../parent/pom.xml</relativePath>
-        <version>3.11-SNAPSHOT</version>
-    </parent>
-    <dependencies>
-        <dependency>
-            <groupId>org.hps</groupId>
-            <artifactId>hps-recon</artifactId>
-        </dependency>
-    </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>**/VertexAnalysisTest.java</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>hps-analysis</artifactId>
+  <name>analysis</name>
+  <description>common analysis code</description>
+  <parent>
+    <groupId>org.hps</groupId>
+    <artifactId>hps-parent</artifactId>
+    <relativePath>../pom.xml</relativePath>
+    <version>3.11-SNAPSHOT</version>
+  </parent>
+  <dependencies>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-recon</artifactId>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/VertexAnalysisTest.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
