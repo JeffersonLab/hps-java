@@ -7,7 +7,7 @@
   <description>common analysis code</description>
   <parent>
     <groupId>org.hps</groupId>
-    <artifactId>hps-parent</artifactId>
+    <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
     <version>3.11-SNAPSHOT</version>
   </parent>
