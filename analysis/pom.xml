@@ -25,6 +25,7 @@
         <configuration>
           <excludes>
             <exclude>**/VertexAnalysisTest.java</exclude>
+            <exclude>org/hps/analysis/MC/MCTrackerHitResidualAnalysisDriverTest.java</exclude>
           </excludes>
         </configuration>
       </plugin>
