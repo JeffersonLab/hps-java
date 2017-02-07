@@ -596,6 +596,7 @@
             <inherited>false</inherited>
             <reports>
               <report>aggregate</report>
+              <report>test-aggregate</report>
             </reports>
           </reportSet>
         </reportSets>                      
