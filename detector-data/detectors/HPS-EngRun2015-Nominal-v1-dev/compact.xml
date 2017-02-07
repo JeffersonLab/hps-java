@@ -4,6 +4,13 @@
     <info name="HPS-EngRun2015-Nominal-v1">
         <comment>HPS detector for 2015 Engineering Run with tracker fully open
                   this detector uses the box dipole at -0.25T for 1 GeV running                   
+        Start from compact v1
+        Optimization on run 5796 data
+        Millipede alignment:
+	iteration 1: float L5_tu (TB)
+	iteration 2: float L2_tu (TB)
+	iteration 3: float L5_tu (TB)
+	iteration 4: float L5_tu (TB)
         </comment>
     </info>
 

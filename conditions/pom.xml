@@ -6,8 +6,8 @@
     <description>extensions to the org.lcsim conditions framework</description>
     <parent>
         <groupId>org.hps</groupId>
-        <artifactId>hps-parent</artifactId>
-        <relativePath>../parent/pom.xml</relativePath>
+        <artifactId>hps-java</artifactId>
+        <relativePath>../pom.xml</relativePath>
         <version>3.11-SNAPSHOT</version>
     </parent>
     <build>
