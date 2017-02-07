@@ -790,8 +790,8 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "HitsSharedP/D", momentumOfShared);
             tupleMap.put(prefix + "MaxHitsShared/I", (double) maxShared);
             tupleMap.put(prefix + "SharedTrkChisq/D", trackShared.getChi2());          
-            tupleMap.put(prefix + "SharedTrkEcalX/D", atEcal.x());
-            tupleMap.put(prefix + "SharedTrkEcalY/D", atEcal.y());             
+            tupleMap.put(prefix + "SharedTrkEcalX/D", atEcalShared.x());
+            tupleMap.put(prefix + "SharedTrkEcalY/D", atEcalShared.y());             
             
             tupleMap.put(prefix + "LambdaKink1/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 1) : 0);
             tupleMap.put(prefix + "LambdaKink2/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 2) : 0);
