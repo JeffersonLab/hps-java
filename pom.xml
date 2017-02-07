@@ -531,8 +531,8 @@
         <artifactId>maven-site-plugin</artifactId>
         <version>3.6</version>
         <configuration>
-          <siteDirectory>${basedir}/site/src/site/</siteDirectory>
-          <outputDirectory>${basedir}/site/target/</outputDirectory>
+          <siteDirectory>${basedir}/site/src/site</siteDirectory>
+          <outputDirectory>${project.build.directory}/site</outputDirectory>
           <chmod>false</chmod>
           <generateReports>true</generateReports>
           <generateSitemap>true</generateSitemap>
@@ -547,6 +547,7 @@
         <version>2.9</version>
         <configuration>
           <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+          <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
         </configuration>
         <reportSets>
           <reportSet>
@@ -580,7 +581,6 @@
         <artifactId>maven-jxr-plugin</artifactId>
         <version>2.5</version>
         <configuration>
-          <aggregate>true</aggregate>
           <linkJavadoc>true</linkJavadoc>
         </configuration>
         <reportSets>
