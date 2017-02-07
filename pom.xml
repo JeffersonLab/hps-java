@@ -10,18 +10,18 @@
   <packaging>pom</packaging>
   <version>3.11-SNAPSHOT</version>
   <name>HPS Java</name>
-  <description>HPS Java Maven project</description>
+  <description>HPS Java Maven Project</description>
+  <url>http://www.lcsim.org/sites/hps/</url>
 
   <properties>
     <project.scm.id>hps-java-github</project.scm.id>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <dependency.locations.enabled>false</dependency.locations.enabled>
     <lcsimVersion>3.8</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
   </properties>
-
-  <url>http://www.lcsim.org/sites/hps/</url>
 
   <scm>
     <connection>scm:git:git://github.com/jeffersonlab/hps-java.git</connection>
@@ -46,287 +46,6 @@
       <url>http://scalnx-v01.slac.stanford.edu:8180/nexus/content/repositories/lcsim-maven2-snapshot/</url>
     </snapshotRepository>
   </distributionManagement>
-
-  <build>
-    <defaultGoal>install</defaultGoal>
-    <extensions>
-      <extension>
-        <groupId>org.apache.maven.wagon</groupId>
-        <artifactId>wagon-webdav-jackrabbit</artifactId>
-        <version>2.8</version>
-      </extension>
-    </extensions>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-site-plugin</artifactId>
-          <configuration>
-            <siteDirectory>${basedir}/site/src/site/</siteDirectory>
-            <outputDirectory>${basedir}/site/target/</outputDirectory>
-            <chmod>false</chmod>
-            <generateReports>true</generateReports>
-            <generateSitemap>true</generateSitemap>
-            <generateProjectInfo>true</generateProjectInfo>
-            <skip>${skipSite}</skip>
-            <skipDeploy>${skipSite}</skipDeploy>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-eclipse-plugin</artifactId>
-          <version>2.9</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
-        </plugin>
-        <plugin>
-          <artifactId>maven-antrun-plugin</artifactId>
-          <version>1.7</version>
-        </plugin>
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
-                    <versionRange>
-                      [2.17,)
-                    </versionRange>
-                    <goals>
-                      <goal>check</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <versionRange>[1.7,)</versionRange>
-                    <goals>
-                      <goal>run</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <execute>
-                      <runOnIncremental>false</runOnIncremental>
-                    </execute>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-scm-plugin</artifactId>
-        <version>1.9.2</version>
-        <configuration>
-          <connectionType>connection</connectionType>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.3</version>
-        <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
-          <showWarnings>true</showWarnings>
-          <showDeprecation>true</showDeprecation>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.18.1</version>
-        <configuration>
-          <argLine>-Xmx1024m</argLine>
-          <forkMode>pertest</forkMode>
-          <systemPropertyVariables>
-            <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
-            <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
-          </systemPropertyVariables>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.1</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>generate-test-resources</phase>
-            <configuration>
-              <target>
-                <mkdir dir="${project.build.directory}/test-output" />
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>2.7</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
-        <configuration>
-          <excludes>org/hps/users/**/*</excludes>
-          <logViolationsToConsole>true</logViolationsToConsole>
-          <consoleOutput>true</consoleOutput>
-          <includeResources>true</includeResources>
-          <includeTestResources>true</includeTestResources>
-          <failOnViolation>true</failOnViolation>
-          <checkstyleRules>
-            <module name="Checker">
-              <module name="FileTabCharacter">
-                <property name="fileExtensions" value="java,xml,lcsim,prop,properties" />
-              </module>
-              <module name="TreeWalker">
-                <module name="UnusedImports">
-                  <property name="processJavadoc" value="false" />
-                </module>
-                <module name="RedundantImport" />
-              </module>
-            </module>
-          </checkstyleRules>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>validate</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.7</version>
-        <reportSets>
-          <reportSet>
-            <id>non-aggregate</id>
-            <reports>
-              <report>dependencies</report>
-              <report>index</report>
-              <report>scm</report>
-              <report>summary</report>
-            </reports>
-          </reportSet>
-          <reportSet>
-            <id>aggregate</id>
-            <inherited>false</inherited>
-            <reports>
-              <report>cim</report>
-              <report>dependency-convergence</report>
-              <report>index</report>
-              <report>issue-tracking</report>
-              <report>mailing-list</report>
-              <report>modules</report>
-              <report>plugin-management</report>
-              <report>plugins</report>
-              <report>project-team</report>
-            </reports>
-          </reportSet>          
-        </reportSets>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jxr-plugin</artifactId>
-        <version>2.3</version>
-        <configuration>
-          <aggregate>true</aggregate>
-          <linkJavadoc>true</linkJavadoc>
-        </configuration>
-        <reportSets>
-          <reportSet>
-            <id>non-aggregate</id>
-            <reports>
-              <report>jxr</report>
-              <report>test-jxr</report>
-            </reports>
-          </reportSet>
-          <reportSet>
-            <id>aggregate</id>
-            <inherited>false</inherited>
-            <reports>
-              <report>aggregate</report>
-            </reports>
-          </reportSet>
-        </reportSets>                      
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
-        <reportSets>
-          <reportSet>
-            <id>non-aggregate</id>
-            <reports>
-              <report>javadoc</report>
-              <report>test-javadoc</report>
-            </reports>
-          </reportSet>        
-          <reportSet>
-            <id>aggregate</id>
-            <inherited>false</inherited>
-            <reports>
-              <report>aggregate</report>
-            </reports>
-          </reportSet>                             
-        </reportSets>
-        <configuration>
-          <source>1.7</source>
-          <show>private</show>
-          <nohelp>true</nohelp>
-          <author>true</author>
-          <detectLinks>true</detectLinks>
-          <detectJavaApiLink>true</detectJavaApiLink>
-          <failOnError>false</failOnError>
-          <links>
-            <link>http://java.freehep.org/freehep-physics/apidocs/</link>
-            <link>http://java.freehep.org/heprep/apidocs/</link>
-            <link>http://www.jdom.org/docs/apidocs/</link>
-            <link>http://www.lcsim.org/sites/lcsim/apidocs/index.html</link>
-            <link>https://coda.jlab.org/wiki/Downloads/evio/evio-4.3-docs/javadoc/</link>
-            <link>https://coda.jlab.org/wiki/Downloads/et/et-14.0-docs/javadoc/</link>
-          </links>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
 
   <repositories>
     <repository>
@@ -360,6 +79,18 @@
       <name>CODA</name>
       <url>https://coda.jlab.org/maven/</url>
     </repository>
+    <!-- Blacklist this repo -->
+    <repository>
+      <id>glassfish-repo</id>
+      <name>Glassfish repository</name>
+      <url>http://maven.glassfish.org/content/groups/glassfish/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
   </repositories>
   
   <pluginRepositories>
@@ -369,7 +100,35 @@
       <url>http://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</url>
     </pluginRepository>
   </pluginRepositories>
-
+  
+  <modules>
+    <module>analysis</module>
+    <module>conditions</module>
+    <module>crawler</module>
+    <module>datacat</module>
+    <module>detector-data</module>
+    <module>detector-model</module>
+    <module>distribution</module>
+    <module>ecal-event-display</module>
+    <module>ecal-readout-sim</module>
+    <module>ecal-recon</module>
+    <module>evio</module>
+    <module>job</module>
+    <module>logging</module>
+    <module>monitoring-util</module>
+    <module>monitoring-drivers</module>
+    <module>monitoring-app</module>
+    <module>plugin</module>
+    <module>recon</module>
+    <module>record-util</module>
+    <module>run-database</module>
+    <module>steering-files</module>
+    <module>tracking</module>
+    <module>users</module>
+    <module>util</module>
+    <module>integration-tests</module>
+  </modules>
+  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -549,7 +308,6 @@
         <artifactId>hps-datacat</artifactId>
         <version>${project.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.jlab.coda</groupId>
         <artifactId>jevio</artifactId>
@@ -597,6 +355,291 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+  
+  <build>
+    <defaultGoal>install</defaultGoal>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav-jackrabbit</artifactId>
+        <version>2.8</version>
+      </extension>
+    </extensions>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-eclipse-plugin</artifactId>
+          <version>2.9</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>2.8.2</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.8</version>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <versionRange>
+                      [2.17,)
+                    </versionRange>
+                    <goals>
+                      <goal>check</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <versionRange>[1.7,)</versionRange>
+                    <goals>
+                      <goal>run</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute>
+                      <runOnIncremental>false</runOnIncremental>
+                    </execute>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-scm-plugin</artifactId>
+        <version>1.9.5</version>
+        <configuration>
+          <connectionType>connection</connectionType>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.6.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+          <showWarnings>true</showWarnings>
+          <showDeprecation>true</showDeprecation>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19.1</version>
+        <configuration>
+          <argLine>-Xmx1024m</argLine>
+          <forkMode>pertest</forkMode>
+          <systemPropertyVariables>
+            <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
+            <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-test-resources</phase>
+            <configuration>
+              <target>
+                <mkdir dir="${project.build.directory}/test-output" />
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.0.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.0.2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <configuration>
+          <excludes>org/hps/users/**/*</excludes>
+          <logViolationsToConsole>true</logViolationsToConsole>
+          <consoleOutput>true</consoleOutput>
+          <includeResources>true</includeResources>
+          <includeTestResources>true</includeTestResources>
+          <failOnViolation>true</failOnViolation>
+          <checkstyleRules>
+            <module name="Checker">
+              <module name="FileTabCharacter">
+                <property name="fileExtensions" value="java,xml,lcsim,prop,properties" />
+              </module>
+              <module name="TreeWalker">
+                <module name="UnusedImports">
+                  <property name="processJavadoc" value="false" />
+                </module>
+                <module name="RedundantImport" />
+              </module>
+            </module>
+          </checkstyleRules>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.6</version>
+        <configuration>
+          <siteDirectory>${basedir}/site/src/site/</siteDirectory>
+          <outputDirectory>${basedir}/site/target/</outputDirectory>
+          <chmod>false</chmod>
+          <generateReports>true</generateReports>
+          <generateSitemap>true</generateSitemap>
+          <generateProjectInfo>true</generateProjectInfo>
+          <skip>${skipSite}</skip>
+          <skipDeploy>${skipSite}</skipDeploy>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <id>non-aggregate</id>
+            <reports>
+              <report>dependencies</report>
+              <report>index</report>
+              <report>scm</report>
+              <report>summary</report>
+            </reports>
+          </reportSet>
+          <reportSet>
+            <id>aggregate</id>
+            <inherited>false</inherited>
+            <reports>
+              <report>cim</report>
+              <report>dependency-convergence</report>
+              <report>index</report>
+              <report>issue-tracking</report>
+              <report>mailing-list</report>
+              <report>modules</report>
+              <report>plugin-management</report>
+              <report>plugins</report>
+              <report>project-team</report>
+            </reports>
+          </reportSet>          
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <aggregate>true</aggregate>
+          <linkJavadoc>true</linkJavadoc>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <id>non-aggregate</id>
+            <reports>
+              <report>jxr</report>
+              <report>test-jxr</report>
+            </reports>
+          </reportSet>
+          <reportSet>
+            <id>aggregate</id>
+            <inherited>false</inherited>
+            <reports>
+              <report>aggregate</report>
+            </reports>
+          </reportSet>
+        </reportSets>                      
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.4</version>
+        <reportSets>
+          <reportSet>
+            <id>non-aggregate</id>
+            <reports>
+              <report>javadoc</report>
+              <report>test-javadoc</report>
+            </reports>
+          </reportSet>        
+          <reportSet>
+            <id>aggregate</id>
+            <inherited>false</inherited>
+            <reports>
+              <report>aggregate</report>
+            </reports>
+          </reportSet>                             
+        </reportSets>
+        <configuration>
+          <source>1.7</source>
+          <show>private</show>
+          <nohelp>true</nohelp>
+          <author>true</author>
+          <detectLinks>true</detectLinks>
+          <detectJavaApiLink>true</detectJavaApiLink>
+          <failOnError>false</failOnError>
+          <links>
+            <link>http://java.freehep.org/freehep-physics/apidocs/</link>
+            <link>http://java.freehep.org/heprep/apidocs/</link>
+            <link>http://www.jdom.org/docs/apidocs/</link>
+            <link>http://www.lcsim.org/sites/lcsim/apidocs/index.html</link>
+            <link>https://coda.jlab.org/wiki/Downloads/evio/evio-4.3-docs/javadoc/</link>
+            <link>https://coda.jlab.org/wiki/Downloads/et/et-14.0-docs/javadoc/</link>
+          </links>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
 
   <developers>
     <developer>
@@ -756,33 +799,5 @@
       </properties>
     </profile>
   </profiles>
-
-  <modules>
-    <module>analysis</module>
-    <module>conditions</module>
-    <module>crawler</module>
-    <module>datacat</module>
-    <module>detector-data</module>
-    <module>detector-model</module>
-    <module>distribution</module>
-    <module>ecal-event-display</module>
-    <module>ecal-readout-sim</module>
-    <module>ecal-recon</module>
-    <module>evio</module>
-    <module>job</module>
-    <module>logging</module>
-    <module>monitoring-util</module>
-    <module>monitoring-drivers</module>
-    <module>monitoring-app</module>
-    <module>plugin</module>
-    <module>recon</module>
-    <module>record-util</module>
-    <module>run-database</module>
-    <module>steering-files</module>
-    <module>tracking</module>
-    <module>users</module>
-    <module>util</module>
-    <module>integration-tests</module>
-  </modules>
 
 </project>
