@@ -22,8 +22,6 @@ import org.lcsim.geometry.Detector;
  * This class takes raw data generated from MC and converts it to EVIO. The goal
  * is to make this look like data which will come off the actual ET ring during
  * the test run.
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class TestRunTriggeredReconToEvio extends TriggerableDriver {
 

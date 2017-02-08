@@ -1,6 +1,5 @@
 package org.hps.users.omoreno;
 
-import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.physics.vec.BasicHep3Vector;
@@ -15,18 +14,13 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
-import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
-import org.lcsim.util.Driver; 
+import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
  * Analysis driver used to make plots of extrapolation residuals.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
- *
  */
 public class ExtrapolationAnalysis  extends Driver {
 

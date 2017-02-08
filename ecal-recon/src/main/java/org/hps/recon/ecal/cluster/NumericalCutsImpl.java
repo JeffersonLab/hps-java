@@ -7,8 +7,6 @@ import java.util.Map.Entry;
  * This is the basic implementation of the {@link NumericalCuts} interface.
  * 
  * @see NumericalCuts
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class NumericalCutsImpl implements NumericalCuts {
 

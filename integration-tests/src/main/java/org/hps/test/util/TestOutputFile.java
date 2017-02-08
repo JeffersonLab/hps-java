@@ -5,7 +5,6 @@ import java.io.File;
 /**
  * Convenience class for test file output (basically copied from lcsim.org).
  * 
- * @author Jeremy McCormick, SLAC
  */
 public class TestOutputFile extends File {
     

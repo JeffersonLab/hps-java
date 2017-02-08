@@ -7,8 +7,6 @@ import org.jlab.coda.jevio.BaseStructure;
  * <p>
  * Documentation of the bank tags and contents can be found at<br/>
  * <a href="https://confluence.slac.stanford.edu/display/hpsg/EVIO+Data+Format">EVIO Data Format</a>.
- *
- * @author Jeremy McCormick, SLAC
  */
 public enum EvioBankTag {
 

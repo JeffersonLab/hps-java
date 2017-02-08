@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
@@ -30,11 +29,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 
-/**
- * 
- * @author Per Hansson <phansson@slac.stanford.edu>
- */
-// TODO: Add class documentation.
 public class TrackerHitUtils {
 
     private boolean _DEBUG = false;

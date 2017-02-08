@@ -22,9 +22,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Driver to find the raw hit correlation between layers.
- *  
- * @author Omar Moreno <omoreno1@ucsc.edu>
- *
  */
 public class SvtHitCorrelations extends Driver {
 

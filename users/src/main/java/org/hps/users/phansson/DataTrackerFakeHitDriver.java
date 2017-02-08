@@ -57,10 +57,6 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType.CoordinateSyst
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author phansson
- */
 public class DataTrackerFakeHitDriver extends Driver {
 
     private boolean debug = false;

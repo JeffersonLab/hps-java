@@ -26,8 +26,6 @@ import org.lcsim.util.Driver;
  * @see NumericalCuts
  * @see org.lcsim.event.Cluster
  * @see org.lcsim.util.Driver 
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ClusterDriver extends Driver {
         

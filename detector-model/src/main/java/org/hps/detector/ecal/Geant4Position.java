@@ -8,10 +8,7 @@ package org.hps.detector.ecal;
  * phi-rotation around X
  * theta-rotation around Y
  * psi-rotation around Z
- * 
- * @author Annie Simonyan
  */
-
 public final class Geant4Position {
     
     /* center coordinates */

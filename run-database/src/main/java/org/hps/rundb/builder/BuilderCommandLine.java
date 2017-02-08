@@ -23,8 +23,6 @@ import org.srs.datacat.client.ClientBuilder;
 /**
  * Creates a basic run database record from information in the data catalog 
  * as well as (optionally) a CSV dump of the run spreadsheet from Google Docs.
- * 
- * @author jeremym
  */
 public class BuilderCommandLine {
     

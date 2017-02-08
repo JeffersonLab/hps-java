@@ -9,12 +9,8 @@ import org.lcsim.util.Driver;
 
 /**
  * Driver for track reconstruction and analysis of HPS detector for execution in JAS.
- *
- * @author M. Graham 
  */
 public final class MainJASDriver extends Driver {
-
-
 
     public MainJASDriver() {
 //        add(new HPSSVTSensorSetup());

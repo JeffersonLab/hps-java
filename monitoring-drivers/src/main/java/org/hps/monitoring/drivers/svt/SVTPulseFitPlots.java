@@ -26,10 +26,6 @@ import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class SVTPulseFitPlots extends Driver {
 
     static {

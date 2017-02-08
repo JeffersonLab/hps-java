@@ -20,8 +20,6 @@ import org.hps.monitoring.ecal.eventdisplay.io.EventManager;
  * should be supported should be added directly to <code>FileViewer
  * </code> or a subclass. <code>ActiveViewer</code> will be removed
  * from coming releases.
- * 
- * @author Kyle McCarty
  */
 @Deprecated
 public abstract class ActiveViewer extends Viewer {

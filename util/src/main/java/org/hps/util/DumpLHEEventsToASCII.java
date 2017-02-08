@@ -1,26 +1,20 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.util;
-
-/**
-
- @author Mathew Thomas Graham <mgraham@slac.stanford.edu> $Id:
- ConvertToStdhep.java,v 1.9 2013/02/27 18:50:10 mgraham Exp $
- */
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.StreamTokenizer;
-import java.util.ArrayList;
-import java.util.List;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-import java.io.*;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StreamTokenizer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Option;

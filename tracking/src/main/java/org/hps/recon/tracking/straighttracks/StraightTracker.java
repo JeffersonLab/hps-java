@@ -34,9 +34,7 @@ import org.lcsim.util.aida.AIDA;
  * by a list of SeedStrategy that define the tracker layers to be used and the
  * cuts on the tracking algorithm.
  *
- * @author Mathew Graham <mgraham.slac.stanford.edu>
  * Copied/Modified from org.lcsim.recon.tracking.SeedTracker
- * 
  */
 public class StraightTracker extends Driver {
 

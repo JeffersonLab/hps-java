@@ -6,12 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Singleton class to hold default cut values
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ * Singleton class to hold default cut values.
  */
-// FIXME: Does this belong in Matt's new analysis.dataquality package instead?
-// It is used by TrackUtils so it is left here for now.
 public class EventQuality {
 
     private static EventQuality _instance = null;

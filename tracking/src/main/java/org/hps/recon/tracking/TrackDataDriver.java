@@ -25,9 +25,6 @@ import org.lcsim.util.Driver;
 /**
  * Driver used to persist additional {@link org.lcsim.event.Track} information via a 
  * {@link org.lcsim.event.GenericObject} collection.
- *
- * @author Omar Moreno, UCSC
- * @author Sho Uemura, SLAC
  */
 public final class TrackDataDriver extends Driver {
 

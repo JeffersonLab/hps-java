@@ -11,14 +11,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Norman A Graf
- *
- * @version $Id:
- */
-public class StripRunAndEventDriver extends Driver
-{
+public class StripRunAndEventDriver extends Driver {
 
     private String _eventListFileName;
     private int _nEventsToStrip;
@@ -26,11 +19,10 @@ public class StripRunAndEventDriver extends Driver
     Set<Pair<Integer, Integer>> _eventsToStrip = new LinkedHashSet<Pair<Integer, Integer>>();
 
     @Override
-    protected void detectorChanged(Detector detector)
-    {
+    protected void detectorChanged(Detector detector) {
         BufferedReader br = null;
         String currentLine = null;
-        System.out.println("detector changed reading in "+_eventListFileName);
+        System.out.println("detector changed reading in " + _eventListFileName);
         try {
             br = new BufferedReader(new FileReader(_eventListFileName));
             while ((currentLine = br.readLine()) != null) {
@@ -54,17 +46,17 @@ public class StripRunAndEventDriver extends Driver
             }
         }
         _nEventsToStrip = _eventsToStrip.size();
-        System.out.println("preparing to strip "+_nEventsToStrip+" events");
+        System.out.println("preparing to strip " + _nEventsToStrip + " events");
     }
 
     @Override
-    protected void process(EventHeader event)
-    {
+    protected void process(EventHeader event) {
         boolean skipEvent = true;
         int runNum = event.getRunNumber();
         int eventNum = event.getEventNumber();
-        Pair<Integer,Integer> pair = new Pair<Integer,Integer>(runNum, eventNum);
-        if(_eventsToStrip.contains(pair)) skipEvent = false;
+        Pair<Integer, Integer> pair = new Pair<Integer, Integer>(runNum, eventNum);
+        if (_eventsToStrip.contains(pair))
+            skipEvent = false;
         if (skipEvent) {
             throw new Driver.NextEventException();
         } else {
@@ -73,14 +65,12 @@ public class StripRunAndEventDriver extends Driver
     }
 
     @Override
-    protected void endOfData()
-    {
+    protected void endOfData() {
         System.out.println("Stripped " + _nEventsStripped + " of " + _nEventsToStrip + " requested");
     }
 
-    public void setEventListFileName(String s)
-    {
-        System.out.println("run and event list is "+s);
+    public void setEventListFileName(String s) {
+        System.out.println("run and event list is " + s);
         _eventListFileName = s;
     }
 

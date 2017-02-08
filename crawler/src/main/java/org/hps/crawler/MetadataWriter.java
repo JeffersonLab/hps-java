@@ -17,8 +17,6 @@ import org.hps.datacat.DatacatConstants;
 
 /**
  * Creates metadata for a file and writes the results to a Python snippet that can be used as input to the SRS datacat.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public final class MetadataWriter {
     

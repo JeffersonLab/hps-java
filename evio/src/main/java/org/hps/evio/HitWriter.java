@@ -6,9 +6,6 @@ import org.lcsim.event.EventHeader;
 /**
  * Interface to be implemented by classes that convert LCSim data to recon data
  * formats.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: HitWriter.java,v 1.1 2012/07/30 23:31:45 meeg Exp $
  */
 public interface HitWriter {
 

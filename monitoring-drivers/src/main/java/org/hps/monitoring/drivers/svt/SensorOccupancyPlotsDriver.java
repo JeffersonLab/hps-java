@@ -40,8 +40,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * This Driver makes plots of SVT sensor occupancies across a run.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class SensorOccupancyPlotsDriver extends Driver {
 

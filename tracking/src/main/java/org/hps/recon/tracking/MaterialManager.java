@@ -12,9 +12,7 @@ import org.lcsim.geometry.subdetector.HPSTracker2;
 import org.lcsim.recon.tracking.seedtracker.MaterialXPlane;
 
 /**
- * Extension to lcsim MaterialManager to allow more flexibility in track reconstruction
- *
- * @author Per Hansson <phansson@slac.stanford.edu>
+ * Extension to lcsim MaterialManager to allow more flexibility in track reconstruction.
  */
 public class MaterialManager extends org.lcsim.recon.tracking.seedtracker.MaterialManager {
 

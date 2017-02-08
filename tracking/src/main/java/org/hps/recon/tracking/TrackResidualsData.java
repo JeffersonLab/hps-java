@@ -5,17 +5,11 @@ import java.util.ArrayList;
 
 import org.lcsim.event.GenericObject;
 
-/**
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
- * 
- */
 public class TrackResidualsData implements GenericObject {
 
-    List<Double> trackResidualsX = new ArrayList<Double>();
-    List<Float> trackResidualsY = new ArrayList<Float>();
-    List<Integer> layers = new ArrayList<Integer>();
+    private List<Double> trackResidualsX = new ArrayList<Double>();
+    private List<Float> trackResidualsY = new ArrayList<Float>();
+    private List<Integer> layers = new ArrayList<Integer>();
     
     /**
      * Default Ctor

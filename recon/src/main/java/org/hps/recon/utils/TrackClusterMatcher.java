@@ -23,8 +23,6 @@ import org.lcsim.geometry.FieldMap;
 
 /**
  * Utility used to determine if a track and cluster are matched.
- *
- * @author <a href="mailto:moreno1@ucsc.edu">Omar Moreno</a>
  */
 public class TrackClusterMatcher {
 
@@ -112,6 +110,7 @@ public class TrackClusterMatcher {
     private static final double dySigmTopElecSeed[] ={ 19.9111,-53.2699,-261.915,  1593.2,-2774.01, 1605.54 };
     private static final double dyMeanBotElecSeed[] ={-9.22963, 98.1346, -427.91, 840.225,-751.188, 250.792 };
     private static final double dySigmBotElecSeed[] ={ 21.7909,-85.4757,-56.9423, 977.522,-1902.05, 1137.92 };
+    
     /**
      * Z position to start extrapolation from
      */
@@ -132,8 +131,6 @@ public class TrackClusterMatcher {
      */
     public TrackClusterMatcher() {
     }
-
-    ;
 
     /**
      * Enable/disable booking, filling of Ecal cluster and extrapolated track 
@@ -284,7 +281,6 @@ public class TrackClusterMatcher {
 
         // whether it's a GBL track:
         final boolean isGBL = track.getType() >= 32;
-       
         
         // choose which parameterization of mean and sigma to use:
         double dxMean[],dyMean[],dxSigm[],dySigm[];

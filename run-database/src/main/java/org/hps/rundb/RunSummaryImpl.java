@@ -4,8 +4,6 @@ import java.util.Date;
 
 /**
  * Implementation of {@link RunSummary} for retrieving information from the run database.
- *
- * @author jeremym
  */
 public final class RunSummaryImpl implements RunSummary {
 

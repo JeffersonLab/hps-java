@@ -23,12 +23,8 @@ import org.lcsim.geometry.compact.converter.lcdd.util.SensitiveDetector;
 import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 import org.lcsim.geometry.util.TransformationUtils;
 
-/**
- * 
- * Convert an HPS tracker "2014" to the LCDD format.
- * 
- * @author Per Hansson <phansson@slac.stanford.edu>
- *
+/** 
+ * Convert an HPS tracker "2014" to the LCDD format. 
  */
 public abstract class HPSTracker2014Base extends LCDDSubdetector {
 

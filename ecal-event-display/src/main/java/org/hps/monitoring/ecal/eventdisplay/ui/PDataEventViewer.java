@@ -20,8 +20,6 @@ import org.hps.monitoring.ecal.eventdisplay.util.EcalWiringManager;
  * Class <code>PDataEventViewer</code> is the passive variant of a data
  * viewer. It displays crystal hardware information read from a given
  * data file and displays it along with crystal energy and index data.
- * 
- * @author Kyle McCarty
  */
 public class PDataEventViewer extends PEventViewer {
     // Local variables.

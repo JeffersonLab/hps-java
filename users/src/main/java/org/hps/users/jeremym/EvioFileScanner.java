@@ -39,8 +39,6 @@ import org.jlab.coda.jevio.EvioReader;
 
 /**
  * A utility for scanning EVIO files by run.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 // TODO:
 //

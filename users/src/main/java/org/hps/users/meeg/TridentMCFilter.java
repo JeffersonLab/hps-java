@@ -10,10 +10,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimTrackerHit;
 
-/*
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: KinkAnalysisDriver.java,v 1.3 2013/10/24 18:11:43 meeg Exp $
- */
 public class TridentMCFilter extends EventReconFilter {
 
     private boolean requireFrontHits = false;

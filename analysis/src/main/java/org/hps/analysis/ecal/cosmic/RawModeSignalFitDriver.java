@@ -39,8 +39,6 @@ import org.lcsim.util.aida.AIDA;
  * threshold (by default set to 4 sigma) will be written into an output collection
  * of selected hits that can be used by other Drivers.   
  * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Tim Nelson <tknelson@slac.stanford.edu>
  */
 public class RawModeSignalFitDriver extends Driver {
 

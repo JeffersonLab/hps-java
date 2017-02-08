@@ -40,8 +40,6 @@ import org.lcsim.util.aida.AIDA;
  * Full list of collection names and classes is here:<br/>
  * <a href="https://confluence.slac.stanford.edu/display/~jeremym/MDC+Collection+Information">MDC Collection Information</a>
  * </p>
- *  
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */ 
 @SuppressWarnings( {"rawtypes", "unchecked" } )
 public class MockDataChallengeDiagnosticDriver extends Driver {

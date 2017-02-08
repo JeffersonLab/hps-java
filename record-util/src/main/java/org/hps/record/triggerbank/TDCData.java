@@ -9,9 +9,6 @@ import org.lcsim.event.GenericObject;
 
 /**
  * Data from CAEN V1190 TDC.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class TDCData extends AbstractIntData {
 

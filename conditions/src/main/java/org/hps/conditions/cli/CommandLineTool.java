@@ -20,9 +20,7 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  * operations such as 'add' and 'print'.
  * <p>
  * Command line options can be used to supply a custom connection properties file or XML which will override the
- * default.
- *
- * @author Jeremy McCormick, SLAC
+ * default. 
  */
 public final class CommandLineTool {
 

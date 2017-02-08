@@ -12,11 +12,6 @@ import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: ECalCellIDPrintDriver.java,v 1.1 2012/05/01 15:06:38 meeg Exp $
- */
 public class EcalCellIDPrintDriver extends Driver {
 
     Subdetector ecal;

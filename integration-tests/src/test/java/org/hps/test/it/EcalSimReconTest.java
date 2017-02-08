@@ -21,15 +21,12 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * Run readout simulation and full 2015 Engineering Run reconstruction on ECal MC input data and then check histograms
  * of cluster data.
- *
- * @author Jeremy McCormick, SLAC
  */
 public class EcalSimReconTest extends TestCase {
 
     /**
      * Driver for checking test output.
      *
-     * @author Jeremy McCormick, SLAC
      */
     static class EcalSimReconCheckDriver extends Driver {
 

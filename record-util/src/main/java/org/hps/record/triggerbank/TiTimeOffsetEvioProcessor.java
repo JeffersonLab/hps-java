@@ -7,8 +7,6 @@ import org.jlab.coda.jevio.EvioEvent;
 
 /**
  * Extract trigger time offset from EVIO data.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class TiTimeOffsetEvioProcessor extends EvioEventProcessor {
 

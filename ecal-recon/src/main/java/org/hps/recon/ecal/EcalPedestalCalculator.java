@@ -38,9 +38,6 @@ import org.lcsim.util.aida.AIDA;
  * statistics), endOfData is called and config files will be written. Copying
  * files to proper location for DAQ must be done manually. gg TODO: Merge with
  * EcalCalibrationDriver (which works on Mode-1).
- * 
- * @version $Id: EcalPedestalCalculator.java,v 0.1 2015/02/20 00:00:00
- * @author <baltzell@jlab.org>
  */
 public class EcalPedestalCalculator extends Driver {
 

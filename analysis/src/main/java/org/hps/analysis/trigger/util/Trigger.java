@@ -10,8 +10,6 @@ import java.util.Map.Entry;
  * well as the state of the overall trigger. It is the responsibility of
  * implementing classes to specify the supported cut states and also
  * to define when the trigger conditions are met.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public abstract class Trigger<E> {
     // Track whether the trigger conditions were met.

@@ -15,11 +15,9 @@ import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 /**
  * Encapsulates the {@link org.lcsim.fit.helicaltrack.HelicalTrackStrip} to make sure that the local unit vectors are
  * coming from the underlying geometry.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public  class HelicalTrackStripGbl { 
+    
     protected HelicalTrackStrip _strip;
     private SiSensorElectrodes _electrodes = null;
     private Hep3Matrix _electrodesToTracking = null; 
@@ -27,31 +25,40 @@ public  class HelicalTrackStripGbl {
     private Hep3Vector _v = null;
     private Hep3Vector _w = null;
     private boolean _useGeomDef = false;
+    
     public HelicalTrackStripGbl(HelicalTrackStrip strip, boolean useGeomDef) {
         _strip = strip;
         _useGeomDef = useGeomDef;
     }
+    
     public double du() {
        return _strip.du();
     }
+    
     public double vmin() {
        return _strip.vmin();
     }
+    
     public double vmax() {
        return _strip.vmax();
     }
+    
     public double umeas() {
        return _strip.umeas();
     }
+    
     public HelicalTrackStrip getStrip() {
         return _strip;
     }
+    
     public Hep3Vector origin() {
        return _strip.origin();
     }
+    
     public int layer() {
        return _strip.layer();
     }
+    
     private SiSensorElectrodes getElectrodes() {
         if(_electrodes==null) {
             RawTrackerHit rth = (RawTrackerHit) _strip.rawhits().get(0);
@@ -61,6 +68,7 @@ public  class HelicalTrackStripGbl {
         }
         return _electrodes;
     }
+    
     private Hep3Matrix getElectrodeToTrackingMatrix() {
         if(_electrodesToTracking==null) {
             SiSensorElectrodes electrodes = getElectrodes();
@@ -68,6 +76,7 @@ public  class HelicalTrackStripGbl {
         }
         return _electrodesToTracking;
     }
+    
     public Hep3Vector u() {
         if(_u == null) {
             if(_useGeomDef) {
@@ -79,6 +88,7 @@ public  class HelicalTrackStripGbl {
         }
         return _u;
     }
+    
     public Hep3Vector v() {
         if(_v == null) {
             if(_useGeomDef) {
@@ -89,18 +99,16 @@ public  class HelicalTrackStripGbl {
         }
         return _v;
     }
+    
     public Hep3Vector w() {
         if(_w==null) {
             _w = VecOp.cross(u(), v());
         }
         return _w;
     }
-
-    
-    
+       
     @Override
     public String toString() {
         return ("GBl Strip with u="+u().toString()+"\n v="+v().toString()+ "\n w="+w().toString() + "\n vmin="+vmin() + "\n vmax="+vmax() + "\n umeas="+this.umeas()+"\n origin="+this.origin().toString()); 
     }
-
 }

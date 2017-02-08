@@ -16,9 +16,7 @@ import org.hps.conditions.database.Table;
 import org.reflections.Reflections;
 
 /**
- * This is a registry providing a map between tables and their meta-data.
- *
- * @author Jeremy McCormick, SLAC
+ * This is a registry providing a map between tables and their meta-data. 
  */
 @SuppressWarnings("serial")
 public final class TableRegistry extends HashMap<String, TableMetaData> {

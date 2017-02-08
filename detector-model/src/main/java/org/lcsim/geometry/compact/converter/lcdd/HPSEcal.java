@@ -36,11 +36,6 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
  * <li>ny - number of crystals in Y along each side of beam</li>
  * <li>dface - distance from origin to the face of the calorimeter along X</li>
  * </ul>
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Tim Nelson <tknelson@slac.stanford.edu>
- * 
- * @version $Id: HPSEcal.java,v 1.12 2011/07/18 21:01:53 jeremy Exp $
  */
 public class HPSEcal extends LCDDSubdetector
 {

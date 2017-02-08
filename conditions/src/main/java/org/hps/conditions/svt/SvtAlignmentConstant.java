@@ -21,8 +21,6 @@ import org.hps.conditions.database.Table;
  * </pre>
  * <p>
  * The key naming conventions are from the <a href="http://www.desy.de/~blobel/mptalks.html">Millipede</a> package.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = "svt_alignments")
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)

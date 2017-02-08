@@ -30,9 +30,7 @@ import org.lcsim.geometry.compact.converter.JavaGhostSurveyVolume;
 import org.lcsim.geometry.compact.converter.JavaSurveyVolume;
 
 /**
- * Converts the compact description into Java runtime objects
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
+ * Converts the compact description into Java runtime objects.
  */
 public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorConverter {
 

@@ -7,27 +7,18 @@ import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
-/**
- *
- * @author phansson
- * @author Norman A Graf
- *
- * @version $Id:
- */
-public class GblPoint
-{
+public class GblPoint {
 
-    public GblPoint(hep.physics.matrix.BasicMatrix jacPointToPoint)
-    {
+    public GblPoint(hep.physics.matrix.BasicMatrix jacPointToPoint) {
         theLabel = 0;
         theOffset = 0;
         measDim = 0;
         transFlag = false;
-        //measTransformation() 
+        // measTransformation()
         scatFlag = false;
-        //localDerivatives()
-        //globalLabels()
-        //globalDerivatives()
+        // localDerivatives()
+        // globalLabels()
+        // globalDerivatives()
 
         for (int i = 0; i < 5; ++i) {
             for (int j = 0; j < 5; ++j) {
@@ -36,8 +27,8 @@ public class GblPoint
         }
     }
 
-    public void addMeasurement(hep.physics.matrix.Matrix proL2m, hep.physics.matrix.BasicMatrix meas, hep.physics.matrix.BasicMatrix measPrec)
-    {
+    public void addMeasurement(hep.physics.matrix.Matrix proL2m, hep.physics.matrix.BasicMatrix meas,
+            hep.physics.matrix.BasicMatrix measPrec) {
 
         int ncols = proL2m.getNColumns();
         int nrows = proL2m.getNRows();
@@ -76,49 +67,49 @@ public class GblPoint
         addMeasurement(a, measvec, measPrecvec, 0.);
     }
 
-    public void addScatterer(hep.physics.matrix.BasicMatrix scat, hep.physics.matrix.BasicMatrix scatPrec)
-    {
+    public void addScatterer(hep.physics.matrix.BasicMatrix scat, hep.physics.matrix.BasicMatrix scatPrec) {
         // TODO Auto-generated method stub
 
     }
 
-    private int theLabel; ///< Label identifying point
-    private int theOffset; ///< Offset number at point if not negative (else interpolation needed)
-    private Matrix p2pJacobian = new Matrix(5, 5); ///< Point-to-point jacobian from previous point
-    private Matrix prevJacobian = new Matrix(5, 5); ///< Jacobian to previous scatterer (or first measurement)
-    private Matrix nextJacobian = new Matrix(5, 5); ///< Jacobian to next scatterer (or last measurement)
-    private int measDim; ///< Dimension of measurement (1-5), 0 indicates absence of measurement
-    private Matrix measProjection = new Matrix(5, 5); ///< Projection from measurement to local system
-    private Vector measResiduals = new Vector(5); ///< Measurement residuals
-    private Vector measPrecision = new Vector(5); ///< Measurement precision (diagonal of inverse covariance matrix)
-    private boolean transFlag; ///< Transformation exists?
-    private Matrix measTransformation; ///< Transformation of diagonalization (of meas. precision matrix)
-    private boolean scatFlag; ///< Scatterer present?
-    private Matrix scatTransformation = new Matrix(2, 2); ///< Transformation of diagonalization (of scat. precision matrix)
-    private Vector scatResiduals = new Vector(2); ///< Scattering residuals (initial kinks if iterating)
-    private Vector scatPrecision = new Vector(2); ///< Scattering precision (diagonal of inverse covariance matrix)
-    private Matrix localDerivatives = new Matrix(0, 0); ///< Derivatives of measurement vs additional local (fit) parameters
-    private List<Integer> globalLabels = new ArrayList<Integer>(); ///< Labels of global (MP-II) derivatives
-    private Matrix globalDerivatives = new Matrix(0, 0); ///< Derivatives of measurement vs additional global (MP-II) parameters
+    private int theLabel; // /< Label identifying point
+    private int theOffset; // /< Offset number at point if not negative (else interpolation needed)
+    private Matrix p2pJacobian = new Matrix(5, 5); // /< Point-to-point jacobian from previous point
+    private Matrix prevJacobian = new Matrix(5, 5); // /< Jacobian to previous scatterer (or first measurement)
+    private Matrix nextJacobian = new Matrix(5, 5); // /< Jacobian to next scatterer (or last measurement)
+    private int measDim; // /< Dimension of measurement (1-5), 0 indicates absence of measurement
+    private Matrix measProjection = new Matrix(5, 5); // /< Projection from measurement to local system
+    private Vector measResiduals = new Vector(5); // /< Measurement residuals
+    private Vector measPrecision = new Vector(5); // /< Measurement precision (diagonal of inverse covariance matrix)
+    private boolean transFlag; // /< Transformation exists?
+    private Matrix measTransformation; // /< Transformation of diagonalization (of meas. precision matrix)
+    private boolean scatFlag; // /< Scatterer present?
+    private Matrix scatTransformation = new Matrix(2, 2); // /< Transformation of diagonalization (of scat. precision
+                                                          // matrix)
+    private Vector scatResiduals = new Vector(2); // /< Scattering residuals (initial kinks if iterating)
+    private Vector scatPrecision = new Vector(2); // /< Scattering precision (diagonal of inverse covariance matrix)
+    private Matrix localDerivatives = new Matrix(0, 0); // /< Derivatives of measurement vs additional local (fit)
+                                                        // parameters
+    private List<Integer> globalLabels = new ArrayList<Integer>(); // /< Labels of global (MP-II) derivatives
+    private Matrix globalDerivatives = new Matrix(0, 0); // /< Derivatives of measurement vs additional global (MP-II)
+                                                         // parameters
 
-/// Create a point.
+    // / Create a point.
     /**
-     * Create point on (initial) trajectory. Needs transformation jacobian from
-     * previous point. \param [in] aJacobian Transformation jacobian from
-     * previous point
+     * Create point on (initial) trajectory. Needs transformation jacobian from previous point. \param [in] aJacobian
+     * Transformation jacobian from previous point
      */
-    public GblPoint(Matrix aJacobian)
-    {
+    public GblPoint(Matrix aJacobian) {
 
         theLabel = 0;
         theOffset = 0;
         measDim = 0;
         transFlag = false;
-        //measTransformation() 
+        // measTransformation()
         scatFlag = false;
-        //localDerivatives()
-        //globalLabels()
-        //globalDerivatives()
+        // localDerivatives()
+        // globalLabels()
+        // globalDerivatives()
 
         for (int i = 0; i < 5; ++i) {
             for (int j = 0; j < 5; ++j) {
@@ -127,34 +118,28 @@ public class GblPoint
         }
     }
 
-    public GblPoint(SymMatrix aJacobian)
-    {
+    public GblPoint(SymMatrix aJacobian) {
         theLabel = 0;
         theOffset = 0;
         p2pJacobian = new SymMatrix(aJacobian);
         measDim = 0;
         transFlag = false;
-        //measTransformation() 
+        // measTransformation()
         scatFlag = false;
-        //localDerivatives() 
-        //globalLabels() 
-        //globalDerivatives()
+        // localDerivatives()
+        // globalLabels()
+        // globalDerivatives()
 
     }
 
-/// Add a measurement to a point.
+    // / Add a measurement to a point.
     /**
-     * Add measurement (in meas. system) with diagonal precision (inverse
-     * covariance) matrix. ((up to) 2D: position, 4D: slope+position, 5D:
-     * curvature+slope+position) \param [in] aProjection Projection from local
-     * to measurement system \param [in] aResiduals Measurement residuals \param
-     * [in] aPrecision Measurement precision (diagonal) \param [in] minPrecision
-     * Minimal precision to accept measurement
+     * Add measurement (in meas. system) with diagonal precision (inverse covariance) matrix. ((up to) 2D: position, 4D:
+     * slope+position, 5D: curvature+slope+position) \param [in] aProjection Projection from local to measurement system
+     * \param [in] aResiduals Measurement residuals \param [in] aPrecision Measurement precision (diagonal) \param [in]
+     * minPrecision Minimal precision to accept measurement
      */
-    public void addMeasurement(Matrix aProjection,
-                               Vector aResiduals, Vector aPrecision,
-                               double minPrecision)
-    {
+    public void addMeasurement(Matrix aProjection, Vector aResiduals, Vector aPrecision, double minPrecision) {
         measDim = aResiduals.getRowDimension();
         int iOff = 5 - measDim;
         for (int i = 0; i < measDim; ++i) {
@@ -165,20 +150,16 @@ public class GblPoint
             }
         }
     }
-/// Add a measurement to a point.
+
+    // / Add a measurement to a point.
 
     /**
-     * Add measurement (in meas. system) with arbitrary precision (inverse
-     * covariance) matrix. Will be diagonalized. ((up to) 2D: position, 4D:
-     * slope+position, 5D: curvature+slope+position) \param [in] aProjection
-     * Projection from local to measurement system \param [in] aResiduals
-     * Measurement residuals \param [in] aPrecision Measurement precision
-     * (matrix) \param [in] minPrecision Minimal precision to accept measurement
+     * Add measurement (in meas. system) with arbitrary precision (inverse covariance) matrix. Will be diagonalized.
+     * ((up to) 2D: position, 4D: slope+position, 5D: curvature+slope+position) \param [in] aProjection Projection from
+     * local to measurement system \param [in] aResiduals Measurement residuals \param [in] aPrecision Measurement
+     * precision (matrix) \param [in] minPrecision Minimal precision to accept measurement
      */
-    public void addMeasurement(Matrix aProjection,
-                               Vector aResiduals, SymMatrix aPrecision,
-                               double minPrecision)
-    {
+    public void addMeasurement(Matrix aProjection, Vector aResiduals, SymMatrix aPrecision, double minPrecision) {
         measDim = aResiduals.getRowDimension();
         EigenvalueDecomposition measEigen = new EigenvalueDecomposition(aPrecision);
         measTransformation.ResizeTo(measDim, measDim);
@@ -198,38 +179,30 @@ public class GblPoint
         }
     }
 
-/// Add a measurement to a point.
+    // / Add a measurement to a point.
     /**
-     * Add measurement in local system with diagonal precision (inverse
-     * covariance) matrix. ((up to) 2D: position, 4D: slope+position, 5D:
-     * curvature+slope+position) \param [in] aResiduals Measurement residuals
-     * \param [in] aPrecision Measurement precision (diagonal) \param [in]
-     * minPrecision Minimal precision to accept measurement
+     * Add measurement in local system with diagonal precision (inverse covariance) matrix. ((up to) 2D: position, 4D:
+     * slope+position, 5D: curvature+slope+position) \param [in] aResiduals Measurement residuals \param [in] aPrecision
+     * Measurement precision (diagonal) \param [in] minPrecision Minimal precision to accept measurement
      */
-    public void addMeasurement(Vector aResiduals,
-                               Vector aPrecision, double minPrecision)
-    {
+    public void addMeasurement(Vector aResiduals, Vector aPrecision, double minPrecision) {
         measDim = aResiduals.getRowDimension();
         int iOff = 5 - measDim;
         for (int i = 0; i < measDim; ++i) {
             measResiduals.set(iOff + i, aResiduals.get(i));
-            measPrecision.set(iOff + i,
-                    aPrecision.get(i) >= minPrecision ? aPrecision.get(i) : 0.);
+            measPrecision.set(iOff + i, aPrecision.get(i) >= minPrecision ? aPrecision.get(i) : 0.);
         }
         measProjection.UnitMatrix();// setToIdentity();
     }
 
-/// Add a measurement to a point.
+    // / Add a measurement to a point.
     /**
-     * Add measurement in local system with arbitrary precision (inverse
-     * covariance) matrix. Will be diagonalized. ((up to) 2D: position, 4D:
-     * slope+position, 5D: curvature+slope+position) \param [in] aResiduals
-     * Measurement residuals \param [in] aPrecision Measurement precision
-     * (matrix) \param [in] minPrecision Minimal precision to accept measurement
+     * Add measurement in local system with arbitrary precision (inverse covariance) matrix. Will be diagonalized. ((up
+     * to) 2D: position, 4D: slope+position, 5D: curvature+slope+position) \param [in] aResiduals Measurement residuals
+     * \param [in] aPrecision Measurement precision (matrix) \param [in] minPrecision Minimal precision to accept
+     * measurement
      */
-    public void addMeasurement(Vector aResiduals,
-                               SymMatrix aPrecision, double minPrecision)
-    {
+    public void addMeasurement(Vector aResiduals, SymMatrix aPrecision, double minPrecision) {
         measDim = aResiduals.getRowDimension();
         EigenvalueDecomposition measEigen = new EigenvalueDecomposition(aPrecision);
         measTransformation.ResizeTo(measDim, measDim);
@@ -248,35 +221,30 @@ public class GblPoint
         }
     }
 
-/// Check for measurement at a point.
+    // / Check for measurement at a point.
     /**
      * Get dimension of measurement (0 = none). \return measurement dimension
      */
-    int hasMeasurement()
-    {
+    int hasMeasurement() {
         return measDim;
     }
 
-/// Retrieve measurement of a point.
+    // / Retrieve measurement of a point.
     /**
-     * \param [out] aProjection Projection from (diagonalized) measurement to
-     * local system \param [out] aResiduals Measurement residuals \param [out]
-     * aPrecision Measurement precision (diagonal)
+     * \param [out] aProjection Projection from (diagonalized) measurement to local system \param [out] aResiduals
+     * Measurement residuals \param [out] aPrecision Measurement precision (diagonal)
      */
-    public void getMeasurement(Matrix aProjection, Vector aResiduals,
-                               Vector aPrecision)
-    {
+    public void getMeasurement(Matrix aProjection, Vector aResiduals, Vector aPrecision) {
         aProjection.placeAt(measProjection, 0, 0);
         aResiduals.placeInCol(measResiduals, 0, 0);
         aPrecision.placeInCol(measPrecision, 0, 0);
     }
 
-/// Get measurement transformation (from diagonalization).
+    // / Get measurement transformation (from diagonalization).
     /**
      * \param [out] aTransformation Transformation matrix
      */
-    public void getMeasTransformation(Matrix aTransformation)
-    {
+    public void getMeasTransformation(Matrix aTransformation) {
         aTransformation.ResizeTo(measDim, measDim);
         if (transFlag) {
             aTransformation = measTransformation;
@@ -285,17 +253,12 @@ public class GblPoint
         }
     }
 
-/// Add a (thin) scatterer to a point.
+    // / Add a (thin) scatterer to a point.
     /**
-     * Add scatterer with diagonal precision (inverse covariance) matrix.
-     * Changes local track direction.
-     *
-     * \param [in] aResiduals Scatterer residuals \param [in] aPrecision
-     * Scatterer precision (diagonal of inverse covariance matrix)
+     * Add scatterer with diagonal precision (inverse covariance) matrix. Changes local track direction. \param [in]
+     * aResiduals Scatterer residuals \param [in] aPrecision Scatterer precision (diagonal of inverse covariance matrix)
      */
-    public void addScatterer(Vector aResiduals,
-                             Vector aPrecision)
-    {
+    public void addScatterer(Vector aResiduals, Vector aPrecision) {
         scatFlag = true;
         scatResiduals.set(0, aResiduals.get(0));
         scatResiduals.set(1, aResiduals.get(1));
@@ -304,24 +267,15 @@ public class GblPoint
         scatTransformation.UnitMatrix();// setToIdentity();
     }
 
-/// Add a (thin) scatterer to a point.
+    // / Add a (thin) scatterer to a point.
     /**
-     * Add scatterer with arbitrary precision (inverse covariance) matrix. Will
-     * be diagonalized. Changes local track direction.
-     *
-     * The precision matrix for the local slopes is defined by the angular
-     * scattering error theta_0 and the scalar products c_1, c_2 of the offset
-     * directions in the local frame with the track direction:
-     *
-     * (1 - c_1*c_1 - c_2*c_2) | 1 - c_1*c_1 - c_1*c_2 | P =
-     * ~~~~~~~~~~~~~~~~~~~~~~~ * | | theta_0*theta_0 | - c_1*c_2 1 - c_2*c_2 |
-     *
-     * \param [in] aResiduals Scatterer residuals \param [in] aPrecision
-     * Scatterer precision (matrix)
+     * Add scatterer with arbitrary precision (inverse covariance) matrix. Will be diagonalized. Changes local track
+     * direction. The precision matrix for the local slopes is defined by the angular scattering error theta_0 and the
+     * scalar products c_1, c_2 of the offset directions in the local frame with the track direction: (1 - c_1*c_1 -
+     * c_2*c_2) | 1 - c_1*c_1 - c_1*c_2 | P = ~~~~~~~~~~~~~~~~~~~~~~~ * | | theta_0*theta_0 | - c_1*c_2 1 - c_2*c_2 |
+     * \param [in] aResiduals Scatterer residuals \param [in] aPrecision Scatterer precision (matrix)
      */
-    public void addScatterer(Vector aResiduals,
-                             SymMatrix aPrecision)
-    {
+    public void addScatterer(Vector aResiduals, SymMatrix aPrecision) {
         scatFlag = true;
         EigenvalueDecomposition scatEigen = new EigenvalueDecomposition(aPrecision);
         Matrix aTransformation = scatEigen.getEigenVectors();
@@ -337,32 +291,27 @@ public class GblPoint
         }
     }
 
-/// Check for scatterer at a point.
-    boolean hasScatterer()
-    {
+    // / Check for scatterer at a point.
+    boolean hasScatterer() {
         return scatFlag;
     }
 
-/// Retrieve scatterer of a point.
+    // / Retrieve scatterer of a point.
     /**
-     * \param [out] aTransformation Scatterer transformation from
-     * diagonalization \param [out] aResiduals Scatterer residuals \param [out]
-     * aPrecision Scatterer precision (diagonal)
+     * \param [out] aTransformation Scatterer transformation from diagonalization \param [out] aResiduals Scatterer
+     * residuals \param [out] aPrecision Scatterer precision (diagonal)
      */
-    public void getScatterer(Matrix aTransformation, Vector aResiduals,
-                             Vector aPrecision)
-    {
+    public void getScatterer(Matrix aTransformation, Vector aResiduals, Vector aPrecision) {
         aTransformation.placeAt(scatTransformation, 0, 0);
         aResiduals.placeAt(scatResiduals, 0, 0);
         aPrecision.placeAt(scatPrecision, 0, 0);
     }
 
-/// Get scatterer transformation (from diagonalization).
+    // / Get scatterer transformation (from diagonalization).
     /**
      * \param [out] aTransformation Transformation matrix
      */
-    public void getScatTransformation(Matrix aTransformation)
-    {
+    public void getScatTransformation(Matrix aTransformation) {
         aTransformation.ResizeTo(2, 2);
         if (scatFlag) {
             for (int i = 0; i < 2; ++i) {
@@ -375,13 +324,11 @@ public class GblPoint
         }
     }
 
-/// Add local derivatives to a point.
+    // / Add local derivatives to a point.
     /**
-     * Point needs to have a measurement. \param [in] aDerivatives Local
-     * derivatives (matrix)
+     * Point needs to have a measurement. \param [in] aDerivatives Local derivatives (matrix)
      */
-    public void addLocals(Matrix aDerivatives)
-    {
+    public void addLocals(Matrix aDerivatives) {
         if (measDim != 0) {
             localDerivatives.ResizeTo(aDerivatives.getRowDimension(), aDerivatives.getColumnDimension());
             if (transFlag) {
@@ -392,26 +339,22 @@ public class GblPoint
         }
     }
 
-/// Retrieve number of local derivatives from a point.
-    int getNumLocals()
-    {
+    // / Retrieve number of local derivatives from a point.
+    int getNumLocals() {
         return localDerivatives.getColumnDimension();
     }
 
-/// Retrieve local derivatives from a point.
-    Matrix getLocalDerivatives()
-    {
+    // / Retrieve local derivatives from a point.
+    Matrix getLocalDerivatives() {
         return localDerivatives;
     }
 
-/// Add global derivatives to a point.
+    // / Add global derivatives to a point.
     /**
-     * Point needs to have a measurement. \param [in] aLabels Global derivatives
-     * labels \param [in] aDerivatives Global derivatives (matrix)
+     * Point needs to have a measurement. \param [in] aLabels Global derivatives labels \param [in] aDerivatives Global
+     * derivatives (matrix)
      */
-    public void addGlobals(List<Integer> aLabels,
-                           Matrix aDerivatives)
-    {
+    public void addGlobals(List<Integer> aLabels, Matrix aDerivatives) {
         if (measDim != 0) {
             globalLabels = aLabels;
             globalDerivatives.ResizeTo(aDerivatives.getRowDimension(), aDerivatives.getColumnDimension());
@@ -424,98 +367,85 @@ public class GblPoint
         }
     }
 
-/// Retrieve number of global derivatives from a point.
-    int getNumGlobals()
-    {
+    // / Retrieve number of global derivatives from a point.
+    int getNumGlobals() {
         return globalDerivatives.getColumnDimension();
     }
 
-/// Retrieve global derivatives labels from a point.
-    List<Integer> getGlobalLabels()
-    {
+    // / Retrieve global derivatives labels from a point.
+    List<Integer> getGlobalLabels() {
         return globalLabels;
     }
 
-/// Retrieve global derivatives from a point.
-    Matrix getGlobalDerivatives()
-    {
+    // / Retrieve global derivatives from a point.
+    Matrix getGlobalDerivatives() {
         return globalDerivatives;
     }
 
-/// Define label of point (by GBLTrajectory constructor)
+    // / Define label of point (by GBLTrajectory constructor)
     /**
      * \param [in] aLabel Label identifying point
      */
-    public void setLabel(int aLabel)
-    {
+    public void setLabel(int aLabel) {
         theLabel = aLabel;
     }
 
-/// Retrieve label of point
-    int getLabel()
-    {
+    // / Retrieve label of point
+    int getLabel() {
         return theLabel;
     }
 
-/// Define offset for point (by GBLTrajectory constructor)
+    // / Define offset for point (by GBLTrajectory constructor)
     /**
      * \param [in] anOffset Offset number
      */
-    public void setOffset(int anOffset)
-    {
+    public void setOffset(int anOffset) {
         theOffset = anOffset;
     }
 
-/// Retrieve offset for point
-    int getOffset()
-    {
+    // / Retrieve offset for point
+    int getOffset() {
         return theOffset;
     }
 
-/// Retrieve point-to-(previous)point jacobian
-    Matrix getP2pJacobian()
-    {
+    // / Retrieve point-to-(previous)point jacobian
+    Matrix getP2pJacobian() {
         return p2pJacobian;
     }
 
-/// Define jacobian to previous scatterer (by GBLTrajectory constructor)
+    // / Define jacobian to previous scatterer (by GBLTrajectory constructor)
     /**
      * \param [in] aJac Jacobian
      */
-    public void addPrevJacobian(Matrix aJac)
-    {
+    public void addPrevJacobian(Matrix aJac) {
         int ifail = 0;
-// to optimize: need only two last rows of inverse
-//  prevJacobian = aJac.InverseFast(ifail);
-//  block matrix algebra
+        // to optimize: need only two last rows of inverse
+        // prevJacobian = aJac.InverseFast(ifail);
+        // block matrix algebra
         Matrix CA = aJac.sub(2, 3, 3, 0).times(aJac.sub(3, 0, 0).inverse()); // C*A^-1
         Matrix DCAB = aJac.sub(2, 3, 3).minus(CA.times(aJac.sub(3, 2, 0, 3))); // D - C*A^-1 *B
         DCAB = DCAB.inverse();
         prevJacobian.placeAt(DCAB, 3, 3);
         prevJacobian.placeAt(DCAB.times(CA).uminus(), 3, 0);
     }
-//
-/// Define jacobian to next scatterer (by GBLTrajectory constructor)
+
+    //
+    // / Define jacobian to next scatterer (by GBLTrajectory constructor)
 
     /**
      * \param [in] aJac Jacobian
      */
-    public void addNextJacobian(Matrix aJac)
-    {
+    public void addNextJacobian(Matrix aJac) {
         nextJacobian = aJac;
     }
 
-/// Retrieve derivatives of local track model
+    // / Retrieve derivatives of local track model
     /**
-     * Linearized track model: F_u(q/p,u',u) = J*u + S*u' + d*q/p, W is inverse
-     * of S, negated for backward propagation. \param [in] aDirection
-     * Propagation direction (>0 forward, else backward) \param [out] matW W
-     * \param [out] matWJ W*J \param [out] vecWd W*d \exception
-     * std::overflow_error : matrix S is singular.
+     * Linearized track model: F_u(q/p,u',u) = J*u + S*u' + d*q/p, W is inverse of S, negated for backward propagation.
+     * \param [in] aDirection Propagation direction (>0 forward, else backward) \param [out] matW W \param [out] matWJ
+     * W*J \param [out] vecWd W*d \exception std::overflow_error : matrix S is singular.
      */
-    public void getDerivatives(int aDirection, Matrix matW, Matrix matWJ,
-                               Vector vecWd)
-    {
+    public void getDerivatives(int aDirection, Matrix matW, Matrix matWJ, Vector vecWd) {
 
         Matrix matJ;
         Matrix matWt;
@@ -531,26 +461,26 @@ public class GblPoint
         }
 
         matW.placeAt(matWt.inverse(), 0, 0);
-//  if (!matW.InvertFast()) {
-//      std::cout << " getDerivatives failed to invert matrix: "
-//              << matW << "\n";
-//      std::cout
-//              << " Possible reason for singular matrix: multiple GblPoints at same arc-length"
-//              << "\n";
-//      throw std::overflow_error("Singular matrix inversion exception");
-//  }
+        // if (!matW.InvertFast()) {
+        // std::cout << " getDerivatives failed to invert matrix: "
+        // << matW << "\n";
+        // std::cout
+        // << " Possible reason for singular matrix: multiple GblPoints at same arc-length"
+        // << "\n";
+        // throw std::overflow_error("Singular matrix inversion exception");
+        // }
         matWJ.placeAt(matW.times(matJ), 0, 0);
         vecWd.placeAt(matW.times(vecd), 0, 0);
 
     }
-//
-/// Print GblPoint
+
+    //
+    // / Print GblPoint
 
     /**
      * \param [in] level print level (0: minimum, >0: more)
      */
-    public void printPoint(int level)
-    {
+    public void printPoint(int level) {
         StringBuffer sb = new StringBuffer("GblPoint");
         if (theLabel != 0) {
             sb.append(", label " + theLabel);
@@ -568,19 +498,16 @@ public class GblPoint
             sb.append(", diagonalized");
         }
         if (localDerivatives != null) {
-            sb.append(", " + localDerivatives.getColumnDimension()
-                    + " local derivatives");
+            sb.append(", " + localDerivatives.getColumnDimension() + " local derivatives");
         }
         if (globalDerivatives != null) {
-            sb.append(", " + globalDerivatives.getColumnDimension()
-                    + " global derivatives");
+            sb.append(", " + globalDerivatives.getColumnDimension() + " global derivatives");
         }
         sb.append("\n");
         if (level > 0) {
             if (measDim != 0) {
                 sb.append("  Measurement" + "\n");
-                sb.append("   Projection: " + "\n" + measProjection
-                        + "\n");
+                sb.append("   Projection: " + "\n" + measProjection + "\n");
                 sb.append("   Residuals: " + measResiduals + "\n");
                 sb.append("   Precision: " + measPrecision + "\n");
             }
@@ -603,13 +530,10 @@ public class GblPoint
                 globalDerivatives.print(4, 6);
             }
             sb.append("  Jacobian " + "\n");
-            sb.append("   Point-to-point " + "\n" + p2pJacobian
-                    + "\n");
+            sb.append("   Point-to-point " + "\n" + p2pJacobian + "\n");
             if (theLabel != 0) {
-                sb.append("   To previous offset " + "\n" + prevJacobian
-                        + "\n");
-                sb.append("   To next offset " + "\n" + nextJacobian
-                        + "\n");
+                sb.append("   To previous offset " + "\n" + prevJacobian + "\n");
+                sb.append("   To next offset " + "\n" + nextJacobian + "\n");
             }
         }
         System.out.println(sb.toString());

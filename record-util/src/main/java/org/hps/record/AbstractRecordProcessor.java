@@ -6,7 +6,6 @@ package org.hps.record;
  * Concrete implementations of <code>RecordProcessor</code> should extend this class.
  *
  * @param <RecordType> the type of the record processed by this class
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public abstract class AbstractRecordProcessor<RecordType> implements RecordProcessor<RecordType> {
 

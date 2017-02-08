@@ -45,12 +45,7 @@ import hep.physics.vec.VecOp;
  * are tunable and should be refined with more analysis. 
  * 
  * This adapts the current clustering algorithm for use in calculating cluster 
- * centroid energy and position reconstruction. 
- *
- *
- * @author Holly Szumila-Vance <hvanc001@odu.edu>
- * @author Kyle McCarty <mccaky@gmail.com>
- *
+ * centroid energy and position reconstruction.
  */
 public class EcalClusterICPosition extends Driver {
     // File writer to output cluster results.

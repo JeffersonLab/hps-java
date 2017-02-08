@@ -11,9 +11,6 @@ import org.jdom.Element;
 
 /**
  * Class containing the final translation and rotation correction from alignment.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class AlignmentCorrection {
     private Element node = null;

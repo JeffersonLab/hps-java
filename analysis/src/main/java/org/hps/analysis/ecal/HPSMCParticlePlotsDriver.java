@@ -19,9 +19,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Diagnostic plots for HPS ECal.
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: HPSMCParticlePlotsDriver.java,v 1.8 2013/10/25 20:11:50 jeremy Exp $
  */
 public class HPSMCParticlePlotsDriver extends Driver {
 

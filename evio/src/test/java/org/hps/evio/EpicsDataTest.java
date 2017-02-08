@@ -23,8 +23,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Test of reading EPICs scalar data from EVIO and writing it out to LCIO.
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EpicsDataTest extends TestCase {
 

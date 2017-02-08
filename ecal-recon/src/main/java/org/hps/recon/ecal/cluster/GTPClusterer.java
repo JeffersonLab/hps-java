@@ -59,8 +59,6 @@ import org.lcsim.event.base.BaseCluster;
  * If the input data is formatted in the style of hardware readout, the
  * sister class <code>GTPOnlineClusterer</code> should be used instead.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Sho Uemura <meeg@slac.stanford.edu>
  * @see Cluster
  * @see CalorimeterHit
  * @see AbstractClusterer

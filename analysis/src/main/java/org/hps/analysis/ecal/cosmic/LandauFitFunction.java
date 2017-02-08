@@ -17,8 +17,6 @@ import hep.aida.ref.function.AbstractIFunction;
  * <p>
  * The class is designed to be used with the AIDA fitting API. 
  * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Tim Nelson <tknelson@slac.stanford.edu>
  */
 public class LandauFitFunction extends AbstractIFunction {
 

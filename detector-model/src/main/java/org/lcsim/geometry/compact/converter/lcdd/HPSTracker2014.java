@@ -9,11 +9,7 @@ import org.lcsim.geometry.compact.converter.lcdd.util.LCDD;
 import org.lcsim.geometry.compact.converter.lcdd.util.SensitiveDetector;
 
 /**
- * 
  * Convert the HPS Test run tracker 2014 to the LCDD format.
- * 
- * @author Per Hansson <phansson@slac.stanford.edu>
- *
  */
 public class HPSTracker2014 extends HPSTracker2014Base
 {

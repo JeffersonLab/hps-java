@@ -18,8 +18,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * Test to run the standard reconstruction on Engineering Run 2015 EVIO data. Full energy electron candidate events were
  * selected from pass1 output. The current test runs the default reconstruction over the evio file then analyzes the
  * output lcio file. The current checks are minimal and need to be improved.
- *
- * @author Norman A Graf
  */
 public class EngRun2015ReconTest extends TestCase {
   

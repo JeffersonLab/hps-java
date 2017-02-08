@@ -15,11 +15,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
- */
 public class TDCPrintDriver extends Driver {
 
     private static EcalConditions ecalConditions = null;

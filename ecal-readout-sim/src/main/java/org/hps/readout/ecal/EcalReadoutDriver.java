@@ -9,9 +9,6 @@ import org.lcsim.lcio.LCIOConstants;
 
 /**
  * Performs readout of ECal hits.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: EcalReadoutDriver.java,v 1.4 2013/03/20 01:03:32 meeg Exp $
  */
 public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
 

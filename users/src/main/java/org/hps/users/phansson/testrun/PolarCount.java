@@ -1,16 +1,5 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson.testrun;
 
-
-
-
-/**
- *
- * @author phansson
- */
 public class PolarCount {
     
     private String run;

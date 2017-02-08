@@ -25,11 +25,6 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
-/**
- *
- * @author Matt Graham
- */
-// TODO: Add class documentation.
 public class StripMaker {
 
     private static String _NAME = "HPSStripClusterer";

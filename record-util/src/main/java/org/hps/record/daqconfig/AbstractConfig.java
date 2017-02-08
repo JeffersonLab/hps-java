@@ -7,8 +7,6 @@ import java.util.List;
  * Abstract class <code>AbstractCutConfig</code> holds a given number
  * of values and allows implementing classes to access them. It also
  * stores whether the configuration object is enabled.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 abstract class AbstractConfig<E> {
     // Store the cut values.

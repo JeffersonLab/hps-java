@@ -9,9 +9,7 @@ import org.hps.conditions.database.Field;
 import org.hps.conditions.database.Table;
 
 /**
- * This class represents a time shift calibration value for an ECAL channel.
- *
- * @author Jeremy McCormick, SLAC
+ * This class represents a time shift calibration value for an ECAL channel. 
  */
 @Table(names = {"ecal_time_shifts", "test_run_ecal_time_shifts"})
 public final class EcalTimeShift extends BaseConditionsObject {

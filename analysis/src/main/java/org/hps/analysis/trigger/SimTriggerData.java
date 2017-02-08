@@ -9,8 +9,6 @@ import org.lcsim.event.Cluster;
  * LCIO data stream by the <code>DataTriggerSimDriver</code> to allow
  * other classes to access triggers simulated from hardware and software
  * cluster data.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SimTriggerData {
     private final SimTriggerModule<Cluster> softwareClusterTriggers;

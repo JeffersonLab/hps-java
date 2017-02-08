@@ -23,10 +23,6 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class PlotAndFitUtilities {
 
     private static Logger LOGGER = Logger.getLogger(PlotAndFitUtilities.class.getPackage().getName());

@@ -32,10 +32,6 @@ import org.hps.conditions.svt.SvtMotorPosition.SvtMotorPositionCollection;
 import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.rundb.RunManager;
 
-/**
- * @author Sho Uemura <meeg@slac.stanford.edu>
- *
- */
 public class SvtChargeIntegrator {
 
 	private static final double angleTolerance = 1e-4;

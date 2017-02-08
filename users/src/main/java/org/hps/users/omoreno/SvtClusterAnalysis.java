@@ -31,8 +31,6 @@ import org.hps.recon.tracking.TrackUtils;
 
 /**
  * Analysis driver used to study SVT strip clusters. 
- *  
- * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a> 
  */
 public class SvtClusterAnalysis extends Driver {
 
@@ -363,7 +361,6 @@ public class SvtClusterAnalysis extends Driver {
    
     /**
      * 
-     * @author omoreno
      *
      */
     private class Cluster { 

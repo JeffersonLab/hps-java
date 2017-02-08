@@ -30,8 +30,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Test class to check hit positions and hit multiplicity associated with tracks.
- * @author phansson <phansson@slac.stanford.edu>
- * @version $id: $
  */
 public class TestRunTrackReconTest extends TestCase {
 

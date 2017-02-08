@@ -14,8 +14,6 @@ import org.lcsim.util.Driver;
  * Extension of standard LCSim job manager.
  * <p>
  * Provides setup of database conditions system and adds option to provide conditions system tags.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class JobManager extends JobControlManager {
     

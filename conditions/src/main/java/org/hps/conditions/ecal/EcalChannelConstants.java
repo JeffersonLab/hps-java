@@ -3,7 +3,6 @@ package org.hps.conditions.ecal;
 /**
  * This class represents the conditions of a single ECAL channel such as a calibration and gain.
  *
- * @author Jeremy McCormick, SLAC
  * @see EcalGain
  * @see EcalCalibration
  * @see EcalTimeShift

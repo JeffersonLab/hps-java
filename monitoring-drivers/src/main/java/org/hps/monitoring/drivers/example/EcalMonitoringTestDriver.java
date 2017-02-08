@@ -15,7 +15,6 @@ import org.lcsim.util.Driver;
  * This Driver just plots the number of RawTrackerHit objects in the 'EcalReadoutHits'
  * collection and the FADC values as a basic test that ECAL raw data is accessible to 
  * the monitoring app.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalMonitoringTestDriver extends Driver {
     

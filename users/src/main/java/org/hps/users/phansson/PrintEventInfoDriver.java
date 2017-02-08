@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.users.phansson;
 
 import java.io.BufferedReader;
@@ -27,11 +24,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 /**
- * 
- * Driver class that prints event info for specific events
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
+ * Driver class that prints event info for specific events.
  */
 public class PrintEventInfoDriver extends Driver {
 

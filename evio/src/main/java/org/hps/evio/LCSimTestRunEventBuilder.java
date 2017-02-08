@@ -22,9 +22,6 @@ import org.lcsim.event.base.BaseLCSimEvent;
 
 /**
  * Build LCSim events from Test Run 2012 EVIO data.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
 

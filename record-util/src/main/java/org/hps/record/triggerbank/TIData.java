@@ -5,8 +5,6 @@ import org.lcsim.event.GenericObject;
 /**
  * Class <code>TIData</code> is an implementation of abstract class
  * <code>AbstractIntData</code> that represents a TI trigger bit bank.
- *
- * @author Nathan Baltzell <baltzell@jlab.org>
  */
 public class TIData extends AbstractIntData {
 

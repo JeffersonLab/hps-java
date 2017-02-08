@@ -4,8 +4,6 @@ package org.hps.conditions.api;
  * This is an interface for connecting conditions information to a database.
  * <p>
  * Most of the functionality is derived from the {@link DatabaseObject} interface.
- *
- * @author Jeremy McCormick, SLAC
  */
 public interface ConditionsObject extends DatabaseObject {
 

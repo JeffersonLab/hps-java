@@ -7,17 +7,16 @@ import java.util.List;
  * The implementation of {@link SystemStatus}.
  */
 public final class SystemStatusImpl implements SystemStatus {
-
     
-    StatusCode code = StatusCode.UNKNOWN;
-    Subsystem systemName;
-    String message;
-    String description;
-    long lastChangedMillis;
-    boolean active = true;
-    boolean clearable;
+    private StatusCode code = StatusCode.UNKNOWN;
+    private Subsystem systemName;
+    private String message;
+    private String description;
+    private long lastChangedMillis;
+    private boolean active = true;
+    private boolean clearable;
     
-    List<SystemStatusListener> listeners = new ArrayList<SystemStatusListener>();
+    private List<SystemStatusListener> listeners = new ArrayList<SystemStatusListener>();
 
     /**
      * Fully qualified constructor.

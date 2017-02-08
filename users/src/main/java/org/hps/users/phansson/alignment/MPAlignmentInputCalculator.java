@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson.alignment;
 
 import hep.aida.IAnalysisFactory;
@@ -23,10 +19,6 @@ import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author phansson
- */
 public abstract class MPAlignmentInputCalculator {
     protected final int _nTrackParameters = 5;  //the five track parameters
     protected boolean _DEBUG = false;

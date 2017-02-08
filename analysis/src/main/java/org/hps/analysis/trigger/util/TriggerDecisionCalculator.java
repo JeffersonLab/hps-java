@@ -15,7 +15,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 
 /**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  */
 public class TriggerDecisionCalculator {

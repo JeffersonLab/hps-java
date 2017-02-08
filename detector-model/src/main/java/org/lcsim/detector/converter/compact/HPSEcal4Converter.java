@@ -34,12 +34,6 @@ import org.lcsim.geometry.compact.Detector;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.geometry.subdetector.HPSEcal4;
 
-/*
- * 
- * @author annie
- * @author jeremym
- */
-
 public class HPSEcal4Converter extends AbstractSubdetectorConverter {
 
     private static Logger LOGGER = Logger.getLogger(HPSEcal4Converter.class.getPackage().getName());

@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson.testrun;
 
 import hep.aida.IAnalysisFactory;
@@ -17,10 +13,6 @@ import java.io.IOException;
 
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author phansson
- */
 public class EcalHitMapPlots {
     
     private AIDA aida = AIDA.defaultInstance();

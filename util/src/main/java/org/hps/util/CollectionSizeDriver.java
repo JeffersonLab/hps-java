@@ -9,8 +9,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Prints a summary of collections seen in the file, and their average sizes.
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: CollectionSizeDriver.java,v 1.3 2013/04/02 01:11:11 meeg Exp $
  */
 public class CollectionSizeDriver extends Driver {
 

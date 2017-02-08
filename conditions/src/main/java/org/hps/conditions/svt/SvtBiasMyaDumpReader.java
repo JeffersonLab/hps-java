@@ -14,8 +14,6 @@ import java.util.logging.Logger;
 
 import org.hps.conditions.run.RunSpreadsheet.RunData;
 
-
-
 public class SvtBiasMyaDumpReader {
     
     /**

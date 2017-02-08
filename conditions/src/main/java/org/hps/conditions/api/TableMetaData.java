@@ -15,7 +15,6 @@ import java.util.Set;
  * The class also has references to the implementation classes which are used for mapping database operations to the
  * {@link ConditionsObject} and {@link ConditionsObjectCollection} API.
  *
- * @author Jeremy McCormick, SLAC
  * @see org.hps.conditions.api.ConditionsObject
  * @see org.hps.conditions.api.BaseConditionsObjectCollection
  */

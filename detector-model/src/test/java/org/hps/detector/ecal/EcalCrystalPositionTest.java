@@ -14,9 +14,7 @@ import org.hps.conditions.ecal.EcalCrystalPosition.EcalCrystalPositionCollection
  * and associating to an ecal channel object.
  * <p>
  * This test must go into the <i>detector-model</i> module because the detector
- * converters are not available in the <i>conditions</i> package. 
- * 
- * @author jeremym
+ * converters are not available in the <i>conditions</i> package.
  */
 public class EcalCrystalPositionTest extends TestCase {
     

@@ -18,7 +18,6 @@ import org.lcsim.event.base.BaseLCSimEvent;
  * This is an ET event processor that will load DAQ configuration into the global manager from EVIO physics SYNC events,
  * which have an event type in which bits 6 and 7 are set to 1.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  * @see org.hps.record.daqconfig.ConfigurationManager
  * @see org.hps.record.daqconfig.EvioDAQParser
  */

@@ -21,9 +21,6 @@ import org.lcsim.util.aida.AIDA;
  * distributions (both Histogram1D) are shown in the last panel of the MonitoringApplication, as well 
  * as a 2D histogram (hit time vs hit energy). Finally, if available, the raw waveshape (in mV) is
  * displayed.
- * 
- * @author Andrea Celentano 
- *
  */
 public class EcalChannelsAmplitude extends Driver {
 

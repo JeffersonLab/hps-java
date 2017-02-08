@@ -7,8 +7,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * Beam current condition with nominal values.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"beam_energies"})
 public final class BeamEnergy extends BaseConditionsObject {

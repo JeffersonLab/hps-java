@@ -1,24 +1,23 @@
 package org.hps.recon.vertexing;
 
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+import static java.lang.Math.tan;
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
 import hep.physics.matrix.MatrixOp;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-import static java.lang.Math.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.constants.Constants;
 
-/**
- * @version $Id: BilliorVertexer.java,v 1.3 2013/03/13 19:24:20 mgraham Exp $
- * @version Vertex tracks using least-squares method laid out by billior etal
- * used in the HPS Java package.
- */
 public class BilliorVertexer {
     // the value of the magnetic field in the vicinity of the vertex
     // default is a constant field along the z axis

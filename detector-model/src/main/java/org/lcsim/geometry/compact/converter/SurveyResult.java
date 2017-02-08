@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.lcsim.geometry.compact.converter;
 
 import hep.physics.vec.BasicHep3Matrix;
@@ -21,9 +18,6 @@ import org.lcsim.detector.Translation3D;
 
 /**
  * Class to keep survey results.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class SurveyResult {
 

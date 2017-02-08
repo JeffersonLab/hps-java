@@ -29,7 +29,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * 
- * @author Omar Moreno <omoreno1@ucsc.edu> 
  * $Id: HelicalTrackHitDriverTest.java,v 1.3 2013/10/25 20:29:03 jeremy Exp $
  */
 public class HelicalTrackHitDriverTest extends TestCase {

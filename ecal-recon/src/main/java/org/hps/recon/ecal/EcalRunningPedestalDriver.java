@@ -32,8 +32,6 @@ import org.lcsim.util.Driver;
  * TODO: Timestamps from EVIO for some runs appear to not be monotonically increasing.
  *       This interferes with minLookbackTime, so it defaults to disabled and its setter
  *       is left private for now. (Should be a JIRA item??? --JM)
- * 
- * @author <baltzell@jlab.org>
  */
 public class EcalRunningPedestalDriver extends Driver {
 

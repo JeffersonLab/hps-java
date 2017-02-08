@@ -14,7 +14,6 @@ import org.apache.commons.math3.stat.inference.KolmogorovSmirnovTest;
  * Class to do various comparisons of histograms Singleton instance with lazy
  * instantiation
  *
- * @author phansson
  */
 public class CompareHistograms {
 

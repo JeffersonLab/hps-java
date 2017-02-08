@@ -10,8 +10,6 @@ import org.hps.conditions.svt.SvtAlignmentConstant.SvtAlignmentConstantCollectio
 /**
  * Reads in SVT alignment constants from the database and converts them to the {@link MilleParameter} class expected by
  * the detector model.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class SvtAlignmentConstantsReader {
     

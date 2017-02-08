@@ -23,10 +23,6 @@ import org.lcsim.units.clhep.PhysicalConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/*
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: KinkAnalysisDriver.java,v 1.3 2013/10/24 18:11:43 meeg Exp $
- */
 public class KinkAnalysisDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

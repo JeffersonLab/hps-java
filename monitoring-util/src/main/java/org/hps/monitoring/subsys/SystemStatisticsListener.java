@@ -1,11 +1,7 @@
-/**
- * 
- */
 package org.hps.monitoring.subsys;
 
 /**
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
+ * Listener that is activated from updates to a {@link SystemStatistics} object.
  */
 public interface SystemStatisticsListener {
     

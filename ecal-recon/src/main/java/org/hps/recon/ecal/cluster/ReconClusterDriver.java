@@ -12,8 +12,6 @@ import org.lcsim.lcio.LCIOConstants;
  * writing of a rejected hit list to the LCSim event.
  * 
  * @see ReconClusterer
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ReconClusterDriver extends ClusterDriver {
     

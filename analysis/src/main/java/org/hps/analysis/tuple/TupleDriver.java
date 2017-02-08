@@ -48,11 +48,8 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 
 /**
- * sort of an interface for DQM analysis drivers creates the DQM database
- * manager, checks whether row exists in db etc
- *
- * @author mgraham on Apr 15, 2014 update mgraham on May 15, 2014 to include
- * calculateEndOfRunQuantities & printDQMData i.e. useful methods
+ * Interface for DQM analysis drivers: creates the DQM database
+ * manager, checks whether row exists in db etc.
  */
 public abstract class TupleDriver extends Driver {
 

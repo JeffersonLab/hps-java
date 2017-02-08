@@ -18,7 +18,6 @@ import org.reflections.Reflections;
  * instantiate the specific converter class instead.
  *
  * @see AbstractConditionsObjectConverter
- * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("serial")
 public final class ConverterRegistry extends

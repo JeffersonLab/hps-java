@@ -1,11 +1,3 @@
-/*
- * PropXYXY_Test.java
- *
- * Created on July 24, 2007, 10:15 PM
- *
- * $Id: PropXYXY_Test.java,v 1.2 2011/07/07 20:57:39 mgraham Exp $
- */
-
 package org.hps.users.mgraham;
 
 //import junit.framework.TestCase;
@@ -25,10 +17,6 @@ import org.lcsim.recon.tracking.trfxyp.PropXYXY;
 import org.lcsim.recon.tracking.trfxyp.SurfXYPlane;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Norman Graf
- */
 public class PropXYXY_Test extends Driver
 {
     private boolean debug=true;

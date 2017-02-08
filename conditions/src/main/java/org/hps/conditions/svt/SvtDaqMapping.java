@@ -6,9 +6,6 @@ import org.hps.util.Pair;
 
 /**
  * This class encapsulates the SVT DAQ map.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 @Table(names = {"svt_daq_map"})
 public class SvtDaqMapping extends AbstractSvtDaqMapping {

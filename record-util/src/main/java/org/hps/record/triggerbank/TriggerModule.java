@@ -39,7 +39,6 @@ import org.lcsim.event.Cluster;
  * <li>Pair Energy Slope Lower Bound</li>
  * <li>Pair Coplanarity Upper Bound</li>
  * <li>Pair Time Coincidence Upper Bound</li></ul>
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see Cluster
  * @see SSPCluster
  */

@@ -9,9 +9,6 @@ import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 /**
  * This class contains all test run SVT conditions data by readout channel. {@link SvtChannel} objects from the SVT
  * channel map can be used to lookup the conditions for individual channels.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 public final class SvtConditions extends AbstractSvtConditions {
 

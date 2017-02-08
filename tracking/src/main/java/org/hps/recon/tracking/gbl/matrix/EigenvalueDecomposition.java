@@ -14,7 +14,6 @@ package org.hps.recon.tracking.gbl.matrix;
     i.e. A.times(V) equals V.times(D).  The matrix V may be badly
     conditioned, or even singular, so the validity of the equation
     A = V*D*inverse(V) depends upon V.cond().
-    @version $Id: EigenvalueDecomposition.java,v 1.1.1.1 2010/11/30 21:31:59 jeremy Exp $
 */
 
 public class EigenvalueDecomposition implements java.io.Serializable {

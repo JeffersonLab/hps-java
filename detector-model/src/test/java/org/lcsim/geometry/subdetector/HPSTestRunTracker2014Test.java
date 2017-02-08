@@ -13,12 +13,7 @@ import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.GeometryReader;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class HPSTestRunTracker2014Test extends TestCase {
-
     
     Detector det;
     public HPSTestRunTracker2014Test(String name) {
@@ -33,14 +28,11 @@ public class HPSTestRunTracker2014Test extends TestCase {
         InputStream in = HPSTestRunTracker2014Test.class.getResourceAsStream(pathToCompactFile);
         det = geometryReader.read(in);
         
-        System.out.printf("%s: detector name converted: %s\n",this.getClass().getSimpleName(), det.getName());
-        
-        
+        System.out.printf("%s: detector name converted: %s\n",this.getClass().getSimpleName(), det.getName());              
     }
     
     public void test() {
-        
-        
+                
 //      IDetectorElementStore store =  DetectorElementStore.getInstance();
 //      System.out.printf("%s: Printing %d DE:\n",this.getClass().getSimpleName(), store.size());
 //      System.out.printf("%s: %50s %40s %50s %50s\n",this.getClass().getSimpleName(), "name", "pos", "path","mother");
@@ -57,9 +49,6 @@ public class HPSTestRunTracker2014Test extends TestCase {
             if(id.getGarbage()==false)
                 expId = e.getExpandedIdentifier();
             System.out.printf("%s: %50s %40s %50s %50s %s\n",this.getClass().getSimpleName(), e.getName(),e.hasGeometryInfo()?e.getGeometry().getPosition().toString():" - ",e.hasGeometryInfo()?((PhysicalVolumePath)e.getGeometry().getPath()).toString():" - ",e.getParent()==null?" - ":e.getParent().getName(),expId==null?" no expId ":expId.toString());
-        }
-        
-    }
-   
-
+        }       
+    }  
 }

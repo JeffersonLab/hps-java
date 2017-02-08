@@ -9,10 +9,6 @@ import java.util.List;
  * Parses the trigger bank information in the SSP trigger bank and
  * converts it into <code>SSPCluster</code> and <code>SSPTrigger</code>
  * objects.
- * 
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Andrea Celentano <celentan@ge.infn.it>
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SSPData extends AbstractIntData {
     // The EVIO header tag for SSP trigger banks.

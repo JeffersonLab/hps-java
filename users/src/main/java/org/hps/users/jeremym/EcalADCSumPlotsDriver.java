@@ -25,7 +25,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * This Driver will create a histogram for every crystal in the ECAL and plot the sum of
  * its ADC values for the raw hit, minus the channel's pedestal value from the conditions system.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalADCSumPlotsDriver extends Driver {
 

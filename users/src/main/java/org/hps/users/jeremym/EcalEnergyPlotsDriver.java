@@ -23,7 +23,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * This Driver will create a histogram for every channel in the ECAL and plot its corrected energy.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalEnergyPlotsDriver extends Driver {
 

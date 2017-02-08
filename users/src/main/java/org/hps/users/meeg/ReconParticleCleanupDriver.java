@@ -13,9 +13,6 @@ import org.lcsim.util.Driver;
 /**
  * Remove final state particles with bad track-cluster time matching, and
  * vertices with shared hits.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class ReconParticleCleanupDriver extends Driver {
 

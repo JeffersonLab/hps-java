@@ -1,7 +1,6 @@
 package org.hps.detector.svt;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
@@ -13,9 +12,6 @@ import org.lcsim.geometry.Detector;
 /**
  * This test loads {@link SvtConditions} data onto the detector and then checks that all channels of each sensor have
  * non-zero data values for applicable parameters.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 // TODO: Update this test with more meaningful assertions.
 public final class SvtDetectorSetupTest extends TestCase {

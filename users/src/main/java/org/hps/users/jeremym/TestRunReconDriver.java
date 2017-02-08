@@ -19,9 +19,6 @@ import org.lcsim.util.Driver;
  * steering-files/src/main/resources/org/hps/steering/recon/TestRunOfflineRecon.lcsim
  * <p>
  * It should only be used for testing purposes or for convenience, as it is not configurable.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
  */
 public class TestRunReconDriver extends Driver {
     

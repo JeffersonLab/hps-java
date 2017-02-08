@@ -11,8 +11,6 @@ import javax.swing.WindowConstants;
 
 /**
  * This is a set of utility methods for creating Swing dialog windows.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class DialogUtil {
 

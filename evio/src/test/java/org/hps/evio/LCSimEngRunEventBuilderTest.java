@@ -19,8 +19,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 /**
  * Test conversion of EVIO to LCIO for Engineering Run EVIO data. This is ECAL
  * data only for now.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class LCSimEngRunEventBuilderTest extends TestCase {
 

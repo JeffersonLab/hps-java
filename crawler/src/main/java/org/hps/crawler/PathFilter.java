@@ -8,8 +8,6 @@ import java.util.logging.Logger;
 /**
  * Implementation of {@link java.io.FileFilter} which accepts a file if its path is 
  * equal to any of the paths in a set of strings.
- * 
- * @author Jeremy McCormick, SLAC
  */
 final class PathFilter implements FileFilter {
 

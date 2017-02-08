@@ -20,7 +20,6 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * This class checks that event processing works correctly for files that have multiple runs in them.
  *
- * @author Jeremy McCormick, SLAC
  */
 public final class RunNumberTest extends TestCase {
 

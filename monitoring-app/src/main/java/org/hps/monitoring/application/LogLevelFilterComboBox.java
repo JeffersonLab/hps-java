@@ -14,8 +14,6 @@ import org.hps.monitoring.application.model.ConfigurationModel;
 
 /**
  * This is a combo box used to filter the log table messages by level.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class LogLevelFilterComboBox extends JComboBox<Level> implements ActionListener, PropertyChangeListener {

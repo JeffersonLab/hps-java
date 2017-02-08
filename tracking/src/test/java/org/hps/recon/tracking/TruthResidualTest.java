@@ -28,8 +28,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Test class to check truth particle and propagated position.
- * @author phansson <phansson@slac.stanford.edu>
- * @version $id: $
  */
 public class TruthResidualTest extends TestCase {
 

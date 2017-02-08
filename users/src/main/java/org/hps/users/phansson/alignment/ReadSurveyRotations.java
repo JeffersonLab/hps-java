@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.users.phansson.alignment;
 
 import hep.physics.vec.BasicHep3Vector;
@@ -23,10 +20,6 @@ import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.RotationOrder;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class ReadSurveyRotations {
 
     final static Logger LOGGER = Logger.getLogger(ReadSurveyRotations.class.getSimpleName());

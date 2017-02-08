@@ -33,7 +33,6 @@ import org.lcsim.event.EventHeader;
  * used for 2-ns beam bunch formatted data. <code>GTPClusterDriver</code>
  * should be used for this data instead.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see GTPOnlineClusterer
  * @see ConfigurationManager
  * @see org.hps.record.daqconfig.DAQConfigDriver

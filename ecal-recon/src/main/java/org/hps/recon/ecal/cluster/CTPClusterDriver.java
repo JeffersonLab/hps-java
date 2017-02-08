@@ -6,8 +6,6 @@ package org.hps.recon.ecal.cluster;
  * set publicly.
  * 
  * @see GTPClusterer
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class CTPClusterDriver extends ClusterDriver {
     

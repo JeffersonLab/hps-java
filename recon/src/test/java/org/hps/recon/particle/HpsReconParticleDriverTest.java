@@ -18,12 +18,6 @@ import hep.physics.vec.Hep3Vector;
 import org.hps.recon.particle.HpsReconParticleDriver; 
 import org.hps.recon.tracking.CoordinateTransformations;
 
-
-/**
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
- */
 public class HpsReconParticleDriverTest extends TestCase { 
 
     private static final double B_FIELD = 0.5; // Tesla

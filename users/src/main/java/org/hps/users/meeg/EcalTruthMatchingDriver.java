@@ -14,11 +14,6 @@ import org.lcsim.event.MCParticle;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
- */
 public class EcalTruthMatchingDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

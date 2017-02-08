@@ -19,7 +19,6 @@ import org.lcsim.util.aida.AIDA;
  * total energy (upper and lower bounds), and the cluster hit count (lower bound
  * only). All parameters may be set through a steering file.
  *
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see TriggerDriver
  */
 public class SinglesTriggerDriver extends TriggerDriver {

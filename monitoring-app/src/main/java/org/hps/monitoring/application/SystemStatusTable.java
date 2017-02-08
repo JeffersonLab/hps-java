@@ -17,8 +17,6 @@ import org.hps.monitoring.subsys.StatusCode;
 
 /**
  * This table shows the current state of {@link org.hps.monitoring.subsys.SystemStatus} objects.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class SystemStatusTable extends JTable {

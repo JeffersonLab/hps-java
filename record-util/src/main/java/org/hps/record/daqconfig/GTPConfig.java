@@ -11,8 +11,6 @@ import java.io.PrintStream;
  * <li>Cluster verification window size (before seed)</li>
  * <li>Seed energy cut bounds</li>
  * </ul>
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class GTPConfig extends IDAQConfig {
     // Store clustering configuration parameters.

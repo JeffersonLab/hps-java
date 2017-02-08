@@ -8,8 +8,6 @@ import org.hps.conditions.svt.SvtAlignmentConstant.SvtAlignmentConstantCollectio
 
 /**
  * Test loading SVT alignment constants into the Java detector model.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class SvtAlignmentTest extends TestCase {
 

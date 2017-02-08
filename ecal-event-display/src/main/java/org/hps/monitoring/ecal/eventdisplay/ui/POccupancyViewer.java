@@ -13,8 +13,6 @@ import org.lcsim.event.CalorimeterHit;
  * PassiveViewer</code> class for displaying occupancies from a stream.
  * Like all passive viewers, it is designed to receive instructions on
  * when to update its display or read data from the stream.
- * 
- * @author Kyle McCarty
  */
 public class POccupancyViewer extends PassiveViewer {
     private static final long serialVersionUID = 3712604287904215617L;

@@ -22,11 +22,6 @@ import org.lcsim.util.Driver;
  * {@link org.lcsim.geometry.subdetectur.HPSEcal3} detector.
  *
  * The clustering algorithm is from pages 83 and 84 of the HPS Proposal.
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Tim Nelson <tknelson@slac.stanford.edu>
- *
- * @version $Id: EcalClusterer.java,v 1.1 2013/02/25 22:39:24 meeg Exp $
  */
 public class EcalClustererCosmics extends Driver {
 

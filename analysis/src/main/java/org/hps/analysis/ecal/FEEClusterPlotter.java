@@ -21,12 +21,9 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-
 /**
-*This makes a bunch of plots of the FEE peak per crystal (seed).
-*@author Holly Szumila <hvanc001@odu.edu>
+* This makes a bunch of plots of the FEE peak per crystal (seed).
 */
-
 public class FEEClusterPlotter extends Driver {
     
     //private AIDAFrame plotterFrame;

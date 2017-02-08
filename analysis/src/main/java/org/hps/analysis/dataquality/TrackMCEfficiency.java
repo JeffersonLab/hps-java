@@ -33,9 +33,7 @@ import org.lcsim.geometry.Detector;
  * DQM driver for the monte carlo track efficiency; makes a bunch of efficiency
  * vs variable plots for all tracks and just electrons from trident/A' event, as
  * well as "findable" tracks use the debugTrackEfficiency flag to print out info
- * regarding individual failed events
- *
- * @author mgraham on Mar 28, 2014
+ * regarding individual failed events.
  */
 // TODO:  Add some quantities for DQM monitoring:  e.g. <efficiency>, <eff>_findable
 public class TrackMCEfficiency extends DataQualityMonitor {

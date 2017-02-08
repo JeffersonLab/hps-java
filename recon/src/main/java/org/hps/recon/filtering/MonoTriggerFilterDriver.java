@@ -11,9 +11,6 @@ import org.hps.record.triggerbank.TIData;
  * Keep events with exactly one trigger bit.
  * Also keep EPICS events, and Scaler events.
  * Drop all other events.
- * 
- * @author spaul
- *
  */
 public class MonoTriggerFilterDriver extends Driver
 {
@@ -43,7 +40,7 @@ public class MonoTriggerFilterDriver extends Driver
       if (tid.isCalibTrigger()) triggers++;
     }
     if(triggers == 1)
-    /*tab*/return;
+        return;
     
     // 5. Else, drop event:
     throw new Driver.NextEventException();

@@ -17,9 +17,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- */
 public class EcalADCProfilePlotsDriver extends Driver {
 
     EcalConditions conditions = null;

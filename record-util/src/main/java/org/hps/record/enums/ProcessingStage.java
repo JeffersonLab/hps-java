@@ -6,8 +6,6 @@ package org.hps.record.enums;
  * <p>
  * For example, if the <code>ProcessingStage</code> is set to <code>EVIO</code> then the <code>ET</code> and
  * <code>EVIO</code> adapters will be activated but LCIO events will not be created or processed.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public enum ProcessingStage {
     /**

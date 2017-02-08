@@ -6,7 +6,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Driver for testing the error handling in the monitoring app.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class DummyErrorDriver extends Driver {
     

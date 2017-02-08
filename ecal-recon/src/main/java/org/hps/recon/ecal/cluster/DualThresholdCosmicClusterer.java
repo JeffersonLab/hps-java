@@ -17,8 +17,6 @@ import org.lcsim.event.RawTrackerHit;
  * which uses a list of tight hits for seeding.
  * 
  * @see SimpleCosmicClusterer
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class DualThresholdCosmicClusterer extends SimpleCosmicClusterer {
              

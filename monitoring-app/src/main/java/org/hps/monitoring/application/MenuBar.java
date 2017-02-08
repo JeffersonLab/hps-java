@@ -18,8 +18,6 @@ import org.hps.record.enums.DataSourceType;
 
 /**
  * This is the primary menu bar for the monitoring application.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener {

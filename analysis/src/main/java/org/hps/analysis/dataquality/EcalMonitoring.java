@@ -16,7 +16,6 @@ import org.lcsim.geometry.Detector;
 
 /**
  *
- * @author mgraham on Mar 28, 2014...just added empty (almost) file into svn May
  * 14, 2014 put some DQM template stuff in...ECal-ers should really fill in the
  * guts
  *

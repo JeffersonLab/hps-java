@@ -5,8 +5,6 @@ import org.hps.record.evio.EvioEventUtilities;
 
 /**
  * A @{link CompositeProcessor} for throwing an error when the maximum number of records is reached or exceeded.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class MaxRecordsProcessor extends CompositeRecordProcessor {
 

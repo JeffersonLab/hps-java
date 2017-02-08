@@ -9,8 +9,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 
 /**
  * This is a table model for a collection of conditions objects.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class ConditionsCollectionTableModel extends DefaultTableModel {

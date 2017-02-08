@@ -5,8 +5,6 @@ package org.hps.record.daqconfig;
  * <code>AbstractCutConfig</code> for cuts that have only a lower bound.
  * It provides the means to access this value and, for package classes,
  * set it.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class LBOCutConfig extends AbstractConfig<Double> {
     private static final int LOWER_BOUND = 0;

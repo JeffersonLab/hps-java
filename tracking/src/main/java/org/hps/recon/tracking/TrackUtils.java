@@ -60,8 +60,6 @@ import org.lcsim.util.swim.Trajectory;
 /**
  * Assorted helper functions for the track and helix objects in lcsim. Re-use as
  * much of HelixUtils as possible.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 // TODO: Switch to tracking/LCsim coordinates for the extrapolation output!
 public class TrackUtils {

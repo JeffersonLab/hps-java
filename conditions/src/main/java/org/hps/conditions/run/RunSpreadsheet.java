@@ -24,8 +24,6 @@ import org.apache.commons.csv.CSVRecord;
  * <p>
  * The rows are accessible as raw CSV data through the Apache Commons CSV library, and this data must be manually cleaned up and converted 
  * to the correct data type before being inserted into the conditions database.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class RunSpreadsheet {
 

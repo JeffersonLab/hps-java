@@ -53,7 +53,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
  *    double phi0 = _trk.phi0();
  *    double R = _trk.R();
  *
- * @author mgraham
  */
 public class AlignmentParameters {
 

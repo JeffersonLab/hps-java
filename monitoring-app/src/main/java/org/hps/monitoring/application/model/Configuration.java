@@ -12,8 +12,6 @@ import java.util.Set;
  * This class provides a list of key, value pairs backed by a <code>Properties</code> object. The getter and setter
  * methods for these values are not public, because the {@link org.hps.monitoring.application.model.ConfigurationModel}
  * class should be used instead to get or set application configuration values.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class Configuration {
 

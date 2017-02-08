@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.hps.users.luca;
 
 import java.io.FileWriter;
@@ -17,11 +11,6 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
-
-/**
- * 
- * @author Luca Colaneri 
- */
 public class mycluster3 extends Driver {
     int posx, posy;
     int radius=2;

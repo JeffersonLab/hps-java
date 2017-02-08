@@ -20,10 +20,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Reads clusters and makes trigger decision using opposite quadrant criterion.
  * Prints triggers to file if file path specified.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: FADCTriggerDriver.java,v 1.4 2013/09/02 21:56:56 phansson Exp $
  */
 public class FADCTriggerDriver extends TriggerDriver {
 

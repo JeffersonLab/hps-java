@@ -22,11 +22,6 @@ import org.lcsim.util.Driver;
  * The amplitude can include noise if desired. This value is then compared to the 
  * readout/trigger thresholds in FADC. Finally,this value is converted back into GeV 
  * energy output which can be used for clustering, etc. 
- * 
- * Original author for test run:
- * @author phansson 
- * Modified from test run to Spring 2015 running: 
- * @author Holly Szumila <hvanc001@odu.edu>
  */
 public class EcalEdepToTriggerConverterDriver extends Driver {
     

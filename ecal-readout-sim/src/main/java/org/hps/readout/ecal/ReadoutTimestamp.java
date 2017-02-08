@@ -6,11 +6,6 @@ import java.util.List;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: ReadoutTimestamp.java,v 1.1 2013/03/20 00:09:42 meeg Exp $
- */
 public class ReadoutTimestamp implements GenericObject {
 
     public static final String collectionName = "ReadoutTimestamps";

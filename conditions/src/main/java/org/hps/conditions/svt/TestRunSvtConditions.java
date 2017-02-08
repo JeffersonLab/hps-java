@@ -6,15 +6,10 @@ import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
 import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
 
-// TODO: Move all constants to their own class
-
 /**
  * This class contains all test run SVT conditions data by readout channel. {@link TestRunSvtChannel} objects from the
  * SVT channel map should be used to lookup the conditions using the {@link #getChannelConstants(AbstractSvtChannel)}
  * method.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 public final class TestRunSvtConditions extends AbstractSvtConditions {
 

@@ -7,7 +7,6 @@ import hep.aida.IHistogram2D;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +30,6 @@ import org.lcsim.event.base.BaseCluster;
 import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCIODriver;
 import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
@@ -40,8 +38,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * This test performs basic sanity checks on the output from the various clustering algorithms, 
  * and it creates an AIDA file with some useful plots, as well as optionally writes an LCIO 
  * file with the event data plus the clusters.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * 
  * @see Clusterer
  * @see org.lcsim.event.Cluster

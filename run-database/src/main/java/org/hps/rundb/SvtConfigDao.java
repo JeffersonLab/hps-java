@@ -6,8 +6,6 @@ import org.hps.record.svt.SvtConfigData;
 
 /**
  * Database API for accessing SVT configuration in run database.
- * 
- * @author jeremym
  */
 public interface SvtConfigDao {
    

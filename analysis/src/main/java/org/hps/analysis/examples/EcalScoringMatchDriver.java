@@ -13,11 +13,6 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
- */
 public class EcalScoringMatchDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

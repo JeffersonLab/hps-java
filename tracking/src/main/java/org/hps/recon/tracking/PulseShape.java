@@ -2,11 +2,6 @@ package org.hps.recon.tracking;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
- */
 public abstract class PulseShape {
 
     public abstract void setParameters(int channel, HpsSiSensor sensor);

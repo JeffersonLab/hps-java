@@ -14,8 +14,6 @@ import org.hps.record.scalers.ScalersEvioProcessor;
  * <li>Cluster time</li></ul>
  * <code>SSPCluster</code> does not support the ability to track
  * individual hits that are part of a cluster.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public final class SSPCluster {
     // Cluster definition variables.

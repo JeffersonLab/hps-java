@@ -14,8 +14,6 @@ import org.hps.conditions.database.Table;
 /**
  * This class represents a single record from the primary conditions data table, which defines the validity range for a
  * specific collection of conditions objects.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"conditions"})
 @Converter(converter = ConditionsRecordConverter.class)

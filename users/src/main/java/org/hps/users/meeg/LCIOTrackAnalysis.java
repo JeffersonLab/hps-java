@@ -19,10 +19,6 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- */
 // TODO: This is an exact duplicate of the class in the analysis.example package.
 //       One of them should be sandboxed
 public class LCIOTrackAnalysis {

@@ -3,9 +3,7 @@ package org.hps.recon.tracking;
 import hep.physics.matrix.SymmetricMatrix;
 
 /**
- * Encapsulate position, direction, and covariance matrix for a straight-line track
- * 
- * @author Richard Partridge
+ * Encapsulate position, direction, and covariance matrix for a straight-line track.
  */
 public class StraightLineTrack {
 

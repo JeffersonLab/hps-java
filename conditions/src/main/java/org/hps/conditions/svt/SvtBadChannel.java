@@ -8,8 +8,6 @@ import org.hps.conditions.database.Table;
 /**
  * Represents a channel that has been flagged as bad, which should not be used for physics reconstructions. This might
  * be done if the channel is extremely noisy, etc.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"svt_bad_channels", "test_run_svt_bad_channels"})
 public final class SvtBadChannel extends BaseConditionsObject {

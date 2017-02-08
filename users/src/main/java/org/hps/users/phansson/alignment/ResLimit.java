@@ -1,18 +1,11 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson.alignment;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-
-
 /**Map< Integer, Map<Integer
  *
- * @author phansson
  */
 public class ResLimit {
     

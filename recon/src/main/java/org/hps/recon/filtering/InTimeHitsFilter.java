@@ -15,10 +15,6 @@ import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 
-/**
- *
- * @author mgraham
- */
 public class InTimeHitsFilter extends EventReconFilter{
    
     private int minSiLayers=10;

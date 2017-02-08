@@ -10,10 +10,6 @@ import org.lcsim.event.Track;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class RunAlignment extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

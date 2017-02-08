@@ -5,8 +5,6 @@ import org.jlab.coda.jevio.EvioEvent;
 
 /**
  * Implementation of a Freehep <code>RecordLoop</code> for EVIO data.
- *
- * @author Jeremy McCormick, SLAC
  */
 public class EvioLoop extends AbstractRecordLoop<EvioEvent> {
 

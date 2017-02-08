@@ -11,7 +11,6 @@ import org.jlab.coda.jevio.EvioReader;
 /**
  * An ET event processor that builds EPICS events.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 // FIXME: Class is currently unused.
 public class EpicsEtProcessor extends EtEventProcessor {

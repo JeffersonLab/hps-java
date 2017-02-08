@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.users.phansson.daq;
 
 import java.io.FileWriter;
@@ -30,10 +27,6 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class SvtHeaderAnalysisDriver extends Driver {
 
     private final Logger logger = Logger.getLogger(SvtHeaderAnalysisDriver.class.getSimpleName());

@@ -4,8 +4,6 @@ package org.hps.record.triggerbank;
 /**
  * Class <code>SSPPairTrigger</code> represents a pair trigger reported
  * by the SSP and also handles parsing the trigger bits.
- * 
- * @author Kyle McCarty <mccarty@jab.org>
  */
 public class SSPPairTrigger extends SSPNumberedTrigger {
     /**

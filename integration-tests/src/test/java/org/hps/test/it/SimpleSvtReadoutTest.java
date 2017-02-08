@@ -14,9 +14,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Integration test to check the SVT readout.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- *
  */
 public class SimpleSvtReadoutTest extends TestCase {
    

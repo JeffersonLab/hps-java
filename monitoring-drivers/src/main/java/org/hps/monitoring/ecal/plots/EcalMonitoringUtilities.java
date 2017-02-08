@@ -16,10 +16,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Some simple utility methods for organizing ECAL monitoring plots.
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
- * @author <baltzell@jlab.org>
  */
 public final class EcalMonitoringUtilities {
 

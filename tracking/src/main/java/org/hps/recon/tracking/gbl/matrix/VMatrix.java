@@ -5,21 +5,15 @@ import java.util.ArrayList;
 
 /**
  * Simple Vector based on ArrayList
- *
- * @author Norman A. Graf
- *
- * @version $Id$
  */
-public class VMatrix
-{
+public class VMatrix {
 
     private int numRows;
     private int numCols;
-    //TODO replace with a simple double[]
+    // TODO replace with a simple double[]
     private ArrayList theVec;
 
-    public VMatrix(int nRows, int nCols)
-    {
+    public VMatrix(int nRows, int nCols) {
         numRows = nRows;
         numCols = nCols;
         theVec = new ArrayList(nRows * nCols);
@@ -28,8 +22,7 @@ public class VMatrix
         }
     }
 
-    public VMatrix(VMatrix m)
-    {
+    public VMatrix(VMatrix m) {
         numRows = m.numRows;
         numCols = m.numCols;
         theVec = new ArrayList(numRows * numCols);
@@ -43,8 +36,7 @@ public class VMatrix
         }
     }
 
-    public VMatrix copy()
-    {
+    public VMatrix copy() {
         VMatrix aResult = new VMatrix(numRows, numCols);
         for (int i = 0; i < numRows; ++i) {
             for (int j = 0; j < numCols; ++j) {
@@ -56,14 +48,13 @@ public class VMatrix
         return aResult;
     }
 
-    /// Resize Matrix.
+    // / Resize Matrix.
     /**
      * \param [in] nRows Number of rows. \param [in] nCols Number of columns.
      */
     // TODO understand what this method is supposed to do.
     // may not need it as ArrayList already automatically resizes...
-    public void resize(int nRows, int nCols)
-    {
+    public void resize(int nRows, int nCols) {
         numRows = nRows;
         numCols = nCols;
         theVec = new ArrayList(numRows * nCols);
@@ -72,63 +63,55 @@ public class VMatrix
         }
     }
 
-/// Get transposed matrix.
+    // / Get transposed matrix.
     /**
      * \return Transposed matrix.
      */
-    public VMatrix transpose()
-    {
+    public VMatrix transpose() {
         VMatrix aResult = new VMatrix(numCols, numRows);
         for (int i = 0; i < numRows; ++i) {
             for (int j = 0; j < numCols; ++j) {
-                //System.out.println("row: "+i+" col: "+j+" val: "+theVec.get(numCols * i + j));
+                // System.out.println("row: "+i+" col: "+j+" val: "+theVec.get(numCols * i + j));
                 aResult.set(j, i, (double) theVec.get(numCols * i + j));
             }
         }
         return aResult;
     }
 
-    public void set(int row, int col, double val)
-    {
+    public void set(int row, int col, double val) {
         theVec.set(numCols * row + col, val);
     }
 
-    public void addTo(int row, int col, double val)
-    {
+    public void addTo(int row, int col, double val) {
         theVec.set(numCols * row + col, (double) theVec.get(numCols * row + col) + val);
     }
 
-    public void subFrom(int row, int col, double val)
-    {
+    public void subFrom(int row, int col, double val) {
         theVec.set(numCols * row + col, (double) theVec.get(numCols * row + col) - val);
     }
 
-    public double get(int row, int col)
-    {
+    public double get(int row, int col) {
         return (double) theVec.get(numCols * row + col);
     }
 
-/// Get number of rows.
+    // / Get number of rows.
     /**
      * \return Number of rows.
      */
-    int getNumRows()
-    {
+    int getNumRows() {
         return numRows;
     }
 
-/// Get number of columns.
+    // / Get number of columns.
     /**
      * \return Number of columns.
      */
-    int getNumCols()
-    {
+    int getNumCols() {
         return numCols;
     }
 
-/// Multiplication Matrix*Vector.
-    VVector times(VVector aVector)
-    {
+    // / Multiplication Matrix*Vector.
+    VVector times(VVector aVector) {
         VVector aResult = new VVector(numRows);
         for (int i = 0; i < numRows; ++i) {
             double sum = 0.0;
@@ -140,9 +123,8 @@ public class VMatrix
         return aResult;
     }
 
-// Multiplication Matrix*Matrix.
-    VMatrix times(VMatrix aMatrix)
-    {
+    // Multiplication Matrix*Matrix.
+    VMatrix times(VMatrix aMatrix) {
 
         VMatrix aResult = new VMatrix(numRows, aMatrix.numCols);
         for (int i = 0; i < numRows; ++i) {
@@ -157,9 +139,8 @@ public class VMatrix
         return aResult;
     }
 
-/// Addition Matrix+Matrix.
-    VMatrix plus(VMatrix aMatrix)
-    {
+    // / Addition Matrix+Matrix.
+    VMatrix plus(VMatrix aMatrix) {
         VMatrix aResult = new VMatrix(numRows, numCols);
         for (int i = 0; i < numRows; ++i) {
             for (int j = 0; j < numCols; ++j) {
@@ -169,9 +150,8 @@ public class VMatrix
         return aResult;
     }
 
-/// Print matrix.
-    public void print()
-    {
+    // / Print matrix.
+    public void print() {
         System.out.println(" VMatrix: " + numRows + "*" + numCols);
         for (int i = 0; i < numRows; ++i) {
             for (int j = 0; j < numCols; ++j) {

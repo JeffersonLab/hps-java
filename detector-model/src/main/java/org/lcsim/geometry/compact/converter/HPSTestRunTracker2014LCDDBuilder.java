@@ -18,10 +18,7 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 
 
 /**
- * Class used by LCDD converter to build detector for SLIC. 
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
+ * Class used by LCDD converter to build detector for SLIC.
  */
 public class HPSTestRunTracker2014LCDDBuilder extends HPSTrackerLCDDBuilder {
 

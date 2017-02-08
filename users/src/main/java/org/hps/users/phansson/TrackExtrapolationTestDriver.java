@@ -1,8 +1,4 @@
-/**
- * 
- */
 package org.hps.users.phansson;
-
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
@@ -33,11 +29,8 @@ import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class TrackExtrapolationTestDriver extends Driver {
+    
     private static Logger LOGGER = Logger.getLogger(TrackExtrapolationTestDriver.class.getName());
     static {
         LOGGER.setLevel(Level.INFO);
@@ -49,6 +42,7 @@ public class TrackExtrapolationTestDriver extends Driver {
     IHistogram2D res_trackPos_X_vs_p;
     private FieldMap bFieldMap;
     private double stepSize = 1.0; //mm
+    
     /**
      * 
      */

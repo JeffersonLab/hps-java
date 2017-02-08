@@ -14,10 +14,6 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
-/**
- * 
- * @author Luca Colaneri 
- */
 public class mycluster2 extends Driver {
     int posx=0;
     int posy=6;

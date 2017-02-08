@@ -61,9 +61,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Analysis class which makes a text file compatible with ROOT Tree.
- *
- * @author phansson <phansson@slac.stanford.edu>
- * @version $id: $
  */
 public class ROOTFlatTupleDriver extends Driver {
 

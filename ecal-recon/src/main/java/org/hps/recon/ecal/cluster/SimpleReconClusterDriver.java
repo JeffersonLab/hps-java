@@ -6,8 +6,6 @@ package org.hps.recon.ecal.cluster;
  * {@link SimpleReconClusterer}.  
  *  
  * @see SimpleReconClusterer
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SimpleReconClusterDriver extends ClusterDriver {
                 

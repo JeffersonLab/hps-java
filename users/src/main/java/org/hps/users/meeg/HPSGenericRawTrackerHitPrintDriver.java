@@ -12,12 +12,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: HPSGenericRawTrackerHitPrintDriver.java,v 1.1 2012/04/10
- * 01:00:13 meeg Exp $
- */
 public class HPSGenericRawTrackerHitPrintDriver extends Driver {
 
     String outputFileName;

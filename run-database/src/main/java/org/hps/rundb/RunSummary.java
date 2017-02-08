@@ -11,8 +11,6 @@ import java.util.Date;
  * @see RunSummaryDao
  * @see RunSummaryDaoImpl
  * @see RunManager
- * 
- * @author jeremym
  */
 public interface RunSummary {
 

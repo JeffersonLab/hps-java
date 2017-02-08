@@ -32,8 +32,6 @@ import org.lcsim.util.Driver;
  * hps-distribution. If that class is not being used, then the method must be executed manually at the right
  * time to achieve the proper behavior.
  *
- * @author Jeremy McCormick, SLAC
- * 
  * @deprecated Use built-in options of job manager.
  */
 @Deprecated

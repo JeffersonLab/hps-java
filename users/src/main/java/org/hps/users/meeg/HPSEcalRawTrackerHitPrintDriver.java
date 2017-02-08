@@ -15,11 +15,6 @@ import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: HPSEcalRawTrackerHitPrintDriver.java,v 1.3 2012/04/27 22:13:52 meeg Exp $
- */
 public class HPSEcalRawTrackerHitPrintDriver extends Driver {
 
     Subdetector ecal;

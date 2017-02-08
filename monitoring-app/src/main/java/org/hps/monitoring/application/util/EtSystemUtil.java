@@ -7,7 +7,7 @@ import org.hps.record.et.EtConnection;
 import org.jlab.coda.et.EtConstants;
 
 /**
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * ET system utilities.
  */
 public final class EtSystemUtil {
 

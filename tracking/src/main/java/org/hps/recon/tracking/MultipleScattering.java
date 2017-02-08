@@ -18,8 +18,6 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 /**
  * Extention of lcsim class to allow use of local classes. Finds scatter points
  * and magnitude from detector geometry directly.
- *
- * @author Per Hansson <phansson@slac.stanford.edu>
  */
 public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.MultipleScattering {
 

@@ -28,8 +28,6 @@ import org.hps.recon.tracking.ShaperAnalyticFitAlgorithm;
 
 /**
  * Driver that looks at the performance of the SVT.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class SvtPerformance extends Driver {
 

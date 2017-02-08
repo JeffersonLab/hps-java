@@ -23,8 +23,6 @@ import org.lcsim.util.aida.AIDA;
  * <br/>
  * Note that this driver does not function for Monte Carlo; it only
  * works on input that contains a TI bank collection.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class HPSEcalDataPlotsDriver extends Driver {
 	private boolean useGoodSVT = false;

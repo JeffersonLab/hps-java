@@ -12,7 +12,6 @@ import org.lcsim.event.base.AbstractClusterPropertyCalculator;
 
 /**
  * Cluster property calculator for hardware clusters.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class HardwareClusterPropertyCalculator extends AbstractClusterPropertyCalculator {
 

@@ -29,7 +29,6 @@ import org.apache.commons.csv.CSVRecord;
  * Implementation of the {@link ConditionsObjectCollection} interface.
  *
  * @param <ObjectType> the type of the object contained in this collection
- * @author Jeremy McCormick, SLAC
  */
 public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject> implements
         ConditionsObjectCollection<ObjectType> {

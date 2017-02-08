@@ -13,10 +13,7 @@ import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.util.IDEncoder;
 
 /**
- * Reconstruction version of HPS ECal with crystal array.
- * 
- * @author Jeremy McCormick, SLAC
- * @author Timothy Nelson, SLAC
+ * Reconstruction version of HPS ECal with crystal array. 
  */
 public class HPSEcal extends AbstractSubdetector {
 

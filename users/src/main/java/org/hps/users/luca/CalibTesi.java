@@ -15,10 +15,7 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-/**
- *
- * @author Luca
- */
+
 public class CalibTesi extends Driver {
     
     double energyThreshold=0.5;

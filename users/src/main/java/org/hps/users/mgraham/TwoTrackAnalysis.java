@@ -37,10 +37,6 @@ import org.lcsim.util.aida.AIDA;
 import Jama.Matrix;
 import Jama.SingularValueDecomposition;
 
-/**
- *
- * @author mgraham
- */
 public class TwoTrackAnalysis extends Driver {
 
     public String outputTextName = "myevents.txt";

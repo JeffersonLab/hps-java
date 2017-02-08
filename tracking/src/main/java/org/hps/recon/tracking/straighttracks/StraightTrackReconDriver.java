@@ -17,7 +17,6 @@ import org.lcsim.util.Driver;
  * This class runs the Track Reconstruction 0 B-Field  events.
  * The tracker digitization must be run in front of it. It is intended to work 
  *
- * @author Matt Graham <mgraham@slac.stanford.edu>
  */
 public final class StraightTrackReconDriver extends Driver {
 

@@ -10,9 +10,7 @@ import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 
 /**
- * An LCSim driver used to filter out events by trigger type.
- *  
- * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a> 
+ * An LCSim driver used to filter out events by trigger type. 
  */
 public class TriggerFilter extends Driver {
 

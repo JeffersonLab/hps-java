@@ -5,7 +5,6 @@ package org.hps.record;
  * processing individual records, ending a run and ending a job. This interface should not be implemented directly.
  * Instead the {@link AbstractRecordProcessor} should be extended with a specific type declaration.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  * @param <RecordType> the concrete type of the event record
  */
 public interface RecordProcessor<RecordType> {

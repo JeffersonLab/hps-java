@@ -16,8 +16,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
  * Paul Avery, CBX 98-39, June 9, 1998
  *  
  * Used primarily for the algorithm to intersect a helix with a generic plane in space.
- *  
- * @author phansson <phansson@slac.stanford.edu>
  */
 public class WTrack {
 

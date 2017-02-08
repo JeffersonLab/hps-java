@@ -11,9 +11,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * This class encapsulates noise and pedestal measurement for an SVT channel.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 @Table(names = {"svt_calibrations", "test_run_svt_calibrations"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)

@@ -11,8 +11,6 @@ import org.lcsim.util.Driver;
 
 /**
  * This is a Driver for selecting/rejecting recon events using simple criteria on the output collections.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SimpleEventFilterDriver extends Driver {
         

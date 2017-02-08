@@ -7,7 +7,6 @@ import java.util.List;
 /**
  * Class <code>Event</code> stores all the information the <code>
  * CalorimeterPanel</code> needs to display an event.
- * @author Kyle McCarty
  */
 public final class Event {
     private List<EcalHit> hitList;

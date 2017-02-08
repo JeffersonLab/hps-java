@@ -37,11 +37,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
 /**
  * Class to running GBL on HPS track.
- *
- * @author phansson
- *
- * @version $Id:
- *
  */
 public class HpsGblFitter {
 

@@ -28,10 +28,6 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class SVTHitReconstructionPlots extends Driver {
 
     //private AIDAFrame plotterFrame;

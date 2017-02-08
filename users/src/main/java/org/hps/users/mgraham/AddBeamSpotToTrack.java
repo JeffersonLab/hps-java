@@ -27,8 +27,6 @@ import org.lcsim.util.Driver;
  * SeedTracks/HelicalTrackHits to work
  *
  * Makes a new Tracks collection called (default) BeamSpotTracks
- *
- * @author mgraham <mgraham@slac.stanford.edu>
  */
 public class AddBeamSpotToTrack extends Driver {
 

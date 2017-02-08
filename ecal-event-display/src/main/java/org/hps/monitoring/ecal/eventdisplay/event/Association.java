@@ -4,10 +4,8 @@ import java.awt.Color;
 import java.awt.Point;
 
 /**
- * Class <code>Association</code> tells the <code>CalorimeterPanel
-</code> to highlight the child crystal in the given color whenever the
- * parent crystal is selected.
- * @author Kyle McCarty
+ * Class <code>Association</code> tells the <code>CalorimeterPanel</code> to 
+ * highlight the child crystal in the given color whenever the parent crystal is selected.
  */
 public final class Association {
     private final Point parent;

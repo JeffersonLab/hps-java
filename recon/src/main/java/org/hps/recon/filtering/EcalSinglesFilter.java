@@ -7,9 +7,6 @@ import org.lcsim.event.EventHeader;
 
 /**
  * Accept events containing an ECal cluster passing cuts.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class EcalSinglesFilter extends EventReconFilter {
 

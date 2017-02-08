@@ -18,8 +18,6 @@ import org.lcsim.util.aida.AIDA;
  * Creates distributions from <code>Cluster</code> objects. This is
  * intended to be used on clusters reconstructed from FADC data from
  * the hardware readout and should not be used for Monte Carlo.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class ReadoutTrigger extends Driver {
     // Define settable parameters.

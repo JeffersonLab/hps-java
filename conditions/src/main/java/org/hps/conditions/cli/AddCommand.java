@@ -17,8 +17,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 /**
  * This is a command for the conditions CLI that will add a conditions record, making a conditions set with a particular
  * collection ID available by run number via the {@link org.hps.conditions.database.DatabaseConditionsManager}.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class AddCommand extends AbstractCommand {
 

@@ -1,17 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.util;
 import java.io.IOException;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.lcio.LCIOWriter;
 
-/**
- *
- * @author phansson
- */
 public abstract class LCIOFilterDriver extends Driver {
     protected String outputFile;
     protected LCIOWriter writer;

@@ -26,10 +26,6 @@ import org.lcsim.geometry.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author phansson+
- */
 public class TrigRateDriver extends Driver {
     
     int nevents = 0;

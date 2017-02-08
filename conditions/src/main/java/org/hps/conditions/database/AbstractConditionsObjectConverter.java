@@ -17,7 +17,6 @@ import org.lcsim.conditions.ConditionsManager;
  * Implementation of default conversion from database tables records to a 
  * {@link org.hps.conditions.api.ConditionsObjectCollection}.
  *
- * @author Jeremy McCormick, SLAC
  * @param <T> The type of the returned data which should be a class extending 
  * {@link org.hps.conditions.api.BaseConditionsObjectCollection}.
  */

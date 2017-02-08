@@ -9,8 +9,6 @@ import org.freehep.record.source.NoSuchRecordException;
  * A record source providing <code>CompositeRecord</code> objects that can be accessed and/or modified by
  * <code>RecordListener</code> objects on the loop. This is essentially a minimal implementation that does not support
  * advanced operations like rewind or index.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class CompositeRecordSource extends AbstractRecordSource {
 

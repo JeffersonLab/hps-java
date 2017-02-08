@@ -69,12 +69,7 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
  * <li>{@link #setHelicalTrackMCRelationsCollectionName(String)} -  HelicalTrackMCRelations</li>
  * <li>{@link #setOutputHitCollectionName(String)} - HelicalTrackHits</li>
  * </ul>
- *
- * @author Mathew Graham <mgraham@slac.stanford.edu>
- * @author Per Hansson <phansson@slac.stanford.edu>
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-// FIXME: The option to run using the Common geometry should be removed
 public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTrackHitDriver {
 
     private boolean _debug = false;

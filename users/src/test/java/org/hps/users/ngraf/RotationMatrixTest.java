@@ -26,9 +26,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
  * 
  * CardanEulerSingularityException - if the rotation is singular with respect to the angles set specified
  * 
- * @author Norman A Graf
  *
- * @version $Id:
  */
 public class RotationMatrixTest extends TestCase
 {

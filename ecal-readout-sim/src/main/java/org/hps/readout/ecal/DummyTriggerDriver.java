@@ -3,10 +3,7 @@ package org.hps.readout.ecal;
 import org.lcsim.event.EventHeader;
 
 /**
- * Free-running trigger - triggers on every Nth event
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: DummyTriggerDriver.java,v 1.3 2013/04/02 01:11:11 meeg Exp $
+ * Free-running trigger; triggers on every Nth event.
  */
 public class DummyTriggerDriver extends TriggerDriver {
 

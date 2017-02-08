@@ -22,9 +22,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Cluster input hit list of raw ECAL data for cosmic events.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Tim "THammer" Nelson <tknelson@slac.stanford.edu>
  */
 // TODO: Add output collection of RawTrackerHits.
 public class EcalCosmicClusterDriver extends Driver {

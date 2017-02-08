@@ -14,9 +14,6 @@ import org.lcsim.util.Driver;
  * to set the event time for a triggered cluster.
  * 
  * TODO: This should be combined with pass6 and put into the database after the final tweak pass is complete. 
- *  
- * @author Holly Szumila <hszumila@jlab.org>
- *
  */
 public class ClusterHitTCorrDriver extends Driver {
     

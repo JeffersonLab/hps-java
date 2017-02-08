@@ -19,8 +19,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Analysis driver for testing straight track (i.e. 0 b-field) development
- *
- * @author mgraham
  */
 public class StraightTrackAnalysis extends Driver {
 

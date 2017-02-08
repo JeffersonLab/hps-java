@@ -1,14 +1,5 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.util;
 
-/**
- *
- * @author richp
- * modified by mbussonn to take arguments from command line
- */
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StreamTokenizer;

@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.hps.recon.tracking.BeamlineConstants;
-import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.HelixConverter;
+import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.StraightLineTrack;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
@@ -26,10 +26,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
-
- @author mgraham
- */
 public class TrackExtrapolationAnalysis extends Driver {
 
     //private AIDAFrame extrapFrame;

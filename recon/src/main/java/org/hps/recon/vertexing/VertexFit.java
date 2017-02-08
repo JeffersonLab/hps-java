@@ -1,4 +1,3 @@
-
 package org.hps.recon.vertexing;
 
 import hep.physics.matrix.SymmetricMatrix;
@@ -9,9 +8,7 @@ import java.util.Map;
 import org.hps.recon.tracking.StraightLineTrack;
 
 /**
- *  Encapsulate the results of a vertex fit
- *
- * @author Richard Partridge
+ * Encapsulate the results of a vertex fit.
  */
 public class VertexFit {
 

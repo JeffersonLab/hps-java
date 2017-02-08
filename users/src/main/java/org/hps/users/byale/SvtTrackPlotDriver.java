@@ -50,11 +50,6 @@ import org.lcsim.util.Driver;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.TrackUtils;
 
-/**
- * 
- * @author Bradley Yale <btu29@wildcats.unh.edu>
- *
- */
 public class SvtTrackPlotDriver extends Driver {
 
     // Use JFreeChart as the default plotting backend

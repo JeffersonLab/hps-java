@@ -16,12 +16,8 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * This is the cluster energy correction requiring the particle id uncorrected
  * cluster energy. This is now updated to include edge corrections and sampling
  * fractions derived from data.
- * 
- * @author Holly Vance <hvanc001@odu.edu>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public final class ClusterEnergyCorrection {
-    
+public final class ClusterEnergyCorrection {    
     
     // Variables derived as the difference between data and mc noise in 
     // ecal cluster energy resolution.
@@ -36,8 +32,7 @@ public final class ClusterEnergyCorrection {
         //System.out.println("energy:\t"+energy+"\tnoise:\t"+noise);
         return noise;
     }
-    
-    
+        
     // Variables for electron energy corrections.
     static final double par0_em = -0.017;
     static final double par1_em[] = { 35, -0.06738, -0.0005613, 16.42, 0.3431,-2.021, 74.85, -0.3626 };
@@ -57,9 +52,7 @@ public final class ClusterEnergyCorrection {
     static final double par0MC_em = 0.009051;
     static final double par1MC_em[] = {35,-0.1322,-0.0005613,16.42,0.3431,-2.021,74.85,-0.3626};
     static final double par2MC_em[] = {35, 0.9652, 0.003234, 18.06, 0.2592, 8.586, 75.08, -0.3771};
-    
-    
-
+       
     // Variables for positron energy corrections--MC. 
     static final double par0MC_ep = 0.01307;
     static final double par1MC_ep[] = {35,-0.1415,-0.0008183,17.88,0.2886,-1.192,73.12,-0.3747};
@@ -73,8 +66,7 @@ public final class ClusterEnergyCorrection {
     /**
      * Calculate the corrected energy for the cluster.
      * 
-     * @param cluster
-     *            The input cluster.
+     * @param cluster The input cluster.
      * @return The corrected energy.
      */
     public static double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster,boolean isMC) {
@@ -86,8 +78,7 @@ public final class ClusterEnergyCorrection {
      * Calculate the corrected energy for the cluster using track position at
      * ecal.
      * 
-     * @param cluster
-     *            The input cluster.
+     * @param cluster The input cluster.
      * @return The corrected energy.
      */
     public static double calculateCorrectedEnergy(HPSEcal3 ecal,Cluster cluster, double ypos, boolean isMC) {
@@ -98,8 +89,7 @@ public final class ClusterEnergyCorrection {
     /**
      * Calculate the corrected energy and set on the cluster.
      * 
-     * @param cluster
-     *            The input cluster.
+     * @param cluster The input cluster.
      */
     public static void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, boolean isMC) {
         double correctedEnergy = calculateCorrectedEnergy(ecal, cluster,isMC);
@@ -112,10 +102,8 @@ public final class ClusterEnergyCorrection {
     /**
      * Calculate the corrected energy and set on the cluster.
      * 
-     * @param cluster
-     *            The input cluster.
+     * @param cluster The input cluster.
      */
-
     public static void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster,double ypos, boolean isMC) {
         double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, ypos,isMC);
         if(isMC){
@@ -130,14 +118,10 @@ public final class ClusterEnergyCorrection {
      * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014"
      * >HPS Note 2014-001</a>
      * 
-     * @param pdg
-     *            Particle id as per PDG
-     * @param rawEnergy
-     *            Raw Energy of the cluster (sum of hits with shared hit
-     *            distribution)
+     * @param pdg Particle id as per PDG
+     * @param rawEnergy Raw Energy of the cluster (sum of hits with shared hit distribution)
      * @return Corrected Energy
      */
-
     private static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos, boolean isMC) {
         // distance to beam gap edge
         double r;

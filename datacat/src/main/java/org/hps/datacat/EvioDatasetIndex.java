@@ -13,8 +13,6 @@ import org.srs.datacat.model.dataset.DatasetWithViewModel;
 /**
  * Creates an index between an EVIO dataset and various metadata such as head timestamp range, file number, and event ID
  * range.
- * 
- * @author jeremym
  */
 public final class EvioDatasetIndex {
 

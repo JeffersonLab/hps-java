@@ -23,8 +23,6 @@ import org.hps.recon.vertexing.BilliorVertexer;
 /**
  * The main HPS implementation of ReconParticleDriver. Method generates V0
  * candidates and does vertex fits.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class HpsReconParticleDriver extends ReconParticleDriver {
 
@@ -94,7 +92,6 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     /**
      * Represents a type of constraint for vertex fitting.
      *
-     * @author Omar Moreno <omoreno1@ucsc.edu>
      */
     private enum Constraint {
 

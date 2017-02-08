@@ -1,10 +1,5 @@
 package org.hps.detector.ecal;
 
-/**
- * Some static functions which I couldn't find in java standard libraries
- * 
- * @author Annie Simonyan
- */
 class StatFunUtils {
 
     /**

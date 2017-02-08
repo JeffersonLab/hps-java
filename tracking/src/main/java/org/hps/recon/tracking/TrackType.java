@@ -3,8 +3,6 @@ package org.hps.recon.tracking;
 /**
  * Class containing utilities used to retrieve the track type value based on the
  * tracking strategy and whether it's a GBL track or not.
- *
- * @author <a href="mailto:moreno1@ucsc.edu">Omar Moreno</a>
  */
 public final class TrackType {
 

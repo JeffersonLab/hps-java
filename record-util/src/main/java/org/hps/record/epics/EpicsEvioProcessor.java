@@ -12,8 +12,6 @@ import org.jlab.coda.jevio.EvioEvent;
 /**
  * This is an EVIO event processor that will read EPICS events (event tag 31) and turn them into {@link EpicsData}
  * objects.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class EpicsEvioProcessor extends EvioEventProcessor {
 

@@ -9,8 +9,6 @@ import org.reflections.Reflections;
 
 /**
  * This is a set of utility methods for getting jar resources at runtime.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class ResourceUtil {
     

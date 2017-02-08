@@ -14,11 +14,6 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Matt Graham
- */
-// TODO: Add class documentation.
 public class RawTrackerHitFitterDriver extends Driver {
 
     private boolean debug = false;

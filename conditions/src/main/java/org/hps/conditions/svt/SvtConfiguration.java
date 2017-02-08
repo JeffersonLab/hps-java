@@ -19,8 +19,6 @@ import org.jdom.output.XMLOutputter;
 
 /**
  * This class is the conditions object model for an SVT configuration saved into the database.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"svt_configurations"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)

@@ -68,8 +68,6 @@ import org.lcsim.lcio.LCIOWriter;
  * be used to buffer a number of EVIO events. If there is a head bank found while adding these events to queue, the
  * conditions system will be initialized from it.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public final class EvioToLcio {
 

@@ -14,8 +14,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 
 /**
  * This is a collection of utility methods for {@link ConditionsObject}s.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class ConditionsObjectUtilities {
 

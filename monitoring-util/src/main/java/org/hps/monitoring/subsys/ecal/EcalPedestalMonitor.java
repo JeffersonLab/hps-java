@@ -21,8 +21,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Reads output of org.hps.recon.ecal.RunningPedestalDriver and makes strip charts.
- * 
- * @author Nathan Baltzell, JLAB
  */
 // FIXME: This class doesn't belong in this package because it is not a sub-system monitor.
 public class EcalPedestalMonitor extends Driver {

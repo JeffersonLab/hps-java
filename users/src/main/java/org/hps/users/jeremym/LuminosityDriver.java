@@ -16,7 +16,6 @@ import org.lcsim.util.Driver;
  * This <code>Driver</code> would be easiest to use as a child of an analysis <code>Driver</code> so that the calculated
  * luminosity can be easily retrieved in the parent's {@link org.lcsim.util.Driver#endOfData()} method.
  *
- * @author Jeremy McCormick, SLAC
  * @see LuminosityAnalysisDriver
  */
 public class LuminosityDriver extends Driver {

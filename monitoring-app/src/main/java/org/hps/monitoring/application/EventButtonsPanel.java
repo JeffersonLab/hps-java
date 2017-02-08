@@ -18,8 +18,6 @@ import org.hps.monitoring.application.model.ConnectionStatusModel;
 /**
  * This is the panel with buttons for connecting or disconnecting from the session and controlling the application when
  * event processing is paused.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class EventButtonsPanel extends JPanel implements PropertyChangeListener {

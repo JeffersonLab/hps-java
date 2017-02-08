@@ -8,10 +8,7 @@ import org.lcsim.detector.identifier.IIdentifier;
  * This class extends {@link HpsSiSensor} with conditions specific to HPS SVT half-modules
  * (sensors) used during the test run.  Each half-module is uniquely identified by 
  * an FPGA/Hybrid ID pair which is then related to calibration conditions such as
- * baseline, noise gain etc.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ * baseline, noise gain etc. 
  */
 public class HpsTestRunSiSensor extends HpsSiSensor {
     

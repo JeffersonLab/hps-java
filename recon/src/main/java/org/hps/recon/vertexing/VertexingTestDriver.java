@@ -1,18 +1,13 @@
 package org.hps.recon.vertexing;
 
-//import org.lcsim.recon.tracking.seedtracker.trackingdrivers.sidloi2.MainTrackingDriver;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author richp
- */
 public class VertexingTestDriver extends Driver {
 
         public VertexingTestDriver() {
 
-        //  Set the diagnostics flag true if you want to run with the diagnostic package turned on
-        boolean diagnostics = false;
+            //  Set the diagnostics flag true if you want to run with the diagnostic package turned on
+            boolean diagnostics = false;
 
         //  Instantiate the main tracking driver
 //        MainTrackingDriver trackingdriver = new MainTrackingDriver();
@@ -35,7 +30,7 @@ public class VertexingTestDriver extends Driver {
 
         //  Add the tracking and analysis drivers
 //        add(trackingdriver);
-        add(analysisdriver);
+            add(analysisdriver);
     }
 
 

@@ -2,8 +2,6 @@ package org.hps.record.evio;
 
 /**
  * This is a set of static EVIO event constants.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EvioEventConstants {
 

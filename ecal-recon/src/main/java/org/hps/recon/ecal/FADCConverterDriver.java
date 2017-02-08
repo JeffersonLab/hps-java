@@ -12,10 +12,6 @@ import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @version $Id: FADCConverterDriver.java,v 1.4 2013/02/25 22:39:24 meeg Exp $
- */
 public class FADCConverterDriver extends Driver {
 
     private EcalConditions ecalConditions = null;

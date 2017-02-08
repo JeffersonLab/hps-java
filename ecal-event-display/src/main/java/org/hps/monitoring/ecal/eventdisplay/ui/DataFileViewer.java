@@ -21,8 +21,6 @@ import org.hps.monitoring.ecal.eventdisplay.util.EcalWiringManager;
  * Class <code>DataFileViewer</code> is the active variant of a data
  * viewer. It displays crystal hardware information read from a given
  * data file and displays it along with crystal energy and index data.
- * 
- * @author Kyle McCarty
  */
 public class DataFileViewer extends FileViewer {
     // Local variables.

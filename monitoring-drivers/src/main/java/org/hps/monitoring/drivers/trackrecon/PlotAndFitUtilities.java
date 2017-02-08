@@ -20,10 +20,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class PlotAndFitUtilities {
 
     static private AIDA aida = AIDA.defaultInstance();

@@ -34,10 +34,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- */
 public class PedestalPlots extends Driver {
 
     static {

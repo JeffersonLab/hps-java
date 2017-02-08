@@ -10,9 +10,6 @@ import org.lcsim.event.EventHeader;
 /**
  * Accept events containing a pair of ECal clusters within a set time
  * coincidence.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class EcalPairsFilter extends EventReconFilter {
 

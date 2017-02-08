@@ -20,9 +20,7 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 import org.lcsim.geometry.util.TransformationUtils;
 
 /**
- * Interface to the LCDD converter geometry for the geometry definition. 
- *   
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ * Interface to the LCDD converter geometry for the geometry definition.    
  */
 public class LCDDSurveyVolume extends SurveyVolumeImpl  {
     Box box= null;
@@ -34,6 +32,7 @@ public class LCDDSurveyVolume extends SurveyVolumeImpl  {
     private LCDDSurveyVolume mother = null;
     protected Map<String,Integer> physVolId = null;
     public List<LCDDSurveyVolume> daughters = new ArrayList<LCDDSurveyVolume>();
+    
     /**
      *  Default constructor
      *  @param surveyVolume - core geometry definitions

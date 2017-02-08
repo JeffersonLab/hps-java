@@ -14,7 +14,6 @@ import org.lcsim.util.loop.DummyDetector;
 /**
  * This is an event builder that does nothing except create empty events.
  * It uses a "dummy" LCSim detector. 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class DummyEventBuilder implements LCSimEventBuilder {
 

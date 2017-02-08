@@ -13,7 +13,6 @@ import org.hps.monitoring.application.model.ConfigurationModel;
  * <p>
  * It contains a <code>JPanel</code> with the different settings sub-tabs.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class SettingsDialog extends JDialog {

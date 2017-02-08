@@ -14,9 +14,7 @@ import org.lcsim.geometry.compact.converter.HPSTrackerJavaBuilder;
 import org.lcsim.geometry.subdetector.HPSTestRunTracker2014;
 
 /**
- * Converts the HPSTestRunTracker2014 compact description into Java runtime objects
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
+ * Converts the HPSTestRunTracker2014 compact description into Java runtime objects.
  */
 public class HPSTestRunTracker2014Converter extends HPSTracker2014ConverterBase {
 

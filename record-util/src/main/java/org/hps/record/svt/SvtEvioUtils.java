@@ -6,11 +6,8 @@ import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.StructureType;
 
-
 /**
- *  A set of static utility methods used to decode SVT data.
- * 
- *  @author Omar Moreno <omoreno1@ucsc.edu>
+ * A set of static utility methods used to decode SVT data.
  */
 public class SvtEvioUtils {
 

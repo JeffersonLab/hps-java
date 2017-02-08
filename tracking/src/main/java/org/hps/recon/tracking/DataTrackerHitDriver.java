@@ -15,11 +15,6 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 
-/**
- * 
- * @author Matt Graham
- */
-// TODO: Add documentation about what this Driver does. --JM
 public class DataTrackerHitDriver extends Driver {
 
     // Debug switch for development.

@@ -27,9 +27,6 @@ import org.lcsim.event.EventHeader;
  * <p>
  * This algorithm does not cluster across the beam gap.  Separate clusters are made for the top
  * and bottom sets of crystals.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Tim "THammer" Nelson <tknelson@slac.stanford.edu>
  */
 public class SimpleCosmicClusterer extends AbstractClusterer {
 

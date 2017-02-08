@@ -5,8 +5,6 @@ import java.util.Set;
 
 /**
  * Static constants for use with the Data Catalog.
- * 
- * @author jeremym
  */
 public final class DatacatConstants {
 

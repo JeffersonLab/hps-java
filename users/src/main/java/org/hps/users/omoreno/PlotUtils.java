@@ -14,9 +14,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * A set of plotting utilities.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- *
  */
 public class PlotUtils {
 

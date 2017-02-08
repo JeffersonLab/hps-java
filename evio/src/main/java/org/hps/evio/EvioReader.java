@@ -5,9 +5,7 @@ import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 
 /**
- *  Abstract class containing shared methods used by EVIO readers.
- *
- *  @author Sho Uemura <meeg@slac.stanford.edu>
+ * Abstract class containing shared methods used by EVIO readers.
  */
 public abstract class EvioReader {
 

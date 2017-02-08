@@ -11,20 +11,13 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Rotation;
 import org.lcsim.geometry.compact.converter.lcdd.util.SensitiveDetector;
 import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 
-/**
- * @author jeremym
- * @version $Id: HPSMuonCalorimeter.java,v 1.5 2013/01/25 00:13:44 jeremy Exp $
- */
-public class HPSMuonCalorimeter extends LCDDSubdetector
-{
+public class HPSMuonCalorimeter extends LCDDSubdetector {
 
-    HPSMuonCalorimeter(Element node) throws JDOMException
-    {
+    HPSMuonCalorimeter(Element node) throws JDOMException {
         super(node);
     }
 
-    void addToLCDD(LCDD lcdd, SensitiveDetector sens) throws JDOMException
-    {
+    void addToLCDD(LCDD lcdd, SensitiveDetector sens) throws JDOMException {
 
         String name = node.getAttributeValue("name");
         int id = node.getAttribute("id").getIntValue();
@@ -115,8 +108,7 @@ public class HPSMuonCalorimeter extends LCDDSubdetector
 
     }
 
-    public boolean isCalorimeter()
-    {
+    public boolean isCalorimeter() {
         return true;
     }
 }

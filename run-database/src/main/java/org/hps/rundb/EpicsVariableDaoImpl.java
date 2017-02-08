@@ -10,8 +10,6 @@ import java.util.List;
 
 /**
  * Implementation of database interface for EPICS variable information in the run database.
- *
- * @author jeremym
  */
 final class EpicsVariableDaoImpl implements EpicsVariableDao {
 

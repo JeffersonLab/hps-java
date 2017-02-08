@@ -8,8 +8,6 @@ import java.io.PrintStream;
  * generated from the DAQ configuration bank. This requires that all
  * implementing classes have the ability to load settings from the DAQ
  * bank parser and also print their contents to the terminal.
- * 
- * @author Kyle McCarty
  */
 abstract class IDAQConfig {
     /**

@@ -10,8 +10,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * A conditions class for representing the setup of the LED system in the ECAL for one channel.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = "ecal_leds")
 public final class EcalLed extends BaseConditionsObject {

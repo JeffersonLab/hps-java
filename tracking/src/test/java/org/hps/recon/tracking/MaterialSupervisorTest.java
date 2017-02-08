@@ -14,7 +14,6 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 
 /**
  *
- * @author ngraf
  */
 public class MaterialSupervisorTest extends TestCase
 {

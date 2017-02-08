@@ -1,10 +1,7 @@
 package org.lcsim.geometry.compact.converter;
 
 /**
- * 
- * LCDD geometry visualization information
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ * LCDD geometry visualization information.
  */
 public class SurveyVolumeVisualization {
     protected String visName = "";

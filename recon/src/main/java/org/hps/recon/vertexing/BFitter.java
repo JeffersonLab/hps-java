@@ -1,13 +1,5 @@
 package org.hps.recon.vertexing;
 
-/**
- * @version $Id: BFitter.java,v 1.1 2011/06/01 17:10:13 jeremy Exp $
- * @version Billior Fitter used in the HPS Java package. Meant to simulate
- * the multiple scatters of the detector
- */
-
-// Performs a Kalman fit to a list of tracks and returns
-// a Vertex object
 import Jama.util.Maths;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
@@ -26,7 +18,9 @@ import Jama.Matrix;
 import hep.physics.matrix.SymmetricMatrix;
 import org.lcsim.spacegeom.SpacePoint;
 
-
+/**
+ * Performs a Kalman fit to a list of tracks and returns
+ */
 public class BFitter implements VFitter {
     // the value of the magnetic field in the vicinity of the vertex
     // default is a constant field along the z axis

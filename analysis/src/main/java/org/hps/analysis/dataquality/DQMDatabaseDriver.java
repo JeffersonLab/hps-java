@@ -8,10 +8,7 @@ import org.lcsim.util.Driver;
 
 /**
  * This {@link org.lcsim.util.Driver} sets up the Data Quality Database
- * connection
- *
- * @author Matt Graham <mgraham@slac.stanford.edu>
- * cribbed heavily from {@link org.hps.conditions.ConditionsDriver}
+ * connection; uses similar setup as {@link org.hps.conditions.ConditionsDriver}.
  */
 public class DQMDatabaseDriver extends Driver {
     

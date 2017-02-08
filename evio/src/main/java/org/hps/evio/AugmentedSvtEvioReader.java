@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.evio;
 
 import java.util.List;
@@ -11,11 +8,6 @@ import org.hps.record.svt.SvtHeaderDataInfo;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOUtil;
 
-
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class AugmentedSvtEvioReader extends SvtEvioReader {
 
     private final static boolean throwHeaderExceptions = false; 

@@ -7,8 +7,6 @@ import java.util.Set;
 
 /**
  * Implementation of {@link FieldValues} for storing field-value pairs.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class FieldValuesMap implements FieldValues {
 

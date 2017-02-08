@@ -21,8 +21,6 @@ import org.lcsim.event.EventHeader;
 
 /**
  * This class implements a dashboard for displaying information about the current run.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class EventDashboard extends JPanel implements PropertyChangeListener {

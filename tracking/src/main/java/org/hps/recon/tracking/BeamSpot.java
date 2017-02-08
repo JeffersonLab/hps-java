@@ -7,8 +7,7 @@ package org.hps.recon.tracking;
 import hep.physics.matrix.SymmetricMatrix;
 
 /**
- * Class describing the HPS beamspot at the target (Z=0)
- * @author mgraham created on 6/27/2011
+ * Class describing the HPS beamspot at the target (Z=0).
  */
 public class BeamSpot {
 

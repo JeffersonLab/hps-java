@@ -3,11 +3,8 @@ package org.hps.datacat;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * Dataset file formats for HPS.
- * 
- * @author jeremym
  */
 public enum FileFormat {
 

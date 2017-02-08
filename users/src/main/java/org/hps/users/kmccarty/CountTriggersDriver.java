@@ -12,8 +12,6 @@ import org.lcsim.util.Driver;
  * Class <code>CountTriggersDriver</code> counts the number times the
  * TI trigger bit was active for each trigger type and outputs the
  * result in text at the end of the data processing run.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class CountTriggersDriver extends Driver {
     // Store programmable parameters.

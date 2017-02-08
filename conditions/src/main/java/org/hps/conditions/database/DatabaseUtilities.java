@@ -4,9 +4,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 /**
- * Database utility methods.
- *
- * @author Jeremy McCormick, SLAC
+ * Database utility methods. 
  */
 // TODO: Merge this single method into the manager class or a connection utilities class.
 public final class DatabaseUtilities {

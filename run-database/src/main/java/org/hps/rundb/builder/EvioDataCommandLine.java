@@ -19,8 +19,6 @@ import org.hps.rundb.RunManager;
 
 /**
  * Extracts information from EVIO files and inserts into the run database.
- * 
- * @author jeremym
  */
 public class EvioDataCommandLine {
 

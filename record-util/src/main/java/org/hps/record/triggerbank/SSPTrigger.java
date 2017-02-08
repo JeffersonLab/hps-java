@@ -8,8 +8,6 @@ import org.hps.record.scalers.ScalersEvioProcessor;
  * Class <code>SSPTrigger</code> represents the data output by the SSP
  * for a trigger. Individual implementing classes are expected to handle
  * parsing the trigger bit data as appropriate for their type.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SSPTrigger {
     // Trigger data.

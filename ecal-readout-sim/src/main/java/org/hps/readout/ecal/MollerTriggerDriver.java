@@ -29,8 +29,6 @@ import org.lcsim.util.aida.AIDA;
  * All thresholds can be set through a steering file. The driver also
  * supports a verbose mode where it will output more details with every
  * event to help with diagnostics.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class MollerTriggerDriver extends TriggerDriver {
     

@@ -32,8 +32,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * This is a set of detailed plots for monitoring ECAL raw data collections in integral mode (modes 3 and 7).
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class RawCalorimeterHitMonitoringDriver extends Driver {
 

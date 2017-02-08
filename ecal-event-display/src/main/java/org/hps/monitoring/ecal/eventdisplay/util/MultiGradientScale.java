@@ -7,9 +7,7 @@ import java.util.ArrayList;
  * <code>ColorScale</code> that maps values to a color over several different
  * individual <code>GradientScale</code> objects to allow for multi-color
  * mapping.
- * 
- * @author Kyle McCarty
- **/
+ */
 public final class MultiGradientScale extends ColorScale {
     // Stores the colors in the map.
     private ArrayList<Color> colorList = new ArrayList<Color>();

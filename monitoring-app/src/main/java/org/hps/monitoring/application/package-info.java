@@ -16,7 +16,6 @@
  * the <a href="http://java.freehep.org/freehep-record/">freehep-record</a> module to manage the flow of records and
  * activate any processors that are listening on the record loops.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 package org.hps.monitoring.application;
 

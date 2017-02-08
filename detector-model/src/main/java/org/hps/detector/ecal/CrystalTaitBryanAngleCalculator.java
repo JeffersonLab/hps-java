@@ -10,8 +10,6 @@ package org.hps.detector.ecal;
  * state parallel to the Z axis into the center position defined by the center points of the front and back faces.
  * <p>
  * For information about Tait-Bryan angles <a href="http://sedris.org/wg8home/Documents/WG80485.pdf">look here</a>. 
- * 
- * @author Annie Simonyan
  */
 class CrystalTaitBryanAngleCalculator {
     

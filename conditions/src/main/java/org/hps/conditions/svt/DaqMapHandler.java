@@ -9,8 +9,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Handler for DAQ map events.
- *
- * @author Omar Moreno, UCSC
  */
 public final class DaqMapHandler extends DefaultHandler {
 

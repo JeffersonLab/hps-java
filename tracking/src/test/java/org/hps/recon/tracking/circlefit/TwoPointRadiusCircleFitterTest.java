@@ -6,7 +6,6 @@ import static org.hps.recon.tracking.circlefit.TwoPointRadiusCircleFitter.findCi
 
 /**
  *
- * @author Norman A. Graf
  */
 public class TwoPointRadiusCircleFitterTest extends TestCase
 {

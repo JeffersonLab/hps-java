@@ -10,11 +10,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: EcalConverterDriver.java,v 1.1 2013/02/25 22:39:24 meeg Exp $
- */
 public class EcalConverterDriver extends Driver {
     
     Detector detector = null;

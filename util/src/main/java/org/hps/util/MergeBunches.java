@@ -1,10 +1,8 @@
 package org.hps.util;
 
 /**
- * MergeBunches.java
  * Driver to merge bunch trains for HPS and displace them in time
  * much of this code was taken from org.lcsim.util.OverlayDriver.java
- * Created 6/8/2011 @author mgraham
  */
 import hep.physics.particle.properties.ParticleType;
 import hep.physics.vec.BasicHep3Vector;

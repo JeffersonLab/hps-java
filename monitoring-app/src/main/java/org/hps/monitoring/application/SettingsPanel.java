@@ -17,7 +17,6 @@ import org.hps.monitoring.application.model.ConfigurationModel;
 /**
  * The container component with the tabs that have job and connection settings.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class SettingsPanel extends JPanel implements ActionListener {

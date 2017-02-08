@@ -1,12 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.hps.users.luca;
-
-
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -30,10 +22,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Reads clusters and makes trigger decision using opposite quadrant criterion.
  * Prints triggers to file if file path specified.
- * @author Luca Colaneri <colaneri@roma2.infn.it> making modification to study effects on coulomb electrons
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: FADCTriggerDriver.java,v 1.4 2013/09/02 21:56:56 phansson Exp $
  */
 public class myTriggerDriver extends TriggerDriver {
 

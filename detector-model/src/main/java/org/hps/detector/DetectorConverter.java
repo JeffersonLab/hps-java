@@ -27,8 +27,6 @@ import org.lcsim.util.loop.DummyDetector;
 /**
  * A rewrite of the LCSim detector converter that supports setting of the run number
  * for conditions system initialization so that database conditions are available.
- * 
- * @author jeremym
  */
 public class DetectorConverter {
     

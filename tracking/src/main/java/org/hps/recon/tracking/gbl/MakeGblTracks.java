@@ -37,17 +37,13 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
 /**
  * Utilities that create track objects from fitted GBL trajectories.
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class MakeGblTracks {
 
     private final static Logger LOGGER = Logger.getLogger(MakeGblTracks.class.getPackage().getName());
     static {
         LOGGER.setLevel(Level.WARNING);
-    }
-    
+    }    
     
     private MakeGblTracks() {
     }

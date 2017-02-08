@@ -9,8 +9,6 @@ import java.io.PrintStream;
  * from the DAQ configuration that exists in EVIO files. These values
  * are stored in various subclasses appropriate to the parameter that
  * are accessed through this primary interface.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class DAQConfig extends IDAQConfig {
     // Store the configuration objects.

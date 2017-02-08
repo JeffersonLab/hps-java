@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson.testrun;
 
 import hep.aida.IAnalysisFactory;
@@ -25,17 +21,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.lcsim.util.aida.AIDA;
-
-
-
-/**
- *
- * @author phansson
- */
-
-
-
-
 
 public class TrigRateAna {
     

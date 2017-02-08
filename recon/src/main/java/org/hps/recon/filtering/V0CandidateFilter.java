@@ -21,10 +21,6 @@ import org.lcsim.geometry.Detector;
  * exactly one V0 passing all cuts.
  *
  * Only GBL vertices are considered.
- *
- * @author Norman A Graf
- *
- * @version $Id:
  */
 public class V0CandidateFilter extends EventReconFilter {
 

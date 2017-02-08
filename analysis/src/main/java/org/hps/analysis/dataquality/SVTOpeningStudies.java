@@ -12,10 +12,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class SVTOpeningStudies extends DataQualityMonitor {
 
     static private AIDA aida = AIDA.defaultInstance();

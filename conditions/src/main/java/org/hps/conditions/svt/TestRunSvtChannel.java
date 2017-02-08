@@ -10,8 +10,6 @@ import org.hps.util.Pair;
 
 /**
  * The implementation of {@link AbstractSvtChannel} for Test Run conditions.
- *
- * @author Omar Moreno, UCSC
  */
 @Table(names = {"test_run_svt_channels"})
 public final class TestRunSvtChannel extends AbstractSvtChannel {

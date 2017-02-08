@@ -15,7 +15,6 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * This is a basic test of using ConditionsDriver that doesn't actually check anything at the moment.
  *
- * @author Jeremy McCormick, SLAC
  */
 public final class ConditionsDriverTest extends TestCase {
 

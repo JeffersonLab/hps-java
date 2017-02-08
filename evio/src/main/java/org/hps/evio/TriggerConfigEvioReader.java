@@ -10,21 +10,17 @@ import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 
-/*
+/**
  * Search for a configuration bank in EvioEvent, and, if found, create an instance of
  * EvioDAQParser, pass it the string data for parsing, and put it in EventHeader.
- * 
  * 
  * As of Feb 27, 2015 (run 4043):
  * 
  * The error in string termination in one of the EVIO banks that made it unparseable 
- * by JEVIO is now fixed.  
+ * by JEVIO is now fixed.
  * 
  * But the banks are still being written in physics events under their crate's bank.
  * This should change soon.
- * 
- *  
- * @author <baltzell@jlab.org>
  */
 public class TriggerConfigEvioReader {
 

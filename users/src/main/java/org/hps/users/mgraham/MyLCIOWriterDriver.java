@@ -9,8 +9,6 @@ import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.util.Driver;
 
 /**
- *
- * @author mgraham Created 5/17/2012 really the same as
  * org.lcsim.util.LCIODriver but only write events that pass some condition
  * (e.g. has a reconstructed track)
  */

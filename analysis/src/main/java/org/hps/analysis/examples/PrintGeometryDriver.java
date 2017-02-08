@@ -17,10 +17,6 @@ import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author phansson
- */
 public class PrintGeometryDriver extends Driver {
     
     @Override

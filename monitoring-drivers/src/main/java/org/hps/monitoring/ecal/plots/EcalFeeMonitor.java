@@ -19,14 +19,13 @@ import org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-/*
- * Display histograms created by org.hps.analysis.ecal.FEEClusterPlotter
+
+/**
+ * Display histograms created by {@link org.hps.analysis.ecal.FEEClusterPlotter}.
  * 
- * When user clicks on crystal in Kyle's event viewer, the corresponding channel's
+ * When user clicks on crystal in the event viewer, the corresponding channel's
  * pedestal histogram is drawn.
  * 
- * @version $Id: EcalFeeViewer.java,v 0.1 2015/02/20 00:00:00
- * @author <hszumila@jlab.org>
  */
 public class EcalFeeMonitor extends Driver implements CrystalListener, ActionListener {
 

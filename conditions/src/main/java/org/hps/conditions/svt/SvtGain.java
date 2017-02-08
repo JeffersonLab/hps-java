@@ -7,8 +7,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * This class represents the signal gain measurement for a single SVT channel.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"svt_gains", "test_run_svt_gains"})
 public final class SvtGain extends BaseConditionsObject {

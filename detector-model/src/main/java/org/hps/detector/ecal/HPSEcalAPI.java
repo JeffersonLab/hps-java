@@ -7,9 +7,7 @@ import java.util.List;
 import org.lcsim.detector.identifier.IIdentifier;
 
 /**
- * This is a geometry API for the HPS ECAL detector.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This is a geometry API for the HPS ECAL detector. 
  */
 public interface HPSEcalAPI {
     

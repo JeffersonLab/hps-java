@@ -19,8 +19,6 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**
  * Command line tool used to load SVT conditions into the conditions database.
- *
- * @author Omar Moreno, UCSC
  */
 public final class SvtConditionsLoader {
 

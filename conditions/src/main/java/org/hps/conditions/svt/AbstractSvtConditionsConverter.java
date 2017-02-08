@@ -14,8 +14,6 @@ import org.lcsim.conditions.ConditionsManager;
 
 /**
  * Abstract class providing some of the common methods used in creating SVT conditions objects from the database.
- *
- * @author Omar Moreno, UCSC
  * @param <T> SVT conditions object type
  */
 public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtConditions> implements ConditionsConverter<T> {
