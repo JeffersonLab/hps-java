@@ -630,12 +630,13 @@
           <detectJavaApiLink>true</detectJavaApiLink>
           <failOnError>false</failOnError>
           <links>
+            <link>http://www.lcsim.org/sites/lcsim/apidocs/</link>
             <link>http://java.freehep.org/freehep-physics/apidocs/</link>
             <link>http://java.freehep.org/heprep/apidocs/</link>
+            <link>https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.3-docs/javadoc/</link>
+            <link>https://coda.jlab.org/drupal/system/files/coda/et/et-14.0-docs/javadoc/</link>
             <link>http://www.jdom.org/docs/apidocs/</link>
-            <link>http://www.lcsim.org/sites/lcsim/apidocs/index.html</link>
-            <link>https://coda.jlab.org/wiki/Downloads/evio/evio-4.3-docs/javadoc/</link>
-            <link>https://coda.jlab.org/wiki/Downloads/et/et-14.0-docs/javadoc/</link>
+            <link>http://junit.org/junit4/javadoc/latest/</link>
           </links>
         </configuration>
       </plugin>
