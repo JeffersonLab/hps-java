@@ -29,10 +29,10 @@ import org.lcsim.geometry.Detector;
 public class V0CandidateFilter extends EventReconFilter {
 
     private String _V0CandidateCollectionName = "UnconstrainedV0Candidates";
-    private double _clusterTimingCut = 2.5;
-    private double v0Chi2Cut = 10.0;
-    private double trackChi2Cut = 20.0;
-    private double trackDtCut = 5.0;
+    private double _clusterTimingCut = 20.0;
+    private double v0Chi2Cut = 100.0;
+    private double trackChi2Cut = 80.0;
+    private double trackDtCut = 20.0;
     private double trackPMax = 0.9;
     private double v0PMax = 1.4;
 
