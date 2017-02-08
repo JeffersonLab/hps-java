@@ -33,7 +33,10 @@
   <distributionManagement>
     <site>
       <id>lcsim-site</id>
+      <url>file:///nfs/slac/g/lcd/mc/prj/www/lcsim/sites/hps/</url>
+      <!--
       <url>dav:http://srs.slac.stanford.edu/nexus/content/sites/lcsim-site/hps/</url>
+      -->
     </site>
     <repository>
       <id>lcsim-repo-releases</id>
@@ -625,7 +628,7 @@
           <source>1.7</source>
           <show>private</show>
           <nohelp>true</nohelp>
-          <author>true</author>
+          <author>false</author>
           <detectLinks>true</detectLinks>
           <detectJavaApiLink>true</detectJavaApiLink>
           <failOnError>false</failOnError>
