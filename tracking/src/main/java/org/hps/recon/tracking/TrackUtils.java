@@ -783,12 +783,15 @@ public class TrackUtils {
         return nhits[0] > 0 && nhits[1] > 0;
     }
 
+    // 3D hits shared
     public static boolean isSharedHit(TrackerHit hit, List<Track> othertracks) {
-        HelicalTrackHit hth = (HelicalTrackHit) hit;
+       // HelicalTrackHit hth = (HelicalTrackHit) hit;
+        TrackerHit hth = hit;
         for (Track track : othertracks) {
             List<TrackerHit> hitsOnTrack = track.getTrackerHits();
             for (TrackerHit loop_hit : hitsOnTrack) {
-                HelicalTrackHit loop_hth = (HelicalTrackHit) loop_hit;
+                //HelicalTrackHit loop_hth = (HelicalTrackHit) loop_hit;
+                TrackerHit loop_hth = loop_hit;
                 if (hth.equals(loop_hth)) // System.out.printf("share hit at layer %d at %s (%s) with track w/ chi2=%f\n",hth.Layer(),hth.getCorrectedPosition().toString(),loop_hth.getCorrectedPosition().toString(),track.getChi2());
 
                     return true;
@@ -796,7 +799,27 @@ public class TrackUtils {
         }
         return false;
     }
+    
+    // 3D hits shared
+    public static boolean isSharedHit(TrackerHit hit, Track track) {
+       // HelicalTrackHit hth = (HelicalTrackHit) hit;
+        TrackerHit hth = hit;
+        List<TrackerHit> hitsOnTrack = track.getTrackerHits();
+        for (TrackerHit loop_hit : hitsOnTrack) {
+            //HelicalTrackHit loop_hth = (HelicalTrackHit) loop_hit;
+            TrackerHit loop_hth = loop_hit;
+            if (hth.equals(loop_hth)) // System.out.printf("share hit at layer %d at %s (%s) with track w/ chi2=%f\n",hth.Layer(),hth.getCorrectedPosition().toString(),loop_hth.getCorrectedPosition().toString(),track.getChi2());
+                return true;
+        }       
+        return false;
+    }
 
+    /**
+     * Number of shared 3D hits between tracks
+     * @param track
+     * @param tracklist
+     * @return number of 3D hits shared on a track
+     */
     public static int numberOfSharedHits(Track track, List<Track> tracklist) {
         List<Track> tracks = new ArrayList<Track>();
         // System.out.printf("%d tracks in event\n",tracklist.size());
@@ -816,7 +839,60 @@ public class TrackUtils {
                 ++n_shared;
         return n_shared;
     }
+    
+    /**
+     * Number of shared 3D hits between two tracks
+     * @param track
+     * @param tracklist
+     * @return number of 3D hits shared between two tracks
+     */
+    public static int numberOfSharedHits(Track track1, Track track2) {
+        if (track1.equals(track2)){return 0;}
+        else{
+            List<TrackerHit> hitsOnTrack = track1.getTrackerHits();
+            int n_shared = 0;
+            for (TrackerHit hit : hitsOnTrack)
+                if (isSharedHit(hit, track2))
+                    ++n_shared;
+            return n_shared;
+        }
+    }
 
+    /**
+     * Number of shared 3D hits between tracks
+     * @param track
+     * @param tracklist
+     * @return the track associated with the most shared hits
+     */
+    public static Track mostSharedHitTrack(Track track, List<Track> tracklist) {
+        List<Track> tracks = new ArrayList<Track>();
+        // System.out.printf("%d tracks in event\n",tracklist.size());
+        // System.out.printf("look for another track with chi2=%f and px=%f \n",track.getChi2(),track.getTrackStates().get(0).getMomentum()[0]);
+        for (Track t : tracklist) {
+            // System.out.printf("add track with chi2=%f and px=%f ?\n",t.getChi2(),t.getTrackStates().get(0).getMomentum()[0]);
+            if (t.equals(track)) // System.out.printf("NOPE\n");
+
+                continue;
+            // System.out.printf("YEPP\n");
+            tracks.add(t);
+        }
+        //loop through track list to find the most shared hits between any track
+        int mostShared = 0;
+        Track sharedTrk = track;
+        for (Track tt : tracks){
+            if (mostShared < numberOfSharedHits(track,tt)){
+                mostShared = numberOfSharedHits(track,tt);
+                sharedTrk = tt;
+            }
+            
+        }
+        
+       return sharedTrk;
+    }  
+    
+    
+    
+    
     public static boolean hasSharedHits(Track track, List<Track> tracklist) {
         return numberOfSharedHits(track, tracklist) != 0;
     }
@@ -1075,6 +1151,19 @@ public class TrackUtils {
         meanTime /= stripHits.size();
         return meanTime;
     }
+    
+    public static double getTrackTimeSD(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+        double meanTime = getTrackTime(track, hitToStrips, hitToRotated);
+        List<TrackerHit> stripHits = getStripHits(track, hitToStrips, hitToRotated);
+
+        double sdTime = 0;
+        for (TrackerHit hit : stripHits) {
+            sdTime += Math.pow(meanTime-hit.getTime(),2);
+        }
+        sdTime = Math.sqrt(sdTime/stripHits.size());
+        
+        return sdTime;
+    }
 
     public static List<TrackerHit> getStripHits(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         List<TrackerHit> hits = new ArrayList<TrackerHit>();
@@ -1097,15 +1186,43 @@ public class TrackUtils {
         }
     }
 
-    public static boolean hasSharedStrips(Track track1, Track track2, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+    /**
+     * Number of 2D hits shared between tracks
+     * @param track1
+     * @param track2
+     * @param hitToStrips
+     * @param hitToRotated
+     * @return
+     */
+    
+    public static int numberOfSharedStrips(Track track1, Track track2,RelationalTable hitToStrips, RelationalTable hitToRotated){
         Set<TrackerHit> track1hits = new HashSet<TrackerHit>(getStripHits(track1, hitToStrips, hitToRotated));
-        for (TrackerHit hit : track2.getTrackerHits())
-            for (TrackerHit hts : (Set<TrackerHit>) hitToStrips.allFrom(hitToRotated.from(hit)))
-                if (track1hits.contains(hts))
-                    return true;
-        return false;
+        int nShared = 0;
+        for (TrackerHit hit : track2.getTrackerHits()){
+            for (TrackerHit hts : (Set<TrackerHit>) hitToStrips.allFrom(hitToRotated.from(hit))){
+                if (track1hits.contains(hts)){
+                    nShared++; 
+                }
+            }
+        }
+        return nShared;
+    }   
+ 
+    
+    /**
+     * Tells if there are shared 2D hits between tracks 
+     * @param track1
+     * @param track2
+     * @param hitToStrips
+     * @param hitToRotated
+     * @return
+     */
+    public static boolean hasSharedStrips(Track track1, Track track2, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+        int nShared = numberOfSharedStrips(track1, track2, hitToStrips, hitToRotated);
+        if (nShared == 0) return false;
+        else return true;    
     }
-
+    
     public static int getLayer(TrackerHit strip) {
         return ((RawTrackerHit) strip.getRawHits().get(0)).getLayerNumber();
     }

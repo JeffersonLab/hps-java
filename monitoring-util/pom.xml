@@ -1,27 +1,27 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>hps-monitoring-util</artifactId>
-    <name>monitoring-util</name>
-    <description>utility packages for online data monitoring</description>
-    <parent>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-parent</artifactId>
-        <relativePath>../parent/pom.xml</relativePath>
-        <version>3.11-SNAPSHOT</version>
-    </parent>
-    <dependencies>
-        <dependency>
-            <groupId>org.hps</groupId>
-            <artifactId>hps-analysis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jfreechart-aida-experimental</groupId>
-            <artifactId>jfreechart-aida-experimental</artifactId>
-        </dependency>
-         <dependency>
-            <groupId>com.itextpdf</groupId>
-            <artifactId>itextpdf</artifactId>
-            <version>5.5.5</version>
-        </dependency>
-    </dependencies>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>hps-monitoring-util</artifactId>
+  <name>monitoring-util</name>
+  <description>utility packages for online data monitoring</description>
+  <parent>
+    <groupId>org.hps</groupId>
+    <artifactId>hps-java</artifactId>
+    <relativePath>../pom.xml</relativePath>
+    <version>3.11-SNAPSHOT</version>
+  </parent>
+  <dependencies>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-analysis</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jfreechart-aida-experimental</groupId>
+      <artifactId>jfreechart-aida-experimental</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>itextpdf</artifactId>
+      <version>5.5.5</version>
+    </dependency>
+  </dependencies>
 </project>

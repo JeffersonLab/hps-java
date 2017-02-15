@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>hps-logging</artifactId>
-    <name>logging</name>
-    <description>global logging configuration</description>
-    <parent>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-parent</artifactId>
-        <relativePath>../parent/pom.xml</relativePath>
-        <version>3.11-SNAPSHOT</version>
-    </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>hps-logging</artifactId>
+  <name>logging</name>
+  <description>global logging configuration</description>
+  <parent>
+    <groupId>org.hps</groupId>
+    <artifactId>hps-java</artifactId>
+    <relativePath>../pom.xml</relativePath>
+    <version>3.11-SNAPSHOT</version>
+  </parent>
 </project>
