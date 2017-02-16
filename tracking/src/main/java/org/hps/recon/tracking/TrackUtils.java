@@ -129,6 +129,7 @@ public class TrackUtils {
         if (Math.abs( dphi ) > Math.PI) 
             throw new RuntimeException("dphi is large " +  dphi + " from phi0 " + phi0 
                                         + " and phinew " + phinew + " take care of the ambiguity!!??");
+            //System.out.println("dphi is large " +  dphi + " from phi0 " + phi0 + " and phinew " + phinew + " take care of the ambiguity!!??");
         
         // calculate new dca
         double dcanew = dca + dx*sinphi - dy*cosphi + (dx*cosphi + dy*sinphi)*Math.tan( dphi/2. );
@@ -1286,8 +1287,8 @@ public class TrackUtils {
      * @param hitToRotated
      * @return isolations for all 12 strip layers
      */
-    public static Double[] getIsolations(Track trk, RelationalTable hitToStrips, RelationalTable hitToRotated) {
-        Double[] isolations = new Double[12];
+    public static Double[] getIsolations(Track trk, RelationalTable hitToStrips, RelationalTable hitToRotated, int layers) {
+        Double[] isolations = new Double[2*layers];
         for (TrackerHit hit : trk.getTrackerHits()) {
             Set<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
             TrackerHit[] strips = new TrackerHit[2];
@@ -1298,7 +1299,9 @@ public class TrackUtils {
         return isolations;
     }
    
-    
+    public static Double[] getIsolations(Track trk, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+        return getIsolations(trk, hitToStrips, hitToRotated, 6);
+    }
     
     /**
      * Backward compatibility function for {@code extrapolateTrackUsingFieldMap}.
