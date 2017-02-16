@@ -146,7 +146,9 @@
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>         
             <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
         </driver>
-        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
+            <layerNum>7</layerNum>
+        </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>

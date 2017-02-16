@@ -133,7 +133,9 @@
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>             
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
-        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
+            <layerNum>7</layerNum>
+        </driver>
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
             <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
