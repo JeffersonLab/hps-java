@@ -73,6 +73,9 @@ public final class TrackDataDriver extends Driver {
     /** The extrapolation step size */ 
     double stepSize = 5.0; // mm
     
+    /** The default number of layers */
+    int layerNum = 6;
+    
     /** Default constructor */
     public TrackDataDriver() {
     }
@@ -96,6 +99,15 @@ public final class TrackDataDriver extends Driver {
      */
     void setStepSize(double stepSize) { 
         this.stepSize = stepSize; 
+    }
+    
+    /**
+     * Set number of tracking layers. Default is 6 layers.
+     * 
+     */
+    
+    public void setLayerNum(int layerNum) { 
+        this.layerNum = layerNum; 
     }
     
     /**
@@ -283,7 +295,7 @@ public final class TrackDataDriver extends Driver {
              
                 // Calculate the track isolation constants for each of the 
                 // layers
-                Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated);
+                Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated,layerNum);
                 double qualityArray[] = new double[isolations.length];
                 for (int i = 0; i < isolations.length; i++) {
                     qualityArray[i] = isolations[i] == null ? -99999999.0 : isolations[i];
