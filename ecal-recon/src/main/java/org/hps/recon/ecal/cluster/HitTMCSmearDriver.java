@@ -30,9 +30,11 @@ public class HitTMCSmearDriver extends Driver {
     
    
     // Time resolution as derived for 2016 data
+    //Factor 1.98 derived after running over MC. Probably due to
+    //lack of trigger jitter in simulation.
     private static double calcSmear(double energy, double time){
         Random r = new Random();
-        double sigT = r.nextGaussian()*Math.sqrt(Math.pow(0.188/energy, 2) + Math.pow(0.152, 2));
+        double sigT = r.nextGaussian()*Math.sqrt(Math.pow(0.188/energy, 2) + Math.pow(0.152, 2))/1.98;
         return time + sigT;
     }
             
