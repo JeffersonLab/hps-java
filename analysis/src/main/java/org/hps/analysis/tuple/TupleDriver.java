@@ -75,6 +75,8 @@ public abstract class TupleDriver extends Driver {
     private final double[] vzcBeamSize = {0.001, 100, 100};
     private final double[] topTrackCorrection = {0, 0, 0, 0, 0};
     private final double[] botTrackCorrection = {0, 0, 0, 0, 0};
+    private final double[] topPos = {45.5,92.0,192.0};
+    private final double[] botPos = {54.5,107.5,207.5};
     protected final BasicHep3Matrix beamAxisRotation = BasicHep3Matrix.identity();
     protected double ebeam = Double.NaN;
 
@@ -291,6 +293,9 @@ public abstract class TupleDriver extends Driver {
             "PhiKink1/D", "PhiKink2/D", "PhiKink3/D",
             "IsoStereo/D", "IsoAxial/D",
             "MinPositiveIso/D", "MinNegativeIso/D",
+            "TrkExtrpXL0/D", "TrkExtrpYL0/D",
+            "TrkExtrpXL1/D", "TrkExtrpYL1/D",
+            "TrkExtrpXL2/D", "TrkExtrpYL2/D",
             "RawMaxAmplL1/D", "RawT0L1/D", "RawChisqL1/D","RawTDiffL1/D",
             "RawMaxAmplL2/D", "RawT0L2/D", "RawChisqL2/D","RawTDiffL2/D",
             "RawMaxAmplL3/D", "RawT0L3/D", "RawChisqL3/D","RawTDiffL3/D",
@@ -604,6 +609,19 @@ public abstract class TupleDriver extends Driver {
             
             Track track = particle.getTracks().get(0);
             TrackState trackState = track.getTrackStates().get(0);
+            Hep3Vector extrapTrackPosL0;
+            Hep3Vector extrapTrackPosL1;
+            Hep3Vector extrapTrackPosL2;
+            if(trackState.getTanLambda() > 0){
+                extrapTrackPosL0 = TrackUtils.extrapolateTrack(track,topPos[0]);
+                extrapTrackPosL1 = TrackUtils.extrapolateTrack(track,topPos[1]);
+                extrapTrackPosL2 = TrackUtils.extrapolateTrack(track,topPos[2]);
+            }
+            else{
+                extrapTrackPosL0 = TrackUtils.extrapolateTrack(track,botPos[0]);
+                extrapTrackPosL1 = TrackUtils.extrapolateTrack(track,botPos[1]);
+                extrapTrackPosL2 = TrackUtils.extrapolateTrack(track,botPos[2]);
+            }
             double[] param = new double[5];
             for (int i = 0; i < 5; i++) {
                 param[i] = trackState.getParameters()[i] + ((trackState.getTanLambda() > 0) ? topTrackCorrection[i] : botTrackCorrection[i]);
@@ -802,6 +820,12 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "IsoAxial/D", isoAxial);
             tupleMap.put(prefix + "MinPositiveIso/D", minPositiveIso);
             tupleMap.put(prefix + "MinNegativeIso/D", minNegativeIso);
+            tupleMap.put(prefix + "TrkExtrpXL0/D", extrapTrackPosL0.x());
+            tupleMap.put(prefix + "TrkExtrpYL0/D", extrapTrackPosL0.y());
+            tupleMap.put(prefix + "TrkExtrpXL1/D", extrapTrackPosL1.x());
+            tupleMap.put(prefix + "TrkExtrpYL1/D", extrapTrackPosL1.y());
+            tupleMap.put(prefix + "TrkExtrpXL2/D", extrapTrackPosL2.x());
+            tupleMap.put(prefix + "TrkExtrpYL2/D", extrapTrackPosL2.y());
             tupleMap.put(prefix + "MatchChisq/D", particle.getGoodnessOfPID());
 
             returnTrackState = tweakedTrackState;
