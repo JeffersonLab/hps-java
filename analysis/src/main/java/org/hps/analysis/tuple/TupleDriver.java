@@ -684,10 +684,10 @@ public abstract class TupleDriver extends Driver {
             }
 
             //////////////////////////////////////////////////////////////////////////
-            double rawHitTime[] = new double[7];
-            double rawHitTDiff[] = new double[7];
-            double rawHitMaxAmpl[] = new double[7];
-            double rawHitChisq[] = new double[7];
+            double rawHitTime[] = new double[6];
+            double rawHitTDiff[] = new double[6];
+            double rawHitMaxAmpl[] = new double[6];
+            double rawHitChisq[] = new double[6];
             int nTrackHits = 0;
             List <TrackerHit> allTrackHits = track.getTrackerHits();
             for (TrackerHit iTrackHit : allTrackHits){
