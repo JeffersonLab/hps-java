@@ -255,7 +255,8 @@ public abstract class TupleDriver extends Driver {
             "evTx/I","evTy/I","rfT1/D","rfT2/D",
             "nEcalHits/I", "nSVTHits/I", "nEcalCl/I", "nEcalClele/I","nEcalClpos/I","nEcalClpho/I","nEcalClEleSide/I","nEcalClPosSide/I",
             "nSVTHitsL1/I","nSVTHitsL2/I","nSVTHitsL3/I","nSVTHitsL4/I","nSVTHitsL5/I","nSVTHitsL6/I",
-            "nSVTHitsL1b/I","nSVTHitsL2b/I","nSVTHitsL3b/I","nSVTHitsL4b/I","nSVTHitsL5b/I","nSVTHitsL6b/I"};
+            "nSVTHitsL1b/I","nSVTHitsL2b/I","nSVTHitsL3b/I","nSVTHitsL4b/I","nSVTHitsL5b/I","nSVTHitsL6b/I",
+            "topL1HitX/D","topL1HitY/D","botL1HitX/D","botL1HitY/D"};
         tupleVariables.addAll(Arrays.asList(newVars));
     }
 
@@ -300,6 +301,7 @@ public abstract class TupleDriver extends Driver {
             "RawMaxAmplL2/D", "RawT0L2/D", "RawChisqL2/D","RawTDiffL2/D",
             "RawMaxAmplL3/D", "RawT0L3/D", "RawChisqL3/D","RawTDiffL3/D",
             "NTrackHits/I", "HitsSharedP/D","MaxHitsShared/I",
+            "MinNegativeIsoL2/D","MinPositiveIsoL2/D","IsoStereoL2/D","IsoAxialL2/D",
             "SharedTrkChisq/D","SharedTrkEcalX/D","SharedTrkEcalY/D",
             "MatchChisq/D", "ClT/D", "ClE/D", "ClSeedE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I", "Clix/I","Cliy/I"};
 
@@ -488,6 +490,52 @@ public abstract class TupleDriver extends Driver {
          tupleMap.put("nSVTHitsL5b/I", (double) nL5bhits);
          tupleMap.put("nSVTHitsL6b/I", (double) nL6bhits);
              
+         
+         
+         double topL1HitX = 9999;
+         double topL1HitY = 9999;
+         double botL1HitX = 9999;
+         double botL1HitY = -9999;
+
+         String stereoHitCollectionName = "RotatedHelicalTrackHits";
+         
+         // Get the collection of 3D hits from the event. This collection
+         // contains all 3D hits in the event and not just those associated
+         // with a track.
+         List<TrackerHit> hits = event.get(TrackerHit.class, stereoHitCollectionName);
+              
+         // Loop over the collection of 3D hits in the event and map them to 
+         // their corresponding layer.       
+         for (TrackerHit hit : hits) {
+             // Retrieve the sensor associated with one of the hits.  This will
+             // be used to retrieve the layer number
+             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
+
+             // Retrieve the layer number by using the sensor
+             int layer = (sensor.getLayerNumber() + 1)/2;
+          
+             // If hit isn't in layer one, skip it. 
+             // You can also create another list which contains just layer 1 hits ...
+             if (layer != 1) continue;
+          
+             if (sensor.isTopLayer() && topL1HitY>hit.getPosition()[2]){
+                 topL1HitY = hit.getPosition()[2];
+                 topL1HitX = hit.getPosition()[1];
+                
+             }
+             if (sensor.isBottomLayer() && botL1HitY<hit.getPosition()[2]){
+                 botL1HitY = hit.getPosition()[2];
+                 botL1HitX = hit.getPosition()[1];
+
+             }   
+             
+             // To check if hit is in top or bottom, use the sensor
+          //sensor.isTopLayer()
+      }
+         tupleMap.put("topL1HitX/D", topL1HitX);
+         tupleMap.put("topL1HitY/D", topL1HitY);
+         tupleMap.put("botL1HitX/D", botL1HitX);
+         tupleMap.put("botL1HitY/D", botL1HitY);
              /*
              // Get the hit amplitude
              double amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rHit));
@@ -632,8 +680,11 @@ public abstract class TupleDriver extends Driver {
 
             Double[] iso = TrackUtils.getIsolations(track, TrackUtils.getHitToStripsTable(event), TrackUtils.getHitToRotatedTable(event));
             double minPositiveIso = 9999;
+            double minPositiveIsoL2 = 9999;
             double minNegativeIso = 9999;
+            double minNegativeIsoL2 = 9999;
             double isoStereo = -9999, isoAxial = -9999;
+            double isoStereoL2 = -9999, isoAxialL2 = -9999;
             for (int i = 0; i < 6; i++) {
                 if (iso[2 * i] != null) {
                     if (pRot.y() < 0) {
@@ -656,10 +707,37 @@ public abstract class TupleDriver extends Driver {
                             }
                         }
                     }
-                    break;
+                  //  break;
                 }
+                if (iso[2 * i + 2]!=null){
+                    if (pRot.y() < 0) {
+                        isoStereoL2 = iso[2 * i +2];
+                        isoAxialL2 = iso[2 * i +3];
+                    } else {
+                        isoStereoL2 = iso[2 * i +3];
+                        isoAxialL2 = iso[2 * i +2];
+                    } 
+                    for (int j = 2 * i + 2; j < 2 * i + 4; j++) {
+                        if (iso[j] < 100) {
+                            if (iso[j] > 0) {
+                                if (minPositiveIsoL2 > 100 || iso[j] < minPositiveIsoL2) {
+                                    minPositiveIsoL2 = iso[j];
+                                }
+                            } else {
+                                if (minNegativeIsoL2 > 100 || iso[j] > minNegativeIsoL2) {
+                                    minNegativeIsoL2 = iso[j];
+                                }
+                            }
+                        }
+                    }
+                }
+                break;       
             }
-
+                
+            ////////////////////
+           
+            
+            ///////////////////////////
             double trkT = TrackUtils.getTrackTime(track, TrackUtils.getHitToStripsTable(event), TrackUtils.getHitToRotatedTable(event));
             double trkTsd = TrackUtils.getTrackTimeSD(track, TrackUtils.getHitToStripsTable(event), TrackUtils.getHitToRotatedTable(event));
 
@@ -808,7 +886,7 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "MaxHitsShared/I", (double) maxShared);
             tupleMap.put(prefix + "SharedTrkChisq/D", trackShared.getChi2());          
             tupleMap.put(prefix + "SharedTrkEcalX/D", atEcalShared.x());
-            tupleMap.put(prefix + "SharedTrkEcalY/D", atEcalShared.y());             
+            tupleMap.put(prefix + "SharedTrkEcalY/D", atEcalShared.y());    
             
             tupleMap.put(prefix + "LambdaKink1/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 1) : 0);
             tupleMap.put(prefix + "LambdaKink2/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 2) : 0);
@@ -818,8 +896,12 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "PhiKink3/D", kinks != null ? GBLKinkData.getPhiKink(kinks, 3) : 0);
             tupleMap.put(prefix + "IsoStereo/D", isoStereo);
             tupleMap.put(prefix + "IsoAxial/D", isoAxial);
+            tupleMap.put(prefix + "IsoStereoL2/D", isoStereoL2);
+            tupleMap.put(prefix + "IsoAxialL2/D", isoAxialL2);
             tupleMap.put(prefix + "MinPositiveIso/D", minPositiveIso);
             tupleMap.put(prefix + "MinNegativeIso/D", minNegativeIso);
+            tupleMap.put(prefix + "MinPositiveIsoL2/D", minPositiveIsoL2);
+            tupleMap.put(prefix + "MinNegativeIsoL2/D", minNegativeIsoL2);
             tupleMap.put(prefix + "TrkExtrpXL0/D", extrapTrackPosL0.x());
             tupleMap.put(prefix + "TrkExtrpYL0/D", extrapTrackPosL0.y());
             tupleMap.put(prefix + "TrkExtrpXL1/D", extrapTrackPosL1.x());
@@ -827,6 +909,7 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "TrkExtrpXL2/D", extrapTrackPosL2.x());
             tupleMap.put(prefix + "TrkExtrpYL2/D", extrapTrackPosL2.y());
             tupleMap.put(prefix + "MatchChisq/D", particle.getGoodnessOfPID());
+           
 
             returnTrackState = tweakedTrackState;
         }
