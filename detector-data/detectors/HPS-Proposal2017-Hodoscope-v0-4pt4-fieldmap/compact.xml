@@ -511,7 +511,7 @@
                 <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
             </module>
             <layer id="1">
-                <module_placement name="GapScoring" id="0" x="21.17-(214.393/2)" y="0" z="1108-(scoringThickness/2)-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="GapScoring" id="0" x="21.17+(214.393/2)" y="0" z="1108-(scoringThickness/2)-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
             </layer>
         </detector>
         <detector id="34" name="HodoscopeGapAftScore" type="HPSTracker2" readout="HodoscopeAftHits" insideTrackingVolume="false">
@@ -521,7 +521,7 @@
                 <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
             </module>
             <layer id="1">
-                <module_placement name="GapScoring" id="0" x="21.17-(214.393/2)" y="0" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="GapScoring" id="0" x="21.17+(214.393/2)" y="0" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
             </layer>
         </detector>
         <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
