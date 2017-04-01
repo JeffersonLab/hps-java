@@ -472,10 +472,10 @@
                 <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
             </module>
             <layer id="1"><!--top-->
-                <module_placement name="HodoscopeModule" id="0" x="21.17" y="57.299/2+17.295" z="1108+(hodoscopeThickness/2)" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="HodoscopeLayer" id="0" x="21.17" y="57.299/2+17.295" z="1108+(hodoscopeThickness/2)" rx="0" ry="0" rz="-PI/2"/>
             </layer>
             <layer id="2"><!--bottom-->
-                <module_placement name="HodoscopeModule" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108+(hodoscopeThickness/2)" rx="0" ry="0" rz="-3*PI/2"/>
+                <module_placement name="HodoscopeLayer" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108+(hodoscopeThickness/2)" rx="0" ry="0" rz="-3*PI/2"/>
             </layer>
         </detector>
         <detector id="31" name="HodoscopeForeScore" type="HPSTracker2" readout="HodoscopeForeHits" insideTrackingVolume="false">
@@ -485,10 +485,10 @@
                 <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
             </module>
             <layer id="1"><!--top-->
-                <module_placement name="HodoscopeForeScoreModule" id="0" x="21.17" y="57.299/2+17.295" z="1108-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="HodoscopeForeScoreLayer" id="0" x="21.17" y="57.299/2+17.295" z="1108-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
             </layer>
             <layer id="2"><!--bottom-->
-                <module_placement name="HodoscopeForeScoreModule" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-3*PI/2"/>
+                <module_placement name="HodoscopeForeScoreLayer" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-3*PI/2"/>
             </layer>
         </detector>
         <detector id="32" name="HodoscopeAftScore" type="HPSTracker2" readout="HodoscopeAftHits" insideTrackingVolume="false">
@@ -498,10 +498,10 @@
                 <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
             </module>
             <layer id="1"><!--top-->
-                <module_placement name="HodoscopeAftScoreModule" id="0" x="21.17" y="57.299/2+17.295" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="HodoscopeAftScoreLayer" id="0" x="21.17" y="57.299/2+17.295" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
             </layer>
             <layer id="2"><!--bottom-->
-                <module_placement name="HodoscopeAftScoreModule" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-3*PI/2"/>
+                <module_placement name="HodoscopeAftScoreLayer" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-3*PI/2"/>
             </layer>
         </detector>
         <detector id="33" name="HodoscopeGapForeScore" type="HPSTracker2" readout="HodoscopeForeHits" insideTrackingVolume="false">
@@ -511,7 +511,7 @@
                 <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
             </module>
             <layer id="1">
-                <module_placement name="HodoscopeGapForeScoreModule" id="0" x="21.17+(214.393/2)" y="0" z="1108-(scoringThickness/2)-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="HodoscopeGapForeScoreLayer" id="0" x="21.17+(214.393/2)" y="0" z="1108-(scoringThickness/2)-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
             </layer>
         </detector>
         <detector id="34" name="HodoscopeGapAftScore" type="HPSTracker2" readout="HodoscopeAftHits" insideTrackingVolume="false">
@@ -521,7 +521,7 @@
                 <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
             </module>
             <layer id="1">
-                <module_placement name="HodoscopeGapAftScoreModule" id="0" x="21.17+(214.393/2)" y="0" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="HodoscopeGapAftScoreLayer" id="0" x="21.17+(214.393/2)" y="0" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
             </layer>
         </detector>
         <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
