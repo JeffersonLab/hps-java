@@ -26,6 +26,12 @@ public class MassHistogramDriver extends Driver{
     private double trackClusterTimeDiffThresholdMean = 55;
     private double trackClusterTimeDiffThresholdAbs = 4.5;
 
+    private int maxSharedHits = 3;
+    
+    public void setRadThreshold(double val){
+        radThreshold = val;
+    }
+    
     public void setMeanClusterTrackDt(double val){
         trackClusterTimeDiffThresholdMean = val;
     }
@@ -105,7 +111,9 @@ public class MassHistogramDriver extends Driver{
     IHistogram1D totPzFinal = aida.histogram1D("total_pz_final", 100, 0, 4.0);
 
     IHistogram2D massVsPzFinal = aida.histogram2D("mass_vs_tot_pz_final", nMassBins, 0, maxMass, 100, 0, 4);
-
+    
+    IHistogram1D massRad = aida.histogram1D("mass_rad", nMassBins, 0, maxMass);
+    IHistogram1D cdtRad = aida.histogram1D("cluster_dt_rad", nCDTbins, -maxCDT, maxCDT);
 
     /**
      * check if two tracks share hits.  If so, return the track that is "worse"
@@ -117,7 +125,7 @@ public class MassHistogramDriver extends Driver{
     Track getWorseTrack(Track t1, Track t2){
         if(t1 == t2)
             return null;
-        if(TrackUtils.numberOfSharedHits(t1, t2) == 0)
+        if(TrackUtils.numberOfSharedHits(t1, t2) <= maxSharedHits)
             return null;
         //for now, just use track fit chi2.  
         if(t1.getChi2() > t2.getChi2())
@@ -136,15 +144,18 @@ public class MassHistogramDriver extends Driver{
         trash.clear();
 
         //then, remove v0s where there is a missing cluster, 
-        //or both clusters are on opposite sides of the ECal
+        //or both clusters are not on opposite sides of the ECal
 
         for(ReconstructedParticle v1 : v0s){
+            //do they have clusters?  
             if(v1.getParticles().get(0).getClusters().size() == 0 
                     || v1.getParticles().get(1).getClusters().size() == 0 )
                 trash.add(v1);
+            // on opposite sides of detector?
             else if(v1.getParticles().get(0).getClusters().get(0).getPosition()[1]
                     *v1.getParticles().get(1).getClusters().get(0).getPosition()[1] > 0)
                 trash.add(v1);
+            //match chi^2 < 10?  
             else if(v1.getParticles().get(0).getGoodnessOfPID() > goodnessPidThreshold 
                     || v1.getParticles().get(1).getGoodnessOfPID() > goodnessPidThreshold)
                 trash.add(v1);
@@ -186,7 +197,7 @@ public class MassHistogramDriver extends Driver{
         v0s.removeAll(trash);
     }
     /**
-     * combines the radiative cut and the pz max cut.  
+     *  pz max cut.  
      * @param v0s
      */
     public void pzMaxCut(List<ReconstructedParticle> v0s){
@@ -394,6 +405,10 @@ public class MassHistogramDriver extends Driver{
             cdtFinal.fill(getClusterTimeDiff(v0));
 
             massVsPzFinal.fill(v0.getMass(), v0.getMomentum().z());
+            if(v0.getMomentum().z()>radThreshold){
+                massRad.fill(v0.getMass());
+                cdtRad.fill(getClusterTimeDiff(v0));
+            }
         }
 
 
