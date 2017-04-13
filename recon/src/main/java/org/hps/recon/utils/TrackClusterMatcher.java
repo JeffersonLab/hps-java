@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalCrystalPosition;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
@@ -125,38 +124,38 @@ public class TrackClusterMatcher {
     private static final double dyMeanBotElecSeed[] ={-9.22963, 98.1346, -427.91, 840.225,-751.188, 250.792 };
     private static final double dySigmBotElecSeed[] ={ 21.7909,-85.4757,-56.9423, 977.522,-1902.05, 1137.92 };
 
-    double[] dyMeanBotPosiGBL_hasL6_2016 = {61.9088, -298.463, 565.537, -523.724, 237.229, -42.1404, };
-    double[] dySigmBotPosiGBL_hasL6_2016 = {-0.093475, 40.9392, -101.753, 104.323, -49.4306, 8.93159, };
-    double[] dyMeanBotElecGBL_hasL6_2016 = {20.0078, -83.5107, 135.536, -107.961, 42.7249, -6.79487, };
-    double[] dySigmBotElecGBL_hasL6_2016 = {1.24357, 40.5032, -115.788, 133.659, -71.1645, 14.4688, };
-    double[] dyMeanBotPosiGBL_noL6_2016 = {68.922, -384.392, 823.468, -848.185, 421.878, -81.4591, };
-    double[] dySigmBotPosiGBL_noL6_2016 = {4.14041, 52.1456, -168.051, 199.176, -105.685, 21.1395, };
-    double[] dyMeanBotElecGBL_noL6_2016 = {47.3637, -270.021, 594.543, -635.27, 329.967, -66.7499, };
-    double[] dySigmBotElecGBL_noL6_2016 = {9.30685, 13.4258, -70.9536, 89.4673, -47.7732, 9.49346, };
-    double[] dyMeanTopPosiGBL_hasL6_2016 = {-56.7563, 286.468, -556.478, 526.441, -243.51, 44.2323, };
-    double[] dySigmTopPosiGBL_hasL6_2016 = {18.5605, -50.5365, 74.3028, -62.0342, 27.8246, -5.18361, };
-    double[] dyMeanTopElecGBL_hasL6_2016 = {-18.0237, 63.4021, -80.5307, 45.4659, -10.8515, 0.755, };
-    double[] dySigmTopElecGBL_hasL6_2016 = {25.4063, -84.1909, 138.915, -122.625, 55.8197, -10.3318, };
-    double[] dyMeanTopPosiGBL_noL6_2016 = {-39.2446, 227.355, -491.463, 507.19, -252.121, 48.6413, };
-    double[] dySigmTopPosiGBL_noL6_2016 = {-14.486, 144.721, -350.065, 375.156, -189.183, 36.6996, };
-    double[] dyMeanTopElecGBL_noL6_2016 = {-39.2354, 219.627, -481.305, 517.895, -272.826, 56.1788, };
-    double[] dySigmTopElecGBL_noL6_2016 = {-5.05372, 95.2424, -250.435, 279.024, -144.395, 28.5751, };
-    double[] dxMeanBotPosiGBL_hasL6_2016 = {28.4629, -85.0505, 143.105, -132.568, 62.3264, -11.4897, };
-    double[] dxSigmBotPosiGBL_hasL6_2016 = {3.44016, 17.9271, -56.8496, 64.8757, -33.0304, 6.31036, };
-    double[] dxMeanBotElecGBL_hasL6_2016 = {-10.2098, 0.54061, 51.6399, -90.8963, 59.6178, -13.8459, };
-    double[] dxSigmBotElecGBL_hasL6_2016 = {6.50369, 3.46696, -33.5211, 47.9197, -27.5646, 5.75418, };
-    double[] dxMeanBotPosiGBL_noL6_2016 = {-42.9762, 251.953, -473.985, 416.669, -176.301, 29.1586, };
-    double[] dxSigmBotPosiGBL_noL6_2016 = {-29.8728, 230.107, -529.287, 556.51, -277.861, 53.5125, };
-    double[] dxMeanBotElecGBL_noL6_2016 = {38.1685, -231.67, 481.882, -479.81, 232.134, -44.0397, };
-    double[] dxSigmBotElecGBL_noL6_2016 = {-31.8547, 226.191, -492.949, 493.603, -235.142, 43.2198, };
-    double[] dxMeanTopPosiGBL_hasL6_2016 = {25.3076, -91.6979, 179.056, -176.402, 86.1243, -16.5112, };
-    double[] dxSigmTopPosiGBL_hasL6_2016 = {0.651218, 35.406, -100.157, 115.63, -61.3268, 12.3654, };
-    double[] dxMeanTopElecGBL_hasL6_2016 = {-15.8868, 9.92772, 63.0476, -123.018, 83.7316, -19.8075, };
-    double[] dxSigmTopElecGBL_hasL6_2016 = {12.4336, -28.7433, 39.6578, -34.3327, 17.4376, -3.79722, };
-    double[] dxMeanTopPosiGBL_noL6_2016 = {-12.7059, 112.005, -236.037, 231.936, -109.407, 20.1831, };
-    double[] dxSigmTopPosiGBL_noL6_2016 = {8.31548, 26.3189, -115.601, 150.946, -84.5262, 17.5273, };
-    double[] dxMeanTopElecGBL_noL6_2016 = {97.0246, -574.228, 1252.09, -1313.78, 670.578, -133.667, };
-    double[] dxSigmTopElecGBL_noL6_2016 = {-33.555, 246.677, -561.872, 590.114, -294.933, 56.852, };
+    double dyMeanBotElecGBL_noL6_2016[] = {21.4029, -116.618, 242.782, -243.096, 116.391, -21.3705, };
+    double dySigmBotElecGBL_noL6_2016[] = {5.79474, 42.3526, -154.281, 198.416, -110.755, 22.5002, };
+    double dyMeanBotPosiGBL_noL6_2016[] = {-32.7647, 192.891, -410.961, 399.639, -181.869, 31.9595, };
+    double dySigmBotPosiGBL_noL6_2016[] = {17.8515, -33.461, 25.3072, 1.43572, -11.0974, 3.67049, };
+    double dyMeanTopElecGBL_noL6_2016[] = {6.86435, -40.7206, 95.4489, -101.976, 49.4215, -8.82775, };
+    double dySigmTopElecGBL_noL6_2016[] = {17.4846, -30.3801, 21.8231, -5.23113, -0.655482, 0.331731, };
+    double dyMeanTopPosiGBL_noL6_2016[] = {29.5891, -183.537, 412.88, -429.73, 210.11, -39.0327, };
+    double dySigmTopPosiGBL_noL6_2016[] = {19.5882, -45.4899, 60.7058, -50.9565, 23.8695, -4.51673, };
+    double dxMeanBotElecGBL_noL6_2016[] = {-98.9077, 525.149, -1039.57, 980.701, -437.863, 73.7902, };
+    double dxSigmBotElecGBL_noL6_2016[] = {56.0747, -215.028, 376.153, -330.129, 140.026, -22.2382, };
+    double dxMeanBotPosiGBL_noL6_2016[] = {34.0744, -123.803, 71.5376, 113.659, -139.216, 40.1974, };
+    double dxSigmBotPosiGBL_noL6_2016[] = {23.7214, -26.9337, -33.8754, 89.0502, -59.0957, 12.4707, };
+    double dxMeanTopElecGBL_noL6_2016[] = {-83.6079, 437.888, -860.249, 810.746, -368.197, 64.3483, };
+    double dxSigmTopElecGBL_noL6_2016[] = {30.297, -67.233, 66.1714, -30.2237, 5.73356, -0.246071, };
+    double dxMeanTopPosiGBL_noL6_2016[] = {112.555, -608.12, 1222.08, -1198.79, 571.617, -105.815, };
+    double dxSigmTopPosiGBL_noL6_2016[] = {68.9243, -288.365, 548.219, -528.494, 249.054, -44.9662, };
+    double dyMeanBotElecGBL_hasL6_2016[] = {10.0991, -45.1389, 75.6325, -58.4286, 20.9496, -2.76409, };
+    double dySigmBotElecGBL_hasL6_2016[] = {11.5166, -11.8108, -14.4282, 36.4451, -24.0599, 5.24438, };
+    double dyMeanBotPosiGBL_hasL6_2016[] = {-8.54155, 44.7853, -86.05, 77.643, -32.9959, 5.29948, };
+    double dySigmBotPosiGBL_hasL6_2016[] = {7.95448, 0.739901, -25.1093, 33.5638, -17.3941, 3.21339, };
+    double dyMeanTopElecGBL_hasL6_2016[] = {0.133525, 4.56438, -10.9925, 4.536, 3.00832, -1.69504, };
+    double dySigmTopElecGBL_hasL6_2016[] = {12.4589, -19.1236, 3.4098, 18.2024, -16.0226, 4.01311, };
+    double dyMeanTopPosiGBL_hasL6_2016[] = {6.21702, -33.0593, 57.1802, -44.5098, 15.5222, -1.91157, };
+    double dySigmTopPosiGBL_hasL6_2016[] = {8.90734, -4.58212, -14.6305, 22.9652, -11.9253, 2.1063, };
+    double dxMeanBotElecGBL_hasL6_2016[] = {14.5956, -52.3051, 86.2819, -68.5327, 26.5143, -4.05764, };
+    double dxSigmBotElecGBL_hasL6_2016[] = {8.48883, -8.7345, -4.62386, 15.6588, -10.0549, 2.072, };
+    double dxMeanBotPosiGBL_hasL6_2016[] = {-10.2802, 9.89649, -1.91288, -2.55232, 1.60223, -0.391313, };
+    double dxSigmBotPosiGBL_hasL6_2016[] = {9.01348, -10.0065, -2.08453, 12.2655, -8.07062, 1.6347, };
+    double dxMeanTopElecGBL_hasL6_2016[] = {18.4044, -64.8356, 100.872, -80.3824, 32.1406, -5.18012, };
+    double dxSigmTopElecGBL_hasL6_2016[] = {6.35802, 7.78906, -46.0735, 62.5489, -34.6151, 6.88334, };
+    double dxMeanTopPosiGBL_hasL6_2016[] = {-8.83874, 14.222, -21.5792, 16.1105, -5.9697, 0.818567, };
+    double dxSigmTopPosiGBL_hasL6_2016[] = {15.8861, -44.9644, 64.9238, -48.8716, 18.5494, -2.79817, };
 
 
 
@@ -181,15 +180,8 @@ public class TrackClusterMatcher {
      * Constructor
      */
     public TrackClusterMatcher() {
-        DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
-        positions = 
-                mgr.getCachedConditions(EcalCrystalPositionCollection.class, "ecal_crystal_positions").getCachedData();
-        channels = 
-                mgr.getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
-
+        
     }
-
-    ;
 
     /**
      * Enable/disable booking, filling of Ecal cluster and extrapolated track 
@@ -328,7 +320,8 @@ public class TrackClusterMatcher {
         double tx = tPos.x();
 
         double closestDist = 9999;
-
+        if(positions == null || channels == null)
+            return tPos;
         Double snapToY = null;
         for(EcalCrystalPosition pos : positions){
             EcalChannel chan = channels.findChannel(pos.getChannelId());
@@ -402,7 +395,7 @@ public class TrackClusterMatcher {
         // choose which parameterization of mean and sigma to use:
         double dxMean[],dxSigm[];
         int charge = TrackUtils.getCharge(track);
-        if(beamEnergy < 1.5){
+        if(Math.abs(beamEnergy-1.05)<.1){
             if (charge>0) {
                 if (isTopTrack) {
                     dxMean = isGBL ? dxMeanTopPosiGBL : dxMeanTopPosiSeed;
@@ -424,7 +417,7 @@ public class TrackClusterMatcher {
                 }
             }
             else return Double.MAX_VALUE;
-        } else if(beamEnergy < 2.8){
+        } else if(Math.abs(beamEnergy-2.306)<.1){
             boolean hasL6 = false;
             for(TrackerHit hit : track.getTrackerHits()){
                 if(TrackUtils.getLayer(hit) == 11)
@@ -500,7 +493,7 @@ public class TrackClusterMatcher {
         // choose which parameterization of mean and sigma to use:
         double dyMean[],dySigm[];
         int charge = TrackUtils.getCharge(track);
-        if(beamEnergy < 1.5){
+        if(Math.abs(beamEnergy-1.05)<.1){
             if (charge>0) {
                 if (isTopTrack) {
                     dyMean = isGBL ? dyMeanTopPosiGBL : dyMeanTopPosiSeed;
@@ -523,7 +516,7 @@ public class TrackClusterMatcher {
             }
             else return Double.MAX_VALUE;
         }
-        else if(beamEnergy < 2.8){
+        else if(Math.abs(beamEnergy-2.3)<.1){
             boolean hasL6 = false;
             for(TrackerHit hit : track.getTrackerHits()){
                 if(TrackUtils.getLayer(hit) == 11)
@@ -860,6 +853,18 @@ public class TrackClusterMatcher {
             nSigmaPositionMatch = getNSigmaPosition(cc,pp);
         }
         public double getNSigmaPositionMatch() { return nSigmaPositionMatch; }
+    }
+
+    public void setEcalCrystalPositions(EcalCrystalPositionCollection positions) {
+       this.positions = positions;
+    }
+
+    public void setEcalChannels(EcalChannelCollection channels) {
+        this.channels = channels;
+    }
+
+    public void setBeamEnergy(double beamEnergy) {
+        this.beamEnergy = beamEnergy;
     }
 
 
