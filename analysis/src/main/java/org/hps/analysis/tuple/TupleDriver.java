@@ -6,6 +6,9 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.HepLorentzVector;
 import hep.physics.vec.VecOp;
 
+import hep.physics.matrix.Matrix;
+import hep.physics.matrix.MatrixOp;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -79,7 +82,12 @@ public abstract class TupleDriver extends Driver {
     private final double[] botPos = {54.5,107.5,207.5};
     protected final BasicHep3Matrix beamAxisRotation = BasicHep3Matrix.identity();
     protected double ebeam = Double.NaN;
+    private int nLay = 6;
 
+    public void setNLay(int nLay) {
+        this.nLay = nLay;
+    }
+    
     public void setApplyBeamRotation(boolean applyBeamRotation) {
         this.applyBeamRotation = applyBeamRotation;
     }
@@ -268,6 +276,9 @@ public abstract class TupleDriver extends Driver {
             "tarVX/D", "tarVY/D", "tarVZ/D", "tarChisq/D", "tarM/D",
             "vzcPX/D", "vzcPY/D", "vzcPZ/D", "vzcP/D",
             "vzcVX/D", "vzcVY/D", "vzcVZ/D", "vzcChisq/D", "vzcM/D",
+            "uncCovXX/D","uncCovXY/D","uncCovXZ/D",
+            "uncCovYX/D","uncCovYY/D","uncCovYZ/D",
+            "uncCovZX/D","uncCovZY/D","uncCovZZ/D",
             "uncElePX/D", "uncElePY/D", "uncElePZ/D", "uncPosPX/D", "uncPosPY/D", "uncPosPZ/D", "uncEleP/D", "uncPosP/D",
             "bscElePX/D", "bscElePY/D", "bscElePZ/D", "bscPosPX/D", "bscPosPY/D", "bscPosPZ/D", "bscEleP/D", "bscPosP/D",
             "tarElePX/D", "tarElePY/D", "tarElePZ/D", "tarPosPX/D", "tarPosPY/D", "tarPosPZ/D", "tarEleP/D", "tarPosP/D",
@@ -630,11 +641,11 @@ public abstract class TupleDriver extends Driver {
             TrackState tweakedTrackState = new BaseTrackState(param, trackState.getReferencePoint(), trackState.getCovMatrix(), trackState.getLocation(), bfield);
             Hep3Vector pRot = VecOp.mult(beamAxisRotation, CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(tweakedTrackState.getMomentum())));
 
-            Double[] iso = TrackUtils.getIsolations(track, TrackUtils.getHitToStripsTable(event), TrackUtils.getHitToRotatedTable(event));
+            Double[] iso = TrackUtils.getIsolations(track, TrackUtils.getHitToStripsTable(event), TrackUtils.getHitToRotatedTable(event), nLay);
             double minPositiveIso = 9999;
             double minNegativeIso = 9999;
             double isoStereo = -9999, isoAxial = -9999;
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < nLay; i++) {
                 if (iso[2 * i] != null) {
                     if (pRot.y() < 0) {
                         isoStereo = iso[2 * i];
@@ -684,10 +695,10 @@ public abstract class TupleDriver extends Driver {
             }
 
             //////////////////////////////////////////////////////////////////////////
-            double rawHitTime[] = new double[6];
-            double rawHitTDiff[] = new double[6];
-            double rawHitMaxAmpl[] = new double[6];
-            double rawHitChisq[] = new double[6];
+            double rawHitTime[] = new double[nLay];
+            double rawHitTDiff[] = new double[nLay];
+            double rawHitMaxAmpl[] = new double[nLay];
+            double rawHitChisq[] = new double[nLay];
             int nTrackHits = 0;
             List <TrackerHit> allTrackHits = track.getTrackerHits();
             for (TrackerHit iTrackHit : allTrackHits){
@@ -865,6 +876,7 @@ public abstract class TupleDriver extends Driver {
         ReconstructedParticle bscV0 = HpsReconParticleDriver.makeReconstructedParticle(electron, positron, bsconVertex);
         Hep3Vector bscMomRot = VecOp.mult(beamAxisRotation, bscV0.getMomentum());
         Hep3Vector bscVtx = VecOp.mult(beamAxisRotation, bscV0.getStartVertex().getPosition());
+        Matrix uncCov = MatrixOp.mult(MatrixOp.mult(beamAxisRotation,uncV0.getStartVertex().getCovMatrix()),MatrixOp.transposed(beamAxisRotation));
 
         vtxFitter.doTargetConstraint(true);
         BilliorVertex tarVertex = vtxFitter.fitVertex(billiorTracks);
@@ -898,6 +910,15 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put("uncPosPZ/D", uncV0.getStartVertex().getParameters().get("p2Z"));
         tupleMap.put("uncPosP/D", Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
                 + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2)));
+        tupleMap.put("uncCovXX/D", uncCov.e(0,0));
+        tupleMap.put("uncCovXY/D", uncCov.e(0,1));
+        tupleMap.put("uncCovXZ/D", uncCov.e(0,2));
+        tupleMap.put("uncCovYX/D", uncCov.e(1,0));
+        tupleMap.put("uncCovYY/D", uncCov.e(1,1));
+        tupleMap.put("uncCovYZ/D", uncCov.e(1,2));
+        tupleMap.put("uncCovZX/D", uncCov.e(2,0));
+        tupleMap.put("uncCovZY/D", uncCov.e(2,1));
+        tupleMap.put("uncCovZZ/D", uncCov.e(2,2));
 
         tupleMap.put("bscPX/D", bscMomRot.x());
         tupleMap.put("bscPY/D", bscMomRot.y());
