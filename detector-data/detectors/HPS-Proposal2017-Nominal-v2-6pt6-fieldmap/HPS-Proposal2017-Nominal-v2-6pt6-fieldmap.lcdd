@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
-    <detector name="HPS-Proposal2017-Nominal-v2-4pt4-fieldmap" />
-    <generator name="lcsim" version="1.0" file="/nfs/slac/g/hps2/mrsolt/hps/hps-java/detector-data/detectors/HPS-Proposal2017-Nominal-v2-6pt6-fieldmap/compact.xml" checksum="1075183250" />
+    <detector name="HPS-Proposal2017-Nominal-v2-6pt6-fieldmap" />
+    <generator name="lcsim" version="1.0" file="/nfs/slac/g/hps2/mrsolt/hps/hps-java/detector-data/detectors/HPS-Proposal2017-Nominal-v2-6pt6-fieldmap/compact.xml" checksum="308138138" />
     <author name="NONE" />
     <comment>HPS detector for 2017 proposal with fieldmap, tracker at nominal opening angle, no SVT survey, this detector uses the corrected fieldmap scaled to -1.50T for 6.6 GeV.</comment>
   </header>
