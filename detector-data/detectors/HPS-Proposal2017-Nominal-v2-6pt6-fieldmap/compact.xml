@@ -2,7 +2,7 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-Proposal2017-Nominal-v2-4pt4-fieldmap">
+    <info name="HPS-Proposal2017-Nominal-v2-6pt6-fieldmap">
         <comment>HPS detector for 2017 proposal with fieldmap,
                  tracker at nominal opening angle, no SVT survey,  
                  this detector uses the corrected fieldmap scaled to -1.50T for 6.6 GeV.
