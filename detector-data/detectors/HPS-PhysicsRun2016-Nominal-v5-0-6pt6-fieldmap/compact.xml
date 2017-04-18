@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-PhysicsRun2016-Nominal-v5-0-4pt4-fieldmap">
+    <info name="HPS-PhysicsRun2016-Nominal-v5-0-6pt6-fieldmap">
         <comment>HPS detector for 2016 Physics Run at 6.6 GeV.
             Based on HPS-PhysicsRun2015-Nominal-v5-0-fieldmap.
             Millepede constants are cleaned up (tweak parameters are set to 0) but their actual values are unchanged.
