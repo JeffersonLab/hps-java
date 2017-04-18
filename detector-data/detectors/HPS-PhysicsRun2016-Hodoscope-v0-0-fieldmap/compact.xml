@@ -54,7 +54,7 @@
         <constant name="scoringThickness" value="0.001" />
         
         <!-- Hodoscope thickness -->
-        <constant name="hodoscopeThickness" value="0.500"/>
+        <constant name="hodoscopeThickness" value="0.500*cm"/>
         
         <!-- Distance between hodoscope and scoring planes -->
         <constant name="hodoscopeScoreDisplacement" value="1.000"/>
@@ -809,7 +809,7 @@
                 <module_placement name="BeamRight" id="0" x="-1*electronGapRightEdge/2+21.17" y="-1*(457.2/2+14)/2" z="1318+20+scoringThickness" rx="0" ry="0" rz="-3*PI/2" />
             </layer>
         </detector> 
-        <detector id="30" name="Hodoscope" type="HPSTracker2" readout="HodoscopeHits" insideTrackingVolume="false" >
+        <detector id="30" name="Hodoscope" type="HPSTracker2" readout="HodoscopeHits" insideTrackingVolume="true" >
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopeModule">
                 <box x="2*214.393" y="57.299"/>
@@ -822,7 +822,7 @@
                 <module_placement name="HodoscopeModule" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108+(hodoscopeThickness/2)" rx="0" ry="0" rz="-3*PI/2"/>
             </layer>
         </detector>
-        <detector id="31" name="HodoscopeForeScore" type="HPSTracker2" readout="HodoscopeForeHits" insideTrackingVolume="false">
+        <detector id="31" name="HodoscopeForeScore" type="HPSTracker2" readout="HodoscopeForeHits" insideTrackingVolume="true">
             <comment>Scoring plane immediately before the hodoscope.</comment>
             <module name="HodoscopeForeScoreModule">
                 <box x="2*214.393" y="57.299"/>
@@ -835,7 +835,7 @@
                 <module_placement name="HodoscopeForeScoreModule" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-3*PI/2"/>
             </layer>
         </detector>
-        <detector id="32" name="HodoscopeAftScore" type="HPSTracker2" readout="HodoscopeAftHits" insideTrackingVolume="false">
+        <detector id="32" name="HodoscopeAftScore" type="HPSTracker2" readout="HodoscopeAftHits" insideTrackingVolume="true">
             <comment>Scoring plane immediately after the hodoscope.</comment>
             <module name="HodoscopeAftScoreModule">
                 <box x="2*214.393" y="57.299"/>
@@ -848,7 +848,7 @@
                 <module_placement name="HodoscopeAftScoreModule" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-3*PI/2"/>
             </layer>
         </detector>
-        <detector id="33" name="HodoscopeGapForeScore" type="HPSTracker2" readout="HodoscopeForeHits" insideTrackingVolume="false">
+        <detector id="33" name="HodoscopeGapForeScore" type="HPSTracker2" readout="HodoscopeForeHits" insideTrackingVolume="true">
             <comment>Scoring plane immediately before the hodoscope.</comment>
             <module name="HodoscopeGapForeScoreModule">
                 <box x="214.393" y="2*17.295"/>
@@ -858,7 +858,7 @@
                 <module_placement name="HodoscopeGapForeScoreModule" id="0" x="21.17+(214.393/2)" y="0" z="1108-(scoringThickness/2)-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
             </layer>
         </detector>
-        <detector id="34" name="HodoscopeGapAftScore" type="HPSTracker2" readout="HodoscopeAftHits" insideTrackingVolume="false">
+        <detector id="34" name="HodoscopeGapAftScore" type="HPSTracker2" readout="HodoscopeAftHits" insideTrackingVolume="true">
             <comment>Scoring plane immediately after the hodoscope.</comment>
             <module name="HodoscopeGapAftScoreModule">
                 <box x="214.393" y="2*17.295"/>
@@ -884,7 +884,7 @@
         <readout name="TrackerHits">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
         </readout>
-    <readout name="TrackerHitsFieldDef">
+		<readout name="TrackerHitsFieldDef">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
             <processor type="ScoringTrackerHitProcessor" />        
         </readout>
