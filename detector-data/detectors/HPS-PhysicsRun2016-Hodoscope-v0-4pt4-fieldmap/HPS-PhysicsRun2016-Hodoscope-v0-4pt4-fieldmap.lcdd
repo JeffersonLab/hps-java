@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
-    <detector name="HPS-PhysicsRun2016-HodoscopeCover-v0-0-fieldmap" />
-    <generator name="lcsim" version="1.0" file="C:\cygwin64\home\Kyle\hps-software\hps-java-iss40\iss40\detector-data\detectors\HPS-PhysicsRun2016-HodoscopeCover-v0-0-fieldmap\compact.xml" checksum="1631281930" />
+    <detector name="HPS-PhysicsRun2016-Hodoscope-v0-4pt4-fieldmap" />
+    <generator name="lcsim" version="1.0" file="C:\cygwin64\home\Kyle\hps-software\hps-java-iss40\iss40\detector-data\detectors\HPS-PhysicsRun2016-Hodoscope-v0-4pt4-fieldmap\compact.xml" checksum="2549462077" />
     <author name="NONE" />
     <comment>HPS detector for 2017 proposal with fieldmap, tracker at nominal opening angle, and no SVT survey. This detector uses the corrected fieldmap scaled to -1.00T for 4.4 GeV. A basic hodoscope with scoring planes was added to perform initial positron trigger tests.</comment>
   </header>
@@ -78,10 +78,6 @@
     </tracker>
     <tracker name="ECalScoring" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHitsECal">
       <idspecref ref="TrackerHitsECal" />
-      <hit_processor type="ScoringTrackerHitProcessor" />
-    </tracker>
-    <tracker name="HodoscopeCover" ecut="0.0" eunit="MeV" verbose="0" hits_collection="HodoscopeHits">
-      <idspecref ref="HodoscopeHits" />
       <hit_processor type="ScoringTrackerHitProcessor" />
     </tracker>
     <tracker name="HodoscopeGapForeScore" ecut="0.0" eunit="MeV" verbose="0" hits_collection="HodoscopeForeHits">
@@ -202,7 +198,6 @@
       <constant name="x_rot_bot" value="0.0" />
       <constant name="dipoleMagnetHeight" value="1000.0" />
       <constant name="z02t" value="146.185" />
-      <constant name="hodoscopeCoverThickness" value="0.25" />
       <constant name="dZ0_top" value="0.0" />
       <constant name="y_rot" value="0.03052" />
       <constant name="tracking_region_zmax" value="1318.0" />
@@ -617,12 +612,6 @@
       <rotation name="ECalScoring_ElectronGap_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="ECalScoring_BeamRight_layer2_module0_position" x="-216.31099999999998" y="-121.3" z="1338.001" unit="mm" />
       <rotation name="ECalScoring_BeamRight_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
-      <position name="HodoscopeCoverModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="HodoscopeCoverModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="HodoscopeCover_HodoscopeCoverModule_layer1_module0_position" x="21.17" y="45.944500000000005" z="1107.875" unit="mm" />
-      <rotation name="HodoscopeCover_HodoscopeCoverModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
-      <position name="HodoscopeCover_HodoscopeCoverModule_layer2_module0_position" x="21.17" y="-45.944500000000005" z="1107.875" unit="mm" />
-      <rotation name="HodoscopeCover_HodoscopeCoverModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopeGapForeScoreModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopeGapForeScoreModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopeGapForeScoreModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -1556,9 +1545,6 @@
       <element Z="6" formula="C" name="C">
         <atom type="A" unit="g/mol" value="12.0107" />
       </element>
-      <element Z="22" formula="Ti" name="Ti">
-        <atom type="A" unit="g/mol" value="47.8667" />
-      </element>
       <material name="Vacuum">
         <D type="density" unit="g/cm3" value="0.00000001" />
         <fraction n="1" ref="H" />
@@ -1581,11 +1567,6 @@
         <D value="1.032" unit="g/cm3" type="density" />
         <fraction n="0.523618" ref="H" />
         <fraction n="0.476382" ref="C" />
-      </material>
-      <material name="TitaniumDioxide">
-        <D value="4.23" unit="g/cm3" type="density" />
-        <composite n="1" ref="Ti" />
-        <composite n="2" ref="O" />
       </material>
       <element name="Al" formula="Al" Z="13">
         <atom type="A" unit="g/mol" value="26.9815" />
@@ -1954,8 +1935,6 @@
       <box name="BeamRightBox" x="214.6" y="293.38800000000003" z="0.001" />
       <box name="BeamRightVolume_component0Box" x="214.6" y="293.38800000000003" z="0.001" />
       <box name="BeamRightVolume_component0Sensor0Box" x="214.6" y="293.38800000000003" z="0.001" />
-      <box name="HodoscopeCoverModuleBox" x="57.299" y="428.786" z="0.25" />
-      <box name="HodoscopeCoverModuleVolume_component0Box" x="57.299" y="428.786" z="0.25" />
       <box name="HodoscopeGapForeScoreModuleBox" x="34.59" y="214.393" z="0.001" />
       <box name="HodoscopeGapForeScoreModuleVolume_component0Box" x="34.59" y="214.393" z="0.001" />
       <box name="HodoscopeGapForeScoreModuleVolume_component0Sensor0Box" x="34.59" y="214.393" z="0.001" />
@@ -4521,20 +4500,6 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
-      <volume name="HodoscopeCoverModuleVolume_component0">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="HodoscopeCoverModuleVolume_component0Box" />
-      </volume>
-      <volume name="HodoscopeCoverModuleVolume">
-        <materialref ref="Vacuum" />
-        <solidref ref="HodoscopeCoverModuleBox" />
-        <physvol>
-          <volumeref ref="HodoscopeCoverModuleVolume_component0" />
-          <positionref ref="HodoscopeCoverModuleVolume_component0_position" />
-          <rotationref ref="HodoscopeCoverModuleVolume_component0_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-      </volume>
       <volume name="HodoscopeGapForeScoreModuleVolume_component0Sensor0">
         <materialref ref="Vacuum" />
         <solidref ref="HodoscopeGapForeScoreModuleVolume_component0Sensor0Box" />
@@ -4816,24 +4781,6 @@
           <positionref ref="HodoscopeForeScore_HodoscopeForeScoreModule_layer2_module0_position" />
           <rotationref ref="HodoscopeForeScore_HodoscopeForeScoreModule_layer2_module0_rotation" />
           <physvolid field_name="system" value="31" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="2" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <physvol>
-          <volumeref ref="HodoscopeCoverModuleVolume" />
-          <positionref ref="HodoscopeCover_HodoscopeCoverModule_layer1_module0_position" />
-          <rotationref ref="HodoscopeCover_HodoscopeCoverModule_layer1_module0_rotation" />
-          <physvolid field_name="system" value="35" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <physvol>
-          <volumeref ref="HodoscopeCoverModuleVolume" />
-          <positionref ref="HodoscopeCover_HodoscopeCoverModule_layer2_module0_position" />
-          <rotationref ref="HodoscopeCover_HodoscopeCoverModule_layer2_module0_rotation" />
-          <physvolid field_name="system" value="35" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="2" />
           <physvolid field_name="module" value="0" />
