@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-PhysicsRun2016-Hodoscope-v0-0-2pt3-fieldmap">
+    <info name="HPS-PhysicsRun2016-Hodoscope-v0-2pt-fieldmap">
         <comment>HPS detector for 2017 proposal with fieldmap,
                  tracker at nominal opening angle, and no SVT survey.
-                 This detector uses the corrected fieldmap scaled to -0.5T
+                 This detector uses the corrected fieldmap scaled to -0.50T
                  for 2.3 GeV. A basic hodoscope with scoring planes was added
                  to perform initial positron trigger tests.
         </comment>
@@ -912,14 +912,7 @@
 
 
     <fields>
-        <field 
-            type="FieldMap3D"
-            name="HPSDipoleFieldMap3D" 
-            filename="fieldmap/209acm2_5kg_corrected_unfolded_scaled_1.04545.dat" 
-            xoffset="2.117*cm"
-            yoffset="0.0*cm"
-            zoffset="45.72*cm"
-       />
+        <field type="FieldMap3D" name="HPSDipoleFieldMap3D" filename="fieldmap/209acm2_5kg_corrected_unfolded_scaled_1.04545.dat" xoffset="2.117*cm" yoffset="0.0*cm" zoffset="45.72*cm" />
     </fields>
 <!--
     <fields>
