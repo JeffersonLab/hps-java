@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-PhysicsRun2016-Hodoscope-v0-2pt-fieldmap">
+    <info name="HPS-PhysicsRun2016-Hodoscope-v0-2pt3-fieldmap">
         <comment>HPS detector for 2017 proposal with fieldmap,
                  tracker at nominal opening angle, and no SVT survey.
                  This detector uses the corrected fieldmap scaled to -0.50T
