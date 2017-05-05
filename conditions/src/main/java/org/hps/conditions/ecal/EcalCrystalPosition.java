@@ -7,8 +7,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * Stores information about front and back ECal crystal positions relative to the target.
- * 
- * @author jeremym
  */
 @Table(names = {"ecal_crystal_positions"})
 public class EcalCrystalPosition extends BaseConditionsObject {

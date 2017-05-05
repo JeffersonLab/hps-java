@@ -15,9 +15,7 @@ import org.hps.svt.alignment.RunAlignment;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
 /**
- * Handles text file printing for the GBL text file
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @version $Id: GBLFileIO.java,v 1.9 2013/11/07 03:54:58 phansson Exp $ $Date: 2013/11/07 03:54:58 $ $Author: phansson $ 
+ * Handles text file printing for the GBL text file.
  */
 public class GBLFileIO {
 

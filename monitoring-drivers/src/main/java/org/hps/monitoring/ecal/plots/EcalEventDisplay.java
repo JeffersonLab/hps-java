@@ -35,8 +35,6 @@ import org.lcsim.util.aida.AIDA;
  * event refresh rate. If the user clicks on a crystal, the corresponding energy and time distributions (both of type
  * <code>IHistogram1D</code>) are shown in the last panel of the monitoring application, as well as a 2D histogram (hit
  * time vs. hit energy). The fourth panel reports energy for the crystal.
- *
- * @author Andrea Celentano
  */
 public class EcalEventDisplay extends Driver implements CrystalListener, ActionListener {
     private static final String CLUSTER_ENERGY_TITLE = "Cluster Energy (GeV)";

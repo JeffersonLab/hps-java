@@ -4,8 +4,6 @@ import java.awt.event.ActionListener;
 
 /**
  * Mix-in interface for components which can be assigned an <code>ActionListener</code>.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 interface AddActionListener {
 

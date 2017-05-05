@@ -16,9 +16,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Changes ECal hit IDs to match what the test run trigger sees.
- *
- * @version $Id: HPSEcalRawConverterDriver.java,v 1.2 2012/05/03 00:17:54
- * phansson Exp $
  */
 public class EcalTriggerFilterDriver extends Driver {
 

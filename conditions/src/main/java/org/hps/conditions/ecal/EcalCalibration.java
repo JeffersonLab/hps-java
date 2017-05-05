@@ -11,8 +11,6 @@ import org.hps.conditions.database.Table;
 /**
  * This class represents ECal pedestal and noise values from the conditions database. The pedestal and noise are in
  * units of ADC counts. They are the mean and the standard deviation of the digitized pre-amp output.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"ecal_calibrations", "test_run_ecal_calibrations"})
 public final class EcalCalibration extends BaseConditionsObject {

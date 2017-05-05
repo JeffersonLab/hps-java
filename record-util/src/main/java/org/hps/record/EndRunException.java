@@ -2,8 +2,6 @@ package org.hps.record;
 
 /**
  * An <code>Exception</code> thrown when end of run occurs in event processing.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 public final class EndRunException extends RuntimeException {

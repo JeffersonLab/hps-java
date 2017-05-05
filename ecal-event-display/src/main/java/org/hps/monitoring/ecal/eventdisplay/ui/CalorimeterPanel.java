@@ -26,8 +26,6 @@ import org.hps.monitoring.ecal.eventdisplay.util.SettingsListener;
  * The class <code>CalorimeterPanel</code> handles the rendering of the
  * calorimeter crystals as well as mapping colors to their values,
  * rendering a color scale, and marking cluster crystals.
- * 
- * @author Kyle McCarty
  */
 public final class CalorimeterPanel extends JPanel {
     // Java-suggested variable.
@@ -1101,7 +1099,6 @@ public final class CalorimeterPanel extends JPanel {
      * to display a calorimeter crystal in the panel. It also handles
      * drawing itself.
      * 
-     * @author Kyle McCarty
      */
     private class Crystal extends JPanel {
         private static final long serialVersionUID = -5666423016127997831L;

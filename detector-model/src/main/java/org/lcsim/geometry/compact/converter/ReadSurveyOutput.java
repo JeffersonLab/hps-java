@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.lcsim.geometry.compact.converter;
 
 import hep.physics.vec.BasicHep3Vector;
@@ -21,10 +18,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class ReadSurveyOutput {
 
     private static Logger logger = Logger.getLogger(ReadSurveyOutput.class.getPackage().getName());

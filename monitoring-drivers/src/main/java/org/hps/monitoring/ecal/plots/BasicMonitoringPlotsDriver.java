@@ -15,7 +15,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Basic ECal monitoring plots that work on Test Run data.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class BasicMonitoringPlotsDriver extends Driver {
     

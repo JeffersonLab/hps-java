@@ -47,10 +47,6 @@ import org.lcsim.spacegeom.SpacePoint;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author partridge
- */
 public class JasAnalysisDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

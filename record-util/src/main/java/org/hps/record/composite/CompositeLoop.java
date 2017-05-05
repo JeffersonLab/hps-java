@@ -29,8 +29,6 @@ import org.lcsim.util.loop.LCIOEventSource;
 
 /**
  * Implementation of a composite record loop for processing ET, EVIO and LCIO events using a single record source.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class CompositeLoop extends DefaultRecordLoop {
 

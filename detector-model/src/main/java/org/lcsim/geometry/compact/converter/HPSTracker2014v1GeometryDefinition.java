@@ -5,11 +5,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.jdom.Element;
 
 /**
- * 
- * Updated geometry information for the HPS tracker 2014
-
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
+ * Updated geometry information for the HPS tracker 2014.
  */
 public class HPSTracker2014v1GeometryDefinition extends HPSTracker2014GeometryDefinition {
 

@@ -16,18 +16,13 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
 /**
  * Driver <code>CalibClusterAnalizerSim<\code> reads the cluster collections 
  * created by the GTPEcalClusterer in the simulated readout and selecet clusters
  * with energy above 1.4 GeV form which plots the Seed Hit energy distribution
  * that will be somewhere else fitted for calibration.
- * @author Luca
  */
-
-
-  
-
-
 public class CalibClusterAnalizerSim extends Driver {
     double energyThreshold=0;
     //AIDA aida = AIDA.defaultInstance();

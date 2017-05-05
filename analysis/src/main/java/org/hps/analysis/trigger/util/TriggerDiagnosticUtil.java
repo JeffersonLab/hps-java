@@ -9,8 +9,6 @@ import org.lcsim.event.Cluster;
  * Class <code>TriggerDiagnosticUtil</code> contains a series of
  * utility methods that are used at various points throughout the
  * trigger diagnostic package.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class TriggerDiagnosticUtil {
     /**

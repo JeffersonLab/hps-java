@@ -17,9 +17,6 @@ import org.lcsim.util.Driver;
  * Read all track collections in the event, deduplicate tracks with the same hit
  * content, and put the resulting list of unique tracks in a new collection.
  * Remove the original track collections (this behavior can be disabled).
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class MergeTrackCollections extends Driver {
 

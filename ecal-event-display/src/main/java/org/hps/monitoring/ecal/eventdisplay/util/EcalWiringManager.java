@@ -18,8 +18,6 @@ import java.util.Scanner;
  * CrystalDataSet</code> objects for access and reference by the <code>
  * Viewer</code> classes. Crystal LCSim indices are mapped to the data
  * set that corresponds to that crystal.
- * 
- * @author Kyle McCarty
  */
 public class EcalWiringManager implements Iterable<CrystalDataSet> {
     // Delimiter class statics.

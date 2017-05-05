@@ -5,8 +5,6 @@ import java.util.Set;
 
 /**
  * Representation of fields and values of individual conditions objects.
- *
- * @author Jeremy McCormick, SLAC
  */
 public interface FieldValues {
 

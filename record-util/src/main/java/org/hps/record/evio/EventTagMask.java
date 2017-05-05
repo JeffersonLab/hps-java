@@ -2,7 +2,6 @@ package org.hps.record.evio;
 
 /**
  * Event tag mask for physics and sync events.
- * @author Jeremy McCormick, SLAC
  */
 public enum EventTagMask {
     

@@ -1,56 +1,45 @@
+
 /**
- * Analysis driver to calculate hit efficiencies in the SVT
- */
-/**
- * @author mrsolt
  *
  */
 
 package org.hps.users.mrsolt;
 
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterFactory;
+import hep.aida.ITree;
+import hep.physics.vec.BasicHep3Matrix;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogramFactory;
-import hep.aida.IPlotterFactory;
-import hep.aida.IPlotter;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
-import hep.aida.ITree;
-import hep.physics.vec.BasicHep3Matrix;
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.VecOp;
-
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.vertexing.BilliorTrack;
+import org.hps.recon.vertexing.BilliorVertex;
+import org.hps.recon.vertexing.BilliorVertexer;
 import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
-import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
+import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.fit.helicaltrack.HitIdentifier;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.hps.recon.tracking.TrackType;
-import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.tracking.TrackerHitUtils;
-import org.hps.recon.vertexing.BilliorTrack;
-import org.hps.recon.vertexing.BilliorVertex;
-import org.hps.recon.vertexing.BilliorVertexer;
-import org.lcsim.event.base.BaseRelationalTable;
-import org.lcsim.fit.helicaltrack.HelicalTrackFit;
-import org.lcsim.fit.helicaltrack.HitIdentifier;
-
 
 public class Layer0ReconParticle extends Driver {
 

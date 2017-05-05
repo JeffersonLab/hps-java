@@ -24,7 +24,6 @@ import org.lcsim.util.aida.AIDA;
  * of hits greater than a minimum (5 by default), it will convert
  * the raw data into CalorimeterHits and write them to an output
  * collection.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalCosmicHitSelectionDriver extends Driver {
 

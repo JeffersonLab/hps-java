@@ -14,11 +14,7 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 
 /**
- * 
- * Filter events based on max nr of strip hits
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
+ * Filter events based on max number of strip hits
  */
 public class SvtRawHitMultiplicityFilter extends EventReconFilter {
 

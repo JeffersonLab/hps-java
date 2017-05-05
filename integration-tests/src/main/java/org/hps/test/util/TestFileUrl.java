@@ -9,8 +9,6 @@ import org.lcsim.util.cache.FileCache;
 
 /**
  * Some utility methods for getting test data from the lcsim.org site.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public final class TestFileUrl {
     

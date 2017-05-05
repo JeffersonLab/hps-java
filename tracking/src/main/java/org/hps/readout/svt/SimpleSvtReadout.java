@@ -6,41 +6,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtTimingConstants;
-
+import org.hps.readout.ecal.ClockSingleton;
+import org.hps.readout.ecal.ReadoutTimestamp;
+import org.hps.readout.ecal.TriggerableDriver;
+import org.hps.recon.tracking.PulseShape;
+import org.hps.util.RandomGaussian;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.geometry.Detector;
-import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRawTrackerHit;
+import org.lcsim.geometry.Detector;
+import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.digitization.sisim.CDFSiSensorSim;
 import org.lcsim.recon.tracking.digitization.sisim.SiElectrodeData;
 import org.lcsim.recon.tracking.digitization.sisim.SiElectrodeDataCollection;
 import org.lcsim.recon.tracking.digitization.sisim.SiSensorSim;
 import org.lcsim.recon.tracking.digitization.sisim.config.SimTrackerHitReadoutDriver;
-import org.hps.readout.ecal.ClockSingleton;
-import org.hps.readout.ecal.ReadoutTimestamp;
-import org.hps.readout.ecal.TriggerableDriver;
-import org.hps.recon.tracking.PulseShape;
-import org.hps.util.RandomGaussian;
 
 /**
  * SVT readout simulation.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class SimpleSvtReadout extends TriggerableDriver {
 
-    //-----------------//
-    //--- Constants ---//
-    //-----------------//
     private static final String SVT_SUBDETECTOR_NAME = "Tracker";
 
     private PulseShape shape = new PulseShape.FourPole();

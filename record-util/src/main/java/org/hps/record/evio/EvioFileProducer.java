@@ -32,8 +32,6 @@ import org.jlab.coda.jevio.EvioReader;
  * A command line utility for streaming EVIO files to an ET server.
  * <p>
  * The original version was copied from the CODA ET module and modified.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EvioFileProducer {
 

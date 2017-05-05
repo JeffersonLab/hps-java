@@ -6,11 +6,7 @@ import hep.physics.vec.Hep3Vector;
 import org.lcsim.event.GenericObject;
 
 /**
- * A class providing for storing strip clusters for GBL
- * 
- * @author phansson
- *
- * @version $Id:
+ * A class providing for storing strip clusters for GBL.
  */
 public class GBLStripClusterData implements GenericObject {
     

@@ -1,19 +1,18 @@
 package org.hps.recon.filtering;
 
 import org.lcsim.event.EventHeader;
+
 import org.lcsim.event.GenericObject;
 import org.lcsim.util.Driver;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
+
 /**
  * Keep single-1 triggered events.
  * Also keep EPICS events, and Scaler events.
  * Drop all other events.
- * 
- * @author baltzell
- *
  */
 public class Single1TriggerFilterDriver extends Driver
 {

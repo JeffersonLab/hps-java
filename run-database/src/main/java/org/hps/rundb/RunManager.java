@@ -18,8 +18,6 @@ import org.lcsim.conditions.ConditionsListener;
 
 /**
  * Manages access to the run database.
- *
- * @author jeremym
  */
 public final class RunManager implements ConditionsListener {
 

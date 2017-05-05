@@ -28,8 +28,6 @@ import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
  * Viewer</code> abstract class that reads events from a file data
  * source. Any file type can be used, so long as it has a manager
  * which implements the <code>EventManager</code> interface.
- * 
- * @author Kyle McCarty
  */
 public class FileViewer extends Viewer {
     private static final long serialVersionUID = 3L;

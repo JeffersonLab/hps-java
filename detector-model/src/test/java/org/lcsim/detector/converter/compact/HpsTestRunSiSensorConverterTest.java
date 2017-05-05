@@ -3,9 +3,7 @@ package org.lcsim.detector.converter.compact;
 import java.io.InputStream;
 import java.util.List;
 
-import junit.framework.Test;
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 import org.lcsim.detector.converter.compact.subdetector.HpsTracker2;
 import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
@@ -17,8 +15,6 @@ import org.lcsim.geometry.GeometryReader;
 /**
  * Unit test for the {@link HPSTracker2Converter} when the sensor type
  * is equal to {@link HpsTestRunSiSensor} 
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class HpsTestRunSiSensorConverterTest extends TestCase {
     

@@ -10,9 +10,6 @@ import org.lcsim.event.base.BaseCalorimeterHit;
 
 /**
  * This smears the MC hit time energy according to the resolution as found in the 2016 data.
- * 
- * @author holly
- *
  */
 public class HitTMCSmearDriver extends Driver {
     

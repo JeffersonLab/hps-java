@@ -19,8 +19,6 @@ import org.hps.monitoring.plotting.ExportPdf;
 
 /**
  * This is the panel containing the tabs with the monitoring plots.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class PlotPanel extends JPanel implements ActionListener {

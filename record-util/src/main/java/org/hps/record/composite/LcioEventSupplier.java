@@ -8,8 +8,6 @@ import org.hps.record.lcio.LcioEventQueue;
 /**
  * This is an adapter that can supply LCIO <code>EventHeader</code> objects to JAS3 via a registered
  * <code>DataSource</code> in order to activate Wired, the LCSim Event Browser, etc.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class LcioEventSupplier extends CompositeLoopAdapter {
 

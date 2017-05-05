@@ -5,11 +5,6 @@ import java.util.ArrayList;
 
 import org.lcsim.event.GenericObject;
 
-/**
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- *
- */
 public class TrackTimeData implements GenericObject {
 
     List<Float> trackTimeData = new ArrayList<Float>(); 

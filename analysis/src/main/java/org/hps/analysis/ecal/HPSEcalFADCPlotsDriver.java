@@ -14,9 +14,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Diagnostic plots for HPS ECal.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: HPSEcalFADCPlotsDriver.java,v 1.4 2013/02/25 22:39:26 meeg Exp $
  */
 public class HPSEcalFADCPlotsDriver extends Driver {
 

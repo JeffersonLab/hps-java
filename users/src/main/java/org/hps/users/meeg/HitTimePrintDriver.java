@@ -8,11 +8,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: HitTimePrintDriver.java,v 1.1 2013/03/20 00:09:43 meeg Exp $
- */
 public class HitTimePrintDriver extends Driver {
 
     @Override

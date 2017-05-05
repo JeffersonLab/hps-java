@@ -26,8 +26,6 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 /**
  * This is a class for exporting plot graphics to PDF.
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class ExportPdf {
 

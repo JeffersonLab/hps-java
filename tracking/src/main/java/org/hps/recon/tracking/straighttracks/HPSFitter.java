@@ -8,7 +8,6 @@ import org.lcsim.fit.helicaltrack.MultipleScatter;
 
 /**
  *
- * @author mgraham
  */
 public interface HPSFitter {
 

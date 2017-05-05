@@ -11,10 +11,8 @@ import org.lcsim.event.TrackState;
 
 /**
  * This code contains all of the calculations, as found in the 2015 data, for combining the Ecal energy and SVT
- * momentum.
- * 
- * @author Holly Szumila-Vance <hvanc001@odu.edu>
- **/
+ * momentum. 
+ */
 public class MassCalculator {
 
     // TODO: BEAMGAPTOP and BEAMGAPBOT need to come from detector definitions:

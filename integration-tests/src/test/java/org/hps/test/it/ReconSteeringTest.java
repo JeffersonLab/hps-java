@@ -10,8 +10,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Run a test job on Eng Run 2015 data.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class ReconSteeringTest extends TestCase {
     

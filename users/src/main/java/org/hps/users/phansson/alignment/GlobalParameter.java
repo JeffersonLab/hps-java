@@ -1,16 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson.alignment;
 
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.vec.Hep3Vector;
 
-/**
- *
- * @author phansson
- */
 public class GlobalParameter {
     
     private String _name;

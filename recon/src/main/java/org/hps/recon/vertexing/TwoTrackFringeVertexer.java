@@ -4,8 +4,8 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import org.hps.recon.tracking.BeamlineConstants;
-import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.HelixConverter;
+import org.hps.recon.tracking.HpsHelicalTrackFit;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
@@ -14,13 +14,8 @@ import org.lcsim.geometry.FieldMap;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
 /**
- * 
- * Class that vertexes two tracks taking into account fringe field
- * 
- * @author phansson
- *
+ * Class that vertexes two tracks taking into account fringe field.
  */
-
 public class TwoTrackFringeVertexer extends TwoTrackVertexer {
     protected HelixConverter converter = new HelixConverter(0.);
     

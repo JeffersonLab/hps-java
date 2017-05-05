@@ -26,10 +26,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class SVTOpeningAlignment extends Driver {
 
     static private AIDA aida = AIDA.defaultInstance();

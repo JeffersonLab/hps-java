@@ -51,8 +51,6 @@ import org.lcsim.util.aida.AIDA;
  * class automatically. Note that a driver to initialize this class
  * must be present in the event chain in order for the diagnostics to
  * initialize and function.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public final class ClusterDiagnosticDriver extends Driver {
     // === Defines cluster verification statistics.

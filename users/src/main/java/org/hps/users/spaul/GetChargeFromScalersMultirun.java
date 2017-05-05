@@ -13,9 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 /**
- * sums up the charge from multiple runs.  
- * @author sebouhpaul
- *
+ * sums up the charge from multiple runs.
  */
 public class GetChargeFromScalersMultirun {
     private static ArrayList<String> runs;

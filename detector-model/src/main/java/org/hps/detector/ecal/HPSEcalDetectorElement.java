@@ -22,8 +22,6 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
  * <a href="https://wiki.jlab.org/hps-run/images/f/f4/Ecal_manual_annex.pdf">ECAL Manual Annex</a>
  * in which the viewpoint is from the beam towards the detector.
  * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * 
  * @see HPSEcalAPI
  * @see EcalCrystal
  * @see org.lcsim.detector.IDetectorElement

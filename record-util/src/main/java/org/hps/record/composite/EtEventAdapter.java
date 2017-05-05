@@ -10,8 +10,6 @@ import org.jlab.coda.et.EtEvent;
 
 /**
  * An adapter for directly using the CompositeLoop to supply and process EtEvents.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class EtEventAdapter extends RecordProcessorAdapter<EtEvent> {
 

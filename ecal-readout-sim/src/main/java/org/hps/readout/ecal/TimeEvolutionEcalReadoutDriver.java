@@ -10,9 +10,6 @@ import org.lcsim.event.CalorimeterHit;
 /**
  * Performs readout of ECal hits.
  * Simulates time evolution of preamp output pulse.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: TimeEvolutionEcalReadoutDriver.java,v 1.1 2013/02/25 22:39:26 meeg Exp $
  */
 public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<CalorimeterHit> {
     //buffer for deposited energy

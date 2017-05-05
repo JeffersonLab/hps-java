@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson.testrun;
 
 import hep.aida.IAnalysisFactory;
@@ -28,10 +24,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author phansson
- */
 public class dataMCPlots {
 
     

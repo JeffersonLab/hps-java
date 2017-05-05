@@ -1,22 +1,15 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.recon.vertexing;
-
-import org.lcsim.event.base.BaseVertex;
 
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.MatrixOp;
+import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
-import hep.physics.matrix.SymmetricMatrix;
 
+import org.lcsim.event.base.BaseVertex;
 
 /**
  * Class to calculate the POCA between two straight lines
- *
- * @author phansson
  */
 public class TwoLineVertexer extends BaseSimpleVertexer {
     protected Hep3Vector A1,A2,B1,B2;

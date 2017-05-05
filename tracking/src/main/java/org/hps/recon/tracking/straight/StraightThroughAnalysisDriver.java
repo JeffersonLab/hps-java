@@ -42,14 +42,8 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Driver that fits {@link SiTrackerHitStrip1D} clusters to a straight line track model. 
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class StraightThroughAnalysisDriver extends Driver {
-
-
-
 
     final static Logger logger = Logger.getLogger(StraightThroughAnalysisDriver.class.getSimpleName());
     private String stripClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
@@ -117,19 +111,12 @@ public class StraightThroughAnalysisDriver extends Driver {
     private PrintWriter gblPrintWriter = null;
     private boolean writeGbl = true;
     private boolean showPlots = true;
-    
-
-    
-    /**
-     * 
-     */
+       
     public StraightThroughAnalysisDriver() {
         logger.setLevel(Level.INFO);
         STUtils.logger.setLevel(Level.INFO); 
     }
 
-  
-    
     protected void detectorChanged(Detector detector) {
 
         if(writeGbl) {
@@ -383,13 +370,8 @@ public class StraightThroughAnalysisDriver extends Driver {
                 plotters.get("Sensor stereo YZ hit res").region(0).style().dataStyle().showInStatisticsBox(true);
                 sensorStereoHitXZResGlobal.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_stereohitxzresglobal", 50, -1, 1));
                 plotters.get("Sensor stereo XZ hit res").region(SvtPlotUtils.computePlotterRegionAxialOnly(sensor)).plot(sensorStereoHitXZResGlobal.get(sensor.getName()));
-                plotters.get("Sensor stereo XZ hit res").region(0).style().dataStyle().showInStatisticsBox(true);
-
-            
-            }
-
-            
-            
+                plotters.get("Sensor stereo XZ hit res").region(0).style().dataStyle().showInStatisticsBox(true);            
+            }            
         }
 
         if(showPlots ) {
@@ -398,13 +380,13 @@ public class StraightThroughAnalysisDriver extends Driver {
         }
     }
     
-    
     protected void resetCounts() {
         //reset hit counts
         for(HpsSiSensor sensor : sensors) {
             sensorHitCountMap.get(sensor.getName())[0] = 0;
         }
     }
+    
     protected void process(EventHeader event) {
     
         logger.fine("Process event");
@@ -434,8 +416,7 @@ public class StraightThroughAnalysisDriver extends Driver {
         // Create a map of stereo hits
         List<Map<Integer, List<SiTrackerHitStrip1D>>> stereoHitsPerLayer = new ArrayList<Map<Integer, List<SiTrackerHitStrip1D>>>();
         stereoHitsPerLayer.add(new HashMap<Integer, List<SiTrackerHitStrip1D>>());
-        stereoHitsPerLayer.add(new HashMap<Integer, List<SiTrackerHitStrip1D>>());
-        
+        stereoHitsPerLayer.add(new HashMap<Integer, List<SiTrackerHitStrip1D>>());        
         
         for(SiTrackerHitStrip1D cluster : stripClusters) {
             SiTrackerHitStrip1D cluster_global = cluster.getTransformedHit(CoordinateSystem.GLOBAL);
@@ -505,7 +486,6 @@ public class StraightThroughAnalysisDriver extends Driver {
         // fill hit positions
         for(HpsSiSensor sensor : sensors) 
             sensorHitCounts.get(sensor.getName()).fill(sensorHitCountMap.get(sensor.getName())[0] );
-
         
         // Pattern recognition for axial hits - yeah!
         List< List<SiTrackerHitStrip1D>> axialSeedHits = new ArrayList<List<SiTrackerHitStrip1D>>();
@@ -551,12 +531,9 @@ public class StraightThroughAnalysisDriver extends Driver {
         
 
         // try to make stereo hits
-        
-        
+                
         List< List<STUtils.StereoPair> > stereoPairs  = new ArrayList< List<STUtils.StereoPair>>();
-        
-        
-        
+                        
         for(int ihalf=0; ihalf<2; ++ihalf) {
             List<STUtils.StereoPair> stereoPairCandidates = new ArrayList< STUtils.StereoPair>();
             List<SiTrackerHitStrip1D> aSeedHits = axialSeedHits.get(ihalf);
@@ -603,9 +580,7 @@ public class StraightThroughAnalysisDriver extends Driver {
             }
             stereoPairs.add(stereoPairCandidates);
         }
-
-        
-       
+              
         // loop over the stereo pairs
         for(int ihalf=0; ihalf<2; ++ihalf) {
             List< STUtils.StereoPair > pairs = stereoPairs.get(ihalf);
@@ -623,8 +598,7 @@ public class StraightThroughAnalysisDriver extends Driver {
                         + " ("+pair.getAxial().getRawHits().get(0).getDetectorElement().getName() +" and "+pair.getStereo().getRawHits().get(0).getDetectorElement().getName()+")");
             }
         }
-        
-        
+                
         // add hits to axial tracks and fit them
         List<STUtils.STTrack> axialTracks = new ArrayList<STUtils.STTrack>();
         for(List<SiTrackerHitStrip1D> seedHits : axialSeedHits) {
@@ -641,7 +615,6 @@ public class StraightThroughAnalysisDriver extends Driver {
             
             axialTracks.add(track);
         }
-
         
         // add hits to L13 axial tracks and fit them
         List<STUtils.STTrack> axialL13Tracks = new ArrayList<STUtils.STTrack>();
@@ -668,7 +641,6 @@ public class StraightThroughAnalysisDriver extends Driver {
             track.addFit(regressionFitter.getFit());
             axialL46Tracks.add(track);
         }
-
         
         // add stereo hits to tracks and fit them 
         List<STUtils.STStereoTrack> stereoTracks = new ArrayList<STUtils.STStereoTrack>();
@@ -688,8 +660,6 @@ public class StraightThroughAnalysisDriver extends Driver {
             // add fitted track to list of tracks
             stereoTracks.add(track);
         }
-        
-        
         
         // Fill histograms for axial tracks
         int nTracksAxial[] = {0,0};
@@ -815,10 +785,8 @@ public class StraightThroughAnalysisDriver extends Driver {
                 
             }
             
-            logger.finest("finished update position after " + idelta + "iterations with delta " + delta);
-        
-        }
-        
+            logger.finest("finished update position after " + idelta + "iterations with delta " + delta);        
+        }        
         
         // Fill histograms for stereo tracks
         int nTracks[] = {0,0};
@@ -848,7 +816,6 @@ public class StraightThroughAnalysisDriver extends Driver {
                 
             }
 
-
             nTracks[half]++;
             trackHitCount[half].fill(track.getHits().size());
             for(int v=0;v<2;++v) {
@@ -861,9 +828,6 @@ public class StraightThroughAnalysisDriver extends Driver {
         
         trackCount[0].fill(nTracks[0]);
         trackCount[1].fill(nTracks[1]);
-
-
-        
         
         //predict where these axial tracks go upstream in Y
         double zIter,yIter,start,end;
@@ -890,9 +854,8 @@ public class StraightThroughAnalysisDriver extends Driver {
                 trackAxialExtraPolation[4].fill(zIter,yIter);
             }
         }
-
         
-      //predict where the stereo tracks go upstream in X-Y
+        //predict where the stereo tracks go upstream in X-Y
         double xyIter[];
         for(STStereoTrack track : stereoTracks) {
             int half = track.isTop() ? 0 : 1;
@@ -922,17 +885,13 @@ public class StraightThroughAnalysisDriver extends Driver {
             }
         }
 
-
         // GBL interface
         if(writeGbl ) {
             if(gblPrintWriter == null) 
                 throw new RuntimeException("No file was opened!");
             STUtils.printGBL(gblPrintWriter, event, stereoTracks);
         }
-
-
-    }
-    
+    }    
     
     protected void endOfData() {
         
@@ -946,10 +905,8 @@ public class StraightThroughAnalysisDriver extends Driver {
             e.printStackTrace();
         }
         
-        if(gblPrintWriter != null) gblPrintWriter.close();
-        
+        if(gblPrintWriter != null) gblPrintWriter.close();        
     }
-
     
     private void updateFits() {
         for(HpsSiSensor sensor : sensors) {
@@ -1033,12 +990,5 @@ public class StraightThroughAnalysisDriver extends Driver {
 
     public void setShowPlots(boolean showPlots) {
         this.showPlots = showPlots;
-    }
-
-
-
-   
-
-    
-    
+    }    
 }

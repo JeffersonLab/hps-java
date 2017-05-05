@@ -23,20 +23,10 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.svt.SvtAlignmentConstant;
-import org.hps.conditions.svt.SvtBiasConstant;
-import org.hps.conditions.svt.SvtBiasConstant.SvtBiasConstantCollection;
-import org.hps.conditions.svt.SvtMotorPosition;
-import org.hps.conditions.svt.SvtMotorPosition.SvtMotorPositionCollection;
-import org.hps.conditions.svt.SvtTimingConstants;
-import org.hps.rundb.RunManager;
 import org.hps.users.meeg.SvtChargeIntegrator;
 
 /**
  * Calculate the zeropoint value for each run from a myadump of scalerS2b
- * @author Sebouh Paul
- *
  */
 public class ScalerAttenuationCalculator {
 	//after the value of scalerS2b drops below this value, (at a beam trip)

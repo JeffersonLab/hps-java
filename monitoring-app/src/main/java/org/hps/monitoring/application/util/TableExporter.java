@@ -11,8 +11,6 @@ import javax.swing.table.TableModel;
  * This is a utility for exporting a JTable's model data to a text file.
  * <p>
  * Non-numeric fields such as strings are delimited by double quotes.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class TableExporter {
 

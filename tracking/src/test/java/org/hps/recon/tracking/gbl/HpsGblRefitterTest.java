@@ -11,9 +11,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  *
- * @author Norman A. Graf
  *
- * @version $Id$
  */
 public class HpsGblRefitterTest extends TestCase
 {

@@ -11,13 +11,9 @@ import hep.aida.IHistogram;
 import hep.aida.IPlotterStyle;
 
 /**
- *  A MouseListener used to pop up a separate window with a plotter in it when 
- *  a region is clicked.  The histogram that is plotted on the region clicked
- *  will also be plotted in the newly created plotter. 
- * 
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- *
+ * A MouseListener used to pop up a separate window with a plotter in it when 
+ * a region is clicked.  The histogram that is plotted on the region clicked
+ * will also be plotted in the newly created plotter. 
  */
 public class PopupPlotterListener extends ChartPanelMouseListener {
 

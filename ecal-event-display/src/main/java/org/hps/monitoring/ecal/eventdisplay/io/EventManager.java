@@ -10,8 +10,6 @@ import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
  * Interface <code>EventManager</code> is responsible for traversing
  * an event data file and extracting lists of calorimeter hits and
  * hit clusters from it to be passed to a <code>FileViewer</code>.
- * 
- * @author Kyle McCarty
  */
 public interface EventManager {
     /**

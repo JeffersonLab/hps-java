@@ -7,8 +7,6 @@ import org.lcsim.event.Track;
 
 /**
  * Class that vertexes two tracks using straight line vertexing class.
- *
- * @author phansson
  */
 public class TwoTrackVertexer extends TwoLineVertexer {
     

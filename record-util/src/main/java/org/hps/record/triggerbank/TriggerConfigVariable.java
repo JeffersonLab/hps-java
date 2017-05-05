@@ -3,7 +3,6 @@ package org.hps.record.triggerbank;
 /**
  * Enum for trigger config variables.
  *
- * @author Jeremy McCormick, SLAC
  */
 public enum TriggerConfigVariable {
 

@@ -8,9 +8,7 @@ import java.util.Map;
  * of a clustering algorithm by index or name.
  * <p>
  * The default units are generally GeV for energy and nanoseconds 
- * for time, though this is not in any way modeled by this class. 
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * for time, though this is not in any way modeled by this class.
  */
 public interface NumericalCuts {
 

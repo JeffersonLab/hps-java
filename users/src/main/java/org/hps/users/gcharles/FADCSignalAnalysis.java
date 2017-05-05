@@ -20,9 +20,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Saves histograms of FADC signal buffers before and after hits.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class FADCSignalAnalysis extends Driver {
 

@@ -2,8 +2,6 @@ package org.hps.monitoring.application;
 
 /**
  * These strings are used to identify <code>ActionEvent</code> commands in the MonitoringApplication.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 final class Commands {
 

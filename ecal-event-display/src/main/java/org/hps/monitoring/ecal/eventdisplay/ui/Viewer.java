@@ -41,9 +41,7 @@ import org.hps.monitoring.ecal.eventdisplay.util.SettingsListener;
  * calorimeter panel with the proper settings and provides a window for
  * it to live in. Subclasses of <code>Viewer</code> should implement a
  * means for events to be fed to the calorimeter display.
- * 
- * @author Kyle McCarty
- **/
+ */
 public abstract class Viewer extends JFrame {
     // Serialization UID.
     private static final long serialVersionUID = 2L;
@@ -806,7 +804,6 @@ public abstract class Viewer extends JFrame {
      * Updates the settings panel whenever a tracked property in the
      * calorimeter panel is updated.
      * 
-     * @author Kyle McCarty
      */
     private class PropertyUpdater implements SettingsListener {
         @Override

@@ -4,8 +4,6 @@ package org.hps.monitoring.ecal.eventdisplay.util;
  * The abstract class <code>ColorScale</code> contains shared methods
  * for implementations of the <code>ColorMap</code> interface which
  * map based on position in a range of values.
- * 
- * @author Kyle McCarty
  **/
 public abstract class ColorScale implements ColorMap<Double> {
     // Indicates if linear or logarithmic scaling should be used.

@@ -26,8 +26,6 @@ import org.lcsim.event.RawTrackerHit;
 /**
  * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants;
  * fits values and errors for T0 and amplitude.
- *
- * @author Sho Uemura
  */
 public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 

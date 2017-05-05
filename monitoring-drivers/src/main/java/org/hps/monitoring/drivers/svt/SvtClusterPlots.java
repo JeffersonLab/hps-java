@@ -29,9 +29,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Monitoring driver that looks at the SVT cluster charge.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- *
  */
 public class SvtClusterPlots extends Driver {
 

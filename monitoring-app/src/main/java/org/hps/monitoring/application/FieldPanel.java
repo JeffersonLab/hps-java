@@ -10,8 +10,6 @@ import javax.swing.border.TitledBorder;
 
 /**
  * A panel with a label and a text field.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 class FieldPanel extends JPanel {

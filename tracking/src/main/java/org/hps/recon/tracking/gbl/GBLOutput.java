@@ -43,9 +43,6 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
 /**
  * Calculate the input needed for Millepede minimization.
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class GBLOutput {
 
@@ -849,7 +846,6 @@ public class GBLOutput {
      * parent {@link HelicalTrackStripGbl} methods cannot be used to get unit vectors.
      * Make sure this strip uses the given u and v vectors all the time.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     private static class BeamspotHelicalTrackStrip extends HelicalTrackStripGbl {
@@ -870,7 +866,6 @@ public class GBLOutput {
      * 
      * {@link HelicalTrackStrip} that doesn't flip unit vectors to point along the track.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     private static class NormalHelicalTrackStrip extends HelicalTrackStrip {

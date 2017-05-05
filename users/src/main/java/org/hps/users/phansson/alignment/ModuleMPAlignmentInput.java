@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
@@ -49,7 +48,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
  *    double phi0 = _trk.phi0();
  *    double R = _trk.R();
  *
- * @author mgraham
  */
 public final class ModuleMPAlignmentInput extends MPAlignmentInputCalculator {
 

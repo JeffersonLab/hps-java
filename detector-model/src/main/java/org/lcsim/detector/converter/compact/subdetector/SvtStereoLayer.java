@@ -3,23 +3,19 @@ package org.lcsim.detector.converter.compact.subdetector;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
 /**
- * A class describing an SVT stereo pair.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ * A class describing an SVT stereo pair. 
  */
 public class SvtStereoLayer {
 
-    
     // Layer number to which the stereo pair belongs to
     private int stereoLayerNumber = 0; 
     
     // The axial and stereo sensors
     private HpsSiSensor axialSensor = null; 
     private HpsSiSensor stereoSensor = null;
-    
-    
+        
     /**
-     * Ctor
+     * Class constructor.
      * 
      * @param stereoLayerNumber  Layer number to which the stereo pair belongs
      * @param firstSensor  The first sensor in the stereo layer 

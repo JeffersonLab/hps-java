@@ -11,9 +11,7 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.solids.Trd;
 
 /**
- * This class implements the geometry API for ECal crystals in the HPS experiment. 
- * 
- * @author Jeremy McCormick
+ * This class implements the geometry API for ECal crystals in the HPS experiment.
  */
 public final class EcalCrystal extends DetectorElement {
     

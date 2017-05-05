@@ -39,11 +39,6 @@ import org.lcsim.util.aida.AIDA;
 import org.hps.analysis.examples.TrackAnalysis;
 import org.hps.recon.tracking.FindableTrack;
 
-/**
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: SvtTrackRecoEfficiency.java,v 1.11 2013/10/14 22:58:03 phansson Exp $ 
- */
 public class SvtTrackRecoEfficiency extends Driver {
 
     private AIDA aida;

@@ -14,9 +14,6 @@ import org.hps.conditions.run.RunSpreadsheet.RunMap;
 import org.hps.conditions.svt.MotorPositionLoader.MotorPositionInterval;
 import org.hps.conditions.svt.MotorPositionLoader.Side;
 
-/**
- * @author Jeremy McCormick, SLAC
- */
 public class OpeningAngleLoader {
 
     private static final String BOT_FILE = "mya_svt_bot.txt";

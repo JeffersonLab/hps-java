@@ -35,9 +35,6 @@ import org.lcsim.lcio.LCIOConstants;
 /**
  * Performs readout of ECal hits. Simulates time evolution of preamp output
  * pulse.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: FADCEcalReadoutDriver.java,v 1.4 2013/10/31 00:11:02 meeg Exp $
  */
 public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> {
 

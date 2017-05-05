@@ -18,8 +18,6 @@ import org.jlab.coda.jevio.EvioReader;
 
 /**
  * An adapter for directly using the CompositeLoop to supply and process EvioEvents.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class EvioEventAdapter extends RecordProcessorAdapter<EvioEvent> {
 

@@ -19,8 +19,6 @@ import org.srs.datacat.shared.DatasetLocation;
 
 /**
  * Builds information for the run database from the EVIO data catalog entries.
- * 
- * @author jeremym
  */
 public final class DatacatBuilder extends AbstractRunBuilder {
     

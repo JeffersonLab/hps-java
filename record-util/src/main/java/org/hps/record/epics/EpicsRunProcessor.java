@@ -11,8 +11,6 @@ import org.jlab.coda.jevio.EvioEvent;
 
 /**
  * Creates a list of EPICS data found in EVIO events across an entire job.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class EpicsRunProcessor extends EvioEventProcessor {
 

@@ -2,8 +2,6 @@ package org.hps.record.epics;
 
 /**
  * Representation of EPICs header data from the EVIO bank (run, sequence, time stamp).
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class EpicsHeader {
 

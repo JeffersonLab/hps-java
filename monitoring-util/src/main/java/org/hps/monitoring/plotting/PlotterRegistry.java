@@ -11,8 +11,6 @@ import java.util.Map.Entry;
 
 /**
  * This is a global registry of plotters used by the monitoring plot factory.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class PlotterRegistry {
 

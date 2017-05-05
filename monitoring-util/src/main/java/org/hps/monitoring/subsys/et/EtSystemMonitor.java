@@ -12,17 +12,14 @@ import org.jlab.coda.et.EtEvent;
 
 /**
  * This is a class for monitoring the ET system.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public final class EtSystemMonitor extends EtEventProcessor {
 
-    SystemStatus systemStatus;
-    int events = 0;
-    long eventReceivedMillis = 0;
-    long warningIntervalMillis = 10000;
-    int timerInterval = 10000;
-    Timer timer = new Timer("ET Event Monitor");
+    private SystemStatus systemStatus;
+    private long eventReceivedMillis = 0;
+    private long warningIntervalMillis = 10000;
+    private int timerInterval = 10000;
+    private Timer timer = new Timer("ET Event Monitor");
 
     public EtSystemMonitor() {
         systemStatus = new SystemStatusImpl(Subsystem.ET, "ET System Monitor", false);

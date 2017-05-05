@@ -23,10 +23,6 @@ import org.lcsim.lcio.LCIOUtil;
 /**
  * Abstract SVT EVIO reader used to convert SVT bank sample blocks to
  * {@link RawTrackerHit}s.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public abstract class AbstractSvtEvioReader extends EvioReader {
     

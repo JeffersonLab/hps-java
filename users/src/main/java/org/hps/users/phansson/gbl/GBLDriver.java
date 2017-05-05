@@ -13,12 +13,8 @@ import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-
 /**
  * Run GBL track fit on existing seed tracks in the event.
- * 
- * @author phansson
- *
  */
 public class GBLDriver extends Driver {
 

@@ -9,8 +9,6 @@ import org.hps.conditions.database.Table;
  * Conditions object for SVT timing configuration constants, including offset phase and time (in nanoseconds).
  * <p>
  * There will generally be only one of these records per run.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"svt_timing_constants"})
 public final class SvtTimingConstants extends BaseConditionsObject {

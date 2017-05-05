@@ -2,7 +2,6 @@ package org.hps.monitoring.plotting;
 
 /**
  * Simple interface for providing values to charts (e.g. strip charts) by series. 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public interface ValueProvider {        
     

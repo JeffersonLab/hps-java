@@ -13,8 +13,6 @@ import org.freehep.record.source.NoSuchRecordException;
  * an ET ring.
  * <p>
  * Polling is used in the {@link #next()} method to get the next record, which might not be immediately available.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSource {
 

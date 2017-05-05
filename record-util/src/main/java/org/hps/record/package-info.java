@@ -8,7 +8,5 @@
  * <code>EventHeader</event> objects from the EVIO, using a series of adapter classes on the loop.  The loop implementation
  * is flexible so that it may be configured to use an ET server, an EVIO file or an LCIO file for the record source.
  * The {@link org.hps.record.composite.CompositeLoopConfiguration} class should be used to configure the loop by the user.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 package org.hps.record;

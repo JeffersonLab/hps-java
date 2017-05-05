@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.hps.users.luca;
 import hep.aida.IHistogram1D;
 
@@ -17,7 +11,6 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 /**
  * This driver is supposed to read the truth information out of a SLIC output about the energy deposition in a given crystal
- * @author Luca
  */
 public class TruthReader extends Driver {
  AIDA aida = AIDA.defaultInstance();

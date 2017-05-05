@@ -14,7 +14,6 @@ import java.util.jar.JarFile;
 /**
  * Get information about available HPS detector resources.
  * 
- * @author Jeremy McCormick, SLAc
  */
 public class DetectorDataResources {
     

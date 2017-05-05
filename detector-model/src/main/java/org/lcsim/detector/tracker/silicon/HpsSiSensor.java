@@ -25,9 +25,6 @@ import org.lcsim.detector.solids.Polygon3D;
  * This class extends {@link SiSensor} with conditions specific to HPS SVT half-modules (sensors) used during the
  * engineering run and beyond. Each half-module is uniquely identified by a FEB ID/Hybrid ID pair which is then related
  * to calibration conditions such as baseline, noise, gain etc.
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class HpsSiSensor extends SiSensor {
 

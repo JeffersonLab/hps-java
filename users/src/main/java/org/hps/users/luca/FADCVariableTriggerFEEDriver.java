@@ -18,7 +18,6 @@ import org.lcsim.event.EventHeader;
  * The code for generating trigger pairs and handling the coincidence
  * window comes from <code>FADCTriggerDriver</code>.
  * 
- * @author Kyle McCarty
  * @see FADCTriggerDriver
  */
 public class FADCVariableTriggerFEEDriver extends TriggerDriver {

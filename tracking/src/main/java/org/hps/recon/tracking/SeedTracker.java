@@ -11,7 +11,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrackFinder;
 
 /**
  * Class extending lcsim version to allow extra flexibility
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracker  {
     

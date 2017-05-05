@@ -10,12 +10,7 @@ import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseRelationalTable;
 
 /**
- * Generic object used to persist track data not available through a Track
- * object.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Sho Uemura <meeg@slac.stanford.edu>
- *
+ * Generic object used to persist track data not available through a Track object.
  */
 public class TrackData implements GenericObject {
 

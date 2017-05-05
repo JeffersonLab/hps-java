@@ -16,7 +16,6 @@ import org.lcsim.util.loop.LCSimLoop;
 
 /**
  *
- * @author Norman A Graf
  */
 public class MCTrackerHitResidualAnalysisDriverTest extends TestCase
 {

@@ -17,9 +17,6 @@ import org.lcsim.geometry.GeometryReader;
 
 /**
  * Unit test for the HPSTracker2Coverter.
- * 
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC 
  */
 public class HPSTracker2ConverterTest extends TestCase {
    

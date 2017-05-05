@@ -12,11 +12,6 @@ import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @version $Id: HPSEcalRawConverterDriver.java,v 1.2 2012/05/03 00:17:54
- * phansson Exp $
- */
 public class EcalReadoutToTriggerConverterDriver extends Driver {
 
     // To import database conditions

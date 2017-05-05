@@ -15,11 +15,6 @@ import org.lcsim.lcio.LCIOReader;
 /**
  * Class <code>LCIOManager</code> is an implementation of <code>
  * EventManager</code> for (S)LCIO files.<br/>
- * <br/>
- * <b><span style="color:red">Warning: This class is under construction
- * and should not be used at this time!</span></b>
- * 
- * @author Kyle McCarty
  */
 public class LCIOManager implements EventManager {
     // Internal variables.

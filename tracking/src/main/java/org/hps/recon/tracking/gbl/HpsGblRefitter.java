@@ -41,9 +41,6 @@ import org.lcsim.util.Driver;
  * A Driver which refits tracks using GBL. Modeled on the hps-dst code written
  * by Per Hansson and Omar Moreno. Requires the GBL Collections and Relations to
  * be present in the event.
- *
- * @author Norman A Graf, SLAC
- * @author Per Hansson Adrian, SLAC
  */
 public class HpsGblRefitter extends Driver {
 
@@ -55,7 +52,6 @@ public class HpsGblRefitter extends Driver {
     private final String gblTrack2StripRelationName = "GBLTrackToStripData";
     private final String outputTrackCollectionName = "GBLTracks";
     private final String trackRelationCollectionName = "MatchedToGBLTrackRelations";
-
 
     private MilleBinary mille;
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;

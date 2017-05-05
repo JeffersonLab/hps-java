@@ -10,8 +10,6 @@ import org.hps.monitoring.ecal.eventdisplay.ui.Viewer;
  * with respect to a crystal. It is thrown when a crystal either gains
  * or loses focus or is clicked. Crystal ID indices are always with
  * respect to the panel coordinate system.
- * 
- * @author Kyle McCarty
  */
 public class CrystalEvent extends AWTEvent {
     private static final long serialVersionUID = 77198267255387212L;

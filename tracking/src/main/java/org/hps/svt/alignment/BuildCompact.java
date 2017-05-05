@@ -48,8 +48,6 @@ import org.hps.recon.tracking.CoordinateTransformations;
 /**
  * Class building a new compact.xml detector based on MillepedeII input
  * corrections.
- * 
- * @author  Per Ola Hansson Adrian <phansson@slac.stanford.edu> 
  */
 public class BuildCompact {
 
@@ -75,11 +73,6 @@ public class BuildCompact {
     
     //private static buildDetector()
 
-    
-    
-    
-    
-    
     private static class MilleParameterSet {
         private IDetectorElement _det = null;
          List<MilleParameter> params = new ArrayList<MilleParameter>();
@@ -143,8 +136,7 @@ public class BuildCompact {
         public ITransform3D getLocalToGlobal() {
             ITransform3D localToGlobal = ( (SiSensor) _det).getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
             return localToGlobal;
-        }       
-        
+        }
     }
     
     public static void main(String[] args) {
@@ -263,8 +255,6 @@ public class BuildCompact {
                         
                         //add the parameter
                         useSet.add(par);
-                        
-                        
                     }
                 }
                 brMille.close();
@@ -310,12 +300,7 @@ public class BuildCompact {
             xmlOutput.output(compact_document, new FileWriter(compactFilenameNew));
         } catch (IOException e) {
             throw new RuntimeException("problem with xml output",e);
-        }
-            
-        
-        
-        
-        
+        }      
     }
 
     private static Element findXMLNode(Document document, String name) {
@@ -333,13 +318,11 @@ public class BuildCompact {
                     return nnode;
                 }
             }
-        }   
-        
+        }           
         return null;
     }
     
     private static void setConditions(String detectorName, int run) {
-
         try {
             if(conditionsManager == null) {
                 conditionsManager = ConditionsManager.defaultInstance();                
@@ -347,9 +330,8 @@ public class BuildCompact {
             conditionsManager.setDetector(detectorName, run);
             
         } catch (ConditionsNotFoundException e1) {
-            throw new RuntimeException("problem setting conditions",e1);
-        }
-        
+            throw new RuntimeException("problem setting conditions", e1);
+        }        
     }
 
     private static SiSensor getTrackerDetElement(Detector det, MilleParameter par) {
@@ -368,13 +350,11 @@ public class BuildCompact {
                 }
             }
         }
-        return null;
-        
+        return null;        
     }
     
-
-    
     private static class DetectorList<K> extends ArrayList<DetAlignConstants> {
+        
         //List<DetAlignConstants> _detectors = new ArrayList<DetAlignConstants>();
         public DetectorList() {
         }
@@ -396,14 +376,10 @@ public class BuildCompact {
             for(DetAlignConstants det : this) {
                 det.print();
             }
-        }
-        
+        }        
     }
-    
-    
-    
-    private static Hep3Vector getTrackingMeasuredCoordinate(SiSensor sensor)
-    {
+       
+    private static Hep3Vector getTrackingMeasuredCoordinate(SiSensor sensor) {
         // p-side unit vector
         ITransform3D electrodes_to_global = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
         Hep3Vector measuredCoordinate = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getMeasuredCoordinate(0);
@@ -411,8 +387,7 @@ public class BuildCompact {
         return measuredCoordinate;
     }
     
-    private static Hep3Vector getMeasuredCoordinate(SiSensor sensor)
-    {
+    private static Hep3Vector getMeasuredCoordinate(SiSensor sensor) {
         // p-side unit vector
         ITransform3D electrodes_to_global = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
         Hep3Vector measuredCoordinate = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getMeasuredCoordinate(0);
@@ -420,8 +395,7 @@ public class BuildCompact {
         return measuredCoordinate;
     }
     
-    
-    
+        
     private static class SiSensorDetAlignConstants extends DetAlignConstants {
         public SiSensorDetAlignConstants(IDetectorElement det) {
             super(det);
@@ -461,21 +435,17 @@ public class BuildCompact {
             System.out.println("Local translation  " + _constants.getTranslationVector().toString());
             System.out.println("Global translation " + _constants.getTranslationVectorGlobal().toString());
             System.out.println("Local rotation     " + _constants.getRotationVector().toString());
-            System.out.println("Global rotation    " + _constants.getRotationVectorGlobal().toString());
-            
-
-        }
-            
-        
+            System.out.println("Global rotation    " + _constants.getRotationVectorGlobal().toString());            
+        }                  
     }
-    
-    
-    
+   
     private static class AlignConstants<K,V> extends HashMap<String,Double> {
         List<MilleParameter> _pars = new ArrayList<MilleParameter>();
+        
         public AlignConstants() {
             super();
         }
+        
         public void add(MilleParameter p) {
             _pars.add(p);
             if (p.getType() == 1) {
@@ -489,11 +459,13 @@ public class BuildCompact {
                 else this.put("gamma", p.getValue());
             }
         }
+        
         public void print() {
             for(Entry<String,Double> e : this.entrySet()) {
                 System.out.println(e.getKey() + " " + e.getValue());
             }
         }
+        
         public Hep3Vector getTranslationVector() {
             if(!this.containsKey("u") || !this.containsKey("v") || !this.containsKey("w")) {
                 System.out.println("missing pars for translation");
@@ -502,6 +474,7 @@ public class BuildCompact {
             }
             return new BasicHep3Vector(this.get("u"),this.get("v"),this.get("w"));
         }
+        
         public Hep3Vector getTranslationVectorGlobal() {
             if(!this.containsKey("x") || !this.containsKey("y") || !this.containsKey("z")) {
                 System.out.println("missing pars for global translation");
@@ -510,6 +483,7 @@ public class BuildCompact {
             }
             return new BasicHep3Vector(this.get("x"),this.get("y"),this.get("z"));
         }
+        
         public Hep3Vector getRotationVector() {
             if(!this.containsKey("alpha") || !this.containsKey("beta") || !this.containsKey("gamma")) {
                 System.out.println("missing pars for rotation");
@@ -518,6 +492,7 @@ public class BuildCompact {
             }
             return new BasicHep3Vector(this.get("alpha"),this.get("beta"),this.get("gamma"));
         }
+        
         public Hep3Vector getRotationVectorGlobal() {
             if(!this.containsKey("rx") || !this.containsKey("ry") || !this.containsKey("rz")) {
                 System.out.println("missing pars for global rotation");
@@ -526,20 +501,17 @@ public class BuildCompact {
             }
             return new BasicHep3Vector(this.get("rx"),this.get("ry"),this.get("rz"));
         }
+        
         private void addGlobalTranslation(Hep3Vector t) {
             this.put("x", t.x()); 
             this.put("y", t.y());
             this.put("z", t.z());
         }
+        
         private void addGlobalRotation(Hep3Vector t) {
             this.put("rx", t.x()); 
             this.put("ry", t.y());
             this.put("rz", t.z());
-        }
-        
-        
+        }               
     }
-    
-    
-
 }

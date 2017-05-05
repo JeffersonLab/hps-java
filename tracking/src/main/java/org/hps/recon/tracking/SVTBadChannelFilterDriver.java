@@ -11,11 +11,7 @@ import org.lcsim.util.Driver;
 
 /**
  * Driver used to filter out RawTrackerHits that have been identified to come
- * from noisy/dead channels.  
- * 
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id$
- * 
+ * from noisy/dead channels.
  */
 public class SVTBadChannelFilterDriver extends Driver {
 

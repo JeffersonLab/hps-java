@@ -1,23 +1,17 @@
 package org.hps.recon.vertexing;
 
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.Hep3Vector;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Vertex;
 
-/**
- * 
- *  @author Mathew Thomas Graham <mgraham@slac.stanford.edu>
- *  @version $Id:$
- *
- */
 public class BilliorVertex implements Vertex {
     // the value of the magnetic field in the vicinity of the vertex
     // default is a constant field along the z axis

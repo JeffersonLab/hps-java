@@ -24,9 +24,7 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  * Create a conditions system tag.
  * <p>
  * The tag groups together conditions records from the <i>conditions</i> database table with a run validity range that 
- * is between a specified starting and ending run.
- *
- * @author Jeremy McCormick, SLAC
+ * is between a specified starting and ending run. 
  */
 final class TagCommand extends AbstractCommand {
 

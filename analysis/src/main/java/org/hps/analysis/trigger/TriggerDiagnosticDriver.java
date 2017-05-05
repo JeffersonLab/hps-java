@@ -61,7 +61,6 @@ import org.lcsim.util.aida.AIDA;
  * output is an efficiency over time plot that shows the efficiency for
  * a programmable time frame throughout the run.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class TriggerDiagnosticDriver extends Driver {
     // === Store the LCIO collection names for the needed objects. ======================
@@ -258,7 +257,6 @@ public class TriggerDiagnosticDriver extends Driver {
      * also whether or not the cut is a real trigger cut, or a special
      * cut used for plotting efficiency only.
      * 
-     * @author Kyle McCarty <mccarty@jlab.org>
      */
     private enum CutType {
         CLUSTER_SEED_ENERGY("Cluster Seed Energy", true, false), CLUSTER_TOTAL_ENERGY("Cluster Total Energy", true, false),
@@ -349,7 +347,6 @@ public class TriggerDiagnosticDriver extends Driver {
      * <code>TriggerType.ordinal()</code> is also used as an index for
      * multiple value-tracking arrays throughout the class.
      * 
-     * @author Kyle McCarty <mccarty@jlab.org>
      */
     private enum TriggerType {
         // Define the trigger types.

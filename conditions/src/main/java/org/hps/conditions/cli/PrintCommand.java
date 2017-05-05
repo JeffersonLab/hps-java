@@ -22,8 +22,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 /**
  * This sub-command of the conditions CLI prints conditions conditions table data by run number to the console or
  * optionally writes it to an output file.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class PrintCommand extends AbstractCommand {
 

@@ -8,11 +8,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.recon.tracking.seedtracker.TrackCheck;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
- */
 public class HitTimeTrackCheck implements TrackCheck {
 
     private final double rmsTimeCut;

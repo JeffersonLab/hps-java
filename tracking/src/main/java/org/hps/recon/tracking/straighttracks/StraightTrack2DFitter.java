@@ -13,7 +13,6 @@ import org.lcsim.fit.line.SlopeInterceptLineFitter;
 
 /**
  *
- * @author mgraham
  */
 public class StraightTrack2DFitter implements HPSFitter {
 

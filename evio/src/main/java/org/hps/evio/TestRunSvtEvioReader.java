@@ -13,10 +13,8 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 
 /**
- *  Test run SVT EVIO reader used to convert SVT bank integer data to LCIO
- *  objects.
- * 
- *  @author Omar Moreno <omoreno1@ucsc.edu>
+ * Test run SVT EVIO reader used to convert SVT bank integer data to LCIO
+ * objects.
  */
 public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 

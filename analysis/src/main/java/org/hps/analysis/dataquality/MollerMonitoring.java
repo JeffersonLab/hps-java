@@ -25,10 +25,7 @@ import org.lcsim.geometry.Detector;
 
 /**
  * DQM driver V0 particles (i.e. e+e- pars) plots things like number of vertex
- * position an mass
- *
- * @author mgraham on May 14, 2014
- *
+ * position an mass.
  */
 public class MollerMonitoring extends DataQualityMonitor {
 

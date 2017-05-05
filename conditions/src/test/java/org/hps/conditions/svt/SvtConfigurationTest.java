@@ -12,7 +12,6 @@ import org.jdom.JDOMException;
 /**
  * Load an SVT XML configuration from the database.
  *
- * @author Jeremy McCormick, SLAC
  */
 public final class SvtConfigurationTest extends TestCase {
 

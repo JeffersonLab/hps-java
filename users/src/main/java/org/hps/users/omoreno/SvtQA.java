@@ -33,8 +33,6 @@ import org.hps.recon.tracking.TrackUtils;
 
 /**
  * SVT Quality Assurance Driver
- *  
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 // TODO: Split this driver up.
 public class SvtQA extends Driver {

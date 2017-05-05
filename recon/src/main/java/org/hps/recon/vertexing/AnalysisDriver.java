@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.recon.vertexing;
 
 import hep.physics.matrix.SymmetricMatrix;
@@ -27,10 +23,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author partridge
- */
 public class AnalysisDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
@@ -39,7 +31,6 @@ public class AnalysisDriver extends Driver {
 
     public AnalysisDriver() {
     }
-
     
     public void process(EventHeader event) {
 

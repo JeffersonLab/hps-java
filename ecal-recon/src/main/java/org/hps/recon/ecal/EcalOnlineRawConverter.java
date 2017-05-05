@@ -28,9 +28,6 @@ import org.lcsim.event.RawTrackerHit;
  * This converter is primarily employed in the trigger and hardware
  * diagnostic processes as well as the readout simulation in Monte
  * Carlo.
- * 
- * @author Nathan Baltzell <baltzell@jlab.org>
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class EcalOnlineRawConverter {
     // Defines the maximum number of peaks that may be extracted from

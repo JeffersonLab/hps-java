@@ -32,10 +32,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class TrackingReconPlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

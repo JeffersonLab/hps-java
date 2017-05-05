@@ -3,7 +3,6 @@ package org.hps.users.phansson.tools;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
@@ -16,8 +15,6 @@ import org.lcsim.util.Driver;
 
 /**  
  * Check tracking geometry.
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class TrackingGeometryChecker extends Driver {
 

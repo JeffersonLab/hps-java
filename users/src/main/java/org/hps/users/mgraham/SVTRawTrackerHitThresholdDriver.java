@@ -3,19 +3,12 @@ package org.hps.users.mgraham;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-/**
- * 
- * @author Matt Graham
- */
-// TODO: Check that this Driver works as expected after it was updated to use 
-//       the database conditions system.
 public class SVTRawTrackerHitThresholdDriver extends Driver {
 
     private String rawTrackerHitCollectionName = "RawTrackerHitMaker_RawTrackerHits";

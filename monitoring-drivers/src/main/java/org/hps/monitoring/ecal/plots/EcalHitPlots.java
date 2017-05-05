@@ -27,9 +27,7 @@ import org.lcsim.util.aida.AIDA;
  * - Second sub-tab shows the energy distribution of the hits (Histogram1D), and the maximum energy in each event (Histogram1D)
  * - Third sub-tab shows the time distribution of the first hit per event, for the Ecal top (Histogram1D),  for the Ecal bottom (Histogram1D),  for both  for the Ecal top (Histogram1D).
  * 
- * Histograms are updated continously, expect those marked with *, that are updated regularly depending on the event refresh rate configured in the <code> EcalMonitoringPlots </code> driver 
- * @author Andrea Celentano
- *
+ * Histograms are updated continuously, expect those marked with *, that are updated regularly depending on the event refresh rate configured in the <code> EcalMonitoringPlots </code> driver 
  */
 public class EcalHitPlots extends Driver {
 

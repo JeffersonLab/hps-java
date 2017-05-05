@@ -15,8 +15,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Perform time walk correction on ECal hits and create new collection of hits with corrected time.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class EcalTimeCorrectionDriver extends Driver {
 

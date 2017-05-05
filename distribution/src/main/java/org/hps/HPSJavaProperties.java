@@ -8,7 +8,6 @@ import java.util.Properties;
  * This class provides information about the HPS Java build environment for the current distribution jar that is being
  * executed.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class HPSJavaProperties {
 

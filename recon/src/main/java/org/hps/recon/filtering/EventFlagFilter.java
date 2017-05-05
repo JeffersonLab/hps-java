@@ -3,11 +3,7 @@ package org.hps.recon.filtering;
 import org.lcsim.event.EventHeader;
 
 /**
- * Accept only events where all of the specified flags exist and have a value of
- * 1.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
+ * Accept only events where all of the specified flags exist and have a value of 1.
  */
 public class EventFlagFilter extends EventReconFilter {
 

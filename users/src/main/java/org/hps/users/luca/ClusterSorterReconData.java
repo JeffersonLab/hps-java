@@ -15,10 +15,6 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
-/**
- * 
- * @author Luca Colaneri 
- */
 public class ClusterSorterReconData extends Driver {
     int posx, posy;
     int radius=2;

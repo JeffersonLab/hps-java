@@ -2,15 +2,11 @@ package org.hps.users.mgraham;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author mgraham
- */
 public class RemoveCollectionsFromEvent extends Driver {
 
     protected Set<String> collections = new HashSet<String>();

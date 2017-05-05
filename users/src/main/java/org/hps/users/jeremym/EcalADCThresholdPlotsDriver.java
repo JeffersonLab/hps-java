@@ -20,8 +20,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * This Driver plots the number of hits per event with at least one ADC value at or above 1 to 6 sigma.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 // TODO: Add plot of hist.fill(nSigmaHits / nTotalHits) to get percentage by event.  (X axis = 0 - 1.0 w/ 100 bins, Y axis = nEvents)
 public class EcalADCThresholdPlotsDriver extends Driver {

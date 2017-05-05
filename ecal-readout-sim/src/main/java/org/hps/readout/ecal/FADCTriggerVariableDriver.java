@@ -17,8 +17,6 @@ import org.lcsim.geometry.Detector;
 
 /**
  * Dumps trigger variables to text file
- * @author phansson <phansson@slac.stanford.edu>
- * @version $id: $
  */
 public class FADCTriggerVariableDriver extends FADCTriggerDriver {
     private int _pairs = 0;

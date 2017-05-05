@@ -7,7 +7,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 /**
  * Create combined SVT conditions for Test Run.
  *
- * @author Jeremy McCormick, SLAC
  */
 public final class TestRunSvtConditionsConverterTest extends TestCase {
 

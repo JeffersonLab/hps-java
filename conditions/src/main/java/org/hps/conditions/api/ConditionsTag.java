@@ -12,8 +12,6 @@ import org.hps.conditions.database.Table;
  * <p>
  * The run numbers of conditions in the tag with the same key are allowed to overlap.  In this case, the 
  * disambiguation is performed at run-time within the job using a {@link org.hps.conditions.database.MultipleCollectionsAction}.
- *  
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"conditions_tags"})
 @Converter(converter = ConditionsTagConverter.class)

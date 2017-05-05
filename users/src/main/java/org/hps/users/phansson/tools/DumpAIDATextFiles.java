@@ -23,11 +23,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
-/**
- *
- * @author phansson Dumps all histograms in AIDA files to a standard text format
- * @version $Id: DumpAIDATextFiles.java,v 1.3 2013/11/01 19:23:53 meeg Exp $
- */
 public class DumpAIDATextFiles {
 
     private static Options createCommandLineOptions() {

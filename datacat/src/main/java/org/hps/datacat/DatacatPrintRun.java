@@ -11,8 +11,6 @@ import org.srs.datacat.model.dataset.DatasetWithViewModel;
 
 /**
  * Example of printing information from all files for a given run in the datacat.
- * 
- * @author jeremym
  */
 public final class DatacatPrintRun {
             

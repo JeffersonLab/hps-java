@@ -19,9 +19,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-
-
-//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -53,7 +50,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
  *    double phi0 = _trk.phi0();
  *    double R = _trk.R();
  *
- * @author mgraham
  */
 public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
 

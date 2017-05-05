@@ -11,8 +11,6 @@ import org.lcsim.event.EventHeader;
  * that triggers off of clusters which exceed a certain energy threshold.
  * The trigger considers three regions, each which require a different
  * number of clusters to occur in said region before the trigger occurs.
- * 
- * @author Luca Colaneri
  */
 public class FEETrigger2 extends TriggerDriver {
     // Store the LCIO cluster collection name.

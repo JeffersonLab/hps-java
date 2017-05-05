@@ -22,10 +22,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class V0ReconPlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.users.phansson.daq;
 
 import hep.aida.IHistogram2D;
@@ -25,10 +22,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class SvtOldHeaderAnalysisDriver extends Driver {
 
     private final AIDA aida = AIDA.defaultInstance();

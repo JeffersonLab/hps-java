@@ -8,7 +8,6 @@ import java.util.ArrayList;
  *
  * @param <ObjectType> the type of the conditions object
  * @param <CollectionType> the type of the conditions collection
- * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings({"serial"})
 // FIXME: This class should possibly be removed. It doesn't provide much functionality.

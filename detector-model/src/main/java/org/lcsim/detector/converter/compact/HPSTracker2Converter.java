@@ -40,7 +40,6 @@ import org.lcsim.geometry.subdetector.HPSTracker2;
 
 /**
  * Converts an HPSTracker2 XML description into Java runtime objects.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  *
  */
 public class HPSTracker2Converter extends AbstractSubdetectorConverter {

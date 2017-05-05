@@ -9,8 +9,6 @@ import java.io.Reader;
 /**
  * Class <code>AdvancedReader</code> is an implementation of <code>Reader
  * </code> that allows lines to be read both forwards and backwards.
- * 
- * @author Kyle McCarty
  */
 public class AdvancedReader extends Reader {
     private RandomAccessFile file;

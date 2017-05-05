@@ -11,7 +11,6 @@ import org.hps.analysis.trigger.util.SinglesTrigger;
  * simulated trigger results for each of the four primary triggers
  * produced by the <code>DataTriggerSimDriver</code>.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @param <E> - The type of clusters from which the triggers were
  * simulated. This will always be either <code>Cluster</code> or
  * <code>SSPCluster</code>. 

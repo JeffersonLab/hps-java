@@ -55,7 +55,6 @@ import static org.hps.conditions.database.ConnectionParameters.CONNECTION_PROPER
  * Differences between Test Run and Engineering Run configurations are handled automatically.
  *
  * @see org.lcsim.conditions.ConditionsManager
- * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("rawtypes")
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {

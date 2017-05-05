@@ -42,8 +42,6 @@ import javax.swing.table.DefaultTableModel;
  * the monitoring application.
  * <p>
  * The information in the table is updated dynamically via the <code>AIDAObserver</code> API on the AIDA object.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, FunctionListener, AddActionListener {

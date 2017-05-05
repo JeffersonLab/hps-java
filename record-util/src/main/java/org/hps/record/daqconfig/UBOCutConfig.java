@@ -5,8 +5,6 @@ package org.hps.record.daqconfig;
  * <code>AbstractCutConfig</code> for cuts that have only an upper bound.
  * It provides the means to access this value and, for package classes,
  * set it.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class UBOCutConfig extends AbstractConfig<Double> {
     private static final int UPPER_BOUND = 0;

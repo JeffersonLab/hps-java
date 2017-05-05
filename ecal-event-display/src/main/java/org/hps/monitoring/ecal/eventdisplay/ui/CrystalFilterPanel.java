@@ -38,7 +38,6 @@ import org.hps.monitoring.ecal.eventdisplay.util.EcalWiringManager;
  * <code>CrystalFilterPanel</code> alerts other classes that a filter
  * has been applied through <code>ActionListener</code> objects.
  * 
- * @author Kyle McCarty
  * @see JPanel
  * @see CrystalDataSet
  * @see EcalWiringManager
@@ -547,7 +546,6 @@ public final class CrystalFilterPanel extends JPanel {
      * Enumerable <code>Position</code> specifies a location on the
      * calorimeter.
      * 
-     * @author Kyle McCarty
      */
     private enum Position {
         TOP(true, null), BOTTOM(false, null), LEFT(null, true), RIGHT(null, false),
@@ -634,7 +632,6 @@ public final class CrystalFilterPanel extends JPanel {
      * ItemListener</code> that is linked to a specific component index
      * and handles the enabling and disabling of filters.
      * 
-     * @author Kyle McCarty
      * @see ItemListener
      */
     private class CheckListener implements ItemListener {
@@ -683,7 +680,6 @@ public final class CrystalFilterPanel extends JPanel {
      * It then will check to see if a given <code>CrystalDataSet</code>
      * object matches the <code>CDSComparator</code> properties.
      * 
-     * @author Kyle McCarty
      */
     private class CDSComparator {
         // Filters.

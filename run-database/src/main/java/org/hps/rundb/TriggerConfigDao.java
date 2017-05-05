@@ -4,8 +4,6 @@ import org.hps.record.triggerbank.TriggerConfigData;
 
 /**
  * Database interface for getting raw trigger config data and inserting into run db.
- * 
- * @author jeremym
  */
 public interface TriggerConfigDao {
     

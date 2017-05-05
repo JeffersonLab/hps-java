@@ -2,8 +2,6 @@ package org.hps.datacat;
 
 /**
  * Dataset types for HPS.
- * 
- * @author jeremym
  */
 public enum DataType {
     /**

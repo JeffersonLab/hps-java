@@ -28,10 +28,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Monitoring driver that provides information about the number of SVT hits per
  * event.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class SvtHitPlots extends Driver {
 

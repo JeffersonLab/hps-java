@@ -9,8 +9,6 @@ import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 /**
  * This is a convenience utility for associating the geometric crystal objects with the conditions system channel
  * information and vice versa.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class EcalCrystalChannelMap {
 

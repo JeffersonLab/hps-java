@@ -1,4 +1,5 @@
 package org.hps.recon.tracking.gbl.matrix;
+
   /** LU Decomposition.
    <P>
    For an m-by-n matrix A with m >= n, the LU decomposition is an m-by-n
@@ -10,7 +11,6 @@ package org.hps.recon.tracking.gbl.matrix;
    singular, so the constructor will never fail.  The primary use of the
    LU decomposition is in the solution of square systems of simultaneous
    linear equations.  This will fail if isNonsingular() returns false.
-   @version $Id: LUDecomposition.java,v 1.1.1.1 2010/11/30 21:31:59 jeremy Exp $
    */
 
 public class LUDecomposition implements java.io.Serializable {
@@ -44,7 +44,7 @@ public class LUDecomposition implements java.io.Serializable {
    @param  A   Rectangular matrix
    */
 
-   public LUDecomposition (Matrix A) {
+   public LUDecomposition(Matrix A) {
 
    // Use a "left-looking", dot-product, Crout/Doolittle algorithm.
 

@@ -13,8 +13,6 @@ import java.io.PrintStream;
  * <li>Pair 1 Trigger</li>
  * <li>Pair 2 Trigger</li>
  * </ul>
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SSPConfig extends IDAQConfig {
     // Store trigger configuration parameters.

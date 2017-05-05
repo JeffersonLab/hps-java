@@ -7,8 +7,6 @@ import java.util.List;
 /**
  * The class <code>Cluster</code> represents a cluster center and a
  * collection of additional hits that together form a hit cluster.
- * 
- * @author Kyle McCarty
  */
 public final class Cluster {
     private final Point center;

@@ -15,16 +15,13 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
 import org.lcsim.util.aida.AIDA;
 
 /**
  * Command line tool to add together histograms from multiple AIDA files.
- * 
- * @author Jeremy McCormick, SLAC
- *
  */
 public class AddPlots {
     

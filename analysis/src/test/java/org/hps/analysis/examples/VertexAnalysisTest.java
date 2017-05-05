@@ -15,7 +15,6 @@ import org.lcsim.util.test.TestUtil;
 
 /**
  *
- * @author ngraf
  */
 public class VertexAnalysisTest extends TestCase {
 

@@ -5,17 +5,10 @@ import hep.physics.vec.Hep3Matrix;
 
 import org.lcsim.event.GenericObject;
 
-/**
- *
- *
- * @version $Id:
- */
 public class GBLTrackData implements GenericObject {
 
-    /*
-     * 
-     * Interface enumerator to access the correct data
-     * 
+    /**    
+     * Interface enumerator to access the correct data     
      */
     private static class GBLINT {
 

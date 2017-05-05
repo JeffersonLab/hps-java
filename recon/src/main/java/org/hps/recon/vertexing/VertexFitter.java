@@ -16,9 +16,7 @@ import java.util.Map;
 import org.hps.recon.tracking.StraightLineTrack;
 
 /**
- *  Fit a set of straight line tracks to a common vertex
- *
- * @author Richard Partridge
+ * Fit a set of straight line tracks to a common vertex
  */
 public class VertexFitter {
 

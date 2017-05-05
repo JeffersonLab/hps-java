@@ -25,9 +25,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Class to calculate track reconstruction efficiency using a tag and probe
  * method. 
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: TestRunTrackReconEfficiency.java,v 1.5 2013/10/14 22:58:04 phansson Exp $
  */
 public class TestRunTrackReconEfficiency  extends Driver {
     

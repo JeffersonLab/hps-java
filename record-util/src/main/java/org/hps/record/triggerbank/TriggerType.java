@@ -10,8 +10,6 @@ import org.jlab.coda.jevio.EvioEvent;
 /**
  * Provides bit mask checks for the trigger types defined in
  * <a href="https://confluence.slac.stanford.edu/display/hpsg/EVIO+Data+Format#EVIODataFormat-EVIOEventtypes-2015DataSet">EVIO Event types</a>.
- *
- * @author Jeremy McCormick, SLAC
  */
 public enum TriggerType {
     

@@ -13,9 +13,6 @@ import org.lcsim.event.GenericObject;
 
 /**
  * Class with only static utility methods.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class TriggerDataUtils {
 

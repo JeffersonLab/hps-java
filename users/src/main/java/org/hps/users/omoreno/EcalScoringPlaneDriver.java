@@ -17,9 +17,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Driver used to relate a Track to an Ecal scoring plane hit.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- *
  */
 public class EcalScoringPlaneDriver extends Driver {
 

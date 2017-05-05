@@ -30,16 +30,7 @@ import org.lcsim.geometry.Detector;
 /**
  * DQM driver reconstructed particles (i.e. electrons, positrons, photons) plots
  * things like number of electrons (or positrons)/event, photons/event, e+/e-
- * momentum, and track-cluster matching stuff
- *
- * @author mgraham on Mar 28, 2014 big update on May 14, 2014...right now the
- * output is crap; no charge<0 tracks & the track momentum isn't filled; likely
- * a problem with ReconParticle
- *
- * May 20, 2014: this was fixed by a) Omar's changes to ReconParticle and b)
- * making sure I run ECal clustering before this
- *
- *
+ * momentum, and track-cluster matching stuff.
  */
 public class FinalStateMonitoring extends DataQualityMonitor {
     

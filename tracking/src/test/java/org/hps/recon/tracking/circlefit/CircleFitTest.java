@@ -6,7 +6,6 @@ import junit.framework.TestCase;
 
 /**
  *
- * @author Norman A. Graf
  */
 public class CircleFitTest extends TestCase
 {

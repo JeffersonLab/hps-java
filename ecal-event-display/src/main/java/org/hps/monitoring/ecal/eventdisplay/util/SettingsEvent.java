@@ -10,7 +10,6 @@ import org.hps.monitoring.ecal.eventdisplay.ui.CalorimeterPanel;
  * both the triggering object and an <code>int</code> primitive which
  * corresponds to the particular setting that triggered the event.
  * 
- * @author Kyle McCarty
  * @see CalorimeterPanel
  */
 public class SettingsEvent extends AWTEvent {

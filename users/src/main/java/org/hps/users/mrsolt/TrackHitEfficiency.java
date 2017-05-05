@@ -1,10 +1,3 @@
-/**
- * Analysis driver to calculate hit efficiencies in the SVT
- */
-/**
- * @author mrsolt
- *
- */
 package org.hps.users.mrsolt;
 
 import java.util.ArrayList;
@@ -48,7 +41,6 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 
 public class TrackHitEfficiency extends Driver {
-
 
     // Use JFreeChart as the default plotting backend
     static { 

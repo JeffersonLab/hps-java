@@ -2,11 +2,6 @@ package org.hps.record.triggerbank;
 
 import org.lcsim.event.GenericObject;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: TriggerData.java,v 1.3 2012/08/03 23:14:39 meeg Exp $
- */
 public class TestRunTriggerData extends AbstractIntData {
     
     public static final int BANK_TAG = 0xe106;

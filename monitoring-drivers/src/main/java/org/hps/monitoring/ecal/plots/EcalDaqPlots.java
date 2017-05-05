@@ -22,8 +22,6 @@ import org.lcsim.util.aida.AIDA;
  * Monitoring Application, when using the Ecal monitoring lcsim file. It contains only a sub-tab, showing
  * the number of hits recorded by the different FADC channels. It is a very preliminary driver to monitor
  * the DAQ status. These plots are updated continuously.
- * 
- * @author Andrea Celentano
  */
 public class EcalDaqPlots extends Driver {
 

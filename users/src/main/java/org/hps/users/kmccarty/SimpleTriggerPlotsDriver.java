@@ -40,8 +40,6 @@ import org.lcsim.util.aida.AIDA;
  * This driver does not filter based on trigger type. For data, it is
  * suggested that a filter be added upstream or that a skim be used to
  * account for this, if only data from a specific trigger is desired.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SimpleTriggerPlotsDriver extends Driver {
 	private int nsa = Integer.MIN_VALUE;

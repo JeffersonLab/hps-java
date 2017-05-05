@@ -4,10 +4,6 @@ package org.hps.util;
 
 /**
  * A Class to hold a pair of immutable objects
- * 
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: Pair.java,v 1.1 2012/03/26 07:05:28 omoreno Exp $
  */
 public class Pair<T, S> implements Comparable<Pair<T, S>> {
     

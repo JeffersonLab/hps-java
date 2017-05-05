@@ -33,14 +33,9 @@ import java.util.logging.Logger;
  *         global derivative       label of global derivative
  *         ...
  *         global derivative       label of global derivative
- *
- * @author Norman A Graf
- *
- * @version $Id$
  * 
  */
-public class MilleBinary
-{
+public class MilleBinary {
     FileChannel _channel;
     List<Integer> _intBuffer = new ArrayList<Integer>();
     List<Float> _floatBuffer = new ArrayList<Float>();
@@ -64,8 +59,7 @@ public class MilleBinary
      * Fully qualified Constructor
      * @param outputFileName name of output binary file for millepede II
      */
-        public MilleBinary(String outputFileName)
-    {
+    public MilleBinary(String outputFileName) {
         try {
             _channel = new FileOutputStream(outputFileName).getChannel();
         } catch (FileNotFoundException ex) {
@@ -78,8 +72,7 @@ public class MilleBinary
     /**
      * Closes the binary output file
      */
-    public void close()
-    {
+    public void close() {
         try {
             _channel.close();
         } catch (IOException ex) {
@@ -96,12 +89,8 @@ public class MilleBinary
      * @param labGlobal  List of labels of global parameters
      * @param derGlobal  List of derivatives for global parameters
      */
-        public void addData(float aMeas, float aErr,
-                        List<Integer> indLocal,
-                        List<Double> derLocal,
-                        List<Integer> labGlobal,
-                        List<Double> derGlobal)
-    {
+    public void addData(float aMeas, float aErr, List<Integer> indLocal, List<Double> derLocal,
+            List<Integer> labGlobal, List<Double> derGlobal) {
         _intBuffer.add(0);
         _floatBuffer.add(aMeas);
         for (int i = 0; i < indLocal.size(); ++i) {
@@ -121,8 +110,7 @@ public class MilleBinary
     /**
      * Write record to file.
      */
-        public void writeRecord()
-    {
+    public void writeRecord() {
         int recordLength = _intBuffer.size() * 2 * 4; // writing both ints and floats, each is 4 bytes
         ByteBuffer b = ByteBuffer.allocate((recordLength + 1) * 2); // writing one extra word per collection
         b.order(ByteOrder.LITTLE_ENDIAN);

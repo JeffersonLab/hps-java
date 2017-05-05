@@ -36,7 +36,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Create ADC value plots from the cosmic clusters.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalCosmicClusterPlotsDriver extends Driver {
 

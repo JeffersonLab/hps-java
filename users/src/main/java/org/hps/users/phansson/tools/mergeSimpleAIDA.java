@@ -23,11 +23,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author phansson
- * @version $Id: mergeSimpleAIDA.java,v 1.4 2012/12/11 23:50:48 meeg Exp $
- */
 public class mergeSimpleAIDA {
 
     /**

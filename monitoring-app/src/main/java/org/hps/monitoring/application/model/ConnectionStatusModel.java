@@ -6,8 +6,6 @@ import java.beans.PropertyChangeListener;
 /**
  * This model updates listeners when the connection status changes from disconnected to connected or vice versa. It will
  * also notify listeners when the event processing has been paused.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class ConnectionStatusModel extends AbstractModel {
 

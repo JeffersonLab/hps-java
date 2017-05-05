@@ -8,10 +8,7 @@ import org.hps.data.test.TestDataUtility;
 import org.hps.job.JobManager;
 
 /**
- * Test package for data quality monitoring of reconstructed data
- *
- * @author mgraham <mgraham@slac.stanford.edu>
- * created on 10/16/2014
+ * Test package for data quality monitoring of reconstructed data.
  */
 public class DataQualityMonitorTest extends TestCase {
 

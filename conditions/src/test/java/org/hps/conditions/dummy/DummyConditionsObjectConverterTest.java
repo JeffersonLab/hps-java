@@ -10,7 +10,6 @@ import org.hps.conditions.dummy.DummyConditionsObject.DummyConditionsObjectColle
 /**
  * Test converter API using a dummy class.
  * 
- * @author Jeremy McCormick, SLAC
  */
 public class DummyConditionsObjectConverterTest extends TestCase {
 

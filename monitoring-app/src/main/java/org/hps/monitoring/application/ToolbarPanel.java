@@ -14,7 +14,6 @@ import org.hps.monitoring.application.model.ConnectionStatusModel;
 /**
  * A GUI component for the top-level toolbar of the monitoring app.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class ToolbarPanel extends JPanel {

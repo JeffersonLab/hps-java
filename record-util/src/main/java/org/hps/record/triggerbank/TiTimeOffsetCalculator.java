@@ -6,8 +6,6 @@ import java.util.List;
 
 /**
  * Calculate TI time offset given lists of min and max offsets and the number of outliers.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class TiTimeOffsetCalculator {
     

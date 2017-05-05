@@ -16,8 +16,6 @@ import org.hps.conditions.trigger.TriggerTimeWindow.TriggerTimeWindowCollection;
  * This driver chooses the highest energy cluster within
  * the trigger time window in an event and uses the RF time
  * to set the trigger time of the event.
- * @author holly <hszumila@jlab.org>
- *
  */
 public class ClusterRFTimeCorrDriver extends Driver {
 

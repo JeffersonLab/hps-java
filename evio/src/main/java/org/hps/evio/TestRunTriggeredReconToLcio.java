@@ -26,9 +26,6 @@ import org.lcsim.lcio.LCIOWriter;
  * This class takes raw data generated from MC and converts it to EVIO. The goal
  * is to make this look like data which will come off the actual ET ring during
  * the test run.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class TestRunTriggeredReconToLcio extends TriggerableDriver {
 

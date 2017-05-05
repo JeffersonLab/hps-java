@@ -10,8 +10,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Test MC recon steering file without readout simulation.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class MCReconNoReadoutTest extends TestCase {
     

@@ -12,8 +12,6 @@ import org.lcsim.util.Driver;
 /**
  * Class <code>LCIOBridgeDriver</code> displays LCIO events on the
  * event display.
- *
- * @author Kyle McCarty
  */
 public class LCIOBridgeDriver extends Driver {
     // The identification name for getting the calorimeter object.

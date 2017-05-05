@@ -15,10 +15,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.util.cache.FileCache;
 
 /**
- *  Test used to check the EVIO reader that will be used for the engineering
- *  run.  
- * 
- *  @author Omar Moreno <omoreno1@ucsc.edu>
+ * Test used to check the EVIO reader that will be used for the Engineering Run.   
  */
 public class SvtEvioReaderTest extends TestCase {
 

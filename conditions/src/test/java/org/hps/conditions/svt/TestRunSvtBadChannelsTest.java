@@ -14,7 +14,6 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  * This test reads Test Run bad channel collections from the database using a conditions series and checks that the
  * correct number of channels are flagged using several different runs.
  *
- * @author Jeremy McCormick, SLAC
  */
 public final class TestRunSvtBadChannelsTest extends TestCase {
 

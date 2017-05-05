@@ -7,8 +7,6 @@ import org.hps.rundb.RunSummaryImpl;
  * <p>
  * Classes that add information to the run summary or create objects
  * for insertion into the run database should implement this.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public abstract class AbstractRunBuilder {
     

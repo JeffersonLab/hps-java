@@ -14,10 +14,7 @@ import org.lcsim.util.swim.Helix;
  * Convert a helix to a straight line track at a specified reference plane normal to the x axis.
  * This code was developed for simulating the Heavy Photon Search experiment where the target is
  * located outside the magnetic field volume.
- * 
- * @author Richard Partridge
  */
-// FIXME: If this is copy-pasted from lcsim, what behavior was changed here?  Is it needed? --JM
 public class HelixConverter {
 
     private double _xref;

@@ -3,6 +3,5 @@
  * <p>
  * This includes run start and end dates, event counts, EPICS data, scaler data, and the list of associated EVIO files.
  *
- * @author Jeremy McCormick, SLAC
  */
 package org.hps.crawler;

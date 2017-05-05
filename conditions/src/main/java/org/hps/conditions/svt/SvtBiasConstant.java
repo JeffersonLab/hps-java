@@ -12,8 +12,6 @@ import org.hps.conditions.database.Table;
 /**
  * 
  * Encapsulates an SVT bias constant, which is range in time where bias was ON.
- * 
- * @author Per Hansson Adrian, SLAC
  */
 @Table(names  = "svt_bias_constants")
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)

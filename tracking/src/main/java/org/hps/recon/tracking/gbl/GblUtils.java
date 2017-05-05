@@ -21,30 +21,22 @@ import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 
 /**
- * A class with only static utilities related to GBL
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
+ * A class with only static utilities related to GBL.
  */
 public class GblUtils {
     
     public static Logger LOGGER = Logger.getLogger(GblUtils.class.getName());
-    
-    
-    
-
+            
     /**
      * Private constructor to avoid instantiation.
      */
     private GblUtils() {
     }
-
     
     /**
      * 
      * Store local curvilinear track parameters. 
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class ClParams {
@@ -116,7 +108,6 @@ public class GblUtils {
      * 
      * Store perigee track parameters. 
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class PerigeeParams {
@@ -155,11 +146,6 @@ public class GblUtils {
             return _params.e(0, 4);
         }
     }
-
-
-
-
-
     
     /**
      * Get corrected perigee parameters. 
@@ -169,15 +155,13 @@ public class GblUtils {
      * @return corrected parameters
      */
     public static double[] getCorrectedPerigeeParameters(Vector locPar, HelicalTrackFit helicalTrackFit, double bfield) {
-        
-        
+                
         // Explicitly assign corrections to local variables
         double qOverPCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.QOVERP.getValue());
         double xTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());
         double yTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
         double xTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XT.getValue());
         double yTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YT.getValue());
-
         
         // Get helix parameters
         double qOverP = helicalTrackFit.curvature() / (Constants.fieldConversion * Math.abs(bfield) * Math.sqrt(1 + Math.pow(helicalTrackFit.slope(), 2)));
@@ -222,14 +206,9 @@ public class GblUtils {
         parameters_gbl[HelicalTrackFit.z0Index] = z0_gbl;
         parameters_gbl[HelicalTrackFit.slopeIndex] = slope_gbl;
         
-        return parameters_gbl;
-        
+        return parameters_gbl;       
     }
     
-    
-    
-    
-
     public static BasicMatrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
         /*
          Simple jacobian: quadratic in arc length difference.
@@ -396,10 +375,6 @@ public class GblUtils {
         return jacobian;
     }
 
-
-
-
-
     /**
      * Computes the projection matrix from the perigee XY plane variables dca
      * and z0 into the curvilinear xT,yT,zT frame (U,V,T) with reference point (0,0,0) 
@@ -452,10 +427,6 @@ public class GblUtils {
          */
     }
 
-
-
-
-
     private static BasicMatrix getPerParVector(double kappa, double theta, double phi, double d0, double z0) {
         BasicMatrix perPar = new BasicMatrix(1, 5);
         perPar.setElement(0, 0, kappa);
@@ -466,10 +437,6 @@ public class GblUtils {
         return perPar;
     }
 
-
-
-
-
     private static BasicMatrix getPerParVector(HelicalTrackFit htf, double B) {
         if (htf != null) {
             double kappa = -1.0 * Math.signum(B) / htf.R();
@@ -478,6 +445,4 @@ public class GblUtils {
         }
         return new BasicMatrix(1, 5);
     }
-
-
 }

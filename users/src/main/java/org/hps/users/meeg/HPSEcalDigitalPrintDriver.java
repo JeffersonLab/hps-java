@@ -15,11 +15,6 @@ import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: HPSEcalDigitalPrintDriver.java,v 1.5 2012/04/27 22:13:52 meeg Exp $
- */
 public class HPSEcalDigitalPrintDriver extends Driver {
 
     Subdetector ecal;

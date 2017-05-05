@@ -24,8 +24,6 @@ import org.hps.monitoring.application.model.HasConfigurationModel;
 /**
  * A <code>JPanel</code> which has a number of fields with the labels in the first column and the components for
  * showing/editing the fields in the second. It uses <code>GridBagConstraints</code> for layout.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListener, HasConfigurationModel,

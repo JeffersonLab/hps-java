@@ -29,13 +29,8 @@ import org.lcsim.util.Driver;
 
 /**
  *  Monitoring driver that will be used when 'timing in' the SVT.
- * 
- *  @author Omar Moreno <omoreno1@ucsc.edu>
- *  @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class SvtTimingInPlots extends Driver {
-
-    // TODO: Add documentation
 
     static {
         hep.aida.jfree.AnalysisFactory.register();
@@ -167,7 +162,6 @@ public class SvtTimingInPlots extends Driver {
         plotters.get("L4-L6 Chi^2 Prob. vs Amplitude").createRegions(6, 4);
        
         for (HpsSiSensor sensor : sensors) {
-
             
             t0Plots.put(sensor,histogramFactory.createHistogram1D(sensor.getName() + " - t0",75, -50, 100.0));
             amplitudePlots.put(sensor, histogramFactory.createHistogram1D(sensor.getName() + " - Amplitude", 200, 0, 2000));
@@ -191,9 +185,9 @@ public class SvtTimingInPlots extends Driver {
                                                      .plot(t0vChi2Plots.get(sensor), this.createStyle("t0 [ns]", "#chi^{2} Probability"));
                 plotters.get("L1-L3 Chi^2 Prob. vs Amplitude").region(this.computePlotterRegion(sensor))
                                                      .plot(chi2vAmpPlots.get(sensor), this.createStyle("#chi^{2} Probability","Amplitude [ADC Counts]"));
-               plotters.get("L1-L3 Max Sample Number").region(this.computePlotterRegion(sensor))
+                plotters.get("L1-L3 Max Sample Number").region(this.computePlotterRegion(sensor))
                                                       .plot(maxSampleNumberPerSensorPlots.get(sensor), this.createStyle(sensor, "Max Sample Number", ""));
-               plotters.get("L1-L3 Max Sample Number - Opposite").region(this.computePlotterRegion(sensor))
+                plotters.get("L1-L3 Max Sample Number - Opposite").region(this.computePlotterRegion(sensor))
                                                       .plot(maxSampleNumberPerSensorOppPlots.get(sensor),this.createStyle(sensor, "Max Sample Number", ""));
             } else {
                 plotters.get("L4-L6 t0").region(this.computePlotterRegion(sensor))

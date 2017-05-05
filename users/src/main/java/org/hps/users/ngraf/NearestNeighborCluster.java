@@ -11,10 +11,6 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * This is a cluster created using a nearest-neighbor clustering algorithm. It
  * currently extends BaseCluster but should extend a base HPS Cluster at some
  * time
- *
- * @author Norman A Graf
- *
- * @version $Id:
  */
 public class NearestNeighborCluster extends BaseCluster
 {

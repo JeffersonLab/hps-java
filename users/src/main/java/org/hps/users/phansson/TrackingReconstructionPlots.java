@@ -51,8 +51,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Analysis class to check recon.
- * 
- * @author phansson
  */
 public class TrackingReconstructionPlots extends Driver {
 

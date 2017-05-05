@@ -15,7 +15,6 @@ import org.lcsim.detector.Translation3D;
      /**
      * Class describing a simple coordinate system used to define the {@link SurveyVolume}.
      * 
-     *    @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public class SurveyCoordinateSystem {
         private final boolean debug = false;

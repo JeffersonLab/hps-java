@@ -16,9 +16,6 @@ import org.lcsim.geometry.GeometryReader;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 
-/**
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- */
 public class HPSEcalAPITest extends TestCase {
  
     private HPSEcalDetectorElement api = null;

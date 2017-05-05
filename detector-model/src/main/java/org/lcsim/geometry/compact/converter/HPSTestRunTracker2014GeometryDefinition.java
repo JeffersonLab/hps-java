@@ -12,12 +12,8 @@ import org.apache.commons.math3.geometry.euclidean.threed.RotationOrder;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.jdom.Element;
 
-/**
- * 
- * Geometry information for the HPS Test run tracker
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
+/** 
+ * Geometry information for the HPS Test run tracker.
  */
 public class HPSTestRunTracker2014GeometryDefinition extends
         HPSTrackerGeometryDefinition {
@@ -1792,7 +1788,6 @@ public class HPSTestRunTracker2014GeometryDefinition extends
      * Silicon sensor @SurveyVolume. The coordinate system is located at the
      * same position and orientation as the half-module.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class Sensor extends BaseSensor {
@@ -1876,7 +1871,6 @@ public class HPSTestRunTracker2014GeometryDefinition extends
      * Active part of the @Sensor @SurveyVolume. The coordinate system is
      * located at the same position and orientation as the sensor.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class ActiveSensor extends SurveyVolume {
@@ -1954,7 +1948,6 @@ public class HPSTestRunTracker2014GeometryDefinition extends
      * Kapton insulation @SurveyVolume for the half-module The coordinate system
      * is located at the same position and orientation as the sensor.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class HalfModuleLamination extends HalfModuleComponent {
@@ -2076,7 +2069,6 @@ public class HPSTestRunTracker2014GeometryDefinition extends
      * Carbon fiber backing @SurveyVolume for the half-module The coordinate
      * system is located at the same position and orientation as the sensor.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class CarbonFiber extends HalfModuleComponent {
@@ -2197,7 +2189,6 @@ public class HPSTestRunTracker2014GeometryDefinition extends
      * Hybrid @SurveyVolume for the half-module The coordinate system is located
      * at the same position and orientation as the sensor.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static class Hybrid extends HalfModuleComponent {
@@ -2307,7 +2298,6 @@ public class HPSTestRunTracker2014GeometryDefinition extends
     /**
      * Base class for components of a half-module @SurveyVolume
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      *
      */
     public static abstract class HalfModuleComponent extends SurveyVolume {

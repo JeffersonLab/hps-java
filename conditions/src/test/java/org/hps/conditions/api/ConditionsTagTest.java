@@ -25,7 +25,6 @@ import org.hps.conditions.svt.SvtTimingConstants.SvtTimingConstantsCollection;
  * Get conditions from the database for a series of runs using a tag.
  * Then check that the correct collection IDs were returned.
  * 
- * @author Jeremy McCormick, SLAC
  *
  */
 public class ConditionsTagTest extends TestCase {

@@ -24,8 +24,6 @@ import org.jlab.coda.et.exception.EtWakeUpException;
 /**
  * A class for encapsulating the connection information for an ET client including the EtSystem and EtAttachment
  * objects.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EtConnection {
 

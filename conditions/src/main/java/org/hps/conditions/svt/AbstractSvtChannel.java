@@ -12,9 +12,6 @@ import org.hps.util.Pair;
 
 /**
  * This abstract class provides basic setup information for an SVT sensor channel.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 public abstract class AbstractSvtChannel extends BaseConditionsObject {
 

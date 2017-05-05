@@ -11,11 +11,6 @@ import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
 import org.lcsim.event.EventHeader;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: TriggerDataWriter.java,v 1.1 2012/08/03 23:14:39 meeg Exp $
- */
 public class TriggerDataWriter implements HitWriter {
 
     private int verbosity = 1;

@@ -3,11 +3,7 @@ package org.hps.recon.vertexing;
 import org.lcsim.event.Vertex;
 
 /**
- * 
  * Base class for simple vertexer objects.
- * 
- * @author phansson
- *
  */
 public abstract class BaseSimpleVertexer implements SimpleVertexer {
 

@@ -23,25 +23,17 @@ import org.lcsim.geometry.compact.Detector;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.geometry.subdetector.HPSMuonCalorimeter;
 
+public class HPSMuonCalorimeterConverter extends AbstractSubdetectorConverter {
 
-/**
- * @author jeremym
- * @version $Id: HPSMuonCalorimeterConverter.java,v 1.2 2013/01/25 00:13:44 jeremy Exp $
- */
-public class HPSMuonCalorimeterConverter extends AbstractSubdetectorConverter 
-{
-
-    public Class getSubdetectorType() 
-    {
+    public Class getSubdetectorType() {
         return HPSMuonCalorimeter.class;
     }
 
-    public void convert(Subdetector subdet, Detector detector) 
-    {               
-        
+    public void convert(Subdetector subdet, Detector detector) {
+
         IIdentifierHelper helper = subdet.getDetectorElement().getIdentifierHelper();
         IIdentifierDictionary dict = helper.getIdentifierDictionary();
-                
+
         try {
             Element node = subdet.getNode();
             String name = node.getAttributeValue("name");
@@ -95,38 +87,37 @@ public class HPSMuonCalorimeterConverter extends AbstractSubdetectorConverter
 
                     String shapeBaseName = name + "_layer" + layerId + "_sublayer" + slice;
 
-                    Box box = new Box(shapeBaseName + "_box", x/2, y/2, z/2);
+                    Box box = new Box(shapeBaseName + "_box", x / 2, y / 2, z / 2);
 
                     ITranslation3D pos = new Translation3D(px, py, pz);
                     IRotation3D rot = new RotationGeant(rx, ry, rz);
                     ILogicalVolume vol = new LogicalVolume(shapeBaseName + "_vol", box, material);
-                                       
-                    String physVolName = shapeBaseName + "_pv"; 
+
+                    String physVolName = shapeBaseName + "_pv";
                     new PhysicalVolume(new Transform3D(pos, rot), physVolName, vol, mother, 0);
-                    
-                    final IExpandedIdentifier expId = new ExpandedIdentifier(helper.getIdentifierDictionary().getNumberOfFields());
+
+                    final IExpandedIdentifier expId = new ExpandedIdentifier(helper.getIdentifierDictionary()
+                            .getNumberOfFields());
                     expId.setValue(dict.getFieldIndex("system"), subdet.getSystemID());
                     expId.setValue(dict.getFieldIndex("layer"), layerId);
-                    expId.setValue(dict.getFieldIndex("slice"), slice);                    
+                    expId.setValue(dict.getFieldIndex("slice"), slice);
                     int side = 1;
                     if (py < 0) {
                         side = -1;
                     }
-                    expId.setValue(dict.getFieldIndex("side"), side);                                       
-                    final IIdentifier id = helper.pack(expId);                    
+                    expId.setValue(dict.getFieldIndex("side"), side);
+                    final IIdentifier id = helper.pack(expId);
                     new DetectorElement(shapeBaseName, subdet.getDetectorElement(), "/" + physVolName, id);
-                    
+
                     ++slice;
                 }
             }
         } catch (DataConversionException e) {
             throw new RuntimeException(e);
         }
-
     }
-    
-    public boolean isCalorimeter() 
-    {
+
+    public boolean isCalorimeter() {
         return true;
     }
 }

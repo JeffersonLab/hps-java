@@ -27,8 +27,6 @@ import org.lcsim.conditions.ConditionsListener;
 
 /**
  * The component for showing conditions table records in the monitoring application tabs.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class ConditionsPanel extends JPanel {

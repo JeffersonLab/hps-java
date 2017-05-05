@@ -10,23 +10,15 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.math3.special.Gamma;
-
 import org.hps.readout.svt.HPSSVTConstants;
-//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-//===> import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.RawTrackerHit;
 
-/**
- *
- * @author Matt Graham
- */
-// TODO: Add class documentation.
 public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
-    private static String _NAME = "NearestNeighborRMS";
+    //private static String _NAME = "NearestNeighborRMS";
     private double _seed_threshold;
     private double _neighbor_threshold;
     private double _cluster_threshold;

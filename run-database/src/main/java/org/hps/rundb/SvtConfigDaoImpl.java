@@ -13,8 +13,6 @@ import org.hps.record.svt.SvtConfigData.RocTag;
 
 /**
  * Implementation of SVT configuration database operations.
- * 
- * @author jeremym
  */
 final class SvtConfigDaoImpl implements SvtConfigDao {
 

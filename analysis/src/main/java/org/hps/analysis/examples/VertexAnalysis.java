@@ -9,10 +9,6 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.fourvec.Lorentz4Vector;
 import org.lcsim.util.fourvec.Momentum4Vector;
 
-/**
- *
- * @author Norman A. Graf
- */
 public class VertexAnalysis extends Driver {
 
     String vertexCollectionName = "TargetConstrainedV0Vertices";

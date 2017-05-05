@@ -13,12 +13,7 @@ import org.lcsim.util.aida.AIDA;
 /**
  * <code>CalbTest2</code> reads the requested information from a SLIC output (non-reconstructed) slcio file and print
  * the results into a text format that can be read offline
- * @author Luca
  */
-
-
-
-
 
 // the class has to be derived from the driver class
 public class CalibTest2 extends Driver {

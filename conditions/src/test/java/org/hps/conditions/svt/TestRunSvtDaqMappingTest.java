@@ -9,7 +9,6 @@ import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollectio
  * This test checks if the test run SVT DAQ map was loaded with reasonable values and is being read correctly from the
  * conditions database.
  *
- * @author Jeremy McCormick, SLAC
  */
 public final class TestRunSvtDaqMappingTest extends TestCase {
 

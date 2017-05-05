@@ -6,9 +6,7 @@ import java.util.EventListener;
  * Interface <code>CrystalListener</code> receives events from a <code>
  * Viewer</code> component regarding crystals. These include whenever
  * a crystal is activated (i.e. it becomes highlighted), deactivated
- * (i.e. it is no longer highlighted), and clicked. 
- * 
- * @author Kyle McCarty
+ * (i.e. it is no longer highlighted), and clicked.
  */
 public interface CrystalListener extends EventListener {
     /**

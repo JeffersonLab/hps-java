@@ -22,9 +22,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Filter class to create a smaller beamspot based on a sample with fixed, larger, beamspot. 
  * Uses sampling-rejection MC technique.  
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class BeamspotTransformFilter extends Driver {
 

@@ -25,12 +25,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @version $Id: $
- */
 public class SvtEventFlagger {
 
     private static final double angleTolerance = 0.0001;

@@ -8,8 +8,6 @@ import org.lcsim.detector.identifier.Identifier;
 
 /**
  * This is a set of utility methods for the ECAL that use the database conditions system.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class EcalConditionsUtil {
 

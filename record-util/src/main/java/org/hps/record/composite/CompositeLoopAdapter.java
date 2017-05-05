@@ -14,8 +14,6 @@ import org.hps.record.RecordProcessingException;
  * <p>
  * Classes that should be part of an event processing chain implemented by the {@link CompositeLoop} should extend this
  * API in order to receive {@link CompositeRecord} objects that can be read or modified.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class CompositeLoopAdapter extends AbstractLoopListener implements RecordListener {
 

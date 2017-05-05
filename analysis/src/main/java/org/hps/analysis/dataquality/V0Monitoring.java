@@ -34,10 +34,7 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
 /**
  * DQM driver V0 particles (i.e. e+e- pars) plots things like number of vertex
- * position an mass
- *
- * @author mgraham on May 14, 2014
- *
+ * position an mass.
  */
 public class V0Monitoring extends DataQualityMonitor {
 

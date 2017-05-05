@@ -49,10 +49,7 @@ import java.util.Locale;
 // * </PRE></DD>
 // * </DL>
 // *
-// * @author The MathWorks, Inc. and the National Institute of Standards and
 // * Technology.
-// * @author Norman A. Graf (modifications for the gbl package)
-// * @version 5 August 1998 $Id: Matrix.java,v 1.1.1.1 2010/11/30 21:31:59 jeremy
 // * Exp $
 // */
 public class Matrix implements Cloneable, java.io.Serializable

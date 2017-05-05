@@ -16,8 +16,6 @@ import org.hps.record.epics.EpicsHeader;
 
 /**
  * Implementation of database operations for EPICS data.
- *
- * @author jeremy
  */
 final class EpicsDataDaoImpl implements EpicsDataDao {
 

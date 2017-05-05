@@ -13,15 +13,13 @@ import org.lcsim.util.Driver;
 /**
  * Class to strip off Moller candidates 
  * Currently defined as:
- * e- e- events 
- * non-full-energy electrons
- * momentum sum between 0.85 and 1.3 GeV 
- * six-hit tracks and 
- * nothing else in the event
- *
- * @author Norman A Graf
- *
- * @version $Id:
+ * <ul>
+ * <li>e- e- events</li> 
+ * <li>non-full-energy electrons</li>
+ * <li>momentum sum between 0.85 and 1.3 GeV</li> 
+ * <li>six-hit tracks</li>
+ * </ul>
+ * ...with nothing else in the event.
  */
 public class StripMollerEventsDriver extends Driver
 {

@@ -1,14 +1,7 @@
-/**
- * 
- */
 package org.hps.users.phansson.daq;
 
 import org.lcsim.event.GenericObject;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class SvtOldHeaderDataInfo implements GenericObject {
 
     private final int num;

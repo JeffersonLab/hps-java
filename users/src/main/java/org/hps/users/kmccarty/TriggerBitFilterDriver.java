@@ -13,8 +13,6 @@ import org.lcsim.util.Driver;
  * LCSim to ignore all subsequent drivers for this event. Note that
  * this driver should be placed <i>before</i> any drivers that need
  * to be skipped in the driver chain in order to work properly.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class TriggerBitFilterDriver extends Driver {
 	// Store the LCIO collection names.

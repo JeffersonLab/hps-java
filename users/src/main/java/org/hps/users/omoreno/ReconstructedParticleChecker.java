@@ -1,7 +1,5 @@
 package org.hps.users.omoreno;
 
-//--- java ---//
-//--- hep ---//
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.physics.vec.BasicHep3Vector;
@@ -13,21 +11,14 @@ import java.util.List;
 
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
-//--- lcsim ---//
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-//--- hps-java ---//
 
-/**
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: ReconstructedParticleChecker.java,v 1.3 2013/10/14 22:58:03 phansson Exp $
- *
- */
 public class ReconstructedParticleChecker extends Driver {
     
     private AIDA aida; 

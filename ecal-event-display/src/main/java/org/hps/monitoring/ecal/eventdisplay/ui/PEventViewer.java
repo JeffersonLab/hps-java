@@ -13,8 +13,6 @@ import org.lcsim.event.CalorimeterHit;
 /**
  * Class <code>PEventViewer</code> represents a <code>PassiveViewer
  * </code> implementation which displays hits and clusters.
- *
- * @author Kyle McCarty
  */
 public class PEventViewer extends PassiveViewer {
     private static final long serialVersionUID = -7479125553259270894L;

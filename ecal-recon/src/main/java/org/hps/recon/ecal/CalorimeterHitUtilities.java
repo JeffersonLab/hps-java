@@ -8,7 +8,6 @@ import org.lcsim.event.base.BaseCalorimeterHit;
 
 /**
  * This is a simple set of utility methods for creating CalorimeterHit objects. 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class CalorimeterHitUtilities {
 

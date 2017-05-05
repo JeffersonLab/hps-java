@@ -14,10 +14,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author byale (modified from Matt's MCParticleAnalysisDriver)
- */
 public class MCParticleAnalysis2 extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

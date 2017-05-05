@@ -11,9 +11,6 @@ import org.hps.record.triggerbank.TIData;
  * Keep pair-0 triggered events.
  * Also keep EPICS events, and Scaler events.
  * Drop all other events.
- * 
- * @author baltzell
- *
  */
 public class Pair0TriggerFilterDriver extends Driver
 {

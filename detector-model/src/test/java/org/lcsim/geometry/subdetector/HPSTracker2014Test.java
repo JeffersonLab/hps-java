@@ -2,6 +2,8 @@ package org.lcsim.geometry.subdetector;
 
 import java.io.InputStream;
 
+import junit.framework.TestCase;
+
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.IDetectorElementStore;
@@ -11,14 +13,7 @@ import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.GeometryReader;
 
-import junit.framework.TestCase;
-
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class HPSTracker2014Test extends TestCase {
-
     
     Detector det;
     public HPSTracker2014Test(String name) {
@@ -33,14 +28,10 @@ public class HPSTracker2014Test extends TestCase {
         InputStream in = HPSTracker2014Test.class.getResourceAsStream(pathToCompactFile);
         det = geometryReader.read(in);
         
-        System.out.printf("%s: detector name converted: %s\n",this.getClass().getSimpleName(), det.getName());
-        
-        
+        System.out.printf("%s: detector name converted: %s\n",this.getClass().getSimpleName(), det.getName());               
     }
     
-    public void test() {
-        
-        
+    public void test() {               
         IDetectorElementStore store =  DetectorElementStore.getInstance();
         System.out.printf("%s: Printing %d DE:\n",this.getClass().getSimpleName(), store.size());
         System.out.printf("%s: %50s %40s %50s %50s %s\n",this.getClass().getSimpleName(), "name", "pos", "path","mother", "expId");

@@ -25,8 +25,6 @@ import org.lcsim.geometry.Detector;
 /**
  * Material manager using the detector geometry. Uses a private class to set up detector volumes. This can probably make
  * use of the DetectorGeometry classes from lcsim instead for the model. Something to consider in the future.
- *
- * @author Per Hansson <phansson@slac.stanford.edu>
  */
 public class MaterialSupervisor extends MaterialManager {
 

@@ -28,8 +28,6 @@ import org.lcsim.util.swim.HelixSwimmerYField;
  * display by Wired4.  Clusters and tracks from a RP are given the same randomly
  * generated color.  Charged Tracks, Neutral Tracks, and Calorimeter Clusters are
  * given their own sub-types, so that they can be easily switched on and off.
- * 
- * @author jeremym
  */
 class HPSParticleConverter implements HepRepCollectionConverter
 {

@@ -25,11 +25,6 @@ import org.lcsim.util.aida.AIDA;
  * 2) write GBL info into a structured text-based output
  *
  * It uses a helper class that does the actual work. 
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @version $Id: GBLOutputDriver.java,v 1.9 2013/11/07 03:54:58 phansson Exp $
- * $Date: 2013/11/07 03:54:58 $ $Author: phansson $
- *
  */
 public class GBLOutputDriver extends Driver {
 

@@ -16,8 +16,6 @@ import org.jlab.coda.jevio.EvioReader;
 /**
  * A basic implementation of an <code>AbstractRecordSource</code> for supplying <code>EvioEvent</code> objects to a 
  * loop from a list of EVIO files.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class EvioFileSource extends AbstractRecordQueue<EvioEvent> {
 

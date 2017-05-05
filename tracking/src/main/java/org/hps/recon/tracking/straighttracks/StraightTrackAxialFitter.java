@@ -14,7 +14,6 @@ import org.lcsim.fit.line.SlopeInterceptLineFitter;
 /**
  * Do a simple 1d linear fit using the 
  * 
- * @author mgraham <mgraham@slac.stanford.edu>
  */
 public class StraightTrackAxialFitter implements HPSFitter{
 
@@ -43,6 +42,7 @@ public class StraightTrackAxialFitter implements HPSFitter{
     public void StraightTrack2DFitter() {
 
     }
+    
     @Override
     public FitStatus fit(List<HelicalTrackHit> hits) {
         Map<HelicalTrackHit, MultipleScatter> msmap = new HashMap<HelicalTrackHit, MultipleScatter>();
@@ -99,6 +99,7 @@ public class StraightTrackAxialFitter implements HPSFitter{
         _fit = new HelicalTrackFit(par, cov, chisq, ndof, smap, msmap);
         return FitStatus.Success;
     }
+    
     @Override
     public HelicalTrackFit getFit() {
         return _fit;

@@ -27,8 +27,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Calculates and plots truth residuals for track 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @version $Id: TruthResiduals.java,v 1.10 2013/11/07 03:54:58 phansson Exp $ $Date: 2013/11/07 03:54:58 $ $Author: phansson $ 
  */
 public class TruthResiduals {
     
@@ -45,9 +43,7 @@ public class TruthResiduals {
     private IHistogram2D h_mcp_org;
     private IHistogram2D trkpos_y_vs_x;
     private boolean firstWeirdTrack = true;
-    
-    
-
+        
     /*
      * file name
      * Bz in Tesla

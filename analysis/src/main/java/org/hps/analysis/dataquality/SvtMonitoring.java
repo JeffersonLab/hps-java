@@ -33,8 +33,6 @@ import org.lcsim.geometry.Detector;
  * DQM driver for the monte carlo for reconstructed track quantities plots
  * things like occupancy, t0, amplitude, chi^2 (from APV25 sampling fit); each
  * on a per/sensor basis saves to DQM database: <occupancy>
- *
- * @author mgraham on Mar 28, 2014
  */
 //TODO:  add some more quantities to DQM database:  <t0> or <sigma>_t0 for intime events;  <chi^2>, <amplitude> etc
 public class SvtMonitoring extends DataQualityMonitor {

@@ -26,9 +26,6 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType.CoordinateSyst
 
 /**
  * Class with static utilities for straight through tracking.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class STUtils {
     
@@ -41,7 +38,6 @@ public class STUtils {
      */
     private STUtils() {
     }
-
 
     abstract static class STBaseTrack {
         protected List<STUtils.STTrackFit> fit = new ArrayList<STUtils.STTrackFit>();
@@ -73,8 +69,6 @@ public class STUtils {
         public void clearFit() {
             fit.clear();
         }
-    
-    
     }
 
     static class STTrack extends STBaseTrack {
@@ -271,50 +265,62 @@ public class STUtils {
     }
 
     static class StereoPair {
+        
         SiTrackerHitStrip1D axialCluster;
         SiTrackerHitStrip1D stereoCluster;
         Hep3Vector position = null;
+        
         public StereoPair(SiTrackerHitStrip1D axial, SiTrackerHitStrip1D stereo, Hep3Vector origin) {
             this.axialCluster = axial;
             this.stereoCluster = stereo;
             this.position = STUtils.getStereoHitPositionFromReference(origin, getAxial(), getStereo());
         }
+        
         public void updatePosition(Hep3Vector trackDirection) {
             position = STUtils.getPosition(trackDirection, axialCluster, stereoCluster);
             
         }
+        
         public SiTrackerHitStrip1D getStereo() {
             return stereoCluster;
         }
+        
         public SiTrackerHitStrip1D getAxial() {
            return axialCluster;
         }
+        
         public Hep3Vector getPosition() {
             return position;
         }
+        
         public static boolean passCuts(StereoPair pair) {
            //find intersection with sensor
             return true;
-        }
-        
+        }       
     }
 
     static class STTrackFit extends SlopeInterceptLineFit {
+        
         private String type;
+        
         public STTrackFit(String type, SlopeInterceptLineFit fit) {
             super(fit.slope(), fit.intercept(), fit.slopeUncertainty(),fit.interceptUncertainty(),fit.covariance(),fit.chisquared(),fit.ndf());
             this.type = type;
         }
+        
         public STTrackFit(String type, double slope, double intercept, double slopeUncertainty, double interceptUncertainty, double sigAB, double chisq, int ndf) {
             super(slope, intercept,slopeUncertainty,interceptUncertainty,sigAB,chisq,ndf);
             this.type = type;
         }
+        
         public double predict(double zHit) {
             return intercept() + slope() * zHit;
         }
+        
         public String getType() {
             return type;
         }
+        
         public String toString() {
             String s = "STTrackFit " + getType() + ": " + super.toString();
             return s;
@@ -322,24 +328,34 @@ public class STUtils {
     }
 
     static abstract class STTrackFitter {
+        
         private STTrackFit fit = null;
+        
         public STTrackFitter() {}
+        
         abstract String getType();
+        
         abstract public void fit(STTrack track);
+        
         abstract public void fit(List<double[]> xyList);
+        
         protected void setFit(STTrackFit fit) {
             this.fit = fit;
         }
+        
         public STTrackFit getFit() { return fit; }
+        
         void clear() {
             fit = null;
         }
-        abstract public void setErrY(double err_y);
-            
+        
+        abstract public void setErrY(double err_y);            
     }
 
     static class RegressionFit extends STTrackFitter {
+        
         private static final String TYPE = "SimpleRegression";
+        
         public void fit(List<double[]> xyList) {
             clear();
             SimpleRegression regression = new SimpleRegression();
@@ -348,28 +364,36 @@ public class STUtils {
             }
             setFit(new STTrackFit(TYPE,regression.getSlope(), regression.getIntercept(), regression.getSlopeStdErr(), regression.getInterceptStdErr(), regression.getR(), 0.0, (int) (regression.getN()-2)));
         }
+        
         public void fit(STTrack track) {
             fit(track.getPointList());
         }
+        
         String getType() {
             return TYPE;
         }
+        
         public void setErrY(double err_y) {
         }
     }
 
     private static class LineFit extends STTrackFitter {
+        
         private static final String TYPE = "LineFit";
         private double errY = 6e-3;
+        
         String getType() {
             return TYPE;
         }
+        
         public void setErrY(double err_y) {
             this.errY = err_y;
         }
+        
         public void fit(STTrack track) {
             fit(track.getPointList());
         }
+        
         @Override
         public void fit(List<double[]> xyList) {
             int n = xyList.size();
@@ -385,9 +409,7 @@ public class STUtils {
             fitter.fit(x, y, sigma_y, n);
             setFit( new STTrackFit(TYPE, fitter.getFit()) );
         }
-    
     }
-
 
     static Hep3Vector getOrigin(SiTrackerHitStrip1D stripCluster) {
         SiTrackerHitStrip1D local = stripCluster.getTransformedHit(CoordinateSystem.SENSOR);
@@ -443,8 +465,7 @@ public class STUtils {
             v2 = VecOp.mult(-1.0, v2);
             w2 = VecOp.cross(u2, v2);
          }
-        
-        
+                
         StraightThroughAnalysisDriver.logger.finest("o1 " + o1.toString());
         StraightThroughAnalysisDriver.logger.finest("u1 " + u1.toString());
         StraightThroughAnalysisDriver.logger.finest("v1 " + v1.toString());
@@ -453,8 +474,7 @@ public class STUtils {
         StraightThroughAnalysisDriver.logger.finest("u2 " + u2.toString());
         StraightThroughAnalysisDriver.logger.finest("v2 " + v2.toString());
         StraightThroughAnalysisDriver.logger.finest("w2 " + w2.toString());
-    
-        
+            
         // Get the measured strip position on each sensor (basically origin + mult(umeas,u))
         Hep3Vector p1 = s1.getPositionAsVector();
         Hep3Vector p2 = s2.getPositionAsVector();
@@ -488,10 +508,8 @@ public class STUtils {
         Hep3Vector p = VecOp.mult( 0.5 * ( 1 + gamma ), r1);
     
         StraightThroughAnalysisDriver.logger.finest("p " + p.toString());
-    
-        
-        return p;
-        
+            
+        return p;        
     }
 
     /**
@@ -501,6 +519,7 @@ public class STUtils {
      * @param strip2
      */
     static Hep3Vector getPosition(Hep3Vector t, SiTrackerHitStrip1D strip1, SiTrackerHitStrip1D strip2) {
+        
         SiTrackerHitStrip1D s1 = strip1;
         SiTrackerHitStrip1D s2 = strip2;
         // sort in direction of track
@@ -531,8 +550,7 @@ public class STUtils {
             v2 = VecOp.mult(-1.0, v2);
             w2 = VecOp.cross(u2, v2);
          }
-        
-        
+                
         StraightThroughAnalysisDriver.logger.finest("o1 " + o1.toString());
         StraightThroughAnalysisDriver.logger.finest("u1 " + u1.toString());
         StraightThroughAnalysisDriver.logger.finest("v1 " + v1.toString());
@@ -540,8 +558,7 @@ public class STUtils {
         StraightThroughAnalysisDriver.logger.finest("o2 " + o2.toString());
         StraightThroughAnalysisDriver.logger.finest("u2 " + u2.toString());
         StraightThroughAnalysisDriver.logger.finest("v2 " + v2.toString());
-        StraightThroughAnalysisDriver.logger.finest("w2 " + w2.toString());
-    
+        StraightThroughAnalysisDriver.logger.finest("w2 " + w2.toString());   
         
         // Get the measured strip position on each sensor (basically origin + mult(umeas,u))
         Hep3Vector p1 = s1.getPositionAsVector();
@@ -583,11 +600,9 @@ public class STUtils {
         // Take the final position as the half-way between the sensors
         Hep3Vector p = VecOp.add(r1, VecOp.mult( 0.5 * gamma, t) );
     
-        StraightThroughAnalysisDriver.logger.finest("p " + p.toString());
-    
+        StraightThroughAnalysisDriver.logger.finest("p " + p.toString());    
         
-        return p;
-        
+        return p;        
     }
 
     /**
@@ -602,8 +617,7 @@ public class STUtils {
         track.setFit(regressionFitter.getFit(), STStereoTrack.VIEW.YZ);
 
         regressionFitter.fit(track.getPointList(STStereoTrack.VIEW.XZ));
-        track.setFit(regressionFitter.getFit(), STStereoTrack.VIEW.XZ);
-        
+        track.setFit(regressionFitter.getFit(), STStereoTrack.VIEW.XZ);        
     }
     
     public static double getSignedPathLength(STStereoTrack track, double z, STStereoTrack.VIEW view) {
@@ -625,9 +639,7 @@ public class STUtils {
         
         return thickness;        
     }
-    
-    
-    
+           
     /**
      * Prints information for running GBL to a text file.
      * 
@@ -728,14 +740,8 @@ public class STUtils {
                     iStrip++;
                 }
             }
-            
-            
-        }
-        
+        }        
     }
-    
-    
-    
 
     /**
      * Calculate the multiple scattering angle for a given momentum and thickness
@@ -760,8 +766,6 @@ public class STUtils {
         return angle;
     }
     
-    
-    
     /**
      * Finds point of intercept between a generic straight line and a plane.
      * 
@@ -776,8 +780,7 @@ public class STUtils {
             throw new RuntimeException("This line and plane are parallel!");
        final double d = VecOp.dot( VecOp.sub(p0, l0), n) / VecOp.dot(l, n);
        Hep3Vector p = VecOp.add( VecOp.mult(d, l) , l0);
-       return p;
-        
+       return p;        
     }
     
     /**
@@ -820,7 +823,6 @@ public class STUtils {
         Hep3Vector trkposOrigin = VecOp.sub(trkpos, getOrigin(strip));
 
         logger.finest("trkposOrigin " + trkposOrigin.toString());
-
         
         //trkposOriginLocal = globalToLocal.rotated(trkposOrigin);
         
@@ -832,7 +834,6 @@ public class STUtils {
 
         logger.finest("localToGlobal:\n" + local.getLocalToGlobal().toString());
         logger.finest("localToGlobal:\n" + local.getLocalToGlobal().inverse().toString());
-        
         
         //Hep3Vector trkposOriginLocal = strip.getLocalToGlobal().getRotation().inverse().rotated(trkposOrigin);
         Hep3Vector trkposOriginLocal = globalToLocal.getRotation().rotated(trkposOrigin);
@@ -893,9 +894,7 @@ public class STUtils {
                 slopeTrackingFrame.y(),
                 slopeTrackingFrame.z()};
     }
-    
-    
-    
+ 
     /**
      * Compute the Jacobian for transporting uncertainties along the track a certain distance.
      * @param ds - distance along the track
@@ -956,9 +955,7 @@ public class STUtils {
             }
         }
         logger.finest(sb.toString());
-        
-        
-        
+      
         return jacobian;
     }
     
@@ -1033,7 +1030,6 @@ public class STUtils {
         logger.finest("New vector is " + vnew.toString() + " in curvilinear frame xT,yT,zT");
         
         return vnew;
-
     }
     
     /**

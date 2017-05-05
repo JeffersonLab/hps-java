@@ -8,10 +8,6 @@ import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 
-/**
- *
- * @author mgraham
- */
 public class HPSTrackerHit extends BaseRawTrackerHit{
         double t0;
         double amp;                

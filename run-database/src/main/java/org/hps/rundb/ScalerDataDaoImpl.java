@@ -12,8 +12,6 @@ import org.hps.record.scalers.ScalerDataIndex;
 
 /**
  * Implementation of database API for {@link org.hps.record.scalers.ScalerData} in the run database.
- *
- * @author jeremym
  */
 final class ScalerDataDaoImpl implements ScalerDataDao {
 

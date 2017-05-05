@@ -23,7 +23,6 @@ import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
 /**
  *
- * @author Mathew Graham <mgraham@slac.stanford.edu>
  * run the track fitter for tracking in 0 b-field
  * Modified from HelixTrackFitter
  *

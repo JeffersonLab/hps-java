@@ -1,8 +1,4 @@
-/**
- * 
- */
 package org.hps.users.phansson;
-
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
@@ -29,12 +25,8 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- * 
+/** 
  * Compare residuals using updated track parameters from GBL.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class GblResidualDriver extends Driver {
     

@@ -15,10 +15,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.evio.EvioEventUtilities;
 
 /**
- *  Integration test to check the conversion of test run EVIO to LCIO 
- * 
- *  @author Omar Moreno <omoreno1@ucsc.edu>
- *  @date November 20, 2014
+ * Integration test to check the conversion of test run EVIO to LCIO.
  */
 public class LCSimTestRunEventBuilderTest extends TestCase {
 

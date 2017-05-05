@@ -17,8 +17,6 @@ package org.hps.recon.ecal.cluster;
  * readout data, or Monte Carlo formatted in this style. For this data,
  * the <code>GTPOnlineClusterer</code> should be employed instead.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @see GTPClusterer
  */
 public class GTPClusterDriver extends ClusterDriver {

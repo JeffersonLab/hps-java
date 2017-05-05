@@ -19,11 +19,7 @@ import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.util.IDEncoder;
 
 /**
- * Reconstruction version of HPS ECal with crystal array.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Timothy Nelson <tknelsonm@slac.stanford.edu>
- * @version $Id: HPSEcal3.java,v 1.3 2012/04/30 18:04:38 jeremy Exp $
+ * Reconstruction version of HPS ECal with crystal array. 
  */
 public class HPSEcal3 extends AbstractSubdetector {
     private int nx;

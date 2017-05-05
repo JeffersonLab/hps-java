@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.users.phansson.daq;
 
 import java.util.Map;
@@ -12,10 +9,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.log.LogUtil;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class SvtHeaderMetaDataReaderDriver extends Driver {
     
     private static Logger logger = LogUtil.create(SvtHeaderMetaDataReaderDriver.class.getSimpleName(), new BasicLogFormatter(), Level.INFO);

@@ -17,8 +17,6 @@ import org.lcsim.util.DriverAdapter;
 /**
  * An adapter to supply and process LCSim EventHeader objects using an (optional) LCSimEventBuilder and the existing
  * DriverAdapter class.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class LcioEventAdapter extends CompositeLoopAdapter {
 

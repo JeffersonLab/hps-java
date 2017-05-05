@@ -26,8 +26,6 @@ import org.jlab.coda.et.exception.EtWakeUpException;
  * unique <code>EtSystem</code>.
  * <p>
  * Specific processing of ET events is provided with an {@link EtEventProcessor}.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 // FIXME: Currently this is unused in HPS Java.
 public final class EtStationThread extends Thread {

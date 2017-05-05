@@ -28,12 +28,6 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType.CoordinateSyst
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author phansson
- * @version $Id: ParticleHelixProducer.java,v 1.8 2012/11/19 22:20:07 omoreno
- * Exp $
- */
 public class ParticleHelixProducer extends Driver {
 
     private boolean debug = false;

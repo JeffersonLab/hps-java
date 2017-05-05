@@ -22,8 +22,6 @@ import org.lcsim.conditions.ConditionsManager;
  * @see ReconClusterer
  * @see SimpleReconClusterer
  * @see SimpleCosmicClusterer 
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class ClustererFactory {
     

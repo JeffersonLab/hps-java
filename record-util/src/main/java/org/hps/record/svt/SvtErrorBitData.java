@@ -1,14 +1,7 @@
-/**
- * 
- */
 package org.hps.record.svt;
 
 import org.lcsim.event.GenericObject;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class SvtErrorBitData implements GenericObject {
 
     private final int rce;
@@ -16,7 +9,6 @@ public class SvtErrorBitData implements GenericObject {
     private final int hybrid;
     private final int apv;
     private final int error;
-    
     
     /**
      * 

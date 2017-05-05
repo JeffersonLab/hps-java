@@ -18,8 +18,6 @@ import org.hps.monitoring.application.model.ConnectionStatusModel;
 
 /**
  * This is the panel for showing the current connection status (connected, disconnected, etc.) in the tool bar.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class ConnectionStatusPanel extends JPanel implements PropertyChangeListener {

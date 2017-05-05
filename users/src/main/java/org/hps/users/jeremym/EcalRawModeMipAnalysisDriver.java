@@ -24,8 +24,6 @@ import org.lcsim.util.Driver;
 /**
  * This is an analysis of ECAL cosmics using raw mode (window) data
  * which has 100 samples of 4 ns.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalRawModeMipAnalysisDriver extends Driver {
     

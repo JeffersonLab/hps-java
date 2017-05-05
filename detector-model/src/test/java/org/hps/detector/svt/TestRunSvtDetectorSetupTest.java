@@ -12,8 +12,6 @@ import org.lcsim.geometry.Detector;
 /**
  * This test loads {@link TestRunSvtConditions} data onto the detector and then checks that all channels of each sensor
  * have non-zero data values for applicable parameters.
- *
- * @author Omar Moreno, UCSC
  */
 public final class TestRunSvtDetectorSetupTest extends TestCase {
 

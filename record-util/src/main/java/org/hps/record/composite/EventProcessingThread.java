@@ -4,8 +4,6 @@ import org.freehep.record.loop.RecordLoop;
 
 /**
  * Class for running the {@link CompositeLoop} on a separate thread.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EventProcessingThread extends Thread {
 

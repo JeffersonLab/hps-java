@@ -28,7 +28,6 @@ import org.lcsim.util.Driver;
  * This Driver runs the tracker digitization to create raw hits and strip hits from simulated data.
  * The output can be used by a track reconstruction algorithm like Seed Tracker.
  */
-// FIXME: Who authored this Driver?  It wasn't me. --JM
 public class TrackerDigiDriver extends Driver {
 
     // Debug switch for development.

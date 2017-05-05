@@ -28,8 +28,6 @@ import org.hps.record.enums.DataSourceType;
  * change events and then update its state accordingly.
  * <p>
  * Only a single "global" ET item is kept in the list, and it is updated as changes are made to the configuration model.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class DataSourceComboBox extends JComboBox<DataSourceItem> implements PropertyChangeListener, ActionListener {

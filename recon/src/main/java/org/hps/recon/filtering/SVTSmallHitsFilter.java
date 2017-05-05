@@ -12,9 +12,6 @@ import org.lcsim.event.RawTrackerHit;
 /**
  * Reject events with noise hits in the SVT. This cut rejects events affected by
  * burst-mode noise.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class SVTSmallHitsFilter extends EventReconFilter {
 

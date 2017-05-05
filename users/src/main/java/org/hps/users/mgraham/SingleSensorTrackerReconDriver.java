@@ -22,10 +22,6 @@ import org.lcsim.util.Driver;
  * This class runs the Track Reconstruction for the HPS Test Proposal detector.
  * The tracker digitization must be run in front of it. It is intended to work
  * with the {@link TrackerDigiDriver} digitization Driver.
- *
- * @author jeremym
- * @version $Id: TrackerReconDriver.java,v 1.18 2012/05/03 20:50:29 mgraham Exp
- * $
  */
 public final class SingleSensorTrackerReconDriver extends Driver {
 

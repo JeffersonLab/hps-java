@@ -1,11 +1,5 @@
 package org.hps.svt.alignment;
 
-/**
- * Class building a new compact.xml detector based on MillepedeII input corrections
- * @author phansson
- * created on 1/15/2014
- */
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -15,22 +9,19 @@ import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
-
 public class MillepedeCompactDump {
 
     private static String detectorName = "Tracker";
-
-
 
     private static Options createCmdLineOpts() {
         Options options = new Options();
@@ -125,9 +116,7 @@ public class MillepedeCompactDump {
                             if(element_constants==null) {
                                 throw new RuntimeException("no alignment constants in this compact file.");
                             }
-                            mpConstants = element_constants.getChildren("millepede_constant");
-
-                                   
+                            mpConstants = element_constants.getChildren("millepede_constant");                                 
                         }
                     } else {
                         throw new RuntimeException("this detector node element is not formatted correctly");
@@ -146,20 +135,7 @@ public class MillepedeCompactDump {
             outputPrintWriter.println(s);
         }
         
-
         outputPrintWriter.close();
         
-        
-        
-        
     }
-
-
-
-    
-
-    
-    
-    
-
 }

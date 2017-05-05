@@ -11,9 +11,6 @@ import org.hps.record.triggerbank.TIData;
  * Keep pulser triggered events.
  * Also keep EPICS events, and Scaler events.
  * Drop all other events.
- * 
- * @author baltzell
- *
  */
 public class PulserTriggerFilterDriver extends Driver
 {

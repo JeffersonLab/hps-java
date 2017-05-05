@@ -12,7 +12,6 @@ package org.hps.recon.tracking.gbl.matrix;
    QR decomposition is in the least squares solution of nonsquare systems
    of simultaneous linear equations.  This will fail if isFullRank()
    returns false.
-   @version $Id: QRDecomposition.java,v 1.1.1.1 2010/11/30 21:31:59 jeremy Exp $
 */
 
 public class QRDecomposition implements java.io.Serializable {

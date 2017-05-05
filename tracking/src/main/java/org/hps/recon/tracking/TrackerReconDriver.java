@@ -28,10 +28,7 @@ import org.lcsim.util.Driver;
  * This class runs the Track Reconstruction for the HPS Test Proposal detector.
  * The tracker digitization must be run in front of it. It is intended to work
  * with the {@link TrackerDigiDriver} digitization Driver.
- *
- * @author Matt Graham
  */
-// FIXME: Printing to System.out should be converted to use logger.
 public final class TrackerReconDriver extends Driver {
 
     private static final Logger LOGGER = Logger.getLogger(TrackerReconDriver.class.getPackage().getName());

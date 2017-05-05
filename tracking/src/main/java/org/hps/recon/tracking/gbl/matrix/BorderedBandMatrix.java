@@ -7,9 +7,7 @@ import java.util.List;
 
 /**
  *
- * @author Norman A. Graf
  *
- * @version $Id$
  */
 /// (Symmetric) Bordered Band Matrix.
 /**
@@ -30,8 +28,7 @@ import java.util.List;
  * +- -+ | C33 C44 C55 C66 C77 C88 | | C34 C45 C56 C67 C78 0. | | C35 C46 C57
  * C68 0. 0. | +- -+ \endverbatim
  */
-public class BorderedBandMatrix
-{
+public class BorderedBandMatrix {
 
     private int numSize; ///< Matrix size
     private int numBorder; ///< Border size
@@ -47,8 +44,7 @@ public class BorderedBandMatrix
      * for q/p + additional local parameters) \param nBand [in] Band width
      * (usually = 5, for simplified jacobians = 4)
      */
-    public void resize(int nSize, int nBorder, int nBand)
-    {
+    public void resize(int nSize, int nBorder, int nBand) {
         numSize = nSize;
         numBorder = nBorder;
         numCol = nSize - nBorder;
@@ -67,8 +63,7 @@ public class BorderedBandMatrix
      */
     public void addBlockMatrix(double aWeight,
                                int[] anIndex,
-                               double[] aVector)
-    {
+                               double[] aVector) {
         int nBorder = numBorder;
         for (int i = 0; i < anIndex.length; ++i) {
             int iIndex = (anIndex)[i] - 1; // anIndex has to be sorted
@@ -96,8 +91,7 @@ public class BorderedBandMatrix
      * BBmatrix(anIndex(i),anIndex(j)). \param anIndex [in] List of rows/colums
      * to be used
      */
-    public SymMatrix getBlockMatrix(List<Integer> anIndex)
-    {
+    public SymMatrix getBlockMatrix(List<Integer> anIndex) {
 
         SymMatrix aMatrix = new SymMatrix(anIndex.size());
         int nBorder = numBorder;
@@ -145,8 +139,7 @@ public class BorderedBandMatrix
      * [out] aSolution Solution (vector) x of A*x=b
      */
     public void solveAndInvertBorderedBand(
-            VVector aRightHandSide, VVector aSolution)
-    {
+            VVector aRightHandSide, VVector aSolution) {
 
         // decompose band
         decomposeBand();
@@ -178,8 +171,7 @@ public class BorderedBandMatrix
     }
 /// Print bordered band matrix.
 
-    public void printMatrix()
-    {
+    public void printMatrix() {
         System.out.println("Border part ");
         theBorder.print();
         System.out.println("Mixed  part ");
@@ -198,8 +190,7 @@ public class BorderedBandMatrix
      * of L. \exception 2 : matrix is singular. \exception 3 : matrix is not
      * positive definite.
      */
-    private void decomposeBand()
-    {
+    private void decomposeBand() {
 
         int nRow = numBand + 1;
         int nCol = numCol;
@@ -231,8 +222,7 @@ public class BorderedBandMatrix
     /**
      * \return Inverted band
      */
-    private VMatrix invertBand()
-    {
+    private VMatrix invertBand() {
 
         int nRow = numBand + 1;
         int nCol = numCol;
@@ -259,8 +249,7 @@ public class BorderedBandMatrix
      * Right hand side (vector) 'b' of C*x=b \return Solution (vector) 'x' of
      * C*x=b
      */
-    private VVector solveBand(VVector aRightHandSide)
-    {
+    private VVector solveBand(VVector aRightHandSide) {
 
         int nRow = theBand.getNumRows();
         int nCol = theBand.getNumCols();
@@ -288,8 +277,7 @@ public class BorderedBandMatrix
      * backward substitution. \param [in] aRightHandSide Right hand side
      * (matrix) 'B' of C*X=B \return Solution (matrix) 'X' of C*X=B
      */
-    private VMatrix solveBand(VMatrix aRightHandSide)
-    {
+    private VMatrix solveBand(VMatrix aRightHandSide) {
 
         int nRow = theBand.getNumRows();
         int nCol = theBand.getNumCols();
@@ -319,8 +307,7 @@ public class BorderedBandMatrix
      * \return Band part of product
      */
     private VMatrix bandOfAVAT(VMatrix anArray,
-                               VSymMatrix aSymArray)
-    {
+                               VSymMatrix aSymArray) {
         int nBand = numBand;
         int nCol = numCol;
         int nBorder = numBorder;

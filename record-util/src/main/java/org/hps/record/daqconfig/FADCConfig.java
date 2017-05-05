@@ -24,8 +24,6 @@ import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
  * <li>Crystal Thresholds</li>
  * <li>Crystal Pedestals</li>
  * </ul>
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class FADCConfig extends IDAQConfig {
     // Store basic FADC information.

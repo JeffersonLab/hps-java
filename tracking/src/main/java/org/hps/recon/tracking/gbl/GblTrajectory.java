@@ -3,11 +3,8 @@ package org.hps.recon.tracking.gbl;
 /**
  *
  *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
- * @author Norman A Graf
  *
- * @version $Id:
  *
  */
 import static java.lang.Math.abs;
@@ -21,16 +18,13 @@ import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.VVector;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
-public class GblTrajectory
-{
+public class GblTrajectory {
 
-    public GblTrajectory(List<GblPoint> listOfPoints)
-    {
+    public GblTrajectory(List<GblPoint> listOfPoints) {
         this(listOfPoints, true, true, true);
     }
 
-    public void fit(double m_chi2, int m_ndf, int m_lost_weight)
-    {
+    public void fit(double m_chi2, int m_ndf, int m_lost_weight) {
         // TODO Auto-generated method stub
     }
 
@@ -156,9 +150,7 @@ public class GblTrajectory
 //     * [in] flagCurv Use q/p \param [in] flagU1dir Use in u1 direction \param
 //     * [in] flagU2dir Use in u2 direction
 //     */
-    GblTrajectory(List<GblPoint> aPointList,
-                  boolean flagCurv, boolean flagU1dir, boolean flagU2dir)
-    {
+    GblTrajectory(List<GblPoint> aPointList, boolean flagCurv, boolean flagU1dir, boolean flagU2dir) {
         numAllPoints = aPointList.size();
         numOffsets = 0;
         numInnerTrans = 0;
@@ -174,25 +166,22 @@ public class GblTrajectory
         if (flagU2dir) {
             theDimension.add(1);
         }
-//        // simple (single) trajectory
+        // // simple (single) trajectory
         thePoints.add(aPointList);
         numPoints.add(numAllPoints);
         construct(); // construct trajectory
     }
-/// Create new (simple) trajectory from list of points with external seed.
+
+    // / Create new (simple) trajectory from list of points with external seed.
 
     /**
-     * Curved trajectory in space (default) or without curvature (q/p) or in one
-     * plane (u-direction) only. \param [in] aPointList List of points \param
-     * [in] aLabel (Signed) label of point for external seed (<0: in front, >0:
-     * after point, slope changes at scatterer!) \param [in] aSeed Precision
-     * matrix of external seed \param [in] flagCurv Use q/p \param [in]
-     * flagU1dir Use in u1 direction \param [in] flagU2dir Use in u2 direction
+     * Curved trajectory in space (default) or without curvature (q/p) or in one plane (u-direction) only. \param [in]
+     * aPointList List of points \param [in] aLabel (Signed) label of point for external seed (<0: in front, >0: after
+     * point, slope changes at scatterer!) \param [in] aSeed Precision matrix of external seed \param [in] flagCurv Use
+     * q/p \param [in] flagU1dir Use in u1 direction \param [in] flagU2dir Use in u2 direction
      */
-    GblTrajectory(List<GblPoint> aPointList,
-                  int aLabel, SymMatrix aSeed, boolean flagCurv,
-                  boolean flagU1dir, boolean flagU2dir)
-    {
+    GblTrajectory(List<GblPoint> aPointList, int aLabel, SymMatrix aSeed, boolean flagCurv, boolean flagU1dir,
+            boolean flagU2dir) {
         numAllPoints = aPointList.size();
         numOffsets = 0;
         numInnerTrans = 0;
@@ -213,25 +202,21 @@ public class GblTrajectory
         construct(); // construct trajectory
     }
 
-/// Retrieve validity of trajectory
-    public boolean isValid()
-    {
+    // / Retrieve validity of trajectory
+    public boolean isValid() {
         return constructOK;
     }
 
-/// Retrieve number of point from trajectory
-    int getNumPoints()
-    {
+    // / Retrieve number of point from trajectory
+    int getNumPoints() {
         return numAllPoints;
     }
 
-/// Construct trajectory from list of points.
+    // / Construct trajectory from list of points.
     /**
-     * Trajectory is prepared for fit or output to binary file, may consists of
-     * sub-trajectories.
+     * Trajectory is prepared for fit or output to binary file, may consists of sub-trajectories.
      */
-    void construct()
-    {
+    void construct() {
 
         constructOK = false;
         fitOK = false;
@@ -250,25 +235,24 @@ public class GblTrajectory
         prepare();
         constructOK = true;
         // number of fit parameters
-        numParameters = (numOffsets - 2 * numInnerTrans) * theDimension.size()
-                + numCurvature + numLocals;
+        numParameters = (numOffsets - 2 * numInnerTrans) * theDimension.size() + numCurvature + numLocals;
     }
-//
-/// Define offsets from list of points.
+
+    //
+    // / Define offsets from list of points.
 
     /**
-     * Define offsets at points with scatterers and first and last point. All
-     * other points need interpolation from adjacent points with offsets.
+     * Define offsets at points with scatterers and first and last point. All other points need interpolation from
+     * adjacent points with offsets.
      */
-    void defineOffsets()
-    {
+    void defineOffsets() {
 
         // loop over trajectories
         for (int iTraj = 0; iTraj < numTrajectories; ++iTraj) {
             List<GblPoint> list = thePoints.get(iTraj);
             int size = list.size();
             // first point is offset
-            list.get(0).setOffset(numOffsets++);        // intermediate scatterers are offsets
+            list.get(0).setOffset(numOffsets++); // intermediate scatterers are offsets
             for (int i = 1; i < size - 1; ++i) {
                 GblPoint p = list.get(i);
                 if (p.hasScatterer()) {
@@ -282,9 +266,8 @@ public class GblTrajectory
         }
     }
 
-/// Calculate Jacobians to previous/next scatterer from point to point ones.
-    void calcJacobians()
-    {
+    // / Calculate Jacobians to previous/next scatterer from point to point ones.
+    void calcJacobians() {
 
         Matrix scatJacobian = new Matrix(5, 5);
         // loop over trajectories
@@ -309,7 +292,7 @@ public class GblTrajectory
                     previousPoint = p;
                 }
             }
-            // backward propagation (without scatterers)            
+            // backward propagation (without scatterers)
             for (int i = size - 1; i > 0; --i) {
                 GblPoint p = list.get(i);
                 if (p.getOffset() >= 0) {
@@ -322,16 +305,13 @@ public class GblTrajectory
         }
     }
 
-/// Get jacobian for transformation from fit to track parameters at point.
+    // / Get jacobian for transformation from fit to track parameters at point.
     /**
-     * Jacobian broken lines (q/p,..,u_i,u_i+1..) to track (q/p,u',u) parameters
-     * including additional local parameters. \param [in] aSignedLabel (Signed)
-     * label of point for external seed (<0: in front, >0: after point, slope
-     * changes at scatterer!) \return List of fit parameters with non zero
-     * derivatives and corresponding transformation matrix
+     * Jacobian broken lines (q/p,..,u_i,u_i+1..) to track (q/p,u',u) parameters including additional local parameters.
+     * \param [in] aSignedLabel (Signed) label of point for external seed (<0: in front, >0: after point, slope changes
+     * at scatterer!) \return List of fit parameters with non zero derivatives and corresponding transformation matrix
      */
-    Pair<List< Integer>, Matrix> getJacobian(int aSignedLabel)
-    {
+    Pair<List<Integer>, Matrix> getJacobian(int aSignedLabel) {
 
         int nDim = theDimension.size();
         int nCurv = numCurvature;
@@ -339,7 +319,7 @@ public class GblTrajectory
         int nBorder = nCurv + nLocals;
         int nParBRL = nBorder + 2 * nDim;
         int nParLoc = nLocals + 5;
-        List< Integer> anIndex = new ArrayList<Integer>();
+        List<Integer> anIndex = new ArrayList<Integer>();
 
         Matrix aJacobian = new Matrix(nParLoc, nParBRL);
 
@@ -374,7 +354,7 @@ public class GblTrajectory
             }
         }
         GblPoint aPoint = thePoints.get(aTrajectory).get(aLabel - firstLabel);
-        List< Integer> labDer = new ArrayList<Integer>();
+        List<Integer> labDer = new ArrayList<Integer>();
         for (int i = 0; i < 5; ++i) {
             labDer.add(0);
         }
@@ -400,20 +380,14 @@ public class GblTrajectory
         return new Pair(anIndex, aJacobian);
     }
 
-/// Get (part of) jacobian for transformation from (trajectory) fit to track parameters at point.
+    // / Get (part of) jacobian for transformation from (trajectory) fit to track parameters at point.
     /**
-     * Jacobian broken lines (q/p,..,u_i,u_i+1..) to local (q/p,u',u)
-     * parameters. \param [out] anIndex List of fit parameters with non zero
-     * derivatives \param [out] aJacobian Corresponding transformation matrix
-     * \param [in] aPoint Point to use \param [in] measDim Dimension of
-     * 'measurement' (<=2: calculate only offset part, >2: complete matrix)
-     * \param [in] nJacobian Direction (0: to previous offset, 1: to next
-     * offset)
+     * Jacobian broken lines (q/p,..,u_i,u_i+1..) to local (q/p,u',u) parameters. \param [out] anIndex List of fit
+     * parameters with non zero derivatives \param [out] aJacobian Corresponding transformation matrix \param [in]
+     * aPoint Point to use \param [in] measDim Dimension of 'measurement' (<=2: calculate only offset part, >2: complete
+     * matrix) \param [in] nJacobian Direction (0: to previous offset, 1: to next offset)
      */
-    void getFitToLocalJacobian(List<Integer> anIndex,
-                               Matrix aJacobian, GblPoint aPoint, int measDim,
-                               int nJacobian)
-    {
+    void getFitToLocalJacobian(List<Integer> anIndex, Matrix aJacobian, GblPoint aPoint, int measDim, int nJacobian) {
 
         int nDim = theDimension.size();
         int nCurv = numCurvature;
@@ -434,7 +408,7 @@ public class GblTrajectory
             aPoint.getDerivatives(0, prevW, prevWJ, prevWd); // W-, W- * J-, W- * d-
             aPoint.getDerivatives(1, nextW, nextWJ, nextWd); // W-, W- * J-, W- * d-
             Matrix sumWJ = prevWJ.plus(nextWJ);
-//?     matN = sumWJ.inverse(ierr); // N = (W- * J- + W+ * J+)^-1
+            // ? matN = sumWJ.inverse(ierr); // N = (W- * J- + W+ * J+)^-1
             // derivatives for u_int
             Matrix prevNW = matN.times(prevW); // N * W-
             Matrix nextNW = matN.times(nextW); // N * W+
@@ -491,18 +465,15 @@ public class GblTrajectory
         }
     }
 
-/// Get jacobian for transformation from (trajectory) fit to kink parameters at point.
+    // / Get jacobian for transformation from (trajectory) fit to kink parameters at point.
     /**
-     * Jacobian broken lines (q/p,..,u_i-1,u_i,u_i+1..) to kink (du')
-     * parameters. \param [out] anIndex List of fit parameters with non zero
-     * derivatives \param [out] aJacobian Corresponding transformation matrix
-     * \param [in] aPoint Point to use
+     * Jacobian broken lines (q/p,..,u_i-1,u_i,u_i+1..) to kink (du') parameters. \param [out] anIndex List of fit
+     * parameters with non zero derivatives \param [out] aJacobian Corresponding transformation matrix \param [in]
+     * aPoint Point to use
      */
-    void getFitToKinkJacobian(List< Integer> anIndex,
-                              Matrix aJacobian, GblPoint aPoint)
-    {
+    void getFitToKinkJacobian(List<Integer> anIndex, Matrix aJacobian, GblPoint aPoint) {
 
-        //nb aJacobian has dimension 2,7
+        // nb aJacobian has dimension 2,7
         int nDim = theDimension.size();
         int nCurv = numCurvature;
         int nLocals = numLocals;
@@ -537,22 +508,18 @@ public class GblTrajectory
         }
     }
 
-/// Get fit results at point.
+    // / Get fit results at point.
     /**
-     * Get corrections and covariance matrix for local track and additional
-     * parameters in forward or backward direction. \param [in] aSignedLabel
-     * (Signed) label of point on trajectory (<0: in front, >0: after point,
-     * slope changes at scatterer!) \param [out] localPar Corrections for local
-     * parameters \param [out] localCov Covariance for local parameters \return
-     * error code (non-zero if trajectory not fitted successfully)
+     * Get corrections and covariance matrix for local track and additional parameters in forward or backward direction.
+     * \param [in] aSignedLabel (Signed) label of point on trajectory (<0: in front, >0: after point, slope changes at
+     * scatterer!) \param [out] localPar Corrections for local parameters \param [out] localCov Covariance for local
+     * parameters \return error code (non-zero if trajectory not fitted successfully)
      */
-    int getResults(int aSignedLabel, Vector localPar,
-                   SymMatrix localCov)
-    {
+    int getResults(int aSignedLabel, Vector localPar, SymMatrix localCov) {
         if (!fitOK) {
             return 1;
         }
-        Pair<List< Integer>, Matrix> indexAndJacobian = getJacobian(aSignedLabel);
+        Pair<List<Integer>, Matrix> indexAndJacobian = getJacobian(aSignedLabel);
         int nParBrl = indexAndJacobian.getFirst().size();
         Vector aVec = new Vector(nParBrl); // compressed vector
         for (int i = 0; i < nParBrl; ++i) {
@@ -563,10 +530,10 @@ public class GblTrajectory
         localCov.placeAt(aMat.Similarity(indexAndJacobian.getSecond()), 0, 0);
         return 0;
     }
-/// Build linear equation system from data (blocks).
 
-    void buildLinearEquationSystem()
-    {
+    // / Build linear equation system from data (blocks).
+
+    void buildLinearEquationSystem() {
         int nBorder = numCurvature + numLocals;
         theVector = new VVector(numParameters);
         theMatrix.resize(numParameters, nBorder, 5);
@@ -587,15 +554,14 @@ public class GblTrajectory
             nData++;
         }
     }
-//}
 
-/// Prepare fit for simple or composed trajectory
+    // }
+
+    // / Prepare fit for simple or composed trajectory
     /**
-     * Generate data (blocks) from measurements, kinks, external seed and
-     * measurements.
+     * Generate data (blocks) from measurements, kinks, external seed and measurements.
      */
-    void prepare()
-    {
+    void prepare() {
         int nDim = theDimension.size();
         // upper limit
         int maxData = numMeasurements + nDim * (numOffsets - 2);
@@ -645,14 +611,15 @@ public class GblTrajectory
                     for (int i = iOff; i < 5; ++i) {
                         if (aPrec.get(i) > 0.) {
                             GblData aData = new GblData(nLabel, aMeas.get(i), aPrec.get(i));
-                            aData.addDerivatives(i, labDer, matPDer, iOff, localDer, globalLab, globalDer, numLocals, transDer);
+                            aData.addDerivatives(i, labDer, matPDer, iOff, localDer, globalLab, globalDer, numLocals,
+                                    transDer);
                             theData.add(aData);
                             nData++;
                         }
                     }
                 }// end of check on measDim
                 measDataIndex.set(nLabel, nData);
-            } //end of loop over points
+            } // end of loop over points
         } // end loop over trajectories
 
         // pseudo measurements from kinks
@@ -670,7 +637,7 @@ public class GblTrajectory
                 if (point.hasScatterer()) {
                     point.getScatterer(matT, aMeas, aPrec);
                     Matrix transDer = null;
-                    List< Integer> labDer = new ArrayList<Integer>(7);
+                    List<Integer> labDer = new ArrayList<Integer>(7);
                     for (int i = 0; i < 7; ++i) {
                         labDer.add(0);
                     }
@@ -687,40 +654,33 @@ public class GblTrajectory
                             nData++;
                         }
                     }
-                } //end of check on hasScatter
+                } // end of check on hasScatter
                 scatDataIndex.set(nLabel, nData);
-            }//end loop over points
+            }// end loop over points
             scatDataIndex.set(list.get(list.size() - 1).getLabel(), nData);
         } // end loop over trajectories
         measDataIndex.set(numAllPoints + 1, nData);
         measDataIndex.set(numAllPoints + 2, nData);
     }
-//
-/// Calculate predictions for all points.
 
-    void predict()
-    {
+    //
+    // / Calculate predictions for all points.
+
+    void predict() {
         for (GblData d : theData) {
             d.setPrediction(theVector);
         }
     }
 
-/// Perform fit of trajectory.
+    // / Perform fit of trajectory.
     /**
-     * Optionally iterate for outlier down-weighting. \param [out] Chi2 Chi2 sum
-     * (corrected for down-weighting) \param [out] Ndf Number of degrees of
-     * freedom \param [out] lostWeight Sum of weights lost due to down-weighting
-     * \param [in] optionList Iterations for down-weighting (One character per
-     * iteration: t,h,c (or T,H,C) for Tukey, Huber or Cauchy function) \return
-     * Error code (non zero value indicates failure of fit)
+     * Optionally iterate for outlier down-weighting. \param [out] Chi2 Chi2 sum (corrected for down-weighting) \param
+     * [out] Ndf Number of degrees of freedom \param [out] lostWeight Sum of weights lost due to down-weighting \param
+     * [in] optionList Iterations for down-weighting (One character per iteration: t,h,c (or T,H,C) for Tukey, Huber or
+     * Cauchy function) \return Error code (non zero value indicates failure of fit)
      */
-    int fit(double[] retDVals, int[] retIVals,
-            String optionList)
-    {
-        final double[] normChi2
-                = {
-                    1.0, 0.8737, 0.9326, 0.8228
-                };
+    int fit(double[] retDVals, int[] retIVals, String optionList) {
+        final double[] normChi2 = {1.0, 0.8737, 0.9326, 0.8228};
         String methodList = "TtHhCc";
 
         double Chi2 = 0.;
@@ -749,14 +709,12 @@ public class GblTrajectory
         return ierr;
     }
 
-
-// Write trajectory to Millepede-II binary file.
-    public void milleOut(MilleBinary aMille)
-    {
+    // Write trajectory to Millepede-II binary file.
+    public void milleOut(MilleBinary aMille) {
         if (!constructOK) {
             throw new RuntimeException("GblTrajectory milleOut not properly constructed");
         }
-//   data: measurements, kinks and external seed
+        // data: measurements, kinks and external seed
         for (GblData d : theData) {
             float[] floats = new float[2]; // fValue , fErr
             List<Integer> indLocal = new ArrayList<Integer>();
@@ -768,36 +726,30 @@ public class GblTrajectory
         }
         aMille.writeRecord();
     }
-/// Print GblTrajectory
+
+    // / Print GblTrajectory
 
     /**
      * \param [in] level print level (0: minimum, >0: more)
      */
-    void printTrajectory(int level)
-    {
+    void printTrajectory(int level) {
         if (numInnerTrans != 0) {
-            System.out.println("Composed GblTrajectory, " + numInnerTrans
-                    + " subtrajectories");
+            System.out.println("Composed GblTrajectory, " + numInnerTrans + " subtrajectories");
         } else {
             System.out.println("Simple GblTrajectory");
         }
         if (theDimension.size() < 2) {
             System.out.println(" 2D-trajectory");
         }
-        System.out.println(" Number of GblPoints          : " + numAllPoints
-        );
+        System.out.println(" Number of GblPoints          : " + numAllPoints);
         System.out.println(" Number of points with offsets: " + numOffsets);
-        System.out.println(" Number of fit parameters     : " + numParameters
-        );
-        System.out.println(" Number of measurements       : " + numMeasurements
-        );
-        if (externalMeasurements != null) {//.getRowDimension()!=0) {
-            System.out.println(" Number of ext. measurements  : "
-                    + externalMeasurements.getRowDimension());
+        System.out.println(" Number of fit parameters     : " + numParameters);
+        System.out.println(" Number of measurements       : " + numMeasurements);
+        if (externalMeasurements != null) {// .getRowDimension()!=0) {
+            System.out.println(" Number of ext. measurements  : " + externalMeasurements.getRowDimension());
         }
         if (externalPoint != 0) {
-            System.out.println(" Label of point with ext. seed: " + externalPoint
-            );
+            System.out.println(" Label of point with ext. seed: " + externalPoint);
         }
         if (constructOK) {
             System.out.println(" Constructed OK ");
@@ -812,7 +764,7 @@ public class GblTrajectory
                     innerTransformations.get(i).print(4, 6);
                 }
             }
-            if (externalMeasurements != null) { //.getRowDimension()!=0) {
+            if (externalMeasurements != null) { // .getRowDimension()!=0) {
                 System.out.println(" External measurements");
                 System.out.println("  Measurements:");
                 externalMeasurements.print(4, 6);
@@ -829,20 +781,19 @@ public class GblTrajectory
                 System.out.println(" Fit results");
                 System.out.println("  Parameters:");
                 theVector.print();
-                System.out.println("  Covariance matrix (bordered band part):"
-                );
+                System.out.println("  Covariance matrix (bordered band part):");
                 theMatrix.printMatrix();
             }
         }
     }
-//
-/// Print \link GblPoint GblPoints \endlink on trajectory
+
+    //
+    // / Print \link GblPoint GblPoints \endlink on trajectory
 
     /**
      * \param [in] level print level (0: minimum, >0: more)
      */
-    public void printPoints(int level)
-    {
+    public void printPoints(int level) {
         System.out.println("GblPoints ");
 
         for (List<GblPoint> list : thePoints) {
@@ -853,9 +804,8 @@ public class GblTrajectory
         }
     }
 
-/// Print GblData blocks for trajectory
-    void printData()
-    {
+    // / Print GblData blocks for trajectory
+    void printData() {
         System.out.println("GblData blocks ");
         for (GblData data : theData) {
             data.printData();

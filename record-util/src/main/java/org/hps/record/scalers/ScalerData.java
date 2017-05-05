@@ -17,8 +17,6 @@ import org.lcsim.event.GenericObject;
 /**
  * This class encapsulates EVIO scaler data which is simply an array of integer values. The exact meaning of each of
  * these integer words is defined externally to this class.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class ScalerData {
 

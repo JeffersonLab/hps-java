@@ -6,7 +6,6 @@ import org.lcsim.util.Driver;
 
 /**
  * This is a skeleton that can be used to create a user analysis Driver in LCSim.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class DummyAnalysisDriver extends Driver {    
     

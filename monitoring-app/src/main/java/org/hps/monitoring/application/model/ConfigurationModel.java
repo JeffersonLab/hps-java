@@ -11,8 +11,6 @@ import org.jlab.coda.et.enums.Mode;
 /**
  * A model of the global configuration parameters that can be used to automatically update the GUI from a configuration
  * or push changes from GUI components into the current configuration.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class ConfigurationModel extends AbstractModel {
 

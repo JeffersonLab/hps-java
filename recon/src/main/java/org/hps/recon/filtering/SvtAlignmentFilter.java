@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.recon.filtering;
 
 import hep.physics.vec.Hep3Vector;
@@ -15,11 +12,7 @@ import org.lcsim.event.Track;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
- * 
  * Filter events to be used for SVT alignment.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class SvtAlignmentFilter extends EventReconFilter {
 

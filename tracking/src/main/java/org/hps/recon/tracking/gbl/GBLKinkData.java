@@ -11,10 +11,6 @@ import org.lcsim.event.base.BaseRelationalTable;
 
 /**
  * Generic object used to persist GBL kink data.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Sho Uemura <meeg@slac.stanford.edu>
- *
  */
 public class GBLKinkData implements GenericObject {
 

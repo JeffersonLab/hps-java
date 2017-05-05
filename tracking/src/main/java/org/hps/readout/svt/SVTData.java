@@ -1,7 +1,5 @@
 package org.hps.readout.svt;
 
-//--- Constants ---//
-
 import static org.hps.readout.svt.HPSSVTConstants.APV_MASK;
 import static org.hps.readout.svt.HPSSVTConstants.CHANNEL_MASK;
 import static org.hps.readout.svt.HPSSVTConstants.FPGA_MASK;
@@ -12,12 +10,6 @@ import static org.hps.readout.svt.HPSSVTConstants.TOTAL_APV25_CHANNELS;
 import static org.hps.readout.svt.HPSSVTConstants.TOTAL_APV25_PER_HYBRID;
 import static org.hps.readout.svt.HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
 
-/**
- * 
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: HPSSVTData.java,v 1.8 2012/08/16 01:06:30 meeg Exp $
- */
 public class SVTData {
 
     // 4x32
@@ -25,9 +17,8 @@ public class SVTData {
     // Time of the hit
     int hitTime = 0;
 
-    /**
-     * 
-     * Creates an SVT data packet from
+    /**    
+     * Creates an SVT data packet.
      * 
      * @param hybridNumber Hybrid number (0-3)
      * @param apvNumber APV25 chip number (0-4)

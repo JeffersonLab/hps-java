@@ -10,11 +10,8 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 
 /**
- *
- * @author mgraham
  * Split the HelicalTrackHit collection into hits that 
  * are on a track and hits that are not
- *
  */
 public class SplitHitsOnTracks extends Driver {
 

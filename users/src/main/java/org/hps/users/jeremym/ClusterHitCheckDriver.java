@@ -11,8 +11,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Simple Driver to check validity of CalorimeterHit objects in clusters.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
  */
 public class ClusterHitCheckDriver extends Driver {
     

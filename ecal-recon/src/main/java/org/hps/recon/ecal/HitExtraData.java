@@ -7,11 +7,6 @@ package org.hps.recon.ecal;
 
 import org.lcsim.event.GenericObject;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
- */
 public class HitExtraData implements GenericObject {
 
     protected final int mode;

@@ -9,8 +9,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 
 /**
  * This is the API that sub-commands such as 'load' or 'print' must implement in the conditions command line interface.
- *
- * @author Jeremy McCormick, SLAC
  */
 abstract class AbstractCommand {
 

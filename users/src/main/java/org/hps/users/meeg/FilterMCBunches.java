@@ -34,9 +34,6 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
  * Selects LCIO events passing a cut; spaces out these events with blank events.
  * Intended use is to clean up a photon-run MC file before running trigger and
  * readout sim. Can also be used to chain multiple LCIO files together.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: FilterMCBunches.java,v 1.9 2013/02/25 21:53:42 meeg Exp $
  */
 public class FilterMCBunches {
 

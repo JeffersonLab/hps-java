@@ -11,9 +11,6 @@ import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
  * This class loads all Test Run ECAL conditions into an {@link EcalConditions} object from the database.
  * <p>
  * The default names are overridden to use tables that contain only Test Run data.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 public final class TestRunEcalConditionsConverter extends EcalConditionsConverter {
 

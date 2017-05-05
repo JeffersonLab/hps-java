@@ -21,8 +21,6 @@ import org.lcsim.util.aida.AIDA;
  * crystal.
  * 
  * These plots are updated regularly, according to the event refresh rate.
- * @author Andrea Celentano
- * 
  */
 public class EcalMonitoringPlots extends Driver {
 

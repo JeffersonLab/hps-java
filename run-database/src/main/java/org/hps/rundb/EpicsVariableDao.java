@@ -4,8 +4,6 @@ import java.util.List;
 
 /**
  * Database interface for EPICS variables.
- * 
- * @author jeremym
  */
 interface EpicsVariableDao {
 

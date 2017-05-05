@@ -9,8 +9,6 @@ import java.util.Map;
  * This is a metadata reader for ROOT DQM files.
  * <p>
  * It currently only gets the run number from the file name.
- *
- * @author Jeremy McCormick, SLAC
  */
 public class RootDqmMetadataReader implements FileMetadataReader {
 

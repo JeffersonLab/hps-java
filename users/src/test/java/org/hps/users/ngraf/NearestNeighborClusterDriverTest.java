@@ -22,7 +22,6 @@ import org.lcsim.util.loop.LCSimLoop;
 
 /**
  *
- * @author ngraf
  */
 public class NearestNeighborClusterDriverTest extends TestCase
 {

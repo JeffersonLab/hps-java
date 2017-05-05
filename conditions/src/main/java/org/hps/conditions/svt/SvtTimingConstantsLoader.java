@@ -21,8 +21,6 @@ import org.hps.conditions.svt.SvtTimingConstants.SvtTimingConstantsCollection;
  * <p>
  * Be very careful about running this, because it will create many new conditions records that may already be present in
  * the database. In fact, don't run this at all without talking to me first. :-)
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class SvtTimingConstantsLoader {
 

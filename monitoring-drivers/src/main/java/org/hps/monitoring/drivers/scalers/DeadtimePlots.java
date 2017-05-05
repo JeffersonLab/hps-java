@@ -19,8 +19,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  *
  * Make a strip chart for DAQ deadtime from the info in the scaler block. 
- *
- * @author mgraham
  */
 public class DeadtimePlots extends Driver {
 

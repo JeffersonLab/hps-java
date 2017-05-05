@@ -24,7 +24,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * This Driver will create a histogram for every crystal in the ECAL and plot its corrected energy
  * for the event.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class CrystalEnergyPlotsDriver extends Driver {
 

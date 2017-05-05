@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson.alignment;
 
 import hep.physics.matrix.BasicMatrix;
@@ -14,25 +10,22 @@ import hep.physics.vec.VecOp;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 
-/**
- *
- * @author phansson
- */
 public class AlignmentUtils {
-    
     
     private int _debug;
     
-
     public AlignmentUtils() {
         _debug = 0;
     }
+    
     public AlignmentUtils(boolean debug) {
         _debug = debug ? 1 : 0;
     }
+    
     public void setDebug(boolean debug) {
         _debug = debug ? 1 : 0;
     }
+    
     public void setDebug(int debug) {
         _debug = debug;
     }

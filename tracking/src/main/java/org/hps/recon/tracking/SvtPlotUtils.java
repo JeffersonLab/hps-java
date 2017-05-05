@@ -25,10 +25,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- */
 public class SvtPlotUtils {
 
     private static final Logger logger = Logger.getLogger(SvtPlotUtils.class.getSimpleName());

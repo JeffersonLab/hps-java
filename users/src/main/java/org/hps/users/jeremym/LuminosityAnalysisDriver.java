@@ -5,8 +5,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Parent <code>Driver</code> showing how to use the {@link LuminosityDriver}.
- *
- * @author Jeremy McCormick, SLAC
  */
 public class LuminosityAnalysisDriver extends Driver {
 

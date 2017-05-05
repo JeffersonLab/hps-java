@@ -22,7 +22,6 @@ import org.lcsim.util.swim.HelixSwimmerYField;
 
 /**
  * Convert an HPS track to heprep for Wired display.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class HPSTrackConverter implements HepRepCollectionConverter {
 

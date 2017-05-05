@@ -8,10 +8,6 @@ import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.Track;
 
-/**
- *
- * @author phansson
- */
 public class EcalTrackMatch {
 
 //    public static final double crystalSizeX = (13.3 + 16.0) / 2;

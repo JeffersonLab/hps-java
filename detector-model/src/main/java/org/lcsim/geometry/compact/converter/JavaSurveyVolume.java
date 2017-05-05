@@ -22,7 +22,6 @@ import org.lcsim.geometry.util.TransformationUtils;
 
 /**
  *  Interface to the JAVA converter geometry for the geometry definition.  
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class JavaSurveyVolume extends SurveyVolumeImpl {
     private Box box= null;

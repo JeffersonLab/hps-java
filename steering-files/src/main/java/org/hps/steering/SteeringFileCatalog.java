@@ -13,7 +13,6 @@ import java.util.jar.JarFile;
 /**
  * This is a static utility class for getting the list of steering file resources. 
  * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class SteeringFileCatalog {
     

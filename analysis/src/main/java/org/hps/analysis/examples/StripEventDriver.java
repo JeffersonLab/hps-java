@@ -21,14 +21,7 @@ import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Norman A Graf
- *
- * @version $Id:
- */
-public class StripEventDriver extends Driver
-{
+public class StripEventDriver extends Driver {
 
     String _triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
 

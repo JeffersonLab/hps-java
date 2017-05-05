@@ -10,8 +10,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Test that production MC recon steering files are not broken.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class MCReconSteeringTest extends TestCase {
     

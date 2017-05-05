@@ -4,7 +4,6 @@ import java.util.List;
 
 /**
  * An interface for finding clusters of RawTrackerHits on a sensor.
- * @author Matt Graham
  */
 public interface ClusteringAlgorithm {
 

@@ -36,7 +36,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Create ADC value plots from the cosmic clusters.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 // TODO: Add Driver argument to specify where fit files will go (which can use the outputFileName arg in steering file).
 public class CosmicClusterPlotsDriver extends Driver {

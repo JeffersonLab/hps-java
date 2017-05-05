@@ -21,11 +21,6 @@ import org.lcsim.geometry.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-
-/**
- *
- * @author Luca
- */
 public class CalibClusterAnalyzerEngRunHist extends Driver  {
     double energyThreshold=0;
     protected String clusterCollectionName = "EcalClustersGTP";

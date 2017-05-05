@@ -7,8 +7,6 @@ import java.util.HashMap;
  * <p>
  * This is not the "standard" interface using in LCSim to access trigger configuration. It is used as a simplistic
  * representation for the run database.
- *
- * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("serial")
 public class TriggerConfig extends HashMap<TriggerConfigVariable, Long> {

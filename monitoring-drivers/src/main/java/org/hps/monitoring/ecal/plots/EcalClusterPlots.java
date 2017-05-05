@@ -45,8 +45,6 @@ import org.lcsim.util.aida.AIDA;
  * The cluster center is calculated from the average of the positions
  * of the constituent hits, weighted by the hit energies.<br/>
  * <br/>
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class EcalClusterPlots extends Driver {
     // Internal variables.

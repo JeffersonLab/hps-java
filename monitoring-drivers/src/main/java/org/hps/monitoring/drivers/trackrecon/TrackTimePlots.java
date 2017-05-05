@@ -24,10 +24,6 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author meeg
- */
 public class TrackTimePlots extends Driver {
 
     //private AIDAFrame plotterFrame;

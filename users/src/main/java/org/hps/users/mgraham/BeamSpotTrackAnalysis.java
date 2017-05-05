@@ -22,8 +22,6 @@ import org.lcsim.util.aida.AIDA;
  * driver to compare regular tracks and beamspot tracks reconstructed track
  * quantities plots things like number of
  * tracks/event, chi^2, track parameters (d0/z0/theta/phi/curvature)
- *
- * @author mgraham on October 10, 2014
  */
 public class BeamSpotTrackAnalysis extends Driver {
 

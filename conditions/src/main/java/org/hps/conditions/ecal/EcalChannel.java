@@ -24,8 +24,6 @@ import org.lcsim.geometry.Subdetector;
 /**
  * This class encapsulates all the information about a single ECal channel, corresponding to one physical crystal in the
  * detector.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"ecal_channels", "test_run_ecal_channels"})
 @Converter(converter = EcalChannel.EcalChannelConverter.class)

@@ -32,17 +32,13 @@ import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import static org.hps.recon.tracking.CoordinateTransformations.transformVectorToTracking;
 
-/**
- *
- * @author Richard Partridge & Matt Graham
- */
 // TODO: This class needs to be cleaned up
 public class TrackAnalysis {
 
     private enum HelixPar {
-
         Curvature, Phi0, DCA, Z0, Slope
     };
+    
     private static final Hep3Vector axial = new BasicHep3Vector(0, 1, 0);
 
     private MCParticle _mcp = null;

@@ -19,10 +19,8 @@ import org.lcsim.geometry.compact.Field;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/*
+/**
  * Example analysis driver.
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: StarterAnalysisDriver.java,v 1.4 2013/10/24 18:11:43 meeg Exp $
  */
 public class StarterAnalysisDriver extends Driver {
 

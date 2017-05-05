@@ -14,9 +14,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Performs readout of ECal hits.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: HPSEcalPrintDriver.java,v 1.1 2012/04/29 02:10:05 meeg Exp $
  */
 public class HPSEcalPrintDriver extends Driver {
 

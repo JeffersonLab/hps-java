@@ -1,18 +1,16 @@
 package org.hps.users.spaul;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import org.lcsim.util.aida.AIDA;
-
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.ITree;
 import hep.aida.ITreeFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 //sums up everything in a folder full of files containing histograms.  Pretty convenient.
 // or if one arg is given, assume that that one arg is a folder full of folders

@@ -1,13 +1,7 @@
 package org.hps.util;
 
-//--- java ---//
 import java.util.Random;
 
-/**
- * 
- * @author Omar Moreno
- * @version $Id: RandomGaussian.java,v 1.1 2012/08/27 19:01:36 omoreno Exp $
- */
 public class RandomGaussian {
 
     private static Random randNumberGenerator;

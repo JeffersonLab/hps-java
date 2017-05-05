@@ -30,9 +30,8 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Example monitoring plots, currently only using ECAL data.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+
 /* 
 
 TODO List 

@@ -13,16 +13,14 @@ import org.hps.recon.vertexing.TwoTrackVertexer;
  * Method creates reconstructed particles from tracks and clusters for
  * test run data. Also generates candidate A' reconstructed particles.
  * This method does not generate a separate vertex collection.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
  */
 public class TestRunReconParticleDriver extends ReconParticleDriver {
+    
     /**
      * Generates reconstructed V0 candidate particles from electron
      * and positron pairs.
-     * @param electrons - The list of electrons.
-     * @param positrons - The list of positrons.
+     * @param electrons The list of electrons
+     * @param positrons The list of positrons
      */
     @Override
     protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {

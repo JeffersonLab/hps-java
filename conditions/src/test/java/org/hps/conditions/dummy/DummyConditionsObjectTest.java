@@ -14,7 +14,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 /**
  * Test object API using a dummy class.
  *
- * @author Jeremy McCormick, SLAC
  */
 public final class DummyConditionsObjectTest extends TestCase {
 

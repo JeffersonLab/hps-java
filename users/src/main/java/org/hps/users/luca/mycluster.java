@@ -15,10 +15,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author Luca
- */
 public class mycluster extends Driver {
   
    /* private FileWriter writer;

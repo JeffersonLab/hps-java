@@ -12,7 +12,6 @@ import org.lcsim.util.Driver;
 
 /**
  * This is a <code>Driver</code> for running the ECAL Event Display.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EventDisplayDriver extends Driver {
 

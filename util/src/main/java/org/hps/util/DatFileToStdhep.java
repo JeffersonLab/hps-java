@@ -1,12 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.util;
 
 /**
- *
- * @author richp
  * modified by mbussonn to take arguments from command line
  */
 import java.io.FileReader;
@@ -27,7 +21,7 @@ public class DatFileToStdhep {
     static boolean flatDecay = false;
     static boolean trident = false;
 //    static double _declength = 0.0;//A' decay length (mm)
-     static double _declength = 0.0;//A' decay length (mm)
+    static double _declength = 0.0;//A' decay length (mm)
     static double _xoff = 0.03;
     static double _yoff = 0;
     static double _zoff = 0;

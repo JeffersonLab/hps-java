@@ -19,9 +19,6 @@ import org.lcsim.geometry.Detector;
 /**
  * This class loads all ECAL conditions into an {@link EcalConditions} object from the database, based on the current
  * run number known by the conditions manager.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  * 
  * @see EcalConditions
  * @see EcalChannel

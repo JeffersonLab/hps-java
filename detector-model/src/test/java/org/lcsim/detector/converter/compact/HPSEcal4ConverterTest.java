@@ -4,25 +4,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Logger;
 
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.jdom.JDOMException;
 import org.lcsim.conditions.ConditionsManager;
-
-import org.lcsim.detector.converter.compact.HPSEcal4Converter;
-import org.lcsim.geometry.subdetector.HPSEcal4;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.GeometryReader;
 import org.lcsim.util.xml.ElementFactory;
 
-
 /**
  * Unit test for the HPSTracker2Converter.
- * 
- * @author SA annie@jlab.org
  */
 public class HPSEcal4ConverterTest extends TestCase {
 

@@ -18,10 +18,6 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- */
 public class LCIOTrackAnalysis {
 
     protected Track track;

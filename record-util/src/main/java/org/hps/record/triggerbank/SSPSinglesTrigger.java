@@ -4,8 +4,6 @@ package org.hps.record.triggerbank;
 /**
  * Class <code>SSPSinglesTrigger</code> represents a singles trigger
  * reported by the SSP and also handles the parsing of the trigger data.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SSPSinglesTrigger extends SSPNumberedTrigger {
     /**

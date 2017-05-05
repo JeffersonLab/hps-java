@@ -25,10 +25,6 @@ import org.lcsim.detector.RotationGeant;
 
 /**
  * A class to convert LHE events to Stdhep.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id:$
- *
  * TODO: Make this converter more generic.
  */
 public class LheToStdhep {

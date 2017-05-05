@@ -1,47 +1,41 @@
 package org.hps.users.omoreno;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogramFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.detector.ITransform3D;
-import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.converter.compact.subdetector.HpsTracker2;
+import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.solids.Box;
 import org.lcsim.detector.solids.Point3D;
 import org.lcsim.detector.solids.Polygon3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.tracking.TrackerHitUtils;
-
-
 /**
  * Analysis driver used to calculate the hit efficiency of the SVT.
- * 
- * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a> 
  */
 public class SvtHitEfficiency extends Driver {
 

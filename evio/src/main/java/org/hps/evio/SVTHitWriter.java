@@ -24,11 +24,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- */
-// TODO: Update this class so it works correctly with the database conditions system
 public class SVTHitWriter implements HitWriter {
 
     private int verbosity = 1;

@@ -2,8 +2,6 @@ package org.hps.record.enums;
 
 /**
  * The type of data source that will supply events to the app.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public enum DataSourceType {
 

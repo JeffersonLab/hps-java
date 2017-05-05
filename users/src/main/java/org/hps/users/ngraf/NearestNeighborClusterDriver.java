@@ -15,10 +15,6 @@ import org.lcsim.util.Driver;
 
 /**
  * This is a test
- *
- * @author Norman A Graf
- *
- * @version $Id:
  */
 public class NearestNeighborClusterDriver extends Driver
 {

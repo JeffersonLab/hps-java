@@ -1,14 +1,5 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.util;
 
-/**
- *
- * @author Mathew Thomas Graham <mgraham@slac.stanford.edu>
- * $Id: ConvertToStdhep.java,v 1.12 2013/10/29 17:24:34 mgraham Exp $ 
- */
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StreamTokenizer;

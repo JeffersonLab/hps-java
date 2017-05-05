@@ -14,10 +14,7 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-/**
- *
- * @author mac
- */
+
 public class CalibClusterAnalizer extends Driver {
  
     protected String clusterCollectionName = "EcalClusters";  

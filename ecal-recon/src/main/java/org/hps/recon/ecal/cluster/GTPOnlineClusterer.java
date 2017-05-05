@@ -62,7 +62,6 @@ import org.lcsim.util.aida.AIDA;
  * If the input data is formatted into constant-time beam bunches, the
  * sister class <code>GTPClusterer</code> should be used instead.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see Cluster
  * @see CalorimeterHit
  * @see AbstractClusterer

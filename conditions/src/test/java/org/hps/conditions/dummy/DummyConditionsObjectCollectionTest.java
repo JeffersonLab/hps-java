@@ -16,7 +16,6 @@ import org.hps.conditions.dummy.DummyConditionsObject.DummyConditionsObjectColle
 /**
  * Test collections API using a dummy class.
  *
- * @author Jeremy McCormick, SLAC
  */
 public class DummyConditionsObjectCollectionTest extends TestCase {
 

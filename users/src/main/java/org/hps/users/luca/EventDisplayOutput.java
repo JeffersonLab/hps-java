@@ -14,8 +14,6 @@ import org.lcsim.util.Driver;
  * <code>EventDisplayOutputDriver</code> writes the results from clustering
  * and hit reconstruction into a text format that can be read offline by the
  * event display.
- *
- * @author Kyle McCarty
  */
 public class EventDisplayOutput extends Driver {
     private FileWriter writer;

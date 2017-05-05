@@ -22,7 +22,6 @@ import org.lcsim.util.aida.AIDA;
  * This will show a series of strip charts from ET system performance statistics
  * such as event and data rates.
  * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EtSystemStripCharts extends EtEventProcessor implements SystemStatisticsListener {
 
@@ -117,6 +116,7 @@ public class EtSystemStripCharts extends EtEventProcessor implements SystemStati
                 
         getTimeSeriesCollection(DATA_RATE_COLLECTION_INDEX).getSeries(0).addOrUpdate(
                 new Second(now), stats.getMegabytesPerSecond());
+        
         getTimeSeriesCollection(DATA_RATE_COLLECTION_INDEX).getSeries(1).addOrUpdate(
                 new Second(now), stats.getAverageMegabytesPerSecond());
         
@@ -125,6 +125,7 @@ public class EtSystemStripCharts extends EtEventProcessor implements SystemStati
         
         getTimeSeriesCollection(EVENT_RATE_COLLECTION_INDEX).getSeries(0).addOrUpdate(
                 new Second(now), stats.getEventsPerSecond());
+        
         getTimeSeriesCollection(EVENT_RATE_COLLECTION_INDEX).getSeries(1).addOrUpdate(
                 new Second(now), stats.getAverageEventsPerSecond());
         

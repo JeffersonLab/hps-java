@@ -9,7 +9,6 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * Basic test of {@link LuminosityAnalysisDriver}.
  *
- * @author Jeremy McCormick, SLAC
  */
 public class LuminosityAnalysisDriverTest extends TestCase {
 

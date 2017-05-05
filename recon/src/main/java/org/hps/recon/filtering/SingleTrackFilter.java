@@ -7,10 +7,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.TrackerHit;
 
-/**
- * 
- * @author meeg
- */
 public class SingleTrackFilter extends EventReconFilter {
 
     private String helicalTrackHitCollectionName = "HelicalTrackHits";

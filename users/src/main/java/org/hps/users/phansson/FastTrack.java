@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson;
 
 import hep.physics.vec.BasicHep3Vector;
@@ -9,10 +5,6 @@ import hep.physics.vec.Hep3Vector;
 
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 
-/**
- *
- * @author phansson
- */
 public class FastTrack {
 
     private Hep3Vector _startVec;

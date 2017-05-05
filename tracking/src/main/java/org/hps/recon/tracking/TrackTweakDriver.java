@@ -18,8 +18,6 @@ import org.lcsim.util.Driver;
 /**
  * Driver used to tweak the track parameters in a collection by a user
  * specified amount.
- * 
- * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a>
  */
 public final class TrackTweakDriver extends Driver {
 

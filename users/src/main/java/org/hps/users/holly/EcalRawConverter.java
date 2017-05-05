@@ -27,9 +27,6 @@ import org.hps.record.daqconfig.FADCConfig;
  * and {@link org.lcsim.event.RawTrackerHit} to {@link org.lcsim.event.CalorimeterHit}
  * objects with energy information.
  *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
- * @author Nathan Baltzell <baltzell@jlab.org>
  *
  * baltzell:  New in 2015:  (default behavior is still unchanged)
  *

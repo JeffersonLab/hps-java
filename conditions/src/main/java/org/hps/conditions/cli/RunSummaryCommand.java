@@ -19,9 +19,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
  * model and run number, which are given as arguments to the conditions command line front-end. It does not print out
  * any conditions objects, only the collection information. By default it will print information about the single
  * collection found for a given type, which is by convention the last one updated. The <code>-a</code> option can be
- * used to print out all collection information.
- *
- * @author Jeremy McCormick, SLAC
+ * used to print out all collection information. 
  */
 final class RunSummaryCommand extends AbstractCommand {
 

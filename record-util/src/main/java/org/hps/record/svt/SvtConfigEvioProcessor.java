@@ -14,7 +14,6 @@ import org.jlab.coda.jevio.EvioEvent;
 /**
  * Get a list of SVT config data from an EVIO data stream.
  * 
- * @author Jeremy McCormick, SLAC
  * @see SvtConfigData
  */
 public class SvtConfigEvioProcessor extends EvioEventProcessor {

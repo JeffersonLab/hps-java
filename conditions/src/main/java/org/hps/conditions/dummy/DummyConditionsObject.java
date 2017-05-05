@@ -13,8 +13,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * A dummy conditions object type for testing purposes.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"dummy"})
 public final class DummyConditionsObject extends BaseConditionsObject {

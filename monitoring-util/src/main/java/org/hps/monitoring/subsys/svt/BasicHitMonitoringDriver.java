@@ -15,8 +15,6 @@ import org.lcsim.util.Driver;
  * This is a basic example of monitoring hits using an updateable <code>SystemStatus</code>. It
  * checks from a <code>TimerTask</code> once per second whether <code>RawTrackerHit</code> objects
  * are being received by the {@link #process(EventHeader)} method.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class BasicHitMonitoringDriver extends Driver {
 

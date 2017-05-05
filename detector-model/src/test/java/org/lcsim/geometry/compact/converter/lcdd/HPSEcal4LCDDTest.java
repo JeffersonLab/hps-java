@@ -5,16 +5,12 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.lcsim.util.test.TestUtil.TestOutputFile;
-
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.hps.conditions.database.DatabaseConditionsManager;
 
-/**
- *
- * @author Annie Simonyan <annie@jlab.org>
- */
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.lcsim.util.test.TestUtil.TestOutputFile;
+
 public class HPSEcal4LCDDTest extends TestCase {
 
     public HPSEcal4LCDDTest(String name) {

@@ -29,11 +29,7 @@ import org.lcsim.util.Driver;
 
 /**
  * Axial track reconstruction.
- * 
- * @author Matt Graham
- * @version $Id: TrackerReconDriver.java,v 1.18 2012/05/03 20:50:29 mgraham Exp $
  */
-// TODO: Add more documentation about what this Driver does. --JM
 public final class AxialTrackReconDriver extends Driver {
 
     // Debug flag.

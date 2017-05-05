@@ -31,10 +31,7 @@ import org.lcsim.util.aida.AIDA;
  * to determine the likelihood of a signal being present, e.g. from a cosmic
  * ray MIP signal.  Those hits with a signal significance greater than a settable
  * threshold (by default 4 sigma) will be written into an output collection
- * of selected hits that can be used by other Drivers. 
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Tim Nelson <tknelson@slac.stanford.edu>
+ * of selected hits that can be used by other Drivers.
  */
 public class EcalCosmicHitFitDriver extends Driver {
 

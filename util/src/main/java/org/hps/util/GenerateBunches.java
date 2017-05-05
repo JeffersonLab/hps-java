@@ -6,15 +6,12 @@ package org.hps.util;
 
 import hep.io.stdhep.StdhepEvent;
 import hep.io.stdhep.StdhepWriter;
-import hep.physics.particle.properties.ParticleType;
 import hep.physics.particle.properties.ParticlePropertyManager;
+import hep.physics.particle.properties.ParticleType;
+
 import java.io.IOException;
 import java.util.Random;
 
-/**
- *
- * @author mgraham
- */
 public class GenerateBunches {
 
     //  Edit the following declarations to set desired paramters

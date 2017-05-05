@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.mgraham;
 
 import hep.physics.vec.Hep3Vector;
@@ -30,10 +26,6 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
-/**
- *
- * @author phansson, mgraham
- */
 public class SingleSensorHelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTrackHitDriver {
     private boolean _debug = false;
     private String subdetectorName = "Tracker";

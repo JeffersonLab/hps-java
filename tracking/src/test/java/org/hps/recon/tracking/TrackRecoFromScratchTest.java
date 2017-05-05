@@ -9,9 +9,7 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * This provides a template for testing track reconstruction issues
  * 
- * @author Norman A Graf
  *
- * @version $Id:
  */
 public class TrackRecoFromScratchTest extends TestCase
 {

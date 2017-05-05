@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson;
 
 import hep.aida.IAnalysisFactory;
@@ -27,10 +23,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author phansson
- */
 public class TriggerTurnOnAnalysis extends Driver {
     private boolean _DEBUG = false;
     private String ecalClusterCollectionName = "EcalTriggerClusters";
