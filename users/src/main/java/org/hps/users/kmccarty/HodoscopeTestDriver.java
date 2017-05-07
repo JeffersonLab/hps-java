@@ -218,14 +218,12 @@ public class HodoscopeTestDriver extends Driver {
 		hodoForeHitsSeen += hodoscopeForeHits.size();
 		
 		// Test for Monte Carlo particles in the SVT.
+		/*
 		List<SimTrackerHit> svtHits = event.get(SimTrackerHit.class, "TrackerHits");
 		for(SimTrackerHit svtHit : svtHits) {
-			boolean hasParticle = (svtHit.getMCParticle() != null);
-			System.out.println("Has MC Particle: " + hasParticle);
-			System.out.println("Layer: " + svtHit.getLayer());
-			System.out.println("Layer Number: " + svtHit.getLayerNumber());
-			System.out.println("\n\n");
+			
 		}
+		*/
 		
 		// ==== Calorimeter Scoring Plane Plots =========================================
 		// ==============================================================================
