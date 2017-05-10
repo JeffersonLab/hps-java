@@ -124,39 +124,38 @@ public class TrackClusterMatcher {
     private static final double dyMeanBotElecSeed[] ={-9.22963, 98.1346, -427.91, 840.225,-751.188, 250.792 };
     private static final double dySigmBotElecSeed[] ={ 21.7909,-85.4757,-56.9423, 977.522,-1902.05, 1137.92 };
 
-    double dyMeanBotElecGBL_noL6_2016[] = {21.4029, -116.618, 242.782, -243.096, 116.391, -21.3705, };
-    double dySigmBotElecGBL_noL6_2016[] = {5.79474, 42.3526, -154.281, 198.416, -110.755, 22.5002, };
-    double dyMeanBotPosiGBL_noL6_2016[] = {-32.7647, 192.891, -410.961, 399.639, -181.869, 31.9595, };
-    double dySigmBotPosiGBL_noL6_2016[] = {17.8515, -33.461, 25.3072, 1.43572, -11.0974, 3.67049, };
-    double dyMeanTopElecGBL_noL6_2016[] = {6.86435, -40.7206, 95.4489, -101.976, 49.4215, -8.82775, };
-    double dySigmTopElecGBL_noL6_2016[] = {17.4846, -30.3801, 21.8231, -5.23113, -0.655482, 0.331731, };
-    double dyMeanTopPosiGBL_noL6_2016[] = {29.5891, -183.537, 412.88, -429.73, 210.11, -39.0327, };
-    double dySigmTopPosiGBL_noL6_2016[] = {19.5882, -45.4899, 60.7058, -50.9565, 23.8695, -4.51673, };
-    double dxMeanBotElecGBL_noL6_2016[] = {-98.9077, 525.149, -1039.57, 980.701, -437.863, 73.7902, };
-    double dxSigmBotElecGBL_noL6_2016[] = {56.0747, -215.028, 376.153, -330.129, 140.026, -22.2382, };
-    double dxMeanBotPosiGBL_noL6_2016[] = {34.0744, -123.803, 71.5376, 113.659, -139.216, 40.1974, };
-    double dxSigmBotPosiGBL_noL6_2016[] = {23.7214, -26.9337, -33.8754, 89.0502, -59.0957, 12.4707, };
-    double dxMeanTopElecGBL_noL6_2016[] = {-83.6079, 437.888, -860.249, 810.746, -368.197, 64.3483, };
-    double dxSigmTopElecGBL_noL6_2016[] = {30.297, -67.233, 66.1714, -30.2237, 5.73356, -0.246071, };
-    double dxMeanTopPosiGBL_noL6_2016[] = {112.555, -608.12, 1222.08, -1198.79, 571.617, -105.815, };
-    double dxSigmTopPosiGBL_noL6_2016[] = {68.9243, -288.365, 548.219, -528.494, 249.054, -44.9662, };
-    double dyMeanBotElecGBL_hasL6_2016[] = {10.0991, -45.1389, 75.6325, -58.4286, 20.9496, -2.76409, };
-    double dySigmBotElecGBL_hasL6_2016[] = {11.5166, -11.8108, -14.4282, 36.4451, -24.0599, 5.24438, };
-    double dyMeanBotPosiGBL_hasL6_2016[] = {-8.54155, 44.7853, -86.05, 77.643, -32.9959, 5.29948, };
-    double dySigmBotPosiGBL_hasL6_2016[] = {7.95448, 0.739901, -25.1093, 33.5638, -17.3941, 3.21339, };
-    double dyMeanTopElecGBL_hasL6_2016[] = {0.133525, 4.56438, -10.9925, 4.536, 3.00832, -1.69504, };
-    double dySigmTopElecGBL_hasL6_2016[] = {12.4589, -19.1236, 3.4098, 18.2024, -16.0226, 4.01311, };
-    double dyMeanTopPosiGBL_hasL6_2016[] = {6.21702, -33.0593, 57.1802, -44.5098, 15.5222, -1.91157, };
-    double dySigmTopPosiGBL_hasL6_2016[] = {8.90734, -4.58212, -14.6305, 22.9652, -11.9253, 2.1063, };
-    double dxMeanBotElecGBL_hasL6_2016[] = {14.5956, -52.3051, 86.2819, -68.5327, 26.5143, -4.05764, };
-    double dxSigmBotElecGBL_hasL6_2016[] = {8.48883, -8.7345, -4.62386, 15.6588, -10.0549, 2.072, };
-    double dxMeanBotPosiGBL_hasL6_2016[] = {-10.2802, 9.89649, -1.91288, -2.55232, 1.60223, -0.391313, };
-    double dxSigmBotPosiGBL_hasL6_2016[] = {9.01348, -10.0065, -2.08453, 12.2655, -8.07062, 1.6347, };
-    double dxMeanTopElecGBL_hasL6_2016[] = {18.4044, -64.8356, 100.872, -80.3824, 32.1406, -5.18012, };
-    double dxSigmTopElecGBL_hasL6_2016[] = {6.35802, 7.78906, -46.0735, 62.5489, -34.6151, 6.88334, };
-    double dxMeanTopPosiGBL_hasL6_2016[] = {-8.83874, 14.222, -21.5792, 16.1105, -5.9697, 0.818567, };
-    double dxSigmTopPosiGBL_hasL6_2016[] = {15.8861, -44.9644, 64.9238, -48.8716, 18.5494, -2.79817, };
-
+    double dyMeanBotElecGBL_noL6_2016[] = {23.898, -145.794, 342.569, -386.272, 211.438, -45.1852, };
+    double dySigmBotElecGBL_noL6_2016[] = {22.9261, -68.1747, 123.541, -140.775, 87.5706, -21.3632, };
+    double dyMeanBotPosiGBL_noL6_2016[] = {58.774, -370.525, 858.462, -918.198, 458.768, -86.5076, };
+    double dySigmBotPosiGBL_noL6_2016[] = {1.83929, 60.7155, -180.415, 209.254, -109.002, 21.0066, };
+    double dyMeanTopElecGBL_noL6_2016[] = {-26.475, 156.897, -362.459, 397.92, -205.231, 39.5504, };
+    double dySigmTopElecGBL_noL6_2016[] = {17.3192, -25.1257, -0.444389, 27.3374, -20.2921, 4.45335, };
+    double dyMeanTopPosiGBL_noL6_2016[] = {-65.075, 441.159, -1138.55, 1411.9, -848.297, 198.577, };
+    double dySigmTopPosiGBL_noL6_2016[] = {-5.41455, 114.663, -337.272, 428.686, -258.837, 61.0901, };
+    double dxMeanBotElecGBL_noL6_2016[] = {55.3106, -245.841, 326.048, -81.3039, -118.178, 60.8224, };
+    double dxSigmBotElecGBL_noL6_2016[] = {3.96533, 175.805, -779.098, 1326.95, -1008.98, 285.361, };
+    double dxMeanBotPosiGBL_noL6_2016[] = {-29.3764, 46.0038, 228.393, -573.14, 439.687, -107.905, };
+    double dxSigmBotPosiGBL_noL6_2016[] = {53.2854, -221.826, 443.864, -467.612, 247.697, -50.3484, };
+    double dxMeanTopElecGBL_noL6_2016[] = {93.2172, -523.151, 1097.82, -1101.05, 528.294, -96.5476, };
+    double dxSigmTopElecGBL_noL6_2016[] = {31.2558, -94.1807, 159.509, -159.903, 84.8279, -17.4858, };
+    double dxMeanTopPosiGBL_noL6_2016[] = {-141.837, 842.901, -1933.3, 2217.03, -1261.14, 282.985, };
+    double dxSigmTopPosiGBL_noL6_2016[] = {-64.576, 642.623, -1971.44, 2771.38, -1849.36, 475.228, };
+    double dyMeanBotElecGBL_hasL6_2016[] = {14.3683, -75.6979, 161.427, -171.298, 88.4899, -17.6266, };
+    double dySigmBotElecGBL_hasL6_2016[] = {12.5987, -22.2252, 12.4958, 6.54389, -8.9993, 2.4176, };
+    double dyMeanBotPosiGBL_hasL6_2016[] = {9.3233, -46.712, 89.8483, -84.2193, 38.2755, -6.73631, };
+    double dySigmBotPosiGBL_hasL6_2016[] = {7.7728, 3.83082, -34.4904, 43.846, -21.8778, 3.82387, };
+    double dyMeanTopElecGBL_hasL6_2016[] = {10.9911, -72.3086, 162.106, -161.577, 74.176, -12.8401, };
+    double dySigmTopElecGBL_hasL6_2016[] = {11.8146, -17.4191, 0.934459, 21.594, -18.7076, 4.74385, };
+    double dyMeanTopPosiGBL_hasL6_2016[] = {-16.7227, 91.755, -181.775, 171.108, -77.4855, 13.6391, };
+    double dySigmTopPosiGBL_hasL6_2016[] = {0.93244, 33.8579, -86.2885, 87.2523, -39.8184, 6.82038, };
+    double dxMeanBotElecGBL_hasL6_2016[] = {-10.9873, 34.8779, -51.6262, 33.9128, -9.36276, 0.717712, };
+    double dxSigmBotElecGBL_hasL6_2016[] = {9.6714, -17.2858, 12.1283, 2.47722, -6.10931, 1.83614, };
+    double dxMeanBotPosiGBL_hasL6_2016[] = {5.53517, 6.22874, -15.0064, 6.02579, 1.7573, -0.940359, };
+    double dxSigmBotPosiGBL_hasL6_2016[] = {2.94234, 14.3324, -40.5195, 41.579, -18.6294, 3.01598, };
+    double dxMeanTopElecGBL_hasL6_2016[] = {-11.9406, 27.431, -19.012, -5.55942, 11.4834, -3.41388, };
+    double dxSigmTopElecGBL_hasL6_2016[] = {-5.52831, 70.1653, -175.031, 192.23, -97.9497, 18.8932, };
+    double dxMeanTopPosiGBL_hasL6_2016[] = {5.78764, -9.30485, 32.1211, -44.6924, 27.0623, -5.85591, };
+    double dxSigmTopPosiGBL_hasL6_2016[] = {6.93754, 1.67445, -30.3761, 45.1041, -26.1743, 5.4303, };
 
 
 
@@ -347,7 +346,7 @@ public class TrackClusterMatcher {
         }
         if(snapToY == null)
             return tPos;
-        return new BasicHep3Vector(tPos.x(), snapToY, tPos.y());
+        return new BasicHep3Vector(tPos.x(), snapToY, tPos.z());
     }
 
     /**
@@ -395,6 +394,13 @@ public class TrackClusterMatcher {
         // choose which parameterization of mean and sigma to use:
         double dxMean[],dxSigm[];
         int charge = TrackUtils.getCharge(track);
+        
+        boolean hasL6 = false;
+        for(TrackerHit hit : track.getTrackerHits()){
+            if(TrackUtils.getLayer(hit) == 11)
+                hasL6 = true;
+        }
+        
         if(Math.abs(beamEnergy-1.05)<.1){
             if (charge>0) {
                 if (isTopTrack) {
@@ -418,11 +424,7 @@ public class TrackClusterMatcher {
             }
             else return Double.MAX_VALUE;
         } else if(Math.abs(beamEnergy-2.306)<.1){
-            boolean hasL6 = false;
-            for(TrackerHit hit : track.getTrackerHits()){
-                if(TrackUtils.getLayer(hit) == 11)
-                    hasL6 = true;
-            }
+           
             if (charge>0) {
                 if (isTopTrack) {
                     dxMean = !hasL6 ? dxMeanTopPosiGBL_noL6_2016 : dxMeanTopPosiGBL_hasL6_2016;
@@ -452,8 +454,20 @@ public class TrackClusterMatcher {
         p3 = CoordinateTransformations.transformVectorToDetector(p3);
         double ee = p3.magnitude();
 
-        // Rafo's parameterization isn't measured above 650 MeV/c but expected to be constant:
-        if (ee > 0.65) ee=0.65;
+        if(Math.abs(beamEnergy-1.056)<.1){
+            // Rafo's parameterization isn't measured above 650 MeV/c but expected to be constant:
+            if (ee > 0.65) 
+                ee=0.65;
+        }
+        if(Math.abs(beamEnergy-2.306)<.1){
+            // Sebouh's parameterization for L6 matching isn't measured above 1700 MeV/c but expected to be constant:
+            if (ee > 1.7 && hasL6) 
+                ee=1.7;
+            //similarly for L5 matching, it is not measured above 1000 MeV but expected to be constant;
+            if (ee > 1.0 && !hasL6) 
+                ee=1.0;
+            
+        }
 
         // calculate measured mean and sigma of deltaX for this energy:
         double aDxMean=0,aDxSigm=0;
@@ -493,6 +507,13 @@ public class TrackClusterMatcher {
         // choose which parameterization of mean and sigma to use:
         double dyMean[],dySigm[];
         int charge = TrackUtils.getCharge(track);
+        
+        boolean hasL6 = false;
+        for(TrackerHit hit : track.getTrackerHits()){
+            if(TrackUtils.getLayer(hit) == 11)
+                hasL6 = true;
+        }
+        
         if(Math.abs(beamEnergy-1.05)<.1){
             if (charge>0) {
                 if (isTopTrack) {
@@ -517,11 +538,7 @@ public class TrackClusterMatcher {
             else return Double.MAX_VALUE;
         }
         else if(Math.abs(beamEnergy-2.3)<.1){
-            boolean hasL6 = false;
-            for(TrackerHit hit : track.getTrackerHits()){
-                if(TrackUtils.getLayer(hit) == 11)
-                    hasL6 = true;
-            }
+           
             if (charge>0) {
                 if (isTopTrack) {
                     dyMean = !hasL6 ? dyMeanTopPosiGBL_noL6_2016 : dyMeanTopPosiGBL_hasL6_2016;
@@ -550,8 +567,20 @@ public class TrackClusterMatcher {
         p3 = CoordinateTransformations.transformVectorToDetector(p3);
         double ee = p3.magnitude();
 
-        // Rafo's parameterization isn't measured above 650 MeV/c but expected to be constant:
-        if (ee > 0.65) ee=0.65;
+        if(Math.abs(beamEnergy-1.056)<.1){
+            // Rafo's parameterization isn't measured above 650 MeV/c but expected to be constant:
+            if (ee > 0.65) 
+                ee=0.65;
+        }
+        if(Math.abs(beamEnergy-2.306)<.1){
+            // Sebouh's parameterization for L6 matching isn't measured above 1700 MeV/c but expected to be constant:
+            if (ee > 1.7 && hasL6) 
+                ee=1.7;
+            //similarly for L5 matching, it is not measured above 1000 MeV but expected to be constant;
+            if (ee > 1.0 && !hasL6) 
+                ee=1.0;
+            
+        }
 
         // calculate measured mean and sigma of deltaX and deltaY for this energy:
         double aDyMean=0,aDySigm=0;
