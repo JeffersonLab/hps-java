@@ -12,6 +12,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.hps.conditions.ecal.EcalCrystalPosition.EcalCrystalPositionCollection;
+import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
@@ -227,6 +231,14 @@ public abstract class ReconParticleDriver extends Driver {
 
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
         matcher.setBFieldMap(detector.getFieldMap());
+        BeamEnergyCollection beamEnergyCollection = 
+                this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+            
+        matcher.setBeamEnergy(beamEnergyCollection.get(0).getBeamEnergy());
+        
+        matcher.setEcalChannels(this.getConditionsManager().getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData());
+        matcher.setEcalCrystalPositions(this.getConditionsManager().getCachedConditions(EcalCrystalPositionCollection.class, "ecal_crystal_positions").getCachedData());
+        
 
     }
 
