@@ -1000,7 +1000,7 @@ public class HPSTracker2017GeometryDefinition extends
         // channel
         protected final static double shift_along_uchannel = -50.;
         protected final static double shift_vertically_uchannel = 0;// 20.6658;
-        protected final static double shift_across_uchannel = 8.19;
+        protected final static double shift_across_uchannel = 5.19;
         protected final static double shift_again_along_uchannel = 4.66;
 
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel
@@ -1031,7 +1031,7 @@ public class HPSTracker2017GeometryDefinition extends
         // channel
         // note flip
         protected final static double shift_along_uchannel = -50.;
-        protected final static double shift_across_uchannel = 7.81;
+        protected final static double shift_across_uchannel = 4.81;
         protected final static double shift_again_along_uchannel = 4.32;
         // note flip wr.t. bottom
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel
