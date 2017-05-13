@@ -41,12 +41,17 @@ public class TridentAnalysis extends Driver {
 	
 	// Define cluster/track matching analysis plots.
 	private static final String[] TYPE_NAMES = { "All ", "Fiducial ", "Edge " };
-	private IHistogram1D[] matchingNSigma = new IHistogram1D[TYPE_NAMES.length];
-	private IHistogram1D[] matchingDr = new IHistogram1D[TYPE_NAMES.length];
-	private IHistogram2D[] matchingDxDy = new IHistogram2D[TYPE_NAMES.length];
-	private IHistogram2D[] matchingClusterPosition = new IHistogram2D[TYPE_NAMES.length];
-	private IHistogram2D[] matchingTrackPosition = new IHistogram2D[TYPE_NAMES.length];
-	private IHistogram2D[] matchingDrNSigma = new IHistogram2D[TYPE_NAMES.length];
+	private static final String[] PARTICLE_NAMES = { "Positron", "Electron" };
+	private IHistogram1D[][] matchingNSigma = new IHistogram1D[PARTICLE_NAMES.length][TYPE_NAMES.length];
+	private IHistogram1D[][] matchingDr = new IHistogram1D[PARTICLE_NAMES.length][TYPE_NAMES.length];
+	private IHistogram2D[][] matchingDxDy = new IHistogram2D[PARTICLE_NAMES.length][TYPE_NAMES.length];
+	private IHistogram2D[][] matchingClusterPosition = new IHistogram2D[PARTICLE_NAMES.length][TYPE_NAMES.length];
+	private IHistogram2D[][] matchingTrackPosition = new IHistogram2D[PARTICLE_NAMES.length][TYPE_NAMES.length];
+	private IHistogram2D[][] matchingDrNSigma = new IHistogram2D[PARTICLE_NAMES.length][TYPE_NAMES.length];
+	private IHistogram2D[][] matchingDrMomentum = new IHistogram2D[PARTICLE_NAMES.length][TYPE_NAMES.length];
+	private IHistogram2D[][] matchingDxMomentum = new IHistogram2D[PARTICLE_NAMES.length][TYPE_NAMES.length];
+	private IHistogram2D[][] matchingDyMomentum = new IHistogram2D[PARTICLE_NAMES.length][TYPE_NAMES.length];
+	private IHistogram2D[][] matchingNSigmaMomentum = new IHistogram2D[PARTICLE_NAMES.length][TYPE_NAMES.length];
 	
 	// Define general particle plots.
 	private IHistogram1D particleElectronMomentum = aida.histogram1D("Trident Selection/Particles/e^{-} Momentum", 2600, 0, 2.6);
@@ -79,18 +84,39 @@ public class TridentAnalysis extends Driver {
 	public void startOfData() {
 		final String dir = "Trident Selection/Cluster-Track Matching/";
 		for(int i = 0; i < TYPE_NAMES.length; i++) {
-			matchingNSigma[i] = aida.histogram1D(dir + TYPE_NAMES[i] + "n_{#sigma}",
-					300, 0, 30);
-			matchingDr[i] = aida.histogram1D(dir + TYPE_NAMES[i] + "#Deltar",
-					300, 0, 30);
-			matchingDxDy[i] = aida.histogram2D(dir + TYPE_NAMES[i] + "Cluster-Track #Deltay vs. #Deltax",
-					400, -20, 20, 300, -15, 15);
-			matchingClusterPosition[i] = aida.histogram2D(dir + TYPE_NAMES[i] + "Cluster Position",
-					800, -400, 400, 200, -100, 100);
-			matchingTrackPosition[i] = aida.histogram2D(dir + TYPE_NAMES[i] + "Track Position",
-					800, -400, 400, 200, -100, 100);
-			matchingDrNSigma[i] = aida.histogram2D(dir + TYPE_NAMES[i] + "n_{#sigma} vs. #Deltar",
-					300, 0, 30, 200, 0, 20);
+			for(int j = 0; j < PARTICLE_NAMES.length; j++) {
+				matchingNSigma[j][i] = aida.histogram1D(
+						dir + TYPE_NAMES[i] + "/" + PARTICLE_NAMES[j] + "/" + PARTICLE_NAMES[j] + " n_{#sigma}",
+						300, 0, 30);
+				matchingDr[j][i] = aida.histogram1D(
+						dir + TYPE_NAMES[i] + "/" + PARTICLE_NAMES[j] + "/" + PARTICLE_NAMES[j] + " #Deltar",
+						500, 0, 50);
+				matchingDxDy[j][i] = aida.histogram2D(
+						dir + TYPE_NAMES[i] + "/" + PARTICLE_NAMES[j] + "/" + PARTICLE_NAMES[j] + " Cluster-Track #Deltay vs. #Deltax",
+						800, -40, 40, 600, -30, 30);
+				matchingClusterPosition[j][i] = aida.histogram2D(
+						dir + TYPE_NAMES[i] + "/" + PARTICLE_NAMES[j] + "/" + PARTICLE_NAMES[j] + " Cluster Position",
+						800, -400, 400, 200, -100, 100);
+				matchingTrackPosition[j][i] = aida.histogram2D(
+						dir + TYPE_NAMES[i] + "/" + PARTICLE_NAMES[j] + "/" + PARTICLE_NAMES[j] + " Track Position",
+						800, -400, 400, 200, -100, 100);
+				matchingDrNSigma[j][i] = aida.histogram2D(
+						dir + TYPE_NAMES[i] + "/" + PARTICLE_NAMES[j] + "/" + PARTICLE_NAMES[j] + " n_{#sigma} vs. #Deltar",
+						300, 0, 30, 200, 0, 20);
+				
+				matchingDrMomentum[j][i] = aida.histogram2D(
+						dir + TYPE_NAMES[i] + "/" + PARTICLE_NAMES[j] + "/" + PARTICLE_NAMES[j] + " |p| vs. #Deltar",
+						2600, 0.000, 2.600, 500, 0, 50);
+				matchingDxMomentum[j][i] = aida.histogram2D(
+						dir + TYPE_NAMES[i] + "/" + PARTICLE_NAMES[j] + "/" + PARTICLE_NAMES[j] + " |p| vs. #Deltax",
+						2600, 0.000, 2.600, 800, -40, 40);
+				matchingDyMomentum[j][i] = aida.histogram2D(
+						dir + TYPE_NAMES[i] + "/" + PARTICLE_NAMES[j] + "/" + PARTICLE_NAMES[j] + " |p| vs. #Deltay",
+						2600, 0.000, 2.600, 600, -30, 30);
+				matchingNSigmaMomentum[j][i] = aida.histogram2D(
+						dir + TYPE_NAMES[i] + "/" + PARTICLE_NAMES[j] + "/" + PARTICLE_NAMES[j] + " |p| vs. n_{#sigma}",
+						2600, 0.000, 2.600, 200, 0, 20);
+			}
 		}
 	}
 	
@@ -243,21 +269,35 @@ public class TridentAnalysis extends Driver {
 				continue clusteringLoop;
 			}
 			
+			// Select only particles with good χ²/n_DF.
+			if(getChiSquaredNDF(particle) > 5) {
+				continue;
+			}
+			
 			// Get the particle nσ and populate the nσ distribution.
+			double p = particle.getMomentum().magnitude();
 			double nSigma = particle.getGoodnessOfPID();
 			double[] clusterPosition = getCluster(particle).getPosition();
 			Hep3Vector trackPosition = TrackUtils.getTrackPositionAtEcal(getTrack(particle));
 			double dx = trackPosition.x() - clusterPosition[0];
 			double dy = trackPosition.y() - clusterPosition[1];
 			double dr = Math.sqrt((dx * dx) + (dy * dy));
+			int typeIndex = particle.getCharge() > 0 ? 0 : 1;
 			int[] indices = { 0, TriggerModule.inFiducialRegion(getCluster(particle)) ? 1 : 2 };
+			
+			if(trackPosition.x() < 50) { continue; }
+			
 			for(int index : indices) {
-				matchingNSigma[index].fill(nSigma);
-				matchingDr[index].fill(dr);
-				matchingDrNSigma[index].fill(dr, nSigma);
-				matchingTrackPosition[index].fill(trackPosition.x(), trackPosition.y());
-				matchingClusterPosition[index].fill(clusterPosition[0], clusterPosition[1]);
-				matchingDxDy[index].fill(dx, dy);
+				matchingNSigma[typeIndex][index].fill(nSigma);
+				matchingDr[typeIndex][index].fill(dr);
+				matchingDrNSigma[typeIndex][index].fill(dr, nSigma);
+				matchingTrackPosition[typeIndex][index].fill(trackPosition.x(), trackPosition.y());
+				matchingClusterPosition[typeIndex][index].fill(clusterPosition[0], clusterPosition[1]);
+				matchingDxDy[typeIndex][index].fill(dx, dy);
+				matchingDrMomentum[typeIndex][index].fill(p, dr);
+				matchingDxMomentum[typeIndex][index].fill(p, dx);
+				matchingDyMomentum[typeIndex][index].fill(p, dy);
+				matchingNSigmaMomentum[typeIndex][index].fill(p, nSigma);
 			}
 		}
 		
