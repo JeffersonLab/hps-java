@@ -16,7 +16,7 @@ public final class DatabaseUtilities {
      *
      * @param resultSet the database <code>ResultSet</code>
      */
-    static void cleanup(final ResultSet resultSet) {
+    public static void cleanup(final ResultSet resultSet) {
         Statement statement = null;
         try {
             statement = resultSet.getStatement();

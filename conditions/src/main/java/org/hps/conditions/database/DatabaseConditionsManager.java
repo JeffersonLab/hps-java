@@ -947,7 +947,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the <code>ResultSet</code> from the query
      * @throws RuntimeException if there is a query error
      */
-    ResultSet selectQuery(final String query) {
+    public ResultSet selectQuery(final String query) {
         LOGGER.fine("executing SQL select query ..." + '\n' + query);
         ResultSet result = null;
         Statement statement = null;
