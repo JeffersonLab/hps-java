@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @brief Steering file that will be used for pass 2 reconstruction of 
+      @brief Steering file that will be used for pass 7 reconstruction of 
              the 2015 Engineering Run data. 
-      @author <a href="mailto:meeg@slac.stanford.edu">Sho Uemura</a>
-      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+      @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
     -->
     <execute>
         <!--RF driver-->
