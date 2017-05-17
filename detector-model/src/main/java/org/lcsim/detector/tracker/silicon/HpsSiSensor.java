@@ -71,9 +71,9 @@ public class HpsSiSensor extends SiSensor {
     protected double readoutLongStripCapacitanceSlope = 0.39; // pf/mm
     protected double senseLongStripCapacitanceSlope = 0.39; // pf/mm
 
-    // -----------------------//
-    // --- Conditions Maps ---//
-    // -----------------------//
+    // --------------------//
+    //   Conditions Maps   //
+    // --------------------//
     protected Map<Integer, double[]> pedestalMap = new HashMap<Integer, double[]>();
     protected Map<Integer, double[]> noiseMap = new HashMap<Integer, double[]>();
     protected Map<Integer, Double> gainMap = new HashMap<Integer, Double>();
