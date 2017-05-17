@@ -69,7 +69,7 @@ public class SvtEventFlagger {
 
         latencyGood = false;
         if (svtTimingConstants != null) {
-            if (svtTimingConstants.getOffsetTime() <= 27) {
+            if (svtTimingConstants.getOffsetTime() <= 35) {
                 latencyGood = true;
             } else {
                 if (((event.getTimeStamp() - 4 * svtTimingConstants.getOffsetPhase()) % 24) < 16) {
