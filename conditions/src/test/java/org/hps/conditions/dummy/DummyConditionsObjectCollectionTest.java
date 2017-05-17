@@ -28,7 +28,6 @@ public class DummyConditionsObjectCollectionTest extends TestCase {
         // Configure the conditions system.
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.setConnectionResource("/org/hps/conditions/config/jeremym_dev_connection.prop");
-        manager.setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");
         this.connection = manager.getConnection();
     }
 

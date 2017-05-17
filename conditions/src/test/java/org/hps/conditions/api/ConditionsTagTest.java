@@ -2,7 +2,6 @@ package org.hps.conditions.api;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
@@ -93,8 +92,7 @@ public class ConditionsTagTest extends TestCase {
     @Override
     public void setUp() {
         // Configure the conditions system.
-        MANAGER = DatabaseConditionsManager.getInstance();        
-        MANAGER.setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");        
+        MANAGER = DatabaseConditionsManager.getInstance();
     }
     
     /**

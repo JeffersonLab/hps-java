@@ -1,10 +1,9 @@
 package org.hps.conditions.database;
 
+import static org.hps.conditions.database.ConnectionParameters.CONNECTION_PROPERTY_FILE;
+import static org.hps.conditions.database.ConnectionParameters.CONNECTION_PROPERTY_RESOURCE;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -33,18 +32,11 @@ import org.hps.conditions.ecal.TestRunEcalConditionsConverter;
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtConditionsConverter;
 import org.hps.conditions.svt.TestRunSvtConditionsConverter;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.geometry.Detector;
-import org.lcsim.geometry.Subdetector;
 import org.lcsim.util.loop.DetectorConditionsConverter;
-import static org.hps.conditions.database.ConnectionParameters.CONNECTION_PROPERTY_FILE;
-import static org.hps.conditions.database.ConnectionParameters.CONNECTION_PROPERTY_RESOURCE;
 
 /**
  * <p>
@@ -61,29 +53,14 @@ import static org.hps.conditions.database.ConnectionParameters.CONNECTION_PROPER
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
    
     /**
-     * The default XML config.
-     */
-    private static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_database_prod.xml";
-
-    /**
      * The connection properties resource for connecting to the default JLAB database.
      */
     private static final String DEFAULT_CONNECTION_PROPERTIES_RESOURCE = "/org/hps/conditions/config/jlab_connection.prop";
 
     /**
-     * The Eng Run XML config.
-     */
-    private static final String ENGRUN_CONFIG = "/org/hps/conditions/config/conditions_database_engrun.xml";
-
-    /**
      * Initialize the logger.
      */
     private static Logger LOGGER = Logger.getLogger(DatabaseConditionsManager.class.getPackage().getName());
-
-    /**
-     * The Test Run XML config.
-     */
-    private static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
 
     /**
      * The max value for a run to be considered Test Run.
@@ -100,26 +77,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      *
      * @return the static instance of the manager
      */
-    public static synchronized DatabaseConditionsManager getInstance() {
-
-        // Is there no manager installed yet?
-        if (!ConditionsManager.isSetup() || !(ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager)) {
-
-            // Create a new instance if necessary, which will install it globally as the default.
-            final DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
-
-            // Register default conditions manager.
-            ConditionsManager.setDefaultConditionsManager(dbManager);
-        }
-
-        // Get the instance back from the default conditions system and check that the type is correct now.
-        final ConditionsManager manager = ConditionsManager.defaultInstance();
-        if (!(manager instanceof DatabaseConditionsManager)) {
-            throw new RuntimeException("Default conditions manager has the wrong type: "
-                    + ConditionsManager.defaultInstance().getClass().getName());
-        }
-
-        return (DatabaseConditionsManager) manager;
+    public static DatabaseConditionsManager getInstance() {
+        return DatabaseConditionsManager.class.cast(ConditionsManager.defaultInstance());
     }
 
     /**
@@ -131,31 +90,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public static boolean isTestRun(final int runNumber) {
         return runNumber > 0 && runNumber <= TEST_RUN_MAX_RUN;
     }
-
-    /**
-     * Reset the global static instance of the conditions manager to a new object.
-     */
-    public static synchronized void resetInstance() {
-
-        // Create a new instance if necessary, which will install it globally as the default.
-        final DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
-
-        // Register default conditions manager.
-        ConditionsManager.setDefaultConditionsManager(dbManager);
-
-        LOGGER.info("DatabaseConditionsManager instance is reset");
-    }
-
-    /**
-     * True to cache all known conditions sets (from keys) during initialization.
-     */
-    private boolean cacheAllConditions = false;
-
-    /**
-     * True to close the connection after initialization.
-     */
-    private boolean closeConnectionAfterInitialize = true;
-
+    
     /**
      * The current set of conditions for the run.
      */
@@ -192,19 +127,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private ConditionsConverter ecalConverter;
 
     /**
-     * The default ECAL detector name in the detector geometry.
-     */
-    private String ecalName = "Ecal";
-
-    /**
      * True to freeze the system after initialization.
      */
     private boolean freezeAfterInitialize = false;
-
-    /**
-     * True if the conditions manager was configured from an XML configuration resource or file.
-     */
-    private boolean isConfigured = false;
 
     /**
      * True if manager is connected to the database.
@@ -232,19 +157,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private boolean loggedConnectionParameters = false;
 
     /**
-     * True to setup the SVT detector model with conditions.
-     */
-    private boolean setupSvtDetector = true;
-
-    /**
      * The converter for creating the combined SVT conditions object.
      */
     private ConditionsConverter svtConverter;
-
-    /**
-     * The default SVT name in the detector geometry.
-     */
-    private String svtName = "Tracker";
 
     /**
      * Create the global registry of table meta data.
@@ -259,7 +174,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Class constructor. Calling this will automatically register this manager as the global default.
      */
-    protected DatabaseConditionsManager() {
+    public DatabaseConditionsManager() {
 
         // Register detector conditions converter.
         this.registerConditionsConverter(new DetectorConditionsConverter());
@@ -316,6 +231,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Cache conditions sets for all known tables.
      */
+    /*
     private void cacheConditionsSets() {
         for (final TableMetaData meta : this.tableRegistry.values()) {
             try {
@@ -327,6 +243,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             }
         }
     }
+    */
 
     /**
      * Clear the tags used to filter the {@link org.hps.conditions.api.ConditionsRecord}s.
@@ -389,32 +306,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             e.printStackTrace();
         }
         return rowCount != 0;
-    }
-
-    /**
-     * Configure this class from an <code>InputStream</code> which should point to an XML document.
-     *
-     * @param in the InputStream which should be in XML format
-     */
-    private void configure(final InputStream in) {
-        if (!this.isConfigured) {
-            final SAXBuilder builder = new SAXBuilder();
-            Document config = null;
-            try {
-                config = builder.build(in);
-            } catch (JDOMException | IOException e) {
-                throw new RuntimeException(e);
-            }
-            this.loadConfiguration(config);
-            try {
-                in.close();
-            } catch (final IOException e) {
-                LOGGER.warning(e.getMessage());
-            }
-            this.isConfigured = true;
-        } else {
-            LOGGER.warning("System is already configured, so call to configure is ignored!");
-        }
     }
 
     /**
@@ -621,24 +512,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Get the name of the ECAL in the detector geometry.
-     *
-     * @return the name of the ECAL
-     */
-    public String getEcalName() {
-        return this.ecalName;
-    }
-
-    /**
-     * Get the subdetector object of the ECAL.
-     *
-     * @return the ECAL subdetector
-     */
-    public Subdetector getEcalSubdetector() {
-        return this.getDetectorObject().getSubdetector(this.ecalName);
-    }
-
-    /**
      * Get the combined SVT conditions for this run.
      *
      * @return the combined SVT conditions
@@ -678,20 +551,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             this.isTestRun = true;
         }
 
-        // Is not configured yet?
-        if (!this.isConfigured) {
-            if (this.isTestRun()) {
-                // This looks like the Test Run so use the custom configuration for it.
-                this.setXmlConfig(DatabaseConditionsManager.TEST_RUN_CONFIG);
-            } else if (runNumber > TEST_RUN_MAX_RUN) {
-                // Run numbers greater than max of Test Run assumed to be Eng Run (for now!).
-                this.setXmlConfig(DatabaseConditionsManager.ENGRUN_CONFIG);
-            } else if (runNumber == 0) {
-                // Use the default configuration because the run number is basically meaningless.
-                this.setXmlConfig(DatabaseConditionsManager.DEFAULT_CONFIG);
-            }
-        }
-
         // Register the converters for this initialization.
         this.registerConverters();
 
@@ -705,18 +564,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         LOGGER.fine("activating default conditions manager");
         super.setDetector(detectorName, runNumber);
 
-        // Should all conditions sets be cached?
-        if (this.cacheAllConditions) {
-            // Cache the conditions sets of all registered converters.
-            LOGGER.fine("caching conditions sets");
-            this.cacheConditionsSets();
-        }
 
-        if (this.closeConnectionAfterInitialize) {
-            LOGGER.fine("closing connection after initialization");
-            // Close the connection.
-            this.closeConnection();
-        }
+        LOGGER.fine("closing connection after initialization");
+        // Close the connection.
+        this.closeConnection();
 
         // Should the conditions system be frozen now?
         if (this.freezeAfterInitialize) {
@@ -764,69 +615,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public boolean isTestRun() {
         return this.isTestRun;
-    }
-
-    /**
-     * Load configuration information from an XML document.
-     *
-     * @param document the XML document
-     */
-    private void loadConfiguration(final Document document) {
-
-        final Element node = document.getRootElement().getChild("configuration");
-
-        if (node == null) {
-            return;
-        }
-
-        Element element = node.getChild("setupSvtDetector");
-        if (element != null) {
-            this.setupSvtDetector = Boolean.parseBoolean(element.getText());
-            LOGGER.config("setupSvtDetector = " + this.setupSvtDetector);
-        }
-
-        element = node.getChild("ecalName");
-        if (element != null) {
-            this.setEcalName(element.getText());
-            LOGGER.config("ecalName = " + this.getEcalName());
-        }
-
-        element = node.getChild("svtName");
-        if (element != null) {
-            this.setSvtName(element.getText());
-            LOGGER.config("svtName = " + this.svtName);
-        }
-
-        element = node.getChild("freezeAfterInitialize");
-        if (element != null) {
-            this.freezeAfterInitialize = Boolean.parseBoolean(element.getText());
-            LOGGER.config("freezeAfterInitialize = " + this.freezeAfterInitialize);
-        }
-
-        element = node.getChild("cacheAllCondition");
-        if (element != null) {
-            this.cacheAllConditions = Boolean.parseBoolean(element.getText());
-            LOGGER.config("cacheAllConditions = " + this.cacheAllConditions);
-        }
-
-        element = node.getChild("isTestRun");
-        if (element != null) {
-            this.isTestRun = Boolean.parseBoolean(element.getText());
-            LOGGER.config("isTestRun = " + this.isTestRun);
-        }
-
-        element = node.getChild("closeConnectionAfterInitialize");
-        if (element != null) {
-            this.closeConnectionAfterInitialize = Boolean.parseBoolean(element.getText());
-            LOGGER.config("closeConnectionAfterInitialize = " + this.closeConnectionAfterInitialize);
-        }
-
-        element = node.getChild("loginTimeout");
-        if (element != null) {
-            final Integer timeout = Integer.parseInt(element.getText());
-            DriverManager.setLoginTimeout(timeout);
-            LOGGER.config("loginTimeout = " + timeout);
-        }
     }
 
     /**
@@ -1018,32 +806,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Set the name of the ECAL sub-detector.
-     *
-     * @param ecalName the name of the ECAL subdetector
-     */
-    private void setEcalName(final String ecalName) {
-        if (ecalName == null) {
-            throw new IllegalArgumentException("The ecalName is null");
-        }
-        this.ecalName = ecalName;
-        LOGGER.info("ECAL name set to " + ecalName);
-    }
-
-    /**
-     * Set the name of the SVT subdetector.
-     *
-     * @param svtName the name of the SVT subdetector
-     */
-    private void setSvtName(final String svtName) {
-        if (svtName == null) {
-            throw new IllegalArgumentException("The svtName is null");
-        }
-        this.svtName = svtName;
-        LOGGER.info("SVT name set to " + this.ecalName);
-    }
-
-    /**
      * Setup the database connection from a file specified by a Java system property setting. This could be overridden
      * by subsequent API calls to {@link #setConnectionProperties(File)} or {@link #setConnectionResource(String)}.
      */
@@ -1071,34 +833,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         if (systemPropertiesConnectionResource != null) {
             this.setConnectionResource(systemPropertiesConnectionResource);
         }
-    }
-
-    /**
-     * Configure some properties of this object from an XML file
-     *
-     * @param file the XML file
-     */
-    public void setXmlConfig(final File file) {
-        LOGGER.config("setting XML config from file " + file.getPath());
-        if (!file.exists()) {
-            throw new IllegalArgumentException("The config file does not exist: " + file.getPath());
-        }
-        try {
-            this.configure(new FileInputStream(file));
-        } catch (final FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Configure this object from an embedded XML resource.
-     *
-     * @param resource the embedded XML resource
-     */
-    public void setXmlConfig(final String resource) {
-        LOGGER.config("setting XML config from resource " + resource);
-        final InputStream is = this.getClass().getResourceAsStream(resource);
-        this.configure(is);
     }
 
     /**

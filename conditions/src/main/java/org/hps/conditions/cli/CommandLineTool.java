@@ -183,13 +183,6 @@ public final class CommandLineTool {
             LOGGER.config("using connection properties " + connectionPropertiesFile.getPath());
         }
 
-        // Conditions system XML configuration file.
-        if (commandLine.hasOption("x")) {
-            final File xmlConfigFile = new File(commandLine.getOptionValue("x"));
-            this.conditionsManager.setXmlConfig(xmlConfigFile);
-            LOGGER.config("using XML config " + xmlConfigFile.getPath());
-        }
-
         // User specified tag of conditions records.
         if (commandLine.hasOption("t")) {
             final String tag = commandLine.getOptionValue("t");

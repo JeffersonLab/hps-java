@@ -10,6 +10,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
 import org.hps.rundb.RunManager;
 import org.lcsim.conditions.ConditionsListener;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.job.DefaultConditionsSetup;
 
 /**
@@ -22,6 +23,12 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
     private boolean enableRunManager = true;
     private Set<String> tags = null;
     private boolean freeze = false;
+    private DatabaseConditionsManager manager = null;
+    
+    public DatabaseConditionsManagerSetup() {        
+        manager = new DatabaseConditionsManager();
+        ConditionsManager.setDefaultConditionsManager(manager);
+    }
     
     /**
      * Set whether system should be frozen after initialization.
@@ -57,49 +64,37 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
      */
     @Override
     public void configure() {
-
-        LOGGER.info("configuring conditions system");
-
-        // Initialize the db conditions manager.
-        DatabaseConditionsManager.resetInstance();
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-
+   
         if (enableRunManager) {
-            LOGGER.config("adding run manager conditions listener");
-            conditionsManager.addConditionsListener(RunManager.getRunManager());
+            manager.addConditionsListener(RunManager.getRunManager());
         }
         
         // Add class that will setup SVT detector with conditions data.
-        LOGGER.config("adding SVT detector setup conditions listener");
-        conditionsManager.addConditionsListener(new SvtDetectorSetup());
+        manager.addConditionsListener(new SvtDetectorSetup());
                         
         // Add conditions system tags.
         if (this.tags != null) {
             LOGGER.config("adding tags " + tags.toString());
-            conditionsManager.addTags(tags);
+            manager.addTags(tags);
         }
         
         // Add extra listeners to manager.
         for (ConditionsListener listener : listeners) {
-            conditionsManager.addConditionsListener(listener);
+            manager.addConditionsListener(listener);
         }
-
-        LOGGER.info("done configuring conditions system");
     }
      
     /**
      * Do post initialization of conditions system, which will freeze the manager if it
-     * is fully initialized (meaning detector name and run were given as arguments to override
-     * the information from the data).
+     * is fully initialized, meaning that the detector name and run were given as arguments 
+     * which will override the information from the event header in the data.
      */
     @Override
     public void postInitialize() {
-        LOGGER.config("conditions setup post init");
         if (DatabaseConditionsManager.getInstance().isInitialized() || this.freeze) {
             LOGGER.config("Job manager is freezing the conditions system.");
             DatabaseConditionsManager.getInstance().freeze();
         }
-        LOGGER.config("done with post init");
     }
     
     /**
@@ -110,8 +105,6 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
     @Override
     public void cleanup() {
  
-        LOGGER.config("conditions cleanup");
-
         // Close the conditions database connection.
         Connection connection = DatabaseConditionsManager.getInstance().getConnection();
         try {
@@ -121,7 +114,5 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
         } catch (SQLException e) {
             LOGGER.log(Level.WARNING, e.getMessage(), e);
         }
-                        
-        LOGGER.config("done cleaning up");
     }
 }
