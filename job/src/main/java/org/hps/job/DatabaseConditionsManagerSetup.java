@@ -86,8 +86,8 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
      
     /**
      * Do post initialization of conditions system, which will freeze the manager if it
-     * is fully initialized, meaning that the detector name and run were given as arguments 
-     * which will override the information from the event header in the data.
+     * is already fully initialized, meaning that the detector name and run were given
+     * as arguments which will override the information from the event header in the data.
      */
     @Override
     public void postInitialize() {
