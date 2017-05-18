@@ -182,4 +182,16 @@ public class TrackData implements GenericObject {
     public static GenericObject getTrackData(EventHeader event, Track track) {
         return (GenericObject) getTrackDataToTrackTable(event).from(track);
     }
+    
+    public String toString()
+    {
+        StringBuffer sb = new StringBuffer("TrackData: \n");
+        sb.append("Track Volume: "+ (getTrackVolume()==0 ? "top" : "bottom")+"\n");
+        sb.append("Track Time  : "+ getTrackTime()+"\n");
+        for(int i=0; i<12; ++i)
+        {
+            sb.append("Layer "+i+" isolation: "+getIsolation(i)+"\n");
+        }
+        return sb.toString();
+    }
 }
