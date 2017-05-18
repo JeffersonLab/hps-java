@@ -22,18 +22,18 @@ import org.lcsim.detector.solids.LineSegment3D;
 import org.lcsim.detector.solids.Polygon3D;
 
 /**
- * This class extends {@link SiSensor} with conditions specific to HPS SVT half-modules (sensors) used during the
- * engineering run and beyond. Each half-module is uniquely identified by a FEB ID/Hybrid ID pair which is then related
- * to calibration conditions such as baseline, noise, gain etc.
+ * This class extends {@link SiSensor} with conditions specific to HPS SVT
+ * half-modules (sensors) used during the engineering run and beyond. Each
+ * half-module is uniquely identified by a FEB ID/Hybrid ID pair which is then
+ * related to calibration conditions such as baseline, noise, gain etc.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 public class HpsSiSensor extends SiSensor {
 
-    // -----------------//
-    // --- Constants ---//
-    // -----------------//
+    // --------------//
+    //   Constants   //
+    // --------------//
 
     public final static int NUMBER_OF_SAMPLES = 6;
     private final static int NUMBER_OF_SHAPE_FIT_PARAMETERS = 4;
@@ -45,11 +45,9 @@ public class HpsSiSensor extends SiSensor {
     public final static String ELECTRON_SIDE = "ELECTRON";
     public final static String POSITRON_SIDE = "POSITRON";
 
-    private final static double READOUT_TRANSFER_EFFICIENCY = .986; // %
-    private final static double SENSE_TRANSFER_EFFICIENCY = 0.419; // %
-     
-    // -----------------//
-    // -----------------//
+    //-----------------------//
+    //   Sensor properties   //
+    //-----------------------//
 
     protected int febID;
     protected int febHybridID;
@@ -61,23 +59,21 @@ public class HpsSiSensor extends SiSensor {
     private final double readoutStripCapacitanceSlope = 0.16; // pf/mm
     private final double senseStripCapacitanceIntercept = 0;
     private final double senseStripCapacitanceSlope = 0.16; // pf/mm
-    
-    private final int numberOfSenseStrips = 1277;
-    private final double readoutStripPitch = 0.060; // mm
-    private final double senseStripPitch = 0.030;   // mm
-    
+
     /*
-     * Adding separate strip capacitance for long detectors following S/N = mip_charge/(270e- + 36*C[pf/cm]*L[cm] e.g.
-     * for expected S/N=16 and L=20cm -> C=0.1708pf/mm e.g. for expected S/N=8 and L=20cm -> C=0.39pf/mm FIXME: This
-     * should be taken into account by the noise model.
+     * Adding separate strip capacitance for long detectors following
+     * S/N = mip_charge/(270e- + 36*C[pf/cm]*L[cm] e.g. for expected S/N=16
+     * and L=20cm -> C=0.1708pf/mm e.g. for expected S/N=8 and
+     * L=20cm -> C=0.39pf/mm FIXME: This should be taken into account by the
+     * noise model.
      */
     protected double longSensorLengthThreshold = 190.0; // mm
     protected double readoutLongStripCapacitanceSlope = 0.39; // pf/mm
     protected double senseLongStripCapacitanceSlope = 0.39; // pf/mm
 
-    // -----------------------//
-    // --- Conditions Maps ---//
-    // -----------------------//
+    // --------------------//
+    //   Conditions Maps   //
+    // --------------------//
     protected Map<Integer, double[]> pedestalMap = new HashMap<Integer, double[]>();
     protected Map<Integer, double[]> noiseMap = new HashMap<Integer, double[]>();
     protected Map<Integer, Double> gainMap = new HashMap<Integer, Double>();
@@ -88,7 +84,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * This class constructor matches the signature of <code>SiSensor</code>.
-     * 
+     *
      * @param sensorid The sensor ID.
      * @param name The name of the sensor.
      * @param parent The parent DetectorElement.
@@ -116,7 +112,7 @@ public class HpsSiSensor extends SiSensor {
     /**
      * Get whether this sensor is in the top half of the detector. Modules in the top half have module numbers of 0 or
      * 2.
-     * 
+     *
      * @return True if sensor is in top layer; false if not.
      */
     public boolean isTopLayer() {
@@ -126,7 +122,7 @@ public class HpsSiSensor extends SiSensor {
     /**
      * Get whether this sensor is in the bottom half of the detector. Modules in the bottom half have module numbers of
      * 1 or 3.
-     * 
+     *
      * @return True if sensor is in bottom layer; false if not.
      */
     public boolean isBottomLayer() {
@@ -135,7 +131,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the module number of the sensor.
-     * 
+     *
      * @return The module number of the sensor.
      */
     public int getModuleNumber() {
@@ -144,7 +140,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the specific type of identifier helper for this component.
-     * 
+     *
      * @return The identifier helper.
      */
     public SiTrackerIdentifierHelper getTrackerIdHelper() {
@@ -162,7 +158,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get whether this sensor is stereo.
-     * 
+     *
      * @return True is sensor is stereo; false if not.
      */
     public boolean isStereo() {
@@ -185,7 +181,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the noise for the given channel and sample number.
-     * 
+     *
      * @param channel The channel number.
      * @param sample The sample number.
      * @return The noise value for the given channel and sample or null if not set.
@@ -199,7 +195,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the gain for the given channel.
-     * 
+     *
      * @param channel The channel number.
      * @return The gain value for the channel or null if not set.
      */
@@ -209,7 +205,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the offset for the given channel.
-     * 
+     *
      * @param channel The channel number.
      * @return The offset for the channel or null if not set.
      */
@@ -217,9 +213,19 @@ public class HpsSiSensor extends SiSensor {
         return this.offsetMap.get(channel);
     }
 
+    /** @return The charge transfer efficiency of the readout strips. */
+    public double getReadoutTransferEfficiency() {
+        return 0.986;
+    }
+
+    /** @return The charge transfer efficiency of the sense strips. */
+    public double getSenseTransferEfficiency() {
+        return 0.419;
+    }
+
     /**
      * Get the shape fit parameters (amplitude, t0, tp) associated with a given channel.
-     * 
+     *
      * @param channel The channel number.
      * @return The shape fit results for the channel.
      */
@@ -229,7 +235,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get whether the given channel is bad or not.
-     * 
+     *
      * @param channel The channel number.
      * @return True if channel is bad; false if not.
      */
@@ -239,20 +245,21 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the total number of channels in the sensor.
-     * 
+     *
      * @return The total number of channels in the sensor.
      */
     public int getNumberOfChannels() {
         return this.getReadoutElectrodes(ChargeCarrier.HOLE).getNCells();
     }
 
+    /** @return The total number of sense strips per sensor. */
     public int getNumberOfSenseStrips() {
-        return this.numberOfSenseStrips;
+        return 1277;
     }
-    
+
     /**
      * Get whether the given channel number if valid.
-     * 
+     *
      * @param channel The channel number.
      * @return True if channel number is valid; false if not.
      */
@@ -262,7 +269,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the front end board (FEB) ID associated with this sensor.
-     * 
+     *
      * @return The FEB ID
      */
     public int getFebID() {
@@ -271,7 +278,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the FEB hybrid ID of the sensor.
-     * 
+     *
      * @return The FEB hybrid number of the sensor.
      */
     public int getFebHybridID() {
@@ -280,7 +287,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the layer number of the sensor.
-     * 
+     *
      * @return The layer number of the sensor.
      */
     public int getLayerNumber() {
@@ -289,7 +296,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the t0 shift for this sensor.
-     * 
+     *
      * @return The t0 shift for this sensor.
      */
     public double getT0Shift() {
@@ -298,7 +305,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the sensor side (ELECTRON or POSITRON). For single sensor half-modules, the side will always be ELECTRON.
-     * 
+     *
      * @return The side the sensor is on (ELECTRON or POSITRON)
      */
     public String getSide() {
@@ -307,14 +314,14 @@ public class HpsSiSensor extends SiSensor {
 
     /** @return The readout strip pitch. */
     public double getReadoutStripPitch() {
-        return readoutStripPitch;
+        return 0.060; // mm
     }
-    
+
     /** @return The sense strip pitch. */
     public double getSenseStripPitch() {
-        return senseStripPitch;
+        return 0.030; // mm
     }
-    
+
     /**
      * Generate an ID for a channel (strip) on a sensor.
      *
@@ -329,7 +336,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Set the pedestal value for all samples for a given channel.
-     * 
+     *
      * @param channel The channel number.
      * @param pedestal The pedestal values for all samples.
      */
@@ -342,7 +349,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Set the noise value for the given channel.
-     * 
+     *
      * @param channel The channel number.
      * @param noise The noise values for all samples.
      */
@@ -355,7 +362,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Set the gain value for the given channel.
-     * 
+     *
      * @param channel The channel number.
      * @param gain The gain value.
      */
@@ -365,7 +372,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Set the offset for the given channel.
-     * 
+     *
      * @param channel The channel number.
      * @param offset The offset value.
      */
@@ -375,7 +382,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Set the shape fit results for the given channel.
-     * 
+     *
      * @param channel The channel number.
      * @param shapeFitParameters The shape fit results array (should be length 4).
      */
@@ -389,7 +396,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Flag the given channel as bad.
-     * 
+     *
      * @param channel The channel number.
      */
     public void setBadChannel(final int channel) {
@@ -398,7 +405,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Set the front end board (FEB) ID of the sensor.
-     * 
+     *
      * @param febID FEB ID The FEB ID of the sensor.
      */
     public void setFebID(final int febID) {
@@ -407,7 +414,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Set the FEB hybrid ID of the sensor.
-     * 
+     *
      * @param febHybridID FEB hybrid ID The FEB hybrid ID.
      */
     public void setFebHybridID(final int febHybridID) {
@@ -416,7 +423,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Set the t0 shift for this sensor.
-     * 
+     *
      * @param t0Shift The t0 shift for this sensor.
      */
     public void setT0Shift(final double t0Shift) {
@@ -425,7 +432,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Flag the sensor as being axial.
-     * 
+     *
      * @param isAxial true if the sensor is Axial, false otherwise
      */
     public void setAxial(final boolean isAxial) {
@@ -434,7 +441,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Flag the sensor as being stereo
-     * 
+     *
      * @param isStereo true is the sensor is stereo, false otherwise
      */
     public void setStereo(final boolean isStereo) {
@@ -522,8 +529,11 @@ public class HpsSiSensor extends SiSensor {
         this.setSenseElectrodes(senseElectrodes);
         this.setReadoutElectrodes(readoutElectrodes);
 
-        // Set the charge transfer efficiency.
-        final double[][] transferEfficiencies = {{READOUT_TRANSFER_EFFICIENCY, SENSE_TRANSFER_EFFICIENCY}};
+        // Set the charge transfer efficiency of both the sense and readout
+        // strips.
+        final double[][] transferEfficiencies = {
+          {this.getReadoutTransferEfficiency(), this.getSenseTransferEfficiency()}
+        };
         this.setTransferEfficiencies(ChargeCarrier.HOLE, new BasicMatrix(transferEfficiencies));
 
     }
@@ -531,7 +541,7 @@ public class HpsSiSensor extends SiSensor {
     /**
      * Return the length of an {@link HpsSiSensor} strip. This is done by getting the face of the {@link HpsSiSensor}
      * and returning the length of the longest edge.
-     * 
+     *
      * @return The length of the longest {@link HpsSiSensor} edge
      */
     protected double getStripLength() {
@@ -557,7 +567,7 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Set the sensor id used by millepede.
-     * 
+     *
      * @param id - millepede sensor id
      */
     public void setMillepedeId(final int id) {
@@ -566,11 +576,10 @@ public class HpsSiSensor extends SiSensor {
 
     /**
      * Get the sensor id used by millepede.
-     * 
+     *
      * @return the millepede sensor id.
      */
     public int getMillepedeId() {
         return this.millepedeId;
     }
-
 }
