@@ -47,6 +47,14 @@ public class SvtEventFlagger {
     private double maxGoodOffsetTime = 35;
     private double minGoodOffsetTime = 0;
     
+    public void setNominalAngleTop(double val){
+        nominalAngleTop = val;
+    }
+    
+    public void setNominalAngleBottom(double val){
+        nominalAngleBottom = val;
+    }
+    
     public void setMaxGoodOffsetTime(double val){
         this.maxGoodOffsetTime = val;
     }
