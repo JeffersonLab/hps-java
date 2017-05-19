@@ -15,9 +15,7 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
-import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
-import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.util.Driver;
@@ -218,13 +216,23 @@ public final class TrackDataDriver extends Driver {
                 // Loop over all stereo hits comprising a track
                 for (TrackerHit rotatedStereoHit : track.getTrackerHits()) {
 
+                    HelicalTrackHit rsHit;
+                    // needed if re-reconstructing from persisted lcio file...
+                    if(rotatedStereoHit instanceof HelicalTrackHit)
+                    {
+                       rsHit =  (HelicalTrackHit) rotatedStereoHit;
+                    }
+                    else
+                    {
+                        rsHit = TrackUtils.makeHelicalTrackHitFromTrackerHit(rotatedStereoHit);
+                    }
                     // Add the stereo layer number associated with the track
                     // residual
-                    stereoLayers.add(((HelicalTrackHit) rotatedStereoHit).Layer());
+                    stereoLayers.add((rsHit).Layer());
 
                     // Extrapolate the track to the stereo hit position and
                     // calculate track residuals
-                    stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
+                    stereoHitPosition = (rsHit).getCorrectedPosition();
                     trackPosition = TrackUtils.extrapolateTrack(trackStateForResiduals, stereoHitPosition.x());
                     xResidual = trackPosition.x() - stereoHitPosition.y();
                     yResidual = trackPosition.y() - stereoHitPosition.z();
@@ -239,20 +247,36 @@ public final class TrackDataDriver extends Driver {
                     
                     // Get the HelicalTrackHit corresponding to the 
                     // RotatedHelicalTrackHit associated with a track
+                    hitToRotated.from(rotatedStereoHit);
+                    TrackerHit th = (TrackerHit) hitToRotated.from(rotatedStereoHit);
+                    if(th instanceof HelicalTrackHit)
+                    {
                     helicalTrackHit = (HelicalTrackHit) hitToRotated.from(rotatedStereoHit);
-                    ((HelicalTrackHit) rotatedStereoHit).setPosition(stereoHitPosition.v());
+                    }
+                    else
+                    {
+                        helicalTrackHit = TrackUtils.makeHelicalTrackHitFromTrackerHit(th);
+                    }
+                    (rsHit).setPosition(stereoHitPosition.v());
                     stereoHitPosition = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
                     helicalTrackHit.setPosition(stereoHitPosition.v());
 
                     // Loop over the clusters comprising the stereo hit
-                    for (HelicalTrackStrip cluster : ((HelicalTrackCross) rotatedStereoHit).getStrips()) {
-
-                        totalT0 += cluster.time();
+                    // this code appears to exist to provide the following:
+                    // totalT0
+                    // totalHits
+                    // trackerVolume (0 == top, 1 == bottom)
+                    //
+                    // Can we do this without resort to HelicalTrackCross?
+                    for (Object o : rotatedStereoHit.getRawHits())
+                    {
+                        RawTrackerHit rth = (RawTrackerHit) o;
+//                        System.out.println(rth);
+                        totalT0 += rth.getTime();
                         totalHits++;
-
                         if (isFirstHit) {
-                            sensor = (HpsSiSensor) ((RawTrackerHit) cluster.rawhits().get(0)).getDetectorElement();
-                            if (sensor.isTopLayer()) {
+                        sensor = (HpsSiSensor) rth.getDetectorElement();
+                        if (sensor.isTopLayer()) {
                                 trackerVolume = 0;
                             } else if (sensor.isBottomLayer()) {
                                 trackerVolume = 1;
@@ -260,6 +284,21 @@ public final class TrackDataDriver extends Driver {
                             isFirstHit = false;
                         }
                     }
+//                    for (HelicalTrackStrip cluster : ((HelicalTrackCross) rotatedStereoHit).getStrips()) {
+//
+//                        totalT0 += cluster.time();
+//                        totalHits++;
+//
+//                        if (isFirstHit) {
+//                            sensor = (HpsSiSensor) ((RawTrackerHit) cluster.rawhits().get(0)).getDetectorElement();
+//                            if (sensor.isTopLayer()) {
+//                                trackerVolume = 0;
+//                            } else if (sensor.isBottomLayer()) {
+//                                trackerVolume = 1;
+//                            }
+//                            isFirstHit = false;
+//                        }
+//                    }
                 }
 
                 //
@@ -303,12 +342,14 @@ public final class TrackDataDriver extends Driver {
                 
                 // Create a new TrackData object and add it to the event
                 TrackData trackData = new TrackData(trackerVolume, trackTime, qualityArray);
+                System.out.println(trackData);
                 trackDataCollection.add(trackData);
                 trackDataRelations.add(new BaseLCRelation(trackData, track));
 
                 // Create a new TrackResidualsData object and add it to the event
                 TrackResidualsData trackResiduals = new TrackResidualsData((int) trackerVolume, stereoLayers,
                                 trackResidualsX, trackResidualsY);
+                System.out.println(trackResiduals);
                 trackResidualsCollection.add(trackResiduals);
                 trackToTrackResidualsRelations.add(new BaseLCRelation(trackResiduals, track));
             }
