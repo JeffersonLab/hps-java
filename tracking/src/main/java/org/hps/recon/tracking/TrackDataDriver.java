@@ -342,14 +342,14 @@ public final class TrackDataDriver extends Driver {
                 
                 // Create a new TrackData object and add it to the event
                 TrackData trackData = new TrackData(trackerVolume, trackTime, qualityArray);
-                System.out.println(trackData);
+//                System.out.println(trackData);
                 trackDataCollection.add(trackData);
                 trackDataRelations.add(new BaseLCRelation(trackData, track));
 
                 // Create a new TrackResidualsData object and add it to the event
                 TrackResidualsData trackResiduals = new TrackResidualsData((int) trackerVolume, stereoLayers,
                                 trackResidualsX, trackResidualsY);
-                System.out.println(trackResiduals);
+//                System.out.println(trackResiduals);
                 trackResidualsCollection.add(trackResiduals);
                 trackToTrackResidualsRelations.add(new BaseLCRelation(trackResiduals, track));
             }

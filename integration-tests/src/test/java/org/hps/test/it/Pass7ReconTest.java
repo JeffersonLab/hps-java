@@ -15,14 +15,12 @@ import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.loop.LCIODriver;
 
 /**
- * Testing the concept of the 2015 Pass7 reconstruction 
- * Proposal is to run the reconstruction starting from the existing lcio output 
- * from the previous pass.
+ * Testing the concept of the 2015 Pass7 reconstruction Proposal is to run the
+ * reconstruction starting from the existing lcio output from the previous pass.
  *
- * The ECal clusters are OK, keep them. 
- * The found tracks should be OK, keep them.
- * We will simply refit the GBL tracks using the latest geometry. 
- * All ReconstructedParticle collections will be dropped and recreated.
+ * The ECal clusters are OK, keep them. The found tracks should be OK, keep
+ * them. We will simply refit the GBL tracks using the latest geometry. All
+ * ReconstructedParticle collections will be dropped and recreated.
  *
  * @author Norman A. Graf
  */
@@ -30,7 +28,7 @@ public class Pass7ReconTest extends TestCase {
 
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/";
     static final String testEvioFileName = "run5772_integrationTest.evio";
-    private final int nEvents = 10;
+    private final int nEvents = 100;
 
     String[] droppem = {
         "FinalStateParticles",
@@ -46,10 +44,8 @@ public class Pass7ReconTest extends TestCase {
         "BeamspotConstrainedV0Vertices",
         "BeamspotConstrainedMollerCandidates",
         "BeamspotConstrainedMollerVertices"};
-    
-    
-    public void testit() throws Exception
-    {
+
+    public void testit() throws Exception {
         EngRun2015Recon();
         Pass7();
     }
@@ -64,10 +60,11 @@ public class Pass7ReconTest extends TestCase {
         outputDir.mkdir();
         File outputFile = new TestUtil.TestOutputFile("Pass6Output");
         String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim", "-d",
-            "HPS-EngRun2015-Nominal-v5-fieldmap", "-D", "outputFile=" + outputFile.getPath(), "-n", "10",
+            "HPS-EngRun2015-Nominal-v5-fieldmap", "-D", "outputFile=" + outputFile.getPath(), "-n", Integer.toString(nEvents),
             inputFile.getPath()};
         System.out.println("Running EngRun2015ReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
+        System.out.println("Processing "+nEvents+" events");
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
         long endTime = System.currentTimeMillis();
@@ -78,7 +75,7 @@ public class Pass7ReconTest extends TestCase {
         File outputDir = new TestUtil.TestOutputFile(this.getClass().getSimpleName());
         outputDir.mkdir();
         File outputFile = new TestUtil.TestOutputFile("Pass7Test.slcio");
-        
+
         File lcioInputFile = new TestUtil.TestOutputFile("Pass6Output.slcio");
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(lcioInputFile);
@@ -98,10 +95,14 @@ public class Pass7ReconTest extends TestCase {
         loop.add(rpd);
         LCIODriver writer = new LCIODriver(outputFile);
         loop.add(writer);
+        System.out.println("Processing "+nEvents+" events");
+        long startTime = System.currentTimeMillis();
         loop.loop(nEvents);
+        long endTime = System.currentTimeMillis();
+        System.out.println("That took " + (endTime - startTime) + " milliseconds");
+
         loop.dispose();
     }
-    
-    //TODO develop analysis Driver to compare the two output lcio files.
 
+    //TODO develop analysis Driver to compare the two output lcio files.
 }
