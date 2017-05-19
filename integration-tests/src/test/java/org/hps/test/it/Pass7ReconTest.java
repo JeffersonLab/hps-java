@@ -26,8 +26,8 @@ import org.lcsim.util.loop.LCIODriver;
  */
 public class Pass7ReconTest extends TestCase {
 
-    static final String testURLBase = "http://www.lcsim.org/test/hps-java/";
-    static final String testEvioFileName = "run5772_integrationTest.evio";
+    static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
+    static final String testEvioFileName = "run5772_Moller_1000Events.evio";
     private final int nEvents = 100;
 
     String[] droppem = {
