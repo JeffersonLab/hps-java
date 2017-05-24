@@ -68,7 +68,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private static final int TEST_RUN_MAX_RUN = 1365;
 
     static {
-        // Set default login timeout of 5 seconds.
         DriverManager.setLoginTimeout(30);
     }
 
@@ -614,7 +613,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 this.connectionParameters = ConnectionParameters.fromResource(CONNECTION_RESOURCE);
             }
 
-            // Print out detailed info to the log on first connection within the job.
+            // Print connection info to the log.
             LOGGER.info("Opening connection ... " + '\n' + "connection: "
                     + this.connectionParameters.getConnectionString() + '\n' + "host: "
                     + this.connectionParameters.getHostname() + '\n' + "port: "
@@ -785,6 +784,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public synchronized void unfreeze() {
         this.isFrozen = false;
-        LOGGER.info("conditions system unfrozen");
+        LOGGER.info("Conditions system was unfrozen and will now accept updates.");
     }
 }
