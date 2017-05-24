@@ -26,21 +26,42 @@ public class HodoscopeEcalOnlyTrigger extends TriggerDriver {
 		// Get calorimeter clusters.
 		List<Cluster> clusters = getCollection(event, clusterCollectionName, Cluster.class);
 		
+		System.out.println("\n\nEvent");
+		System.out.println("Clusters in event: " + clusters.size());
+		System.out.println("Searching for trigger...");
+		
 		// Iterate over the clusters and determine whether or not a
+		// trigger should be generated.
 		for(Cluster cluster : clusters) {
+			
+			System.out.printf("\tCluster at (%3d, %3d) with energy %5.3f GeV at time t = %f%n",
+				TriggerModule.getClusterXIndex(cluster), TriggerModule.getClusterYIndex(cluster),
+				TriggerModule.getValueClusterTotalEnergy(cluster),
+				TriggerModule.getClusterTime(cluster));
+			
+			System.out.printf("\t\tApplying cut %3d > %.0f... ", TriggerModule.getClusterXIndex(cluster), clusterMinX);
+			
 			// Apply the spatial cut.
-			if(TriggerModule.getClusterX(cluster) < clusterMinX) {
+			if(TriggerModule.getClusterXIndex(cluster) < clusterMinX) {
+				System.out.println("[Fail]");
 				continue;
 			}
+			System.out.println("[Pass]");
+			
+			System.out.printf("\t\tApplying cut %5.3f < %5.3f < %5.3f... ", clusterEnergyLowerBound,
+					TriggerModule.getValueClusterTotalEnergy(cluster), clusterEnergyUpperBound);
 			
 			// Apply the energy cuts.
 			if(TriggerModule.getValueClusterTotalEnergy(cluster) > clusterEnergyUpperBound
 					|| TriggerModule.getValueClusterTotalEnergy(cluster) < clusterEnergyLowerBound) {
+				System.out.println("[Fail]");
 				continue;
 			}
+			System.out.println("[Pass]");
 			
 			// If both cuts pass, indicate that a trigger should be
 			// called.
+			System.out.println("\t\tTrigger!!");
 			triggers++;
 			return true;
 		}
