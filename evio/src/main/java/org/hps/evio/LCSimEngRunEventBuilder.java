@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.trigger.TiTimeOffset;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsEvioProcessor;
 import org.hps.record.evio.EvioEventUtilities;
@@ -17,9 +18,9 @@ import org.hps.record.triggerbank.HeadBankData;
 import org.hps.record.triggerbank.SSPData;
 import org.hps.record.triggerbank.TDCData;
 import org.hps.record.triggerbank.TIData;
-import org.hps.rundb.RunManager;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 
 /**
@@ -99,38 +100,11 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         svtEventFlagger.initialize();
         
         // Set TI time offset from run database.
-        setTiTimeOffsetForRun(conditionsEvent.getConditionsManager().getRun());
+        ConditionsManager mgr = conditionsEvent.getConditionsManager();
+        TiTimeOffset t = mgr.getCachedConditions(TiTimeOffset.class, "ti_time_offsets").getCachedData();
+        currentTiTimeOffset = t.getValue();
     }
     
-    /**
-     * Get TI time offset from the run database, if available.
-     * @param run the run number
-     */
-    private void setTiTimeOffsetForRun(int run) {
-        currentTiTimeOffset = null;
-        RunManager runManager = RunManager.getRunManager();
-        if (runManager.getRun() != null) {
-            if (runManager.runExists()) {
-                currentTiTimeOffset = runManager.getRunSummary().getTiTimeOffset();
-                LOGGER.info("TI time offset set to " + currentTiTimeOffset + " for run "
-                        + run + " from database");
-            } else {
-                LOGGER.warning("Run " + run 
-                        + " does not exist in the run database.");
-            }
-        } else {
-            LOGGER.info("Run manager is not initialized; TI time offset not available.");
-        }
-        /* Make sure connection is closed immediately. --JM */
-        try {
-            LOGGER.info("Closing run manager db connection ...");
-            RunManager.getRunManager().closeConnection();
-            LOGGER.info("Run manager db connection was closed.");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * Get the time from the TI data with time offset applied from run database.
      *

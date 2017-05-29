@@ -126,6 +126,8 @@
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <fixShapeParameter>true</fixShapeParameter>
             <globalFixedPulseWidth>2.4</globalFixedPulseWidth>
+        </driver>  
+        <driver name="HitTimeSmear" type="org.hps.recon.ecal.cluster.HitTMCSmearDriver">
         </driver>       
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
@@ -145,6 +147,7 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver"> 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>         
             <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
+            <isMC>true</isMC>
         </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
             <layerNum>7</layerNum>

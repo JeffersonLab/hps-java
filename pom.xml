@@ -124,7 +124,6 @@
     <module>run-database</module>
     <module>steering-files</module>
     <module>tracking</module>
-    <module>users</module>
     <module>util</module>
     <module>integration-tests</module>
   </modules>
