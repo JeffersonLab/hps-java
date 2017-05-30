@@ -443,6 +443,13 @@ public abstract class ReconParticleDriver extends Driver {
             }
             HepLorentzVector fourVector = new BasicHepLorentzVector(clusterEnergy, momentum);
             ((BaseReconstructedParticle) particle).set4Vector(fourVector);
+        
+          //recalculate track-cluster matching n_sigma using corrected cluster positions
+            if(!particle.getClusters().isEmpty()){
+                double goodnessPID_corrected = matcher.getNSigmaPosition(particle.getClusters().get(0), particle);
+                ((BaseReconstructedParticle) particle).setGoodnessOfPid(goodnessPID_corrected);
+            }
+            
         }
 
         // Return the list of reconstructed particles.
