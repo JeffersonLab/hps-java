@@ -828,7 +828,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel1BModule">
                 <box x="15" y="25"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel1BModule" id="0" x="21.17+39+(15/2.0)" y="14.21392678+(25/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -841,7 +841,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel2BModule">
                 <box x="15" y="25"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel2BModule" id="0" x="21.17+54+(15/2.0)" y="14.21392678+(25/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -854,7 +854,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel3BModule">
                 <box x="15" y="25"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel3BModule" id="0" x="21.17+69+(15/2.0)" y="14.21392678+(25/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -867,7 +867,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel4BModule">
                 <box x="20" y="25"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel4BModule" id="0" x="21.17+84+(20/2.0)" y="14.21392678+(25/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -880,7 +880,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel5BModule">
                 <box x="20" y="25"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel5BModule" id="0" x="21.17+104+(20/2.0)" y="14.21392678+(25/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -893,7 +893,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel6BModule">
                 <box x="20" y="25"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel6BModule" id="0" x="21.17+124+(20/2.0)" y="14.21392678+(25/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -906,7 +906,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel7BModule">
                 <box x="30" y="25"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel7BModule" id="0" x="21.17+144+(30/2.0)" y="14.21392678+(25/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -919,7 +919,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel8BModule">
                 <box x="37" y="25"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel8BModule" id="0" x="21.17+174+(37/2.0)" y="14.21392678+(25/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -933,7 +933,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel1TModule">
                 <box x="15" y="39.8"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel1TModule" id="0" x="21.17+39+(15/2.0)" y="14.21392678+25+(39.8/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -946,7 +946,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel2TModule">
                 <box x="15" y="39.8"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel2TModule" id="0" x="21.17+54+(15/2.0)" y="14.21392678+25+(39.8/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -959,7 +959,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel3TModule">
                 <box x="15" y="39.8"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel3TModule" id="0" x="21.17+69+(15/2.0)" y="14.21392678+25+(39.8/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -972,7 +972,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel4TModule">
                 <box x="20" y="39.8"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel4TModule" id="0" x="21.17+84+(20/2.0)" y="14.21392678+25+(39.8/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -985,7 +985,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel5TModule">
                 <box x="20" y="39.8"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel5TModule" id="0" x="21.17+104+(20/2.0)" y="14.21392678+25+(39.8/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -998,7 +998,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel6TModule">
                 <box x="20" y="39.8"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel6TModule" id="0" x="21.17+124+(20/2.0)" y="14.21392678+25+(39.8/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -1011,7 +1011,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel7TModule">
                 <box x="30" y="39.8"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel7TModule" id="0" x="21.17+144+(30/2.0)" y="14.21392678+25+(39.8/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -1024,7 +1024,7 @@
             <comment>A hodoscope for the positron trigger.</comment>
             <module name="HodoscopePixel8TModule">
                 <box x="37" y="39.8"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
+                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="true"/>
             </module>
             <layer id="1">
                 <module_placement name="HodoscopePixel8TModule" id="0" x="21.17+174+(37/2.0)" y="14.21392678+25+(39.8/2.0)" z="1100+(hodoscopeThickness/2.0)" rx="0" ry="0" rz="-PI/2"/>
@@ -1071,6 +1071,12 @@
             <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
             <id>system:6,layer:2,ix:-8,iy:-6</id>
         </readout>
+		<!--
+        <readout name="HodoscopeHits">
+            <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
+            <id>system:6,layer:2,ix:-8,iy:-6</id>
+        </readout>
+		-->
     </readouts>
 
 

@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-PhysicsRun2016-Hodoscope-v2-2pt3-fieldmap" />
-    <generator name="lcsim" version="1.0" file="C:\cygwin64\home\Kyle\hps-software\hps-java-iss40\iss40\detector-data\detectors\HPS-PhysicsRun2016-Hodoscope-v2-2pt3-fieldmap\compact.xml" checksum="2442369927" />
+    <generator name="lcsim" version="1.0" file="C:\cygwin64\home\Kyle\hps-software\hps-java-iss40\iss40\detector-data\detectors\HPS-PhysicsRun2016-Hodoscope-v2-2pt3-fieldmap\compact.xml" checksum="149046120" />
     <author name="NONE" />
     <comment>HPS detector for 2017 proposal with fieldmap, tracker at nominal opening angle, and no SVT survey. This detector uses the corrected fieldmap scaled to -0.50T for 2.3 GeV. A basic hodoscope with scoring planes was added to perform initial positron trigger tests.</comment>
   </header>
@@ -273,6 +273,8 @@
       <position name="tracking_region_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
       <position name="HodoscopePixel5TModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel5TModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel5TModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel5TModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel5T_HodoscopePixel5TModule_layer1_module0_position" x="135.17000000000002" y="59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel5T_HodoscopePixel5TModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel5T_HodoscopePixel5TModule_layer2_module0_position" x="135.17000000000002" y="-59.11392678" z="1102.5" unit="mm" />
@@ -627,42 +629,56 @@
       <rotation name="module_L6t_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel6TModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel6TModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel6TModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel6TModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel6T_HodoscopePixel6TModule_layer1_module0_position" x="155.17000000000002" y="59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel6T_HodoscopePixel6TModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel6T_HodoscopePixel6TModule_layer2_module0_position" x="155.17000000000002" y="-59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel6T_HodoscopePixel6TModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel7TModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel7TModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel7TModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel7TModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel7T_HodoscopePixel7TModule_layer1_module0_position" x="180.17000000000002" y="59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel7T_HodoscopePixel7TModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel7T_HodoscopePixel7TModule_layer2_module0_position" x="180.17000000000002" y="-59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel7T_HodoscopePixel7TModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel8TModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel8TModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel8TModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel8TModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel8T_HodoscopePixel8TModule_layer1_module0_position" x="213.67000000000002" y="59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel8T_HodoscopePixel8TModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel8T_HodoscopePixel8TModule_layer2_module0_position" x="213.67000000000002" y="-59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel8T_HodoscopePixel8TModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel1TModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel1TModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel1TModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel1TModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel1T_HodoscopePixel1TModule_layer1_module0_position" x="67.67" y="59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel1T_HodoscopePixel1TModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel1T_HodoscopePixel1TModule_layer2_module0_position" x="67.67" y="-59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel1T_HodoscopePixel1TModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel2TModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel2TModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel2TModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel2TModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel2T_HodoscopePixel2TModule_layer1_module0_position" x="82.67" y="59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel2T_HodoscopePixel2TModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel2T_HodoscopePixel2TModule_layer2_module0_position" x="82.67" y="-59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel2T_HodoscopePixel2TModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel3TModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel3TModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel3TModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel3TModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel3T_HodoscopePixel3TModule_layer1_module0_position" x="97.67" y="59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel3T_HodoscopePixel3TModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel3T_HodoscopePixel3TModule_layer2_module0_position" x="97.67" y="-59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel3T_HodoscopePixel3TModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel4TModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel4TModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel4TModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel4TModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel4T_HodoscopePixel4TModule_layer1_module0_position" x="115.17" y="59.11392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel4T_HodoscopePixel4TModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel4T_HodoscopePixel4TModule_layer2_module0_position" x="115.17" y="-59.11392678" z="1102.5" unit="mm" />
@@ -1553,36 +1569,48 @@
       <rotation name="crystal23-5_rot_neg_top" x="0.0759356980444989" y="0.3796784902224945" z="0.0" unit="radian" />
       <position name="HodoscopePixel7BModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel7BModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel7BModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel7BModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel7B_HodoscopePixel7BModule_layer1_module0_position" x="180.17000000000002" y="26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel7B_HodoscopePixel7BModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel7B_HodoscopePixel7BModule_layer2_module0_position" x="180.17000000000002" y="-26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel7B_HodoscopePixel7BModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel8BModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel8BModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel8BModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel8BModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel8B_HodoscopePixel8BModule_layer1_module0_position" x="213.67000000000002" y="26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel8B_HodoscopePixel8BModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel8B_HodoscopePixel8BModule_layer2_module0_position" x="213.67000000000002" y="-26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel8B_HodoscopePixel8BModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel3BModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel3BModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel3BModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel3BModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel3B_HodoscopePixel3BModule_layer1_module0_position" x="97.67" y="26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel3B_HodoscopePixel3BModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel3B_HodoscopePixel3BModule_layer2_module0_position" x="97.67" y="-26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel3B_HodoscopePixel3BModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel4BModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel4BModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel4BModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel4BModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel4B_HodoscopePixel4BModule_layer1_module0_position" x="115.17" y="26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel4B_HodoscopePixel4BModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel4B_HodoscopePixel4BModule_layer2_module0_position" x="115.17" y="-26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel4B_HodoscopePixel4BModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel5BModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel5BModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel5BModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel5BModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel5B_HodoscopePixel5BModule_layer1_module0_position" x="135.17000000000002" y="26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel5B_HodoscopePixel5BModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel5B_HodoscopePixel5BModule_layer2_module0_position" x="135.17000000000002" y="-26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel5B_HodoscopePixel5BModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel6BModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel6BModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel6BModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel6BModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel6B_HodoscopePixel6BModule_layer1_module0_position" x="155.17000000000002" y="26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel6B_HodoscopePixel6BModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel6B_HodoscopePixel6BModule_layer2_module0_position" x="155.17000000000002" y="-26.71392678" z="1102.5" unit="mm" />
@@ -1621,12 +1649,16 @@
       <rotation name="ECalScoring_BeamRight_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel1BModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel1BModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel1BModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel1BModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel1B_HodoscopePixel1BModule_layer1_module0_position" x="67.67" y="26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel1B_HodoscopePixel1BModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel1B_HodoscopePixel1BModule_layer2_module0_position" x="67.67" y="-26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel1B_HodoscopePixel1BModule_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="HodoscopePixel2BModuleVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="HodoscopePixel2BModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="HodoscopePixel2BModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="HodoscopePixel2BModuleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="HodoscopePixel2B_HodoscopePixel2BModule_layer1_module0_position" x="82.67" y="26.71392678" z="1102.5" unit="mm" />
       <rotation name="HodoscopePixel2B_HodoscopePixel2BModule_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="HodoscopePixel2B_HodoscopePixel2BModule_layer2_module0_position" x="82.67" y="-26.71392678" z="1102.5" unit="mm" />
@@ -1860,6 +1892,7 @@
       <tube name="tracking_cylinder" deltaphi="6.283185307179586" rmin="0.0" rmax="tracking_region_radius" z="2*tracking_region_zmax" />
       <box name="HodoscopePixel5TModuleBox" x="39.8" y="20.0" z="5.0" />
       <box name="HodoscopePixel5TModuleVolume_component0Box" x="39.8" y="20.0" z="5.0" />
+      <box name="HodoscopePixel5TModuleVolume_component0Sensor0Box" x="39.8" y="20.0" z="5.0" />
       <box name="baseBox" x="406.4" y="1282.6999999999998" z="171.196" />
       <box name="base_plateBox" x="406.4" y="1282.6999999999998" z="6.35" />
       <box name="support_plate_bottom_L13Box" x="234.95" y="406.4" z="9.524999999999999" />
@@ -2036,31 +2069,44 @@
       <box name="module_L6t_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
       <box name="HodoscopePixel6TModuleBox" x="39.8" y="20.0" z="5.0" />
       <box name="HodoscopePixel6TModuleVolume_component0Box" x="39.8" y="20.0" z="5.0" />
+      <box name="HodoscopePixel6TModuleVolume_component0Sensor0Box" x="39.8" y="20.0" z="5.0" />
       <box name="HodoscopePixel7TModuleBox" x="39.8" y="30.0" z="5.0" />
       <box name="HodoscopePixel7TModuleVolume_component0Box" x="39.8" y="30.0" z="5.0" />
+      <box name="HodoscopePixel7TModuleVolume_component0Sensor0Box" x="39.8" y="30.0" z="5.0" />
       <box name="HodoscopePixel8TModuleBox" x="39.8" y="37.0" z="5.0" />
       <box name="HodoscopePixel8TModuleVolume_component0Box" x="39.8" y="37.0" z="5.0" />
+      <box name="HodoscopePixel8TModuleVolume_component0Sensor0Box" x="39.8" y="37.0" z="5.0" />
       <box name="HodoscopePixel1TModuleBox" x="39.8" y="15.0" z="5.0" />
       <box name="HodoscopePixel1TModuleVolume_component0Box" x="39.8" y="15.0" z="5.0" />
+      <box name="HodoscopePixel1TModuleVolume_component0Sensor0Box" x="39.8" y="15.0" z="5.0" />
       <box name="HodoscopePixel2TModuleBox" x="39.8" y="15.0" z="5.0" />
       <box name="HodoscopePixel2TModuleVolume_component0Box" x="39.8" y="15.0" z="5.0" />
+      <box name="HodoscopePixel2TModuleVolume_component0Sensor0Box" x="39.8" y="15.0" z="5.0" />
       <box name="HodoscopePixel3TModuleBox" x="39.8" y="15.0" z="5.0" />
       <box name="HodoscopePixel3TModuleVolume_component0Box" x="39.8" y="15.0" z="5.0" />
+      <box name="HodoscopePixel3TModuleVolume_component0Sensor0Box" x="39.8" y="15.0" z="5.0" />
       <box name="HodoscopePixel4TModuleBox" x="39.8" y="20.0" z="5.0" />
       <box name="HodoscopePixel4TModuleVolume_component0Box" x="39.8" y="20.0" z="5.0" />
+      <box name="HodoscopePixel4TModuleVolume_component0Sensor0Box" x="39.8" y="20.0" z="5.0" />
       <trd name="crystal_trap" x1="13.3" x2="16.0" y1="13.3" y2="16.0" z="160.0" />
       <box name="HodoscopePixel7BModuleBox" x="25.0" y="30.0" z="5.0" />
       <box name="HodoscopePixel7BModuleVolume_component0Box" x="25.0" y="30.0" z="5.0" />
+      <box name="HodoscopePixel7BModuleVolume_component0Sensor0Box" x="25.0" y="30.0" z="5.0" />
       <box name="HodoscopePixel8BModuleBox" x="25.0" y="37.0" z="5.0" />
       <box name="HodoscopePixel8BModuleVolume_component0Box" x="25.0" y="37.0" z="5.0" />
+      <box name="HodoscopePixel8BModuleVolume_component0Sensor0Box" x="25.0" y="37.0" z="5.0" />
       <box name="HodoscopePixel3BModuleBox" x="25.0" y="15.0" z="5.0" />
       <box name="HodoscopePixel3BModuleVolume_component0Box" x="25.0" y="15.0" z="5.0" />
+      <box name="HodoscopePixel3BModuleVolume_component0Sensor0Box" x="25.0" y="15.0" z="5.0" />
       <box name="HodoscopePixel4BModuleBox" x="25.0" y="20.0" z="5.0" />
       <box name="HodoscopePixel4BModuleVolume_component0Box" x="25.0" y="20.0" z="5.0" />
+      <box name="HodoscopePixel4BModuleVolume_component0Sensor0Box" x="25.0" y="20.0" z="5.0" />
       <box name="HodoscopePixel5BModuleBox" x="25.0" y="20.0" z="5.0" />
       <box name="HodoscopePixel5BModuleVolume_component0Box" x="25.0" y="20.0" z="5.0" />
+      <box name="HodoscopePixel5BModuleVolume_component0Sensor0Box" x="25.0" y="20.0" z="5.0" />
       <box name="HodoscopePixel6BModuleBox" x="25.0" y="20.0" z="5.0" />
       <box name="HodoscopePixel6BModuleVolume_component0Box" x="25.0" y="20.0" z="5.0" />
+      <box name="HodoscopePixel6BModuleVolume_component0Sensor0Box" x="25.0" y="20.0" z="5.0" />
       <box name="HodoscopeForeScoreModuleBox" x="64.75233309" y="210.8" z="0.001" />
       <box name="HodoscopeForeScoreModuleVolume_component0Box" x="64.75233309" y="210.8" z="0.001" />
       <box name="HodoscopeForeScoreModuleVolume_component0Sensor0Box" x="64.75233309" y="210.8" z="0.001" />
@@ -2075,8 +2121,10 @@
       <box name="BeamRightVolume_component0Sensor0Box" x="214.6" y="293.38800000000003" z="0.001" />
       <box name="HodoscopePixel1BModuleBox" x="25.0" y="15.0" z="5.0" />
       <box name="HodoscopePixel1BModuleVolume_component0Box" x="25.0" y="15.0" z="5.0" />
+      <box name="HodoscopePixel1BModuleVolume_component0Sensor0Box" x="25.0" y="15.0" z="5.0" />
       <box name="HodoscopePixel2BModuleBox" x="25.0" y="15.0" z="5.0" />
       <box name="HodoscopePixel2BModuleVolume_component0Box" x="25.0" y="15.0" z="5.0" />
+      <box name="HodoscopePixel2BModuleVolume_component0Sensor0Box" x="25.0" y="15.0" z="5.0" />
       <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="chamber_trap" phi="-180" theta="1.864" x1="377" x2="377" x3="406.29" x4="406.29" y1="28" y2="28" z="450" />
       <box lunit="mm" name="chamber_cutaway_box" x="500" y="10" z="300" />
       <subtraction name="chamber_trim1">
@@ -2483,9 +2531,20 @@
       <box lunit="mm" name="WorldBox" x="80000" y="80000" z="80000" />
     </solids>
     <structure>
+      <volume name="HodoscopePixel5TModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel5TModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel5T" />
+      </volume>
       <volume name="HodoscopePixel5TModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel5TModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel5TModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel5TModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel5TModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel5TModuleVolume">
         <materialref ref="Vacuum" />
@@ -4544,9 +4603,20 @@
         </physvol>
         <visref ref="SvtBoxVis" />
       </volume>
+      <volume name="HodoscopePixel6TModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel6TModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel6T" />
+      </volume>
       <volume name="HodoscopePixel6TModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel6TModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel6TModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel6TModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel6TModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel6TModuleVolume">
         <materialref ref="Vacuum" />
@@ -4558,9 +4628,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel7TModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel7TModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel7T" />
+      </volume>
       <volume name="HodoscopePixel7TModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel7TModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel7TModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel7TModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel7TModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel7TModuleVolume">
         <materialref ref="Vacuum" />
@@ -4572,9 +4653,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel8TModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel8TModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel8T" />
+      </volume>
       <volume name="HodoscopePixel8TModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel8TModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel8TModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel8TModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel8TModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel8TModuleVolume">
         <materialref ref="Vacuum" />
@@ -4586,9 +4678,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel1TModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel1TModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel1T" />
+      </volume>
       <volume name="HodoscopePixel1TModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel1TModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel1TModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel1TModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel1TModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel1TModuleVolume">
         <materialref ref="Vacuum" />
@@ -4600,9 +4703,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel2TModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel2TModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel2T" />
+      </volume>
       <volume name="HodoscopePixel2TModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel2TModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel2TModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel2TModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel2TModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel2TModuleVolume">
         <materialref ref="Vacuum" />
@@ -4614,9 +4728,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel3TModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel3TModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel3T" />
+      </volume>
       <volume name="HodoscopePixel3TModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel3TModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel3TModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel3TModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel3TModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel3TModuleVolume">
         <materialref ref="Vacuum" />
@@ -4628,9 +4753,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel4TModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel4TModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel4T" />
+      </volume>
       <volume name="HodoscopePixel4TModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel4TModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel4TModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel4TModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel4TModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel4TModuleVolume">
         <materialref ref="Vacuum" />
@@ -4648,9 +4784,20 @@
         <sdref ref="Ecal" />
         <visref ref="ECALVis" />
       </volume>
+      <volume name="HodoscopePixel7BModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel7BModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel7B" />
+      </volume>
       <volume name="HodoscopePixel7BModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel7BModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel7BModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel7BModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel7BModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel7BModuleVolume">
         <materialref ref="Vacuum" />
@@ -4662,9 +4809,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel8BModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel8BModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel8B" />
+      </volume>
       <volume name="HodoscopePixel8BModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel8BModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel8BModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel8BModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel8BModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel8BModuleVolume">
         <materialref ref="Vacuum" />
@@ -4676,9 +4834,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel3BModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel3BModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel3B" />
+      </volume>
       <volume name="HodoscopePixel3BModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel3BModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel3BModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel3BModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel3BModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel3BModuleVolume">
         <materialref ref="Vacuum" />
@@ -4690,9 +4859,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel4BModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel4BModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel4B" />
+      </volume>
       <volume name="HodoscopePixel4BModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel4BModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel4BModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel4BModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel4BModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel4BModuleVolume">
         <materialref ref="Vacuum" />
@@ -4704,9 +4884,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel5BModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel5BModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel5B" />
+      </volume>
       <volume name="HodoscopePixel5BModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel5BModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel5BModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel5BModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel5BModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel5BModuleVolume">
         <materialref ref="Vacuum" />
@@ -4718,9 +4909,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel6BModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel6BModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel6B" />
+      </volume>
       <volume name="HodoscopePixel6BModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel6BModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel6BModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel6BModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel6BModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel6BModuleVolume">
         <materialref ref="Vacuum" />
@@ -4832,9 +5034,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel1BModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel1BModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel1B" />
+      </volume>
       <volume name="HodoscopePixel1BModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel1BModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel1BModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel1BModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel1BModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel1BModuleVolume">
         <materialref ref="Vacuum" />
@@ -4846,9 +5059,20 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="HodoscopePixel2BModuleVolume_component0Sensor0">
+        <materialref ref="EJ204_PlasticScintillator" />
+        <solidref ref="HodoscopePixel2BModuleVolume_component0Sensor0Box" />
+        <sdref ref="HodoscopePixel2B" />
+      </volume>
       <volume name="HodoscopePixel2BModuleVolume_component0">
         <materialref ref="EJ204_PlasticScintillator" />
         <solidref ref="HodoscopePixel2BModuleVolume_component0Box" />
+        <physvol>
+          <volumeref ref="HodoscopePixel2BModuleVolume_component0Sensor0" />
+          <positionref ref="HodoscopePixel2BModuleVolume_component0Sensor0Position" />
+          <rotationref ref="HodoscopePixel2BModuleVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
       <volume name="HodoscopePixel2BModuleVolume">
         <materialref ref="Vacuum" />
