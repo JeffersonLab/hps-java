@@ -17,18 +17,52 @@ public class ReconDiagnosticsDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
 
+    private int mb = 1024 * 1024;
+
+    private int _interval = 1;
+
+    private int _nEvents;
+
+    //Getting the runtime reference from system
+    Runtime runtime;
+
     @Override
     protected void detectorChanged(Detector detector) {
         _startTime = System.nanoTime();
+        runtime = Runtime.getRuntime();
     }
 
     @Override
     protected void process(EventHeader event) {
-        long deltaTime = System.nanoTime() - _startTime;
-        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-        double svtsize = rawHits.size();
-        aida.cloud2D("elapsed time vs SVT size").fill(svtsize, deltaTime);
-        _startTime = System.nanoTime();
-        System.out.println(event.getRunNumber()+" "+event.getEventNumber()+" "+svtsize+" "+deltaTime);
+        _nEvents++;
+        if ((_nEvents % _interval) == 0) {
+            long deltaTime = System.nanoTime() - _startTime;
+            List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+            double svtsize = rawHits.size();
+            aida.cloud2D("elapsed time vs SVT size").fill(svtsize, deltaTime);
+            _startTime = System.nanoTime();
+            System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " " + svtsize + " " + deltaTime);
+
+            System.out.println("##### Heap utilization statistics [MB] #####");
+
+            //Print used memory
+            System.out.println("Used Memory:"
+                    + (runtime.totalMemory() - runtime.freeMemory()) / mb);
+
+            //Print free memory
+            System.out.println("Free Memory:"
+                    + runtime.freeMemory() / mb);
+
+            //Print total available memory
+            System.out.println("Total Memory:" + runtime.totalMemory() / mb);
+
+            //Print Maximum available memory
+            System.out.println("Max Memory:" + runtime.maxMemory() / mb);
+        }
+    }
+    
+    public void setInterval(int i)
+    {
+        _interval = i;
     }
 }
