@@ -44,7 +44,7 @@ import org.lcsim.util.fourvec.Momentum4Vector;
  */
 public class APrimeMCAnalysisDriver extends Driver {
 
-    String vertexCollectionName = "BeamspotConstrainedV0Vertices";
+    String vertexCollectionName = "UnconstrainedV0Vertices";
     String[] names = {"X", "Y", "Z"};
     double[] p1 = new double[4];
     double[] p2 = new double[4];

@@ -131,6 +131,7 @@ public class APrimeMCVertexAnalysisDriver extends Driver {
                 double zPull = (pos.z() - aprimeVtx.z()) / sqrt(cov.diagonal(2));
                 if (abs(zPull) < 10.) {
                     aida.cloud1D("vertex z pull").fill(zPull);
+                    aida.cloud2D("vertex z pull vs MC z").fill(zPull, aprimeVtx.z());
                     aida.cloud1D("vertex z significance pull lt 10").fill(pos.z() / zPull);
                 }
 
