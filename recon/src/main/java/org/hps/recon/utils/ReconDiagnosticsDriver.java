@@ -25,11 +25,10 @@ public class ReconDiagnosticsDriver extends Driver {
     @Override
     protected void process(EventHeader event) {
         long deltaTime = System.nanoTime() - _startTime;
-        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits");
+        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
         double svtsize = rawHits.size();
         aida.cloud2D("elapsed time vs SVT size").fill(svtsize, deltaTime);
         _startTime = System.nanoTime();
         System.out.println(event.getRunNumber()+" "+event.getEventNumber()+" "+svtsize+" "+deltaTime);
     }
-
 }
