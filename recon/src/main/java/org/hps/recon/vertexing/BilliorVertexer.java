@@ -37,7 +37,7 @@ public class BilliorVertexer {
     private Matrix _covVtx;
     private List<Matrix> _pFit;
 
-    ;//theta,phi_v,rho
+    //theta,phi_v,rho
     private List<Matrix> covVtxMomList;
     private Matrix[][] covMomList;//max 2 tracks...just make this bigger for more
     private Matrix _constrainedFit;
