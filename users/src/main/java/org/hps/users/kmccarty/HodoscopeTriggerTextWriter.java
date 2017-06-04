@@ -126,7 +126,8 @@ public class HodoscopeTriggerTextWriter extends Driver {
 	}
 	
 	private static final String getOutputText(TempHodoscopeHit hit) {
-		return String.format("%f %f %f", hit.position[0], hit.position[1], hit.energyDep);
+		return hit.position[0] + " " + hit.position[1] + " " + (hit.energyDep * 1000);
+		//return String.format("%f %f %f", hit.position[0], hit.position[1], hit.energyDep);
 	}
 	
 	private static final String getOutputText(EventHeader event, Collection<Cluster> clusters,
