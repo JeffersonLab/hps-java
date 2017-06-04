@@ -120,7 +120,9 @@ public class HodoscopeTriggerTextWriter extends Driver {
 	}
 	
 	private static final String getOutputText(Cluster cluster) {
-		return String.format("%f %f %f %d %d %d", cluster.getEnergy(), cluster.getPosition()[0], cluster.getPosition()[1],
+		return String.format("%f %f %f %d %d %d", cluster.getEnergy(),
+				cluster.getCalorimeterHits().get(0).getPosition()[0],
+				cluster.getCalorimeterHits().get(0).getPosition()[1],
 				cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
 				cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), cluster.getCalorimeterHits().size());
 	}
