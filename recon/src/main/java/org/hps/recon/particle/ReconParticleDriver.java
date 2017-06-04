@@ -54,7 +54,7 @@ public abstract class ReconParticleDriver extends Driver {
     public static final int MOLLER_BOT = 1;
     
     // normalized cluster-track distance required for qualifying as a match:
-    private double MAXNSIGMAPOSITIONMATCH=30.0;
+    private double MAXNSIGMAPOSITIONMATCH=15.0;
 
     HPSEcal3 ecal;
 
@@ -345,8 +345,14 @@ public abstract class ReconParticleDriver extends Driver {
                 Cluster matchedCluster = null;
                 for (Cluster cluster : clusters) {
 
+                    //create a copy of the current cluster, and apply corrections to it
+                    //before calculating nsigma
+                    Cluster corrCluster = new BaseCluster(cluster);
+                    double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
+                    ClusterUtilities.applyCorrections(ecal, corrCluster, ypos,isMC);
+                    
                     // normalized distance between this cluster and track:
-                    final double thisNSigma=matcher.getNSigmaPosition(cluster, particle);
+                    final double thisNSigma=matcher.getNSigmaPosition(corrCluster, particle);
 
                     // ignore if matching quality doesn't make the cut:
                     if (thisNSigma > MAXNSIGMAPOSITIONMATCH) continue;
