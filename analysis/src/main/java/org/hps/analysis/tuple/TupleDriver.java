@@ -930,15 +930,10 @@ public abstract class TupleDriver extends Driver {
             Cluster cluster = particle.getClusters().get(0);
             tupleMap.put(prefix + "ClT/D", ClusterUtilities.getSeedHitTime(cluster));
             tupleMap.put(prefix + "ClE/D", cluster.getEnergy());
-            
-            
-            
             tupleMap.put(prefix + "ClSeedE/D", ClusterUtilities.findSeedHit(cluster).getCorrectedEnergy());
             tupleMap.put(prefix + "ClX/D", cluster.getPosition()[0]);
             tupleMap.put(prefix + "ClY/D", cluster.getPosition()[1]);
             tupleMap.put(prefix + "ClZ/D", cluster.getPosition()[2]);
-            
-           
             tupleMap.put(prefix + "ClHits/I", (double) cluster.getCalorimeterHits().size());
             tupleMap.put(prefix + "Clix/I", (double) ClusterUtilities.findSeedHit(cluster).getIdentifierFieldValue("ix"));
             tupleMap.put(prefix + "Cliy/I", (double) ClusterUtilities.findSeedHit(cluster).getIdentifierFieldValue("iy"));
