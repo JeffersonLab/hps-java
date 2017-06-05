@@ -88,6 +88,14 @@ public abstract class ReconParticleDriver extends Driver {
         this.beamConV0VerticesColName = beamConV0VerticesColName;
     }
 
+     /**
+     * Sets the beam position in the x-direction.
+     *
+     * @param X - The beam position at the target in the x-direction in mm.
+     */
+    public void setBeamPositionX(double X) {
+        beamPosition[1] = X;  // The beamPosition array is in the tracking frame HPS X => TRACK Y
+    }
     /**
      * Sets the beam size sigma in the x-direction.
      *
@@ -95,9 +103,18 @@ public abstract class ReconParticleDriver extends Driver {
      * x-direction.
      */
     public void setBeamSigmaX(double sigmaX) {
-        beamSize[1] = sigmaX;
+        beamSize[1] = sigmaX;  // The beamsize array is in the tracking frame HPS X => TRACK Y
     }
 
+    /**
+     * Sets the beam position in the y-direction in mm.
+     *
+     * @param Y - The position of the beam in the y-direction in mm.
+     */
+    public void setBeamPositionY(double Y) {
+        beamPosition[2] = Y; // The beamPosition array is in the tracking frame HPS Y => TRACK Z
+    }
+    
     /**
      * Sets the beam size sigma in the y-direction.
      *
@@ -105,7 +122,16 @@ public abstract class ReconParticleDriver extends Driver {
      * y-direction.
      */
     public void setBeamSigmaY(double sigmaY) {
-        beamSize[2] = sigmaY;
+        beamSize[2] = sigmaY; // The beamsize array is in the tracking frame HPS Y => TRACK Z
+    }  
+    
+    /**
+     * Sets the beam position in the z-direction in mm.
+     *
+     * @param Z - The position of the beam in the y-direction in mm.
+     */
+    public void setBeamPositionZ(double Z) {
+        beamPosition[0] = Z; // The beamPosition array is in the tracking frame HPS Z => TRACK X
     }
 
     /**
@@ -522,11 +548,11 @@ public abstract class ReconParticleDriver extends Driver {
             event.put(unconstrainedV0CandidatesColName, unconstrainedV0Candidates, ReconstructedParticle.class, 0);
         }
         if (beamConV0CandidatesColName != null) {
-            printDebug("Beam-Constrained V0 Candidates: " + unconstrainedV0Candidates.size());
+            printDebug("Beam-Constrained V0 Candidates: " + beamConV0Candidates.size());
             event.put(beamConV0CandidatesColName, beamConV0Candidates, ReconstructedParticle.class, 0);
         }
         if (targetConV0CandidatesColName != null) {
-            printDebug("Target-Constrained V0 Candidates: " + unconstrainedV0Candidates.size());
+            printDebug("Target-Constrained V0 Candidates: " + targetConV0Candidates.size());
             event.put(targetConV0CandidatesColName, targetConV0Candidates, ReconstructedParticle.class, 0);
         }
         if (unconstrainedV0VerticesColName != null) {
@@ -538,7 +564,7 @@ public abstract class ReconParticleDriver extends Driver {
             event.put(beamConV0VerticesColName, beamConV0Vertices, Vertex.class, 0);
         }
         if (targetConV0VerticesColName != null) {
-            printDebug("Target-Constrained V0 Vertices: " + beamConV0Vertices.size());
+            printDebug("Target-Constrained V0 Vertices: " + targetConV0Vertices.size());
             event.put(targetConV0VerticesColName, targetConV0Vertices, Vertex.class, 0);
         }
     }
@@ -694,6 +720,10 @@ public abstract class ReconParticleDriver extends Driver {
     // The beamsize array is in the tracking frame
     /* TODO  mg-May 14, 2014:  the the beam size from the conditions db...also beam position!  */
     protected double[] beamSize = {0.001, 0.130, 0.050}; //rough estimate from harp scans during engineering run production running
+    // Beam position variables.
+    // The beamPosition array is in the tracking frame
+    /* TODO get the beam position from the conditions db */
+    protected double[] beamPosition = {0.0, 0.0, 0.0}; //
     protected double bField;
 
     //  flipSign is a kludge...

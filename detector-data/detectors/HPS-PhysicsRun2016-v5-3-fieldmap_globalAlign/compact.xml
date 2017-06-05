@@ -3,7 +3,7 @@
     
     <info name="HPS-PhysicsRun2016-Nominal-v5-3-fieldmap_globalAlign">
         <comment>HPS detector for 2016 Physics Run.
-	Start from version v5-1 2015 
+        Start from version v5-1 2015 
         Curved + straight tracks (straight: 8100 only run)
         Sensor floating: u translations L1t+L4t, L3b+L4b
         global alignment tuning impact parameters central values, 2 iterations
@@ -758,7 +758,17 @@
             <millepede_constant name="22316" value="0.0" />
             <millepede_constant name="22317" value="0.0" />
             <millepede_constant name="22318" value="0.0" />
+
+            <!-- top support tilt angles -->
+            <millepede_constant name="13100" value="0.00" /> <!-- + means opening-->
+            <millepede_constant name="13200" value="0.0"  />
+            <millepede_constant name="13300" value="0.0"  />
             
+            <!-- bottom support tilt angles -->
+            <millepede_constant name="23100" value="-0.00" /> <!-- - means opening -->
+            <millepede_constant name="23200" value="0.0"   />
+            <millepede_constant name="23300" value="0.0"   />
+
         </millepede_constants>
     </detector>   
       
