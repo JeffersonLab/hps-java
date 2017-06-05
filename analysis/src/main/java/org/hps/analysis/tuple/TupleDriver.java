@@ -947,12 +947,13 @@ public abstract class TupleDriver extends Driver {
                     break;
                 }
             }
-            tupleMap.put(prefix + "UncorrClT/D", ClusterUtilities.getSeedHitTime(uncorrCluster));
-            tupleMap.put(prefix + "UncorrClE/D", uncorrCluster.getEnergy());
-            tupleMap.put(prefix + "UncorrClX/D", uncorrCluster.getPosition()[0]);
-            tupleMap.put(prefix + "UncorrClY/D", uncorrCluster.getPosition()[1]);
-            tupleMap.put(prefix + "UncorrClZ/D", uncorrCluster.getPosition()[2]);
-            
+            if(uncorrCluster != null){
+                tupleMap.put(prefix + "UncorrClT/D", ClusterUtilities.getSeedHitTime(uncorrCluster));
+                tupleMap.put(prefix + "UncorrClE/D", uncorrCluster.getEnergy());
+                tupleMap.put(prefix + "UncorrClX/D", uncorrCluster.getPosition()[0]);
+                tupleMap.put(prefix + "UncorrClY/D", uncorrCluster.getPosition()[1]);
+                tupleMap.put(prefix + "UncorrClZ/D", uncorrCluster.getPosition()[2]);
+            }
         }
 
         return returnTrackState;
