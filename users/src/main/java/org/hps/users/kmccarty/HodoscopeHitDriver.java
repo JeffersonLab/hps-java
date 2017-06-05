@@ -29,8 +29,8 @@ public class HodoscopeHitDriver extends Driver {
 	
 	private final double[][][] crystalCenters = {
 			{
-				new double[] {  46.5, 39.2 }, new double[] {  61.5, 39.2 }, new double[] {  76.5, 39.2 }, new double[] {  94,   39.2 },
-				new double[] { 114,   39.2 }, new double[] { 134,   39.2 }, new double[] { 159,   39.2 }, new double[] { 192.5, 39.2 }
+				new double[] {  46.5, 26.7 }, new double[] {  61.5, 26.7 }, new double[] {  76.5, 26.7 }, new double[] {  94,   26.7 },
+				new double[] { 114,   26.7 }, new double[] { 134,   26.7 }, new double[] { 159,   26.7 }, new double[] { 192.5, 26.7 }
 			},
 			{
 				new double[] {  46.5, 59.1 }, new double[] {  61.5, 59.1 }, new double[] {  76.5, 59.1 }, new double[] {  94,   59.1 },
@@ -96,6 +96,7 @@ public class HodoscopeHitDriver extends Driver {
 			position[1] = crystalCenters[Math.abs(entry.getKey().y) - 1][entry.getKey().x - 1][1];
 			position[2] = 1100;
 			position[0] = position[0] + 21.17;
+			if(entry.getKey().y < 0) { position[1] = -position[1]; }
 			
 			// Iterate over all contributing particles and collect
 			// their data.
