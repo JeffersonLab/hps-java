@@ -62,9 +62,9 @@ public class ReconDiagnosticsDriver extends Driver {
             aida.cloud2D("elapsed time vs SVT size").fill(svtsize, deltaTime);
             _startTime = System.nanoTime();
             double usedMem = (runtime.totalMemory() - runtime.freeMemory()) / mb;
-            double freeMem = runtime.freeMemory();
-            double totalMem = runtime.totalMemory();
-            double maxMem = runtime.maxMemory();
+            double freeMem = runtime.freeMemory() / mb;
+            double totalMem = (runtime.totalMemory() - runtime.freeMemory()) / mb;
+            double maxMem = runtime.maxMemory() / mb;
             System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " " + svtsize + " " + deltaTime + " " + usedMem + " " + freeMem + " " + totalMem + " " + maxMem);
         }
     }
