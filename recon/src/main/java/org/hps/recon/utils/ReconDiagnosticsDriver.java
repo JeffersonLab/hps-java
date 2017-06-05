@@ -36,14 +36,7 @@ public class ReconDiagnosticsDriver extends Driver {
     @Override
     protected void process(EventHeader event) {
         _nEvents++;
-        if ((_nEvents % _timeInterval) == 0) {
-            long deltaTime = System.nanoTime() - _startTime;
-            List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-            double svtsize = rawHits.size();
-            aida.cloud2D("elapsed time vs SVT size").fill(svtsize, deltaTime);
-            _startTime = System.nanoTime();
-            System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " " + svtsize + " " + deltaTime);
-        }
+        //TODO average quantities if intervals != 1
         if ((_nEvents % _memInterval) == 0) {
             System.out.println("##### Heap utilization statistics [MB] #####");
 
@@ -60,6 +53,19 @@ public class ReconDiagnosticsDriver extends Driver {
 
             //Print Maximum available memory
             System.out.println("Max Memory:" + runtime.maxMemory() / mb);
+        }
+
+        if ((_nEvents % _timeInterval) == 0) {
+            long deltaTime = System.nanoTime() - _startTime;
+            List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+            double svtsize = rawHits.size();
+            aida.cloud2D("elapsed time vs SVT size").fill(svtsize, deltaTime);
+            _startTime = System.nanoTime();
+            double usedMem = (runtime.totalMemory() - runtime.freeMemory()) / mb;
+            double freeMem = runtime.freeMemory();
+            double totalMem = runtime.totalMemory();
+            double maxMem = runtime.maxMemory();
+            System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " " + svtsize + " " + deltaTime + " " + usedMem + " " + freeMem + " " + totalMem + " " + maxMem);
         }
     }
 
