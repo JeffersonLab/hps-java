@@ -314,7 +314,8 @@ public abstract class TupleDriver extends Driver {
             "NTrackHits/I", "HitsSharedP/D","MaxHitsShared/I",
             "MinNegativeIsoL2/D","MinPositiveIsoL2/D","IsoStereoL2/D","IsoAxialL2/D",
             "SharedTrkChisq/D","SharedTrkEcalX/D","SharedTrkEcalY/D",
-            "MatchChisq/D", "ClT/D", "ClE/D", "ClSeedE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I", "Clix/I","Cliy/I"};
+            "MatchChisq/D", "ClT/D", "ClE/D", "ClSeedE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I", "Clix/I","Cliy/I",
+            "UncorrClT/D", "UncorrClE/D", "UncorrClX/D", "UncorrClY/D", "UncorrClZ/D"};
 
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
@@ -929,13 +930,34 @@ public abstract class TupleDriver extends Driver {
             Cluster cluster = particle.getClusters().get(0);
             tupleMap.put(prefix + "ClT/D", ClusterUtilities.getSeedHitTime(cluster));
             tupleMap.put(prefix + "ClE/D", cluster.getEnergy());
+            
+            
+            
             tupleMap.put(prefix + "ClSeedE/D", ClusterUtilities.findSeedHit(cluster).getCorrectedEnergy());
             tupleMap.put(prefix + "ClX/D", cluster.getPosition()[0]);
             tupleMap.put(prefix + "ClY/D", cluster.getPosition()[1]);
             tupleMap.put(prefix + "ClZ/D", cluster.getPosition()[2]);
+            
+           
             tupleMap.put(prefix + "ClHits/I", (double) cluster.getCalorimeterHits().size());
             tupleMap.put(prefix + "Clix/I", (double) ClusterUtilities.findSeedHit(cluster).getIdentifierFieldValue("ix"));
             tupleMap.put(prefix + "Cliy/I", (double) ClusterUtilities.findSeedHit(cluster).getIdentifierFieldValue("iy"));
+            
+            //find the uncorrected cluster corresponding to this cluster
+            Cluster uncorrCluster = null;
+            for(Cluster clust : event.get(Cluster.class, "EcalClusters")){
+                if(clust.getCalorimeterHits().get(0).getCellID() == cluster.getCalorimeterHits().get(0).getCellID())
+                {
+                    uncorrCluster = clust;
+                    break;
+                }
+            }
+            tupleMap.put(prefix + "UncorrClT/D", ClusterUtilities.getSeedHitTime(uncorrCluster));
+            tupleMap.put(prefix + "UncorrClE/D", uncorrCluster.getEnergy());
+            tupleMap.put(prefix + "UncorrClX/D", uncorrCluster.getPosition()[0]);
+            tupleMap.put(prefix + "UncorrClY/D", uncorrCluster.getPosition()[1]);
+            tupleMap.put(prefix + "UncorrClZ/D", uncorrCluster.getPosition()[2]);
+            
         }
 
         return returnTrackState;
