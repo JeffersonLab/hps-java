@@ -75,7 +75,10 @@ public class APrimeMCAnalysisDriver extends Driver {
     private IHistogram1D vtx_zPull = aida.histogram1D("vertex z pull", 200, -5., 5.);
 
     private IHistogram1D vtxrf_zRes = aida.histogram1D("vertex refit z residual", 200, -100., 100.);
-    
+    private IHistogram1D vtxrf_mRes = aida.histogram1D("vertex refit mass residual", 100, -0.05, 0.05);
+    private IHistogram1D vtxrf_corrmRes = aida.histogram1D("vertex refit corrected mass residual", 100, -0.05, 0.05);
+    private IHistogram2D vtxcorrMassResvsMCz = aida.histogram2D("vertex refit corrected mass - MC mass vs MC z", 200, -100., 200., 100, -0.05, 0.05);
+
     private IHistogram1D vtxMass = aida.histogram1D("vertex mass", 100, 0., 0.1);
     private IHistogram1D vtxMassRes = aida.histogram1D("vertex fitted mass - MC mass", 100, -0.05, 0.05);
     private IHistogram2D vtxMassResvsMCz = aida.histogram2D("vertex fitted mass - MC mass vs MC z", 200, -100., 200., 100, -0.05, 0.05);
@@ -152,6 +155,8 @@ public class APrimeMCAnalysisDriver extends Driver {
                         System.out.println("mass: " + mass + " invMass: " + invMass + " delta: " + (invMass - mass));
                     }
 
+                    analyzeVertex(v, electronMC, positronMC);
+
                     aida.cloud1D("type").fill(type);
                     vtx_x.fill(pos.x());
                     aida.cloud2D("vertex x vs z").fill(pos.z(), pos.x());
@@ -202,13 +207,30 @@ public class APrimeMCAnalysisDriver extends Driver {
                     }
                     analyzeParticle("electron", electron);
                     analyzeParticle("positron", positron);
-                    
+
                     BilliorVertex bvRefit = reVertex(v);
                     System.out.println("aprime vertex: " + aprimeVtx);
                     System.out.println("vertex pos: " + pos);
                     System.out.println("bvRefit: " + bvRefit);
 
-                    vtxrf_zRes.fill(bvRefit.getPosition().z()-aprimeVtx.z());
+                    vtxrf_zRes.fill(bvRefit.getPosition().z() - aprimeVtx.z());
+                    // check mass correction here...
+                    // corrM = events["uncM"]-0.15e-3*(events["elePX"]/events["eleP"]-events["posPX"]/events["posP"])*events["uncVZ"]/events["uncM"]
+                    double uncM = bvRefit.getParameters().get("invMass");
+                    double uncVZ = bvRefit.getPosition().z();
+                    double elePX = bvRefit.getParameters().get("p1Y");
+                    double elePY = bvRefit.getParameters().get("p1Z");
+                    double elePZ = bvRefit.getParameters().get("p1X");
+                    double posPX = bvRefit.getParameters().get("p2Y");
+                    double posPY = bvRefit.getParameters().get("p2Z");
+                    double posPZ = bvRefit.getParameters().get("p2X");
+                    double eleP = sqrt(elePX * elePX + elePY * elePY + elePZ * elePZ);
+                    double posP = sqrt(posPX * posPX + posPY * posPY + posPZ * posPZ);
+                    double corrM = uncM - 0.15e-3 * (elePX / eleP - posPX / posP) * uncVZ / uncM;
+                    System.out.println("uncM " + uncM + " corrM " + corrM);
+                    vtxrf_mRes.fill(uncM - aprimeMass);
+                    vtxrf_corrmRes.fill(corrM - aprimeMass);
+                    vtxcorrMassResvsMCz.fill(aprimeVtx.z(), corrM - aprimeMass);
                     aida.tree().cd("/");
                 }// only analyze GBL tracks
             }
@@ -328,7 +350,7 @@ public class APrimeMCAnalysisDriver extends Driver {
     @Override
     protected void endOfData() {
         try {
-            aida.saveAs("APrimeMCVertexAnalysisDriver_" + myDate() + ".aida");
+            aida.saveAs("APrimeMCAnalysisDriver_" + myDate() + ".aida");
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -348,5 +370,25 @@ public class APrimeMCAnalysisDriver extends Driver {
         Momentum4Vector vec1 = new Momentum4Vector(p1.getPX(), p1.getPY(), p1.getPZ(), p1.getEnergy());
         Momentum4Vector vec2 = new Momentum4Vector(p2.getPX(), p2.getPY(), p2.getPZ(), p2.getEnergy());
         return vec1.plus(vec2);
+    }
+
+    private void analyzeVertex(Vertex v, MCParticle e, MCParticle p) {
+        double[] ep = new double[4];
+        double[] pp = new double[4];
+        Map<String, Double> vals = v.getParameters();
+        //System.out.println(vals);
+        ep[0] = vals.get("p1X");
+        ep[1] = vals.get("p1Y");
+        ep[2] = vals.get("p1Z");
+        pp[0] = vals.get("p2X");
+        pp[1] = vals.get("p2Y");
+        pp[2] = vals.get("p2Z");
+        Hep3Vector epmc = e.getMomentum();
+        Hep3Vector ppmc = p.getMomentum();
+        System.out.println("ep: "+Arrays.toString(ep));
+        System.out.println("pp: "+Arrays.toString(pp));
+        System.out.println("epmc: "+epmc);
+        System.out.println("ppmc: "+ppmc);
+
     }
 }
