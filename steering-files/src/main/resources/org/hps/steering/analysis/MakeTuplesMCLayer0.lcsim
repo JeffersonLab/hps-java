@@ -1,0 +1,50 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="CleanupDriver"/>
+        <driver name="RawTrackerHitSensorSetup"/>
+    	<driver name="TridentTruthTuple"/>
+        <driver name="TridentTuple"/>
+        <driver name="MollerTuple"/>
+        <driver name="FEETuple"/>
+    </execute>    
+    <drivers>    
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>        
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+
+        <driver name="TridentTuple" type="org.hps.analysis.tuple.TridentTupleDriver">
+            <triggerType>all</triggerType>
+            <isGBL>true</isGBL>
+            <tupleFile>${outputFile}_tri.txt</tupleFile>
+            <cutTuple>false</cutTuple>
+            <beamPosZ>-5.0</beamPosZ>
+            <getMC>true</getMC>
+	    <nLay>7</nLay>
+        </driver>
+	<driver name="TridentTruthTuple" type="org.hps.analysis.tuple.TridentTruthTupleDriver">
+        </driver>
+        <driver name="MollerTuple" type="org.hps.analysis.tuple.MollerTupleDriver">
+            <triggerType>all</triggerType>
+            <isGBL>true</isGBL>
+            <tupleFile>${outputFile}_moller.txt</tupleFile>
+            <cutTuple>false</cutTuple>
+            <beamPosZ>-5.0</beamPosZ>
+	    <nLay>7</nLay>
+        </driver>
+        <driver name="FEETuple" type="org.hps.analysis.tuple.FEETupleDriver">
+            <triggerType>all</triggerType>
+            <isGBL>true</isGBL>
+            <tupleFile>${outputFile}_fee.txt</tupleFile>
+            <cutTuple>false</cutTuple>
+            <beamPosZ>-5.0</beamPosZ>
+	    <nLay>7</nLay>
+        </driver>
+    </drivers>
+</lcsim>
+
