@@ -44,6 +44,25 @@ public class SvtEventFlagger {
     private double nominalAngleTop = 0;
     private double nominalAngleBottom = 0;
 
+    private double maxGoodOffsetTime = 35;
+    private double minGoodOffsetTime = 0;
+    
+    public void setNominalAngleTop(double val){
+        nominalAngleTop = val;
+    }
+    
+    public void setNominalAngleBottom(double val){
+        nominalAngleBottom = val;
+    }
+    
+    public void setMaxGoodOffsetTime(double val){
+        this.maxGoodOffsetTime = val;
+    }
+    
+    public void setMinGoodOffsetTime(double val){
+        this.minGoodOffsetTime = val;
+    }
+    
     public void writeFlags(EventHeader event) {
         Date eventDate = getEventTimeStamp(event);
         if (eventDate != null) {
@@ -69,7 +88,7 @@ public class SvtEventFlagger {
 
         latencyGood = false;
         if (svtTimingConstants != null) {
-            if (svtTimingConstants.getOffsetTime() <= 27) {
+            if (svtTimingConstants.getOffsetTime() <= maxGoodOffsetTime && svtTimingConstants.getOffsetTime() >= minGoodOffsetTime) {
                 latencyGood = true;
             } else {
                 if (((event.getTimeStamp() - 4 * svtTimingConstants.getOffsetPhase()) % 24) < 16) {
