@@ -20,7 +20,7 @@ public class ReconDiagnosticsDriver extends Driver {
     private int mb = 1024 * 1024;
 
     private int _timeInterval = 1;
-    private int _memInterval = 1;
+//    private int _memInterval = 1;
 
     private int _nEvents;
 
@@ -37,23 +37,23 @@ public class ReconDiagnosticsDriver extends Driver {
     protected void process(EventHeader event) {
         _nEvents++;
         //TODO average quantities if intervals != 1
-        if ((_nEvents % _memInterval) == 0) {
-            System.out.println("##### Heap utilization statistics [MB] #####");
-
-            //Print used memory
-            System.out.println("Used Memory:"
-                    + (runtime.totalMemory() - runtime.freeMemory()) / mb);
-
-            //Print free memory
-            System.out.println("Free Memory:"
-                    + runtime.freeMemory() / mb);
-
-            //Print total available memory
-            System.out.println("Total Memory:" + runtime.totalMemory() / mb);
-
-            //Print Maximum available memory
-            System.out.println("Max Memory:" + runtime.maxMemory() / mb);
-        }
+//        if ((_nEvents % _memInterval) == 0) {
+//            System.out.println("##### Heap utilization statistics [MB] #####");
+//
+//            //Print used memory
+//            System.out.println("Used Memory:"
+//                    + (runtime.totalMemory() - runtime.freeMemory()) / mb);
+//
+//            //Print free memory
+//            System.out.println("Free Memory:"
+//                    + runtime.freeMemory() / mb);
+//
+//            //Print total available memory
+//            System.out.println("Total Memory:" + runtime.totalMemory() / mb);
+//
+//            //Print Maximum available memory
+//            System.out.println("Max Memory:" + runtime.maxMemory() / mb);
+//        }
 
         if ((_nEvents % _timeInterval) == 0) {
             long deltaTime = System.nanoTime() - _startTime;
@@ -73,7 +73,7 @@ public class ReconDiagnosticsDriver extends Driver {
         _timeInterval = i;
     }
 
-    public void setMemoryInterval(int i) {
-        _memInterval = i;
-    }
+//    public void setMemoryInterval(int i) {
+//        _memInterval = i;
+//    }
 }
