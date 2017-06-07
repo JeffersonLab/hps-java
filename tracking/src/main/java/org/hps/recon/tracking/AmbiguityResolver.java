@@ -25,12 +25,12 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
 public abstract class AmbiguityResolver {
 
-    List<Track> _tracks;
-    List<Track> _partials;
-    List<Track> _duplicates;
-    List<Track> _shared;
-    List<Track> _wereCleaned;
-    List<Track> _poorScore;
+    List<Track> tracks;
+    List<Track> partials;
+    List<Track> duplicates;
+    List<Track> shared;
+    List<Track> wereCleaned;
+    List<Track> poorScore;
 
     protected Map<List<TrackerHit>, List<Track>> hitsToTracksMap;
     protected Map<Track, List<Track>> sharedTracksMap;
@@ -42,12 +42,12 @@ public abstract class AmbiguityResolver {
      * Default constructor
      */
     public AmbiguityResolver() {
-        _tracks = new ArrayList<Track>();
-        _partials = new ArrayList<Track>();
-        _duplicates = new ArrayList<Track>();
-        _shared = new ArrayList<Track>();
-        _wereCleaned = new ArrayList<Track>();
-        _poorScore = new ArrayList<Track>();
+        this.tracks = new ArrayList<Track>();
+        this.partials = new ArrayList<Track>();
+        this.duplicates = new ArrayList<Track>();
+        this.shared = new ArrayList<Track>();
+        this.wereCleaned = new ArrayList<Track>();
+        this.poorScore = new ArrayList<Track>();
 
         hitsToTracksMap = new HashMap<List<TrackerHit>, List<Track>>();
         sharedTracksMap = new HashMap<Track, List<Track>>();
@@ -60,21 +60,21 @@ public abstract class AmbiguityResolver {
      * @return current operable tracks
      */
     public List<Track> getTracks() {
-        return _tracks;
+        return this.tracks;
     }
 
     /**
      * @return tracks discarded because partial versions of operable tracks
      */
     public List<Track> getPartialTracks() {
-        return _partials;
+        return this.partials;
     }
 
     /**
      * @return tracks discarded because duplicates of operable tracks
      */
     public List<Track> getDuplicateTracks() {
-        return _duplicates;
+        return this.duplicates;
     }
 
     /**
@@ -82,14 +82,14 @@ public abstract class AmbiguityResolver {
      *         tracks
      */
     public List<Track> getSharedTracks() {
-        return _shared;
+        return this.shared;
     }
 
     /**
      * @return tracks discarded because of poor score
      */
     public List<Track> getPoorScoreTracks() {
-        return _poorScore;
+        return this.poorScore;
     }
 
     // setters
@@ -98,12 +98,12 @@ public abstract class AmbiguityResolver {
      * Resets internal states.
      */
     public void resetResolver() {
-        _tracks.clear();
-        _partials.clear();
-        _duplicates.clear();
-        _shared.clear();
-        _wereCleaned.clear();
-        _poorScore.clear();
+        this.tracks.clear();
+        this.partials.clear();
+        this.duplicates.clear();
+        this.shared.clear();
+        this.wereCleaned.clear();
+        this.poorScore.clear();
 
         hitsToTracksMap.clear();
         sharedTracksMap.clear();
@@ -229,7 +229,7 @@ public abstract class AmbiguityResolver {
                     hitsToTracksMap.put(trackHits, matchingTracks);
                 }
                 matchingTracks.add(trk);
-                _tracks.add(trk);
+                this.tracks.add(trk);
             }
         }
 
@@ -264,10 +264,9 @@ public abstract class AmbiguityResolver {
             List<Track> partialTracks = new ArrayList<Track>();
 
             List<TrackerHit> trackHits = trk.getTrackerHits();
-            for (Track otherTrack : _tracks) {
+            for (Track otherTrack : this.tracks) {
                 List<TrackerHit> otherTrackHits = otherTrack.getTrackerHits();
-                if (otherTrackHits.size() < trackHits.size()
-                        && trackHits.containsAll(otherTrackHits)) {
+                if (otherTrackHits.size() < trackHits.size() && trackHits.containsAll(otherTrackHits)) {
                     partialTracks.add(otherTrack);
                 }
             }
@@ -281,25 +280,25 @@ public abstract class AmbiguityResolver {
          * tracks collection.
          */
         protected void RemoveShared() {
-            List<Track> sorted = new ArrayList<Track>(_tracks);
+            List<Track> sorted = new ArrayList<Track>(this.tracks);
 
             Collections.sort(sorted, new compareScore());
 
             // System.out.println("REMOVING SHARED");
             for (Track trk : sorted) {
                 // System.out.printf("track score %f \n", getScore(trk));
-                if (_tracks.contains(trk)) {
+                if (this.tracks.contains(trk)) {
                     // System.out.println("    examining this track...");
                     List<Track> shared = sharedTracksMap.get(trk);
                     // System.out.printf("     removing %d shared \n",
                     // shared.size());
-                    _tracks.removeAll(shared);
+                    this.tracks.removeAll(shared);
                     for (Track s : shared) {
                         // System.out.printf(
                         // "           removed track with score %f \n",
                         // getScore(s));
-                        if (!_shared.contains(s))
-                            _shared.add(s);
+                        if (!this.shared.contains(s))
+                            this.shared.add(s);
                     }
                 }
             }
@@ -313,8 +312,7 @@ public abstract class AmbiguityResolver {
          */
         protected void RemoveDuplicates() {
             List<Track> temp = new ArrayList<Track>();
-            for (Map.Entry<List<TrackerHit>, List<Track>> mapEntry : hitsToTracksMap
-                    .entrySet()) {
+            for (Map.Entry<List<TrackerHit>, List<Track>> mapEntry : hitsToTracksMap.entrySet()) {
                 List<Track> matchingTracks = mapEntry.getValue();
                 if (matchingTracks.isEmpty())
                     continue;
@@ -330,11 +328,9 @@ public abstract class AmbiguityResolver {
                         continue;
                     }
                     String strategyName = seedTrack.getStrategy().getName();
-                    StrategyType strategyType = StrategyType
-                            .getType(strategyName);
+                    StrategyType strategyType = StrategyType.getType(strategyName);
                     if (strategyType != null) {
-                        trackType = TrackType.addStrategy(trackType,
-                                strategyType);
+                        trackType = TrackType.addStrategy(trackType, strategyType);
                     }
                 }
                 try {
@@ -344,9 +340,9 @@ public abstract class AmbiguityResolver {
 
                 temp.add(tempTrack);
             }
-            _duplicates.addAll(_tracks);
-            _duplicates.removeAll(temp);
-            _tracks = temp;
+            this.duplicates.addAll(this.tracks);
+            this.duplicates.removeAll(temp);
+            this.tracks = temp;
         }
 
         /**
@@ -355,16 +351,16 @@ public abstract class AmbiguityResolver {
          * collection, and puts them in partial tracks collection
          */
         protected void RemovePartials() {
-            for (Track track : _tracks) {
-                if (!_partials.contains(track)) {
+            for (Track track : this.tracks) {
+                if (!this.partials.contains(track)) {
                     List<Track> temp = PartialsForTrack(track);
                     for (Track track2 : temp) {
-                        if (!_partials.contains(track2))
-                            _partials.add(track2);
+                        if (!this.partials.contains(track2))
+                            this.partials.add(track2);
                     }
                 }
             }
-            _tracks.removeAll(_partials);
+            this.tracks.removeAll(this.partials);
         }
 
         /**

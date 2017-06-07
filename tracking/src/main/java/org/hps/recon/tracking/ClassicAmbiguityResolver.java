@@ -18,8 +18,8 @@ import org.lcsim.event.TrackerHit;
  */
 
 public class ClassicAmbiguityResolver extends AmbiguityResolver {
-    private int _shareThreshold;
-    private double _scoreThreshold;
+    private int shareThreshold;
+    private double scoreThreshold;
     private double[] sharedHitScore = { 10, 10, 10, 10, 10, 10 };
     private double[] unsharedHitScore = { 20, 20, 20, 20, 20, 20 };
     private double[] holePenalty = { 10, 10, 10, 10, 10, 10 };
@@ -70,7 +70,7 @@ public class ClassicAmbiguityResolver extends AmbiguityResolver {
      *            : min acceptable score for a track
      */
     public void setScoreThreshold(double score) {
-        _scoreThreshold = score;
+        this.scoreThreshold = score;
     }
 
     /**
@@ -128,7 +128,7 @@ public class ClassicAmbiguityResolver extends AmbiguityResolver {
      *            with each other
      */
     public void setShareThreshold(int value) {
-        _shareThreshold = value;
+        this.shareThreshold = value;
     }
 
     /**
@@ -149,7 +149,7 @@ public class ClassicAmbiguityResolver extends AmbiguityResolver {
      *
      */
     protected boolean areShared(Track trk1, Track trk2) {
-        if (TrackUtils.numberOfSharedHits(trk1, trk2) > _shareThreshold) {
+        if (TrackUtils.numberOfSharedHits(trk1, trk2) > this.shareThreshold) {
             if ((!doChargeCheck) || (areSameCharge(trk1, trk2))) {
                 return true;
             }
@@ -183,7 +183,7 @@ public class ClassicAmbiguityResolver extends AmbiguityResolver {
 
         for (Iterator<Track> iterator = _tracks.iterator(); iterator.hasNext();) {
             Track trk = iterator.next();
-            if (trackScoreMap.get(trk)[0] < _scoreThreshold) {
+            if (trackScoreMap.get(trk)[0] < this.scoreThreshold) {
                 iterator.remove();
                 _poorScore.add(trk);
             }
@@ -209,8 +209,7 @@ public class ClassicAmbiguityResolver extends AmbiguityResolver {
         int[] holes = holesOnTrack(track);
 
         for (TrackerHit hit : hitsOnTrack) {
-            int layer = ((RawTrackerHit) hit.getRawHits().get(0))
-                    .getLayerNumber();
+            int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
             layer = (layer + 1) / 2;
             if (TrackUtils.isSharedHit(hit, _tracks))
                 score += sharedHitScore[layer - 1];
@@ -246,8 +245,7 @@ public class ClassicAmbiguityResolver extends AmbiguityResolver {
         List<TrackerHit> stereoHits = trk.getTrackerHits();
 
         for (TrackerHit stereoHit : stereoHits) {
-            int layer = ((RawTrackerHit) stereoHit.getRawHits().get(0))
-                    .getLayerNumber();
+            int layer = ((RawTrackerHit) stereoHit.getRawHits().get(0)).getLayerNumber();
             layer = (layer + 1) / 2;
             holes[layer - 1] = 0;
         }

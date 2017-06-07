@@ -20,9 +20,9 @@ public class SimpleAmbiguityResolver extends AmbiguityResolver {
         DUPS, PARTIALS, SHARED, POORSCORE, FULL;
     }
 
-    private AmbiMode _mode;
-    private int _shareThreshold;
-    private double _scoreThreshold;
+    private AmbiMode mode;
+    private int shareThreshold;
+    private double scoreThreshold;
 
     /**
      * Constructor
@@ -35,8 +35,7 @@ public class SimpleAmbiguityResolver extends AmbiguityResolver {
      * @param shareThreshold
      * @param scoreThreshold
      */
-    public SimpleAmbiguityResolver(List<List<Track>> inputTracks,
-            AmbiMode mode, int share, double score) {
+    public SimpleAmbiguityResolver(List<List<Track>> inputTracks, AmbiMode mode, int share, double score) {
         super();
         initializeFromCollection(inputTracks);
         setMode(mode);
@@ -61,7 +60,7 @@ public class SimpleAmbiguityResolver extends AmbiguityResolver {
      *            with each other
      */
     public void setShareThreshold(int value) {
-        _shareThreshold = value;
+        this.shareThreshold = value;
     }
 
     /**
@@ -69,7 +68,7 @@ public class SimpleAmbiguityResolver extends AmbiguityResolver {
      *            : min acceptable score for a track
      */
     public void setScoreThreshold(double value) {
-        _scoreThreshold = value;
+        this.scoreThreshold = value;
     }
 
     /**
@@ -77,14 +76,14 @@ public class SimpleAmbiguityResolver extends AmbiguityResolver {
      *         tracks can share with each other
      */
     public int getShareThreshold() {
-        return _shareThreshold;
+        return this.shareThreshold;
     }
 
     /**
      * @return scoreThreshold : min acceptable score
      */
     public double getScoreThreshold() {
-        return _scoreThreshold;
+        return this.scoreThreshold;
     }
 
     /**
@@ -93,14 +92,14 @@ public class SimpleAmbiguityResolver extends AmbiguityResolver {
      *            ATLAS-style
      */
     public void setMode(AmbiMode mode) {
-        _mode = mode;
+        this.mode = mode;
     }
 
     /**
      * @return mode : remove duplicates, remove partials, remove shared
      */
     public AmbiMode getMode() {
-        return _mode;
+        return this.mode;
     }
 
     /**
@@ -108,7 +107,7 @@ public class SimpleAmbiguityResolver extends AmbiguityResolver {
      *
      */
     protected boolean areShared(Track trk1, Track trk2) {
-        if (TrackUtils.numberOfSharedHits(trk1, trk2) > _shareThreshold)
+        if (TrackUtils.numberOfSharedHits(trk1, trk2) > this.shareThreshold)
             return true;
         return false;
     }
@@ -130,7 +129,7 @@ public class SimpleAmbiguityResolver extends AmbiguityResolver {
 
         for (Iterator<Track> iterator = _tracks.iterator(); iterator.hasNext();) {
             Track trk = iterator.next();
-            if (trackScoreMap.get(trk)[0] < _scoreThreshold) {
+            if (trackScoreMap.get(trk)[0] < this.scoreThreshold) {
                 iterator.remove();
                 _poorScore.add(trk);
             }
@@ -142,7 +141,7 @@ public class SimpleAmbiguityResolver extends AmbiguityResolver {
      * @override
      */
     public void resolve() {
-        switch (_mode) {
+        switch (this.mode) {
         case FULL:
             utils.RemoveDuplicates();
             utils.RemovePartials();
