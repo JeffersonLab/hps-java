@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;

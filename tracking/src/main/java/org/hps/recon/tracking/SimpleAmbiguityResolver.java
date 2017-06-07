@@ -127,11 +127,11 @@ public class SimpleAmbiguityResolver extends AmbiguityResolver {
      */
     protected void RemovePoorScores() {
 
-        for (Iterator<Track> iterator = _tracks.iterator(); iterator.hasNext();) {
+        for (Iterator<Track> iterator = this.tracks.iterator(); iterator.hasNext();) {
             Track trk = iterator.next();
             if (trackScoreMap.get(trk)[0] < this.scoreThreshold) {
                 iterator.remove();
-                _poorScore.add(trk);
+                this.poorScore.add(trk);
             }
         }
 

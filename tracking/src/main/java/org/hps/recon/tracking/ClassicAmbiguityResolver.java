@@ -181,11 +181,11 @@ public class ClassicAmbiguityResolver extends AmbiguityResolver {
      */
     protected void RemovePoorScores() {
 
-        for (Iterator<Track> iterator = _tracks.iterator(); iterator.hasNext();) {
+        for (Iterator<Track> iterator = this.tracks.iterator(); iterator.hasNext();) {
             Track trk = iterator.next();
             if (trackScoreMap.get(trk)[0] < this.scoreThreshold) {
                 iterator.remove();
-                _poorScore.add(trk);
+                this.poorScore.add(trk);
             }
         }
 
@@ -211,7 +211,7 @@ public class ClassicAmbiguityResolver extends AmbiguityResolver {
         for (TrackerHit hit : hitsOnTrack) {
             int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
             layer = (layer + 1) / 2;
-            if (TrackUtils.isSharedHit(hit, _tracks))
+            if (TrackUtils.isSharedHit(hit, this.tracks))
                 score += sharedHitScore[layer - 1];
             else
                 score += unsharedHitScore[layer - 1];
