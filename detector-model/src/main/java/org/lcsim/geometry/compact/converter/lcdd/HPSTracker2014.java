@@ -39,9 +39,9 @@ public class HPSTracker2014 extends HPSTracker2014Base
                 moduleNumber = 0;
             } else {
                 if(HPSTrackerBuilder.isHoleFromName(surveyVolume)) {
-                    moduleNumber = 2;
-                } else {
                     moduleNumber = 0;
+                } else {
+                    moduleNumber = 2;
                 }
             }
         } else {
