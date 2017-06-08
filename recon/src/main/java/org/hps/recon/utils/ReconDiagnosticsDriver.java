@@ -63,7 +63,7 @@ public class ReconDiagnosticsDriver extends Driver {
             _startTime = System.nanoTime();
             double usedMem = (runtime.totalMemory() - runtime.freeMemory()) / mb;
             double freeMem = runtime.freeMemory() / mb;
-            double totalMem = (runtime.totalMemory() - runtime.freeMemory()) / mb;
+            double totalMem = runtime.totalMemory() / mb;
             double maxMem = runtime.maxMemory() / mb;
             System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " " + svtsize + " " + deltaTime + " " + usedMem + " " + freeMem + " " + totalMem + " " + maxMem);
         }
