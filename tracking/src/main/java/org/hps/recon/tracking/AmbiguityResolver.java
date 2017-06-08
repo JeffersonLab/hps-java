@@ -229,7 +229,7 @@ public abstract class AmbiguityResolver {
                     hitsToTracksMap.put(trackHits, matchingTracks);
                 }
                 matchingTracks.add(trk);
-                this.tracks.add(trk);
+                AmbiguityResolver.this.tracks.add(trk);
             }
         }
 
@@ -264,7 +264,7 @@ public abstract class AmbiguityResolver {
             List<Track> partialTracks = new ArrayList<Track>();
 
             List<TrackerHit> trackHits = trk.getTrackerHits();
-            for (Track otherTrack : this.tracks) {
+            for (Track otherTrack : AmbiguityResolver.this.tracks) {
                 List<TrackerHit> otherTrackHits = otherTrack.getTrackerHits();
                 if (otherTrackHits.size() < trackHits.size() && trackHits.containsAll(otherTrackHits)) {
                     partialTracks.add(otherTrack);
@@ -280,25 +280,25 @@ public abstract class AmbiguityResolver {
          * tracks collection.
          */
         protected void RemoveShared() {
-            List<Track> sorted = new ArrayList<Track>(this.tracks);
+            List<Track> sorted = new ArrayList<Track>(AmbiguityResolver.this.tracks);
 
             Collections.sort(sorted, new compareScore());
 
             // System.out.println("REMOVING SHARED");
             for (Track trk : sorted) {
                 // System.out.printf("track score %f \n", getScore(trk));
-                if (this.tracks.contains(trk)) {
+                if (AmbiguityResolver.this.tracks.contains(trk)) {
                     // System.out.println("    examining this track...");
                     List<Track> shared = sharedTracksMap.get(trk);
                     // System.out.printf("     removing %d shared \n",
                     // shared.size());
-                    this.tracks.removeAll(shared);
+                    AmbiguityResolver.this.tracks.removeAll(shared);
                     for (Track s : shared) {
                         // System.out.printf(
                         // "           removed track with score %f \n",
                         // getScore(s));
-                        if (!this.shared.contains(s))
-                            this.shared.add(s);
+                        if (!AmbiguityResolver.this.shared.contains(s))
+                            AmbiguityResolver.this.shared.add(s);
                     }
                 }
             }
@@ -340,9 +340,9 @@ public abstract class AmbiguityResolver {
 
                 temp.add(tempTrack);
             }
-            this.duplicates.addAll(this.tracks);
-            this.duplicates.removeAll(temp);
-            this.tracks = temp;
+            AmbiguityResolver.this.duplicates.addAll(AmbiguityResolver.this.tracks);
+            AmbiguityResolver.this.duplicates.removeAll(temp);
+            AmbiguityResolver.this.tracks = temp;
         }
 
         /**
@@ -351,16 +351,16 @@ public abstract class AmbiguityResolver {
          * collection, and puts them in partial tracks collection
          */
         protected void RemovePartials() {
-            for (Track track : this.tracks) {
-                if (!this.partials.contains(track)) {
+            for (Track track : AmbiguityResolver.this.tracks) {
+                if (!AmbiguityResolver.this.partials.contains(track)) {
                     List<Track> temp = PartialsForTrack(track);
                     for (Track track2 : temp) {
-                        if (!this.partials.contains(track2))
-                            this.partials.add(track2);
+                        if (!AmbiguityResolver.this.partials.contains(track2))
+                            AmbiguityResolver.this.partials.add(track2);
                     }
                 }
             }
-            this.tracks.removeAll(this.partials);
+            AmbiguityResolver.this.tracks.removeAll(AmbiguityResolver.this.partials);
         }
 
         /**
