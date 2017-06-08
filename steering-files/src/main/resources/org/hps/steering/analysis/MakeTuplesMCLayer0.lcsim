@@ -3,10 +3,8 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="CleanupDriver"/>
-        <driver name="RewriteFlagsDriver"/>
-        <driver name="EventFlagFilter"/>
         <driver name="RawTrackerHitSensorSetup"/>
-    
+    	<driver name="TridentTruthTuple"/>
         <driver name="TridentTuple"/>
         <driver name="MollerTuple"/>
         <driver name="FEETuple"/>
@@ -16,10 +14,6 @@
             <eventInterval>1000</eventInterval>
         </driver>        
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-        <driver name="RewriteFlagsDriver" type = "org.hps.users.holly.RewriteFlagsDriver" />
-        <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter">
-            <flagNames>svt_bias_good svt_burstmode_noise_good svt_event_header_good</flagNames>
-        </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
@@ -28,19 +22,29 @@
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_tri.txt</tupleFile>
-            <cutTuple>true</cutTuple>
+            <cutTuple>false</cutTuple>
+            <beamPosZ>-5.0</beamPosZ>
+            <getMC>true</getMC>
+	    <nLay>7</nLay>
+        </driver>
+	<driver name="TridentTruthTuple" type="org.hps.analysis.tuple.TridentTruthTupleDriver">
         </driver>
         <driver name="MollerTuple" type="org.hps.analysis.tuple.MollerTupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_moller.txt</tupleFile>
-            <cutTuple>true</cutTuple>
+            <cutTuple>false</cutTuple>
+            <beamPosZ>-5.0</beamPosZ>
+	    <nLay>7</nLay>
         </driver>
         <driver name="FEETuple" type="org.hps.analysis.tuple.FEETupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_fee.txt</tupleFile>
-            <cutTuple>true</cutTuple>
+            <cutTuple>false</cutTuple>
+            <beamPosZ>-5.0</beamPosZ>
+	    <nLay>7</nLay>
         </driver>
     </drivers>
 </lcsim>
+
