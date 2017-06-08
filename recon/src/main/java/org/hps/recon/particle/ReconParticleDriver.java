@@ -355,17 +355,15 @@ public abstract class ReconParticleDriver extends Driver {
                     //if the option to use corrected cluster positions is selected, then
                     //create a copy of the current cluster, and apply corrections to it
                     //before calculating nsigma.  Default is don't use corrections.  
-                    Cluster corrCluster = null;
+                    Cluster originalCluster = cluster;
                     if(useCorrectedClusterPositionsForMatching){
-                        corrCluster = new BaseCluster(cluster);
+                        cluster = new BaseCluster(cluster);
                         double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
-                        ClusterUtilities.applyCorrections(ecal, corrCluster, ypos,isMC);
+                        ClusterUtilities.applyCorrections(ecal, cluster, ypos,isMC);
                     }
-                    else 
-                        corrCluster = cluster;
                     
                     // normalized distance between this cluster and track:
-                    final double thisNSigma=matcher.getNSigmaPosition(corrCluster, particle);
+                    final double thisNSigma=matcher.getNSigmaPosition(cluster, particle);
 
                     // ignore if matching quality doesn't make the cut:
                     if (thisNSigma > MAXNSIGMAPOSITIONMATCH) continue;
@@ -375,7 +373,7 @@ public abstract class ReconParticleDriver extends Driver {
 
                     // we found a new best cluster candidate for this track:
                     smallestNSigma = thisNSigma;
-                    matchedCluster = cluster;
+                    matchedCluster = originalCluster;
 
                     // prefer using GBL tracks to correct (later) the clusters, for some consistency:
                     if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster)) {
@@ -463,7 +461,8 @@ public abstract class ReconParticleDriver extends Driver {
             HepLorentzVector fourVector = new BasicHepLorentzVector(clusterEnergy, momentum);
             ((BaseReconstructedParticle) particle).set4Vector(fourVector);
         
-          //recalculate track-cluster matching n_sigma using corrected cluster positions
+            // recalculate track-cluster matching n_sigma using corrected cluster positions
+            // if that option is selected
             if(!particle.getClusters().isEmpty() && useCorrectedClusterPositionsForMatching){
                 double goodnessPID_corrected = matcher.getNSigmaPosition(particle.getClusters().get(0), particle);
                 ((BaseReconstructedParticle) particle).setGoodnessOfPid(goodnessPID_corrected);
