@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalCrystalPosition.EcalCrystalPositionCollection;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
@@ -31,9 +30,7 @@ import org.lcsim.geometry.FieldMap;
  */
 public class TrackClusterMatcher {
 
-
     EcalCrystalPositionCollection positions;
-    EcalChannelCollection channels;
 
     Double beamEnergy;
 
@@ -630,10 +627,6 @@ public class TrackClusterMatcher {
     public void setEcalCrystalPositions(EcalCrystalPositionCollection positions) {
        this.positions = positions;
        snapper.loadEdges(positions);
-    }
-
-    public void setEcalChannels(EcalChannelCollection channels) {
-        this.channels = channels;
     }
 
     public void setBeamEnergy(double beamEnergy) {
