@@ -61,6 +61,13 @@ public abstract class ReconParticleDriver extends Driver {
     protected boolean isMC = false;
     private boolean disablePID = false;
     
+    // should we use corrected cluster positions for matching
+    private boolean useCorrectedClusterPositionsForMatching = false;
+    
+    public void setUseCorrectedClusterPositionsForMatching(boolean val){
+        useCorrectedClusterPositionsForMatching = val;
+    }
+    
     /**
      * Sets the condition of whether the data is Monte Carlo or not.
      * This is used to smear the cluster energy corrections so that
@@ -344,12 +351,18 @@ public abstract class ReconParticleDriver extends Driver {
                 // try to find a matching cluster:
                 Cluster matchedCluster = null;
                 for (Cluster cluster : clusters) {
-
+                    
+                    //if the option to use corrected cluster positions is selected, then
                     //create a copy of the current cluster, and apply corrections to it
-                    //before calculating nsigma
-                    Cluster corrCluster = new BaseCluster(cluster);
-                    double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
-                    ClusterUtilities.applyCorrections(ecal, corrCluster, ypos,isMC);
+                    //before calculating nsigma.  Default is don't use corrections.  
+                    Cluster corrCluster = null;
+                    if(useCorrectedClusterPositionsForMatching){
+                        corrCluster = new BaseCluster(cluster);
+                        double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
+                        ClusterUtilities.applyCorrections(ecal, corrCluster, ypos,isMC);
+                    }
+                    else 
+                        corrCluster = cluster;
                     
                     // normalized distance between this cluster and track:
                     final double thisNSigma=matcher.getNSigmaPosition(corrCluster, particle);
@@ -451,7 +464,7 @@ public abstract class ReconParticleDriver extends Driver {
             ((BaseReconstructedParticle) particle).set4Vector(fourVector);
         
           //recalculate track-cluster matching n_sigma using corrected cluster positions
-            if(!particle.getClusters().isEmpty()){
+            if(!particle.getClusters().isEmpty() && useCorrectedClusterPositionsForMatching){
                 double goodnessPID_corrected = matcher.getNSigmaPosition(particle.getClusters().get(0), particle);
                 ((BaseReconstructedParticle) particle).setGoodnessOfPid(goodnessPID_corrected);
             }
