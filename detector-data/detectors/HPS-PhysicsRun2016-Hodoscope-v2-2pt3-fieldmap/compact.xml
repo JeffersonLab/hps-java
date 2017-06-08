@@ -54,7 +54,7 @@
         <constant name="scoringThickness" value="0.001" />
         
         <!-- Hodoscope thickness -->
-        <constant name="hodoscopeThickness" value="0.500*cm"/>
+        <constant name="hodoscopeThickness" value="1.000*cm"/>
         
         <!-- Distance between hodoscope and scoring planes -->
         <constant name="hodoscopeScoreDisplacement" value="1.000"/>
@@ -816,10 +816,10 @@
                 <box x="210.8" y="64.75233309"/>
                 <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
             </module>
-            <layer id="1"><!--top-->
+            <layer id="1">
                 <module_placement name="HodoscopeForeScoreModule" id="0" x="21.17+(210.8/2.0)" y="14.21392678+(64.75233309/2.0)" z="1100-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
             </layer>
-            <layer id="2"><!--bottom-->
+            <layer id="2">
                 <module_placement name="HodoscopeForeScoreModule" id="0" x="21.17+(210.8/2.0)" y="-14.21392678-(64.75233309/2.0)" z="1100-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-3*PI/2"/>
             </layer>
         </detector>
@@ -1034,7 +1034,6 @@
             </layer>
         </detector>
 		
-		
         <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
             <comment>The crystal ECal</comment>
             <material name="LeadTungstate" />
@@ -1051,7 +1050,7 @@
         <readout name="TrackerHits">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
         </readout>
-    <readout name="TrackerHitsFieldDef">
+		<readout name="TrackerHitsFieldDef">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
             <processor type="ScoringTrackerHitProcessor" />        
         </readout>
@@ -1071,12 +1070,6 @@
             <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
             <id>system:6,layer:2,ix:-8,iy:-6</id>
         </readout>
-		<!--
-        <readout name="HodoscopeHits">
-            <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
-            <id>system:6,layer:2,ix:-8,iy:-6</id>
-        </readout>
-		-->
     </readouts>
 
 
