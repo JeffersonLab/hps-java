@@ -50,7 +50,9 @@ public class HodoscopeBasicTriggerDriver extends TriggerDriver {
 		// buffers needed is Δt/2.
 		// For instance, for Δt = 8:
 		// [ 0,  2] [2,  4] [ 4,  6] [6,  8]
-		clusterBuffer = new Buffer<Cluster>(deltaT / 2);
+		int clusterBufferSize = deltaT / 2;
+		if(clusterBufferSize < 1) { clusterBufferSize = 1; }
+		clusterBuffer = new Buffer<Cluster>(clusterBufferSize);
 	}
 	
 	@Override
@@ -277,10 +279,12 @@ public class HodoscopeBasicTriggerDriver extends TriggerDriver {
 	}
 	
 	public void setTimeCoincidence(int deltaT) {
-		// Δt must be divisible by 4.
-		if(deltaT % 4 != 0) {
-			throw new IllegalArgumentException("Time coincidence must be divisible by 4 ns!");
+		/*
+		// Δt must be divisible by 2.
+		if(deltaT % 2 != 0) {
+			throw new IllegalArgumentException("Time coincidence must be divisible by 2 ns!");
 		}
+		*/
 		
 		// Set the value.
 		this.deltaT = deltaT;

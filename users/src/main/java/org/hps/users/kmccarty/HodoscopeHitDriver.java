@@ -30,7 +30,7 @@ public class HodoscopeHitDriver extends Driver {
 	private final double[][][] crystalCenters = {
 			{
 				new double[] {  46.5, 26.7 }, new double[] {  61.5, 26.7 }, new double[] {  76.5, 26.7 }, new double[] {  94,   26.7 },
-				new double[] { 114,   26.7 }, new double[] { 134,   26.7 }, new double[] { 159,   26.7 }, new double[] { 192.5, 26.7 }
+				new double[] { 114,   26.7 }, new double[] { 134,   26.7 }, new double[] { 159,   26.7 }, new double[] { 192.5, 39.2 }
 			},
 			{
 				new double[] {  46.5, 59.1 }, new double[] {  61.5, 59.1 }, new double[] {  76.5, 59.1 }, new double[] {  94,   59.1 },

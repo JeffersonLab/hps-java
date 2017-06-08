@@ -52,7 +52,9 @@ public class HodoscopeTriggerTextWriter extends Driver {
 		// buffers needed is Δ t/ 2.
 		// For instance, for Δt = 12:
 		// [ 0,  2) [2,  4) [ 4,  6) [6,  8) [8, 10) [10, 12)
-		clusterBuffer = new Buffer<Cluster>((deltaT / 2));
+		int clusterBufferSize = deltaT / 2;
+		if(clusterBufferSize < 1) { clusterBufferSize = 1; }
+		clusterBuffer = new Buffer<Cluster>(clusterBufferSize);
 		
 		// Instantiate the file writer.
 		try {
@@ -163,10 +165,12 @@ public class HodoscopeTriggerTextWriter extends Driver {
 		int ciy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
 		double cx = cluster.getCalorimeterHits().get(0).getPosition()[0];
 		double cy = cluster.getCalorimeterHits().get(0).getPosition()[1];
+		double cz = cluster.getCalorimeterHits().get(0).getPosition()[2];
 		double energy = TriggerModule.getValueClusterTotalEnergy(cluster);
 		//double t = TriggerModule.getClusterTime(cluster);
 		double t = ClockSingleton.getTime() - deltaT;
-		return String.format("Cluster at r = (%6.1f, %6.1f) and i = (%3d, %3d) with %5.3f GeV at t = %.0f", cx, cy, cix, ciy, energy, t);
+		return String.format("Cluster at r = (%6.1f, %6.1f, %6.1f) and i = (%3d, %3d) with %5.3f GeV at t = %.0f",
+				cx, cy, cz, cix, ciy, energy, t);
 	}
 	
 	private static final String toString(TempHodoscopeHit hit) {
@@ -175,10 +179,12 @@ public class HodoscopeTriggerTextWriter extends Driver {
 	}
 	
 	public void setTimeCoincidence(int deltaT) {
-		// Δt must be divisible by 4.
-		if(deltaT % 4 != 0) {
-			throw new IllegalArgumentException("Time coincidence must be divisible by 4 ns!");
+		/*
+		// Δt must be divisible by 2.
+		if(deltaT % 2 != 0) {
+			throw new IllegalArgumentException("Time coincidence must be divisible by 2 ns!");
 		}
+		*/
 		
 		// Set the value.
 		this.deltaT = deltaT;
