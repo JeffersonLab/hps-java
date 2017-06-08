@@ -8,6 +8,7 @@ import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackType;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.scalers.ScalerData;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.geometry.Detector;
@@ -38,6 +39,8 @@ public class V0CandidateFilter extends EventReconFilter {
 
     private boolean _tight = false;
     private boolean _keepEpicsDataEvents = false;
+    
+    private boolean _debug = true;
 
     @Override
     protected void process(EventHeader event) {
@@ -61,44 +64,55 @@ public class V0CandidateFilter extends EventReconFilter {
         }
         List<ReconstructedParticle> V0Candidates = event.get(ReconstructedParticle.class, _V0CandidateCollectionName);
         int nV0 = 0; //number of good V0
-        for (ReconstructedParticle v0 : V0Candidates) {
-            ReconstructedParticle electron = v0.getParticles().get(ReconParticleDriver.ELECTRON);
-            ReconstructedParticle positron = v0.getParticles().get(ReconParticleDriver.POSITRON);
+        if (V0Candidates.size() <= 2) {
+            for (ReconstructedParticle v0 : V0Candidates) {
+                ReconstructedParticle electron = v0.getParticles().get(ReconParticleDriver.ELECTRON);
+                ReconstructedParticle positron = v0.getParticles().get(ReconParticleDriver.POSITRON);
 
-            if (!TrackType.isGBL(v0.getType())) { //we only care about GBL vertices
-                continue;
-            }
-            if (v0.getStartVertex().getChi2() > v0Chi2Cut) {
-                continue;
-            }
-            if (electron.getTracks().get(0).getChi2() > trackChi2Cut || positron.getTracks().get(0).getChi2() > trackChi2Cut) {
-                continue;
-            }
-            if (electron.getMomentum().magnitude() > trackPMax || positron.getMomentum().magnitude() > trackPMax) {
-                continue;
-            }
-            if (v0.getMomentum().magnitude() > v0PMax) {
-                continue;
-            }
-            double eleTime = TrackData.getTrackTime(TrackData.getTrackData(event, electron.getTracks().get(0)));
-            double posTime = TrackData.getTrackTime(TrackData.getTrackData(event, positron.getTracks().get(0)));
-            if (Math.abs(eleTime - posTime) > trackDtCut) {
-                continue;
-            }
-            if (_tight) { // tight requires cluster matches and cluster time cut
-                if (electron.getClusters().isEmpty() || positron.getClusters().isEmpty()) {
+                if (!TrackType.isGBL(v0.getType())) { //we only care about GBL vertices
                     continue;
                 }
+                if (v0.getStartVertex().getChi2() > v0Chi2Cut) {
+                    continue;
+                }
+                if (electron.getTracks().get(0).getChi2() > trackChi2Cut || positron.getTracks().get(0).getChi2() > trackChi2Cut) {
+                    continue;
+                }
+                if (electron.getMomentum().magnitude() > trackPMax || positron.getMomentum().magnitude() > trackPMax) {
+                    continue;
+                }
+                if (v0.getMomentum().magnitude() > v0PMax) {
+                    continue;
+                }
+                double eleTime = TrackData.getTrackTime(TrackData.getTrackData(event, electron.getTracks().get(0)));
+                double posTime = TrackData.getTrackTime(TrackData.getTrackData(event, positron.getTracks().get(0)));
+                if (Math.abs(eleTime - posTime) > trackDtCut) {
+                    continue;
+                }
+                if (_tight) { // tight requires cluster matches and cluster time cut
+                    if (electron.getClusters().isEmpty() || positron.getClusters().isEmpty()) {
+                        continue;
+                    }
                 // calorimeter cluster timing cut
-                // first CalorimeterHit in the list is the seed crystal
-                double t1 = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
-                double t2 = ClusterUtilities.getSeedHitTime(positron.getClusters().get(0));
+                    // first CalorimeterHit in the list is the seed crystal
+                    double t1 = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
+                    double t2 = ClusterUtilities.getSeedHitTime(positron.getClusters().get(0));
 
-                if (abs(t1 - t2) > _clusterTimingCut) {
-                    continue;
+                    if (abs(t1 - t2) > _clusterTimingCut) {
+                        continue;
+                    }
+                    Cluster c1 = electron.getClusters().get(0);
+                    Cluster c2 = positron.getClusters().get(0);
+                    double[] pos1 = c1.getPosition();
+                    double[] pos2 = c2.getPosition();
+                    // require clusters to be on opposite sides of y=0 (top/bottom)
+                    if (pos1[1] * pos2[1] > 0) {
+                        continue;
+                    }
+
                 }
+                nV0++;
             }
-            nV0++;
         }
         if (nV0 == 0) {
             skipEvent();
@@ -188,8 +202,13 @@ public class V0CandidateFilter extends EventReconFilter {
     public void setKeepEpicsDataEvents(boolean b) {
         _keepEpicsDataEvents = b;
     }
+
+    protected void detectorChanged(Detector detector) {
+        //super.detectorChanged(detector);
+    }
     
-    protected void detectorChanged(Detector detector){
-          super.detectorChanged(detector);
-      }
+    public void setDebug(boolean b)
+    {
+        _debug = b;
+    }
 }
