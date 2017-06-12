@@ -43,7 +43,7 @@ public class V0AnalysisDriver extends Driver {
     private double _percentFeeCut = 0.8;
     private double _psumDelta = 0.05;
     private double _thetasumCut = 0.07;
-    private double _trackChi2NdfCut = 8.; //corresponds to chisquared cut of 40 for 5-hit tracks
+    private double _trackChi2NdfCut = 100.; //corresponds to chisquared cut of 40 for 5-hit tracks
 
     private IHistogram1D invMassHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Invariant Mass", 200, 0., 0.1);
     private IHistogram1D pHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Momentum", 200, 0., 3.0);
@@ -59,6 +59,7 @@ public class V0AnalysisDriver extends Driver {
     private IHistogram1D vtxXHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex x", 200, -2.5, 2.5);
     private IHistogram1D vtxYHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex y", 200, -1.0, 1.0);
     private IHistogram1D vtxZHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex z", 200, -20.0, 20.0);
+    private IHistogram1D vtxZHistL1L1_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex z L1L1", 200, -20.0, 20.0);
     private IHistogram1D vtxChisqHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex Chisq", 100, 0.0, 100.0);
 
     //2D
@@ -169,11 +170,11 @@ public class V0AnalysisDriver extends Driver {
                     if (abs(deltaT) > 2.0) {
                         continue;
                     }
-                    // require momentum sum to equal beam energy +-
-                    double psum = rp1.getMomentum().magnitude() + rp2.getMomentum().magnitude();
-                    if (psum < psumMin || psum > psumMax) {
-                        continue;
-                    }
+//                    // require momentum sum to equal beam energy +-
+//                    double psum = rp1.getMomentum().magnitude() + rp2.getMomentum().magnitude();
+//                    if (psum < psumMin || psum > psumMax) {
+//                        continue;
+//                    }
                     //rotate into physiscs frame of reference
                     Hep3Vector rprot = VecOp.mult(beamAxisRotation, rp.getMomentum());
                     Hep3Vector p1rot = VecOp.mult(beamAxisRotation, rp1.getMomentum());
@@ -181,18 +182,18 @@ public class V0AnalysisDriver extends Driver {
                     double theta1 = Math.acos(p1rot.z() / p1rot.magnitude());
                     double theta2 = Math.acos(p2rot.z() / p2rot.magnitude());
                     double thetasum = theta1 + theta2;
-                    // cut on thetasum
-                    if (thetasum > _thetasumCut) {
-                        continue;
-                    }
-                    // cut on V0 pX
-                    if (abs(rprot.x()) > 0.01) {
-                        continue;
-                    }
-                    // cut on V0 pY
-                    if (abs(rp.getMomentum().y()) > .01) {
-                        continue;
-                    }
+//                    // cut on thetasum
+//                    if (thetasum > _thetasumCut) {
+//                        continue;
+//                    }
+//                    // cut on V0 pX
+//                    if (abs(rprot.x()) > 0.01) {
+//                        continue;
+//                    }
+//                    // cut on V0 pY
+//                    if (abs(rp.getMomentum().y()) > .01) {
+//                        continue;
+//                    }
                     double t1ChisqNdf = t1.getChi2() / t1.getNDF();
                     double t2ChisqNdf = t2.getChi2() / t2.getNDF();
 
@@ -240,6 +241,9 @@ public class V0AnalysisDriver extends Driver {
                         vtxXHist_UnconstrainedV0Vertices.fill(pos.x());
                         vtxYHist_UnconstrainedV0Vertices.fill(pos.y());
                         vtxZHist_UnconstrainedV0Vertices.fill(pos.z());
+                        if (hasLayer1Hit(t1) && hasLayer1Hit(t2)) {
+                            vtxZHistL1L1_UnconstrainedV0Vertices.fill(pos.z());
+                        }
                         vtxChisqHist_UnconstrainedV0Vertices.fill(v.getChi2());
 // 2D
                         p1vsp2Hist_UnconstrainedV0Vertices.fill(p1, p2);
@@ -391,5 +395,16 @@ public class V0AnalysisDriver extends Driver {
             return false;
         }
         throw new RuntimeException("mixed top and bottom hits on same track");
+    }
+
+    private boolean hasLayer1Hit(Track t) {
+        List<TrackerHit> hits = t.getTrackerHits();
+        for (TrackerHit h : hits) {
+            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) h.getRawHits().get(0)).getDetectorElement());
+            if (sensor.getLayerNumber() == 1) {
+                return true;
+            }
+        }
+        return false;
     }
 }
