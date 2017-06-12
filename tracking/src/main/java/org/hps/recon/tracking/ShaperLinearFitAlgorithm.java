@@ -367,15 +367,17 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         RealVector var_vec = new ArrayRealVector(nUsedSamples);
 
         for (int j = 0; j < nUsedSamples; j++) {
+            double sigma_j = sigma[firstUsedSample + j];
+            double sample_time = HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j);
             for (int i = 0; i < nFittedPulses; i++) {
                 //===> sc_mat.setEntry(i, j, getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i], channelConstants) / sigma[firstUsedSample + j]);
-                sc_mat.setEntry(i, j, shape.getAmplitudePeakNorm(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i]) / sigma[firstUsedSample + j]);
+                sc_mat.setEntry(i, j, shape.getAmplitudePeakNorm(sample_time - times[i]) / sigma_j);
             }
             if (fitPedestal) {
-                sc_mat.setEntry(nFittedPulses, j, 1.0 / sigma[firstUsedSample + j]);
+                sc_mat.setEntry(nFittedPulses, j, 1.0 / sigma_j);
             }
-            y_vec.setEntry(j, y[firstUsedSample + j] / sigma[firstUsedSample + j]);
-            var_vec.setEntry(j, sigma[firstUsedSample + j] * sigma[firstUsedSample + j]);
+            y_vec.setEntry(j, y[firstUsedSample + j] / sigma_j);
+            var_vec.setEntry(j, sigma_j * sigma_j);
         }
         RealVector a_vec = sc_mat.operate(y_vec);
         RealMatrix coeff_mat = sc_mat.multiply(sc_mat.transpose());
