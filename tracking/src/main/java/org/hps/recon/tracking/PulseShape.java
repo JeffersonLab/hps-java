@@ -81,7 +81,21 @@ public abstract class PulseShape {
 
         @Override
         public double getAmplitudePeakNorm(double time) {
-            return getAmplitudeIntegralNorm(time) / peak_amp;
+            //return getAmplitudeIntegralNorm(time) / peak_amp;
+            
+            //avoid extra function-calls to increase speed.
+            // I am only doing this optimization because the profiler told me that
+            // this is where almost a third of our processing time is found. --SJP.
+            
+            
+            //returned value is equal to getAmplitudeIntegralNorm(time) / peak_amp;
+            
+            if (time < 0) {
+                return 0;
+            }
+            
+            return A * (Math.exp(-time / tp)
+                    - Math.exp(-time / tp2) * (1 + time * B + 0.5 * time * time * B*B))/peak_amp;
         }
     }
 }
