@@ -14,6 +14,19 @@ public abstract class PulseShape {
     public abstract double getAmplitudePeakNorm(double time);
 
     public abstract double getAmplitudeIntegralNorm(double time);
+    
+    /**
+     * convenience method for getting amplitudes at multiple evenly spaced 
+     * time intervals
+     * @param t0
+     * @param dt
+     * @param amplitudes
+     */
+    public void getAmplitudesPeakNorm(double t0, double dt, double[] amplitudes){
+        for(int i = amplitudes.length-1; i>=0; i--){
+            amplitudes[i] = getAmplitudePeakNorm(t0+dt*i);
+        }
+    }
 
 //    public abstract double getAmplitude(double time, int channel, HpsSiSensor sensor);
     public static class CRRC extends PulseShape {
@@ -96,6 +109,38 @@ public abstract class PulseShape {
             
             return A * (Math.exp(-time / tp)
                     - Math.exp(-time / tp2) * (1 + time * B + 0.5 * time * time * B*B))/peak_amp;
+        }
+        
+        @Override
+        public void getAmplitudesPeakNorm(double t0, double dt, double[] amplitudes) {
+            
+            
+            double b = Math.exp(-dt/tp);
+            double b2 = Math.exp(-dt/tp2);
+            
+            double time = t0;
+            int i;
+            for(i = 0; i< amplitudes.length; i++){
+                if(time < 0) 
+                    amplitudes[i]= 0;
+                else
+                    break;
+                time += dt;
+            }
+            
+            double a = Math.exp(-time/tp);
+            double a2 = Math.exp(-time/tp2);
+
+            for(; i< amplitudes.length; i++){
+                amplitudes[i] = A * (a
+                        - a2 * (1 + time * B + 0.5 * time * time * B*B))/peak_amp;
+                a*=b;
+                a2*=b2;
+                time += dt;
+                //if(Math.abs(amplitudes[i]-getAmplitudePeakNorm(t0+i*dt))>1e-10)
+                  //      System.out.println(amplitudes[i]+ " " + getAmplitudePeakNorm(t0+i*dt)  + " " + (amplitudes[i]-getAmplitudePeakNorm(t0+i*dt)));
+            }
+            
         }
     }
 }

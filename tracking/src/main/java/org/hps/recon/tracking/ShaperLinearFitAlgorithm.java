@@ -379,6 +379,20 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             y_vec.setEntry(j, y[firstUsedSample + j] / sigma_j);
             var_vec.setEntry(j, sigma_j * sigma_j);
         }
+
+        double[] amplitudes = new double[nUsedSamples];
+        for(int i = 0; i< nFittedPulses; i++){
+            double t0 = HPSSVTConstants.SAMPLING_INTERVAL * firstUsedSample - times[i];
+            shape.getAmplitudesPeakNorm(t0, HPSSVTConstants.SAMPLING_INTERVAL, amplitudes);
+           
+            for(int j = 0; j<nUsedSamples; j++){
+                
+                double err = amplitudes[j]/sigma[firstUsedSample+j]-sc_mat.getEntry(i, j);
+                if(Math.abs(err) > 1e-10)
+                    System.out.println(amplitudes[j]/sigma[firstUsedSample + j] + " " + err);
+                //sc_mat.setEntry(i, j, amplitudes[j] / sigma[firstUsedSample + j]);
+            }
+        }
         RealVector a_vec = sc_mat.operate(y_vec);
         RealMatrix coeff_mat = sc_mat.multiply(sc_mat.transpose());
         DecompositionSolver a_solver;
