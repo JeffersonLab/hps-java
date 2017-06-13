@@ -30,7 +30,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 public class MergeTrackCollections extends Driver {
 
     private String outputCollectionName = "MatchedTracks";
-    private String partialTrackCollectionName = "PartialTracks";
+    // private String partialTrackCollectionName = "PartialTracks";
     private String inputTrackCollectionName = "";
     private boolean removeCollections = true;
     private boolean doPlots = false;
@@ -82,9 +82,11 @@ public class MergeTrackCollections extends Driver {
         doPlots = value;
     }
 
-    public void setPartialTrackCollectionName(String partialTrackCollectionName) {
-        this.partialTrackCollectionName = partialTrackCollectionName;
-    }
+    /*
+     * public void setPartialTrackCollectionName(String
+     * partialTrackCollectionName) { this.partialTrackCollectionName =
+     * partialTrackCollectionName; }
+     */
 
     /**
      * Name of the LCIO collection containing input tracks.
@@ -147,7 +149,7 @@ public class MergeTrackCollections extends Driver {
         ((SimpleAmbiguityResolver) (ambi)).setMode(SimpleAmbiguityResolver.AmbiMode.PARTIALS);
         ambi.resolve();
         List<Track> deduplicatedTracks = ambi.getTracks();
-        List<Track> partialTracks = ambi.getPartialTracks();
+        // List<Track> partialTracks = ambi.getPartialTracks();
 
         if (doPlots) {
             numTracksPostAmbi.fill(deduplicatedTracks.size());
@@ -172,10 +174,11 @@ public class MergeTrackCollections extends Driver {
 
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputCollectionName, deduplicatedTracks, Track.class, flag);
-        event.put(partialTrackCollectionName, partialTracks, Track.class, flag);
+        // event.put(partialTrackCollectionName, partialTracks, Track.class,
+        // flag);
         if (isTransient) {
             event.getMetaData(deduplicatedTracks).setTransient(isTransient);
-            event.getMetaData(partialTracks).setTransient(isTransient);
+            // event.getMetaData(partialTracks).setTransient(isTransient);
         }
     }
 
