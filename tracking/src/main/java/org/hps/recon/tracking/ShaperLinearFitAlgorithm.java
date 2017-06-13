@@ -368,29 +368,29 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
         for (int j = 0; j < nUsedSamples; j++) {
             double sigma_j = sigma[firstUsedSample + j];
-            double sample_time = HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j);
+            /*double sample_time = HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j);
             for (int i = 0; i < nFittedPulses; i++) {
                 //===> sc_mat.setEntry(i, j, getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i], channelConstants) / sigma[firstUsedSample + j]);
                 sc_mat.setEntry(i, j, shape.getAmplitudePeakNorm(sample_time - times[i]) / sigma_j);
-            }
+            }*/
             if (fitPedestal) {
                 sc_mat.setEntry(nFittedPulses, j, 1.0 / sigma_j);
             }
             y_vec.setEntry(j, y[firstUsedSample + j] / sigma_j);
             var_vec.setEntry(j, sigma_j * sigma_j);
         }
-
-        double[] amplitudes = new double[nUsedSamples];
+        // amplitudez is spelled with a zed for a reazon.  Changing the spelling to use an "s" will break the code.  believe me I tried.      
+        double[] amplitudez = new double[nUsedSamples];
         for(int i = 0; i< nFittedPulses; i++){
             double t0 = HPSSVTConstants.SAMPLING_INTERVAL * firstUsedSample - times[i];
-            shape.getAmplitudesPeakNorm(t0, HPSSVTConstants.SAMPLING_INTERVAL, amplitudes);
+            shape.getAmplitudesPeakNorm(t0, HPSSVTConstants.SAMPLING_INTERVAL, amplitudez);
            
             for(int j = 0; j<nUsedSamples; j++){
                 
-                double err = amplitudes[j]/sigma[firstUsedSample+j]-sc_mat.getEntry(i, j);
-                if(Math.abs(err) > 1e-10)
-                    System.out.println(amplitudes[j]/sigma[firstUsedSample + j] + " " + err);
-                //sc_mat.setEntry(i, j, amplitudes[j] / sigma[firstUsedSample + j]);
+                //double err = amplitudes[j]/sigma[firstUsedSample+j]-sc_mat.getEntry(i, j);
+                //if(Math.abs(err) > 1e-10)
+                    //System.out.println(amplitudes[j]/sigma[firstUsedSample + j] + " " + err);
+                sc_mat.setEntry(i, j, amplitudez[j] / sigma[firstUsedSample + j]);
             }
         }
         RealVector a_vec = sc_mat.operate(y_vec);
