@@ -44,6 +44,8 @@ public class V0AnalysisDriver extends Driver {
     private double _psumDelta = 0.05;
     private double _thetasumCut = 0.07;
     private double _trackChi2NdfCut = 100.; //corresponds to chisquared cut of 40 for 5-hit tracks
+    
+    private boolean _dumpRunAndEventNumber = true;
 
     private IHistogram1D invMassHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Invariant Mass", 200, 0., 0.1);
     private IHistogram1D pHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Momentum", 200, 0., 3.0);
@@ -243,6 +245,7 @@ public class V0AnalysisDriver extends Driver {
                         vtxZHist_UnconstrainedV0Vertices.fill(pos.z());
                         if (hasLayer1Hit(t1) && hasLayer1Hit(t2)) {
                             vtxZHistL1L1_UnconstrainedV0Vertices.fill(pos.z());
+                            if(_dumpRunAndEventNumber) System.out.println(event.getRunNumber()+" "+event.getEventNumber());
                         }
                         vtxChisqHist_UnconstrainedV0Vertices.fill(v.getChi2());
 // 2D
@@ -374,6 +377,11 @@ public class V0AnalysisDriver extends Driver {
 
     public void setESumPlusMinusPercentCut(double d) {
         _psumDelta = d;
+    }
+    
+    public void setDumpRunAndEventNumber(boolean b)
+    {
+        _dumpRunAndEventNumber = b;
     }
 
     private boolean isTopTrack(Track t) {
