@@ -31,6 +31,14 @@ public class Pass7ReconTest extends TestCase {
     private final int nEvents = 100;
 
     String[] droppem = {
+        "GBLTracks",
+        "GBLKinkData",
+        "GBLKinkDataRelations",
+        "MatchedToGBLTrackRelations",
+        "TrackData",
+        "TrackDataRelations",
+        "TrackResiduals",
+        "TrackResidualsRelations",
         "FinalStateParticles",
         "UnconstrainedV0Candidates",
         "UnconstrainedV0Vertices",
