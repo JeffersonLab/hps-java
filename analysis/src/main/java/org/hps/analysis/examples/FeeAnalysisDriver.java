@@ -8,6 +8,7 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.record.triggerbank.AbstractIntData;
@@ -209,6 +210,9 @@ public class FeeAnalysisDriver extends Driver {
                         xvsyExtrapBottomHist.get(kk).fill(xpos.x(), xpos.y());
                     }
                 }
+                double trackDataTime = TrackData.getTrackTime(TrackData.getTrackData(event, t));
+                aida.cloud1D("track data time").fill(trackDataTime);
+                System.out.println(event.getRunNumber()+" "+event.getEventNumber()+" trackdatatime "+trackDataTime);
                 if (isTopTrack(t)) {
                     trkChisqNdfTop.fill(chi2Ndf);
                     trkChisqProbTop.fill(chisqProb);
