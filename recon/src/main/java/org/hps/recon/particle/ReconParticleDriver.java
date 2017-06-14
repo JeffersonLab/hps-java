@@ -133,6 +133,8 @@ public abstract class ReconParticleDriver extends Driver {
     public void setBeamPositionZ(double Z) {
         beamPosition[0] = Z; // The beamPosition array is in the tracking frame HPS Z => TRACK X
     }
+    
+    
 
     /**
      * Indicates whether verbose debug text should be written out during runtime
