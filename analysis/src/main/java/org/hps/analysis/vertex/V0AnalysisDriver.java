@@ -45,7 +45,7 @@ public class V0AnalysisDriver extends Driver {
     private double _thetasumCut = 0.07;
     private double _trackChi2NdfCut = 100.; //corresponds to chisquared cut of 40 for 5-hit tracks
     
-    private boolean _dumpRunAndEventNumber = true;
+    private boolean _dumpRunAndEventNumber = false;
 
     private IHistogram1D invMassHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Invariant Mass", 200, 0., 0.1);
     private IHistogram1D pHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Momentum", 200, 0., 3.0);
