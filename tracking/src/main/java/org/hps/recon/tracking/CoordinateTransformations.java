@@ -21,6 +21,7 @@ import org.lcsim.detector.Transform3D;
  * 
  * @author Matt Graham
  * @author Pelle Hansson
+ * @author Miriam Diamond
  */
 // FIXME: I am not sure this class should be located in this package. --JM
 public class CoordinateTransformations {

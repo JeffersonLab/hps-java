@@ -28,11 +28,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
     private boolean _fixTrackMomentum = false;
     private boolean doIterative = true;
     private double _momentum = -99;// dummy;
-    private static final double inside_tolerance = 0.01;// tolerance for first
-                                                        // (approximate) test
-                                                        // of
-                                                        // track intersection
-                                                        // with sensor
+    private static final double inside_tolerance = 0.01;
 
     public MultipleScattering(MaterialManager materialmanager) {
         super(materialmanager);
@@ -93,7 +89,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("\n%s: FindHPSScatters() for helix:\n%s\n", this.getClass().getSimpleName(), helix.toString());
             System.out.printf("%s: momentum is p=%f,R=%f,B=%f \n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield);
         }
-        // MG TURN THIS OFF SO IT DOESN'T ABORT STRAIGHT TRACKS
+
         // Check that B Field is set
         if (_bfield == 0. && !_fixTrackMomentum) {
             throw new RuntimeException("B Field or fixed momentum must be set before calling FindScatters method");
@@ -304,10 +300,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             isInside = false;
         }
 
-        // Check if it's inside sensor and module and if it contradicts the
-        // manual calculation
-        // For now: trust manual calculation and output warning if it's outside
-        // BOTH sensor AND module
+        // Check if it's inside sensor and module and if it contradicts the manual calculation
+        // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module
         if (_debug) {
             // check if it's inside the sensor
             Inside result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_int);
@@ -345,8 +339,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         if (!doIterative)
             return pos_int_trk;
 
-        // TODO Catch special cases where the incidental iteration procedure
-        // seems to fail
+        // TODO Catch special cases where the incidental iteration procedure seems to fail
         if (Math.abs(helix.R()) < 2000 && Math.abs(helix.dca()) > 10.0) {
             if (_debug) {
                 System.out.printf("%s: momentum is low (p=%f,R=%f,B=%f) and d0 is big (d0=%f), skip the iterative calculation\n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield, helix.dca());
@@ -410,11 +403,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
                 isInsideSolidModule = true;
             }
 
-            // Check if it's inside sensor and module and if it contradicts the
-            // manual calculation
-            // For now: trust manual calculation and output warning if it's
-            // outside BOTH sensor AND
-            // module -> FIX THIS!?
+            // Check if it's inside sensor and module and if it contradicts the manual calculation
+            // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module -> FIX THIS!?
             if (isInside && !isInsideSolid) {
                 System.out.printf("%s: manual iterative calculation says inside sensor, inside solid says outside -> contradiction \n", this.getClass().getSimpleName());
                 if (isInsideSolidModule) {

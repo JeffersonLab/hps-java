@@ -52,11 +52,9 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
     private void initialize(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS) {
 
-        // Explicitly only replace the objects that might change to avoid
-        // getting the lcsim versions
+        // Explicitly only replace the objects that might change to avoid getting the lcsim versions
 
-        // Instantiate the material manager for HPS, the helix fitter and seed
-        // track finder as tey depends on the material manager
+        // Instantiate the material manager for HPS, the helix fitter and seed track finder as tey depends on the material manager
         if (useHPSMaterialManager) {
             MaterialSupervisor materialSupervisor = new MaterialSupervisor(includeMS);
             materialSupervisor.setDebug(true);
@@ -64,12 +62,11 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
             _helixfitter = new HelixFitter(materialSupervisor, doIterativeHelix);
         } else {
             MaterialManager materialmanager = new MaterialManager(includeMS);
-            _materialmanager = materialmanager; // mess around with types
-                                                // here...
+            _materialmanager = materialmanager; // mess around with types here...
             _helixfitter = new HelixFitter(materialmanager, doIterativeHelix);
         }
 
-        // Instantiate the helix finder since it depends on the material manager
+        //  Instantiate the helix finder since it depends on the material manager
         _finder = new SeedTrackFinder(_hitmanager, _helixfitter);
 
     }
@@ -82,8 +79,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
     /**
      * Set to enable debug output
      * 
-     * @param debug
-     *            switch
+     * @param debug switch
      */
     @Override
     public void setDebug(boolean debug) {
@@ -93,11 +89,9 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
     }
 
     /**
-     * Set to enable the sectoring to use the sector bins in checking for
-     * consistent hits.
+     * Set to enable the sectoring to use the sector bins in checking for consistent hits.
      *
-     * @param applySectorBinning
-     *            apply sector binning switch
+     * @param applySectorBinning apply sector binning switch
      */
     public void setApplySectorBinning(boolean applySectorBinning) {
         _finder.setApplySectorBinning(applySectorBinning);
@@ -164,8 +158,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         }
 
         if (_iterativeConfirmedFits > 0) {
-            // Iteratively re-fit tracks to take into account helix and hit
-            // position correlations
+            // Iteratively re-fit tracks to take into account helix and hit position correlations
 
             List<SeedCandidate> seedsToRemove = new ArrayList<SeedCandidate>();
             for (SeedCandidate seed : trackseeds) {
@@ -186,8 +179,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         // Make tracks from the final list of track seeds
         _maketracks.Process(event, trackseeds, _bfield);
 
-        // Save the MC Particles that have been seeded / confirmed if
-        // diagnostics are enabled
+        // Save the MC Particles that have been seeded / confirmed if diagnostics are enabled
         if (_diag != null) {
             Set<MCParticle> seededmcpset = _finder.getSeededMCParticles();
             List<MCParticle> seededmcp = new ArrayList<MCParticle>(seededmcpset);
