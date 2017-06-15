@@ -37,47 +37,47 @@ public final class TrackerReconDriver extends Driver {
     private static final Logger LOGGER = Logger.getLogger(TrackerReconDriver.class.getPackage().getName());
 
     private String subdetectorName = "Tracker";
-    
+
     // Debug flag.
     private boolean debug = false;
-    
+
     // Tracks found across all events.
     int ntracks = 0;
-    
+
     // Number of events processed.
     int nevents = 0;
-    
+
     // Cache detector object.
     Detector detector = null;
-    
+
     // Default B-field value.
     private double bfield = 0.5;
-    
+
     // Tracking strategies resource path.
     private String strategyResource = "HPS-Test-4pt1.xml";
-    
+
     // Output track collection.
     private String trackCollectionName = "MatchedTracks";
-    
+
     // HelicalTrackHit input collection.
     private String stInputCollectionName = "RotatedHelicalTrackHits";
-    
+
     // Include MS (done by removing XPlanes from the material manager results)
     private boolean includeMS = true;
-    
+
     // number of repetitive fits on confirmed/extended tracks
     private int _iterativeConfirmed = 3;
-    
+
     // use HPS implementation of material manager
     private boolean _useHPSMaterialManager = true;
-    
+
     // enable the use of sectoring using sector binning in SeedTracker
     private boolean _applySectorBinning = true;
-    
+
     private double rmsTimeCut = -1;
-    
+
     private boolean rejectUncorrectedHits = true;
-    
+
     private boolean rejectSharedHits = false;
 
     public TrackerReconDriver() {
@@ -86,7 +86,7 @@ public final class TrackerReconDriver extends Driver {
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
-    
+
     public void setSubdetectorName(String subdetectorName) {
         this.subdetectorName = subdetectorName;
     }
@@ -94,8 +94,9 @@ public final class TrackerReconDriver extends Driver {
     /**
      * Set the tracking strategy resource.
      *
-     * @param strategyResource The absolute path to the strategy resource in the
-     * hps-java jar.
+     * @param strategyResource
+     *            The absolute path to the strategy resource in the hps-java
+     *            jar.
      */
     public void setStrategyResource(String strategyResource) {
         this.strategyResource = strategyResource;
@@ -116,7 +117,8 @@ public final class TrackerReconDriver extends Driver {
     /**
      * Set to enable the use of the HPS material manager implementation
      *
-     * @param useHPSMaterialManager switch
+     * @param useHPSMaterialManager
+     *            switch
      */
     public void setUseHPSMaterialManager(boolean useHPSMaterialManager) {
         this._useHPSMaterialManager = useHPSMaterialManager;
@@ -130,7 +132,8 @@ public final class TrackerReconDriver extends Driver {
      * Set to enable the sectoring to use the sector bins in checking for
      * consistent hits.
      *
-     * @param applySectorBinning apply sector binning switch
+     * @param applySectorBinning
+     *            apply sector binning switch
      */
     public void setApplySectorBinning(boolean applySectorBinning) {
         this._applySectorBinning = applySectorBinning;
@@ -161,7 +164,8 @@ public final class TrackerReconDriver extends Driver {
         // Cache Detector object.
         this.detector = detector;
 
-        // Get B-field Y with no sign. Seed Tracker doesn't like signed B-field components.
+        // Get B-field Y with no sign. Seed Tracker doesn't like signed B-field
+        // components.
         // FIXME Is this always right?
         Hep3Vector fieldInTracker = TrackUtils.getBField(detector);
         LOGGER.config("fieldInTracker: Bx = " + fieldInTracker.x() + "; By = " + fieldInTracker.y() + "; Bz = " + fieldInTracker.z());
@@ -195,7 +199,8 @@ public final class TrackerReconDriver extends Driver {
         if (debug) {
             stFinal.setDiagnostics(new SeedTrackerDiagnostics());
         }
-        // stFinal.setSectorParams(false); //this doesn't actually seem to do anything
+        // stFinal.setSectorParams(false); //this doesn't actually seem to do
+        // anything
         stFinal.setSectorParams(1, 10000);
         add(stFinal);
 
@@ -203,7 +208,7 @@ public final class TrackerReconDriver extends Driver {
             HitTimeTrackCheck timeCheck = new HitTimeTrackCheck(rmsTimeCut);
             timeCheck.setDebug(debug);
             stFinal.setTrackCheck(timeCheck);
-        }        
+        }
     }
 
     /**
@@ -234,13 +239,13 @@ public final class TrackerReconDriver extends Driver {
             }
         }
 
-        // Set the type of track to indicate B-field in Y e.g. for swimming in Wired.
+        // Set the type of track to indicate B-field in Y e.g. for swimming in
+        // Wired.
         List<Track> tracks = event.get(Track.class, trackCollectionName);
 
         if (rejectUncorrectedHits) {
             Iterator<Track> iter = tracks.iterator();
-            trackLoop:
-            while (iter.hasNext()) {
+            trackLoop: while (iter.hasNext()) {
                 Track track = iter.next();
                 for (TrackerHit hit : track.getTrackerHits()) {
                     HelicalTrackHit hth = (HelicalTrackHit) hit;
@@ -274,8 +279,7 @@ public final class TrackerReconDriver extends Driver {
                 }
             }
             Iterator<Track> iter = tracks.iterator();
-            trackLoop:
-            while (iter.hasNext()) {
+            trackLoop: while (iter.hasNext()) {
                 Track track = iter.next();
                 for (TrackerHit hit : track.getTrackerHits()) {
                     Collection<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
@@ -307,7 +311,8 @@ public final class TrackerReconDriver extends Driver {
     /**
      * Set the track type to Y_FIELD so swimming is done correctly in Wired.
      *
-     * @param tracks The list of <code>Track</code> objects.
+     * @param tracks
+     *            The list of <code>Track</code> objects.
      */
     private void setTrackType(List<Track> tracks) {
         for (Track track : tracks) {
