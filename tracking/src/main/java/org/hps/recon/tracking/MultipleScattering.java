@@ -247,14 +247,11 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("%s: position at x=origin is %s with path length %f and direction %s\n", this.getClass().getSimpleName(), pos.toString(), s_origin, direction.toString());
         }
 
-        // Use this approximate position to get a first estimate if the helix
-        // intercepted the plane
-        // This is only because the real intercept position is an iterative
-        // procedure and we'd
+        // Use this approximate position to get a first estimate if the helix intercepted the plane
+        // This is only because the real intercept position is an iterative procedure and we'd
         // like to avoid using it if possible
         // Consider the plane as pure x-plane i.e. no rotations
-        // -> this is not very general, as it assumes that strips are (mostly)
-        // along y -> FIX
+        // -> this is not very general, as it assumes that strips are (mostly) along y -> FIX
         // THIS!?
         // Transformation from tracking to detector frame
         Hep3Vector pos_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos);
