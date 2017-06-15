@@ -12,166 +12,38 @@ import org.lcsim.fit.twopointcircle.TwoPointCircleFit;
 import org.lcsim.fit.twopointcircle.TwoPointCircleFitter;
 import org.lcsim.fit.twopointcircle.TwoPointLineFit;
 import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
-import org.lcsim.recon.tracking.seedtracker.Sector;
-import org.lcsim.recon.tracking.seedtracker.SectorManager;
+//import org.lcsim.recon.tracking.seedtracker.Sector;
+//import org.lcsim.recon.tracking.seedtracker.SectorManager;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
-import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
 public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
 
-    public FastCheck(SeedStrategy strategy, double bfield, ISeedTrackerDiagnostics diag) {
-        super(strategy, bfield, diag);
-        // TODO Auto-generated constructor stub
-    }
-
+    private double _RMin;
     private double _dMax;
+    private double _z0Max;
     private double _nsig;
     private TwoPointCircleFitter _cfit2;
     private ThreePointCircleFitter _cfit3;
     private static double twopi = 2. * Math.PI;
     private double _eps = 1.0e-6;
     private boolean _skipchecks = false;
-    private boolean _doSectorBinCheck = false;
 
-    @Override
-    public boolean CheckHitSeed(HelicalTrackHit hit, SeedCandidate seed) {
+    public FastCheck(SeedStrategy strategy, double bfield) {
+        super(strategy, bfield, null);
 
-        if (_skipchecks)
-            return true;
+        // Calculate the minimum radius of curvature, maximum DCA and Maximum z0
+        _RMin = strategy.getMinPT() / (Constants.fieldConversion * bfield);
+        _dMax = strategy.getMaxDCA();
+        _z0Max = strategy.getMaxZ0();
+        _nsig = Math.sqrt(strategy.getMaxChisq());
 
-        // Check the hit against each hit in the seed
-        for (HelicalTrackHit hit2 : seed.getHits()) {
-            if (this._doSectorBinCheck) {
-                if (!zSectorCheck(hit, hit2)) {
-                    return false;
-                }
-            }
+        // Instantiate the two point circle fitter for this minimum radius,
+        // maximum DCA
+        _cfit2 = new TwoPointCircleFitter(_RMin);
 
-            if (!TwoPointCircleCheck(hit, hit2, seed))
-                return false;
-
-        }
-
-        return true;
-    }
-
-    @Override
-    public boolean CheckSector(SeedCandidate seed, Sector sector) {
-
-        if (_skipchecks)
-            return true;
-
-        // Get limits on r, phi, and z for hits in this sector
-        double rmin = sector.rmin();
-        double rmax = sector.rmax();
-        double phimin = sector.phimin();
-        double phimax = sector.phimax();
-        double zmin = sector.zmin();
-        double zmax = sector.zmax();
-
-        // Calculate the midpoint and half the span in phi for this layer
-        double midphisec = (phimin + phimax) / 2.;
-        double dphisec = 0.5 * (phimax - phimin);
-
-        // Check each hit for compatibility with this sector
-        for (HelicalTrackHit hit : seed.getHits()) {
-            // Adjust the hit position for stereo hits
-            CorrectHitPosition(hit, seed);
-
-            // Sectoring
-            if (_doSectorBinCheck) {
-                if (!zSectorCheck(hit, sector))
-                    return false;
-            }
-
-            // Calculate the max track angle change between the hit and sector
-            // layer
-            double dphitrk1 = dphimax(hit.r(), rmin);
-            double dphitrk2 = dphimax(hit.r(), rmax);
-            double dphitrk = Math.max(dphitrk1, dphitrk2);
-
-            // Calculate the phi dev between the hit and midpoint of the sector
-            double dphi = phidif(hit.phi(), midphisec);
-
-            // The maximum dphi is the sum of the track bend and half the sector
-            // span
-            double dphimx = dphitrk + dphisec;
-            if (dphi > dphimx)
-                return false;
-
-            double smin1 = smin(rmin);
-            double smax1 = smax(rmax);
-            double r = hit.r();
-            double smin2 = smin(r);
-            double smax2 = smax(r);
-
-            // Get the z limits for the hit
-            double zlen = 0.;
-            if (hit instanceof HelicalTrack2DHit) {
-                zlen = ((HelicalTrack2DHit) hit).zlen();
-            }
-            double zmin2 = hit.z() - 0.5 * zlen;
-            double zmax2 = zmin2 + zlen;
-
-            // Check the z0 limits
-            boolean zOK = checkz0(smin1, smax1, zmin, zmax, smin2, smax2, zmin2, zmax2);
-
-            if (!zOK)
-                return false;
-
-        }
-        return true;
-    }
-
-    @Override
-    public boolean CheckSectorPair(Sector s1, Sector s2) {
-
-        if (_skipchecks)
-            return true;
-
-        if (_doSectorBinCheck) {
-            if (!zSectorCheck(s1, s2))
-                return false;
-        }
-
-        // Calculate the maximum change in azimuth
-        double dphi1 = dphimax(s1.rmin(), s2.rmax());
-        double dphi2 = dphimax(s1.rmax(), s2.rmin());
-
-        // Calculate the angular difference between the midpoints of the 2
-        // sectors
-        double mid1 = (s1.phimax() + s1.phimin()) / 2.0;
-        double mid2 = (s2.phimax() + s2.phimin()) / 2.0;
-        double dmid = phidif(mid1, mid2);
-
-        // Calculate the half widths of the 2 sectors
-        double wid1 = s1.phimax() - mid1;
-        double wid2 = s2.phimax() - mid2;
-
-        // Check that the sectors are compatible in the bend coordinate
-        boolean phiOK;
-
-        phiOK = dmid < dphi1 + wid1 + wid2;
-        if (!phiOK)
-            phiOK = dmid < dphi2 + wid1 + wid2;
-        if (!phiOK)
-            return false;
-
-        // Get the minimum and maximum path lengths
-        double s1min = smin(s1.rmin());
-        double s2min = smin(s2.rmin());
-        double s1max = smax(s1.rmax());
-        double s2max = smax(s2.rmax());
-
-        // Get the minimum and maximum z's
-        double z1min = s1.zmin();
-        double z2min = s2.zmin();
-        double z1max = s1.zmax();
-        double z2max = s2.zmax();
-
-        // Check that the sectors are compatible in the non-bend coordinate
-        return checkz0(s1min, s1max, z1min, z1max, s2min, s2max, z2min, z2max);
+        // Instantiate the three point circle fitter
+        _cfit3 = new ThreePointCircleFitter();
     }
 
     @Override
@@ -257,19 +129,8 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         s2max = s2max + dr2;
 
         // Check the z0 limits using the min/max path lengths
-        boolean zOK = checkz0(s1min, s1max, z1min, z1max, s2min, s2max, z2min, z2max);
+        return checkz0(s1min, s1max, z1min, z1max, s2min, s2max, z2min, z2max);
 
-        if (!zOK)
-            return false;
-
-        boolean zSectorOK = true;
-
-        if (_doSectorBinCheck) {
-            zSectorOK = zSectorCheck(hit1, hit2);
-        }
-
-        // Done!
-        return zSectorOK;
     }
 
     @Override
@@ -296,18 +157,15 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         p[indx][0] = pos[0];
         p[indx][1] = pos[1];
         z[indx] = pos[2];
-        if (hit.BarrelEndcapFlag() == BarrelEndcapFlag.BARREL) {
-            if (hit instanceof HelicalTrack3DHit)
-                dztot += _nsig * ((HelicalTrack3DHit) hit).dz();
-            else {
-                zfirst = false;
-                if (hit instanceof HelicalTrack2DHit)
-                    dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-                else
-                    dztot += _nsig * Math.sqrt(hit.getCovMatrix()[5]);
-            }
-        } else {
-            dztot += hit.dr() * Math.abs(pos[2]) / Math.sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
+
+        if (hit instanceof HelicalTrack3DHit)
+            dztot += _nsig * ((HelicalTrack3DHit) hit).dz();
+        else {
+            zfirst = false;
+            if (hit instanceof HelicalTrack2DHit)
+                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
+            else
+                dztot += _nsig * Math.sqrt(hit.getCovMatrix()[5]);
         }
 
         // Get the relevant variables for hit 2
@@ -317,18 +175,15 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         p[indx][0] = pos[0];
         p[indx][1] = pos[1];
         z[indx] = pos[2];
-        if (hit.BarrelEndcapFlag() == BarrelEndcapFlag.BARREL) {
-            if (hit instanceof HelicalTrack3DHit)
-                dztot += _nsig * ((HelicalTrack3DHit) hit).dz();
-            else {
-                zfirst = false;
-                if (hit instanceof HelicalTrack2DHit)
-                    dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-                else
-                    dztot += _nsig * Math.sqrt(hit.getCovMatrix()[5]);
-            }
-        } else {
-            dztot += hit.dr() * Math.abs(pos[2]) / Math.sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
+
+        if (hit instanceof HelicalTrack3DHit)
+            dztot += _nsig * ((HelicalTrack3DHit) hit).dz();
+        else {
+            zfirst = false;
+            if (hit instanceof HelicalTrack2DHit)
+                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
+            else
+                dztot += _nsig * Math.sqrt(hit.getCovMatrix()[5]);
         }
 
         // Get the relevant variables for hit 3
@@ -338,18 +193,15 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         p[indx][0] = pos[0];
         p[indx][1] = pos[1];
         z[indx] = pos[2];
-        if (hit.BarrelEndcapFlag() == BarrelEndcapFlag.BARREL) {
-            if (hit instanceof HelicalTrack3DHit)
-                dztot += _nsig * ((HelicalTrack3DHit) hit).dz();
-            else {
-                zfirst = false;
-                if (hit instanceof HelicalTrack2DHit)
-                    dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-                else
-                    dztot += _nsig * Math.sqrt(hit.getCovMatrix()[5]);
-            }
-        } else {
-            dztot += hit.dr() * Math.abs(pos[2]) / Math.sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
+
+        if (hit instanceof HelicalTrack3DHit)
+            dztot += _nsig * ((HelicalTrack3DHit) hit).dz();
+        else {
+            zfirst = false;
+            if (hit instanceof HelicalTrack2DHit)
+                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
+            else
+                dztot += _nsig * Math.sqrt(hit.getCovMatrix()[5]);
         }
 
         // Add multiple scattering error here - for now, just set it to 1 mm
@@ -447,6 +299,100 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
 
         // Passed all checks - success!
         return true;
+    }
+
+    private boolean checkz0(double s1min, double s1max, double zmin1, double zmax1, double s2min, double s2max, double zmin2, double zmax2) {
+
+        double z0[] = new double[2];
+        double z1[] = new double[4];
+        double z2[] = new double[2];
+        double s1[] = new double[4];
+        double s2[] = new double[2];
+
+        // Set limits on z0
+        z0[0] = -_z0Max;
+        z0[1] = _z0Max;
+
+        // Set corners of allowed region for s1, z1
+        z1[0] = zmin1;
+        z1[1] = zmin1;
+        z1[2] = zmax1;
+        z1[3] = zmax1;
+        s1[0] = s1min;
+        s1[1] = s1max;
+        s1[2] = s1min;
+        s1[3] = s1max;
+
+        // Set limits on z2, s2
+        z2[0] = zmin2;
+        z2[1] = zmax2;
+        s2[0] = s2min;
+        s2[1] = s2max;
+
+        // Initialize min/max of s, z at point 2
+        double zmax = -1.0e10;
+        double zmin = 1.0e10;
+        double smax = -1.0e10;
+        double smin = 1.0e10;
+
+        // Loop over z0 limits
+        for (int i = 0; i < 2; i++) {
+
+            // Loop over corners of s1, z1
+            for (int j = 0; j < 4; j++) {
+
+                // Calculate slope of line in s-z space from z0 limit to point 1
+                // corner
+                double slope = (z1[j] - z0[i]) / s1[j];
+
+                // Loop over limits on z2, s2
+                for (int k = 0; k < 2; k++) {
+
+                    // Calculate extrapolation of s-z line to the point 2 limit
+                    double z = z0[i] + s2[k] * slope;
+                    double s = (z2[k] - z0[i]) / slope;
+
+                    // Find the min/max values of the extrapolated s, z at point
+                    // 2
+                    if (z > zmax)
+                        zmax = z;
+                    if (z < zmin)
+                        zmin = z;
+                    if (s > smax)
+                        smax = s;
+                    if (s < smin)
+                        smin = s;
+                }
+            }
+        }
+
+        // Check to see if the extrapolated points are consistent with
+        // measurements
+        boolean checkz0 = (zmin2 <= zmax && zmax2 >= zmin) || (s2min <= smax && s2max >= smin);
+
+        return checkz0;
+    }
+
+    private void CorrectHitPosition(HelicalTrackHit hit, SeedCandidate seed) {
+        if (hit instanceof HelicalTrackCross) {
+            HelicalTrackCross cross = (HelicalTrackCross) hit;
+            HelicalTrackFit helix = null;
+            if (seed != null)
+                helix = seed.getHelix();
+            cross.setTrackDirection(helix);
+        }
+    }
+
+    private double dz(HelicalTrackHit hit) {
+
+        // Axial strip hits: use half strip length
+        if (hit instanceof HelicalTrack2DHit) {
+            return 0.5 * ((HelicalTrack2DHit) hit).zlen();
+
+            // Otherwise use the z error
+        } else {
+            return _nsig * Math.sqrt(hit.getCorrectedCovMatrix().diagonal(2));
+        }
     }
 
 }
