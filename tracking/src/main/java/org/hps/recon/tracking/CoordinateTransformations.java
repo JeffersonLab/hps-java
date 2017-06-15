@@ -10,8 +10,7 @@ import org.lcsim.detector.Transform3D;
 
 /**
  * <p>
- * Class that contains the transformations between the JLAB and lcsim tracking
- * coordinate systems.
+ * Class that contains the transformations between the JLAB and lcsim tracking coordinate systems.
  * </p>
  * <p>
  * <ul>
