@@ -2,16 +2,12 @@ package org.hps.recon.tracking;
 
 import org.lcsim.constants.Constants;
 import org.lcsim.fit.helicaltrack.HelicalTrack2DHit;
-import org.lcsim.fit.helicaltrack.HelicalTrack3DHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
-import org.lcsim.fit.threepointcircle.CircleFit;
-import org.lcsim.fit.threepointcircle.ThreePointCircleFitter;
 import org.lcsim.fit.twopointcircle.TwoPointCircleFit;
 import org.lcsim.fit.twopointcircle.TwoPointCircleFitter;
 import org.lcsim.fit.twopointcircle.TwoPointLineFit;
-import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
 //import org.lcsim.recon.tracking.seedtracker.Sector;
 //import org.lcsim.recon.tracking.seedtracker.SectorManager;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
@@ -24,8 +20,6 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
     private double _z0Max;
     private double _nsig;
     private TwoPointCircleFitter _cfit2;
-    private ThreePointCircleFitter _cfit3;
-    private static double twopi = 2. * Math.PI;
     private double _eps = 1.0e-6;
     private boolean _skipchecks = false;
 
@@ -41,23 +35,11 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         // Instantiate the two point circle fitter for this minimum radius,
         // maximum DCA
         _cfit2 = new TwoPointCircleFitter(_RMin);
-
-        // Instantiate the three point circle fitter
-        _cfit3 = new ThreePointCircleFitter();
     }
 
-    @Override
-    public boolean TwoPointCircleCheck(HelicalTrackHit hit1, HelicalTrackHit hit2, SeedCandidate seed) {
+    public boolean TwoPointCircleCheck(HelicalTrackHit hit1, HelicalTrackHit hit2) {
         if (_skipchecks)
             return true;
-
-        // Initialize the hit coordinates for an unknown track direction
-        CorrectHitPosition(hit1, seed);
-        CorrectHitPosition(hit2, seed);
-
-        // Check that hits are outside the maximum DCA
-        if (hit1.r() < _dMax || hit2.r() < _dMax)
-            return false;
 
         // Try to find a circle passing through the 2 hits and the maximum DCA
         boolean success = false;
@@ -133,174 +115,6 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
 
     }
 
-    @Override
-    public boolean ThreePointHelixCheck(HelicalTrackHit hit1, HelicalTrackHit hit2, HelicalTrackHit hit3) {
-
-        if (_skipchecks)
-            return true;
-
-        // Setup for a 3 point circle fit
-        double p[][] = new double[3][2];
-        double[] pos;
-        double z[] = new double[3];
-        double dztot = 0.;
-        int indx;
-        HelicalTrackHit hit;
-        boolean zfirst = true;
-
-        // While not terribly elegant, code for speed
-        // Use calls that give uncorrected position and error
-        // Get the relevant variables for hit 1
-        indx = 0;
-        hit = hit1;
-        pos = hit.getPosition();
-        p[indx][0] = pos[0];
-        p[indx][1] = pos[1];
-        z[indx] = pos[2];
-
-        if (hit instanceof HelicalTrack3DHit)
-            dztot += _nsig * ((HelicalTrack3DHit) hit).dz();
-        else {
-            zfirst = false;
-            if (hit instanceof HelicalTrack2DHit)
-                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-            else
-                dztot += _nsig * Math.sqrt(hit.getCovMatrix()[5]);
-        }
-
-        // Get the relevant variables for hit 2
-        indx = 1;
-        hit = hit2;
-        pos = hit.getPosition();
-        p[indx][0] = pos[0];
-        p[indx][1] = pos[1];
-        z[indx] = pos[2];
-
-        if (hit instanceof HelicalTrack3DHit)
-            dztot += _nsig * ((HelicalTrack3DHit) hit).dz();
-        else {
-            zfirst = false;
-            if (hit instanceof HelicalTrack2DHit)
-                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-            else
-                dztot += _nsig * Math.sqrt(hit.getCovMatrix()[5]);
-        }
-
-        // Get the relevant variables for hit 3
-        indx = 2;
-        hit = hit3;
-        pos = hit.getPosition();
-        p[indx][0] = pos[0];
-        p[indx][1] = pos[1];
-        z[indx] = pos[2];
-
-        if (hit instanceof HelicalTrack3DHit)
-            dztot += _nsig * ((HelicalTrack3DHit) hit).dz();
-        else {
-            zfirst = false;
-            if (hit instanceof HelicalTrack2DHit)
-                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-            else
-                dztot += _nsig * Math.sqrt(hit.getCovMatrix()[5]);
-        }
-
-        // Add multiple scattering error here - for now, just set it to 1 mm
-        dztot += 1.;
-
-        // Unless the three hits are all pixel hits, do the circle checks first
-        if (!zfirst) {
-            if (!TwoPointCircleCheck(hit1, hit3, null))
-                return false;
-            if (!TwoPointCircleCheck(hit2, hit3, null))
-                return false;
-        }
-
-        // Do the 3 point circle fit and check for success
-        boolean success = _cfit3.fit(p[0], p[1], p[2]);
-        if (!success)
-            return false;
-
-        // Retrieve the circle parameters
-        CircleFit circle = _cfit3.getFit();
-        double xc = circle.x0();
-        double yc = circle.y0();
-        double rc = Math.sqrt(xc * xc + yc * yc);
-        double rcurv = circle.radius();
-
-        // Find the point of closest approach
-        double x0 = xc * (1. - rcurv / rc);
-        double y0 = yc * (1. - rcurv / rc);
-
-        // Find the x-y arc lengths to the hits and the smallest arc length
-        double phi0 = Math.atan2(y0 - yc, x0 - xc);
-        double[] dphi = new double[3];
-        double dphimin = 999.;
-
-        for (int i = 0; i < 3; i++) {
-            // Find the angle between the hits and the DCA under the assumption
-            // that |dphi| < pi
-            dphi[i] = Math.atan2(p[i][1] - yc, p[i][0] - xc) - phi0;
-            if (dphi[i] > Math.PI)
-                dphi[i] -= twopi;
-            if (dphi[i] < -Math.PI)
-                dphi[i] += twopi;
-            if (Math.abs(dphi[i]) < Math.abs(dphimin))
-                dphimin = dphi[i];
-        }
-
-        // Use the hit closest to the DCA to determine the circle "direction"
-        boolean cw = dphimin < 0.;
-
-        // Find the arc lengths to the hits
-        double[] s = new double[3];
-        for (int i = 0; i < 3; i++) {
-
-            // Arc set to be positive if they have the same sign as dphimin
-            if (cw)
-                s[i] = -dphi[i] * rcurv;
-            else
-                s[i] = dphi[i] * rcurv;
-
-            // Treat the case where a point has dphi opposite in sign to dphimin
-            // as an incoming looper hit
-            if (s[i] < 0.)
-                s[i] += twopi * rcurv;
-        }
-
-        // Order the arc lengths and z info by increasing arc length
-        for (int i = 0; i < 2; i++) {
-            for (int j = i + 1; j < 3; j++) {
-                if (s[j] < s[i]) {
-                    double temp = s[i];
-                    s[i] = s[j];
-                    s[j] = temp;
-                    temp = z[i];
-                    z[i] = z[j];
-                    z[j] = temp;
-                }
-            }
-        }
-
-        // Predict the middle z and see if it is consistent with the
-        // measurements
-        double slope = (z[2] - z[0]) / (s[2] - s[0]);
-        double z0 = z[0] - s[0] * slope;
-        double zpred = z0 + s[1] * slope;
-        if (Math.abs(zpred - z[1]) > dztot)
-            return false;
-
-        // If we haven't already done the circle checks, do them now
-        if (zfirst) {
-            if (!TwoPointCircleCheck(hit1, hit3, null))
-                return false;
-            if (!TwoPointCircleCheck(hit2, hit3, null))
-                return false;
-        }
-
-        // Passed all checks - success!
-        return true;
-    }
-
     private boolean checkz0(double s1min, double s1max, double zmin1, double zmax1, double s2min, double s2max, double zmin2, double zmax2) {
 
         double z0[] = new double[2];
@@ -373,14 +187,37 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         return checkz0;
     }
 
-    private void CorrectHitPosition(HelicalTrackHit hit, SeedCandidate seed) {
-        if (hit instanceof HelicalTrackCross) {
-            HelicalTrackCross cross = (HelicalTrackCross) hit;
-            HelicalTrackFit helix = null;
-            if (seed != null)
-                helix = seed.getHelix();
-            cross.setTrackDirection(helix);
+    @Override
+    public boolean CheckHitSeed(HelicalTrackHit hit, SeedCandidate seed) {
+
+        CorrectHitPosition(hit, seed);
+        // Check that hits are outside the maximum DCA
+        if (hit.r() < _dMax)
+            return false;
+
+        if (_skipchecks)
+            return true;
+
+        //  Check the hit against each hit in the seed
+        for (HelicalTrackHit hit2 : seed.getHits()) {
+
+            // Check that hits are outside the maximum DCA
+            if (hit2.r() < _dMax)
+                continue;
+
+            CorrectHitPosition(hit2, seed);
+
+            //          if (this._doSectorBinCheck) {
+            //          if (!super.zSectorCheck(hit,hit2)) {
+            //              return false;
+            //          }
+            //      }
+
+            if (!TwoPointCircleCheck(hit, hit2))
+                return false;
         }
+
+        return true;
     }
 
     private double dz(HelicalTrackHit hit) {
@@ -392,6 +229,16 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
             // Otherwise use the z error
         } else {
             return _nsig * Math.sqrt(hit.getCorrectedCovMatrix().diagonal(2));
+        }
+    }
+
+    private void CorrectHitPosition(HelicalTrackHit hit, SeedCandidate seed) {
+        if (hit instanceof HelicalTrackCross) {
+            HelicalTrackCross cross = (HelicalTrackCross) hit;
+            HelicalTrackFit helix = null;
+            if (seed != null)
+                helix = seed.getHelix();
+            cross.setTrackDirection(helix);
         }
     }
 
