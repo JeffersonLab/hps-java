@@ -2,12 +2,8 @@ package org.hps.recon.tracking;
 
 import hep.aida.IHistogram1D;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
@@ -15,7 +11,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Read all track collections in the event, use ambiguity resolver, and put the
@@ -30,7 +25,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 public class MergeTrackCollections extends Driver {
 
     private String outputCollectionName = "MatchedTracks";
-    private String partialTrackCollectionName = "PartialTracks";
+    //private String partialTrackCollectionName = "PartialTracks";
     private String inputTrackCollectionName = "";
     private boolean removeCollections = true;
     private boolean doPlots = false;
@@ -38,22 +33,40 @@ public class MergeTrackCollections extends Driver {
     private AmbiguityResolver ambi;
     // private AcceptanceHelper acc;
 
-    private AIDA aida2 = AIDA.defaultInstance();
-    private IHistogram1D trackScoresPreAmbi = aida2.histogram1D("trackScoresPreAmbi", 200, -100, 100);
-    private IHistogram1D trackScoresPostAmbi = aida2.histogram1D("trackScoresPostAmbi", 200, -100, 100);
-    private IHistogram1D numDuplicateTracks = aida2.histogram1D("numDuplicateTracks", 10, 0, 10);
-    private IHistogram1D numPartialTracks = aida2.histogram1D("numPartialTracks", 10, 0, 10);
-    private IHistogram1D numSharedTracks = aida2.histogram1D("numSharedTracks", 10, 0, 10);
-    private IHistogram1D sharedHitsPreAmbi = aida2.histogram1D("sharedHitsPreAmbi", 10, 0, 10);
-    private IHistogram1D numTracksPreAmbi = aida2.histogram1D("numTracksPreAmbi", 10, 0, 10);
-    private IHistogram1D numTracksPostAmbi = aida2.histogram1D("numTracksPostAmbi", 10, 0, 10);
-    private IHistogram1D sharedHitsPostAmbi = aida2.histogram1D("sharedHitsPostAmbi", 10, 0, 10);
-    private IHistogram1D numHitsPreAmbi = aida2.histogram1D("numHitsPreAmbi", 10, 0, 10);
-    private IHistogram1D numHitsPostAmbi = aida2.histogram1D("numHitsPostAmbi", 10, 0, 10);
+    private AIDA aida2;
+    private IHistogram1D trackScoresPreAmbi;
+    private IHistogram1D trackScoresPostAmbi;
+    private IHistogram1D numDuplicateTracks;
+    //private IHistogram1D numPartialTracks;
+    private IHistogram1D numSharedTracks;
+    private IHistogram1D sharedHitsPreAmbi;
+    private IHistogram1D numTracksPreAmbi;
+    private IHistogram1D numTracksPostAmbi;
+    private IHistogram1D sharedHitsPostAmbi;
+    private IHistogram1D numHitsPreAmbi;
+    private IHistogram1D numHitsPostAmbi;
 
     /**
      * Default constructor
      */
+    public MergeTrackCollections() {
+        super();
+
+        if (doPlots) {
+            aida2 = AIDA.defaultInstance();
+            trackScoresPreAmbi = aida2.histogram1D("trackScoresPreAmbi", 200, -100, 100);
+            trackScoresPostAmbi = aida2.histogram1D("trackScoresPostAmbi", 200, -100, 100);
+            numDuplicateTracks = aida2.histogram1D("numDuplicateTracks", 10, 0, 10);
+            //numPartialTracks = aida2.histogram1D("numPartialTracks", 10, 0, 10);
+            numSharedTracks = aida2.histogram1D("numSharedTracks", 10, 0, 10);
+            sharedHitsPreAmbi = aida2.histogram1D("sharedHitsPreAmbi", 10, 0, 10);
+            numTracksPreAmbi = aida2.histogram1D("numTracksPreAmbi", 10, 0, 10);
+            numTracksPostAmbi = aida2.histogram1D("numTracksPostAmbi", 10, 0, 10);
+            sharedHitsPostAmbi = aida2.histogram1D("sharedHitsPostAmbi", 10, 0, 10);
+            numHitsPreAmbi = aida2.histogram1D("numHitsPreAmbi", 10, 0, 10);
+            numHitsPostAmbi = aida2.histogram1D("numHitsPostAmbi", 10, 0, 10);
+        }
+    }
 
     public void setPlots(boolean value) {
         doPlots = value;
@@ -82,9 +95,9 @@ public class MergeTrackCollections extends Driver {
         doPlots = value;
     }
 
-    public void setPartialTrackCollectionName(String partialTrackCollectionName) {
-        this.partialTrackCollectionName = partialTrackCollectionName;
-    }
+    //public void setPartialTrackCollectionName(String partialTrackCollectionName) {
+    //    this.partialTrackCollectionName = partialTrackCollectionName;
+    //}
 
     /**
      * Name of the LCIO collection containing input tracks.
@@ -147,11 +160,11 @@ public class MergeTrackCollections extends Driver {
         ((SimpleAmbiguityResolver) (ambi)).setMode(SimpleAmbiguityResolver.AmbiMode.PARTIALS);
         ambi.resolve();
         List<Track> deduplicatedTracks = ambi.getTracks();
-        List<Track> partialTracks = ambi.getPartialTracks();
+        //List<Track> partialTracks = ambi.getPartialTracks();
 
         if (doPlots) {
             numTracksPostAmbi.fill(deduplicatedTracks.size());
-            numPartialTracks.fill(ambi.getPartialTracks().size());
+            //numPartialTracks.fill(ambi.getPartialTracks().size());
             numDuplicateTracks.fill(ambi.getDuplicateTracks().size());
             numSharedTracks.fill(ambi.getSharedTracks().size());
 
@@ -172,23 +185,11 @@ public class MergeTrackCollections extends Driver {
 
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputCollectionName, deduplicatedTracks, Track.class, flag);
-        event.put(partialTrackCollectionName, partialTracks, Track.class, flag);
+        //event.put(partialTrackCollectionName, partialTracks, Track.class, flag);
         if (isTransient) {
             event.getMetaData(deduplicatedTracks).setTransient(isTransient);
-            event.getMetaData(partialTracks).setTransient(isTransient);
+            //event.getMetaData(partialTracks).setTransient(isTransient);
         }
     }
 
-    @Override
-    protected void endOfData() {
-        super.endOfData();
-
-        File outputFile2 = new TestOutputFile("mergingPlots.aida");
-        outputFile2.getParentFile().mkdirs();
-        try {
-            aida2.saveAs(outputFile2);
-        } catch (IOException ex) {
-            Logger.getLogger(MergeTrackCollections.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 }
