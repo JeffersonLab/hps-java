@@ -71,6 +71,8 @@ public abstract class PulseShape {
             peak_t = 3.0 * Math.pow(tp * Math.pow(tp2, 3), 0.25); //approximate solution to exp(x)=1+x+x^2*tp/(2*tp2), where x=(1/tp2-1/tp)*t
             peak_amp = getAmplitudeIntegralNorm(peak_t);
             
+            //System.out.println(tp + "  " + tp2);
+            
             A = (Math.pow(tp, 2) / Math.pow(tp - tp2, 3));
             B = (tp - tp2) / (tp * tp2);
         }
@@ -128,12 +130,11 @@ public abstract class PulseShape {
                 time += dt;
             }
             
-            double a = Math.exp(-time/tp);
-            double a2 = Math.exp(-time/tp2);
+            double a = A*Math.exp(-time/tp)/peak_amp;
+            double a2 = A*Math.exp(-time/tp2)/peak_amp;
 
             for(; i< amplitudes.length; i++){
-                amplitudes[i] = A * (a
-                        - a2 * (1 + time * B + 0.5 * time * time * B*B))/peak_amp;
+                amplitudes[i] = a - a2 * (1 + time * B + 0.5 * time * time * B*B);
                 a*=b;
                 a2*=b2;
                 time += dt;
