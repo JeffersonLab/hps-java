@@ -142,7 +142,7 @@
         </driver>
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
-            <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
+            <trackCollectionNames>GBLTracks</trackCollectionNames>
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
