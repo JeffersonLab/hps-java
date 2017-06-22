@@ -452,19 +452,11 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     private void patchVertex(BilliorVertex v) {
         ReconstructedParticle rp = v.getAssociatedParticle();
         List<ReconstructedParticle> parts = rp.getParticles();
-        ReconstructedParticle electron = null;
-        ReconstructedParticle positron = null;
-        for (ReconstructedParticle part : parts) {
-            if (part.getCharge() < 0) {
-                electron = part;
-            }
-            if (part.getCharge() > 0) {
-                positron = part;
-            }
-        }
-        //electron
-        Track et = electron.getTracks().get(0);
-        double etrackMom = electron.getMomentum().magnitude();
+        ReconstructedParticle rp1 = parts.get(0);
+        ReconstructedParticle rp2 = parts.get(1);
+        //p1
+        Track et = rp1.getTracks().get(0);
+        double etrackMom = rp1.getMomentum().magnitude();
         HelicalTrackFit ehtf = TrackUtils.getHTF(et);
         // propagate this to the vertex z position...
         // Note that HPS y is lcsim z
@@ -472,9 +464,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         Hep3Vector epointOnTrackAtVtx = HelixUtils.PointOnHelix(ehtf, es);
         Hep3Vector edirOfTrackAtVtx = HelixUtils.Direction(ehtf, es);
         Hep3Vector emomAtVtx = VecOp.mult(etrackMom, VecOp.unit(edirOfTrackAtVtx));
-        //positron
-        Track pt = positron.getTracks().get(0);
-        double ptrackMom = positron.getMomentum().magnitude();
+        //p2
+        Track pt = rp2.getTracks().get(0);
+        double ptrackMom = rp2.getMomentum().magnitude();
         HelicalTrackFit phtf = TrackUtils.getHTF(pt);
         // propagate this to the vertex z position...
         // Note that HPS y is lcsim z
