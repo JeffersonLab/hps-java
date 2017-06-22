@@ -276,12 +276,6 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // Find and return a vertex based on the tracks.
         BilliorVertex vtx =  vtxFitter.fitVertex(billiorTracks);
         
-        // patch the track parameters at the found vertex
-        if(_patchVertexTrackParameters)
-        {
-           patchVertex(vtx); 
-        }
-        
         return vtx;
     }
 
@@ -301,6 +295,11 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             BilliorVertex vtxFit = fitVertex(constraint, electronBTrack, positronBTrack);
             ReconstructedParticle candidate = this.makeReconstructedParticle(electron, positron, vtxFit);
 
+                    // patch the track parameters at the found vertex
+        if(_patchVertexTrackParameters)
+        {
+           patchVertex(vtxFit); 
+        }
             // Add the candidate vertex and particle to the
             // appropriate LCIO collection.
             switch (constraint) {
@@ -339,7 +338,11 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             // Generate a candidate vertex and particle.
             BilliorVertex vtxFit = fitVertex(constraint, firstElectronBTrack, secondElectronBTrack);
             ReconstructedParticle candidate = makeReconstructedParticle(topElectron, botElectron, vtxFit);
-
+        // patch the track parameters at the found vertex
+        if(_patchVertexTrackParameters)
+        {
+           patchVertex(vtxFit); 
+        }
             // Add the candidate vertex and particle to the
             // appropriate LCIO collection.
             switch (constraint) {
