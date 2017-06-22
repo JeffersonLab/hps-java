@@ -117,7 +117,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     }
     
     
-    private boolean _patchVertexTrackParameters;
+    private boolean _patchVertexTrackParameters = true;
 
     /**
      * Processes the track and cluster collections in the event into
