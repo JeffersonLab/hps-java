@@ -1,17 +1,12 @@
 package org.hps.recon.tracking;
 
-import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
-import hep.aida.IPlotter;
-import hep.aida.IPlotterStyle;
-import hep.physics.vec.BasicHep3Vector;
 //import hep.aida.IProfile;
 import hep.physics.vec.Hep3Vector;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,16 +18,15 @@ import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters.ParameterName;
+import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
-import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -51,7 +45,6 @@ public class TrackingReconstructionPlots extends Driver {
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private String stripClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private boolean doAmplitudePlots = true;
-    private double _bfield;
     private boolean doECalClusterPlots = true;
     private boolean doHitsOnTrackPlots = true;
     private boolean doResidualPlots = true;
@@ -67,44 +60,9 @@ public class TrackingReconstructionPlots extends Driver {
     private Map<Track, Cluster> pCanditates;
 
     private String outputPlots = "TrackingRecoPlots.aida";
-    IPlotter plotter;
-    IPlotter plotter2;
-    IPlotter plotter22;
-    IPlotter plotter2221;
-    IPlotter plotter2222;
-    IPlotter plotter222;
-    IPlotter plotter22299;
-    IPlotter plotter22298;
-    IPlotter plotter2224;
-    IPlotter plotter2223;
-    IPlotter plotter3;
-    IPlotter plotter3_1;
-    IPlotter plotter3_11;
-    IPlotter plotter3_2;
-    IPlotter plotter4;
-    IPlotter plotter5;
-    IPlotter plotter5_1;
-    IPlotter plotter55;
-    IPlotter plotter6;
-    IPlotter plotter66;
-    IPlotter plotter8;
-    IPlotter plotter88;
-    IPlotter plotter888;
-    IPlotter plotter8888;
-    IPlotter top1;
-    IPlotter top2;
-    IPlotter top3;
-    IPlotter top4;
-    IPlotter top44;
-    IPlotter bot1;
-    IPlotter bot2;
-    IPlotter bot3;
-    IPlotter bot4;
-    double zAtColl = -1500;
 
     ShaperFitAlgorithm _shaper = new DumbShaperFit();
     HelixConverter converter = new HelixConverter(0);
-    private boolean showPlots = false;
     private static Logger LOGGER = Logger.getLogger(TrackingReconstructionPlots.class.getName());
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
 
@@ -118,9 +76,7 @@ public class TrackingReconstructionPlots extends Driver {
         }
         LOGGER.info("Found " + sensors.size() + " SiSensors.");
 
-        _bfield = (detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 1.))).y();
-
-        //setupPlots();
+        setupPlots();
     }
 
     public TrackingReconstructionPlots() {
@@ -131,10 +87,6 @@ public class TrackingReconstructionPlots extends Driver {
         this.outputPlots = output;
     }
 
-    public void setShowPlots(boolean show) {
-        this.showPlots = show;
-    }
-
     public void setHelicalTrackHitCollectionName(String helicalTrackHitCollectionName) {
         this.helicalTrackHitCollectionName = helicalTrackHitCollectionName;
     }
@@ -143,13 +95,12 @@ public class TrackingReconstructionPlots extends Driver {
         this.trackCollectionName = trackCollectionName;
     }
 
-    private void doStripHits(List<SiTrackerHitStrip1D> stripClusters) {
-
-        //System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", stripHits.size());
+    private void doStripHits(List<TrackerHit> stripClusters, Track trk, RelationalTable trackDataTable) {
         Map<HpsSiSensor, Integer> stripHits = new HashMap<HpsSiSensor, Integer>();
-        Map<HpsSiSensor, Double> stripHitsIso = new HashMap<HpsSiSensor, Double>();
-        for (SiTrackerHitStrip1D stripHit : stripClusters) {
-            HpsSiSensor sensor = (HpsSiSensor) stripHit.getRawHits().get(0).getDetectorElement();
+
+        for (TrackerHit stripHit : stripClusters) {
+            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement());
+
             int n;
             if (stripHits.containsKey(sensor)) {
                 n = stripHits.get(sensor);
@@ -158,37 +109,25 @@ public class TrackingReconstructionPlots extends Driver {
             }
             n++;
             stripHits.put(sensor, n);
-
-            // calculate isolation to other strip clusters
-
-            SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
-
-            double stripIsoMin = 9999.9;
-            for (SiTrackerHitStrip1D stripHitOther : stripClusters) {
-                //LOGGER.fine(stripHit.getPositionAsVector().toString() + " c.f. " + stripHitOther.getPositionAsVector().toString());
-
-                if (stripHitOther.equals(stripHit)) {
-                    continue;
-                }
-
-                HpsSiSensor sensorOther = (HpsSiSensor) stripHitOther.getRawHits().get(0).getDetectorElement();
-                //System.out.println(sensor.getName() + " c.f. " + sensorOther.getName());
-                if (sensorOther.equals(sensor)) {
-                    SiTrackerHitStrip1D localOther = stripHitOther.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
-                    double d = Math.abs(local.getPosition()[0] - localOther.getPosition()[0]);
-                    //System.out.println(sensor.getName() + " d " + Double.toString(d));
-                    if (d < stripIsoMin && d > 0) {
-                        stripIsoMin = d;
-                    }
-                }
-            }
-            stripHitsIso.put(sensor, stripIsoMin);
         }
 
         for (Map.Entry<HpsSiSensor, Integer> sensor : stripHits.entrySet()) {
-            aida.histogram1D(sensor.getKey().getName() + " strip hits").fill(sensor.getValue());
-            aida.histogram1D(sensor.getKey().getName() + " strip hits iso").fill(stripHitsIso.get(sensor.getKey()));
+            aida.histogram1D(sensor.getKey().getName() + " strip hits").fill(stripHits.get(sensor.getKey()));
         }
+
+        if (trackDataTable == null)
+            return;
+        GenericObject trackData = (GenericObject) trackDataTable.from(trk);
+        if (trackData == null) {
+            System.out.println("null TrackData for isolation");
+            return;
+        }
+
+        int numIso = trackData.getNDouble();
+        for (int i = 0; i < numIso; i++) {
+            aida.histogram1D(String.format("Layer %d Isolation", i)).fill(trackData.getDoubleVal(i));
+        }
+
     }
 
     private void doECalClusters(List<Cluster> clusters, boolean tracksPresent) {
@@ -253,15 +192,15 @@ public class TrackingReconstructionPlots extends Driver {
             aida.histogram1D("Track Chi2").fill(trk.getChi2());
 
             aida.histogram1D("Hits per Track").fill(trk.getTrackerHits().size());
-            HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(trk);
-            StraightLineTrack slt = converter.Convert(helicalTrackFit);
+            //HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(trk);
+            //StraightLineTrack slt = converter.Convert(helicalTrackFit);
 
             Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trk);
 
-            aida.histogram1D("X (mm) @ Z=-60cm").fill(slt.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN)[0]); //this is y in the tracker frame
-            aida.histogram1D("Y (mm) @ Z=-60cm").fill(slt.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN)[1]); //this is z in the tracker frame
-            aida.histogram1D("X (mm) @ Z=-150cm").fill(slt.getYZAtX(zAtColl)[0]);
-            aida.histogram1D("Y (mm) @ Z=-150cm").fill(slt.getYZAtX(zAtColl)[1]);
+            //            aida.histogram1D("X (mm) @ Z=-60cm").fill(slt.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN)[0]); //this is y in the tracker frame
+            //            aida.histogram1D("Y (mm) @ Z=-60cm").fill(slt.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN)[1]); //this is z in the tracker frame
+            //            aida.histogram1D("X (mm) @ Z=-150cm").fill(slt.getYZAtX(zAtColl)[0]);
+            //            aida.histogram1D("Y (mm) @ Z=-150cm").fill(slt.getYZAtX(zAtColl)[1]);
 
             aida.histogram1D("X (mm) @ ECAL").fill(posAtEcal.x());
             aida.histogram1D("Y (mm) @ ECAL").fill(posAtEcal.y());
@@ -310,7 +249,7 @@ public class TrackingReconstructionPlots extends Driver {
         aida.histogram1D("Tracks per Event Top", 3, 0, 3).fill(ntracksTop);
     }
 
-    private void doHitsOnTrack(Track trk, List<SiTrackerHitStrip1D> stripClusters) {
+    private void doHitsOnTrack(Track trk) {
         Map<HpsSiSensor, Integer> stripHitsOnTrack = new HashMap<HpsSiSensor, Integer>();
         List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
 
@@ -330,60 +269,22 @@ public class TrackingReconstructionPlots extends Driver {
         }
     }
 
-    private void doResiduals(List<LCRelation> fittedHits, Track trk, RelationalTable hitToRotated, RelationalTable hitToStrips) {
-        List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
-        HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(trk);
-        if (helicalTrackFit == null) {
-            System.out.println("Null helicalTrackFit");
+    private void doResiduals(List<LCRelation> fittedHits, Track trk, RelationalTable trackResTable) {
+        //HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());
+        GenericObject trackRes = (GenericObject) trackResTable.from(trk);
+        if (trackRes == null) {
+            System.out.println("null TrackResidualsData");
             return;
         }
 
-        for (TrackerHit hit : hitsOnTrack) {
-            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());
-
-            Collection<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
-
-            for (TrackerHit hts : htsList) {
-
-                // failure here
-                //                HelicalTrackHit hth = (HelicalTrackHit) hts;
-                //
-                //                Map<String, Double> resMap = TrackUtils.calculateTrackHitResidual(hth, helicalTrackFit, false);
-                //                double resy = resMap.get("resy");
-                //                double erry = resMap.get("erry");
-                //                double drphi = resMap.get("drphi");
-                //                double resz = resMap.get("resz");
-                //                double errz = resMap.get("errz");
-                //                double dz = resMap.get("dz_res");
-                //
-                //                int layer = TrackUtils.getLayer(hit);
-                //                String modNum = "Layer X ";
-                //                if (layer % 2 == 1)
-                //                    modNum = String.format("Layer %d ", layer / 2 + 1);
-                //
-                //                aida.histogram1D(modNum + "Residual Y(mm)").fill(resy);
-                //                aida.histogram1D(modNum + "Err Y(mm)").fill(erry);
-                //                aida.histogram1D(modNum + "drphi").fill(drphi);
-                //                aida.histogram1D(modNum + "Residual Z(mm)").fill(resz);
-                //                aida.histogram1D(modNum + "Err Z(mm)").fill(errz);
-                //                aida.histogram1D(modNum + "dz").fill(dz);
-                //
-                //                if (hit.getPosition()[2] > 0) {
-                //                    aida.histogram1D(modNum + "Residual Y(mm) Top").fill(resy);
-                //                    aida.histogram1D(modNum + "Err Y(mm) Top").fill(erry);
-                //                    aida.histogram1D(modNum + "drphi Top").fill(drphi);
-                //                    aida.histogram1D(modNum + "Residual Z(mm) Top").fill(resz);
-                //                    aida.histogram1D(modNum + "Err Z(mm) Top").fill(errz);
-                //                    aida.histogram1D(modNum + "dz Top").fill(dz);
-                //                } else {
-                //                    aida.histogram1D(modNum + "Residual Y(mm) Bottom").fill(resy);
-                //                    aida.histogram1D(modNum + "Err Y(mm) Bottom").fill(erry);
-                //                    aida.histogram1D(modNum + "drphi Bottom").fill(drphi);
-                //                    aida.histogram1D(modNum + "Residual Z(mm) Bottom").fill(resz);
-                //                    aida.histogram1D(modNum + "Err Z(mm) Bottom").fill(errz);
-                //                    aida.histogram1D(modNum + "dz Bottom").fill(dz);
-                //                }
-            }
+        int numX = trackRes.getNDouble();
+        for (int i = 0; i < numX; i++) {
+            int layer = trackRes.getIntVal(i);
+            String modNum = "Layer Unknown ";
+            if (layer % 2 == 1)
+                modNum = String.format("Layer %d ", layer / 2 + 1);
+            aida.histogram1D(modNum + "Residual Y(mm)").fill(trackRes.getFloatVal(i));
+            aida.histogram1D(modNum + "Residual X(mm)").fill(trackRes.getDoubleVal(i));
         }
     }
 
@@ -552,21 +453,38 @@ public class TrackingReconstructionPlots extends Driver {
             doResidualPlots = false;
         }
 
-        List<SiTrackerHitStrip1D> stripClusters = null;
-        if (event.hasCollection(SiTrackerHitStrip1D.class, stripClusterCollectionName))
-            stripClusters = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
-        else {
+        List<TrackerHit> stripClusters = null;
+        if (event.hasCollection(TrackerHit.class, stripClusterCollectionName)) {
+            stripClusters = event.get(TrackerHit.class, stripClusterCollectionName);
+        } else {
             doStripHitPlots = false;
-            doHitsOnTrackPlots = false;
         }
 
-        RelationalTable hitToRotatedTable = TrackUtils.getHitToRotatedTable(event);
-        RelationalTable hitToStripsTable = TrackUtils.getHitToStripsTable(event);
+        //RelationalTable hitToRotatedTable = TrackUtils.getHitToRotatedTable(event);
+        //RelationalTable hitToStripsTable = TrackUtils.getHitToStripsTable(event);
 
-        System.out.println("Beginning plot-making");
-
-        if (doStripHitPlots)
-            doStripHits(stripClusters);
+        RelationalTable trackResidualsTable = null;
+        if (event.hasCollection(LCRelation.class, "TrackResidualsRelations")) {
+            trackResidualsTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+            List<LCRelation> trackresRelation = event.get(LCRelation.class, "TrackResidualsRelations");
+            for (LCRelation relation : trackresRelation) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    trackResidualsTable.add(relation.getFrom(), relation.getTo());
+                }
+            }
+        } else {
+            doResidualPlots = false;
+        }
+        RelationalTable trackDataTable = null;
+        if (event.hasCollection(LCRelation.class, "TrackDataRelations")) {
+            trackDataTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+            List<LCRelation> trackdataRelation = event.get(LCRelation.class, "TrackDataRelations");
+            for (LCRelation relation : trackdataRelation) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    trackDataTable.add(relation.getFrom(), relation.getTo());
+                }
+            }
+        }
 
         doBasicTracks(tracks);
 
@@ -579,11 +497,14 @@ public class TrackingReconstructionPlots extends Driver {
         }
 
         for (Track trk : tracks) {
+            if (doStripHitPlots)
+                doStripHits(stripClusters, trk, trackDataTable);
+
             if (doHitsOnTrackPlots)
-                doHitsOnTrack(trk, stripClusters);
+                doHitsOnTrack(trk);
 
             if (doResidualPlots)
-                doResiduals(fittedHits, trk, hitToRotatedTable, hitToStripsTable);
+                doResiduals(fittedHits, trk, trackResidualsTable);
 
             if (doAmplitudePlots)
                 doAmplitude(fittedHits, trk);
@@ -681,535 +602,174 @@ public class TrackingReconstructionPlots extends Driver {
     private void setupPlots() {
 
         // Basic tracks
-        IAnalysisFactory fac = aida.analysisFactory();
-        plotter = fac.createPlotterFactory().create("HPS Tracking Plots");
-        plotter.setTitle("Momentum");
-        IPlotterStyle style = plotter.style();
-        style.dataStyle().fillStyle().setColor("yellow");
-        style.dataStyle().errorBarStyle().setVisible(false);
-        plotter.createRegions(2, 2);
-        //plotterFrame.addPlotter(plotter);
-
         IHistogram1D trkPx = aida.histogram1D("Track Momentum (Px)", 25, -0.25, 0.25);
         IHistogram1D trkPy = aida.histogram1D("Track Momentum (Py)", 25, -0.5, 0.5);
         IHistogram1D trkPz = aida.histogram1D("Track Momentum (Pz)", 25, 0, 1.5);
         IHistogram1D trkChi2 = aida.histogram1D("Track Chi2", 25, 0, 25.0);
-
-        plotter.region(0).plot(trkPx);
-        plotter.region(1).plot(trkPy);
-        plotter.region(2).plot(trkPz);
-        plotter.region(3).plot(trkChi2);
-
-        if (showPlots)
-            plotter.show();
-
-        //   ******************************************************************
-        top1 = fac.createPlotterFactory().create("Top Tracking Plots");
-        top1.setTitle("Top Momentum");
-        IPlotterStyle stop1 = top1.style();
-        stop1.dataStyle().fillStyle().setColor("green");
-        stop1.dataStyle().errorBarStyle().setVisible(false);
-        top1.createRegions(2, 2);
-        //topFrame.addPlotter(top1);
 
         IHistogram1D toptrkPx = aida.histogram1D("Top Track Momentum (Px)", 25, -0.25, 0.25);
         IHistogram1D toptrkPy = aida.histogram1D("Top Track Momentum (Py)", 25, -0.5, 0.5);
         IHistogram1D toptrkPz = aida.histogram1D("Top Track Momentum (Pz)", 25, 0, 1.5);
         IHistogram1D toptrkChi2 = aida.histogram1D("Top Track Chi2", 25, 0, 25.0);
 
-        top1.region(0).plot(toptrkPx);
-        top1.region(1).plot(toptrkPy);
-        top1.region(2).plot(toptrkPz);
-        top1.region(3).plot(toptrkChi2);
-
-        if (showPlots)
-            top1.show();
-
-        bot1 = fac.createPlotterFactory().create("Bottom Tracking Plots");
-        bot1.setTitle("Bottom Momentum");
-        IPlotterStyle sbot1 = bot1.style();
-        sbot1.dataStyle().fillStyle().setColor("blue");
-        sbot1.dataStyle().errorBarStyle().setVisible(false);
-        bot1.createRegions(2, 2);
-        //bottomFrame.addPlotter(bot1);
-
         IHistogram1D bottrkPx = aida.histogram1D("Bottom Track Momentum (Px)", 25, -0.25, 0.25);
         IHistogram1D bottrkPy = aida.histogram1D("Bottom Track Momentum (Py)", 25, -0.5, 0.5);
         IHistogram1D bottrkPz = aida.histogram1D("Bottom Track Momentum (Pz)", 25, 0, 1.5);
         IHistogram1D bottrkChi2 = aida.histogram1D("Bottom Track Chi2", 25, 0, 25.0);
 
-        bot1.region(0).plot(bottrkPx);
-        bot1.region(1).plot(bottrkPy);
-        bot1.region(2).plot(bottrkPz);
-        bot1.region(3).plot(bottrkChi2);
-
-        if (showPlots)
-            bot1.show();
-
-        //   ******************************************************************
         IHistogram1D trkd0 = aida.histogram1D("d0 ", 25, -10.0, 10.0);
         IHistogram1D trkphi = aida.histogram1D("sinphi ", 25, -0.2, 0.2);
         IHistogram1D trkomega = aida.histogram1D("omega ", 25, -0.0025, 0.0025);
         IHistogram1D trklam = aida.histogram1D("tan(lambda) ", 25, -0.1, 0.1);
         IHistogram1D trkz0 = aida.histogram1D("z0 ", 25, -6.0, 6.0);
 
-        plotter22 = fac.createPlotterFactory().create("HPS Track Params");
-        plotter22.setTitle("Track parameters");
-        //plotterFrame.addPlotter(plotter22);
-        IPlotterStyle style22 = plotter22.style();
-        style22.dataStyle().fillStyle().setColor("yellow");
-        style22.dataStyle().errorBarStyle().setVisible(false);
-        plotter22.createRegions(2, 3);
-        plotter22.region(0).plot(trkd0);
-        plotter22.region(1).plot(trkphi);
-        plotter22.region(2).plot(trkomega);
-        plotter22.region(3).plot(trklam);
-        plotter22.region(4).plot(trkz0);
+        IHistogram1D toptrkd0 = aida.histogram1D("d0 Top", 25, -10.0, 10.0);
+        IHistogram1D toptrkphi = aida.histogram1D("sinphi Top", 25, -0.2, 0.2);
+        IHistogram1D toptrkomega = aida.histogram1D("omega Top", 25, -0.0025, 0.0025);
+        IHistogram1D toptrklam = aida.histogram1D("tan(lambda) Top", 25, -0.1, 0.1);
+        IHistogram1D toptrkz0 = aida.histogram1D("z0 Top", 25, -6.0, 6.0);
 
-        if (showPlots)
-            plotter22.show();
+        IHistogram1D bottrkd0 = aida.histogram1D("d0 Bottom", 25, -10.0, 10.0);
+        IHistogram1D bottrkphi = aida.histogram1D("sinphi Bottom", 25, -0.2, 0.2);
+        IHistogram1D bottrkomega = aida.histogram1D("omega Bottom", 25, -0.0025, 0.0025);
+        IHistogram1D bottrklam = aida.histogram1D("tan(lambda) Bottom", 25, -0.1, 0.1);
+        IHistogram1D bottrkz0 = aida.histogram1D("z0 Bottom", 25, -6.0, 6.0);
 
-        //   ******************************************************************
-
-        trkd0 = aida.histogram1D("d0 Top", 25, -10.0, 10.0);
-        trkphi = aida.histogram1D("sinphi Top", 25, -0.2, 0.2);
-        trkomega = aida.histogram1D("omega Top", 25, -0.0025, 0.0025);
-        trklam = aida.histogram1D("tan(lambda) Top", 25, -0.1, 0.1);
-        trkz0 = aida.histogram1D("z0 Top", 25, -6.0, 6.0);
-
-        plotter2221 = fac.createPlotterFactory().create("HPS Track Params");
-        plotter2221.setTitle("Track parameters");
-        //plotterFrame.addPlotter(plotter22);
-        IPlotterStyle style2221 = plotter2221.style();
-        style2221.dataStyle().fillStyle().setColor("yellow");
-        style2221.dataStyle().errorBarStyle().setVisible(false);
-        plotter2221.createRegions(2, 3);
-        plotter2221.region(0).plot(trkd0);
-        plotter2221.region(1).plot(trkphi);
-        plotter2221.region(2).plot(trkomega);
-        plotter2221.region(3).plot(trklam);
-        plotter2221.region(4).plot(trkz0);
-
-        if (showPlots)
-            plotter2221.show();
-
-        //   ******************************************************************
-
-        trkd0 = aida.histogram1D("d0 Bottom", 25, -10.0, 10.0);
-        trkphi = aida.histogram1D("sinphi Bottom", 25, -0.2, 0.2);
-        trkomega = aida.histogram1D("omega Bottom", 25, -0.0025, 0.0025);
-        trklam = aida.histogram1D("tan(lambda) Bottom", 25, -0.1, 0.1);
-        trkz0 = aida.histogram1D("z0 Bottom", 25, -6.0, 6.0);
-
-        plotter2222 = fac.createPlotterFactory().create("HPS Track Params");
-        plotter2222.setTitle("Track parameters");
-        //plotterFrame.addPlotter(plotter22);
-        IPlotterStyle style2222 = plotter2222.style();
-        style2222.dataStyle().fillStyle().setColor("yellow");
-        style2222.dataStyle().errorBarStyle().setVisible(false);
-        plotter2222.createRegions(2, 3);
-        plotter2222.region(0).plot(trkd0);
-        plotter2222.region(1).plot(trkphi);
-        plotter2222.region(2).plot(trkomega);
-        plotter2222.region(3).plot(trklam);
-        plotter2222.region(4).plot(trkz0);
-
-        if (showPlots)
-            plotter2222.show();
-
-        //   ******************************************************************
-
-        plotter2 = fac.createPlotterFactory().create("HPS Tracking Plots");
-        plotter2.setTitle("Track extrapolation");
-        //plotterFrame.addPlotter(plotter2);
-        IPlotterStyle style2 = plotter2.style();
-        style2.dataStyle().fillStyle().setColor("yellow");
-        style2.dataStyle().errorBarStyle().setVisible(false);
-        plotter2.createRegions(2, 4);
-        IHistogram1D xAtConverter = aida.histogram1D("X (mm) @ Z=-60cm", 50, -50, 50);
-        IHistogram1D yAtConverter = aida.histogram1D("Y (mm) @ Z=-60cm", 50, -20, 20);
-        IHistogram1D xAtColl = aida.histogram1D("X (mm) @ Z=-150cm", 50, -200, 200);
-        IHistogram1D yAtColl = aida.histogram1D("Y (mm) @ Z=-150cm", 50, -200, 200);
         IHistogram1D xAtEcal = aida.histogram1D("X (mm) @ ECAL", 50, -500, 500);
         IHistogram1D yAtEcal = aida.histogram1D("Y (mm) @ ECAL", 50, -100, 100);
         IHistogram1D xAtEcal2 = aida.histogram1D("X (mm) @ ECAL (Pz>1)", 50, -500, 500);
         IHistogram1D yAtEcal2 = aida.histogram1D("Y (mm) @ ECAL (Pz>1)", 50, -100, 100);
 
-        plotter2.region(0).plot(xAtConverter);
-        plotter2.region(4).plot(yAtConverter);
-        plotter2.region(1).plot(xAtColl);
-        plotter2.region(5).plot(yAtColl);
-        plotter2.region(2).plot(xAtEcal);
-        plotter2.region(6).plot(yAtEcal);
-        plotter2.region(3).plot(xAtEcal2);
-        plotter2.region(7).plot(yAtEcal2);
-
-        if (showPlots)
-            plotter2.show();
-
-        plotter22298 = fac.createPlotterFactory().create("HPS Tracking Plots Bottom");
-        plotter22298.setTitle("HPS Tracking Plots Bottom");
-        //plotterFrame.addPlotter(plotter22298);
-        IPlotterStyle style22298 = plotter22298.style();
-        style22298.dataStyle().fillStyle().setColor("yellow");
-        style22298.dataStyle().errorBarStyle().setVisible(false);
-        plotter22298.createRegions(2, 1);
-
         IHistogram1D nTracksBot = aida.histogram1D("Tracks per Event Bot", 3, 0, 3);
-        plotter22298.region(1).plot(nTracksBot);
-
-        if (showPlots)
-            plotter22298.show();
-
-        plotter22299 = fac.createPlotterFactory().create("HPS Tracking Plots Top");
-        plotter22299.setTitle("HPS Tracking Plots Top");
-        //plotterFrame.addPlotter(plotter22299);
-        IPlotterStyle style22299 = plotter22299.style();
-        style22299.dataStyle().fillStyle().setColor("yellow");
-        style22299.dataStyle().errorBarStyle().setVisible(false);
-        plotter22299.createRegions(2, 1);
-
         IHistogram1D nHitsTop = aida.histogram1D("Hits per Track Top", 4, 3, 7);
-        plotter22299.region(0).plot(nHitsTop);
 
-        if (showPlots)
-            plotter22299.show();
-
-        plotter8 = fac.createPlotterFactory().create("HPS Strip Hit From Stereo Multiplicity");
-        plotter8.setTitle("Strip Hit Multiplicity");
-        //plotterFrame.addPlotter(plotter8);
-        IPlotterStyle style8 = plotter8.style();
-        style8.dataStyle().fillStyle().setColor("yellow");
-        style8.dataStyle().errorBarStyle().setVisible(false);
-        plotter8.createRegions(6, 6);
         int i = 0;
         for (SiSensor sensor : sensors) {
-            IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip hits from stereo", 10, 0, 10);
-            plotter8.region(i).plot(resX);
-            i++;
-        }
-
-        if (showPlots)
-            plotter8.show();
-
-        plotter88 = fac.createPlotterFactory().create("HPS Strip Hit Multiplicity");
-        plotter88.setTitle("Strip Hit Multiplicity");
-        //plotterFrame.addPlotter(plotter88);
-        plotter88.setStyle(style8);
-        plotter88.createRegions(6, 6);
-        i = 0;
-        for (SiSensor sensor : sensors) {
             IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip hits", 10, 0, 10);
-            plotter88.region(i).plot(resX);
             i++;
         }
 
-        if (showPlots)
-            plotter88.show();
-
-        plotter888 = fac.createPlotterFactory().create("HPS Strip Hit Isolation");
-        plotter888.setTitle("Strip Hit Isolation");
-        //plotterFrame.addPlotter(plotter88);
-        plotter888.setStyle(style8);
-        plotter888.createRegions(6, 6);
-        i = 0;
-        for (SiSensor sensor : sensors) {
-            IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip hits iso", 50, 0, 5);
-            plotter888.region(i).plot(resX);
-            i++;
+        for (i = 0; i < 12; i++) {
+            IHistogram1D resX = aida.histogram1D(String.format("Layer %d Isolation", i), 50, 0, 5);
         }
-        if (showPlots)
-            plotter888.show();
-
-        //   ******************************************************************
-
-        plotter222 = fac.createPlotterFactory().create("HPS Tracking Plots");
-        plotter222.setTitle("HPS Tracking Plots");
-        //plotterFrame.addPlotter(plotter222);
-        IPlotterStyle style222 = plotter222.style();
-        style222.dataStyle().fillStyle().setColor("yellow");
-        style222.dataStyle().errorBarStyle().setVisible(false);
-        plotter222.createRegions(2, 2);
 
         IHistogram1D nHits = aida.histogram1D("Hits per Track", 4, 3, 7);
         IHistogram1D nTracks = aida.histogram1D("Tracks per Event", 3, 0, 3);
+
         if (doAmplitudePlots) {
             IHistogram1D nHitsCluster = aida.histogram1D("Hits in Cluster (HitOnTrack)", 4, 0, 4);
-            plotter222.region(2).plot(nHitsCluster);
-        }
-
-        plotter222.region(0).plot(nHits);
-        plotter222.region(1).plot(nTracks);
-
-        if (showPlots)
-            plotter222.show();
-
-        //   ******************************************************************
-
-        if (doAmplitudePlots) {
-            plotter2223 = fac.createPlotterFactory().create("Cluster Amp Plots");
-            plotter2223.setTitle("Other");
-            //plotterFrame.addPlotter(plotter222);
-            IPlotterStyle style2223 = plotter2223.style();
-            style2223.dataStyle().fillStyle().setColor("yellow");
-            style2223.dataStyle().errorBarStyle().setVisible(false);
-            plotter2223.createRegions(2, 2);
 
             IHistogram1D amp = aida.histogram1D("Amp (HitOnTrack)", 50, 0, 5000);
             IHistogram1D ampcl = aida.histogram1D("Cluster Amp (HitOnTrack)", 50, 0, 5000);
             IHistogram1D amp2 = aida.histogram1D("Amp Pz>0.8 (HitOnTrack)", 50, 0, 5000);
             IHistogram1D ampcl2 = aida.histogram1D("Cluster Amp Pz>0.8 (HitOnTrack)", 50, 0, 5000);
 
-            plotter2223.region(0).plot(amp);
-            plotter2223.region(1).plot(amp2);
-            plotter2223.region(2).plot(ampcl);
-            plotter2223.region(3).plot(ampcl2);
-
-            if (showPlots)
-                plotter2223.show();
-
-            plotter2224 = fac.createPlotterFactory().create("t0 Plots");
-            plotter2224.setTitle("Other");
-            IPlotterStyle style2224 = plotter2224.style();
-            style2224.dataStyle().fillStyle().setColor("yellow");
-            style2224.dataStyle().errorBarStyle().setVisible(false);
-            plotter2224.createRegions(2, 2);
-
             IHistogram1D t0 = aida.histogram1D("t0 (HitOnTrack)", 50, -100, 100);
             IHistogram1D t0cl = aida.histogram1D("Cluster t0 (HitOnTrack)", 50, -100, 100);
             IHistogram1D t02 = aida.histogram1D("t0 Pz>0.8 (HitOnTrack)", 50, -100, 100);
             IHistogram1D t0cl2 = aida.histogram1D("Cluster t0 Pz>0.8 (HitOnTrack)", 50, -100, 100);
-
-            plotter2224.region(0).plot(t0);
-            plotter2224.region(1).plot(t0cl);
-            plotter2224.region(2).plot(t02);
-            plotter2224.region(3).plot(t0cl2);
-
-            if (showPlots)
-                plotter2224.show();
-
         }
-        //   ******************************************************************
 
-        //        if (doResidualPlots) {
-        //            plotter3 = fac.createPlotterFactory().create("HPS Layer Residual Plots");
-        //            plotter3.setTitle("Layer Residuals");
-        //            //plotterFrame.addPlotter(plotter3);
-        //            IPlotterStyle style3 = plotter3.style();
-        //            style3.dataStyle().fillStyle().setColor("yellow");
-        //            style3.dataStyle().errorBarStyle().setVisible(false);
-        //            plotter3.createRegions(6, 2);
-        //
-        //            IHistogram1D mod1ResX = aida.histogram1D("Layer 1 Residual X(mm)", 25, -1, 1);
-        //            IHistogram1D mod1ResY = aida.histogram1D("Layer 1 Residual Y(mm)", 25, -0.04, 0.04);
-        //
-        //            IHistogram1D mod2ResX = aida.histogram1D("Layer 2 Residual X(mm)", 25, -2, 2);
-        //            IHistogram1D mod2ResY = aida.histogram1D("Layer 2 Residual Y(mm)", 25, -1, 1);
-        //
-        //            IHistogram1D mod3ResX = aida.histogram1D("Layer 3 Residual X(mm)", 25, -2.5, 2.5);
-        //            IHistogram1D mod3ResY = aida.histogram1D("Layer 3 Residual Y(mm)", 25, -1.5, 1.5);
-        //
-        //            IHistogram1D mod4ResX = aida.histogram1D("Layer 4 Residual X(mm)", 25, -3.0, 3.0);
-        //            IHistogram1D mod4ResY = aida.histogram1D("Layer 4 Residual Y(mm)", 25, -2, 2);
-        //
-        //            IHistogram1D mod5ResX = aida.histogram1D("Layer 5 Residual X(mm)", 25, -4, 4);
-        //            IHistogram1D mod5ResY = aida.histogram1D("Layer 5 Residual Y(mm)", 25, -3, 3);
-        //
-        //            IHistogram1D mod6ResX = aida.histogram1D("Layer 6 Residual X(mm)", 25, -5, 5);
-        //            IHistogram1D mod6ResY = aida.histogram1D("Layer 6 Residual Y(mm)", 25, -3, 3);
-        //
-        //            plotter3.region(0).plot(mod1ResX);
-        //            plotter3.region(2).plot(mod2ResX);
-        //            plotter3.region(4).plot(mod3ResX);
-        //            plotter3.region(6).plot(mod4ResX);
-        //            plotter3.region(8).plot(mod5ResX);
-        //            plotter3.region(10).plot(mod6ResX);
-        //
-        //            plotter3.region(1).plot(mod1ResY);
-        //            plotter3.region(3).plot(mod2ResY);
-        //            plotter3.region(5).plot(mod3ResY);
-        //            plotter3.region(7).plot(mod4ResY);
-        //            plotter3.region(9).plot(mod5ResY);
-        //            plotter3.region(11).plot(mod6ResY);
-        //
-        //            if (showPlots)
-        //                plotter3.show();
-        //
-        //            plotter3_1 = fac.createPlotterFactory().create("HPS Residual Plots (Single hit per layer)");
-        //            plotter3_1.setTitle("Residuals (Top)");
-        //            //plotterFrame.addPlotter(plotter3_1);
-        //            IPlotterStyle style3_1 = plotter3_1.style();
-        //            style3_1.dataStyle().fillStyle().setColor("yellow");
-        //            style3_1.dataStyle().errorBarStyle().setVisible(false);
-        //            plotter3_1.createRegions(6, 2);
-        //
-        //            IHistogram1D mod1ResX_Top = aida.histogram1D("Layer 1 Residual X(mm) Top", 25, -1, 1);
-        //            IHistogram1D mod1ResY_Top = aida.histogram1D("Layer 1 Residual Y(mm) Top", 25, -0.04, 0.04);
-        //
-        //            IHistogram1D mod2ResX_Top = aida.histogram1D("Layer 2 Residual X(mm) Top", 25, -2, 2);
-        //            IHistogram1D mod2ResY_Top = aida.histogram1D("Layer 2 Residual Y(mm) Top", 25, -1, 1);
-        //
-        //            IHistogram1D mod3ResX_Top = aida.histogram1D("Layer 3 Residual X(mm) Top", 25, -2.5, 2.5);
-        //            IHistogram1D mod3ResY_Top = aida.histogram1D("Layer 3 Residual Y(mm) Top", 25, -1.5, 1.5);
-        //
-        //            IHistogram1D mod4ResX_Top = aida.histogram1D("Layer 4 Residual X(mm) Top", 25, -3.0, 3.0);
-        //            IHistogram1D mod4ResY_Top = aida.histogram1D("Layer 4 Residual Y(mm) Top", 25, -2, 2);
-        //
-        //            IHistogram1D mod5ResX_Top = aida.histogram1D("Layer 5 Residual X(mm) Top", 25, -4, 4);
-        //            IHistogram1D mod5ResY_Top = aida.histogram1D("Layer 5 Residual Y(mm) Top", 25, -3, 3);
-        //
-        //            IHistogram1D mod6ResX_Top = aida.histogram1D("Layer 6 Residual X(mm) Top", 25, -5, 5);
-        //            IHistogram1D mod6ResY_Top = aida.histogram1D("Layer 6 Residual Y(mm) Top", 25, -3, 3);
-        //
-        //            plotter3_1.region(0).plot(mod1ResX_Top);
-        //            plotter3_1.region(2).plot(mod2ResX_Top);
-        //            plotter3_1.region(4).plot(mod3ResX_Top);
-        //            plotter3_1.region(6).plot(mod4ResX_Top);
-        //            plotter3_1.region(8).plot(mod5ResX_Top);
-        //            plotter3_1.region(10).plot(mod6ResX_Top);
-        //
-        //            plotter3_1.region(1).plot(mod1ResY_Top);
-        //            plotter3_1.region(3).plot(mod2ResY_Top);
-        //            plotter3_1.region(5).plot(mod3ResY_Top);
-        //            plotter3_1.region(7).plot(mod4ResY_Top);
-        //            plotter3_1.region(9).plot(mod5ResY_Top);
-        //            plotter3_1.region(11).plot(mod6ResY_Top);
-        //
-        //            if (showPlots)
-        //                plotter3_1.show();
-        //
-        //            plotter3_2 = fac.createPlotterFactory().create("HPS Residual Plots (Single strip cluster per layer)");
-        //            plotter3_2.setTitle("Residuals (Bottom)");
-        //            //plotterFrame.addPlotter(plotter3_2);
-        //            IPlotterStyle style3_2 = plotter3_2.style();
-        //            style3_2.dataStyle().fillStyle().setColor("yellow");
-        //            style3_2.dataStyle().errorBarStyle().setVisible(false);
-        //            plotter3_2.createRegions(6, 2);
-        //
-        //            IHistogram1D mod1ResX_Bottom = aida.histogram1D("Layer 1 Residual X(mm) Bottom", 25, -1, 1);
-        //            IHistogram1D mod1ResY_Bottom = aida.histogram1D("Layer 1 Residual Y(mm) Bottom", 25, -0.04, 0.04);
-        //
-        //            IHistogram1D mod2ResX_Bottom = aida.histogram1D("Layer 2 Residual X(mm) Bottom", 25, -2, 2);
-        //            IHistogram1D mod2ResY_Bottom = aida.histogram1D("Layer 2 Residual Y(mm) Bottom", 25, -1, 1);
-        //
-        //            IHistogram1D mod3ResX_Bottom = aida.histogram1D("Layer 3 Residual X(mm) Bottom", 25, -2.5, 2.5);
-        //            IHistogram1D mod3ResY_Bottom = aida.histogram1D("Layer 3 Residual Y(mm) Bottom", 25, -1.5, 1.5);
-        //
-        //            IHistogram1D mod4ResX_Bottom = aida.histogram1D("Layer 4 Residual X(mm) Bottom", 25, -3.0, 3.0);
-        //            IHistogram1D mod4ResY_Bottom = aida.histogram1D("Layer 4 Residual Y(mm) Bottom", 25, -2, 2);
-        //
-        //            IHistogram1D mod5ResX_Bottom = aida.histogram1D("Layer 5 Residual X(mm) Bottom", 25, -4, 4);
-        //            IHistogram1D mod5ResY_Bottom = aida.histogram1D("Layer 5 Residual Y(mm) Bottom", 25, -3, 3);
-        //
-        //            IHistogram1D mod6ResX_Bottom = aida.histogram1D("Layer 6 Residual X(mm) Bottom", 25, -5, 5);
-        //            IHistogram1D mod6ResY_Bottom = aida.histogram1D("Layer 6 Residual Y(mm) Bottom", 25, -3, 3);
-        //
-        //            plotter3_2.region(0).plot(mod1ResX_Bottom);
-        //            plotter3_2.region(2).plot(mod2ResX_Bottom);
-        //            plotter3_2.region(4).plot(mod3ResX_Bottom);
-        //            plotter3_2.region(6).plot(mod4ResX_Bottom);
-        //            plotter3_2.region(8).plot(mod5ResX_Bottom);
-        //            plotter3_2.region(10).plot(mod6ResX_Bottom);
-        //
-        //            plotter3_2.region(1).plot(mod1ResY_Bottom);
-        //            plotter3_2.region(3).plot(mod2ResY_Bottom);
-        //            plotter3_2.region(5).plot(mod3ResY_Bottom);
-        //            plotter3_2.region(7).plot(mod4ResY_Bottom);
-        //            plotter3_2.region(9).plot(mod5ResY_Bottom);
-        //            plotter3_2.region(11).plot(mod6ResY_Bottom);
-        //
-        //            if (showPlots)
-        //                plotter3_2.show();
-        //
-        //            plotter3_11 = fac.createPlotterFactory().create("HPS Strip Residual Plots");
-        //            plotter3_11.setTitle("Strip Residuals (Top)");
-        //            //plotterFrame.addPlotter(plotter3_11);
-        //            IPlotterStyle style3_11 = plotter3_11.style();
-        //            style3_11.dataStyle().fillStyle().setColor("yellow");
-        //            style3_11.dataStyle().errorBarStyle().setVisible(false);
-        //            plotter3_11.createRegions(6, 6);
-        //
-        //            i = 0;
-        //            for (HpsSiSensor sensor : sensors) {
-        //                double min = 0.0;
-        //                double max = 0.0;
-        //                if (sensor.getName().contains("L1")) {
-        //                    min = -0.04;
-        //                    max = 0.04;
-        //                } else if (sensor.getName().contains("L2")) {
-        //                    min = -1;
-        //                    max = 1;
-        //                } else if (sensor.getName().contains("L3")) {
-        //                    min = -1.5;
-        //                    max = 1.5;
-        //                } else if (sensor.getName().contains("L4")) {
-        //                    min = -3;
-        //                    max = 3;
-        //                } else if (sensor.getName().contains("L5")) {
-        //                    min = -4;
-        //                    max = 4;
-        //                } else if (sensor.getName().contains("L6")) {
-        //                    min = -5;
-        //                    max = 5;
-        //                } else {
-        //                    throw new RuntimeException("Invalid sensor name: " + sensor.getName());
-        //                }
-        //                IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip residual (mm)", 50, min, max);
-        //                plotter3_11.region(i).plot(resX);
-        //                i++;
-        //            }
-        //
-        //            if (showPlots)
-        //                plotter3_11.show();
-        //
-        //            plotter5 = fac.createPlotterFactory().create("HPS Hit Positions");
-        //            plotter5.setTitle("Hit Positions:  Top");
-        //            //plotterFrame.addPlotter(plotter5);
-        //            IPlotterStyle style5 = plotter5.style();
-        //            style5.setParameter("hist2DStyle", "colorMap");
-        //            style5.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        //            style5.dataStyle().fillStyle().setColor("yellow");
-        //            style5.dataStyle().errorBarStyle().setVisible(false);
-        //            plotter5.createRegions(1, 2);
-        //
-        //            IHistogram2D l1Pos = aida.histogram2D("Layer 1 HTH Position:  Top", 50, -55, 55, 55, -25, 25);
-        //            IHistogram2D l7Pos = aida.histogram2D("Layer 7 HTH Position:  Top", 50, -55, 55, 55, -25, 25);
-        //
-        //            plotter5.region(0).plot(l1Pos);
-        //            plotter5.region(1).plot(l7Pos);
-        //
-        //            if (showPlots)
-        //                plotter5.show();
-        //
-        //            plotter5_1 = fac.createPlotterFactory().create("HPS Hit Positions");
-        //            plotter5_1.setTitle("Hit Positions:  Bottom");
-        //            //plotterFrame.addPlotter(plotter5_1);
-        //            IPlotterStyle style5_1 = plotter5_1.style();
-        //            style5_1.setParameter("hist2DStyle", "colorMap");
-        //            style5_1.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        //            style5_1.dataStyle().fillStyle().setColor("yellow");
-        //            style5_1.dataStyle().errorBarStyle().setVisible(false);
-        //            plotter5_1.createRegions(1, 2);
-        //
-        //            IHistogram2D l1PosBot = aida.histogram2D("Layer 1 HTH Position:  Bottom", 50, -55, 55, 55, -25, 25);
-        //            IHistogram2D l7PosBot = aida.histogram2D("Layer 7 HTH Position:  Bottom", 50, -55, 55, 55, -25, 25);
-        //            plotter5_1.region(0).plot(l1PosBot);
-        //            plotter5_1.region(1).plot(l7PosBot);
-        //
-        //            if (showPlots)
-        //                plotter5_1.show();
-        //        }
+        if (doResidualPlots) {
+
+            IHistogram1D mod1ResX = aida.histogram1D("Layer 1 Residual X(mm)", 25, -1, 1);
+            IHistogram1D mod1ResY = aida.histogram1D("Layer 1 Residual Y(mm)", 25, -0.04, 0.04);
+
+            IHistogram1D mod2ResX = aida.histogram1D("Layer 2 Residual X(mm)", 25, -2, 2);
+            IHistogram1D mod2ResY = aida.histogram1D("Layer 2 Residual Y(mm)", 25, -1, 1);
+
+            IHistogram1D mod3ResX = aida.histogram1D("Layer 3 Residual X(mm)", 25, -2.5, 2.5);
+            IHistogram1D mod3ResY = aida.histogram1D("Layer 3 Residual Y(mm)", 25, -1.5, 1.5);
+
+            IHistogram1D mod4ResX = aida.histogram1D("Layer 4 Residual X(mm)", 25, -3.0, 3.0);
+            IHistogram1D mod4ResY = aida.histogram1D("Layer 4 Residual Y(mm)", 25, -2, 2);
+
+            IHistogram1D mod5ResX = aida.histogram1D("Layer 5 Residual X(mm)", 25, -4, 4);
+            IHistogram1D mod5ResY = aida.histogram1D("Layer 5 Residual Y(mm)", 25, -3, 3);
+
+            IHistogram1D mod6ResX = aida.histogram1D("Layer 6 Residual X(mm)", 25, -5, 5);
+            IHistogram1D mod6ResY = aida.histogram1D("Layer 6 Residual Y(mm)", 25, -3, 3);
+
+            //            IHistogram1D mod1ResX_Top = aida.histogram1D("Layer 1 Residual X(mm) Top", 25, -1, 1);
+            //            IHistogram1D mod1ResY_Top = aida.histogram1D("Layer 1 Residual Y(mm) Top", 25, -0.04, 0.04);
+            //
+            //            IHistogram1D mod2ResX_Top = aida.histogram1D("Layer 2 Residual X(mm) Top", 25, -2, 2);
+            //            IHistogram1D mod2ResY_Top = aida.histogram1D("Layer 2 Residual Y(mm) Top", 25, -1, 1);
+            //
+            //            IHistogram1D mod3ResX_Top = aida.histogram1D("Layer 3 Residual X(mm) Top", 25, -2.5, 2.5);
+            //            IHistogram1D mod3ResY_Top = aida.histogram1D("Layer 3 Residual Y(mm) Top", 25, -1.5, 1.5);
+            //
+            //            IHistogram1D mod4ResX_Top = aida.histogram1D("Layer 4 Residual X(mm) Top", 25, -3.0, 3.0);
+            //            IHistogram1D mod4ResY_Top = aida.histogram1D("Layer 4 Residual Y(mm) Top", 25, -2, 2);
+            //
+            //            IHistogram1D mod5ResX_Top = aida.histogram1D("Layer 5 Residual X(mm) Top", 25, -4, 4);
+            //            IHistogram1D mod5ResY_Top = aida.histogram1D("Layer 5 Residual Y(mm) Top", 25, -3, 3);
+            //
+            //            IHistogram1D mod6ResX_Top = aida.histogram1D("Layer 6 Residual X(mm) Top", 25, -5, 5);
+            //            IHistogram1D mod6ResY_Top = aida.histogram1D("Layer 6 Residual Y(mm) Top", 25, -3, 3);
+
+            //
+            //            IHistogram1D mod1ResX_Bottom = aida.histogram1D("Layer 1 Residual X(mm) Bottom", 25, -1, 1);
+            //            IHistogram1D mod1ResY_Bottom = aida.histogram1D("Layer 1 Residual Y(mm) Bottom", 25, -0.04, 0.04);
+            //
+            //            IHistogram1D mod2ResX_Bottom = aida.histogram1D("Layer 2 Residual X(mm) Bottom", 25, -2, 2);
+            //            IHistogram1D mod2ResY_Bottom = aida.histogram1D("Layer 2 Residual Y(mm) Bottom", 25, -1, 1);
+            //
+            //            IHistogram1D mod3ResX_Bottom = aida.histogram1D("Layer 3 Residual X(mm) Bottom", 25, -2.5, 2.5);
+            //            IHistogram1D mod3ResY_Bottom = aida.histogram1D("Layer 3 Residual Y(mm) Bottom", 25, -1.5, 1.5);
+            //
+            //            IHistogram1D mod4ResX_Bottom = aida.histogram1D("Layer 4 Residual X(mm) Bottom", 25, -3.0, 3.0);
+            //            IHistogram1D mod4ResY_Bottom = aida.histogram1D("Layer 4 Residual Y(mm) Bottom", 25, -2, 2);
+            //
+            //            IHistogram1D mod5ResX_Bottom = aida.histogram1D("Layer 5 Residual X(mm) Bottom", 25, -4, 4);
+            //            IHistogram1D mod5ResY_Bottom = aida.histogram1D("Layer 5 Residual Y(mm) Bottom", 25, -3, 3);
+            //
+            //            IHistogram1D mod6ResX_Bottom = aida.histogram1D("Layer 6 Residual X(mm) Bottom", 25, -5, 5);
+            //            IHistogram1D mod6ResY_Bottom = aida.histogram1D("Layer 6 Residual Y(mm) Bottom", 25, -3, 3);
+            //
+            //         
+            //
+            //            i = 0;
+            //            for (HpsSiSensor sensor : sensors) {
+            //                double min = 0.0;
+            //                double max = 0.0;
+            //                if (sensor.getName().contains("L1")) {
+            //                    min = -0.04;
+            //                    max = 0.04;
+            //                } else if (sensor.getName().contains("L2")) {
+            //                    min = -1;
+            //                    max = 1;
+            //                } else if (sensor.getName().contains("L3")) {
+            //                    min = -1.5;
+            //                    max = 1.5;
+            //                } else if (sensor.getName().contains("L4")) {
+            //                    min = -3;
+            //                    max = 3;
+            //                } else if (sensor.getName().contains("L5")) {
+            //                    min = -4;
+            //                    max = 4;
+            //                } else if (sensor.getName().contains("L6")) {
+            //                    min = -5;
+            //                    max = 5;
+            //                } else {
+            //                    throw new RuntimeException("Invalid sensor name: " + sensor.getName());
+            //                }
+            //                IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip residual (mm)", 50, min, max);
+            //                plotter3_11.region(i).plot(resX);
+            //                i++;
+            //            }
+            //
+            //
+            //            IHistogram2D l1Pos = aida.histogram2D("Layer 1 HTH Position:  Top", 50, -55, 55, 55, -25, 25);
+            //            IHistogram2D l7Pos = aida.histogram2D("Layer 7 HTH Position:  Top", 50, -55, 55, 55, -25, 25);
+            //
+            //            IHistogram2D l1PosBot = aida.histogram2D("Layer 1 HTH Position:  Bottom", 50, -55, 55, 55, -25, 25);
+            //            IHistogram2D l7PosBot = aida.histogram2D("Layer 7 HTH Position:  Bottom", 50, -55, 55, 55, -25, 25);
+
+            //        }
+        }
 
         if (doMatchedClusterPlots) {
-            plotter4 = fac.createPlotterFactory().create("HPS Track and ECal Plots");
-            plotter4.setTitle("Track and ECal Correlations");
-            //plotterFrame.addPlotter(plotter4);
-            IPlotterStyle style4 = plotter4.style();
-            style4.setParameter("hist2DStyle", "colorMap");
-            style4.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-            style4.dataStyle().fillStyle().setColor("yellow");
-            style4.dataStyle().errorBarStyle().setVisible(false);
-            plotter4.createRegions(2, 3);
 
             IHistogram2D eVsP = aida.histogram2D("Energy Vs Momentum", 50, 0, 0.50, 50, 0, 1.5);
             IHistogram1D eOverP = aida.histogram1D("Energy Over Momentum", 50, 0, 2);
@@ -1220,27 +780,6 @@ public class TrackingReconstructionPlots extends Driver {
             IHistogram2D xEcalVsTrk = aida.histogram2D("X ECal Vs Track", 100, -400, 400, 100, -400, 400);
             IHistogram2D yEcalVsTrk = aida.histogram2D("Y ECal Vs Track", 100, -100, 100, 100, -100, 100);
 
-            plotter4.region(0).plot(eVsP);
-            plotter4.region(3).plot(eOverP);
-            plotter4.region(1).plot(distX);
-            plotter4.region(4).plot(distY);
-            plotter4.region(2).plot(xEcalVsTrk);
-            plotter4.region(5).plot(yEcalVsTrk);
-
-            if (showPlots)
-                plotter4.show();
-
-            //   ******************************************************************
-            top2 = fac.createPlotterFactory().create("Top ECal Plots");
-            top2.setTitle("Top ECal Correlations");
-            IPlotterStyle stop2 = top2.style();
-            stop2.dataStyle().fillStyle().setColor("green");
-            stop2.dataStyle().errorBarStyle().setVisible(false);
-            stop2.setParameter("hist2DStyle", "colorMap");
-            stop2.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-            top2.createRegions(2, 3);
-            //topFrame.addPlotter(top2);
-
             IHistogram2D topeVsP = aida.histogram2D("Top Energy Vs Momentum", 50, 0, 0.500, 50, 0, 1.5);
             IHistogram1D topeOverP = aida.histogram1D("Top Energy Over Momentum", 50, 0, 2);
 
@@ -1249,26 +788,6 @@ public class TrackingReconstructionPlots extends Driver {
 
             IHistogram2D topxEcalVsTrk = aida.histogram2D("Top X ECal Vs Track", 100, -400, 400, 100, -100, 100);
             IHistogram2D topyEcalVsTrk = aida.histogram2D("Top Y ECal Vs Track", 100, 0, 100, 100, 0, 100);
-
-            top2.region(0).plot(topeVsP);
-            top2.region(3).plot(topeOverP);
-            top2.region(1).plot(topdistX);
-            top2.region(4).plot(topdistY);
-            top2.region(2).plot(topxEcalVsTrk);
-            top2.region(5).plot(topyEcalVsTrk);
-
-            if (showPlots)
-                top2.show();
-
-            bot2 = fac.createPlotterFactory().create("Bottom ECal Plots");
-            bot2.setTitle("Bottom ECal Correlations");
-            IPlotterStyle sbot2 = bot2.style();
-            sbot2.dataStyle().fillStyle().setColor("green");
-            sbot2.dataStyle().errorBarStyle().setVisible(false);
-            sbot2.setParameter("hist2DStyle", "colorMap");
-            sbot2.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-            bot2.createRegions(2, 3);
-            //bottomFrame.addPlotter(bot2);
 
             IHistogram2D BottomeVsP = aida.histogram2D("Bottom Energy Vs Momentum", 50, 0, 0.500, 50, 0, 1.5);
             IHistogram1D BottomeOverP = aida.histogram1D("Bottom Energy Over Momentum", 50, 0, 2);
@@ -1279,65 +798,11 @@ public class TrackingReconstructionPlots extends Driver {
             IHistogram2D BottomxEcalVsTrk = aida.histogram2D("Bottom X ECal Vs Track", 100, -400, 400, 100, -400, 400);
             IHistogram2D BottomyEcalVsTrk = aida.histogram2D("Bottom Y ECal Vs Track", 100, -100, 0, 100, -100, 0);
 
-            bot2.region(0).plot(BottomeVsP);
-            bot2.region(3).plot(BottomeOverP);
-            bot2.region(1).plot(BottomdistX);
-            bot2.region(4).plot(BottomdistY);
-            bot2.region(2).plot(BottomxEcalVsTrk);
-            bot2.region(5).plot(BottomyEcalVsTrk);
-
-            if (showPlots)
-                bot2.show();
-
-            //   ******************************************************************
-            top3 = fac.createPlotterFactory().create("Top ECal Plots");
-            top3.setTitle("Top ECal More Correlations");
-            IPlotterStyle stop3 = top3.style();
-            stop3.dataStyle().fillStyle().setColor("green");
-            stop3.dataStyle().errorBarStyle().setVisible(false);
-            stop3.setParameter("hist2DStyle", "colorMap");
-            stop3.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-            top3.createRegions(1, 2);
-            //topFrame.addPlotter(top3);
-
             IHistogram2D topdistXvsX = aida.histogram2D("Top deltaX vs X", 51, -400, 400, 25, -100, 100);
             IHistogram2D topdistYvsY = aida.histogram2D("Top deltaY vs Y", 51, 0, 100, 25, -40, 40);
 
-            top3.region(0).plot(topdistXvsX);
-            top3.region(1).plot(topdistYvsY);
-
-            if (showPlots)
-                top3.show();
-
-            bot3 = fac.createPlotterFactory().create("Bottom ECal Plots");
-            bot3.setTitle("Bottom ECal More Correlations");
-            IPlotterStyle sbot3 = bot3.style();
-            sbot3.dataStyle().fillStyle().setColor("green");
-            sbot3.dataStyle().errorBarStyle().setVisible(false);
-            sbot3.setParameter("hist2DStyle", "colorMap");
-            sbot3.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-            bot3.createRegions(1, 2);
-            //bottomFrame.addPlotter(bot3);
-
             IHistogram2D botdistXvsX = aida.histogram2D("Bottom deltaX vs X", 51, -400, 400, 25, -100, 100);
             IHistogram2D botdistYvsY = aida.histogram2D("Bottom deltaY vs Y", 51, -100, 0, 25, -40, 40);
-
-            bot3.region(0).plot(botdistXvsX);
-            bot3.region(1).plot(botdistYvsY);
-
-            if (showPlots)
-                bot3.show();
-
-            //   ******************************************************************
-            top4 = fac.createPlotterFactory().create("Track Matching Plots");
-            top4.setTitle("Track Matching Plots");
-            IPlotterStyle stop4 = top4.style();
-            stop4.dataStyle().fillStyle().setColor("green");
-            stop4.dataStyle().errorBarStyle().setVisible(false);
-            stop4.setParameter("hist2DStyle", "colorMap");
-            stop4.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-            top4.createRegions(2, 3);
-            //topFrame.addPlotter(top4);
 
             IHistogram1D trackmatchN = aida.histogram1D("Tracks matched", 3, 0, 3);
             IHistogram1D toptrackmatchN = aida.histogram1D("Tracks matched Top", 3, 0, 3);
@@ -1345,30 +810,9 @@ public class TrackingReconstructionPlots extends Driver {
             IHistogram1D trackmatchN2 = aida.histogram1D("Tracks matched (Pz>0.8)", 3, 0, 3);
             IHistogram1D toptrackmatchN2 = aida.histogram1D("Tracks matched Top (Pz>0.8)", 3, 0, 3);
             IHistogram1D bottrackmatchN2 = aida.histogram1D("Tracks matched Bottom (Pz>0.8)", 3, 0, 3);
-
-            top4.region(0).plot(trackmatchN);
-            top4.region(1).plot(toptrackmatchN);
-            top4.region(2).plot(bottrackmatchN);
-            top4.region(3).plot(trackmatchN2);
-            top4.region(4).plot(toptrackmatchN2);
-            top4.region(5).plot(bottrackmatchN2);
-
-            if (showPlots)
-                top4.show();
         }
 
-        //   ******************************************************************
         if (doElectronPositronPlots) {
-            top44 = fac.createPlotterFactory().create("e+e- Plots");
-            top44.setTitle("e+e- Plots");
-            IPlotterStyle stop44 = top44.style();
-            stop44.dataStyle().fillStyle().setColor("green");
-            stop44.dataStyle().errorBarStyle().setVisible(false);
-            stop44.setParameter("hist2DStyle", "colorMap");
-            stop44.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-            top44.createRegions(2, 4);
-            //topFrame.addPlotter(top44);
-
             IHistogram2D trackPCorr = aida.histogram2D("p(e-) vs p(e+) max", 25, 0, 1.2, 25, 0, 1.2);
             IHistogram1D ne = aida.histogram1D("n(e-)", 3, 0, 3);
             IHistogram1D np = aida.histogram1D("n(e+)", 3, 0, 3);
@@ -1376,30 +820,9 @@ public class TrackingReconstructionPlots extends Driver {
             IHistogram1D pe = aida.histogram1D("p(e-)", 25, 0, 1.5);
             IHistogram1D ppm = aida.histogram1D("p(e+) max", 25, 0, 1.5);
             IHistogram1D pp = aida.histogram1D("p(e+)", 25, 0, 1.5);
-
-            top44.region(0).plot(trackPCorr);
-            top44.region(1).plot(ne);
-            top44.region(2).plot(np);
-            top44.region(3).plot(pe);
-            top44.region(4).plot(pp);
-            top44.region(5).plot(pem);
-            top44.region(6).plot(ppm);
-
-            if (showPlots)
-                top44.show();
         }
 
         if (doECalClusterPlots) {
-            plotter6 = fac.createPlotterFactory().create("HPS ECAL Hit Positions");
-            plotter6.setTitle("ECAL Positions");
-            //plotterFrame.addPlotter(plotter6);
-            IPlotterStyle style6 = plotter6.style();
-            style6.setParameter("hist2DStyle", "colorMap");
-            style6.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-            style6.dataStyle().fillStyle().setColor("yellow");
-            style6.dataStyle().errorBarStyle().setVisible(false);
-            plotter6.createRegions(4, 2);
-
             IHistogram2D topECal = aida.histogram2D("Top ECal Cluster Position", 50, -400, 400, 10, 0, 100);
             IHistogram2D botECal = aida.histogram2D("Bottom ECal Cluster Position", 50, -400, 400, 10, -100, 0);
             IHistogram2D topECal1 = aida.histogram2D("Top ECal Cluster Position (>0 tracks)", 50, -400, 400, 10, 0, 100);
@@ -1409,57 +832,19 @@ public class TrackingReconstructionPlots extends Driver {
             IHistogram2D topECal3 = aida.histogram2D("Top ECal Cluster Position w_E (E>0.1,>0 tracks)", 50, -400, 400, 10, 0, 100);
             IHistogram2D botECal3 = aida.histogram2D("Bottom ECal Cluster Position w_E (E>0.1,>0 tracks)", 50, -400, 400, 10, -100, 0);
 
-            plotter6.region(0).plot(topECal);
-            plotter6.region(1).plot(botECal);
-            plotter6.region(2).plot(topECal1);
-            plotter6.region(3).plot(botECal1);
-            plotter6.region(4).plot(topECal2);
-            plotter6.region(5).plot(botECal2);
-            plotter6.region(6).plot(topECal3);
-            plotter6.region(7).plot(botECal3);
-
-            if (showPlots)
-                plotter6.show();
-
-            plotter66 = fac.createPlotterFactory().create("HPS ECAL Basic Plots");
-            plotter66.setTitle("ECAL Basic Plots");
-            //plotterFrame.addPlotter(plotter6);
-            IPlotterStyle style66 = plotter66.style();
-            style66.dataStyle().fillStyle().setColor("yellow");
-            style66.dataStyle().errorBarStyle().setVisible(false);
-            plotter66.createRegions(2, 2);
-
             IHistogram1D topECalE = aida.histogram1D("Top ECal Cluster Energy", 50, 0, 2);
             IHistogram1D botECalE = aida.histogram1D("Bottom ECal Cluster Energy", 50, 0, 2);
             IHistogram1D topECalN = aida.histogram1D("Number of Clusters Top", 6, 0, 6);
             IHistogram1D botECalN = aida.histogram1D("Number of Clusters Bot", 6, 0, 6);
 
-            plotter66.region(0).plot(topECalE);
-            plotter66.region(1).plot(botECalE);
-            plotter66.region(2).plot(botECalN);
-            plotter66.region(3).plot(topECalN);
-
-            if (showPlots)
-                plotter66.show();
         }
 
         if (doHitsOnTrackPlots) {
-            plotter8888 = fac.createPlotterFactory().create("HPS Strip Hit On Track");
-            plotter8888.setTitle("Strip Hit On Track");
-            //plotterFrame.addPlotter(plotter88);
-            plotter8888.setStyle(style8);
-            plotter8888.createRegions(6, 6);
             i = 0;
             for (SiSensor sensor : sensors) {
                 IHistogram1D resX = aida.histogram1D(sensor.getName() + " strip hits on track", 50, 0, 5);
-                plotter8888.region(i).plot(resX);
                 i++;
             }
-
-            if (showPlots)
-                plotter8888.show();
         }
-
     }
-
 }
