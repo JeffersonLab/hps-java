@@ -45,14 +45,15 @@ public class StripMaker {
     SiTrackerIdentifierHelper _sid_helper;
     // Temporary map connecting hits to strip numbers for sake of speed (reset once per sensor)
     Map<FittedRawTrackerHit, Integer> _strip_map = new HashMap<FittedRawTrackerHit, Integer>();
-    double _oneClusterErr = 1 / Math.sqrt(12);
-    double _twoClusterErr = 1 / 5;
-    double _threeClusterErr = 1 / 3;
-    double _fourClusterErr = 1 / 2;
-    double _fiveClusterErr = 1;
+    
 
     boolean _debug = false;
+    private SiliconResolutionModel _res_model = new DefaultSiliconResolutionModel();
 
+    public void setResolutionModel(SiliconResolutionModel model){
+        _res_model = model;
+    }
+    
     public StripMaker(ClusteringAlgorithm algo) {
         _clustering = algo;
     }
@@ -153,25 +154,7 @@ public class StripMaker {
         return hits;
     }
 
-    public void SetOneClusterErr(double err) {
-        _oneClusterErr = err;
-    }
-
-    public void SetTwoClusterErr(double err) {
-        _twoClusterErr = err;
-    }
-
-    public void SetThreeClusterErr(double err) {
-        _threeClusterErr = err;
-    }
-
-    public void SetFourClusterErr(double err) {
-        _fourClusterErr = err;
-    }
-
-    public void SetFiveClusterErr(double err) {
-        _fiveClusterErr = err;
-    }
+    
 
     public void setCentralStripAveragingThreshold(int max_noaverage_nstrips) {
         _max_noaverage_nstrips = max_noaverage_nstrips;
@@ -302,8 +285,8 @@ public class StripMaker {
 
     private SymmetricMatrix getCovariance(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) {
         SymmetricMatrix covariance = new SymmetricMatrix(3);
-        covariance.setElement(0, 0, Math.pow(getMeasuredResolution(cluster, electrodes), 2));
-        covariance.setElement(1, 1, Math.pow(getUnmeasuredResolution(cluster, electrodes), 2));
+        covariance.setElement(0, 0, Math.pow(_res_model.getMeasuredResolution(cluster, electrodes), 2));
+        covariance.setElement(1, 1, Math.pow(_res_model.getUnmeasuredResolution(cluster, electrodes, _strip_map), 2));
         covariance.setElement(2, 2, 0.0);
 
         SymmetricMatrix covariance_global = electrodes.getLocalToGlobal().transformed(covariance);
@@ -328,57 +311,7 @@ public class StripMaker {
         // return new SymmetricMatrix((Matrix)covariance_global);
     }
 
-    private double getMeasuredResolution(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) // should
-    // replace
-    // this
-    // by
-    // a
-    // ResolutionModel
-    // class
-    // that
-    // gives
-    // expected
-    // resolution.
-    // This
-    // could
-    // be
-    // a
-    // big
-    // job.
-    {
-        double measured_resolution;
-
-        double sense_pitch = ((SiSensor) electrodes.getDetectorElement()).getSenseElectrodes(electrodes.getChargeCarrier()).getPitch(0);
-
-        // double readout_pitch = electrodes.getPitch(0);
-        // double noise =
-        // _readout_chip.getChannel(strip_number).computeNoise(electrodes.getCapacitance(strip_number));
-        // double signal_expected = (0.000280/DopedSilicon.ENERGY_EHPAIR) *
-        // ((SiSensor)electrodes.getDetectorElement()).getThickness(); // ~280 KeV/mm for thick Si
-        // sensors
-        if (cluster.size() == 1) {
-            measured_resolution = sense_pitch * _oneClusterErr;
-        } else if (cluster.size() == 2) {
-            measured_resolution = sense_pitch * _twoClusterErr;
-        } else if (cluster.size() == 3) {
-            measured_resolution = sense_pitch * _threeClusterErr;
-        } else if (cluster.size() == 4) {
-            measured_resolution = sense_pitch * _fourClusterErr;
-        } else {
-            measured_resolution = sense_pitch * _fiveClusterErr;
-        }
-
-        return measured_resolution;
-    }
-
-    private double getUnmeasuredResolution(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) {
-        // Get length of longest strip in hit
-        double hit_length = 0;
-        for (FittedRawTrackerHit hit : cluster) {
-            hit_length = Math.max(hit_length, ((SiStrips) electrodes).getStripLength(_strip_map.get(hit)));
-        }
-        return hit_length / Math.sqrt(12);
-    }
+    
 
     private double getEnergy(List<FittedRawTrackerHit> cluster) {
         double total_charge = 0.0;

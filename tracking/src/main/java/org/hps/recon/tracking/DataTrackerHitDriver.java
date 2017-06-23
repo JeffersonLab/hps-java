@@ -180,11 +180,17 @@ public class DataTrackerHitDriver extends Driver {
         stripClusterer.setCentralStripAveragingThreshold(clusterCentralStripAveragingThreshold);
 
         // Set the cluster errors.
-        stripClusterer.SetOneClusterErr(oneClusterErr);
-        stripClusterer.SetTwoClusterErr(twoClusterErr);
-        stripClusterer.SetThreeClusterErr(threeClusterErr);
-        stripClusterer.SetFourClusterErr(fourClusterErr);
-        stripClusterer.SetFiveClusterErr(fiveClusterErr);
+        
+        DefaultSiliconResolutionModel model = new DefaultSiliconResolutionModel();
+
+        model.setOneClusterErr(oneClusterErr);
+        model.setTwoClusterErr(twoClusterErr);
+        model.setThreeClusterErr(threeClusterErr);
+        model.setFourClusterErr(fourClusterErr);
+        model.setFiveClusterErr(fiveClusterErr);
+        
+        stripClusterer.setResolutionModel(model);
+        
 
         // Set the detector to process.
         processPaths.add(subdetectorName);
