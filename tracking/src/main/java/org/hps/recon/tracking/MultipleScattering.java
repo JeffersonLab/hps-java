@@ -22,12 +22,13 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
  * and magnitude from detector geometry directly.
  *
  * @author Per Hansson <phansson@slac.stanford.edu>
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
  */
 public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.MultipleScattering {
 
     private boolean _fixTrackMomentum = false;
-    private double _momentum = -99;// dummy;
-    private static final double inside_tolerance = 0.01;
+    private double _momentum = -99;//dummy;
+    private static final double inside_tolerance = 1.0;//tolerance for first (approximate) test of track intersection with sensor
 
     public MultipleScattering(MaterialManager materialmanager) {
         super(materialmanager);
@@ -213,9 +214,9 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
     // }
 
     /*
-     * Returns interception between helix and plane Uses the origin x posiution
-     * of the plane and extrapolates linearly to find teh intersection If inside
-     * use an iterative "exact" way to determine the final position
+     * Returns interception between helix and plane Uses the origin x posiution of the plane and
+     * extrapolates linearly to find teh intersection If inside use an iterative "exact" way to
+     * determine the final position
      */
 
     public Hep3Vector getHelixIntersection(HelicalTrackFit helix, SiStripPlane plane) {
@@ -293,7 +294,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         // Check if it's inside sensor and module and if it contradicts the manual calculation
-        // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module
+        // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module 
         if (_debug) {
             // check if it's inside the sensor
             Inside result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_int);
@@ -328,7 +329,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("%s: found simple intercept at %s \n", this.getClass().getSimpleName(), pos_int_trk.toString());
         }
 
-        // TODO Catch special cases where the incidental iteration procedure seems to fail
+        // TODO Catch special cases where the incidental iteration procedure seems to fail 
         if (Math.abs(helix.R()) < 2000 && Math.abs(helix.dca()) > 10.0) {
             if (_debug) {
                 System.out.printf("%s: momentum is low (p=%f,R=%f,B=%f) and d0 is big (d0=%f), skip the iterative calculation\n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield, helix.dca());
@@ -350,8 +351,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-            // if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
-            System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
+            if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude() > 1e-4)
+                System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
         }
 
         // find position in sensor frame
@@ -393,7 +394,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             }
 
             // Check if it's inside sensor and module and if it contradicts the manual calculation
-            // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module -> FIX THIS!?
+            // For now: trust manual calculation and output warning if it's outside BOTH sensor AND
+            // module -> FIX THIS!?
             if (isInside && !isInsideSolid) {
                 System.out.printf("%s: manual iterative calculation says inside sensor, inside solid says outside -> contradiction \n", this.getClass().getSimpleName());
                 if (isInsideSolidModule) {
