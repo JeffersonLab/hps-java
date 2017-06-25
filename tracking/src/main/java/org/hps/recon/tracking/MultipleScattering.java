@@ -9,8 +9,6 @@ import java.util.List;
 
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
-import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.solids.Inside;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
