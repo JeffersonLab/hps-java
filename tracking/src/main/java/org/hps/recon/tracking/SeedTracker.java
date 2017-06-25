@@ -27,8 +27,8 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Class extending lcsim version to allow extra flexibility
- * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
  */
 public class SeedTracker extends Driver {
 
