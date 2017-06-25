@@ -54,7 +54,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
         // Explicitly only replace the objects that might change to avoid getting the lcsim versions
 
-        // Instantiate the material manager for HPS, the helix fitter and seed track finder as tey depends on the material manager
+        //  Instantiate the material manager for HPS,  the helix fitter and seed track finder as tey depends on the material manager
         if (useHPSMaterialManager) {
             MaterialSupervisor materialSupervisor = new MaterialSupervisor(includeMS);
             materialSupervisor.setDebug(true);
@@ -89,10 +89,10 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
     }
 
     /**
-     * Set to enable the sectoring to use the sector bins in checking for consistent hits.
-     *
-     * @param applySectorBinning apply sector binning switch
-     */
+    * Set to enable the sectoring to use the sector bins in checking for consistent hits.
+    *
+    * @param applySectorBinning apply sector binning switch
+    */
     public void setApplySectorBinning(boolean applySectorBinning) {
         _finder.setApplySectorBinning(applySectorBinning);
         _finder.getConfirmer().setApplySectorBinning(applySectorBinning);

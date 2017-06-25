@@ -27,7 +27,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
 
     private boolean _fixTrackMomentum = false;
     private boolean doIterative = true;
-    private double _momentum = -99;//dummy;
+    private double _momentum = -99;//dummy
     private static final double inside_tolerance = 0.1;
 
     public MultipleScattering(MaterialManager materialmanager) {
@@ -107,11 +107,6 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("%s: there are %d detector volumes in the model\n", this.getClass().getSimpleName(), materialVols.size());
         }
 
-        boolean isTop = false;
-        boolean foundFirst = false;
-
-        // System.out.println("Starting FindHPSScatterPoints");
-
         for (int i = materialVols.size() - 1; i >= 0; i--) {
 
             ScatteringDetectorVolume vol = materialVols.get(i);
@@ -119,32 +114,10 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
                 System.out.printf("\n%s: found detector volume \"%s\"\n", this.getClass().getSimpleName(), vol.getName());
             }
 
-            IIdentifier iid = vol.getDetectorElement().getIdentifier();
-            IIdentifierHelper iidh = vol.getDetectorElement().getIdentifierHelper();
-            int layer = iidh.getValue(iid, "layer");
-            int module = iidh.getValue(iid, "module");
-
-            // skip irrelevant sensors
-
-            if (foundFirst && layer > 4) {
-                if ((module % 2 == 0) != isTop)
-                    continue;
-            }
-
             // find intersection pathpoint with helix
             Hep3Vector pos = getHelixIntersection(helix, (SiStripPlane) vol);
 
             if (pos != null) {
-
-                // if this is the first (outer-most) intersection, determine top
-                // or bottom
-                if (!foundFirst) {
-                    isTop = (module % 2 == 0);
-                    foundFirst = true;
-                }
-
-                // System.out.printf("Found intersection in layer %d module %d \n",
-                // layer, module);
 
                 if (_debug) {
                     System.out.printf("%s: intersection position %s\n", this.getClass().getSimpleName(), pos.toString());
@@ -358,8 +331,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-            //          if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
-            System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
+            if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude() > 1e-4)
+                System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
         }
 
         // find position in sensor frame
