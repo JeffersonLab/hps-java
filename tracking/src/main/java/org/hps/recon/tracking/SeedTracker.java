@@ -62,7 +62,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
             _helixfitter = new HelixFitter(materialSupervisor, doIterativeHelix);
         } else {
             MaterialManager materialmanager = new MaterialManager(includeMS);
-            _materialmanager = materialmanager; // mess around with types here...
+            _materialmanager = materialmanager; //mess around with types here...
             _helixfitter = new HelixFitter(materialmanager, doIterativeHelix);
         }
 
@@ -77,10 +77,10 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
     }
 
     /**
-     * Set to enable debug output
-     * 
-     * @param debug switch
-     */
+    * Set to enable debug output
+    * 
+    * @param debug switch
+    */
     @Override
     public void setDebug(boolean debug) {
         super.setDebug(debug);

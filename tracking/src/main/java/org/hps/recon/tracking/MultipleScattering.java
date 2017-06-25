@@ -27,8 +27,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
 
     private boolean _fixTrackMomentum = false;
     private boolean doIterative = true;
-    private double _momentum = -99;// dummy;
-    private static final double inside_tolerance = 0.01;
+    private double _momentum = -99;//dummy;
+    private static final double inside_tolerance = 0.1;
 
     public MultipleScattering(MaterialManager materialmanager) {
         super(materialmanager);
@@ -218,9 +218,9 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
     // }
 
     /*
-     * Returns interception between helix and plane Uses the origin x posiution
-     * of the plane and extrapolates linearly to find teh intersection If inside
-     * use an iterative "exact" way to determine the final position
+     * Returns interception between helix and plane Uses the origin x posiution of the plane and
+     * extrapolates linearly to find teh intersection If inside use an iterative "exact" way to
+     * determine the final position
      */
 
     public Hep3Vector getHelixIntersection(HelicalTrackFit helix, SiStripPlane plane) {
@@ -254,8 +254,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         // -> this is not very general, as it assumes that strips are (mostly) along y -> FIX
         // THIS!?
         // Transformation from tracking to detector frame
-        Hep3Vector pos_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos);
-        Hep3Vector direction_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), direction);
+        Hep3Vector pos_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos);
+        Hep3Vector direction_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), direction);
 
         if (_debug) {
             System.out.printf("%s: position in det frame %s and direction %s\n", this.getClass().getSimpleName(), pos_det.toString(), direction_det.toString());
@@ -298,7 +298,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         // Check if it's inside sensor and module and if it contradicts the manual calculation
-        // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module
+        // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module 
         if (_debug) {
             // check if it's inside the sensor
             Inside result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_int);
@@ -358,12 +358,12 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-            // if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
+            //          if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
             System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
         }
 
         // find position in sensor frame
-        Hep3Vector pos_iter_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos_iter_trk));
+        Hep3Vector pos_iter_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos_iter_trk));
 
         if (_debug) {
             System.out.printf("%s: found iterative helix intercept in sensor coordinates at %s\n", this.getClass().getSimpleName(), pos_iter_sensor.toString());
@@ -385,7 +385,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-            Hep3Vector pos_iter_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos_iter_trk);
+            Hep3Vector pos_iter_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos_iter_trk);
             Inside result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_iter_sensor);
             Inside result_inside_module = plane.getSensor().getGeometry().getDetectorElement().getParent().getGeometry().inside(pos_iter_det);
             System.out.printf("%s: Inside result sensor: %s module: %s\n", this.getClass().getSimpleName(), result_inside.toString(), result_inside_module.toString());
@@ -401,7 +401,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             }
 
             // Check if it's inside sensor and module and if it contradicts the manual calculation
-            // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module -> FIX THIS!?
+            // For now: trust manual calculation and output warning if it's outside BOTH sensor AND
+            // module -> FIX THIS!?
             if (isInside && !isInsideSolid) {
                 System.out.printf("%s: manual iterative calculation says inside sensor, inside solid says outside -> contradiction \n", this.getClass().getSimpleName());
                 if (isInsideSolidModule) {

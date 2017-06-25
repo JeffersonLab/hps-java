@@ -17,7 +17,8 @@ public class HelixFitter extends org.lcsim.recon.tracking.seedtracker.HelixFitte
 
     public HelixFitter(MaterialManager materialManager) {
         super(materialManager);
-        // replace the multiple scattering to that given as parameter to be able to use a local version and not lcsim one
+        // replace the multiple scattering to that given as parameter to be able to use a local
+        // version and not lcsim one
         _scattering = new MultipleScattering(materialManager);
 
     }
