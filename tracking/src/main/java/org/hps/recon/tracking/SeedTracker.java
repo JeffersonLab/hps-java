@@ -83,7 +83,7 @@ public class SeedTracker extends Driver {
 
         // Explicitly only replace the objects that might change to avoid getting the lcsim versions
 
-        // Instantiate the material manager for HPS, the helix fitter and seed track finder as tey depends on the material manager
+        //  Instantiate the material manager for HPS,  the helix fitter and seed track finder as tey depends on the material manager
         if (useHPSMaterialManager) {
             MaterialSupervisor materialSupervisor = new MaterialSupervisor(includeMS);
             materialSupervisor.setDebug(true);
@@ -91,7 +91,7 @@ public class SeedTracker extends Driver {
             _helixfitter = new HelixFitter(materialSupervisor);
         } else {
             MaterialManager materialmanager = new MaterialManager(includeMS);
-            _materialmanager = materialmanager; // mess around with types here...
+            _materialmanager = materialmanager; //mess around with types here...
             _helixfitter = new HelixFitter(materialmanager);
         }
 
