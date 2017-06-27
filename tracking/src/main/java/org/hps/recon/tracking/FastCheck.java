@@ -60,19 +60,6 @@ public class FastCheck {
         // radlength=0.003417, angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
         double angle = 0.00062343 / p;
 
-        /*
-        double largest_x = hit1x;
-        if (hit2x > largest_x) {
-            largest_x = hit2x;
-            hit2x = hit1x;
-        }
-        if (hit3x > largest_x) {
-            hit1x = largest_x;
-            largest_x = hit3x;
-            hit3x = hit1x;
-        }
-        */
-
         double dist1 = hit1x - hit2x;
         double dist2 = hit2x - hit3x;
         double MSerr = angle * Math.sqrt(dist1 * dist1 + dist2 * dist2);
@@ -565,7 +552,6 @@ public class FastCheck {
                 return false;
         }
 
-        System.out.printf("%f \n", mserr);
         //  Passed all checks - success!
         return true;
     }
