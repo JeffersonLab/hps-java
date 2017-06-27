@@ -32,24 +32,32 @@ public class MergeTrackCollections extends Driver {
     private String outputCollectionName = "MatchedTracks";
     // private String partialTrackCollectionName = "PartialTracks";
     private String inputTrackCollectionName = "";
-    private boolean removeCollections = false;
-    private boolean doPlots = true;
+    private boolean removeCollections = true;
+    private boolean doPlots = false;
     boolean isTransient = false;
     private AmbiguityResolver ambi;
-    private AcceptanceHelper acc;
+    // private AcceptanceHelper acc;
 
     private AIDA aida2 = AIDA.defaultInstance();
-    private final IHistogram1D trackScoresPreAmbi = aida2.histogram1D("trackScoresPreAmbi", 200, -100, 100);
-    private final IHistogram1D trackScoresPostAmbi = aida2.histogram1D("trackScoresPostAmbi", 200, -100, 100);
-    private final IHistogram1D numDuplicateTracks = aida2.histogram1D("numDuplicateTracks", 10, 0, 10);
-    private final IHistogram1D numPartialTracks = aida2.histogram1D("numPartialTracks", 10, 0, 10);
-    private final IHistogram1D numSharedTracks = aida2.histogram1D("numSharedTracks", 10, 0, 10);
-    private final IHistogram1D sharedHitsPreAmbi = aida2.histogram1D("sharedHitsPreAmbi", 10, 0, 10);
-    private final IHistogram1D numTracksPreAmbi = aida2.histogram1D("numTracksPreAmbi", 10, 0, 10);
-    private final IHistogram1D numTracksPostAmbi = aida2.histogram1D("numTracksPostAmbi", 10, 0, 10);
-    private final IHistogram1D sharedHitsPostAmbi = aida2.histogram1D("sharedHitsPostAmbi", 10, 0, 10);
-    private final IHistogram1D numHitsPreAmbi = aida2.histogram1D("numHitsPreAmbi", 10, 0, 10);
-    private final IHistogram1D numHitsPostAmbi = aida2.histogram1D("numHitsPostAmbi", 10, 0, 10);
+    private IHistogram1D trackScoresPreAmbi = aida2.histogram1D("trackScoresPreAmbi", 200, -100, 100);
+    private IHistogram1D trackScoresPostAmbi = aida2.histogram1D("trackScoresPostAmbi", 200, -100, 100);
+    private IHistogram1D numDuplicateTracks = aida2.histogram1D("numDuplicateTracks", 10, 0, 10);
+    private IHistogram1D numPartialTracks = aida2.histogram1D("numPartialTracks", 10, 0, 10);
+    private IHistogram1D numSharedTracks = aida2.histogram1D("numSharedTracks", 10, 0, 10);
+    private IHistogram1D sharedHitsPreAmbi = aida2.histogram1D("sharedHitsPreAmbi", 10, 0, 10);
+    private IHistogram1D numTracksPreAmbi = aida2.histogram1D("numTracksPreAmbi", 10, 0, 10);
+    private IHistogram1D numTracksPostAmbi = aida2.histogram1D("numTracksPostAmbi", 10, 0, 10);
+    private IHistogram1D sharedHitsPostAmbi = aida2.histogram1D("sharedHitsPostAmbi", 10, 0, 10);
+    private IHistogram1D numHitsPreAmbi = aida2.histogram1D("numHitsPreAmbi", 10, 0, 10);
+    private IHistogram1D numHitsPostAmbi = aida2.histogram1D("numHitsPostAmbi", 10, 0, 10);
+
+    /**
+     * Default constructor
+     */
+
+    public void setPlots(boolean value) {
+        doPlots = value;
+    }
 
     /**
      * determines if the output collections will be transient or not
@@ -103,9 +111,9 @@ public class MergeTrackCollections extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
         // if Ambiguity Resolver uses acceptance helper, must initialize here
-        acc = new AcceptanceHelper();
-        acc.initializeMaps(detector, "Tracker");
-        ambi = new ClassicAmbiguityResolver(acc);
+        // acc = new AcceptanceHelper();
+        // acc.initializeMaps(detector, "Tracker");
+        ambi = new SimpleAmbiguityResolver();
     }
 
     @Override
@@ -121,18 +129,6 @@ public class MergeTrackCollections extends Driver {
             trackCollections.add(temp);
         }
 
-        // Classic Ambiguity Resolving
-        // ((ClassicAmbiguityResolver) (ambi)).setDoChargeCheck(true);
-        ambi.resetResolver();
-        ambi.initializeFromCollection(trackCollections);
-
-        // simple ambi-resolver
-        /*
-         * ambi.setMode(SimpleAmbiguityResolver.AmbiMode.PARTIALS);
-         * ambi.resolve(); List<Track> partialTracks = ambi.getPartialTracks();
-         * deduplicatedTracks = ambi.getTracks();
-         */
-
         if (doPlots) {
             numTracksPreAmbi.fill(ambi.getTracks().size());
             for (Track trk : ambi.getTracks()) {
@@ -141,8 +137,19 @@ public class MergeTrackCollections extends Driver {
                 numHitsPreAmbi.fill(trk.getTrackerHits().size());
             }
         }
+
+        // Classic Ambiguity Resolving
+        // ((ClassicAmbiguityResolver) (ambi)).setDoChargeCheck(true);
+
+        ambi.resetResolver();
+        ambi.initializeFromCollection(trackCollections);
+        // simple ambi-resolver
+        ((SimpleAmbiguityResolver) (ambi)).setMode(SimpleAmbiguityResolver.AmbiMode.DUPS);
+        ambi.resolve();
+        ((SimpleAmbiguityResolver) (ambi)).setMode(SimpleAmbiguityResolver.AmbiMode.PARTIALS);
         ambi.resolve();
         List<Track> deduplicatedTracks = ambi.getTracks();
+        // List<Track> partialTracks = ambi.getPartialTracks();
 
         if (doPlots) {
             numTracksPostAmbi.fill(deduplicatedTracks.size());
