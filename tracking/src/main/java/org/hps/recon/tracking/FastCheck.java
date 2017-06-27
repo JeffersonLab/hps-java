@@ -54,7 +54,7 @@ public class FastCheck {
 
     private double calculateMSerror(double hit1x, double hit2x, double hit3x, double slope, double rcurve) {
         // momentum approximation
-        double p = Math.sqrt(1 + Math.pow(slope, 2)) * _bfield * Math.abs(rcurve);
+        double p = Math.sqrt(1 + slope*slope) * _bfield * rcurve;
 
         // angle approximation
         // radlength=0.003417, angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
@@ -387,9 +387,6 @@ public class FastCheck {
     }
 
     public boolean ThreePointHelixCheck(HelicalTrackHit hit1, HelicalTrackHit hit2, HelicalTrackHit hit3) {
-
-        //System.out.println("3pt helix check");
-
         if (_skipchecks)
             return true;
 
