@@ -406,9 +406,17 @@ public class TrackClusterMatcher {
         }
         else return Double.MAX_VALUE;
         
-        // Rafo's parameterization isn't measured above 650 MeV/c but expected to be constant:
-        if (p > 0.65) p=0.65;
-
+        // Rafo's parameterization (with 1.05 GeV beam) isn't measured above 650 MeV/c but expected to be constant:
+        if(Math.abs(beamEnergy-1.05)<.1){
+            if (p > 0.65) p=0.65;
+        }
+        // Sebouh's parameterization (with 2.3 GeV) beam isn't measured above 1700 MeV/c (1000 MeV/c for non L6 tracks) but expected to be constant:
+        if(Math.abs(beamEnergy-2.3)<.1){
+            if (p > 1.7 && hasL6) 
+                p=1.7;
+            if (p > 1.0 && !hasL6) 
+              p=1.0;
+        }
         // calculate measured mean and sigma of deltaX and deltaY for this energy:
         double aDxMean=0,aDxSigm=0,aDyMean=0,aDySigm=0;
         for (int ii=dxMean.length-1; ii>=0; ii--) aDxMean = dxMean[ii] + p*aDxMean;
