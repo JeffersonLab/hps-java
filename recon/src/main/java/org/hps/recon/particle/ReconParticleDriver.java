@@ -768,4 +768,8 @@ public abstract class ReconParticleDriver extends Driver {
     //  Note:  This should be -1 for test run configurations and +1 for 
     //         prop-2014 configurations 
     private int flipSign = 1;
+    
+    public void setSnapToEdge(boolean val){
+        this.matcher.setSnapToEdge(val);
+    }
 }

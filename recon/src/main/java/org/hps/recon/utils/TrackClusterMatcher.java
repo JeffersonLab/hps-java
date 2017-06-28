@@ -163,6 +163,13 @@ public class TrackClusterMatcher {
      */
     double stepSize = 5.; // mm
 
+    private boolean snapToEdge = false;
+    
+    public void setSnapToEdge(boolean val){
+        this.snapToEdge = val;
+    }
+    
+
     /**
      * Constant denoting the index of the {@link TrackState} at the Ecal
      */
@@ -411,7 +418,8 @@ public class TrackClusterMatcher {
 
       //if the track's extrapolated position is within 1/2 a crystal width of the edge of 
         // the ecal edge, then move it to be 1/2 a crystal from the edge in y.  
-        tPos= snapper.snapToEdge(tPos);
+        if(snapToEdge )
+            tPos= snapper.snapToEdge(tPos);
         
         // calculate nSigma between track and cluster:
         final double nSigmaX = (cPos.x() - tPos.x() - aDxMean) / aDxSigm;
