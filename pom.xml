@@ -37,13 +37,13 @@
     </site>
     <repository>
       <id>lcsim-repo-releases</id>
-      <name>LCSim Releases</name>
-      <url>http://scalnx-v01.slac.stanford.edu:8180/nexus/content/repositories/lcsim-maven2-releases/</url>
+      <name>LCSIM Releases maven repository</name>
+      <url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-releases/</url>
     </repository>
     <snapshotRepository>
       <id>lcsim-repo-snapshots</id>
-      <name>LCSim Snapshots</name>
-      <url>http://scalnx-v01.slac.stanford.edu:8180/nexus/content/repositories/lcsim-maven2-snapshot/</url>
+      <name>LCSIM Snapshots maven repository</name>
+      <url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
     </snapshotRepository>
   </distributionManagement>
 
