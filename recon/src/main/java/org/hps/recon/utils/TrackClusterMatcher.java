@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hps.conditions.ecal.EcalCrystalPosition.EcalCrystalPositionCollection;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
@@ -29,8 +28,6 @@ import org.lcsim.geometry.FieldMap;
  * @author <a href="mailto:moreno1@ucsc.edu">Omar Moreno</a>
  */
 public class TrackClusterMatcher {
-
-    EcalCrystalPositionCollection positions;
 
     Double beamEnergy;
 
@@ -427,7 +424,7 @@ public class TrackClusterMatcher {
       //if the track's extrapolated position is within 1/2 a crystal width of the edge of 
         // the ecal edge, then move it to be 1/2 a crystal from the edge in y.  
         if(snapToEdge )
-            tPos= snapper.snapToEdge(tPos);
+            tPos= snapper.snapToEdge(tPos,cluster);
         
         // calculate nSigma between track and cluster:
         final double nSigmaX = (cPos.x() - tPos.x() - aDxMean) / aDxSigm;
@@ -436,7 +433,7 @@ public class TrackClusterMatcher {
         //return Math.sqrt( 1 / ( 1/nSigmaX/nSigmaX + 1/nSigmaY/nSigmaY ) );
     }
 
-    SnapToEdge snapper = new SnapToEdge();
+    SnapToEdge2 snapper = new SnapToEdge2();
 
     /**
      * Determine if a track is matched to a cluster. Currently, this is
@@ -638,11 +635,6 @@ public class TrackClusterMatcher {
             nSigmaPositionMatch = getNSigmaPosition(cc,pp);
         }
         public double getNSigmaPositionMatch() { return nSigmaPositionMatch; }
-    }
-    
-    public void setEcalCrystalPositions(EcalCrystalPositionCollection positions) {
-       this.positions = positions;
-       snapper.loadEdges(positions);
     }
 
     public void setBeamEnergy(double beamEnergy) {
