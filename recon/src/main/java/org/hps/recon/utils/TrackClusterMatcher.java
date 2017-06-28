@@ -163,7 +163,7 @@ public class TrackClusterMatcher {
      */
     double stepSize = 5.; // mm
 
-    private boolean snapToEdge = false;
+    private boolean snapToEdge = true;
     
     public void setSnapToEdge(boolean val){
         this.snapToEdge = val;
