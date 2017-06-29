@@ -13,19 +13,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import junit.framework.TestCase;
-
 import org.hps.util.CompareHistograms;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
-import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
-import org.lcsim.util.loop.LCIODriver;
-import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
@@ -33,41 +27,21 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * @author phansson <phansson@slac.stanford.edu>
  * @version $id: $
  */
-public class TestRunTrackReconTest extends TestCase {
+public class TestRunTrackReconTest extends ReconTestSkeleton {
 
-    static final String testURLBase = "http://www.slac.stanford.edu/~phansson/files/hps_java_test/HPSTestRunv3/hps-java-1.7-SNAPSHOT-050113";
-    static final String testFileName = "egs_5.5gev_0.016x0_500mb_recoil_recon_1_hpsTestRunTrackingTest.slcio";
     static final String testURLBaseCmp = "http://www.slac.stanford.edu/~phansson/files/hps_java_test/HPSTestRunv3/hps-java-1.7-SNAPSHOT-050113";
     static final String testFileNameCmp = "egs_5.5gev_0.016x0_500mb_recoil_recon_1_hpsTestRunTrackingTest.aida";
     static final String trackCollection = "MatchedTracks";
+    static final String aidaOutputName = "TestRunTrackReconTest.aida";
     static final boolean saveForReference = false;
     static final boolean cmpHistograms = true;
-    private final int nEvents = 5000;
 
     public void testTrackRecon() throws Exception {
 
-        File lcioInputFile = null;
-
-        URL testURL = new URL(testURLBase + "/" + testFileName);
-        FileCache cache = new FileCache();
-        lcioInputFile = cache.getCachedFile(testURL);
-
-        //Process and write out the file
-        LCSimLoop loop = new LCSimLoop();
-        loop.setLCIORecordSource(lcioInputFile);
-        loop.add(new MainTrackingDriver());
-        File outputFile = new TestOutputFile(testFileName.replaceAll(".slcio", "") + "_hpsTestRunTrackingTest.slcio");
-        outputFile.getParentFile().mkdirs(); //make sure the parent directory exists
-        loop.add(new LCIODriver(outputFile));
-        loop.loop(nEvents, null);
-        loop.dispose();
-
-        //Read LCIO back and test!
-        LCSimLoop readLoop = new LCSimLoop();
-        readLoop.add(new TrackReconTestDriver());
-        readLoop.setLCIORecordSource(outputFile);
-        readLoop.loop(nEvents, null);
-        readLoop.dispose();
+        testURLBase = "http://www.slac.stanford.edu/~phansson/files/hps_java_test/HPSTestRunv3/hps-java-1.7-SNAPSHOT-050113";
+        testInputFileName = "egs_5.5gev_0.016x0_500mb_recoil_recon_1_hpsTestRunTrackingTest.slcio";
+        testTrackingDriver = new TrackReconTestDriver();
+        super.testRecon();
     }
 
     /*
@@ -115,7 +89,7 @@ public class TestRunTrackReconTest extends TestCase {
             super.endOfData();
 
             if (saveForReference) {
-                File outputFile = new TestOutputFile(testFileName.replaceAll(".slcio", "") + "_hpsTestRunTrackingTest.aida");
+                File outputFile = new TestOutputFile(aidaOutputName);
                 try {
                     aida.saveAs(outputFile);
                 } catch (IOException ex) {
@@ -131,14 +105,12 @@ public class TestRunTrackReconTest extends TestCase {
             assertTrue("Failed to reconstruct more than " + this.ftracks_thr + " of tracks/event (" + ftracks + ")", ftracks > this.ftracks_thr);
             assertTrue("Failed to find any stereo hits", this.hnstereohits.mean() > 0.);
 
-
-
-//            IPlotter plotter = af.createPlotterFactory().create();
-//            plotter.createRegions(1, 3, 0);
-//            plotter.setTitle("Nr of tracks");
-//            plotter.style().statisticsBoxStyle().setVisible(false);
-//            plotter.region(0).plot(hntracks);
-//            plotter.show();
+            //            IPlotter plotter = af.createPlotterFactory().create();
+            //            plotter.createRegions(1, 3, 0);
+            //            plotter.setTitle("Nr of tracks");
+            //            plotter.style().statisticsBoxStyle().setVisible(false);
+            //            plotter.region(0).plot(hntracks);
+            //            plotter.show();
 
             if (cmpHistograms) {
 
@@ -183,13 +155,12 @@ public class TestRunTrackReconTest extends TestCase {
                         assertTrue("Failed Kolmogorov-Smirnov test (" + (1 - alpha) * 100 + "% C.L. p-value=" + ks_p_value + ") comparing histogram " + histname, !ksNullHypoIsRejected);
 
                         //TODO: use a real two-sample Poisson test
-//                        boolean entriesInconsistent = CompareHistograms.instance().getTTest(alpha, h_test.entries(), h_ref.entries(), h_test.entries(), h_ref.entries(), h_test.entries(), h_ref.entries()); 
-//                        double p_value_entries = CompareHistograms.instance().getTTestPValue(h_test.entries(), h_ref.entries(), h_test.entries(), h_ref.entries(), h_test.entries(), h_ref.entries());                      
-//                        System.out.printf("%s: %s entries are %s (N=%d Ref=%d for T-Test w/ %.1f%s C.L.)\n",TestRunTrackReconTest.class.getName(),histname,(entriesInconsistent?"INCONSISTENT":"CONSISTENT"),h_test.entries(),h_ref.entries(),(1-alpha)*100,"%");                      
-//                        assertTrue("Failed T-Test ("+ (1-alpha)*100 + "% C.L. p-value=" + p_value_entries + ") on number of entries comparing histogram " + histname,!entriesInconsistent);
+                        //                        boolean entriesInconsistent = CompareHistograms.instance().getTTest(alpha, h_test.entries(), h_ref.entries(), h_test.entries(), h_ref.entries(), h_test.entries(), h_ref.entries()); 
+                        //                        double p_value_entries = CompareHistograms.instance().getTTestPValue(h_test.entries(), h_ref.entries(), h_test.entries(), h_ref.entries(), h_test.entries(), h_ref.entries());                      
+                        //                        System.out.printf("%s: %s entries are %s (N=%d Ref=%d for T-Test w/ %.1f%s C.L.)\n",TestRunTrackReconTest.class.getName(),histname,(entriesInconsistent?"INCONSISTENT":"CONSISTENT"),h_test.entries(),h_ref.entries(),(1-alpha)*100,"%");                      
+                        //                        assertTrue("Failed T-Test ("+ (1-alpha)*100 + "% C.L. p-value=" + p_value_entries + ") on number of entries comparing histogram " + histname,!entriesInconsistent);
 
                     }
-
 
                 } catch (MalformedURLException ex) {
                     Logger.getLogger(TestRunTrackReconTest.class.getName()).log(Level.SEVERE, null, ex);
@@ -198,26 +169,5 @@ public class TestRunTrackReconTest extends TestCase {
 
         }
     }
-    
-    private class MainTrackingDriver extends Driver {
-        
-        public MainTrackingDriver() {
 
-            //Setup the sensors and calibrations
-            add(new RawTrackerHitSensorSetup());
-            RawTrackerHitFitterDriver hitfitter = new RawTrackerHitFitterDriver();
-            hitfitter.setFitAlgorithm("Analytic");
-            hitfitter.setCorrectT0Shift(true);
-            add(hitfitter);
-            add(new DataTrackerHitDriver());
-            HelicalTrackHitDriver hth_driver = new HelicalTrackHitDriver();
-            hth_driver.setMaxSeperation(20.0);
-            hth_driver.setTolerance(1.0);
-            add(hth_driver);
-            TrackerReconDriver track_recon_driver = new TrackerReconDriver();
-            add(track_recon_driver);
-            add(new ReadoutCleanupDriver(Arrays.asList("TrackerHits")));
-        }
-
-    }
 }
