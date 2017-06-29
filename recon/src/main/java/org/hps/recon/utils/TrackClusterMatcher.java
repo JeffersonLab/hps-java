@@ -303,7 +303,7 @@ public class TrackClusterMatcher {
     public double getNSigmaPosition(Cluster cluster, ReconstructedParticle particle) {
         if (particle.getTracks().size()<1) return Double.MAX_VALUE;
         Track track=particle.getTracks().get(0);
-        return getNSigmaPosition(cluster, track, particle.getMomentum().magnitude());
+        return getNSigmaPosition(cluster, track, new BasicHep3Vector(track.getTrackStates().get(0).getMomentum()).magnitude());
     }
     public double getNSigmaPosition(Cluster cluster, Track track, double p){
         
@@ -423,16 +423,41 @@ public class TrackClusterMatcher {
 
       //if the track's extrapolated position is within 1/2 a crystal width of the edge of 
         // the ecal edge, then move it to be 1/2 a crystal from the edge in y.  
+       
+        Hep3Vector originalTPos = tPos;
+        
         if(snapToEdge )
             tPos= snapper.snapToEdge(tPos,cluster);
+        
         
         // calculate nSigma between track and cluster:
         final double nSigmaX = (cPos.x() - tPos.x() - aDxMean) / aDxSigm;
         final double nSigmaY = (cPos.y() - tPos.y() - aDyMean) / aDySigm;
-        return Math.sqrt(nSigmaX*nSigmaX + nSigmaY*nSigmaY);
+        
+        double nSigma = Math.sqrt(nSigmaX*nSigmaX + nSigmaY*nSigmaY);
+        
+        if(debug && Math.abs(cPos.x()-tPos.x())<50 &&  Math.abs(cPos.y()-tPos.y())<50){
+            System.out.println("TC MATCH RESULTS:");
+            System.out.println("isTop:  " + isTopTrack);
+            System.out.println("charge: " + charge);
+            System.out.println("hasL6:  " + hasL6);
+            System.out.println("p: " + p);
+            System.out.println("cx: " + cPos.x());
+            System.out.println("cy: " + cPos.y());
+            System.out.println("tx: " + originalTPos.x());
+            System.out.println("ty: " + originalTPos.y());
+            
+            System.out.println("nSigmaX: " + nSigmaX);
+            System.out.println("nSigmaY: " + nSigmaY);
+            System.out.println("nSigma: " + nSigma);
+        }
+        
+        return nSigma;
         //return Math.sqrt( 1 / ( 1/nSigmaX/nSigmaX + 1/nSigmaY/nSigmaY ) );
     }
 
+    boolean debug = false;
+    
     SnapToEdge2 snapper = new SnapToEdge2();
 
     /**
