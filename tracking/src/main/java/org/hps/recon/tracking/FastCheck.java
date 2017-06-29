@@ -54,7 +54,7 @@ public class FastCheck {
 
     private double calculateMSerror(double hit1x, double hit2x, double hit3x, double slope, double rcurve) {
         // momentum approximation
-        double p = Math.sqrt(1 + slope*slope) * _bfield * rcurve;
+        double p = estimateMomentum(slope, rcurve);
 
         // angle approximation
         // radlength=0.003417, angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
@@ -65,7 +65,22 @@ public class FastCheck {
         double MSerr = angle * Math.sqrt(dist1 * dist1 + dist2 * dist2);
 
         return MSerr;
+    }
 
+    private double calculateMSerror(double hit1x, double hit2x, double hit3x, double p) {
+        // angle approximation
+        // radlength=0.003417, angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
+        double angle = 0.00062343 / p;
+
+        double dist1 = hit1x - hit2x;
+        double dist2 = hit2x - hit3x;
+        double MSerr = angle * Math.sqrt(dist1 * dist1 + dist2 * dist2);
+
+        return MSerr;
+    }
+
+    private double estimateMomentum(double slope, double rcurve) {
+        return Math.sqrt(1 + slope * slope) * _bfield * rcurve;
     }
 
     public void setDoSectorBinCheck(SectorManager sectorManager) {
@@ -534,9 +549,15 @@ public class FastCheck {
         double slope = (z[2] - z[0]) / (s[2] - s[0]);
         double z0 = z[0] - s[0] * slope;
         double zpred = z0 + s[1] * slope;
+
+        // momentum cut
+        double pEstimate = estimateMomentum(slope, rcurv);
+        if (pEstimate < _strategy.getMinPT())
+            return false;
+
         //  Add multiple scattering error here
-        double mserr = calculateMSerror(p[0][0], p[1][0], p[2][0], slope, rcurv);
-        dztot += mserr;
+        double mserr = calculateMSerror(p[0][0], p[1][0], p[2][0], pEstimate);
+        dztot += _nsig * mserr;
         // comparison of middle z to prediction including error
         if (Math.abs(zpred - z[1]) > dztot)
             return false;
