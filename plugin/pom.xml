@@ -75,10 +75,6 @@
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>
-      <artifactId>hps-users</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
       <artifactId>hps-record-util</artifactId>
     </dependency>
     <dependency>
