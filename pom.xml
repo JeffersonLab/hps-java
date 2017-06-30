@@ -249,11 +249,6 @@
       </dependency>
       <dependency>
         <groupId>org.hps</groupId>
-        <artifactId>hps-users</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
         <artifactId>hps-steering-files</artifactId>
         <version>${project.version}</version>
       </dependency>

@@ -139,10 +139,6 @@
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
-      <artifactId>hps-users</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
       <artifactId>hps-monitoring-app</artifactId>
     </dependency>
     <dependency>
