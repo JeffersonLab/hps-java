@@ -83,6 +83,7 @@
     </dependency>
   </dependencies>
   <profiles>
+<!--
     <profile>
       <id>submit-plugin-descriptor</id>
       <activation>
@@ -108,6 +109,7 @@
         </plugins>
       </build>
     </profile>
+-->
     <profile>
       <id>test-release</id>
       <build>
