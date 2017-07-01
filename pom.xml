@@ -8,7 +8,7 @@
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
-  <version>3.11-SNAPSHOT</version>
+  <version>3.11-test3</version>
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>http://www.lcsim.org/sites/hps/</url>
@@ -27,7 +27,7 @@
     <connection>scm:git:git://github.com/jeffersonlab/hps-java.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jeffersonlab/hps-java.git</developerConnection>
     <url>http://github.com/jeffersonlab/hps-java</url>
-    <tag>HEAD</tag>
+    <tag>hps-java-3.11-test3</tag>
   </scm>
 
   <distributionManagement>
