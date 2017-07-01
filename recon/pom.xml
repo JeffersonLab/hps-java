@@ -8,7 +8,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>3.11-test3</version>
+    <version>3.11-SNAPSHOT</version>
   </parent>
   <dependencies>
     <!-- This will pull in the ECAL recon module transitively. -->
