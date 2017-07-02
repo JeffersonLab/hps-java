@@ -8,7 +8,7 @@ import org.lcsim.event.Cluster;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
-public class SnapToEdge2 {
+public class SnapToEdge {
 
     public Hep3Vector snapToEdge(Hep3Vector tPos, Cluster c) {
         List<CalorimeterHit> hits = c.getCalorimeterHits();
