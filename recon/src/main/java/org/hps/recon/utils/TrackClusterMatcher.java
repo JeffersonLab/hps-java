@@ -458,7 +458,7 @@ public class TrackClusterMatcher {
 
     boolean debug = false;
     
-    SnapToEdge2 snapper = new SnapToEdge2();
+    SnapToEdge snapper = new SnapToEdge();
 
     /**
      * Determine if a track is matched to a cluster. Currently, this is
