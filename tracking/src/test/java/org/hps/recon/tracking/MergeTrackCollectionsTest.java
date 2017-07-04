@@ -15,17 +15,17 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * Test class to check MergeTrackCollections (ambiguity resolving).
  * 
  * @author Miriam Diamond <mdiamond@slac.stanford.edu>
- * @version $id: v1 05/30/2017$
+ * @version $id: v2 06/04/2017$
  * 
- *          Optional step: creates reconstructed lcio from raw lcio. Always:
- *          reads reconstructed lcio, runs MergeTrackCollections to create new
- *          reconstructed lcio, makes plots from new lcio
+ * re-runs MergeTrackCollections on reco lcio, creates new reco lcio (outputFileName)
+ * output track collection (newTracksName) may be same or different as old one
  */
 public class MergeTrackCollectionsTest extends TestCase {
 
     // static final String testURLBase = "http://www.lcsim.org/test/hps-java";
     static final String testFileName = "ap_prompt_new.slcio";
-    static final String newGoodName = "MatchedTracks";
+    static final String outputFileName = testFileName.replaceAll(".slcio", "") + "_MergeTest.slcio";
+    static final String newTracksName = "MatchedTracks";
     static final String inputTracksName = "MatchedTracks";
 
     private final int nEvents = 10;
@@ -34,7 +34,7 @@ public class MergeTrackCollectionsTest extends TestCase {
         // URL testURL = new URL(testURLBase + "/" + testFileName);
         // FileCache cache = new FileCache();
 
-        File outputFile = new TestOutputFile(testFileName.replaceAll(".slcio", "") + "_MergeTest.slcio");
+        File outputFile = new TestOutputFile(outputFileName);
         outputFile.getParentFile().mkdirs();
         File trackFile = new File("target/test-output/" + testFileName);
         trackFile.getParentFile().mkdirs();
@@ -45,7 +45,7 @@ public class MergeTrackCollectionsTest extends TestCase {
 
         MergeTrackCollections newMerge = new MergeTrackCollections();
         newMerge.setInputTrackCollectionName(inputTracksName);
-        newMerge.setOutputCollectionName(newGoodName);
+        newMerge.setOutputCollectionName(newTracksName);
         newMerge.setRemoveCollections(false);
         loop2.add(newMerge);
 

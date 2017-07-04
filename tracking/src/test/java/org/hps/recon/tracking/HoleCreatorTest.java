@@ -11,10 +11,10 @@ import junit.framework.TestCase;
 
 /**
  * 
- * @author Miriam Diamond <mdiamond@slac.stanford.edu> $Id:
- *         HoleCreatorTest.java, v1 05/30/2017$ Takes reconstructed lcio file as
- *         input Removes hits using HoleCreationDriver, makes new lcio Removes
- *         old versions of old collections and does not re-do tracking
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu> 
+ * $Id: HoleCreatorTest.java, v1 05/30/2017$ 
+ * Takes reconstructed lcio file as input, removes hits using HoleCreationDriver, makes new lcio 
+ * Removes old versions of old collections and does not re-do tracking
  */
 
 public class HoleCreatorTest extends TestCase {

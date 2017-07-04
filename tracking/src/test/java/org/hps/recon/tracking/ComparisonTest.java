@@ -1,0 +1,65 @@
+/**
+ * 
+ */
+package org.hps.recon.tracking;
+
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.ITree;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import junit.framework.TestCase;
+import org.hps.util.CompareHistograms;
+import org.lcsim.util.aida.AIDA;
+
+/**
+ * Test class to check a set of histograms against a reference set.
+ * @author mdiamond <mdiamond@slac.stanford.edu>
+ * @version $id: 1.0 06/04/17$
+ */
+public class ComparisonTest extends TestCase {
+
+    public void testComparison() throws Exception {
+        final List<String> histograms = Arrays.asList("Tracks per Event", "Hits per Track");
+        double TtestAlpha = 0.05;
+        double KStestAlpha = 0.05;
+        double EqualityTolerance = -1;
+
+        final AIDA aida = AIDA.defaultInstance();
+        final IAnalysisFactory af = aida.analysisFactory();
+
+        final String testInputFileName = "TrackingRecoPlots.aida";
+        final String testReferenceFileName = "TrackingRecoPlots2.aida";
+        File inputFile = new File(testInputFileName);
+        File refFile = new File(testReferenceFileName);
+        ITree tree_cmpInput = af.createTreeFactory().create(inputFile.getAbsolutePath());
+        ITree tree_cmpRef = af.createTreeFactory().create(refFile.getAbsolutePath());
+
+        for (String histname : histograms) {
+            IHistogram1D h_ref = (IHistogram1D) tree_cmpRef.find(histname);
+            IHistogram1D h_test = (IHistogram1D) tree_cmpInput.find(histname);
+            boolean nullHypoIsRejected = false;
+            double p_value = 0;
+            if (TtestAlpha > 0) {
+                nullHypoIsRejected = CompareHistograms.instance().getTTest(TtestAlpha, h_test.mean(), h_ref.mean(), h_test.rms() * h_test.rms(), h_ref.rms() * h_ref.rms(), h_test.allEntries(), h_ref.allEntries());
+                p_value = CompareHistograms.instance().getTTestPValue(h_test.mean(), h_ref.mean(), h_test.rms() * h_test.rms(), h_ref.rms() * h_ref.rms(), h_test.allEntries(), h_ref.allEntries());
+                System.out.printf("%s: %s %s T-Test (%.1f%s C.L.) with p-value=%.3f\n", TestRunTrackReconTest.class.getName(), histname, (nullHypoIsRejected ? "FAILED" : "PASSED"), (1 - TtestAlpha) * 100, "%", p_value);
+                assertTrue("Failed T-Test (" + (1 - TtestAlpha) * 100 + "% C.L. p-value=" + p_value + ") comparing histogram " + histname, !nullHypoIsRejected);
+            }
+            if (KStestAlpha > 0) {
+                p_value = CompareHistograms.getKolmogorovPValue(h_test, h_ref);
+                nullHypoIsRejected = (p_value < KStestAlpha);
+                System.out.printf("%s: %s %s Kolmogorov-Smirnov test (%.1f%s C.L.) with p-value=%.3f\n", TestRunTrackReconTest.class.getName(), histname, (nullHypoIsRejected ? "FAILED" : "PASSED"), (1 - KStestAlpha) * 100, "%", p_value);
+                assertTrue("Failed Kolmogorov-Smirnov test (" + (1 - KStestAlpha) * 100 + "% C.L. p-value=" + p_value + ") comparing histogram " + histname, !nullHypoIsRejected);
+            }
+            if (EqualityTolerance > 0) {
+                nullHypoIsRejected = (Math.abs(h_ref.sumAllBinHeights() - h_test.sumAllBinHeights())) > EqualityTolerance;
+                assertTrue("Bin heights do not match within tolerance for histogram " + histname, !nullHypoIsRejected);
+                nullHypoIsRejected = (Math.abs(h_ref.mean() - h_test.mean())) > EqualityTolerance;
+                assertTrue("Means do not match within tolerance for histogram " + histname, !nullHypoIsRejected);
+            }
+        }
+    }
+
+}

@@ -17,14 +17,11 @@ import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
- * Test class to check MergeTrackCollections (ambiguity resolving).
+ * Test class to create set of histograms (aida/root) from reco LCIO.
  * 
  * @author Miriam Diamond <mdiamond@slac.stanford.edu>
  * @version $id: v1 05/30/2017$
  * 
- *          Optional step: creates reconstructed lcio from raw lcio. Always:
- *          reads reconstructed lcio, runs MergeTrackCollections to create new
- *          reconstructed lcio, makes plots from new lcio
  */
 public class TrackingReconstructionPlotsTest extends TestCase {
 
@@ -32,8 +29,9 @@ public class TrackingReconstructionPlotsTest extends TestCase {
     // static final String testURLBase = "http://www.lcsim.org/test/hps-java";
     //static final String testFileName = "MCReconTest.slcio";
     static final String testOutput = "test.slcio";
+    static final String aidaOutput = "TrackingRecoPlots2.aida";
 
-    private final int nEvents = 10;
+    private final int nEvents = 9;
 
     public void testTrackRecoPlots() throws Exception {
         // URL testURL = new URL(testURLBase + "/" + testFileName);
@@ -53,6 +51,7 @@ public class TrackingReconstructionPlotsTest extends TestCase {
         loop2.add(rthss);
 
         TrackingReconstructionPlots trp = new TrackingReconstructionPlots();
+        trp.setOutputPlots(aidaOutput);
         loop2.add(trp);
 
         ReadoutCleanupDriver rcd = new ReadoutCleanupDriver();

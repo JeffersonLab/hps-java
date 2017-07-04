@@ -34,6 +34,8 @@ import org.lcsim.util.aida.AIDA;
  * Analysis class to check recon.
  * 
  * @author phansson
+ * @author mdiamond <mdiamond@slac.stanford.edu>
+ * @version $id: 2.0 06/04/17$
  */
 public class TrackingReconstructionPlots extends Driver {
 
@@ -41,7 +43,7 @@ public class TrackingReconstructionPlots extends Driver {
     //    hep.aida.jfree.AnalysisFactory.register();
     //}
 
-    private AIDA aida = AIDA.defaultInstance();
+    public AIDA aida;
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private String stripClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private boolean doAmplitudePlots = false;
@@ -68,6 +70,9 @@ public class TrackingReconstructionPlots extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
+        if (aida == null)
+            aida = AIDA.defaultInstance();
+
         aida.tree().cd("/");
         for (HpsSiSensor s : detector.getDetectorElement().findDescendants(HpsSiSensor.class)) {
             if (s.getName().startsWith("module_") && s.getName().endsWith("sensor0")) {
@@ -96,27 +101,27 @@ public class TrackingReconstructionPlots extends Driver {
     }
 
     public void setDoAmplitudePlots(boolean value) {
-        this.doAmplitudePlots = true;
+        this.doAmplitudePlots = value;
     }
 
     public void setDoECalClusterPlots(boolean value) {
-        this.doECalClusterPlots = true;
+        this.doECalClusterPlots = value;
     }
 
     public void setDoHitsOnTrackPlots(boolean value) {
-        this.doHitsOnTrackPlots = true;
+        this.doHitsOnTrackPlots = value;
     }
 
     public void setDoResidualPlots(boolean value) {
-        this.doResidualPlots = true;
+        this.doResidualPlots = value;
     }
 
     public void setDoMatchedClusterPlots(boolean value) {
-        this.doMatchedClusterPlots = true;
+        this.doMatchedClusterPlots = value;
     }
 
     public void setDoElectronPositronPlots(boolean value) {
-        this.doElectronPositronPlots = true;
+        this.doElectronPositronPlots = value;
     }
 
     private void doStripHits(List<TrackerHit> stripClusters, Track trk, RelationalTable trackDataTable) {
@@ -615,9 +620,6 @@ public class TrackingReconstructionPlots extends Driver {
                 Logger.getLogger(TrackingReconstructionPlots.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        //plotterFrame.dispose();
-        //topFrame.dispose();
-        //bottomFrame.dispose();
     }
 
     private void setupPlots() {
