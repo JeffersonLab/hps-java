@@ -1,7 +1,6 @@
 package org.hps.analysis.ecal.cosmic;
 
 import java.awt.Point;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,43 +9,69 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
 
-import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogramFactory;
-import hep.aida.ITree;
-import hep.aida.ref.rootwriter.RootFileStore;
-
+/**
+ * This code looks at raw FADC spectra, integrates cosmic signals, and outputs
+ * a .root file containing the histogram spectra for each crystal.
+ * 
+ * @author holly
+ *
+ */
 public class CosmicCalibrationInt extends Driver {
     
-    private ITree tree = null; 
-    private IHistogramFactory histogramFactory = null; 
-    
-    protected void detectorChanged(Detector detector){
-        // Instantiate the tree and histogram factory   
-        tree = IAnalysisFactory.create().createTreeFactory().create();
-        histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
-    }
+    //private ITree tree = null; 
+    //private IHistogramFactory histogramFactory = null; 
     
     // Tune-able parameters:
-    //signal window, originally 35-55, now shifted by 15
-    int MINS=35;//50 
-    int MAXS=55;//70
-    //pedestal window
-    int MINP=10;
-    int MAXP=30;
-    // difference in window
-    int NWIN=MAXS-MINS;
-    //threshold in mV
-    double THR=3.5;//for 2016, 2.5 for 2015
-    //0 is strict, 1 is loose
-    int cutType=0;
+    //optimum signal window, originally 35-55 (in units of 4ns)
+    private int MINS=35;//50 
+    private int MAXS=55;//70
+    //pedestal window for calculating an average pedestal
+    private int MINP=10;
+    private int MAXP=30;
+    //number of bins used to calculate the pedestal
+    private int NWIN=MAXP-MINP; 
+    //threshold in mV (2.5mV in 2015)
+    private double THR=3.5;//for 2016
+    //0 is strict requires 2 hits vertically, 1 is loose requiring 1 hit vertically
+    private int cutType=0;
     
-    // Don't change these
-    int NX=46;
-    int NY=10;
-    int NSAMP=100;
-    double ADC2V=0.25;
+    /////////////////////
+    // Don't change these:
+    /////////////////////
+    //puts the crystals in an array:
+    private int NX=46; 
+    private int NY=10;
+    //number of 4ns time samples in the measured spectrum
+    private int NSAMP=100;
+    //conversion from FADC to mV
+    private double ADC2V=0.25; 
+   
+    AIDA aida = AIDA.defaultInstance();
+
+    protected void detectorChanged(Detector detector){      
+        
+        // Instantiate the tree and histogram factory   
+        aida.tree().cd("/");
+        // Create histograms
+       // IHistogram1D mipSigCut[][];
+       // mipSigCut = new IHistogram1D[NX][NY];
+              
+        for (int jx=0; jx<NX; jx++)
+          {
+            for (int jy=0; jy<NY; jy++)
+            {
+            if (!ishole(jx,jy))
+              {
+                String titleID = String.format("Cry_%d_%d",jx,jy);
+                aida.histogram1D(titleID, 80, 5, 70);
+              } // end !ishole
+            } // end jy iteration
+          } //end jx iteration 
+    }
+    
+    
       
     //read in channels, store in arrays
     public void process(EventHeader event){
@@ -54,7 +79,7 @@ public class CosmicCalibrationInt extends Driver {
             throw new Driver.NextEventException();
         List<RawTrackerHit> hitList = event.get(RawTrackerHit.class, "EcalReadoutHits");
 
-        // Put all raw hits into a hash map with ix,iy position
+        // Put all raw hits into a hash map with ix,iy array position
         Map<Point, RawTrackerHit> hitMap = new LinkedHashMap<Point, RawTrackerHit>();
     
         // Loop over the raw hits in the event
@@ -69,43 +94,20 @@ public class CosmicCalibrationInt extends Driver {
             
             Point hitIndex = new Point(xx,yy);
             hitMap.put(hitIndex, hit);
-            //System.out.println("\tnew\t"+xx+","+yy+"\tindex\t"+ix+","+iy);
 
         }
         
-        // Output file
-        //  TFile *f=new TFile("mipSigCut.root","RECREATE");
-        
-        //AIDA aida = AIDA.defaultInstance();
-        IHistogram1D mipSigCut[][];
         int pedestal[][] = new int[NX][NY];
         int pulse[][] = new int[NX][NY];
         float signal[][] = new float[NX][NY];
-        
-        // Create histograms
-        mipSigCut = new IHistogram1D[NX][NY];
-        
-        for (int jx=0; jx<NX; jx++)
-          {
-            for (int jy=0; jy<NY; jy++)
-            {
-            if (!ishole(jx,jy))
-              {
-                String titleID = String.format("Cry_%d_%d",jx,jy);
-              //  mipSigCut[jx][jy]=aida.histogram1D(titleID,80,5,70);
-                mipSigCut[jx][jy]=histogramFactory.createHistogram1D(titleID,80,5,70);
-                mipSigCut[jx][jy].setTitle(titleID);
-              } // end !ishole
-            } // end jy iteration
-          } //end jx iteration
-             
+
         // loop over crystal y
         for (int iy=0; iy<NY; iy++)
         {
             // loop over crystal x
-            int trigger = 0;
             for (int ix=0; ix<NX; ix++)
             {
+                int trigger = 0;
                 if (!ishole(ix,iy))
                 {                
                     // loop over time samples, integrate adc values, use for pedestal
@@ -114,7 +116,6 @@ public class CosmicCalibrationInt extends Driver {
                     RawTrackerHit ihit = hitMap.get(cid);
                     final short samples[] = ihit.getADCValues();
                     
-
                     for (int nTime=MINP; nTime<MAXP; nTime++)
                     {
                         int adc=samples[nTime];
@@ -127,7 +128,11 @@ public class CosmicCalibrationInt extends Driver {
                     {
                         int adc=samples[nTime];
                         double peak = (adc-pedestal[ix][iy]/NWIN)*ADC2V;
-                        if (peak > THR) {trigger=1;}
+
+                        if (peak > THR) {trigger=1;
+                        
+                        //System.out.println("\t greater than thresh:\t"+peak+"\t"+THR);
+                        }
                         pulse[ix][iy] += adc;           
                     }// end loop over time samples
 
@@ -146,7 +151,7 @@ public class CosmicCalibrationInt extends Driver {
 
                         //define geometry cuts-no other hit on left and right passing raw thresh
                         // loop over time samples, integrate adc values
-                        if (!ishole(ix+1,iy) && (ix+1)<46)
+                        if (!ishole(ix+1,iy) && (ix+1)<46 )
                         {             
                             Point cidxp1 = new Point(ix+1,iy);
                             RawTrackerHit ihitxp1 = hitMap.get(cidxp1);
@@ -200,11 +205,11 @@ public class CosmicCalibrationInt extends Driver {
                 
                         if (!ishole(ix,iy+1) && (iy+1)<10 && iy!=4)
                         {
+                            geomCut2=1;
                             Point cidyp1 = new Point(ix,iy+1);
                             RawTrackerHit ihityp1 = hitMap.get(cidyp1);
                             final short samplesyp1[] = ihityp1.getADCValues();
                           
-                            geomCut2=1;
                             pedestal[ix][iy+1]=0;
                             for (int nTime=MINP; nTime<MAXP; nTime++)
                             {
@@ -227,10 +232,11 @@ public class CosmicCalibrationInt extends Driver {
                 
                         if (!ishole(ix,iy-1) && (iy-1)>-1 && iy!=5)
                         {
+                            geomCut3=1;
                             Point cidym1 = new Point(ix,iy-1);
                             RawTrackerHit ihitym1 = hitMap.get(cidym1);
                             final short samplesym1[] = ihitym1.getADCValues();
-                            geomCut3=1;
+
                             pedestal[ix][iy-1]=0;
                             for (int nTime=MINP; nTime<MAXP; nTime++)
                             {
@@ -248,6 +254,7 @@ public class CosmicCalibrationInt extends Driver {
                                     geomCut3=0;
                                     break;
                                 }
+
                             }// end loop over time samples
                         }
 
@@ -256,10 +263,11 @@ public class CosmicCalibrationInt extends Driver {
                         // since it does not have 1 above and 1 below
                         if(iy==9 || iy==4 || ishole(ix,iy+1)) //look at iy-2
                         {
+                            geomCut4=1;
                             Point cidym2 = new Point(ix,iy-2);
                             RawTrackerHit ihitym2 = hitMap.get(cidym2);
                             final short samplesym2[] = ihitym2.getADCValues();
-                            geomCut4=1;
+
                             pedestal[ix][iy-2]=0;
                             for (int nTime=MINP; nTime<MAXP; nTime++)
                             {
@@ -276,6 +284,7 @@ public class CosmicCalibrationInt extends Driver {
                                     geomCut4=0;
                                     break;
                                 }
+
                             }// end loop over time samples
                         } //end for iy-2
                         if(iy==0 || iy==5 || ishole(ix,iy-1)) //look at iy+2
@@ -304,11 +313,15 @@ public class CosmicCalibrationInt extends Driver {
                         } //end for iy+2
 
                         /////////////////////////////////////////////////////////////////////////////
+                        //System.out.println("print of geoCuts:\t"+geomCut0+","+geomCut1+","+geomCut2+","+geomCut3+","+geomCut4+","+geomCut5);
+                        //System.out.println("cut type:\t"+cutType);
+
                         if (cutType==0) //strict geometry cut
                         {
                             if(geomCut0==0&&geomCut1==0&&geomCut2==0&&geomCut3==0&&geomCut4==0&&geomCut5==0)
                             {
-                                mipSigCut[ix][iy].fill(signal[ix][iy]);
+                                String titleID = String.format("Cry_%d_%d",ix,iy);
+                                aida.histogram1D(titleID).fill(signal[ix][iy]);    
                             }
                         }
                         else if (cutType==1) //loose geometry cut
@@ -317,7 +330,8 @@ public class CosmicCalibrationInt extends Driver {
                             {
                                 if(geomCut2==0||geomCut3==0) 
                                 {
-                                    mipSigCut[ix][iy].fill(signal[ix][iy]);
+                                    String titleID = String.format("Cry_%d_%d",ix,iy);
+                                    aida.histogram1D(titleID).fill(signal[ix][iy]);   
                                 }
                             }
                         }
@@ -328,19 +342,9 @@ public class CosmicCalibrationInt extends Driver {
             }// end loop over x
            
         }// end loop over y
-   
-        String rootFile = "mipSigCut.root";
-        RootFileStore store = new RootFileStore(rootFile);
-        try {
-            store.open();
-            store.add(tree);
-            store.close(); 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        
+
     }//end process event
-  
+   
     boolean ishole(int x,int y)
     {
         return (x>12 && x<22 && y>3 && y<6);
