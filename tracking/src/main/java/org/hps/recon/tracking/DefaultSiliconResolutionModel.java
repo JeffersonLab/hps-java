@@ -47,6 +47,8 @@ public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
         return hit_length / Math.sqrt(12);
     }
 
+    
+    //perhaps the best values for these are .19, .12 and .2?    
     private double _oneClusterErr = 1 / Math.sqrt(12);
     private double _twoClusterErr = 1 / 5.;
     private double _threeClusterErr = 1 / 3.;
