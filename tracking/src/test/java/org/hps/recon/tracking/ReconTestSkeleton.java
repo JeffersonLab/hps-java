@@ -3,11 +3,15 @@ package org.hps.recon.tracking;
 import java.io.File;
 import java.net.URL;
 
+import org.lcsim.job.EventMarkerDriver;
+//import org.hps.logging.config.DefaultLoggingConfig;
+
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
+import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCIODriver;
@@ -26,10 +30,12 @@ public class ReconTestSkeleton extends TestCase {
     protected String testInputFileName = "raw_skim5766.slcio";
     protected String testOutputFileName = "test.slcio";
     protected String testURLBase = null;
-    protected long nEvents = 100;
+    protected long nEvents = 5;
     protected URL testURL;
     protected FileCache cache;
     protected Driver testTrackingDriver = null;
+
+    //static private Logger LOGGER = Logger.getLogger(ReconTestSkeleton.class.getPackage().getName());
 
     public void testRecon() throws Exception {
         File inputFile = null;
@@ -47,15 +53,22 @@ public class ReconTestSkeleton extends TestCase {
         outputFile.getParentFile().mkdirs();
         boolean loop1Success = true;
 
+        //DefaultLoggingConfig.initialize();
+
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(inputFile);
 
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.addConditionsListener(new SvtDetectorSetup());
 
+        EventMarkerDriver emd = new EventMarkerDriver();
+        emd.setEventInterval(1);
+        loop.add(emd);
+
         loop.add(new MainTrackingDriver());
         loop.add(new LCIODriver(outputFile));
         try {
+            //loop.skip(4);
             loop.loop(nEvents);
         } catch (Exception e) {
             System.out.println("Failure of main tracking sequence with following exception");
@@ -111,21 +124,25 @@ public class ReconTestSkeleton extends TestCase {
             org.hps.recon.tracking.TrackerReconDriver trd = new org.hps.recon.tracking.TrackerReconDriver();
             trd.setStrategyResource("HPS_s123_c5_e46.xml");
             trd.setRmsTimeCut(8.0);
+            trd.setTrackCollectionName("s123_c5_e46");
             add(trd);
 
             org.hps.recon.tracking.TrackerReconDriver trd2 = new org.hps.recon.tracking.TrackerReconDriver();
             trd2.setStrategyResource("HPS_s123_c4_e56.xml");
             trd2.setRmsTimeCut(8.0);
+            trd2.setTrackCollectionName("s123_c5_e56");
             add(trd2);
 
             org.hps.recon.tracking.TrackerReconDriver trd3 = new org.hps.recon.tracking.TrackerReconDriver();
             trd3.setStrategyResource("HPS_s456_c3_e21.xml");
             trd3.setRmsTimeCut(8.0);
+            trd3.setTrackCollectionName("s456_c3_e21");
             add(trd3);
 
             org.hps.recon.tracking.TrackerReconDriver trd4 = new org.hps.recon.tracking.TrackerReconDriver();
             trd4.setStrategyResource("HPS_s345_c2_e16.xml");
             trd4.setRmsTimeCut(8.0);
+            trd4.setTrackCollectionName("s345_c2_e16");
             add(trd4);
 
             org.hps.recon.tracking.MergeTrackCollections mtc = new org.hps.recon.tracking.MergeTrackCollections();
@@ -135,6 +152,8 @@ public class ReconTestSkeleton extends TestCase {
 
             add(new org.hps.recon.tracking.gbl.GBLRefitterDriver());
             add(new org.hps.recon.tracking.gbl.GBLOutputDriver());
+
+            add(new ReadoutCleanupDriver());
         }
 
     }
