@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -6,6 +6,7 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.ILogicalVolume;
@@ -27,7 +28,10 @@ import org.lcsim.geometry.Detector;
  * use of the DetectorGeometry classes from lcsim instead for the model. Something to consider in the future.
  *
  * @author Per Hansson <phansson@slac.stanford.edu>
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
+ * @version $Id: 2.0 07/07/17$
  */
+
 public class MaterialSupervisor extends MaterialManager {
 
     private List<ScatteringDetectorVolume> _detectorVolumes = new ArrayList<ScatteringDetectorVolume>();
@@ -36,7 +40,7 @@ public class MaterialSupervisor extends MaterialManager {
     public MaterialSupervisor() {
         super();
         this._includeMS = true;
-    }    
+    }
 
     public MaterialSupervisor(boolean includeMS) {
         super(includeMS);
@@ -46,7 +50,7 @@ public class MaterialSupervisor extends MaterialManager {
     public void setDebug(boolean debug) {
         super.setDebug(debug);
     }
-    
+
     public void setSubdetectorName(String subdetectorName) {
         this.subdetectorName = subdetectorName;
     }
@@ -60,34 +64,27 @@ public class MaterialSupervisor extends MaterialManager {
         boolean local_debug = false;
         // super.buildModel(det);
         if (DEBUG || local_debug) {
-            System.out.printf("%s: ###########################################################\n", this.getClass()
-                    .getSimpleName());
+            System.out.printf("%s: ###########################################################\n", this.getClass().getSimpleName());
             System.out.printf("%s: Build detector model\n", this.getClass().getSimpleName());
         }
-        
-        List<SiSensor> sensors = det.getSubdetector(subdetectorName).getDetectorElement()
-                .findDescendants(SiSensor.class);
+
+        List<SiSensor> sensors = det.getSubdetector(subdetectorName).getDetectorElement().findDescendants(SiSensor.class);
 
         if (DEBUG || local_debug) {
             System.out.printf("%s: %d SiSensors:\n", this.getClass().getSimpleName(), sensors.size());
-            System.out.printf("%s: %45s %35s %35s %35s %35s\n", this.getClass().getSimpleName(), "DE", "Origin", "u",
-                    "v", "w");
+            System.out.printf("%s: %45s %35s %35s %35s %35s\n", this.getClass().getSimpleName(), "DE", "Origin", "u", "v", "w");
         }
         for (SiSensor module : sensors) {
 
             SiStripPlane plane = new SiStripPlane(module);
 
             if (DEBUG || local_debug) {
-                System.out.printf("%s: %45s %35s %35s %35s %35s\n", this.getClass().getSimpleName(), plane
-                        .getDetectorElement().getName(), plane.getGeometry().getPosition().toString(), plane
-                        .getMeasuredCoordinate().toString(), plane.getUnmeasuredCoordinate().toString(), plane
-                        .getPsidePlane().getNormal().toString());
+                System.out.printf("%s: %45s %35s %35s %35s %35s\n", this.getClass().getSimpleName(), plane.getDetectorElement().getName(), plane.getGeometry().getPosition().toString(), plane.getMeasuredCoordinate().toString(), plane.getUnmeasuredCoordinate().toString(), plane.getPsidePlane().getNormal().toString());
             }
             _detectorVolumes.add(plane);
         }
         if (DEBUG || local_debug) {
-            System.out.printf("%s: ###########################################################\n", this.getClass()
-                    .getSimpleName());
+            System.out.printf("%s: ###########################################################\n", this.getClass().getSimpleName());
         }
     }
 
@@ -257,8 +254,7 @@ public class MaterialSupervisor extends MaterialManager {
             Hep3Vector origin = VecOp.mult(CoordinateTransformations.getMatrix(), _sensor.getGeometry().getPosition());
             // transform to p-side
             Polygon3D psidePlane = this.getPsidePlane();
-            Translation3D transformToPside = new Translation3D(VecOp.mult(-1 * psidePlane.getDistance(),
-                    psidePlane.getNormal()));
+            Translation3D transformToPside = new Translation3D(VecOp.mult(-1 * psidePlane.getDistance(), psidePlane.getNormal()));
             this._org = transformToPside.translated(origin);
         }
 
@@ -267,10 +263,7 @@ public class MaterialSupervisor extends MaterialManager {
             if (_w == null) {
                 _w = this.getPsidePlane().getNormal();
                 System.out.printf("setting normal from pside normal %s\n", _w.toString());
-                _w = VecOp.mult(
-                        VecOp.mult(CoordinateTransformations.getMatrix(),
-                                getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal().getRotation()
-                                        .getRotationMatrix()), _w);
+                _w = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal().getRotation().getRotationMatrix()), _w);
                 System.out.printf("normal after local to global to tracking rotation %s\n", _w.toString());
             }
             return this._w;
@@ -278,10 +271,7 @@ public class MaterialSupervisor extends MaterialManager {
 
         private void setNormal() {
             _w = this.getPsidePlane().getNormal();
-            _w = VecOp.mult(
-                    VecOp.mult(CoordinateTransformations.getMatrix(),
-                            getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal().getRotation()
-                                    .getRotationMatrix()), _w);
+            _w = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal().getRotation().getRotationMatrix()), _w);
         }
 
         public void setNormal(Hep3Vector w) {
@@ -290,9 +280,7 @@ public class MaterialSupervisor extends MaterialManager {
 
         @Override
         public void print() {
-            System.out.printf("DetectorPlane:  org %s normal vector %s %.2fx%.2fmm  thickness %f R.L. (%fmm)\n",
-                    origin().toString(), normal().toString(), getLength(), getWidth(), getThicknessInRL(),
-                    getThickness());
+            System.out.printf("DetectorPlane:  org %s normal vector %s %.2fx%.2fmm  thickness %f R.L. (%fmm)\n", origin().toString(), normal().toString(), getLength(), getWidth(), getThicknessInRL(), getThickness());
         }
 
         @Override
@@ -334,20 +322,16 @@ public class MaterialSupervisor extends MaterialManager {
         private void setMeasuredCoordinate() {
             // p-side unit vector
             ITransform3D electrodes_to_global = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
-            Hep3Vector measuredCoordinate = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getMeasuredCoordinate(
-                    0);
-            measuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global
-                    .getRotation().getRotationMatrix()), measuredCoordinate);
+            Hep3Vector measuredCoordinate = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getMeasuredCoordinate(0);
+            measuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global.getRotation().getRotationMatrix()), measuredCoordinate);
             _u = measuredCoordinate;
         }
 
         private void setUnmeasuredCoordinate() {
             // p-side unit vector
             ITransform3D electrodes_to_global = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
-            Hep3Vector unmeasuredCoordinate = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE)
-                    .getUnmeasuredCoordinate(0);
-            unmeasuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global
-                    .getRotation().getRotationMatrix()), unmeasuredCoordinate);
+            Hep3Vector unmeasuredCoordinate = getSensor().getReadoutElectrodes(ChargeCarrier.HOLE).getUnmeasuredCoordinate(0);
+            unmeasuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global.getRotation().getRotationMatrix()), unmeasuredCoordinate);
             _v = unmeasuredCoordinate;
         }
 

@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 import org.lcsim.constants.Constants;
 import org.lcsim.fit.threepointcircle.CircleFit;
@@ -16,8 +16,10 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 
 /**
- *
+ * HPS version of LCSim class
  * @author Richard Partridge
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
+ * @version $Id: 2.0 07/07/17$
  */
 public class FastCheck {
 

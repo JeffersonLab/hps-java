@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,9 +8,12 @@ import org.lcsim.recon.tracking.seedtracker.SeedLayer;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 
 /**
- *
+ * HPS version of LCSim class
  * @author Richard Partridge
- */
+* @author Miriam Diamond <mdiamond@slac.stanford.edu>
+* @version $Id: 2.0 07/07/17$
+*/
+
 public class SeedSectoring {
 
     private List<List<Sector>> _seedsectors;

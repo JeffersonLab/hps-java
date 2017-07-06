@@ -1,7 +1,7 @@
 /*
  * ConfirmerExtender.java
  */
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,15 +23,11 @@ import org.lcsim.recon.tracking.seedtracker.SortLayers;
 import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
 /**
- * The ConfirmerExtender class attempts to add hits to an input seed.  While the
- * algorithms used for the confirm and extend phases are identical, there are
- * small differences in procedures when there are no more tracker layers to check.
- * The confirm phase simply outputs a list of SeedCandidates that have at least
- * the minimum number of confirm hits added to the track.  The extend phases
- * completes track finding and imposes the merge criteria to eliminate inferior
- * track candidates when a pair of candidates shares more than one hit.
+ * HPS version of LCSim class
  *
  * @author cozzy, Richard Partridge
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
+ * @version $Id: 2.0 07/07/17$
  */
 public class ConfirmerExtender {
 

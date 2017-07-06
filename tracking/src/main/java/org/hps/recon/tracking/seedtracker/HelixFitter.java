@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
  * 
  * @author Per Hansson <phansson@slac.stanford.edu>
  * @author Miriam Diamond
- * @version $Id: $
+ * @version $Id: 2.0 07/07/17$
  */
 
 public class HelixFitter extends org.lcsim.recon.tracking.seedtracker.HelixFitter {

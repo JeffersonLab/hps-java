@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,6 +12,12 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.TrackCheck;
 import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
+
+/**
+ * HPS version of LCSim class
+* @author Miriam Diamond <mdiamond@slac.stanford.edu>
+* @version $Id: 2.0 07/07/17$
+*/
 
 public class SeedTrackFinder {
 

@@ -10,8 +10,8 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
 import org.hps.recon.tracking.HpsHelicalTrackFit;
-import org.hps.recon.tracking.MaterialSupervisor;
-import org.hps.recon.tracking.MultipleScattering;
+import org.hps.recon.tracking.seedtracker.MaterialSupervisor;
+import org.hps.recon.tracking.seedtracker.MultipleScattering;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.constants.Constants;

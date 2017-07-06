@@ -10,8 +10,8 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import java.util.*;
-import org.hps.recon.tracking.MaterialManager;
-import org.hps.recon.tracking.MaterialSupervisor;
+import org.hps.recon.tracking.seedtracker.MaterialManager;
+import org.hps.recon.tracking.seedtracker.MaterialSupervisor;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;

@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 /*
  * HitManager.java
@@ -17,9 +17,10 @@ import org.lcsim.recon.tracking.seedtracker.SeedLayer;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 
 /**
- * Organize tracker hits into lists of hits sorted by detector name, layer number, and barrel-endcap flag
+ * HPS version of LCSim class
  * @author Richard Partridge
- * @version 1.0
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
+ * @version $Id: 2.0 07/07/17$
  */
 public class HitManager {
 

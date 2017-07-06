@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
@@ -29,6 +29,8 @@ import org.lcsim.util.aida.AIDA;
  * Class extending lcsim version to allow extra flexibility
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  * @author Miriam Diamond <mdiamond@slac.stanford.edu>
+ * @version $Id: 2.0 07/07/17$
+ * 
  */
 public class SeedTracker extends Driver {
 

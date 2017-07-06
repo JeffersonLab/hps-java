@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
-import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.seedtracker.MaterialSupervisor.ScatteringDetectorVolume;
+import org.hps.recon.tracking.seedtracker.MaterialSupervisor.SiStripPlane;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.solids.Inside;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
@@ -20,7 +22,10 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
  * and magnitude from detector geometry directly.
  *
  * @author Per Hansson <phansson@slac.stanford.edu>
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
+ * @version $Id: 2.0 07/07/17$
  */
+
 public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.MultipleScattering {
 
     private boolean _fixTrackMomentum = false;
@@ -81,7 +86,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("\n%s: FindHPSScatters() for helix:\n%s\n", this.getClass().getSimpleName(), helix.toString());
             System.out.printf("%s: momentum is p=%f,R=%f,B=%f \n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield);
         }
-//        MG TURN THIS OFF SO IT DOESN'T ABORT STRAIGHT TRACKS
+        //        MG TURN THIS OFF SO IT DOESN'T ABORT STRAIGHT TRACKS
         // Check that B Field is set
         if (_bfield == 0. && !_fixTrackMomentum) {
             throw new RuntimeException("B Field or fixed momentum must be set before calling FindScatters method");
@@ -316,7 +321,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-//        if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
+            //        if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
             System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
         }
 
