@@ -291,10 +291,8 @@ public class MakeGblTracks {
         ITransform3D detToStrip = electrodes.getGlobalToLocal();
         // Get rotation matrix
         Hep3Matrix detToStripMatrix = detToStrip.getRotation().getRotationMatrix();
-        // Transformation between the JLAB and tracking coordinate systems
-        Hep3Matrix detToTrackMatrix = CoordinateTransformations.getMatrix();
 
-        return VecOp.mult(detToStripMatrix, VecOp.inverse(detToTrackMatrix));
+        return VecOp.mult(detToStripMatrix, CoordinateTransformations.getMatrixInverse());
     }
 
     private static HelicalTrackStrip makeDigiStrip(SiTrackerHitStrip1D h) {
