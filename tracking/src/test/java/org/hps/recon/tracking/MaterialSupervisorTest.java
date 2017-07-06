@@ -6,32 +6,33 @@
 package org.hps.recon.tracking;
 
 import junit.framework.TestCase;
-
-import org.hps.recon.tracking.seedtracker.MaterialSupervisor;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.util.DetectorLocator;
 import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
+import org.hps.recon.tracking.seedtracker.MaterialSupervisor
 
 /**
  *
  * @author ngraf
  */
-public class MaterialSupervisorTest extends TestCase {
+public class MaterialSupervisorTest extends TestCase
+{
 
-    public void testMaterialSupervisor() {
+    public void testMaterialSupervisor()
+    {
         String detectorName = "HPS-Proposal2014-v5-2pt2";
         Detector det = DetectorLocator.findDetector(detectorName);
         System.out.println(det.getName());
-
+        
         boolean debug = true;
-        boolean includeMS = true;
+        boolean includeMS=true;
         MaterialSupervisor instance = new MaterialSupervisor(includeMS);
         instance.setDebug(debug);
         // following call crashes.
         // evidently something else needs to be set up
-        //   instance.buildModel(det);
+     //   instance.buildModel(det);
 
     }
 }
