@@ -474,10 +474,7 @@ final class EventProcessing {
             
             // Setup class for conditions system.
             DatabaseConditionsManagerSetup conditions = new DatabaseConditionsManagerSetup();
-            
-            // Disable run manager.
-            conditions.setEnableRunManager(false);
-            
+                        
             // Setup the event builder to translate from EVIO to LCIO.
             LCSimEventBuilder eventBuilder = this.createEventBuilder(configurationModel);            
             conditions.addConditionsListener(eventBuilder);
