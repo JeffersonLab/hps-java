@@ -52,21 +52,6 @@ public class FastCheck {
         _cfit3 = new ThreePointCircleFitter();
     }
 
-    private double calculateMSerror(double hit1x, double hit2x, double hit3x, double slope, double rcurve) {
-        // momentum approximation
-        double p = estimateMomentum(slope, rcurve);
-
-        // angle approximation
-        // radlength=0.003417, angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
-        double angle = 0.00062343 / p;
-
-        double dist1 = hit1x - hit2x;
-        double dist2 = hit2x - hit3x;
-        double MSerr = angle * Math.sqrt(dist1 * dist1 + dist2 * dist2);
-
-        return MSerr;
-    }
-
     private double calculateMSerror(double hit1x, double hit2x, double hit3x, double p) {
         // angle approximation
         // radlength=0.003417, angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
@@ -91,26 +76,20 @@ public class FastCheck {
     public boolean CheckHitSeed(HelicalTrackHit hit, SeedCandidate seed) {
         if (_skipchecks)
             return true;
-        if (hit.r() < _dMax)
-            return false;
 
         CorrectHitPosition(hit, seed);
+        if (hit.r() < _dMax)
+            return false;
 
         //  Check the hit against each hit in the seed
         for (HelicalTrackHit hit2 : seed.getHits()) {
 
             // Check that hits are outside the maximum DCA
+            CorrectHitPosition(hit2, seed);
             if (hit2.r() < _dMax)
                 continue;
 
-            CorrectHitPosition(hit2, seed);
-
-            if (this._doSectorBinCheck) {
-                if (zSectorCheck(hit, hit2))
-                    return false;
-            }
-
-            if (!TwoPointCircleCheck(hit, hit2))
+            if (!TwoPointCircleCheckAlgorithm(hit, hit2))
                 return false;
         }
 
@@ -237,88 +216,14 @@ public class FastCheck {
         CorrectHitPosition(hit1, seed);
         CorrectHitPosition(hit2, seed);
 
-        if (_doSectorBinCheck) {
-            if (!zSectorCheck(hit1, hit2))
-                return false;
-        }
-
         //  Check that hits are outside the maximum DCA
         if (hit1.r() < _dMax || hit2.r() < _dMax)
             return false;
 
-        //  Try to find a circle passing through the 2 hits and the maximum DCA
-        boolean success = false;
-        try {
-            success = _cfit2.FitCircle(hit1, hit2, _dMax);
-        } catch (Exception x) {
-        }
-
-        //  Check for success
-        if (!success)
-            return false;
-
-        //  Initialize the minimum/maximum arc lengths
-        double s1min = 1.0e99;
-        double s1max = -1.0e99;
-        double s2min = 1.0e99;
-        double s2max = -1.0e99;
-
-        //  Loop over the circle fits and find the min/max arc lengths
-        for (TwoPointCircleFit fit : _cfit2.getCircleFits()) {
-            double s1 = fit.s1();
-            double s2 = fit.s2();
-            if (s1 < s1min)
-                s1min = s1;
-            if (s1 > s1max)
-                s1max = s1;
-            if (s2 < s2min)
-                s2min = s2;
-            if (s2 > s2max)
-                s2max = s2;
-        }
-
-        //  If we are consistent with a straight-line fit, update the minimum s1, s2
-        TwoPointLineFit lfit = _cfit2.getLineFit();
-        if (lfit != null) {
-
-            //  Find the distance from the DCA to the maximum DCA circle
-            double x0 = lfit.x0();
-            double y0 = lfit.y0();
-            double s0 = 0.;
-            double s0sq = _dMax * _dMax - (x0 * x0 + y0 * y0);
-            if (s0sq > _eps * _eps)
-                s0 = Math.sqrt(s0sq);
-
-            //  Update the minimum arc length to the distance from the DCA to the hit
-            s1min = lfit.s1() - s0;
-            s2min = lfit.s2() - s0;
-        }
-
-        //  Calculate the allowed variation in hit r and z (not 1 sigma errors!)
-        double dr1 = Math.max(_nsig * hit1.dr(), _dMax);
-        double dr2 = Math.max(_nsig * hit2.dr(), _dMax);
-        double dz1 = dz(hit1);
-        double dz2 = dz(hit2);
-
-        //  Now check for consistent hits in the s-z plane
-        //  First expand z ranges by hit z uncertainty
-        double z1min = hit1.z() - dz1;
-        double z1max = hit1.z() + dz1;
-        double z2min = hit2.z() - dz2;
-        double z2max = hit2.z() + dz2;
-
-        //  Expand s ranges by hit r uncertainty (r ~ s for r << R_curvature)
-        s1min = Math.max(0., s1min - dr1);
-        s1max = s1max + dr1;
-        s2min = Math.max(0., s2min - dr2);
-        s2max = s2max + dr2;
-
-        //  Check the z0 limits using the min/max path lengths
-        return checkz0(s1min, s1max, z1min, z1max, s2min, s2max, z2min, z2max);
-
+        return TwoPointCircleCheckAlgorithm(hit1, hit2);
     }
 
-    public boolean TwoPointCircleCheck(HelicalTrackHit hit1, HelicalTrackHit hit2) {
+    public boolean TwoPointCircleCheckAlgorithm(HelicalTrackHit hit1, HelicalTrackHit hit2) {
         if (_skipchecks)
             return true;
 
@@ -552,12 +457,13 @@ public class FastCheck {
 
         // momentum cut
         double pEstimate = estimateMomentum(slope, rcurv);
-        if (pEstimate < _strategy.getMinPT())
-            return false;
+        //        if (pEstimate < _strategy.getMinPT())
+        //            return false;
 
         //  Add multiple scattering error here
         double mserr = calculateMSerror(p[0][0], p[1][0], p[2][0], pEstimate);
         dztot += _nsig * mserr;
+
         // comparison of middle z to prediction including error
         if (Math.abs(zpred - z[1]) > dztot)
             return false;
