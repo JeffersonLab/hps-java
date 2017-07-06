@@ -27,7 +27,7 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.MultipleScattering {
 
     private boolean _fixTrackMomentum = false;
-    private double _momentum = -99;//dummy;
+    private double _momentum = -99;//dummy
     private static final double inside_tolerance = 1.0;//tolerance for first (approximate) test of track intersection with sensor
 
     public MultipleScattering(MaterialManager materialmanager) {
@@ -139,9 +139,6 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
                     foundFirst = true;
                 }
 
-                // System.out.printf("Found intersection in layer %d module %d \n",
-                // layer, module);
-
                 if (_debug) {
                     System.out.printf("%s: intersection position %s\n", this.getClass().getSimpleName(), pos.toString());
                 }
@@ -202,23 +199,11 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         return scatters;
     }
 
-    // public Hep3Vector getHelixIntersection(HelicalTrackFit helix,
-    // ScatteringDetectorVolume plane) {
-    //
-    // if (SiStripPlane.class.isInstance(plane)) {
-    // return getHelixIntersection(helix, (SiStripPlane) plane);
-    // } else {
-    // throw new
-    // UnsupportedOperationException("This det volume type is not supported yet.");
-    // }
-    // }
-
     /*
      * Returns interception between helix and plane Uses the origin x posiution of the plane and
      * extrapolates linearly to find teh intersection If inside use an iterative "exact" way to
      * determine the final position
      */
-
     public Hep3Vector getHelixIntersection(HelicalTrackFit helix, SiStripPlane plane) {
 
         if (_debug) {
@@ -351,8 +336,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-            if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude() > 1e-4)
-                System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
+//        if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
+            System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
         }
 
         // find position in sensor frame
