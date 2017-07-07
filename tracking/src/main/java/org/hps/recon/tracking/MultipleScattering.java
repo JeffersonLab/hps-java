@@ -81,7 +81,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("\n%s: FindHPSScatters() for helix:\n%s\n", this.getClass().getSimpleName(), helix.toString());
             System.out.printf("%s: momentum is p=%f,R=%f,B=%f \n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield);
         }
-//        MG TURN THIS OFF SO IT DOESN'T ABORT STRAIGHT TRACKS
+        //        MG TURN THIS OFF SO IT DOESN'T ABORT STRAIGHT TRACKS
         // Check that B Field is set
         if (_bfield == 0. && !_fixTrackMomentum) {
             throw new RuntimeException("B Field or fixed momentum must be set before calling FindScatters method");
@@ -149,6 +149,10 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
                 }
 
                 ScatterPoint scatterPoint = new ScatterPoint(vol.getDetectorElement(), scat);
+                scatterPoint.dir = dir;
+                scatterPoint.origin = ((SiStripPlane) vol).origin();
+                scatterPoint.s = s;
+                scatterPoint.trkpos = pos;
                 scatters.addPoint(scatterPoint);
 
             } else if (_debug) {
@@ -316,7 +320,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-//        if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
+            //        if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
             System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
         }
 
@@ -401,14 +405,22 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
      * Nested class to encapsulate the scatter angles and which detector element
      * it is related to
      */
-    public class ScatterPoint implements Comparable<ScatterPoint> {
+    public static class ScatterPoint implements Comparable<ScatterPoint> {
 
         IDetectorElement _det;
         ScatterAngle _scatterAngle;
+        public Hep3Vector trkpos;
+        public double s;
+        public Hep3Vector dir;
+        public Hep3Vector origin;
 
         public ScatterPoint(IDetectorElement det, ScatterAngle scatterAngle) {
             _det = det;
             _scatterAngle = scatterAngle;
+        }
+
+        public ScatterPoint() {
+            // TODO Auto-generated constructor stub
         }
 
         public IDetectorElement getDet() {
@@ -460,6 +472,15 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         public ScatterPoint getScatterPoint(IDetectorElement detectorElement) {
             for (ScatterPoint p : _points) {
                 if (p.getDet().equals(detectorElement)) {
+                    return p;
+                }
+            }
+            return null;
+        }
+
+        public ScatterPoint getScatterPoint(Hep3Vector orig) {
+            for (ScatterPoint p : _points) {
+                if (p.origin.equals(orig)) {
                     return p;
                 }
             }
