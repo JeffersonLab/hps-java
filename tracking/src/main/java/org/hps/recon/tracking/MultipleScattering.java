@@ -149,10 +149,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
                 }
 
                 ScatterPoint scatterPoint = new ScatterPoint(vol.getDetectorElement(), scat);
-                scatterPoint.dir = dir;
-                scatterPoint.origin = ((SiStripPlane) vol).origin();
-                scatterPoint.s = s;
-                scatterPoint.trkpos = pos;
+                scatterPoint.setDirection(dir);
+                scatterPoint.setPosition(pos);
                 scatters.addPoint(scatterPoint);
 
             } else if (_debug) {
@@ -409,18 +407,28 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
 
         IDetectorElement _det;
         ScatterAngle _scatterAngle;
-        public Hep3Vector trkpos;
-        public double s;
-        public Hep3Vector dir;
-        public Hep3Vector origin;
+        private Hep3Vector trkpos;
+        private Hep3Vector dir;
 
         public ScatterPoint(IDetectorElement det, ScatterAngle scatterAngle) {
             _det = det;
             _scatterAngle = scatterAngle;
         }
 
-        public ScatterPoint() {
-            // TODO Auto-generated constructor stub
+        public Hep3Vector getPosition() {
+            return trkpos;
+        }
+
+        public Hep3Vector getDirection() {
+            return dir;
+        }
+
+        public void setPosition(Hep3Vector input) {
+            trkpos = input;
+        }
+
+        public void setDirection(Hep3Vector input) {
+            dir = input;
         }
 
         public IDetectorElement getDet() {
@@ -478,14 +486,6 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             return null;
         }
 
-        public ScatterPoint getScatterPoint(Hep3Vector orig) {
-            for (ScatterPoint p : _points) {
-                if (p.origin.equals(orig)) {
-                    return p;
-                }
-            }
-            return null;
-        }
     }
 
 }
