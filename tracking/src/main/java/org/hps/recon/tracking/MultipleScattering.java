@@ -9,6 +9,8 @@ import java.util.List;
 
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.solids.Inside;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
@@ -20,6 +22,7 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
  * and magnitude from detector geometry directly.
  *
  * @author Per Hansson <phansson@slac.stanford.edu>
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
  */
 public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.MultipleScattering {
 
@@ -77,11 +80,12 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
      * @return the points of scatter along the helix
      */
     public ScatterPoints FindHPSScatterPoints(HelicalTrackFit helix) {
+
         if (_debug) {
             System.out.printf("\n%s: FindHPSScatters() for helix:\n%s\n", this.getClass().getSimpleName(), helix.toString());
             System.out.printf("%s: momentum is p=%f,R=%f,B=%f \n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield);
         }
-        //        MG TURN THIS OFF SO IT DOESN'T ABORT STRAIGHT TRACKS
+
         // Check that B Field is set
         if (_bfield == 0. && !_fixTrackMomentum) {
             throw new RuntimeException("B Field or fixed momentum must be set before calling FindScatters method");
@@ -99,16 +103,41 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("%s: there are %d detector volumes in the model\n", this.getClass().getSimpleName(), materialVols.size());
         }
 
-        for (ScatteringDetectorVolume vol : materialVols) {
+        boolean isTop = false;
+        boolean foundFirst = false;
 
+        // System.out.println("Starting FindHPSScatterPoints");
+
+        for (int i = materialVols.size() - 1; i >= 0; i--) {
+
+            ScatteringDetectorVolume vol = materialVols.get(i);
             if (_debug) {
                 System.out.printf("\n%s: found detector volume \"%s\"\n", this.getClass().getSimpleName(), vol.getName());
             }
 
+            IIdentifier iid = vol.getDetectorElement().getIdentifier();
+            IIdentifierHelper iidh = vol.getDetectorElement().getIdentifierHelper();
+            int layer = iidh.getValue(iid, "layer");
+            int module = iidh.getValue(iid, "module");
+
+            // skip irrelevant sensors
+
+            if (foundFirst && layer > 4) {
+                if ((module % 2 == 0) != isTop)
+                    continue;
+            }
+
             // find intersection pathpoint with helix
-            Hep3Vector pos = getHelixIntersection(helix, vol);
+            Hep3Vector pos = getHelixIntersection(helix, (SiStripPlane) vol);
 
             if (pos != null) {
+
+                // if this is the first (outer-most) intersection, determine top
+                // or bottom
+                if (!foundFirst) {
+                    isTop = (module % 2 == 0);
+                    foundFirst = true;
+                }
 
                 if (_debug) {
                     System.out.printf("%s: intersection position %s\n", this.getClass().getSimpleName(), pos.toString());
@@ -172,15 +201,6 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         return scatters;
     }
 
-    public Hep3Vector getHelixIntersection(HelicalTrackFit helix, ScatteringDetectorVolume plane) {
-
-        if (SiStripPlane.class.isInstance(plane)) {
-            return getHelixIntersection(helix, (SiStripPlane) plane);
-        } else {
-            throw new UnsupportedOperationException("This det volume type is not supported yet.");
-        }
-    }
-
     /*
      * Returns interception between helix and plane Uses the origin x posiution of the plane and
      * extrapolates linearly to find teh intersection If inside use an iterative "exact" way to
@@ -217,8 +237,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         // -> this is not very general, as it assumes that strips are (mostly) along y -> FIX
         // THIS!?
         // Transformation from tracking to detector frame
-        Hep3Vector pos_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos);
-        Hep3Vector direction_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), direction);
+        Hep3Vector pos_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos);
+        Hep3Vector direction_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), direction);
 
         if (_debug) {
             System.out.printf("%s: position in det frame %s and direction %s\n", this.getClass().getSimpleName(), pos_det.toString(), direction_det.toString());
@@ -323,7 +343,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         // find position in sensor frame
-        Hep3Vector pos_iter_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos_iter_trk));
+        Hep3Vector pos_iter_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos_iter_trk));
 
         if (_debug) {
             System.out.printf("%s: found iterative helix intercept in sensor coordinates at %s\n", this.getClass().getSimpleName(), pos_iter_sensor.toString());
@@ -345,7 +365,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-            Hep3Vector pos_iter_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos_iter_trk);
+            Hep3Vector pos_iter_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos_iter_trk);
             Inside result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_iter_sensor);
             Inside result_inside_module = plane.getSensor().getGeometry().getDetectorElement().getParent().getGeometry().inside(pos_iter_det);
             System.out.printf("%s: Inside result sensor: %s module: %s\n", this.getClass().getSimpleName(), result_inside.toString(), result_inside_module.toString());

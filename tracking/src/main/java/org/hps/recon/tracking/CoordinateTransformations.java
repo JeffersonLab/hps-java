@@ -17,13 +17,16 @@ import org.lcsim.detector.Transform3D;
  * <li>created 6/27/2011</li>
  * <li>made static 10/14/2013</li>
  * </ul>
+ * 
  * @author Matt Graham
- * @author Pelle Hansson 
+ * @author Pelle Hansson
+ * @author Miriam Diamond
  */
 // FIXME: I am not sure this class should be located in this package. --JM
 public class CoordinateTransformations {
 
     private static final Transform3D _detToTrk = CoordinateTransformations.initialize();
+    private static final Transform3D _trkToDet = CoordinateTransformations.initializeInverse();
 
     /**
      * Private constructor to prevent initialization
@@ -33,6 +36,7 @@ public class CoordinateTransformations {
 
     /**
      * Static private initialization of transform
+     * 
      * @return transform
      */
     private static Transform3D initialize() {
@@ -41,6 +45,10 @@ public class CoordinateTransformations {
         tmp.setElement(1, 0, 1);
         tmp.setElement(2, 1, 1);
         return new Transform3D(new Rotation3D(tmp));
+    }
+
+    private static Transform3D initializeInverse() {
+        return _detToTrk.inverse();
     }
 
     public static Hep3Vector transformVectorToTracking(Hep3Vector vec) {
@@ -63,8 +71,16 @@ public class CoordinateTransformations {
         return _detToTrk;
     }
 
+    public static Transform3D getTransformInverse() {
+        return _trkToDet;
+    }
+
     public static Hep3Matrix getMatrix() {
         return _detToTrk.getRotation().getRotationMatrix();
+    }
+
+    public static Hep3Matrix getMatrixInverse() {
+        return _trkToDet.getRotation().getRotationMatrix();
     }
 
 }
