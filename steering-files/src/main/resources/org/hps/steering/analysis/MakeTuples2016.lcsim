@@ -3,7 +3,6 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="CleanupDriver"/>
-        <driver name="RewriteFlagsDriver"/>
         <driver name="EventFlagFilter"/>
         <driver name="RawTrackerHitSensorSetup"/>
     
@@ -16,7 +15,6 @@
             <eventInterval>1000</eventInterval>
         </driver>        
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-        <driver name="RewriteFlagsDriver" type = "org.hps.users.holly.RewriteFlagsDriver" />
         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter">
             <flagNames>svt_bias_good svt_burstmode_noise_good svt_event_header_good</flagNames>
         </driver>
