@@ -167,10 +167,15 @@ public class MakeGblTracks {
      */
     public static List<GBLStripClusterData> makeStripData(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double _B, int _debug) {
         List<GBLStripClusterData> stripClusterDataList = new ArrayList<GBLStripClusterData>();
-        //Map<Hep3Vector, Hep3Vector> originToTrkpos = new HashMap<Hep3Vector, Hep3Vector>();
 
         // Find scatter points along the path
         MultipleScattering.ScatterPoints scatters = _scattering.FindHPSScatterPoints(htf);
+        if (_debug > 0) {
+            System.out.println("scatter points found:");
+            for (MultipleScattering.ScatterPoint pt : scatters.getPoints()) {
+                System.out.println(pt.getDet().toString());
+            }
+        }
 
         if (_debug > 0) {
             System.out.printf("perPar covariance matrix\n%s\n", htf.covariance().toString());
@@ -202,14 +207,15 @@ public class MakeGblTracks {
             MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
 
             if (temp == null) {
-                //if (_debug > 0) {
-                System.out.printf("WARNING cannot find scatter for detector %s with strip cluster at %s, re-calculating now\n", ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
-                //}
+                if (_debug > 0) {
+                    System.out.printf("WARNING cannot find scatter for detector %s with strip cluster at %s, re-calculating now\n", ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
+                }
+
                 Hep3Vector pos = TrackUtils.getHelixPlaneIntercept(htf, strip, Math.abs(_B));
                 if (pos == null) {
-                    //if (_debug > 0) {
-                    System.out.println("Can't find track intercept; use sensor origin");
-                    //}
+                    if (_debug > 0) {
+                        System.out.println("Can't find track intercept; use sensor origin");
+                    }
                     pos = strip.origin();
                 }
                 scatAngle = new ScatterAngle((HelixUtils.PathToXPlane(htf, pos.x(), 0, 0).get(0)), GblUtils.estimateScatter(sensor, htf, _scattering, _B));
@@ -313,11 +319,6 @@ public class MakeGblTracks {
         double vmax = VecOp.dot(local.getUnmeasuredCoordinate(), local.getHitSegment().getEndPoint());
         double du = Math.sqrt(local.getCovarianceAsMatrix().diagonal(0));
 
-        //don't fill fields we don't use
-        //        IDetectorElement de = h.getSensor();
-        //        String det = getName(de);
-        //        int lyr = getLayer(de);
-        //        BarrelEndcapFlag be = getBarrelEndcapFlag(de);
         double dEdx = h.getdEdx();
         double time = h.getTime();
         List<RawTrackerHit> rawhits = h.getRawHits();

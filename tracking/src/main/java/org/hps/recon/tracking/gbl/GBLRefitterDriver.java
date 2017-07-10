@@ -159,12 +159,10 @@ public class GBLRefitterDriver extends Driver {
 
     private void setupSensors(EventHeader event) {
         List<RawTrackerHit> rawTrackerHits = null;
-        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits")) {
+        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits"))
             rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-        }
-        if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits")) {
+        if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits"))
             rawTrackerHits = event.get(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits");
-        }
 
         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
         // Get the ID dictionary and field information.
