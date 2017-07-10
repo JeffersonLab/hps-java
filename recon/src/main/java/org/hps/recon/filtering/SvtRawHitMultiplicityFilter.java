@@ -2,6 +2,7 @@ package org.hps.recon.filtering;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -50,7 +51,7 @@ public class SvtRawHitMultiplicityFilter extends EventReconFilter {
         }
 
         int nhits[] = {0,0};
-        Map<String, List<RawTrackerHit> > sensorHitMap = new HashMap<String, List<RawTrackerHit>>();
+        Map<String, List<RawTrackerHit> > sensorHitMap = new LinkedHashMap<String, List<RawTrackerHit>>();
         for (RawTrackerHit rawHit : rawHits) {
             HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
             

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,7 +84,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     private double maxDt = -99; // max time difference between the two hits in a cross
     private double clusterAmplitudeCut = -99; // cluster amplitude cut
     private String _subdetectorName = "Tracker";
-    private final Map<String, String> _stereomap = new HashMap<String, String>();
+    private final Map<String, String> _stereomap = new LinkedHashMap<String, String>();
     private List<SvtStereoLayer> stereoLayers = null;
     private final List<String> _colnames = new ArrayList<String>();
     private boolean _doTransformToTracking = true;
@@ -96,6 +97,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
 
         Split, Common
     }
+
     private LayerGeometryType _layerGeometryType = LayerGeometryType.Split;
 
     /**
@@ -250,7 +252,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
             if (_debug) {
                 System.out.printf("%s: found %d SiTrackerHits\n", this.getClass().getSimpleName(), hitlist.size());
             }
-            Map<HelicalTrackStrip, SiTrackerHitStrip1D> stripmap = new HashMap<HelicalTrackStrip, SiTrackerHitStrip1D>();
+            Map<HelicalTrackStrip, SiTrackerHitStrip1D> stripmap = new LinkedHashMap<HelicalTrackStrip, SiTrackerHitStrip1D>();
             for (SiTrackerHit hit : hitlist) {
                 if (hit instanceof SiTrackerHitStrip1D) {
 
@@ -450,15 +452,14 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                         hittostrip.add(cross, stripmap.get(strip));
                     }
                 }
-                crossLoop:
-                for (Iterator<HelicalTrackCross> iter = helicalTrackCrosses.listIterator(); iter.hasNext();) {
+                crossLoop: for (Iterator<HelicalTrackCross> iter = helicalTrackCrosses.listIterator(); iter.hasNext();) {
                     HelicalTrackCross cross = iter.next();
                     Collection<TrackerHit> htsList = hittostrip.allFrom(cross);
                     for (TrackerHit strip : htsList) {
                         Set<HelicalTrackHit> sharedCrosses = hittostrip.allTo(strip);
-//                        System.out.println(sharedCrosses.size());
+                        //                        System.out.println(sharedCrosses.size());
                         if (sharedCrosses.size() > 1) {
-//                    this.getLogger().warning(String.format("removing possible ghost hit"));
+                            //                    this.getLogger().warning(String.format("removing possible ghost hit"));
                             iter.remove();
                             continue crossLoop;
                         }
@@ -574,10 +575,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         double zmax = Math.max(z1, z2);
         IDetectorElement de = h.getSensor();
 
-        HelicalTrack2DHit hit = new HelicalTrack2DHit(h.getPositionAsVector(),
-                h.getCovarianceAsMatrix(), h.getdEdx(), h.getTime(),
-                h.getRawHits(), _ID.getName(de), _ID.getLayer(de),
-                _ID.getBarrelEndcapFlag(de), zmin, zmax, h.getUnmeasuredCoordinate());
+        HelicalTrack2DHit hit = new HelicalTrack2DHit(h.getPositionAsVector(), h.getCovarianceAsMatrix(), h.getdEdx(), h.getTime(), h.getRawHits(), _ID.getName(de), _ID.getLayer(de), _ID.getBarrelEndcapFlag(de), zmin, zmax, h.getUnmeasuredCoordinate());
 
         return hit;
     }
