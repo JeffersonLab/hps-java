@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
@@ -86,7 +85,7 @@ public class GBLRefitterDriver extends Driver {
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
             Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield);
-            //            newTrack.getFirst().
+//            newTrack.getFirst().
             refittedTracks.add(newTrack.getFirst());
             trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
             inputToRefitted.put(track, newTrack.getFirst());
@@ -100,16 +99,17 @@ public class GBLRefitterDriver extends Driver {
 
             for (Track track : refittedTracks) {
                 List<TrackerHit> trackHth = track.getTrackerHits();
-                otherTrackLoop: for (Track otherTrack : refittedTracks) {
+                otherTrackLoop:
+                for (Track otherTrack : refittedTracks) {
                     if (track == otherTrack) {
                         continue;
                     }
 
                     Set<TrackerHit> allHth = new HashSet<TrackerHit>(otherTrack.getTrackerHits());
                     allHth.addAll(trackHth);
-                    //                if (allHth.size() == trackHth.size()) {
-                    //                    continue;
-                    //                }
+//                if (allHth.size() == trackHth.size()) {
+//                    continue;
+//                }
 
                     boolean[] hasHit = new boolean[6];
 
@@ -128,8 +128,8 @@ public class GBLRefitterDriver extends Driver {
 
                     Pair<Track, GBLKinkData> mergedTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), allHth, 5, track.getType(), _scattering, bfield);
                     mergedTracks.add(mergedTrack.getFirst());
-                    //                    System.out.format("%f %f %f\n", fit.get_chi2(), inputToRefitted.get(track).getChi2(), inputToRefitted.get(otherTrack).getChi2());
-                    //                mergedTrackToTrackList.put(mergedTrack, new ArrayList<Track>());
+//                    System.out.format("%f %f %f\n", fit.get_chi2(), inputToRefitted.get(track).getChi2(), inputToRefitted.get(otherTrack).getChi2());
+//                mergedTrackToTrackList.put(mergedTrack, new ArrayList<Track>());
                 }
             }
 
@@ -148,7 +148,6 @@ public class GBLRefitterDriver extends Driver {
                 System.out.println();
             }
         }
-
         // Put the tracks back into the event and exit
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputCollectionName, refittedTracks, Track.class, flag);
@@ -157,23 +156,21 @@ public class GBLRefitterDriver extends Driver {
         event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
     }
 
-    private void setupSensors(EventHeader event) {
+    private void setupSensors(EventHeader event)
+    {
         List<RawTrackerHit> rawTrackerHits = null;
-        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits"))
+        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits")) {
             rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-        if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits"))
+        }
+        if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits")) {
             rawTrackerHits = event.get(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits");
-
+        }
         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
         // Get the ID dictionary and field information.
         IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
         int fieldIdx = dict.getFieldIndex("side");
         int sideIdx = dict.getFieldIndex("strip");
         for (RawTrackerHit hit : rawTrackerHits) {
-            // if sensor already has a DetectorElement, skip it
-            if (hit.getDetectorElement() != null)
-                continue;
-
             // The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.
             IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
             expId.setValue(fieldIdx, 0);
