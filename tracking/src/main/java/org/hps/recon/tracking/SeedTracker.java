@@ -151,12 +151,6 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         List<SeedCandidate> trackseeds = _finder.getTrackSeeds();
         ((HelixFitter) _helixfitter).setIterative(true);
 
-        if ((!doIterativeHelix) && (_iterativeConfirmedFits <= 0)) {
-            for (SeedCandidate seed : trackseeds) {
-                seed.setScatterAngles(((HelixFitter) _helixfitter).FindScatters(seed.getHelix()));
-            }
-        }
-
         if (_iterativeConfirmedFits > 0) {
             // Iteratively re-fit tracks to take into account helix and hit position correlations
 
