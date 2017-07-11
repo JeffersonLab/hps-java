@@ -7,6 +7,7 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -98,7 +99,7 @@ public class StripMaker {
         IReadout ro = sensor.getReadout();
         List<FittedRawTrackerHit> hps_hits = ro.getHits(FittedRawTrackerHit.class);
 
-        Map<SiSensorElectrodes, List<FittedRawTrackerHit>> electrode_hits = new HashMap<SiSensorElectrodes, List<FittedRawTrackerHit>>();
+        Map<SiSensorElectrodes, List<FittedRawTrackerHit>> electrode_hits = new LinkedHashMap<SiSensorElectrodes, List<FittedRawTrackerHit>>();
 
         for (FittedRawTrackerHit hps_hit : hps_hits) {
 
