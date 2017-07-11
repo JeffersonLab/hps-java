@@ -133,6 +133,14 @@ public class BilliorVertex implements Vertex {
         _fittedMomentum.put(1,p2);
     }
 
+    public double getInvMass(){
+        return _invMass;
+    }
+    
+    public Hep3Vector getFittedMomentum(int index){
+        return _fittedMomentum.get(index);
+    }
+    
     @Override
     public ReconstructedParticle getAssociatedParticle() {
         return _particle; 

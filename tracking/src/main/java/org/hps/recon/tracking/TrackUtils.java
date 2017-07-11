@@ -1,5 +1,8 @@
 package org.hps.recon.tracking;
 
+import hep.physics.matrix.BasicMatrix;
+import hep.physics.matrix.Matrix;
+import hep.physics.matrix.MatrixOp;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
@@ -88,6 +91,16 @@ public class TrackUtils {
     public static Hep3Vector extrapolateHelixToXPlane(TrackState track, double x) {
         return extrapolateHelixToXPlane(getHTF(track), x);
     }
+    
+      /**
+     * Change reference point of helix (following L3 Internal Note 1666.)
+     *
+     * @param newRefPoint
+     * - The new reference point in XY
+     */
+    public static double[] getParametersAtNewRefPoint(double[] newRefPoint, TrackState trkState) {
+        return getParametersAtNewRefPoint(newRefPoint, trkState.getReferencePoint(), trkState.getParameters());
+    }
 
     /**
      * Change reference point of helix (following L3 Internal Note 1666.)
@@ -154,7 +167,81 @@ public class TrackUtils {
         params[HelicalTrackFit.z0Index] = z0new;
         return params;
     }
+    /*
+     *  get the helix perigee parameters covariance matrix at the new reference point. 
+     *  this only covers translations of the reference point...not rotations or "stretching" of the axes
+     *  mgraham 7/3/2017
+     */
+    public static SymmetricMatrix getCovarianceAtNewRefPoint(double[] newRefPoint, double[] __refPoint, double[] par, SymmetricMatrix helixcov) {
 
+        double dx = newRefPoint[0] - __refPoint[0];
+        double dy = newRefPoint[1] - __refPoint[1];
+        double dz = newRefPoint[2] - __refPoint[2];
+
+        double d0 = par[HelicalTrackFit.dcaIndex];
+        double phi0 = par[HelicalTrackFit.phi0Index];
+        double rho = par[HelicalTrackFit.curvatureIndex];
+        double z0 = par[HelicalTrackFit.z0Index];
+        double tanLambda = par[HelicalTrackFit.slopeIndex];
+
+        BasicMatrix jac = new BasicMatrix(5, 5);
+
+        //the jacobian elements below are copied & pasted from mg's mathemematica notebook 7/5/17
+        jac.setElement(0, 0, (Power(rho, 2) * (-1 + d0 * rho) * Power(Sec((phi0 - ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.), 2)
+                * Power(dx * Cos(phi0) + dy * Sin(phi0), 2) + 2 * (1 - d0 * rho)
+                * (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2) + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2)))
+                / (2. * (1 - d0 * rho) * (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2) + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2))));
+
+        jac.setElement(0, 1, dx * Cos(phi0) + dy * Sin(phi0) - (rho * Power(Sec((phi0 - ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.),
+                2) * (dx * Cos(phi0) + dy * Sin(phi0)) * ((Power(dx, 2) + Power(dy, 2)) * rho + (dy - d0 * dy * rho) * Cos(phi0) + dx * (-1 + d0 * rho) * Sin(phi0)))
+                / (2. * (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
+                - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)))
+                + (dy * Cos(phi0) - dx * Sin(phi0)) * Tan((-phi0 + ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.));
+
+        jac.setElement(0, 2, -(Power(Sec((-phi0 + ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.), 2)
+                * Power(dx * Cos(phi0) + dy * Sin(phi0), 2))
+                / (2. * (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
+                - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0))));
+
+        jac.setElement(1, 0, -((Power(rho, 2) * (dx * Cos(phi0) + dy * Sin(phi0)))
+                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
+                - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0))));
+
+        jac.setElement(1, 1, ((-1 + d0 * rho) * (-1 + d0 * rho - dy * rho * Cos(phi0) + dx * rho * Sin(phi0)))
+                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2) - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0)
+                + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)));
+
+        jac.setElement(1, 2, -((dx * Cos(phi0) + dy * Sin(phi0))
+                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
+                - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0))));
+
+        jac.setElement(3, 0, (rho * tanLambda * (dx * Cos(phi0) + dy * Sin(phi0)))
+                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2) - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0)
+                + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)));
+
+        jac.setElement(3, 1, (tanLambda * ((Power(dx, 2) + Power(dy, 2)) * rho + (dy - d0 * dy * rho) * Cos(phi0) + dx * (-1 + d0 * rho) * Sin(phi0)))
+                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2) - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0)
+                + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)));
+
+        jac.setElement(3, 2, (tanLambda * (ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))
+                + (dx * rho * Cos(phi0) + dy * rho * Sin(phi0) - phi0 * (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2)
+                + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2)))
+                / (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2) + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2)))) / Power(rho, 2));
+
+        jac.setElement(3, 4, (phi0 - ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / rho);
+ 
+        jac.setElement(2, 2, 1);
+        jac.setElement(3, 3, 1);
+        jac.setElement(4, 4, 1);
+
+        Matrix covMatrix = new BasicMatrix(helixcov);
+        Matrix jacT = MatrixOp.transposed(jac);
+        Matrix first = MatrixOp.mult(covMatrix, jacT);
+        Matrix newcov = MatrixOp.mult(jac, first);
+        System.out.println(newcov.getNColumns() + " x  " + newcov.getNRows());
+
+        return new SymmetricMatrix(newcov);
+    }
     /**
      * Extrapolate helix to a position along the x-axis. Re-use HelixUtils.
      *
@@ -1548,4 +1635,34 @@ public class TrackUtils {
     public static Hep3Vector getBField(Detector detector) {
         return detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 500.0));
     }
+    
+    //the methods below take Mathematica methods and convert to Java.
+    //this removes errors introduced by doing copy-paste-convert-to-Java 
+    public static double Sec(double arg) {
+        if (Math.cos(arg) != 0.0)
+            return 1 / Math.cos(arg);
+        else
+            return 0;
+    }
+
+    public static double Power(double arg, double pow) {
+        return Math.pow(arg, pow);
+    }
+
+    public static double Cos(double arg) {
+        return Math.cos(arg);
+    }
+
+    public static double Sin(double arg) {
+        return Math.sin(arg);
+    }
+
+    public static double Tan(double arg) {
+        return Math.tan(arg);
+    }
+
+    public static double ArcTan(double x, double y) {
+        return Math.atan2(y, x);//Java takes the x,y in opposite order
+    }
+    
 }
