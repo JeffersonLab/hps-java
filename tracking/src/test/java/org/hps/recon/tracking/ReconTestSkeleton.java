@@ -27,9 +27,9 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 
 public class ReconTestSkeleton extends TestCase {
-    protected String testInputFileName = "raw_skim5766.slcio";
+    protected String testInputFileName = "hps_005772.0_recon_Rv4657-0-10000.slcio";
     protected String testOutputFileName = "test.slcio";
-    protected String testURLBase = null;
+    protected String testURLBase = "http://www.lcsim.org/test/hps-java";
     protected long nEvents = 5;
     protected URL testURL;
     protected FileCache cache;
