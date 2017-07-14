@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-PhysicsRun2016-Nominal-v5-3-fieldmap_globalAlign">
+    <info name="HPS-PhysicsRun2016-v5-3-fieldmap_globalAlign">
         <comment>HPS detector for 2016 Physics Run.
         Start from version v5-1 2015 
         Curved + straight tracks (straight: 8100 only run)
