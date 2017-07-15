@@ -101,13 +101,13 @@ public class RecoToRawMC extends TestCase {
             //toRemove.add("TriggerTime");
 
             toRemove.add("EcalClustersGTP");
-            toRemove.add("EcalHits");
+            //toRemove.add("EcalHits");
             toRemove.add("HelicalTrackMCRelations");
-            toRemove.add("MCParticle");
+            //toRemove.add("MCParticle");
             toRemove.add("RotatedHelicalTrackMCRelations");
-            toRemove.add("SVTTrueHitRelations");
-            toRemove.add("TrackerHits");
-            toRemove.add("TrackerHitsECal");
+            //toRemove.add("SVTTrueHitRelations");
+            //toRemove.add("TrackerHits");
+            //toRemove.add("TrackerHitsECal");
 
             for (String s : toRemove) {
                 event.remove(s);
