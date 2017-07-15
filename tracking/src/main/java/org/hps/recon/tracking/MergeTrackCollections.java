@@ -185,13 +185,14 @@ public class MergeTrackCollections extends Driver {
     @Override
     protected void endOfData() {
         super.endOfData();
-
-        File outputFile2 = new TestOutputFile("mergingPlots.aida");
-        outputFile2.getParentFile().mkdirs();
-        try {
-            aida2.saveAs(outputFile2);
-        } catch (IOException ex) {
-            Logger.getLogger(MergeTrackCollections.class.getName()).log(Level.SEVERE, null, ex);
+        if(doPlots){
+            File outputFile2 = new TestOutputFile("mergingPlots.aida");
+            outputFile2.getParentFile().mkdirs();
+            try {
+                aida2.saveAs(outputFile2);
+            } catch (IOException ex) {
+                Logger.getLogger(MergeTrackCollections.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 }
