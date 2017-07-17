@@ -231,13 +231,6 @@ public class TrackingReconstructionPlots extends Driver {
             else
                 aida.histogram1D("Hits per Track Bottom").fill(trk.getTrackerHits().size());
 
-            Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trk);
-            aida.histogram1D("X (mm) @ ECAL").fill(posAtEcal.x());
-            aida.histogram1D("Y (mm) @ ECAL").fill(posAtEcal.y());
-            if (trk.getTrackStates().get(0).getMomentum()[0] > 1.0) {
-                aida.histogram1D("X (mm) @ ECAL (Pz>1)").fill(posAtEcal.x());
-                aida.histogram1D("Y (mm) @ ECAL (Pz>1)").fill(posAtEcal.y());
-            }
             aida.histogram1D("d0 ").fill(trk.getTrackStates().get(0).getParameter(ParameterName.d0.ordinal()));
             aida.histogram1D("sinphi ").fill(Math.sin(trk.getTrackStates().get(0).getParameter(ParameterName.phi0.ordinal())));
             aida.histogram1D("omega ").fill(trk.getTrackStates().get(0).getParameter(ParameterName.omega.ordinal()));
