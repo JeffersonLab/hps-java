@@ -28,9 +28,9 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 public class ReconTestSkeleton extends TestCase {
     protected String testInputFileName = "target/test-output/ap_prompt_new_raw.slcio";
-    protected String testOutputFileName = "test.slcio";
+    protected String testOutputFileName = "ap_prompt_new_ref.slcio";
     protected String testURLBase = null;
-    protected long nEvents = 5;
+    protected long nEvents = -1;
     protected URL testURL;
     protected FileCache cache;
     protected Driver testTrackingDriver = null;
