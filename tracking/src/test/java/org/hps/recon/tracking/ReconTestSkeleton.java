@@ -27,9 +27,9 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 
 public class ReconTestSkeleton extends TestCase {
-    protected String testInputFileName = "hps_005772.0_recon_Rv4657-0-10000.slcio";
+    protected String testInputFileName = "target/test-output/ap_prompt_new_raw.slcio";
     protected String testOutputFileName = "test.slcio";
-    protected String testURLBase = "http://www.lcsim.org/test/hps-java";
+    protected String testURLBase = null;
     protected long nEvents = 5;
     protected URL testURL;
     protected FileCache cache;
@@ -101,7 +101,7 @@ public class ReconTestSkeleton extends TestCase {
             add(rthss);
 
             RawTrackerHitFitterDriver rthfd = new RawTrackerHitFitterDriver();
-            rthfd.setFitAlgorithm("Analytic");
+            rthfd.setFitAlgorithm("Pileup");
             rthfd.setUseTimestamps(false);
             rthfd.setUseTruthTime(false);
             rthfd.setSubtractTOF(true);
@@ -152,6 +152,7 @@ public class ReconTestSkeleton extends TestCase {
 
             add(new org.hps.recon.tracking.gbl.GBLRefitterDriver());
             add(new org.hps.recon.tracking.gbl.GBLOutputDriver());
+            add(new org.hps.recon.tracking.TrackDataDriver());
 
             add(new ReadoutCleanupDriver());
         }
