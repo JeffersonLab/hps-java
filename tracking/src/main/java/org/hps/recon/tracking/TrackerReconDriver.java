@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.hps.recon.tracking.seedtracker.SeedTracker;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;

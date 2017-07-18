@@ -11,6 +11,7 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.util.DetectorLocator;
 import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
+import org.hps.recon.tracking.seedtracker.MaterialSupervisor
 
 /**
  *

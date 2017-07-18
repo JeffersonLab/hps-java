@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.tracking.MultipleScattering;
+import org.hps.recon.tracking.seedtracker.MultipleScattering;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.constants.Constants;

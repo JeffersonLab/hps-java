@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +15,8 @@ import org.lcsim.recon.tracking.seedtracker.MaterialXPlane;
  * Extension to lcsim MaterialManager to allow more flexibility in track reconstruction
  *
  * @author Per Hansson <phansson@slac.stanford.edu>
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
+ * @version $Id: 2.0 07/07/17$
  */
 public class MaterialManager extends org.lcsim.recon.tracking.seedtracker.MaterialManager {
 
