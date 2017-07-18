@@ -651,11 +651,6 @@ public class TrackingReconstructionPlots extends Driver {
         IHistogram1D bottrklam = aida.histogram1D("tan(lambda) Bottom", 25, -0.1, 0.1);
         IHistogram1D bottrkz0 = aida.histogram1D("z0 Bottom", 25, -6.0, 6.0);
 
-        IHistogram1D xAtEcal = aida.histogram1D("X (mm) @ ECAL", 50, -500, 500);
-        IHistogram1D yAtEcal = aida.histogram1D("Y (mm) @ ECAL", 50, -100, 100);
-        IHistogram1D xAtEcal2 = aida.histogram1D("X (mm) @ ECAL (Pz>1)", 50, -500, 500);
-        IHistogram1D yAtEcal2 = aida.histogram1D("Y (mm) @ ECAL (Pz>1)", 50, -100, 100);
-
         IHistogram1D nTracksBot = aida.histogram1D("Tracks per Event Bot", 10, 0, 10);
         IHistogram1D nTracksTop = aida.histogram1D("Tracks per Event Top", 10, 0, 10);
         IHistogram1D nHitsTop = aida.histogram1D("Hits per Track Top", 4, 3, 7);

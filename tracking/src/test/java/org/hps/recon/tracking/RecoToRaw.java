@@ -23,9 +23,11 @@ public class RecoToRaw extends TestCase {
     protected long nEvents = 5;
     protected URL testURL;
     protected FileCache cache;
-    protected Driver testTrackingDriver = null;
 
     public void testClear() throws Exception {
+        if (testInputFileName == null)
+            return;
+
         File inputFile = null;
         if (testURLBase == null) {
             inputFile = new File(testInputFileName);

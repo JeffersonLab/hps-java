@@ -6,10 +6,13 @@ package org.hps.recon.tracking;
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.ITree;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+
 import junit.framework.TestCase;
+
 import org.hps.util.CompareHistograms;
 import org.lcsim.util.aida.AIDA;
 
@@ -18,27 +21,36 @@ import org.lcsim.util.aida.AIDA;
  * @author mdiamond <mdiamond@slac.stanford.edu>
  * @version $id: 1.0 06/04/17$
  */
-public class ComparisonTest extends TestCase {
+public class ComparisonTest extends ReconTestSkeleton {
+    static final List<String> histograms = Arrays.asList("Tracks per Event", "Hits per Track");
+    static final double TtestAlpha = 0.05;
+    static final double KStestAlpha = 0.05;
+    static final double EqualityTolerance = 0.1;
+    static final String inputFileName = null;
+    static final String testReferenceFileName = "TrackingRecoPlots2.aida";
 
-    public void testComparison() throws Exception {
-        final List<String> histograms = Arrays.asList("Tracks per Event", "Hits per Track");
-        double TtestAlpha = 0.05;
-        double KStestAlpha = 0.05;
-        double EqualityTolerance = -1;
+    private AIDA aida;
 
-        final AIDA aida = AIDA.defaultInstance();
+    public void testRecon() throws Exception {
+
+        if (inputFileName == null || testReferenceFileName == null)
+            return;
+        testInputFileName = inputFileName;
+        aida = AIDA.defaultInstance();
+        String aidaOutputName = "Plots" + inputFileName.replaceAll("slcio", "root");
+        nEvents = -1;
+        testTrackingDriver = new TrackingReconstructionPlots();
+        ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputName);
+        ((TrackingReconstructionPlots) testTrackingDriver).aida = aida;
+        super.testRecon();
+
         final IAnalysisFactory af = aida.analysisFactory();
-
-        final String testInputFileName = "TrackingRecoPlots.aida";
-        final String testReferenceFileName = "TrackingRecoPlots2.aida";
-        File inputFile = new File(testInputFileName);
         File refFile = new File(testReferenceFileName);
-        ITree tree_cmpInput = af.createTreeFactory().create(inputFile.getAbsolutePath());
         ITree tree_cmpRef = af.createTreeFactory().create(refFile.getAbsolutePath());
 
         for (String histname : histograms) {
             IHistogram1D h_ref = (IHistogram1D) tree_cmpRef.find(histname);
-            IHistogram1D h_test = (IHistogram1D) tree_cmpInput.find(histname);
+            IHistogram1D h_test = aida.histogram1D(histname);
             boolean nullHypoIsRejected = false;
             double p_value = 0;
             if (TtestAlpha > 0) {

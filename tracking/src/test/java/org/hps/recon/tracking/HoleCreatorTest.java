@@ -18,11 +18,14 @@ import junit.framework.TestCase;
  */
 
 public class HoleCreatorTest extends TestCase {
-    static final String testFileName = "ap_prompt_new.slcio";
+    static final String testFileName = null;
     private final int nEvents = 10;
     private boolean[] pattern = { false, false, false, false, true, true, false, false, false, false, false, false };
 
     public void testHoles() throws Exception {
+        if (testFileName == null)
+            return;
+
         File inputFile = new File("target/test-output/" + testFileName);
         File outputFile = new TestOutputFile(testFileName.replaceAll(".slcio", "") + "_WithHoles.slcio");
         outputFile.getParentFile().mkdirs();

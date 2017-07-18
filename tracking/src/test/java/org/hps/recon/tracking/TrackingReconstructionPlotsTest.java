@@ -25,7 +25,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class TrackingReconstructionPlotsTest extends TestCase {
 
-    static final String testInput = "ap_prompt_new.slcio";
+    static final String testInput = null;
     // static final String testURLBase = "http://www.lcsim.org/test/hps-java";
     //static final String testFileName = "MCReconTest.slcio";
     static final String testOutput = "test.slcio";
@@ -36,6 +36,8 @@ public class TrackingReconstructionPlotsTest extends TestCase {
     public void testTrackRecoPlots() throws Exception {
         // URL testURL = new URL(testURLBase + "/" + testFileName);
         // FileCache cache = new FileCache();
+        if (testInput == null)
+            return;
         File lcioInputFile = new File("target/test-output/" + testInput);
         lcioInputFile.getParentFile().mkdirs();
         File outputFile = new TestOutputFile(testOutput);

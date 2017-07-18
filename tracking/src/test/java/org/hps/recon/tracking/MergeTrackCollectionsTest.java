@@ -23,7 +23,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 public class MergeTrackCollectionsTest extends TestCase {
 
     // static final String testURLBase = "http://www.lcsim.org/test/hps-java";
-    static final String testFileName = "ap_prompt_new.slcio";
+    static final String testFileName = null;
     static final String outputFileName = testFileName.replaceAll(".slcio", "") + "_MergeTest.slcio";
     static final String newTracksName = "MatchedTracks";
     static final String inputTracksName = "MatchedTracks";
@@ -33,6 +33,9 @@ public class MergeTrackCollectionsTest extends TestCase {
     public void testMerging() throws Exception {
         // URL testURL = new URL(testURLBase + "/" + testFileName);
         // FileCache cache = new FileCache();
+
+        if (testFileName == null)
+            return;
 
         File outputFile = new TestOutputFile(outputFileName);
         outputFile.getParentFile().mkdirs();
@@ -47,6 +50,7 @@ public class MergeTrackCollectionsTest extends TestCase {
         newMerge.setInputTrackCollectionName(inputTracksName);
         newMerge.setOutputCollectionName(newTracksName);
         newMerge.setRemoveCollections(false);
+        newMerge.setDoPlots(true);
         loop2.add(newMerge);
 
         loop2.add(new LCIODriver(outputFile));
