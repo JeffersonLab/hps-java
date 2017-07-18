@@ -207,9 +207,9 @@ public class MakeGblTracks {
                 }
                 Hep3Vector pos = TrackUtils.getHelixPlaneIntercept(htf, strip, Math.abs(_B));
                 if (pos == null) {
-                    //if (_debug > 0) {
-                    System.out.println("Can't find track intercept; use sensor origin");
-                    //}
+                    if (_debug > 0) {
+                        System.out.println("Can't find track intercept; use sensor origin");
+                    }
                     pos = strip.origin();
                 }
                 scatAngle = new ScatterAngle((HelixUtils.PathToXPlane(htf, pos.x(), 0, 0).get(0)), GblUtils.estimateScatter(sensor, htf, _scattering, _B));
