@@ -69,7 +69,7 @@ public class IterateGainFactorDriver extends Driver {
     private void readGainFile() 
     {
       gainFileGains.clear();
-      System.out.println("Reading ECal Gain Factors from:  "+gainFileName);
+      //System.out.println("Reading ECal Gain Factors from:  "+gainFileName);
       File file = new File(gainFileName);
       try {
         FileReader reader = new FileReader(file);
@@ -80,7 +80,7 @@ public class IterateGainFactorDriver extends Driver {
         String lines[]=content.split("\n");
         int nlines = 0;
         for (String line : lines) {
-          String columns[] = line.split(" ");
+          String columns[] = line.split(",");
           if (nlines++ > 0) {
             final int channelid = Integer.valueOf(columns[0]);
             final double gain = Double.valueOf(columns[1]);
