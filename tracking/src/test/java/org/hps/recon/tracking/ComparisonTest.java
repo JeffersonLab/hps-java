@@ -26,8 +26,8 @@ public class ComparisonTest extends ReconTestSkeleton {
     static final double TtestAlpha = 0.05;
     static final double KStestAlpha = 0.05;
     static final double EqualityTolerance = 0.1;
-    static final String inputFileName = null;
-    static final String testReferenceFileName = "TrackingRecoPlots2.aida";
+    static final String inputFileName = "";
+    static final String testReferenceFileName = "TestPlots_ap_prompt_new_raw.aida";
 
     private AIDA aida;
 
@@ -37,12 +37,16 @@ public class ComparisonTest extends ReconTestSkeleton {
             return;
         testInputFileName = inputFileName;
         aida = AIDA.defaultInstance();
-        String aidaOutputName = "Plots" + inputFileName.replaceAll("slcio", "root");
+        String aidaOutputName = "Plots_" + inputFileName.replaceAll("slcio", "aida");
         nEvents = -1;
         testTrackingDriver = new TrackingReconstructionPlots();
         ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputName);
         ((TrackingReconstructionPlots) testTrackingDriver).aida = aida;
         super.testRecon();
+
+        IHistogram1D ntracks = aida.histogram1D("Tracks per Event");
+        assertTrue("No events in plots", ntracks.entries() > 0);
+        assertTrue("No tracks in plots", ntracks.mean() > 0);
 
         final IAnalysisFactory af = aida.analysisFactory();
         File refFile = new File(testReferenceFileName);
@@ -56,13 +60,13 @@ public class ComparisonTest extends ReconTestSkeleton {
             if (TtestAlpha > 0) {
                 nullHypoIsRejected = CompareHistograms.instance().getTTest(TtestAlpha, h_test.mean(), h_ref.mean(), h_test.rms() * h_test.rms(), h_ref.rms() * h_ref.rms(), h_test.allEntries(), h_ref.allEntries());
                 p_value = CompareHistograms.instance().getTTestPValue(h_test.mean(), h_ref.mean(), h_test.rms() * h_test.rms(), h_ref.rms() * h_ref.rms(), h_test.allEntries(), h_ref.allEntries());
-                System.out.printf("%s: %s %s T-Test (%.1f%s C.L.) with p-value=%.3f\n", TestRunTrackReconTest.class.getName(), histname, (nullHypoIsRejected ? "FAILED" : "PASSED"), (1 - TtestAlpha) * 100, "%", p_value);
+                System.out.printf("%s: %s %s T-Test (%.1f%s C.L.) with p-value=%.3f\n", ComparisonTest.class.getName(), histname, (nullHypoIsRejected ? "FAILED" : "PASSED"), (1 - TtestAlpha) * 100, "%", p_value);
                 assertTrue("Failed T-Test (" + (1 - TtestAlpha) * 100 + "% C.L. p-value=" + p_value + ") comparing histogram " + histname, !nullHypoIsRejected);
             }
             if (KStestAlpha > 0) {
                 p_value = CompareHistograms.getKolmogorovPValue(h_test, h_ref);
                 nullHypoIsRejected = (p_value < KStestAlpha);
-                System.out.printf("%s: %s %s Kolmogorov-Smirnov test (%.1f%s C.L.) with p-value=%.3f\n", TestRunTrackReconTest.class.getName(), histname, (nullHypoIsRejected ? "FAILED" : "PASSED"), (1 - KStestAlpha) * 100, "%", p_value);
+                System.out.printf("%s: %s %s Kolmogorov-Smirnov test (%.1f%s C.L.) with p-value=%.3f\n", ComparisonTest.class.getName(), histname, (nullHypoIsRejected ? "FAILED" : "PASSED"), (1 - KStestAlpha) * 100, "%", p_value);
                 assertTrue("Failed Kolmogorov-Smirnov test (" + (1 - KStestAlpha) * 100 + "% C.L. p-value=" + p_value + ") comparing histogram " + histname, !nullHypoIsRejected);
             }
             if (EqualityTolerance > 0) {

@@ -17,10 +17,10 @@ import junit.framework.TestCase;
 
 public class RecoToRaw extends TestCase {
 
-    protected String testInputFileName = "hps_005772.0_recon_Rv4657-0-10000.slcio";
-    protected String testOutputFileName = "hps_005772.0_recon_Rv4657-0-10000_raw.slcio";
+    protected String testInputFileName = null;
+    protected String testOutputFileName = null;
     protected String testURLBase = "http://www.lcsim.org/test/hps-java";
-    protected long nEvents = 5;
+    protected long nEvents = -1;
     protected URL testURL;
     protected FileCache cache;
 
@@ -31,8 +31,6 @@ public class RecoToRaw extends TestCase {
         File inputFile = null;
         if (testURLBase == null) {
             inputFile = new File(testInputFileName);
-
-            //  inputFile.getParentFile().mkdirs();
         } else {
             URL testURL = new URL(testURLBase + "/" + testInputFileName);
             cache = new FileCache();
@@ -48,7 +46,6 @@ public class RecoToRaw extends TestCase {
         loop.add(new RecoToRawDriver());
         loop.add(new LCIODriver(outputFile));
         try {
-            //loop.skip(4);
             loop.loop(nEvents);
         } catch (Exception e) {
             System.out.println(e.toString());

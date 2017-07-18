@@ -3,9 +3,6 @@ package org.hps.recon.tracking;
 import java.io.File;
 import java.net.URL;
 
-import org.lcsim.job.EventMarkerDriver;
-//import org.hps.logging.config.DefaultLoggingConfig;
-
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -35,18 +32,14 @@ public class ReconTestSkeleton extends TestCase {
     protected FileCache cache;
     protected Driver testTrackingDriver = null;
 
-    //static private Logger LOGGER = Logger.getLogger(ReconTestSkeleton.class.getPackage().getName());
-
     public void testRecon() throws Exception {
         if (testInputFileName == null)
             return;
 
-        testOutputFileName = "Reco" + testInputFileName;
+        testOutputFileName = "RecoTest_" + testInputFileName;
         File inputFile = null;
         if (testURLBase == null) {
             inputFile = new File(testInputFileName);
-
-            //  inputFile.getParentFile().mkdirs();
         } else {
             URL testURL = new URL(testURLBase + "/" + testInputFileName);
             cache = new FileCache();
@@ -57,22 +50,15 @@ public class ReconTestSkeleton extends TestCase {
         outputFile.getParentFile().mkdirs();
         boolean loop1Success = true;
 
-        //DefaultLoggingConfig.initialize();
-
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(inputFile);
 
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.addConditionsListener(new SvtDetectorSetup());
 
-        EventMarkerDriver emd = new EventMarkerDriver();
-        emd.setEventInterval(1);
-        loop.add(emd);
-
         loop.add(new MainTrackingDriver());
         loop.add(new LCIODriver(outputFile));
         try {
-            //loop.skip(4);
             loop.loop(nEvents);
         } catch (Exception e) {
             System.out.println("Failure of main tracking sequence with following exception");

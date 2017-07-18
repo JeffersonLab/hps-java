@@ -17,10 +17,10 @@ import junit.framework.TestCase;
 
 public class RecoToRawMC extends TestCase {
 
-    protected String testInputFileName = "target/test-output/ap_prompt_new.slcio";
-    protected String testOutputFileName = "ap_prompt_new_raw.slcio";
+    protected String testInputFileName = null;
+    protected String testOutputFileName = null;
     protected String testURLBase = null;
-    protected long nEvents = 5;
+    protected long nEvents = -1;
     protected URL testURL;
     protected FileCache cache;
 
@@ -31,8 +31,6 @@ public class RecoToRawMC extends TestCase {
         File inputFile = null;
         if (testURLBase == null) {
             inputFile = new File(testInputFileName);
-
-            //  inputFile.getParentFile().mkdirs();
         } else {
             URL testURL = new URL(testURLBase + "/" + testInputFileName);
             cache = new FileCache();
@@ -48,7 +46,6 @@ public class RecoToRawMC extends TestCase {
         loop.add(new RecoToRawMCDriver());
         loop.add(new LCIODriver(outputFile));
         try {
-            //loop.skip(4);
             loop.loop(nEvents);
         } catch (Exception e) {
             System.out.println(e.toString());

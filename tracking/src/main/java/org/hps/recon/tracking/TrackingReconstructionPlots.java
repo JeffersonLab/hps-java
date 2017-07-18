@@ -49,7 +49,7 @@ public class TrackingReconstructionPlots extends Driver {
     private boolean doAmplitudePlots = false;
     private boolean doECalClusterPlots = false;
     private boolean doHitsOnTrackPlots = false;
-    private boolean doResidualPlots = true;
+    private boolean doResidualPlots = false;
     private boolean doMatchedClusterPlots = false;
     private boolean doElectronPositronPlots = false;
     private boolean doStripHitPlots = false;
@@ -289,10 +289,9 @@ public class TrackingReconstructionPlots extends Driver {
     }
 
     private void doResiduals(List<LCRelation> fittedHits, Track trk, RelationalTable trackResTable) {
-        //HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());
         GenericObject trackRes = (GenericObject) trackResTable.from(trk);
         if (trackRes == null) {
-            System.out.println("null TrackResidualsData");
+            //System.out.println("null TrackResidualsData");
             return;
         }
 
