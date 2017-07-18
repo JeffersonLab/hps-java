@@ -202,9 +202,9 @@ public class MakeGblTracks {
             MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
 
             if (temp == null) {
-                //if (_debug > 0) {
-                System.out.printf("WARNING cannot find scatter for detector %s with strip cluster at %s, re-calculating now\n", ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
-                //}
+                if (_debug > 0) {
+                    System.out.printf("WARNING cannot find scatter for detector %s with strip cluster at %s, re-calculating now\n", ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
+                }
                 Hep3Vector pos = TrackUtils.getHelixPlaneIntercept(htf, strip, Math.abs(_B));
                 if (pos == null) {
                     //if (_debug > 0) {
