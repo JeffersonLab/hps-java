@@ -952,6 +952,6 @@
     <includes>
         <gdmlFile file="gdml/ecal_vacuum_flange_complete_v1.gdml" />
         <gdmlFile file="gdml/svt_chamber_v2.gdml" />
-        <gdmlFile file="gdml/vacuumChamber_v2.gdml" />
+        <!--<gdmlFile file="gdml/vacuumChamber_v2.gdml" />-->
     </includes>
 </lccdd>
