@@ -23,6 +23,7 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 	
 	private static final int POSITRON = 0;
 	private static final int ELECTRON = 1;
+	private IHistogram1D[] svtLayersTraversed = new IHistogram1D[2];
 	private IHistogram1D[] ecalHitXPosition = new IHistogram1D[2];
 	private IHistogram2D[] ecalHitXYPosition = new IHistogram2D[2];
 	private IHistogram1D[][] hodoscopeHitΔx = new IHistogram1D[2][6];
@@ -30,43 +31,68 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 	private IHistogram1D[][] hodoscopeHitXPosition = new IHistogram1D[2][6];
 	private IHistogram2D[][] hodoscopeHitXYPosition = new IHistogram2D[2][6];
 	
+	private IHistogram2D[][][] hodoscopePixelHitXEcalX = new IHistogram2D[2][6][4];
+	
 	private IHistogram1D[] ecalHitEnergy = new IHistogram1D[2];
-	private IHistogram2D[] ecalHitXPositionEnergy = new IHistogram2D[2];
+	//private IHistogram2D[] ecalHitXPositionEnergy = new IHistogram2D[2];
 	private IHistogram2D[] ecalHitYPositionEnergy = new IHistogram2D[2];
 	private IHistogram1D[][] hodoscopeHitEnergy = new IHistogram1D[2][6];
-	private IHistogram2D[][] hodoscopeHitXPositionEnergy = new IHistogram2D[2][6];
-	private IHistogram2D[][] hodoscopeHitYPositionEnergy = new IHistogram2D[2][6];
+	//private IHistogram2D[][] hodoscopeHitXPositionEnergy = new IHistogram2D[2][6];
+	//private IHistogram2D[][] hodoscopeHitYPositionEnergy = new IHistogram2D[2][6];
 	
-	private IHistogram2D weirdHitOrigins = aida.histogram2D("Weird Hit Origins", 800, -400, 400, 1600, 0, 1600);
-	private IHistogram2D weirdHitEnergy = aida.histogram2D("Weird Hit z vs. |p|", 1300, 0.000, 2.600, 1600, 0, 1600);
+	//private IHistogram2D weirdHitOrigins = aida.histogram2D("Weird Hit Origins", 800, -400, 400, 1600, 0, 1600);
+	//private IHistogram2D weirdHitEnergy = aida.histogram2D("Weird Hit z vs. |p|", 1300, 0.000, 2.600, 1600, 0, 1600);
+	
+	private boolean isDualPlane = true;
 	
 	@Override
 	public void startOfData() {
-		String[] layer = {
-				" (Layer 1)", " (Layer 2)", " (Layer 3)", " (Layer 4)", " (Layer 5)", " (Layer 6)"
-		};
+		String[] layer;
+		if(isDualPlane) {
+			layer = new String[] {
+					" (z = 1090 mm)", " (z = 1100 mm)"
+			};
+		} else {
+			layer = new String[] {
+					" (z = 1000 mm)", " (z = 1050 mm)", " (z = 1100 mm)", " (z = 1150 mm)", " (z = 1200 mm)", " (z = 1250 mm)"
+			};
+		}
 		String[] type = { "Positron", "Electron" };
 		for(int i = 0; i < 2; i++) {
 			ecalHitEnergy[i] = aida.histogram1D("Calorimeter Hit " + type[i] + " Momentum", 1300, 0.000, 2.600);
 			ecalHitXPosition[i] = aida.histogram1D("Calorimeter Hit " + type[i] + " x-Position", 800, -400, 400);
-			ecalHitXPositionEnergy[i] = aida.histogram2D("Calorimeter Hit " + type[i] + " x-Position vs. Momentum",
-					1300, 0.000, 2.600, 500, -250, 250);
+			//ecalHitXPositionEnergy[i] = aida.histogram2D("Calorimeter Hit " + type[i] + " x-Position vs. Momentum",
+			//		1300, 0.000, 2.600, 500, -250, 250);
 			ecalHitYPositionEnergy[i] = aida.histogram2D("Calorimeter Hit " + type[i] + " y-Position vs. Momentum",
 					1300, 0.000, 2.600, 500, -250, 250);
 			ecalHitXYPosition[i] = aida.histogram2D("Calorimeter Hit " + type[i] + " xy-Position", 800, -400, 400, 500, -250, 250);
+			svtLayersTraversed[i] = aida.histogram1D(type[i] + " SVT Layers Traversed", 7, -0.5, 6.5);
 			
-			for(int j = 0; j < 6; j++) {
+			for(int j = 0; j < layer.length; j++) {
 				hodoscopeHitEnergy[i][j] = aida.histogram1D("Hodoscope Hit " + type[i] + " Momentum" + layer[j], 1300, 0, 2.600);
 				hodoscopeHitΔx[i][j] = aida.histogram1D(type[i] + " Hodoscope Hit #Deltax" + layer[j], 800, -400, 400);
-				hodoscopeHitXPositionEnergy[i][j] = aida.histogram2D("Hodoscope Hit " + type[i] + " x-Position vs. Momentum" + layer[j],
-						1300, 0.000, 2.600, 500, -250, 250);
-				hodoscopeHitYPositionEnergy[i][j] = aida.histogram2D("Hodoscope Hit " + type[i] + " y-Position vs. Momentum" + layer[j],
-						1300, 0.000, 2.600, 500, -250, 250);
+				//hodoscopeHitXPositionEnergy[i][j] = aida.histogram2D("Hodoscope Hit " + type[i] + " x-Position vs. Momentum" + layer[j],
+				//		1300, 0.000, 2.600, 500, -250, 250);
+				//hodoscopeHitYPositionEnergy[i][j] = aida.histogram2D("Hodoscope Hit " + type[i] + " y-Position vs. Momentum" + layer[j],
+				//		1300, 0.000, 2.600, 500, -250, 250);
 				hodoscopeHitXPosition[i][j] = aida.histogram1D("Hodoscope Hit " + type[i] + " x-Position" + layer[j], 310, 0, 310);
 				hodoscopeHitXYPosition[i][j] = aida.histogram2D("Hodoscope Hit " + type[i] + " xy-Position" + layer[j],
 						310, 0, 310, 400, -200, 200);
 				hodoscopeHitXEcalX[i][j] = aida.histogram2D(type[i] + " Hodoscope Hit x vs. Calorimeter Hit x" + layer[j],
 						800, -400, 400, 310, 0, 310);
+				
+				hodoscopePixelHitXEcalX[i][j][0] = aida.histogram2D(
+						type[i] + " Pixelized Hodoscope x vs. Calorimeter x (10x10 mm)" + layer[j],
+						62, -403, 403, 31, 0, 310);
+				hodoscopePixelHitXEcalX[i][j][1] = aida.histogram2D(
+						type[i] + " Pixelized Hodoscope x vs. Calorimeter x (14x14 mm)" + layer[j],
+						62, -403, 403, 23, 0, 322);
+				hodoscopePixelHitXEcalX[i][j][2] = aida.histogram2D(
+						type[i] + " Pixelized Hodoscope x vs. Calorimeter x (18x18 mm)" + layer[j],
+						62, -403, 403, 18, 0, 324);
+				hodoscopePixelHitXEcalX[i][j][3] = aida.histogram2D(
+						type[i] + " Pixelized Hodoscope x vs. Calorimeter x (22x22 mm)" + layer[j],
+						62, -403, 403, 15, 0, 330);
 			}
 		}
 	}
@@ -116,6 +142,13 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 			for(boolean verified : traversedLayer) {
 				if(verified) { layers++; }
 			}
+			if(particle.getProductionTime() == 0) {
+				if(particle.getPDGID() == 11) {
+					svtLayersTraversed[ELECTRON].fill(layers);
+				} else if(particle.getPDGID() == -11) {
+					svtLayersTraversed[POSITRON].fill(layers);
+				}
+			}
 			particleLayerCountMap.put(particle, layers);
 		}
 		
@@ -139,6 +172,7 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 			// Only plot particles that traverse at least 5 SVT layers.
 			int layersTraversed = particleLayerCountMap.containsKey(hodoscopeHit.getMCParticle())
 					? particleLayerCountMap.get(hodoscopeHit.getMCParticle()) : 0;
+					
 			if(layersTraversed < 5) {
 				continue hodoscopeHitLoop;
 			}
@@ -149,6 +183,7 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 			// hit is in fact a back-scattered particle and does not
 			// represent valid data.
 			SimTrackerHit ecalHit = ecalHitMap.get(hodoscopeHit.getMCParticle());
+			
 			if(ecalHit == null || ecalHit.getTime() < hodoscopeHit.getTime() || getMagnitude(ecalHit.getMomentum()) < 0.150) {
 				continue hodoscopeHitLoop;
 			}
@@ -173,28 +208,31 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 				
 				double hitP = getMagnitude(ecalHit.getMomentum());
 				ecalHitEnergy[type].fill(hitP);
-				ecalHitXPositionEnergy[type].fill(hitP, ecalHit.getPosition()[0]);
+				//ecalHitXPositionEnergy[type].fill(hitP, ecalHit.getPosition()[0]);
 				ecalHitYPositionEnergy[type].fill(hitP, ecalHit.getPosition()[1]);
 				ecalHitXPosition[type].fill(ecalHit.getPosition()[0]);
 				ecalHitXYPosition[type].fill(ecalHit.getPosition()[0], ecalHit.getPosition()[1]);
 			}
 			
 			// Populate the hodoscope plots for the appropriate layer.
-			int layer = getHodoscopeLayer(hodoscopeHit);
+			int layer = isDualPlane ? getHodoscopeDualplaneLayer(hodoscopeHit) : getHodoscopeMultiplaneLayer(hodoscopeHit);
 			//System.out.printf("Type: %d (PID = %d);  Layer: %d (z = %f)%n",
 			//		type, hodoscopeHit.getMCParticle().getPDGID(), layer, hodoscopeHit.getPosition()[2]);
 			hodoscopeHitEnergy[type][layer].fill(p);
-			hodoscopeHitXPositionEnergy[type][layer].fill(p, ecalHit.getPosition()[0]);
-			hodoscopeHitYPositionEnergy[type][layer].fill(p, ecalHit.getPosition()[1]);
+			//hodoscopeHitXPositionEnergy[type][layer].fill(p, ecalHit.getPosition()[0]);
+			//hodoscopeHitYPositionEnergy[type][layer].fill(p, ecalHit.getPosition()[1]);
 			hodoscopeHitΔx[type][layer].fill(ecalHit.getPosition()[0] - hodoscopeHit.getPosition()[0]);
 			hodoscopeHitXEcalX[type][layer].fill(ecalHit.getPosition()[0], hodoscopeHit.getPosition()[0]);
 			hodoscopeHitXPosition[type][layer].fill(hodoscopeHit.getPosition()[0]);
 			hodoscopeHitXYPosition[type][layer].fill(hodoscopeHit.getPosition()[0], hodoscopeHit.getPosition()[1]);
+			for(int i = 0; i < 4; i++) {
+				hodoscopePixelHitXEcalX[type][layer][i].fill(ecalHit.getPosition()[0], hodoscopeHit.getPosition()[0]);
+			}
 		}
 		
 		
 		
-		
+		/*
 		// Investigate the origins of the weird hits.
 		for(SimTrackerHit ecalHit : ecalHits) {
 			if(ecalHit.getPosition()[0] >= 100 && ecalHit.getPosition()[0] <= 150) {
@@ -233,49 +271,6 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 					// Carlo particle.
 					if(hodoHit.getMCParticle() != ecalHit.getMCParticle()) {
 						continue;
-					}
-					
-					// There can not be more than one instance of a
-					// particle at a given z.
-					if(weirdHodoHits[getHodoscopeLayer(hodoHit)] != null) {
-						/*
-						System.err.println("\nEvent: " + event.getEventNumber());
-						
-						MCParticle ecalParticle = ecalHit.getMCParticle();
-						System.err.println("\nEcal MC Particle:");
-						System.err.printf("\tHit      :: t = %f;  r = <%f, %f, %f>;  p = <%f, %f, %f>%n",
-								ecalHit.getTime(), ecalHit.getPosition()[0], ecalHit.getPosition()[1], ecalHit.getPosition()[2],
-								ecalHit.getMomentum()[0], ecalHit.getMomentum()[1], ecalHit.getMomentum()[2]);
-						System.err.printf("\tParticle :: t = %f;  r = <%f, %f, %f>;  p = <%f, %f, %f>%n",
-								ecalParticle.getProductionTime(), ecalParticle.getOriginX(), ecalParticle.getOriginY(),
-								ecalParticle.getOriginZ(), ecalParticle.getMomentum().x(), ecalParticle.getMomentum().y(),
-								ecalParticle.getMomentum().z());
-						
-						SimTrackerHit oldHit = weirdHodoHits[getHodoscopeLayer(hodoHit)];
-						MCParticle oldParticle = oldHit.getMCParticle();
-						System.err.println("\nOld Hodo Hit:");
-						System.err.printf("\tHit      :: t = %f;  r = <%f, %f, %f>;  p = <%f, %f, %f>%n",
-								oldHit.getTime(), oldHit.getPosition()[0], oldHit.getPosition()[1], oldHit.getPosition()[2],
-								oldHit.getMomentum()[0], oldHit.getMomentum()[1], oldHit.getMomentum()[2]);
-						System.err.printf("\tParticle :: t = %f;  r = <%f, %f, %f>;  p = <%f, %f, %f>%n",
-								oldParticle.getProductionTime(), oldParticle.getOriginX(), oldParticle.getOriginY(),
-								oldParticle.getOriginZ(), oldParticle.getMomentum().x(), oldParticle.getMomentum().y(),
-								oldParticle.getMomentum().z());
-						
-						MCParticle hodoParticle = hodoHit.getMCParticle();
-						System.err.println("\nNew Hodo Hit:");
-						System.err.printf("\tHit      :: t = %f;  r = <%f, %f, %f>;  p = <%f, %f, %f>%n",
-								hodoHit.getTime(), hodoHit.getPosition()[0], hodoHit.getPosition()[1], hodoHit.getPosition()[2],
-								hodoHit.getMomentum()[0], hodoHit.getMomentum()[1], hodoHit.getMomentum()[2]);
-						System.err.printf("\tParticle :: t = %f;  r = <%f, %f, %f>;  p = <%f, %f, %f>%n",
-								hodoParticle.getProductionTime(), hodoParticle.getOriginX(), hodoParticle.getOriginY(),
-								hodoParticle.getOriginZ(), hodoParticle.getMomentum().x(), hodoParticle.getMomentum().y(),
-								hodoParticle.getMomentum().z());
-						
-						System.err.println("\n\n\n");
-						*/
-						
-						//throw new IllegalArgumentException("Error: Multiple hits in one layer exist for the same particle!!");
 					}
 					
 					// Require that the particle have at least 150 MeV.
@@ -329,9 +324,21 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 				}
 			}
 		}
+		*/
 	}
 	
-	private static final int getHodoscopeLayer(SimTrackerHit hodoscopeHit) {
+	private static final int getHodoscopeDualplaneLayer(SimTrackerHit hodoscopeHit) {
+		double z = hodoscopeHit.getPosition()[2];
+		if(z >= 1089 && z < 1091) {
+			return 0;
+		} else if(z >= 1099 && z < 1101) {
+			return 1;
+		} else {
+			return -1;
+		}
+	}
+	
+	private static final int getHodoscopeMultiplaneLayer(SimTrackerHit hodoscopeHit) {
 		double z = hodoscopeHit.getPosition()[2];
 		if(z >= 999 && z < 1001) {
 			return 0;
@@ -384,5 +391,9 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 			squareSum += Math.pow(vi, 2);
 		}
 		return Math.sqrt(squareSum);
+	}
+	
+	public void setIsMultiPlane(boolean state) {
+		isDualPlane = !state;
 	}
 }
