@@ -22,15 +22,16 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Fit ECal FADC Mode-1 waveform with a "3-pole" function for extraction of
  * pulse integral and time.
- * 
  * Called from EcalRawConverter. Uses Ecal3PoleFunction.
- * 
- * Limits are placed on pulse characteristics to avoid wasting time fitting
- * pulses near the edge of the window. Width parameter can be free or fixed.
+ * Limits are chosen based on cosmic signals characteristics. 
+ * Width parameter can be free or fixed (fixed by default).
  * Pedestal parameter is initialized from samples before threshold crossing.
+ * 
+ * @author LucaMarsicano
  */
-public class EcalCosmicPulseFitter {
 
+public class EcalCosmicPulseFitter {
+    
     private EcalConditions ecalConditions = null;
 
     /**
@@ -353,7 +354,7 @@ public class EcalCosmicPulseFitter {
                 try {
                     System.in.read();
                 } catch (Exception e) {
-
+                    
                 }
                 plotter1.region(0).clear();
             }

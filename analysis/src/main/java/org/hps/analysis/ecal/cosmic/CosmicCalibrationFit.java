@@ -18,11 +18,15 @@ import hep.aida.IFitResult;
 
 
 /**
- * This code looks at raw FADC spectra, integrates cosmic signals, and outputs
- * a .root file containing the histogram spectra for each crystal.
- * 
- * @author holly
+ * This code looks at raw FADC spectra and applies geometric cuts to select 
+ * vertical cosmic events. Signals are then fitted  with a "3-pole" 
+ * function to extract the integral.
+ * In order to cross-check the results, the integral is evaluated also summing the FADC samples. 
+ * The output is a .root file containing the histogram spectra for each 
+ * crystal, both for the fit and the sum, the 2-D correlation between 
+ * the two and the histograms of pedestal values for each crystal.
  *
+ *@author LucaMarsicano
  */
 
 
@@ -33,16 +37,16 @@ public class CosmicCalibrationFit extends Driver {
     //private ITree tree = null; 
     //private IHistogramFactory histogramFactory = null; 
     
-//   
+//  
     
     private EcalCosmicPulseFitter pulseFitter = new EcalCosmicPulseFitter();
     private EcalConditions ecalConditions = null;
     
     
     // Tune-able parameters:
-    //optimum signal window, originally 35-55 (in units of 4ns)
-    private int MINS=35;//50 
-    private int MAXS=55;//70
+    //optimum signal window, 35-55 (in units of 4ns)
+    private int MINS=35;
+    private int MAXS=55;
     //pedestal window for calculating an average pedestal
     private int MINP=10;
     private int MAXP=30;
@@ -50,7 +54,7 @@ public class CosmicCalibrationFit extends Driver {
     private int NWIN=MAXP-MINP; 
     //threshold in mV (2.5mV in 2015)
     private double THR=3.5;//for 2016
-    //0 is strict requires 2 hits vertically, 1 is loose requiring 1 hit vertically
+    //0 is strict requires 2 hits vertically, 1 is loose requiring 1 hit vertically (fit available only with strict geo cut)
     private int cutType=0;
     
     /////////////////////
@@ -75,24 +79,13 @@ public class CosmicCalibrationFit extends Driver {
         // Instantiate the tree and histogram factory   
         aida.tree().cd("/");
         // Create histograms
-       // IHistogram1D mipSigCut[][];
-       // mipSigCut = new IHistogram1D[NX][NY];
-              
-        
         
         String titleID_CorrTot = "CorrTot";
         aida.histogram2D( titleID_CorrTot,150,0,150,150,0,150);
                 
- //   String tit    leID_ChiTot = "ChiTot";
- //   aida.histogram1D( titleID_ChiTot,150,0,150);
-    
-        String titleID_PedDiffTot = "PedDiffTot";
-        aida.histogram1D( titleID_PedDiffTot,150,0,150);
+        //String titleID_PedDiffTot = "PedDiffTot";
+        //aida.histogram1D( titleID_PedDiffTot,150,0,150);
       
-    
-        
-        
-        
         for (int jx=0; jx<NX; jx++)
           {
             for (int jy=0; jy<NY; jy++)
@@ -108,9 +101,6 @@ public class CosmicCalibrationFit extends Driver {
                 String titleID_Corr = String.format("Cry_%d_%d_Corr",jx,jy);
                 aida.histogram2D(titleID_Corr,150,0,150,150,0,150);
                 
-             //   String titleID_Chi = String.format("Cry_%d_%d_Chi",jx,jy);
-              //  aida.histogram1D(titleID_Chi, 100, 0, 5);
-                
                 String titleID_Ped = String.format("Cry_%d_%d_Ped",jx,jy);
                 aida.histogram1D(titleID_Ped, 400, 0, 60);
                 
@@ -119,9 +109,7 @@ public class CosmicCalibrationFit extends Driver {
                 
               } // end !ishole
             } // end jy iteration
-          } //end jx iteration 
-        
-     
+          } //end jx iteration        
     }
     
    
@@ -168,8 +156,7 @@ public class CosmicCalibrationFit extends Driver {
                 {                
                     // loop over time samples, integrate adc values, use for pedestal
                     
-                    
-                 
+                                 
                     pedestal[ix][iy] = 0; 
                     Point cid = new Point(ix,iy);
                     RawTrackerHit ihit = hitMap.get(cid);
@@ -386,35 +373,35 @@ public class CosmicCalibrationFit extends Driver {
                                 double maxADC = 10000; 
                                 double fitQuality = -1;
                                 
-                                // Fill histograms
+                                //Fill histograms
                                 String titleID = String.format("Cry_%d_%d",ix,iy);
                                 aida.histogram1D(titleID).fill(signal[ix][iy]);  
                                 
                                 String titleID_Ped = String.format("Cry_%d_%d_Ped",ix,iy);
                                 aida.histogram1D(titleID_Ped).fill(pedestal[ix][iy]/NWIN*ADC2V);  
                                
-                               /// System.out.println("Fitting:\t"+ix+"\t"+iy);
-                             
-                            //    System.out.println(findChannel(ihit.getCellID()).getCalibration().getNoise() );
+                                //System.out.println("Fitting:\t"+ix+"\t"+iy);
+                                //System.out.println(findChannel(ihit.getCellID()).getCalibration().getNoise() );
               
-                                
+                                //Fit the pulse
                                 IFitResult fitResult = pulseFitter.fitCosmicPulse(ihit,time0,maxADC);
                                 
-                            //    System.out.println("Fitting:\t"+ix+"\t"+iy);
+                                //System.out.println("Fitting:\t"+ix+"\t"+iy);
                                 
                                if (fitResult!=null) {
-                                  fitQuality = fitResult.quality();
-                                  
-                                  if (fitQuality > 0) {
-                                     // pulseTime = fitResult.fittedParameter("time0")*nsPerSample;
+                                    fitQuality = fitResult.quality();
+                                    
+                                    if (fitQuality > 0) {
+                                      //pulseTime = fitResult.fittedParameter("time0")*nsPerSample;
+                                      //Getting fit results
                                       sumADC = fitResult.fittedParameter("integral");
                                       minADC = fitResult.fittedParameter("pedestal");
                                     
                                       String titleID_CorrTot = "CorrTot";
                                       aida.histogram2D(titleID_CorrTot).fill(signal[ix][iy],sumADC*ADC2V);  
                                       
-                                      String titleID_PedDiffTot = "PedDiffTot";
-                                      aida.histogram1D(titleID_PedDiffTot).fill(minADC*ADC2V-pedestal[ix][iy]/NWIN*ADC2V);  
+                                      //String titleID_PedDiffTot = "PedDiffTot";
+                                      //aida.histogram1D(titleID_PedDiffTot).fill(minADC*ADC2V-pedestal[ix][iy]/NWIN*ADC2V);  
                                       
                                       
                                       String titleID_Fit = String.format("Cry_%d_%d_Fit",ix,iy);
@@ -423,16 +410,11 @@ public class CosmicCalibrationFit extends Driver {
                                       String titleID_Corr = String.format("Cry_%d_%d_Corr",ix,iy);
                                       aida.histogram2D(titleID_Corr).fill(signal[ix][iy],sumADC*ADC2V);  
                                       
-                                     // String titleID_Chi = String.format("Cry_%d_%d_Chi",ix,iy);
-       
                                       String titleID_PedF= String.format("Cry_%d_%d_PedF",ix,iy);
                                       aida.histogram1D(titleID_PedF).fill(minADC*ADC2V);  
-                                      
-                                     
-                                      
+                                                         
                                   } 
                                 }
-                                
                                 
                             }
                         }
