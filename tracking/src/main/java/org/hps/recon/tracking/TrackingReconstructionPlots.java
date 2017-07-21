@@ -227,8 +227,8 @@ public class TrackingReconstructionPlots extends Driver {
 
             double pt = Math.abs((1 / trk.getTrackStates().get(0).getOmega()) * bfield * momentum_param);
             double pz = pt * Math.cos(trk.getTrackStates().get(0).getPhi());
-            double py = pt * Math.sin(trk.getTrackStates().get(0).getPhi());
-            double px = pt * trk.getTrackStates().get(0).getTanLambda();
+            double px = pt * Math.sin(trk.getTrackStates().get(0).getPhi());
+            double py = pt * trk.getTrackStates().get(0).getTanLambda();
             aida.histogram1D("Track Momentum (Pz)").fill(pz);
             aida.histogram1D("Track Momentum (Py)").fill(py);
             aida.histogram1D("Track Momentum (Px)").fill(px);
