@@ -226,9 +226,12 @@ public class TrackingReconstructionPlots extends Driver {
             }
 
             double pt = Math.abs((1 / trk.getTrackStates().get(0).getOmega()) * bfield * momentum_param);
-            aida.histogram1D("Track Momentum (Px)").fill(pt * Math.cos(trk.getTrackStates().get(0).getPhi()));
-            aida.histogram1D("Track Momentum (Py)").fill(pt * Math.sin(trk.getTrackStates().get(0).getPhi()));
-            aida.histogram1D("Track Momentum (Pz)").fill(pt * trk.getTrackStates().get(0).getTanLambda());
+            double pz = pt * Math.cos(trk.getTrackStates().get(0).getPhi());
+            double py = pt * Math.sin(trk.getTrackStates().get(0).getPhi());
+            double px = pt * trk.getTrackStates().get(0).getTanLambda();
+            aida.histogram1D("Track Momentum (Pz)").fill(pz);
+            aida.histogram1D("Track Momentum (Py)").fill(py);
+            aida.histogram1D("Track Momentum (Px)").fill(px);
             aida.histogram1D("Track Chi2").fill(trk.getChi2());
 
             aida.histogram1D("Hits per Track").fill(trk.getTrackerHits().size());
@@ -244,9 +247,9 @@ public class TrackingReconstructionPlots extends Driver {
             aida.histogram1D("z0 ").fill(trk.getTrackStates().get(0).getParameter(ParameterName.z0.ordinal()));
 
             if (isTop) {
-                aida.histogram1D("Top Track Momentum (Px)").fill(trk.getTrackStates().get(0).getMomentum()[1]);
-                aida.histogram1D("Top Track Momentum (Py)").fill(trk.getTrackStates().get(0).getMomentum()[2]);
-                aida.histogram1D("Top Track Momentum (Pz)").fill(trk.getTrackStates().get(0).getMomentum()[0]);
+                aida.histogram1D("Top Track Momentum (Px)").fill(px);
+                aida.histogram1D("Top Track Momentum (Py)").fill(py);
+                aida.histogram1D("Top Track Momentum (Pz)").fill(pz);
                 aida.histogram1D("Top Track Chi2").fill(trk.getChi2());
 
                 aida.histogram1D("d0 Top").fill(trk.getTrackStates().get(0).getParameter(ParameterName.d0.ordinal()));
@@ -256,9 +259,9 @@ public class TrackingReconstructionPlots extends Driver {
                 aida.histogram1D("z0 Top").fill(trk.getTrackStates().get(0).getParameter(ParameterName.z0.ordinal()));
                 ntracksTop++;
             } else {
-                aida.histogram1D("Bottom Track Momentum (Px)").fill(trk.getTrackStates().get(0).getMomentum()[1]);
-                aida.histogram1D("Bottom Track Momentum (Py)").fill(trk.getTrackStates().get(0).getMomentum()[2]);
-                aida.histogram1D("Bottom Track Momentum (Pz)").fill(trk.getTrackStates().get(0).getMomentum()[0]);
+                aida.histogram1D("Bottom Track Momentum (Px)").fill(px);
+                aida.histogram1D("Bottom Track Momentum (Py)").fill(py);
+                aida.histogram1D("Bottom Track Momentum (Pz)").fill(pz);
                 aida.histogram1D("Bottom Track Chi2").fill(trk.getChi2());
 
                 aida.histogram1D("d0 Bottom").fill(trk.getTrackStates().get(0).getParameter(ParameterName.d0.ordinal()));
@@ -623,36 +626,36 @@ public class TrackingReconstructionPlots extends Driver {
     private void setupPlots() {
 
         // Basic tracks
-        IHistogram1D trkPx = aida.histogram1D("Track Momentum (Px)", 100, -0.25, 0.25);
-        IHistogram1D trkPy = aida.histogram1D("Track Momentum (Py)", 100, -0.25, 0.25);
+        IHistogram1D trkPx = aida.histogram1D("Track Momentum (Px)", 100, -0.15, 0.15);
+        IHistogram1D trkPy = aida.histogram1D("Track Momentum (Py)", 100, -0.15, 0.15);
         IHistogram1D trkPz = aida.histogram1D("Track Momentum (Pz)", 100, 0, 1.5);
         IHistogram1D trkChi2 = aida.histogram1D("Track Chi2", 25, 0, 25.0);
 
-        IHistogram1D toptrkPx = aida.histogram1D("Top Track Momentum (Px)", 100, -0.25, 0.25);
-        IHistogram1D toptrkPy = aida.histogram1D("Top Track Momentum (Py)", 100, -0.25, 0.25);
+        IHistogram1D toptrkPx = aida.histogram1D("Top Track Momentum (Px)", 100, -0.15, 0.15);
+        IHistogram1D toptrkPy = aida.histogram1D("Top Track Momentum (Py)", 100, -0.15, 0.15);
         IHistogram1D toptrkPz = aida.histogram1D("Top Track Momentum (Pz)", 100, 0, 1.5);
         IHistogram1D toptrkChi2 = aida.histogram1D("Top Track Chi2", 25, 0, 25.0);
 
-        IHistogram1D bottrkPx = aida.histogram1D("Bottom Track Momentum (Px)", 100, -0.25, 0.25);
-        IHistogram1D bottrkPy = aida.histogram1D("Bottom Track Momentum (Py)", 100, -0.25, 0.25);
+        IHistogram1D bottrkPx = aida.histogram1D("Bottom Track Momentum (Px)", 100, -0.15, 0.15);
+        IHistogram1D bottrkPy = aida.histogram1D("Bottom Track Momentum (Py)", 100, -0.15, 0.15);
         IHistogram1D bottrkPz = aida.histogram1D("Bottom Track Momentum (Pz)", 100, 0, 1.5);
         IHistogram1D bottrkChi2 = aida.histogram1D("Bottom Track Chi2", 25, 0, 25.0);
 
         IHistogram1D trkd0 = aida.histogram1D("d0 ", 100, -10.0, 10.0);
         IHistogram1D trkphi = aida.histogram1D("sinphi ", 100, -0.2, 0.2);
-        IHistogram1D trkomega = aida.histogram1D("omega ", 100, -0.0015, 0.0015);
+        IHistogram1D trkomega = aida.histogram1D("omega ", 100, -0.001, 0.001);
         IHistogram1D trklam = aida.histogram1D("tan(lambda) ", 100, -0.1, 0.1);
         IHistogram1D trkz0 = aida.histogram1D("z0 ", 100, -4.0, 4.0);
 
         IHistogram1D toptrkd0 = aida.histogram1D("d0 Top", 100, -10.0, 10.0);
         IHistogram1D toptrkphi = aida.histogram1D("sinphi Top", 100, -0.2, 0.2);
-        IHistogram1D toptrkomega = aida.histogram1D("omega Top", 100, -0.0015, 0.0015);
+        IHistogram1D toptrkomega = aida.histogram1D("omega Top", 100, -0.001, 0.001);
         IHistogram1D toptrklam = aida.histogram1D("tan(lambda) Top", 100, -0.1, 0.1);
         IHistogram1D toptrkz0 = aida.histogram1D("z0 Top", 100, -4.0, 4.0);
 
         IHistogram1D bottrkd0 = aida.histogram1D("d0 Bottom", 100, -10.0, 10.0);
         IHistogram1D bottrkphi = aida.histogram1D("sinphi Bottom", 100, -0.2, 0.2);
-        IHistogram1D bottrkomega = aida.histogram1D("omega Bottom", 100, -0.0015, 0.0015);
+        IHistogram1D bottrkomega = aida.histogram1D("omega Bottom", 100, -0.001, 0.001);
         IHistogram1D bottrklam = aida.histogram1D("tan(lambda) Bottom", 100, -0.1, 0.1);
         IHistogram1D bottrkz0 = aida.histogram1D("z0 Bottom", 100, -4.0, 4.0);
 
