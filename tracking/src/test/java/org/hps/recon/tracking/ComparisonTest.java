@@ -27,7 +27,7 @@ public class ComparisonTest extends ReconTestSkeleton {
     static final double KStestAlpha = 0.05;
     static final double EqualityTolerance = 0.1;
     static final String inputFileName = "";
-    static final String testReferenceFileName = "TestPlots_ap_prompt_new_raw.aida";
+    static final String testReferenceFileName = "hps_005772.0_recon_Rv4657-0-10000_raw.slcio";
 
     private AIDA aida;
 

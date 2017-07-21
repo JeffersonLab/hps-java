@@ -67,6 +67,7 @@ public class TrackingReconstructionPlots extends Driver {
     HelixConverter converter = new HelixConverter(0);
     private static Logger LOGGER = Logger.getLogger(TrackingReconstructionPlots.class.getName());
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
+    private double bfield;
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -80,6 +81,9 @@ public class TrackingReconstructionPlots extends Driver {
             }
         }
         LOGGER.info("Found " + sensors.size() + " SiSensors.");
+
+        Hep3Vector fieldInTracker = TrackUtils.getBField(detector);
+        this.bfield = Math.abs(fieldInTracker.y());
 
         setupPlots();
     }
@@ -210,6 +214,7 @@ public class TrackingReconstructionPlots extends Driver {
     private void doBasicTracks(List<Track> tracks) {
         int ntracksTop = 0;
         int ntracksBot = 0;
+        double momentum_param = 2.99792458e-04;
 
         aida.histogram1D("Tracks per Event", 3, 0, 3).fill(tracks.size());
 
@@ -220,9 +225,10 @@ public class TrackingReconstructionPlots extends Driver {
                 isTop = true;
             }
 
-            aida.histogram1D("Track Momentum (Px)").fill(trk.getTrackStates().get(0).getMomentum()[1]);
-            aida.histogram1D("Track Momentum (Py)").fill(trk.getTrackStates().get(0).getMomentum()[2]);
-            aida.histogram1D("Track Momentum (Pz)").fill(trk.getTrackStates().get(0).getMomentum()[0]);
+            double pt = Math.abs((1 / trk.getTrackStates().get(0).getOmega()) * bfield * momentum_param);
+            aida.histogram1D("Track Momentum (Px)").fill(pt * Math.cos(trk.getTrackStates().get(0).getPhi()));
+            aida.histogram1D("Track Momentum (Py)").fill(pt * Math.sin(trk.getTrackStates().get(0).getPhi()));
+            aida.histogram1D("Track Momentum (Pz)").fill(pt * trk.getTrackStates().get(0).getTanLambda());
             aida.histogram1D("Track Chi2").fill(trk.getChi2());
 
             aida.histogram1D("Hits per Track").fill(trk.getTrackerHits().size());

@@ -26,7 +26,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 public class ReconTestSkeleton extends TestCase {
     protected String testInputFileName = null;
     protected String testOutputFileName = null;
-    protected String testURLBase = null;
+    protected String testURLBase = "http://www.lcsim.org/test/hps-java";
     protected long nEvents = -1;
     protected URL testURL;
     protected FileCache cache;

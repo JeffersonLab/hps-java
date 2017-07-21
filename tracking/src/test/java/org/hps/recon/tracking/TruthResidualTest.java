@@ -27,7 +27,7 @@ import org.lcsim.util.aida.AIDA;
  * @version $id: 2.0 06/04/17$
  */
 public class TruthResidualTest extends ReconTestSkeleton {
-    static final String inputFileName = null;
+    static final String inputFileName = "ap_prompt_raw.slcio";
     private AIDA aida;
     private static final double maxResMean = 1e-4; //0.1um 
     private static final double maxResRMS = 5e-4; //0.5um 
