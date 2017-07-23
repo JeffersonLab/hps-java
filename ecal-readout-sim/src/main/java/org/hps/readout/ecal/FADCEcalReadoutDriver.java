@@ -442,8 +442,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     @Override
     public double readoutDeltaT() {
         double triggerTime = ClockSingleton.getTime() + triggerDelay;
-        int cycle = (int) Math.floor((triggerTime - readoutOffset + ClockSingleton.getDt()) / readoutPeriod);
-        double readoutTime = (cycle - readoutLatency) * readoutPeriod + readoutOffset - ClockSingleton.getDt();
+        int cycle = (int) Math.floor((triggerTime - readoutOffset + ClockSingleton.getStepSize()) / readoutPeriod);
+        double readoutTime = (cycle - readoutLatency) * readoutPeriod + readoutOffset - ClockSingleton.getStepSize();
         return readoutTime;
     }
 

@@ -61,7 +61,7 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
     public void setReadoutCycle(int readoutCycle) {
         this.readoutCycle = readoutCycle;
         if (readoutCycle > 0) {
-            this.readoutPeriod = readoutCycle * ClockSingleton.getDt();
+            this.readoutPeriod = readoutCycle * ClockSingleton.getStepSize();
         }
     }
 
@@ -115,7 +115,7 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
                 readoutCounter++;
             }
         } else {
-            while (ClockSingleton.getTime() - readoutTime() + ClockSingleton.getDt() >= readoutPeriod) {
+            while (ClockSingleton.getTime() - readoutTime() + ClockSingleton.getStepSize() >= readoutPeriod) {
                 if (newHits == null) {
                     newHits = new ArrayList<T>();
                 }

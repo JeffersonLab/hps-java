@@ -11,12 +11,12 @@ import org.lcsim.util.Driver;
  */
 public class ClockDriver extends Driver {
     public void setDt(double dt) {
-        ClockSingleton.setDt(dt);
+        ClockSingleton.setStepSize(dt);
     }
 
     public void process(EventHeader event) {
         ClockSingleton.step();
-        TriggerDriver.resetTrigger();
+        TriggerDriver.resetTriggerBit();
     }
 
     public void startOfData() {
