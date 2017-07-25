@@ -181,6 +181,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         for (final AbstractConditionsObjectConverter converter : this.converters.values()) {
             this.registerConditionsConverter(converter);
         }
+        
+        // Set default global conditions manager.
+        ConditionsManager.setDefaultConditionsManager(this);
     }
 
     /**
