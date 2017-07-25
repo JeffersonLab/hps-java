@@ -3,9 +3,12 @@ package org.hps.recon.tracking;
 import java.io.File;
 //import java.net.URL;
 
+import java.net.URL;
+
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.lcsim.util.cache.FileCache;
 //import org.hps.job.DatabaseConditionsManagerSetup;
 //import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCIODriver;
@@ -25,21 +28,18 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class TrackingReconstructionPlotsTest extends TestCase {
 
-    static final String testInput = null;
-    // static final String testURLBase = "http://www.lcsim.org/test/hps-java";
-    //static final String testFileName = "MCReconTest.slcio";
-    static final String testOutput = "test.slcio";
-    static final String aidaOutput = "TrackingRecoPlots2.aida";
+    static final String testInput = "hps_005772.0_recon_Rv4657-0-10000.slcio";
+    static final String testURLBase = "http://www.lcsim.org/test/hps-java";
+    static final String testOutput = "RecoCopy_" + testInput;
+    static final String aidaOutput = "target/test-output/TestPlots_" + testInput.replaceAll("slcio", "aida");
 
-    private final int nEvents = 9;
+    private final int nEvents = -1;
 
     public void testTrackRecoPlots() throws Exception {
-        // URL testURL = new URL(testURLBase + "/" + testFileName);
-        // FileCache cache = new FileCache();
-        if (testInput == null)
-            return;
-        File lcioInputFile = new File("target/test-output/" + testInput);
-        lcioInputFile.getParentFile().mkdirs();
+        URL testURL = new URL(testURLBase + "/" + testInput);
+        FileCache cache = new FileCache();
+        File lcioInputFile = cache.getCachedFile(testURL);
+
         File outputFile = new TestOutputFile(testOutput);
 
         DatabaseConditionsManager.getInstance();

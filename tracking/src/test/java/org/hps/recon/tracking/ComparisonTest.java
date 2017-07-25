@@ -8,13 +8,13 @@ import hep.aida.IHistogram1D;
 import hep.aida.ITree;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.hps.util.CompareHistograms;
 import org.lcsim.util.aida.AIDA;
+import org.lcsim.util.cache.FileCache;
 
 /**
  * Test class to check a set of histograms against a reference set.
@@ -25,19 +25,16 @@ public class ComparisonTest extends ReconTestSkeleton {
     static final List<String> histograms = Arrays.asList("Tracks per Event", "Hits per Track");
     static final double TtestAlpha = 0.05;
     static final double KStestAlpha = 0.05;
-    static final double EqualityTolerance = 0.1;
-    static final String inputFileName = "";
-    static final String testReferenceFileName = "hps_005772.0_recon_Rv4657-0-10000_raw.slcio";
+    static final String inputFileName = "hps_005772.0_recon_Rv4657-0-10000_raw.slcio";
+    static final String testReferenceFileName = "hps_005772-ref.aida";
 
     private AIDA aida;
 
     public void testRecon() throws Exception {
 
-        if (inputFileName == null || testReferenceFileName == null)
-            return;
         testInputFileName = inputFileName;
         aida = AIDA.defaultInstance();
-        String aidaOutputName = "Plots_" + inputFileName.replaceAll("slcio", "aida");
+        String aidaOutputName = "target/test-output/Plots_" + inputFileName.replaceAll("slcio", "aida");
         nEvents = -1;
         testTrackingDriver = new TrackingReconstructionPlots();
         ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputName);
@@ -48,8 +45,10 @@ public class ComparisonTest extends ReconTestSkeleton {
         assertTrue("No events in plots", ntracks.entries() > 0);
         assertTrue("No tracks in plots", ntracks.mean() > 0);
 
+        URL testURL = new URL(testURLBase + "/referencePlots/" + testReferenceFileName);
+        FileCache cache = new FileCache();
         final IAnalysisFactory af = aida.analysisFactory();
-        File refFile = new File(testReferenceFileName);
+        File refFile = cache.getCachedFile(testURL);
         ITree tree_cmpRef = af.createTreeFactory().create(refFile.getAbsolutePath());
 
         for (String histname : histograms) {
@@ -68,12 +67,6 @@ public class ComparisonTest extends ReconTestSkeleton {
                 nullHypoIsRejected = (p_value < KStestAlpha);
                 System.out.printf("%s: %s %s Kolmogorov-Smirnov test (%.1f%s C.L.) with p-value=%.3f\n", ComparisonTest.class.getName(), histname, (nullHypoIsRejected ? "FAILED" : "PASSED"), (1 - KStestAlpha) * 100, "%", p_value);
                 assertTrue("Failed Kolmogorov-Smirnov test (" + (1 - KStestAlpha) * 100 + "% C.L. p-value=" + p_value + ") comparing histogram " + histname, !nullHypoIsRejected);
-            }
-            if (EqualityTolerance > 0) {
-                nullHypoIsRejected = (Math.abs(h_ref.sumAllBinHeights() - h_test.sumAllBinHeights())) > EqualityTolerance;
-                assertTrue("Bin heights do not match within tolerance for histogram " + histname, !nullHypoIsRejected);
-                nullHypoIsRejected = (Math.abs(h_ref.mean() - h_test.mean())) > EqualityTolerance;
-                assertTrue("Means do not match within tolerance for histogram " + histname, !nullHypoIsRejected);
             }
         }
     }

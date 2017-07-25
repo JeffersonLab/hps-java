@@ -24,8 +24,8 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 
 public class ReconTestSkeleton extends TestCase {
-    protected String testInputFileName = null;
-    protected String testOutputFileName = null;
+    protected String testInputFileName = "ap_prompt_raw.slcio";
+    protected String testOutputFileName = "RecoTest_" + testInputFileName;
     protected String testURLBase = "http://www.lcsim.org/test/hps-java";
     protected long nEvents = -1;
     protected URL testURL;
@@ -33,10 +33,7 @@ public class ReconTestSkeleton extends TestCase {
     protected Driver testTrackingDriver = null;
 
     public void testRecon() throws Exception {
-        if (testInputFileName == null)
-            return;
 
-        testOutputFileName = "RecoTest_" + testInputFileName;
         File inputFile = null;
         if (testURLBase == null) {
             inputFile = new File(testInputFileName);

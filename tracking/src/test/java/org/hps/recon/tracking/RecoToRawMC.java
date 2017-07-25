@@ -17,23 +17,19 @@ import junit.framework.TestCase;
 
 public class RecoToRawMC extends TestCase {
 
-    protected String testInputFileName = null;
-    protected String testOutputFileName = null;
-    protected String testURLBase = null;
+    protected String testInputFileName = "apsignalv2_displaced_100mm_epsilon-6_HPS-EngRun2015-Nominal-v5-0-fieldmap_3.11-SNAPSHOT_pairs1_V0Skim.slcio";
+    protected String testOutputFileName = "raw_" + testInputFileName;
+    protected String testURLBase = "http://www.lcsim.org/test/hps-java";
     protected long nEvents = -1;
-    protected URL testURL;
-    protected FileCache cache;
 
     public void testClearMC() throws Exception {
-        if (testInputFileName == null)
-            return;
 
         File inputFile = null;
         if (testURLBase == null) {
             inputFile = new File(testInputFileName);
         } else {
             URL testURL = new URL(testURLBase + "/" + testInputFileName);
-            cache = new FileCache();
+            FileCache cache = new FileCache();
             inputFile = cache.getCachedFile(testURL);
         }
 

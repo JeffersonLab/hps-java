@@ -29,17 +29,15 @@ import org.lcsim.util.aida.AIDA;
 public class TruthResidualTest extends ReconTestSkeleton {
     static final String inputFileName = "ap_prompt_raw.slcio";
     private AIDA aida;
-    private static final double maxResMean = 1e-4; //0.1um 
-    private static final double maxResRMS = 5e-4; //0.5um 
+    private static final double maxResMean = 1.0; //in mm 
+    private static final double maxResRMS = 1.0; //in mm 
 
     public void testRecon() throws Exception {
 
-        if (inputFileName == null)
-            return;
         testInputFileName = inputFileName;
         aida = AIDA.defaultInstance();
 
-        String aidaOutputName = "TestResiduals_" + inputFileName.replaceAll("slcio", "aida");
+        String aidaOutputName = "target/test-output/TestResiduals_" + inputFileName.replaceAll("slcio", "aida");
         nEvents = -1;
         testTrackingDriver = new TestResiduals();
         ((TestResiduals) testTrackingDriver).setOutputPlots(aidaOutputName);
@@ -48,12 +46,14 @@ public class TruthResidualTest extends ReconTestSkeleton {
 
         IHistogram1D hx1 = aida.histogram1D("dres_truthsimhit_layer1_x");
         if (hx1 != null && hx1.entries() > 10) {
+            System.out.printf("Layer 1 x truth hit residual has mean %f , RMS %f \n", hx1.mean(), hx1.rms());
             assertTrue("Mean of layer 1 x truth hit residual is not zero " + hx1.mean(), Math.abs(hx1.mean()) < maxResMean);
             assertTrue("RMS of layer 1 x truth hit residual is not zero" + hx1.rms(), Math.abs(hx1.rms()) < maxResRMS);
         }
 
         IHistogram1D hy1 = aida.histogram1D("dres_truthsimhit_layer1_y");
         if (hy1 != null && hy1.entries() > 10) {
+            System.out.printf("Layer 1 y truth hit residual has mean %f , RMS %f \n", hy1.mean(), hy1.rms());
             assertTrue("Mean of layer 1 y truth hit residual is not zero " + hy1.mean(), Math.abs(hy1.mean()) < maxResMean);
             assertTrue("RMS of layer 1 y truth hit residual is not zero" + hy1.rms(), Math.abs(hy1.rms()) < maxResRMS);
         }

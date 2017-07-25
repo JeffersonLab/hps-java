@@ -11,16 +11,15 @@ import org.lcsim.util.aida.AIDA;
  */
 public class TrackReconWithPlotsTest extends ReconTestSkeleton {
 
-    static final String inputFileName = null;
+    static final String inputFileName = "ap_prompt_raw.slcio";
     private AIDA aida;
 
     @Override
     public void testRecon() throws Exception {
-        if (inputFileName == null)
-            return;
+
         testInputFileName = inputFileName;
         aida = AIDA.defaultInstance();
-        String aidaOutputName = "TestPlots_" + inputFileName.replaceAll("slcio", "aida");
+        String aidaOutputName = "target/test-output/TestPlots_" + inputFileName.replaceAll("slcio", "aida");
         nEvents = -1;
         testTrackingDriver = new TrackingReconstructionPlots();
         ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputName);
