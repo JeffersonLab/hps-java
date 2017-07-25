@@ -13,8 +13,11 @@
     <dependency>
       <groupId>org.hps</groupId>
       <artifactId>hps-distribution</artifactId>
-      <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>    
     <dependency>
       <groupId>org.hps</groupId>
       <artifactId>hps-test-data</artifactId>
