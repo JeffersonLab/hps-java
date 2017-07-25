@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
 import org.lcsim.conditions.ConditionsListener;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.job.DefaultConditionsSetup;
 
 /**
@@ -25,7 +24,7 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
     
     public DatabaseConditionsManagerSetup() {        
         manager = new DatabaseConditionsManager();
-        ConditionsManager.setDefaultConditionsManager(manager);
+        //ConditionsManager.setDefaultConditionsManager(manager);
     }
     
     /**
@@ -56,9 +55,6 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
     public void configure() {
 
         LOGGER.info("configuring conditions system");
-
-        // Initialize the db conditions manager.
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         
         // Add class that will setup SVT detector with conditions data.
         manager.addConditionsListener(new SvtDetectorSetup());
