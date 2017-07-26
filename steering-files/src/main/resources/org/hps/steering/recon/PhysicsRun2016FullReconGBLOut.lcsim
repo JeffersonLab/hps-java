@@ -7,6 +7,7 @@
       @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
     -->
     <execute>
+        <driver name="EventFlagFilter"/>
         <!--RF driver-->
         <driver name="RfFitter"/>
  
@@ -61,6 +62,9 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
+        <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter">
+            <flagNames>svt_bias_good svt_burstmode_noise_good svt_event_header_good svt_position_good</flagNames>
+        </driver>
         
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
@@ -133,7 +137,7 @@
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
-            <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
+            <trackCollectionNames>GBLTracks</trackCollectionNames>
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
