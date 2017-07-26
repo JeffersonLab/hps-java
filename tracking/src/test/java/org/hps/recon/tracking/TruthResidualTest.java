@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.recon.tracking;
 
 import hep.aida.IHistogram1D;
@@ -24,7 +21,6 @@ import org.lcsim.util.aida.AIDA;
  * Test class to check truth particle and propagated position.
  * @author phansson <phansson@slac.stanford.edu>
  * @author mdiamond <mdiamond@slac.stanford.edu>
- * @version $id: 2.0 06/04/17$
  */
 public class TruthResidualTest extends ReconTestSkeleton {
     static final String inputFileName = "ap_prompt_raw.slcio";

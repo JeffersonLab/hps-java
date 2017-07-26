@@ -7,7 +7,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Test class for raw->reco LCIO + producing histograms.
  * @author mdiamond <mdiamond@slac.stanford.edu>
- * @version $id: 2.0 06/04/17$
  */
 public class TrackReconWithPlotsTest extends ReconTestSkeleton {
 

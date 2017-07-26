@@ -22,9 +22,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 /**
  * Test class to create set of histograms (aida/root) from reco LCIO.
  * 
- * @author Miriam Diamond <mdiamond@slac.stanford.edu>
- * @version $id: v1 05/30/2017$
- * 
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu> 
  */
 public class TrackingReconstructionPlotsTest extends TestCase {
 

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.recon.tracking;
 
 import hep.aida.IAnalysisFactory;
@@ -19,8 +16,8 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Test class to check a set of histograms against a reference set.
+ * 
  * @author mdiamond <mdiamond@slac.stanford.edu>
- * @version $id: 1.0 06/04/17$
  */
 public class ComparisonTest extends ReconTestSkeleton {
     static final List<String> histograms = Arrays.asList("Tracks per Event", "Hits per Track");

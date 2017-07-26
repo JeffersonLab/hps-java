@@ -20,9 +20,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * Assign any driver to testTrackingDriver for tests on the reco LCIO, if desired
  *
  * @author mdiamond <mdiamond@slac.stanford.edu>
- * @version $id: 1.0 06/04/17$
  */
-
 public class ReconTestSkeleton extends TestCase {
     protected String testInputFileName = "ap_prompt_raw.slcio";
     protected String testOutputFileName = "RecoTest_" + testInputFileName;
