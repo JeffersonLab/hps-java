@@ -69,12 +69,7 @@ final class LoadCommand extends AbstractCommand {
             throw new IllegalArgumentException("Missing table name.");
         }
 
-        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-
-        boolean openedConnection = false;
-        if (!conditionsManager.isConnected()) {
-            openedConnection = conditionsManager.openConnection();
-        }
+        final DatabaseConditionsManager conditionsManager = this.getManager();
 
         String description = null;
         if (commandLine.hasOption("d")) {
@@ -115,8 +110,6 @@ final class LoadCommand extends AbstractCommand {
             throw new RuntimeException("Error getting collection ID.", e);
         }
 
-        conditionsManager.closeConnection(openedConnection);
-
-        LOGGER.info("Collection was loaded successfully!");
+        LOGGER.info("Collection was loaded successfully!");        
     }
 }

@@ -235,7 +235,7 @@ final class PrintCommand extends AbstractCommand {
      */
     private void printConditionsRecords(final Set<String> conditionsKeys) {
 
-        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        final DatabaseConditionsManager conditionsManager = this.getManager();
 
         final StringBuffer sb = new StringBuffer();
         for (final String conditionsKey : conditionsKeys) {

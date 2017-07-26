@@ -126,11 +126,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private ConditionsConverter ecalConverter;
 
     /**
-     * True if manager is connected to the database.
-     */
-    private boolean isConnected = false;
-
-    /**
      * True if the conditions system has been frozen and will ignore updates after it is initialized.
      */
     private boolean isFrozen = false;
@@ -252,26 +247,16 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         if (this.connection != null) {
             try {
                 if (!this.connection.isClosed()) {
+                    LOGGER.info("Closing database connection.");
                     this.connection.close();
+                } else {
+                    LOGGER.warning("Database connection was already closed!");
                 }
             } catch (final SQLException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
         this.connection = null;
-        this.isConnected = false;
-    }
-
-    /**
-     * Close the database connection but only if there was a connection opened based on the flag. Otherwise, it should
-     * be left open. Used in conjunction with return value of {@link #openConnection()}.
-     *
-     * @param connectionOpened <code>true</code> to close the connection; <code>false</code> to leave it open
-     */
-    public synchronized void closeConnection(final boolean connectionOpened) {
-        if (connectionOpened) {
-            this.closeConnection();
-        }
     }
 
     /**
@@ -347,7 +332,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the set of available conditions tags
      */
     public Set<String> getAvailableTags() {
-        final boolean openedConnection = this.openConnection();
         final Set<String> tags = new LinkedHashSet<String>();
         final ResultSet rs = this
                 .selectQuery("select distinct(tag) from conditions_tags where tag is not null order by tag");
@@ -370,7 +354,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         sb.setLength(sb.length() - 1);
         LOGGER.fine(sb.toString());
-        this.closeConnection(openedConnection);
         return tags;
     }
 
@@ -387,7 +370,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         final String caller = Thread.currentThread().getStackTrace()[2].getClassName();
         final String log = "created by " + System.getProperty("user.name") + " using "
                 + caller.substring(caller.lastIndexOf('.') + 1);
-        final boolean opened = this.openConnection();
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         int collectionId = -1;
@@ -413,7 +395,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             if (statement != null) {
                 statement.close();
             }
-            this.closeConnection(opened);
         }
         collection.setCollectionId(collectionId);
         return collectionId;
@@ -476,9 +457,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the JDBC connection
      */
     public Connection getConnection() {
-        if (!this.isConnected()) {
-            this.openConnection();
-        }
+        this.openConnection();
         return this.connection;
     }
 
@@ -517,15 +496,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public boolean hasConditionsRecord(final String name) {
         return this.findConditionsRecords(name).size() != 0;
-    }
-
-    /**
-     * Check if connected to the database.
-     *
-     * @return <code>true</code> if connected
-     */
-    public boolean isConnected() {
-        return this.isConnected;
     }
 
     /**
@@ -607,30 +577,28 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      *
      * @return <code>true</code> if a connection was opened; <code>false</code> if using an existing connection.
      */
-    public synchronized boolean openConnection() {
-        boolean openedConnection = false;
-        if (!this.isConnected) {
-            // Do the connection parameters need to be figured out automatically?
-            if (this.connectionParameters == null) {
-                // Setup the default read-only connection, which will choose a SLAC or JLab database.
-                this.connectionParameters = ConnectionParameters.fromResource(CONNECTION_RESOURCE);
+    public synchronized void openConnection() {
+        try {
+            if (this.connection == null || this.connection.isClosed()) {
+                // Do the connection parameters need to be figured out automatically?
+                if (this.connectionParameters == null) {
+                    // Setup the default read-only connection, which will choose a SLAC or JLab database.
+                    this.connectionParameters = ConnectionParameters.fromResource(CONNECTION_RESOURCE);
+                }
+
+                // Print connection info to the log.
+                LOGGER.info("Opening connection ... " + '\n' + "connection: "
+                        + this.connectionParameters.getConnectionString() + '\n' + "host: "
+                        + this.connectionParameters.getHostname() + '\n' + "port: "
+                        + this.connectionParameters.getPort() + '\n' + "user: " + this.connectionParameters.getUser()
+                        + '\n' + "database: " + this.connectionParameters.getDatabase());
+
+                // Create the connection using the parameters.
+                this.connection = this.connectionParameters.createConnection();
             }
-
-            // Print connection info to the log.
-            LOGGER.info("Opening connection ... " + '\n' + "connection: "
-                    + this.connectionParameters.getConnectionString() + '\n' + "host: "
-                    + this.connectionParameters.getHostname() + '\n' + "port: "
-                    + this.connectionParameters.getPort() + '\n' + "user: " + this.connectionParameters.getUser()
-                    + '\n' + "database: " + this.connectionParameters.getDatabase());
-
-            // Create the connection using the parameters.
-            this.connection = this.connectionParameters.createConnection();
-            this.isConnected = true;
-            openedConnection = true;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-
-        // Flag to indicate whether an existing connection was used or not.
-        return openedConnection;
     }
 
     /**
@@ -672,7 +640,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         ResultSet result = null;
         Statement statement = null;
         try {
-            statement = this.connection.createStatement();
+            statement = getConnection().createStatement();
             result = statement.executeQuery(query);
         } catch (final SQLException x) {
             throw new RuntimeException("Error in query: " + query, x);

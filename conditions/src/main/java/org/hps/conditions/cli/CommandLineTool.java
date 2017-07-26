@@ -156,6 +156,7 @@ public final class CommandLineTool {
 
             // Execute the sub-command.
             command.execute(commandArguments);
+            command.cleanup();
         } catch (final Exception e) {
             e.printStackTrace();
             System.exit(1);
