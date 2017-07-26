@@ -501,6 +501,7 @@
             type="FieldMap3D"
             name="HPSDipoleFieldMap3D" 
             filename="fieldmap/418acm2_10kg_corrected_unfolded_scaled_0.9979.dat" 
+            url="https://raw.githubusercontent.com/JeffersonLab/hps-fieldmaps/master/418acm2_10kg_corrected_unfolded_scaled_0.9979.tar.gz"
             xoffset="2.117*cm"
             yoffset="0.0*cm"
             zoffset="45.72*cm"
