@@ -92,9 +92,10 @@ public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
 
         for (int istrip = 0; istrip < signals.size(); istrip++) {
             double signal = signals.get(istrip);
-
-            total_weight += _useWeights ? signal : 1;
-            position = VecOp.add(position, VecOp.mult(signal, positions.get(istrip)));
+            
+            double weight = _useWeights ? signal : 1;
+            total_weight += weight;
+            position = VecOp.add(position, VecOp.mult(weight, positions.get(istrip)));
             /*if (_debug) {
                 System.out.println(this.getClass().getSimpleName() + "strip " + istrip + ": signal " + signal + " position " + positions.get(istrip) + " -> total_position " + position.toString() + " ( total charge " + total_charge + ")");
             }*/
