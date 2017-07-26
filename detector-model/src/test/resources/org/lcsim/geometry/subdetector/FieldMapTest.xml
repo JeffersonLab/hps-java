@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-EngRun2015-Nominal-v3-5-1-fieldmap">
-        <comment>HPS detector for 2015 Engineering Run with tracker fully open
-                 this detector uses the corrected fieldmap scaled to -0.24T for 1.056 GeV 
-                 running including SVT mechanical survey.  The ECal top is shifted up 2.7 mm
-                 from nominal and the bottom is shifted down 0.9 mm from nominal.
-                 SVT alignment: 
-                 1) start from v3-4-fieldmap
-                 2) L2-5-HOLE_tu from 5772 and 5784 straight throughs
-                 
-        </comment>
+    <info name="FieldMapTest">
+        <comment>copied from HPS-EngRun2015-Nominal-v5-fieldmap</comment>
+        
     </info>
 
     <define>
@@ -91,46 +84,6 @@
         <constant name="z02t" value="0+142.5+3.685" />
         <constant name="z01b" value="0+157.5-3.685" />
         <constant name="z02b" value="0+157.5+3.685" />
-
-        <!-- Global Millepede tweak parameters (survey constraints)-->
-        <!--
-        <constant name="dOmega_top" value="1.56e-5" />
-        <constant name="dLambda_top" value="0.16e-3" />
-        <constant name="dPhi_top" value="6.87e-3" />
-        <constant name="dD0_top" value="-0.72" />
-        <constant name="dZ0_top" value="-0.13" />
-        <constant name="dOmega_bot" value="2.32e-5" />
-        <constant name="dLambda_bot" value="-0.06e-3" />
-        <constant name="dPhi_bot" value="17.92e-3" />
-        <constant name="dD0_bot" value="-6.71" />
-        <constant name="dZ0_bot" value="0.04" />
-                                -->
-
-        <!-- Global Millepede tweak parameters (mixed constraints: FEE momentum set at 1.05 GeV, top and bottom must agree on d0 and z0)-->
-        <constant name="dOmega_top" value="4e-06" />
-        <constant name="dLambda_top" value="0.000237368375145" />
-        <constant name="dPhi_top" value="0.000581084829307" />
-        <constant name="dD0_top" value="0.622163643926" />
-        <constant name="dZ0_top" value="-0.183211761644" />
-        <constant name="dOmega_bot" value="2.5e-05" />
-        <constant name="dLambda_bot" value="-0.000181541707685" />
-        <constant name="dPhi_bot" value="0.0171848562935" />
-        <constant name="dD0_bot" value="-5.87783635607" />
-        <constant name="dZ0_bot" value="0.116788238356" />
-        
-        <!-- Global Millepede tweak parameters (external constraints)-->
-        <!--
-        <constant name="dOmega_top" value="0.1e-5" />
-        <constant name="dLambda_top" value="0.5e-3" />
-        <constant name="dPhi_top" value="1.5e-3" />
-        <constant name="dD0_top" value="0.8" />
-        <constant name="dZ0_top" value="-0.15" />
-        <constant name="dOmega_bot" value="2.4e-5" />
-        <constant name="dLambda_bot" value="1.5e-3" />
-        <constant name="dPhi_bot" value="17e-3" />
-        <constant name="dD0_bot" value="-5.6" />
-        <constant name="dZ0_bot" value="0.2" />
-                                -->
 
     </define>
     
@@ -533,24 +486,24 @@
         <millepede_constants>
         
             <!-- top half-module translations -->
-            <millepede_constant name="11101" value="0.142557 + (dZ0_top + 100.0*dLambda_top) + 0.028963" />
-            <millepede_constant name="11102" value="-0.108300 - (dZ0_top + 100.0*dLambda_top)/cos(SA1) - (dD0_top + 100.0*dPhi_top - 0.5*100.0*100.0*dOmega_top)*sin(SA1) + -0.037240" />
-            <millepede_constant name="11103" value="0.129410 + (dZ0_top + 200.0*dLambda_top) + -0.001363 + 0.019700 + 0.006266" />
-            <millepede_constant name="11104" value="-0.071933 - (dZ0_top + 200.0*dLambda_top)/cos(SA1) - (dD0_top + 200.0*dPhi_top - 0.5*200.0*200.0*dOmega_top)*sin(SA1) + 0.000428 + -0.023924 + -0.008418" />
-            <millepede_constant name="11105" value="0.111141 + (dZ0_top + 300.0*dLambda_top) + 0.000531 + 0.005292 + 0.014284" />
-            <millepede_constant name="11106" value="-0.048276 - (dZ0_top + 300.0*dLambda_top)/cos(SA1) - (dD0_top + 300.0*dPhi_top - 0.5*300.0*300.0*dOmega_top)*sin(SA1) + 0.000912 + -0.006989 + -0.017678" />
-            <millepede_constant name="11107" value="-0.000909 + (dZ0_top + 500.0*dLambda_top) + -0.008321 + 0.001996 + 0.033971" />
-            <millepede_constant name="11108" value="0.001063 - (dZ0_top + 500.0*dLambda_top)/cos(SA2) - (dD0_top + 500.0*dPhi_top - 0.5*500.0*500.0*dOmega_top)*sin(SA2) + 0.008200 + -0.001223 + -0.024055" />
-            <millepede_constant name="11109" value="0.009966 - (dZ0_top + 500.0*dLambda_top) + -0.003832 + 0.007732" />
-            <millepede_constant name="11110" value="-0.010293 + (dZ0_top + 500.0*dLambda_top)/cos(SA2) + (dD0_top + 500.0*dPhi_top - 0.5*500.0*500.0*dOmega_top)*sin(SA2) + 0.001752 + -0.005325" />
-            <millepede_constant name="11111" value="-0.016174 + (dZ0_top + 700.0*dLambda_top) + 0.000512 + 0.002904 + 0.024290" />
-            <millepede_constant name="11112" value="0.013722 - (dZ0_top + 700.0*dLambda_top)/cos(SA2) - (dD0_top + 700.0*dPhi_top - 0.5*700.0*700.0*dOmega_top)*sin(SA2) + -0.001124 + -0.002256 + -0.018641" />
-            <millepede_constant name="11113" value="-0.001454 - (dZ0_top + 700.0*dLambda_top) + -0.006682 + 0.002709" />
-            <millepede_constant name="11114" value="-0.000033 + (dZ0_top + 700.0*dLambda_top)/cos(SA2) + (dD0_top + 700.0*dPhi_top - 0.5*700.0*700.0*dOmega_top)*sin(SA2) + 0.009706 + -0.004319" />
-            <millepede_constant name="11115" value="0.008125 + (dZ0_top + 900.0*dLambda_top)" />
-            <millepede_constant name="11116" value="-0.012739 - (dZ0_top + 900.0*dLambda_top)/cos(SA2) - (dD0_top + 900.0*dPhi_top - 0.5*900.0*900.0*dOmega_top)*sin(SA2)" />
-            <millepede_constant name="11117" value="-0.051231 - (dZ0_top + 900.0*dLambda_top)" />
-            <millepede_constant name="11118" value="0.060625 + (dZ0_top + 900.0*dLambda_top)/cos(SA2) + (dD0_top + 900.0*dPhi_top - 0.5*900.0*900.0*dOmega_top)*sin(SA2)" />
+            <millepede_constant name="11101" value="0.0" />
+            <millepede_constant name="11102" value="0.0" />
+            <millepede_constant name="11103" value="0.0 + 0.016660" />
+            <millepede_constant name="11104" value="0.0 + 0.004503" />
+            <millepede_constant name="11105" value="0.0 + 0.028954" />
+            <millepede_constant name="11106" value="0.0 + 0.004099" />
+            <millepede_constant name="11107" value="0.0 + -0.035331" />
+            <millepede_constant name="11108" value="0.0 + 0.029579" />
+            <millepede_constant name="11109" value="0.0" />
+            <millepede_constant name="11110" value="0.0" />
+            <millepede_constant name="11111" value="0.0 + -0.021893" />
+            <millepede_constant name="11112" value="0.0 + 0.013775" />
+            <millepede_constant name="11113" value="0.0" />
+            <millepede_constant name="11114" value="0.0" />
+            <millepede_constant name="11115" value="0.0" />
+            <millepede_constant name="11116" value="0.0" />
+            <millepede_constant name="11117" value="0.0" />
+            <millepede_constant name="11118" value="0.0" />
 
             <millepede_constant name="11201" value="0.0" />
             <millepede_constant name="11202" value="0.0" />
@@ -633,16 +586,16 @@
 
             <millepede_constant name="12301" value="0.0" />
             <millepede_constant name="12302" value="0.0" />
-            <millepede_constant name="12303" value="0.0" />
-            <millepede_constant name="12304" value="0.0" />
-            <millepede_constant name="12305" value="0.0" />
-            <millepede_constant name="12306" value="0.0" />
-            <millepede_constant name="12307" value="0.0" />
-            <millepede_constant name="12308" value="0.0" />
+            <millepede_constant name="12303" value="0.0 - 0.000128" />
+            <millepede_constant name="12304" value="0.0 - 0.000153" />
+            <millepede_constant name="12305" value="0.0 - 0.000330" />
+            <millepede_constant name="12306" value="0.0 - 0.000223" />
+            <millepede_constant name="12307" value="0.0 - -0.000193" />
+            <millepede_constant name="12308" value="0.0 - 0.000126" />
             <millepede_constant name="12309" value="0.0" />
             <millepede_constant name="12310" value="0.0" />
-            <millepede_constant name="12311" value="0.0" />
-            <millepede_constant name="12312" value="0.0" />
+            <millepede_constant name="12311" value="0.0 - -0.000072" />
+            <millepede_constant name="12312" value="0.0 - 0.000180" />
             <millepede_constant name="12313" value="0.0" />
             <millepede_constant name="12314" value="0.0" />
             <millepede_constant name="12315" value="0.0" />
@@ -652,24 +605,24 @@
             
             <!-- bottom half-module translations -->
             
-            <millepede_constant name="21101" value="-0.530096 + (dZ0_bot + 100.0*dLambda_bot)/cos(SA1) - (dD0_bot + 100.0*dPhi_bot - 0.5*100.0*100.0*dOmega_bot)*sin(SA1) + -0.010057" />
-            <millepede_constant name="21102" value="0.035614 - (dZ0_bot + 100.0*dLambda_bot) + 0.013924" />
-            <millepede_constant name="21103" value="-0.381392 + (dZ0_bot + 200.0*dLambda_bot)/cos(SA1) - (dD0_bot + 200.0*dPhi_bot - 0.5*200.0*200.0*dOmega_bot)*sin(SA1) + -0.000995 + -0.011753 + 0.000265" />
-            <millepede_constant name="21104" value="0.020565 - (dZ0_bot + 200.0*dLambda_bot) + 0.002099 + 0.015244 + -0.002844" />
-            <millepede_constant name="21105" value="-0.277673 + (dZ0_bot + 300.0*dLambda_bot)/cos(SA1) - (dD0_bot + 300.0*dPhi_bot - 0.5*300.0*300.0*dOmega_bot)*sin(SA1) + -0.001179 + -0.004355 + -0.002469" />
-            <millepede_constant name="21106" value="0.023975 - (dZ0_bot + 300.0*dLambda_bot) + 0.003472 + 0.007877 + 0.000664" />
-            <millepede_constant name="21107" value="-0.006136 + (dZ0_bot + 500.0*dLambda_bot)/cos(SA2) - (dD0_bot + 500.0*dPhi_bot - 0.5*500.0*500.0*dOmega_bot)*sin(SA2) + 0.003923 + 0.000038 + -0.008193" />
-            <millepede_constant name="21108" value="0.007321 - (dZ0_bot + 500.0*dLambda_bot) + -0.001711 + -0.000529 + -0.008375" />
-            <millepede_constant name="21109" value="0.005669 - (dZ0_bot + 500.0*dLambda_bot)/cos(SA2) + (dD0_bot + 500.0*dPhi_bot - 0.5*500.0*500.0*dOmega_bot)*sin(SA2) + 0.006111 + -0.010839" />
-            <millepede_constant name="21110" value="0.000505 + (dZ0_bot + 500.0*dLambda_bot) + -0.010799 + 0.009334" />
-            <millepede_constant name="21111" value="-0.005321 + (dZ0_bot + 700.0*dLambda_bot)/cos(SA2) - (dD0_bot + 700.0*dPhi_bot - 0.5*700.0*700.0*dOmega_bot)*sin(SA2) + 0.002696 + 0.004622 + -0.007801" />
-            <millepede_constant name="21112" value="0.009127 - (dZ0_bot + 700.0*dLambda_bot) + -0.006276 + -0.006161 + -0.001122" />
-            <millepede_constant name="21113" value="0.014415 - (dZ0_bot + 700.0*dLambda_bot)/cos(SA2) + (dD0_bot + 700.0*dPhi_bot - 0.5*700.0*700.0*dOmega_bot)*sin(SA2) + -0.011279 + -0.013215" />
-            <millepede_constant name="21114" value="-0.016824 + (dZ0_bot + 700.0*dLambda_bot) + 0.013850 + 0.011709" />
-            <millepede_constant name="21115" value="0.015446 + (dZ0_bot + 900.0*dLambda_bot)/cos(SA2) - (dD0_bot + 900.0*dPhi_bot - 0.5*900.0*900.0*dOmega_bot)*sin(SA2)" />
-            <millepede_constant name="21116" value="-0.022457 - (dZ0_bot + 900.0*dLambda_bot)" />
-            <millepede_constant name="21117" value="-0.036677 - (dZ0_bot + 900.0*dLambda_bot)/cos(SA2) + (dD0_bot + 900.0*dPhi_bot - 0.5*900.0*900.0*dOmega_bot)*sin(SA2)" />
-            <millepede_constant name="21118" value="0.036675 + (dZ0_bot + 900.0*dLambda_bot)" />
+            <millepede_constant name="21101" value="0.0" />
+            <millepede_constant name="21102" value="0.0" />
+            <millepede_constant name="21103" value="0.0 + -0.021380" />
+            <millepede_constant name="21104" value="0.0 + 0.000778" />
+            <millepede_constant name="21105" value="0.0 + -0.060385" />
+            <millepede_constant name="21106" value="0.0 + 0.017317" />
+            <millepede_constant name="21107" value="0.0 + 0.026973" />
+            <millepede_constant name="21108" value="0.0 + -0.020510" />
+            <millepede_constant name="21109" value="0.0" />
+            <millepede_constant name="21110" value="0.0" />
+            <millepede_constant name="21111" value="0.0 + -0.019582" />
+            <millepede_constant name="21112" value="0.0 + -0.000345" />
+            <millepede_constant name="21113" value="0.0" />
+            <millepede_constant name="21114" value="0.0" />
+            <millepede_constant name="21115" value="0.0" />
+            <millepede_constant name="21116" value="0.0" />
+            <millepede_constant name="21117" value="0.0" />
+            <millepede_constant name="21118" value="0.0" />
             
             <millepede_constant name="21201" value="0.0" />
             <millepede_constant name="21202" value="0.0" />
@@ -751,16 +704,16 @@
 
             <millepede_constant name="22301" value="0.0" />
             <millepede_constant name="22302" value="0.0" />
-            <millepede_constant name="22303" value="0.0" />
-            <millepede_constant name="22304" value="0.0" />
-            <millepede_constant name="22305" value="0.0" />
-            <millepede_constant name="22306" value="0.0" />
-            <millepede_constant name="22307" value="0.0" />
-            <millepede_constant name="22308" value="0.0" />
+            <millepede_constant name="22303" value="0.0 - -0.000354" />
+            <millepede_constant name="22304" value="0.0 - 0.000142" />
+            <millepede_constant name="22305" value="0.0 - -0.000942" />
+            <millepede_constant name="22306" value="0.0 - 0.000346" />
+            <millepede_constant name="22307" value="0.0 - -0.000334" />
+            <millepede_constant name="22308" value="0.0 - 0.000474" />
             <millepede_constant name="22309" value="0.0" />
             <millepede_constant name="22310" value="0.0" />
-            <millepede_constant name="22311" value="0.0" />
-            <millepede_constant name="22312" value="0.0" />
+            <millepede_constant name="22311" value="0.0 - -0.000224" />
+            <millepede_constant name="22312" value="0.0 - 0.000216" />
             <millepede_constant name="22313" value="0.0" />
             <millepede_constant name="22314" value="0.0" />
             <millepede_constant name="22315" value="0.0" />
@@ -861,17 +814,13 @@
     </readouts>
 
     <fields>
-        <field type="FieldMap3D" name="HPSDipoleFieldMap3D" 
-               filename="fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992.dat" 
+        <field type="FieldMap3D" 
+               name="HPSDipoleFieldMap3D" 
+               filename="fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992.dat"
                url="https://raw.githubusercontent.com/JeffersonLab/hps-fieldmaps/master/125acm2_3kg_corrected_unfolded_scaled_0.7992.tar.gz"
                xoffset="2.117*cm" yoffset="0.0*cm" zoffset="45.72*cm" />
     </fields>
 
-<!--    
-    <fields>
-        <field type="BoxDipole" name="AnalyzingDipole" x="dipoleMagnetPositionX" y="0*cm" z="dipoleMagnetPositionZ" dx="dipoleMagnetWidth/2.0" dy="dipoleMagnetHeight/2.0" dz="dipoleMagnetLength/2.0" bx="0.0" by="constBFieldY" bz="0.0" />
-    </fields>
--->
     <includes>
         <gdmlFile file="gdml/ecal_vacuum_flange_complete_v1.gdml" />
         <gdmlFile file="gdml/svt_chamber_v2.gdml" />
