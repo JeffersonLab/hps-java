@@ -25,8 +25,8 @@ public class ComparisonTest extends ReconTestSkeleton {
     static final List<String> histograms = Arrays.asList("Tracks per Event", "Hits per Track");
     static final double TtestAlpha = 0.05;
     static final double KStestAlpha = 0.05;
-    static final String inputFileName = "hps_005772.0_recon_Rv4657-0-10000_raw.slcio";
-    static final String testReferenceFileName = "hps_005772-ref.aida";
+    static final String inputFileName = "ap_prompt_raw.slcio";
+    static final String testReferenceFileName = "ap_prompt-ref.aida";
 
     private AIDA aida;
 
