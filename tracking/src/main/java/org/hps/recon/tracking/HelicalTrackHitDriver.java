@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Set;
 
 import org.hps.recon.tracking.axial.HelicalTrack2DHit;
@@ -83,7 +84,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     private double maxDt = -99; // max time difference between the two hits in a cross
     private double clusterAmplitudeCut = -99; // cluster amplitude cut
     private String _subdetectorName = "Tracker";
-    private final Map<String, String> _stereomap = new HashMap<String, String>();
+    private final Map<String, String> _stereomap = new LinkedHashMap<String, String>();
     private List<SvtStereoLayer> stereoLayers = null;
     private final List<String> _colnames = new ArrayList<String>();
     private boolean _doTransformToTracking = true;
@@ -250,7 +251,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
             if (_debug) {
                 System.out.printf("%s: found %d SiTrackerHits\n", this.getClass().getSimpleName(), hitlist.size());
             }
-            Map<HelicalTrackStrip, SiTrackerHitStrip1D> stripmap = new HashMap<HelicalTrackStrip, SiTrackerHitStrip1D>();
+            Map<HelicalTrackStrip, SiTrackerHitStrip1D> stripmap = new LinkedHashMap<HelicalTrackStrip, SiTrackerHitStrip1D>();
             for (SiTrackerHit hit : hitlist) {
                 if (hit instanceof SiTrackerHitStrip1D) {
 

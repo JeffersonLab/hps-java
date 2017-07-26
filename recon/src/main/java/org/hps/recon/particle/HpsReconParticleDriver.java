@@ -115,9 +115,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
          */
         TARGET_CONSTRAINED
     }
-    
-    
-    private boolean _patchVertexTrackParameters;
+
+    private boolean _patchVertexTrackParameters = true;
 
     /**
      * Processes the track and cluster collections in the event into
@@ -169,8 +168,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                 // Only vertex two particles if at least one strategy found both tracks. Take out this check once we reduce the number of tracks.
                 // This is dumb so I took it out. - Matt Solt
                 /*if ((positron.getType() & electron.getType() & 0x1f) == 0) {
-                    continue;
-                }*/
+                 continue;
+                 }*/
 
                 // Make V0 candidates
                 this.makeV0Candidates(electron, positron);
@@ -251,7 +250,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // TODO: The beam size should come from the conditions database.
         vtxFitter.setBeamSize(beamSize);
         vtxFitter.setBeamPosition(beamPosition);
-        
+
         vtxFitter.setDebug(debug);
 
         // Perform the vertexing based on the specified constraint.
@@ -274,14 +273,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         billiorTracks.add(positron);
 
         // Find and return a vertex based on the tracks.
-        BilliorVertex vtx =  vtxFitter.fitVertex(billiorTracks);
-        
-        // patch the track parameters at the found vertex
-        if(_patchVertexTrackParameters)
-        {
-           patchVertex(vtx); 
-        }
-        
+        BilliorVertex vtx = vtxFitter.fitVertex(billiorTracks);
+
         return vtx;
     }
 
@@ -306,6 +299,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             switch (constraint) {
 
                 case UNCONSTRAINED:
+                    // patch the track parameters at the found vertex
+                    if (_patchVertexTrackParameters) {
+                        patchVertex(vtxFit);
+                    }
                     unconstrainedV0Vertices.add(vtxFit);
                     unconstrainedV0Candidates.add(candidate);
                     break;
@@ -345,6 +342,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             switch (constraint) {
 
                 case UNCONSTRAINED:
+                    // patch the track parameters at the found vertex
+                    if (_patchVertexTrackParameters) {
+                        patchVertex(vtxFit);
+                    }
                     unconstrainedMollerVertices.add(vtxFit);
                     unconstrainedMollerCandidates.add(candidate);
                     break;
@@ -439,28 +440,19 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // Generate and return the billior track.
         return new BilliorTrack(track);
     }
-    
-    public void setPatchVertexTrackParameters(boolean b)
-    {
+
+    public void setPatchVertexTrackParameters(boolean b) {
         _patchVertexTrackParameters = b;
     }
-    
+
     private void patchVertex(BilliorVertex v) {
         ReconstructedParticle rp = v.getAssociatedParticle();
         List<ReconstructedParticle> parts = rp.getParticles();
-        ReconstructedParticle electron = null;
-        ReconstructedParticle positron = null;
-        for (ReconstructedParticle part : parts) {
-            if (part.getCharge() < 0) {
-                electron = part;
-            }
-            if (part.getCharge() > 0) {
-                positron = part;
-            }
-        }
-        //electron
-        Track et = electron.getTracks().get(0);
-        double etrackMom = electron.getMomentum().magnitude();
+        ReconstructedParticle rp1 = parts.get(0);
+        ReconstructedParticle rp2 = parts.get(1);
+        //p1
+        Track et = rp1.getTracks().get(0);
+        double etrackMom = rp1.getMomentum().magnitude();
         HelicalTrackFit ehtf = TrackUtils.getHTF(et);
         // propagate this to the vertex z position...
         // Note that HPS y is lcsim z
@@ -468,9 +460,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         Hep3Vector epointOnTrackAtVtx = HelixUtils.PointOnHelix(ehtf, es);
         Hep3Vector edirOfTrackAtVtx = HelixUtils.Direction(ehtf, es);
         Hep3Vector emomAtVtx = VecOp.mult(etrackMom, VecOp.unit(edirOfTrackAtVtx));
-        //positron
-        Track pt = positron.getTracks().get(0);
-        double ptrackMom = positron.getMomentum().magnitude();
+        //p2
+        Track pt = rp2.getTracks().get(0);
+        double ptrackMom = rp2.getMomentum().magnitude();
         HelicalTrackFit phtf = TrackUtils.getHTF(pt);
         // propagate this to the vertex z position...
         // Note that HPS y is lcsim z
@@ -478,11 +470,11 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         Hep3Vector ppointOnTrackAtVtx = HelixUtils.PointOnHelix(phtf, ps);
         Hep3Vector pdirOfTrackAtVtx = HelixUtils.Direction(phtf, ps);
         Hep3Vector pmomAtVtx = VecOp.mult(ptrackMom, VecOp.unit(pdirOfTrackAtVtx));
-        
-        double mass =  invMass(emomAtVtx, pmomAtVtx);
+
+        double mass = invMass(emomAtVtx, pmomAtVtx);
         v.setVertexTrackParameters(emomAtVtx, pmomAtVtx, mass);
     }
-    
+
     private double invMass(Hep3Vector p1, Hep3Vector p2) {
         double me2 = 0.000511 * 0.000511;
         double esum = sqrt(p1.magnitudeSquared() + me2) + sqrt(p2.magnitudeSquared() + me2);

@@ -8,6 +8,7 @@
     -->
     <execute>
     	<driver name="TriggerFilter"/>
+    	<driver name="EventFlagFilter"/>
         <!--RF driver-->
         <driver name="RfFitter"/>
  
@@ -65,6 +66,9 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
+        <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter">
+            <flagNames>svt_bias_good svt_burstmode_noise_good svt_event_header_good svt_position_good</flagNames>
+        </driver>
         <driver name="TriggerFilter" type="org.hps.recon.filtering.PulserTriggerFilterDriver"/>
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
@@ -137,7 +141,7 @@
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
-            <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
+            <trackCollectionNames>GBLTracks</trackCollectionNames>
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
