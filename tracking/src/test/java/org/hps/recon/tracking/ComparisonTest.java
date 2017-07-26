@@ -12,7 +12,6 @@ import java.util.List;
 import org.hps.util.CompareHistograms;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
-import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Test class to check a set of histograms against a reference set.
