@@ -8,7 +8,6 @@
     -->    
     <execute>    
         <driver name="ConditionsDriver"/>
-        <driver name="EventMarkerDriver" />
         <!--  Readout Simulation -->
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
@@ -21,9 +20,6 @@
         <driver name="CleanupDriver" /> 
     </execute>
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
             <detectorName>${detector}</detectorName>
             <runNumber>${run}</runNumber>
