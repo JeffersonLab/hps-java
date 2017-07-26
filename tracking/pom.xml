@@ -21,7 +21,7 @@
             <exclude>org/hps/recon/tracking/RecoToRaw.java</exclude>
             <exclude>org/hps/recon/tracking/RecoToRawMC.java</exclude>
             <exclude>org/hps/recon/tracking/TrackingReconstructionPlotsTest.java</exclude>
-<exclude>org/hps/recon/tracking/TrackReconWithPlotsTest.java</exclude>
+            <exclude>org/hps/recon/tracking/TrackReconWithPlotsTest.java</exclude>
           </excludes>
         </configuration>
       </plugin>
