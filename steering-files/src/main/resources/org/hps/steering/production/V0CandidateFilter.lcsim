@@ -4,17 +4,11 @@
         <printDriverStatistics>true</printDriverStatistics>
     </control>
     <execute>
-        <driver name="EventMarkerDriver"/>
         <driver name="EventFlagFilter"/>
         <driver name="StripEvent"/>
         <driver name="Writer"/>
     </execute>
     <drivers>
-        <!-- Driver to give some feedback on progress -->
-        <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>
         <!-- Driver to reject "bad" events -->
         <driver name="EventFlagFilter" 
                 type="org.hps.recon.filtering.EventFlagFilter">

@@ -1,7 +1,6 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="EventMarkerDriver"/>     
         <!-- Simple selection cut on raw data. -->            
         <driver name="DualThresholdSignalFitDriver"/>
         <!-- Convert to CalorimeterHit collection. -->
@@ -13,10 +12,6 @@
         <driver name="AidaSaveDriverRoot"/>
     </execute>        
     <drivers>    
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <!-- <eventInterval>500</eventInterval> -->
-            <eventInterval>1</eventInterval>
-        </driver>        
         <driver name="DualThresholdSignalFitDriver" type="org.hps.analysis.ecal.cosmic.DualThresholdSignalFitDriver">
             <tightSignificanceThreshold>4.0</tightSignificanceThreshold>
             <looseSignificanceThreshold>2.5</looseSignificanceThreshold>
