@@ -59,6 +59,8 @@ public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
     private double _fourClusterErr = 1 / 2.;
     private double _fiveClusterErr = 1;
     
+    private boolean _useWeights = true;
+    
     public void setOneClusterErr(double err) {
         _oneClusterErr = err;
     }
@@ -79,16 +81,19 @@ public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
         _fiveClusterErr = err;
     }
     
+    public void setUseWeights(boolean useWeights){
+        _useWeights = useWeights;
+    }
     
     @Override
     public Hep3Vector weightedAveragePosition(List<Double> signals, List<Hep3Vector> positions) {
-        double total_charge = 0;
+        double total_weight = 0;
         Hep3Vector position = new BasicHep3Vector(0, 0, 0);
 
         for (int istrip = 0; istrip < signals.size(); istrip++) {
             double signal = signals.get(istrip);
 
-            total_charge += signal;
+            total_weight += _useWeights ? signal : 1;
             position = VecOp.add(position, VecOp.mult(signal, positions.get(istrip)));
             /*if (_debug) {
                 System.out.println(this.getClass().getSimpleName() + "strip " + istrip + ": signal " + signal + " position " + positions.get(istrip) + " -> total_position " + position.toString() + " ( total charge " + total_charge + ")");
@@ -96,7 +101,7 @@ public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
 
         }
 
-        return VecOp.mult(1 / total_charge, position);
+        return VecOp.mult(1 / total_weight, position);
     }
    
 }
