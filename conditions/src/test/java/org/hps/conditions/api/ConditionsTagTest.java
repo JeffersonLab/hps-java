@@ -92,7 +92,7 @@ public class ConditionsTagTest extends TestCase {
     @Override
     public void setUp() {
         // Configure the conditions system.
-        MANAGER = DatabaseConditionsManager.getInstance();
+        MANAGER = new DatabaseConditionsManager();
     }
     
     /**
