@@ -7,6 +7,10 @@ import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+
 public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
 
     @Override
@@ -74,4 +78,25 @@ public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
     public void setFiveClusterErr(double err) {
         _fiveClusterErr = err;
     }
+    
+    
+    @Override
+    public Hep3Vector weightedAveragePosition(List<Double> signals, List<Hep3Vector> positions) {
+        double total_charge = 0;
+        Hep3Vector position = new BasicHep3Vector(0, 0, 0);
+
+        for (int istrip = 0; istrip < signals.size(); istrip++) {
+            double signal = signals.get(istrip);
+
+            total_charge += signal;
+            position = VecOp.add(position, VecOp.mult(signal, positions.get(istrip)));
+            /*if (_debug) {
+                System.out.println(this.getClass().getSimpleName() + "strip " + istrip + ": signal " + signal + " position " + positions.get(istrip) + " -> total_position " + position.toString() + " ( total charge " + total_charge + ")");
+            }*/
+
+        }
+
+        return VecOp.mult(1 / total_charge, position);
+    }
+   
 }

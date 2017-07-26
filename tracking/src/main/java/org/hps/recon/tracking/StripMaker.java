@@ -1,9 +1,7 @@
 package org.hps.recon.tracking;
 
 import hep.physics.matrix.SymmetricMatrix;
-import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -225,20 +223,9 @@ public class StripMaker {
             System.out.println(this.getClass().getSimpleName() + " Calculate charge weighted mean for " + signals.size() + " signals");
         }
 
-        double total_charge = 0;
-        Hep3Vector position = new BasicHep3Vector(0, 0, 0);
-
-        for (int istrip = 0; istrip < signals.size(); istrip++) {
-            double signal = signals.get(istrip);
-
-            total_charge += signal;
-            position = VecOp.add(position, VecOp.mult(signal, positions.get(istrip)));
-            if (_debug) {
-                System.out.println(this.getClass().getSimpleName() + "strip " + istrip + ": signal " + signal + " position " + positions.get(istrip) + " -> total_position " + position.toString() + " ( total charge " + total_charge + ")");
-            }
-
-        }
-        position = VecOp.mult(1 / total_charge, position);
+        
+        Hep3Vector position = _res_model.weightedAveragePosition(signals, positions);
+        
         if (_debug) {
             System.out.println(this.getClass().getSimpleName() + " charge weighted position " + position.toString() + " (before trans)");
         }
