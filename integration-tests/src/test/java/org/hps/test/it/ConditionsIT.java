@@ -4,17 +4,15 @@ import java.io.File;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.data.test.TestDataUtility;
 import org.hps.evio.EvioToLcio;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 public class ConditionsIT extends TestCase {
-    
-    //private static DatabaseConditionsManager MANAGER = null;
-    
+        
     public void setUp() {
-        //System.out.println("setUp - registering new conditions manager");
-        //MANAGER = new DatabaseConditionsManager();
+        new DatabaseConditionsManager();
     }
     
     public void testEvioToLcioEngRun2015() {
