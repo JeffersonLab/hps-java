@@ -35,7 +35,7 @@ public class ComparisonTest extends ReconTestSkeleton {
         testInputFileName = inputFileName;
         aida = AIDA.defaultInstance();
         String aidaOutputName = "target/test-output/Plots_" + inputFileName.replaceAll("slcio", "aida");
-        nEvents = -1;
+        nEvents = 500;
         testTrackingDriver = new TrackingReconstructionPlots();
         ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputName);
         ((TrackingReconstructionPlots) testTrackingDriver).aida = aida;
