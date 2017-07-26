@@ -15,7 +15,6 @@
         <driver name="EcalRawConverter" />
         <driver name="ReconClusterer" />
         <driver name="CopyCluster" />
-        <driver name="EventMarkerDriver"/>
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -60,9 +59,6 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver> 
         
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 

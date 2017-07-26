@@ -4,16 +4,10 @@
         <printDriverStatistics>true</printDriverStatistics>
     </control>
     <execute>
-        <driver name="EventMarkerDriver"/>
         <driver name="StripEvent"/>
         <driver name="Writer"/>
     </execute>
     <drivers>
-        <!-- Driver to give some feedback on progress -->
-        <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>
         
         <!-- Driver to strip events -->
        <driver name="StripEvent"

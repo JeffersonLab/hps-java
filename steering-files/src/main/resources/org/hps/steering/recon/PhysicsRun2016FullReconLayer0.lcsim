@@ -17,7 +17,6 @@
         <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
         <driver name="CopyCluster" />
-        <driver name="EventMarkerDriver"/>
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -62,9 +61,7 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver> 
+
         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter">
             <flagNames>svt_bias_good svt_burstmode_noise_good svt_event_header_good svt_position_good</flagNames>
         </driver>

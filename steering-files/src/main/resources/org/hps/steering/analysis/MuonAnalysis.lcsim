@@ -4,14 +4,10 @@
       <file>${inputFile}</file>
     </inputFiles>
     <execute>
-        <driver name="EventMarkerDriver" />
         <driver name="MuonAnalysis" />
         <driver name="AidaSaveDriver" />
     </execute>
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
-        </driver>
         <driver name="MuonAnalysis" type="org.hps.analysis.muon.SimpleMuonAnalysis">
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
