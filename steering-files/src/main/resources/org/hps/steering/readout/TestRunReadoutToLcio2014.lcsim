@@ -6,7 +6,6 @@
 <!--
         <driver name="ConditionsDriver"/>   
 -->
-        <driver name="EventMarkerDriver" />
         <driver name="BadChannelFilter" />
         <driver name="EcalReadout" />
         <driver name="EcalConverter" />
@@ -26,9 +25,6 @@
             <freeze>true</freeze>
         </driver>
 -->
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>
         <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" />
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <coincidenceWindow>8</coincidenceWindow>

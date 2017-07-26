@@ -10,7 +10,6 @@
     <execute>
     
         <driver name="ConditionsDriver"/>
-        <driver name="EventMarkerDriver"/>
         <driver name="RfFitter"/>
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRawConverter" />
@@ -68,9 +67,6 @@
             <freeze>true</freeze>
         </driver>
 
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>   
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
              
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">

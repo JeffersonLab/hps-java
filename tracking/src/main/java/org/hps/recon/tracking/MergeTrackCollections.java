@@ -15,7 +15,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Read all track collections in the event, use ambiguity resolver, and put the
@@ -38,7 +37,7 @@ public class MergeTrackCollections extends Driver {
     private AmbiguityResolver ambi;
     // private AcceptanceHelper acc;
 
-    private AIDA aida2;
+    private AIDA aida2 = AIDA.defaultInstance
     private IHistogram1D trackScoresPreAmbi;
     private IHistogram1D trackScoresPostAmbi;
     private IHistogram1D numDuplicateTracks;
@@ -116,7 +115,6 @@ public class MergeTrackCollections extends Driver {
         ambi = new SimpleAmbiguityResolver();
 
         if (doPlots) {
-            aida2 = AIDA.defaultInstance();
             trackScoresPreAmbi = aida2.histogram1D("trackScoresPreAmbi", 200, -100, 100);
             trackScoresPostAmbi = aida2.histogram1D("trackScoresPostAmbi", 200, -100, 100);
             numDuplicateTracks = aida2.histogram1D("numDuplicateTracks", 10, 0, 10);
@@ -134,7 +132,6 @@ public class MergeTrackCollections extends Driver {
     @Override
     public void process(EventHeader event) {
         List<List<Track>> trackCollections;
-        // System.out.println("starting event");
 
         if (inputTrackCollectionName == "") {
             trackCollections = event.get(Track.class);
