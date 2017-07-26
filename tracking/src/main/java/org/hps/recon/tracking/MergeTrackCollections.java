@@ -37,7 +37,7 @@ public class MergeTrackCollections extends Driver {
     private AmbiguityResolver ambi;
     // private AcceptanceHelper acc;
 
-    private AIDA aida2 = AIDA.defaultInstance
+    private AIDA aida2 = AIDA.defaultInstance;
     private IHistogram1D trackScoresPreAmbi;
     private IHistogram1D trackScoresPostAmbi;
     private IHistogram1D numDuplicateTracks;
