@@ -38,7 +38,7 @@ public class TruthResidualTest extends ReconTestSkeleton {
         aida = AIDA.defaultInstance();
 
         String aidaOutputName = "target/test-output/TestResiduals_" + inputFileName.replaceAll("slcio", "aida");
-        nEvents = -1;
+        nEvents = 500;
         testTrackingDriver = new TestResiduals();
         ((TestResiduals) testTrackingDriver).setOutputPlots(aidaOutputName);
         ((TestResiduals) testTrackingDriver).aida = aida;
