@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.recon.tracking.seedtracker;
 
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -6,6 +6,7 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.ILogicalVolume;
@@ -27,6 +28,8 @@ import org.lcsim.geometry.Detector;
  * use of the DetectorGeometry classes from lcsim instead for the model. Something to consider in the future.
  *
  * @author Per Hansson <phansson@slac.stanford.edu>
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
+ * @version $Id: 2.0 07/07/17$
  */
 public class MaterialSupervisor extends MaterialManager {
 

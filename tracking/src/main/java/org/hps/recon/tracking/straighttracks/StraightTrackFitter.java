@@ -8,8 +8,8 @@ package org.hps.recon.tracking.straighttracks;
 
 import java.util.List;
 import java.util.Map;
-import org.hps.recon.tracking.MaterialManager;
-import org.hps.recon.tracking.MultipleScattering;
+import org.hps.recon.tracking.seedtracker.MaterialManager;
+import org.hps.recon.tracking.seedtracker.MultipleScattering;
 import org.hps.recon.tracking.straighttracks.HPSFitter.FitStatus;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
