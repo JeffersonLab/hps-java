@@ -37,7 +37,7 @@ public class MergeTrackCollections extends Driver {
     private AmbiguityResolver ambi;
     // private AcceptanceHelper acc;
 
-    private AIDA aida2 = AIDA.defaultInstance
+    private AIDA aida2 = AIDA.defaultInstance();
     private IHistogram1D trackScoresPreAmbi;
     private IHistogram1D trackScoresPostAmbi;
     private IHistogram1D numDuplicateTracks;
@@ -180,7 +180,6 @@ public class MergeTrackCollections extends Driver {
         if (removeCollections) {
             for (List<Track> tracklist : trackCollections) {
                 event.remove(event.getMetaData(tracklist).getName());
-
             }
         }
 
@@ -198,7 +197,7 @@ public class MergeTrackCollections extends Driver {
     protected void endOfData() {
         super.endOfData();
         if (doPlots) {
-            File outputFile2 = new TestOutputFile("mergingPlots.aida");
+            File outputFile2 = new File("mergingPlots.aida");
             outputFile2.getParentFile().mkdirs();
             try {
                 aida2.saveAs(outputFile2);

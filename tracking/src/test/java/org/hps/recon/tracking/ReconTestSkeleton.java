@@ -22,6 +22,10 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * @author mdiamond <mdiamond@slac.stanford.edu>
  */
 public class ReconTestSkeleton extends TestCase {
+
+    static {
+        System.getProperties().setProperty("hep.aida.IAnalysisFactory", "hep.aida.ref.BatchAnalysisFactory");
+    }
     protected String testInputFileName = "ap_prompt_raw.slcio";
     protected String testOutputFileName = "RecoTest_" + testInputFileName;
     protected String testURLBase = "http://www.lcsim.org/test/hps-java";
