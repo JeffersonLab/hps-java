@@ -497,8 +497,7 @@ public class HPSTracker2014GeometryDefinition extends
         }
 
         protected double getLength() {
-            System.out.println("UChannelL13 getLength");
-
+            //System.out.println("UChannelL13 getLength");
             return length;
         }
 
@@ -535,7 +534,7 @@ public class HPSTracker2014GeometryDefinition extends
         }
 
         protected void setCenter() {
-            System.out.println("UChannelL13Bottom setCenter");
+            //System.out.println("UChannelL13Bottom setCenter");
             final double x = 0.0;
             final double y = cone_to_edge_of_plate_y - length / 2.0;
             final double z = -side_plate_cone_y - UChannelL13Plate.height
@@ -543,8 +542,8 @@ public class HPSTracker2014GeometryDefinition extends
             setCenter(x, y, z);
         }
 
-        protected void setPos() {
-            System.out.println("UChannelL13Bottom setPos");
+        protected void setPos() {            
+            //System.out.println("UChannelL13Bottom setPos");
             ballPos = VecOp.sub(UChannelL13BottomSurveyBalls.ball_pos,
                     ball_kinMount);
             Hep3Vector veeOffset = UChannelL13BottomSurveyBalls.getVeeOffset();
