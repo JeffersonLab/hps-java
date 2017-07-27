@@ -187,23 +187,23 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         if(!Double.isNaN(temp)) { positionValues[LAYER1][BOTTOM][Z] = temp; }
         
         // Get the layer buffer.
-        double bufferDepth = getDoubleVariable(node, "buffer_size");
-        if(!Double.isNaN(bufferDepth)) { bufferDepth = BUFFER_DEPTH; }
+        double bufferDepth = getDoubleVariable(node, "buffer_depth");
+        if(Double.isNaN(bufferDepth)) { bufferDepth = BUFFER_DEPTH; }
         double bufferWidth = getDoubleVariable(node, "buffer_width");
-        if(!Double.isNaN(bufferWidth)) { bufferDepth = BUFFER_WIDTH; }
+        if(Double.isNaN(bufferWidth)) { bufferWidth = BUFFER_WIDTH; }
         double bufferX = getDoubleVariable(node, "buffer_x");
-        if(!Double.isNaN(bufferX)) { bufferDepth = BUFFER_X; }
+        if(Double.isNaN(bufferX)) { bufferX = BUFFER_X; }
         
         // Load the universal pixel parameters.
         PixelParameters params = new PixelParameters();
         params.scintillatorHeight = getDoubleVariable(node, "scintillator_depth_height");
-        if(!Double.isNaN(params.scintillatorHeight)) { params.scintillatorHeight = PIXEL_HEIGHT; }
+        if(Double.isNaN(params.scintillatorHeight)) { params.scintillatorHeight = PIXEL_HEIGHT; }
         params.scintillatorDepth = getDoubleVariable(node, "scintillator_depth");
-        if(!Double.isNaN(params.scintillatorDepth)) { params.scintillatorDepth = PIXEL_DEPTH; }
+        if(Double.isNaN(params.scintillatorDepth)) { params.scintillatorDepth = PIXEL_DEPTH; }
         params.coverDepth = getDoubleVariable(node, "cover_depth");
-        if(!Double.isNaN(params.coverDepth)) { params.coverDepth = COVER_DEPTH; }
+        if(Double.isNaN(params.coverDepth)) { params.coverDepth = COVER_DEPTH; }
         params.reflectorDepth = getDoubleVariable(node, "reflector_depth");
-        if(!Double.isNaN(params.reflectorDepth)) { params.reflectorDepth = REFLECTOR_DEPTH; }
+        if(Double.isNaN(params.reflectorDepth)) { params.reflectorDepth = REFLECTOR_DEPTH; }
         
         // Define the layer 2 z-position based on the layer buffer
         // and the position of layer 1. The layer buffer should start
@@ -319,6 +319,12 @@ public class Hodoscope_v1 extends LCDDSubdetector {
             lcdd.getDefine().addPosition(bufferPos);
             new PhysVol(bufferVolume, lcdd.pickMotherVolume(this), bufferPos, PIXEL_ROTATION);
         }
+        
+        // BooleanSolid
+        //org.lcsim.geometry.compact.converter.lcdd.util.BooleanSolid pmet = null;
+        // Takes two strings - GDML object references? Does it take references to Solid, Volume, or PhysVol objects?
+        //org.lcsim.geometry.compact.converter.lcdd.util.Tube test
+        //		= new org.lcsim.geometry.compact.converter.lcdd.util.Tube("testTube", 0, 3, params.scintillatorHeight);
     }
     
     /**
