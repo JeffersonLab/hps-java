@@ -37,6 +37,22 @@
             <fraction n="0.523618" ref="H"/>
             <fraction n="0.476382" ref="C"/>
         </material>
+		<material name="TitaniumDioxide">
+			<D value="4.23" unit="g/cm3" />
+			<composite n="1" ref="Ti" />
+			<composite n="2" ref="O" />
+		</material>
+		<material name="Mylar">
+			<D value="1.4" unit="g/cm3" />
+            <fraction n="0.041958" ref="H"/>
+            <fraction n="0.625017" ref="C"/>
+            <fraction n="0.333025" ref="O"/>
+		</material>
+		<material name="GenericFoam">
+			<D value="0.052" unit="g/cm3" />
+            <fraction n="0.5" ref="H"/>
+            <fraction n="0.5" ref="C"/>
+		</material>
 		<!--
         <material name="Polystyrene">
             <D value="1.04" unit="g/cm3"/>
@@ -54,9 +70,12 @@
     <detectors>
         <detector id="30" name="Hodoscope" type="Hodoscope_v1" readout="HodoscopeHits" insideTrackingVolume="true" vis="HodoscopeVis">
 			<!--
-			     It is mandatory to define a hodoscope crystal material!
+			     It is mandatory to define hodoscope crystal materials!
 			  -->
-			<material name="Polystyrene" />
+			<scintillator_material value="Polystyrene" />
+			<cover_material value="TitaniumDioxide" />
+			<reflector_material value="Mylar" />
+			<buffer_material value="GenericFoam" />
 			
 			<!--
 			     These variables allow the hodoscope to be shifted
@@ -73,15 +92,19 @@
 			<layer1_bot_y value="14.21392678*mm" />
 			<layer1_bot_z value="1090*mm" />
 			
-			<layer1_top_x value="48*mm" />
-			<layer1_top_y value="14.21392678*mm" />
-			<layer1_bot_x value="48*mm" />
-			<layer1_bot_y value="14.21392678*mm" />
+			<layer2_top_x value="48*mm" />
+			<layer2_top_y value="14.21392678*mm" />
+			<layer2_bot_x value="48*mm" />
+			<layer2_bot_y value="14.21392678*mm" />
 			
-			<pixel_depth value="10*mm" />
-			<pixel_height value="59.225*mm" />
+			<scintillator_depth value="9.5*mm" />
+			<scintillator_depth_height value="59.225*mm" />
+			<cover_depth value="0.25*mm" />
+			<reflector_depth value="0.05*mm" />
 			
-			<buffer_size value="1*mm" />
+			<buffer_depth value="10*mm" />
+			<buffer_width value="182.2*mm" />
+			<buffer_x value="45.7738565735*mm" />
 			
 			<!--
 			     Defines the hodoscope pixel widths and count. One
@@ -92,8 +115,8 @@
 				 same set of widths. It is not necessary to define
 				 these arguments.
 			  -->
-			<pixel_width_layer1 value="15,44,44,44,22" />
-			<pixel_width_layer2 value="37,44,44,44" />
+			<scintillator_width_layer1 value="15.7,34.1,44,44,44" />
+			<scintillator_width_layer2 value="19,44,44,44,30.8" />
         </detector>
 		
 		<!--
