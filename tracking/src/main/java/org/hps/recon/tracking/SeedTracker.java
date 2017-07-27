@@ -73,8 +73,8 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
         //  Initialize timing
         long last_time = System.currentTimeMillis();
-        long start_time;
-        double dtime;
+        long start_time = 0;
+        double dtime = 0;
 
         //  Get the hit collection from the event
         List<HelicalTrackHit> hitcol = event.get(HelicalTrackHit.class, _inputCol);
