@@ -180,7 +180,6 @@ public class MergeTrackCollections extends Driver {
         if (removeCollections) {
             for (List<Track> tracklist : trackCollections) {
                 event.remove(event.getMetaData(tracklist).getName());
-
             }
         }
 

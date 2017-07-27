@@ -12,7 +12,6 @@ import java.util.List;
 import org.hps.util.CompareHistograms;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
-import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Test class to check a set of histograms against a reference set.
@@ -32,7 +31,7 @@ public class ComparisonTest extends ReconTestSkeleton {
 
         testInputFileName = inputFileName;
         aida = AIDA.defaultInstance();
-        File aidaOutputFile = new TestOutputFile("Plots_" + inputFileName.replaceAll("slcio", "aida"));
+        File aidaOutputFile = new File("target/test-output/Plots_" + inputFileName.replaceAll("slcio", "aida"));
         nEvents = 500;
         testTrackingDriver = new TrackingReconstructionPlots();
         ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputFile.getPath());
