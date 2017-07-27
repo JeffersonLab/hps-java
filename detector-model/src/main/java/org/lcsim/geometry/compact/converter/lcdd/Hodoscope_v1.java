@@ -210,9 +210,9 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // immediately after layer 1, and layer 2 immediately after
         // the layer buffer.
         positionValues[LAYER2][TOP][Z] = positionValues[LAYER1][TOP][Z] + params.scintillatorDepth
-        		+ (2 * params.coverDepth) + bufferDepth;
+                + (2 * params.coverDepth) + bufferDepth;
         positionValues[LAYER2][BOTTOM][Z] = positionValues[LAYER1][BOTTOM][Z] + params.scintillatorDepth
-        		+ (2 * params.coverDepth) + bufferDepth;
+                + (2 * params.coverDepth) + bufferDepth;
         
         // Get the hodoscope pixel widths.
         double[] tempArray = getDoubleArrayVariable(node, "scintillator_width_layer1");
@@ -223,26 +223,26 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // Get the material for the hodoscope crystals.
         params.scintillatorMaterial = getMaterialVariable(lcdd, node, "scintillator_material");
         if(params.scintillatorMaterial == null) {
-        	throw new IllegalArgumentException(getClass().getSimpleName()
-        			+ ": Mandatory variable \"scintillator_material\" is not defined.");
+            throw new IllegalArgumentException(getClass().getSimpleName()
+                    + ": Mandatory variable \"scintillator_material\" is not defined.");
         }
         
         params.coverMaterial = getMaterialVariable(lcdd, node, "cover_material");
         if(params.coverMaterial == null) {
-        	throw new IllegalArgumentException(getClass().getSimpleName()
-        			+ ": Mandatory variable \"cover_material\" is not defined.");
+            throw new IllegalArgumentException(getClass().getSimpleName()
+                    + ": Mandatory variable \"cover_material\" is not defined.");
         }
         
         params.reflectorMaterial = getMaterialVariable(lcdd, node, "reflector_material");
         if(params.reflectorMaterial == null) {
-        	throw new IllegalArgumentException(getClass().getSimpleName()
-        			+ ": Mandatory variable \"reflector_material\" is not defined.");
+            throw new IllegalArgumentException(getClass().getSimpleName()
+                    + ": Mandatory variable \"reflector_material\" is not defined.");
         }
         
         Material bufferMaterial = getMaterialVariable(lcdd, node, "buffer_material");
         if(bufferMaterial == null) {
-        	throw new IllegalArgumentException(getClass().getSimpleName()
-        			+ ": Mandatory variable \"buffer_material\" is not defined.");
+            throw new IllegalArgumentException(getClass().getSimpleName()
+                    + ": Mandatory variable \"buffer_material\" is not defined.");
         }
         
         // DEBUG :: Output the values that have been read in.
@@ -302,7 +302,7 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         
         // Create the foam shape and define its material.
         Box bufferShape = new Box("hodo_buffer", bufferWidth,
-        		params.scintillatorHeight + (2 * params.reflectorDepth), bufferDepth);
+                params.scintillatorHeight + (2 * params.reflectorDepth), bufferDepth);
         Volume bufferVolume = new Volume("hodo_buffer_vol", bufferShape, bufferMaterial);
         setVisAttributes(lcdd, getNode(), bufferVolume);
         lcdd.add(bufferShape);
@@ -310,14 +310,14 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         
         // Define the buffer position.
         for(int topBot = TOP; topBot <= BOTTOM; topBot++) {
-	        Position bufferPos = new Position("hodo_buffer" + (topBot == TOP ? 'T' : 'B') + "_pos",
-	        		X_SHIFT + bufferX + (bufferShape.getX() / 2),
-	        		(topBot == TOP ? 1 : -1) * (positionValues[LAYER1][topBot][Y] + params.reflectorDepth
-	        				+ (params.scintillatorHeight / 2)),
-	        		positionValues[LAYER1][topBot][Z] + params.scintillatorDepth + (2 * params.coverDepth)
-	        		+ (bufferDepth / 2));
-	        lcdd.getDefine().addPosition(bufferPos);
-	        new PhysVol(bufferVolume, lcdd.pickMotherVolume(this), bufferPos, PIXEL_ROTATION);
+            Position bufferPos = new Position("hodo_buffer" + (topBot == TOP ? 'T' : 'B') + "_pos",
+                    X_SHIFT + bufferX + (bufferShape.getX() / 2),
+                    (topBot == TOP ? 1 : -1) * (positionValues[LAYER1][topBot][Y] + params.reflectorDepth
+                            + (params.scintillatorHeight / 2)),
+                    positionValues[LAYER1][topBot][Z] + params.scintillatorDepth + (2 * params.coverDepth)
+                    + (bufferDepth / 2));
+            lcdd.getDefine().addPosition(bufferPos);
+            new PhysVol(bufferVolume, lcdd.pickMotherVolume(this), bufferPos, PIXEL_ROTATION);
         }
     }
     
@@ -522,7 +522,7 @@ public class Hodoscope_v1 extends LCDDSubdetector {
     }
     
     private final void makePixel(LCDD lcdd, SensitiveDetector sens, PixelParameters params,
-    		int layer, int topBot, int ix, double pixelWidth, double xShift) {
+            int layer, int topBot, int ix, double pixelWidth, double xShift) {
         // Get a unique string that represents this pixel.
         String uid = getName(layer, topBot, ix);
         
@@ -551,7 +551,7 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // side reflectors. These have a depth and height equal to
         // the scintillator, but define their own width.
         Box sideReflectorShape = new Box("hodo_siderefl_" + uid, params.reflectorDepth, params.scintillatorHeight,
-        		params.scintillatorDepth + (2 * params.coverDepth));
+                params.scintillatorDepth + (2 * params.coverDepth));
         Volume sideReflectorVolume = new Volume("hodo_siderefl_vol_" + uid, sideReflectorShape, params.reflectorMaterial);
         setVisAttributes(lcdd, getNode(), sideReflectorVolume);
         lcdd.add(sideReflectorShape);
@@ -561,9 +561,9 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // top reflectors. These have a depth and width equal to the
         // scintillator, but define their own height.
         Box topReflectorShape = new Box("hodo_toprefl_" + uid,
-        		pixelWidth + (2 * params.reflectorDepth),
-        		params.reflectorDepth,
-        		params.scintillatorDepth + (2 * params.coverDepth));
+                pixelWidth + (2 * params.reflectorDepth),
+                params.reflectorDepth,
+                params.scintillatorDepth + (2 * params.coverDepth));
         Volume topReflectorVolume = new Volume("hodo_toprefl_vol_" + uid, topReflectorShape, params.reflectorMaterial);
         setVisAttributes(lcdd, getNode(), topReflectorVolume);
         lcdd.add(topReflectorShape);
@@ -576,8 +576,8 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // this, the position and default rotation defines should be
         // must be added.
         Position scinPos = new Position("hodo_pos_" + uid,
-        		X_SHIFT + xShift + positionValues[layer][topBot][X] + sideReflectorShape.getX() + (pixelShape.getX() / 2),
-        		(topBot == TOP ? 1 : -1) * (positionValues[layer][topBot][Y] + topReflectorShape.getY() + (pixelShape.getY() / 2)),
+                X_SHIFT + xShift + positionValues[layer][topBot][X] + sideReflectorShape.getX() + (pixelShape.getX() / 2),
+                (topBot == TOP ? 1 : -1) * (positionValues[layer][topBot][Y] + topReflectorShape.getY() + (pixelShape.getY() / 2)),
                 positionValues[layer][topBot][Z] + coverShape.getZ() + (pixelShape.getZ() / 2));
         lcdd.getDefine().addPosition(scinPos);
         
@@ -593,9 +593,9 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // Define the positions of the scintillator covers. These sit
         // both in front of and behind the scintillator.
         Position[] coverPos = {
-        	new Position("hodo_forecover_pos_" + uid, scinPos.x(), scinPos.y(),
+            new Position("hodo_forecover_pos_" + uid, scinPos.x(), scinPos.y(),
                     positionValues[layer][topBot][Z] + (coverShape.getZ() / 2)),
-        	new Position("hodo_postcover_pos_" + uid, scinPos.x(), scinPos.y(),
+            new Position("hodo_postcover_pos_" + uid, scinPos.x(), scinPos.y(),
                     positionValues[layer][topBot][Z] + coverShape.getZ() + pixelShape.getZ() + (coverShape.getZ() / 2))
         };
         
@@ -608,13 +608,13 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // Define the positions of the scintillator side reflectors.
         // These sit on either side of a scintillator crystal.
         Position[] sideReflectorPos = {
-            	new Position("hodo_sidereflR_pos_" + uid,
-            			X_SHIFT + xShift + positionValues[layer][topBot][X] + (sideReflectorShape.getX() / 2),
-            			scinPos.y(), scinPos.z()),
-            	new Position("hodo_siderefl2L_pos_" + uid,
-            			X_SHIFT + xShift + positionValues[layer][topBot][X] + sideReflectorShape.getX()
-            			+ pixelShape.getX() + (sideReflectorShape.getX() / 2),
-            			scinPos.y(), scinPos.z())
+                new Position("hodo_sidereflR_pos_" + uid,
+                        X_SHIFT + xShift + positionValues[layer][topBot][X] + (sideReflectorShape.getX() / 2),
+                        scinPos.y(), scinPos.z()),
+                new Position("hodo_siderefl2L_pos_" + uid,
+                        X_SHIFT + xShift + positionValues[layer][topBot][X] + sideReflectorShape.getX()
+                        + pixelShape.getX() + (sideReflectorShape.getX() / 2),
+                        scinPos.y(), scinPos.z())
         };
         
         // Create the physical side reflector objects.
@@ -626,14 +626,14 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // Define the positions of the scintillator top reflectors.
         // These sit on the top and bottom of a scintillator crystal.
         Position[] topReflectorPos = {
-            	new Position("hodo_topreflT_pos_" + uid,
-            			scinPos.x(),
-            			scinPos.y() + (params.scintillatorHeight / 2) + (params.reflectorDepth / 2),
-            			scinPos.z()),
-            	new Position("hodo_toprefl2B_pos_" + uid,
-            			scinPos.x(),
-            			scinPos.y() - (params.scintillatorHeight / 2) - (params.reflectorDepth / 2),
-            			scinPos.z())
+                new Position("hodo_topreflT_pos_" + uid,
+                        scinPos.x(),
+                        scinPos.y() + (params.scintillatorHeight / 2) + (params.reflectorDepth / 2),
+                        scinPos.z()),
+                new Position("hodo_toprefl2B_pos_" + uid,
+                        scinPos.x(),
+                        scinPos.y() - (params.scintillatorHeight / 2) - (params.reflectorDepth / 2),
+                        scinPos.z())
         };
         
         // Create the physical top reflector objects.
@@ -648,13 +648,13 @@ public class Hodoscope_v1 extends LCDDSubdetector {
     }
     
     private class PixelParameters {
-    	public double coverDepth = 0;
-    	public double reflectorDepth = 0;
-    	public double scintillatorDepth = 0;
-    	public double scintillatorHeight = 0;
-    	
-    	public Material coverMaterial = null;
-    	public Material reflectorMaterial = null;
-    	public Material scintillatorMaterial = null;
+        public double coverDepth = 0;
+        public double reflectorDepth = 0;
+        public double scintillatorDepth = 0;
+        public double scintillatorHeight = 0;
+        
+        public Material coverMaterial = null;
+        public Material reflectorMaterial = null;
+        public Material scintillatorMaterial = null;
     }
 }
