@@ -7,15 +7,19 @@
         <constant name="world_x" value="world_side"/>
         <constant name="world_y" value="world_side"/>
         <constant name="world_z" value="world_side"/>
+		
         <!-- tracking region -->
         <constant name="tracking_region_radius" value="200.0*cm"/>
         <constant name="tracking_region_min" value="5.0*cm"/>
         <constant name="tracking_region_zmax" value="131.8*cm"/>
+		
         <!-- Hodoscope thickness -->
         <constant name="hodoscopeThickness" value="0.500*cm"/>
+		
         <!-- Distance between hodoscope and scoring planes -->
         <constant name="hodoscopeScoreDisplacement" value="1.000"/>
     </define>
+	
     <materials>
         <!-- Set the world material to vacuum. -->
         <material name="WorldMaterial">
@@ -33,13 +37,79 @@
             <fraction n="0.523618" ref="H"/>
             <fraction n="0.476382" ref="C"/>
         </material>
+		<!--
+        <material name="Polystyrene">
+            <D value="1.04" unit="g/cm3"/>
+            <composite n="8" ref="H" />
+            <composite n="8" ref="C" />
+        </material>
+		-->
     </materials>
-    <display/>
+	
+	
+    <display>
+		<vis name="HodoscopeVis" alpha="1.0" r="0.0" g="0.33725490196" b="0.50980392156" />
+	</display>
+	
     <detectors>
-        <detector id="30" name="Hodoscope" type="Hodoscope_v1" readout="HodoscopeHits" insideTrackingVolume="true">
-            <comment>A hodoscope for the positron trigger.</comment>
+        <detector id="30" name="Hodoscope" type="Hodoscope_v1" readout="HodoscopeHits" insideTrackingVolume="true" vis="HodoscopeVis">
+			<!--
+			     It is mandatory to define a hodoscope crystal material!
+			  -->
+			<material name="Polystyrene" />
+			
+			<!--
+			     These variables allow the hodoscope to be shifted
+			     without modification of the code. These variables do
+			     NOT need to be specified. If they are not declared,
+			     the nominal value will used instead. Note that any
+			     combination of these variables can be declared or
+			     excluded freely.
+			  -->
+			<layer1_top_x value="43.548*mm" />
+			<layer1_top_y value="14.21392678*mm" />
+			<layer1_top_z value="1090*mm" />
+			<layer1_bot_x value="43.548*mm" />
+			<layer1_bot_y value="14.21392678*mm" />
+			<layer1_bot_z value="1090*mm" />
+			
+			<layer1_top_x value="48*mm" />
+			<layer1_top_y value="14.21392678*mm" />
+			<layer1_bot_x value="48*mm" />
+			<layer1_bot_y value="14.21392678*mm" />
+			
+			<pixel_depth value="10*mm" />
+			<pixel_height value="59.225*mm" />
+			
+			<buffer_size value="1*mm" />
+			
+			<!--
+			     Defines the hodoscope pixel widths and count. One
+				 pixel will be added to the specified hodoscope layer
+				 for each entry in the list below. The pixel will be
+				 of the specified width in millimeters. Note that the
+				 top and bottom parts of the hodoscope will use the
+				 same set of widths. It is not necessary to define
+				 these arguments.
+			  -->
+			<pixel_width_layer1 value="15,44,44,44,22" />
+			<pixel_width_layer2 value="37,44,44,44" />
         </detector>
+		
+		<!--
+        <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
+            <comment>The crystal ECal</comment>
+            <material name="LeadTungstate" />
+            <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />          
+            <layout beamgapBottom="22.4*mm" beamgapTop="22.3*mm" nx="46" ny="5" dface="ecal_dface">
+                <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
+                <top dx="ecal_dface*tan(beam_angle)" dy="0." dz="0." />
+                <bottom dx="ecal_dface*tan(beam_angle)" dy="0." dz="0." />
+            </layout>
+        </detector>
+		-->
     </detectors>
+	
     <readouts>
         <readout name="HodoscopeHits">
             <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0"/>
