@@ -762,8 +762,8 @@
   </mailingLists>
 
   <issueManagement>
-    <system>JIRA</system>
-    <url>https://jira.slac.stanford.edu/browse/HPSJAVA/</url>
+    <system>Github</system>
+    <url>https://github.com/JeffersonLab/hps-java/issues/</url>
   </issueManagement>
 
   <ciManagement>
