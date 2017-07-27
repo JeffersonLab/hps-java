@@ -7,19 +7,27 @@ import junit.framework.TestCase;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
+import org.hps.conditions.ecal.EcalPulseWidth.EcalPulseWidthCollection;
+import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
+import org.hps.conditions.svt.SvtBiasConstant.SvtBiasConstantCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
+import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
+import org.hps.conditions.svt.SvtMotorPosition.SvtMotorPositionCollection;
 import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollection;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
+import org.hps.conditions.svt.SvtTimingConstants.SvtTimingConstantsCollection;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 /**
- * Checks that the correct conditions are loaded for engineering run 2015 reconstruction.
+ * Checks that the correct conditions are loaded for engineering run 2015 reconstruction
+ * by verifying the collection IDs.
  */
 public class EngRun2015CondCheckDriver extends Driver {
     
@@ -66,11 +74,32 @@ public class EngRun2015CondCheckDriver extends Driver {
         EcalCalibrationCollection ecalCalib = mgr.getCachedConditions(EcalCalibrationCollection.class, "ecal_calibrations").getCachedData();
         TestCase.assertEquals("EcalCalibrationCollection has wrong collection ID.", 1008, ecalCalib.getCollectionId());
         
+        EcalTimeShiftCollection ecalTimeShifts = mgr.getCachedConditions(EcalTimeShiftCollection.class, "ecal_time_shifts").getCachedData();
+        TestCase.assertEquals("EcalTimeShiftCollectio has wrong collection ID.", 1899, ecalTimeShifts.getCollectionId());
         
+        EcalPulseWidthCollection ecalPulseWidths = mgr.getCachedConditions(EcalPulseWidthCollection.class, "ecal_pulse_widths").getCachedData();
+        TestCase.assertEquals("EcalPulseWidthCollection has wrong collection ID.", 1034, ecalPulseWidths.getCollectionId());
+        
+        SvtBiasConstantCollection svtBiasConstants = mgr.getCachedConditions(SvtBiasConstantCollection.class, "svt_bias_constants").getCachedData();
+        TestCase.assertEquals("SvtBiasConstantCollection has wrong collection ID.", 1605, svtBiasConstants.getCollectionId());
+        
+        SvtMotorPositionCollection svtMotorPositions = mgr.getCachedConditions(SvtMotorPositionCollection.class, "svt_motor_positions").getCachedData();
+        TestCase.assertEquals("SvtMotorPositionCollection has wrong collection ID.", 1873, svtMotorPositions.getCollectionId());
+        
+        SvtTimingConstantsCollection svtTimingConstants = mgr.getCachedConditions(SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData();
+        TestCase.assertEquals("SvtTimingConstantsCollection has wrong collection ID.", 1029, svtTimingConstants.getCollectionId());
+        
+        SvtConditions svtConditions = mgr.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
+        TestCase.assertNotNull("SvtConditions is null!", svtConditions);
+        System.out.println(svtConditions.toString());
+        
+        EcalConditions ecalConditions = mgr.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
+        TestCase.assertNotNull("EcalConditions is null!", ecalConditions);
+        System.out.println(ecalConditions.toString());
         
         executed = true;
         
-        LOG.info("Done checking collection IDs for EngRun2015!");
+        LOG.info("Done checking collection IDs for EngRun2015 conditions!");
     }
 
 }
