@@ -169,7 +169,7 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
         
     }
 
-    
-
-    
+    protected void checkSvtSampleCount(int sampleCount, SvtHeaderDataInfo headerData) throws SvtEvioHeaderException {
+        // Overridden from super class to do nothing.
+    }       
 }
