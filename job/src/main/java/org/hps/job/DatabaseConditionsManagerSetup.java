@@ -24,7 +24,6 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
     
     public DatabaseConditionsManagerSetup() {        
         manager = new DatabaseConditionsManager();
-        //ConditionsManager.setDefaultConditionsManager(manager);
     }
     
     /**
