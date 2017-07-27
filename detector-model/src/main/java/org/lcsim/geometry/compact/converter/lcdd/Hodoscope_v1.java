@@ -14,21 +14,21 @@ import org.lcsim.geometry.compact.converter.lcdd.util.SensitiveDetector;
 import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 
 public class Hodoscope_v1 extends LCDDSubdetector {
-	/**
-	 * Defines the distance between the forward and rear layers that
-	 * is to be left open in order to allow for a buffer material.
-	 * The rear layer will start at a position
-	 * <code>zLayer1 + depthLayer1 + layerBuffer</code>.
-	 */
-	private double layerBuffer;
-	/**
-	 * Specifies the displacements for each element of the hodoscope.
-	 * It is possible to specify displacements for each layer,
-	 * further sub-divided into the top and bottom portions. All of
-	 * the units are millimeters.
-	 * <br/><br/>
-	 * The first array index specifies the layer, and can be accessed
-	 * via the static class variables {@link
+    /**
+     * Defines the distance between the forward and rear layers that
+     * is to be left open in order to allow for a buffer material.
+     * The rear layer will start at a position
+     * <code>zLayer1 + depthLayer1 + layerBuffer</code>.
+     */
+    private double layerBuffer;
+    /**
+     * Specifies the displacements for each element of the hodoscope.
+     * It is possible to specify displacements for each layer,
+     * further sub-divided into the top and bottom portions. All of
+     * the units are millimeters.
+     * <br/><br/>
+     * The first array index specifies the layer, and can be accessed
+     * via the static class variables {@link
      * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#LAYER1
      * LAYER1} or {@link
      * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#LAYER2
@@ -46,80 +46,80 @@ public class Hodoscope_v1 extends LCDDSubdetector {
      * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#Y Y},
      * or {@link
      * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#Z Z}.
-	 */
-	private double[][][] positionValues = new double[2][2][3];
-	/**
-	 * Specifies the front (closest to the SVT) hodoscope layer.
-	 */
-	private static final int LAYER1 = 0;
-	/**
-	 * Specifies the rear (closest to the calorimeter) hodoscope
-	 * layer.
-	 */
-	private static final int LAYER2 = 1;
-	/**
-	 * Specifies the top portion hodoscope layers.
-	 */
-	private static final int TOP = 0;
-	/**
-	 * Specifies the bottom portion hodoscope layers.
-	 */
-	private static final int BOTTOM = 1;
-	/**
-	 * Specifies the displacement of an element in the x-axis. This
-	 * defines the point where the edge of the element closest to the
-	 * calorimeter center begins.
-	 */
-	private static final int X = 0;
-	/**
-	 * Specifies the displacement of an element in the y-axis. This
-	 * defines the point where the edge of the element closest to the
-	 * beam gap center begins.
-	 */
-	private static final int Y = 1;
-	/**
-	 * Specifies the displacement of an element in the z-axis. This
-	 * defines the point where the forward (SVT-facing) edge of the
-	 * element begins.
-	 */
-	private static final int Z = 2;
-    /**
-	 * Specifies the size in the y-direction of the hodoscope pixels.
-	 * Units are in millimeters.
      */
-	private double pixelHeight = 59.225;
-	/**
-	 * Specifies the size in the z-direction of the hodoscope pixels.
-	 * Units are in millimeters.
-	 */
-	private double pixelDepth = 10;
-	/**
-	 * Specifies for the widths for each pixel of the hodoscope
-	 * layers. The top and bottom layers are taken to have the same
-	 * number of pixels of the same widths.
-	 */
+    private double[][][] positionValues = new double[2][2][3];
+    /**
+     * Specifies the front (closest to the SVT) hodoscope layer.
+     */
+    private static final int LAYER1 = 0;
+    /**
+     * Specifies the rear (closest to the calorimeter) hodoscope
+     * layer.
+     */
+    private static final int LAYER2 = 1;
+    /**
+     * Specifies the top portion hodoscope layers.
+     */
+    private static final int TOP = 0;
+    /**
+     * Specifies the bottom portion hodoscope layers.
+     */
+    private static final int BOTTOM = 1;
+    /**
+     * Specifies the displacement of an element in the x-axis. This
+     * defines the point where the edge of the element closest to the
+     * calorimeter center begins.
+     */
+    private static final int X = 0;
+    /**
+     * Specifies the displacement of an element in the y-axis. This
+     * defines the point where the edge of the element closest to the
+     * beam gap center begins.
+     */
+    private static final int Y = 1;
+    /**
+     * Specifies the displacement of an element in the z-axis. This
+     * defines the point where the forward (SVT-facing) edge of the
+     * element begins.
+     */
+    private static final int Z = 2;
+    /**
+     * Specifies the size in the y-direction of the hodoscope pixels.
+     * Units are in millimeters.
+     */
+    private double pixelHeight = 59.225;
+    /**
+     * Specifies the size in the z-direction of the hodoscope pixels.
+     * Units are in millimeters.
+     */
+    private double pixelDepth = 10;
+    /**
+     * Specifies for the widths for each pixel of the hodoscope
+     * layers. The top and bottom layers are taken to have the same
+     * number of pixels of the same widths.
+     */
     private double[][] widths = {
-    		{ 15, 44, 44, 44, 22 },
-    		{ 37, 44, 44, 44 }
+            { 15, 44, 44, 44, 22 },
+            { 37, 44, 44, 44 }
     };
-	/**
-	 * Specifies the global shift needed to align geometry with the
-	 * calorimeter face in the x-direction, as the calorimeter center
-	 * does not occur at x = 0 mm.
-	 */
-	private static final double X_SHIFT = 21.17;
-	/**
-	 * The default material for hodoscope pixels, if no other
-	 * material is defined.
-	 */
-	private static final String DEFAULT_MATERIAL="Polystyrene";
-	/**
-	 * Defines the rotation used by all hodoscope pixels.
-	 */
-	private static final Rotation PIXEL_ROTATION = new Rotation("hodo_rot", 0.0, 0.0, 0.0);
-	
+    /**
+     * Specifies the global shift needed to align geometry with the
+     * calorimeter face in the x-direction, as the calorimeter center
+     * does not occur at x = 0 mm.
+     */
+    private static final double X_SHIFT = 21.17;
+    /**
+     * The default material for hodoscope pixels, if no other
+     * material is defined.
+     */
+    private static final String DEFAULT_MATERIAL="Polystyrene";
+    /**
+     * Defines the rotation used by all hodoscope pixels.
+     */
+    private static final Rotation PIXEL_ROTATION = new Rotation("hodo_rot", 0.0, 0.0, 0.0);
+    
     Hodoscope_v1(Element node) throws JDOMException {
-    	// Instantiate the superclass.
+        // Instantiate the superclass.
         super(node);
         
         // Set the default positioning values.
@@ -154,24 +154,24 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // begin immediately after the buffer, which occurs directly
         // after layer 1 ends.
         final String[][][] varNames = {
-        		{
-        			{ "layer1_top_x", "layer1_top_y" },
-        			{ "layer1_bot_x", "layer1_bot_y" }
-        		},
-        		{
-        			{ "layer2_top_x", "layer2_top_y" },
-        			{ "layer2_bot_x", "layer2_bot_y" }
-        		}
+                {
+                    { "layer1_top_x", "layer1_top_y" },
+                    { "layer1_bot_x", "layer1_bot_y" }
+                },
+                {
+                    { "layer2_top_x", "layer2_top_y" },
+                    { "layer2_bot_x", "layer2_bot_y" }
+                }
         };
         for(int layer = LAYER1; layer <= LAYER2; layer++) {
-        	for(int topBot = TOP; topBot <= BOTTOM; topBot++) {
-        		for(int coor = X; coor <= Y; coor++) {
-        			temp = getDoubleVariable(node, varNames[layer][topBot][coor]);
-        	        if(!Double.isNaN(temp)) {
-        	        	positionValues[layer][topBot][coor] = temp;
-        	        }
-        		}
-        	}
+            for(int topBot = TOP; topBot <= BOTTOM; topBot++) {
+                for(int coor = X; coor <= Y; coor++) {
+                    temp = getDoubleVariable(node, varNames[layer][topBot][coor]);
+                    if(!Double.isNaN(temp)) {
+                        positionValues[layer][topBot][coor] = temp;
+                    }
+                }
+            }
         }
         
         // Handle the layer 1 z-positioning.
@@ -183,7 +183,7 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // Get the layer buffer.
         temp = getDoubleVariable(node, "buffer_size");
         if(!Double.isNaN(temp)) {
-        	layerBuffer = temp;
+            layerBuffer = temp;
         }
         
         // Define the layer 2 z-position based on the layer buffer
@@ -196,11 +196,11 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // Load the height and depth for the pixels.
         temp = getDoubleVariable(node, "pixel_height");
         if(!Double.isNaN(temp)) {
-        	pixelHeight = temp;
+            pixelHeight = temp;
         }
         temp = getDoubleVariable(node, "pixel_depth");
         if(!Double.isNaN(temp)) {
-        	pixelDepth = temp;
+            pixelDepth = temp;
         }
         
         // Get the hodoscope pixel widths.
@@ -213,16 +213,16 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         String materialName = DEFAULT_MATERIAL;
         Element materialNode = node.getChild("material");
         if(materialNode != null) {
-    		// Attempt to obtain the variable attribute. If it does
-    		// not exist, there is a formatting problem with the
-    		// detector declaration in the compact.xml. Produce an
-    		// exception and alert the user.
-        	Attribute materialAttribute = materialNode.getAttribute("name");
-    		if(materialAttribute == null) {
-    			throw new RuntimeException(getClass().getSimpleName() + ": Node \"" + materialAttribute
-    					+ "\" is missing attribute \"name\".");
-    		}
-        	materialName = materialAttribute.getValue();
+            // Attempt to obtain the variable attribute. If it does
+            // not exist, there is a formatting problem with the
+            // detector declaration in the compact.xml. Produce an
+            // exception and alert the user.
+            Attribute materialAttribute = materialNode.getAttribute("name");
+            if(materialAttribute == null) {
+                throw new RuntimeException(getClass().getSimpleName() + ": Node \"" + materialAttribute
+                        + "\" is missing attribute \"name\".");
+            }
+            materialName = materialAttribute.getValue();
         }
         Material material = lcdd.getMaterial(materialName);
         
@@ -253,11 +253,11 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         System.out.println("\tPixel x-Dimension:");
         System.out.print("\t\tLayer 1: ");
         for(double d : widths[LAYER1]) {
-        	System.out.print(d + "    ");
+            System.out.print(d + "    ");
         }
         System.out.print("\n\t\tLayer 2: ");
         for(double d : widths[LAYER2]) {
-        	System.out.print(d + "    ");
+            System.out.print(d + "    ");
         }
         System.out.println();
         
@@ -270,13 +270,13 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         
         // Create the hodoscope pixels.
         for(int layer = LAYER1; layer <= LAYER2; layer++) {
-        	double xShift = 0.0;
-        	for(int pixel = 0; pixel < widths[layer].length; pixel++) {
-        		for(int topBot = TOP; topBot <= BOTTOM; topBot++) {
-        			makePixel(lcdd, sens, material, layer, topBot, pixel, widths[layer][pixel], xShift);
-        		}
-    			xShift += widths[layer][pixel] + 1;
-        	}
+            double xShift = 0.0;
+            for(int pixel = 0; pixel < widths[layer].length; pixel++) {
+                for(int topBot = TOP; topBot <= BOTTOM; topBot++) {
+                    makePixel(lcdd, sens, material, layer, topBot, pixel, widths[layer][pixel], xShift);
+                }
+                xShift += widths[layer][pixel] + 1;
+            }
         }
     }
     
@@ -301,115 +301,115 @@ public class Hodoscope_v1 extends LCDDSubdetector {
      * but is missing the necessary value attribute.
      */
     private static final double getDoubleVariable(Element root, String varName) throws DataConversionException, RuntimeException {
-    	// Get the value node. If it exists, attempt to access the
-    	// variable. Otherwise, just return Double.NaN.
-    	Element valueNode = root.getChild(varName);
-    	if(valueNode != null) {
-    		// Attempt to obtain the variable attribute. If it does
-    		// not exist, there is a formatting problem with the
-    		// detector declaration in the compact.xml. Produce an
-    		// exception and alert the user.
-    		Attribute valueAttribute = valueNode.getAttribute("value");
-    		if(valueAttribute == null) {
-    			throw new RuntimeException(Hodoscope_v1.class.getSimpleName() + ": Node \""
-    					+ varName + "\" is missing attribute \"value\".");
-    		}
-    		
-    		// Otherwise, parse the value and store it.
-    		return valueNode.getAttribute("value").getDoubleValue();
-    	} else {
-    		return Double.NaN;
-    	}
+        // Get the value node. If it exists, attempt to access the
+        // variable. Otherwise, just return Double.NaN.
+        Element valueNode = root.getChild(varName);
+        if(valueNode != null) {
+            // Attempt to obtain the variable attribute. If it does
+            // not exist, there is a formatting problem with the
+            // detector declaration in the compact.xml. Produce an
+            // exception and alert the user.
+            Attribute valueAttribute = valueNode.getAttribute("value");
+            if(valueAttribute == null) {
+                throw new RuntimeException(Hodoscope_v1.class.getSimpleName() + ": Node \""
+                        + varName + "\" is missing attribute \"value\".");
+            }
+            
+            // Otherwise, parse the value and store it.
+            return valueNode.getAttribute("value").getDoubleValue();
+        } else {
+            return Double.NaN;
+        }
     }
     
     private static final double[] getDoubleArrayVariable(Element root, String varName)
-    		throws IllegalArgumentException, NumberFormatException {
-    	// Get the value node. If it exists, attempt to access the
-    	// variable. Otherwise, just return null.
-    	Element valueNode = root.getChild(varName);
-    	if(valueNode != null) {
-    		// Attempt to obtain the variable attribute. If it does
-    		// not exist, there is a formatting problem with the
-    		// detector declaration in the compact.xml. Produce an
-    		// exception and alert the user.
-    		Attribute valueAttribute = valueNode.getAttribute("value");
-    		if(valueAttribute == null) {
-    			throw new RuntimeException(Hodoscope_v1.class.getSimpleName() + ": Node \""
-    					+ varName + "\" is missing attribute \"value\".");
-    		}
-    		
-    		// The value should take the form of a comma-delimited
-    		// string of doubles. First, sanitize the string to
-    		// remove any whitespace. Also ensure that it contains
-    		// only numbers, decimal points, and commas.
-    		int entries = 1;
-    		StringBuffer sanitizationBuffer = new StringBuffer();
-    		for(char c : valueAttribute.getValue().toCharArray()) {
-    			if(Character.isDigit(c) || c == ',' || Character.isWhitespace(c) || c == '.') {
-    				if(c == ',') { entries++; }
-    				if(!Character.isWhitespace(c)) {
-    					sanitizationBuffer.append(c);
-    				}
-    			} else {
-    				throw new IllegalArgumentException(Hodoscope_v1.class.getSimpleName() + ": Numeric array variable \""
-    						+ varName + "\" contains unsupported character \'" + Character.toString(c) + "\'.");
-    			}
-    		}
-    		
-    		// If the input string is sanitized, prepare it for
-    		// parsing.
-    		String input = sanitizationBuffer.toString();
-    		
-    		// If the input is an empty string, return a size zero
-    		// array of type double.
-    		if(input.length() == 0) {
-    			return new double[0];
-    		}
-    		
-    		// Extract all double values from the input.
-    		int curIndex = 0;
-    		double[] values = new double[entries];
-    		StringBuffer valueBuffer = new StringBuffer();
-    		for(char c : input.toCharArray()) {
-    			// All digits aside from the delimiter should be
-    			// added to the buffer for later parsing.
-    			if(c != ',') {
-    				valueBuffer.append(c);
-    			}
-    			
-    			// If the delimiter has been seen, parse the digit.
-    			else {
-    				// If there is no content in the buffer, it is
-    				// an error.
-    				if(valueBuffer.length() == 0) {
-    					throw new IllegalArgumentException(Hodoscope_v1.class.getSimpleName() + ": Numeric array variable \""
-        						+ varName + "\" is missing one or more value declarations.");
-    				}
-    				
-    				// Otherwise, attempt to parse the digit.
-    				values[curIndex] = Double.parseDouble(valueBuffer.toString());
-    				
-    				// Reset the buffer an increment the index.
-    				valueBuffer = new StringBuffer();
-    				curIndex++;
-    			}
-    		}
-    		
-    		// There should be one digit left in the buffer at the
-    		// end of the loop.
-			if(valueBuffer.length() == 0) {
-				throw new IllegalArgumentException(Hodoscope_v1.class.getSimpleName() + ": Numeric array variable \""
-						+ varName + "\" is missing one or more value declarations.");
-			}
-			values[curIndex] = Double.parseDouble(valueBuffer.toString());
-			valueBuffer = new StringBuffer();
-			curIndex++;
-    		
-    		// Return the result.
-    		return values;
-    	} else {
-    		return null;
-    	}
+            throws IllegalArgumentException, NumberFormatException {
+        // Get the value node. If it exists, attempt to access the
+        // variable. Otherwise, just return null.
+        Element valueNode = root.getChild(varName);
+        if(valueNode != null) {
+            // Attempt to obtain the variable attribute. If it does
+            // not exist, there is a formatting problem with the
+            // detector declaration in the compact.xml. Produce an
+            // exception and alert the user.
+            Attribute valueAttribute = valueNode.getAttribute("value");
+            if(valueAttribute == null) {
+                throw new RuntimeException(Hodoscope_v1.class.getSimpleName() + ": Node \""
+                        + varName + "\" is missing attribute \"value\".");
+            }
+            
+            // The value should take the form of a comma-delimited
+            // string of doubles. First, sanitize the string to
+            // remove any whitespace. Also ensure that it contains
+            // only numbers, decimal points, and commas.
+            int entries = 1;
+            StringBuffer sanitizationBuffer = new StringBuffer();
+            for(char c : valueAttribute.getValue().toCharArray()) {
+                if(Character.isDigit(c) || c == ',' || Character.isWhitespace(c) || c == '.') {
+                    if(c == ',') { entries++; }
+                    if(!Character.isWhitespace(c)) {
+                        sanitizationBuffer.append(c);
+                    }
+                } else {
+                    throw new IllegalArgumentException(Hodoscope_v1.class.getSimpleName() + ": Numeric array variable \""
+                            + varName + "\" contains unsupported character \'" + Character.toString(c) + "\'.");
+                }
+            }
+            
+            // If the input string is sanitized, prepare it for
+            // parsing.
+            String input = sanitizationBuffer.toString();
+            
+            // If the input is an empty string, return a size zero
+            // array of type double.
+            if(input.length() == 0) {
+                return new double[0];
+            }
+            
+            // Extract all double values from the input.
+            int curIndex = 0;
+            double[] values = new double[entries];
+            StringBuffer valueBuffer = new StringBuffer();
+            for(char c : input.toCharArray()) {
+                // All digits aside from the delimiter should be
+                // added to the buffer for later parsing.
+                if(c != ',') {
+                    valueBuffer.append(c);
+                }
+                
+                // If the delimiter has been seen, parse the digit.
+                else {
+                    // If there is no content in the buffer, it is
+                    // an error.
+                    if(valueBuffer.length() == 0) {
+                        throw new IllegalArgumentException(Hodoscope_v1.class.getSimpleName() + ": Numeric array variable \""
+                                + varName + "\" is missing one or more value declarations.");
+                    }
+                    
+                    // Otherwise, attempt to parse the digit.
+                    values[curIndex] = Double.parseDouble(valueBuffer.toString());
+                    
+                    // Reset the buffer an increment the index.
+                    valueBuffer = new StringBuffer();
+                    curIndex++;
+                }
+            }
+            
+            // There should be one digit left in the buffer at the
+            // end of the loop.
+            if(valueBuffer.length() == 0) {
+                throw new IllegalArgumentException(Hodoscope_v1.class.getSimpleName() + ": Numeric array variable \""
+                        + varName + "\" is missing one or more value declarations.");
+            }
+            values[curIndex] = Double.parseDouble(valueBuffer.toString());
+            valueBuffer = new StringBuffer();
+            curIndex++;
+            
+            // Return the result.
+            return values;
+        } else {
+            return null;
+        }
     }
     
     /**
@@ -434,14 +434,14 @@ public class Hodoscope_v1 extends LCDDSubdetector {
      * @return Returns a unique identifier string.
      */
     private static final String getName(int layer, int topBot, int ix) {
-    	return String.format("L" + (layer + 1) + (topBot == TOP ? 'T' : 'B') + 'P' + ix);
+        return String.format("L" + (layer + 1) + (topBot == TOP ? 'T' : 'B') + 'P' + ix);
     }
     
     private final void makePixel(LCDD lcdd, SensitiveDetector sens, Material material, int layer, int topBot, int ix,
-    		double pixelWidth, double xShift) {
-    	// Get a unique string that represents this pixel.
-    	String uid = getName(layer, topBot, ix);
-    	
+            double pixelWidth, double xShift) {
+        // Get a unique string that represents this pixel.
+        String uid = getName(layer, topBot, ix);
+        
         // Create the geometric shapes that define the pixel. These
         // are always rectangular prisms. The prism is then used to
         // define a volume, which sets the material. Lastly, it is
@@ -461,9 +461,9 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // this, the position and default rotation defines should be
         // must be added.
         Position pos = new Position("hodo_pos_" + uid,
-        		X_SHIFT + xShift + positionValues[layer][topBot][X] + (pixelShape.getX() / 2),
-        		(topBot == TOP ? 1 : -1) * (positionValues[layer][topBot][Y] + (pixelShape.getY() / 2)),
-        		positionValues[layer][topBot][Z] + (pixelShape.getZ() / 2));
+                X_SHIFT + xShift + positionValues[layer][topBot][X] + (pixelShape.getX() / 2),
+                (topBot == TOP ? 1 : -1) * (positionValues[layer][topBot][Y] + (pixelShape.getY() / 2)),
+                positionValues[layer][topBot][Z] + (pixelShape.getZ() / 2));
         lcdd.getDefine().addPosition(pos);
         
         // Lastly, create the physical object representing the pixel.
