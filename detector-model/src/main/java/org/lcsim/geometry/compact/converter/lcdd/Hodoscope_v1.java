@@ -87,12 +87,21 @@ public class Hodoscope_v1 extends LCDDSubdetector {
 	 * Specifies the size in the y-direction of the hodoscope pixels.
 	 * Units are in millimeters.
      */
-	private static final double PIXEL_HEIGHT = 59.225;
+	private double pixelHeight = 59.225;
 	/**
 	 * Specifies the size in the z-direction of the hodoscope pixels.
 	 * Units are in millimeters.
 	 */
-	private static final double PIXEL_DEPTH = 10;
+	private double pixelDepth = 10;
+	/**
+	 * Specifies for the widths for each pixel of the hodoscope
+	 * layers. The top and bottom layers are taken to have the same
+	 * number of pixels of the same widths.
+	 */
+    private double[][] widths = {
+    		{ 15, 44, 44, 44, 22 },
+    		{ 37, 44, 44, 44 }
+    };
 	/**
 	 * Specifies the global shift needed to align geometry with the
 	 * calorimeter face in the x-direction, as the calorimeter center
@@ -129,36 +138,76 @@ public class Hodoscope_v1 extends LCDDSubdetector {
     }
     
     void addToLCDD(LCDD lcdd, SensitiveDetector sens) throws JDOMException {
-        System.out.println("Hopdoscop_v1.addToLCDD");
+        System.out.println("Hopdoscop_v1.addToLCDD(LCDD, SensitiveDetector)");
         
         /*
          * Get the basic hodoscope definition variables from the XML
          * file. These are defined in the detector definition.
          */
+        
+        double temp = Double.NaN;
+        
         // Get basic hodoscope positioning data. Note that there is
         // no layer 2 variable defining the z-displacement. This is
         // instead determined as a function of the position of layer1
         // in z and the layer buffer value. Layer 2 is defined to
         // begin immediately after the buffer, which occurs directly
         // after layer 1 ends.
-        setPositionValue(node, "layer1_top_x", LAYER1, TOP, X);
-        setPositionValue(node, "layer1_top_y", LAYER1, TOP, Y);
-        setPositionValue(node, "layer1_top_z", LAYER1, TOP, Z);
-        setPositionValue(node, "layer1_bot_x", LAYER1, TOP, X);
-        setPositionValue(node, "layer1_bot_y", LAYER1, TOP, Y);
-        setPositionValue(node, "layer1_bot_z", LAYER1, TOP, Z);
-        setPositionValue(node, "layer2_top_x", LAYER2, TOP, X);
-        setPositionValue(node, "layer2_top_y", LAYER2, TOP, Y);
+        final String[][][] varNames = {
+        		{
+        			{ "layer1_top_x", "layer1_top_y" },
+        			{ "layer1_bot_x", "layer1_bot_y" }
+        		},
+        		{
+        			{ "layer2_top_x", "layer2_top_y" },
+        			{ "layer2_bot_x", "layer2_bot_y" }
+        		}
+        };
+        for(int layer = LAYER1; layer <= LAYER2; layer++) {
+        	for(int topBot = TOP; topBot <= BOTTOM; topBot++) {
+        		for(int coor = X; coor <= Y; coor++) {
+        			temp = getDoubleVariable(node, varNames[layer][topBot][coor]);
+        	        if(!Double.isNaN(temp)) {
+        	        	positionValues[layer][topBot][coor] = temp;
+        	        }
+        		}
+        	}
+        }
+        
+        // Handle the layer 1 z-positioning.
+        temp = getDoubleVariable(node, "layer1_top_z");
+        if(!Double.isNaN(temp)) { positionValues[LAYER1][TOP][Z] = temp; }
+        temp = getDoubleVariable(node, "layer1_bot_z");
+        if(!Double.isNaN(temp)) { positionValues[LAYER1][BOTTOM][Z] = temp; }
         
         // Get the layer buffer.
-        setLayerBuffer(node, "buffer_size");
+        temp = getDoubleVariable(node, "buffer_size");
+        if(!Double.isNaN(temp)) {
+        	layerBuffer = temp;
+        }
         
         // Define the layer 2 z-position based on the layer buffer
         // and the position of layer 1. The layer buffer should start
         // immediately after layer 1, and layer 2 immediately after
         // the layer buffer.
-        positionValues[LAYER2][TOP][Z] = positionValues[LAYER1][TOP][Z] + PIXEL_DEPTH + layerBuffer;
-        positionValues[LAYER2][BOTTOM][Z] = positionValues[LAYER1][BOTTOM][Z] + PIXEL_DEPTH + layerBuffer;
+        positionValues[LAYER2][TOP][Z] = positionValues[LAYER1][TOP][Z] + pixelDepth + layerBuffer;
+        positionValues[LAYER2][BOTTOM][Z] = positionValues[LAYER1][BOTTOM][Z] + pixelDepth + layerBuffer;
+        
+        // Load the height and depth for the pixels.
+        temp = getDoubleVariable(node, "pixel_height");
+        if(!Double.isNaN(temp)) {
+        	pixelHeight = temp;
+        }
+        temp = getDoubleVariable(node, "pixel_depth");
+        if(!Double.isNaN(temp)) {
+        	pixelDepth = temp;
+        }
+        
+        // Get the hodoscope pixel widths.
+        double[] tempArray = getDoubleArrayVariable(node, "pixel_width_layer1");
+        if(tempArray != null) { widths[LAYER1] = tempArray; }
+        tempArray = getDoubleArrayVariable(node, "pixel_width_layer2");
+        if(tempArray != null) { widths[LAYER2] = tempArray; }
         
         // Get the material for the hodoscope crystals.
         String materialName = DEFAULT_MATERIAL;
@@ -180,31 +229,44 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // DEBUG :: Output the values that have been read in.
         System.out.println("Layer 1:");
         System.out.println("\tTop:");
-        System.out.println("\t\tdx: " + positionValues[LAYER1][TOP][X]);
-        System.out.println("\t\tdy: " + positionValues[LAYER1][TOP][Y]);
-        System.out.println("\t\tdz: " + positionValues[LAYER1][TOP][Z]);
+        System.out.println("\t\tdx: " + positionValues[LAYER1][TOP][X] + " mm");
+        System.out.println("\t\tdy: " + positionValues[LAYER1][TOP][Y] + " mm");
+        System.out.println("\t\tdz: " + positionValues[LAYER1][TOP][Z] + " mm");
         System.out.println("\tBottom:");
-        System.out.println("\t\tdx: " + positionValues[LAYER1][BOTTOM][X]);
-        System.out.println("\t\tdy: " + positionValues[LAYER1][BOTTOM][Y]);
-        System.out.println("\t\tdz: " + positionValues[LAYER1][BOTTOM][Z]);
+        System.out.println("\t\tdx: " + positionValues[LAYER1][BOTTOM][X] + " mm");
+        System.out.println("\t\tdy: " + positionValues[LAYER1][BOTTOM][Y] + " mm");
+        System.out.println("\t\tdz: " + positionValues[LAYER1][BOTTOM][Z] + " mm");
         System.out.println("Layer 2:");
         System.out.println("\tTop:");
-        System.out.println("\t\tdx: " + positionValues[LAYER2][TOP][X]);
-        System.out.println("\t\tdy: " + positionValues[LAYER2][TOP][Y]);
-        System.out.println("\t\tdz: " + positionValues[LAYER2][TOP][Z]);
+        System.out.println("\t\tdx: " + positionValues[LAYER2][TOP][X] + " mm");
+        System.out.println("\t\tdy: " + positionValues[LAYER2][TOP][Y] + " mm");
+        System.out.println("\t\tdz: " + positionValues[LAYER2][TOP][Z] + " mm");
         System.out.println("\tBottom:");
-        System.out.println("\t\tdx: " + positionValues[LAYER2][BOTTOM][X]);
-        System.out.println("\t\tdy: " + positionValues[LAYER2][BOTTOM][Y]);
-        System.out.println("\t\tdz: " + positionValues[LAYER2][BOTTOM][Z]);
+        System.out.println("\t\tdx: " + positionValues[LAYER2][BOTTOM][X] + " mm");
+        System.out.println("\t\tdy: " + positionValues[LAYER2][BOTTOM][Y] + " mm");
+        System.out.println("\t\tdz: " + positionValues[LAYER2][BOTTOM][Z] + " mm");
+        System.out.println();
+        System.out.println("Other Values:");
+        System.out.println("\tBuffer Spacing: " + layerBuffer + " mm");
+        System.out.println("\tPixel y-Dimension: " + pixelHeight + " mm");
+        System.out.println("\tPixel z-Dimension: " + pixelDepth + " mm");
+        System.out.println("\tPixel x-Dimension:");
+        System.out.print("\t\tLayer 1: ");
+        for(double d : widths[LAYER1]) {
+        	System.out.print(d + "    ");
+        }
+        System.out.print("\n\t\tLayer 2: ");
+        for(double d : widths[LAYER2]) {
+        	System.out.print(d + "    ");
+        }
+        System.out.println();
+        
+        /*
+         * Make the hodoscope geometry.
+         */
         
         // Define constant rotations used for all hodoscope crystals.
         lcdd.getDefine().addRotation(PIXEL_ROTATION);
-        
-        // Define the hodoscope size parameters.
-        final double[][] widths = {
-        		{ 15, 44, 44, 44, 22 },
-        		{ 37, 44, 44, 44 }
-        };
         
         // Create the hodoscope pixels.
         for(int layer = LAYER1; layer <= LAYER2; layer++) {
@@ -216,6 +278,138 @@ public class Hodoscope_v1 extends LCDDSubdetector {
     			xShift += widths[layer][pixel] + 1;
         	}
         }
+    }
+    
+    /**
+     * Gets the value specified from the variable element of the
+     * detector compact.xml description. Note that it is required for
+     * the variable to declared in the format <br/><br/>
+     * <code>&lt;VAR_NAME value="DOUBLE_VALUE"/&gt;</code>
+     * <br/><br/>
+     * If the specified variable node does not exist as a child of
+     * the parent node <code>root</code>, a value of {@link
+     * java.lang.Double.NaN Double.NaN} is returned instead.
+     * @param root - The detector XML node which serves as a parent
+     * to the variable nodes.
+     * @param varName - The {@link java.lang.String String} name of
+     * the variables.
+     * @return Returns the variable, if the node exists. Otherwise, a
+     * value of {@link java.lang.Double.NaN Double.NaN} is returned.
+     * @throws DataConversionException Occurs if the value defined is
+     * not convertible to a <code>double</code> primitive.
+     * @throws RuntimeException Occurs if the variable node exists,
+     * but is missing the necessary value attribute.
+     */
+    private static final double getDoubleVariable(Element root, String varName) throws DataConversionException, RuntimeException {
+    	// Get the value node. If it exists, attempt to access the
+    	// variable. Otherwise, just return Double.NaN.
+    	Element valueNode = root.getChild(varName);
+    	if(valueNode != null) {
+    		// Attempt to obtain the variable attribute. If it does
+    		// not exist, there is a formatting problem with the
+    		// detector declaration in the compact.xml. Produce an
+    		// exception and alert the user.
+    		Attribute valueAttribute = valueNode.getAttribute("value");
+    		if(valueAttribute == null) {
+    			throw new RuntimeException(Hodoscope_v1.class.getSimpleName() + ": Node \""
+    					+ varName + "\" is missing attribute \"value\".");
+    		}
+    		
+    		// Otherwise, parse the value and store it.
+    		return valueNode.getAttribute("value").getDoubleValue();
+    	} else {
+    		return Double.NaN;
+    	}
+    }
+    
+    private static final double[] getDoubleArrayVariable(Element root, String varName)
+    		throws IllegalArgumentException, NumberFormatException {
+    	// Get the value node. If it exists, attempt to access the
+    	// variable. Otherwise, just return null.
+    	Element valueNode = root.getChild(varName);
+    	if(valueNode != null) {
+    		// Attempt to obtain the variable attribute. If it does
+    		// not exist, there is a formatting problem with the
+    		// detector declaration in the compact.xml. Produce an
+    		// exception and alert the user.
+    		Attribute valueAttribute = valueNode.getAttribute("value");
+    		if(valueAttribute == null) {
+    			throw new RuntimeException(Hodoscope_v1.class.getSimpleName() + ": Node \""
+    					+ varName + "\" is missing attribute \"value\".");
+    		}
+    		
+    		// The value should take the form of a comma-delimited
+    		// string of doubles. First, sanitize the string to
+    		// remove any whitespace. Also ensure that it contains
+    		// only numbers, decimal points, and commas.
+    		int entries = 1;
+    		StringBuffer sanitizationBuffer = new StringBuffer();
+    		for(char c : valueAttribute.getValue().toCharArray()) {
+    			if(Character.isDigit(c) || c == ',' || Character.isWhitespace(c) || c == '.') {
+    				if(c == ',') { entries++; }
+    				if(!Character.isWhitespace(c)) {
+    					sanitizationBuffer.append(c);
+    				}
+    			} else {
+    				throw new IllegalArgumentException(Hodoscope_v1.class.getSimpleName() + ": Numeric array variable \""
+    						+ varName + "\" contains unsupported character \'" + Character.toString(c) + "\'.");
+    			}
+    		}
+    		
+    		// If the input string is sanitized, prepare it for
+    		// parsing.
+    		String input = sanitizationBuffer.toString();
+    		
+    		// If the input is an empty string, return a size zero
+    		// array of type double.
+    		if(input.length() == 0) {
+    			return new double[0];
+    		}
+    		
+    		// Extract all double values from the input.
+    		int curIndex = 0;
+    		double[] values = new double[entries];
+    		StringBuffer valueBuffer = new StringBuffer();
+    		for(char c : input.toCharArray()) {
+    			// All digits aside from the delimiter should be
+    			// added to the buffer for later parsing.
+    			if(c != ',') {
+    				valueBuffer.append(c);
+    			}
+    			
+    			// If the delimiter has been seen, parse the digit.
+    			else {
+    				// If there is no content in the buffer, it is
+    				// an error.
+    				if(valueBuffer.length() == 0) {
+    					throw new IllegalArgumentException(Hodoscope_v1.class.getSimpleName() + ": Numeric array variable \""
+        						+ varName + "\" is missing one or more value declarations.");
+    				}
+    				
+    				// Otherwise, attempt to parse the digit.
+    				values[curIndex] = Double.parseDouble(valueBuffer.toString());
+    				
+    				// Reset the buffer an increment the index.
+    				valueBuffer = new StringBuffer();
+    				curIndex++;
+    			}
+    		}
+    		
+    		// There should be one digit left in the buffer at the
+    		// end of the loop.
+			if(valueBuffer.length() == 0) {
+				throw new IllegalArgumentException(Hodoscope_v1.class.getSimpleName() + ": Numeric array variable \""
+						+ varName + "\" is missing one or more value declarations.");
+			}
+			values[curIndex] = Double.parseDouble(valueBuffer.toString());
+			valueBuffer = new StringBuffer();
+			curIndex++;
+    		
+    		// Return the result.
+    		return values;
+    	} else {
+    		return null;
+    	}
     }
     
     /**
@@ -253,7 +447,7 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // define a volume, which sets the material. Lastly, it is
         // assigned the display properties for the hodoscope and is
         // attached to the hodoscope's sensitive detector.
-        Box pixelShape = new Box("hodo_pixel_" + uid, pixelWidth, PIXEL_HEIGHT, PIXEL_DEPTH);
+        Box pixelShape = new Box("hodo_pixel_" + uid, pixelWidth, pixelHeight, pixelDepth);
         Volume pixelVolume = new Volume("hodo_vol_" + uid, pixelShape, material);
         pixelVolume.setSensitiveDetector(sens);
         setVisAttributes(lcdd, getNode(), pixelVolume);
@@ -280,140 +474,6 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         physvolL1TP1.addPhysVolID("ix", ix);
         physvolL1TP1.addPhysVolID("iy", topBot == TOP ? 1 : -1);
         physvolL1TP1.addPhysVolID("iz", layer == LAYER1 ? 1 : 2);
-    }
-    
-    /**
-     * Sets the layer buffer value to the value stored in the
-     * indicated variable element of the detector compact.xml
-     * description. Note that it is required for the variable to
-     * declared in the format <br/><br/>
-     * <code>&lt;VAR_NAME value="DOUBLE_VALUE"/&gt;</code>
-     * <br/><br/>
-     * If the variable is not defined, the hard-coded default value
-     * will be used instead.
-     * @param root - The detector XML node which serves as a parent
-     * to the variable nodes.
-     * @param var - The {@link java.lang.String String} name of the
-     * variables.
-     * @throws DataConversionException Occurs if the value defined is
-     * not convertible to a <code>double</code> primitive.
-     * @throws RuntimeException Occurs if the variable node exists,
-     * but is missing the necessary value attribute.
-     */
-    private final void setLayerBuffer(Element root, String var) throws DataConversionException, RuntimeException {
-    	// Get the value node. If it does not exist, nothing needs
-    	// to be done as the layer buffer variable is instantiated to
-    	// its default values already. Otherwise, attempt to access
-    	// the variable.
-    	double varVal = getNodeVariable(root, var);
-    	if(!Double.isNaN(varVal)) {
-    		layerBuffer = varVal;
-    	}
-    }
-    
-    /**
-     * Sets the position value specified to the value stored in the
-     * variable element of the detector compact.xml description. Note
-     * that it is required for the variable to declared in the format
-     * <br/><br/>
-     * <code>&lt;VAR_NAME value="DOUBLE_VALUE"/&gt;</code>
-     * <br/><br/>
-     * If the variable is not defined, the hard-coded default value
-     * will be used instead.
-     * @param root - The detector XML node which serves as a parent
-     * to the variable nodes.
-     * @param var - The {@link java.lang.String String} name of the
-     * variables.
-     * @param layer - The layer of the hodoscope for which this value
-     * is to be applied. This can only be defined as either of the
-     * values {@link
-     * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#LAYER1
-     * LAYER1} or {@link
-     * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#LAYER2
-     * LAYER2}.
-     * @param topBottom - Whether this variable is to be applied to
-     * the top or the bottom section of the hodoscope. This can only
-     * be defined as one of the two variables {@link
-     * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#TOP
-     * TOP} or {@link
-     * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#BOTTOM
-     * BOTTOM}.
-     * @param coordinate - To which of the three spatial coordinates
-     * the variable is to be applied. This can be one of the three
-     * variables {@link
-     * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#X X},
-     * {@link
-     * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#Y Y},
-     * or {@link
-     * org.lcsim.geometry.compact.converter.lcdd.Hodoscope_v1#Z Z}.
-     * @throws DataConversionException Occurs if the value defined is
-     * not convertible to a <code>double</code> primitive.
-     * @throws IllegalArgumentException Occurs if any of the values
-     * <code>layer</code>, <code>topBottom</code>, or
-     * <code>coordinate</code> are not one of the allowed entries.
-     * @throws RuntimeException Occurs if the variable node exists,
-     * but is missing the necessary value attribute.
-     */
-    private final void setPositionValue(Element root, String var, int layer, int topBottom, int coordinate)
-    		throws DataConversionException, IllegalArgumentException, RuntimeException {
-    	// Validate the hodoscope position variable indices.
-    	if(layer != LAYER1 && layer != LAYER2) {
-    		throw new IllegalArgumentException(getClass().getSimpleName() + ": Unrecognized layer index " + layer + ".");
-    	} if(topBottom != TOP && topBottom != BOTTOM) {
-    		throw new IllegalArgumentException(getClass().getSimpleName() + ": Unrecognized top/bottom identifier " + topBottom + ".");
-    	} if(coordinate != X && coordinate != Y && coordinate != Z) {
-    		throw new IllegalArgumentException(getClass().getSimpleName() + ": Unrecognized coordinate index " + coordinate + ".");
-    	}
-    	
-    	// Get the value node. If it does not exist, nothing needs
-    	// to be done as the position variables are instantiated to
-    	// their default values already. Otherwise, attempt to access
-    	// the variable.
-    	double varVal = getNodeVariable(root, var);
-    	if(!Double.isNaN(varVal)) {
-    		positionValues[layer][topBottom][coordinate] = varVal;
-    	}
-    }
-    
-    /**
-     * Gets the value specified from the variable element of the
-     * detector compact.xml description. Note that it is required for
-     * the variable to declared in the format <br/><br/>
-     * <code>&lt;VAR_NAME value="DOUBLE_VALUE"/&gt;</code>
-     * <br/><br/>
-     * If the specified variable node does not exist as a child of
-     * the parent node <code>root</code>, a value of {@link
-     * java.lang.Double.NaN Double.NaN} is returned instead.
-     * @param root - The detector XML node which serves as a parent
-     * to the variable nodes.
-     * @param varName - The {@link java.lang.String String} name of
-     * the variables.
-     * @return Returns the variable, if the node exists. Otherwise, a
-     * value of {@link java.lang.Double.NaN Double.NaN} is returned.
-     * @throws DataConversionException Occurs if the value defined is
-     * not convertible to a <code>double</code> primitive.
-     * @throws RuntimeException Occurs if the variable node exists,
-     * but is missing the necessary value attribute.
-     */
-    private final double getNodeVariable(Element root, String varName) throws DataConversionException, RuntimeException {
-    	// Get the value node. If it exists, attempt to access the
-    	// variable. Otherwise, just return Double.NaN.
-    	Element valueNode = root.getChild(varName);
-    	if(valueNode != null) {
-    		// Attempt to obtain the variable attribute. If it does
-    		// not exist, there is a formatting problem with the
-    		// detector declaration in the compact.xml. Produce an
-    		// exception and alert the user.
-    		Attribute valueAttribute = valueNode.getAttribute("value");
-    		if(valueAttribute == null) {
-    			throw new RuntimeException(getClass().getSimpleName() + ": Node \"" + varName + "\" is missing attribute \"value\".");
-    		}
-    		
-    		// Otherwise, parse the value and store it.
-    		return valueNode.getAttribute("value").getDoubleValue();
-    	} else {
-    		return Double.NaN;
-    	}
     }
     
     public boolean isCalorimeter() {
