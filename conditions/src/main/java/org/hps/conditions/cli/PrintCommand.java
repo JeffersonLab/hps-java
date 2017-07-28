@@ -87,7 +87,7 @@ final class PrintCommand extends AbstractCommand {
 
         final CommandLine commandLine = this.parse(arguments);
 
-        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        final DatabaseConditionsManager conditionsManager = this.getManager();
 
         if (!conditionsManager.isInitialized()) {
             throw new RuntimeException("conditions system is not initialized");
