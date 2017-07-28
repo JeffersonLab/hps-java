@@ -58,6 +58,7 @@
         <driver name="ReconParticleDriver" />   
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
+        <driver name="CondCheckDriver"/>
     </execute>    
     <drivers>    
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
@@ -147,5 +148,6 @@
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>
+        <driver name="CondCheckDriver" type="org.hps.test.util.EngRun2015CondCheckDriver"/>
     </drivers>
 </lcsim>

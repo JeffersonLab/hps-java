@@ -16,6 +16,7 @@
         <driver name="AidaSaveDriver"/>    
         <driver name="ClockDriver"/>     
         <driver name="CleanupDriver" /> 
+        <driver name="CondCheckDriver" />
     </execute>
     <drivers>
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
@@ -91,5 +92,6 @@
             <writeSvtData>true</writeSvtData>
             <ecalMode>1</ecalMode>
         </driver>
+        <driver name="CondCheckDriver" type="org.hps.test.util.EngRun2015CondCheckDriver"/>
     </drivers>
 </lcsim>
