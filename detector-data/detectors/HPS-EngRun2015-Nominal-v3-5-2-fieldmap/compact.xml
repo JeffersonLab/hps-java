@@ -861,7 +861,10 @@
     </readouts>
 
     <fields>
-        <field type="FieldMap3D" name="HPSDipoleFieldMap3D" filename="fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992.dat" xoffset="2.117*cm" yoffset="0.0*cm" zoffset="45.72*cm" />
+        <field type="FieldMap3D" name="HPSDipoleFieldMap3D" 
+               filename="fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992.dat" 
+               url="https://raw.githubusercontent.com/JeffersonLab/hps-fieldmaps/master/125acm2_3kg_corrected_unfolded_scaled_0.7992.tar.gz"
+               xoffset="2.117*cm" yoffset="0.0*cm" zoffset="45.72*cm" />
     </fields>
 
 <!--    

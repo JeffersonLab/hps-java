@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
-import org.hps.rundb.RunManager;
 import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.job.DefaultConditionsSetup;
 
@@ -19,7 +18,6 @@ import org.lcsim.job.DefaultConditionsSetup;
 public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup {
 
     private Logger LOGGER = Logger.getLogger(DatabaseConditionsManagerSetup.class.getPackage().getName());   
-    private boolean enableRunManager = true;
     private Set<String> tags = null;
     private boolean freeze = false;
     
@@ -29,14 +27,6 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
      */
     public void setFreeze(boolean freeze) {
         this.freeze = freeze;
-    }
-    
-    /**
-     * Enable the run manager in the job.
-     * @param enableRunManager <code>true</code> to enable run manager
-     */
-    public void setEnableRunManager(boolean enableRunManager) {
-        this.enableRunManager = enableRunManager;
     }
     
     /**
@@ -61,13 +51,7 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
         LOGGER.info("configuring conditions system");
 
         // Initialize the db conditions manager.
-        DatabaseConditionsManager.resetInstance();
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-
-        if (enableRunManager) {
-            LOGGER.config("adding run manager conditions listener");
-            conditionsManager.addConditionsListener(RunManager.getRunManager());
-        }
         
         // Add class that will setup SVT detector with conditions data.
         LOGGER.config("adding SVT detector setup conditions listener");

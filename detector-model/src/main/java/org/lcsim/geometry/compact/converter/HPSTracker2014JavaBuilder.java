@@ -117,10 +117,11 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
                 throw new RuntimeException("Cound't find mother to module "
                         + m.module.getName());
 
-            // if(isDebug())
-            System.out.printf("%s: found ewfsdhf mother %s to module %s\n",
-                    getClass().getSimpleName(), mother.getName(),
-                    m.module.getName());
+            if(isDebug()) {
+                System.out.printf("%s: found ewfsdhf mother %s to module %s\n",
+                        getClass().getSimpleName(), mother.getName(),
+                        m.module.getName());
+            }
 
             // put the module in the list of objects that will be added to LCDD
             addModule(m, mother);
@@ -229,14 +230,12 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
                 lcddS, componentNumber);
         add(lcddAS);
 
-        // if(isDebug()) {
-        System.out.printf("%s: added sensor %s \n", this.getClass()
-                .getSimpleName(), lcddS.getName());
-        System.out.printf("%s: local coordinate system\n%s\n", this.getClass()
-                .getSimpleName(), bundle.sensor.getCoord().toString());
-        // dsd
-        // }
-
+        if(isDebug()) {
+            System.out.printf("%s: added sensor %s \n", this.getClass()
+                    .getSimpleName(), lcddS.getName());
+            System.out.printf("%s: local coordinate system\n%s\n", this.getClass()
+                    .getSimpleName(), bundle.sensor.getCoord().toString());
+        }
     }
 
     @Override

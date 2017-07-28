@@ -4,7 +4,7 @@
 package org.hps.recon.filtering;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -45,7 +45,7 @@ public class SvtHitMultiplicityFilter extends EventReconFilter {
         List<SiTrackerHitStrip1D> stripClusters = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
         
         
-        Map<String, List<SiTrackerHitStrip1D> > sensorHitMap= new HashMap< String, List<SiTrackerHitStrip1D> >();
+        Map<String, List<SiTrackerHitStrip1D> > sensorHitMap= new LinkedHashMap< String, List<SiTrackerHitStrip1D> >();
         
         int nhits[] = {0,0};
 

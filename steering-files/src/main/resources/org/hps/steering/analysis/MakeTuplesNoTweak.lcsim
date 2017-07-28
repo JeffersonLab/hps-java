@@ -1,7 +1,6 @@
  <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="EventMarkerDriver"/>
         <driver name="CleanupDriver"/>
         <driver name="EventFlagFilter"/>
         <driver name="RawTrackerHitSensorSetup"/>
@@ -11,9 +10,6 @@
         <driver name="FEETuple"/>
     </execute>    
     <drivers>    
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>        
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter">
         </driver>

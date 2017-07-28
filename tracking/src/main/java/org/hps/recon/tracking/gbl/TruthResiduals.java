@@ -202,7 +202,7 @@ public class TruthResiduals {
     public IHistogram getResidual(int layer,String coord) {
         if( !this.res_truthsimhit.containsKey(layer) ) 
             throw new RuntimeException("Error the layer number is not valid");
-        if( coord!="x" || coord!="y")
+        if( coord!="x" && coord!="y")
             throw new RuntimeException("Error the coord is not valid");
         IHistogram1D h = this.res_truthsimhit.get(layer).get(coord=="x"?0:1);
         return h;
