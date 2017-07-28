@@ -60,7 +60,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Initialize the logger.
      */
-    private static Logger LOGGER = Logger.getLogger(DatabaseConditionsManager.class.getPackage().getName());
+    private static Logger LOG = Logger.getLogger(DatabaseConditionsManager.class.getPackage().getName());
 
     /**
      * The max value for a run to be considered Test Run.
@@ -190,17 +190,17 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public void addTag(final String tag) {
         if (!this.tags.contains(tag)) {
-            LOGGER.info("adding tag " + tag);
+            LOG.info("adding tag " + tag);
             final ConditionsTagCollection findConditionsTag = this.getCachedConditions(ConditionsTagCollection.class,
                     tag).getCachedData();
             if (findConditionsTag.size() == 0) {
                 throw new IllegalArgumentException("The tag " + tag + " does not exist in the database.");
             }
-            LOGGER.info("adding conditions tag " + tag + " with " + conditionsTagCollection.size() + " records");
+            LOG.info("adding conditions tag " + tag + " with " + conditionsTagCollection.size() + " records");
             this.conditionsTagCollection.addAll(findConditionsTag);
             this.tags.add(tag);
         } else {
-            LOGGER.warning("tag " + tag + " is already added");
+            LOG.warning("tag " + tag + " is already added");
         }
     }
 
@@ -247,10 +247,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         if (this.connection != null) {
             try {
                 if (!this.connection.isClosed()) {
-                    LOGGER.info("Closing database connection.");
+                    LOG.info("Closing database connection.");
                     this.connection.close();
                 } else {
-                    LOGGER.warning("Database connection was already closed!");
+                    LOG.warning("Database connection was already closed!");
                 }
             } catch (final SQLException e) {
                 e.printStackTrace();
@@ -311,9 +311,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public synchronized void freeze() {
         if (this.getDetector() != null && this.getRun() != -1) {
             this.isFrozen = true;
-            LOGGER.config("Conditions system is now frozen and will not accept updates to detector or run.");
+            LOG.config("Conditions system is now frozen and will not accept updates to detector or run.");
         } else {
-            LOGGER.warning("Conditions system cannot be frozen because it is not initialized yet!");
+            LOG.warning("Conditions system cannot be frozen because it is not initialized yet!");
         }
     }
 
@@ -345,7 +345,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         try {
             rs.close();
         } catch (final SQLException e) {
-            LOGGER.log(Level.WARNING, "Error closing ResultSet.", e);
+            LOG.log(Level.WARNING, "Error closing ResultSet.", e);
         }
         final StringBuffer sb = new StringBuffer();
         sb.append("found unique conditions tags: ");
@@ -353,7 +353,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             sb.append(tag + " ");
         }
         sb.setLength(sb.length() - 1);
-        LOGGER.fine(sb.toString());
+        LOG.fine(sb.toString());
         return tags;
     }
 
@@ -587,7 +587,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 }
 
                 // Print connection info to the log.
-                LOGGER.info("Opening connection ... " + '\n' + "connection: "
+                LOG.info("Opening connection ... " + '\n' + "connection: "
                         + this.connectionParameters.getConnectionString() + '\n' + "host: "
                         + this.connectionParameters.getHostname() + '\n' + "port: "
                         + this.connectionParameters.getPort() + '\n' + "user: " + this.connectionParameters.getUser()
@@ -663,7 +663,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param file the properties file
      */
     public void setConnectionProperties(final File file) {
-        LOGGER.config("Setting connection properties file '" + file.getPath() + "'");
+        LOG.config("Setting connection properties file '" + file.getPath() + "'");
         if (!file.exists()) {
             throw new IllegalArgumentException("The connection properties file does not exist: "
                     + this.connectionPropertiesFile.getPath());
@@ -677,7 +677,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param resource the classpath resource location
      */
     public void setConnectionResource(final String resource) {
-        LOGGER.config("Setting connection resource '" + resource + "'");
+        LOG.config("Setting connection resource '" + resource + "'");
         this.connectionParameters = ConnectionParameters.fromResource(resource);
     }
 
@@ -691,7 +691,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         
         if (!this.isInitialized || !detectorName.equals(this.getDetector()) || runNumber != this.getRun()) {
             
-            LOGGER.config("Initializing conditions system with detector '" + detectorName + "' and run " + runNumber);
+            LOG.config("Initializing conditions system with detector '" + detectorName + "' and run " + runNumber);
             
             if (!this.isFrozen) {
                 
@@ -733,7 +733,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                         + " does not exist.");
             }
             this.setConnectionProperties(f);
-            LOGGER.info("connection setup from system property " + CONNECTION_PROPERTY_FILE + " = "
+            LOG.info("connection setup from system property " + CONNECTION_PROPERTY_FILE + " = "
                     + systemPropertiesConnectionPath);
         }
     }
@@ -755,6 +755,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public synchronized void unfreeze() {
         this.isFrozen = false;
-        LOGGER.info("Conditions system was unfrozen and will now accept updates.");
+        LOG.info("Conditions system was unfrozen and will now accept updates.");
     }
 }
