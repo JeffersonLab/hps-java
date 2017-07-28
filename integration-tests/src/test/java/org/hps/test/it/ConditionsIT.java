@@ -9,8 +9,11 @@ import org.hps.data.test.TestDataUtility;
 import org.hps.evio.EvioToLcio;
 import org.hps.job.DatabaseConditionsManagerSetup;
 import org.hps.job.JobManager;
-import org.lcsim.util.test.TestUtil.TestOutputFile;
+import org.hps.test.util.TestOutputFile;
 
+/**
+ * Test conditions system using various job and data configurations.
+ */
 public class ConditionsIT extends TestCase {
     
     static {
@@ -23,7 +26,7 @@ public class ConditionsIT extends TestCase {
     
     public void testEvioToLcioEngRun2015() {
         File inputFile = new TestDataUtility().getTestData("run5772_integrationTest.evio");
-        File outputFile = new TestOutputFile("EvioToLcioEngRun2015");
+        File outputFile = new TestOutputFile(ConditionsIT.class, "EvioToLcioEngRun2015");
         String args[] = {"-r", "-x", "/org/hps/steering/test/EngRun2015FullRecon_CondCheck.lcsim", "-d",
                 "HPS-EngRun2015-Nominal-v3", "-D", "outputFile=" + outputFile.getPath(), "-n", "2",
                 inputFile.getPath()};
@@ -32,7 +35,7 @@ public class ConditionsIT extends TestCase {
         
     public void testLcioReconEngRun2015() {
         File inputFile = new TestDataUtility().getTestData("run_5772_data_only.slcio");
-        File outputFile = new TestOutputFile("LcioRecon");
+        File outputFile = new TestOutputFile(ConditionsIT.class, "LcioRecon");
         JobManager job = new JobManager();
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.addInputFile(inputFile);
@@ -43,7 +46,7 @@ public class ConditionsIT extends TestCase {
     
     public void testEvioToLcioPhysRun2016() {
         File inputFile = new TestDataUtility().getTestData("hps_007457_1000.evio.0");        
-        File outputFile = new TestOutputFile("EvioToLcioEngRun2015");
+        File outputFile = new TestOutputFile(ConditionsIT.class, "EvioToLcioEngRun2015");
         String args[] = {"-r", "-x", "/org/hps/steering/test/PhysicsRun2016FullRecon_CondCheck.lcsim", "-d",
                 "HPS-EngRun2015-Nominal-v3", "-D", "outputFile=" + outputFile.getPath(), "-n", "2",
                 inputFile.getPath()};
@@ -52,7 +55,7 @@ public class ConditionsIT extends TestCase {
     
     public void testEvioToLcioTestRun() {
         File inputFile = new TestDataUtility().getTestData("hps_001306_1000.evio.0");
-        File outputFile = new TestOutputFile("EvioToLcioTestRun.slcio");
+        File outputFile = new TestOutputFile(ConditionsIT.class, "EvioToLcioTestRun.slcio");
         String args[] = {"-r", "-d", "HPS-TestRun-v8-5", "-l", outputFile.getPath(), "-n", "1000",
                 inputFile.getPath()};
         try {
@@ -64,7 +67,7 @@ public class ConditionsIT extends TestCase {
        
     public void testMCReconDefaultConditions() {
         File inputFile = new TestDataUtility().getTestData("tritrig_EngRun2015_readout.slcio");
-        File outputFile = new TestOutputFile("MCReconDefaultConditions");
+        File outputFile = new TestOutputFile(ConditionsIT.class, "MCReconDefaultConditions");
         JobManager job = new JobManager();
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.addInputFile(inputFile);
@@ -75,7 +78,7 @@ public class ConditionsIT extends TestCase {
     
     public void testMCReconUserConditions() {
         File inputFile = new TestDataUtility().getTestData("tritrig_EngRun2015_readout.slcio");
-        File outputFile = new TestOutputFile("MCReconDefaultConditions");
+        File outputFile = new TestOutputFile(ConditionsIT.class, "MCReconDefaultConditions");
         JobManager job = new JobManager();
         DatabaseConditionsManagerSetup cond = new DatabaseConditionsManagerSetup();
         cond.setDetectorName("HPS-EngRun2015-Nominal-v5-0-fieldmap");
@@ -90,7 +93,18 @@ public class ConditionsIT extends TestCase {
     }    
     
     public void testReadoutSim() {
-        // TODO: readout simulation job
-        // /org/hps/steering/readout/EngineeringRun2015TrigPairs1_Pass2.lcsim
+        File inputFile = new TestDataUtility().getTestData("tritrig_EngRun2015_filt.slcio");
+        File outputFile = new TestOutputFile(ConditionsIT.class, "ReadoutSim");
+        JobManager job = new JobManager();
+        DatabaseConditionsManagerSetup cond = new DatabaseConditionsManagerSetup();
+        cond.setDetectorName("HPS-EngRun2015-Nominal-v5-0-fieldmap");
+        cond.setRun(5772);
+        cond.setFreeze(true);
+        job.setConditionsSetup(cond);
+        job.addVariableDefinition("outputFile", outputFile.getPath());
+        job.addInputFile(inputFile);        
+        job.setup("/org/hps/steering/test/EngineeringRun2015TrigPairs1_Pass2_CondCheck.lcsim");
+        job.setNumberOfEvents(1000);
+        job.run();
     }
 }
