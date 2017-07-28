@@ -27,11 +27,16 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.MultipleScattering {
 
     private boolean _fixTrackMomentum = false;
+    private boolean doIterative = true;
     private double _momentum = -99;//dummy
-    private static final double inside_tolerance = 1.0;//tolerance for first (approximate) test of track intersection with sensor
+    private static final double inside_tolerance = 0.1;
 
     public MultipleScattering(MaterialManager materialmanager) {
         super(materialmanager);
+    }
+
+    public void setIterativeHelix(boolean value) {
+        doIterative = value;
     }
 
     /**
@@ -206,6 +211,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
      * extrapolates linearly to find teh intersection If inside use an iterative "exact" way to
      * determine the final position
      */
+
     public Hep3Vector getHelixIntersection(HelicalTrackFit helix, SiStripPlane plane) {
 
         if (_debug) {
@@ -316,7 +322,10 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("%s: found simple intercept at %s \n", this.getClass().getSimpleName(), pos_int_trk.toString());
         }
 
-        // TODO Catch special cases where the incidental iteration procedure seems to fail 
+        if (!doIterative)
+            return pos_int_trk;
+
+        // TODO Catch special cases where the incidental iteration procedure seems to fail
         if (Math.abs(helix.R()) < 2000 && Math.abs(helix.dca()) > 10.0) {
             if (_debug) {
                 System.out.printf("%s: momentum is low (p=%f,R=%f,B=%f) and d0 is big (d0=%f), skip the iterative calculation\n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield, helix.dca());
@@ -338,7 +347,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-            //        if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
+            if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude() > 1e-4)
+                System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
             System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
         }
 
