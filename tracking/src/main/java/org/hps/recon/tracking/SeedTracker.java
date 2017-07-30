@@ -31,7 +31,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         super(strategylist);
     }
     
-        public void setIterativeHelix(boolean value) {
+    public void setIterativeHelix(boolean value) {
         doIterativeHelix = value;
     }
 
