@@ -30,6 +30,31 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         // use base class only if this constructor is called!
         super(strategylist);
     }
+    
+        public void setIterativeHelix(boolean value) {
+        doIterativeHelix = value;
+    }
+
+    private void initialize(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS) {
+
+        // Explicitly only replace the objects that might change to avoid getting the lcsim versions
+
+        //  Instantiate the material manager for HPS,  the helix fitter and seed track finder as tey depends on the material manager
+        if (useHPSMaterialManager) {
+            MaterialSupervisor materialSupervisor = new MaterialSupervisor(includeMS);
+            materialSupervisor.setDebug(true);
+            _materialmanager = materialSupervisor;
+            _helixfitter = new HelixFitter(materialSupervisor, doIterativeHelix);
+        } else {
+            MaterialManager materialmanager = new MaterialManager(includeMS);
+            _materialmanager = materialmanager; //mess around with types here...
+            _helixfitter = new HelixFitter(materialmanager, doIterativeHelix);
+        }
+
+        //  Instantiate the helix finder since it depends on the material manager
+        _finder = new SeedTrackFinder(_hitmanager, _helixfitter);
+
+    }
 
     public SeedTracker(List<SeedStrategy> strategylist, boolean includeMS) {
         super(strategylist);
@@ -47,7 +72,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         initialize(strategylist, useHPSMaterialManager, includeMS);
     }
     
-        public void setIterativeConfirmed(int maxfits) {
+    public void setIterativeConfirmed(int maxfits) {
         this._iterativeConfirmedFits = maxfits;
         super.setIterativeConfirmed(maxfits);
     }
@@ -77,31 +102,6 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
     public void setSubdetectorName(String subdetectorName) {
         ((MaterialSupervisor) this._materialmanager).setSubdetectorName(subdetectorName);
-    }
-
-    public void setIterativeHelix(boolean value) {
-        doIterativeHelix = value;
-    }
-
-    private void initialize(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS) {
-
-        // Explicitly only replace the objects that might change to avoid getting the lcsim versions
-
-        //  Instantiate the material manager for HPS,  the helix fitter and seed track finder as tey depends on the material manager
-        if (useHPSMaterialManager) {
-            MaterialSupervisor materialSupervisor = new MaterialSupervisor(includeMS);
-            materialSupervisor.setDebug(true);
-            _materialmanager = materialSupervisor;
-            _helixfitter = new HelixFitter(materialSupervisor, doIterativeHelix);
-        } else {
-            MaterialManager materialmanager = new MaterialManager(includeMS);
-            _materialmanager = materialmanager; //mess around with types here...
-            _helixfitter = new HelixFitter(materialmanager, doIterativeHelix);
-        }
-
-        //  Instantiate the helix finder since it depends on the material manager
-        _finder = new SeedTrackFinder(_hitmanager, _helixfitter);
-
     }
 
     @Override
