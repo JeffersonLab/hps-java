@@ -51,11 +51,6 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         doIterativeHelix = value;
     }
 
-    public void setIterativeConfirmed(int maxfits) {
-        this._iterativeConfirmedFits = maxfits;
-        super.setIterativeConfirmed(maxfits);
-    }
-
     private void initialize(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS) {
 
         // Explicitly only replace the objects that might change to avoid getting the lcsim versions
@@ -179,6 +174,9 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
         return;
 
+    public void setIterativeConfirmed(int maxfits) {
+        this._iterativeConfirmedFits = maxfits;
+        super.setIterativeConfirmed(maxfits);
     }
 
     /**

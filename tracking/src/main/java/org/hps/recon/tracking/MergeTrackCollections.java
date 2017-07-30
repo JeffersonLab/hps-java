@@ -38,6 +38,7 @@ public class MergeTrackCollections extends Driver {
     // private AcceptanceHelper acc;
 
     private AIDA aida2 = AIDA.defaultInstance();
+
     private IHistogram1D trackScoresPreAmbi;
     private IHistogram1D trackScoresPostAmbi;
     private IHistogram1D numDuplicateTracks;
@@ -127,6 +128,7 @@ public class MergeTrackCollections extends Driver {
             numHitsPreAmbi = aida2.histogram1D("numHitsPreAmbi", 10, 0, 10);
             numHitsPostAmbi = aida2.histogram1D("numHitsPostAmbi", 10, 0, 10);
         }
+
     }
 
     @Override
