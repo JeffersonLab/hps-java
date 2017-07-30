@@ -17,10 +17,13 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrackFinder;
 
 /**
  * Class extending lcsim version to allow extra flexibility
+ * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracker {
-    private int _iterativeConfirmedFits;
+
+    private int _iterativeConfirmedFits = 0;
+    private boolean doIterativeHelix = false;
     private boolean debug;
 
     public SeedTracker(List<SeedStrategy> strategylist) {
@@ -38,6 +41,16 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         initialize(strategylist, useHPSMaterialManager, includeMS);
     }
 
+    public SeedTracker(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS, boolean doIterative) {
+        super(strategylist);
+        setIterativeHelix(doIterative);
+        initialize(strategylist, useHPSMaterialManager, includeMS);
+    }
+
+    public void setIterativeHelix(boolean value) {
+        doIterativeHelix = value;
+    }
+
     public void setIterativeConfirmed(int maxfits) {
         this._iterativeConfirmedFits = maxfits;
         super.setIterativeConfirmed(maxfits);
@@ -52,15 +65,16 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
             MaterialSupervisor materialSupervisor = new MaterialSupervisor(includeMS);
             materialSupervisor.setDebug(true);
             _materialmanager = materialSupervisor;
-            _helixfitter = new HelixFitter(materialSupervisor);
+            _helixfitter = new HelixFitter(materialSupervisor, doIterativeHelix);
         } else {
             MaterialManager materialmanager = new MaterialManager(includeMS);
             _materialmanager = materialmanager; //mess around with types here...
-            _helixfitter = new HelixFitter(materialmanager);
+            _helixfitter = new HelixFitter(materialmanager, doIterativeHelix);
         }
 
         //  Instantiate the helix finder since it depends on the material manager
         _finder = new SeedTrackFinder(_hitmanager, _helixfitter);
+
     }
 
     @Override
@@ -164,6 +178,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         }
 
         return;
+
     }
 
     /**
@@ -192,4 +207,5 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
     public void setSubdetectorName(String subdetectorName) {
         ((MaterialSupervisor) this._materialmanager).setSubdetectorName(subdetectorName);
     }
+
 }
