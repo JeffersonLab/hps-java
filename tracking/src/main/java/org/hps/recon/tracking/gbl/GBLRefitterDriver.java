@@ -71,10 +71,7 @@ public class GBLRefitterDriver extends Driver {
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
             Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield);
-<<<<<<< HEAD
             //            newTrack.getFirst().
-=======
->>>>>>> issue65b
             refittedTracks.add(newTrack.getFirst());
             trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
             inputToRefitted.put(track, newTrack.getFirst());
