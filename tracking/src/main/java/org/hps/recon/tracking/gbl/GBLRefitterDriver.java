@@ -36,7 +36,6 @@ public class GBLRefitterDriver extends Driver {
 
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
-    private boolean mergeTracks = false;
 
     public void setInputCollectionName(String inputCollectionName) {
         this.inputCollectionName = inputCollectionName;
@@ -44,16 +43,6 @@ public class GBLRefitterDriver extends Driver {
 
     public void setOutputCollectionName(String outputCollectionName) {
         this.outputCollectionName = outputCollectionName;
-    }
-
-    /**
-     * Merge tracks with overlapping hit content. Right now nothing actually
-     * happens to the merged tracks; this is just for testing.
-     *
-     * @param mergeTracks default to false
-     */
-    public void setMergeTracks(boolean mergeTracks) {
-        this.mergeTracks = mergeTracks;
     }
 
     @Override
@@ -82,7 +71,10 @@ public class GBLRefitterDriver extends Driver {
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
             Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield);
+<<<<<<< HEAD
             //            newTrack.getFirst().
+=======
+>>>>>>> issue65b
             refittedTracks.add(newTrack.getFirst());
             trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
             inputToRefitted.put(track, newTrack.getFirst());
