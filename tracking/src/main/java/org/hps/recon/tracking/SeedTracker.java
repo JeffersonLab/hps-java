@@ -24,28 +24,13 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
     private int _iterativeConfirmedFits = 0;
     private boolean doIterativeHelix = false;
+    private boolean debug;
 
     public SeedTracker(List<SeedStrategy> strategylist) {
         // use base class only if this constructor is called!
         super(strategylist);
     }
-
-    public SeedTracker(List<SeedStrategy> strategylist, boolean includeMS) {
-        super(strategylist);
-        initialize(strategylist, true, includeMS);
-    }
-
-    public SeedTracker(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS) {
-        super(strategylist);
-        initialize(strategylist, useHPSMaterialManager, includeMS);
-    }
-
-    public SeedTracker(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS, boolean doIterative) {
-        super(strategylist);
-        setIterativeHelix(doIterative);
-        initialize(strategylist, useHPSMaterialManager, includeMS);
-    }
-
+    
     public void setIterativeHelix(boolean value) {
         doIterativeHelix = value;
     }
@@ -71,6 +56,22 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
     }
 
+    public SeedTracker(List<SeedStrategy> strategylist, boolean includeMS) {
+        super(strategylist);
+        initialize(strategylist, true, includeMS);
+    }
+
+    public SeedTracker(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS) {
+        super(strategylist);
+        initialize(strategylist, useHPSMaterialManager, includeMS);
+    }
+
+    public SeedTracker(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS, boolean doIterative) {
+        super(strategylist);
+        setIterativeHelix(doIterative);
+        initialize(strategylist, useHPSMaterialManager, includeMS);
+    }
+    
     public void setIterativeConfirmed(int maxfits) {
         this._iterativeConfirmedFits = maxfits;
         super.setIterativeConfirmed(maxfits);
@@ -86,6 +87,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         super.setDebug(debug);
         _materialmanager.setDebug(debug);
         _helixfitter.setDebug(debug);
+        this.debug = debug;
     }
 
     /**
@@ -112,6 +114,8 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
         // Initialize timing
         long last_time = System.currentTimeMillis();
+        long start_time = 0;
+        double dtime = 0;
 
         // Get the hit collection from the event
         List<HelicalTrackHit> hitcol = event.get(HelicalTrackHit.class, _inputCol);
@@ -120,11 +124,12 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         _hitmanager.OrganizeHits(hitcol);
 
         // Make the timing plots if requested
-        long start_time = System.currentTimeMillis();
-        double dtime = ((double) (start_time - last_time)) / 1000.;
-        last_time = start_time;
-        if (_timing)
+        if (_timing) {
+            start_time = System.currentTimeMillis();
+            dtime = ((double) (start_time - last_time)) / 1000.;
+            last_time = start_time;
             aida.cloud1D("Organize Hits").fill(dtime);
+        }
 
         // Make sure that we have cleared the list of track seeds in the finder
         _finder.clearTrackSeedList();
@@ -136,15 +141,17 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
             if (_diag != null)
                 _diag.fireStrategyChanged(strategy);
 
+            FastCheck checker = new FastCheck(strategy, _bfield, _diag);
             // Perform track finding under this strategy
-            _finder.FindTracks(strategy, _bfield);
+            _finder.FindTracks(strategy, _bfield, checker);
 
             // Make the timing plots if requested
-            long time = System.currentTimeMillis();
-            dtime = ((double) (time - last_time)) / 1000.;
-            last_time = time;
-            if (_timing)
+            if (_timing) {
+                long time = System.currentTimeMillis();
+                dtime = ((double) (time - last_time)) / 1000.;
+                last_time = time;
                 aida.cloud1D("Tracking time for strategy " + strategy.getName()).fill(dtime);
+            }
         }
 
         // Get the list of final list of SeedCandidates
@@ -153,7 +160,8 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
         if (_iterativeConfirmedFits > 0) {
             // Iteratively re-fit tracks to take into account helix and hit position correlations
-
+            if (this.debug)
+                System.out.printf("%s: Iteratively improve %d seeds\n", this.getClass().getSimpleName(), trackseeds.size());
             List<SeedCandidate> seedsToRemove = new ArrayList<SeedCandidate>();
             for (SeedCandidate seed : trackseeds) {
                 SeedStrategy strategy = seed.getSeedStrategy();
@@ -163,6 +171,9 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
                 }
                 if (!success) {
                     seedsToRemove.add(seed);
+                } else {
+                    if (this.debug)
+                        System.out.printf("%s: done iterating, this seed will be added to event:\n%s\n", this.getClass().getSimpleName(), seed.toString());
                 }
             }
             for (SeedCandidate badseed : seedsToRemove) {
@@ -187,11 +198,13 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         _finder.clearTrackSeedList();
 
         // Make the total time plot if requested
-        long end_time = System.currentTimeMillis();
-        dtime = ((double) (end_time - start_time)) / 1000.;
-        if (_timing)
+        if (_timing) {
+            long end_time = System.currentTimeMillis();
+            dtime = ((double) (end_time - start_time)) / 1000.;
             aida.cloud1D("Total tracking time").fill(dtime);
+        }
 
         return;
     }
+
 }
