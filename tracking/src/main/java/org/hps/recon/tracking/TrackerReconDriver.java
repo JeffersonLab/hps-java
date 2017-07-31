@@ -194,7 +194,7 @@ public final class TrackerReconDriver extends Driver {
             HitTimeTrackCheck timeCheck = new HitTimeTrackCheck(rmsTimeCut);
             timeCheck.setDebug(debug);
             stFinal.setTrackCheck(timeCheck);
-        }    
+        }        
     }
 
     /**
@@ -230,7 +230,7 @@ public final class TrackerReconDriver extends Driver {
 
         if (rejectUncorrectedHits) {
             Iterator<Track> iter = tracks.iterator();
-            trackLoop: 
+            trackLoop:
             while (iter.hasNext()) {
                 Track track = iter.next();
                 for (TrackerHit hit : track.getTrackerHits()) {
