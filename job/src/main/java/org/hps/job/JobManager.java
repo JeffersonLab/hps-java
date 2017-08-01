@@ -7,7 +7,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.hps.logging.config.DefaultLoggingConfig;
 import org.lcsim.job.JobControlManager;
-import org.lcsim.util.Driver;
 
 /**
  * Extension of standard LCSim job manager.

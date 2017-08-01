@@ -1,20 +1,11 @@
 package org.hps.recon.filtering;
 
-//import org.hps.recon.ecal.triggerbank.AbstractIntData;
-//import org.hps.recon.ecal.triggerbank.TIData;
-//import org.lcsim.event.GenericObject;
-
-import java.io.File;
-import java.io.IOException;
-
-import org.hps.conditions.ConditionsDriver;
-import org.hps.record.epics.EpicsData;
-import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
+
+import org.hps.record.epics.EpicsData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
-import org.lcsim.lcio.LCIOReader;
-import org.lcsim.lcio.LCIOWriter;
+import org.hps.record.triggerbank.AbstractIntData;
 import org.lcsim.util.Driver;
 
 public class PulserScalerAndEpicsFilter extends Driver{
@@ -99,5 +90,6 @@ public class PulserScalerAndEpicsFilter extends Driver{
 
         writer.close();
     }
-}
 */
+
+}
