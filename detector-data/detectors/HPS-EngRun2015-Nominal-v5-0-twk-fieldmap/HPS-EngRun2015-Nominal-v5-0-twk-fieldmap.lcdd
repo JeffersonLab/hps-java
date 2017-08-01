@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-EngRun2015-Nominal-v5-0-twk-fieldmap" />
-    <generator name="lcsim" version="1.0" file="/Users/holly/Documents/work/hps/hps-java-trunk/detector-data/detectors/HPS-EngRun2015-Nominal-v5-0-twk-fieldmap/compact.xml" checksum="4263559917" />
+    <generator name="lcsim" version="1.0" file="./detectors/HPS-EngRun2015-Nominal-v5-0-twk-fieldmap/compact.xml" checksum="1596125351" />
     <author name="NONE" />
     <comment>HPS detector for 2015 Engineering Run. Based on HPS-EngRun2015-Nominal-v4-4-fieldmap. Millepede constants are cleaned up but their actual values are unchanged. Tweak values are set to those found by Sho in 2016. LCDD is generated using the corrected SVT dead material (no carbon fiber in the beam plane).</comment>
   </header>
