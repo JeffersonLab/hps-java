@@ -141,7 +141,23 @@ public class ConditionsIT extends TestCase {
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.addInputFile(inputFile);        
         job.setup("/org/hps/steering/test/EngineeringRun2015TrigPairs1_Pass2_CondCheck.lcsim");
-        job.setNumberOfEvents(1000);
+        job.setNumberOfEvents(2);
+        job.run();
+    }
+    
+    public void testMCReconL0() {
+        File inputFile = new TestDataUtility().getTestData("tritrig_L0_readout.slcio");
+        File outputFile = new TestOutputFile(ConditionsIT.class, "MCReconL0");
+        JobManager job = new JobManager();
+        DatabaseConditionsManagerSetup cond = new DatabaseConditionsManagerSetup();
+        cond.setDetectorName("HPS-Proposal2017-Nominal-v2-1pt05-fieldmap");
+        cond.setRun(1000000);
+        cond.setFreeze(true);
+        job.setConditionsSetup(cond);
+        job.addVariableDefinition("outputFile", outputFile.getPath());
+        job.addInputFile(inputFile);
+        job.setup("/org/hps/steering/test/EngineeringRun2015FullReconMCLayer0_CondCheck.lcsim");
+        job.setNumberOfEvents(2);
         job.run();
     }
 }
