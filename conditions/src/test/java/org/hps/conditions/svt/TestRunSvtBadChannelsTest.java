@@ -48,8 +48,7 @@ public final class TestRunSvtBadChannelsTest extends TestCase {
      */
     public void testSvtBadChannels() throws ConditionsNotFoundException {
 
-        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
+        final DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
 
         for (int i = 0; i < RUN_NUMBERS.length; i++) {
 

@@ -19,7 +19,6 @@ import org.lcsim.util.Driver;
  *     <detectorName>HPS-TestRun-v5</detectorName>
  *     <runNumber>1351</runNumber>
  *     <tag>test_run</tag>
- *     <xmlConfigResource>/org/hps/conditions/config/conditions_database_testrun_2012.xml</xmlConfigResource>
  *     <freeze>true</freeze>
  * </driver>
  * }
@@ -53,9 +52,6 @@ public class ConditionsDriver extends Driver {
     /** The conditions system tag. */
     private String tag;
 
-    /** The XML config resource. */
-    private String xmlConfigResource;
-
     /**
      * Default constructor.
      */
@@ -70,11 +66,6 @@ public class ConditionsDriver extends Driver {
     public final void initialize() {
 
         final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-
-        if (this.xmlConfigResource != null) {
-            // Set a custom XML configuration resource.
-            conditionsManager.setXmlConfig(this.xmlConfigResource);
-        }
 
         if (this.tag != null) {
             // Set a tag for filtering ConditionsRecord objects.
@@ -135,15 +126,6 @@ public class ConditionsDriver extends Driver {
      */
     public final void setTag(final String tag) {
         this.tag = tag;
-    }
-
-    /**
-     * Set an XML configuration resource.
-     *
-     * @param xmlConfigResource the XML configuration resource
-     */
-    public final void setXmlConfigResource(final String xmlConfigResource) {
-        this.xmlConfigResource = xmlConfigResource;
     }
 
     public int getRunNumber() {
