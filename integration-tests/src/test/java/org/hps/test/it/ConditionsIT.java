@@ -145,6 +145,11 @@ public class ConditionsIT extends TestCase {
         job.run();
     }
     
+    /**
+     * Run the reconstruction on L0 MC readout data.  The detector and run number are specified
+     * to the job manager in the conditions setup.  Conditions are checked for validity against
+     * their expected collection IDs.
+     */
     public void testMCReconL0() {
         File inputFile = new TestDataUtility().getTestData("tritrig_L0_readout.slcio");
         File outputFile = new TestOutputFile(ConditionsIT.class, "MCReconL0");
