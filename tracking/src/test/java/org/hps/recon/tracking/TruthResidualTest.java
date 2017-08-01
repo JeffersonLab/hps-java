@@ -25,8 +25,8 @@ import org.lcsim.util.aida.AIDA;
 public class TruthResidualTest extends ReconTestSkeleton {
     static final String inputFileName = "ap_prompt_raw.slcio";
     private AIDA aida;
-    private static final double maxResMean = 1.0; //in mm 
-    private static final double maxResRMS = 1.0; //in mm 
+    private static final double maxResMean = 0.05; //in mm 
+    private static final double maxResRMS = 0.05; //in mm 
 
     public void testRecon() throws Exception {
 
