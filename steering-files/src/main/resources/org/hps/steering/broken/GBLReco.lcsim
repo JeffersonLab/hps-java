@@ -17,7 +17,6 @@
             <isMC>${isMC}</isMC>
             <gblFileName>gblinput.txt</gblFileName>
         </driver>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
         
         <!-- Reconstruction drivers below -->
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
