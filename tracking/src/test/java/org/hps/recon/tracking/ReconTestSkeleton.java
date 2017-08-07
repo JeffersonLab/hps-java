@@ -27,7 +27,7 @@ public class ReconTestSkeleton extends TestCase {
         System.getProperties().setProperty("hep.aida.IAnalysisFactory", "hep.aida.ref.BatchAnalysisFactory");
     }
     protected String testInputFileName = "ap_prompt_raw.slcio";
-    protected String testOutputFileName = "RecoTest_" + testInputFileName;
+    protected String testOutputFileName;
     protected String testURLBase = "http://www.lcsim.org/test/hps-java";
     protected long nEvents = -1;
     protected URL testURL;
@@ -45,6 +45,7 @@ public class ReconTestSkeleton extends TestCase {
             inputFile = cache.getCachedFile(testURL);
         }
 
+        testOutputFileName = "RecoTest_" + testInputFileName;
         File outputFile = new TestOutputFile(testOutputFileName);
         outputFile.getParentFile().mkdirs();
         boolean loop1Success = true;
