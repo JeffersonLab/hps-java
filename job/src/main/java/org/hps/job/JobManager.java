@@ -83,6 +83,7 @@ public final class JobManager extends JobControlManager {
      **/
     protected void setupDrivers() {
         super.setupDrivers();
+        // FIXME: This should go away.  Conditions should only be managed by command line arguments.
         for (Driver driver : this.getDriverExecList()) {
             if (driver instanceof ConditionsDriver) {
                 ConditionsDriver conditions = (ConditionsDriver) driver;

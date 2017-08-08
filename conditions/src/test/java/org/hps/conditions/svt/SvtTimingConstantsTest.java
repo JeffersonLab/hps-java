@@ -33,7 +33,7 @@ public class SvtTimingConstantsTest extends TestCase {
      * @throws Exception if any error occurs
      */
     public void testSvtTimingConstants() throws Exception {
-        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        final DatabaseConditionsManager manager = new DatabaseConditionsManager();
         // manager.setConnectionResource("/org/hps/conditions/config/jeremym_dev_connection.prop");
         for (final int run : RUNS) {
             manager.setDetector(DETECTOR, run);

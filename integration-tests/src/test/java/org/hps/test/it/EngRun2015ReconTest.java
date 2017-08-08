@@ -31,7 +31,7 @@ public class EngRun2015ReconTest extends TestCase {
                 inputFile.getPath()};
         System.out.println("Running EngRun2015ReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
-        long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();        
         EvioToLcio.main(args);
         long endTime = System.currentTimeMillis();
         System.out.println("That took " + (endTime - startTime) + " milliseconds");
