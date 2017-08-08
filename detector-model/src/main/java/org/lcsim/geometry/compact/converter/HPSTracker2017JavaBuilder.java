@@ -19,8 +19,6 @@ public class HPSTracker2017JavaBuilder extends HPSTracker2014v1JavaBuilder {
     }
 
     protected void addModule(BaseModuleBundle bundle, JavaSurveyVolume mother) {
-
-        System.out.println("what");
         if (bundle instanceof TestRunModuleBundle) {
             addTestRunModule((TestRunModuleBundle) bundle, mother);
         } else if (bundle instanceof ShortModuleBundle) {
@@ -47,9 +45,6 @@ public class HPSTracker2017JavaBuilder extends HPSTracker2014v1JavaBuilder {
         // This could perhaps be fixed if there is a relation with daughters in
         // geometry definition?
         // create the module
-
-        System.out.println("what22");
-
         JavaSurveyVolume lcddM = new JavaGhostSurveyVolume(bundle.module,
                 mother);
         add(lcddM);
@@ -63,8 +58,6 @@ public class HPSTracker2017JavaBuilder extends HPSTracker2014v1JavaBuilder {
             addLongHalfModule(bundle.halfModuleStereoHole, lcddM);
         if (bundle.halfModuleStereoSlot != null)
             addLongHalfModule(bundle.halfModuleStereoSlot, lcddM);
-
-        System.out.println("what222");
     }
 
 }
