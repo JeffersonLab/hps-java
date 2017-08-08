@@ -390,7 +390,6 @@ public class HPSTracker2017GeometryDefinition extends
 
         @Override
         protected void setCenter() {
-            System.out.println("UChannelL14BottomPlate setCenter");
 
             final double x = 0.0;
             double y = UChannelL14Bottom.cone_to_edge_of_plate_y - getLength()
@@ -457,7 +456,6 @@ public class HPSTracker2017GeometryDefinition extends
 
         @Override
         protected void setCenter() {
-            System.out.println("UChannelL14TopPlate setCenter");
 
             final double x = 0.0;
             double y = UChannelL14Top.cone_to_edge_of_plate_y - getLength()
@@ -1459,21 +1457,23 @@ public class HPSTracker2017GeometryDefinition extends
             // Rotate these into the right place for the stereo
             // My rotations here are active rotations in the mother coordinate
             // system frame
-            System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass()
-                    .getSimpleName());
-
-            System.out.printf("%s: YIHAA 1 coord %s\n", getClass()
-                    .getSimpleName(), getCoord().toString());
+            
+            if (debug) {
+                System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass().getSimpleName());
+                System.out.printf("%s: YIHAA 1 coord %s\n", getClass().getSimpleName(), getCoord().toString());            
+            }
 
             Hep3Vector o2 = new BasicHep3Vector(getCoord().origin().x(),
                     getCoord().origin().y(), getCoord().origin().z());
             Hep3Vector s = pos_of_rotation;
 
-            System.out.printf("%s: YIHAA 1 o2 %s\n",
-                    getClass().getSimpleName(), o2.toString());
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 o2 %s\n",
+                        getClass().getSimpleName(), o2.toString());
 
-            System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(),
-                    s.toString());
+                System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(),
+                        s.toString());
+            }
 
             // flip around v ~ along the strips
             Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
@@ -1497,36 +1497,40 @@ public class HPSTracker2017GeometryDefinition extends
             Hep3Vector sf = new BasicHep3Vector(r1.applyTo(new Vector3D(s.v()))
                     .toArray());
 
-            System.out.printf("%s: YIHAA 1 sf %s\n",
-                    getClass().getSimpleName(), sf.toString());
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 sf %s\n",
+                        getClass().getSimpleName(), sf.toString());
 
-            System.out.printf("%s: YIHAA 1 -sf %s\n", getClass()
-                    .getSimpleName(), VecOp.mult(-1, sf).toString());
+                System.out.printf("%s: YIHAA 1 -sf %s\n", getClass()
+                        .getSimpleName(), VecOp.mult(-1, sf).toString());
+            }
 
             Hep3Vector sfp = new BasicHep3Vector(r2.applyTo(
                     new Vector3D(VecOp.mult(-1, sf).v())).toArray());
+            
+            if (debug) {
 
-            System.out.printf("%s: YIHAA 1 sf' %s\n", getClass()
-                    .getSimpleName(), sfp.toString());
+                System.out.printf("%s: YIHAA 1 sf' %s\n", getClass()
+                        .getSimpleName(), sfp.toString());
 
-            System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass()
-                    .getSimpleName(), VecOp.add(o2, sf).toString());
+                System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass()
+                        .getSimpleName(), VecOp.add(o2, sf).toString());
 
-            System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass()
-                    .getSimpleName(), VecOp.add(VecOp.add(o2, sf), sfp)
-                    .toString());
+                System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass()
+                        .getSimpleName(), VecOp.add(VecOp.add(o2, sf), sfp)
+                        .toString());
 
-            System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass()
-                    .getSimpleName(), VecOp.add(sf, sfp).toString());
+                System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass()
+                        .getSimpleName(), VecOp.add(sf, sfp).toString());
+            }
 
             getCoord().translate(VecOp.add(sf, sfp));
 
             getCoord().rotateApache(r);
 
-            System.out.printf("%s: YIHAA 3 coord %s\n", getClass()
-                    .getSimpleName(), getCoord().toString());
-
-            if (debug) {
+            if (debug) {                
+                System.out.printf("%s: YIHAA 3 coord %s\n", getClass()
+                        .getSimpleName(), getCoord().toString());
                 System.out.printf("%s: Coord after corrections\n%s\n",
                         getClass().getSimpleName(), getCoord().toString());
                 System.out.printf("%s: box center after corrections\n%s\n",
@@ -1568,21 +1572,25 @@ public class HPSTracker2017GeometryDefinition extends
             // Rotate these into the right place for the stereo
             // My rotations here are active rotations in the mother coordinate
             // system frame
-            System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass()
-                    .getSimpleName());
+            if (debug) {
+                System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass()
+                        .getSimpleName());
 
-            System.out.printf("%s: YIHAA 1 coord %s\n", getClass()
-                    .getSimpleName(), getCoord().toString());
+                System.out.printf("%s: YIHAA 1 coord %s\n", getClass()
+                        .getSimpleName(), getCoord().toString());
+            }          
 
             Hep3Vector o2 = new BasicHep3Vector(getCoord().origin().x(),
                     getCoord().origin().y(), getCoord().origin().z());
             Hep3Vector s = pos_of_rotation;
 
-            System.out.printf("%s: YIHAA 1 o2 %s\n",
-                    getClass().getSimpleName(), o2.toString());
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 o2 %s\n",
+                        getClass().getSimpleName(), o2.toString());
 
-            System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(),
-                    s.toString());
+                System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(),
+                        s.toString());
+            }
 
             // flip around v ~ along the strips
             Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
@@ -1606,36 +1614,40 @@ public class HPSTracker2017GeometryDefinition extends
             Hep3Vector sf = new BasicHep3Vector(r1.applyTo(new Vector3D(s.v()))
                     .toArray());
 
-            System.out.printf("%s: YIHAA 1 sf %s\n",
-                    getClass().getSimpleName(), sf.toString());
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 sf %s\n",
+                        getClass().getSimpleName(), sf.toString());
 
-            System.out.printf("%s: YIHAA 1 -sf %s\n", getClass()
-                    .getSimpleName(), VecOp.mult(-1, sf).toString());
+                System.out.printf("%s: YIHAA 1 -sf %s\n", getClass()
+                        .getSimpleName(), VecOp.mult(-1, sf).toString());
+            }
 
             Hep3Vector sfp = new BasicHep3Vector(r2.applyTo(
                     new Vector3D(VecOp.mult(-1, sf).v())).toArray());
 
-            System.out.printf("%s: YIHAA 1 sf' %s\n", getClass()
-                    .getSimpleName(), sfp.toString());
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 sf' %s\n", getClass()
+                        .getSimpleName(), sfp.toString());
 
-            System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass()
-                    .getSimpleName(), VecOp.add(o2, sf).toString());
+                System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass()
+                        .getSimpleName(), VecOp.add(o2, sf).toString());
 
-            System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass()
-                    .getSimpleName(), VecOp.add(VecOp.add(o2, sf), sfp)
-                    .toString());
+                System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass()
+                        .getSimpleName(), VecOp.add(VecOp.add(o2, sf), sfp)
+                        .toString());
 
-            System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass()
-                    .getSimpleName(), VecOp.add(sf, sfp).toString());
+                System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass()
+                        .getSimpleName(), VecOp.add(sf, sfp).toString());
+            }
 
             getCoord().translate(VecOp.add(sf, sfp));
 
             getCoord().rotateApache(r);
 
-            System.out.printf("%s: YIHAA 3 coord %s\n", getClass()
-                    .getSimpleName(), getCoord().toString());
-
             if (debug) {
+                System.out.printf("%s: YIHAA 3 coord %s\n", getClass()
+                        .getSimpleName(), getCoord().toString());
+
                 System.out.printf("%s: Coord after corrections\n%s\n",
                         getClass().getSimpleName(), getCoord().toString());
                 System.out.printf("%s: box center after corrections\n%s\n",
