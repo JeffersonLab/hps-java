@@ -29,7 +29,6 @@ public class HPSTracker2017JavaBuilder extends HPSTracker2014v1JavaBuilder {
         } else {
             throw new RuntimeException("The bundle is of unknown class type!");
         }
-        System.out.println("what2");
     }
 
     /**
