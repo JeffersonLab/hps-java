@@ -2,12 +2,36 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-Proposal2014-v8-6pt6" />
-    <generator name="GeomConverter" version="1.0" file="./detectors/HPS-Proposal2014-v8-6pt6/compact.xml" checksum="2549894188" />
+    <generator name="lcsim" version="1.0" file="./detectors/HPS-Proposal2014-v8-6pt6/compact.xml" checksum="2549894188" />
     <author name="NONE" />
     <comment>HPS detector for 2014 proposal @ 6.6GeV</comment>
   </header>
   <iddict>
+    <idspec name="TrackerHitsFieldDef" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
     <idspec name="TrackerHits" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
+    <idspec name="EcalHits" length="22">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="layer" length="2" start="6" />
+      <idfield signed="true" label="ix" length="8" start="8" />
+      <idfield signed="true" label="iy" length="6" start="16" />
+    </idspec>
+    <idspec name="TrackerHitsRecoil" length="46">
       <idfield signed="false" label="system" length="6" start="0" />
       <idfield signed="false" label="barrel" length="3" start="6" />
       <idfield signed="false" label="layer" length="4" start="9" />
@@ -25,30 +49,6 @@
       <idfield signed="true" label="side" length="2" start="32" />
       <idfield signed="false" label="strip" length="12" start="34" />
     </idspec>
-    <idspec name="TrackerHitsFieldDef" length="46">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="barrel" length="3" start="6" />
-      <idfield signed="false" label="layer" length="4" start="9" />
-      <idfield signed="false" label="module" length="12" start="13" />
-      <idfield signed="false" label="sensor" length="1" start="25" />
-      <idfield signed="true" label="side" length="2" start="32" />
-      <idfield signed="false" label="strip" length="12" start="34" />
-    </idspec>
-    <idspec name="TrackerHitsRecoil" length="46">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="barrel" length="3" start="6" />
-      <idfield signed="false" label="layer" length="4" start="9" />
-      <idfield signed="false" label="module" length="12" start="13" />
-      <idfield signed="false" label="sensor" length="1" start="25" />
-      <idfield signed="true" label="side" length="2" start="32" />
-      <idfield signed="false" label="strip" length="12" start="34" />
-    </idspec>
-    <idspec name="EcalHits" length="22">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="layer" length="2" start="6" />
-      <idfield signed="true" label="ix" length="8" start="8" />
-      <idfield signed="true" label="iy" length="6" start="16" />
-    </idspec>
   </iddict>
   <sensitive_detectors>
     <tracker name="Tracker" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHits">
@@ -56,10 +56,6 @@
     </tracker>
     <tracker name="TrackerRecoil" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHitsRecoil">
       <idspecref ref="TrackerHitsRecoil" />
-    </tracker>
-    <tracker name="TrackerFieldDef" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHitsFieldDef">
-      <idspecref ref="TrackerHitsFieldDef" />
-      <hit_processor type="ScoringTrackerHitProcessor" />
     </tracker>
     <tracker name="ECalScoring" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHitsECal">
       <idspecref ref="TrackerHitsECal" />
@@ -69,20 +65,24 @@
       <idspecref ref="EcalHits" />
       <grid_xyz grid_size_x="0.0" grid_size_y="0.0" grid_size_z="0.0" />
     </calorimeter>
+    <tracker name="TrackerFieldDef" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHitsFieldDef">
+      <idspecref ref="TrackerHitsFieldDef" />
+      <hit_processor type="ScoringTrackerHitProcessor" />
+    </tracker>
   </sensitive_detectors>
   <limits />
   <regions>
     <region name="TrackingRegion" store_secondaries="true" kill_tracks="false" cut="10.0" lunit="mm" threshold="1.0" eunit="MeV" />
   </regions>
   <display>
+    <vis name="InvisibleWithDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
+      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
+    </vis>
     <vis name="InvisibleNoDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="false" visible="false">
       <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
     </vis>
     <vis name="ECALVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
       <color R="0.8" G="0.5" B="0.1" alpha="1.0" />
-    </vis>
-    <vis name="InvisibleWithDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
-      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
     </vis>
     <vis name="WorldVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
       <color R="1.0" G="1.0" B="1.0" alpha="1.0" />
@@ -96,149 +96,150 @@
       <rotation name="identity_rot" x="0.0" y="0.0" z="0.0" unit="radian" />
       <rotation name="reflect_rot" x="3.141592653589793" y="0.0" z="0.0" unit="radian" />
       <position name="identity_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <constant name="y02b" value="-21.419865625949214" />
-      <constant name="y7t" value="26.669668753164046" />
-      <constant name="beam_angle" value="0.03052" />
-      <constant name="x3t" value="0.0" />
-      <constant name="a10b" value="0.0" />
-      <constant name="z4t" value="196.185" />
-      <constant name="a4b" value="0.0" />
-      <constant name="y7b" value="-26.669668753164046" />
-      <constant name="x3b" value="0.0" />
-      <constant name="a10t" value="0.0" />
-      <constant name="a3t" value="0.0" />
-      <constant name="y02t" value="21.419865625949214" />
-      <constant name="z4b" value="211.185" />
-      <constant name="x_rot_bot_add" value="0.0" />
-      <constant name="ecal_z" value="80.0" />
-      <constant name="x4t" value="0.0" />
-      <constant name="y8t" value="26.669668753164046" />
-      <constant name="ecal_dface" value="1393.0" />
-      <constant name="z3t" value="188.815" />
-      <constant name="x_rot_top" value="0.0" />
-      <constant name="y8b" value="-26.669668753164046" />
-      <constant name="a5b" value="0.0" />
-      <constant name="SA2" value="0.05" />
-      <constant name="SA1" value="0.1" />
-      <constant name="tracking_region_min" value="50.0" />
-      <constant name="x4b" value="0.0" />
-      <constant name="a4t" value="0.0" />
-      <constant name="z3b" value="203.815" />
-      <constant name="ecal_back" value="8.0" />
-      <constant name="moduleWidth" value="40.34" />
-      <constant name="x_rot_bot" value="0.0" />
-      <constant name="world_side" value="5000.0" />
-      <constant name="z12b" value="911.185" />
-      <constant name="z6t" value="296.185" />
-      <constant name="a2b" value="0.0" />
-      <constant name="a12b" value="0.0" />
-      <constant name="y_rot" value="0.03052" />
-      <constant name="x5t" value="0.0" />
-      <constant name="y5t" value="23.669781251898428" />
-      <constant name="pivot" value="791.0" />
-      <constant name="y5b" value="-23.669781251898428" />
-      <constant name="dipoleMagnetLength" value="1080.0" />
-      <constant name="x_rot_top_add" value="0.0" />
-      <constant name="z6b" value="311.185" />
-      <constant name="sensorLength" value="98.33" />
-      <constant name="z12t" value="896.185" />
-      <constant name="x5b" value="0.0" />
-      <constant name="a12t" value="0.0" />
-      <constant name="a1t" value="0.0" />
-      <constant name="ztar" value="0.0" />
-      <constant name="y6t" value="23.669781251898428" />
-      <constant name="sensorWidth" value="38.3399" />
-      <constant name="a3b" value="0.0" />
-      <constant name="world_y" value="5000.0" />
-      <constant name="z11b" value="903.815" />
-      <constant name="world_z" value="5000.0" />
-      <constant name="z5t" value="288.815" />
-      <constant name="x6t" value="0.0" />
-      <constant name="a11b" value="0.0" />
-      <constant name="world_x" value="5000.0" />
-      <constant name="y6b" value="-23.669781251898428" />
-      <constant name="zst" value="1.0" />
-      <constant name="ecal_front" value="6.65" />
-      <constant name="PI" value="3.14159265359" />
-      <constant name="z5b" value="303.815" />
-      <constant name="a2t" value="0.0" />
-      <constant name="z11t" value="888.815" />
-      <constant name="a11t" value="0.0" />
-      <constant name="x6b" value="0.0" />
-      <constant name="y3b" value="-22.16983750126562" />
-      <constant name="x7t" value="0.0" />
-      <constant name="z10b" value="711.185" />
-      <constant name="x12t" value="0.0" />
-      <constant name="z8b" value="511.185" />
-      <constant name="y12b" value="-32.66944375569528" />
-      <constant name="a8b" value="0.0" />
-      <constant name="y3t" value="22.16983750126562" />
-      <constant name="electronGapLeftEdge" value="382.492" />
-      <constant name="x12b" value="0.0" />
-      <constant name="x7b" value="0.0" />
-      <constant name="z10t" value="696.185" />
-      <constant name="a8t" value="0.0" />
-      <constant name="y12t" value="32.66944375569528" />
-      <constant name="z8t" value="496.185" />
-      <constant name="constBFieldY" value="-1.5" />
-      <constant name="x8t" value="0.0" />
-      <constant name="x11t" value="0.0" />
-      <constant name="a1b" value="0.0" />
-      <constant name="dipoleMagnetWidth" value="1000.0" />
-      <constant name="z7b" value="503.815" />
-      <constant name="a9b" value="0.0" />
-      <constant name="y4b" value="-22.16983750126562" />
-      <constant name="scoringThickness" value="0.001" />
-      <constant name="y4t" value="22.16983750126562" />
-      <constant name="x11b" value="0.0" />
-      <constant name="ytar" value="0.0" />
-      <constant name="x8b" value="0.0" />
-      <constant name="z7t" value="488.815" />
-      <constant name="a9t" value="0.0" />
-      <constant name="moduleLength" value="100.0" />
       <constant name="a5t" value="0.0" />
-      <constant name="x9t" value="0.0" />
-      <constant name="z01t" value="138.815" />
-      <constant name="x10t" value="0.0" />
-      <constant name="electronGapRightEdge" value="474.962" />
-      <constant name="y1b" value="-20.66989375063281" />
-      <constant name="tracking_region_radius" value="2000.0" />
-      <constant name="z2t" value="96.185" />
-      <constant name="x1b" value="0.0" />
-      <constant name="y9t" value="29.669556254429665" />
-      <constant name="a6b" value="0.0" />
-      <constant name="y10b" value="-29.669556254429665" />
-      <constant name="xtar" value="0.0" />
-      <constant name="z2b" value="111.185" />
-      <constant name="y1t" value="20.66989375063281" />
-      <constant name="x10b" value="0.0" />
-      <constant name="x9b" value="0.0" />
-      <constant name="z01b" value="153.815" />
-      <constant name="y10t" value="29.669556254429665" />
-      <constant name="x1t" value="0.0" />
-      <constant name="y9b" value="-29.669556254429665" />
-      <constant name="dipoleMagnetHeight" value="1000.0" />
-      <constant name="a6t" value="0.0" />
-      <constant name="y01b" value="-21.419865625949214" />
-      <constant name="z1t" value="88.815" />
-      <constant name="dipoleMagnetPositionZ" value="457.2" />
-      <constant name="z02t" value="146.185" />
-      <constant name="dipoleMagnetPositionX" value="21.17" />
-      <constant name="y2b" value="-20.66989375063281" />
-      <constant name="z9b" value="703.815" />
-      <constant name="x2b" value="0.0" />
-      <constant name="y11b" value="-32.66944375569528" />
-      <constant name="a7b" value="0.0" />
-      <constant name="y01t" value="21.419865625949214" />
-      <constant name="x_off" value="0.0" />
-      <constant name="z1b" value="103.815" />
-      <constant name="y2t" value="20.66989375063281" />
-      <constant name="z02b" value="161.185" />
-      <constant name="x2t" value="0.0" />
-      <constant name="tracking_region_zmax" value="1318.0" />
-      <constant name="a7t" value="0.0" />
-      <constant name="z9t" value="688.815" />
+      <constant name="z7b" value="503.815" />
+      <constant name="x_rot_top" value="0.0" />
+      <constant name="x3b" value="0.0" />
+      <constant name="y5b" value="-23.669781251898428" />
       <constant name="y11t" value="32.66944375569528" />
+      <constant name="a6b" value="0.0" />
+      <constant name="a10b" value="0.0" />
+      <constant name="xtar" value="0.0" />
+      <constant name="z7t" value="488.815" />
+      <constant name="x3t" value="0.0" />
+      <constant name="a10t" value="0.0" />
+      <constant name="ecal_back" value="8.0" />
+      <constant name="pivot" value="791.0" />
+      <constant name="y5t" value="23.669781251898428" />
+      <constant name="y11b" value="-32.66944375569528" />
+      <constant name="a6t" value="0.0" />
+      <constant name="dipoleMagnetWidth" value="1000.0" />
+      <constant name="y6b" value="-23.669781251898428" />
+      <constant name="z8b" value="511.185" />
+      <constant name="x4b" value="0.0" />
+      <constant name="y10t" value="29.669556254429665" />
+      <constant name="a7b" value="0.0" />
+      <constant name="y6t" value="23.669781251898428" />
+      <constant name="z8t" value="496.185" />
+      <constant name="x4t" value="0.0" />
+      <constant name="y10b" value="-29.669556254429665" />
+      <constant name="dipoleMagnetHeight" value="1000.0" />
+      <constant name="a7t" value="0.0" />
+      <constant name="z9b" value="703.815" />
+      <constant name="z10t" value="696.185" />
+      <constant name="x5b" value="0.0" />
+      <constant name="y7b" value="-26.669668753164046" />
+      <constant name="tracking_region_zmax" value="1318.0" />
+      <constant name="constBFieldY" value="-1.5" />
+      <constant name="z1b" value="103.815" />
+      <constant name="a8b" value="0.0" />
+      <constant name="a12b" value="0.0" />
+      <constant name="y01t" value="21.419865625949214" />
+      <constant name="z10b" value="711.185" />
+      <constant name="z9t" value="688.815" />
+      <constant name="x5t" value="0.0" />
+      <constant name="y7t" value="26.669668753164046" />
+      <constant name="zst" value="1.0" />
+      <constant name="z1t" value="88.815" />
+      <constant name="a8t" value="0.0" />
+      <constant name="beam_angle" value="0.03052" />
+      <constant name="a12t" value="0.0" />
+      <constant name="y01b" value="-21.419865625949214" />
+      <constant name="ecal_front" value="6.65" />
+      <constant name="y8b" value="-26.669668753164046" />
+      <constant name="dipoleMagnetPositionX" value="21.17" />
+      <constant name="x6b" value="0.0" />
+      <constant name="dipoleMagnetPositionZ" value="457.2" />
+      <constant name="z2b" value="111.185" />
+      <constant name="a9b" value="0.0" />
+      <constant name="y12t" value="32.66944375569528" />
+      <constant name="a11b" value="0.0" />
+      <constant name="a1b" value="0.0" />
+      <constant name="y8t" value="26.669668753164046" />
+      <constant name="x6t" value="0.0" />
+      <constant name="moduleLength" value="100.0" />
+      <constant name="z2t" value="96.185" />
+      <constant name="a9t" value="0.0" />
+      <constant name="y12b" value="-32.66944375569528" />
+      <constant name="a11t" value="0.0" />
+      <constant name="z12t" value="896.185" />
+      <constant name="x7b" value="0.0" />
+      <constant name="y9b" value="-29.669556254429665" />
+      <constant name="a1t" value="0.0" />
+      <constant name="z3b" value="203.815" />
+      <constant name="x10t" value="0.0" />
+      <constant name="y1b" value="-20.66989375063281" />
+      <constant name="a2b" value="0.0" />
+      <constant name="scoringThickness" value="0.001" />
+      <constant name="x7t" value="0.0" />
+      <constant name="y9t" value="29.669556254429665" />
+      <constant name="z3t" value="188.815" />
+      <constant name="x10b" value="0.0" />
+      <constant name="y1t" value="20.66989375063281" />
+      <constant name="z12b" value="911.185" />
+      <constant name="SA1" value="0.1" />
+      <constant name="z11t" value="888.815" />
+      <constant name="a2t" value="0.0" />
+      <constant name="x8b" value="0.0" />
+      <constant name="x_rot_top_add" value="0.0" />
+      <constant name="SA2" value="0.05" />
+      <constant name="y2b" value="-20.66989375063281" />
+      <constant name="z4b" value="211.185" />
+      <constant name="tracking_region_min" value="50.0" />
+      <constant name="y02t" value="21.419865625949214" />
+      <constant name="world_side" value="5000.0" />
+      <constant name="sensorLength" value="98.33" />
+      <constant name="sensorWidth" value="38.3399" />
+      <constant name="z11b" value="903.815" />
+      <constant name="y02b" value="-21.419865625949214" />
+      <constant name="a3b" value="0.0" />
+      <constant name="ytar" value="0.0" />
+      <constant name="x8t" value="0.0" />
+      <constant name="y2t" value="20.66989375063281" />
+      <constant name="x_rot_bot" value="0.0" />
+      <constant name="z4t" value="196.185" />
+      <constant name="x9b" value="0.0" />
+      <constant name="z02t" value="146.185" />
+      <constant name="a3t" value="0.0" />
+      <constant name="z5b" value="303.815" />
+      <constant name="y_rot" value="0.03052" />
+      <constant name="x1b" value="0.0" />
+      <constant name="y3b" value="-22.16983750126562" />
+      <constant name="dipoleMagnetLength" value="1080.0" />
+      <constant name="x12t" value="0.0" />
+      <constant name="x_rot_bot_add" value="0.0" />
+      <constant name="a4b" value="0.0" />
+      <constant name="ztar" value="0.0" />
+      <constant name="x9t" value="0.0" />
+      <constant name="z5t" value="288.815" />
+      <constant name="x1t" value="0.0" />
+      <constant name="y3t" value="22.16983750126562" />
+      <constant name="x12b" value="0.0" />
+      <constant name="z02b" value="161.185" />
+      <constant name="electronGapLeftEdge" value="382.492" />
+      <constant name="a4t" value="0.0" />
+      <constant name="z01t" value="138.815" />
+      <constant name="world_x" value="5000.0" />
+      <constant name="world_y" value="5000.0" />
+      <constant name="world_z" value="5000.0" />
+      <constant name="y4b" value="-22.16983750126562" />
+      <constant name="tracking_region_radius" value="2000.0" />
+      <constant name="z6b" value="311.185" />
+      <constant name="moduleWidth" value="40.34" />
+      <constant name="x2b" value="0.0" />
+      <constant name="x11t" value="0.0" />
+      <constant name="x_off" value="0.0" />
+      <constant name="a5b" value="0.0" />
+      <constant name="electronGapRightEdge" value="474.962" />
+      <constant name="y4t" value="22.16983750126562" />
+      <constant name="PI" value="3.14159265359" />
+      <constant name="z6t" value="296.185" />
+      <constant name="ecal_dface" value="1393.0" />
+      <constant name="x2t" value="0.0" />
+      <constant name="x11b" value="0.0" />
+      <constant name="ecal_z" value="80.0" />
+      <constant name="z01b" value="153.815" />
+      <position name="tracking_region_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
       <position name="TestRunModuleVolume_component0_position" x="0.0" y="0.0" z="-0.04200000000000001" unit="mm" />
       <rotation name="TestRunModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="TestRunModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -329,18 +330,6 @@
       <rotation name="TrackerRecoil_TestRunModuleRecoil_layer2_module0_rotation" x="0.0" y="3.11107265359" z="-4.812388980385" unit="radian" />
       <position name="TrackerRecoil_TestRunModuleRecoil_layer2_module1_position" x="4.918602528234072" y="-21.419865625949214" z="161.10993629869404" unit="mm" />
       <rotation name="TrackerRecoil_TestRunModuleRecoil_layer2_module1_rotation" x="0.0" y="3.11107265359" z="-4.7123889803850005" unit="radian" />
-      <position name="TestRunModuleFieldDefVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="TestRunModuleFieldDefVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TestRunModuleFieldDefVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="TestRunModuleFieldDefVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TestRunModuleFieldDefFlare2Volume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="TestRunModuleFieldDefFlare2Volume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TrackerFieldDef_TestRunModuleFieldDef_layer1_module0_position" x="21.17" y="0.0" z="-82.80000000000001" unit="mm" />
-      <rotation name="TrackerFieldDef_TestRunModuleFieldDef_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
-      <position name="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_position" x="21.17" y="0.0" z="997.2" unit="mm" />
-      <rotation name="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="BeamLeftVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="BeamLeftVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="BeamLeftVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -1249,6 +1238,18 @@
       <rotation name="crystal23-5_rot_pos_top" x="0.0759356980444989" y="-0.3796784902224945" z="0.0" unit="radian" />
       <position name="crystal23-5_pos_neg_top" x="-298.89084923246253" y="87.7427015552106" z="1470.0974000537913" unit="mm" />
       <rotation name="crystal23-5_rot_neg_top" x="0.0759356980444989" y="0.3796784902224945" z="0.0" unit="radian" />
+      <position name="TestRunModuleFieldDefVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="TestRunModuleFieldDefVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TestRunModuleFieldDefVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="TestRunModuleFieldDefVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TestRunModuleFieldDefFlare2Volume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="TestRunModuleFieldDefFlare2Volume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TrackerFieldDef_TestRunModuleFieldDef_layer1_module0_position" x="21.17" y="0.0" z="-82.80000000000001" unit="mm" />
+      <rotation name="TrackerFieldDef_TestRunModuleFieldDef_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <position name="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_position" x="21.17" y="0.0" z="997.2" unit="mm" />
+      <rotation name="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <constant name="svt_chamber_box_z" value="609.6" />
       <constant name="svt_chamber_flare1_z" value="1285.621" />
       <constant name="svt_chamber_flare2_z" value="1478.407" />
@@ -1440,12 +1441,6 @@
       <box name="TestRunModuleRecoilBox" x="40.34" y="100.0" z="0.001" />
       <box name="TestRunModuleRecoilVolume_component0Box" x="40.34" y="100.0" z="0.001" />
       <box name="TestRunModuleRecoilVolume_component0Sensor0Box" x="38.3399" y="98.33" z="0.001" />
-      <box name="TestRunModuleFieldDefBox" x="177.8" y="416.052" z="0.001" />
-      <box name="TestRunModuleFieldDefVolume_component0Box" x="177.8" y="416.052" z="0.001" />
-      <box name="TestRunModuleFieldDefVolume_component0Sensor0Box" x="177.8" y="416.052" z="0.001" />
-      <box name="TestRunModuleFieldDefFlare2Box" x="210.37903820816865" y="416.052" z="0.001" />
-      <box name="TestRunModuleFieldDefFlare2Volume_component0Box" x="210.37903820816865" y="416.052" z="0.001" />
-      <box name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Box" x="210.37903820816865" y="416.052" z="0.001" />
       <box name="BeamLeftBox" x="211.6" y="382.492" z="0.001" />
       <box name="BeamLeftVolume_component0Box" x="211.6" y="382.492" z="0.001" />
       <box name="BeamLeftVolume_component0Sensor0Box" x="211.6" y="382.492" z="0.001" />
@@ -1456,6 +1451,12 @@
       <box name="BeamRightVolume_component0Box" x="214.6" y="293.38800000000003" z="0.001" />
       <box name="BeamRightVolume_component0Sensor0Box" x="214.6" y="293.38800000000003" z="0.001" />
       <trd name="crystal_trap" x1="13.3" x2="16.0" y1="13.3" y2="16.0" z="160.0" />
+      <box name="TestRunModuleFieldDefBox" x="177.8" y="416.052" z="0.001" />
+      <box name="TestRunModuleFieldDefVolume_component0Box" x="177.8" y="416.052" z="0.001" />
+      <box name="TestRunModuleFieldDefVolume_component0Sensor0Box" x="177.8" y="416.052" z="0.001" />
+      <box name="TestRunModuleFieldDefFlare2Box" x="210.37903820816865" y="416.052" z="0.001" />
+      <box name="TestRunModuleFieldDefFlare2Volume_component0Box" x="210.37903820816865" y="416.052" z="0.001" />
+      <box name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Box" x="210.37903820816865" y="416.052" z="0.001" />
       <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="chamber_trap" phi="-180" theta="1.864" x1="377" x2="377" x3="406.29" x4="406.29" y1="28" y2="28" z="450" />
       <box lunit="mm" name="chamber_cutaway_box" x="500" y="10" z="300" />
       <subtraction name="chamber_trim1">
@@ -1922,56 +1923,6 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
-      <volume name="TestRunModuleFieldDefVolume_component0Sensor0">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefVolume_component0Sensor0Box" />
-        <sdref ref="TrackerFieldDef" />
-      </volume>
-      <volume name="TestRunModuleFieldDefVolume_component0">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefVolume_component0Box" />
-        <physvol>
-          <volumeref ref="TestRunModuleFieldDefVolume_component0Sensor0" />
-          <positionref ref="TestRunModuleFieldDefVolume_component0Sensor0Position" />
-          <rotationref ref="TestRunModuleFieldDefVolume_component0Sensor0Rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-      </volume>
-      <volume name="TestRunModuleFieldDefVolume">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefBox" />
-        <physvol>
-          <volumeref ref="TestRunModuleFieldDefVolume_component0" />
-          <positionref ref="TestRunModuleFieldDefVolume_component0_position" />
-          <rotationref ref="TestRunModuleFieldDefVolume_component0_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-      </volume>
-      <volume name="TestRunModuleFieldDefFlare2Volume_component0Sensor0">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Box" />
-        <sdref ref="TrackerFieldDef" />
-      </volume>
-      <volume name="TestRunModuleFieldDefFlare2Volume_component0">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefFlare2Volume_component0Box" />
-        <physvol>
-          <volumeref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0" />
-          <positionref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Position" />
-          <rotationref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-      </volume>
-      <volume name="TestRunModuleFieldDefFlare2Volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefFlare2Box" />
-        <physvol>
-          <volumeref ref="TestRunModuleFieldDefFlare2Volume_component0" />
-          <positionref ref="TestRunModuleFieldDefFlare2Volume_component0_position" />
-          <rotationref ref="TestRunModuleFieldDefFlare2Volume_component0_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-      </volume>
       <volume name="BeamLeftVolume_component0Sensor0">
         <materialref ref="Vacuum" />
         <solidref ref="BeamLeftVolume_component0Sensor0Box" />
@@ -2052,6 +2003,56 @@
         <solidref ref="crystal_trap" />
         <sdref ref="Ecal" />
         <visref ref="ECALVis" />
+      </volume>
+      <volume name="TestRunModuleFieldDefVolume_component0Sensor0">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefVolume_component0Sensor0Box" />
+        <sdref ref="TrackerFieldDef" />
+      </volume>
+      <volume name="TestRunModuleFieldDefVolume_component0">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefVolume_component0Box" />
+        <physvol>
+          <volumeref ref="TestRunModuleFieldDefVolume_component0Sensor0" />
+          <positionref ref="TestRunModuleFieldDefVolume_component0Sensor0Position" />
+          <rotationref ref="TestRunModuleFieldDefVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="TestRunModuleFieldDefVolume">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefBox" />
+        <physvol>
+          <volumeref ref="TestRunModuleFieldDefVolume_component0" />
+          <positionref ref="TestRunModuleFieldDefVolume_component0_position" />
+          <rotationref ref="TestRunModuleFieldDefVolume_component0_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+      </volume>
+      <volume name="TestRunModuleFieldDefFlare2Volume_component0Sensor0">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Box" />
+        <sdref ref="TrackerFieldDef" />
+      </volume>
+      <volume name="TestRunModuleFieldDefFlare2Volume_component0">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefFlare2Volume_component0Box" />
+        <physvol>
+          <volumeref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0" />
+          <positionref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Position" />
+          <rotationref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="TestRunModuleFieldDefFlare2Volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefFlare2Box" />
+        <physvol>
+          <volumeref ref="TestRunModuleFieldDefFlare2Volume_component0" />
+          <positionref ref="TestRunModuleFieldDefFlare2Volume_component0_position" />
+          <rotationref ref="TestRunModuleFieldDefFlare2Volume_component0_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
       </volume>
       <volume name="V_ECAL_chamber">
         <materialref ref="G4_Al" />
@@ -2622,7 +2623,7 @@
         <solidref ref="world_box" />
         <physvol>
           <volumeref ref="tracking_volume" />
-          <positionref ref="identity_pos" />
+          <positionref ref="tracking_region_pos" />
           <rotationref ref="identity_rot" />
         </physvol>
         <physvol>
