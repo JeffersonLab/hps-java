@@ -26,32 +26,7 @@ public abstract class HPSTrackerBuilder {
     protected List<SurveyVolume> surveyVolumes = new ArrayList<SurveyVolume>();
     protected Element node;
     protected List<MilleParameter> milleparameters = new ArrayList<MilleParameter>();
-
-    /**
-     * Return <code>true</code> if database conditions are in usable state and there are alignment conditions to load
-     * for the current run.
-     * <p>
-     * Loading SVT alignment conditions must also not be disabled via a system property.
-     * 
-     * @return <code>true</code> if database conditions are usable
-     */
-    boolean checkConditionsSystem() {
-        return ConditionsManager.isSetup() && ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager 
-                && DatabaseConditionsManager.getInstance().getConditionsRecords().getConditionsKeys().contains("svt_alignments") 
-                && !isSvtAlignmentConstantsDisabled();
-    }
     
-    /**
-     * Return <code>true</code> if the property <i>disableSvtAlignmentConstants</i> is set indicating
-     * that alignment constants should never be read from the database and should come only from the 
-     * compact description. 
-     * 
-     * @return <code>true</code> if reading alignment constants from the database is disabled
-     */
-    boolean isSvtAlignmentConstantsDisabled() {
-        return System.getProperties().containsKey("disableSvtAlignmentConstants");
-    }
-
     /**
      * Default constructor to create a geometry.
      * 
@@ -61,19 +36,21 @@ public abstract class HPSTrackerBuilder {
     public HPSTrackerBuilder(boolean debug, Element node) {
         this.debug = debug;
         this.node = node;
-        // Is conditions system usable?
-        if (checkConditionsSystem()) {
-            LOGGER.info("alignment conditions will be read from database");
+        
+        // Applying SVT alignment constants from the conditions database must be explicitly enabled with a system property.
+        if (System.getProperties().getProperty("org.hps.conditions.enableSvtAlignmentConstants") != null) {
+            LOGGER.config("Alignment conditions will be read from database.");
             try {
                 this.milleparameters = SvtAlignmentConstantsReader.readMilleParameters();
             } catch (Exception e) {
                 throw new RuntimeException("Error reading alignment parameters from conditions database.", e);
             }
         } else {
-            // The conditions system isn't usable or reading from the database is explicitly disabled.
-            LOGGER.info("mille parameters will be read from compact.xml file");
+            // Read alignment constants from compact XML file (default behavior).
+            LOGGER.config("Mille parameters will be read from compact.xml file.");
             initAlignmentParameters();
         }
+        
         if(debug) {
             for (MilleParameter p : milleparameters)
                 System.out.printf("%d,%f \n", p.getId(),p.getValue());
