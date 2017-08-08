@@ -10,10 +10,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.jdom.DataConversionException;
 import org.jdom.Element;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.Transform3D;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseModule;
 
