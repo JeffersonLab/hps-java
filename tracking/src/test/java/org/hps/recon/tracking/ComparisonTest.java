@@ -36,6 +36,7 @@ public class ComparisonTest extends ReconTestSkeleton {
         testTrackingDriver = new TrackingReconstructionPlots();
         ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputFile.getPath());
         ((TrackingReconstructionPlots) testTrackingDriver).aida = aida;
+        ((TrackingReconstructionPlots) testTrackingDriver).setDoResidualPlots(true);
         super.testRecon();
 
         IHistogram1D ntracks = aida.histogram1D("Tracks per Event");

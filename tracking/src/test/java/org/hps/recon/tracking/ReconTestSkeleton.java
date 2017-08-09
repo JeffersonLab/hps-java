@@ -27,7 +27,7 @@ public class ReconTestSkeleton extends TestCase {
         System.getProperties().setProperty("hep.aida.IAnalysisFactory", "hep.aida.ref.BatchAnalysisFactory");
     }
     protected String testInputFileName = "ap_prompt_raw.slcio";
-    protected String testOutputFileName = "RecoTest_" + testInputFileName;
+    protected String testOutputFileName;
     protected String testURLBase = "http://www.lcsim.org/test/hps-java";
     protected long nEvents = -1;
     protected URL testURL;
@@ -45,6 +45,7 @@ public class ReconTestSkeleton extends TestCase {
             inputFile = cache.getCachedFile(testURL);
         }
 
+        testOutputFileName = "RecoTest_" + testInputFileName;
         File outputFile = new TestOutputFile(testOutputFileName);
         outputFile.getParentFile().mkdirs();
         boolean loop1Success = true;
@@ -110,12 +111,6 @@ public class ReconTestSkeleton extends TestCase {
             hthd.setMaxDt(16.0);
             add(hthd);
 
-            org.hps.recon.tracking.TrackerReconDriver trd = new org.hps.recon.tracking.TrackerReconDriver();
-            trd.setStrategyResource("HPS_s123_c5_e46.xml");
-            trd.setRmsTimeCut(8.0);
-            trd.setTrackCollectionName("s123_c5_e46");
-            add(trd);
-
             org.hps.recon.tracking.TrackerReconDriver trd2 = new org.hps.recon.tracking.TrackerReconDriver();
             trd2.setStrategyResource("HPS_s123_c4_e56.xml");
             trd2.setRmsTimeCut(8.0);
@@ -136,7 +131,7 @@ public class ReconTestSkeleton extends TestCase {
 
             org.hps.recon.tracking.MergeTrackCollections mtc = new org.hps.recon.tracking.MergeTrackCollections();
             mtc.setInputTrackCollectionName("");
-            mtc.setRemoveCollections(false);
+            mtc.setRemoveCollections(true);
             add(mtc);
 
             add(new org.hps.recon.tracking.gbl.GBLRefitterDriver());
