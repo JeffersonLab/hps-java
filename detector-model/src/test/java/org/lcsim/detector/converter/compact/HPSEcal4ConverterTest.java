@@ -37,7 +37,7 @@ public class HPSEcal4ConverterTest extends TestCase {
 
     private static final String resource = "/org/lcsim/geometry/subdetector/HPSEcal4Test.xml";
     public void setUp() throws ConditionsManager.ConditionsNotFoundException {
-        DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+        DatabaseConditionsManager mgr = new DatabaseConditionsManager();
         mgr.setDetector("HPS-PhysicsRun2016-Nominal-v4-4", 0); /* any run number and detector will work here */
       
         InputStream in = this.getClass().getResourceAsStream(resource);
