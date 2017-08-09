@@ -684,97 +684,97 @@ public class BilliorVertexer {
         covVtxMomList = C0j;
 
     }
- private BasicMatrix makeHkFixed(double Vx, double pxtot, double pytot, double pztot, boolean bscon) {
-     BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
-     //derivitives wrt to V
-     if (bscon) {
-     Hk.setElement(0, 0, 0);
-     Hk.setElement(0, 1, -pytot / pxtot);
-     Hk.setElement(0, 2, -pztot / pxtot);
-     } else {
-     Hk.setElement(0, 0, 1);
-     Hk.setElement(0, 1, 0);
-     Hk.setElement(0, 2, 0);
-     }
-     Hk.setElement(1, 0, 0);
-     Hk.setElement(1, 1, 1);
-     Hk.setElement(1, 2, 0);
-     Hk.setElement(2, 0, 0);
-     Hk.setElement(2, 1, 0);
-     Hk.setElement(2, 2, 1);
-     
-     //store the track parameters
-     double theta[]=new double[_ntracks];
-     double phiv[]=new double[_ntracks];
-     double rho[]=new double[_ntracks];
-     double Pt[]=new double[_ntracks];
-     double px[]=new double[_ntracks];
-     double py[]=new double[_ntracks];
-     double pz[]=new double[_ntracks];
-     for (int i = 0; i < _ntracks; i++) {
-     BasicMatrix pi = (BasicMatrix) _pFit.get(i);
-     theta[i] = pi.e(0, 0);
-     phiv[i] = pi.e(1, 0);
-     rho[i] = pi.e(2, 0);
-     Pt[i] = Math.abs((1. / rho[i]) * _bField * Constants.fieldConversion);
-     px[i] = Pt[i] * Math.cos(phiv[i]);
-         py[i] = Pt[i] * Math.sin(phiv[i]);
-         pz[i] = Pt[i] * 1 / Math.tan(theta[i]);
-     }     
-     
-     //derivatives wrt theta
-     Hk.setElement(3, 0, 0);
-     Hk.setElement(3, 1, 0);
-     Hk.setElement(6, 0, 0);
-     Hk.setElement(6, 1, 0);
-     if (bscon) {
-     Hk.setElement(3, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[0]*Math.pow(1./Math.sin(theta[0]), 2));
-     Hk.setElement(6, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[1]*Math.pow(1./Math.sin(theta[1]), 2));     
-     } else {
-     Hk.setElement(3, 2, 0);
-     Hk.setElement(6, 2, 0);
-     }
-     
-     //derivatives wrt phi
-     Hk.setElement(4, 0, 0);
-     Hk.setElement(4, 1, 0);
-     Hk.setElement(7, 0, 0);
-     Hk.setElement(7, 1, 0);
-     if (bscon) {
-     Hk.setElement(4, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot,2)*Pt[0]*(pxtot*Math.cos(phiv[0])+pytot*Math.sin(phiv[0])));
-     Hk.setElement(7, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot,2)*Pt[1]*(pxtot*Math.cos(phiv[1])+pytot*Math.sin(phiv[1])));
-     
-     Hk.setElement(4, 2, -(Vx - _beamPosition[0])*pztot/Math.pow(pxtot,2)*Pt[0]*Math.sin(phiv[0]));
-     Hk.setElement(7, 2, -(Vx - _beamPosition[0])*pztot/Math.pow(pxtot,2)*Pt[1]*Math.sin(phiv[1]));
-     
-     } else {
-     Hk.setElement(4, 1, 0);
-     Hk.setElement(7, 1, 0);
-     Hk.setElement(4, 2, 0);
-     Hk.setElement(7, 2, 0);
-     }
-     
-     //derivatives wrt rho
-     Hk.setElement(5, 0, 0);
-     Hk.setElement(5, 1, 0);
-     Hk.setElement(8, 0, 0);
-     Hk.setElement(8, 1, 0);
-     if (bscon) {
-     Hk.setElement(5, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[0],2)*(-pxtot*Math.sin(phiv[0])+pytot*Math.cos(phiv[0])));
-     Hk.setElement(8, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[1],2)*(-pxtot*Math.sin(phiv[1])+pytot*Math.cos(phiv[1])));
-     
-     Hk.setElement(5, 2, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[0],2)*(-pxtot/Math.tan(theta[0])+pztot*Math.cos(phiv[0])));
-     Hk.setElement(8, 2, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[1],2)*(-pxtot/Math.tan(theta[1])+pztot*Math.cos(phiv[1])));
-     } else {
-     Hk.setElement(5, 1, 0);
-     Hk.setElement(8, 1, 0);
-     Hk.setElement(5, 2, 0);
-     Hk.setElement(8, 2, 0);
-     }
-
-     return Hk;
- }
-
+// private BasicMatrix makeHkFixed(double Vx, double pxtot, double pytot, double pztot, boolean bscon) {
+//     BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
+//     //derivitives wrt to V
+//     if (bscon) {
+//     Hk.setElement(0, 0, 0);
+//     Hk.setElement(0, 1, -pytot / pxtot);
+//     Hk.setElement(0, 2, -pztot / pxtot);
+//     } else {
+//     Hk.setElement(0, 0, 1);
+//     Hk.setElement(0, 1, 0);
+//     Hk.setElement(0, 2, 0);
+//     }
+//     Hk.setElement(1, 0, 0);
+//     Hk.setElement(1, 1, 1);
+//     Hk.setElement(1, 2, 0);
+//     Hk.setElement(2, 0, 0);
+//     Hk.setElement(2, 1, 0);
+//     Hk.setElement(2, 2, 1);
+//     
+//     //store the track parameters
+//     double theta[]=new double[_ntracks];
+//     double phiv[]=new double[_ntracks];
+//     double rho[]=new double[_ntracks];
+//     double Pt[]=new double[_ntracks];
+//     double px[]=new double[_ntracks];
+//     double py[]=new double[_ntracks];
+//     double pz[]=new double[_ntracks];
+//     for (int i = 0; i < _ntracks; i++) {
+//     BasicMatrix pi = (BasicMatrix) _pFit.get(i);
+//     theta[i] = pi.e(0, 0);
+//     phiv[i] = pi.e(1, 0);
+//     rho[i] = pi.e(2, 0);
+//     Pt[i] = Math.abs((1. / rho[i]) * _bField * Constants.fieldConversion);
+//     px[i] = Pt[i] * Math.cos(phiv[i]);
+//         py[i] = Pt[i] * Math.sin(phiv[i]);
+//         pz[i] = Pt[i] * 1 / Math.tan(theta[i]);
+//     }     
+//     
+//     //derivatives wrt theta
+//     Hk.setElement(3, 0, 0);
+//     Hk.setElement(3, 1, 0);
+//     Hk.setElement(6, 0, 0);
+//     Hk.setElement(6, 1, 0);
+//     if (bscon) {
+//     Hk.setElement(3, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[0]*Math.pow(1./Math.sin(theta[0]), 2));
+//     Hk.setElement(6, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[1]*Math.pow(1./Math.sin(theta[1]), 2));     
+//     } else {
+//     Hk.setElement(3, 2, 0);
+//     Hk.setElement(6, 2, 0);
+//     }
+//     
+//     //derivatives wrt phi
+//     Hk.setElement(4, 0, 0);
+//     Hk.setElement(4, 1, 0);
+//     Hk.setElement(7, 0, 0);
+//     Hk.setElement(7, 1, 0);
+//     if (bscon) {
+//     Hk.setElement(4, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot,2)*Pt[0]*(pxtot*Math.cos(phiv[0])+pytot*Math.sin(phiv[0])));
+//     Hk.setElement(7, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot,2)*Pt[1]*(pxtot*Math.cos(phiv[1])+pytot*Math.sin(phiv[1])));
+//     
+//     Hk.setElement(4, 2, -(Vx - _beamPosition[0])*pztot/Math.pow(pxtot,2)*Pt[0]*Math.sin(phiv[0]));
+//     Hk.setElement(7, 2, -(Vx - _beamPosition[0])*pztot/Math.pow(pxtot,2)*Pt[1]*Math.sin(phiv[1]));
+//     
+//     } else {
+//     Hk.setElement(4, 1, 0);
+//     Hk.setElement(7, 1, 0);
+//     Hk.setElement(4, 2, 0);
+//     Hk.setElement(7, 2, 0);
+//     }
+//     
+//     //derivatives wrt rho
+//     Hk.setElement(5, 0, 0);
+//     Hk.setElement(5, 1, 0);
+//     Hk.setElement(8, 0, 0);
+//     Hk.setElement(8, 1, 0);
+//     if (bscon) {
+//     Hk.setElement(5, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[0],2)*(-pxtot*Math.sin(phiv[0])+pytot*Math.cos(phiv[0])));
+//     Hk.setElement(8, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[1],2)*(-pxtot*Math.sin(phiv[1])+pytot*Math.cos(phiv[1])));
+//     
+//     Hk.setElement(5, 2, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[0],2)*(-pxtot/Math.tan(theta[0])+pztot*Math.cos(phiv[0])));
+//     Hk.setElement(8, 2, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[1],2)*(-pxtot/Math.tan(theta[1])+pztot*Math.cos(phiv[1])));
+//     } else {
+//     Hk.setElement(5, 1, 0);
+//     Hk.setElement(8, 1, 0);
+//     Hk.setElement(5, 2, 0);
+//     Hk.setElement(8, 2, 0);
+//     }
+//
+//     return Hk;
+// }
+//
 
 
 
