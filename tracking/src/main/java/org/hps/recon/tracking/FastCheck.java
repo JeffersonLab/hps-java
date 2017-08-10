@@ -235,6 +235,18 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         if (rcurv < super.getRMin())
             return false;
 
+        // find corrected hit positions
+        CorrectHitPosition(hit1, seed);
+        CorrectHitPosition(hit2, seed);
+        CorrectHitPosition(hit3, seed);
+        double zCorr[] = new double[3];
+        zCorr[0] = hit1.getCorrectedPosition().z();
+        zCorr[1] = hit2.getCorrectedPosition().z();
+        zCorr[2] = hit3.getCorrectedPosition().z();
+        ((HelicalTrackCross) hit1).resetTrackDirection();
+        ((HelicalTrackCross) hit2).resetTrackDirection();
+        ((HelicalTrackCross) hit3).resetTrackDirection();
+
         //  Find the point of closest approach
         double x0 = xc * (1. - rcurv / rc);
         double y0 = yc * (1. - rcurv / rc);
@@ -272,18 +284,6 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
             if (s[i] < 0.)
                 s[i] += twopi * rcurv;
         }
-
-        // find corrected hit positions
-        CorrectHitPosition(hit1, seed);
-        CorrectHitPosition(hit2, seed);
-        CorrectHitPosition(hit3, seed);
-        double zCorr[] = new double[3];
-        zCorr[0] = hit1.getCorrectedPosition().z();
-        zCorr[1] = hit2.getCorrectedPosition().z();
-        zCorr[2] = hit3.getCorrectedPosition().z();
-        ((HelicalTrackCross) hit1).resetTrackDirection();
-        ((HelicalTrackCross) hit2).resetTrackDirection();
-        ((HelicalTrackCross) hit3).resetTrackDirection();
 
         //  Order the arc lengths and z info by increasing arc length
         for (int i = 0; i < 2; i++) {
