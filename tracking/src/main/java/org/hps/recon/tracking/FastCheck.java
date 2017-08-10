@@ -1,8 +1,10 @@
 package org.hps.recon.tracking;
 
+import java.util.List;
+
+import org.lcsim.constants.Constants;
 import org.lcsim.fit.threepointcircle.CircleFit;
-import org.lcsim.fit.helicaltrack.HelicalTrack2DHit;
-import org.lcsim.fit.helicaltrack.HelicalTrack3DHit;
+import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.twopointcircle.TwoPointCircleFit;
 import org.lcsim.fit.twopointcircle.TwoPointLineFit;
@@ -18,8 +20,35 @@ import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
  */
 public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
 
+    private double _nsigErr;
+
     public FastCheck(SeedStrategy strategy, double bfield, ISeedTrackerDiagnostics diag) {
         super(strategy, bfield, diag);
+        setNSigErr(3);
+    }
+
+    public double getNSigErr() {
+        return _nsigErr;
+    }
+
+    public void setNSigErr(double input) {
+        _nsigErr = input;
+    }
+
+    private double calculateMSerror(double hit1x, double hit2x, double hit3x, double p) {
+        // angle approximation
+        // radlength=0.003417, angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
+        double angle = 0.00062343 / p;
+
+        double dist1 = hit1x - hit2x;
+        double dist2 = hit2x - hit3x;
+        double MSerr = angle * Math.sqrt(dist1 * dist1 + dist2 * dist2);
+
+        return MSerr;
+    }
+
+    private double estimateMomentum(double slope, double rcurve) {
+        return Math.sqrt(1 + slope * slope) * _bfield * Constants.fieldConversion * rcurve;
     }
 
     @Override
@@ -144,18 +173,21 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
 
     }
 
-    public boolean ThreePointHelixCheck(HelicalTrackHit hit1, HelicalTrackHit hit2, HelicalTrackHit hit3) {
+    @Override
+    public boolean ThreePointHelixCheck(SeedCandidate seed) {
         if (super.getSkipChecks())
             return true;
+
+        List<HelicalTrackHit> hits = seed.getHits();
+        HelicalTrackHit hit1 = hits.get(0);
+        HelicalTrackHit hit2 = hits.get(1);
+        HelicalTrackHit hit3 = hits.get(2);
 
         //  Setup for a 3 point circle fit
         double p[][] = new double[3][2];
         double[] pos;
         double z[] = new double[3];
         double dztot = 0.;
-        int indx;
-        HelicalTrackHit hit;
-        boolean zfirst = true;
 
         // construct p and z arrays based on hit position x order
         // function for dztot(hit)
@@ -163,66 +195,29 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         //  While not terribly elegant, code for speed
         //  Use calls that give uncorrected position and error
         //  Get the relevant variables for hit 1
-        indx = 0;
-        hit = hit1;
-        pos = hit.getPosition();
-        p[indx][0] = pos[0];
-        p[indx][1] = pos[1];
-        z[indx] = pos[2];
 
-        if (hit instanceof HelicalTrack3DHit)
-            dztot += super.getNSig() * ((HelicalTrack3DHit) hit).dz();
-        else {
-            zfirst = false;
-            if (hit instanceof HelicalTrack2DHit)
-                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-            else
-                dztot += super.getNSig() * Math.sqrt(hit.getCovMatrix()[5]);
-        }
+        pos = hit1.getPosition();
+        p[0][0] = pos[0];
+        p[0][1] = pos[1];
+        z[0] = pos[2];
 
         //  Get the relevant variables for hit 2
-        indx = 1;
-        hit = hit2;
-        pos = hit.getPosition();
-        p[indx][0] = pos[0];
-        p[indx][1] = pos[1];
-        z[indx] = pos[2];
-
-        if (hit instanceof HelicalTrack3DHit)
-            dztot += super.getNSig() * ((HelicalTrack3DHit) hit).dz();
-        else {
-            zfirst = false;
-            if (hit instanceof HelicalTrack2DHit)
-                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-            else
-                dztot += super.getNSig() * Math.sqrt(hit.getCovMatrix()[5]);
-        }
+        pos = hit2.getPosition();
+        p[1][0] = pos[0];
+        p[1][1] = pos[1];
+        z[1] = pos[2];
 
         //  Get the relevant variables for hit 3
-        indx = 2;
-        hit = hit3;
-        pos = hit.getPosition();
-        p[indx][0] = pos[0];
-        p[indx][1] = pos[1];
-        z[indx] = pos[2];
+        pos = hit3.getPosition();
+        p[2][0] = pos[0];
+        p[2][1] = pos[1];
+        z[2] = pos[2];
 
-        if (hit instanceof HelicalTrack3DHit)
-            dztot += super.getNSig() * ((HelicalTrack3DHit) hit).dz();
-        else {
-            zfirst = false;
-            if (hit instanceof HelicalTrack2DHit)
-                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-            else
-                dztot += super.getNSig() * Math.sqrt(hit.getCovMatrix()[5]);
-        }
-
-        //  Unless the three hits are all pixel hits, do the circle checks first
-        if (!zfirst) {
-            if (!TwoPointCircleCheck(hit1, hit3, null))
-                return false;
-            if (!TwoPointCircleCheck(hit2, hit3, null))
-                return false;
-        }
+        //  do the circle checks first
+        if (!TwoPointCircleCheck(hit1, hit3, null))
+            return false;
+        if (!TwoPointCircleCheck(hit2, hit3, null))
+            return false;
 
         //  Do the 3 point circle fit and check for success
         boolean success = _cfit3.fit(p[0], p[1], p[2]);
@@ -278,6 +273,18 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
                 s[i] += twopi * rcurv;
         }
 
+        // find corrected hit positions
+        CorrectHitPosition(hit1, seed);
+        CorrectHitPosition(hit2, seed);
+        CorrectHitPosition(hit3, seed);
+        double zCorr[] = new double[3];
+        zCorr[0] = hit1.getCorrectedPosition().z();
+        zCorr[1] = hit2.getCorrectedPosition().z();
+        zCorr[2] = hit3.getCorrectedPosition().z();
+        ((HelicalTrackCross) hit1).resetTrackDirection();
+        ((HelicalTrackCross) hit2).resetTrackDirection();
+        ((HelicalTrackCross) hit3).resetTrackDirection();
+
         //  Order the arc lengths and z info by increasing arc length
         for (int i = 0; i < 2; i++) {
             for (int j = i + 1; j < 3; j++) {
@@ -285,9 +292,13 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
                     double temp = s[i];
                     s[i] = s[j];
                     s[j] = temp;
+
                     temp = z[i];
                     z[i] = z[j];
                     z[j] = temp;
+                    temp = zCorr[i];
+                    zCorr[i] = zCorr[j];
+                    zCorr[j] = temp;
                 }
             }
         }
@@ -297,20 +308,24 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         double z0 = z[0] - s[0] * slope;
         double zpred = z0 + s[1] * slope;
 
+        // find hit errors
+        double dz2 = zCorr[1] - z[1];
+        double dz1 = zCorr[0] - z[0];
+        double dz3 = zCorr[2] - z[2];
+        double d12 = p[1][0] - p[0][0];
+        double d13 = p[2][0] - p[0][0];
+        double d23 = p[2][0] - p[1][0];
+        dztot = dz2 * dz2 + (dz1 * d23 / d13) * (dz1 * d23 / d13) + (dz3 * d12 / d13) * (dz3 * d12 / d13);
+
         //  Add multiple scattering error here
-        dztot += 1.0;
+        double pEstimate = estimateMomentum(slope, rcurv);
+        double mserr = calculateMSerror(p[0][0], p[1][0], p[2][0], pEstimate);
+        dztot += (mserr * mserr);
+        dztot = _nsigErr * Math.sqrt(dztot);
 
         // comparison of middle z to prediction including error
         if (Math.abs(zpred - z[1]) > dztot)
             return false;
-
-        //  If we haven't already done the circle checks, do them now
-        if (zfirst) {
-            if (!TwoPointCircleCheck(hit1, hit3, null))
-                return false;
-            if (!TwoPointCircleCheck(hit2, hit3, null))
-                return false;
-        }
 
         //  Passed all checks - success!
         return true;
