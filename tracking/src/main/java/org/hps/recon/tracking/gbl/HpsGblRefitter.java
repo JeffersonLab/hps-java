@@ -21,7 +21,7 @@ import org.hps.recon.tracking.TrackUtils;
 import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
-import org.hps.recon.tracking.gbl.matrix.SymMatrix;
+//import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.constants.Constants;
@@ -55,7 +55,6 @@ public class HpsGblRefitter extends Driver {
     private final String gblTrack2StripRelationName = "GBLTrackToStripData";
     private final String outputTrackCollectionName = "GBLTracks";
     private final String trackRelationCollectionName = "MatchedToGBLTrackRelations";
-
 
     private MilleBinary mille;
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
@@ -188,7 +187,7 @@ public class HpsGblRefitter extends Driver {
         LOGGER.info(trackFits.size() + " fitted GBL tracks before adding to event");
 
         List<Track> newTracks = new ArrayList<Track>();
-        
+
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();
 
         List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
@@ -210,7 +209,7 @@ public class HpsGblRefitter extends Driver {
 
             // Create relation from seed to GBL track
             trackRelations.add(new BaseLCRelation(fittedTraj.get_seed(), trk.getFirst()));
-            
+
             kinkDataCollection.add(trk.getSecond());
             kinkDataRelations.add(new BaseLCRelation(trk.getSecond(), trk.getFirst()));
         }
@@ -235,7 +234,6 @@ public class HpsGblRefitter extends Driver {
         double s = 0.;
         int iLabel;
 
-
         // jacobian to transport errors between points along the path
         Matrix jacPointToPoint = new Matrix(5, 5);
         jacPointToPoint.UnitMatrix();
@@ -244,13 +242,13 @@ public class HpsGblRefitter extends Driver {
         Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
 
         // Store the projection from local to measurement frame for each strip cluster
-        Map< Integer, Matrix> proL2m_list = new HashMap<Integer, Matrix>();
+        //        Map< Integer, Matrix> proL2m_list = new HashMap<Integer, Matrix>();
         // Save the association between strip cluster and label
 
         //start trajectory at refence point (s=0) - this point has no measurement
         GblPoint ref_point = new GblPoint(jacPointToPoint);
         listOfPoints.add(ref_point);
-        
+
         // save path length to each point
         iLabel = listOfPoints.size();
         pathLengthMap.put(iLabel, s);
@@ -327,7 +325,7 @@ public class HpsGblRefitter extends Driver {
             //projection from local (uv) to measurement directions (dm/duv)
             Matrix proL2m = proM2l.copy();
             proL2m = proL2m.inverse();
-            proL2m_list.put(strip.getId(), proL2m.copy()); // is a copy needed or is that just a C++/root thing?
+            //            proL2m_list.put(strip.getId(), proL2m.copy()); // is a copy needed or is that just a C++/root thing?
 
             if (debug) {
                 System.out.println("HpsGblFitter: " + "proM2l:");
@@ -341,11 +339,11 @@ public class HpsGblRefitter extends Driver {
             // measurement/residual in the measurement system
             // only 1D measurement in u-direction, set strip measurement direction to zero
             Vector meas = new Vector(2);
-//      double uRes = strip->GetUmeas() - strip->GetTrackPos().x(); // how can this be correct?
+            //      double uRes = strip->GetUmeas() - strip->GetTrackPos().x(); // how can this be correct?
             double uRes = strip.getMeas() - strip.getTrackPos().x();
             meas.set(0, uRes);
             meas.set(1, 0.);
-//      //meas[0][0] += deltaU[iLayer] # misalignment
+            //      //meas[0][0] += deltaU[iLayer] # misalignment
             Vector measErr = new Vector(2);
             measErr.set(0, strip.getMeasErr());
             measErr.set(1, 0.);
@@ -371,30 +369,30 @@ public class HpsGblRefitter extends Driver {
             }
 
             // Get the transpose of the Jacobian
-            Matrix jacPointToPointTransposed = jacPointToPoint.copy().transpose();
+            //           Matrix jacPointToPointTransposed = jacPointToPoint.copy().transpose();
 
             // Option to use uncorrelated  MS errors
             // This is similar to what is done in lcsim seedtracker
             // The msCov below holds the MS errors
             // This is for testing purposes only.
             boolean useUncorrMS = false;
-            Matrix msCov = new Matrix(5, 5);
+            //            Matrix msCov = new Matrix(5, 5);
 
             // Propagate the MS covariance matrix (in the curvilinear frame) to this strip position
-            msCov = msCov.times(jacPointToPointTransposed);
-            msCov = jacPointToPoint.times(msCov);
+            //            msCov = msCov.times(jacPointToPointTransposed);
+            //            msCov = jacPointToPoint.times(msCov);
 
             // Get the MS covariance for the measurements in the measurement frame
-            Matrix proL2mTransposed = proL2m.copy().transpose();
+            //            Matrix proL2mTransposed = proL2m.copy().transpose();
 
-            Matrix measMsCov = proL2m.times((msCov.getMatrix(3, 4, 3, 4)).times(proL2mTransposed));
+            //            Matrix measMsCov = proL2m.times((msCov.getMatrix(3, 4, 3, 4)).times(proL2mTransposed));
 
-            if (debug) {
-                System.out.println("HpsGblFitter: " + " msCov at this point:");
-                msCov.print(4, 6);
-                System.out.println("HpsGblFitter: " + "measMsCov at this point:");
-                measMsCov.print(4, 6);
-            }
+            //            if (debug) {
+            //                System.out.println("HpsGblFitter: " + " msCov at this point:");
+            //                msCov.print(4, 6);
+            //                System.out.println("HpsGblFitter: " + "measMsCov at this point:");
+            //                measMsCov.print(4, 6);
+            //            }
 
             GblPoint point = new GblPoint(jacPointToPoint);
             //Add measurement to the point
@@ -429,8 +427,8 @@ public class HpsGblRefitter extends Driver {
             pathLengthMap.put(iLabel, s);
 
             // Update MS covariance matrix 
-            msCov.set(1, 1, msCov.get(1, 1) + scatErr.get(0) * scatErr.get(0));
-            msCov.set(2, 2, msCov.get(2, 2) + scatErr.get(1) * scatErr.get(1));
+            //            msCov.set(1, 1, msCov.get(1, 1) + scatErr.get(0) * scatErr.get(0));
+            //            msCov.set(2, 2, msCov.get(2, 2) + scatErr.get(1) * scatErr.get(1));
 
             //// Calculate global derivatives for this point
             // track direction in tracking/global frame
@@ -502,21 +500,21 @@ public class HpsGblRefitter extends Driver {
         int[] iVals = new int[1];
         traj.fit(dVals, iVals, "");
         LOGGER.info("fit result: Chi2=" + dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
-        Vector aCorrection = new Vector(5);
-        SymMatrix aCovariance = new SymMatrix(5);
-        traj.getResults(1, aCorrection, aCovariance);
-        if (debug) {
-            System.out.println(" cor ");
-            aCorrection.print(6, 4);
-            System.out.println(" cov ");
-            aCovariance.print(6, 4);
-        }
+        //        Vector aCorrection = new Vector(5);
+        //        SymMatrix aCovariance = new SymMatrix(5);
+        //        traj.getResults(1, aCorrection, aCovariance);
+        //        if (debug) {
+        //            System.out.println(" cor ");
+        //            aCorrection.print(6, 4);
+        //            System.out.println(" cov ");
+        //            aCovariance.print(6, 4);
+        //        }
 
-        LOGGER.fine("locPar " + aCorrection.toString());
+        //        LOGGER.fine("locPar " + aCorrection.toString());
 
         FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
         fittedTraj.setPathLengthMap(pathLengthMap);
-        
+
         return fittedTraj;
     }
 
@@ -618,7 +616,7 @@ public class HpsGblRefitter extends Driver {
             double dmw_dbeta = _p.x(); //self.umeas
             // Derivative of the local measurement for a rotation around w-axis (gamma)
             double dmu_dgamma = _p.y(); // self.vmeas
-            double dmv_dgamma = -1.0 * _p.x();  // -1.0 * self.umeas 
+            double dmv_dgamma = -1.0 * _p.x(); // -1.0 * self.umeas 
             double dmw_dgamma = 0.;
             // put into matrix
             Matrix dm_dg = new Matrix(3, 6);
@@ -692,7 +690,6 @@ public class HpsGblRefitter extends Driver {
             }
             return milleParameters;
         }
-
 
         /*
 
