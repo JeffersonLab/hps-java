@@ -40,8 +40,6 @@ public class BilliorVertexer {
     //theta,phi_v,rho
     private List<Matrix> covVtxMomList;
     private Matrix[][] covMomList;//max 2 tracks...just make this bigger for more
-    private Matrix _constrainedFit;
-    private Matrix _constrainedCov;
     private double _chiSq;
 
     public BilliorVertexer(double bField) {
@@ -116,7 +114,7 @@ public class BilliorVertexer {
         }
 
         //  now calculate the derivative matrix for the beam constraint.
-        //  the beamspot is assumed to be at bvec=(0,0,0)
+        //  the beamspot is assumed to be at _beamPosition 
         //  the V0 production position is Vbvec=(0,-(ptot_y)/(ptot_x)*Vx+Vy, -(ptot_z)/(ptot_x)*Vx+Vz)
         //  where ptot=sum_i (pi)
         //  need derivites wrt to the vertex position and momentum (theta,phi_v,rho)
@@ -145,6 +143,8 @@ public class BilliorVertexer {
         if (_debug)
             System.out.println(methodName + "::rk = " + rk);
 
+        //mg...makeHkFixed is for our debugging..replace makeHk with that when we 
+        // are sure that it's correct
         BasicMatrix Hk = makeHkFixed(Vx, pxtot, pytot, pztot, pointback);
 //        BasicMatrix Hk = makeHk(Vx, pxtot, pytot, pztot, pointback);
 
@@ -171,13 +171,7 @@ public class BilliorVertexer {
         BasicMatrix Rkinv = (BasicMatrix) MatrixOp.inverse(Rk);
         BasicMatrix Kk = (BasicMatrix) MatrixOp.mult(Ckm1, MatrixOp.mult(Hk, Rkinv));
 
-//        if(_debug)System.out.println("Ckm1 = " + Ckm1.toString());
-//        if(_debug)System.out.println("Hk = " + Hk.toString());
-//        if(_debug)System.out.println("Rk = " + Rk.toString());
-//        if(_debug)System.out.println("Vk = " + Vk.toString());
-//        if(_debug)System.out.println("rk = " + rk.toString());
-//        if(_debug)System.out.println("Kk = " + Kk.toString());
-        _constrainedFit = MatrixOp.mult(Kk, rk);
+        Matrix _constrainedFit = MatrixOp.mult(Kk, rk);
         _constrainedFit = MatrixOp.add(_constrainedFit, Xkm1);//Xk
 
         //ok, get the new covariance
@@ -186,32 +180,27 @@ public class BilliorVertexer {
         RkKkt = (BasicMatrix) MatrixOp.mult(1, RkKkt);
         HkCkm1 = (BasicMatrix) MatrixOp.mult(-2, HkCkm1);
         BasicMatrix sumMatrix = (BasicMatrix) MatrixOp.mult(Kk, MatrixOp.add(HkCkm1, RkKkt));
-        _constrainedCov = (BasicMatrix) MatrixOp.add(Ckm1, sumMatrix);
+        Matrix _constrainedCov = (BasicMatrix) MatrixOp.add(Ckm1, sumMatrix);
 
         //update the regular parameter names to the constrained result
-//        if(_debug)System.out.println("Without Constraint : " + _vertexPosition.toString());
-//        if(_debug)System.out.println("Without Constraint:  x= "+_vertexPosition.e(0,0));
-        //        if(_debug)System.out.println(_constrainedFit.toString());
-//         if(_debug)System.out.println("Without Constraint : " + _covVtx.toString());
         _vertexPosition = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedFit, 0, 0, 3, 1);
-        _covVtx = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 0, 3, 3);
-//        if(_debug)System.out.println("With Constraint : " + _vertexPosition.toString());
-//        if(_debug)System.out.println("With Constraint : " + _covVtx.toString());
 
         if (_debug)
             System.out.println("Constrained vertex: " + _vertexPosition);
-
+        //update the covariance matrices and fitted momenta
+        _covVtx = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 0, 3, 3);
         for (int i = 0; i < _ntracks; i++) {
             BasicMatrix ptmp = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedFit, 3 * (i + 1), 0, 3, 1);
             _pFit.set(i, ptmp);
+            covVtxMomList.set(i, (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 0, 3 * (i + 1), 3 * (i + 1)));
+            for (int j = 0; j < _ntracks; j++)
+                covMomList[i][j] = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 0, 3 * (i + 1), 3 * (j + 1));;
         }
 
-//        if(_debug)System.out.println("Unconstrained chi^2 = "+_chiSq);
         //ok...add to the chi^2
         if (_debug)
             System.out.println("Chisq contribution: " + MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)));
         _chiSq += MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)).e(0, 0);
-//        if(_debug)System.out.println("Constrained chi^2 = "+_chiSq);
     }
 
     private BasicMatrix makeHk(double Vx, double pxtot, double pytot, double pztot, boolean bscon) {
@@ -303,13 +292,13 @@ public class BilliorVertexer {
         Hk.setElement(2, 2, 1);
 
         //store the track parameters
-        double theta[] = {0,0};
-        double phiv[] = {0,0};
-        double rho[] = {0,0};
-        double Pt[] = {0,0};
-        double px[] = {0,0};
-        double py[] = {0,0};
-        double pz[] = {0,0};
+        double theta[] = {0, 0};
+        double phiv[] = {0, 0};
+        double rho[] = {0, 0};
+        double Pt[] = {0, 0};
+        double px[] = {0, 0};
+        double py[] = {0, 0};
+        double pz[] = {0, 0};
 
         for (int i = 0; i < _ntracks; i++) {
             BasicMatrix pi = (BasicMatrix) _pFit.get(i);
@@ -330,8 +319,6 @@ public class BilliorVertexer {
         if (bscon) {
             Hk.setElement(3, 2, -(((_beamPosition[0] - Vx) * Math.pow(1 / Math.sin(theta[0]), 2)) / (px[1] * rho[0] + Math.cos(phiv[0]))));
             Hk.setElement(6, 2, -(((_beamPosition[0] - Vx) * Math.pow(1 / Math.sin(theta[1]), 2)) / (px[0] * rho[1] + Math.cos(phiv[1]))));
-//          Hk.setElement(3, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[0]*Math.pow(1./Math.sin(theta[0]), 2));
-//	 Hk.setElement(6, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[1]*Math.pow(1./Math.sin(theta[1]), 2));	 
         } else {
             Hk.setElement(3, 2, 0);
             Hk.setElement(6, 2, 0);
@@ -347,11 +334,6 @@ public class BilliorVertexer {
             Hk.setElement(4, 2, ((_beamPosition[0] - Vx) * (pz[1] * rho[0] + 1 / Math.tan(theta[0])) * Math.sin(phiv[0])) / Math.pow(px[1] * rho[0] + Math.cos(phiv[0]), 2));
             Hk.setElement(7, 1, ((_beamPosition[0] - Vx) * (1 + px[0] * rho[1] * Math.cos(phiv[1]) + py[0] * rho[1] * Math.sin(phiv[1]))) / Math.pow(px[0] * rho[1] + Math.cos(phiv[1]), 2));
             Hk.setElement(7, 2, ((_beamPosition[0] - Vx) * (pz[0] * rho[1] + 1 / Math.tan(theta[1])) * Math.sin(phiv[1])) / Math.pow(px[0] * rho[1] + Math.cos(phiv[1]), 2));
-//            Hk.setElement(4, 1, -(Vx - _beamPosition[0]) / Math.pow(pxtot, 2) * Pt[0] * (pxtot * Math.cos(phi[0]) + pytot * Math.sin(phi[0])));
-//            Hk.setElement(7, 1, -(Vx - _beamPosition[0]) / Math.pow(pxtot, 2) * Pt[1] * (pxtot * Math.cos(phi[1]) + pytot * Math.sin(phi[1])));
-//            Hk.setElement(4, 2, -(Vx - _beamPosition[0]) * pztot / Math.pow(pxtot, 2) * Pt[0] * Math.sin(phi[0]));
-//            Hk.setElement(7, 2, -(Vx - _beamPosition[0]) * pztot / Math.pow(pxtot, 2) * Pt[1] * Math.sin(phi[1]));
-
         } else {
             Hk.setElement(4, 1, 0);
             Hk.setElement(7, 1, 0);
@@ -434,9 +416,9 @@ public class BilliorVertexer {
     public double getChiSq() {
         return _chiSq;
     }
-    //in theta/phi/rho for now...should fix this to return Hep3Vector
 
-    private double[] getFittedMomentum(int index) {
+    //double[]...should fix this to return Hep3Vector?
+    public double[] getFittedMomentum(int index) {
         BasicMatrix pi = (BasicMatrix) _pFit.get(index);
         double[] mom = {0, 0, 0};
         double theta = pi.e(0, 0);
@@ -448,13 +430,27 @@ public class BilliorVertexer {
         mom[2] = Pt * 1 / Math.tan(theta);
         if (_debug) {
             System.out.println("getFittedMomentum::  " + mom[0] + "; " + mom[1] + "; " + mom[2]);
-
             System.out.println("pT= " + Pt + "; phi = " + phiv + "; B = " + _bField);
         }
         return mom;
     }
 
-    private double getInvMass() {
+    public Matrix getFittedMomentumCovariance(int index) {
+        BasicMatrix pi = (BasicMatrix) _pFit.get(index);
+        BasicMatrix covpi = (BasicMatrix) covMomList[index][index]; //of diagonal matrices are the track-track covariances
+        double theta = pi.e(0, 0);
+        double phiv = pi.e(1, 0);
+        double rho = pi.e(2, 0);
+        BasicMatrix Jac = (BasicMatrix) getJacobianThetaPhiRhoToPxPyPz(theta, phiv, rho);
+        BasicMatrix JacT = (BasicMatrix) MatrixOp.transposed(Jac);
+        return MatrixOp.mult(Jac, MatrixOp.mult(covpi, JacT));
+    }
+
+    public Matrix getFittedVertexCovariance(int index) {
+        return _covVtx;
+    }
+
+    public double getInvMass() {
         double esum = 0.;
         double pxsum = 0.;
         double pysum = 0.;
@@ -482,6 +478,53 @@ public class BilliorVertexer {
             return -99;
     }
 
+    //get the uncertaintly on the invariant mass 
+    //curretnly only uses the diagonal terms in covaraince...   
+    //I repeat a lot of code above; should just calculate these
+    //as part of vertex fit, have a private _mass; _massErr variables
+    //and use getters just to forward them 
+    //note:  check that mass I get here is same as above!!!  Better be!
+    public double getInvMassUncertainty() {
+        //get what we need
+        double[] p1 = getFittedMomentum(0);
+        double[] p2 = getFittedMomentum(1);
+        Matrix cov1=covMomList[1][1];
+        Matrix cov2=covMomList[2][2];
+        //fill in some local variables
+        double esum = 0.;
+        double pxsum = 0.;
+        double pysum = 0.;
+        double pzsum = 0.;
+        double me = 0.000511;
+        double p1x = p1[0];
+        double p1y = p1[1];
+        double p1z = p1[2];
+        double p2x = p2[0];
+        double p2y = p2[1];
+        double p2z = p2[2];
+        // some useful quantities
+        double p1mag2 = p1x * p1x + p1y * p1y + p1z * p1z;
+        double e1 = Math.sqrt(p1mag2 + me * me);
+        double p2mag2 = p2x * p2x + p1y * p2y + p2z * p2z;
+        double e2 = Math.sqrt(p2mag2 + me * me);
+        pxsum = p1x + p2x;
+        pysum = p1y + p2y;
+        pzsum = p1z + p2z;
+        esum=e1+e2;
+        double psum = Math.sqrt(pxsum * pxsum + pysum * pysum + pzsum * pzsum);       
+        double evtmass = esum * esum - psum * psum;       
+        //lots of terms here...do in pieces
+        double mErrOverMSq=Math.pow((p2x*e1-p1x*e2)*cov1.e(0,0)/e1,2);
+        mErrOverMSq+=Math.pow((p2x*e1-p1x*e2)*cov2.e(0,0)/e2,2);
+        mErrOverMSq+=Math.pow((p2y*e1-p1y*e2)*cov1.e(1,1)/e1,2);
+        mErrOverMSq+=Math.pow((p2y*e1-p1y*e2)*cov2.e(1,1)/e2,2);                
+        mErrOverMSq+=Math.pow((p2z*e1-p1z*e2)*cov1.e(2,2)/e1,2);
+        mErrOverMSq+=Math.pow((p2z*e1-p1z*e2)*cov2.e(2,2)/e2,2);
+        mErrOverMSq/=4*Math.pow(p1x*p2x+p1y*p2y+p1z*p2z-(me*me+e1*e2),2);
+        //return the uncertainty
+        return Math.sqrt(mErrOverMSq)*evtmass;
+    }
+
     @Override
     public String toString() {
         String sb = "Vertex at : \nx= " + _vertexPosition.e(0, 0) + " +/- " + Math.sqrt(_covVtx.e(0, 0)) + "\ny= " + _vertexPosition.e(1, 0) + " +/- " + Math.sqrt(_covVtx.e(1, 1)) + "\nz= " + _vertexPosition.e(2, 0) + " +/- " + Math.sqrt(_covVtx.e(2, 2));
@@ -490,6 +533,7 @@ public class BilliorVertexer {
 
     private void follow1985Paper(List<BilliorTrack> tracks) {
 
+        //initial guess for the vertex
         BasicMatrix v0 = new BasicMatrix(3, 1);
         v0.setElement(0, 0, _v0[0]);
         v0.setElement(1, 0, _v0[1]);
@@ -508,17 +552,15 @@ public class BilliorVertexer {
         boolean firstTrack = true;
         for (BilliorTrack bt : tracks) {
             double[] par = bt.parameters();
+//          measured track parameters             
             BasicMatrix tmpPar = new BasicMatrix(5, 1);
             tmpPar.setElement(0, 0, par[0]);
             tmpPar.setElement(1, 0, par[1]);
             tmpPar.setElement(2, 0, par[2]);
             tmpPar.setElement(3, 0, par[3]);
             tmpPar.setElement(4, 0, par[4]);
-//            params.add(tmpPar);
             double theta = par[2];
-//            double phiv = par[3];
             double rho = par[4];
-//            double Pt = Math.abs((1. / rho) * _bField * Constants.fieldConversion);
 
             double cotth = 1. / tan(par[2]);
             double uu = v0.e(0, 0) * cos(par[3]) + v0.e(1, 0) * sin(par[3]);//Q
@@ -527,6 +569,7 @@ public class BilliorVertexer {
             double zp = v0.e(2, 0) - uu * (1 - vv * par[4]) * cotth;
             // * phi at vertex with these parameters
             double phiVert = par[3] + uu * par[4];
+//          measured track parameters moved to v0           
             BasicMatrix p0 = new BasicMatrix(5, 1);
             p0.setElement(0, 0, eps);
             p0.setElement(1, 0, zp);
@@ -534,17 +577,11 @@ public class BilliorVertexer {
             p0.setElement(3, 0, phiVert);
             p0.setElement(4, 0, rho);
 
+//          zeroth approximation of track direction & curvature at the vertex
             BasicMatrix q0 = new BasicMatrix(3, 1);
-            /*   this looks just wrong...
-             q0.setElement(0, 0, Pt * Math.cos(phiv));
-             q0.setElement(1, 0, Pt * Math.sin(phiv));
-             q0.setElement(2, 0, Pt * 1 / Math.tan(theta));
-             q0s.add(q0);
-             */
             q0.setElement(0, 0, theta);
             q0.setElement(1, 0, phiVert);
             q0.setElement(2, 0, rho);
-//            q0s.add(q0);
 
             double cosf = cos(phiVert);
             double sinf = sin(phiVert);
@@ -776,7 +813,21 @@ public class BilliorVertexer {
 // }
 //
 
-
-
+    private Matrix getJacobianThetaPhiRhoToPxPyPz(double theta, double phiv, double rho) {
+        BasicMatrix v0 = new BasicMatrix(3, 3);
+        double B = _bField * Constants.fieldConversion;
+        //mg...I hope I got all of the signs right...
+        //pt = abs(B/rho) , so that should never bring in a negative sign        
+        v0.setElement(0, 0, 0);
+        v0.setElement(0, 1, -(Math.abs(B / rho) * Math.sin(phiv)));
+        v0.setElement(0, 2, -(B * Math.cos(phiv) / Math.pow(rho, 2)));//rho^2 will take care of absolute value 
+        v0.setElement(1, 0, 0);
+        v0.setElement(1, 1, Math.abs(B / rho) * Math.cos(phiv));
+        v0.setElement(1, 2, -(B * Math.sin(phiv) / Math.pow(rho, 2)));//rho^2 will take care of absolute value 
+        v0.setElement(2, 0, -(Math.abs(B / rho) * Math.pow(1 / Math.sin(theta), 2)));
+        v0.setElement(2, 1, 0);
+        v0.setElement(2, 2, -(B * (1 / Math.tan(theta)) / Math.pow(rho, 2)));//rho^2 will take care of absolute value 
+        return v0;
+    }
 
 }

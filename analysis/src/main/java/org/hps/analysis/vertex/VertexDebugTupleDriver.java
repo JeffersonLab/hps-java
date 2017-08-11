@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.hps.recon.particle.ReconParticleDriver;
-import org.hps.recon.tracking.TrackType;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
@@ -47,13 +45,9 @@ public class VertexDebugTupleDriver extends TupleDriver {
     String readoutHitCollectionName = "EcalReadoutHits";//these are in ADC counts
     String calibratedHitCollectionName = "EcalCalHits";//these are in energy
     String clusterCollectionName = "EcalClustersCorr";
-    private String notrackFile;
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
     String[] fpQuantNames = {"nEle_per_Event", "nPos_per_Event", "nPhoton_per_Event", "nUnAssociatedTracks_per_Event", "avg_delX_at_ECal", "avg_delY_at_ECal", "avg_E_Over_P", "avg_mom_beam_elec", "sig_mom_beam_elec"};
-    private String outputFile;
-    private LCIOWriter writer;
-    private LCIOWriter notrackwriter;
     private TrackClusterMatcher matcher = new TrackClusterMatcher();
     //private Map<SiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<SiSensor, Map<Integer, Hep3Vector>>(); 
     private List<HpsSiSensor> sensors = null;
@@ -223,11 +217,8 @@ public class VertexDebugTupleDriver extends TupleDriver {
         List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         if (debug)
             LOGGER.info("This events has " + finalStateParticles.size() + " final state particles");
-//        for (ReconstructedParticle fsPart1 : finalStateParticles) {
         List<MCParticle> MCParticleList = event.get(MCParticle.class, mcParticlesColName);
 
-        boolean saveEvent = false;
-        boolean saveNoTrack = false;
         //find electron and positron MCParticles
         Hep3Vector vertexPositionMC = null;
         double apMassMC = -9999;
@@ -235,8 +226,6 @@ public class VertexDebugTupleDriver extends TupleDriver {
         MCParticle posMC = null;
 
         for (MCParticle mcp : MCParticleList)
-//             if (debug)
-            //               LOGGER.info("MC PDGID = "+mcp.getPDGID()+"; # daughters = "+mcp.getDaughters().size());
             if (mcp.getPDGID() == 622 && mcp.getDaughters().size() == 2) {
                 vertexPositionMC = mcp.getEndPoint();
                 apMassMC = mcp.getMass();
@@ -325,8 +314,6 @@ public class VertexDebugTupleDriver extends TupleDriver {
         tupleMap.put("chisqFitUnc/D", chisqFit);
 
         //    Ok...same thing with beam-spot constrained
-//        if (debug)
-//            LOGGER.info("Constrained R=(0,0,0) ##############");
         BilliorVertex vtxFitBSC = fitVertex(VertexDebugTupleDriver.Constraint.BS_CONSTRAINED, electronBTrack, positronBTrack, new BasicHep3Vector(beamPosition));
         Hep3Vector vtxPosBSC = vtxFitBSC.getPosition();
         Hep3Vector pEleFitBSC = vtxFitBSC.getFittedMomentum(0);
