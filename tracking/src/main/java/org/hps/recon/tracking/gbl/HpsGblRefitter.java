@@ -240,6 +240,7 @@ public class HpsGblRefitter extends Driver {
         // Vector of the strip clusters used for the GBL fit
         List<GblPoint> listOfPoints = new ArrayList<GblPoint>();
         Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
+        Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
 
         // Store the projection from local to measurement frame for each strip cluster
         //        Map< Integer, Matrix> proL2m_list = new HashMap<Integer, Matrix>();
@@ -425,6 +426,7 @@ public class HpsGblRefitter extends Driver {
 
             // save path length to each point
             pathLengthMap.put(iLabel, s);
+            sensorMap.put(iLabel, strip.getId());
 
             // Update MS covariance matrix 
             //            msCov.set(1, 1, msCov.get(1, 1) + scatErr.get(0) * scatErr.get(0));
@@ -514,6 +516,7 @@ public class HpsGblRefitter extends Driver {
 
         FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
         fittedTraj.setPathLengthMap(pathLengthMap);
+        fittedTraj.setSensorMap(sensorMap);
 
         return fittedTraj;
     }

@@ -8,7 +8,9 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,6 +62,10 @@ public class MakeGblTracks {
         }
     }
 
+    public static Pair<Track, GBLKinkData> makeCorrectedTrack(FittedGblTrajectory fittedGblTrajectory, HelicalTrackFit helicalTrackFit, List<TrackerHit> hitsOnTrack, int trackType, double bfield) {
+        return makeCorrectedTrack(fittedGblTrajectory, helicalTrackFit, hitsOnTrack, trackType, bfield, false);
+    }
+
     /**
      * Create a new {@link BaseTrack} from a {@link FittedGblTrajectory}. 
      * @param fittedGblTrajectory
@@ -69,7 +75,7 @@ public class MakeGblTracks {
      * @param bfield
      * @return the new {@link BaseTrack} and the kinks along the {@link GblTrajectory} as a {@link Pair}.
      */
-    public static Pair<Track, GBLKinkData> makeCorrectedTrack(FittedGblTrajectory fittedGblTrajectory, HelicalTrackFit helicalTrackFit, List<TrackerHit> hitsOnTrack, int trackType, double bfield) {
+    public static Pair<Track, GBLKinkData> makeCorrectedTrack(FittedGblTrajectory fittedGblTrajectory, HelicalTrackFit helicalTrackFit, List<TrackerHit> hitsOnTrack, int trackType, double bfield, boolean storeTrackStates) {
         //  Initialize the reference point to the origin
         double[] ref = new double[] { 0., 0., 0. };
 
@@ -94,6 +100,22 @@ public class MakeGblTracks {
         Pair<double[], SymmetricMatrix> correctedHelixParamsLast = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.LAST, bfield);
         TrackState stateLast = new BaseTrackState(correctedHelixParamsLast.getFirst(), ref, correctedHelixParamsLast.getSecond().asPackedArray(true), TrackState.AtLastHit, bfield);
         trk.getTrackStates().add(stateLast);
+
+        // add more track states
+        if (storeTrackStates) {
+            //SensorMap doesn't include IP
+            for (int ilabel : fittedGblTrajectory.getSensorMap().keySet()) {
+                if (ilabel == fittedGblTrajectory.getPointIndex(FittedGblTrajectory.GBLPOINT.LAST))
+                    continue;
+                // millipedeID = fittedGblTrajectory.getSensorMap().get(ilabel);
+                // convert millipedeID to sensor
+                // sort track states by sensor
+                // step through sensors.  if one is missing, insert blank TrackState object
+                Pair<double[], SymmetricMatrix> correctedHelixParamsSensor = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, ilabel, bfield);
+                TrackState stateSensor = new BaseTrackState(correctedHelixParamsSensor.getFirst(), ref, correctedHelixParamsSensor.getSecond().asPackedArray(true), TrackState.AtOther, bfield);
+                trk.getTrackStates().add(stateSensor);
+            }
+        }
 
         // Extract kinks from trajectory
         GBLKinkData kinkData = fittedGblTrajectory.getKinks();
@@ -135,7 +157,7 @@ public class MakeGblTracks {
             helix = TrackUtils.getHTF(newTrack.getFirst());
             fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
         }
-        Pair<Track, GBLKinkData> mergedTrack = makeCorrectedTrack(fit, helix, allHthList, trackType, bfield);
+        Pair<Track, GBLKinkData> mergedTrack = makeCorrectedTrack(fit, helix, allHthList, trackType, bfield, true);
         return mergedTrack;
     }
 
@@ -151,10 +173,26 @@ public class MakeGblTracks {
     public static FittedGblTrajectory doGBLFit(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double bfield, int debug) {
         List<GBLStripClusterData> stripData = makeStripData(htf, stripHits, _scattering, bfield, debug);
         double bfac = Constants.fieldConversion * bfield;
+        //Map<Integer, Integer> sensorMap = createSensorMap(stripHits);
 
         FittedGblTrajectory fit = HpsGblRefitter.fit(stripData, bfac, debug > 0);
+        //fit.setSensorMap(sensorMap);
         return fit;
     }
+
+    //    public static Map<Integer, Integer> createSensorMap(List<TrackerHit> stripHits) {
+    //        Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
+    //        int iLayer = 1;
+    //        for (TrackerHit stripHit : stripHits) {
+    //            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
+    //            int millepedeId = sensor.getMillepedeId();
+    //            if (millepedeId > 99)
+    //                continue;
+    //            sensorMap.put(iLayer, sensor.getSensorID());
+    //            iLayer++;
+    //        }
+    //        return sensorMap;
+    //    }
 
     /**
      * Create a list of {@link GBLStripClusterData} objects that can be used as input to the GBL fitter.
