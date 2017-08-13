@@ -319,6 +319,8 @@ public class BilliorVertexer {
         if (bscon) {
             Hk.setElement(3, 2, -(((_beamPosition[0] - Vx) * Math.pow(1 / Math.sin(theta[0]), 2)) / (px[1] * rho[0] + Math.cos(phiv[0]))));
             Hk.setElement(6, 2, -(((_beamPosition[0] - Vx) * Math.pow(1 / Math.sin(theta[1]), 2)) / (px[0] * rho[1] + Math.cos(phiv[1]))));
+//          Hk.setElement(3, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[0]*Math.pow(1./Math.sin(theta[0]), 2));
+// Hk.setElement(6, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[1]*Math.pow(1./Math.sin(theta[1]), 2)); 
         } else {
             Hk.setElement(3, 2, 0);
             Hk.setElement(6, 2, 0);
