@@ -15,7 +15,7 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
-//import org.lcsim.util.aida.AIDA;
+import org.lcsim.util.aida.AIDA;
 
 /**
  * HPS version of LCSim class
@@ -28,7 +28,7 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
     private double _nsigErr;
     private double _bfield;
 
-    //    private AIDA aida = AIDA.defaultInstance();
+    private AIDA aida = AIDA.defaultInstance();
 
     public FastCheck(SeedStrategy strategy, double bfield, ISeedTrackerDiagnostics diag) {
         super(strategy, bfield, diag);
@@ -45,9 +45,9 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
     }
 
     private double calculateMSerror(double hit1x, double hit2x, double hit3x, double p) {
-        // angle approximation
-        // radlength=0.003417, angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
-        double angle = 0.00062343 / p;
+        // radlength=0.003417*2 = 0.006834
+        // angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
+        double angle = 0.000911276 / p;
 
         double dist1 = hit1x - hit2x;
         double dist2 = hit2x - hit3x;
@@ -315,19 +315,12 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         double zpred = z0 + s[1] * slope;
 
         // find corrected hit positions
-        //System.out.println("in FastCheck:");
         TrackDirection dir1 = new TrackDirection(getDirection(circle, slope, phi0, s[0]), null);
-        //System.out.printf("hit dirn: %s \n", dir1.toString());
         TrackDirection dir2 = new TrackDirection(getDirection(circle, slope, phi0, s[1]), null);
-        //System.out.printf("hit dirn: %s \n", dir2.toString());
         TrackDirection dir3 = new TrackDirection(getDirection(circle, slope, phi0, s[2]), null);
-        //System.out.printf("hit dirn: %s \n", dir3.toString());
         Hep3Vector poscor1 = HitUtils.PositionOnHelix(dir1, ((HelicalTrackCross) hit1).getStrips().get(0), ((HelicalTrackCross) hit1).getStrips().get(1));
         Hep3Vector poscor2 = HitUtils.PositionOnHelix(dir2, ((HelicalTrackCross) hit2).getStrips().get(0), ((HelicalTrackCross) hit2).getStrips().get(1));
         Hep3Vector poscor3 = HitUtils.PositionOnHelix(dir3, ((HelicalTrackCross) hit3).getStrips().get(0), ((HelicalTrackCross) hit3).getStrips().get(1));
-        //System.out.printf("poscor: %s \n", poscor1.toString());
-        //System.out.printf("poscor: %s \n", poscor2.toString());
-        //System.out.printf("poscor: %s \n", poscor3.toString());
         double zCorr[] = new double[3];
         zCorr[0] = poscor1.z();
         zCorr[1] = poscor2.z();
@@ -341,7 +334,6 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         double d13 = p[2][0] - p[0][0];
         double d23 = p[2][0] - p[1][0];
         dztot = dz2 * dz2 + (dz1 * d23 / d13) * (dz1 * d23 / d13) + (dz3 * d12 / d13) * (dz3 * d12 / d13);
-        //System.out.printf("diffs in FastCheck: %f  %f  %f  \n", dz1, dz2, dz3);
 
         //  Add multiple scattering error here
         double pEstimate = estimateMomentum(slope, rcurv);
@@ -350,15 +342,21 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         dztot = _nsigErr * Math.sqrt(dztot);
 
         double dzpred = Math.abs(zpred - z[1]);
-        //aida.histogram2D("DztotVsZpred_all").fill(dzpred, dztot);
+        aida.histogram2D("DztotVsZpred_all").fill(dzpred, dztot);
+
+        if (dztot < 0.5 && dzpred < 0.5) {
+            aida.histogram2D("DztotVsP_low").fill(pEstimate, dztot);
+            aida.histogram2D("ZpredVsP_low").fill(pEstimate, dzpred);
+            aida.histogram2D("MserrVsP_low").fill(pEstimate, mserr);
+        }
         // comparison of middle z to prediction including error
         if (dzpred > dztot) {
-            //aida.histogram2D("DztotVsZpred_failed").fill(dzpred, dztot);
+            aida.histogram2D("DztotVsZpred_failed").fill(dzpred, dztot);
             return false;
         }
 
         //  Passed all checks - success!
-        //aida.histogram2D("DztotVsZpred_passed").fill(dzpred, dztot);
+        aida.histogram2D("DztotVsZpred_passed").fill(dzpred, dztot);
         return true;
     }
 
@@ -371,7 +369,6 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         double ux = Math.sin(phi) * sth;
         double uz = slope / Math.sqrt(1 + Math.pow(slope, 2));
 
-        //System.out.printf("manual: ux uy uz = %f %f %f\n", ux, uy, uz);
         return new BasicHep3Vector(ux, uy, uz);
     }
 }
