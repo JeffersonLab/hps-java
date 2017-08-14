@@ -5,7 +5,6 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="EventMarkerDriver"/>
         <!--        <driver name="DQMDatabaseDriver"/>  -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="EcalMonitoring"/>  
@@ -22,9 +21,6 @@
     </execute>    
     <drivers>    
         <!--    <driver name="DQMDatabaseDriver" type="org.hps.analysis.dataquality.DQMDatabaseDriver"/> -->
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
-        </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>

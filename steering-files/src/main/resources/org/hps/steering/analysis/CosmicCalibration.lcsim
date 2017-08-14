@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-       
-        <driver name="EventMarkerDriver"/>
         <driver name="CosmicPMTFilter"/> 
         <driver name="CosmicCalib"/> 
         <driver name="LCIOWriter"/>
@@ -10,9 +8,6 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver> 
         <driver name="CosmicPMTFilter" type="org.hps.recon.filtering.CosmicPMTFilter"/>
         <driver name="CosmicCalib" type="org.hps.analysis.ecal.cosmic.CosmicCalibrationInt"/>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
