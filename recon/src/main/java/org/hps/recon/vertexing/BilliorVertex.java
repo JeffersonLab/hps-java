@@ -7,6 +7,7 @@ import java.util.Map;
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
 import hep.physics.matrix.SymmetricMatrix;
+import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import org.lcsim.event.ReconstructedParticle;
@@ -23,9 +24,9 @@ public class BilliorVertex implements Vertex {
     // default is a constant field along the z axis
 
     private Hep3Vector _vertexPosition;
+    private Hep3Vector _vertexPositionError;
+    
     private Matrix _covVtx = new BasicMatrix(3, 3);
-//    private List<Matrix> _pFit = new ArrayList<Matrix>();
-//    private List<Matrix> covVtxMomList = new ArrayList<Matrix>();
     private List<BilliorTrack> _tracks;
     private Map<Integer, Hep3Vector> _fittedMomentum = new HashMap<Integer, Hep3Vector>();
     private ReconstructedParticle _particle = null;
@@ -40,6 +41,10 @@ public class BilliorVertex implements Vertex {
     private double _chiSq;
     private double _invMass;
     private double _probability; 
+
+    private List<Matrix> _covTrkMomList;
+    private double _invMassError;
+    
     
     /**
      * Dflt Ctor
@@ -101,6 +106,10 @@ public class BilliorVertex implements Vertex {
     public Hep3Vector getPosition() {
         return (Hep3Vector) _vertexPosition;
     }
+    
+    public Hep3Vector getPositionError() {
+        return (Hep3Vector) _vertexPositionError;
+    }
 
     @Override
     public SymmetricMatrix getCovMatrix() {
@@ -132,15 +141,63 @@ public class BilliorVertex implements Vertex {
         _fittedMomentum.put(0, p1);
         _fittedMomentum.put(1,p2);
     }
+    
+      public void setPositionError(Hep3Vector err) {
+        _vertexPositionError=err;
+    }
+      
+    public void setPosition(Hep3Vector position) {
+        _vertexPosition=position;
+    }
+    
+     public void setTrackMomentumCovariances(List<Matrix> pErrs)
+    {       
+         _covTrkMomList=pErrs;
+    }
 
+    public void setMassError(double invMassErr)
+    {
+        _invMassError =invMassErr;
+        
+    }
+     
     public double getInvMass(){
         return _invMass;
+    }
+    
+      public double getInvMassError(){
+        return _invMassError;
     }
     
     public Hep3Vector getFittedMomentum(int index){
         return _fittedMomentum.get(index);
     }
     
+     /* 
+    *  Return the  track momentum  list for all tracks 
+    */
+    public Map<Integer, Hep3Vector> getFittedMomentum(){
+        return  _fittedMomentum;
+    }
+     
+     /* 
+    *  Return the track momentum error for track i
+    *  note:  only the diagional terms of covariance
+    */
+    public Hep3Vector getFittedMomentumError(int index){
+        return new BasicHep3Vector(Math.sqrt(_covTrkMomList.get(index).e(0,0)),Math.sqrt(_covTrkMomList.get(index).e(1,1)),Math.sqrt(_covTrkMomList.get(index).e(2,2)));
+    }    
+    
+    /* 
+    *  Return the entire track momentum covariance list for all tracks  
+    */
+    public List<Matrix> getFittedMomentumCovariance(){
+        return  _covTrkMomList;
+    } 
+    
+     /* 
+    *  Return the recon particle associated with this vertex 
+    */    
     @Override
     public ReconstructedParticle getAssociatedParticle() {
         return _particle; 

@@ -47,6 +47,9 @@ public class VertexDebugTupleDriver extends TupleDriver {
     String clusterCollectionName = "EcalClustersCorr";
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
+    private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
+    private String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
+    private String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
     String[] fpQuantNames = {"nEle_per_Event", "nPos_per_Event", "nPhoton_per_Event", "nUnAssociatedTracks_per_Event", "avg_delX_at_ECal", "avg_delY_at_ECal", "avg_E_Over_P", "avg_mom_beam_elec", "sig_mom_beam_elec"};
     private TrackClusterMatcher matcher = new TrackClusterMatcher();
     //private Map<SiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<SiSensor, Map<Integer, Hep3Vector>>(); 
@@ -70,7 +73,6 @@ public class VertexDebugTupleDriver extends TupleDriver {
     double sumdelX = 0.0;
     double sumdelY = 0.0;
     double sumEoverP = 0.0;
-    private final String plotDir = "FinalStateParticles/";
     // double beamEnergy = 1.05; //GeV
     double clTimeMin = 30;//ns
     double clTimeMax = 50;//ns
@@ -147,26 +149,54 @@ public class VertexDebugTupleDriver extends TupleDriver {
 
         String[] fitUncVars = new String[]{"mFitUnc/D", "vtxXFitUnc/D", "vtxYFitUnc/D", "vtxZFitUnc/D",
             "pEleXFitUnc/D", "pEleYFitUnc/D", "pEleZFitUnc/D",
-            "pPosXFitUnc/D", "pPosYFitUnc/D", "pPosZFitUnc/D", "chisqFitUnc/D"};
+            "pPosXFitUnc/D", "pPosYFitUnc/D", "pPosZFitUnc/D", "chisqFitUnc/D",
+            "mErrFitUnc/D", "vtxXErrFitUnc/D", "vtxYErrFitUnc/D", "vtxZErrFitUnc/D",
+            "pEleXErrFitUnc/D", "pEleYErrFitUnc/D", "pEleZErrFitUnc/D",
+            "pPosXErrFitUnc/D", "pPosYErrFitUnc/D", "pPosZErrFitUnc/D"};
         tupleVariables.addAll(Arrays.asList(fitUncVars));
 
         String[] refitUncVars = new String[]{"mRefitUnc/D", "vtxXRefitUnc/D", "vtxYRefitUnc/D", "vtxZRefitUnc/D",
             "pEleXRefitUnc/D", "pEleYRefitUnc/D", "pEleZRefitUnc/D",
-            "pPosXRefitUnc/D", "pPosYRefitUnc/D", "pPosZRefitUnc/D", "chisqRefitUnc/D"};
+            "pPosXRefitUnc/D", "pPosYRefitUnc/D", "pPosZRefitUnc/D", "chisqRefitUnc/D",
+            "mErrRefitUnc/D", "vtxXErrRefitUnc/D", "vtxYErrRefitUnc/D", "vtxZErrRefitUnc/D",
+            "pEleXErrRefitUnc/D", "pEleYErrRefitUnc/D", "pEleZErrRefitUnc/D",
+            "pPosXErrRefitUnc/D", "pPosYErrRefitUnc/D", "pPosZErrRefitUnc/D"};
         tupleVariables.addAll(Arrays.asList(refitUncVars));
+
+        String[] refitUncFromV0Vars = new String[]{"mRefitUncFromV0/D", "vtxXRefitUncFromV0/D", "vtxYRefitUncFromV0/D", "vtxZRefitUncFromV0/D",
+            "pEleXRefitUncFromV0/D", "pEleYRefitUncFromV0/D", "pEleZRefitUncFromV0/D",
+            "pPosXRefitUncFromV0/D", "pPosYRefitUncFromV0/D", "pPosZRefitUncFromV0/D", "chisqRefitUncFromV0/D",
+            "mErrRefitUncFromV0/D", "vtxXErrRefitUncFromV0/D", "vtxYErrRefitUncFromV0/D", "vtxZErrRefitUncFromV0/D",
+            "pEleXErrRefitUncFromV0/D", "pEleYErrRefitUncFromV0/D", "pEleZErrRefitUncFromV0/D",
+            "pPosXErrRefitUncFromV0/D", "pPosYErrRefitUncFromV0/D", "pPosZErrRefitUncFromV0/D"};
+        tupleVariables.addAll(Arrays.asList(refitUncFromV0Vars));
 
         String[] fitBSCVars = new String[]{"mFitBSC/D", "vtxXFitBSC/D", "vtxYFitBSC/D", "vtxZFitBSC/D",
             "pEleXFitBSC/D", "pEleYFitBSC/D", "pEleZFitBSC/D",
-            "pPosXFitBSC/D", "pPosYFitBSC/D", "pPosZFitBSC/D", "chisqFitBSC/D"};
+            "pPosXFitBSC/D", "pPosYFitBSC/D", "pPosZFitBSC/D", "chisqFitBSC/D",
+            "mErrFitBSC/D", "vtxXErrFitBSC/D", "vtxYErrFitBSC/D", "vtxZErrFitBSC/D",
+            "pEleXErrFitBSC/D", "pEleYErrFitBSC/D", "pEleZErrFitBSC/D",
+            "pPosXErrFitBSC/D", "pPosYErrFitBSC/D", "pPosZErrFitBSC/D"};
         tupleVariables.addAll(Arrays.asList(fitBSCVars));
 
         String[] refitBSCVars = new String[]{"mRefitBSC/D", "vtxXRefitBSC/D", "vtxYRefitBSC/D", "vtxZRefitBSC/D",
             "pEleXRefitBSC/D", "pEleYRefitBSC/D", "pEleZRefitBSC/D",
-            "pPosXRefitBSC/D", "pPosYRefitBSC/D", "pPosZRefitBSC/D", "chisqRefitBSC/D"};
+            "pPosXRefitBSC/D", "pPosYRefitBSC/D", "pPosZRefitBSC/D", "chisqRefitBSC/D",
+            "mErrRefitBSC/D", "vtxXErrRefitBSC/D", "vtxYErrRefitBSC/D", "vtxZErrRefitBSC/D",
+            "pEleXErrRefitBSC/D", "pEleYErrRefitBSC/D", "pEleZErrRefitBSC/D",
+            "pPosXErrRefitBSC/D", "pPosYErrRefitBSC/D", "pPosZErrRefitBSC/D"};
         tupleVariables.addAll(Arrays.asList(refitBSCVars));
 
+        String[] refitBSCFromV0Vars = new String[]{"mRefitBSCFromV0/D", "vtxXRefitBSCFromV0/D", "vtxYRefitBSCFromV0/D", "vtxZRefitBSCFromV0/D",
+            "pEleXRefitBSCFromV0/D", "pEleYRefitBSCFromV0/D", "pEleZRefitBSCFromV0/D",
+            "pPosXRefitBSCFromV0/D", "pPosYRefitBSCFromV0/D", "pPosZRefitBSCFromV0/D", "chisqRefitBSCFromV0/D",
+            "mErrRefitBSCFromV0/D", "vtxXErrRefitBSCFromV0/D", "vtxYErrRefitBSCFromV0/D", "vtxZErrRefitBSCFromV0/D",
+            "pEleXErrRefitBSCFromV0/D", "pEleYErrRefitBSCFromV0/D", "pEleZErrRefitBSCFromV0/D",
+            "pPosXErrRefitBSCFromV0/D", "pPosYErrRefitBSCFromV0/D", "pPosZErrRefitBSCFromV0/D"};
+        tupleVariables.addAll(Arrays.asList(refitBSCFromV0Vars));
+
     }
-    
+
     protected void detectorChanged(Detector detector) {
 
         super.detectorChanged(detector);
@@ -217,6 +247,13 @@ public class VertexDebugTupleDriver extends TupleDriver {
         List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         if (debug)
             LOGGER.info("This events has " + finalStateParticles.size() + " final state particles");
+        List<ReconstructedParticle> unconstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
+        if (debug)
+            LOGGER.info("This events has " + unconstrainedV0List.size() + " unconstrained V0s");
+        List<ReconstructedParticle> BSCV0List = event.get(ReconstructedParticle.class, beamConV0CandidatesColName);
+        if (debug)
+            LOGGER.info("This events has " + BSCV0List.size() + " BSC V0s");
+
         List<MCParticle> MCParticleList = event.get(MCParticle.class, mcParticlesColName);
 
         //find electron and positron MCParticles
@@ -295,12 +332,13 @@ public class VertexDebugTupleDriver extends TupleDriver {
 
         BilliorVertex vtxFit = fitVertex(VertexDebugTupleDriver.Constraint.UNCONSTRAINED, electronBTrack, positronBTrack);
         Hep3Vector vtxPos = vtxFit.getPosition();
+
         Hep3Vector pEleFit = vtxFit.getFittedMomentum(0);
         Hep3Vector pPosFit = vtxFit.getFittedMomentum(1);
         double mUncFit = vtxFit.getInvMass();
         double chisqFit = vtxFit.getChi2();
         if (debug)
-           LOGGER.info("Unconstrained R=0  vertexMC z=" + vertexPositionMC.z() + " re-fit vtxPos z = " + (vtxPos.z()));
+            LOGGER.info("Unconstrained R=0  vertexMC z=" + vertexPositionMC.z() + " re-fit vtxPos z = " + (vtxPos.z()));
         tupleMap.put("mFitUnc/D", mUncFit);
         tupleMap.put("vtxXFitUnc/D", vtxPos.x());
         tupleMap.put("vtxYFitUnc/D", vtxPos.y());
@@ -312,6 +350,17 @@ public class VertexDebugTupleDriver extends TupleDriver {
         tupleMap.put("pPosYFitUnc/D", pPosFit.y());
         tupleMap.put("pPosZFitUnc/D", pPosFit.z());
         tupleMap.put("chisqFitUnc/D", chisqFit);
+
+        tupleMap.put("mErrFitUnc/D", vtxFit.getInvMassError());
+        tupleMap.put("vtxXErrFitUnc/D", vtxFit.getPositionError().x());
+        tupleMap.put("vtxYErrFitUnc/D", vtxFit.getPositionError().y());
+        tupleMap.put("vtxZErrFitUnc/D", vtxFit.getPositionError().z());
+        tupleMap.put("pEleXErrFitUnc/D", vtxFit.getFittedMomentumError(0).x());
+        tupleMap.put("pEleYErrFitUnc/D", vtxFit.getFittedMomentumError(0).y());
+        tupleMap.put("pEleZErrFitUnc/D", vtxFit.getFittedMomentumError(0).z());
+        tupleMap.put("pPosXErrFitUnc/D", vtxFit.getFittedMomentumError(1).x());
+        tupleMap.put("pPosYErrFitUnc/D", vtxFit.getFittedMomentumError(1).y());
+        tupleMap.put("pPosZErrFitUnc/D", vtxFit.getFittedMomentumError(1).z());
 
         //    Ok...same thing with beam-spot constrained
         BilliorVertex vtxFitBSC = fitVertex(VertexDebugTupleDriver.Constraint.BS_CONSTRAINED, electronBTrack, positronBTrack, new BasicHep3Vector(beamPosition));
@@ -333,6 +382,18 @@ public class VertexDebugTupleDriver extends TupleDriver {
         tupleMap.put("pPosYFitBSC/D", pPosFitBSC.y());
         tupleMap.put("pPosZFitBSC/D", pPosFitBSC.z());
         tupleMap.put("chisqFitBSC/D", chisqBSC);
+
+        tupleMap.put("mErrFitBSC/D", vtxFitBSC.getInvMassError());
+        tupleMap.put("vtxXErrFitBSC/D", vtxFitBSC.getPositionError().x());
+        tupleMap.put("vtxYErrFitBSC/D", vtxFitBSC.getPositionError().y());
+        tupleMap.put("vtxZErrFitBSC/D", vtxFitBSC.getPositionError().z());
+        tupleMap.put("pEleXErrFitBSC/D", vtxFitBSC.getFittedMomentumError(0).x());
+        tupleMap.put("pEleYErrFitBSC/D", vtxFitBSC.getFittedMomentumError(0).y());
+        tupleMap.put("pEleZErrFitBSC/D", vtxFitBSC.getFittedMomentumError(0).z());
+        tupleMap.put("pPosXErrFitBSC/D", vtxFitBSC.getFittedMomentumError(1).x());
+        tupleMap.put("pPosYErrFitBSC/D", vtxFitBSC.getFittedMomentumError(1).y());
+        tupleMap.put("pPosZErrFitBSC/D", vtxFitBSC.getFittedMomentumError(1).z());
+
 ///     Ok...shift the reference point....        
         double[] newRef = {vtxPos.z(), vtxPos.x(), 0.0};//the  TrackUtils.getParametersAtNewRefPoint method only shifts in xy...?
         BaseTrackState eleOldTS = (BaseTrackState) electron.getTracks().get(0).getTrackStates().get(0);
@@ -357,24 +418,24 @@ public class VertexDebugTupleDriver extends TupleDriver {
         Hep3Vector pPosRefitUnc = vtxFitShift.getFittedMomentum(1);
         double mUncRefitUnc = vtxFitShift.getInvMass();
         double chisqRefitUnc = vtxFitShift.getChi2();
-        if(debug) 
-              LOGGER.info("Unconstrained R=shift  vertexMC z=" + vertexPositionMC.z() + " re-fit vtxPos z = " + (vtxPosRefitUnc.z()));
+        if (debug)
+            LOGGER.info("Unconstrained R=shift  vertexMC z=" + vertexPositionMC.z() + " re-fit vtxPos z = " + (vtxPosRefitUnc.z()));
 
-        if (Math.abs(vtxPosRefitUnc.z())>0.5){
+        if (Math.abs(vtxPosRefitUnc.z()) > 0.5) {
             LOGGER.info("Big Shift!!! ");
-            LOGGER.info("Electron P = "+pEleFit.x()+", "+pEleFit.y()+", "+pEleFit.z());
-            LOGGER.info("Positron P = "+pPosFit.x()+", "+pPosFit.y()+", "+pPosFit.z());
+            LOGGER.info("Electron P = " + pEleFit.x() + ", " + pEleFit.y() + ", " + pEleFit.z());
+            LOGGER.info("Positron P = " + pPosFit.x() + ", " + pPosFit.y() + ", " + pPosFit.z());
             LOGGER.info("For -ive pY() component: ");
-            SymmetricMatrix badCovOld= new SymmetricMatrix(5, eleOldTS.getCovMatrix(), true);
-              SymmetricMatrix badCovNew=eleShiftCov;
-              if(pPosFit.y()<0){
-                  badCovOld=new SymmetricMatrix(5, posOldTS.getCovMatrix(), true);
-                  badCovNew=posShiftCov;
-              }
-              LOGGER.info(badCovOld.toString());
-              LOGGER.info(badCovNew.toString());
+            SymmetricMatrix badCovOld = new SymmetricMatrix(5, eleOldTS.getCovMatrix(), true);
+            SymmetricMatrix badCovNew = eleShiftCov;
+            if (pPosFit.y() < 0) {
+                badCovOld = new SymmetricMatrix(5, posOldTS.getCovMatrix(), true);
+                badCovNew = posShiftCov;
+            }
+            LOGGER.info(badCovOld.toString());
+            LOGGER.info(badCovNew.toString());
         }
-        
+
         tupleMap.put("mRefitUnc/D", mUncRefitUnc);
         tupleMap.put("vtxXRefitUnc/D", vtxPosRefitUnc.x());
         tupleMap.put("vtxYRefitUnc/D", vtxPosRefitUnc.y());
@@ -387,8 +448,56 @@ public class VertexDebugTupleDriver extends TupleDriver {
         tupleMap.put("pPosZRefitUnc/D", pPosRefitUnc.z());
         tupleMap.put("chisqRefitUnc/D", chisqRefitUnc);
 
+        tupleMap.put("mErrRefitUnc/D", vtxFitShift.getInvMassError());
+        tupleMap.put("vtxXErrRefitUnc/D", vtxFitShift.getPositionError().x());
+        tupleMap.put("vtxYErrRefitUnc/D", vtxFitShift.getPositionError().y());
+        tupleMap.put("vtxZErrRefitUnc/D", vtxFitShift.getPositionError().z());
+        tupleMap.put("pEleXErrRefitUnc/D", vtxFitShift.getFittedMomentumError(0).x());
+        tupleMap.put("pEleYErrRefitUnc/D", vtxFitShift.getFittedMomentumError(0).y());
+        tupleMap.put("pEleZErrRefitUnc/D", vtxFitShift.getFittedMomentumError(0).z());
+        tupleMap.put("pPosXErrRefitUnc/D", vtxFitShift.getFittedMomentumError(1).x());
+        tupleMap.put("pPosYErrRefitUnc/D", vtxFitShift.getFittedMomentumError(1).y());
+        tupleMap.put("pPosZErrRefitUnc/D", vtxFitShift.getFittedMomentumError(1).z());
+
+        if (unconstrainedV0List.size() == 1) {
+            if (mUncRefitUnc != unconstrainedV0List.get(0).getMass())
+                LOGGER.info("unconstrained mass mis-match!!!   " + mUncRefitUnc);
+            else
+                LOGGER.info("unconstrained mass good match!!!   " + mUncRefitUnc);
+            BilliorVertex vtxFitShiftFromV0 = (BilliorVertex) unconstrainedV0List.get(0).getStartVertex();
+
+            Hep3Vector vtxPosRefitUncFromV0 = vtxFitShiftFromV0.getPosition();
+            Hep3Vector pEleRefitUncFromV0 = vtxFitShiftFromV0.getFittedMomentum(0);
+            Hep3Vector pPosRefitUncFromV0 = vtxFitShiftFromV0.getFittedMomentum(1);
+            double mUncRefitUncFromV0 = vtxFitShiftFromV0.getInvMass();
+            double chisqRefitUncFromV0 = vtxFitShiftFromV0.getChi2();
+
+            tupleMap.put("mRefitUncFromV0/D", mUncRefitUncFromV0);
+            tupleMap.put("vtxXRefitUncFromV0/D", vtxPosRefitUncFromV0.x());
+            tupleMap.put("vtxYRefitUncFromV0/D", vtxPosRefitUncFromV0.y());
+            tupleMap.put("vtxZRefitUncFromV0/D", vtxPosRefitUncFromV0.z());
+            tupleMap.put("pEleXRefitUncFromV0/D", pEleRefitUncFromV0.x());
+            tupleMap.put("pEleYRefitUncFromV0/D", pEleRefitUncFromV0.y());
+            tupleMap.put("pEleZRefitUncFromV0/D", pEleRefitUncFromV0.z());
+            tupleMap.put("pPosXRefitUncFromV0/D", pPosRefitUncFromV0.x());
+            tupleMap.put("pPosYRefitUncFromV0/D", pPosRefitUncFromV0.y());
+            tupleMap.put("pPosZRefitUncFromV0/D", pPosRefitUncFromV0.z());
+            tupleMap.put("chisqRefitUncFromV0/D", chisqRefitUncFromV0);
+
+            tupleMap.put("mErrRefitUncFromV0/D", vtxFitShiftFromV0.getInvMassError());
+            tupleMap.put("vtxXErrRefitUncFromV0/D", vtxFitShiftFromV0.getPositionError().x());
+            tupleMap.put("vtxYErrRefitUncFromV0/D", vtxFitShiftFromV0.getPositionError().y());
+            tupleMap.put("vtxZErrRefitUncFromV0/D", vtxFitShiftFromV0.getPositionError().z());
+            tupleMap.put("pEleXErrRefitUncFromV0/D", vtxFitShiftFromV0.getFittedMomentumError(0).x());
+            tupleMap.put("pEleYErrRefitUncFromV0/D", vtxFitShiftFromV0.getFittedMomentumError(0).y());
+            tupleMap.put("pEleZErrRefitUncFromV0/D", vtxFitShiftFromV0.getFittedMomentumError(0).z());
+            tupleMap.put("pPosXErrRefitUncFromV0/D", vtxFitShiftFromV0.getFittedMomentumError(1).x());
+            tupleMap.put("pPosYErrRefitUncFromV0/D", vtxFitShiftFromV0.getFittedMomentumError(1).y());
+            tupleMap.put("pPosZErrRefitUncFromV0/D", vtxFitShiftFromV0.getFittedMomentumError(1).z());
+        }
+
 //        Hep3Vector beamRelToVtx = new BasicHep3Vector(-vtxPos.z() + beamPosition[0], -vtxPos.x() + beamPosition[1], -vtxPos.y() + beamPosition[2]);
-        Hep3Vector beamRelToNewRef = new BasicHep3Vector(-vtxPos.z() + beamPosition[0], -vtxPos.x() + beamPosition[1],0);
+        Hep3Vector beamRelToNewRef = new BasicHep3Vector(-vtxPos.z() + beamPosition[0], -vtxPos.x() + beamPosition[1], 0);
 
         if (debug)
             LOGGER.info("Constrained R=(" + newRef[0] + "," + newRef[1] + "," + newRef[2] + ") ##############");
@@ -397,12 +506,48 @@ public class VertexDebugTupleDriver extends TupleDriver {
         Hep3Vector pEleRefitBSC = vtxFitBSCShift.getFittedMomentum(0);
         Hep3Vector pPosRefitBSC = vtxFitBSCShift.getFittedMomentum(1);
 
-         if(debug) 
-              LOGGER.info("Constrained R=shift  vertexMC z=" + vertexPositionMC.z() + " re-fit vtxPos z = " + (vtxPosRefitBSC.z()));
+        if (debug)
+            LOGGER.info("Constrained R=shift  vertexMC z=" + vertexPositionMC.z() + " re-fit vtxPos z = " + (vtxPosRefitBSC.z()));
 
         double mBSCShift = vtxFitBSCShift.getInvMass();
         double chisqBSCShift = vtxFitBSCShift.getChi2();
 
+        if (BSCV0List.size() == 1){
+            if (mBSCShift != BSCV0List.get(0).getMass())
+                LOGGER.info("BSC mass mis-match!!!   " + mBSCShift + ";   " + BSCV0List.get(0).getMass());
+            else
+                LOGGER.info("BSC mass good match!!!   " + mBSCShift);
+            
+              BilliorVertex vtxFitBSCShiftFromV0 = (BilliorVertex) BSCV0List.get(0).getStartVertex();
+            Hep3Vector vtxPosRefitBSCFromV0 = vtxFitBSCShiftFromV0.getPosition();
+            Hep3Vector pEleRefitBSCFromV0 = vtxFitBSCShiftFromV0.getFittedMomentum(0);
+            Hep3Vector pPosRefitBSCFromV0 = vtxFitBSCShiftFromV0.getFittedMomentum(1);
+            double mUncRefitBSCFromV0 = vtxFitBSCShiftFromV0.getInvMass();
+            double chisqRefitBSCFromV0 = vtxFitBSCShiftFromV0.getChi2();
+
+            tupleMap.put("mRefitBSCFromV0/D", mUncRefitBSCFromV0);
+            tupleMap.put("vtxXRefitBSCFromV0/D", vtxPosRefitBSCFromV0.x());
+            tupleMap.put("vtxYRefitBSCFromV0/D", vtxPosRefitBSCFromV0.y());
+            tupleMap.put("vtxZRefitBSCFromV0/D", vtxPosRefitBSCFromV0.z());
+            tupleMap.put("pEleXRefitBSCFromV0/D", pEleRefitBSCFromV0.x());
+            tupleMap.put("pEleYRefitBSCFromV0/D", pEleRefitBSCFromV0.y());
+            tupleMap.put("pEleZRefitBSCFromV0/D", pEleRefitBSCFromV0.z());
+            tupleMap.put("pPosXRefitBSCFromV0/D", pPosRefitBSCFromV0.x());
+            tupleMap.put("pPosYRefitBSCFromV0/D", pPosRefitBSCFromV0.y());
+            tupleMap.put("pPosZRefitBSCFromV0/D", pPosRefitBSCFromV0.z());
+            tupleMap.put("chisqRefitBSCFromV0/D", chisqRefitBSCFromV0);
+
+            tupleMap.put("mErrRefitBSCFromV0/D", vtxFitBSCShiftFromV0.getInvMassError());
+            tupleMap.put("vtxXErrRefitBSCFromV0/D", vtxFitBSCShiftFromV0.getPositionError().x());
+            tupleMap.put("vtxYErrRefitBSCFromV0/D", vtxFitBSCShiftFromV0.getPositionError().y());
+            tupleMap.put("vtxZErrRefitBSCFromV0/D", vtxFitBSCShiftFromV0.getPositionError().z());
+            tupleMap.put("pEleXErrRefitBSCFromV0/D", vtxFitBSCShiftFromV0.getFittedMomentumError(0).x());
+            tupleMap.put("pEleYErrRefitBSCFromV0/D", vtxFitBSCShiftFromV0.getFittedMomentumError(0).y());
+            tupleMap.put("pEleZErrRefitBSCFromV0/D", vtxFitBSCShiftFromV0.getFittedMomentumError(0).z());
+            tupleMap.put("pPosXErrRefitBSCFromV0/D", vtxFitBSCShiftFromV0.getFittedMomentumError(1).x());
+            tupleMap.put("pPosYErrRefitBSCFromV0/D", vtxFitBSCShiftFromV0.getFittedMomentumError(1).y());
+            tupleMap.put("pPosZErrRefitBSCFromV0/D", vtxFitBSCShiftFromV0.getFittedMomentumError(1).z());
+        }
         tupleMap.put("mRefitBSC/D", mBSCShift);
         tupleMap.put("vtxXRefitBSC/D", vtxPosRefitBSC.x());
         tupleMap.put("vtxYRefitBSC/D", vtxPosRefitBSC.y());
@@ -414,6 +559,17 @@ public class VertexDebugTupleDriver extends TupleDriver {
         tupleMap.put("pPosYRefitBSC/D", pPosRefitBSC.y());
         tupleMap.put("pPosZRefitBSC/D", pPosRefitBSC.z());
         tupleMap.put("chisqRefitBSC/D", chisqBSCShift);
+
+        tupleMap.put("mErrRefitBSC/D", vtxFitBSCShift.getInvMassError());
+        tupleMap.put("vtxXErrRefitBSC/D", vtxFitBSCShift.getPositionError().x());
+        tupleMap.put("vtxYErrRefitBSC/D", vtxFitBSCShift.getPositionError().y());
+        tupleMap.put("vtxZErrRefitBSC/D", vtxFitBSCShift.getPositionError().z());
+        tupleMap.put("pEleXErrRefitBSC/D", vtxFitBSCShift.getFittedMomentumError(0).x());
+        tupleMap.put("pEleYErrRefitBSC/D", vtxFitBSCShift.getFittedMomentumError(0).y());
+        tupleMap.put("pEleZErrRefitBSC/D", vtxFitBSCShift.getFittedMomentumError(0).z());
+        tupleMap.put("pPosXErrRefitBSC/D", vtxFitBSCShift.getFittedMomentumError(1).x());
+        tupleMap.put("pPosYErrRefitBSC/D", vtxFitBSCShift.getFittedMomentumError(1).y());
+        tupleMap.put("pPosZErrRefitBSC/D", vtxFitBSCShift.getFittedMomentumError(1).z());
 
         if (tupleWriter != null)
             writeTuple();

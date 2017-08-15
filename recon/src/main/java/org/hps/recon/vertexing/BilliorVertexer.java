@@ -80,7 +80,14 @@ public class BilliorVertexer {
         Hep3Vector vert = new BasicHep3Vector(_vertexPosition.e(0, 0), _vertexPosition.e(1, 0), _vertexPosition.e(2, 0));
         Hep3Vector vertDet = CoordinateTransformations.transformVectorToDetector(vert);
         SymmetricMatrix covVtxDet = CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix(_covVtx));
-        return new BilliorVertex(vertDet, covVtxDet, _chiSq, getInvMass(), pFitMap, _constraintType);
+        BilliorVertex vertex=new BilliorVertex(vertDet, covVtxDet, _chiSq, getInvMass(), pFitMap, _constraintType);
+        vertex.setPositionError(this.getVertexPositionErrors());
+        vertex.setMassError(this.getInvMassUncertainty());
+        List<Matrix> pcov=new ArrayList<Matrix>();
+        pcov.add(this.getFittedMomentumCovariance(0));
+        pcov.add(this.getFittedMomentumCovariance(1));
+        vertex.setTrackMomentumCovariances(pcov);
+        return vertex;
     }
 
     /*  Add the constraint that V0 is at/points back to beamspot
@@ -192,9 +199,9 @@ public class BilliorVertexer {
         for (int i = 0; i < _ntracks; i++) {
             BasicMatrix ptmp = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedFit, 3 * (i + 1), 0, 3, 1);
             _pFit.set(i, ptmp);
-            covVtxMomList.set(i, (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 0, 3 * (i + 1), 3 * (i + 1)));
+            covVtxMomList.set(i, (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 3*(i+1), 3 , 3 ));
             for (int j = 0; j < _ntracks; j++)
-                covMomList[i][j] = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 0, 3 * (i + 1), 3 * (j + 1));;
+                covMomList[i][j] = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 3*(i+1),3*(j+1) , 3, 3);;
         }
 
         //ok...add to the chi^2
@@ -439,17 +446,24 @@ public class BilliorVertexer {
 
     public Matrix getFittedMomentumCovariance(int index) {
         BasicMatrix pi = (BasicMatrix) _pFit.get(index);
-        BasicMatrix covpi = (BasicMatrix) covMomList[index][index]; //of diagonal matrices are the track-track covariances
+        BasicMatrix covpi = (BasicMatrix) covMomList[index][index]; //off diagonal matrices are the track-track covariances
+//        System.out.println("covpi "+covpi.toString());
         double theta = pi.e(0, 0);
         double phiv = pi.e(1, 0);
         double rho = pi.e(2, 0);
         BasicMatrix Jac = (BasicMatrix) getJacobianThetaPhiRhoToPxPyPz(theta, phiv, rho);
         BasicMatrix JacT = (BasicMatrix) MatrixOp.transposed(Jac);
+//        System.out.println("Jac "+Jac.toString());
         return MatrixOp.mult(Jac, MatrixOp.mult(covpi, JacT));
     }
 
     public Matrix getFittedVertexCovariance(int index) {
         return _covVtx;
+    }
+    
+    public Hep3Vector getVertexPositionErrors(){
+        return new BasicHep3Vector(Math.sqrt(_covVtx.e(0, 0)),
+       Math.sqrt(_covVtx.e(1, 1)),Math.sqrt(_covVtx.e(2, 2)) );
     }
 
     public double getInvMass() {
@@ -485,13 +499,12 @@ public class BilliorVertexer {
     //I repeat a lot of code above; should just calculate these
     //as part of vertex fit, have a private _mass; _massErr variables
     //and use getters just to forward them 
-    //note:  check that mass I get here is same as above!!!  Better be!
     public double getInvMassUncertainty() {
         //get what we need
         double[] p1 = getFittedMomentum(0);
         double[] p2 = getFittedMomentum(1);
-        Matrix cov1=covMomList[1][1];
-        Matrix cov2=covMomList[2][2];
+        Matrix cov1=getFittedMomentumCovariance(0);
+        Matrix cov2=getFittedMomentumCovariance(1);
         //fill in some local variables
         double esum = 0.;
         double pxsum = 0.;
@@ -507,7 +520,7 @@ public class BilliorVertexer {
         // some useful quantities
         double p1mag2 = p1x * p1x + p1y * p1y + p1z * p1z;
         double e1 = Math.sqrt(p1mag2 + me * me);
-        double p2mag2 = p2x * p2x + p1y * p2y + p2z * p2z;
+        double p2mag2 = p2x * p2x + p2y * p2y + p2z * p2z;
         double e2 = Math.sqrt(p2mag2 + me * me);
         pxsum = p1x + p2x;
         pysum = p1y + p2y;
@@ -516,15 +529,16 @@ public class BilliorVertexer {
         double psum = Math.sqrt(pxsum * pxsum + pysum * pysum + pzsum * pzsum);       
         double evtmass = esum * esum - psum * psum;       
         //lots of terms here...do in pieces
-        double mErrOverMSq=Math.pow((p2x*e1-p1x*e2)*cov1.e(0,0)/e1,2);
-        mErrOverMSq+=Math.pow((p2x*e1-p1x*e2)*cov2.e(0,0)/e2,2);
-        mErrOverMSq+=Math.pow((p2y*e1-p1y*e2)*cov1.e(1,1)/e1,2);
-        mErrOverMSq+=Math.pow((p2y*e1-p1y*e2)*cov2.e(1,1)/e2,2);                
-        mErrOverMSq+=Math.pow((p2z*e1-p1z*e2)*cov1.e(2,2)/e1,2);
-        mErrOverMSq+=Math.pow((p2z*e1-p1z*e2)*cov2.e(2,2)/e2,2);
+        double mErrOverMSq=Math.pow((p2x*e1-p1x*e2)/e1,2)*cov1.e(0,0);
+        mErrOverMSq+=Math.pow((p2x*e1-p1x*e2)/e2,2)*cov2.e(0,0);
+        mErrOverMSq+=Math.pow((p2y*e1-p1y*e2)/e1,2)*cov1.e(1,1);
+        mErrOverMSq+=Math.pow((p2y*e1-p1y*e2)/e2,2)*cov2.e(1,1);                
+        mErrOverMSq+=Math.pow((p2z*e1-p1z*e2)/e1,2)*cov1.e(2,2);
+        mErrOverMSq+=Math.pow((p2z*e1-p1z*e2)/e2,2)*cov2.e(2,2);
         mErrOverMSq/=4*Math.pow(p1x*p2x+p1y*p2y+p1z*p2z-(me*me+e1*e2),2);
+//        System.out.println("getInvMass() = "+getInvMass()+"; evtmass="+Math.sqrt(evtmass)+";  error ="+Math.sqrt(mErrOverMSq*evtmass));
         //return the uncertainty
-        return Math.sqrt(mErrOverMSq)*evtmass;
+        return Math.sqrt(mErrOverMSq*evtmass);
     }
 
     @Override
