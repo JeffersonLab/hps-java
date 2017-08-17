@@ -34,7 +34,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
-import org.lcsim.lcio.LCIOWriter;
 
 public class VertexDebugTupleDriver extends TupleDriver {
 

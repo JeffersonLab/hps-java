@@ -1,6 +1,5 @@
 package org.hps.recon.particle;
 
-import hep.physics.matrix.Matrix;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.BasicHepLorentzVector;
