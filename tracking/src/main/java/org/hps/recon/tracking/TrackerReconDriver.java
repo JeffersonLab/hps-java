@@ -4,16 +4,11 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseTrack;
@@ -30,6 +25,8 @@ import org.lcsim.util.Driver;
  * with the {@link TrackerDigiDriver} digitization Driver.
  *
  * @author Matt Graham
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
+ * 
  */
 // FIXME: Printing to System.out should be converted to use logger.
 public final class TrackerReconDriver extends Driver {
@@ -77,8 +74,6 @@ public final class TrackerReconDriver extends Driver {
     private double rmsTimeCut = -1;
     
     private boolean rejectUncorrectedHits = true;
-    
-    private boolean rejectSharedHits = false;
 
     public TrackerReconDriver() {
     }
@@ -147,10 +142,6 @@ public final class TrackerReconDriver extends Driver {
 
     public void setRejectUncorrectedHits(boolean rejectUncorrectedHits) {
         this.rejectUncorrectedHits = rejectUncorrectedHits;
-    }
-
-    public void setRejectSharedHits(boolean rejectSharedHits) {
-        this.rejectSharedHits = rejectSharedHits;
     }
 
     /**
@@ -250,46 +241,6 @@ public final class TrackerReconDriver extends Driver {
                         this.getLogger().warning(String.format("Discarding track with bad HelicalTrackHit (correction distance %f, chisq penalty %f)", correction, chisq));
                         iter.remove();
                         continue trackLoop;
-                    }
-                }
-            }
-        }
-
-        if (rejectSharedHits) {
-            RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-            RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
-
-            Map<TrackerHit, List<Track>> stripsToTracks = new HashMap<TrackerHit, List<Track>>();
-            for (Track track : tracks) {
-                for (TrackerHit hit : track.getTrackerHits()) {
-                    Collection<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
-                    for (TrackerHit strip : htsList) {
-                        List<Track> sharedTracks = stripsToTracks.get(strip);
-                        if (sharedTracks == null) {
-                            sharedTracks = new ArrayList<Track>();
-                            stripsToTracks.put(strip, sharedTracks);
-                        }
-                        sharedTracks.add(track);
-                    }
-                }
-            }
-            Iterator<Track> iter = tracks.iterator();
-            trackLoop:
-            while (iter.hasNext()) {
-                Track track = iter.next();
-                for (TrackerHit hit : track.getTrackerHits()) {
-                    Collection<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
-                    for (TrackerHit strip : htsList) {
-                        List<Track> sharedTracks = stripsToTracks.get(strip);
-                        if (sharedTracks.size() > 1) {
-                            for (Track otherTrack : sharedTracks) {
-                                if (otherTrack.getChi2() < track.getChi2()) {
-                                    this.getLogger().warning(String.format("removing track with shared hits: chisq %f, d0 %f (other track has chisq %f)", track.getChi2(), track.getTrackStates().get(0).getD0(), otherTrack.getChi2()));
-                                    iter.remove();
-                                    continue trackLoop;
-                                }
-                            }
-                        }
                     }
                 }
             }

@@ -15,7 +15,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Read all track collections in the event, use ambiguity resolver, and put the
@@ -39,17 +38,18 @@ public class MergeTrackCollections extends Driver {
     // private AcceptanceHelper acc;
 
     private AIDA aida2 = AIDA.defaultInstance();
-    private IHistogram1D trackScoresPreAmbi = aida2.histogram1D("trackScoresPreAmbi", 200, -100, 100);
-    private IHistogram1D trackScoresPostAmbi = aida2.histogram1D("trackScoresPostAmbi", 200, -100, 100);
-    private IHistogram1D numDuplicateTracks = aida2.histogram1D("numDuplicateTracks", 10, 0, 10);
-    private IHistogram1D numPartialTracks = aida2.histogram1D("numPartialTracks", 10, 0, 10);
-    private IHistogram1D numSharedTracks = aida2.histogram1D("numSharedTracks", 10, 0, 10);
-    private IHistogram1D sharedHitsPreAmbi = aida2.histogram1D("sharedHitsPreAmbi", 10, 0, 10);
-    private IHistogram1D numTracksPreAmbi = aida2.histogram1D("numTracksPreAmbi", 10, 0, 10);
-    private IHistogram1D numTracksPostAmbi = aida2.histogram1D("numTracksPostAmbi", 10, 0, 10);
-    private IHistogram1D sharedHitsPostAmbi = aida2.histogram1D("sharedHitsPostAmbi", 10, 0, 10);
-    private IHistogram1D numHitsPreAmbi = aida2.histogram1D("numHitsPreAmbi", 10, 0, 10);
-    private IHistogram1D numHitsPostAmbi = aida2.histogram1D("numHitsPostAmbi", 10, 0, 10);
+
+    private IHistogram1D trackScoresPreAmbi;
+    private IHistogram1D trackScoresPostAmbi;
+    private IHistogram1D numDuplicateTracks;
+    private IHistogram1D numPartialTracks;
+    private IHistogram1D numSharedTracks;
+    private IHistogram1D sharedHitsPreAmbi;
+    private IHistogram1D numTracksPreAmbi;
+    private IHistogram1D numTracksPostAmbi;
+    private IHistogram1D sharedHitsPostAmbi;
+    private IHistogram1D numHitsPreAmbi;
+    private IHistogram1D numHitsPostAmbi;
 
     /**
      * Default constructor
@@ -114,12 +114,26 @@ public class MergeTrackCollections extends Driver {
         // acc = new AcceptanceHelper();
         // acc.initializeMaps(detector, "Tracker");
         ambi = new SimpleAmbiguityResolver();
+
+        if (doPlots) {
+            trackScoresPreAmbi = aida2.histogram1D("trackScoresPreAmbi", 200, -100, 100);
+            trackScoresPostAmbi = aida2.histogram1D("trackScoresPostAmbi", 200, -100, 100);
+            numDuplicateTracks = aida2.histogram1D("numDuplicateTracks", 10, 0, 10);
+            numPartialTracks = aida2.histogram1D("numPartialTracks", 10, 0, 10);
+            numSharedTracks = aida2.histogram1D("numSharedTracks", 10, 0, 10);
+            sharedHitsPreAmbi = aida2.histogram1D("sharedHitsPreAmbi", 10, 0, 10);
+            numTracksPreAmbi = aida2.histogram1D("numTracksPreAmbi", 10, 0, 10);
+            numTracksPostAmbi = aida2.histogram1D("numTracksPostAmbi", 10, 0, 10);
+            sharedHitsPostAmbi = aida2.histogram1D("sharedHitsPostAmbi", 10, 0, 10);
+            numHitsPreAmbi = aida2.histogram1D("numHitsPreAmbi", 10, 0, 10);
+            numHitsPostAmbi = aida2.histogram1D("numHitsPostAmbi", 10, 0, 10);
+        }
+
     }
 
     @Override
     public void process(EventHeader event) {
         List<List<Track>> trackCollections;
-        // System.out.println("starting event");
 
         if (inputTrackCollectionName == "") {
             trackCollections = event.get(Track.class);
@@ -168,7 +182,6 @@ public class MergeTrackCollections extends Driver {
         if (removeCollections) {
             for (List<Track> tracklist : trackCollections) {
                 event.remove(event.getMetaData(tracklist).getName());
-
             }
         }
 
@@ -185,13 +198,14 @@ public class MergeTrackCollections extends Driver {
     @Override
     protected void endOfData() {
         super.endOfData();
-
-        File outputFile2 = new TestOutputFile("mergingPlots.aida");
-        outputFile2.getParentFile().mkdirs();
-        try {
-            aida2.saveAs(outputFile2);
-        } catch (IOException ex) {
-            Logger.getLogger(MergeTrackCollections.class.getName()).log(Level.SEVERE, null, ex);
+        if (doPlots) {
+            File outputFile2 = new File("mergingPlots.aida");
+            outputFile2.getParentFile().mkdirs();
+            try {
+                aida2.saveAs(outputFile2);
+            } catch (IOException ex) {
+                Logger.getLogger(MergeTrackCollections.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 }

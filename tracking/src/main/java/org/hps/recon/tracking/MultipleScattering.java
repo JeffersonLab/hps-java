@@ -9,6 +9,8 @@ import java.util.List;
 
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.solids.Inside;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
@@ -20,15 +22,21 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
  * and magnitude from detector geometry directly.
  *
  * @author Per Hansson <phansson@slac.stanford.edu>
+ * @author Miriam Diamond <mdiamond@slac.stanford.edu>
  */
 public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.MultipleScattering {
 
     private boolean _fixTrackMomentum = false;
+    private boolean doIterative = true;
     private double _momentum = -99;//dummy
-    private static final double inside_tolerance = 1.0;//tolerance for first (approximate) test of track intersection with sensor
+    private static final double inside_tolerance = 0.1;
 
     public MultipleScattering(MaterialManager materialmanager) {
         super(materialmanager);
+    }
+
+    public void setIterativeHelix(boolean value) {
+        doIterative = value;
     }
 
     /**
@@ -77,11 +85,12 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
      * @return the points of scatter along the helix
      */
     public ScatterPoints FindHPSScatterPoints(HelicalTrackFit helix) {
+
         if (_debug) {
             System.out.printf("\n%s: FindHPSScatters() for helix:\n%s\n", this.getClass().getSimpleName(), helix.toString());
             System.out.printf("%s: momentum is p=%f,R=%f,B=%f \n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield);
         }
-//        MG TURN THIS OFF SO IT DOESN'T ABORT STRAIGHT TRACKS
+
         // Check that B Field is set
         if (_bfield == 0. && !_fixTrackMomentum) {
             throw new RuntimeException("B Field or fixed momentum must be set before calling FindScatters method");
@@ -99,16 +108,41 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("%s: there are %d detector volumes in the model\n", this.getClass().getSimpleName(), materialVols.size());
         }
 
-        for (ScatteringDetectorVolume vol : materialVols) {
+        boolean isTop = false;
+        boolean foundFirst = false;
 
+        // System.out.println("Starting FindHPSScatterPoints");
+
+        for (int i = materialVols.size() - 1; i >= 0; i--) {
+
+            ScatteringDetectorVolume vol = materialVols.get(i);
             if (_debug) {
                 System.out.printf("\n%s: found detector volume \"%s\"\n", this.getClass().getSimpleName(), vol.getName());
             }
 
+            IIdentifier iid = vol.getDetectorElement().getIdentifier();
+            IIdentifierHelper iidh = vol.getDetectorElement().getIdentifierHelper();
+            int layer = iidh.getValue(iid, "layer");
+            int module = iidh.getValue(iid, "module");
+
+            // skip irrelevant sensors
+
+            if (foundFirst && layer > 4) {
+                if ((module % 2 == 0) != isTop)
+                    continue;
+            }
+
             // find intersection pathpoint with helix
-            Hep3Vector pos = getHelixIntersection(helix, vol);
+            Hep3Vector pos = getHelixIntersection(helix, (SiStripPlane) vol);
 
             if (pos != null) {
+
+                // if this is the first (outer-most) intersection, determine top
+                // or bottom
+                if (!foundFirst) {
+                    isTop = (module % 2 == 0);
+                    foundFirst = true;
+                }
 
                 if (_debug) {
                     System.out.printf("%s: intersection position %s\n", this.getClass().getSimpleName(), pos.toString());
@@ -149,6 +183,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
                 }
 
                 ScatterPoint scatterPoint = new ScatterPoint(vol.getDetectorElement(), scat);
+                scatterPoint.setDirection(dir);
+                scatterPoint.setPosition(pos);
                 scatters.addPoint(scatterPoint);
 
             } else if (_debug) {
@@ -170,20 +206,12 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         return scatters;
     }
 
-    public Hep3Vector getHelixIntersection(HelicalTrackFit helix, ScatteringDetectorVolume plane) {
-
-        if (SiStripPlane.class.isInstance(plane)) {
-            return getHelixIntersection(helix, (SiStripPlane) plane);
-        } else {
-            throw new UnsupportedOperationException("This det volume type is not supported yet.");
-        }
-    }
-
     /*
      * Returns interception between helix and plane Uses the origin x posiution of the plane and
      * extrapolates linearly to find teh intersection If inside use an iterative "exact" way to
      * determine the final position
      */
+
     public Hep3Vector getHelixIntersection(HelicalTrackFit helix, SiStripPlane plane) {
 
         if (_debug) {
@@ -215,8 +243,8 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         // -> this is not very general, as it assumes that strips are (mostly) along y -> FIX
         // THIS!?
         // Transformation from tracking to detector frame
-        Hep3Vector pos_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos);
-        Hep3Vector direction_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), direction);
+        Hep3Vector pos_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos);
+        Hep3Vector direction_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), direction);
 
         if (_debug) {
             System.out.printf("%s: position in det frame %s and direction %s\n", this.getClass().getSimpleName(), pos_det.toString(), direction_det.toString());
@@ -294,7 +322,10 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("%s: found simple intercept at %s \n", this.getClass().getSimpleName(), pos_int_trk.toString());
         }
 
-        // TODO Catch special cases where the incidental iteration procedure seems to fail 
+        if (!doIterative)
+            return pos_int_trk;
+
+        // TODO Catch special cases where the incidental iteration procedure seems to fail
         if (Math.abs(helix.R()) < 2000 && Math.abs(helix.dca()) > 10.0) {
             if (_debug) {
                 System.out.printf("%s: momentum is low (p=%f,R=%f,B=%f) and d0 is big (d0=%f), skip the iterative calculation\n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield, helix.dca());
@@ -316,12 +347,13 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-//        if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude()>1e-4)
+            if (VecOp.sub(pos_iter_trk, pos_int_trk).magnitude() > 1e-4)
+                System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
             System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
         }
 
         // find position in sensor frame
-        Hep3Vector pos_iter_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos_iter_trk));
+        Hep3Vector pos_iter_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos_iter_trk));
 
         if (_debug) {
             System.out.printf("%s: found iterative helix intercept in sensor coordinates at %s\n", this.getClass().getSimpleName(), pos_iter_sensor.toString());
@@ -343,7 +375,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         if (_debug) {
-            Hep3Vector pos_iter_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos_iter_trk);
+            Hep3Vector pos_iter_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos_iter_trk);
             Inside result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_iter_sensor);
             Inside result_inside_module = plane.getSensor().getGeometry().getDetectorElement().getParent().getGeometry().inside(pos_iter_det);
             System.out.printf("%s: Inside result sensor: %s module: %s\n", this.getClass().getSimpleName(), result_inside.toString(), result_inside_module.toString());
@@ -401,14 +433,32 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
      * Nested class to encapsulate the scatter angles and which detector element
      * it is related to
      */
-    public class ScatterPoint implements Comparable<ScatterPoint> {
+    public static class ScatterPoint implements Comparable<ScatterPoint> {
 
         IDetectorElement _det;
         ScatterAngle _scatterAngle;
+        private Hep3Vector trkpos;
+        private Hep3Vector dir;
 
         public ScatterPoint(IDetectorElement det, ScatterAngle scatterAngle) {
             _det = det;
             _scatterAngle = scatterAngle;
+        }
+
+        public Hep3Vector getPosition() {
+            return trkpos;
+        }
+
+        public Hep3Vector getDirection() {
+            return dir;
+        }
+
+        public void setPosition(Hep3Vector input) {
+            trkpos = input;
+        }
+
+        public void setDirection(Hep3Vector input) {
+            dir = input;
         }
 
         public IDetectorElement getDet() {
@@ -465,6 +515,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             }
             return null;
         }
+
     }
 
 }

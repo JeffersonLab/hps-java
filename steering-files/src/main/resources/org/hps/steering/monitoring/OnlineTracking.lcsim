@@ -1,6 +1,5 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="EventMarkerDriver" />
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
         <driver name="SVTOccupancyPlots" />
@@ -47,9 +46,6 @@
         <driver name="SVTOccupancyPlots" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver">
             <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>
             <eventRefreshRate>100</eventRefreshRate>
-        </driver>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>

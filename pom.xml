@@ -8,7 +8,7 @@
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
-  <version>3.11-SNAPSHOT</version>
+  <version>4.0-SNAPSHOT</version>
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>http://www.lcsim.org/sites/hps/</url>
@@ -18,7 +18,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
-    <lcsimVersion>3.8</lcsimVersion>
+    <lcsimVersion>4.0-SNAPSHOT</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
   </properties>
@@ -37,13 +37,13 @@
     </site>
     <repository>
       <id>lcsim-repo-releases</id>
-      <name>LCSim Releases</name>
-      <url>http://scalnx-v01.slac.stanford.edu:8180/nexus/content/repositories/lcsim-maven2-releases/</url>
+      <name>LCSIM Releases maven repository</name>
+      <url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-releases/</url>
     </repository>
     <snapshotRepository>
       <id>lcsim-repo-snapshots</id>
-      <name>LCSim Snapshots</name>
-      <url>http://scalnx-v01.slac.stanford.edu:8180/nexus/content/repositories/lcsim-maven2-snapshot/</url>
+      <name>LCSIM Snapshots maven repository</name>
+      <url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -245,11 +245,6 @@
       <dependency>
         <groupId>org.hps</groupId>
         <artifactId>hps-monitoring-app</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-users</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -491,7 +486,6 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>2.17</version>
         <configuration>
-          <excludes>org/hps/users/**/*</excludes>
           <logViolationsToConsole>true</logViolationsToConsole>
           <consoleOutput>true</consoleOutput>
           <includeResources>true</includeResources>
@@ -768,8 +762,8 @@
   </mailingLists>
 
   <issueManagement>
-    <system>JIRA</system>
-    <url>https://jira.slac.stanford.edu/browse/HPSJAVA/</url>
+    <system>Github</system>
+    <url>https://github.com/JeffersonLab/hps-java/issues/</url>
   </issueManagement>
 
   <ciManagement>

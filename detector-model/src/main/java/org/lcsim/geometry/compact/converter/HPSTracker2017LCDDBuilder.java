@@ -97,7 +97,7 @@ public class HPSTracker2017LCDDBuilder extends HPSTracker2014v1LCDDBuilder {
             for (SurveyVolume vol : _builder.surveyVolumes)
                 System.out.printf("%s:vol %s\n", this.getClass()
                         .getSimpleName(), vol.toString());
-            throw new RuntimeException("yepp");
+            throw new RuntimeException("Couldn't find UChannelL14Bottom survey volume.");
         }
 
         LCDDSurveyVolume uChannelL14Bottom = new LCDDGhostSurveyVolume(
@@ -144,6 +144,7 @@ public class HPSTracker2017LCDDBuilder extends HPSTracker2014v1LCDDBuilder {
 
         addModules();
 
+        
         System.out.printf("%s: Built %d LCDD geometry objects\n", getClass()
                 .getSimpleName(), lcddSurveyVolumes.size());
 
