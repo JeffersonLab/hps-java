@@ -36,7 +36,6 @@ public class GBLRefitterDriver extends Driver {
 
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
-    private boolean mergeTracks = false;
 
     public void setInputCollectionName(String inputCollectionName) {
         this.inputCollectionName = inputCollectionName;
@@ -44,16 +43,6 @@ public class GBLRefitterDriver extends Driver {
 
     public void setOutputCollectionName(String outputCollectionName) {
         this.outputCollectionName = outputCollectionName;
-    }
-
-    /**
-     * Merge tracks with overlapping hit content. Right now nothing actually
-     * happens to the merged tracks; this is just for testing.
-     *
-     * @param mergeTracks default to false
-     */
-    public void setMergeTracks(boolean mergeTracks) {
-        this.mergeTracks = mergeTracks;
     }
 
     @Override
