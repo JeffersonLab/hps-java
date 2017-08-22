@@ -14,13 +14,6 @@ public class TiTimeOffsetConverter extends AbstractConditionsObjectConverter<TiT
 
         final DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.getInstance();
 
-        // Setup connection if necessary.
-        boolean reopenedConnection = false;
-        if (!databaseConditionsManager.isConnected()) {
-            databaseConditionsManager.openConnection();
-            reopenedConnection = true;
-        }
-
         final String query = "SELECT ti_time_offset from ti_time_offsets WHERE run = " + manager.getRun();
         final ResultSet resultSet = databaseConditionsManager.selectQuery(query);
         TiTimeOffset t = null;
@@ -35,10 +28,6 @@ public class TiTimeOffsetConverter extends AbstractConditionsObjectConverter<TiT
         }
 
         DatabaseUtilities.cleanup(resultSet);
-
-        if (reopenedConnection) {
-            databaseConditionsManager.closeConnection();
-        }
 
         return t;
     }

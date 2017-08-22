@@ -156,6 +156,7 @@ public final class CommandLineTool {
 
             // Execute the sub-command.
             command.execute(commandArguments);
+            command.cleanup();
         } catch (final Exception e) {
             e.printStackTrace();
             System.exit(1);
@@ -181,13 +182,6 @@ public final class CommandLineTool {
             final File connectionPropertiesFile = new File(commandLine.getOptionValue("p"));
             this.conditionsManager.setConnectionProperties(connectionPropertiesFile);
             LOGGER.config("using connection properties " + connectionPropertiesFile.getPath());
-        }
-
-        // Conditions system XML configuration file.
-        if (commandLine.hasOption("x")) {
-            final File xmlConfigFile = new File(commandLine.getOptionValue("x"));
-            this.conditionsManager.setXmlConfig(xmlConfigFile);
-            LOGGER.config("using XML config " + xmlConfigFile.getPath());
         }
 
         // User specified tag of conditions records.

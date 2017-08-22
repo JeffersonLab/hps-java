@@ -39,7 +39,6 @@ public class ConditionsTagConverter extends AbstractConditionsObjectConverter<Co
         if (dbConditionsManager == null) {
             throw new IllegalArgumentException("The conditions manager has the wrong type.");
         }
-        boolean openedConnection = dbConditionsManager.openConnection();
         Connection connection = DatabaseConditionsManager.getInstance().getConnection();
         try {
             PreparedStatement statement = connection.prepareStatement(SELECT_SQL);
@@ -55,8 +54,6 @@ public class ConditionsTagConverter extends AbstractConditionsObjectConverter<Co
             throw new RuntimeException(e);
         } catch (ConditionsObjectException e) {
             throw new RuntimeException(e);
-        } finally {
-            dbConditionsManager.closeConnection(openedConnection);
         }
         if (conditionsTagCollection.size() == 0) {
             throw new IllegalArgumentException("The conditions tag " + name + " does not exist in the database.");

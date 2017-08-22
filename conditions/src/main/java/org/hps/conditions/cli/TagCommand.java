@@ -149,9 +149,6 @@ final class TagCommand extends AbstractCommand {
         }
         LOGGER.config("prompt before tagging = " + promptBeforeTagging);
 
-        // Conditions system configuration.
-        this.getManager().setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");
-
         // Find all the applicable conditions records by their run number ranges.
         ConditionsRecordCollection tagConditionsRecordCollection = this.findConditionsRecords(runStart, runEnd);
         

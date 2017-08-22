@@ -53,7 +53,7 @@ public class ReconTestSkeleton extends TestCase {
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(inputFile);
 
-        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        final DatabaseConditionsManager manager = new DatabaseConditionsManager();
         manager.addConditionsListener(new SvtDetectorSetup());
 
         loop.add(new MainTrackingDriver());
