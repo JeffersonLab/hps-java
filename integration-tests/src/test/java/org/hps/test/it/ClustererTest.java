@@ -23,6 +23,7 @@ import org.hps.recon.ecal.cluster.ClusterDriver;
 import org.hps.recon.ecal.cluster.ClusterType;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.ecal.cluster.Clusterer;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -139,7 +140,8 @@ public class ClustererTest extends TestCase {
         testOutputDir.mkdir();
 
         // Initialize the conditions system.
-        DatabaseConditionsManager.resetInstance();
+        final DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
+        ConditionsManager.setDefaultConditionsManager(dbManager);
     }
 
     /**
