@@ -28,10 +28,43 @@ import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
+/**
+ * Class <code>EcalReadoutDriver</code>performs digitization of truth
+ * hits from SLIC by converting them into emulated pulses and then
+ * performing pulse integration. The results are output in the form
+ * of {@link org.lcsim.event.RawCalorimeterHit RawCalorimeterHit}
+ * objects.<br/><br/>
+ * The truth hit information is retained by also producing an output
+ * collection of {@link org.lcsim.event.LCRelation LCRelation}
+ * objects linking the raw hits to the original {@link
+ * org.lcsim.event.SimCalorimeterHit SimCalorimeterHit} objects from
+ * which they were generated.
+ * 
+ * @author Sho Uemura <meeg@slac.stanford.edu>
+ * @author Kyle McCarty <mccarty@jlab.org>
+ */
 public class EcalReadoutDriver extends ReadoutDriver {
-    private String ecalGeometryName = "Ecal";
+	/**
+	 * Indicates the name of the calorimeter geometry object. This is
+	 * needed to allow access to the calorimeter channel listings.
+	 */
+	private String ecalGeometryName = "Ecal";
+	/**
+	 * The name of the input {@link org.lcsim.event.SimCalorimeterHit
+	 * SimCalorimeterHit} truth hit collection from SLIC.
+	 */
 	private String truthHitCollectionName = "EcalHits";
+	/**
+	 * The name of the digitized output {@link
+	 * org.lcsim.event.RawCalorimeterHit RawCalorimeterHit}
+	 * collection.
+	 */
 	private String outputHitCollectionName = "EcalRawHits";
+	/**
+	 * The name of the {@link org.lcsim.event.LCRelation LCRelation}
+	 * collection that links output raw hits to the SLIC truth hits
+	 * from which they were generated.
+	 */
 	private String truthRelationCollectionName = "EcalHitTruthRelations";
 	
 	// ==============================================================
@@ -91,6 +124,12 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	 * Defines the length in nanoseconds of a hardware sample.
 	 */
 	private static final double READOUT_PERIOD = 4.0;
+	/**
+	 * Serves as an internal clock variable for the driver. This is
+	 * used to track the number of clock-cycles (1 per {@link
+	 * org.hps.readout.ecal.updated.EcalReadoutDriver#READOUT_PERIOD
+	 * READOUT_PERIOD}).
+	 */
 	private int readoutCounter = 0;
 	/**
 	 * A buffer for storing pulse amplitudes representing the signals
@@ -125,6 +164,13 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	 * from the actual true time that they should appear.
 	 */
 	private double localTimeOffset = 0;
+	/**
+	 * Cached copy of the calorimeter conditions. All calorimeter
+	 * conditions should be called from here, rather than by directly
+	 * accessing the database manager.
+	 */
+	private EcalConditions ecalConditions = null;
+	
 	// ==============================================================
 	// ==== To Be Re-Worked =========================================
 	// ==============================================================
@@ -154,6 +200,9 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	public void detectorChanged(Detector detector) {
 		// Get the calorimeter geometry specification.
 		calorimeterGeometry = (HPSEcal3) detector.getSubdetector(ecalGeometryName);
+		
+		// Update the cached calorimeter conditions.
+		ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
 		
 		// Reinstantiate the buffers.
 		resetBuffers();
@@ -228,7 +277,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
 		// Check whether the appropriate amount of time has passed to
 		// perform another integration step. If so, create a list to
 		// contain any newly integrated hits and perform integration.
-    	System.out.println("New Driver -- Event " + event.getEventNumber() + " -- Current Time is " + ReadoutDataManager.getCurrentTime() + " -- Counter is " + readoutCounter);
+		System.out.println("New Driver -- Event " + event.getEventNumber() + " -- Current Time is " + ReadoutDataManager.getCurrentTime() + " -- Counter is " + readoutCounter);
 		boolean readHits = false;
 		List<RawCalorimeterHit> newHits = null;
 		while(ReadoutDataManager.getCurrentTime() - readoutTime() + ReadoutDataManager.getBeamBunchSize() >= READOUT_PERIOD) {
@@ -239,114 +288,114 @@ public class EcalReadoutDriver extends ReadoutDriver {
 		
 		// Only perform hit integration on each readout period.
 		if(readHits) {
-	        // TODO: What is delay0 - why is there a latency between hit creation and output?
+			// TODO: What is delay0 - why is there a latency between hit creation and output?
 			// Temporarily declare this variable locally. It is not
 			// clear why it exists. This should be checked up on.
-	        int delay0 = 32;
+			int delay0 = 32;
 			
 			// Perform hit integration as needed for each calorimeter
 			// channel in the buffer map.
-	        for(Long cellID : voltageBufferMap.keySet()) {
-	        	// Get the preamplifier pulse buffer for the channel.
-	            DoubleRingBuffer voltageBuffer = voltageBufferMap.get(cellID);
-	            
-	            // Get the ADC buffer for the channel.
-	            IntegerRingBuffer adcBuffer = adcBufferMap.get(cellID);
-	            adcBuffer.stepForward();
-	            
-	            // Get the calorimeter channel data.
-	            EcalChannelConstants channelData = findChannel(cellID);
-	            
-	            // Scale the current value of the preamplifier buffer
-	            // to a 12-bit ADC value where the maximum represents
-	            // a value of maxVolt.
-	            double currentValue = voltageBuffer.getValue() * ((Math.pow(2, nBit) - 1) / maxVolt);
-	            
-	            // Get the pedestal for the channel.
-	            int pedestal = (int) Math.round(channelData.getCalibration().getPedestal());
-	            
-	            // An ADC value is not allowed to exceed 4095. If a
-	            // larger value is observed, 4096 (overflow) is given
-	            // instead. (This corresponds to >2 Volts.)
-	            int digitizedValue = Math.min((int) Math.round(pedestal + currentValue), (int) Math.pow(2, nBit));
-	            
-	            // Write this value to the ADC buffer.
-	            adcBuffer.setValue(digitizedValue);
-	            
-	            // Store the pedestal subtracted value so that it may
-	            // be checked against the integration threshold.
-	            int pedestalSubtractedValue = digitizedValue - pedestal;
-	            
-	            // Get the total ADC value that has been integrated
-	            // on this channel.
-	            Integer sum = channelIntegrationSumMap.get(cellID);
-	            
-	            // If the ADC sum is undefined, then there is not an
-	            // ongoing integration. If the pedestal subtracted
-	            // value is also over the integration threshold, then
-	            // integration should be initiated.
-	            if(sum == null && pedestalSubtractedValue > integrationThreshold) {
-	            	// Store the current local time in units of
-	            	// events (2 ns). This will indicate when the
-	            	// integration started and, in turn, should end.
-	                channelIntegrationTimeMap.put(cellID, readoutCounter - 1);
-	                System.out.println("Started integration on channel " + cellID + " at time " + ReadoutDataManager.getCurrentTime());
-	                
-	                // Integrate the ADC values for a number of
-	                // samples defined by NSB from before threshold
-	                // crossing. Note that this stops one sample
-	                // before the current sample. This current sample
-	                // is handled in the subsequent code block.
-                    int sumBefore = 0;
-                    for(int i = 0; i < numSamplesBefore; i++) {
-                        sumBefore += adcBuffer.getValue(-(numSamplesBefore - i - 1));
-                    }
-                    
-                    // This will represent the total integral sum at
-                    // the current point in time. Store it in the sum
-                    // buffer so that it may be incremented later as
-                    // additional samples are read.
-                    channelIntegrationSumMap.put(cellID, sumBefore);
-	            }
-	            
-	            // If the integration sum is defined, then pulse
-	            // integration is ongoing.
-	            if(sum != null) {
-	            	// If the current time is less then the total
-	            	// integration period, the current sample should
-	            	// be added to the total sum.
-                    if(channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter - 1) {
-                        channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
-                    }
-                    
-                    // Otherwise, integration is complete. Create a
-                    // hit and queue it for addition to the data set.
-                    else if(channelIntegrationTimeMap.get(cellID) + delay0 <= readoutCounter - 1) {
-                        triggerPathDelayQueue.add(new BaseRawCalorimeterHit(cellID, sum, 64 * channelIntegrationTimeMap.get(cellID)));
-                        channelIntegrationSumMap.remove(cellID);
-                    }
-	            }
-	            
-	            // Step to the next entry in the voltage buffer.
-	            voltageBuffer.clearValue();
-	            voltageBuffer.stepForward();
-	        }
-	        
-	        
-	        // TODO: This mess should really be cleaned up and made into something less... odd.
-	        while(triggerPathDelayQueue.peek() != null && triggerPathDelayQueue.peek().getTimeStamp() / 64 <= readoutCounter - 1 - delay0) {
-	            if(triggerPathDelayQueue.peek().getTimeStamp() / 64 < readoutCounter - 1 - delay0) {
-	                System.out.println(this.getName() + ": Stale hit in output queue");
-	                triggerPathDelayQueue.poll();
-	            } else {
-	                triggerPathCoincidenceQueue.add(triggerPathDelayQueue.poll());
-	            }
-	        }
-	        while(!triggerPathCoincidenceQueue.isEmpty() && triggerPathCoincidenceQueue.peek().getTimeStamp() / 64 <= readoutCounter - 1 - delay0 - 1) {
-	            triggerPathCoincidenceQueue.remove();
-	        }
-	        
-	        newHits.addAll(triggerPathCoincidenceQueue);
+			for(Long cellID : voltageBufferMap.keySet()) {
+			// Get the preamplifier pulse buffer for the channel.
+			DoubleRingBuffer voltageBuffer = voltageBufferMap.get(cellID);
+			
+			// Get the ADC buffer for the channel.
+			IntegerRingBuffer adcBuffer = adcBufferMap.get(cellID);
+			adcBuffer.stepForward();
+			
+			// Get the calorimeter channel data.
+			EcalChannelConstants channelData = findChannel(cellID);
+			
+			// Scale the current value of the preamplifier buffer
+			// to a 12-bit ADC value where the maximum represents
+			// a value of maxVolt.
+			double currentValue = voltageBuffer.getValue() * ((Math.pow(2, nBit) - 1) / maxVolt);
+			
+			// Get the pedestal for the channel.
+			int pedestal = (int) Math.round(channelData.getCalibration().getPedestal());
+			
+			// An ADC value is not allowed to exceed 4095. If a
+			// larger value is observed, 4096 (overflow) is given
+			// instead. (This corresponds to >2 Volts.)
+			int digitizedValue = Math.min((int) Math.round(pedestal + currentValue), (int) Math.pow(2, nBit));
+			
+			// Write this value to the ADC buffer.
+			adcBuffer.setValue(digitizedValue);
+			
+			// Store the pedestal subtracted value so that it may
+			// be checked against the integration threshold.
+			int pedestalSubtractedValue = digitizedValue - pedestal;
+			
+			// Get the total ADC value that has been integrated
+			// on this channel.
+			Integer sum = channelIntegrationSumMap.get(cellID);
+			
+			// If the ADC sum is undefined, then there is not an
+			// ongoing integration. If the pedestal subtracted
+			// value is also over the integration threshold, then
+			// integration should be initiated.
+			if(sum == null && pedestalSubtractedValue > integrationThreshold) {
+				// Store the current local time in units of
+				// events (2 ns). This will indicate when the
+				// integration started and, in turn, should end.
+				channelIntegrationTimeMap.put(cellID, readoutCounter - 1);
+				System.out.println("Started integration on channel " + cellID + " at time " + ReadoutDataManager.getCurrentTime());
+				
+				// Integrate the ADC values for a number of
+				// samples defined by NSB from before threshold
+				// crossing. Note that this stops one sample
+				// before the current sample. This current sample
+				// is handled in the subsequent code block.
+				int sumBefore = 0;
+				for(int i = 0; i < numSamplesBefore; i++) {
+				    sumBefore += adcBuffer.getValue(-(numSamplesBefore - i - 1));
+				}
+				
+				// This will represent the total integral sum at
+				// the current point in time. Store it in the sum
+				// buffer so that it may be incremented later as
+				// additional samples are read.
+				channelIntegrationSumMap.put(cellID, sumBefore);
+			}
+			
+			// If the integration sum is defined, then pulse
+			// integration is ongoing.
+			if(sum != null) {
+				// If the current time is less then the total
+				// integration period, the current sample should
+				// be added to the total sum.
+				if(channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter - 1) {
+					channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
+				}
+				
+				// Otherwise, integration is complete. Create a
+				// hit and queue it for addition to the data set.
+				else if(channelIntegrationTimeMap.get(cellID) + delay0 <= readoutCounter - 1) {
+					triggerPathDelayQueue.add(new BaseRawCalorimeterHit(cellID, sum, 64 * channelIntegrationTimeMap.get(cellID)));
+					channelIntegrationSumMap.remove(cellID);
+				}
+			}
+				
+				// Step to the next entry in the voltage buffer.
+				voltageBuffer.clearValue();
+				voltageBuffer.stepForward();
+			}
+			
+			
+			// TODO: This mess should really be cleaned up and made into something less... odd.
+			while(triggerPathDelayQueue.peek() != null && triggerPathDelayQueue.peek().getTimeStamp() / 64 <= readoutCounter - 1 - delay0) {
+				if(triggerPathDelayQueue.peek().getTimeStamp() / 64 < readoutCounter - 1 - delay0) {
+					System.out.println(this.getName() + ": Stale hit in output queue");
+					triggerPathDelayQueue.poll();
+				} else {
+					triggerPathCoincidenceQueue.add(triggerPathDelayQueue.poll());
+				}
+			}
+			while(!triggerPathCoincidenceQueue.isEmpty() && triggerPathCoincidenceQueue.peek().getTimeStamp() / 64 <= readoutCounter - 1 - delay0 - 1) {
+				triggerPathCoincidenceQueue.remove();
+			}
+			
+			newHits.addAll(triggerPathCoincidenceQueue);
 			
 			if(newHits != null && !newHits.isEmpty()) {
 				System.out.println("Produced new raw hits:");
@@ -375,10 +424,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	 * {@link org.hps.conditions.ecal.EcalChannelConstants
 	 * EcalChannelConstants} object.
 	 */
-	private static final EcalChannelConstants findChannel(long cellID) {
-		// TODO: Is this reasonable?
-		// Originally stored as a class variable and reset on detectorChanged().
-		EcalConditions ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+	private EcalChannelConstants findChannel(long cellID) {
 		return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
 	}
 	
