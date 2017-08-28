@@ -15,7 +15,7 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
-import org.lcsim.util.aida.AIDA;
+//import org.lcsim.util.aida.AIDA;
 
 /**
  * HPS version of LCSim class
@@ -27,13 +27,21 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
 
     private double _nsigErr;
     private double _bfield;
+    private double _max_p;
+    private double _min_dztot;
 
-    private AIDA aida = AIDA.defaultInstance();
+    //private AIDA aida = AIDA.defaultInstance();
 
     public FastCheck(SeedStrategy strategy, double bfield, ISeedTrackerDiagnostics diag) {
         super(strategy, bfield, diag);
         _bfield = bfield;
-        setNSigErr(4);
+        setNSigErr(6);
+        setMax_p(1.1);
+        setMin_dztot(0.05);
+    }
+
+    public void setMin_dztot(double input) {
+        _min_dztot = input;
     }
 
     public double getNSigErr() {
@@ -44,20 +52,27 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         _nsigErr = input;
     }
 
-    private double calculateMSerror(double hit1x, double hit2x, double hit3x, double p) {
+    public void setMax_p(double input) {
+        _max_p = input;
+    }
+
+    private double calculateMSerror(double[] s, double[] z, double p) {
         // radlength=0.003417*2 = 0.006834
         // angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
-        double angle = 0.000911276 / p;
+        double MSangle = 0.000911276 / p;
 
-        double dist1 = hit1x - hit2x;
-        double dist2 = hit2x - hit3x;
-        double MSerr = angle * Math.sqrt(dist1 * dist1 + dist2 * dist2);
+        double lambda_01 = Math.atan((z[1] - z[0]) / (s[1] - s[0]));
+        double tan_lambda02 = (z[1] - z[0] + (s[2] - s[1]) * Math.tan(lambda_01 + MSangle)) / (s[2] - s[0]);
+        double MSerr = z[0] - z[1] + (s[1] - s[0]) * tan_lambda02;
 
         return MSerr;
     }
 
     private double estimateMomentum(double slope, double rcurve) {
-        return Math.sqrt(1 + slope * slope) * _bfield * Constants.fieldConversion * rcurve;
+        double estimate = Math.sqrt(1 + slope * slope) * _bfield * Constants.fieldConversion * rcurve;
+        if (estimate > _max_p)
+            estimate = _max_p;
+        return estimate;
     }
 
     @Override
@@ -333,30 +348,37 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         double d12 = p[1][0] - p[0][0];
         double d13 = p[2][0] - p[0][0];
         double d23 = p[2][0] - p[1][0];
+        // dAB = difference between actual x coordinates of hits A and B
         dztot = dz2 * dz2 + (dz1 * d23 / d13) * (dz1 * d23 / d13) + (dz3 * d12 / d13) * (dz3 * d12 / d13);
 
         //  Add multiple scattering error here
         double pEstimate = estimateMomentum(slope, rcurv);
-        double mserr = calculateMSerror(p[0][0], p[1][0], p[2][0], pEstimate);
+        double mserr = calculateMSerror(s, z, pEstimate);
+        //        System.out.printf("MSerr %f dztot %f \n", mserr, dztot);
         dztot += (mserr * mserr);
         dztot = _nsigErr * Math.sqrt(dztot);
 
-        double dzpred = Math.abs(zpred - z[1]);
-        aida.histogram2D("DztotVsZpred_all").fill(dzpred, dztot);
+        // min dztot?
+        if (dztot < _min_dztot)
+            dztot = _min_dztot;
 
-        if (dztot < 0.5 && dzpred < 0.5) {
-            aida.histogram2D("DztotVsP_low").fill(pEstimate, dztot);
-            aida.histogram2D("ZpredVsP_low").fill(pEstimate, dzpred);
-            aida.histogram2D("MserrVsP_low").fill(pEstimate, mserr);
-        }
+        double dzpred = Math.abs(zpred - z[1]);
+        //aida.histogram2D("DztotVsZpred_all").fill(dzpred, dztot);
+        //aida.histogram2D("MserrVsP").fill(pEstimate, mserr);
+        //if (dztot < 0.5 && dzpred < 0.5) {
+        //  aida.histogram2D("DztotVsP_low").fill(pEstimate, dztot);
+        // aida.histogram2D("ZpredVsP_low").fill(pEstimate, dzpred);
+        // aida.histogram2D("MserrVsP_low").fill(pEstimate, mserr);
+        //}
+
         // comparison of middle z to prediction including error
         if (dzpred > dztot) {
-            aida.histogram2D("DztotVsZpred_failed").fill(dzpred, dztot);
+            // aida.histogram2D("DztotVsZpred_failed").fill(dzpred, dztot);
             return false;
         }
 
         //  Passed all checks - success!
-        aida.histogram2D("DztotVsZpred_passed").fill(dzpred, dztot);
+        //aida.histogram2D("DztotVsZpred_passed").fill(dzpred, dztot);
         return true;
     }
 
