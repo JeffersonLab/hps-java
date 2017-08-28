@@ -8,9 +8,9 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+//import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+//import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,34 +87,52 @@ public class MakeGblTracks {
             trk.addHit(hit);
         }
 
-        // Set base track parameters
+        // Set state at IP
         Pair<double[], SymmetricMatrix> correctedHelixParams = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.IP, bfield);
         trk.setTrackParameters(correctedHelixParams.getFirst(), bfield);// hack to set the track charge
         trk.getTrackStates().clear();
-
-        // Set state at IP
         TrackState stateIP = new BaseTrackState(correctedHelixParams.getFirst(), ref, correctedHelixParams.getSecond().asPackedArray(true), TrackState.AtIP, bfield);
         trk.getTrackStates().add(stateIP);
 
         // Set state at last point on trajectory
-        Pair<double[], SymmetricMatrix> correctedHelixParamsLast = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.LAST, bfield);
-        TrackState stateLast = new BaseTrackState(correctedHelixParamsLast.getFirst(), ref, correctedHelixParamsLast.getSecond().asPackedArray(true), TrackState.AtLastHit, bfield);
-        trk.getTrackStates().add(stateLast);
+        //Pair<double[], SymmetricMatrix> correctedHelixParamsLast = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.LAST, bfield);
+        //TrackState stateLast = new BaseTrackState(correctedHelixParamsLast.getFirst(), ref, correctedHelixParamsLast.getSecond().asPackedArray(true), TrackState.AtLastHit, bfield);
+        //trk.getTrackStates().add(stateLast);
 
         // add more track states
         if (storeTrackStates) {
+            int prevID = 0;
+            System.out.println("Starting track states printout:");
             //SensorMap doesn't include IP
-            for (int ilabel : fittedGblTrajectory.getSensorMap().keySet()) {
-                if (ilabel == fittedGblTrajectory.getPointIndex(FittedGblTrajectory.GBLPOINT.LAST))
-                    continue;
-                // millipedeID = fittedGblTrajectory.getSensorMap().get(ilabel);
-                // convert millipedeID to sensor
-                // sort track states by sensor
-                // step through sensors.  if one is missing, insert blank TrackState object
+            Integer[] sensorsFromMapArray = fittedGblTrajectory.getSensorMap().keySet().toArray(new Integer[0]);
+
+            for (int i = 0; i < sensorsFromMapArray.length; i++) {
+                int ilabel = sensorsFromMapArray[i];
+                //if (ilabel == fittedGblTrajectory.getPointIndex(FittedGblTrajectory.GBLPOINT.LAST))
+                //    continue;
+                // if a sensor is missing, insert blank TrackState object
+                int millepedeID = fittedGblTrajectory.getSensorMap().get(ilabel);
+                for (int k = 1; k < millepedeID - prevID; k++) {
+                    // uses new lcsim constructor
+                    BaseTrackState dummy = new BaseTrackState(-1);
+                    trk.getTrackStates().add(dummy);
+                    System.out.println("added null entry");
+                }
+                prevID = millepedeID;
                 Pair<double[], SymmetricMatrix> correctedHelixParamsSensor = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, ilabel, bfield);
-                TrackState stateSensor = new BaseTrackState(correctedHelixParamsSensor.getFirst(), ref, correctedHelixParamsSensor.getSecond().asPackedArray(true), TrackState.AtOther, bfield);
+
+                // location code
+                int loc = TrackState.AtOther;
+                if (i == 0)
+                    loc = TrackState.AtFirstHit;
+                else if (i == sensorsFromMapArray.length - 1)
+                    loc = TrackState.AtLastHit;
+
+                System.out.printf("ilabel %d    millepedeID %d   loc %d \n", ilabel, millepedeID, loc);
+                TrackState stateSensor = new BaseTrackState(correctedHelixParamsSensor.getFirst(), ref, correctedHelixParamsSensor.getSecond().asPackedArray(true), loc, bfield);
                 trk.getTrackStates().add(stateSensor);
             }
+
         }
 
         // Extract kinks from trajectory
