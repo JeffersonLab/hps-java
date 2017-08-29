@@ -74,18 +74,18 @@ public class BilliorVertexer {
             applyBSconstraint(false);
         Map<Integer, Hep3Vector> pFitMap = new HashMap<Integer, Hep3Vector>();
         for (int i = 0; i < tracks.size(); i++) {
-            Hep3Vector pFit = new BasicHep3Vector(this.getFittedMomentum(i));
+            Hep3Vector pFit = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(this.getFittedMomentum(i)));
             pFitMap.put(i, pFit);
         }
         Hep3Vector vert = new BasicHep3Vector(_vertexPosition.e(0, 0), _vertexPosition.e(1, 0), _vertexPosition.e(2, 0));
         Hep3Vector vertDet = CoordinateTransformations.transformVectorToDetector(vert);
         SymmetricMatrix covVtxDet = CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix(_covVtx));
-        BilliorVertex vertex=new BilliorVertex(vertDet, covVtxDet, _chiSq, getInvMass(), pFitMap, _constraintType);
-        vertex.setPositionError(this.getVertexPositionErrors());
+        BilliorVertex vertex=new BilliorVertex(vertDet, covVtxDet, _chiSq, getInvMass(), pFitMap, _constraintType);        
+        vertex.setPositionError(CoordinateTransformations.transformVectorToDetector(this.getVertexPositionErrors()));
         vertex.setMassError(this.getInvMassUncertainty());
         List<Matrix> pcov=new ArrayList<Matrix>();
-        pcov.add(this.getFittedMomentumCovariance(0));
-        pcov.add(this.getFittedMomentumCovariance(1));
+        pcov.add(CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix(this.getFittedMomentumCovariance(0))));
+        pcov.add(CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix(this.getFittedMomentumCovariance(1))));
         vertex.setTrackMomentumCovariances(pcov);
         return vertex;
     }
