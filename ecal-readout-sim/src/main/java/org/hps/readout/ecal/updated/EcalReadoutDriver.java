@@ -44,6 +44,10 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class EcalReadoutDriver extends ReadoutDriver {
+	// ==============================================================
+	// ==== LCIO Collections ========================================
+	// ==============================================================
+	
 	/**
 	 * Indicates the name of the calorimeter geometry object. This is
 	 * needed to allow access to the calorimeter channel listings.
@@ -562,7 +566,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	 * default, this is <code>"Ecal"</code>.
 	 * @param ecalName - The calorimeter name.
 	 */
-	public void setEcalName(String value) {
+	public void setEcalGeometryName(String value) {
 		ecalGeometryName = value;
 	}
 	
