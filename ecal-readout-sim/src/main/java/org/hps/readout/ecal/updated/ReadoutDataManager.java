@@ -143,7 +143,7 @@ public class ReadoutDataManager extends Driver {
 		// Otherwise, check if enough time has passed for the driver
 		// which controls to the collection to have produced output
 		// for the requested time period.
-		return time <= getCurrentTime() + BEAM_BUNCH_SIZE - timeDisplacementMap.get(collectionName);
+		return time <= getCurrentTime() - timeDisplacementMap.get(collectionName);
 	}
 	
 	private static final double getTotalTimeDisplacement(String collectionName) {
