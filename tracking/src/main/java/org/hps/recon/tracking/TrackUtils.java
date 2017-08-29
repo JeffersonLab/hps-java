@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1132,7 +1133,7 @@ public class TrackUtils {
     public static MCParticle getMatchedTruthParticle(Track track) {
         boolean debug = false;
 
-        Map<MCParticle, Integer> particlesOnTrack = new HashMap<MCParticle, Integer>();
+        Map<MCParticle, Integer> particlesOnTrack = new LinkedHashMap<MCParticle, Integer>();
 
         if (debug)
             System.out.printf("getMatchedTruthParticle: getmatched mc particle from %d tracker hits on the track \n", track.getTrackerHits().size());

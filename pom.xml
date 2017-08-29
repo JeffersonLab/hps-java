@@ -18,7 +18,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
-    <lcsimVersion>3.8</lcsimVersion>
+    <lcsimVersion>4.0-SNAPSHOT</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
   </properties>
@@ -347,6 +347,11 @@
         <artifactId>org-srs-datacat-client</artifactId>
         <version>0.5-TEST3</version>
       </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.11</version>
+      </dependency>      
     </dependencies>
   </dependencyManagement>
   
@@ -762,8 +767,8 @@
   </mailingLists>
 
   <issueManagement>
-    <system>JIRA</system>
-    <url>https://jira.slac.stanford.edu/browse/HPSJAVA/</url>
+    <system>Github</system>
+    <url>https://github.com/JeffersonLab/hps-java/issues/</url>
   </issueManagement>
 
   <ciManagement>

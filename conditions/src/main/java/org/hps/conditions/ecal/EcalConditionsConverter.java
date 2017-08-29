@@ -59,8 +59,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
 
         // Create the ECal conditions object that will be used to encapsulate ECal conditions collections.
         final Detector detector = getDatabaseConditionsManager().getDetectorObject();
-        final EcalConditions conditions = new EcalConditions(detector.getSubdetector(getDatabaseConditionsManager()
-                .getEcalName()));
+        // FIXME: Hard-coded ECal detector name.
+        final EcalConditions conditions = new EcalConditions(detector.getSubdetector("Ecal"));
 
         // Set the channel map.
         conditions.setChannelCollection(channels);

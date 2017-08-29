@@ -16,7 +16,6 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
     xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <!--<driver name="EventMarkerDriver" />-->
         <driver name="EcalRunningPedestal"/>
         <driver name="RfFitter"/>
         <driver name="EcalRawConverter" />
@@ -26,16 +25,7 @@
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
-        </driver>
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
-        
-     <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-       <detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
-       <runNumber>3422</runNumber>
-        <freeze>true</freeze>
-    </driver>
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <minLookbackEvents>10</minLookbackEvents>
             <maxLookbackEvents>50</maxLookbackEvents>
