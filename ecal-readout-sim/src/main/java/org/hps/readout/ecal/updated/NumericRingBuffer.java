@@ -30,9 +30,12 @@ public abstract class NumericRingBuffer<T extends Number> implements Iterable<T>
 	}
 	
 	/**
-	 * Add given value to specified cell
-	 * @param pos Target position relative to current cell (pos=0 for current cell)
-	 * @param val 
+	 * Adds a value equal to <code>value</code> to the specified
+	 * buffer cell.
+	 * @param position - The position of the target value relative
+	 * to the current value. A value of <code>0</code> represents the
+	 * current position.
+	 * @param value - The amount to add to the target buffer cell.
 	 */
 	public abstract void addToCell(int position, T value);
 	
@@ -44,10 +47,10 @@ public abstract class NumericRingBuffer<T extends Number> implements Iterable<T>
 	
 	/**
 	 * Clears the value at the specified position in the buffer. The
-	 * value will be set to the appropriate numerical form of zero. A
-	 * value of <code>0</code> represents the current value.
-	 * @param position - The position of the value relative to the
-	 * current value that is to be returned.
+	 * value will be set to the appropriate numerical form of zero.
+	 * @param position - The position of the target value relative
+	 * to the current value. A value of <code>0</code> represents the
+	 * current position.
 	 */
 	public abstract void clearValue(int position);
 	
@@ -61,9 +64,9 @@ public abstract class NumericRingBuffer<T extends Number> implements Iterable<T>
 	
 	/**
 	 * Returns the value at the specified position in the buffer.
-	 * A value of <code>0</code> represents the current value.
-	 * @param position - The position of the value relative to the
-	 * current value that is to be returned.
+	 * @param position - The position of the target value relative
+	 * to the current value. A value of <code>0</code> represents the
+	 * current position.
 	 * @return Returns the value at the specified position of the
 	 * buffer.
 	 */
@@ -86,10 +89,10 @@ public abstract class NumericRingBuffer<T extends Number> implements Iterable<T>
 	}
 	
 	/**
-	 * Sets the value at the specified position in the buffer. A
-	 * value of <code>0</code> represents the current value.
-	 * @param position - The position of the value relative to the
-	 * current value that is to be returned.
+	 * Sets the value at the specified position in the buffer.
+	 * @param position - The position of the target value relative
+	 * to the current value. A value of <code>0</code> represents the
+	 * current position.
 	 * @param value - The new buffer value.
 	 */
 	public void setValue(int position, T value) {
@@ -139,9 +142,10 @@ public abstract class NumericRingBuffer<T extends Number> implements Iterable<T>
 	 * Produces an {@link java.lang.ArrayIndexOutOfBoundsException
 	 * ArrayIndexOutOfBoundsException} exception if the requested
 	 * buffer position is not valid.
-	 * 
-	 * @param position
-	 * @throws ArrayIndexOutOfBoundsException
+	 * @param position - The index to validate.
+	 * @throws ArrayIndexOutOfBoundsException Occurs if the specified
+	 * index meets the condition <code>Math.abs(position) >=
+	 * size()</code>.
 	 */
 	protected final void validatePosition(int position) throws ArrayIndexOutOfBoundsException {
         if(position >= array.length || position <= -array.length) {
