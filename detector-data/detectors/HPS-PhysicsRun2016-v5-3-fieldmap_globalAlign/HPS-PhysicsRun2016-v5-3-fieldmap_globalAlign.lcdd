@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
-    <detector name="HPS-PhysicsRun2016-Nominal-v5-3-fieldmap_globalAlign" />
-    <generator name="lcsim" version="1.0" file="/u/group/hps/hps_soft/git/hps-java/detector-data/detectors/HPS-PhysicsRun2016-v5-3-fieldmap_globalAlign/compact.xml" checksum="3412585105" />
+    <detector name="HPS-PhysicsRun2016-v5-3-fieldmap_globalAlign" />
+    <generator name="lcsim" version="1.0" file="/scratch/hps/byale/hps-java/detector-data/detectors/HPS-PhysicsRun2016-v5-3-fieldmap_globalAlign/compact.xml" checksum="1656517394" />
     <author name="NONE" />
     <comment>HPS detector for 2016 Physics Run. Start from version v5-1 2015 Curved + straight tracks (straight: 8100 only run) Sensor floating: u translations L1t+L4t, L3b+L4b global alignment tuning impact parameters central values, 2 iterations global Ztar zeroed (no info used from slope vs yT)</comment>
   </header>

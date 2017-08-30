@@ -145,8 +145,7 @@ public final class EvioToLcioTest extends TestCase {
         final TestOutputFile outputFile = new TestOutputFile(EvioToLcioTest.class, "hps_005772.slcio");
 
         // Run the command line utility.
-        final String[] args = new String[] {"-l", outputFile.getPath(), "-d", "HPS-EngRun2015-Nominal-v1", "-r", "-x", 
-                "/org/hps/steering/EventMarker.lcsim", inputFile.getAbsolutePath()};
+        final String[] args = new String[] {"-l", outputFile.getPath(), "-d", "HPS-EngRun2015-Nominal-v1", "-r", inputFile.getAbsolutePath()};
         System.out.println("Running EvioToLcio on " + inputFile.getPath());
         Logger.getLogger("org.hps.evio").setLevel(Level.WARNING);
         System.out.println("org.hps.evio logging level is " + Logger.getLogger("org.hps.evio").getLevel());

@@ -5,7 +5,6 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
   <driver name="ConditionsDriver"/>
-        <driver name="EventMarkerDriver"/>          
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="EcalClustererGTP"/>
@@ -16,9 +15,6 @@
 <!--        <driver name="CleanupDriver"/> -->
     </execute> 
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>        
     <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
      <detectorName>HPS-ECalCommissioning-v3</detectorName>
      <runNumber>3422</runNumber>

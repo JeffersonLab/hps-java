@@ -6,7 +6,6 @@
 
     <execute>
   <driver name="ConditionsDriver"/>
-        <driver name="EventMarkerDriver"/>          
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="EcalClustererGTP"/>
@@ -21,9 +20,6 @@
 <!--        <driver name="CleanupDriver"/> -->
     </execute> 
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>        
     <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
      <runNumber>3422</runNumber>
      <detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>

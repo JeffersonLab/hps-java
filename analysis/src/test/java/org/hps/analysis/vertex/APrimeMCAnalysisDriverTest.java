@@ -7,15 +7,9 @@ package org.hps.analysis.vertex;
 
 import java.io.File;
 import java.net.URL;
+
 import junit.framework.TestCase;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.lcsim.event.EventHeader;
-import org.lcsim.geometry.Detector;
+
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil;
@@ -44,6 +38,7 @@ public class APrimeMCAnalysisDriverTest extends TestCase {
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(lcioInputFile);
         APrimeMCAnalysisDriver va = new APrimeMCAnalysisDriver();
+        va.setOutputFile("target/test-output/APrimeMCAnalysis.aida");
         loop.add(va);
         loop.loop(nEvents);
         loop.dispose();
