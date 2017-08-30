@@ -8,9 +8,7 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.Collection;
-//import java.util.HashMap;
 import java.util.List;
-//import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,6 +40,7 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
  * Utilities that create track objects from fitted GBL trajectories.
  *
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ * @author Miriam Diamond
  *
  */
 public class MakeGblTracks {
@@ -94,23 +93,20 @@ public class MakeGblTracks {
         TrackState stateIP = new BaseTrackState(correctedHelixParams.getFirst(), ref, correctedHelixParams.getSecond().asPackedArray(true), TrackState.AtIP, bfield);
         trk.getTrackStates().add(stateIP);
 
-        // Set state at last point on trajectory
-        //Pair<double[], SymmetricMatrix> correctedHelixParamsLast = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.LAST, bfield);
-        //TrackState stateLast = new BaseTrackState(correctedHelixParamsLast.getFirst(), ref, correctedHelixParamsLast.getSecond().asPackedArray(true), TrackState.AtLastHit, bfield);
-        //trk.getTrackStates().add(stateLast);
-
-        // add more track states
-        if (storeTrackStates) {
+        if (!storeTrackStates) {
+            // just store last state
+            Pair<double[], SymmetricMatrix> correctedHelixParamsLast = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.LAST, bfield);
+            TrackState stateLast = new BaseTrackState(correctedHelixParamsLast.getFirst(), ref, correctedHelixParamsLast.getSecond().asPackedArray(true), TrackState.AtLastHit, bfield);
+            trk.getTrackStates().add(stateLast);
+        } else {
+            // store states at all 18 sensors
             int prevID = 0;
-            System.out.println("Starting track states printout:");
-            //SensorMap doesn't include IP
+            // note: SensorMap doesn't include IP
             Integer[] sensorsFromMapArray = fittedGblTrajectory.getSensorMap().keySet().toArray(new Integer[0]);
 
             for (int i = 0; i < sensorsFromMapArray.length; i++) {
                 int ilabel = sensorsFromMapArray[i];
-                //if (ilabel == fittedGblTrajectory.getPointIndex(FittedGblTrajectory.GBLPOINT.LAST))
-                //    continue;
-                // if a sensor is missing, insert blank TrackState object
+                // if sensors are missing from track, insert blank TrackState objects
                 int millepedeID = fittedGblTrajectory.getSensorMap().get(ilabel);
                 for (int k = 1; k < millepedeID - prevID; k++) {
                     // uses new lcsim constructor
@@ -120,15 +116,13 @@ public class MakeGblTracks {
                 }
                 prevID = millepedeID;
                 Pair<double[], SymmetricMatrix> correctedHelixParamsSensor = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, ilabel, bfield);
-
-                // location code
+                // set TrackState location code
                 int loc = TrackState.AtOther;
                 if (i == 0)
                     loc = TrackState.AtFirstHit;
                 else if (i == sensorsFromMapArray.length - 1)
                     loc = TrackState.AtLastHit;
-
-                System.out.printf("ilabel %d    millepedeID %d   loc %d \n", ilabel, millepedeID, loc);
+                // insert TrackState at sensor
                 TrackState stateSensor = new BaseTrackState(correctedHelixParamsSensor.getFirst(), ref, correctedHelixParamsSensor.getSecond().asPackedArray(true), loc, bfield);
                 trk.getTrackStates().add(stateSensor);
             }
@@ -145,8 +139,6 @@ public class MakeGblTracks {
         trk.setRefPointIsDCA(true);
         trk.setTrackType(TrackType.setGBL(trackType, true));
 
-        //  Add the track to the list of tracks
-        //            tracks.add(trk);
         LOGGER.fine(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helicalTrackFit.chisqtot(), helicalTrackFit.ndf()[0] + helicalTrackFit.ndf()[1], trk.getChi2(), trk.getNDF()));
         return new Pair<Track, GBLKinkData>(trk, kinkData);
     }
@@ -191,26 +183,9 @@ public class MakeGblTracks {
     public static FittedGblTrajectory doGBLFit(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double bfield, int debug) {
         List<GBLStripClusterData> stripData = makeStripData(htf, stripHits, _scattering, bfield, debug);
         double bfac = Constants.fieldConversion * bfield;
-        //Map<Integer, Integer> sensorMap = createSensorMap(stripHits);
-
         FittedGblTrajectory fit = HpsGblRefitter.fit(stripData, bfac, debug > 0);
-        //fit.setSensorMap(sensorMap);
         return fit;
     }
-
-    //    public static Map<Integer, Integer> createSensorMap(List<TrackerHit> stripHits) {
-    //        Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
-    //        int iLayer = 1;
-    //        for (TrackerHit stripHit : stripHits) {
-    //            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
-    //            int millepedeId = sensor.getMillepedeId();
-    //            if (millepedeId > 99)
-    //                continue;
-    //            sensorMap.put(iLayer, sensor.getSensorID());
-    //            iLayer++;
-    //        }
-    //        return sensorMap;
-    //    }
 
     /**
      * Create a list of {@link GBLStripClusterData} objects that can be used as input to the GBL fitter.
@@ -223,7 +198,6 @@ public class MakeGblTracks {
      */
     public static List<GBLStripClusterData> makeStripData(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double _B, int _debug) {
         List<GBLStripClusterData> stripClusterDataList = new ArrayList<GBLStripClusterData>();
-        //Map<Hep3Vector, Hep3Vector> originToTrkpos = new HashMap<Hep3Vector, Hep3Vector>();
 
         // Find scatter points along the path
         MultipleScattering.ScatterPoints scatters = _scattering.FindHPSScatterPoints(htf);
@@ -368,12 +342,6 @@ public class MakeGblTracks {
         double vmin = VecOp.dot(local.getUnmeasuredCoordinate(), local.getHitSegment().getStartPoint());
         double vmax = VecOp.dot(local.getUnmeasuredCoordinate(), local.getHitSegment().getEndPoint());
         double du = Math.sqrt(local.getCovarianceAsMatrix().diagonal(0));
-
-        //don't fill fields we don't use
-        //        IDetectorElement de = h.getSensor();
-        //        String det = getName(de);
-        //        int lyr = getLayer(de);
-        //        BarrelEndcapFlag be = getBarrelEndcapFlag(de);
         double dEdx = h.getdEdx();
         double time = h.getTime();
         List<RawTrackerHit> rawhits = h.getRawHits();

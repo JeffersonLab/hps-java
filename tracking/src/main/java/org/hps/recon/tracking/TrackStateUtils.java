@@ -6,6 +6,13 @@ import java.util.List;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 
+/**
+ * Utilities for retrieving TrackStates.
+ *
+ * @author Miriam Diamond
+ *
+ */
+
 public class TrackStateUtils {
     public static List<TrackState> getTrackStatesAtLocation(List<TrackState> trackStates, int location) {
         List<TrackState> result = new ArrayList<TrackState>();
@@ -76,6 +83,9 @@ public class TrackStateUtils {
         return null;
     }
 
+    // valid TrackStates at sensor all have location code 0... except at first sensor (code AtFirstHit) and last sensor (code AtLastHit)
+    // there are 18 track states at sensors, consecutive in the List
+    // if track doesn't hit a sensor, the corresponding TrackState in List is invalid, and is a dummy with location code -1
     public static TrackState getTrackStateAtSensor(List<TrackState> trackStates, int sensorNum) {
         int first = -1;
         boolean ok = false;
