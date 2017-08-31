@@ -32,7 +32,7 @@ public class BilliorVertexer {
     private final double[] _beamPosition = {0.0, 0.0, 0.0}; //origin
     private int _ntracks;
     private double[] _v0 = {0.0, 0.0, 0.0}; //initial guess for unconstrained vertex fit
-//    private double[] _vertexPosition = {0., 0.0, 0.0};
+    //    private double[] _vertexPosition = {0., 0.0, 0.0};
     private Matrix _vertexPosition;
     private Matrix _covVtx;
     private List<Matrix> _pFit;
@@ -146,7 +146,7 @@ public class BilliorVertexer {
             System.out.println(methodName + "::rk = " + rk);
 
         BasicMatrix Hk = makeHkFixed(Vx, pxtot, pytot, pztot, pointback);
-//        BasicMatrix Hk = makeHk(Vx, pxtot, pytot, pztot, pointback);
+        //        BasicMatrix Hk = makeHk(Vx, pxtot, pytot, pztot, pointback);
 
         if (_debug)
             System.out.println(methodName + "::Hk = " + Hk);
@@ -171,12 +171,12 @@ public class BilliorVertexer {
         BasicMatrix Rkinv = (BasicMatrix) MatrixOp.inverse(Rk);
         BasicMatrix Kk = (BasicMatrix) MatrixOp.mult(Ckm1, MatrixOp.mult(Hk, Rkinv));
 
-//        if(_debug)System.out.println("Ckm1 = " + Ckm1.toString());
-//        if(_debug)System.out.println("Hk = " + Hk.toString());
-//        if(_debug)System.out.println("Rk = " + Rk.toString());
-//        if(_debug)System.out.println("Vk = " + Vk.toString());
-//        if(_debug)System.out.println("rk = " + rk.toString());
-//        if(_debug)System.out.println("Kk = " + Kk.toString());
+        //        if(_debug)System.out.println("Ckm1 = " + Ckm1.toString());
+        //        if(_debug)System.out.println("Hk = " + Hk.toString());
+        //        if(_debug)System.out.println("Rk = " + Rk.toString());
+        //        if(_debug)System.out.println("Vk = " + Vk.toString());
+        //        if(_debug)System.out.println("rk = " + rk.toString());
+        //        if(_debug)System.out.println("Kk = " + Kk.toString());
         _constrainedFit = MatrixOp.mult(Kk, rk);
         _constrainedFit = MatrixOp.add(_constrainedFit, Xkm1);//Xk
 
@@ -189,14 +189,14 @@ public class BilliorVertexer {
         _constrainedCov = (BasicMatrix) MatrixOp.add(Ckm1, sumMatrix);
 
         //update the regular parameter names to the constrained result
-//        if(_debug)System.out.println("Without Constraint : " + _vertexPosition.toString());
-//        if(_debug)System.out.println("Without Constraint:  x= "+_vertexPosition.e(0,0));
+        //        if(_debug)System.out.println("Without Constraint : " + _vertexPosition.toString());
+        //        if(_debug)System.out.println("Without Constraint:  x= "+_vertexPosition.e(0,0));
         //        if(_debug)System.out.println(_constrainedFit.toString());
-//         if(_debug)System.out.println("Without Constraint : " + _covVtx.toString());
+        //         if(_debug)System.out.println("Without Constraint : " + _covVtx.toString());
         _vertexPosition = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedFit, 0, 0, 3, 1);
         _covVtx = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 0, 3, 3);
-//        if(_debug)System.out.println("With Constraint : " + _vertexPosition.toString());
-//        if(_debug)System.out.println("With Constraint : " + _covVtx.toString());
+        //        if(_debug)System.out.println("With Constraint : " + _vertexPosition.toString());
+        //        if(_debug)System.out.println("With Constraint : " + _covVtx.toString());
 
         if (_debug)
             System.out.println("Constrained vertex: " + _vertexPosition);
@@ -206,17 +206,17 @@ public class BilliorVertexer {
             _pFit.set(i, ptmp);
         }
 
-//        if(_debug)System.out.println("Unconstrained chi^2 = "+_chiSq);
+        //        if(_debug)System.out.println("Unconstrained chi^2 = "+_chiSq);
         //ok...add to the chi^2
         if (_debug)
             System.out.println("Chisq contribution: " + MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)));
         _chiSq += MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)).e(0, 0);
-//        if(_debug)System.out.println("Constrained chi^2 = "+_chiSq);
+        //        if(_debug)System.out.println("Constrained chi^2 = "+_chiSq);
     }
 
     private BasicMatrix makeHk(double Vx, double pxtot, double pytot, double pztot, boolean bscon) {
         BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
-//  ok, can set the derivitives wrt to V
+        //  ok, can set the derivitives wrt to V
         if (bscon) {
             Hk.setElement(0, 0, 0);
             Hk.setElement(0, 1, pytot / pxtot);
@@ -232,16 +232,16 @@ public class BilliorVertexer {
         Hk.setElement(2, 0, 0);
         Hk.setElement(2, 1, 0);
         Hk.setElement(2, 2, 1);
-//ok, loop over tracks again to set the derivitives wrt track momenta (theta,phi,rho)
+        //ok, loop over tracks again to set the derivitives wrt track momenta (theta,phi,rho)
         for (int i = 0; i < _ntracks; i++) {
             BasicMatrix pi = (BasicMatrix) _pFit.get(i);
             double theta = pi.e(0, 0);
             double phiv = pi.e(1, 0);
             double rho = pi.e(2, 0);
             double Pt = Math.abs((1. / rho) * _bField * Constants.fieldConversion);
-//            double px = Pt * Math.cos(phiv);
-//            double py = Pt * Math.sin(phiv);
-//            double pz = Pt * 1 / Math.tan(theta);
+            //            double px = Pt * Math.cos(phiv);
+            //            double py = Pt * Math.sin(phiv);
+            //            double pz = Pt * 1 / Math.tan(theta);
             //derivities wrt theta
             Hk.setElement(3 * (i + 1), 0, 0);
             Hk.setElement(3 * (i + 1), 1, 0);
@@ -263,10 +263,10 @@ public class BilliorVertexer {
             }
             //derivities wrt rho
             Hk.setElement(3 * (i + 1) + 2, 0, 0);
-//            Hk.setElement(3 * (i + 1) + 2, 1,
-//                    (pytot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
-//            Hk.setElement(3 * (i + 1) + 2, 2,
-//                    (pztot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
+            //            Hk.setElement(3 * (i + 1) + 2, 1,
+            //                    (pytot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
+            //            Hk.setElement(3 * (i + 1) + 2, 2,
+            //                    (pztot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
             if (bscon) {
                 Hk.setElement(3 * (i + 1) + 2, 1,
                         (cos(phiv) * pytot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * (Vx - _beamPosition[0]));
@@ -330,8 +330,8 @@ public class BilliorVertexer {
         if (bscon) {
             Hk.setElement(3, 2, -(((_beamPosition[0] - Vx) * Math.pow(1 / Math.sin(theta[0]), 2)) / (px[1] * rho[0] + Math.cos(phiv[0]))));
             Hk.setElement(6, 2, -(((_beamPosition[0] - Vx) * Math.pow(1 / Math.sin(theta[1]), 2)) / (px[0] * rho[1] + Math.cos(phiv[1]))));
-//          Hk.setElement(3, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[0]*Math.pow(1./Math.sin(theta[0]), 2));
-//	 Hk.setElement(6, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[1]*Math.pow(1./Math.sin(theta[1]), 2));	 
+            //          Hk.setElement(3, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[0]*Math.pow(1./Math.sin(theta[0]), 2));
+            // Hk.setElement(6, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[1]*Math.pow(1./Math.sin(theta[1]), 2));
         } else {
             Hk.setElement(3, 2, 0);
             Hk.setElement(6, 2, 0);
@@ -347,10 +347,10 @@ public class BilliorVertexer {
             Hk.setElement(4, 2, ((_beamPosition[0] - Vx) * (pz[1] * rho[0] + 1 / Math.tan(theta[0])) * Math.sin(phiv[0])) / Math.pow(px[1] * rho[0] + Math.cos(phiv[0]), 2));
             Hk.setElement(7, 1, ((_beamPosition[0] - Vx) * (1 + px[0] * rho[1] * Math.cos(phiv[1]) + py[0] * rho[1] * Math.sin(phiv[1]))) / Math.pow(px[0] * rho[1] + Math.cos(phiv[1]), 2));
             Hk.setElement(7, 2, ((_beamPosition[0] - Vx) * (pz[0] * rho[1] + 1 / Math.tan(theta[1])) * Math.sin(phiv[1])) / Math.pow(px[0] * rho[1] + Math.cos(phiv[1]), 2));
-//            Hk.setElement(4, 1, -(Vx - _beamPosition[0]) / Math.pow(pxtot, 2) * Pt[0] * (pxtot * Math.cos(phi[0]) + pytot * Math.sin(phi[0])));
-//            Hk.setElement(7, 1, -(Vx - _beamPosition[0]) / Math.pow(pxtot, 2) * Pt[1] * (pxtot * Math.cos(phi[1]) + pytot * Math.sin(phi[1])));
-//            Hk.setElement(4, 2, -(Vx - _beamPosition[0]) * pztot / Math.pow(pxtot, 2) * Pt[0] * Math.sin(phi[0]));
-//            Hk.setElement(7, 2, -(Vx - _beamPosition[0]) * pztot / Math.pow(pxtot, 2) * Pt[1] * Math.sin(phi[1]));
+            //            Hk.setElement(4, 1, -(Vx - _beamPosition[0]) / Math.pow(pxtot, 2) * Pt[0] * (pxtot * Math.cos(phi[0]) + pytot * Math.sin(phi[0])));
+            //            Hk.setElement(7, 1, -(Vx - _beamPosition[0]) / Math.pow(pxtot, 2) * Pt[1] * (pxtot * Math.cos(phi[1]) + pytot * Math.sin(phi[1])));
+            //            Hk.setElement(4, 2, -(Vx - _beamPosition[0]) * pztot / Math.pow(pxtot, 2) * Pt[0] * Math.sin(phi[0]));
+            //            Hk.setElement(7, 2, -(Vx - _beamPosition[0]) * pztot / Math.pow(pxtot, 2) * Pt[1] * Math.sin(phi[1]));
 
         } else {
             Hk.setElement(4, 1, 0);
@@ -369,10 +369,10 @@ public class BilliorVertexer {
             Hk.setElement(5, 2, ((_beamPosition[0] - Vx) * (pz[1] * Math.cos(phiv[0]) - px[1] * 1 / Math.tan(theta[0]))) / Math.pow(px[1] * rho[0] + Math.cos(phiv[0]), 2));
             Hk.setElement(8, 1, ((_beamPosition[0] - Vx) * (py[0] * Math.cos(phiv[1]) - px[0] * Math.sin(phiv[1]))) / Math.pow(px[0] * rho[1] + Math.cos(phiv[1]), 2));
             Hk.setElement(8, 2, ((_beamPosition[0] - Vx) * (pz[0] * Math.cos(phiv[1]) - px[0] * 1 / Math.tan(theta[1]))) / Math.pow(px[0] * rho[1] + Math.cos(phiv[1]), 2));
-//            Hk.setElement(5, 1, -(Vx - _beamPosition[0]) / Math.pow(pxtot * rho[0], 2) * (-pxtot * Math.sin(phi[0]) + pytot * Math.cos(phi[0])));
-//            Hk.setElement(8, 1, -(Vx - _beamPosition[0]) / Math.pow(pxtot * rho[1], 2) * (-pxtot * Math.sin(phi[1]) + pytot * Math.cos(phi[1])));
-//            Hk.setElement(5, 2, -(Vx - _beamPosition[0]) / Math.pow(pxtot * rho[0], 2) * (-pxtot / Math.tan(theta[0]) + pztot * Math.cos(phi[0])));
-//            Hk.setElement(8, 2, -(Vx - _beamPosition[0]) / Math.pow(pxtot * rho[0], 2) * (-pxtot / Math.tan(theta[0]) + pztot * Math.cos(phi[0])));
+            //            Hk.setElement(5, 1, -(Vx - _beamPosition[0]) / Math.pow(pxtot * rho[0], 2) * (-pxtot * Math.sin(phi[0]) + pytot * Math.cos(phi[0])));
+            //            Hk.setElement(8, 1, -(Vx - _beamPosition[0]) / Math.pow(pxtot * rho[1], 2) * (-pxtot * Math.sin(phi[1]) + pytot * Math.cos(phi[1])));
+            //            Hk.setElement(5, 2, -(Vx - _beamPosition[0]) / Math.pow(pxtot * rho[0], 2) * (-pxtot / Math.tan(theta[0]) + pztot * Math.cos(phi[0])));
+            //            Hk.setElement(8, 2, -(Vx - _beamPosition[0]) / Math.pow(pxtot * rho[0], 2) * (-pxtot / Math.tan(theta[0]) + pztot * Math.cos(phi[0])));
         } else {
             Hk.setElement(5, 1, 0);
             Hk.setElement(8, 1, 0);
@@ -494,8 +494,8 @@ public class BilliorVertexer {
         v0.setElement(0, 0, _v0[0]);
         v0.setElement(1, 0, _v0[1]);
         v0.setElement(2, 0, _v0[2]);
-//        List<Matrix> params = new ArrayList<Matrix>();
-//        List<Matrix> q0s = new ArrayList<Matrix>();
+        //        List<Matrix> params = new ArrayList<Matrix>();
+        //        List<Matrix> q0s = new ArrayList<Matrix>();
         List<Matrix> Gs = new ArrayList<Matrix>();
         List<Matrix> Ds = new ArrayList<Matrix>();
         List<Matrix> Es = new ArrayList<Matrix>();
@@ -514,11 +514,11 @@ public class BilliorVertexer {
             tmpPar.setElement(2, 0, par[2]);
             tmpPar.setElement(3, 0, par[3]);
             tmpPar.setElement(4, 0, par[4]);
-//            params.add(tmpPar);
+            //            params.add(tmpPar);
             double theta = par[2];
-//            double phiv = par[3];
+            //            double phiv = par[3];
             double rho = par[4];
-//            double Pt = Math.abs((1. / rho) * _bField * Constants.fieldConversion);
+            //            double Pt = Math.abs((1. / rho) * _bField * Constants.fieldConversion);
 
             double cotth = 1. / tan(par[2]);
             double uu = v0.e(0, 0) * cos(par[3]) + v0.e(1, 0) * sin(par[3]);//Q
@@ -544,7 +544,7 @@ public class BilliorVertexer {
             q0.setElement(0, 0, theta);
             q0.setElement(1, 0, phiVert);
             q0.setElement(2, 0, rho);
-//            q0s.add(q0);
+            //            q0s.add(q0);
 
             double cosf = cos(phiVert);
             double sinf = sin(phiVert);
@@ -618,8 +618,8 @@ public class BilliorVertexer {
             System.out.println("follow1985Paper::Vertex at : \nx= " + xtilde.e(0, 0) + " +/- " + Math.sqrt(covVtx.e(0, 0)) + "\ny= " + xtilde.e(1, 0) + " +/- " + Math.sqrt(covVtx.e(1, 1)) + "\nz= " + xtilde.e(2, 0) + " +/- " + Math.sqrt(covVtx.e(2, 2)));
 
         //ok, now the momentum
-//        List<Matrix> qtildes = new ArrayList<Matrix>();
-//        List<Matrix> ptildes = new ArrayList<Matrix>();
+        //        List<Matrix> qtildes = new ArrayList<Matrix>();
+        //        List<Matrix> ptildes = new ArrayList<Matrix>();
         List<Matrix> C0j = new ArrayList<Matrix>();
         List<Matrix> pfit = new ArrayList<Matrix>();
         Matrix[][] Cij = new Matrix[2][2];//max 2 tracks...just make this bigger for more
@@ -637,9 +637,9 @@ public class BilliorVertexer {
             BasicMatrix second = (BasicMatrix) MatrixOp.mult(MatrixOp.inverse(e), MatrixOp.mult(MatrixOp.transposed(b), g));
             second = (BasicMatrix) MatrixOp.mult(second, p);
             BasicMatrix qtilde = (BasicMatrix) MatrixOp.add(first, second);
-//            qtildes.add(qtilde);
+            //            qtildes.add(qtilde);
             BasicMatrix ptilde = (BasicMatrix) MatrixOp.add(MatrixOp.mult(a, xtilde), MatrixOp.mult(b, qtilde));
-//            ptildes.add(ptilde);
+            //            ptildes.add(ptilde);
             chisq += MatrixOp.mult(MatrixOp.transposed(MatrixOp.add(p, MatrixOp.mult(-1, ptilde))), MatrixOp.mult(g, MatrixOp.add(p, MatrixOp.mult(-1, ptilde)))).e(0, 0);
             if (_debug)
                 System.out.println("\n\nfollow1985Paper::Track #" + j);
@@ -657,12 +657,12 @@ public class BilliorVertexer {
             BasicMatrix tmpC0j = (BasicMatrix) MatrixOp.mult(-1, MatrixOp.mult(covVtx, MatrixOp.mult(d, MatrixOp.inverse(e))));
             C0j.add(tmpC0j);
             for (int i = 0; i < _ntracks; i++) {
-//                BasicMatrix ai = (BasicMatrix) As.get(i);
-//                BasicMatrix bi = (BasicMatrix) Bs.get(i);
-//                BasicMatrix di = (BasicMatrix) Ds.get(i);
-//                BasicMatrix ei = (BasicMatrix) Es.get(i);
-//                BasicMatrix gi = (BasicMatrix) Gs.get(i);
-//                BasicMatrix pi = (BasicMatrix) pis.get(i);
+                //                BasicMatrix ai = (BasicMatrix) As.get(i);
+                //                BasicMatrix bi = (BasicMatrix) Bs.get(i);
+                //                BasicMatrix di = (BasicMatrix) Ds.get(i);
+                //                BasicMatrix ei = (BasicMatrix) Es.get(i);
+                //                BasicMatrix gi = (BasicMatrix) Gs.get(i);
+                //                BasicMatrix pi = (BasicMatrix) pis.get(i);
                 BasicMatrix tmpCij = (BasicMatrix) MatrixOp.mult(-1, MatrixOp.mult(MatrixOp.inverse(e), MatrixOp.mult(MatrixOp.transposed(d), tmpC0j)));
                 Cij[i][j] = tmpCij;
             }
@@ -684,97 +684,97 @@ public class BilliorVertexer {
         covVtxMomList = C0j;
 
     }
-// private BasicMatrix makeHkFixed(double Vx, double pxtot, double pytot, double pztot, boolean bscon) {
-//     BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
-//     //derivitives wrt to V
-//     if (bscon) {
-//     Hk.setElement(0, 0, 0);
-//     Hk.setElement(0, 1, -pytot / pxtot);
-//     Hk.setElement(0, 2, -pztot / pxtot);
-//     } else {
-//     Hk.setElement(0, 0, 1);
-//     Hk.setElement(0, 1, 0);
-//     Hk.setElement(0, 2, 0);
-//     }
-//     Hk.setElement(1, 0, 0);
-//     Hk.setElement(1, 1, 1);
-//     Hk.setElement(1, 2, 0);
-//     Hk.setElement(2, 0, 0);
-//     Hk.setElement(2, 1, 0);
-//     Hk.setElement(2, 2, 1);
-//     
-//     //store the track parameters
-//     double theta[]=new double[_ntracks];
-//     double phiv[]=new double[_ntracks];
-//     double rho[]=new double[_ntracks];
-//     double Pt[]=new double[_ntracks];
-//     double px[]=new double[_ntracks];
-//     double py[]=new double[_ntracks];
-//     double pz[]=new double[_ntracks];
-//     for (int i = 0; i < _ntracks; i++) {
-//     BasicMatrix pi = (BasicMatrix) _pFit.get(i);
-//     theta[i] = pi.e(0, 0);
-//     phiv[i] = pi.e(1, 0);
-//     rho[i] = pi.e(2, 0);
-//     Pt[i] = Math.abs((1. / rho[i]) * _bField * Constants.fieldConversion);
-//     px[i] = Pt[i] * Math.cos(phiv[i]);
-//         py[i] = Pt[i] * Math.sin(phiv[i]);
-//         pz[i] = Pt[i] * 1 / Math.tan(theta[i]);
-//     }     
-//     
-//     //derivatives wrt theta
-//     Hk.setElement(3, 0, 0);
-//     Hk.setElement(3, 1, 0);
-//     Hk.setElement(6, 0, 0);
-//     Hk.setElement(6, 1, 0);
-//     if (bscon) {
-//     Hk.setElement(3, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[0]*Math.pow(1./Math.sin(theta[0]), 2));
-//     Hk.setElement(6, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[1]*Math.pow(1./Math.sin(theta[1]), 2));     
-//     } else {
-//     Hk.setElement(3, 2, 0);
-//     Hk.setElement(6, 2, 0);
-//     }
-//     
-//     //derivatives wrt phi
-//     Hk.setElement(4, 0, 0);
-//     Hk.setElement(4, 1, 0);
-//     Hk.setElement(7, 0, 0);
-//     Hk.setElement(7, 1, 0);
-//     if (bscon) {
-//     Hk.setElement(4, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot,2)*Pt[0]*(pxtot*Math.cos(phiv[0])+pytot*Math.sin(phiv[0])));
-//     Hk.setElement(7, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot,2)*Pt[1]*(pxtot*Math.cos(phiv[1])+pytot*Math.sin(phiv[1])));
-//     
-//     Hk.setElement(4, 2, -(Vx - _beamPosition[0])*pztot/Math.pow(pxtot,2)*Pt[0]*Math.sin(phiv[0]));
-//     Hk.setElement(7, 2, -(Vx - _beamPosition[0])*pztot/Math.pow(pxtot,2)*Pt[1]*Math.sin(phiv[1]));
-//     
-//     } else {
-//     Hk.setElement(4, 1, 0);
-//     Hk.setElement(7, 1, 0);
-//     Hk.setElement(4, 2, 0);
-//     Hk.setElement(7, 2, 0);
-//     }
-//     
-//     //derivatives wrt rho
-//     Hk.setElement(5, 0, 0);
-//     Hk.setElement(5, 1, 0);
-//     Hk.setElement(8, 0, 0);
-//     Hk.setElement(8, 1, 0);
-//     if (bscon) {
-//     Hk.setElement(5, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[0],2)*(-pxtot*Math.sin(phiv[0])+pytot*Math.cos(phiv[0])));
-//     Hk.setElement(8, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[1],2)*(-pxtot*Math.sin(phiv[1])+pytot*Math.cos(phiv[1])));
-//     
-//     Hk.setElement(5, 2, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[0],2)*(-pxtot/Math.tan(theta[0])+pztot*Math.cos(phiv[0])));
-//     Hk.setElement(8, 2, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[1],2)*(-pxtot/Math.tan(theta[1])+pztot*Math.cos(phiv[1])));
-//     } else {
-//     Hk.setElement(5, 1, 0);
-//     Hk.setElement(8, 1, 0);
-//     Hk.setElement(5, 2, 0);
-//     Hk.setElement(8, 2, 0);
-//     }
-//
-//     return Hk;
-// }
-//
+    // private BasicMatrix makeHkFixed(double Vx, double pxtot, double pytot, double pztot, boolean bscon) {
+    //     BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
+    //     //derivitives wrt to V
+    //     if (bscon) {
+    //     Hk.setElement(0, 0, 0);
+    //     Hk.setElement(0, 1, -pytot / pxtot);
+    //     Hk.setElement(0, 2, -pztot / pxtot);
+    //     } else {
+    //     Hk.setElement(0, 0, 1);
+    //     Hk.setElement(0, 1, 0);
+    //     Hk.setElement(0, 2, 0);
+    //     }
+    //     Hk.setElement(1, 0, 0);
+    //     Hk.setElement(1, 1, 1);
+    //     Hk.setElement(1, 2, 0);
+    //     Hk.setElement(2, 0, 0);
+    //     Hk.setElement(2, 1, 0);
+    //     Hk.setElement(2, 2, 1);
+    //     
+    //     //store the track parameters
+    //     double theta[]=new double[_ntracks];
+    //     double phiv[]=new double[_ntracks];
+    //     double rho[]=new double[_ntracks];
+    //     double Pt[]=new double[_ntracks];
+    //     double px[]=new double[_ntracks];
+    //     double py[]=new double[_ntracks];
+    //     double pz[]=new double[_ntracks];
+    //     for (int i = 0; i < _ntracks; i++) {
+    //     BasicMatrix pi = (BasicMatrix) _pFit.get(i);
+    //     theta[i] = pi.e(0, 0);
+    //     phiv[i] = pi.e(1, 0);
+    //     rho[i] = pi.e(2, 0);
+    //     Pt[i] = Math.abs((1. / rho[i]) * _bField * Constants.fieldConversion);
+    //     px[i] = Pt[i] * Math.cos(phiv[i]);
+    //         py[i] = Pt[i] * Math.sin(phiv[i]);
+    //         pz[i] = Pt[i] * 1 / Math.tan(theta[i]);
+    //     }     
+    //     
+    //     //derivatives wrt theta
+    //     Hk.setElement(3, 0, 0);
+    //     Hk.setElement(3, 1, 0);
+    //     Hk.setElement(6, 0, 0);
+    //     Hk.setElement(6, 1, 0);
+    //     if (bscon) {
+    //     Hk.setElement(3, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[0]*Math.pow(1./Math.sin(theta[0]), 2));
+    //     Hk.setElement(6, 2, (Vx - _beamPosition[0])/(pxtot)*Pt[1]*Math.pow(1./Math.sin(theta[1]), 2));     
+    //     } else {
+    //     Hk.setElement(3, 2, 0);
+    //     Hk.setElement(6, 2, 0);
+    //     }
+    //     
+    //     //derivatives wrt phi
+    //     Hk.setElement(4, 0, 0);
+    //     Hk.setElement(4, 1, 0);
+    //     Hk.setElement(7, 0, 0);
+    //     Hk.setElement(7, 1, 0);
+    //     if (bscon) {
+    //     Hk.setElement(4, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot,2)*Pt[0]*(pxtot*Math.cos(phiv[0])+pytot*Math.sin(phiv[0])));
+    //     Hk.setElement(7, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot,2)*Pt[1]*(pxtot*Math.cos(phiv[1])+pytot*Math.sin(phiv[1])));
+    //     
+    //     Hk.setElement(4, 2, -(Vx - _beamPosition[0])*pztot/Math.pow(pxtot,2)*Pt[0]*Math.sin(phiv[0]));
+    //     Hk.setElement(7, 2, -(Vx - _beamPosition[0])*pztot/Math.pow(pxtot,2)*Pt[1]*Math.sin(phiv[1]));
+    //     
+    //     } else {
+    //     Hk.setElement(4, 1, 0);
+    //     Hk.setElement(7, 1, 0);
+    //     Hk.setElement(4, 2, 0);
+    //     Hk.setElement(7, 2, 0);
+    //     }
+    //     
+    //     //derivatives wrt rho
+    //     Hk.setElement(5, 0, 0);
+    //     Hk.setElement(5, 1, 0);
+    //     Hk.setElement(8, 0, 0);
+    //     Hk.setElement(8, 1, 0);
+    //     if (bscon) {
+    //     Hk.setElement(5, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[0],2)*(-pxtot*Math.sin(phiv[0])+pytot*Math.cos(phiv[0])));
+    //     Hk.setElement(8, 1, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[1],2)*(-pxtot*Math.sin(phiv[1])+pytot*Math.cos(phiv[1])));
+    //     
+    //     Hk.setElement(5, 2, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[0],2)*(-pxtot/Math.tan(theta[0])+pztot*Math.cos(phiv[0])));
+    //     Hk.setElement(8, 2, -(Vx - _beamPosition[0])/Math.pow(pxtot*rho[1],2)*(-pxtot/Math.tan(theta[1])+pztot*Math.cos(phiv[1])));
+    //     } else {
+    //     Hk.setElement(5, 1, 0);
+    //     Hk.setElement(8, 1, 0);
+    //     Hk.setElement(5, 2, 0);
+    //     Hk.setElement(8, 2, 0);
+    //     }
+    //
+    //     return Hk;
+    // }
+    //
 
 
 
