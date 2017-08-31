@@ -268,6 +268,7 @@ public final class TrackDataDriver extends Driver {
                 LOGGER.fine("Extrapolating track with type " + Integer.toString(track.getType()));
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
+                // gives nonsense !
                 if (TrackStateUtils.getTrackStateAtECal(track) == null) {
                     if (TrackType.isGBL(track.getType())) {
                         TrackState stateIP = TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
