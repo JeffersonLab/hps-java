@@ -112,7 +112,6 @@ public class MakeGblTracks {
                     // uses new lcsim constructor
                     BaseTrackState dummy = new BaseTrackState(-1);
                     trk.getTrackStates().add(dummy);
-                    System.out.println("added null entry");
                 }
                 prevID = millepedeID;
                 Pair<double[], SymmetricMatrix> correctedHelixParamsSensor = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, ilabel, bfield);
