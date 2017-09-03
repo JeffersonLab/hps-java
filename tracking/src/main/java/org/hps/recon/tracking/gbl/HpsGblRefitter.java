@@ -241,6 +241,7 @@ public class HpsGblRefitter extends Driver {
         List<GblPoint> listOfPoints = new ArrayList<GblPoint>();
         // Save the association between strip cluster and label, and between label and path length
         Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
+        Map<Integer, double[]> trackPosMap = new HashMap<Integer, double[]>();
         Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
 
         //start trajectory at refence point (s=0) - this point has no measurement
@@ -402,20 +403,35 @@ public class HpsGblRefitter extends Driver {
             if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
                 throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
             }
-            // rotate track direction to measurement frame     
-            Hep3Vector tDirMeas = new BasicHep3Vector(VecOp.dot(tDirGlobal, u), VecOp.dot(tDirGlobal, v), VecOp.dot(tDirGlobal, w));
-            // TODO this is a trivial one. Fix it.
-            Hep3Vector normalMeas = new BasicHep3Vector(VecOp.dot(w, u), VecOp.dot(w, v), VecOp.dot(w, w));
+            // rotate track direction to measurement frame   
+            Matrix GlobalToMeas = new Matrix(3, 3);
+            GlobalToMeas.set(0, 0, u.x());
+            GlobalToMeas.set(0, 1, u.y());
+            GlobalToMeas.set(0, 2, u.z());
+            GlobalToMeas.set(1, 0, v.x());
+            GlobalToMeas.set(1, 1, v.y());
+            GlobalToMeas.set(1, 2, v.z());
+            GlobalToMeas.set(2, 0, w.x());
+            GlobalToMeas.set(2, 1, w.y());
+            GlobalToMeas.set(2, 2, w.z());
+            Vector tDirMeasVect = new Vector(GlobalToMeas.times(new Vector(tDirGlobal.v())));
+            Hep3Vector tDirMeas = new BasicHep3Vector(tDirMeasVect.get(0), tDirMeasVect.get(1), tDirMeasVect.get(2));
 
             // vector coplanar with measurement plane from origin to prediction
-            Hep3Vector tPosMeas = strip.getTrackPos();
+            Hep3Vector normalMeas = new BasicHep3Vector(VecOp.dot(w, u), VecOp.dot(w, v), VecOp.dot(w, w));
+
+            // global track position
+            Matrix MeasToGlobal = GlobalToMeas.inverse();
+            Vector tPosGlobalVect = MeasToGlobal.times(new Vector(strip.getTrackPos().v()));
+            double[] tPosGlobal = { tPosGlobalVect.get(0), tPosGlobalVect.get(1), tPosGlobalVect.get(2) };
+            trackPosMap.put(iLabel, tPosGlobal);
 
             // measurements: non-measured directions 
             double vmeas = 0.;
             double wmeas = 0.;
 
             // calculate and add derivatives to point
-            GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, tPosMeas, normalMeas);
+            GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, strip.getTrackPos(), normalMeas);
 
             //TODO find a more robust way to get half.
             boolean isTop = Math.sin(strip.getTrackLambda()) > 0;
@@ -468,6 +484,7 @@ public class HpsGblRefitter extends Driver {
         FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
         fittedTraj.setPathLengthMap(pathLengthMap);
         fittedTraj.setSensorMap(sensorMap);
+        fittedTraj.setTrackPosMap(trackPosMap);
 
         return fittedTraj;
     }

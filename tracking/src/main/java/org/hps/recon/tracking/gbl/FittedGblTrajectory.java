@@ -76,6 +76,7 @@ public class FittedGblTrajectory {
     private int _ndf;
     private Track _seed = null;
     private Map<Integer, Double> pathLengthMap = null;
+    private Map<Integer, double[]> trackPosMap = null;
     private Map<Integer, Integer> sensorMap = null;
 
     /**
@@ -200,6 +201,10 @@ public class FittedGblTrajectory {
         this.sensorMap = sensorMap;
     }
 
+    public void setTrackPosMap(Map<Integer, double[]> trackPosMap) {
+        this.trackPosMap = trackPosMap;
+    }
+
     public Map<Integer, Double> getPathLengthMap() {
         if (this.pathLengthMap == null)
             throw new RuntimeException("No path length map has been set on this trajectory!");
@@ -210,6 +215,12 @@ public class FittedGblTrajectory {
         if (this.sensorMap == null)
             throw new RuntimeException("No sensor map has been set on this trajectory!");
         return this.sensorMap;
+    }
+
+    public Map<Integer, double[]> getTrackPosMap() {
+        if (this.trackPosMap == null)
+            throw new RuntimeException("No track-position map has been set on this trajectory!");
+        return this.trackPosMap;
     }
 
     /**

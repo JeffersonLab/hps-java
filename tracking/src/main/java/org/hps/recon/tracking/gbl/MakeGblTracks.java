@@ -106,6 +106,7 @@ public class MakeGblTracks {
 
             for (int i = 0; i < sensorsFromMapArray.length; i++) {
                 int ilabel = sensorsFromMapArray[i];
+
                 // if sensors are missing from track, insert blank TrackState objects
                 int millepedeID = fittedGblTrajectory.getSensorMap().get(ilabel);
                 for (int k = 1; k < millepedeID - prevID; k++) {
@@ -122,6 +123,7 @@ public class MakeGblTracks {
                 else if (i == sensorsFromMapArray.length - 1)
                     loc = TrackState.AtLastHit;
                 // insert TrackState at sensor
+                ref = fittedGblTrajectory.getTrackPosMap().get(ilabel);
                 TrackState stateSensor = new BaseTrackState(correctedHelixParamsSensor.getFirst(), ref, correctedHelixParamsSensor.getSecond().asPackedArray(true), loc, bfield);
                 trk.getTrackStates().add(stateSensor);
             }
