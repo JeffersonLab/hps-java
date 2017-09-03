@@ -5,7 +5,6 @@
       @author Matt Graham <mgraham@slac.stanford.edu>
     -->    
     <execute>    
-        <driver name="ConditionsDriver"/>
         <!--  Readout Simulation -->
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
@@ -18,11 +17,6 @@
         <driver name="CleanupDriver" /> 
     </execute>
     <drivers>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <detectorName>${detector}</detectorName>
-            <runNumber>${run}</runNumber>
-            <freeze>true</freeze>
-        </driver>
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <coincidenceWindow>1</coincidenceWindow>
             <ecalName>Ecal</ecalName>

@@ -241,7 +241,7 @@ public class TrackUtils {
         Matrix jacT = MatrixOp.transposed(jac);
         Matrix first = MatrixOp.mult(covMatrix, jacT);
         Matrix newcov = MatrixOp.mult(jac, first);
-        System.out.println(newcov.getNColumns() + " x  " + newcov.getNRows());
+        //System.out.println(newcov.getNColumns() + " x  " + newcov.getNRows());
 
         return new SymmetricMatrix(newcov);
     }

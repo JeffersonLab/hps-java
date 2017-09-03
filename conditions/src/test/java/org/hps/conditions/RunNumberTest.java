@@ -32,7 +32,7 @@ public final class RunNumberTest extends TestCase {
         /**
          * Reference to conditions manager.
          */
-        private static DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        private static DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
 
         /**
          * Number of times {@link #detectorChanged(Detector)} was called.

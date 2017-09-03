@@ -20,7 +20,7 @@ public final class SvtConfigurationTest extends TestCase {
      * Load an SVT XML configuration from the database.
      */
     public void testSvtConfiguration() {
-        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        final DatabaseConditionsManager manager = new DatabaseConditionsManager();
         final SvtConfigurationCollection collection = manager.getCachedConditions(SvtConfigurationCollection.class,
                 "svt_configurations").getCachedData();
         for (final SvtConfiguration config : collection) {
