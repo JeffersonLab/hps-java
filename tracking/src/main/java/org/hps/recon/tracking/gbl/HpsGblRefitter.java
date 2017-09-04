@@ -404,27 +404,29 @@ public class HpsGblRefitter extends Driver {
                 throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
             }
             // rotate track direction to measurement frame   
-            Matrix GlobalToMeas = new Matrix(3, 3);
-            GlobalToMeas.set(0, 0, u.x());
-            GlobalToMeas.set(0, 1, u.y());
-            GlobalToMeas.set(0, 2, u.z());
-            GlobalToMeas.set(1, 0, v.x());
-            GlobalToMeas.set(1, 1, v.y());
-            GlobalToMeas.set(1, 2, v.z());
-            GlobalToMeas.set(2, 0, w.x());
-            GlobalToMeas.set(2, 1, w.y());
-            GlobalToMeas.set(2, 2, w.z());
-            Vector tDirMeasVect = new Vector(GlobalToMeas.times(new Vector(tDirGlobal.v())));
-            Hep3Vector tDirMeas = new BasicHep3Vector(tDirMeasVect.get(0), tDirMeasVect.get(1), tDirMeasVect.get(2));
+            //            Matrix GlobalToMeas = new Matrix(3, 3);
+            //            GlobalToMeas.set(0, 0, u.x());
+            //            GlobalToMeas.set(0, 1, u.y());
+            //            GlobalToMeas.set(0, 2, u.z());
+            //            GlobalToMeas.set(1, 0, v.x());
+            //            GlobalToMeas.set(1, 1, v.y());
+            //            GlobalToMeas.set(1, 2, v.z());
+            //            GlobalToMeas.set(2, 0, w.x());
+            //            GlobalToMeas.set(2, 1, w.y());
+            //            GlobalToMeas.set(2, 2, w.z());
+            //            Vector tDirMeasVect = new Vector(GlobalToMeas.times(new Vector(tDirGlobal.v())));
+            //            Hep3Vector tDirMeas = new BasicHep3Vector(tDirMeasVect.get(0), tDirMeasVect.get(1), tDirMeasVect.get(2));
 
+            Hep3Vector tDirMeas = new BasicHep3Vector(VecOp.dot(tDirGlobal, u), VecOp.dot(tDirGlobal, v), VecOp.dot(tDirGlobal, w));
             // vector coplanar with measurement plane from origin to prediction
             Hep3Vector normalMeas = new BasicHep3Vector(VecOp.dot(w, u), VecOp.dot(w, v), VecOp.dot(w, w));
 
             // global track position
-            Matrix MeasToGlobal = GlobalToMeas.inverse();
-            Vector tPosGlobalVect = MeasToGlobal.times(new Vector(strip.getTrackPos().v()));
-            double[] tPosGlobal = { tPosGlobalVect.get(0), tPosGlobalVect.get(1), tPosGlobalVect.get(2) };
-            trackPosMap.put(iLabel, tPosGlobal);
+            //Matrix MeasToGlobal = GlobalToMeas.inverse();
+            //Vector tPosGlobalVect = MeasToGlobal.times(new Vector(strip.getTrackPos().v()));
+            //double[] tPosGlobal = { tPosGlobalVect.get(0), tPosGlobalVect.get(1), tPosGlobalVect.get(2) };
+            //trackPosMap.put(iLabel, tPosGlobal);
+            trackPosMap.put(iLabel, strip.getTrackPos().v());
 
             // measurements: non-measured directions 
             double vmeas = 0.;
