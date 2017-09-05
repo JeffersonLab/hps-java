@@ -1,12 +1,21 @@
 package org.hps.recon.tracking;
 
+import hep.physics.vec.BasicHep3Matrix;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
+//import hep.physics.vec.VecOp;
+
+import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.lcsim.detector.ITransform3D;
+import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
@@ -177,7 +186,7 @@ public final class TrackDataDriver extends Driver {
 
         boolean isFirstHit;
 
-        HpsSiSensor sensor;
+        SiSensor sensor;
         Hep3Vector stereoHitPosition;
         Hep3Vector trackPosition;
         HelicalTrackHit helicalTrackHit;
@@ -219,17 +228,41 @@ public final class TrackDataDriver extends Driver {
 
                     // Add the stereo layer number associated with the track
                     // residual
-                    stereoLayers.add(((HelicalTrackHit) rotatedStereoHit).Layer());
+                    int layer = ((HelicalTrackHit) rotatedStereoHit).Layer();
+                    stereoLayers.add(layer);
 
-                    // Extrapolate the track to the stereo hit position and
-                    // calculate track residuals
+                    RawTrackerHit rth = (RawTrackerHit) (rotatedStereoHit.getRawHits().get(0));
+                    sensor = (SiSensor) (rth.getDetectorElement());
+                    ITransform3D trans = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
+
+                    //  calculate track residuals
                     stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
-                    trackPosition = TrackUtils.extrapolateTrack(trackStateForResiduals, stereoHitPosition.x());
-                    xResidual = trackPosition.x() - stereoHitPosition.y();
-                    yResidual = trackPosition.y() - stereoHitPosition.z();
+                    //                    trackPosition = TrackUtils.extrapolateTrack(trackStateForResiduals, stereoHitPosition.x());
+                    double[] trackPos = { 0, 0, 0 };
+                    TrackState ts = TrackStateUtils.getTrackStateAtSensor(track, ((HpsSiSensor) sensor).getMillepedeId());
+                    if (ts != null) {
+                        trackPos = ts.getReferencePoint();
+
+                        Hep3Vector trackPosVector = new BasicHep3Vector(trackPos);
+                        //                        Hep3Matrix detToStripMatrix = (BasicHep3Matrix) trans.getRotation().getRotationMatrix();
+                        Hep3Matrix detToTrackMatrix = (BasicHep3Matrix) CoordinateTransformations.getMatrix();
+                        //                        trans.getTranslation().translate(trackPosVector);
+                        //                        Hep3Matrix rotate = VecOp.mult(detToTrackMatrix, VecOp.inverse(detToStripMatrix));
+                        //                        trackPosition = VecOp.mult(rotate, trackPosVector);
+                        trackPosition = trans.transformed(trackPosVector);
+                        trackPosition = VecOp.mult(detToTrackMatrix, trackPosition);
+                    } else {
+                        trackPosition = new BasicHep3Vector(trackPos);
+                    }
+                    xResidual = trackPosition.x() - stereoHitPosition.x();
+                    //xResidual = trackPos[0] - stereoHitPosition.y();
+                    yResidual = trackPosition.y() - stereoHitPosition.y();
+                    //yResidual = trackPos[1] - stereoHitPosition.z();
                     trackResidualsX.add(xResidual);
                     trackResidualsY.add((float) yResidual);
 
+                    System.out.printf("layer %d stereoHitPosition: %s \n", ((HpsSiSensor) sensor).getMillepedeId(), stereoHitPosition.toString());
+                    System.out.printf("    vs trackPosition %s \n", trackPosition.toString());
                     //
                     // Change the persisted position of both 
                     // RotatedHelicalTrackHits and HelicalTrackHits to the
@@ -251,9 +284,9 @@ public final class TrackDataDriver extends Driver {
 
                         if (isFirstHit) {
                             sensor = (HpsSiSensor) ((RawTrackerHit) cluster.rawhits().get(0)).getDetectorElement();
-                            if (sensor.isTopLayer()) {
+                            if (((HpsSiSensor) sensor).isTopLayer()) {
                                 trackerVolume = 0;
-                            } else if (sensor.isBottomLayer()) {
+                            } else if (((HpsSiSensor) sensor).isBottomLayer()) {
                                 trackerVolume = 1;
                             }
                             isFirstHit = false;
