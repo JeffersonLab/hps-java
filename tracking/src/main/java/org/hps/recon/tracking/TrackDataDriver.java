@@ -1,10 +1,7 @@
 package org.hps.recon.tracking;
 
-import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
-//import hep.physics.vec.VecOp;
 
 import hep.physics.vec.VecOp;
 
@@ -233,7 +230,6 @@ public final class TrackDataDriver extends Driver {
 
                     RawTrackerHit rth = (RawTrackerHit) (rotatedStereoHit.getRawHits().get(0));
                     sensor = (SiSensor) (rth.getDetectorElement());
-                    ITransform3D trans = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
 
                     //  calculate track residuals
                     stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
@@ -241,6 +237,7 @@ public final class TrackDataDriver extends Driver {
                     if (ts != null) {
                         double[] trackPos = ts.getReferencePoint();
                         Hep3Vector trackPosVector = new BasicHep3Vector(trackPos);
+                        ITransform3D trans = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
                         trackPosition = trans.transformed(trackPosVector);
                     } else {
                         trackPosition = TrackUtils.extrapolateTrack(trackStateForResiduals, stereoHitPosition.x());
