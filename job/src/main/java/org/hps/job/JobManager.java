@@ -5,10 +5,8 @@ import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.hps.conditions.ConditionsDriver;
 import org.hps.logging.config.DefaultLoggingConfig;
 import org.lcsim.job.JobControlManager;
-import org.lcsim.util.Driver;
 
 /**
  * Extension of standard LCSim job manager.
@@ -77,20 +75,4 @@ public final class JobManager extends JobControlManager {
         }
         return commandLine;
     }
-
-    /**
-     * Initialize <code>ConditionsDriver</code> if necessary.
-     **/
-    protected void setupDrivers() {
-        super.setupDrivers();
-        for (Driver driver : this.getDriverExecList()) {
-            if (driver instanceof ConditionsDriver) {
-                ConditionsDriver conditions = (ConditionsDriver) driver;
-                getConditionsSetup().setRun(conditions.getRunNumber());
-                getConditionsSetup().setDetectorName(conditions.getDetectorName());
-                break;
-            }
-        }
-    }
-
 }

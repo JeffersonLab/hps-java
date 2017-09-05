@@ -255,7 +255,6 @@ public final class EvioEventUtilities {
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         if (!conditionsManager.isInitialized() || conditionsManager.getRun() != runNumber) {
             try {
-                conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");
                 DatabaseConditionsManager.getInstance().setDetector("HPS-dummy-detector", runNumber);
             } catch (ConditionsNotFoundException e) {
                 throw new RuntimeException(e);

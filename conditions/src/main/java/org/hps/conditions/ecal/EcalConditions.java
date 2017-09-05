@@ -140,7 +140,11 @@ public final class EcalConditions {
             final double gain = constants.getGain().getGain();
             final double pedestal = constants.getCalibration().getPedestal();
             final double noise = constants.getCalibration().getNoise();
-            final double timeShift = constants.getTimeShift().getTimeShift();
+            double timeShift = 0;
+            // This is not set properly for Test Run data.  --JM
+            if (constants.getTimeShift() != null) {
+                timeShift = constants.getTimeShift().getTimeShift();
+            }
             final boolean bad = constants.isBadChannel();
 
             // Channel data.
