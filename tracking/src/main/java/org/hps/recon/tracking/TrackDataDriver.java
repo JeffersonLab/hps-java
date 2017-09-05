@@ -41,25 +41,26 @@ import org.lcsim.util.Driver;
 public final class TrackDataDriver extends Driver {
 
     /** logger **/
-    private static final Logger LOGGER = Logger.getLogger(TrackDataDriver.class.getPackage().getName());
-
+    private static final Logger LOGGER  = Logger.getLogger(TrackDataDriver.class.getPackage().getName());
+    
+    
     /** The B field map */
     FieldMap bFieldMap = null;
-
+    
     /** Collection Names */
-
+    
     /** Collection name of TrackResidualData objects */
     private static final String TRK_RESIDUALS_COL_NAME = "TrackResiduals";
-
+    
     /** 
      * Collection name of LCRelations between a Track and Rotated 
      * HelicalTrackHits 
      */
     private static final String ROTATED_HTH_REL_COL_NAME = "RotatedHelicalTrackHitRelations";
-
+    
     /** Collection name of Rotated HelicalTrackHits */
     private static final String ROTATED_HTH_COL_NAME = "RotatedHelicalTrackHits";
-
+    
     /** 
      * Collection name of LCRelations between a Track and  TrackResidualsData
      * objects.
@@ -71,23 +72,23 @@ public final class TrackDataDriver extends Driver {
      * compact description.
      */
     private static final String ECAL_POSITION_CONSTANT_NAME = "ecal_dface";
-
+   
     /** Position of the Ecal face */
     private double ecalPosition = 0; // mm
-
+   
     /** Z position to start extrapolation from */
     double extStartPos = 700; // mm
-
-    /** The extrapolation step size */
+   
+    /** The extrapolation step size */ 
     double stepSize = 5.0; // mm
-
+    
     /** The default number of layers */
     int layerNum = 6;
-
+    
     /** Default constructor */
     public TrackDataDriver() {
     }
-
+   
     /**
      * Set the position along Z where the extrapolation of a track should
      * begin.
@@ -95,46 +96,46 @@ public final class TrackDataDriver extends Driver {
      * @param extStartPoint Position along Z where the extrapolation should 
      *                      begin
      */
-    void setExtrapolationStartPosition(double extStartPos) {
-        this.extStartPos = extStartPos;
+    void setExtrapolationStartPosition(double extStartPos) { 
+        this.extStartPos = extStartPos; 
     }
-
+   
     /**
      * Set the extrapolation length between iterations through the magnetic 
      * field.
      * 
      * @param stepSize The extrapolation length between iterations in mm. 
      */
-    void setStepSize(double stepSize) {
-        this.stepSize = stepSize;
+    void setStepSize(double stepSize) { 
+        this.stepSize = stepSize; 
     }
-
+    
     /**
      * Set number of tracking layers. Default is 6 layers.
      * 
      */
-
-    public void setLayerNum(int layerNum) {
-        this.layerNum = layerNum;
+    
+    public void setLayerNum(int layerNum) { 
+        this.layerNum = layerNum; 
     }
-
+    
     /**
      * Method called by the framework when a new {@link Detector} geometry is
      * loaded. This method is called at the beginning of every run and 
      * provides access to the {@link Detector} object itself.
      * 
      * @param detector LCSim {@link Detector} geometry 
-     */
+     */     
     @Override
-    protected void detectorChanged(Detector detector) {
-
+    protected void detectorChanged(Detector detector) { 
+       
         // Get the field map from the detector object
-        bFieldMap = detector.getFieldMap();
-
+        bFieldMap = detector.getFieldMap(); 
+        
         // Get the position of the Ecal from the compact description
         ecalPosition = detector.getConstants().get(ECAL_POSITION_CONSTANT_NAME).getValue();
     }
-
+   
     /**
      * Method called by the framework to process the event.
      * 
@@ -159,7 +160,7 @@ public final class TrackDataDriver extends Driver {
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
-        //        List<HelicalTrackHit> rotatedHths = event.get(HelicalTrackHit.class, ROTATED_HTH_COL_NAME);
+//        List<HelicalTrackHit> rotatedHths = event.get(HelicalTrackHit.class, ROTATED_HTH_COL_NAME);
 
         // Create a container that will be used to store all TrackData objects.
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
@@ -199,7 +200,7 @@ public final class TrackDataDriver extends Driver {
 
         // Loop over each of the track collections retrieved from the event
         for (List<Track> tracks : trackCollections) {
-
+                        
             // Loop over all the tracks in the event
             for (Track track : tracks) {
 
@@ -212,10 +213,10 @@ public final class TrackDataDriver extends Driver {
                 stereoLayers.clear();
                 isFirstHit = true;
 
-                //                TrackState trackStateForResiduals = TrackUtils.getTrackStateAtLocation(track, TrackState.AtLastHit);
-                //                if (trackStateForResiduals == null ) trackStateForResiduals= TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
+//                TrackState trackStateForResiduals = TrackUtils.getTrackStateAtLocation(track, TrackState.AtLastHit);
+//                if (trackStateForResiduals == null ) trackStateForResiduals= TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
                 TrackState trackStateForResiduals = TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
-
+                
                 // Change the position of a HelicalTrackHit to be the corrected
                 // one.
                 // FIXME: Now that multiple track collections are being used, 
@@ -268,7 +269,7 @@ public final class TrackDataDriver extends Driver {
                     // RotatedHelicalTrackHits and HelicalTrackHits to the
                     // corrected position.
                     //
-
+                    
                     // Get the HelicalTrackHit corresponding to the 
                     // RotatedHelicalTrackHit associated with a track
                     helicalTrackHit = (HelicalTrackHit) hitToRotated.from(rotatedStereoHit);
@@ -298,56 +299,54 @@ public final class TrackDataDriver extends Driver {
                 // Add a track state that contains the extrapolated track position and 
                 // parameters at the face of the Ecal.
                 //
-                LOGGER.fine("Extrapolating track with type " + Integer.toString(track.getType()));
+                LOGGER.fine("Extrapolating track with type " + Integer.toString(track.getType()) );
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
-                // gives nonsense !
-                if (TrackStateUtils.getTrackStateAtECal(track) == null) {
-                    if (TrackType.isGBL(track.getType())) {
-                        TrackState stateIP = TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
-                        if (stateIP == null)
-                            throw new RuntimeException("IP track state for GBL track was not found");
-                        TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, ecalPosition, stepSize, bFieldMap);
-                        track.getTrackStates().add(stateEcalIP);
-
-                    } else {
-                        LOGGER.fine("Extrapolate seed track to ECal from vertex");
-                        TrackState state = TrackUtils.extrapolateTrackUsingFieldMap(track, extStartPos, ecalPosition, stepSize, bFieldMap);
-                        track.getTrackStates().add(state);
-                    }
+                if( TrackType.isGBL(track.getType())) {
+                    TrackState stateIP = TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
+                    if( stateIP == null)
+                        throw new RuntimeException("IP track state for GBL track was not found");
+                    TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, ecalPosition, stepSize, bFieldMap);
+                    track.getTrackStates().add(stateEcalIP);
+                   
+                } else {
+                    LOGGER.fine("Extrapolate seed track to ECal from vertex");
+                    TrackState state = TrackUtils.extrapolateTrackUsingFieldMap(track, extStartPos, ecalPosition, stepSize, bFieldMap);
+                    track.getTrackStates().add(state);
                 }
-
-                LOGGER.fine(Integer.toString(track.getTrackStates().size()) + " track states for this track at this point:");
-                for (TrackState state : track.getTrackStates()) {
+                
+                LOGGER.fine(Integer.toString(track.getTrackStates().size()) +  " track states for this track at this point:");
+                for(TrackState state : track.getTrackStates()) {
                     String s = "type " + Integer.toString(track.getType()) + " location " + Integer.toString(state.getLocation()) + " refPoint (" + state.getReferencePoint()[0] + " " + state.getReferencePoint()[1] + " " + state.getReferencePoint()[2] + ") " + " params: ";
-                    for (int i = 0; i < 5; ++i)
-                        s += String.format(" %f", state.getParameter(i));
+                    for(int i=0;i<5;++i) s += String.format(" %f", state.getParameter(i));
                     LOGGER.fine(s);
                 }
-
+                
+                
                 // The track time is the mean t0 of hits on a track
                 trackTime = totalT0 / totalHits;
-
+             
                 // Calculate the track isolation constants for each of the 
                 // layers
-                Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated, layerNum);
+                Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated,layerNum);
                 double qualityArray[] = new double[isolations.length];
                 for (int i = 0; i < isolations.length; i++) {
                     qualityArray[i] = isolations[i] == null ? -99999999.0 : isolations[i];
                 }
-
+                
                 // Create a new TrackData object and add it to the event
                 TrackData trackData = new TrackData(trackerVolume, trackTime, qualityArray);
                 trackDataCollection.add(trackData);
                 trackDataRelations.add(new BaseLCRelation(trackData, track));
 
                 // Create a new TrackResidualsData object and add it to the event
-                TrackResidualsData trackResiduals = new TrackResidualsData((int) trackerVolume, stereoLayers, trackResidualsX, trackResidualsY);
+                TrackResidualsData trackResiduals = new TrackResidualsData((int) trackerVolume, stereoLayers,
+                                trackResidualsX, trackResidualsY);
                 trackResidualsCollection.add(trackResiduals);
                 trackToTrackResidualsRelations.add(new BaseLCRelation(trackResiduals, track));
             }
         }
-
+        
         // Add all collections to the event
         event.put(TrackData.TRACK_DATA_COLLECTION, trackDataCollection, TrackData.class, 0);
         event.put(TrackData.TRACK_DATA_RELATION_COLLECTION, trackDataRelations, LCRelation.class, 0);

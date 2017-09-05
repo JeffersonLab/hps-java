@@ -24,7 +24,6 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
@@ -55,7 +54,7 @@ public class TrackingReconstructionPlots extends Driver {
     private boolean doElectronPositronPlots = false;
     private boolean doStripHitPlots = false;
 
-    private String trackCollectionName = "GBLTracks";
+    private String trackCollectionName = "MatchedTracks";
     String ecalSubdetectorName = "Ecal";
     String ecalCollectionName = "EcalClusters";
     IDDecoder dec;
@@ -539,17 +538,6 @@ public class TrackingReconstructionPlots extends Driver {
 
             if (doMatchedClusterPlots)
                 doClustersOnTrack(trk, clusters);
-
-            // testing only
-            List<TrackState> states = trk.getTrackStates();
-            System.out.println("TrackStates test:");
-            for (TrackState ts : states) {
-                if (ts.getLocation() == -1) {
-                    System.out.println("TrackState -1");
-                    continue;
-                }
-                System.out.printf("TrackState at %d: params %f %f %f %f %f %f\n", ts.getLocation(), ts.getD0(), ts.getOmega(), ts.getPhi(), ts.getTanLambda(), ts.getZ0(), ts.getCovMatrix()[0]);
-            }
         }
 
         if (doElectronPositronPlots)
