@@ -17,7 +17,7 @@ import org.lcsim.util.test.TestUtil;
 public class EngRun2015FeeReconTest extends TestCase {
 
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
-    static final String testFileName = "run5772_Fee_2000Events.evio";
+    static final String testFileName = "hps_005772_feeskim_10k.evio";
     private final int nEvents = -1;
 
     public void testIt() throws Exception {
@@ -26,7 +26,7 @@ public class EngRun2015FeeReconTest extends TestCase {
         File evioInputFile = cache.getCachedFile(testURL);
         File outputFile = new TestOutputFile(EngRun2015FeeReconTest.class, "EngRun2015FeeReconTest");
         String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim", "-d",
-            "HPS-EngRun2015-Nominal-v6-0-fieldmap", "-D", "outputFile=" + outputFile.getPath(), "-n", "2000",
+            "HPS-EngRun2015-Nominal-v6-0-fieldmap", "-D", "outputFile=" + outputFile.getPath(), //"-n", "2000",
             evioInputFile.getPath()};
         System.out.println("Running EngRun2015ReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
