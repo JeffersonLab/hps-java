@@ -93,7 +93,9 @@ public class MCTruthExampleDriver extends Driver {
                 if (calHitMap.get(p) == null) {
                     calHitMap.put(p, new ArrayList<SimCalorimeterHit>());
                 }
-                calHitMap.get(p).add(hit);
+                if (!calHitMap.get(p).contains(hit)) {
+                    calHitMap.get(p).add(hit);
+                }
             }
         }
         
