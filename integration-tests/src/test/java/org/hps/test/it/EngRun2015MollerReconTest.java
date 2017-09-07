@@ -26,8 +26,8 @@ static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibratio
         File evioInputFile = cache.getCachedFile(testURL);
         File outputFile = new TestOutputFile(EngRun2015MollerReconTest.class, "EngRun2015MollerReconTest");
         String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim", "-d",
-            "HPS-EngRun2015-Nominal-v6-0-fieldmap", "-D", "outputFile=" + outputFile.getPath(), //"-n", "2000",
-            evioInputFile.getPath(), "-e ", "100"};
+            "HPS-EngRun2015-Nominal-v6-0-fieldmap", "-D", "outputFile=" + outputFile.getPath(),// "-n", "200",
+            evioInputFile.getPath(), "-e", "100"};
         System.out.println("Running EngRun2015MollerReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();

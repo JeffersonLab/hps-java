@@ -44,7 +44,7 @@ public class EngRun2015MollerRecon extends Driver {
 
     private Double _beamEnergy = 1.056;
     private double _percentFeeCut = 0.8;
-    private double _psumDelta = 0.05;
+    private double _psumDelta = 0.06;
     private double _thetasumCut = 0.07;
     private double _trackChi2NdfCut = 8.; //corresponds to chisquared cut of 40 for 5-hit tracks
 
