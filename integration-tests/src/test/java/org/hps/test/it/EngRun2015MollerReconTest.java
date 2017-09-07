@@ -17,7 +17,7 @@ import org.lcsim.util.test.TestUtil;
 public class EngRun2015MollerReconTest extends TestCase {
     
 static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
-    static final String testFileName = "run5772_Moller_1000Events.evio";
+    static final String testFileName = "hps_005772_mollerskim_10k.evio";
     private final int nEvents = -1;
 
     public void testIt() throws Exception {
@@ -27,7 +27,7 @@ static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibratio
         File outputFile = new TestOutputFile(EngRun2015MollerReconTest.class, "EngRun2015MollerReconTest");
         String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim", "-d",
             "HPS-EngRun2015-Nominal-v6-0-fieldmap", "-D", "outputFile=" + outputFile.getPath(),// "-n", "200",
-            evioInputFile.getPath(), "-e", "100"};
+            evioInputFile.getPath(), "-e", "1000"};
         System.out.println("Running EngRun2015MollerReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
