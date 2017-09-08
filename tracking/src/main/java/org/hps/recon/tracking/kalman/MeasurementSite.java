@@ -1,6 +1,7 @@
 package kalman;
 
-class MeasurementSite {  // Kalman fit measurement site, one for each silicon-strip detector
+//Kalman fit measurement site, one for each silicon-strip detector
+class MeasurementSite {  
 	Measurement m;            // Hit measurement    
 	int thisSite;             // Index of this measurement site
 	int nextSite;             // Index of next measurement site
@@ -11,11 +12,11 @@ class MeasurementSite {  // Kalman fit measurement site, one for each silicon-st
 	boolean filtered;         // True if the filtered state vector has been built
 	StateVector aS;           // Smoothed state vector
 	boolean smoothed;         // True if the smoothed state vector has been built
+	double chi2inc;   		  // chi^2 increment for this site
 	Vec H;                    // Derivatives of the transformation from state vector to measurement
 	private double alpha;
-	double XL;                // Thickness of the detector in radiation lengths
-	double chi2inc;           // chi^2 increment for this site
-	double dEdx;              // in GeV/mm
+	private double XL;        // Thickness of the detector in radiation lengths
+	private double dEdx;      // in GeV/mm
 	private Vec u;            // Unit vector perpendicular to the B field direction t and lying in the x,z plane
 	private Vec v;            // Another unit vector perpendicular to t and u.  t,u,v form a right-handed orthogonal system aligned with the field
 	private boolean verbose;

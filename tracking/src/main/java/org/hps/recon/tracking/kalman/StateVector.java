@@ -1,6 +1,7 @@
 package kalman;
 
-class StateVector {  // State vector (projected, filtered, or smoothed) for the Kalman filter
+//State vector (projected, filtered, or smoothed) for the Kalman filter
+class StateVector {      
 
 	int kUp;         // Last site index for which information is used in this state vector
 	int kLow;        // Index of the site for the present pivot (lower index on a in the formalism)
@@ -9,26 +10,14 @@ class StateVector {  // State vector (projected, filtered, or smoothed) for the 
 	RotMatrix Rot;   // Rotation from the global coordinates to the local site coordinates aligned with B field on z axis
 	Vec origin;      // Origin of the local site coordinates.
 	SquareMatrix C;  // Helix covariance matrix at this site
-	private SquareMatrix F;  // Propagator matrix to propagate from this site to the next site
-	private double B;        // Field magnitude
-	private double alpha;    // Conversion from 1/K to radius R
 	double mPred;    // Filtered or smoothed predicted measurement at site kLow
 	double r;        // Filtered or smoothed residual at site kLow
 	double R;        // Covariance of residual
-	private HelixPlaneIntersect hpi;
 	boolean verbose;
-
-	// To transform a space point from global to local coordinates, first subtract <origin> and then rotate by <Rot>.
-	Vec toLocal(Vec xGlobal) {
-		Vec xLocal = Rot.rotate(xGlobal.dif(origin));
-		return xLocal;
-	}
-	
-	// To transform a space point from local to global coordinates, first rotate by the inverse of <Rot> and then add the <origin>.
-	Vec toGlobal(Vec xLocal) {
-		Vec xGlobal = Rot.inverseRotate(xLocal).sum(origin);
-		return xGlobal;
-	}
+	private SquareMatrix F;  // Propagator matrix to propagate from this site to the next site
+	private double B;        // Field magnitude
+	private double alpha;    // Conversion from 1/K to radius R
+	private HelixPlaneIntersect hpi;
 	
 	// Constructor for the initial state vector used to start the Kalman filter.
 	StateVector(int site, Vec helixParams,  
@@ -107,6 +96,18 @@ class StateVector {  // State vector (projected, filtered, or smoothed) for the 
 		System.out.format("End of dump of state vector %s %d  %d<<<\n", s, kUp, kLow);
 	}
 	
+	// To transform a space point from global to local coordinates, first subtract <origin> and then rotate by <Rot>.
+	Vec toLocal(Vec xGlobal) {
+		Vec xLocal = Rot.rotate(xGlobal.dif(origin));
+		return xLocal;
+	}
+	
+	// To transform a space point from local to global coordinates, first rotate by the inverse of <Rot> and then add the <origin>.
+	Vec toGlobal(Vec xLocal) {
+		Vec xGlobal = Rot.inverseRotate(xLocal).sum(origin);
+		return xGlobal;
+	}
+		
 	// Create a predicted state vector by propagating a given helix to a measurement site
 	StateVector predict(int newSite, Vec pivot, double B, Vec t, Vec origin, double XL, double deltaE) { // Create predicted state vector for the next site
 		// newSite = index of the new site
@@ -171,8 +172,7 @@ class StateVector {  // State vector (projected, filtered, or smoothed) for the 
 			}
 		}
 		*/
-		
-				
+						
 		aPrime.kLow = newSite;
 		aPrime.kUp = kUp;
 
@@ -289,7 +289,7 @@ class StateVector {  // State vector (projected, filtered, or smoothed) for the 
 		return phi;
 	}	
 	
-	// Multiple scattering matrix; assume 1 scatter at beginning of helix propagation
+	// Multiple scattering matrix; assume a single thin scattering layer at the beginning of the helix propagation
 	private SquareMatrix getQ(double sigmaMS) {  
 		double [][] q = new double [5][5];
 		
