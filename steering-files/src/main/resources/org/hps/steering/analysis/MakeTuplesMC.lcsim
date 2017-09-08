@@ -19,7 +19,7 @@
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_tri.txt</tupleFile>
             <cutTuple>true</cutTuple>
-            <beamPosZ>-5.0</beamPosZ>
+            <beamPosZ>0.0</beamPosZ>
             <getMC>true</getMC>
         </driver>
         <driver name="MollerTuple" type="org.hps.analysis.tuple.MollerTupleDriver">
@@ -27,14 +27,14 @@
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_moller.txt</tupleFile>
             <cutTuple>true</cutTuple>
-            <beamPosZ>-5.0</beamPosZ>
+            <beamPosZ>0.0</beamPosZ>
         </driver>
         <driver name="FEETuple" type="org.hps.analysis.tuple.FEETupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_fee.txt</tupleFile>
             <cutTuple>true</cutTuple>
-            <beamPosZ>-5.0</beamPosZ>
+            <beamPosZ>0.0</beamPosZ>
         </driver>
     </drivers>
 </lcsim>

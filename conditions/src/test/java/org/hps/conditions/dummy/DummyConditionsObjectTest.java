@@ -33,9 +33,8 @@ public final class DummyConditionsObjectTest extends TestCase {
     @Override
     public void setUp() {
         // Configure the conditions system. This uses a local development database that is not globally accessible.
-        manager = DatabaseConditionsManager.getInstance();
+        manager = new DatabaseConditionsManager();
         manager.setConnectionResource("/org/hps/conditions/config/jeremym_dev_connection.prop");
-        manager.setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");
     }
 
     /**

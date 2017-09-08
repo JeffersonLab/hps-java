@@ -347,6 +347,11 @@
         <artifactId>org-srs-datacat-client</artifactId>
         <version>0.5-TEST3</version>
       </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.11</version>
+      </dependency>      
     </dependencies>
   </dependencyManagement>
   

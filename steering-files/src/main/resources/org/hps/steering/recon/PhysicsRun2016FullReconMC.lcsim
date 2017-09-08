@@ -8,7 +8,6 @@
     -->
     <execute>
 
-        <driver name="ConditionsDriver"/>
         <!--RF driver-->
         <driver name="RfFitter"/>
  
@@ -63,15 +62,6 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <detectorName>${detector}</detectorName>
-            <runNumber>${run}</runNumber>
-            <freeze>true</freeze>
-        </driver>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver> 
-              
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
         <!-- Ecal reconstruction drivers -->

@@ -1,6 +1,5 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="ConditionsDriver"/>
         <driver name="DAQConfig"/>
         <driver name="EcalRawConverter"/>
         <driver name="GTPTestDriver"/>
@@ -12,9 +11,6 @@
         <driver name="CleanupDriver"/>
     </execute>     
     <drivers>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <tag>pass0</tag>
-        </driver>        
         <driver name="DAQConfig" type="org.hps.record.daqconfig.DAQConfigDriver"/>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>

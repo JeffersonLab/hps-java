@@ -174,6 +174,7 @@ public final class ConnectionParameters {
         final Properties connectionProperties = this.getConnectionProperties();
         Connection connection = null;
         int attempt = 0;
+        // FIXME: The connection retry should be done with built-in Java classes.
         while (true) {
             attempt++;
             try {

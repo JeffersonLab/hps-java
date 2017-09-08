@@ -41,7 +41,7 @@ public class ScalersTest extends TestCase {
         File inputFile = cache.getCachedFile(new URL(TEST_FILE_URL));
         
         // Setup conditions and event building.
-        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        DatabaseConditionsManager manager = new DatabaseConditionsManager();
         LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
         manager.addConditionsListener(builder);
         
