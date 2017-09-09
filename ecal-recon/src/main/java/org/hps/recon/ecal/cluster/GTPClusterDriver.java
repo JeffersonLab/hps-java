@@ -37,6 +37,11 @@ public class GTPClusterDriver extends ClusterDriver {
         gtp = (GTPClusterer) clusterer;
         setWriteClusterCollection(true);
     }
+	
+	@Override
+	public void endOfData() {
+		gtp.tempCloseWriter();
+	}
     
     /**
      * Sets whether the behavior of the hit inclusion window with respect
