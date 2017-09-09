@@ -2,7 +2,10 @@ package org.hps.readout.ecal.updated;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.recon.ecal.cluster.ClusterType;
@@ -16,6 +19,10 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 
 public class GTPClusterReadoutDriver extends ReadoutDriver {
+	private LinkedList<Map<Long, CalorimeterHit>> hitBuffer;
+	private final TempOutputWriter writer = new TempOutputWriter("clusters_new.log");
+	private final TempOutputWriter seedWriter = new TempOutputWriter("cluster_seeds_new.log");
+	
 	private NeighborMap neighborMap;
 	private String inputCollectionName = "EcalCorrectedHits";
 	private String outputCollectionName = "EcalClustersGTP";
@@ -24,6 +31,12 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 	private double localTime = 2.0;
 	private double localTimeDisplacement = 0;
 	private double seedEnergyThreshold = 0.050;
+	
+	@Override
+	public void endOfData() {
+		writer.close();
+		seedWriter.close();
+	}
     
 	@Override
 	public void detectorChanged(Detector etector) {
@@ -42,6 +55,29 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 	
 	@Override
 	public void process(EventHeader event) {
+		StringBuffer outputBuffer = new StringBuffer();
+		outputBuffer.append("Status for range: [" + (localTime - temporalWindow) + ", " + (localTime + temporalWindow + 4) + ") :: "
+				+ ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + temporalWindow + 4.0) + "\n");
+		int index = (temporalWindow / 4) * 2 + 1;
+		double time = localTime - temporalWindow;
+		outputBuffer.append("System Time: " + localTime + "\n");
+		while(time < localTime + temporalWindow + 4) {
+			Collection<CalorimeterHit> hits = ReadoutDataManager.getData(time, time + 4.0, inputCollectionName, CalorimeterHit.class);
+			if(localTime == time) {
+				outputBuffer.append("\tSeed Buffer " + index + " (" + time + " --> " + (time + 4.0) + ")\n");
+			} else {
+				outputBuffer.append("\tBuffer " + index + " (" + time + " --> " + (time + 4.0) + ")\n");
+			}
+        	for(CalorimeterHit hit : hits) {
+        		outputBuffer.append(String.format("\t\t%f;%f;%d%n", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+        	}
+        	index--;
+        	time += 4.0;
+		}
+		
+		
+		
+		
 		System.out.println("New Clusterer -- Event " + event.getEventNumber() +" -- Current Time is " + localTime);
 		
 		// Check the data management driver to determine whether the
@@ -50,18 +86,18 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 			return;
 		}
 		
-		// Increment the local time.
-		localTime += 4.0;
-		
 		// Get the hits that occur during the present clock-cycle, as
 		// well as the hits that occur in the verification window
 		// both before and after the current clock-cycle.
 		Collection<CalorimeterHit> seedCandidates = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, CalorimeterHit.class);
 		Collection<CalorimeterHit> foreHits = ReadoutDataManager.getData(localTime - temporalWindow, localTime, inputCollectionName, CalorimeterHit.class);
-		Collection<CalorimeterHit> postHits = ReadoutDataManager.getData(localTime + 4.0, localTime + temporalWindow + 8.0, inputCollectionName, CalorimeterHit.class);
-		List<CalorimeterHit> otherHits = new ArrayList<CalorimeterHit>();
-		otherHits.addAll(foreHits);
-		otherHits.addAll(postHits);
+		Collection<CalorimeterHit> postHits = ReadoutDataManager.getData(localTime + 4.0, localTime + temporalWindow + 4.0, inputCollectionName, CalorimeterHit.class);
+		
+		// Increment the local time.
+		localTime += 4.0;
+		
+		//writer.write("Fore: [" + (localTime - temporalWindow) + ", " + localTime + ");   Seeds: [" + localTime + ", " + (localTime + 4.0) + ");   Aft: ["
+		//		+ (localTime + 4.0) + ", " + (localTime + temporalWindow + 8.0) + ")");
 		
 		// DEBUG :: Print out the input hits.
 		List<CalorimeterHit> allHits = new ArrayList<CalorimeterHit>(seedCandidates.size() + foreHits.size() + postHits.size());
@@ -73,6 +109,16 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 		for(CalorimeterHit hit : allHits) {
 			System.out.println("\t\tCalorimeter hit with energy " + hit.getRawEnergy() + " and time " + hit.getTime() + " on channel " + hit.getCellID() + ".");
 		}
+		
+		// DEBUG :: Write the converted hits seen.
+		/*
+		for(CalorimeterHit hit : allHits) {
+			writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+		}
+		for(CalorimeterHit hit : seedCandidates) {
+			seedWriter.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+		}
+		*/
 		
 		System.out.println("\tSaw Seed Candidates:");
 		if(seedCandidates.isEmpty()) { System.out.println("\t\tNone!"); }
@@ -102,7 +148,7 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 			// the clustering time window by definition, so the time
 			// condition is not checked explicitly.
 			hitLoop:
-			for(CalorimeterHit hit : otherHits) {
+			for(CalorimeterHit hit : allHits) {
 				// If the hit is not adjacent to the seed hit, it can
 				// be ignored.
 				if(!neighborMap.get(seedCandidate.getCellID()).contains(hit.getCellID())) {
@@ -136,6 +182,18 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 		
 		// Pass the clusters to the data management driver.
 		ReadoutDataManager.addData(outputCollectionName, gtpClusters, Cluster.class);
+		
+		if(!gtpClusters.isEmpty()) {
+			// DEBUG :: Write the converted hits seen.
+			//writer.write("Output");
+			writer.write(outputBuffer.toString());
+			writer.write("Saw " + gtpClusters.size() + " new clusters.");
+			for(Cluster cluster : gtpClusters) {
+				writer.write(String.format("%f;%f;%f;%d", cluster.getEnergy(), TriggerModule.getClusterTime(cluster), TriggerModule.getClusterHitCount(cluster),
+						TriggerModule.getClusterSeedHit(cluster).getCellID()));
+			}
+			writer.write("\n\n");
+		}
 	}
 	
 	@Override
@@ -143,6 +201,20 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 		localTimeDisplacement = temporalWindow + 4.0;
 		addDependency(inputCollectionName);
 		ReadoutDataManager.registerCollection(outputCollectionName, this, Cluster.class);
+		
+		
+		
+        // Initiate the hit buffer.
+        hitBuffer = new LinkedList<Map<Long, CalorimeterHit>>();
+        
+        // Populate the event buffer with (2 * clusterWindow + 1)
+        // empty events. These empty events represent the fact that
+        // the first few events will not have any events in the past
+        // portion of the buffer.
+        int bufferSize = (2 * (temporalWindow / 4)) + 1;
+        for (int i = 0; i < bufferSize; i++) {
+            hitBuffer.add(new HashMap<Long, CalorimeterHit>(0));
+        }
 	}
 	
 	@Override
