@@ -19,7 +19,7 @@ public class ClockDriver extends Driver {
     @Override
     public void process(EventHeader event) {
         ClockSingleton.step();
-        TriggerDriver.resetTriggerBit();
+        TriggerDriver.resetTrigger();
     }
     
     @Override
