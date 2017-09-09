@@ -44,6 +44,8 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class EcalReadoutDriver extends ReadoutDriver {
+	private final TempOutputWriter writer = new TempOutputWriter("raw_hits_new.log");
+	
 	// ==============================================================
 	// ==== LCIO Collections ========================================
 	// ==============================================================
@@ -187,6 +189,11 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	private LinkedList<RawCalorimeterHit> triggerPathCoincidenceQueue = new LinkedList<RawCalorimeterHit>();
 	
 	@Override
+	public void endOfData() {
+		writer.close();
+	}
+	
+	@Override
 	public void startOfData() {
 		// Calculate the correct time offset. This is a function of
 		// the integration samples and the output delay.
@@ -214,6 +221,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	
 	@Override
 	public void process(EventHeader event) {
+		
 		/*
 		 * As a first step, truth energy depositions from SLIC must
 		 * be obtained and converted into voltage pulse amplitudes.
@@ -225,6 +233,13 @@ public class EcalReadoutDriver extends ReadoutDriver {
 		// Get current SLIC truth energy depositions.
 		Collection<CalorimeterHit> hits = ReadoutDataManager.getData(ReadoutDataManager.getCurrentTime(), ReadoutDataManager.getCurrentTime() + 2.0,
 				truthHitCollectionName, CalorimeterHit.class);
+		
+		// DEBUG :: Write the truth hits seen.
+		writer.write(">" + ReadoutDataManager.getCurrentTime());
+		writer.write("Input");
+		for(CalorimeterHit hit : hits) {
+			writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+		}
 		
 		// Truth depositions must then be converted to voltage pulse
 		// amplitudes and added to the buffer. Noise is added here as
@@ -410,6 +425,12 @@ public class EcalReadoutDriver extends ReadoutDriver {
 			}
 			
 			ReadoutDataManager.addData(outputHitCollectionName, newHits, RawCalorimeterHit.class);
+			
+			// DEBUG :: Write the truth hits seen.
+			writer.write("Output");
+			for(RawCalorimeterHit hit : newHits) {
+				writer.write(String.format("%d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
+			}
 		}
 	}
 	
