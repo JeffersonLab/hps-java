@@ -26,6 +26,8 @@ import org.lcsim.lcio.LCIOConstants;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class EcalReadoutRawConverterDriver extends ReadoutDriver {
+	private final TempOutputWriter writer = new TempOutputWriter("converted_hits_new.log");
+	
 	// ==============================================================
 	// ==== LCIO Collections ========================================
 	// ==============================================================
@@ -74,6 +76,11 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
 	private double localTime = 2.0;
 	
 	@Override
+	public void endOfData() {
+		writer.close();
+	}
+	
+	@Override
 	public void detectorChanged(Detector detector) {
 		// Reset the converter calorimeter conditions.
 		// TODO: The detector object is not actually used by the converter...
@@ -85,6 +92,9 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
 	
 	@Override
 	public void process(EventHeader event) {
+		writer.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime());
+		writer.write("Input");
+		
 		// Check the data management driver to determine whether the
 		// input collection is available or not.
 		if(!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime)) {
@@ -94,12 +104,9 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
 		// Get all of the raw hits in the current clock-cycle.
 		Collection<RawCalorimeterHit> rawHits = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, RawCalorimeterHit.class);
 		
-		// DEBUG :: Print out the input hits.
-		System.out.println("New Raw Converter -- Event " + event.getEventNumber() +" -- Current Time is " + localTime);
-		System.out.println("\tSaw Raw Hits:");
-		if(rawHits.isEmpty()) { System.out.println("\t\tNone!"); }
+		// DEBUG :: Write the raw hits seen.
 		for(RawCalorimeterHit hit : rawHits) {
-			System.out.println("\t\tRaw hit with amplitude " + hit.getAmplitude() + " and time " + hit.getTimeStamp() + " on channel " + hit.getCellID() + ".");
+			writer.write(String.format("%d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
 		}
 		
 		// Increment the local time.
@@ -121,15 +128,14 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
 			}
 		}
 		
-		// DEBUG :: Output the hits to the terminal.
-		System.out.println("\tMade Calorimeter Hits:");
-		if(newHits.isEmpty()) { System.out.println("\t\tNone!"); }
-		for(CalorimeterHit hit : newHits) {
-			System.out.println("\t\tCalorimeter hit with energy " + hit.getRawEnergy() + " and time " + hit.getTime() + " on channel " + hit.getCellID() + ".");
-		}
-		
 		// Add the calorimeter hit collection to the data manager.
 		ReadoutDataManager.addData(outputCollectionName, newHits, CalorimeterHit.class);
+		
+		// DEBUG :: Write the converted hits seen.
+		writer.write("Output");
+		for(CalorimeterHit hit : newHits) {
+			writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+		}
 		
 		// TODO: What is function of the "readout name"?
 		// LCMetaData meta = new MetaData(name, type, flags, readoutName);
