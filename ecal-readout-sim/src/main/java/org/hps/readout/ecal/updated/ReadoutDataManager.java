@@ -279,7 +279,6 @@ public class ReadoutDataManager extends Driver {
 						+ " with charge " + particle.getCharge() + " and PID " + particle.getPDGID() + ".");
 			}
 		}
-		*/
 		
 		// Calculate the trigger and readout times.
 		double triggerTime = getCurrentTime() - triggerTimeDisplacementMap.get(driver);
@@ -289,6 +288,7 @@ public class ReadoutDataManager extends Driver {
 		triggerQueue.add(new TriggerTime(triggerTime, readoutTime, driver));
 		System.out.println("Added trigger to queue with trigger time " + triggerTime + " and readout time " + readoutTime + " from driver "
 				+ driver.getClass().getSimpleName() + ".");
+		*/
 	}
 	
 	private static final double getTotalTimeDisplacement(String collectionName, ReadoutDriver productionDriver) {
