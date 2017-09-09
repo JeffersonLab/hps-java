@@ -26,47 +26,46 @@ public abstract class HPSTrackerJavaBuilder implements IHPSTrackerJavaBuilder {
     protected IDetectorElement baseDetectorElement = null;
     public HPSTrackerBuilder _builder = null;
     protected Element node = null;
-    
+
     public HPSTrackerJavaBuilder(boolean debugFlag, Element node) {
-        this._debug=debugFlag;
-        this.node  = node;
-    }   
-    
+        this._debug = debugFlag;
+        this.node = node;
+    }
+
     public abstract void build(ILogicalVolume trackingVolume);
+
     public abstract HPSTrackerGeometryDefinition createGeometryDefinition(boolean debug, Element node);
 
-    
     /**
      * Add to list of objects.
+     * 
      * @param geom - object to add.
      */
     public void add(JavaSurveyVolume geom) {
         javaSurveyVolumes.add(geom);
     }
-    
+
     public void setBuilder(HPSTrackerBuilder b) {
         _builder = b;
     }
-    
+
     public void build() {
         _builder.build();
     }
-    
+
     public void setDebug(boolean debug) {
         _debug = debug;
     }
-    
+
     public boolean isDebug() {
         return _debug;
     }
-
 
     public DetectorIdentifierHelper getDetectorIdentifierHelper() {
         return detectorIdentifierHelper;
     }
 
-    public void setDetectorIdentifierHelper(
-            DetectorIdentifierHelper detectorIdentifierHelper) {
+    public void setDetectorIdentifierHelper(DetectorIdentifierHelper detectorIdentifierHelper) {
         this.detectorIdentifierHelper = detectorIdentifierHelper;
     }
 
@@ -74,11 +73,9 @@ public abstract class HPSTrackerJavaBuilder implements IHPSTrackerJavaBuilder {
         return identifierDictionary;
     }
 
-    public void setIdentifierDictionary(
-            IIdentifierDictionary identifierDictionary) {
+    public void setIdentifierDictionary(IIdentifierDictionary identifierDictionary) {
         this.identifierDictionary = identifierDictionary;
     }
-
 
     public void setSubdetector(Subdetector subdet) {
         this.subdet = subdet;
@@ -88,40 +85,46 @@ public abstract class HPSTrackerJavaBuilder implements IHPSTrackerJavaBuilder {
         return this.subdet;
     }
 
-    
-
-    
-
     // This finds specific type. I would like to use the ID for this but can't, I think.
     // TODO there must be a factory instance to do this
     public SiTrackerModule getModuleDetectorElement(SiTrackerModule testElement) {
-        if(isDebug()) System.out.printf("%s: getModuleDetectorElement for module  %s path: \"%s\"\n", this.getClass().getSimpleName(),testElement.getName(),testElement.getGeometry().getPathString());
+        if (isDebug())
+            System.out.printf("%s: getModuleDetectorElement for module  %s path: \"%s\"\n", this.getClass()
+                    .getSimpleName(), testElement.getName(), testElement.getGeometry().getPathString());
         SiTrackerModule element = null;
-        for(IDetectorElement e : moduleDetectorElements) {
+        for (IDetectorElement e : moduleDetectorElements) {
             SiTrackerModule m = (SiTrackerModule) e;
-            if(isDebug()) System.out.printf("%s: compare with module  %s path: %s\"%s\" \n", this.getClass().getSimpleName(),m.getName(),m.getGeometry().getPathString());
-            if(m.getGeometry().getPathString().equals(testElement.getGeometry().getPathString())) {
-                if(element!=null) throw new RuntimeException("two DE sharing extended ID?");
-                if(isDebug()) System.out.printf("%s: found it\n", this.getClass().getSimpleName());
+            if (isDebug())
+                System.out.printf("%s: compare with module  %s path: %s\"%s\" \n", this.getClass().getSimpleName(),
+                        m.getName(), m.getGeometry().getPathString());
+            if (m.getGeometry().getPathString().equals(testElement.getGeometry().getPathString())) {
+                if (element != null)
+                    throw new RuntimeException("two DE sharing extended ID?");
+                if (isDebug())
+                    System.out.printf("%s: found it\n", this.getClass().getSimpleName());
                 element = m;
             }
         }
         return element;
     }
 
-    
     // Find detector elements
     // TODO This should be using some global geometry code like DetectorElementStore?
     public IDetectorElement getLayerDetectorElement(IExpandedIdentifier expId) {
         IDetectorElement element = null;
-        if(isDebug()) System.out.printf("%s: search among %d layer DEs\n", this.getClass().getSimpleName(), layerDetectorElements.size());
-        for(IDetectorElement e : layerDetectorElements) {
-            if(isDebug()) System.out.printf("%s: test %s\n", this.getClass().getSimpleName(),e.getName());
+        if (isDebug())
+            System.out.printf("%s: search among %d layer DEs\n", this.getClass().getSimpleName(),
+                    layerDetectorElements.size());
+        for (IDetectorElement e : layerDetectorElements) {
+            if (isDebug())
+                System.out.printf("%s: test %s\n", this.getClass().getSimpleName(), e.getName());
             ExpandedIdentifier eId = (ExpandedIdentifier) e.getExpandedIdentifier();
-            if(eId.equals(expId)) { // TODO order matters as expId is an interface without that function!?
-                //check that only one was found
-                if(element!=null) throw new RuntimeException("two DE sharing extended ID?");
-                if(isDebug()) System.out.printf("%s: found it\n", this.getClass().getSimpleName());
+            if (eId.equals(expId)) { // TODO order matters as expId is an interface without that function!?
+                // check that only one was found
+                if (element != null)
+                    throw new RuntimeException("two DE sharing extended ID?");
+                if (isDebug())
+                    System.out.printf("%s: found it\n", this.getClass().getSimpleName());
                 element = e;
             }
 
@@ -129,10 +132,9 @@ public abstract class HPSTrackerJavaBuilder implements IHPSTrackerJavaBuilder {
         return element;
     }
 
-
     public void addLayerDetectorElement(IDetectorElement e) {
         IExpandedIdentifier expId = e.getExpandedIdentifier();
-        if(getLayerDetectorElement(expId) != null) 
+        if (getLayerDetectorElement(expId) != null)
             throw new RuntimeException("Trying to add an existing layer detector element.");
         layerDetectorElements.add(e);
     }
@@ -146,13 +148,12 @@ public abstract class HPSTrackerJavaBuilder implements IHPSTrackerJavaBuilder {
     }
 
     public void addModuleDetectorElement(IDetectorElement e) {
-        if(!(e instanceof SiTrackerModule)) 
+        if (!(e instanceof SiTrackerModule))
             throw new RuntimeException("Trying to add an existing module of wrong type.");
-        if(getModuleDetectorElement((SiTrackerModule) e) != null) 
+        if (getModuleDetectorElement((SiTrackerModule) e) != null)
             throw new RuntimeException("Trying to add an already existing module detector element.");
         layerDetectorElements.add(e);
     }
-    
 
     /**
      * @return the baseTrackerGeometry
@@ -167,6 +168,5 @@ public abstract class HPSTrackerJavaBuilder implements IHPSTrackerJavaBuilder {
     public void setBaseTrackerGeometry(JavaSurveyVolume baseTrackerGeometry) {
         this.baseSurveyVolume = baseTrackerGeometry;
     }
-
 
 }

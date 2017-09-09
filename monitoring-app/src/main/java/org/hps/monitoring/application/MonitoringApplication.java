@@ -363,7 +363,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             chooseLogFile();
         } else if (Commands.LOG_TO_TERMINAL.equals(command)) {
             logToTerminal();
-        } 
+        }
     }
 
     /**
@@ -713,6 +713,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      */
     private void runDisconnectThread() {
         new Thread() {
+
             @Override
             public void run() {
                 LOGGER.fine("disconnect thread is running ...");
@@ -754,9 +755,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                 try {
                     if ("pdf".equals(extension)) {
                         // Write out all plot graphics from the tabs to a single PDF file.
-                        ExportPdf.write( 
-                                MonitoringPlotFactory.getPlotterRegistry().getPlotters(),
-                                fileName, 
+                        ExportPdf.write(MonitoringPlotFactory.getPlotterRegistry().getPlotters(), fileName,
                                 getRunData());
                     } else {
                         // Save plot object data to AIDA or ROOT file.
@@ -865,6 +864,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
 
         // Setup the region listener to connect the plot info window.
         MonitoringPlotFactory.setPlotterRegionListener(new PlotterRegionListener() {
+
             @Override
             public void regionSelected(final PlotterRegion region) {
                 if (region != null) {
@@ -919,7 +919,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     private void showSettingsDialog() {
         this.frame.getSettingsDialog().setVisible(true);
     }
-   
+
     /**
      * Start a new monitoring session.
      */

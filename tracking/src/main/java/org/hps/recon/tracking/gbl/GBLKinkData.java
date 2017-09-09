@@ -14,7 +14,6 @@ import org.lcsim.event.base.BaseRelationalTable;
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @author Sho Uemura <meeg@slac.stanford.edu>
- *
  */
 public class GBLKinkData implements GenericObject {
 
@@ -106,7 +105,8 @@ public class GBLKinkData implements GenericObject {
 
     public static RelationalTable getKinkDataToTrackTable(EventHeader event) {
         if (kinkDataToTrackCache == null || kinkDataToTrackCache.getFirst() != event) {
-            RelationalTable kinkDataToTrack = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+            RelationalTable kinkDataToTrack = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY,
+                    RelationalTable.Weighting.UNWEIGHTED);
             if (event.hasCollection(LCRelation.class, DATA_RELATION_COLLECTION)) {
                 List<LCRelation> relations = event.get(LCRelation.class, DATA_RELATION_COLLECTION);
                 for (LCRelation relation : relations) {

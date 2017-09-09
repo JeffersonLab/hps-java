@@ -47,21 +47,22 @@ public class V0Monitoring extends DataQualityMonitor {
     private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
     private String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
     private String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
-    private String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
-    //some counters
+    private String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz",
+            "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
+    // some counters
     private int nRecoEvents = 0;
     private int nTotV0 = 0;
     private int nTot2Ele = 0;
-    //some summers
+    // some summers
     private double sumMass = 0.0;
     private double sumVx = 0.0;
     private double sumVy = 0.0;
     private double sumVz = 0.0;
     private double sumChi2 = 0.0;
 
-    /*  V0 Quantities   */
-    /*  Mass, vertex, chi^2 of fit */
-    /*  unconstrained */
+    /* V0 Quantities */
+    /* Mass, vertex, chi^2 of fit */
+    /* unconstrained */
     private IHistogram1D unconMass;
     private IHistogram1D unconVx;
     private IHistogram1D unconVy;
@@ -142,8 +143,6 @@ public class V0Monitoring extends DataQualityMonitor {
     private IHistogram1D mollerUx;
     private IHistogram1D mollerUy;
 
-
-
     private IHistogram1D sumChargeHisto;
     private IHistogram1D numChargeHisto;
 
@@ -153,33 +152,25 @@ public class V0Monitoring extends DataQualityMonitor {
 
     private double maxFactor = 1.25;
 
-
     private double thetaMax = 0.06;
     private double thetaMin = 0.015;
 
-
-
-    private double feeMomentumCut, v0ESumMinCut, v0MaxPCut, v0ESumMaxCut,
-    molPSumMin, molPSumMax, beambeamCut;
-
-
+    private double feeMomentumCut, v0ESumMinCut, v0MaxPCut, v0ESumMaxCut, molPSumMin, molPSumMax, beambeamCut;
 
     @Override
     protected void detectorChanged(Detector detector) {
 
         super.detectorChanged(detector);
-        
-        feeMomentumCut = 0.75*beamEnergy; //GeV
+
+        feeMomentumCut = 0.75 * beamEnergy; // GeV
 
         v0ESumMinCut = 0.8 * beamEnergy;
         v0ESumMaxCut = 1.25 * beamEnergy;
-        
-        v0MaxPCut = 1.05*beamEnergy;//GeV
-        molPSumMin = 0.80*beamEnergy;
-        molPSumMax = 1.25*beamEnergy;
-        beambeamCut = 0.80*beamEnergy;
 
-
+        v0MaxPCut = 1.05 * beamEnergy;// GeV
+        molPSumMin = 0.80 * beamEnergy;
+        molPSumMax = 1.25 * beamEnergy;
+        beambeamCut = 0.80 * beamEnergy;
 
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
 
@@ -190,103 +181,178 @@ public class V0Monitoring extends DataQualityMonitor {
         if (isGBL)
             trkType = "GBLTrack/";
 
-        double maxMass = .2*beamEnergy;
-        double maxMassMoller = .1*Math.sqrt(beamEnergy);
-        /*  V0 Quantities   */
-        /*  Mass, vertex, chi^2 of fit */
-        /*  unconstrained */
-        unconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Invariant Mass (GeV)", 100, 0, maxMass);
-        unconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Vx (mm)", 50, -10, 10);
-        unconVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Vy (mm)", 50, -10, 10);
-        unconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Vz (mm)", 50, -50, 50);
-        unconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Chi2", 25, 0, 25);
-        unconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
-        unconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
+        double maxMass = .2 * beamEnergy;
+        double maxMassMoller = .1 * Math.sqrt(beamEnergy);
+        /* V0 Quantities */
+        /* Mass, vertex, chi^2 of fit */
+        /* unconstrained */
+        unconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
+                + "Invariant Mass (GeV)", 100, 0, maxMass);
+        unconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
+                + "Vx (mm)", 50, -10, 10);
+        unconVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
+                + "Vy (mm)", 50, -10, 10);
+        unconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
+                + "Vz (mm)", 50, -50, 50);
+        unconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
+                + "Chi2", 25, 0, 25);
+        unconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
+                + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
+        unconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName
+                + "/" + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
         /* beamspot constrained */
-        bsconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Mass (GeV)", 100, 0, maxMass);
-        bsconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vx (mm)", 50, -10, 10);
-        bsconVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vy (mm)", 50, -10, 10);
-        bsconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vz (mm)", 50, -50, 50);
-        bsconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Chi2", 25, 0, 25);
-        bsconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
-        bsconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
+        bsconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/"
+                + "Mass (GeV)", 100, 0, maxMass);
+        bsconVx = aida.histogram1D(
+                plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vx (mm)", 50, -10, 10);
+        bsconVy = aida.histogram1D(
+                plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vy (mm)", 50, -10, 10);
+        bsconVz = aida.histogram1D(
+                plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vz (mm)", 50, -50, 50);
+        bsconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Chi2",
+                25, 0, 25);
+        bsconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/"
+                + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
+        bsconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/"
+                + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
         /* target constrained */
-        tarconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Mass (GeV)", 100, 0, maxMass);
-        tarconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Vx (mm)", 50, -1, 1);
-        tarconVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Vy (mm)", 50, -1, 1);
-        tarconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Vz (mm)", 50, -10, 10);
-        tarconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Chi2", 25, 0, 25);
-        tarconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
-        tarconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/" + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
+        tarconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+                + "Mass (GeV)", 100, 0, maxMass);
+        tarconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+                + "Vx (mm)", 50, -1, 1);
+        tarconVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+                + "Vy (mm)", 50, -1, 1);
+        tarconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+                + "Vz (mm)", 50, -10, 10);
+        tarconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+                + "Chi2", 25, 0, 25);
+        tarconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+                + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
+        tarconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName
+                + "/" + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
 
-        nV0 = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Number of V0 per event", 10, 0, 10);
+        nV0 = aida
+                .histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Number of V0 per event", 10, 0, 10);
         v0Time = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "V0 mean time", 100, -25, 25);
-        v0Dt = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "V0 time difference", 100, -25, 25);
-        trigTimeV0Time = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Trigger phase vs. V0 mean time", 100, -25, 25, 6, 0, 24);
+        v0Dt = aida
+                .histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "V0 time difference", 100, -25, 25);
+        trigTimeV0Time = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "Trigger phase vs. V0 mean time", 100, -25, 25, 6, 0, 24);
         trigTime = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Trigger phase", 6, 0, 24);
 
-        pEleVspPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(e) vs P(p)", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
+        pEleVspPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(e) vs P(p)", 50, 0,
+                beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
 
+        pEle = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(e)", 50, 0, beamEnergy
+                * maxFactor);
+        pPos = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(p)", 50, 0, beamEnergy
+                * maxFactor);
 
-        pEle = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(e)", 50, 0, beamEnergy * maxFactor);
-        pPos = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(p)", 50, 0, beamEnergy * maxFactor);
+        pEleVspPosWithCut = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "P(e) vs P(p): Radiative", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
+        pyEleVspyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Py(e) vs Py(p)", 50,
+                -0.04 * beamEnergy, 0.04 * beamEnergy, 50, -0.04 * beamEnergy, 0.04 * beamEnergy);
+        pxEleVspxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Px(e) vs Px(p)", 50,
+                -0.04 * beamEnergy, 0.04 * beamEnergy, 50, -0.04 * beamEnergy, 0.04 * beamEnergy);
+        VtxZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs Mass", 50, 0,
+                maxMass, 50, -50, 80);
+        VtxXVsVtxZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vx vs Vz", 100, -10, 10,
+                100, -50, 80);
+        VtxYVsVtxZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vy vs Vz", 100, -5, 5, 100,
+                -50, 80);
+        VtxXVsVtxY = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vx vs Vy", 100, -10, 10,
+                100, -5, 5);
+        VtxXVsVtxPx = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vx vs Px", 100, -0.1, 0.1,
+                100, -10, 10);
+        VtxYVsVtxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vy vs Py", 100, -0.1, 0.1,
+                100, -5, 5);
+        VtxZVsVtxPx = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs Px", 100, -0.1, 0.1,
+                100, -50, 80);
+        VtxZVsVtxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs Py", 100, -0.1, 0.1,
+                100, -50, 80);
+        VtxZVsVtxPz = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs Pz", 100, 0.0,
+                beamEnergy * maxFactor, 100, -50, 80);
+        VtxZVsL1Iso = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs L1 Isolation", 100,
+                0.0, 5.0, 50, -50, 80);
+        VtxZVsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs Track Chi2", 50,
+                0, 50, 50, -50, 80);
+        phiEleVsphiEle = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/phi(e) vs phi(e)", 50, -Math.PI, Math.PI, 50, -Math.PI, Math.PI);
+        pyEleVspyEle = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Py(e) vs Py(e)", 50, -0.04 * beamEnergy, 0.04 * beamEnergy, 50, -0.04 * beamEnergy,
+                0.04 * beamEnergy);
+        pxEleVspxEle = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Px(e) vs Px(e)", 50, -0.02 * beamEnergy, 0.06 * beamEnergy, 50, -0.02 * beamEnergy,
+                0.06 * beamEnergy);
 
-        pEleVspPosWithCut = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "P(e) vs P(p): Radiative", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
-        pyEleVspyPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Py(e) vs Py(p)", 50, -0.04*beamEnergy, 0.04*beamEnergy, 50, -0.04*beamEnergy, 0.04*beamEnergy);
-        pxEleVspxPos = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Px(e) vs Px(p)", 50, -0.04*beamEnergy, 0.04*beamEnergy, 50, -0.04*beamEnergy, 0.04*beamEnergy);
-        VtxZVsMass = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs Mass", 50, 0, maxMass, 50, -50, 80);
-        VtxXVsVtxZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vx vs Vz", 100, -10, 10, 100, -50, 80);
-        VtxYVsVtxZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vy vs Vz", 100, -5, 5, 100, -50, 80);
-        VtxXVsVtxY = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vx vs Vy", 100, -10, 10, 100, -5, 5);
-        VtxXVsVtxPx = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vx vs Px", 100, -0.1, 0.1, 100, -10, 10);
-        VtxYVsVtxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vy vs Py", 100, -0.1, 0.1, 100, -5, 5);
-        VtxZVsVtxPx = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs Px", 100, -0.1, 0.1, 100, -50, 80);
-        VtxZVsVtxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs Py", 100, -0.1, 0.1, 100, -50, 80);
-        VtxZVsVtxPz = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs Pz", 100, 0.0, beamEnergy * maxFactor, 100, -50, 80);
-        VtxZVsL1Iso = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs L1 Isolation", 100, 0.0, 5.0, 50, -50, 80);
-        VtxZVsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Vz vs Track Chi2", 50, 0, 50, 50, -50, 80);
-        phiEleVsphiEle = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/phi(e) vs phi(e)", 50, -Math.PI, Math.PI, 50, -Math.PI, Math.PI);
-        pyEleVspyEle = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Py(e) vs Py(e)", 50, -0.04*beamEnergy, 0.04*beamEnergy, 50, -0.04*beamEnergy, 0.04*beamEnergy);
-        pxEleVspxEle = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Px(e) vs Px(e)", 50, -0.02*beamEnergy, 0.06*beamEnergy, 50, -0.02*beamEnergy, 0.06*beamEnergy);
-        
         // electron vs electron momentum with different cuts
         // 1) no cut
-        // 2) cut out FEE 
+        // 2) cut out FEE
         // 3) cut out FEE and also cut on momentum sum
         // 4) cut out everything except FEE coincidentals
-        pEleVspEle = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(e) vs P(e)", 50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
-        pEleVspEleNoBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(e) vs P(e) NoBeam", 50, 0, beambeamCut, 50, 0, beambeamCut);
-        pEleVspEleMoller = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(e) vs P(e) Moller", 50, 0, beambeamCut, 50, 0, beambeamCut);
-        pEleVspEleBeamBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(e) vs P(e) BeamBeam", 50, beambeamCut, beamEnergy * maxFactor, 50, beambeamCut, beamEnergy * maxFactor);
-        
-        pyEleVspyEleNoBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Py(e) vs Py(e) NoBeam", 50, -0.04*beamEnergy, 0.04*beamEnergy, 50, -0.04*beamEnergy, 0.04*beamEnergy);
-        pxEleVspxEleNoBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Px(e) vs Px(e) NoBeam", 50, -0.02*beamEnergy, 0.06*beamEnergy, 50, -0.02*beamEnergy, 0.06*beamEnergy);
-        sumChargeHisto = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Total Charge of  Event", 5, -2, 3);
-        numChargeHisto = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Number of Charged Particles", 6, 0, 6);
+        pEleVspEle = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(e) vs P(e)",
+                50, 0, beamEnergy * maxFactor, 50, 0, beamEnergy * maxFactor);
+        pEleVspEleNoBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/P(e) vs P(e) NoBeam", 50, 0, beambeamCut, 50, 0, beambeamCut);
+        pEleVspEleMoller = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/P(e) vs P(e) Moller", 50, 0, beambeamCut, 50, 0, beambeamCut);
+        pEleVspEleBeamBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/P(e) vs P(e) BeamBeam", 50, beambeamCut, beamEnergy * maxFactor, 50, beambeamCut,
+                beamEnergy * maxFactor);
 
-        pEleVsthetaMoller = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(e) vs Theta Moller", 50, 0, beambeamCut, 50, thetaMin, thetaMax);
-        thetaEleVsthetaMoller = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Theta vs Theta Moller", 50, thetaMin, thetaMax, 50, thetaMin, thetaMax);
-        pEleVsthetaBeamBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(e) vs Theta BeamBeam", 50, beambeamCut, beamEnergy * maxFactor, 50, thetaMin, thetaMax);
-        thetaEleVsthetaBeamBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Theta vs Theta BeamBeam", 50, thetaMin, thetaMax, 50, thetaMin, thetaMax);
+        pyEleVspyEleNoBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Py(e) vs Py(e) NoBeam", 50, -0.04 * beamEnergy, 0.04 * beamEnergy, 50,
+                -0.04 * beamEnergy, 0.04 * beamEnergy);
+        pxEleVspxEleNoBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Px(e) vs Px(e) NoBeam", 50, -0.02 * beamEnergy, 0.06 * beamEnergy, 50,
+                -0.02 * beamEnergy, 0.06 * beamEnergy);
+        sumChargeHisto = aida.histogram1D(
+                plotDir + trkType + triggerType + "/" + xtra + "/" + "Total Charge of  Event", 5, -2, 3);
+        numChargeHisto = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "Number of Charged Particles", 6, 0, 6);
 
-        mollerMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Mass (GeV)", 100, 0, maxMassMoller);
-        mollerMassVtxCut = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Mass (GeV): VtxCut", 100, 0, maxMassMoller);
-        mollerVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vx (mm)", 50, -10, 10);
-        mollerVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vy (mm)", 50, -2, 2);
-        mollerVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vz (mm)", 50, -50, 50);
-        mollerVzVtxCut = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vz (mm): VtxCut", 50, -50, 50);
-        mollerXVsVtxZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vx vs Vz", 100, -5, 5, 100, -50, 50);
-        mollerYVsVtxZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vy vs Vz", 100, -2, 2, 100, -50, 50);
-        mollerXVsVtxY = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vx vs Vy", 100, -5, 5, 100, -2, 2);
+        pEleVsthetaMoller = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/P(e) vs Theta Moller", 50, 0, beambeamCut, 50, thetaMin, thetaMax);
+        thetaEleVsthetaMoller = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Theta vs Theta Moller", 50, thetaMin, thetaMax, 50, thetaMin, thetaMax);
+        pEleVsthetaBeamBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/P(e) vs Theta BeamBeam", 50, beambeamCut, beamEnergy * maxFactor, 50, thetaMin, thetaMax);
+        thetaEleVsthetaBeamBeam = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Theta vs Theta BeamBeam", 50, thetaMin, thetaMax, 50, thetaMin, thetaMax);
 
-        mollerUx = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Pair Momentum Direction Ux", 100, .015, .045);
-        mollerUy = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Pair Momentum Direction Uy", 100, -.01, .01);
+        mollerMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Moller Mass (GeV)", 100, 0, maxMassMoller);
+        mollerMassVtxCut = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Moller Mass (GeV): VtxCut", 100, 0, maxMassMoller);
+        mollerVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vx (mm)",
+                50, -10, 10);
+        mollerVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vy (mm)",
+                50, -2, 2);
+        mollerVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Moller Vz (mm)",
+                50, -50, 50);
+        mollerVzVtxCut = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Moller Vz (mm): VtxCut", 50, -50, 50);
+        mollerXVsVtxZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Moller Vx vs Vz", 100, -5, 5, 100, -50, 50);
+        mollerYVsVtxZ = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Moller Vy vs Vz", 100, -2, 2, 100, -50, 50);
+        mollerXVsVtxY = aida.histogram2D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Moller Vx vs Vy", 100, -5, 5, 100, -2, 2);
 
-        mollerHiP = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(high)", 100, 0, beamEnergy*maxFactor);
-        mollerLoP = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(low)", 100, 0, beamEnergy*maxFactor);
+        mollerUx = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Moller Pair Momentum Direction Ux", 100, .015, .045);
+        mollerUy = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/"
+                + "2 Electron/Moller Pair Momentum Direction Uy", 100, -.01, .01);
 
-        mollerEitherP = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(either)", 100, 0, beamEnergy*maxFactor);
-        mollerPsum = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Psum", 100, 0, beamEnergy*maxFactor);
+        mollerHiP = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(high)", 100, 0,
+                beamEnergy * maxFactor);
+        mollerLoP = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(low)", 100, 0,
+                beamEnergy * maxFactor);
+
+        mollerEitherP = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/P(either)",
+                100, 0, beamEnergy * maxFactor);
+        mollerPsum = aida.histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "2 Electron/Psum", 100, 0,
+                beamEnergy * maxFactor);
 
     }
 
@@ -294,7 +360,7 @@ public class V0Monitoring extends DataQualityMonitor {
 
     @Override
     public void process(EventHeader event) {
-        /*  make sure everything is there */
+        /* make sure everything is there */
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
             throw new IllegalArgumentException("Collection missing: " + finalStateParticlesColName);
         if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName))
@@ -304,7 +370,7 @@ public class V0Monitoring extends DataQualityMonitor {
         if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName))
             throw new IllegalArgumentException("Collection missing: " + targetV0ConCandidatesColName);
 
-        //check to see if this event is from the correct trigger (or "all");
+        // check to see if this event is from the correct trigger (or "all");
         if (!matchTrigger(event))
             return;
 
@@ -313,7 +379,8 @@ public class V0Monitoring extends DataQualityMonitor {
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
-        List<ReconstructedParticle> unonstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
+        List<ReconstructedParticle> unonstrainedV0List = event.get(ReconstructedParticle.class,
+                unconstrainedV0CandidatesColName);
         for (ReconstructedParticle uncV0 : unonstrainedV0List) {
             if (isGBL != TrackType.isGBL(uncV0.getType()))
                 continue;
@@ -328,7 +395,9 @@ public class V0Monitoring extends DataQualityMonitor {
             unconMass.fill(uncV0.getMass());
             unconChi2.fill(uncVert.getChi2());
             unconVzVsChi2.fill(uncVert.getChi2(), vtxPosRot.z());
-            unconChi2VsTrkChi2.fill(Math.max(uncV0.getParticles().get(0).getTracks().get(0).getChi2(), uncV0.getParticles().get(1).getTracks().get(0).getChi2()), uncVert.getChi2());
+            unconChi2VsTrkChi2.fill(
+                    Math.max(uncV0.getParticles().get(0).getTracks().get(0).getChi2(), uncV0.getParticles().get(1)
+                            .getTracks().get(0).getChi2()), uncVert.getChi2());
 
             VtxZVsMass.fill(uncV0.getMass(), vtxPosRot.z());
             VtxXVsVtxZ.fill(vtxPosRot.x(), vtxPosRot.z());
@@ -340,28 +409,35 @@ public class V0Monitoring extends DataQualityMonitor {
             VtxZVsVtxPy.fill(pVtxRot.y(), vtxPosRot.z());
             VtxZVsVtxPz.fill(pVtxRot.z(), vtxPosRot.z());
 
-            //this always has 2 tracks. 
+            // this always has 2 tracks.
             List<ReconstructedParticle> trks = uncV0.getParticles();
-            //            Track ele = trks.get(0).getTracks().get(0);
-            //            Track pos = trks.get(1).getTracks().get(0);
-            //            //if track #0 has charge>0 it's the electron!  This seems mixed up, but remember the track 
-            //            //charge is assigned assuming a positive B-field, while ours is negative
-            //            if (trks.get(0).getCharge() > 0) {
-            //                pos = trks.get(0).getTracks().get(0);
-            //                ele = trks.get(1).getTracks().get(0);
-            //            }
-            //            aida.histogram2D(plotDir + trkType + triggerType + "/" + "P(e) vs P(p)").fill(getMomentum(ele), getMomentum(pos));
-            //            aida.histogram2D(plotDir + trkType + triggerType + "/" + "Px(e) vs Px(p)").fill(ele.getTrackStates().get(0).getMomentum()[1], pos.getTrackStates().get(0).getMomentum()[1]);
-            //            aida.histogram2D(plotDir + trkType + triggerType + "/" + "Py(e) vs Py(p)").fill(ele.getTrackStates().get(0).getMomentum()[2], pos.getTrackStates().get(0).getMomentum()[2]);
+            // Track ele = trks.get(0).getTracks().get(0);
+            // Track pos = trks.get(1).getTracks().get(0);
+            // //if track #0 has charge>0 it's the electron! This seems mixed up, but remember the track
+            // //charge is assigned assuming a positive B-field, while ours is negative
+            // if (trks.get(0).getCharge() > 0) {
+            // pos = trks.get(0).getTracks().get(0);
+            // ele = trks.get(1).getTracks().get(0);
+            // }
+            // aida.histogram2D(plotDir + trkType + triggerType + "/" + "P(e) vs P(p)").fill(getMomentum(ele),
+            // getMomentum(pos));
+            // aida.histogram2D(plotDir + trkType + triggerType + "/" +
+            // "Px(e) vs Px(p)").fill(ele.getTrackStates().get(0).getMomentum()[1],
+            // pos.getTrackStates().get(0).getMomentum()[1]);
+            // aida.histogram2D(plotDir + trkType + triggerType + "/" +
+            // "Py(e) vs Py(p)").fill(ele.getTrackStates().get(0).getMomentum()[2],
+            // pos.getTrackStates().get(0).getMomentum()[2]);
             ReconstructedParticle ele = trks.get(0);
             ReconstructedParticle pos = trks.get(1);
-            //ReconParticles have the charge correct. 
+            // ReconParticles have the charge correct.
             if (trks.get(0).getCharge() > 0) {
                 pos = trks.get(0);
                 ele = trks.get(1);
             }
             if (ele.getCharge() < 0 && pos.getCharge() > 0) {
-                VtxZVsTrkChi2.fill(Math.max(uncV0.getParticles().get(0).getTracks().get(0).getChi2(), uncV0.getParticles().get(1).getTracks().get(0).getChi2()), uncVert.getPosition().z());
+                VtxZVsTrkChi2.fill(
+                        Math.max(uncV0.getParticles().get(0).getTracks().get(0).getChi2(), uncV0.getParticles().get(1)
+                                .getTracks().get(0).getChi2()), uncVert.getPosition().z());
 
                 Double[] eleIso = TrackUtils.getIsolations(ele.getTracks().get(0), hitToStrips, hitToRotated);
                 Double[] posIso = TrackUtils.getIsolations(pos.getTracks().get(0), hitToStrips, hitToRotated);
@@ -381,12 +457,13 @@ public class V0Monitoring extends DataQualityMonitor {
                 pEle.fill(pe);
                 pPos.fill(pp);
 
-
                 pxEleVspxPos.fill(pEleRot.x(), pPosRot.x());
                 pyEleVspyPos.fill(pEleRot.y(), pPosRot.y());
-                if (pe < v0MaxPCut && pp < v0MaxPCut && (pe + pp) > v0ESumMinCut && (pe + pp) < v0ESumMaxCut)//enrich radiative-like events
+                if (pe < v0MaxPCut && pp < v0MaxPCut && (pe + pp) > v0ESumMinCut && (pe + pp) < v0ESumMaxCut)// enrich
+                                                                                                             // radiative-like
+                                                                                                             // events
 
-                pEleVspPosWithCut.fill(pe, pp);
+                    pEleVspPosWithCut.fill(pe, pp);
             }
 
             double eleT = TrackUtils.getTrackTime(ele.getTracks().get(0), hitToStrips, hitToRotated);
@@ -398,8 +475,9 @@ public class V0Monitoring extends DataQualityMonitor {
             trigTime.fill(event.getTimeStamp() % 24);
         }
 
-        List<ReconstructedParticle> beamConstrainedV0List = event.get(ReconstructedParticle.class, beamConV0CandidatesColName);
-        //nV0.fill(beamConstrainedV0List.size());
+        List<ReconstructedParticle> beamConstrainedV0List = event.get(ReconstructedParticle.class,
+                beamConV0CandidatesColName);
+        // nV0.fill(beamConstrainedV0List.size());
         int v0Count = 0;
         for (ReconstructedParticle bsV0 : beamConstrainedV0List) {
 
@@ -415,7 +493,9 @@ public class V0Monitoring extends DataQualityMonitor {
             bsconMass.fill(bsV0.getMass());
             bsconChi2.fill(bsVert.getChi2());
             bsconVzVsChi2.fill(bsVert.getChi2(), vtxPosRot.z());
-            bsconChi2VsTrkChi2.fill(Math.max(bsV0.getParticles().get(0).getTracks().get(0).getChi2(), bsV0.getParticles().get(1).getTracks().get(0).getChi2()), bsVert.getChi2());
+            bsconChi2VsTrkChi2.fill(
+                    Math.max(bsV0.getParticles().get(0).getTracks().get(0).getChi2(), bsV0.getParticles().get(1)
+                            .getTracks().get(0).getChi2()), bsVert.getChi2());
             sumMass += bsV0.getMass();
             sumVx += vtxPosRot.x();
             sumVy += vtxPosRot.y();
@@ -423,7 +503,8 @@ public class V0Monitoring extends DataQualityMonitor {
             sumChi2 += bsVert.getChi2();
         }
         nV0.fill(v0Count);
-        List<ReconstructedParticle> targetConstrainedV0List = event.get(ReconstructedParticle.class, targetV0ConCandidatesColName);
+        List<ReconstructedParticle> targetConstrainedV0List = event.get(ReconstructedParticle.class,
+                targetV0ConCandidatesColName);
         for (ReconstructedParticle tarV0 : targetConstrainedV0List) {
 
             if (isGBL != TrackType.isGBL(tarV0.getType()))
@@ -437,9 +518,12 @@ public class V0Monitoring extends DataQualityMonitor {
             tarconMass.fill(tarV0.getMass());
             tarconChi2.fill(tarVert.getChi2());
             tarconVzVsChi2.fill(tarVert.getChi2(), vtxPosRot.z());
-            tarconChi2VsTrkChi2.fill(Math.max(tarV0.getParticles().get(0).getTracks().get(0).getChi2(), tarV0.getParticles().get(1).getTracks().get(0).getChi2()), tarVert.getChi2());
+            tarconChi2VsTrkChi2.fill(
+                    Math.max(tarV0.getParticles().get(0).getTracks().get(0).getChi2(), tarV0.getParticles().get(1)
+                            .getTracks().get(0).getChi2()), tarVert.getChi2());
         }
-        List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class, finalStateParticlesColName);
+        List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class,
+                finalStateParticlesColName);
         if (debug)
             LOGGER.info("This events has " + finalStateParticles.size() + " final state particles");
 
@@ -451,7 +535,8 @@ public class V0Monitoring extends DataQualityMonitor {
             if (isGBL != TrackType.isGBL(fsPart.getType()))
                 continue;
             if (debug)
-                LOGGER.info("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = " + fsPart.getMomentum().x());
+                LOGGER.info("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = "
+                        + fsPart.getMomentum().x());
             double charge = fsPart.getCharge();
             sumCharge += charge;
             if (charge != 0) {
@@ -469,9 +554,9 @@ public class V0Monitoring extends DataQualityMonitor {
         if (ele1 != null && ele2 != null) {
             Hep3Vector p1 = VecOp.mult(beamAxisRotation, ele1.getMomentum());
             Hep3Vector p2 = VecOp.mult(beamAxisRotation, ele2.getMomentum());
-            //            Hep3Vector beamAxis = new BasicHep3Vector(Math.sin(0.0305), 0, Math.cos(0.0305));
-            //            LOGGER.info(p1);
-            //            LOGGER.info(VecOp.mult(rot, p1));
+            // Hep3Vector beamAxis = new BasicHep3Vector(Math.sin(0.0305), 0, Math.cos(0.0305));
+            // LOGGER.info(p1);
+            // LOGGER.info(VecOp.mult(rot, p1));
 
             double theta1 = Math.acos(p1.z() / p1.magnitude());
             double theta2 = Math.acos(p2.z() / p2.magnitude());
@@ -481,13 +566,13 @@ public class V0Monitoring extends DataQualityMonitor {
             pEleVspEle.fill(ele1.getMomentum().magnitude(), ele2.getMomentum().magnitude());
             pyEleVspyEle.fill(ele1.getMomentum().y(), ele2.getMomentum().y());
             pxEleVspxEle.fill(ele1.getMomentum().x(), ele2.getMomentum().x());
-            //remove beam electrons
+            // remove beam electrons
             if (ele1.getMomentum().magnitude() < beambeamCut && ele2.getMomentum().magnitude() < beambeamCut) {
                 pEleVspEleNoBeam.fill(ele1.getMomentum().magnitude(), ele2.getMomentum().magnitude());
                 pyEleVspyEleNoBeam.fill(ele1.getMomentum().y(), ele2.getMomentum().y());
                 pxEleVspxEleNoBeam.fill(ele1.getMomentum().x(), ele2.getMomentum().x());
             }
-            //look at beam-beam events
+            // look at beam-beam events
             if (ele1.getMomentum().magnitude() > beambeamCut && ele2.getMomentum().magnitude() > beambeamCut) {
                 pEleVspEleBeamBeam.fill(ele1.getMomentum().magnitude(), ele2.getMomentum().magnitude());
                 pEleVsthetaBeamBeam.fill(p1.magnitude(), theta1);
@@ -495,7 +580,7 @@ public class V0Monitoring extends DataQualityMonitor {
                 thetaEleVsthetaBeamBeam.fill(theta1, theta2);
             }
 
-            //look at "Moller" events (if that's what they really are
+            // look at "Moller" events (if that's what they really are
             if (ele1.getMomentum().magnitude() + ele2.getMomentum().magnitude() > molPSumMin
                     && ele1.getMomentum().magnitude() + ele2.getMomentum().magnitude() < molPSumMax
                     && (p1.magnitude() < beambeamCut && p2.magnitude() < beambeamCut)) {
@@ -507,7 +592,7 @@ public class V0Monitoring extends DataQualityMonitor {
                 BilliorTrack btEle1 = new BilliorTrack(stEle1.getSeedCandidate().getHelix());
                 BilliorTrack btEle2 = new BilliorTrack(stEle2.getSeedCandidate().getHelix());
                 BilliorVertex bv = fitVertex(btEle1, btEle2, TrackUtils.getBField(event.getDetector()).magnitude());
-                //                LOGGER.info("ee vertex: "+bv.toString());
+                // LOGGER.info("ee vertex: "+bv.toString());
                 double invMass = bv.getParameters().get("invMass");
                 mollerMass.fill(invMass);
                 mollerVx.fill(bv.getPosition().x());
@@ -517,27 +602,27 @@ public class V0Monitoring extends DataQualityMonitor {
                 mollerYVsVtxZ.fill(bv.getPosition().y(), bv.getPosition().z());
                 mollerXVsVtxY.fill(bv.getPosition().x(), bv.getPosition().y());
 
-                double ux = (ele1.getMomentum().x()+ele2.getMomentum().x())/(ele1.getMomentum().z()+ele2.getMomentum().z());
-                double uy = (ele1.getMomentum().y()+ele2.getMomentum().y())/(ele1.getMomentum().z()+ele2.getMomentum().z());
+                double ux = (ele1.getMomentum().x() + ele2.getMomentum().x())
+                        / (ele1.getMomentum().z() + ele2.getMomentum().z());
+                double uy = (ele1.getMomentum().y() + ele2.getMomentum().y())
+                        / (ele1.getMomentum().z() + ele2.getMomentum().z());
                 mollerUx.fill(ux);
                 mollerUy.fill(uy);
 
-                //higher and lower energy electrons in moller pair
+                // higher and lower energy electrons in moller pair
                 double pt1 = ele1.getMomentum().magnitude();
                 double pt2 = ele2.getMomentum().magnitude();
-                double ph = (pt1>pt2) ? pt1 : pt2;
-                double pl = (pt1>pt2) ? pt2 : pt1;
+                double ph = (pt1 > pt2) ? pt1 : pt2;
+                double pl = (pt1 > pt2) ? pt2 : pt1;
 
                 mollerHiP.fill(ph);
                 mollerLoP.fill(pl);
 
                 mollerEitherP.fill(ph);
                 mollerEitherP.fill(pl);
-                mollerPsum.fill(pt1+pt2);
+                mollerPsum.fill(pt1 + pt2);
 
-
-                if (Math.abs(bv.getPosition().x()) < 2
-                        && Math.abs(bv.getPosition().y()) < 0.5) {
+                if (Math.abs(bv.getPosition().x()) < 2 && Math.abs(bv.getPosition().y()) < 0.5) {
                     mollerMassVtxCut.fill(invMass);
                     mollerVzVtxCut.fill(bv.getPosition().z());
                 }
@@ -579,7 +664,8 @@ public class V0Monitoring extends DataQualityMonitor {
             double[] parsVz = resVz.fittedParameters();
 
             for (int i = 0; i < 5; i++)
-                LOGGER.info("Vertex Fit Parameters:  " + resVx.fittedParameterNames()[i] + " = " + parsVx[i] + "; " + parsVy[i] + "; " + parsVz[i]);
+                LOGGER.info("Vertex Fit Parameters:  " + resVx.fittedParameterNames()[i] + " = " + parsVx[i] + "; "
+                        + parsVy[i] + "; " + parsVz[i]);
 
             IPlotter plotter = analysisFactory.createPlotterFactory().create("Vertex Position");
             plotter.createRegions(1, 3);
@@ -600,30 +686,33 @@ public class V0Monitoring extends DataQualityMonitor {
                     Logger.getLogger(V0Monitoring.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                //        monitoredQuantityMap.put(fpQuantNames[2], sumVx / nTotV0);
-                //        monitoredQuantityMap.put(fpQuantNames[3], sumVy / nTotV0);
-                //        monitoredQuantityMap.put(fpQuantNames[4], sumVz / nTotV0);
-                monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[2], parsVx[1]);
-                monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[3], parsVy[1]);
-                monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[4], parsVz[1]);
-                monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[5], parsVx[2]);
-                monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[6], parsVy[2]);
-                monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[7], parsVz[2]);
+            // monitoredQuantityMap.put(fpQuantNames[2], sumVx / nTotV0);
+            // monitoredQuantityMap.put(fpQuantNames[3], sumVy / nTotV0);
+            // monitoredQuantityMap.put(fpQuantNames[4], sumVz / nTotV0);
+            monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[2], parsVx[1]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[3], parsVy[1]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[4], parsVz[1]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[5], parsVx[2]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[6], parsVy[2]);
+            monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[7], parsVz[2]);
         }
-        monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[0], (double) nTotV0 / nRecoEvents);
-        monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[1], sumMass / nTotV0);
-        monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[8], sumChi2 / nTotV0);
+        monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[0],
+                (double) nTotV0 / nRecoEvents);
+        monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[1], sumMass
+                / nTotV0);
+        monitoredQuantityMap.put(beamConV0CandidatesColName + " " + triggerType + " " + fpQuantNames[8], sumChi2
+                / nTotV0);
 
     }
 
     @Override
     public void printDQMStrings() {
-        for (int i = 0; i < 9; i++)//TODO:  do this in a smarter way...loop over the map
+        for (int i = 0; i < 9; i++)
+            // TODO: do this in a smarter way...loop over the map
             LOGGER.info("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
     }
 
-    private IFitResult fitVertexPosition(IHistogram1D h1d, IFitter fitter, double[] init, String range
-    ) {
+    private IFitResult fitVertexPosition(IHistogram1D h1d, IFitter fitter, double[] init, String range) {
         IFitResult ifr = null;
         try {
             ifr = fitter.fit(h1d, "g+p1", init, range);
@@ -655,11 +744,13 @@ public class V0Monitoring extends DataQualityMonitor {
         return vtxFitter.fitVertex(billiorTracks);
     }
 
-    private static boolean hasSharedStrips(ReconstructedParticle vertex, RelationalTable hittostrip, RelationalTable hittorotated) {
+    private static boolean hasSharedStrips(ReconstructedParticle vertex, RelationalTable hittostrip,
+            RelationalTable hittorotated) {
         return hasSharedStrips(vertex.getParticles().get(0), vertex.getParticles().get(1), hittostrip, hittorotated);
     }
 
-    private static boolean hasSharedStrips(ReconstructedParticle fs1, ReconstructedParticle fs2, RelationalTable hittostrip, RelationalTable hittorotated) {
+    private static boolean hasSharedStrips(ReconstructedParticle fs1, ReconstructedParticle fs2,
+            RelationalTable hittostrip, RelationalTable hittorotated) {
         return TrackUtils.hasSharedStrips(fs1.getTracks().get(0), fs2.getTracks().get(0), hittostrip, hittorotated);
     }
 }

@@ -15,10 +15,9 @@ import org.lcsim.util.Driver;
  *
  * @author Norman A Graf
  *
- * @version $Id:
+ * @todo Move to recon.filtering
  */
-public class StripSingleFeeDriver extends Driver
-{
+public class StripSingleFeeDriver extends Driver {
 
     private boolean _writeRunAndEventNumbers = false;
     private double _energyCut = 0.85;
@@ -32,8 +31,7 @@ public class StripSingleFeeDriver extends Driver
      * @param event
      */
     @Override
-    protected void process(EventHeader event)
-    {
+    protected void process(EventHeader event) {
         boolean skipEvent = true;
         List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, "FinalStateParticles");
         if (rps.size() <= _nReconstructedParticles) {
@@ -51,9 +49,8 @@ public class StripSingleFeeDriver extends Driver
         if (skipEvent) {
             throw new Driver.NextEventException();
         } else {
-            if(_writeRunAndEventNumbers)
-            {
-                System.out.println(event.getRunNumber()+" "+event.getEventNumber());
+            if (_writeRunAndEventNumbers) {
+                System.out.println(event.getRunNumber() + " " + event.getEventNumber());
             }
             _numberOfEventsWritten++;
         }
@@ -64,8 +61,7 @@ public class StripSingleFeeDriver extends Driver
      *
      * @param cut
      */
-    public void setEnergyCut(double cut)
-    {
+    public void setEnergyCut(double cut) {
         _energyCut = cut;
     }
 
@@ -74,32 +70,30 @@ public class StripSingleFeeDriver extends Driver
      *
      * @param cut
      */
-    public void setNumberOfHitsOnTrack(int cut)
-    {
+    public void setNumberOfHitsOnTrack(int cut) {
         _nHitsOnTrack = cut;
     }
-    
+
     /**
      * Events having more than the number of ReconstructedParticles will be rejected.
+     * 
      * @param cut
      */
-    public void setNumberOfReconstructedParticles(int cut)
-    {
-      _nReconstructedParticles = cut;  
+    public void setNumberOfReconstructedParticles(int cut) {
+        _nReconstructedParticles = cut;
     }
-    
+
     /**
      * Write out run and event numbers of events passing the cuts if desired
+     * 
      * @param b
      */
-    public void setWriteRunAndEventNumbers(boolean b)
-    {
+    public void setWriteRunAndEventNumbers(boolean b) {
         _writeRunAndEventNumbers = b;
     }
 
     @Override
-    protected void endOfData()
-    {
+    protected void endOfData() {
         System.out.println("Wrote " + _numberOfEventsWritten + " events");
     }
 

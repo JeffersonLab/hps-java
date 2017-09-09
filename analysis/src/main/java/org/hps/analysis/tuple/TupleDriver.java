@@ -67,13 +67,14 @@ public abstract class TupleDriver extends Driver {
     protected final Map<String, Double> tupleMap = new HashMap<String, Double>();
     protected boolean cutTuple = false;
 
-    protected String triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
+    protected String triggerType = "all";// allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
     public boolean isGBL = false;
     private boolean applyBeamRotation = true;
 
     private final String finalStateParticlesColName = "FinalStateParticles";
     protected double bfield;
-    private final double[] beamSize = {0.001, 0.130, 0.050}; //rough estimate from harp scans during engineering run production running
+    private final double[] beamSize = {0.001, 0.130, 0.050}; // rough estimate from harp scans during engineering run
+                                                             // production running
     private final double[] beamPos = {0.0, 0.0, 0.0};
     private final double[] vzcBeamSize = {0.001, 100, 100};
     private final double[] topTrackCorrection = {0, 0, 0, 0, 0};
@@ -87,7 +88,7 @@ public abstract class TupleDriver extends Driver {
     public void setNLay(int nLay) {
         this.nLay = nLay;
     }
-    
+
     public void setApplyBeamRotation(boolean applyBeamRotation) {
         this.applyBeamRotation = applyBeamRotation;
     }
@@ -179,8 +180,8 @@ public abstract class TupleDriver extends Driver {
 
         if (Double.isNaN(ebeam)) {
             try {
-                BeamEnergy.BeamEnergyCollection beamEnergyCollection
-                        = this.getConditionsManager().getCachedConditions(BeamEnergy.BeamEnergyCollection.class, "beam_energies").getCachedData();
+                BeamEnergy.BeamEnergyCollection beamEnergyCollection = this.getConditionsManager()
+                        .getCachedConditions(BeamEnergy.BeamEnergyCollection.class, "beam_energies").getCachedData();
                 ebeam = beamEnergyCollection.get(0).getBeamEnergy();
             } catch (Exception e) {
             }
@@ -236,15 +237,15 @@ public abstract class TupleDriver extends Driver {
             }
         }
         tupleWriter.println();
-//        tupleMap.clear();
+        // tupleMap.clear();
     }
 
     public void setTupleFile(String tupleFile) {
         this.tupleFile = tupleFile;
-//        for (String variable : tupleVariables) {
-//            tupleWriter.format("%s:", variable);
-//        }
-//        tupleWriter.println();
+        // for (String variable : tupleVariables) {
+        // tupleWriter.format("%s:", variable);
+        // }
+        // tupleWriter.println();
     }
 
     /**
@@ -258,76 +259,59 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void addEventVariables() {
-        String[] newVars = new String[]{"run/I", "event/I",
-            "nTrk/I", "nPos/I","nCl/I",
-            "isCalib/B", "isPulser/B", "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B","evTime/D",
-            "evTx/I","evTy/I","rfT1/D","rfT2/D",
-            "nEcalHits/I", "nSVTHits/I", "nEcalCl/I", "nEcalClele/I","nEcalClpos/I","nEcalClpho/I","nEcalClEleSide/I","nEcalClPosSide/I",
-            "nSVTHitsL1/I","nSVTHitsL2/I","nSVTHitsL3/I","nSVTHitsL4/I","nSVTHitsL5/I","nSVTHitsL6/I",
-            "nSVTHitsL1b/I","nSVTHitsL2b/I","nSVTHitsL3b/I","nSVTHitsL4b/I","nSVTHitsL5b/I","nSVTHitsL6b/I",
-            "topL1HitX/D","topL1HitY/D","botL1HitX/D","botL1HitY/D"};
+        String[] newVars = new String[] {"run/I", "event/I", "nTrk/I", "nPos/I", "nCl/I", "isCalib/B", "isPulser/B",
+                "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B", "evTime/D", "evTx/I", "evTy/I", "rfT1/D",
+                "rfT2/D", "nEcalHits/I", "nSVTHits/I", "nEcalCl/I", "nEcalClele/I", "nEcalClpos/I", "nEcalClpho/I",
+                "nEcalClEleSide/I", "nEcalClPosSide/I", "nSVTHitsL1/I", "nSVTHitsL2/I", "nSVTHitsL3/I", "nSVTHitsL4/I",
+                "nSVTHitsL5/I", "nSVTHitsL6/I", "nSVTHitsL1b/I", "nSVTHitsL2b/I", "nSVTHitsL3b/I", "nSVTHitsL4b/I",
+                "nSVTHitsL5b/I", "nSVTHitsL6b/I", "topL1HitX/D", "topL1HitY/D", "botL1HitX/D", "botL1HitY/D"};
         tupleVariables.addAll(Arrays.asList(newVars));
     }
 
     protected void addVertexVariables() {
-        String[] newVars = new String[]{"uncPX/D", "uncPY/D", "uncPZ/D", "uncP/D",
-            "uncVX/D", "uncVY/D", "uncVZ/D", "uncChisq/D", "uncM/D",
-            "bscPX/D", "bscPY/D", "bscPZ/D", "bscP/D",
-            "bscVX/D", "bscVY/D", "bscVZ/D", "bscChisq/D", "bscM/D",
-            "tarPX/D", "tarPY/D", "tarPZ/D", "tarP/D",
-            "tarVX/D", "tarVY/D", "tarVZ/D", "tarChisq/D", "tarM/D",
-            "vzcPX/D", "vzcPY/D", "vzcPZ/D", "vzcP/D",
-            "vzcVX/D", "vzcVY/D", "vzcVZ/D", "vzcChisq/D", "vzcM/D",
-            "uncCovXX/D","uncCovXY/D","uncCovXZ/D",
-            "uncCovYX/D","uncCovYY/D","uncCovYZ/D",
-            "uncCovZX/D","uncCovZY/D","uncCovZZ/D",
-            "uncElePX/D", "uncElePY/D", "uncElePZ/D", "uncPosPX/D", "uncPosPY/D", "uncPosPZ/D", "uncEleP/D", "uncPosP/D",
-            "bscElePX/D", "bscElePY/D", "bscElePZ/D", "bscPosPX/D", "bscPosPY/D", "bscPosPZ/D", "bscEleP/D", "bscPosP/D",
-            "tarElePX/D", "tarElePY/D", "tarElePZ/D", "tarPosPX/D", "tarPosPY/D", "tarPosPZ/D", "tarEleP/D", "tarPosP/D",
-            "vzcElePX/D", "vzcElePY/D", "vzcElePZ/D", "vzcPosPX/D", "vzcPosPY/D", "vzcPosPZ/D", "vzcEleP/D", "vzcPosP/D",
-            "uncEleWtP/D", "uncPosWtP/D", "bscEleWtP/D", "bscPosWtP/D", "tarEleWtP/D", "tarPosWtP/D", 
-            "vzcEleWtP/D", "vzcPosWtP/D",
-            "uncWtM/D", "bscWtM/D", "tarWtM/D", "vzcWtM/D"};
+        String[] newVars = new String[] {"uncPX/D", "uncPY/D", "uncPZ/D", "uncP/D", "uncVX/D", "uncVY/D", "uncVZ/D",
+                "uncChisq/D", "uncM/D", "bscPX/D", "bscPY/D", "bscPZ/D", "bscP/D", "bscVX/D", "bscVY/D", "bscVZ/D",
+                "bscChisq/D", "bscM/D", "tarPX/D", "tarPY/D", "tarPZ/D", "tarP/D", "tarVX/D", "tarVY/D", "tarVZ/D",
+                "tarChisq/D", "tarM/D", "vzcPX/D", "vzcPY/D", "vzcPZ/D", "vzcP/D", "vzcVX/D", "vzcVY/D", "vzcVZ/D",
+                "vzcChisq/D", "vzcM/D", "uncCovXX/D", "uncCovXY/D", "uncCovXZ/D", "uncCovYX/D", "uncCovYY/D",
+                "uncCovYZ/D", "uncCovZX/D", "uncCovZY/D", "uncCovZZ/D", "uncElePX/D", "uncElePY/D", "uncElePZ/D",
+                "uncPosPX/D", "uncPosPY/D", "uncPosPZ/D", "uncEleP/D", "uncPosP/D", "bscElePX/D", "bscElePY/D",
+                "bscElePZ/D", "bscPosPX/D", "bscPosPY/D", "bscPosPZ/D", "bscEleP/D", "bscPosP/D", "tarElePX/D",
+                "tarElePY/D", "tarElePZ/D", "tarPosPX/D", "tarPosPY/D", "tarPosPZ/D", "tarEleP/D", "tarPosP/D",
+                "vzcElePX/D", "vzcElePY/D", "vzcElePZ/D", "vzcPosPX/D", "vzcPosPY/D", "vzcPosPZ/D", "vzcEleP/D",
+                "vzcPosP/D", "uncEleWtP/D", "uncPosWtP/D", "bscEleWtP/D", "bscPosWtP/D", "tarEleWtP/D", "tarPosWtP/D",
+                "vzcEleWtP/D", "vzcPosWtP/D", "uncWtM/D", "bscWtM/D", "tarWtM/D", "vzcWtM/D"};
         tupleVariables.addAll(Arrays.asList(newVars));
     }
 
     protected void addParticleVariables(String prefix) {
-        String[] newVars = new String[]{"PX/D", "PY/D", "PZ/D", "P/D",
-            "TrkChisq/D", "TrkHits/I", "TrkType/I", "TrkT/D", "TrkTsd/D",
-            "TrkZ0/D", "TrkLambda/D", "TrkD0/D", "TrkPhi/D", "TrkOmega/D",
-            "TrkEcalX/D", "TrkEcalY/D",
-            "HasL1/B", "HasL2/B", "HasL3/B","HasL4/B", "HasL5/B", "HasL6/B",
-            "FirstHitX/D", "FirstHitY/D",
-            "FirstHitT1/D", "FirstHitT2/D",
-            "FirstHitDEDx1/D", "FirstHitDEDx2/D",
-            "FirstClusterSize1/I", "FirstClusterSize2/I",
-            "NHitsShared/I","HitsSharedP/D",
-            "LambdaKink1/D", "LambdaKink2/D", "LambdaKink3/D",
-            "PhiKink1/D", "PhiKink2/D", "PhiKink3/D",
-            "IsoStereo/D", "IsoAxial/D",
-            "MinPositiveIso/D", "MinNegativeIso/D",
-            "TrkExtrpXAxialTopL0/D", "TrkExtrpXStereoTopL0/D","TrkExtrpXAxialBotL0/D", "TrkExtrpXStereoBotL0/D",
-            "TrkExtrpYAxialTopL0/D", "TrkExtrpYStereoTopL0/D","TrkExtrpYAxialBotL0/D", "TrkExtrpYStereoBotL0/D",
-            "TrkExtrpXAxialTopL1/D", "TrkExtrpXStereoTopL1/D","TrkExtrpXAxialBotL1/D", "TrkExtrpXStereoBotL1/D",
-            "TrkExtrpYAxialTopL1/D", "TrkExtrpYStereoTopL1/D","TrkExtrpYAxialBotL1/D", "TrkExtrpYStereoBotL1/D",
-            "TrkExtrpXAxialTopL2/D", "TrkExtrpXStereoTopL2/D","TrkExtrpXAxialBotL2/D", "TrkExtrpXStereoBotL2/D",
-            "TrkExtrpYAxialTopL2/D", "TrkExtrpYStereoTopL2/D","TrkExtrpYAxialBotL2/D", "TrkExtrpYStereoBotL2/D",
-            "TrkExtrpXAxialTopL3/D", "TrkExtrpXStereoTopL3/D","TrkExtrpXAxialBotL3/D", "TrkExtrpXStereoBotL3/D",
-            "TrkExtrpYAxialTopL3/D", "TrkExtrpYStereoTopL3/D","TrkExtrpYAxialBotL3/D", "TrkExtrpYStereoBotL3/D",
-            "TrkExtrpXAxialTopL4/D", "TrkExtrpXStereoTopL4/D","TrkExtrpXAxialBotL4/D", "TrkExtrpXStereoBotL4/D",
-            "TrkExtrpYAxialTopL4/D", "TrkExtrpYStereoTopL4/D","TrkExtrpYAxialBotL4/D", "TrkExtrpYStereoBotL4/D",
-            "TrkExtrpXAxialTopL5/D", "TrkExtrpXStereoTopL5/D","TrkExtrpXAxialBotL5/D", "TrkExtrpXStereoBotL5/D",
-            "TrkExtrpYAxialTopL5/D", "TrkExtrpYStereoTopL5/D","TrkExtrpYAxialBotL5/D", "TrkExtrpYStereoBotL5/D",
-            "TrkExtrpXAxialTopL6/D", "TrkExtrpXStereoTopL6/D","TrkExtrpXAxialBotL6/D", "TrkExtrpXStereoBotL6/D",
-            "TrkExtrpYAxialTopL6/D", "TrkExtrpYStereoTopL6/D","TrkExtrpYAxialBotL6/D", "TrkExtrpYStereoBotL6/D",
-            "RawMaxAmplL1/D", "RawT0L1/D", "RawChisqL1/D","RawTDiffL1/D",
-            "RawMaxAmplL2/D", "RawT0L2/D", "RawChisqL2/D","RawTDiffL2/D",
-            "RawMaxAmplL3/D", "RawT0L3/D", "RawChisqL3/D","RawTDiffL3/D",
-            "NTrackHits/I", "HitsSharedP/D","MaxHitsShared/I",
-            "MinNegativeIsoL2/D","MinPositiveIsoL2/D","IsoStereoL2/D","IsoAxialL2/D",
-            "SharedTrkChisq/D","SharedTrkEcalX/D","SharedTrkEcalY/D",
-            "MatchChisq/D", "ClT/D", "ClE/D", "ClSeedE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I", "Clix/I","Cliy/I",
-            "UncorrClT/D", "UncorrClE/D", "UncorrClX/D", "UncorrClY/D", "UncorrClZ/D"};
+        String[] newVars = new String[] {"PX/D", "PY/D", "PZ/D", "P/D", "TrkChisq/D", "TrkHits/I", "TrkType/I",
+                "TrkT/D", "TrkTsd/D", "TrkZ0/D", "TrkLambda/D", "TrkD0/D", "TrkPhi/D", "TrkOmega/D", "TrkEcalX/D",
+                "TrkEcalY/D", "HasL1/B", "HasL2/B", "HasL3/B", "HasL4/B", "HasL5/B", "HasL6/B", "FirstHitX/D",
+                "FirstHitY/D", "FirstHitT1/D", "FirstHitT2/D", "FirstHitDEDx1/D", "FirstHitDEDx2/D",
+                "FirstClusterSize1/I", "FirstClusterSize2/I", "NHitsShared/I", "HitsSharedP/D", "LambdaKink1/D",
+                "LambdaKink2/D", "LambdaKink3/D", "PhiKink1/D", "PhiKink2/D", "PhiKink3/D", "IsoStereo/D",
+                "IsoAxial/D", "MinPositiveIso/D", "MinNegativeIso/D", "TrkExtrpXAxialTopL0/D",
+                "TrkExtrpXStereoTopL0/D", "TrkExtrpXAxialBotL0/D", "TrkExtrpXStereoBotL0/D", "TrkExtrpYAxialTopL0/D",
+                "TrkExtrpYStereoTopL0/D", "TrkExtrpYAxialBotL0/D", "TrkExtrpYStereoBotL0/D", "TrkExtrpXAxialTopL1/D",
+                "TrkExtrpXStereoTopL1/D", "TrkExtrpXAxialBotL1/D", "TrkExtrpXStereoBotL1/D", "TrkExtrpYAxialTopL1/D",
+                "TrkExtrpYStereoTopL1/D", "TrkExtrpYAxialBotL1/D", "TrkExtrpYStereoBotL1/D", "TrkExtrpXAxialTopL2/D",
+                "TrkExtrpXStereoTopL2/D", "TrkExtrpXAxialBotL2/D", "TrkExtrpXStereoBotL2/D", "TrkExtrpYAxialTopL2/D",
+                "TrkExtrpYStereoTopL2/D", "TrkExtrpYAxialBotL2/D", "TrkExtrpYStereoBotL2/D", "TrkExtrpXAxialTopL3/D",
+                "TrkExtrpXStereoTopL3/D", "TrkExtrpXAxialBotL3/D", "TrkExtrpXStereoBotL3/D", "TrkExtrpYAxialTopL3/D",
+                "TrkExtrpYStereoTopL3/D", "TrkExtrpYAxialBotL3/D", "TrkExtrpYStereoBotL3/D", "TrkExtrpXAxialTopL4/D",
+                "TrkExtrpXStereoTopL4/D", "TrkExtrpXAxialBotL4/D", "TrkExtrpXStereoBotL4/D", "TrkExtrpYAxialTopL4/D",
+                "TrkExtrpYStereoTopL4/D", "TrkExtrpYAxialBotL4/D", "TrkExtrpYStereoBotL4/D", "TrkExtrpXAxialTopL5/D",
+                "TrkExtrpXStereoTopL5/D", "TrkExtrpXAxialBotL5/D", "TrkExtrpXStereoBotL5/D", "TrkExtrpYAxialTopL5/D",
+                "TrkExtrpYStereoTopL5/D", "TrkExtrpYAxialBotL5/D", "TrkExtrpYStereoBotL5/D", "TrkExtrpXAxialTopL6/D",
+                "TrkExtrpXStereoTopL6/D", "TrkExtrpXAxialBotL6/D", "TrkExtrpXStereoBotL6/D", "TrkExtrpYAxialTopL6/D",
+                "TrkExtrpYStereoTopL6/D", "TrkExtrpYAxialBotL6/D", "TrkExtrpYStereoBotL6/D", "RawMaxAmplL1/D",
+                "RawT0L1/D", "RawChisqL1/D", "RawTDiffL1/D", "RawMaxAmplL2/D", "RawT0L2/D", "RawChisqL2/D",
+                "RawTDiffL2/D", "RawMaxAmplL3/D", "RawT0L3/D", "RawChisqL3/D", "RawTDiffL3/D", "NTrackHits/I",
+                "HitsSharedP/D", "MaxHitsShared/I", "MinNegativeIsoL2/D", "MinPositiveIsoL2/D", "IsoStereoL2/D",
+                "IsoAxialL2/D", "SharedTrkChisq/D", "SharedTrkEcalX/D", "SharedTrkEcalY/D", "MatchChisq/D", "ClT/D",
+                "ClE/D", "ClSeedE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I", "Clix/I", "Cliy/I", "UncorrClT/D",
+                "UncorrClE/D", "UncorrClX/D", "UncorrClY/D", "UncorrClZ/D"};
 
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
@@ -346,9 +330,11 @@ public abstract class TupleDriver extends Driver {
             if (isGBL != TrackType.isGBL(fsp.getType())) {
                 continue;
             }
-            /*if (fsp.getClusters().isEmpty()){
-             continue;
-             }*/
+            /*
+             * if (fsp.getClusters().isEmpty()){
+             * continue;
+             * }
+             */
             if (fsp.getCharge() != 0) {
                 ntrk++;
             }
@@ -370,10 +356,10 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put("isPair0/B", triggerData.isPair0Trigger() ? 1.0 : 0.0);
             tupleMap.put("isPair1/B", triggerData.isPair1Trigger() ? 1.0 : 0.0);
         }
-       
-        if (event.hasCollection(GenericObject.class, "TriggerTime")){
-            if (event.get(GenericObject.class, "TriggerTime") != null){
-                List <GenericObject> triggT = event.get(GenericObject.class, "TriggerTime");
+
+        if (event.hasCollection(GenericObject.class, "TriggerTime")) {
+            if (event.get(GenericObject.class, "TriggerTime") != null) {
+                List<GenericObject> triggT = event.get(GenericObject.class, "TriggerTime");
                 tupleMap.put("evTime/D", triggT.get(0).getDoubleVal(0));
                 tupleMap.put("evTx/I", (double) triggT.get(0).getIntVal(0));
                 tupleMap.put("evTy/I", (double) triggT.get(0).getIntVal(1));
@@ -381,355 +367,345 @@ public abstract class TupleDriver extends Driver {
         }
         if (event.hasCollection(GenericObject.class, "RFHits")) {
             List<GenericObject> rfTimes = event.get(GenericObject.class, "RFHits");
-            if (rfTimes.size()>0){
-                tupleMap.put("rfT1/D",rfTimes.get(0).getDoubleVal(0));
-                tupleMap.put("rfT2/D",rfTimes.get(0).getDoubleVal(1));
+            if (rfTimes.size() > 0) {
+                tupleMap.put("rfT1/D", rfTimes.get(0).getDoubleVal(0));
+                tupleMap.put("rfT2/D", rfTimes.get(0).getDoubleVal(1));
             }
         }
-        if (event.hasCollection(CalorimeterHit.class,"EcalCalHits")){
-            List<CalorimeterHit> ecalHits = event.get(CalorimeterHit.class,"EcalCalHits");
-            tupleMap.put("nEcalHits/I", (double) ecalHits.size());   
+        if (event.hasCollection(CalorimeterHit.class, "EcalCalHits")) {
+            List<CalorimeterHit> ecalHits = event.get(CalorimeterHit.class, "EcalCalHits");
+            tupleMap.put("nEcalHits/I", (double) ecalHits.size());
         }
-        
-        if (event.hasCollection(Cluster.class,"EcalClustersCorr")){
-            List<Cluster> ecalClusters = event.get(Cluster.class,"EcalClustersCorr");
-            tupleMap.put("nEcalCl/I", (double) ecalClusters.size());  
-            
+
+        if (event.hasCollection(Cluster.class, "EcalClustersCorr")) {
+            List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClustersCorr");
+            tupleMap.put("nEcalCl/I", (double) ecalClusters.size());
+
             int nEle = 0;
             int nPos = 0;
             int nPho = 0;
             int nEleSide = 0;
             int nPosSide = 0;
-            
-            //BaseCluster c1 = (BaseCluster) ecalClusters.get(0);
-            
-            //System.out.println("Cluster pid:\t"+((BaseCluster) c1).getParticleId());
 
-            for (Cluster cc : ecalClusters){
-                if (cc.getParticleId()==11){
+            // BaseCluster c1 = (BaseCluster) ecalClusters.get(0);
+
+            // System.out.println("Cluster pid:\t"+((BaseCluster) c1).getParticleId());
+
+            for (Cluster cc : ecalClusters) {
+                if (cc.getParticleId() == 11) {
                     nEle++;
                 }
-                if (cc.getParticleId()==-11){
+                if (cc.getParticleId() == -11) {
                     nPos++;
                 }
-                if (cc.getParticleId()==22){
+                if (cc.getParticleId() == 22) {
                     nPho++;
                 }
-                if (cc.getPosition()[0]<0){
+                if (cc.getPosition()[0] < 0) {
                     nEleSide++;
                 }
-                if (cc.getPosition()[0]>0){
+                if (cc.getPosition()[0] > 0) {
                     nPosSide++;
                 }
             }
-            
+
             tupleMap.put("nEcalClele/I", (double) nEle);
             tupleMap.put("nEcalClpos/I", (double) nPos);
             tupleMap.put("nEcalClpho/I", (double) nPho);
             tupleMap.put("nEcalClEleSide/I", (double) nEleSide);
             tupleMap.put("nEcalClPosSide/I", (double) nPosSide);
-            
-            
+
         }
-        
-        ////////////////////////////////////////////////////////////////////////
-        //All of the following is specifically for getting raw tracker hit info 
-        ////////////////////////////////////////////////////////////////////////
-        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");       
-  
-         //Get the list of fitted hits from the event
-         List<LCRelation> fittedHits = event.get(LCRelation.class, "SVTFittedRawTrackerHits");
-         tupleMap.put("nSVTHits/I", (double) fittedHits.size());
 
-         //Map the fitted hits to their corresponding raw hits
-         Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
-         
-         for (LCRelation fittedHit : fittedHits) {
-             fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
-         }
-         
-         int nL1hits = 0;
-         int nL2hits = 0;
-         int nL3hits = 0;
-         int nL4hits = 0;     
-         int nL5hits = 0;     
-         int nL6hits = 0; 
-         int nL1bhits = 0;
-         int nL2bhits = 0;
-         int nL3bhits = 0;
-         int nL4bhits = 0;     
-         int nL5bhits = 0;     
-         int nL6bhits = 0; 
-         for (RawTrackerHit rHit : rawHits) {  
-             
-             HpsSiSensor sensor = (HpsSiSensor) rHit.getDetectorElement();
-             if (sensor.getLayerNumber()==1){
-                 nL1hits++;
-             }
-             else if (sensor.getLayerNumber()==2){
-                 nL1bhits++;
-             }
-             else if (sensor.getLayerNumber()==3){
-                 nL2hits++;
-             }
-             else if (sensor.getLayerNumber()==4){
-                 nL2bhits++;
-             }
-             else if (sensor.getLayerNumber()==5){
-                 nL3hits++;
-             }
-             else if (sensor.getLayerNumber()==6){
-                 nL3bhits++;
-             }
-             else if (sensor.getLayerNumber()==7){
-                 nL4hits++;
-             }
-             else if (sensor.getLayerNumber()==8){
-                 nL4bhits++;
-             }
-             else if (sensor.getLayerNumber()==9){
-                 nL5hits++;
-             }
-             else if (sensor.getLayerNumber()==10){
-                 nL5bhits++;
-             }
-             else if (sensor.getLayerNumber()==11){
-                 nL6hits++;
-             }
-             else if (sensor.getLayerNumber()==12){
-                 nL6bhits++;
-             }
-         }
-         
-         tupleMap.put("nSVTHitsL1/I", (double) nL1hits);
-         tupleMap.put("nSVTHitsL2/I", (double) nL2hits);
-         tupleMap.put("nSVTHitsL3/I", (double) nL3hits);
-         tupleMap.put("nSVTHitsL4/I", (double) nL4hits);
-         tupleMap.put("nSVTHitsL5/I", (double) nL5hits);
-         tupleMap.put("nSVTHitsL6/I", (double) nL6hits);
-         tupleMap.put("nSVTHitsL1b/I", (double) nL1bhits);
-         tupleMap.put("nSVTHitsL2b/I", (double) nL2bhits);
-         tupleMap.put("nSVTHitsL3b/I", (double) nL3bhits);
-         tupleMap.put("nSVTHitsL4b/I", (double) nL4bhits);
-         tupleMap.put("nSVTHitsL5b/I", (double) nL5bhits);
-         tupleMap.put("nSVTHitsL6b/I", (double) nL6bhits);
-             
-         
-         
-         double topL1HitX = 9999;
-         double topL1HitY = 9999;
-         double botL1HitX = 9999;
-         double botL1HitY = -9999;
+        // //////////////////////////////////////////////////////////////////////
+        // All of the following is specifically for getting raw tracker hit info
+        // //////////////////////////////////////////////////////////////////////
+        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
 
-         String stereoHitCollectionName = "RotatedHelicalTrackHits";
-         
-         // Get the collection of 3D hits from the event. This collection
-         // contains all 3D hits in the event and not just those associated
-         // with a track.
-         List<TrackerHit> hits = event.get(TrackerHit.class, stereoHitCollectionName);
-              
-         // Loop over the collection of 3D hits in the event and map them to 
-         // their corresponding layer.       
-         for (TrackerHit hit : hits) {
-             // Retrieve the sensor associated with one of the hits.  This will
-             // be used to retrieve the layer number
-             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
+        // Get the list of fitted hits from the event
+        List<LCRelation> fittedHits = event.get(LCRelation.class, "SVTFittedRawTrackerHits");
+        tupleMap.put("nSVTHits/I", (double) fittedHits.size());
 
-             // Retrieve the layer number by using the sensor
-             int layer = (sensor.getLayerNumber() + 1)/2;
-          
-             // If hit isn't in layer one, skip it. 
-             // You can also create another list which contains just layer 1 hits ...
-             if (layer != 1) continue;
-          
-             if (sensor.isTopLayer() && topL1HitY>hit.getPosition()[2]){
-                 topL1HitY = hit.getPosition()[2];
-                 topL1HitX = hit.getPosition()[1];
-                
-             }
-             if (sensor.isBottomLayer() && botL1HitY<hit.getPosition()[2]){
-                 botL1HitY = hit.getPosition()[2];
-                 botL1HitX = hit.getPosition()[1];
+        // Map the fitted hits to their corresponding raw hits
+        Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
 
-             }   
-             
-             // To check if hit is in top or bottom, use the sensor
-          //sensor.isTopLayer()
-      }
-         tupleMap.put("topL1HitX/D", topL1HitX);
-         tupleMap.put("topL1HitY/D", topL1HitY);
-         tupleMap.put("botL1HitX/D", botL1HitX);
-         tupleMap.put("botL1HitY/D", botL1HitY);
-             /*
-             // Get the hit amplitude
-             double amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rHit));
-   
-             // Get the t0 of the hit
-             double t0 = FittedRawTrackerHit.getT0(fittedRawTrackerHitMap.get(rHit));
-             GenericObject fitPar = FittedRawTrackerHit.getShapeFitParameters(fittedRawTrackerHitMap.get(rHit));
-        
-             HpsSiSensor sensor = (HpsSiSensor) rHit.getDetectorElement();
-             
-             //int febhid = sensor.getFebHybridID();
-             //int febid = sensor.getFebID();
-             int ln = sensor.getLayerNumber();
-             //int mid = sensor.getMillepedeId();
-             //int modn = sensor.getModuleNumber();
-             //double tshift = sensor.getT0Shift();
-             //int id = sensor.getSensorID();
-         }
-         */  
+        for (LCRelation fittedHit : fittedHits) {
+            fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
+        }
+
+        int nL1hits = 0;
+        int nL2hits = 0;
+        int nL3hits = 0;
+        int nL4hits = 0;
+        int nL5hits = 0;
+        int nL6hits = 0;
+        int nL1bhits = 0;
+        int nL2bhits = 0;
+        int nL3bhits = 0;
+        int nL4bhits = 0;
+        int nL5bhits = 0;
+        int nL6bhits = 0;
+        for (RawTrackerHit rHit : rawHits) {
+
+            HpsSiSensor sensor = (HpsSiSensor) rHit.getDetectorElement();
+            if (sensor.getLayerNumber() == 1) {
+                nL1hits++;
+            } else if (sensor.getLayerNumber() == 2) {
+                nL1bhits++;
+            } else if (sensor.getLayerNumber() == 3) {
+                nL2hits++;
+            } else if (sensor.getLayerNumber() == 4) {
+                nL2bhits++;
+            } else if (sensor.getLayerNumber() == 5) {
+                nL3hits++;
+            } else if (sensor.getLayerNumber() == 6) {
+                nL3bhits++;
+            } else if (sensor.getLayerNumber() == 7) {
+                nL4hits++;
+            } else if (sensor.getLayerNumber() == 8) {
+                nL4bhits++;
+            } else if (sensor.getLayerNumber() == 9) {
+                nL5hits++;
+            } else if (sensor.getLayerNumber() == 10) {
+                nL5bhits++;
+            } else if (sensor.getLayerNumber() == 11) {
+                nL6hits++;
+            } else if (sensor.getLayerNumber() == 12) {
+                nL6bhits++;
+            }
+        }
+
+        tupleMap.put("nSVTHitsL1/I", (double) nL1hits);
+        tupleMap.put("nSVTHitsL2/I", (double) nL2hits);
+        tupleMap.put("nSVTHitsL3/I", (double) nL3hits);
+        tupleMap.put("nSVTHitsL4/I", (double) nL4hits);
+        tupleMap.put("nSVTHitsL5/I", (double) nL5hits);
+        tupleMap.put("nSVTHitsL6/I", (double) nL6hits);
+        tupleMap.put("nSVTHitsL1b/I", (double) nL1bhits);
+        tupleMap.put("nSVTHitsL2b/I", (double) nL2bhits);
+        tupleMap.put("nSVTHitsL3b/I", (double) nL3bhits);
+        tupleMap.put("nSVTHitsL4b/I", (double) nL4bhits);
+        tupleMap.put("nSVTHitsL5b/I", (double) nL5bhits);
+        tupleMap.put("nSVTHitsL6b/I", (double) nL6bhits);
+
+        double topL1HitX = 9999;
+        double topL1HitY = 9999;
+        double botL1HitX = 9999;
+        double botL1HitY = -9999;
+
+        String stereoHitCollectionName = "RotatedHelicalTrackHits";
+
+        // Get the collection of 3D hits from the event. This collection
+        // contains all 3D hits in the event and not just those associated
+        // with a track.
+        List<TrackerHit> hits = event.get(TrackerHit.class, stereoHitCollectionName);
+
+        // Loop over the collection of 3D hits in the event and map them to
+        // their corresponding layer.
+        for (TrackerHit hit : hits) {
+            // Retrieve the sensor associated with one of the hits. This will
+            // be used to retrieve the layer number
+            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
+
+            // Retrieve the layer number by using the sensor
+            int layer = (sensor.getLayerNumber() + 1) / 2;
+
+            // If hit isn't in layer one, skip it.
+            // You can also create another list which contains just layer 1 hits ...
+            if (layer != 1)
+                continue;
+
+            if (sensor.isTopLayer() && topL1HitY > hit.getPosition()[2]) {
+                topL1HitY = hit.getPosition()[2];
+                topL1HitX = hit.getPosition()[1];
+
+            }
+            if (sensor.isBottomLayer() && botL1HitY < hit.getPosition()[2]) {
+                botL1HitY = hit.getPosition()[2];
+                botL1HitX = hit.getPosition()[1];
+
+            }
+
+            // To check if hit is in top or bottom, use the sensor
+            // sensor.isTopLayer()
+        }
+        tupleMap.put("topL1HitX/D", topL1HitX);
+        tupleMap.put("topL1HitY/D", topL1HitY);
+        tupleMap.put("botL1HitX/D", botL1HitX);
+        tupleMap.put("botL1HitY/D", botL1HitY);
+        /*
+         * // Get the hit amplitude
+         * double amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rHit));
+         * 
+         * // Get the t0 of the hit
+         * double t0 = FittedRawTrackerHit.getT0(fittedRawTrackerHitMap.get(rHit));
+         * GenericObject fitPar = FittedRawTrackerHit.getShapeFitParameters(fittedRawTrackerHitMap.get(rHit));
+         * 
+         * HpsSiSensor sensor = (HpsSiSensor) rHit.getDetectorElement();
+         * 
+         * //int febhid = sensor.getFebHybridID();
+         * //int febid = sensor.getFebID();
+         * int ln = sensor.getLayerNumber();
+         * //int mid = sensor.getMillepedeId();
+         * //int modn = sensor.getModuleNumber();
+         * //double tshift = sensor.getT0Shift();
+         * //int id = sensor.getSensorID();
+         * }
+         */
     }
 
-//    protected TrackState fillParticleVariablesT(EventHeader event, ReconstructedParticle particle, String prefix) {
-//        Track track = particle.getTracks().get(0);
-//        TrackState trackState = track.getTrackStates().get(0);
-//        double[] param = new double[5];
-//        for (int i = 0; i < 5; i++) {
-//            param[i] = trackState.getParameters()[i] + ((trackState.getTanLambda() > 0) ? topTrackCorrection[i] : botTrackCorrection[i]);
-//        }
-////            Arrays.
-//        TrackState tweakedTrackState = new BaseTrackState(param, trackState.getReferencePoint(), trackState.getCovMatrix(), trackState.getLocation(), bfield);
-//        Hep3Vector pRot = VecOp.mult(beamAxisRotation, CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(tweakedTrackState.getMomentum())));
-//
-//        Double[] iso = TrackUtils.getIsolations(track, TrackUtils.getHitToStripsTable(event), TrackUtils.getHitToRotatedTable(event));
-//        double minPositiveIso = 9999;
-//        double minNegativeIso = 9999;
-//        double isoStereo = -9999, isoAxial = -9999;
-//        for (int i = 0; i < 6; i++) {
-//            if (iso[2 * i] != null) {
-//                if (pRot.y() < 0) {
-//                    isoStereo = iso[2 * i];
-//                    isoAxial = iso[2 * i + 1];
-//                } else {
-//                    isoAxial = iso[2 * i];
-//                    isoStereo = iso[2 * i + 1];
-//                }
-//                for (int j = 2 * i; j < 2 * i + 2; j++) {
-//                    if (iso[j] < 100) {
-//                        if (iso[j] > 0) {
-//                            if (minPositiveIso > 100 || iso[j] < minPositiveIso) {
-//                                minPositiveIso = iso[j];
-//                            }
-//                        } else {
-//                            if (minNegativeIso > 100 || iso[j] > minNegativeIso) {
-//                                minNegativeIso = iso[j];
-//                            }
-//                        }
-//                    }
-//                }
-//                break;
-//            }
-//        }
-//        double trkT = TrackUtils.getTrackTime(track, TrackUtils.getHitToStripsTable(event), TrackUtils.getHitToRotatedTable(event));
-//        Hep3Vector atEcal = TrackUtils.getTrackPositionAtEcal(tweakedTrackState);
-//        Hep3Vector firstHitPosition = VecOp.mult(beamAxisRotation, CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(track.getTrackerHits().get(0).getPosition())));
-//        GenericObject kinks = GBLKinkData.getKinkData(event, track);
-//
-//        tupleMap.put(prefix + "PX/D", pRot.x());
-//        tupleMap.put(prefix + "PY/D", pRot.y());
-//        tupleMap.put(prefix + "PZ/D", pRot.z());
-//        tupleMap.put(prefix + "P/D", pRot.magnitude());
-//        tupleMap.put(prefix + "TrkZ0/D", tweakedTrackState.getZ0());
-//        tupleMap.put(prefix + "TrkLambda/D", tweakedTrackState.getTanLambda());
-//        tupleMap.put(prefix + "TrkD0/D", tweakedTrackState.getD0());
-//        tupleMap.put(prefix + "TrkPhi/D", tweakedTrackState.getPhi());
-//        tupleMap.put(prefix + "TrkOmega/D", tweakedTrackState.getOmega());
-//        tupleMap.put(prefix + "TrkEcalX/D", atEcal.x());
-//        tupleMap.put(prefix + "TrkEcalY/D", atEcal.y());
-//        tupleMap.put(prefix + "TrkChisq/D", track.getChi2());
-//        tupleMap.put(prefix + "TrkHits/I", (double) track.getTrackerHits().size());
-//        tupleMap.put(prefix + "TrkType/I", (double) particle.getType());
-//        tupleMap.put(prefix + "TrkT/D", trkT);
-//        tupleMap.put(prefix + "HasL1/B", iso[0] != null ? 1.0 : 0.0);
-//        tupleMap.put(prefix + "HasL2/B", iso[2] != null ? 1.0 : 0.0);
-//        tupleMap.put(prefix + "HasL3/B", iso[4] != null ? 1.0 : 0.0);
-//        tupleMap.put(prefix + "FirstHitX/D", firstHitPosition.x());
-//        tupleMap.put(prefix + "FirstHitY/D", firstHitPosition.y());
-//        tupleMap.put(prefix + "LambdaKink1/D", GBLKinkData.getLambdaKink(kinks, 1));
-//        tupleMap.put(prefix + "LambdaKink2/D", GBLKinkData.getLambdaKink(kinks, 2));
-//        tupleMap.put(prefix + "LambdaKink3/D", GBLKinkData.getLambdaKink(kinks, 3));
-//        tupleMap.put(prefix + "PhiKink1/D", GBLKinkData.getPhiKink(kinks, 1));
-//        tupleMap.put(prefix + "PhiKink2/D", GBLKinkData.getPhiKink(kinks, 2));
-//        tupleMap.put(prefix + "PhiKink3/D", GBLKinkData.getPhiKink(kinks, 3));
-//        tupleMap.put(prefix + "IsoStereo/D", isoStereo);
-//        tupleMap.put(prefix + "IsoAxial/D", isoAxial);
-//        tupleMap.put(prefix + "MinPositiveIso/D", minPositiveIso);
-//        tupleMap.put(prefix + "MinNegativeIso/D", minNegativeIso);
-//        tupleMap.put(prefix + "MatchChisq/D", particle.getGoodnessOfPID());
-//        if (!particle.getClusters().isEmpty()) {
-//            Cluster cluster = particle.getClusters().get(0);
-//            tupleMap.put(prefix + "ClT/D", ClusterUtilities.getSeedHitTime(cluster));
-//            tupleMap.put(prefix + "ClE/D", cluster.getEnergy());
-//            tupleMap.put(prefix + "ClSeedE/D", ClusterUtilities.findSeedHit(cluster).getCorrectedEnergy());
-//            tupleMap.put(prefix + "ClX/D", cluster.getPosition()[0]);
-//            tupleMap.put(prefix + "ClY/D", cluster.getPosition()[1]);
-//            tupleMap.put(prefix + "ClZ/D", cluster.getPosition()[2]);
-//            tupleMap.put(prefix + "ClHits/I", (double) cluster.getCalorimeterHits().size());
-//        }
-//
-//        return tweakedTrackState;
-//    }
-    
+    // protected TrackState fillParticleVariablesT(EventHeader event, ReconstructedParticle particle, String prefix) {
+    // Track track = particle.getTracks().get(0);
+    // TrackState trackState = track.getTrackStates().get(0);
+    // double[] param = new double[5];
+    // for (int i = 0; i < 5; i++) {
+    // param[i] = trackState.getParameters()[i] + ((trackState.getTanLambda() > 0) ? topTrackCorrection[i] :
+    // botTrackCorrection[i]);
+    // }
+    // // Arrays.
+    // TrackState tweakedTrackState = new BaseTrackState(param, trackState.getReferencePoint(),
+    // trackState.getCovMatrix(), trackState.getLocation(), bfield);
+    // Hep3Vector pRot = VecOp.mult(beamAxisRotation, CoordinateTransformations.transformVectorToDetector(new
+    // BasicHep3Vector(tweakedTrackState.getMomentum())));
+    //
+    // Double[] iso = TrackUtils.getIsolations(track, TrackUtils.getHitToStripsTable(event),
+    // TrackUtils.getHitToRotatedTable(event));
+    // double minPositiveIso = 9999;
+    // double minNegativeIso = 9999;
+    // double isoStereo = -9999, isoAxial = -9999;
+    // for (int i = 0; i < 6; i++) {
+    // if (iso[2 * i] != null) {
+    // if (pRot.y() < 0) {
+    // isoStereo = iso[2 * i];
+    // isoAxial = iso[2 * i + 1];
+    // } else {
+    // isoAxial = iso[2 * i];
+    // isoStereo = iso[2 * i + 1];
+    // }
+    // for (int j = 2 * i; j < 2 * i + 2; j++) {
+    // if (iso[j] < 100) {
+    // if (iso[j] > 0) {
+    // if (minPositiveIso > 100 || iso[j] < minPositiveIso) {
+    // minPositiveIso = iso[j];
+    // }
+    // } else {
+    // if (minNegativeIso > 100 || iso[j] > minNegativeIso) {
+    // minNegativeIso = iso[j];
+    // }
+    // }
+    // }
+    // }
+    // break;
+    // }
+    // }
+    // double trkT = TrackUtils.getTrackTime(track, TrackUtils.getHitToStripsTable(event),
+    // TrackUtils.getHitToRotatedTable(event));
+    // Hep3Vector atEcal = TrackUtils.getTrackPositionAtEcal(tweakedTrackState);
+    // Hep3Vector firstHitPosition = VecOp.mult(beamAxisRotation,
+    // CoordinateTransformations.transformVectorToDetector(new
+    // BasicHep3Vector(track.getTrackerHits().get(0).getPosition())));
+    // GenericObject kinks = GBLKinkData.getKinkData(event, track);
+    //
+    // tupleMap.put(prefix + "PX/D", pRot.x());
+    // tupleMap.put(prefix + "PY/D", pRot.y());
+    // tupleMap.put(prefix + "PZ/D", pRot.z());
+    // tupleMap.put(prefix + "P/D", pRot.magnitude());
+    // tupleMap.put(prefix + "TrkZ0/D", tweakedTrackState.getZ0());
+    // tupleMap.put(prefix + "TrkLambda/D", tweakedTrackState.getTanLambda());
+    // tupleMap.put(prefix + "TrkD0/D", tweakedTrackState.getD0());
+    // tupleMap.put(prefix + "TrkPhi/D", tweakedTrackState.getPhi());
+    // tupleMap.put(prefix + "TrkOmega/D", tweakedTrackState.getOmega());
+    // tupleMap.put(prefix + "TrkEcalX/D", atEcal.x());
+    // tupleMap.put(prefix + "TrkEcalY/D", atEcal.y());
+    // tupleMap.put(prefix + "TrkChisq/D", track.getChi2());
+    // tupleMap.put(prefix + "TrkHits/I", (double) track.getTrackerHits().size());
+    // tupleMap.put(prefix + "TrkType/I", (double) particle.getType());
+    // tupleMap.put(prefix + "TrkT/D", trkT);
+    // tupleMap.put(prefix + "HasL1/B", iso[0] != null ? 1.0 : 0.0);
+    // tupleMap.put(prefix + "HasL2/B", iso[2] != null ? 1.0 : 0.0);
+    // tupleMap.put(prefix + "HasL3/B", iso[4] != null ? 1.0 : 0.0);
+    // tupleMap.put(prefix + "FirstHitX/D", firstHitPosition.x());
+    // tupleMap.put(prefix + "FirstHitY/D", firstHitPosition.y());
+    // tupleMap.put(prefix + "LambdaKink1/D", GBLKinkData.getLambdaKink(kinks, 1));
+    // tupleMap.put(prefix + "LambdaKink2/D", GBLKinkData.getLambdaKink(kinks, 2));
+    // tupleMap.put(prefix + "LambdaKink3/D", GBLKinkData.getLambdaKink(kinks, 3));
+    // tupleMap.put(prefix + "PhiKink1/D", GBLKinkData.getPhiKink(kinks, 1));
+    // tupleMap.put(prefix + "PhiKink2/D", GBLKinkData.getPhiKink(kinks, 2));
+    // tupleMap.put(prefix + "PhiKink3/D", GBLKinkData.getPhiKink(kinks, 3));
+    // tupleMap.put(prefix + "IsoStereo/D", isoStereo);
+    // tupleMap.put(prefix + "IsoAxial/D", isoAxial);
+    // tupleMap.put(prefix + "MinPositiveIso/D", minPositiveIso);
+    // tupleMap.put(prefix + "MinNegativeIso/D", minNegativeIso);
+    // tupleMap.put(prefix + "MatchChisq/D", particle.getGoodnessOfPID());
+    // if (!particle.getClusters().isEmpty()) {
+    // Cluster cluster = particle.getClusters().get(0);
+    // tupleMap.put(prefix + "ClT/D", ClusterUtilities.getSeedHitTime(cluster));
+    // tupleMap.put(prefix + "ClE/D", cluster.getEnergy());
+    // tupleMap.put(prefix + "ClSeedE/D", ClusterUtilities.findSeedHit(cluster).getCorrectedEnergy());
+    // tupleMap.put(prefix + "ClX/D", cluster.getPosition()[0]);
+    // tupleMap.put(prefix + "ClY/D", cluster.getPosition()[1]);
+    // tupleMap.put(prefix + "ClZ/D", cluster.getPosition()[2]);
+    // tupleMap.put(prefix + "ClHits/I", (double) cluster.getCalorimeterHits().size());
+    // }
+    //
+    // return tweakedTrackState;
+    // }
+
     protected TrackState fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix) {
         TrackState returnTrackState = null;
 
         if (!particle.getTracks().isEmpty()) {
-            List<Track> allTracks = event.get(Track.class, "GBLTracks");    
-            
-            //System.out.println("number of gbl tracks"+allTracks.size());
-            
-            //Extrapolate track to each sensor
+            List<Track> allTracks = event.get(Track.class, "GBLTracks");
+
+            // System.out.println("number of gbl tracks"+allTracks.size());
+
+            // Extrapolate track to each sensor
             Track track = particle.getTracks().get(0);
             TrackState trackState = track.getTrackStates().get(0);
-            double[] extrapTrackXTopAxial = new double [nLay];
-            double[] extrapTrackXTopStereo = new double [nLay];
-            double[] extrapTrackXBotAxial = new double [nLay];
-            double[] extrapTrackXBotStereo = new double [nLay];
-            double[] extrapTrackYTopAxial = new double [nLay];
-            double[] extrapTrackYTopStereo = new double [nLay];
-            double[] extrapTrackYBotAxial = new double [nLay];
-            double[] extrapTrackYBotStereo = new double [nLay];
-            for (HpsSiSensor sensor : sensors){
+            double[] extrapTrackXTopAxial = new double[nLay];
+            double[] extrapTrackXTopStereo = new double[nLay];
+            double[] extrapTrackXBotAxial = new double[nLay];
+            double[] extrapTrackXBotStereo = new double[nLay];
+            double[] extrapTrackYTopAxial = new double[nLay];
+            double[] extrapTrackYTopStereo = new double[nLay];
+            double[] extrapTrackYBotAxial = new double[nLay];
+            double[] extrapTrackYBotStereo = new double[nLay];
+            for (HpsSiSensor sensor : sensors) {
                 double zPos = sensor.getGeometry().getPosition().z();
-                Hep3Vector extrapPos = TrackUtils.extrapolateTrack(track,zPos);
-                int i = ((sensor.getLayerNumber()+1)/2) - 1;
-                if(trackState.getTanLambda() > 0 && sensor.isTopLayer()){
-                    if(sensor.isAxial()){
+                Hep3Vector extrapPos = TrackUtils.extrapolateTrack(track, zPos);
+                int i = ((sensor.getLayerNumber() + 1) / 2) - 1;
+                if (trackState.getTanLambda() > 0 && sensor.isTopLayer()) {
+                    if (sensor.isAxial()) {
                         extrapTrackXTopAxial[i] = extrapPos.x();
                         extrapTrackYTopAxial[i] = extrapPos.y();
-                    }
-                    else{
+                    } else {
                         extrapTrackXTopStereo[i] = extrapPos.x();
                         extrapTrackYTopStereo[i] = extrapPos.y();
                     }
                 }
-                if(trackState.getTanLambda() > 0 && sensor.isBottomLayer()){
-                    if(sensor.isAxial()){
+                if (trackState.getTanLambda() > 0 && sensor.isBottomLayer()) {
+                    if (sensor.isAxial()) {
                         extrapTrackXBotAxial[i] = -9999;
                         extrapTrackYBotAxial[i] = -9999;
-                    }
-                    else{
+                    } else {
                         extrapTrackXBotStereo[i] = -9999;
                         extrapTrackYBotStereo[i] = -9999;
                     }
                 }
-                if(trackState.getTanLambda() < 0 && sensor.isBottomLayer()){
-                    if(sensor.isAxial()){
+                if (trackState.getTanLambda() < 0 && sensor.isBottomLayer()) {
+                    if (sensor.isAxial()) {
                         extrapTrackXBotAxial[i] = extrapPos.x();
                         extrapTrackYBotAxial[i] = extrapPos.y();
-                    }
-                    else{
+                    } else {
                         extrapTrackXBotStereo[i] = extrapPos.x();
                         extrapTrackYBotStereo[i] = extrapPos.y();
                     }
                 }
-                if(trackState.getTanLambda() < 0 && sensor.isTopLayer()){
-                    if(sensor.isAxial()){
+                if (trackState.getTanLambda() < 0 && sensor.isTopLayer()) {
+                    if (sensor.isAxial()) {
                         extrapTrackXTopAxial[i] = -9999;
                         extrapTrackYTopAxial[i] = -9999;
-                    }
-                    else{
+                    } else {
                         extrapTrackXTopStereo[i] = -9999;
                         extrapTrackYTopStereo[i] = -9999;
                     }
@@ -737,13 +713,17 @@ public abstract class TupleDriver extends Driver {
             }
             double[] param = new double[5];
             for (int i = 0; i < 5; i++) {
-                param[i] = trackState.getParameters()[i] + ((trackState.getTanLambda() > 0) ? topTrackCorrection[i] : botTrackCorrection[i]);
+                param[i] = trackState.getParameters()[i]
+                        + ((trackState.getTanLambda() > 0) ? topTrackCorrection[i] : botTrackCorrection[i]);
             }
-            //            Arrays.
-            TrackState tweakedTrackState = new BaseTrackState(param, trackState.getReferencePoint(), trackState.getCovMatrix(), trackState.getLocation(), bfield);
-            Hep3Vector pRot = VecOp.mult(beamAxisRotation, CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(tweakedTrackState.getMomentum())));
+            // Arrays.
+            TrackState tweakedTrackState = new BaseTrackState(param, trackState.getReferencePoint(),
+                    trackState.getCovMatrix(), trackState.getLocation(), bfield);
+            Hep3Vector pRot = VecOp.mult(beamAxisRotation, CoordinateTransformations
+                    .transformVectorToDetector(new BasicHep3Vector(tweakedTrackState.getMomentum())));
 
-            Double[] iso = TrackUtils.getIsolations(track, TrackUtils.getHitToStripsTable(event), TrackUtils.getHitToRotatedTable(event), nLay);
+            Double[] iso = TrackUtils.getIsolations(track, TrackUtils.getHitToStripsTable(event),
+                    TrackUtils.getHitToRotatedTable(event), nLay);
             double minPositiveIso = 9999;
             double minPositiveIsoL2 = 9999;
             double minNegativeIso = 9999;
@@ -772,16 +752,16 @@ public abstract class TupleDriver extends Driver {
                             }
                         }
                     }
-                  //  break;
+                    // break;
                 }
-                if (iso[2 * i + 2]!=null){
+                if (iso[2 * i + 2] != null) {
                     if (pRot.y() < 0) {
-                        isoStereoL2 = iso[2 * i +2];
-                        isoAxialL2 = iso[2 * i +3];
+                        isoStereoL2 = iso[2 * i + 2];
+                        isoAxialL2 = iso[2 * i + 3];
                     } else {
-                        isoStereoL2 = iso[2 * i +3];
-                        isoAxialL2 = iso[2 * i +2];
-                    } 
+                        isoStereoL2 = iso[2 * i + 3];
+                        isoAxialL2 = iso[2 * i + 2];
+                    }
                     for (int j = 2 * i + 2; j < 2 * i + 4; j++) {
                         if (iso[j] < 100) {
                             if (iso[j] > 0) {
@@ -796,18 +776,22 @@ public abstract class TupleDriver extends Driver {
                         }
                     }
                 }
-                break;       
+                break;
             }
-                
-            ////////////////////
-           
-            
-            ///////////////////////////
-            double trkT = TrackUtils.getTrackTime(track, TrackUtils.getHitToStripsTable(event), TrackUtils.getHitToRotatedTable(event));
-            double trkTsd = TrackUtils.getTrackTimeSD(track, TrackUtils.getHitToStripsTable(event), TrackUtils.getHitToRotatedTable(event));
+
+            // //////////////////
+
+            // /////////////////////////
+            double trkT = TrackUtils.getTrackTime(track, TrackUtils.getHitToStripsTable(event),
+                    TrackUtils.getHitToRotatedTable(event));
+            double trkTsd = TrackUtils.getTrackTimeSD(track, TrackUtils.getHitToStripsTable(event),
+                    TrackUtils.getHitToRotatedTable(event));
 
             Hep3Vector atEcal = TrackUtils.getTrackPositionAtEcal(tweakedTrackState);
-            Hep3Vector firstHitPosition = VecOp.mult(beamAxisRotation, CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(track.getTrackerHits().get(0).getPosition())));
+            Hep3Vector firstHitPosition = VecOp.mult(
+                    beamAxisRotation,
+                    CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(track.getTrackerHits()
+                            .get(0).getPosition())));
             GenericObject kinks = GBLKinkData.getKinkData(event, track);
 
             RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
@@ -820,88 +804,92 @@ public abstract class TupleDriver extends Driver {
             TrackerHit hit = track.getTrackerHits().get(0);
             Collection<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
             for (TrackerHit hts : htsList) {
-                int layer = ((HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+                int layer = ((HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement())
+                        .getLayerNumber();
                 hitTimes[layer % 2] = hts.getTime();
                 hitdEdx[layer % 2] = hts.getdEdx();
                 hitClusterSize[layer % 2] = hts.getRawHits().size();
             }
 
-            //////////////////////////////////////////////////////////////////////////
+            // ////////////////////////////////////////////////////////////////////////
             double rawHitTime[] = new double[nLay];
             double rawHitTDiff[] = new double[nLay];
             double rawHitMaxAmpl[] = new double[nLay];
             double rawHitChisq[] = new double[nLay];
             int nTrackHits = 0;
-            List <TrackerHit> allTrackHits = track.getTrackerHits();
-            for (TrackerHit iTrackHit : allTrackHits){
-                List <RawTrackerHit> allRawHits = iTrackHit.getRawHits();
-        
-                //Get the list of fitted hits from the event
+            List<TrackerHit> allTrackHits = track.getTrackerHits();
+            for (TrackerHit iTrackHit : allTrackHits) {
+                List<RawTrackerHit> allRawHits = iTrackHit.getRawHits();
+
+                // Get the list of fitted hits from the event
                 List<LCRelation> fittedHits = event.get(LCRelation.class, "SVTFittedRawTrackerHits");
 
-                //Map the fitted hits to their corresponding raw hits
+                // Map the fitted hits to their corresponding raw hits
                 Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
-            
+
                 for (LCRelation fittedHit : fittedHits) {
                     fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
                 }
-            
-               
+
                 int sz = 0;
                 double t0 = 0;
                 double amplmax = 0;
                 double chi2 = 0;
                 double t0min = 0;
                 double t0max = 0;
-                for (RawTrackerHit iRawHit : allRawHits){
-                  //0=T0, 1=T0 error, 2=amplitude, 3=amplitude error, 4=chi2 of fit 
-                    GenericObject fitPar = FittedRawTrackerHit.getShapeFitParameters(fittedRawTrackerHitMap.get(iRawHit));
+                for (RawTrackerHit iRawHit : allRawHits) {
+                    // 0=T0, 1=T0 error, 2=amplitude, 3=amplitude error, 4=chi2 of fit
+                    GenericObject fitPar = FittedRawTrackerHit.getShapeFitParameters(fittedRawTrackerHitMap
+                            .get(iRawHit));
                     sz++;
-                    if (sz==1){
+                    if (sz == 1) {
                         t0min = fitPar.getDoubleVal(0);
                         t0max = fitPar.getDoubleVal(0);
                     }
-                    if (t0min > fitPar.getDoubleVal(0)){
+                    if (t0min > fitPar.getDoubleVal(0)) {
                         t0min = fitPar.getDoubleVal(0);
                     }
-                    if (t0max < fitPar.getDoubleVal(0)){
+                    if (t0max < fitPar.getDoubleVal(0)) {
                         t0max = fitPar.getDoubleVal(0);
-                    } 
-                    if (amplmax < fitPar.getDoubleVal(2)){
+                    }
+                    if (amplmax < fitPar.getDoubleVal(2)) {
                         amplmax = fitPar.getDoubleVal(2);
                         chi2 = fitPar.getDoubleVal(4);
                         t0 = fitPar.getDoubleVal(0);
 
-                    }//end if
-                }  //end loop over raw hits
-                //System.out.println("\t nTrackHits\t"+nTrackHits+"\t t0\t"+t0+"\ttdiff\t"+t0max+"\tampl\t"+amplmax+
-                //        "\tchi2\t"+chi2);
+                    }// end if
+                }  // end loop over raw hits
+                  // System.out.println("\t nTrackHits\t"+nTrackHits+"\t t0\t"+t0+"\ttdiff\t"+t0max+"\tampl\t"+amplmax+
+                  // "\tchi2\t"+chi2);
                 rawHitTime[nTrackHits] = t0;
                 rawHitTDiff[nTrackHits] = t0max - t0min;
                 rawHitMaxAmpl[nTrackHits] = amplmax;
                 rawHitChisq[nTrackHits] = chi2;
-                nTrackHits ++;          
-            }//end loop over track hits
+                nTrackHits++;
+            }// end loop over track hits
             int allShared = TrackUtils.numberOfSharedHits(track, allTracks);
-            Track trackShared = TrackUtils.mostSharedHitTrack(track,allTracks);
-            ///calculate the shared track momentum:
+            Track trackShared = TrackUtils.mostSharedHitTrack(track, allTracks);
+            // /calculate the shared track momentum:
             TrackState trackStateShared = trackShared.getTrackStates().get(0);
             double[] paramShared = new double[5];
             for (int i = 0; i < 5; i++) {
-                paramShared[i] = trackStateShared.getParameters()[i] + ((trackStateShared.getTanLambda() > 0) ? topTrackCorrection[i] : botTrackCorrection[i]);
+                paramShared[i] = trackStateShared.getParameters()[i]
+                        + ((trackStateShared.getTanLambda() > 0) ? topTrackCorrection[i] : botTrackCorrection[i]);
             }
-            //            Arrays.
-            TrackState tweakedTrackStateShared = new BaseTrackState(paramShared, trackStateShared.getReferencePoint(), trackStateShared.getCovMatrix(), trackStateShared.getLocation(), bfield);
-            Hep3Vector pRotShared = VecOp.mult(beamAxisRotation, CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(tweakedTrackStateShared.getMomentum())));
-            //////////////////////////////////////            
+            // Arrays.
+            TrackState tweakedTrackStateShared = new BaseTrackState(paramShared, trackStateShared.getReferencePoint(),
+                    trackStateShared.getCovMatrix(), trackStateShared.getLocation(), bfield);
+            Hep3Vector pRotShared = VecOp.mult(beamAxisRotation, CoordinateTransformations
+                    .transformVectorToDetector(new BasicHep3Vector(tweakedTrackStateShared.getMomentum())));
+            // ////////////////////////////////////
             double momentumOfShared = pRotShared.magnitude();
             int maxShared = TrackUtils.numberOfSharedHits(track, trackShared);
             Hep3Vector atEcalShared = TrackUtils.getTrackPositionAtEcal(tweakedTrackStateShared);
 
-            //if (track == trackShared){System.out.println("Tracks are same!");}
-            //System.out.println("momentum of shared:\t"+momentumOfShared+"\t max shared \t"+maxShared+"\tall shared\t"+allShared);       
-            ///////////////////////////////////////////////////////////////////////////////////////
-        
+            // if (track == trackShared){System.out.println("Tracks are same!");}
+            // System.out.println("momentum of shared:\t"+momentumOfShared+"\t max shared \t"+maxShared+"\tall shared\t"+allShared);
+            // /////////////////////////////////////////////////////////////////////////////////////
+
             tupleMap.put(prefix + "RawMaxAmplL1/D", rawHitMaxAmpl[0]);
             tupleMap.put(prefix + "RawT0L1/D", rawHitTime[0]);
             tupleMap.put(prefix + "RawChisqL1/D", rawHitChisq[0]);
@@ -914,8 +902,8 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "RawT0L3/D", rawHitTime[2]);
             tupleMap.put(prefix + "RawChisqL3/D", rawHitChisq[2]);
             tupleMap.put(prefix + "RawTDiffL3/D", rawHitTDiff[2]);
-            tupleMap.put(prefix + "NTrackHits/I", (double) nTrackHits);    
-            
+            tupleMap.put(prefix + "NTrackHits/I", (double) nTrackHits);
+
             tupleMap.put(prefix + "PX/D", pRot.x());
             tupleMap.put(prefix + "PY/D", pRot.y());
             tupleMap.put(prefix + "PZ/D", pRot.z());
@@ -949,10 +937,10 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "NHitsShared/I", (double) TrackUtils.numberOfSharedHits(track, allTracks));
             tupleMap.put(prefix + "HitsSharedP/D", momentumOfShared);
             tupleMap.put(prefix + "MaxHitsShared/I", (double) maxShared);
-            tupleMap.put(prefix + "SharedTrkChisq/D", trackShared.getChi2());          
+            tupleMap.put(prefix + "SharedTrkChisq/D", trackShared.getChi2());
             tupleMap.put(prefix + "SharedTrkEcalX/D", atEcalShared.x());
-            tupleMap.put(prefix + "SharedTrkEcalY/D", atEcalShared.y());    
-            
+            tupleMap.put(prefix + "SharedTrkEcalY/D", atEcalShared.y());
+
             tupleMap.put(prefix + "LambdaKink1/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 1) : 0);
             tupleMap.put(prefix + "LambdaKink2/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 2) : 0);
             tupleMap.put(prefix + "LambdaKink3/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 3) : 0);
@@ -967,66 +955,65 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "MinNegativeIso/D", minNegativeIso);
             tupleMap.put(prefix + "MinPositiveIsoL2/D", minPositiveIsoL2);
             tupleMap.put(prefix + "MinNegativeIsoL2/D", minNegativeIsoL2);
-            if(nLay == 7){
-                tupleMap.put(prefix + "TrkExtrpXAxialTopL0/D", extrapTrackXTopAxial[nLay-7]);
-                tupleMap.put(prefix + "TrkExtrpYAxialTopL0/D", extrapTrackYTopAxial[nLay-7]);
-                tupleMap.put(prefix + "TrkExtrpXStereoTopL0/D", extrapTrackXTopStereo[nLay-7]);
-                tupleMap.put(prefix + "TrkExtrpYStereoTopL0/D", extrapTrackYTopStereo[nLay-7]);
-                tupleMap.put(prefix + "TrkExtrpXAxialBotL0/D", extrapTrackXBotAxial[nLay-7]);
-                tupleMap.put(prefix + "TrkExtrpYAxialBotL0/D", extrapTrackYBotAxial[nLay-7]);
-                tupleMap.put(prefix + "TrkExtrpXStereoBotL0/D", extrapTrackXBotStereo[nLay-7]);
-                tupleMap.put(prefix + "TrkExtrpYStereoBotL0/D", extrapTrackYBotStereo[nLay-7]);
+            if (nLay == 7) {
+                tupleMap.put(prefix + "TrkExtrpXAxialTopL0/D", extrapTrackXTopAxial[nLay - 7]);
+                tupleMap.put(prefix + "TrkExtrpYAxialTopL0/D", extrapTrackYTopAxial[nLay - 7]);
+                tupleMap.put(prefix + "TrkExtrpXStereoTopL0/D", extrapTrackXTopStereo[nLay - 7]);
+                tupleMap.put(prefix + "TrkExtrpYStereoTopL0/D", extrapTrackYTopStereo[nLay - 7]);
+                tupleMap.put(prefix + "TrkExtrpXAxialBotL0/D", extrapTrackXBotAxial[nLay - 7]);
+                tupleMap.put(prefix + "TrkExtrpYAxialBotL0/D", extrapTrackYBotAxial[nLay - 7]);
+                tupleMap.put(prefix + "TrkExtrpXStereoBotL0/D", extrapTrackXBotStereo[nLay - 7]);
+                tupleMap.put(prefix + "TrkExtrpYStereoBotL0/D", extrapTrackYBotStereo[nLay - 7]);
             }
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL1/D", extrapTrackXTopAxial[nLay-6]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL1/D", extrapTrackYTopAxial[nLay-6]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL1/D", extrapTrackXTopStereo[nLay-6]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL1/D", extrapTrackYTopStereo[nLay-6]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL1/D", extrapTrackXBotAxial[nLay-6]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL1/D", extrapTrackYBotAxial[nLay-6]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL1/D", extrapTrackXBotStereo[nLay-6]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL1/D", extrapTrackYBotStereo[nLay-6]);
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL2/D", extrapTrackXTopAxial[nLay-5]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL2/D", extrapTrackYTopAxial[nLay-5]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL2/D", extrapTrackXTopStereo[nLay-5]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL2/D", extrapTrackYTopStereo[nLay-5]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL2/D", extrapTrackXBotAxial[nLay-5]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL2/D", extrapTrackYBotAxial[nLay-5]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL2/D", extrapTrackXBotStereo[nLay-5]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL2/D", extrapTrackYBotStereo[nLay-5]);
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL3/D", extrapTrackXTopAxial[nLay-4]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL3/D", extrapTrackYTopAxial[nLay-4]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL3/D", extrapTrackXTopStereo[nLay-4]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL3/D", extrapTrackYTopStereo[nLay-4]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL3/D", extrapTrackXBotAxial[nLay-4]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL3/D", extrapTrackYBotAxial[nLay-4]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL3/D", extrapTrackXBotStereo[nLay-4]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL3/D", extrapTrackYBotStereo[nLay-4]);
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL4/D", extrapTrackXTopAxial[nLay-3]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL4/D", extrapTrackYTopAxial[nLay-3]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL4/D", extrapTrackXTopStereo[nLay-3]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL4/D", extrapTrackYTopStereo[nLay-3]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL4/D", extrapTrackXBotAxial[nLay-3]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL4/D", extrapTrackYBotAxial[nLay-3]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL4/D", extrapTrackXBotStereo[nLay-3]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL4/D", extrapTrackYBotStereo[nLay-3]);
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL5/D", extrapTrackXTopAxial[nLay-2]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL5/D", extrapTrackYTopAxial[nLay-2]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL5/D", extrapTrackXTopStereo[nLay-2]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL5/D", extrapTrackYTopStereo[nLay-2]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL5/D", extrapTrackXBotAxial[nLay-2]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL5/D", extrapTrackYBotAxial[nLay-2]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL5/D", extrapTrackXBotStereo[nLay-2]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL5/D", extrapTrackYBotStereo[nLay-2]);
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL6/D", extrapTrackXTopAxial[nLay-1]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL6/D", extrapTrackYTopAxial[nLay-1]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL6/D", extrapTrackXTopStereo[nLay-1]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL6/D", extrapTrackYTopStereo[nLay-1]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL6/D", extrapTrackXBotAxial[nLay-1]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL6/D", extrapTrackYBotAxial[nLay-1]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL6/D", extrapTrackXBotStereo[nLay-1]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL6/D", extrapTrackYBotStereo[nLay-1]);
+            tupleMap.put(prefix + "TrkExtrpXAxialTopL1/D", extrapTrackXTopAxial[nLay - 6]);
+            tupleMap.put(prefix + "TrkExtrpYAxialTopL1/D", extrapTrackYTopAxial[nLay - 6]);
+            tupleMap.put(prefix + "TrkExtrpXStereoTopL1/D", extrapTrackXTopStereo[nLay - 6]);
+            tupleMap.put(prefix + "TrkExtrpYStereoTopL1/D", extrapTrackYTopStereo[nLay - 6]);
+            tupleMap.put(prefix + "TrkExtrpXAxialBotL1/D", extrapTrackXBotAxial[nLay - 6]);
+            tupleMap.put(prefix + "TrkExtrpYAxialBotL1/D", extrapTrackYBotAxial[nLay - 6]);
+            tupleMap.put(prefix + "TrkExtrpXStereoBotL1/D", extrapTrackXBotStereo[nLay - 6]);
+            tupleMap.put(prefix + "TrkExtrpYStereoBotL1/D", extrapTrackYBotStereo[nLay - 6]);
+            tupleMap.put(prefix + "TrkExtrpXAxialTopL2/D", extrapTrackXTopAxial[nLay - 5]);
+            tupleMap.put(prefix + "TrkExtrpYAxialTopL2/D", extrapTrackYTopAxial[nLay - 5]);
+            tupleMap.put(prefix + "TrkExtrpXStereoTopL2/D", extrapTrackXTopStereo[nLay - 5]);
+            tupleMap.put(prefix + "TrkExtrpYStereoTopL2/D", extrapTrackYTopStereo[nLay - 5]);
+            tupleMap.put(prefix + "TrkExtrpXAxialBotL2/D", extrapTrackXBotAxial[nLay - 5]);
+            tupleMap.put(prefix + "TrkExtrpYAxialBotL2/D", extrapTrackYBotAxial[nLay - 5]);
+            tupleMap.put(prefix + "TrkExtrpXStereoBotL2/D", extrapTrackXBotStereo[nLay - 5]);
+            tupleMap.put(prefix + "TrkExtrpYStereoBotL2/D", extrapTrackYBotStereo[nLay - 5]);
+            tupleMap.put(prefix + "TrkExtrpXAxialTopL3/D", extrapTrackXTopAxial[nLay - 4]);
+            tupleMap.put(prefix + "TrkExtrpYAxialTopL3/D", extrapTrackYTopAxial[nLay - 4]);
+            tupleMap.put(prefix + "TrkExtrpXStereoTopL3/D", extrapTrackXTopStereo[nLay - 4]);
+            tupleMap.put(prefix + "TrkExtrpYStereoTopL3/D", extrapTrackYTopStereo[nLay - 4]);
+            tupleMap.put(prefix + "TrkExtrpXAxialBotL3/D", extrapTrackXBotAxial[nLay - 4]);
+            tupleMap.put(prefix + "TrkExtrpYAxialBotL3/D", extrapTrackYBotAxial[nLay - 4]);
+            tupleMap.put(prefix + "TrkExtrpXStereoBotL3/D", extrapTrackXBotStereo[nLay - 4]);
+            tupleMap.put(prefix + "TrkExtrpYStereoBotL3/D", extrapTrackYBotStereo[nLay - 4]);
+            tupleMap.put(prefix + "TrkExtrpXAxialTopL4/D", extrapTrackXTopAxial[nLay - 3]);
+            tupleMap.put(prefix + "TrkExtrpYAxialTopL4/D", extrapTrackYTopAxial[nLay - 3]);
+            tupleMap.put(prefix + "TrkExtrpXStereoTopL4/D", extrapTrackXTopStereo[nLay - 3]);
+            tupleMap.put(prefix + "TrkExtrpYStereoTopL4/D", extrapTrackYTopStereo[nLay - 3]);
+            tupleMap.put(prefix + "TrkExtrpXAxialBotL4/D", extrapTrackXBotAxial[nLay - 3]);
+            tupleMap.put(prefix + "TrkExtrpYAxialBotL4/D", extrapTrackYBotAxial[nLay - 3]);
+            tupleMap.put(prefix + "TrkExtrpXStereoBotL4/D", extrapTrackXBotStereo[nLay - 3]);
+            tupleMap.put(prefix + "TrkExtrpYStereoBotL4/D", extrapTrackYBotStereo[nLay - 3]);
+            tupleMap.put(prefix + "TrkExtrpXAxialTopL5/D", extrapTrackXTopAxial[nLay - 2]);
+            tupleMap.put(prefix + "TrkExtrpYAxialTopL5/D", extrapTrackYTopAxial[nLay - 2]);
+            tupleMap.put(prefix + "TrkExtrpXStereoTopL5/D", extrapTrackXTopStereo[nLay - 2]);
+            tupleMap.put(prefix + "TrkExtrpYStereoTopL5/D", extrapTrackYTopStereo[nLay - 2]);
+            tupleMap.put(prefix + "TrkExtrpXAxialBotL5/D", extrapTrackXBotAxial[nLay - 2]);
+            tupleMap.put(prefix + "TrkExtrpYAxialBotL5/D", extrapTrackYBotAxial[nLay - 2]);
+            tupleMap.put(prefix + "TrkExtrpXStereoBotL5/D", extrapTrackXBotStereo[nLay - 2]);
+            tupleMap.put(prefix + "TrkExtrpYStereoBotL5/D", extrapTrackYBotStereo[nLay - 2]);
+            tupleMap.put(prefix + "TrkExtrpXAxialTopL6/D", extrapTrackXTopAxial[nLay - 1]);
+            tupleMap.put(prefix + "TrkExtrpYAxialTopL6/D", extrapTrackYTopAxial[nLay - 1]);
+            tupleMap.put(prefix + "TrkExtrpXStereoTopL6/D", extrapTrackXTopStereo[nLay - 1]);
+            tupleMap.put(prefix + "TrkExtrpYStereoTopL6/D", extrapTrackYTopStereo[nLay - 1]);
+            tupleMap.put(prefix + "TrkExtrpXAxialBotL6/D", extrapTrackXBotAxial[nLay - 1]);
+            tupleMap.put(prefix + "TrkExtrpYAxialBotL6/D", extrapTrackYBotAxial[nLay - 1]);
+            tupleMap.put(prefix + "TrkExtrpXStereoBotL6/D", extrapTrackXBotStereo[nLay - 1]);
+            tupleMap.put(prefix + "TrkExtrpYStereoBotL6/D", extrapTrackYBotStereo[nLay - 1]);
             tupleMap.put(prefix + "MatchChisq/D", particle.getGoodnessOfPID());
-           
 
             returnTrackState = tweakedTrackState;
         }
@@ -1040,19 +1027,20 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "ClY/D", cluster.getPosition()[1]);
             tupleMap.put(prefix + "ClZ/D", cluster.getPosition()[2]);
             tupleMap.put(prefix + "ClHits/I", (double) cluster.getCalorimeterHits().size());
-            tupleMap.put(prefix + "Clix/I", (double) ClusterUtilities.findSeedHit(cluster).getIdentifierFieldValue("ix"));
-            tupleMap.put(prefix + "Cliy/I", (double) ClusterUtilities.findSeedHit(cluster).getIdentifierFieldValue("iy"));
-            
-            //find the uncorrected cluster corresponding to this cluster
+            tupleMap.put(prefix + "Clix/I", (double) ClusterUtilities.findSeedHit(cluster)
+                    .getIdentifierFieldValue("ix"));
+            tupleMap.put(prefix + "Cliy/I", (double) ClusterUtilities.findSeedHit(cluster)
+                    .getIdentifierFieldValue("iy"));
+
+            // find the uncorrected cluster corresponding to this cluster
             Cluster uncorrCluster = null;
-            for(Cluster clust : event.get(Cluster.class, "EcalClusters")){
-                if(clust.getCalorimeterHits().get(0).getCellID() == cluster.getCalorimeterHits().get(0).getCellID())
-                {
+            for (Cluster clust : event.get(Cluster.class, "EcalClusters")) {
+                if (clust.getCalorimeterHits().get(0).getCellID() == cluster.getCalorimeterHits().get(0).getCellID()) {
                     uncorrCluster = clust;
                     break;
                 }
             }
-            if(uncorrCluster != null){
+            if (uncorrCluster != null) {
                 tupleMap.put(prefix + "UncorrClT/D", ClusterUtilities.getSeedHitTime(uncorrCluster));
                 tupleMap.put(prefix + "UncorrClE/D", uncorrCluster.getEnergy());
                 tupleMap.put(prefix + "UncorrClX/D", uncorrCluster.getPosition()[0]);
@@ -1063,10 +1051,11 @@ public abstract class TupleDriver extends Driver {
 
         return returnTrackState;
 
-        //return particle;    
+        // return particle;
     }
 
-    protected void fillVertexVariables(EventHeader event, List<BilliorTrack> billiorTracks, ReconstructedParticle electron, ReconstructedParticle positron) {
+    protected void fillVertexVariables(EventHeader event, List<BilliorTrack> billiorTracks,
+            ReconstructedParticle electron, ReconstructedParticle positron) {
         BilliorVertexer vtxFitter = new BilliorVertexer(TrackUtils.getBField(event.getDetector()).y());
         vtxFitter.setBeamSize(beamSize);
         vtxFitter.setBeamPosition(beamPos);
@@ -1082,7 +1071,8 @@ public abstract class TupleDriver extends Driver {
         ReconstructedParticle bscV0 = HpsReconParticleDriver.makeReconstructedParticle(electron, positron, bsconVertex);
         Hep3Vector bscMomRot = VecOp.mult(beamAxisRotation, bscV0.getMomentum());
         Hep3Vector bscVtx = VecOp.mult(beamAxisRotation, bscV0.getStartVertex().getPosition());
-        Matrix uncCov = MatrixOp.mult(MatrixOp.mult(beamAxisRotation,uncV0.getStartVertex().getCovMatrix()),MatrixOp.transposed(beamAxisRotation));
+        Matrix uncCov = MatrixOp.mult(MatrixOp.mult(beamAxisRotation, uncV0.getStartVertex().getCovMatrix()),
+                MatrixOp.transposed(beamAxisRotation));
 
         vtxFitter.doTargetConstraint(true);
         BilliorVertex tarVertex = vtxFitter.fitVertex(billiorTracks);
@@ -1109,22 +1099,28 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put("uncElePX/D", uncV0.getStartVertex().getParameters().get("p1X"));
         tupleMap.put("uncElePY/D", uncV0.getStartVertex().getParameters().get("p1Y"));
         tupleMap.put("uncElePZ/D", uncV0.getStartVertex().getParameters().get("p1Z"));
-        tupleMap.put("uncEleP/D", Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(uncV0.getStartVertex().getParameters().get("p1Y"), 2)
-                + Math.pow(uncV0.getStartVertex().getParameters().get("p1Z"), 2)));
+        tupleMap.put(
+                "uncEleP/D",
+                Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p1X"), 2)
+                        + Math.pow(uncV0.getStartVertex().getParameters().get("p1Y"), 2)
+                        + Math.pow(uncV0.getStartVertex().getParameters().get("p1Z"), 2)));
         tupleMap.put("uncPosPX/D", uncV0.getStartVertex().getParameters().get("p2X"));
         tupleMap.put("uncPosPY/D", uncV0.getStartVertex().getParameters().get("p2Y"));
         tupleMap.put("uncPosPZ/D", uncV0.getStartVertex().getParameters().get("p2Z"));
-        tupleMap.put("uncPosP/D", Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
-                + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2)));
-        tupleMap.put("uncCovXX/D", uncCov.e(0,0));
-        tupleMap.put("uncCovXY/D", uncCov.e(0,1));
-        tupleMap.put("uncCovXZ/D", uncCov.e(0,2));
-        tupleMap.put("uncCovYX/D", uncCov.e(1,0));
-        tupleMap.put("uncCovYY/D", uncCov.e(1,1));
-        tupleMap.put("uncCovYZ/D", uncCov.e(1,2));
-        tupleMap.put("uncCovZX/D", uncCov.e(2,0));
-        tupleMap.put("uncCovZY/D", uncCov.e(2,1));
-        tupleMap.put("uncCovZZ/D", uncCov.e(2,2));
+        tupleMap.put(
+                "uncPosP/D",
+                Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2)
+                        + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
+                        + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2)));
+        tupleMap.put("uncCovXX/D", uncCov.e(0, 0));
+        tupleMap.put("uncCovXY/D", uncCov.e(0, 1));
+        tupleMap.put("uncCovXZ/D", uncCov.e(0, 2));
+        tupleMap.put("uncCovYX/D", uncCov.e(1, 0));
+        tupleMap.put("uncCovYY/D", uncCov.e(1, 1));
+        tupleMap.put("uncCovYZ/D", uncCov.e(1, 2));
+        tupleMap.put("uncCovZX/D", uncCov.e(2, 0));
+        tupleMap.put("uncCovZY/D", uncCov.e(2, 1));
+        tupleMap.put("uncCovZZ/D", uncCov.e(2, 2));
 
         tupleMap.put("bscPX/D", bscMomRot.x());
         tupleMap.put("bscPY/D", bscMomRot.y());
@@ -1138,13 +1134,19 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put("bscElePX/D", bscV0.getStartVertex().getParameters().get("p1X"));
         tupleMap.put("bscElePY/D", bscV0.getStartVertex().getParameters().get("p1Y"));
         tupleMap.put("bscElePZ/D", bscV0.getStartVertex().getParameters().get("p1Z"));
-        tupleMap.put("bscEleP/D", Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(bscV0.getStartVertex().getParameters().get("p1Y"), 2)
-                + Math.pow(bscV0.getStartVertex().getParameters().get("p1Z"), 2)));
+        tupleMap.put(
+                "bscEleP/D",
+                Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p1X"), 2)
+                        + Math.pow(bscV0.getStartVertex().getParameters().get("p1Y"), 2)
+                        + Math.pow(bscV0.getStartVertex().getParameters().get("p1Z"), 2)));
         tupleMap.put("bscPosPX/D", bscV0.getStartVertex().getParameters().get("p2X"));
         tupleMap.put("bscPosPY/D", bscV0.getStartVertex().getParameters().get("p2Y"));
         tupleMap.put("bscPosPZ/D", bscV0.getStartVertex().getParameters().get("p2Z"));
-        tupleMap.put("bscPosP/D", Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
-                + Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2)));
+        tupleMap.put(
+                "bscPosP/D",
+                Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2)
+                        + Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
+                        + Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2)));
 
         tupleMap.put("tarPX/D", tarMomRot.x());
         tupleMap.put("tarPY/D", tarMomRot.y());
@@ -1158,13 +1160,19 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put("tarElePX/D", tarV0.getStartVertex().getParameters().get("p1X"));
         tupleMap.put("tarElePY/D", tarV0.getStartVertex().getParameters().get("p1Y"));
         tupleMap.put("tarElePZ/D", tarV0.getStartVertex().getParameters().get("p1Z"));
-        tupleMap.put("tarEleP/D", Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(tarV0.getStartVertex().getParameters().get("p1Y"), 2)
-                + Math.pow(tarV0.getStartVertex().getParameters().get("p1Z"), 2)));
+        tupleMap.put(
+                "tarEleP/D",
+                Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p1X"), 2)
+                        + Math.pow(tarV0.getStartVertex().getParameters().get("p1Y"), 2)
+                        + Math.pow(tarV0.getStartVertex().getParameters().get("p1Z"), 2)));
         tupleMap.put("tarPosPX/D", tarV0.getStartVertex().getParameters().get("p2X"));
         tupleMap.put("tarPosPY/D", tarV0.getStartVertex().getParameters().get("p2Y"));
         tupleMap.put("tarPosPZ/D", tarV0.getStartVertex().getParameters().get("p2Z"));
-        tupleMap.put("tarPosP/D", Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
-                + Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2)));
+        tupleMap.put(
+                "tarPosP/D",
+                Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2)
+                        + Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
+                        + Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2)));
 
         tupleMap.put("vzcPX/D", vzcMomRot.x());
         tupleMap.put("vzcPY/D", vzcMomRot.y());
@@ -1178,123 +1186,233 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put("vzcElePX/D", vzcV0.getStartVertex().getParameters().get("p1X"));
         tupleMap.put("vzcElePY/D", vzcV0.getStartVertex().getParameters().get("p1Y"));
         tupleMap.put("vzcElePZ/D", vzcV0.getStartVertex().getParameters().get("p1Z"));
-        tupleMap.put("vzcEleP/D", Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Y"), 2)
-                + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Z"), 2)));
+        tupleMap.put(
+                "vzcEleP/D",
+                Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p1X"), 2)
+                        + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Y"), 2)
+                        + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Z"), 2)));
         tupleMap.put("vzcPosPX/D", vzcV0.getStartVertex().getParameters().get("p2X"));
         tupleMap.put("vzcPosPY/D", vzcV0.getStartVertex().getParameters().get("p2Y"));
         tupleMap.put("vzcPosPZ/D", vzcV0.getStartVertex().getParameters().get("p2Z"));
-        tupleMap.put("vzcPosP/D", Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
-                + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2)));
+        tupleMap.put(
+                "vzcPosP/D",
+                Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2)
+                        + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
+                        + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2)));
 
-        //////////////////////////////////////////////////////////////////////////////////////////
+        // ////////////////////////////////////////////////////////////////////////////////////////
         int nEleClusters = electron.getClusters().size();
         int nPosClusters = positron.getClusters().size();
 
         if (nEleClusters > 0) {
 
-            tupleMap.put("uncEleWtP/D", MassCalculator.combinedMomentum(electron.getClusters().get(0), electron.getTracks().get(0),
-                    Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(uncV0.getStartVertex().getParameters().get("p1Y"), 2)
-                            + Math.pow(uncV0.getStartVertex().getParameters().get("p1Z"), 2))));
-            tupleMap.put("vzcEleWtP/D", MassCalculator.combinedMomentum(electron.getClusters().get(0), electron.getTracks().get(0),
-                    Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Y"), 2)
-                            + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Z"), 2))));
-            tupleMap.put("tarEleWtP/D", MassCalculator.combinedMomentum(electron.getClusters().get(0), electron.getTracks().get(0),
-                    Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(tarV0.getStartVertex().getParameters().get("p1Y"), 2)
-                            + Math.pow(tarV0.getStartVertex().getParameters().get("p1Z"), 2))));
-            tupleMap.put("bscEleWtP/D", MassCalculator.combinedMomentum(electron.getClusters().get(0), electron.getTracks().get(0),
-                    Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(bscV0.getStartVertex().getParameters().get("p1Y"), 2)
-                            + Math.pow(bscV0.getStartVertex().getParameters().get("p1Z"), 2))));
+            tupleMap.put(
+                    "uncEleWtP/D",
+                    MassCalculator.combinedMomentum(
+                            electron.getClusters().get(0),
+                            electron.getTracks().get(0),
+                            Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p1X"), 2)
+                                    + Math.pow(uncV0.getStartVertex().getParameters().get("p1Y"), 2)
+                                    + Math.pow(uncV0.getStartVertex().getParameters().get("p1Z"), 2))));
+            tupleMap.put(
+                    "vzcEleWtP/D",
+                    MassCalculator.combinedMomentum(
+                            electron.getClusters().get(0),
+                            electron.getTracks().get(0),
+                            Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p1X"), 2)
+                                    + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Y"), 2)
+                                    + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Z"), 2))));
+            tupleMap.put(
+                    "tarEleWtP/D",
+                    MassCalculator.combinedMomentum(
+                            electron.getClusters().get(0),
+                            electron.getTracks().get(0),
+                            Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p1X"), 2)
+                                    + Math.pow(tarV0.getStartVertex().getParameters().get("p1Y"), 2)
+                                    + Math.pow(tarV0.getStartVertex().getParameters().get("p1Z"), 2))));
+            tupleMap.put(
+                    "bscEleWtP/D",
+                    MassCalculator.combinedMomentum(
+                            electron.getClusters().get(0),
+                            electron.getTracks().get(0),
+                            Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p1X"), 2)
+                                    + Math.pow(bscV0.getStartVertex().getParameters().get("p1Y"), 2)
+                                    + Math.pow(bscV0.getStartVertex().getParameters().get("p1Z"), 2))));
 
             if (nPosClusters > 0) {
 
-                tupleMap.put("vzcPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron.getTracks().get(0),
-                        Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
-                                + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2))));
-                tupleMap.put("tarPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron.getTracks().get(0),
-                        Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
-                                + Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2))));
-                tupleMap.put("bscPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron.getTracks().get(0),
-                        Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
-                                + Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2))));
-                tupleMap.put("uncPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron.getTracks().get(0),
-                        Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
-                                + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2))));
+                tupleMap.put("vzcPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron
+                        .getTracks().get(0), Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2)
+                        + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
+                        + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2))));
+                tupleMap.put("tarPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron
+                        .getTracks().get(0), Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2)
+                        + Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
+                        + Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2))));
+                tupleMap.put("bscPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron
+                        .getTracks().get(0), Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2)
+                        + Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
+                        + Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2))));
+                tupleMap.put("uncPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron
+                        .getTracks().get(0), Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2)
+                        + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
+                        + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2))));
 
-                tupleMap.put("vzcWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron.getClusters().get(0), vzcV0));
-                tupleMap.put("tarWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron.getClusters().get(0), tarV0));
-                tupleMap.put("bscWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron.getClusters().get(0), bscV0));
-                tupleMap.put("uncWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron.getClusters().get(0), uncV0));
+                tupleMap.put("vzcWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron
+                        .getClusters().get(0), vzcV0));
+                tupleMap.put("tarWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron
+                        .getClusters().get(0), tarV0));
+                tupleMap.put("bscWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron
+                        .getClusters().get(0), bscV0));
+                tupleMap.put("uncWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron
+                        .getClusters().get(0), uncV0));
 
-            } else {//e- has cluster, e+ does not
-                tupleMap.put("vzcPosWtP/D", Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
-                        + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2)));
-                tupleMap.put("bscPosWtP/D", Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
-                        + Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2)));
-                tupleMap.put("tarPosWtP/D", Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
-                        + Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2)));
-                tupleMap.put("uncPosWtP/D", Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
-                        + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2)));
-                tupleMap.put("vzcWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron.getTracks().get(0), vzcV0));
-                tupleMap.put("tarWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron.getTracks().get(0), tarV0));
-                tupleMap.put("bscWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron.getTracks().get(0), bscV0));
-                tupleMap.put("uncWtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron.getTracks().get(0), uncV0));
+            } else {// e- has cluster, e+ does not
+                tupleMap.put(
+                        "vzcPosWtP/D",
+                        Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2)
+                                + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
+                                + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2)));
+                tupleMap.put(
+                        "bscPosWtP/D",
+                        Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2)
+                                + Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
+                                + Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2)));
+                tupleMap.put(
+                        "tarPosWtP/D",
+                        Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2)
+                                + Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
+                                + Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2)));
+                tupleMap.put(
+                        "uncPosWtP/D",
+                        Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2)
+                                + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
+                                + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2)));
+                tupleMap.put("vzcWtM/D",
+                        MassCalculator.combinedMass(electron.getClusters().get(0), positron.getTracks().get(0), vzcV0));
+                tupleMap.put("tarWtM/D",
+                        MassCalculator.combinedMass(electron.getClusters().get(0), positron.getTracks().get(0), tarV0));
+                tupleMap.put("bscWtM/D",
+                        MassCalculator.combinedMass(electron.getClusters().get(0), positron.getTracks().get(0), bscV0));
+                tupleMap.put("uncWtM/D",
+                        MassCalculator.combinedMass(electron.getClusters().get(0), positron.getTracks().get(0), uncV0));
             }
 
         }
 
-        if (nPosClusters > 0 && nEleClusters == 0) {//e+ has cluster, e- does not
-            tupleMap.put("vzcPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron.getTracks().get(0),
-                    Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
-                            + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2))));
-            tupleMap.put("tarPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron.getTracks().get(0),
-                    Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
-                            + Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2))));
-            tupleMap.put("bscPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron.getTracks().get(0),
-                    Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
-                            + Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2))));
-            tupleMap.put("uncPosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron.getTracks().get(0),
-                    Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
-                            + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2))));
-            tupleMap.put("vzcEleWtP/D", Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Y"), 2)
-                    + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Z"), 2)));
-            tupleMap.put("bscEleWtP/D", Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(bscV0.getStartVertex().getParameters().get("p1Y"), 2)
-                    + Math.pow(bscV0.getStartVertex().getParameters().get("p1Z"), 2)));
-            tupleMap.put("tarEleWtP/D", Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(tarV0.getStartVertex().getParameters().get("p1Y"), 2)
-                    + Math.pow(tarV0.getStartVertex().getParameters().get("p1Z"), 2)));
-            tupleMap.put("uncEleWtP/D", Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(uncV0.getStartVertex().getParameters().get("p1Y"), 2)
-                    + Math.pow(uncV0.getStartVertex().getParameters().get("p1Z"), 2)));
+        if (nPosClusters > 0 && nEleClusters == 0) {// e+ has cluster, e- does not
+            tupleMap.put(
+                    "vzcPosWtP/D",
+                    MassCalculator.combinedMomentum(
+                            positron.getClusters().get(0),
+                            positron.getTracks().get(0),
+                            Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2)
+                                    + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
+                                    + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2))));
+            tupleMap.put(
+                    "tarPosWtP/D",
+                    MassCalculator.combinedMomentum(
+                            positron.getClusters().get(0),
+                            positron.getTracks().get(0),
+                            Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2)
+                                    + Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
+                                    + Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2))));
+            tupleMap.put(
+                    "bscPosWtP/D",
+                    MassCalculator.combinedMomentum(
+                            positron.getClusters().get(0),
+                            positron.getTracks().get(0),
+                            Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2)
+                                    + Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
+                                    + Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2))));
+            tupleMap.put(
+                    "uncPosWtP/D",
+                    MassCalculator.combinedMomentum(
+                            positron.getClusters().get(0),
+                            positron.getTracks().get(0),
+                            Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2)
+                                    + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
+                                    + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2))));
+            tupleMap.put(
+                    "vzcEleWtP/D",
+                    Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p1X"), 2)
+                            + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Y"), 2)
+                            + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Z"), 2)));
+            tupleMap.put(
+                    "bscEleWtP/D",
+                    Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p1X"), 2)
+                            + Math.pow(bscV0.getStartVertex().getParameters().get("p1Y"), 2)
+                            + Math.pow(bscV0.getStartVertex().getParameters().get("p1Z"), 2)));
+            tupleMap.put(
+                    "tarEleWtP/D",
+                    Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p1X"), 2)
+                            + Math.pow(tarV0.getStartVertex().getParameters().get("p1Y"), 2)
+                            + Math.pow(tarV0.getStartVertex().getParameters().get("p1Z"), 2)));
+            tupleMap.put(
+                    "uncEleWtP/D",
+                    Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p1X"), 2)
+                            + Math.pow(uncV0.getStartVertex().getParameters().get("p1Y"), 2)
+                            + Math.pow(uncV0.getStartVertex().getParameters().get("p1Z"), 2)));
 
-            tupleMap.put("vzcWtM/D", MassCalculator.combinedMass(electron.getTracks().get(0), positron.getClusters().get(0), vzcV0));
-            tupleMap.put("tarWtM/D", MassCalculator.combinedMass(electron.getTracks().get(0), positron.getClusters().get(0), tarV0));
-            tupleMap.put("bscWtM/D", MassCalculator.combinedMass(electron.getTracks().get(0), positron.getClusters().get(0), bscV0));
-            tupleMap.put("uncWtM/D", MassCalculator.combinedMass(electron.getTracks().get(0), positron.getClusters().get(0), uncV0));
+            tupleMap.put("vzcWtM/D",
+                    MassCalculator.combinedMass(electron.getTracks().get(0), positron.getClusters().get(0), vzcV0));
+            tupleMap.put("tarWtM/D",
+                    MassCalculator.combinedMass(electron.getTracks().get(0), positron.getClusters().get(0), tarV0));
+            tupleMap.put("bscWtM/D",
+                    MassCalculator.combinedMass(electron.getTracks().get(0), positron.getClusters().get(0), bscV0));
+            tupleMap.put("uncWtM/D",
+                    MassCalculator.combinedMass(electron.getTracks().get(0), positron.getClusters().get(0), uncV0));
         }
 
         if (nPosClusters == 0 && nEleClusters == 0) {
-            tupleMap.put("vzcEleWtP/D", Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Y"), 2)
-                    + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Z"), 2)));
-            tupleMap.put("vzcPosWtP/D", Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
-                    + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2)));
+            tupleMap.put(
+                    "vzcEleWtP/D",
+                    Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p1X"), 2)
+                            + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Y"), 2)
+                            + Math.pow(vzcV0.getStartVertex().getParameters().get("p1Z"), 2)));
+            tupleMap.put(
+                    "vzcPosWtP/D",
+                    Math.sqrt(Math.pow(vzcV0.getStartVertex().getParameters().get("p2X"), 2)
+                            + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Y"), 2)
+                            + Math.pow(vzcV0.getStartVertex().getParameters().get("p2Z"), 2)));
             tupleMap.put("vzcWtM/D", vzcV0.getMass());
-            tupleMap.put("tarEleWtP/D", Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(tarV0.getStartVertex().getParameters().get("p1Y"), 2)
-                    + Math.pow(tarV0.getStartVertex().getParameters().get("p1Z"), 2)));
-            tupleMap.put("tarPosWtP/D", Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
-                    + Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2)));
+            tupleMap.put(
+                    "tarEleWtP/D",
+                    Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p1X"), 2)
+                            + Math.pow(tarV0.getStartVertex().getParameters().get("p1Y"), 2)
+                            + Math.pow(tarV0.getStartVertex().getParameters().get("p1Z"), 2)));
+            tupleMap.put(
+                    "tarPosWtP/D",
+                    Math.sqrt(Math.pow(tarV0.getStartVertex().getParameters().get("p2X"), 2)
+                            + Math.pow(tarV0.getStartVertex().getParameters().get("p2Y"), 2)
+                            + Math.pow(tarV0.getStartVertex().getParameters().get("p2Z"), 2)));
             tupleMap.put("tarWtM/D", tarV0.getMass());
-            tupleMap.put("bscEleWtP/D", Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(bscV0.getStartVertex().getParameters().get("p1Y"), 2)
-                    + Math.pow(bscV0.getStartVertex().getParameters().get("p1Z"), 2)));
-            tupleMap.put("bscPosWtP/D", Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
-                    + Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2)));
+            tupleMap.put(
+                    "bscEleWtP/D",
+                    Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p1X"), 2)
+                            + Math.pow(bscV0.getStartVertex().getParameters().get("p1Y"), 2)
+                            + Math.pow(bscV0.getStartVertex().getParameters().get("p1Z"), 2)));
+            tupleMap.put(
+                    "bscPosWtP/D",
+                    Math.sqrt(Math.pow(bscV0.getStartVertex().getParameters().get("p2X"), 2)
+                            + Math.pow(bscV0.getStartVertex().getParameters().get("p2Y"), 2)
+                            + Math.pow(bscV0.getStartVertex().getParameters().get("p2Z"), 2)));
             tupleMap.put("bscWtM/D", bscV0.getMass());
-            tupleMap.put("uncEleWtP/D", Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p1X"), 2) + Math.pow(uncV0.getStartVertex().getParameters().get("p1Y"), 2)
-                    + Math.pow(uncV0.getStartVertex().getParameters().get("p1Z"), 2)));
-            tupleMap.put("uncPosWtP/D", Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2) + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
-                    + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2)));
+            tupleMap.put(
+                    "uncEleWtP/D",
+                    Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p1X"), 2)
+                            + Math.pow(uncV0.getStartVertex().getParameters().get("p1Y"), 2)
+                            + Math.pow(uncV0.getStartVertex().getParameters().get("p1Z"), 2)));
+            tupleMap.put(
+                    "uncPosWtP/D",
+                    Math.sqrt(Math.pow(uncV0.getStartVertex().getParameters().get("p2X"), 2)
+                            + Math.pow(uncV0.getStartVertex().getParameters().get("p2Y"), 2)
+                            + Math.pow(uncV0.getStartVertex().getParameters().get("p2Z"), 2)));
             tupleMap.put("uncWtM/D", uncV0.getMass());
 
         }
 
-        //////////////////////////////////////////////////////////////////////////////
+        // ////////////////////////////////////////////////////////////////////////////
     }
 
     protected void addMCTridentVariables() {
@@ -1307,9 +1425,8 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void addMCParticleVariables(String prefix) {
-        String[] newVars = new String[]{"StartX/D", "StartY/D", "StartZ/D",
-            "EndX/D", "EndY/D", "EndZ/D",
-            "PX/D", "PY/D", "PZ/D", "P/D", "M/D", "E/D"};
+        String[] newVars = new String[] {"StartX/D", "StartY/D", "StartZ/D", "EndX/D", "EndY/D", "EndZ/D", "PX/D",
+                "PY/D", "PZ/D", "P/D", "M/D", "E/D"};
 
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
@@ -1318,7 +1435,7 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void addMCPairVariables(String prefix) {
-        String[] newVars = new String[]{"PX/D", "PY/D", "PZ/D", "P/D", "M/D", "E/D"};
+        String[] newVars = new String[] {"PX/D", "PY/D", "PZ/D", "P/D", "M/D", "E/D"};
 
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
@@ -1327,7 +1444,7 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void fillMCParticleVariables(String prefix, MCParticle particle) {
-//        System.out.format("%d %x\n", particle.getGeneratorStatus(), particle.getSimulatorStatus().getValue());
+        // System.out.format("%d %x\n", particle.getGeneratorStatus(), particle.getSimulatorStatus().getValue());
         Hep3Vector start = VecOp.mult(beamAxisRotation, particle.getOrigin());
         Hep3Vector end;
         try {
@@ -1370,9 +1487,9 @@ public abstract class TupleDriver extends Driver {
 
         MCParticle trident = null;
 
-        MCParticle ele1 = null;//highest-energy electron daughter
-        MCParticle ele2 = null;//second-highest-energy electron daughter (if any)
-        MCParticle pos = null;//highest-energy positron daughter
+        MCParticle ele1 = null;// highest-energy electron daughter
+        MCParticle ele2 = null;// second-highest-energy electron daughter (if any)
+        MCParticle pos = null;// highest-energy positron daughter
 
         List<MCParticle> tridentParticles = null;
 

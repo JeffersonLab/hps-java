@@ -139,6 +139,7 @@ public final class ErrorHandler {
      */
     public ErrorHandler showErrorDialog() {
         final Runnable runnable = new Runnable() {
+
             @Override
             public void run() {
                 JOptionPane.showMessageDialog(ErrorHandler.this.component, ErrorHandler.this.error.getMessage(),
@@ -158,6 +159,7 @@ public final class ErrorHandler {
      */
     public ErrorHandler showErrorDialog(final String message, final String title) {
         final Runnable runnable = new Runnable() {
+
             @Override
             public void run() {
                 JOptionPane.showMessageDialog(ErrorHandler.this.component, message, title, JOptionPane.ERROR_MESSAGE);

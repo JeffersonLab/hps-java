@@ -18,7 +18,6 @@ import org.lcsim.geometry.compact.converter.lcdd.util.SensitiveDetector;
 import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 
 /**
- * 
  * SVT geometry for HPS Test Run.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
@@ -33,44 +32,44 @@ public class HPSTracker2 extends LCDDSubdetector {
     public HPSTracker2(Element node) throws JDOMException {
         super(node);
     }
-    
+
     public boolean isTracker() {
         return true;
     }
 
     void addToLCDD(LCDD lcdd, SensitiveDetector sd) throws JDOMException {
-        
+
         // Get parameters.
         int sysId = node.getAttribute("id").getIntValue();
         String subdetName = node.getAttributeValue("name");
         vacuum = lcdd.getMaterial("Vacuum");
-   
+
         // Create module logical volumes.
         createModules(lcdd, sd);
-        
+
         // Create module placements in tracking volume.
         createModulePlacements(lcdd, sysId, subdetName);
     }
 
     // Place modules within the tracking volume.
     private void createModulePlacements(LCDD lcdd, int sysId, String subdetName) throws DataConversionException {
-        //Volume trackingVolume = lcdd.getTrackingVolume();
+        // Volume trackingVolume = lcdd.getTrackingVolume();
         Volume momVolume = lcdd.pickMotherVolume(this);
         // Loop over layers.
-        for (Iterator i = node.getChildren("layer").iterator(); i.hasNext();) {        
-            Element layerElement = (Element)i.next();
+        for (Iterator i = node.getChildren("layer").iterator(); i.hasNext();) {
+            Element layerElement = (Element) i.next();
             int layerNumber = layerElement.getAttribute("id").getIntValue();
             // Loop over modules within layer.
             for (Iterator j = layerElement.getChildren("module_placement").iterator(); j.hasNext();) {
-                
-                Element modulePlacementElement = (Element)j.next();
+
+                Element modulePlacementElement = (Element) j.next();
                 String moduleName = modulePlacementElement.getAttributeValue("name");
                 int moduleNumber = modulePlacementElement.getAttribute("id").getIntValue();
-                
+
                 // Get the position and rotation parameters.
                 double x, y, z, rx, ry, rz;
                 x = y = z = rx = ry = rz = 0;
-                
+
                 // If not specified, default value of zero will be used for each parameter.
                 if (modulePlacementElement.getAttribute("x") != null) {
                     x = modulePlacementElement.getAttribute("x").getDoubleValue();
@@ -90,20 +89,21 @@ public class HPSTracker2 extends LCDDSubdetector {
                 if (modulePlacementElement.getAttribute("rz") != null) {
                     rz = modulePlacementElement.getAttribute("rz").getDoubleValue();
                 }
-                
+
                 // Place the module with position and rotation from above.
-                String modulePlacementName = subdetName + "_" + moduleName + "_layer" + layerNumber + "_module" + moduleNumber;
+                String modulePlacementName = subdetName + "_" + moduleName + "_layer" + layerNumber + "_module"
+                        + moduleNumber;
                 Position p = new Position(modulePlacementName + "_position", x, y, z);
                 Rotation r = new Rotation(modulePlacementName + "_rotation", rx, ry, rz);
                 lcdd.add(p);
-                lcdd.add(r);                                
+                lcdd.add(r);
                 PhysVol modulePhysVol = new PhysVol(modules.get(moduleName), momVolume, p, r);
-                    
+
                 // Add identifier values to the placement volume.
                 modulePhysVol.addPhysVolID("system", sysId);
                 modulePhysVol.addPhysVolID("barrel", 0);
                 modulePhysVol.addPhysVolID("layer", layerNumber);
-                modulePhysVol.addPhysVolID("module", moduleNumber);             
+                modulePhysVol.addPhysVolID("module", moduleNumber);
             }
         }
     }
@@ -140,7 +140,8 @@ public class HPSTracker2 extends LCDDSubdetector {
         return moduleVolume;
     }
 
-    private void makeModuleComponents(Volume moduleVolume, ModuleParameters moduleParameters, SensitiveDetector sd, LCDD lcdd) {
+    private void makeModuleComponents(Volume moduleVolume, ModuleParameters moduleParameters, SensitiveDetector sd,
+            LCDD lcdd) {
         Box envelope = (Box) lcdd.getSolid(moduleVolume.getSolidRef());
 
         double moduleX = envelope.getX();
@@ -193,7 +194,7 @@ public class HPSTracker2 extends LCDDSubdetector {
                 // Flipped these around!!!
                 double sensorX = component.getDimensionY();
                 double sensorY = component.getDimensionX();
-                
+
                 Box sensorBox = new Box(sensorName + "Box", sensorX, sensorY, thickness);
                 lcdd.add(sensorBox);
 
@@ -226,6 +227,7 @@ public class HPSTracker2 extends LCDDSubdetector {
     }
 
     private static class ModuleComponentParameters {
+
         protected String materialName;
         protected double thickness;
         protected boolean sensitive;
@@ -233,7 +235,8 @@ public class HPSTracker2 extends LCDDSubdetector {
         protected String vis;
         protected double dimX, dimY;
 
-        ModuleComponentParameters(double dimX, double dimY, double thickness, String materialName, int componentNumber, boolean sensitive, String vis) {
+        ModuleComponentParameters(double dimX, double dimY, double thickness, String materialName, int componentNumber,
+                boolean sensitive, String vis) {
             this.dimX = dimX;
             this.dimY = dimY;
             this.thickness = thickness;
@@ -273,6 +276,7 @@ public class HPSTracker2 extends LCDDSubdetector {
     }
 
     private static class ModuleParameters extends ArrayList<ModuleComponentParameters> {
+
         double thickness;
         String name;
         double dimensions[] = new double[3];

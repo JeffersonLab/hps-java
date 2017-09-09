@@ -107,7 +107,7 @@ public class SVTOpeningAlignment extends Driver {
         style.legendBoxStyle().setVisible(false);
         style.dataStyle().outlineStyle().setVisible(false);
         plotterTop.createRegions(3, 3);
-        //plotterFrame.addPlotter(plotter);
+        // plotterFrame.addPlotter(plotter);
 
         IPlotterStyle functionStyle = pfac.createPlotterStyle();
         functionStyle.dataStyle().lineStyle().setColor("red");
@@ -237,8 +237,8 @@ public class SVTOpeningAlignment extends Driver {
             }
         }
 
-//        IFunction currentFitFunction = performGaussianFit(deld0Bot, fd0Bot, jminChisq).fittedFunction();;
-//         fd0Bot.setParameters(currentFitFunction.parameters());
+        // IFunction currentFitFunction = performGaussianFit(deld0Bot, fd0Bot, jminChisq).fittedFunction();;
+        // fd0Bot.setParameters(currentFitFunction.parameters());
         fitAndPutParameters(deld0Bot, fd0Bot);
         fitAndPutParameters(delphiBot, fphi0Bot);
         fitAndPutParameters(delwBot, fwBot);
@@ -266,13 +266,13 @@ public class SVTOpeningAlignment extends Driver {
             isTop = false;
             isBot = false;
             for (TrackerHit hit : trk.getTrackerHits())
-                if (hit.getPosition()[2] > 0)//remember, non-bend in tracking frame is z-direction
+                if (hit.getPosition()[2] > 0)// remember, non-bend in tracking frame is z-direction
                     isTop = true;
                 else
                     isBot = true;
-            if (isTop == true && isBot != true && doTop == true)  //if we want top tracks and all hits are in top
+            if (isTop == true && isBot != true && doTop == true)  // if we want top tracks and all hits are in top
                 tracksHalf.add(trk);
-            if (isBot == true && isTop != true && doTop == false) //if we want bottom tracks and all hits are in bottom
+            if (isBot == true && isTop != true && doTop == false) // if we want bottom tracks and all hits are in bottom
                 tracksHalf.add(trk);
         }
         return tracksHalf;

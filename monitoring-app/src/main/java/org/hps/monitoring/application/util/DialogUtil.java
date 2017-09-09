@@ -25,7 +25,7 @@ public final class DialogUtil {
      * @return the result from the user's dialog selection
      */
     public static int showConfirmationDialog(final Component parent, final String title, final String message) {
-        final Object[] options = { "Yes", "No", "Cancel" };
+        final Object[] options = {"Yes", "No", "Cancel"};
         final int result = JOptionPane.showOptionDialog(parent, message, title, JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
         return result;
@@ -40,6 +40,7 @@ public final class DialogUtil {
      */
     public static void showErrorDialog(final Component component, final String title, final String message) {
         final Runnable runnable = new Runnable() {
+
             @Override
             public void run() {
                 JOptionPane.showMessageDialog(component, message, title, JOptionPane.ERROR_MESSAGE);
@@ -57,6 +58,7 @@ public final class DialogUtil {
      */
     public static void showErrorDialog(final Component component, final Throwable error, final String title) {
         final Runnable runnable = new Runnable() {
+
             @Override
             public void run() {
                 JOptionPane.showMessageDialog(component, error.getMessage(), title, JOptionPane.ERROR_MESSAGE);
@@ -74,6 +76,7 @@ public final class DialogUtil {
      */
     public static void showInfoDialog(final Component component, final String title, final String message) {
         final Runnable runnable = new Runnable() {
+
             @Override
             public void run() {
                 JOptionPane.showMessageDialog(component, message, title, JOptionPane.INFORMATION_MESSAGE);
@@ -101,6 +104,7 @@ public final class DialogUtil {
         dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         dialog.pack();
         dialog.addWindowListener(new WindowAdapter() {
+
             @Override
             public void windowClosing(final WindowEvent e) {
                 dialog.setVisible(false);

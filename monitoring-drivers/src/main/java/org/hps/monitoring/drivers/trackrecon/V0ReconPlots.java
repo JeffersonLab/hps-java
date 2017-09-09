@@ -33,7 +33,7 @@ public class V0ReconPlots extends Driver {
     String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
     String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
     String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
-    //some counters
+    // some counters
     int nRecoEvents = 0;
     boolean debug = false;
 
@@ -59,7 +59,7 @@ public class V0ReconPlots extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        //System.out.println("V0Monitoring::detectorChanged  Setting up the plotter");
+        // System.out.println("V0Monitoring::detectorChanged  Setting up the plotter");
 
         IAnalysisFactory fac = aida.analysisFactory();
         IPlotterFactory pfac = fac.createPlotterFactory("V0 Recon");
@@ -67,13 +67,13 @@ public class V0ReconPlots extends Driver {
         fitFactory = aida.analysisFactory().createFitFactory();
 
         aida.tree().cd("/");
-//        resetOccupancyMap(); // this is for calculatin
+        // resetOccupancyMap(); // this is for calculatin
         plotterUncon = pfac.create("Unconstrained V0");
 
         plotterUncon.createRegions(2, 3);
 
-        /*  V0 Quantities   */
-        /*  Mass, vertex, chi^2 of fit */
+        /* V0 Quantities */
+        /* Mass, vertex, chi^2 of fit */
         /* beamspot constrained */
         nV0 = aida.histogram1D("Number of V0 per event", 5, 0, 5);
         unconMass = aida.histogram1D("Unconstrained Mass (GeV)", 100, 0, 0.200);
@@ -90,7 +90,6 @@ public class V0ReconPlots extends Driver {
 
         plotter2d = pfac.create("Unconstrained 2d plots");
         plotter2d.createRegions(2, 2);
-      
 
         pEleVspPos = aida.histogram2D("P(e) vs P(p)", 50, 0, 2.5, 50, 0, 2.5);
         pyEleVspyPos = aida.histogram2D("Py(e) vs Py(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
@@ -106,7 +105,7 @@ public class V0ReconPlots extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        /*  make sure everything is there */
+        /* make sure everything is there */
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
             return;
         if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName))
@@ -117,7 +116,8 @@ public class V0ReconPlots extends Driver {
             return;
         nRecoEvents++;
 
-        List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
+        List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class,
+                unconstrainedV0CandidatesColName);
         aida.histogram1D("Number of V0 per event").fill(unConstrainedV0List.size());
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             Vertex uncVert = uncV0.getStartVertex();
@@ -127,19 +127,21 @@ public class V0ReconPlots extends Driver {
             aida.histogram1D("Unconstrained Mass (GeV)").fill(uncV0.getMass());
             aida.histogram1D("Unconstrained Chi2").fill(uncVert.getChi2());
             aida.histogram2D("Mass vs Vz").fill(uncV0.getMass(), uncVert.getPosition().z());
-            //this always has 2 tracks. 
+            // this always has 2 tracks.
             List<ReconstructedParticle> trks = uncV0.getParticles();
             Track ele = trks.get(0).getTracks().get(0);
             Track pos = trks.get(1).getTracks().get(0);
-            //if track #0 has charge>0 it's the electron!  This seems mixed up, but remember the track 
-            //charge is assigned assuming a positive B-field, while ours is negative
+            // if track #0 has charge>0 it's the electron! This seems mixed up, but remember the track
+            // charge is assigned assuming a positive B-field, while ours is negative
             if (trks.get(0).getCharge() > 0) {
                 pos = trks.get(0).getTracks().get(0);
                 ele = trks.get(1).getTracks().get(0);
             }
             aida.histogram2D("P(e) vs P(p)").fill(getMomentum(ele), getMomentum(pos));
-            aida.histogram2D("Px(e) vs Px(p)").fill(ele.getTrackStates().get(0).getMomentum()[1], pos.getTrackStates().get(0).getMomentum()[1]);
-            aida.histogram2D("Py(e) vs Py(p)").fill(ele.getTrackStates().get(0).getMomentum()[2], pos.getTrackStates().get(0).getMomentum()[2]);
+            aida.histogram2D("Px(e) vs Px(p)").fill(ele.getTrackStates().get(0).getMomentum()[1],
+                    pos.getTrackStates().get(0).getMomentum()[1]);
+            aida.histogram2D("Py(e) vs Py(p)").fill(ele.getTrackStates().get(0).getMomentum()[2],
+                    pos.getTrackStates().get(0).getMomentum()[2]);
         }
     }
 

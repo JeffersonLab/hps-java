@@ -23,14 +23,13 @@ import org.apache.commons.csv.CSVRecord;
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class ReadSurveyOutput {
 
     private static Logger logger = Logger.getLogger(ReadSurveyOutput.class.getPackage().getName());
-    
+
     List<CSVRecord> records;
-    
+
     /**
      * @param args
      */
@@ -40,90 +39,77 @@ public class ReadSurveyOutput {
         try {
             reader = new FileReader(args[0]);
         } catch (FileNotFoundException e) {
-              throw new RuntimeException("cannot upen file " + args[0], e);
+            throw new RuntimeException("cannot upen file " + args[0], e);
         }
-        
+
         ReadSurveyOutput survey = new ReadSurveyOutput();
-        
-        
+
         try {
             CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT);
             survey.records = parser.getRecords();
         } catch (IOException e) {
             throw new RuntimeException("cannot parse file " + args[0], e);
         }
-        
+
         logger.info("Got " + Integer.toString(survey.records.size()));
-        
-        
-        
+
         survey.printOrigin("M_BOT13");
-        
-        
+
         survey.printOrigin("M_TOP13");
-  
-        
-       
-        
+
     }
-    
-    
-    
-    
+
     private void printBallPositions(String name) {
-        for (CSVRecord record: records) {
+        for (CSVRecord record : records) {
             logger.fine(record.toString());
-            if(Pattern.matches("^M_[A-Z]*13([1-4]$)", record.get(0))) {
+            if (Pattern.matches("^M_[A-Z]*13([1-4]$)", record.get(0))) {
                 Hep3Vector v = getBallPosition(record);
                 logger.info(v.toString());
             }
         }
     }
-    
-    
-    private void printOrigin(String name ) {
+
+    private void printOrigin(String name) {
         Map<Integer, Hep3Vector> mtop = getBallPositions(name);
-        
-        Hep3Vector dT = VecOp.sub(mtop.get(1),mtop.get(3));
+
+        Hep3Vector dT = VecOp.sub(mtop.get(1), mtop.get(3));
         Hep3Vector orgT = VecOp.add(mtop.get(3), VecOp.mult(0.5, dT));
         logger.info("Type: " + name);
         logger.info("mtop " + mtop.get(1).toString() + " " + mtop.get(3).toString());
         logger.info("dT " + dT.toString());
         logger.info("orgT " + orgT.toString());
-        //translate to center of SVT box
-        Hep3Vector orgTbox = VecOp.add(orgT, new BasicHep3Vector(0, 0, 0.375*HPSTrackerGeometryDefinition.inch));
+        // translate to center of SVT box
+        Hep3Vector orgTbox = VecOp.add(orgT, new BasicHep3Vector(0, 0, 0.375 * HPSTrackerGeometryDefinition.inch));
         logger.info("orgTbox " + orgTbox.toString());
 
-        orgTbox = VecOp.sub(orgTbox, new BasicHep3Vector(0, 0, HPSTracker2014GeometryDefinition.SvtBox.length/2.0));
+        orgTbox = VecOp.sub(orgTbox, new BasicHep3Vector(0, 0, HPSTracker2014GeometryDefinition.SvtBox.length / 2.0));
         logger.info("orgTbox " + orgTbox.toString());
     }
-   
-    
+
     private Map<Integer, Hep3Vector> getBallPositions(String name) {
         Map<Integer, Hep3Vector> map = new HashMap<Integer, Hep3Vector>();
-        Pattern pattern = Pattern.compile("^"+name+"([1-4]$)");
+        Pattern pattern = Pattern.compile("^" + name + "([1-4]$)");
         Matcher matcher;
         for (CSVRecord record : records) {
-            logger.fine( record.toString());
+            logger.fine(record.toString());
             matcher = pattern.matcher(record.get(0));
-            if(matcher.matches()) {
+            if (matcher.matches()) {
                 Hep3Vector v = getBallPosition(record);
                 map.put(Integer.parseInt(matcher.group(1)), v);
             }
         }
         return map;
     }
-    
-    
+
     private Hep3Vector getBallPosition(CSVRecord record) {
-       
-        if(record.size()<8) {
+
+        if (record.size() < 8) {
             logger.warning("record has weird format? " + record.toString());
         }
-        Hep3Vector v = new BasicHep3Vector(Double.parseDouble(record.get(5)), Double.parseDouble(record.get(6)), Double.parseDouble(record.get(7)));
+        Hep3Vector v = new BasicHep3Vector(Double.parseDouble(record.get(5)), Double.parseDouble(record.get(6)),
+                Double.parseDouble(record.get(7)));
         return v;
-        
+
     }
-    
 
 }

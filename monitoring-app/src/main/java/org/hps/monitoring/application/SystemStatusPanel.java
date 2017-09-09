@@ -75,10 +75,10 @@ final class SystemStatusPanel extends JPanel {
 
         // Clear the system status events table.
         ((SystemStatusEventsTableModel) this.eventsTable.getModel()).clear();
-        
+
         this.statuses.clear();
     }
-    
+
     private class SystemStatusBeeper extends TimerTask {
 
         @Override

@@ -11,22 +11,18 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.jdom.Element;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseModule;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseSensor;
-//import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.HalfModuleComponent;
-//import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.Sensor;
+// import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.HalfModuleComponent;
+// import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.Sensor;
 
 /**
- * 
  * Updated geometry information for the HPS tracker 2017
  * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * 
  */
-public class HPSTracker2017GeometryDefinition extends
-        HPSTracker2014v1GeometryDefinition {
+public class HPSTracker2017GeometryDefinition extends HPSTracker2014v1GeometryDefinition {
 
     private static final Logger LOGGER = Logger
-            .getLogger(HPSTracker2017GeometryDefinition.class.getPackage()
-                    .getName());
+            .getLogger(HPSTracker2017GeometryDefinition.class.getPackage().getName());
 
     public HPSTracker2017GeometryDefinition(boolean debug, Element node) {
         super(debug, node);
@@ -47,8 +43,7 @@ public class HPSTracker2017GeometryDefinition extends
         alignmentCorrections.setNode(node);
         AlignmentCorrection supBotCorr = getL13UChannelAlignmentCorrection(false);
         supBotCorr.setNode(node);
-        AlignmentCorrection supTopCorr = this
-                .getL13UChannelAlignmentCorrection(true);
+        AlignmentCorrection supTopCorr = this.getL13UChannelAlignmentCorrection(true);
         supTopCorr.setNode(node);
 
         // Build the geometry from the basic building blocks in the geometry
@@ -65,56 +60,51 @@ public class HPSTracker2017GeometryDefinition extends
         SvtBox svtBox = new SvtBox("base", chamber, null);
         surveyVolumes.add(svtBox);
 
-        SvtBoxBasePlate svtBoxBasePlate = new SvtBoxBasePlate("base_plate",
-                svtBox, null);
+        SvtBoxBasePlate svtBoxBasePlate = new SvtBoxBasePlate("base_plate", svtBox, null);
         surveyVolumes.add(svtBoxBasePlate);
 
-        SupportRingL13BottomKinMount supportRingKinL13Bottom = new SupportRingL13BottomKinMount(
-                "c_support_kin_L13b", svtBox, supBotCorr);
+        SupportRingL13BottomKinMount supportRingKinL13Bottom = new SupportRingL13BottomKinMount("c_support_kin_L13b",
+                svtBox, supBotCorr);
         surveyVolumes.add(supportRingKinL13Bottom);
 
         LOGGER.info("Construct uChannelL14Bottom");
 
-        UChannelL13 uChannelL14Bottom = new UChannelL14Bottom(
-                "support_bottom_L14", svtBox, alignmentCorrections,
+        UChannelL13 uChannelL14Bottom = new UChannelL14Bottom("support_bottom_L14", svtBox, alignmentCorrections,
                 supportRingKinL13Bottom);
         surveyVolumes.add(uChannelL14Bottom);
 
         LOGGER.info("Construct uChannelL14BottomPlate");
 
-        UChannelL14Plate uChannelL14BottomPlate = new UChannelL14BottomPlate(
-                "support_plate_bottom_L14", svtBox, null, uChannelL14Bottom);
+        UChannelL14Plate uChannelL14BottomPlate = new UChannelL14BottomPlate("support_plate_bottom_L14", svtBox, null,
+                uChannelL14Bottom);
         surveyVolumes.add(uChannelL14BottomPlate);
 
-        LOGGER.info("Constructed uChannelL14BottomPlate: "
-                + uChannelL14BottomPlate.toString());
+        LOGGER.info("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
 
-        SupportRingL13TopKinMount supportRingKinL13Top = new SupportRingL13TopKinMount(
-                "c_support_kin_L13t", svtBox, supTopCorr);
+        SupportRingL13TopKinMount supportRingKinL13Top = new SupportRingL13TopKinMount("c_support_kin_L13t", svtBox,
+                supTopCorr);
         surveyVolumes.add(supportRingKinL13Top);
 
-        UChannelL13 uChannelL14Top = new UChannelL14Top("support_top_L14",
-                svtBox, alignmentCorrections, supportRingKinL13Top);
+        UChannelL13 uChannelL14Top = new UChannelL14Top("support_top_L14", svtBox, alignmentCorrections,
+                supportRingKinL13Top);
         surveyVolumes.add(uChannelL14Top);
 
-        UChannelL14Plate uChannelL14TopPlate = new UChannelL14TopPlate(
-                "support_plate_top_L14", svtBox, null, uChannelL14Top);
+        UChannelL14Plate uChannelL14TopPlate = new UChannelL14TopPlate("support_plate_top_L14", svtBox, null,
+                uChannelL14Top);
         surveyVolumes.add(uChannelL14TopPlate);
 
-        UChannelL46 uChannelL46Bottom = new UChannelL46Bottom(
-                "support_bottom_L46", svtBox, alignmentCorrections);
+        UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, alignmentCorrections);
         surveyVolumes.add(uChannelL46Bottom);
 
-        UChannelL46Plate uChannelL46BottomPlate = new UChannelL46BottomPlate(
-                "support_plate_bottom_L46", svtBox, null, uChannelL46Bottom);
+        UChannelL46Plate uChannelL46BottomPlate = new UChannelL46BottomPlate("support_plate_bottom_L46", svtBox, null,
+                uChannelL46Bottom);
         surveyVolumes.add(uChannelL46BottomPlate);
 
-        UChannelL46 uChannelL46Top = new UChannelL46Top("support_top_L46",
-                svtBox, alignmentCorrections);
+        UChannelL46 uChannelL46Top = new UChannelL46Top("support_top_L46", svtBox, alignmentCorrections);
         surveyVolumes.add(uChannelL46Top);
 
-        UChannelL46Plate uChannelL46TopPlate = new UChannelL46TopPlate(
-                "support_plate_top_L46", svtBox, null, uChannelL46Top);
+        UChannelL46Plate uChannelL46TopPlate = new UChannelL46TopPlate("support_plate_top_L46", svtBox, null,
+                uChannelL46Top);
         surveyVolumes.add(uChannelL46TopPlate);
 
         LOGGER.info("Construct modules");
@@ -149,23 +139,19 @@ public class HPSTracker2017GeometryDefinition extends
             }
         }
 
-        LOGGER.info(String.format("%s: Constructed %d geometry objects", this
-                .getClass().getSimpleName(), surveyVolumes.size()));
-        LOGGER.info(String.format("%s: Constructed %d module bundles", this
-                .getClass().getSimpleName(), modules.size()));
+        LOGGER.info(String.format("%s: Constructed %d geometry objects", this.getClass().getSimpleName(),
+                surveyVolumes.size()));
+        LOGGER.info(String.format("%s: Constructed %d module bundles", this.getClass().getSimpleName(), modules.size()));
 
         if (isDebug()) {
-            System.out.printf("%s: DONE constructing the geometry objects\n",
-                    this.getClass().getSimpleName());
-            System.out.printf("%s: List of the survey volumes built\n", this
-                    .getClass().getSimpleName());
+            System.out.printf("%s: DONE constructing the geometry objects\n", this.getClass().getSimpleName());
+            System.out.printf("%s: List of the survey volumes built\n", this.getClass().getSimpleName());
             for (SurveyVolume bg : surveyVolumes) {
                 System.out.printf("-------\n%s\n", bg.toString());
             }
         }
         if (isDebug()) {
-            System.out.printf("%s: List of the module bundles built\n", this
-                    .getClass().getSimpleName());
+            System.out.printf("%s: List of the module bundles built\n", this.getClass().getSimpleName());
             for (BaseModuleBundle bundle : this.modules) {
                 bundle.print();
             }
@@ -175,16 +161,10 @@ public class HPSTracker2017GeometryDefinition extends
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition
-     * #makeModuleBundle(int, java.lang.String,
-     * org.lcsim.geometry.compact.converter.SurveyVolume,
-     * org.lcsim.geometry.compact.converter.SurveyVolume)
+     * @see org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition #makeModuleBundle(int, java.lang.String, org.lcsim.geometry.compact.converter.SurveyVolume, org.lcsim.geometry.compact.converter.SurveyVolume)
      */
     @Override
-    protected void makeModuleBundle(int layer, String half,
-            SurveyVolume mother, SurveyVolume ref) {
+    protected void makeModuleBundle(int layer, String half, SurveyVolume mother, SurveyVolume ref) {
 
         LOGGER.info("makeModule for layer " + layer + " " + half);
 
@@ -227,23 +207,17 @@ public class HPSTracker2017GeometryDefinition extends
             }
         }
 
-        LOGGER.info("created module bundle:\n" + bundle.toString() + "\n"
-                + "Now there are " + modules.size() + " modules");
+        LOGGER.info("created module bundle:\n" + bundle.toString() + "\n" + "Now there are " + modules.size()
+                + " modules");
 
     }
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition
-     * #createModule(java.lang.String, int,
-     * org.lcsim.geometry.compact.converter.SurveyVolume,
-     * org.lcsim.geometry.compact.converter.SurveyVolume)
+     * @see org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition #createModule(java.lang.String, int, org.lcsim.geometry.compact.converter.SurveyVolume, org.lcsim.geometry.compact.converter.SurveyVolume)
      */
     @Override
-    protected BaseModule createModule(String half, int layer,
-            SurveyVolume mother, SurveyVolume ref) {
+    protected BaseModule createModule(String half, int layer, SurveyVolume mother, SurveyVolume ref) {
 
         // build the module name
         String volName = "module_L" + layer + (half == "bottom" ? "b" : "t");
@@ -255,82 +229,67 @@ public class HPSTracker2017GeometryDefinition extends
         BaseModule module;
         if (half == "bottom") {
             switch (layer) {
-            case 1:
-                module = new ModuleL1Bot(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 2:
-                module = new ModuleL2Bot(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 3:
-                module = new ModuleL3Bot(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 4:
-                module = new ModuleL4Bot(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 5:
-                module = new ModuleL5Bot(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 6:
-                module = new ModuleL6Bot(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 7:
-                module = new ModuleL7Bot(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            default:
-                throw new IllegalArgumentException("Can't make layer " + layer);
+                case 1:
+                    module = new ModuleL1Bot(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 2:
+                    module = new ModuleL2Bot(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 3:
+                    module = new ModuleL3Bot(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 4:
+                    module = new ModuleL4Bot(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 5:
+                    module = new ModuleL5Bot(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 6:
+                    module = new ModuleL6Bot(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 7:
+                    module = new ModuleL7Bot(volName, mother, alignmentCorrection, ref);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Can't make layer " + layer);
             }
         } else {
             switch (layer) {
-            case 1:
-                module = new ModuleL1Top(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 2:
-                module = new ModuleL2Top(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 3:
-                module = new ModuleL3Top(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 4:
-                module = new ModuleL4Top(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 5:
-                module = new ModuleL5Top(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 6:
-                module = new ModuleL6Top(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            case 7:
-                module = new ModuleL7Top(volName, mother, alignmentCorrection,
-                        ref);
-                break;
-            default:
-                throw new IllegalArgumentException("Can't make layer " + layer);
+                case 1:
+                    module = new ModuleL1Top(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 2:
+                    module = new ModuleL2Top(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 3:
+                    module = new ModuleL3Top(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 4:
+                    module = new ModuleL4Top(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 5:
+                    module = new ModuleL5Top(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 6:
+                    module = new ModuleL6Top(volName, mother, alignmentCorrection, ref);
+                    break;
+                case 7:
+                    module = new ModuleL7Top(volName, mother, alignmentCorrection, ref);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Can't make layer " + layer);
             }
         }
         return module;
     }
 
-    public abstract static class UChannelL14Plate extends
-            HPSTracker2014GeometryDefinition.UChannelL13Plate {
+    public abstract static class UChannelL14Plate extends HPSTracker2014GeometryDefinition.UChannelL13Plate {
+
         protected final static double length = HPSTracker2014GeometryDefinition.UChannelL13Plate.length + 50.0;
         protected final static double height = HPSTracker2014GeometryDefinition.UChannelL13Plate.height;
         protected static final double width = HPSTracker2014GeometryDefinition.UChannelL13Plate.width;
 
-        public UChannelL14Plate(String name, SurveyVolume m,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public UChannelL14Plate(String name, SurveyVolume m, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, m, alignmentCorrection, ref);
         }
 
@@ -351,15 +310,14 @@ public class HPSTracker2017GeometryDefinition extends
 
     }
 
-    public static abstract class UChannelL14 extends
-            HPSTracker2014GeometryDefinition.UChannelL13 {
+    public static abstract class UChannelL14 extends HPSTracker2014GeometryDefinition.UChannelL13 {
+
         protected static final double length = UChannelL14BottomPlate.length;
         private static final double width = UChannelL14BottomPlate.width;
         protected static final double height = HPSTracker2014GeometryDefinition.UChannelL13.height;
         protected static final double side_plate_cone_y = HPSTracker2014GeometryDefinition.UChannelL13.side_plate_cone_y;
 
-        public UChannelL14(String name, SurveyVolume m,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public UChannelL14(String name, SurveyVolume m, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, m, alignmentCorrection, ref);
         }
 
@@ -382,8 +340,8 @@ public class HPSTracker2017GeometryDefinition extends
 
     public static class UChannelL14BottomPlate extends UChannelL14Plate {
 
-        public UChannelL14BottomPlate(String name, SurveyVolume m,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public UChannelL14BottomPlate(String name, SurveyVolume m, AlignmentCorrection alignmentCorrection,
+                SurveyVolume ref) {
             super(name, m, alignmentCorrection, ref);
             init();
         }
@@ -392,8 +350,7 @@ public class HPSTracker2017GeometryDefinition extends
         protected void setCenter() {
 
             final double x = 0.0;
-            double y = UChannelL14Bottom.cone_to_edge_of_plate_y - getLength()
-                    / 2.0;
+            double y = UChannelL14Bottom.cone_to_edge_of_plate_y - getLength() / 2.0;
             // with coordinate system 'y' pointing from L1 to L3 we want to
             // subtract the difference in length
             y -= UChannelL14Bottom.length_diff;
@@ -404,17 +361,16 @@ public class HPSTracker2017GeometryDefinition extends
     }
 
     public static class UChannelL14Bottom extends UChannelL13Bottom {
+
         protected static final double length = UChannelL14BottomPlate.length;
         private static final double width = UChannelL14BottomPlate.width;
         protected static final double height = HPSTracker2014GeometryDefinition.UChannelL13.height;
         // this length need to be longer by the difference in length
-        protected static final double length_diff = length
-                - HPSTracker2014GeometryDefinition.UChannelL13Bottom.length;
+        protected static final double length_diff = length - HPSTracker2014GeometryDefinition.UChannelL13Bottom.length;
         protected static final double cone_to_edge_of_plate_y = HPSTracker2014GeometryDefinition.UChannelL13Bottom.cone_to_edge_of_plate_y
                 + length_diff;
 
-        public UChannelL14Bottom(String name, SurveyVolume m,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public UChannelL14Bottom(String name, SurveyVolume m, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, m, alignmentCorrection, ref);
         }
 
@@ -424,8 +380,7 @@ public class HPSTracker2017GeometryDefinition extends
             // with coordinate system 'y' pointing from L1 to L3 we want to
             // subtract the difference in length
             y -= UChannelL14Bottom.length_diff;
-            final double z = -side_plate_cone_y - UChannelL14Plate.height
-                    + getHeight() / 2.0;
+            final double z = -side_plate_cone_y - UChannelL14Plate.height + getHeight() / 2.0;
             setCenter(x, y, z);
         }
 
@@ -448,8 +403,8 @@ public class HPSTracker2017GeometryDefinition extends
 
     public static class UChannelL14TopPlate extends UChannelL14Plate {
 
-        public UChannelL14TopPlate(String name, SurveyVolume m,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public UChannelL14TopPlate(String name, SurveyVolume m, AlignmentCorrection alignmentCorrection,
+                SurveyVolume ref) {
             super(name, m, alignmentCorrection, ref);
             init();
         }
@@ -458,8 +413,7 @@ public class HPSTracker2017GeometryDefinition extends
         protected void setCenter() {
 
             final double x = 0.0;
-            double y = UChannelL14Top.cone_to_edge_of_plate_y - getLength()
-                    / 2.0;
+            double y = UChannelL14Top.cone_to_edge_of_plate_y - getLength() / 2.0;
             // with coordinate system 'y' pointing from L1 to L3 we want to
             // subtract the difference in length
             y -= UChannelL14Top.length_diff;
@@ -470,17 +424,16 @@ public class HPSTracker2017GeometryDefinition extends
     }
 
     public static class UChannelL14Top extends UChannelL13Top {
+
         protected static final double length = UChannelL14TopPlate.length;
         private static final double width = UChannelL14TopPlate.width;
         protected static final double height = HPSTracker2014GeometryDefinition.UChannelL13.height;
         // this length need to be longer by the difference in length
-        protected static final double length_diff = length
-                - HPSTracker2014GeometryDefinition.UChannelL13Top.length;
+        protected static final double length_diff = length - HPSTracker2014GeometryDefinition.UChannelL13Top.length;
         protected static final double cone_to_edge_of_plate_y = HPSTracker2014GeometryDefinition.UChannelL13Top.cone_to_edge_of_plate_y
                 + length_diff;
 
-        public UChannelL14Top(String name, SurveyVolume m,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public UChannelL14Top(String name, SurveyVolume m, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, m, alignmentCorrection, ref);
         }
 
@@ -490,8 +443,7 @@ public class HPSTracker2017GeometryDefinition extends
             // with coordinate system 'y' pointing from L1 to L3 we want to
             // subtract the difference in length
             y -= UChannelL14Top.length_diff;
-            final double z = -side_plate_cone_y - UChannelL14Plate.height
-                    + getHeight() / 2.0;
+            final double z = -side_plate_cone_y - UChannelL14Plate.height + getHeight() / 2.0;
             setCenter(x, y, z);
         }
 
@@ -513,12 +465,12 @@ public class HPSTracker2017GeometryDefinition extends
     }
 
     public static class ModuleL2Bot extends ModuleL13Bot {
+
         // Note the L1 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_vertical_from_uchannel;
 
-        public ModuleL2Bot(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL2Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
             init();
         }
@@ -533,12 +485,12 @@ public class HPSTracker2017GeometryDefinition extends
     }
 
     public static class ModuleL2Top extends ModuleL13Top {
+
         // Note the L1 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel;
 
-        public ModuleL2Top(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL2Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
             init();
         }
@@ -553,13 +505,13 @@ public class HPSTracker2017GeometryDefinition extends
     }
 
     public static class ModuleL3Bot extends ModuleL13Bot {
+
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Bot.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Bot.cone_to_hole_vertical_from_uchannel;
         protected final static double L3_new_vertical_shift = 0.8;
 
-        public ModuleL3Bot(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL3Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
             init();
         }
@@ -567,21 +519,20 @@ public class HPSTracker2017GeometryDefinition extends
         protected Hep3Vector getHolePosition() {
             double x = cone_to_hole_across_uchannel;
             double y = cone_to_hole_along_uchannel;
-            double z = cone_to_hole_vertical_from_uchannel
-                    + L3_new_vertical_shift;
+            double z = cone_to_hole_vertical_from_uchannel + L3_new_vertical_shift;
             return new BasicHep3Vector(x, y, z);
         }
 
     }
 
     public static class ModuleL3Top extends ModuleL13Top {
+
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Top.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Top.cone_to_hole_vertical_from_uchannel;
         protected final static double L3_new_vertical_shift = 0.8;
 
-        public ModuleL3Top(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL3Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
             init();
         }
@@ -589,21 +540,20 @@ public class HPSTracker2017GeometryDefinition extends
         protected Hep3Vector getHolePosition() {
             double x = cone_to_hole_across_uchannel;
             double y = cone_to_hole_along_uchannel;
-            double z = cone_to_hole_vertical_from_uchannel
-                    + L3_new_vertical_shift;
+            double z = cone_to_hole_vertical_from_uchannel + L3_new_vertical_shift;
             return new BasicHep3Vector(x, y, z);
         }
 
     }
 
     public static class ModuleL4Bot extends ModuleL13Bot {
+
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Bot.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Bot.cone_to_hole_vertical_from_uchannel;
         protected final static double L4_new_vertical_shift = 0.8;
 
-        public ModuleL4Bot(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL4Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
             init();
         }
@@ -611,21 +561,20 @@ public class HPSTracker2017GeometryDefinition extends
         protected Hep3Vector getHolePosition() {
             double x = cone_to_hole_across_uchannel;
             double y = cone_to_hole_along_uchannel;
-            double z = cone_to_hole_vertical_from_uchannel
-                    + L4_new_vertical_shift;
+            double z = cone_to_hole_vertical_from_uchannel + L4_new_vertical_shift;
             return new BasicHep3Vector(x, y, z);
         }
 
     }
 
     public static class ModuleL4Top extends ModuleL13Top {
+
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Top.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Top.cone_to_hole_vertical_from_uchannel;
         protected final static double L4_new_vertical_shift = 0.8;
 
-        public ModuleL4Top(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL4Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
             init();
         }
@@ -633,73 +582,57 @@ public class HPSTracker2017GeometryDefinition extends
         protected Hep3Vector getHolePosition() {
             double x = cone_to_hole_across_uchannel;
             double y = cone_to_hole_along_uchannel;
-            double z = cone_to_hole_vertical_from_uchannel
-                    + L4_new_vertical_shift;
+            double z = cone_to_hole_vertical_from_uchannel + L4_new_vertical_shift;
             return new BasicHep3Vector(x, y, z);
         }
 
     }
 
-    public static class ModuleL5Bot extends
-            HPSTracker2014GeometryDefinition.ModuleL4Bot {
+    public static class ModuleL5Bot extends HPSTracker2014GeometryDefinition.ModuleL4Bot {
 
-        public ModuleL5Bot(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL5Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
         }
     }
 
-    public static class ModuleL5Top extends
-            HPSTracker2014GeometryDefinition.ModuleL4Top {
+    public static class ModuleL5Top extends HPSTracker2014GeometryDefinition.ModuleL4Top {
 
-        public ModuleL5Top(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL5Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
         }
     }
 
-    public static class ModuleL6Bot extends
-            HPSTracker2014GeometryDefinition.ModuleL5Bot {
+    public static class ModuleL6Bot extends HPSTracker2014GeometryDefinition.ModuleL5Bot {
 
-        public ModuleL6Bot(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL6Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
         }
     }
 
-    public static class ModuleL6Top extends
-            HPSTracker2014GeometryDefinition.ModuleL5Top {
+    public static class ModuleL6Top extends HPSTracker2014GeometryDefinition.ModuleL5Top {
 
-        public ModuleL6Top(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL6Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
         }
     }
 
-    public static class ModuleL7Bot extends
-            HPSTracker2014GeometryDefinition.ModuleL6Bot {
+    public static class ModuleL7Bot extends HPSTracker2014GeometryDefinition.ModuleL6Bot {
 
-        public ModuleL7Bot(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL7Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
         }
     }
 
-    public static class ModuleL7Top extends
-            HPSTracker2014GeometryDefinition.ModuleL6Top {
+    public static class ModuleL7Top extends HPSTracker2014GeometryDefinition.ModuleL6Top {
 
-        public ModuleL7Top(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL7Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
         }
     }
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition
-     * #getMillepedeLayer(java.lang.String)
+     * @see org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition #getMillepedeLayer(java.lang.String)
      */
     @Override
     public int getMillepedeLayer(String name) {
@@ -725,21 +658,19 @@ public class HPSTracker2017GeometryDefinition extends
     }
 
     /**
-     * Silicon sensor @SurveyVolume. The coordinate system is located at the
-     * same position and orientation as the half-module.
+     * Silicon sensor @SurveyVolume. The coordinate system is located at the same position and orientation as the half-module.
      * 
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class ShortSensor extends BaseSensor {
+
         // static final double length= 10.00 + 1.00;
         static final double length = 10.00;
         static final double width = 14.080 + 2 * 0.250;
         static final double thickness = 0.200; // 0.250;
         static final double height = thickness;
 
-        public ShortSensor(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, int id) {
+        public ShortSensor(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int id) {
             super(name, mother, alignmentCorrection, id);
             init();
         }
@@ -752,16 +683,14 @@ public class HPSTracker2017GeometryDefinition extends
         protected void setPos() {
 
             if (debug)
-                System.out.printf("%s: setPos for %s\n", this.getClass()
-                        .getSimpleName(), getName());
+                System.out.printf("%s: setPos for %s\n", this.getClass().getSimpleName(), getName());
 
             setBallPos(0, 0, 0);
             setVeePos(ballPos.x() + width / 2.0, ballPos.y(), ballPos.z());
             setFlatPos(ballPos.x(), ballPos.y() + length / 2.0, ballPos.z());
 
             if (debug) {
-                System.out.printf("%s: survey positions for %s\n", this
-                        .getClass().getSimpleName(), getName());
+                System.out.printf("%s: survey positions for %s\n", this.getClass().getSimpleName(), getName());
                 printSurveyPos();
             }
 
@@ -803,13 +732,12 @@ public class HPSTracker2017GeometryDefinition extends
     }
 
     /**
-     * Active part of the @ShortSensor @SurveyVolume. The coordinate system is
-     * located at the same position and orientation as the sensor.
+     * Active part of the @ShortSensor @SurveyVolume. The coordinate system is located at the same position and orientation as the sensor.
      * 
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class ActiveShortSensor extends SurveyVolume {
+
         // private static final double length = ShortSensor.length - (100.00 -
         // 98.33);
         private static final double length = ShortSensor.length;
@@ -840,16 +768,14 @@ public class HPSTracker2017GeometryDefinition extends
         protected void setPos() {
 
             if (debug)
-                System.out.printf("%s: setPos for %s\n", this.getClass()
-                        .getSimpleName(), getName());
+                System.out.printf("%s: setPos for %s\n", this.getClass().getSimpleName(), getName());
 
             ballPos = new BasicHep3Vector(0, 0, 0);
             veePos = new BasicHep3Vector(getActiveSensorWidth() / 2.0, 0, 0);
             flatPos = new BasicHep3Vector(0, getActiveSensorLength() / 2.0, 0);
 
             if (debug) {
-                System.out.printf("%s: survey positions for %s\n", this
-                        .getClass().getSimpleName(), getName());
+                System.out.printf("%s: survey positions for %s\n", this.getClass().getSimpleName(), getName());
                 printSurveyPos();
             }
         }
@@ -860,18 +786,15 @@ public class HPSTracker2017GeometryDefinition extends
 
         protected void setBoxDim() {
 
-            setBoxDim(getActiveSensorWidth(), getActiveSensorLength(),
-                    getActiveSensorThickness());
+            setBoxDim(getActiveSensorWidth(), getActiveSensorLength(), getActiveSensorThickness());
 
         }
     }
 
     /**
-     * Abstract {@link SurveyVolume} volume defining the coordinate system of
-     * module L4-6
+     * Abstract {@link SurveyVolume} volume defining the coordinate system of module L4-6
      * 
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public abstract static class ShortModule extends BaseModule {
 
@@ -893,13 +816,10 @@ public class HPSTracker2017GeometryDefinition extends
         // TODO the dimension of the L4-6 module is completely made up
         public static final double length = 12.25 * inch + box_extra_length;
         public static final double height = 1.0 * inch + box_extra_height;
-        public static final double width = tension_lever_y + 0.04 * inch
-                + box_extra_width;
+        public static final double width = tension_lever_y + 0.04 * inch + box_extra_width;
 
-        public ShortModule(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
-            super(name, mother, alignmentCorrection, ref,
-                    getLayerFromVolumeName(name), getHalfFromName(name));
+        public ShortModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+            super(name, mother, alignmentCorrection, ref, getLayerFromVolumeName(name), getHalfFromName(name));
 
         }
 
@@ -923,48 +843,37 @@ public class HPSTracker2017GeometryDefinition extends
     }
 
     /**
-     * Abstract {@link SurveyVolume} volume defining the coordinate system of
-     * bottom modules for L4-6 Reference: @UChannelL46Bottom coordinate system
-     * Origin: hole position on mounting surface (electron side) Orientation: u
-     * - is normal to the mounting surface pointing vertically down, v - points
-     * along module towards positron side.
+     * Abstract {@link SurveyVolume} volume defining the coordinate system of bottom modules for L4-6 Reference: @UChannelL46Bottom coordinate system Origin: hole position on mounting surface (electron side) Orientation: u - is normal to the mounting surface pointing vertically down, v - points along module towards positron side.
      * 
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static abstract class ShortModuleBot extends ShortModule {
+
         // positions are in the mother (U-channel) coord. system as usual
 
-        public ShortModuleBot(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ShortModuleBot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
         }
 
         protected void setPos() {
             ballPos = getHole();
-            veePos = new BasicHep3Vector(ballPos.x(), ballPos.y(),
-                    ballPos.z() - 1.0);
-            flatPos = new BasicHep3Vector(ballPos.x() - 1.0, ballPos.y(),
-                    ballPos.z());
+            veePos = new BasicHep3Vector(ballPos.x(), ballPos.y(), ballPos.z() - 1.0);
+            flatPos = new BasicHep3Vector(ballPos.x() - 1.0, ballPos.y(), ballPos.z());
         }
 
         protected double getHoleModuleCenterOffset() {
-            return UChannelL46Bottom.cone_to_edge_of_plate_y
-                    - UChannelL46BottomPlate.L4_module_pin_to_edge_of_plate;
+            return UChannelL46Bottom.cone_to_edge_of_plate_y - UChannelL46BottomPlate.L4_module_pin_to_edge_of_plate;
         }
     }
 
     /**
-     * Abstract {@link SurveyVolume} volume defining the coordinate system of
-     * top modules for L4-6 Reference: @UChannelL46Top coordinate system Origin:
-     * hole position on mounting surface (electron side when installed)
-     * Orientation: u - is normal to the mounting surface pointing vertically
-     * down, v - points along module towards electron side when installed.
+     * Abstract {@link SurveyVolume} volume defining the coordinate system of top modules for L4-6 Reference: @UChannelL46Top coordinate system Origin: hole position on mounting surface (electron side when installed) Orientation: u - is normal to the mounting surface pointing vertically down, v - points along module towards electron side when installed.
      * 
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static abstract class ShortModuleTop extends ShortModule {
+
         // positions are in the mother (U-channel) coord. systtem as usual
         protected final static double x = -149.225; // distance from survey ball
                                                     // to hole mounting surface
@@ -972,22 +881,19 @@ public class HPSTracker2017GeometryDefinition extends
         protected final static double z = -53.34; // distance normal to the
                                                   // U-channel plate
 
-        public ShortModuleTop(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ShortModuleTop(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
         }
 
         protected void setPos() {
             ballPos = getHole();
-            veePos = new BasicHep3Vector(ballPos.x(), ballPos.y(),
-                    ballPos.z() - 1.0);
-            flatPos = new BasicHep3Vector(ballPos.x() + 1.0, ballPos.y(),
-                    ballPos.z());
+            veePos = new BasicHep3Vector(ballPos.x(), ballPos.y(), ballPos.z() - 1.0);
+            flatPos = new BasicHep3Vector(ballPos.x() + 1.0, ballPos.y(), ballPos.z());
         }
 
         protected double getHoleModuleCenterOffset() {
-            return UChannelL46Top.cone_to_edge_of_plate_y
-                    - UChannelL46TopPlate.L4_module_pin_to_edge_of_plate;
+            return UChannelL46Top.cone_to_edge_of_plate_y - UChannelL46TopPlate.L4_module_pin_to_edge_of_plate;
         }
 
     }
@@ -1008,8 +914,7 @@ public class HPSTracker2017GeometryDefinition extends
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_vertical_from_uchannel
                 + shift_vertically_uchannel;
 
-        public ModuleL1Bot(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
             init();
         }
@@ -1038,8 +943,7 @@ public class HPSTracker2017GeometryDefinition extends
                 - shift_across_uchannel; // change x position layer 1 top
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel;
 
-        public ModuleL1Top(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+        public ModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
             init();
         }
@@ -1056,21 +960,17 @@ public class HPSTracker2017GeometryDefinition extends
     /**
      * Create the half-module.
      * 
-     * @param side
-     *            - stereo or axial
-     * @param type
-     *            - hole or slot
-     * @param mother
-     *            to the half-module
+     * @param side - stereo or axial
+     * @param type - hole or slot
+     * @param mother to the half-module
      */
-    protected void makeShortHalfModule(String side, String type,
-            BaseModule mother) {
+    protected void makeShortHalfModule(String side, String type, BaseModule mother) {
 
         String moduleName = mother.getName();
 
         if (isDebug())
-            System.out.printf("%s: makeHalfModule for %s %s %s \n", this
-                    .getClass().getSimpleName(), moduleName, side, type);
+            System.out.printf("%s: makeHalfModule for %s %s %s \n", this.getClass().getSimpleName(), moduleName, side,
+                    type);
 
         String volName = moduleName + "_halfmodule_" + side + "_" + type;
 
@@ -1088,12 +988,10 @@ public class HPSTracker2017GeometryDefinition extends
         boolean isHole = isHoleFromName(volName);
 
         // find layer according to Millepede layer definition
-        int millepedeLayer = getMillepedeLayer(isTopLayer, layer, isAxial,
-                isHole);
+        int millepedeLayer = getMillepedeLayer(isTopLayer, layer, isAxial, isHole);
 
         // find alignment correction to this volume
-        AlignmentCorrection alignmentCorrection = getHalfModuleAlignmentCorrection(
-                isTopLayer, millepedeLayer);
+        AlignmentCorrection alignmentCorrection = getHalfModuleAlignmentCorrection(isTopLayer, millepedeLayer);
         alignmentCorrection.setNode(node);
 
         // find the module bundle that it will be added to
@@ -1109,23 +1007,19 @@ public class HPSTracker2017GeometryDefinition extends
         if (isAxial) {
             halfModuleBundle = new ShortHalfModuleBundle();
             if (isHole) {
-                halfModule = new ShortAxialHoleHalfModule(volName, mother,
-                        alignmentCorrection, layer, half);
+                halfModule = new ShortAxialHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
                 bundle.halfModuleAxialHole = halfModuleBundle;
             } else {
-                halfModule = new ShortAxialSlotHalfModule(volName, mother,
-                        alignmentCorrection, layer, half);
+                halfModule = new ShortAxialSlotHalfModule(volName, mother, alignmentCorrection, layer, half);
                 bundle.halfModuleAxialSlot = halfModuleBundle;
             }
         } else {
             halfModuleBundle = new ShortHalfModuleBundle();
             if (isHole) {
-                halfModule = new ShortStereoHoleHalfModule(volName, mother,
-                        alignmentCorrection, layer, half);
+                halfModule = new ShortStereoHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
                 bundle.halfModuleStereoHole = halfModuleBundle;
             } else {
-                halfModule = new ShortStereoSlotHalfModule(volName, mother,
-                        alignmentCorrection, layer, half);
+                halfModule = new ShortStereoSlotHalfModule(volName, mother, alignmentCorrection, layer, half);
                 bundle.halfModuleStereoSlot = halfModuleBundle;
             }
         }
@@ -1142,8 +1036,8 @@ public class HPSTracker2017GeometryDefinition extends
     protected void makeShortHalfModuleComponentSensor(BaseModule mother) {
 
         if (isDebug())
-            System.out.printf("%s: makeHalfModuleComponentSensor for %s \n",
-                    this.getClass().getSimpleName(), mother.getName());
+            System.out.printf("%s: makeHalfModuleComponentSensor for %s \n", this.getClass().getSimpleName(),
+                    mother.getName());
 
         String volName = mother.getName() + "_sensor";
 
@@ -1152,12 +1046,10 @@ public class HPSTracker2017GeometryDefinition extends
         int component_number = 0;
 
         //
-        ShortSensor sensor = new ShortSensor(volName, mother, null,
-                component_number);
+        ShortSensor sensor = new ShortSensor(volName, mother, null, component_number);
         sensor.setMaterial("Silicon");
 
-        HalfModuleBundle hm = getHalfModuleBundle(
-                (BaseModule) mother.getMother(), mother.getName());
+        HalfModuleBundle hm = getHalfModuleBundle((BaseModule) mother.getMother(), mother.getName());
         hm.sensor = sensor;
 
         makeShortHalfModuleComponentActiveSensor(sensor);
@@ -1167,17 +1059,16 @@ public class HPSTracker2017GeometryDefinition extends
     private void makeShortHalfModuleComponentActiveSensor(ShortSensor mother) {
 
         if (isDebug())
-            System.out.printf(
-                    "%s: makeHalfModuleComponentActiveSensor for %s \n", this
-                            .getClass().getSimpleName(), mother.getName());
+            System.out.printf("%s: makeHalfModuleComponentActiveSensor for %s \n", this.getClass().getSimpleName(),
+                    mother.getName());
 
         String volName = mother.getName() + "_active";
 
         ActiveShortSensor active_sensor = new ActiveShortSensor(volName, mother);
         active_sensor.setMaterial("Silicon");
 
-        HalfModuleBundle hm = getHalfModuleBundle((BaseModule) mother
-                .getMother().getMother(), mother.getMother().getName());
+        HalfModuleBundle hm = getHalfModuleBundle((BaseModule) mother.getMother().getMother(), mother.getMother()
+                .getName());
         hm.activeSensor = active_sensor;
 
     }
@@ -1185,8 +1076,8 @@ public class HPSTracker2017GeometryDefinition extends
     protected void makeShortHalfModuleComponentKapton(BaseModule mother) {
 
         if (isDebug())
-            System.out.printf("%s: makeHalfModuleComponentKapton for %s \n",
-                    this.getClass().getSimpleName(), mother.getName());
+            System.out.printf("%s: makeHalfModuleComponentKapton for %s \n", this.getClass().getSimpleName(),
+                    mother.getName());
 
         String volName = mother.getName() + "_lamination";
 
@@ -1195,21 +1086,19 @@ public class HPSTracker2017GeometryDefinition extends
         // id is hard coded
         int component_number = 2;
 
-        HalfShortModuleLamination lamination = new HalfShortModuleLamination(
-                volName, mother, component_number);
+        HalfShortModuleLamination lamination = new HalfShortModuleLamination(volName, mother, component_number);
         lamination.setMaterial("Kapton");
 
-        HalfModuleBundle hm = getHalfModuleBundle(
-                (BaseModule) mother.getMother(), mother.getName());
+        HalfModuleBundle hm = getHalfModuleBundle((BaseModule) mother.getMother(), mother.getName());
         hm.lamination = lamination;
 
     }
 
     /**
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class ShortHalfModuleBundle extends LongHalfModuleBundle {
+
         public ShortHalfModuleBundle() {
             super();
         }
@@ -1221,7 +1110,6 @@ public class HPSTracker2017GeometryDefinition extends
 
     /**
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-     *
      */
     public static class ShortModuleBundle extends LongModuleBundle {
 
@@ -1231,14 +1119,13 @@ public class HPSTracker2017GeometryDefinition extends
 
     }
 
-    public static class HalfShortModuleLamination extends
-            HPSTestRunTracker2014GeometryDefinition.HalfModuleComponent {
+    public static class HalfShortModuleLamination extends HPSTestRunTracker2014GeometryDefinition.HalfModuleComponent {
+
         protected static final double width = ShortSensor.width;
         protected static final double length = ShortSensor.length;
         protected static final double height = 0.050;
 
-        public HalfShortModuleLamination(String name, SurveyVolume mother,
-                int id) {
+        public HalfShortModuleLamination(String name, SurveyVolume mother, int id) {
             super(name, mother, null, id);
             init();
         }
@@ -1261,12 +1148,9 @@ public class HPSTracker2017GeometryDefinition extends
 
         protected void setPos() {
             // offset enough to make them face-to-face
-            ballPos = new BasicHep3Vector(0, 0,
-                    -(ShortSensor.getSensorThickness() / 2.0 + height / 2.0));
-            veePos = new BasicHep3Vector(ballPos.x() + 1, ballPos.y(),
-                    ballPos.z());
-            flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y() + 1,
-                    ballPos.z());
+            ballPos = new BasicHep3Vector(0, 0, -(ShortSensor.getSensorThickness() / 2.0 + height / 2.0));
+            veePos = new BasicHep3Vector(ballPos.x() + 1, ballPos.y(), ballPos.z());
+            flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y() + 1, ballPos.z());
         }
 
         protected void setCenter() {
@@ -1288,8 +1172,8 @@ public class HPSTracker2017GeometryDefinition extends
                                                                // HalfLongModuleLamination.height;
         protected final static double sensor_z = 0.23 * inch;
 
-        public ShortHalfModule(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, int layer, String half) {
+        public ShortHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer,
+                String half) {
             super(name, mother, alignmentCorrection, layer, half);
         }
 
@@ -1310,10 +1194,8 @@ public class HPSTracker2017GeometryDefinition extends
         protected void setPos() {
             ballPos = getSensorPosition(); // TODO make this get each coordinate
                                            // instead.
-            veePos = new BasicHep3Vector(ballPos.x() + 1, ballPos.y(),
-                    ballPos.z());
-            flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y() + 1,
-                    ballPos.z());
+            veePos = new BasicHep3Vector(ballPos.x() + 1, ballPos.y(), ballPos.z());
+            flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y() + 1, ballPos.z());
         }
 
     }
@@ -1322,8 +1204,8 @@ public class HPSTracker2017GeometryDefinition extends
 
         protected final static double sensor_z = LongHalfModule.sensor_z;
 
-        public ShortAxialHalfModule(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, int layer, String half) {
+        public ShortAxialHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
             super(name, mother, alignmentCorrection, layer, half);
         }
 
@@ -1335,8 +1217,8 @@ public class HPSTracker2017GeometryDefinition extends
         protected final static double sensor_z = ShortAxialHalfModule.sensor_z
                 + ShortModule.distance_between_stereo_axial_norm_dir;
 
-        public ShortStereoHalfModule(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, int layer, String half) {
+        public ShortStereoHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
             super(name, mother, alignmentCorrection, layer, half);
         }
 
@@ -1351,14 +1233,14 @@ public class HPSTracker2017GeometryDefinition extends
         protected final static double shift_vertically_to_beam_plane = -20.6658;
         protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
 
-        private final static double sensor_x = HalfModuleAxial.sensor_x
-                + shift_vertically_to_beam_plane + shift_vertically_to_15mrad;
+        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
+                + shift_vertically_to_15mrad;
         private final static double sensor_y = HalfModuleAxial.sensor_y;
         // private final static double sensor_z = HalfModuleAxial.sensor_z;
         private final static double sensor_z = ShortAxialHalfModule.sensor_z;
 
-        public ShortAxialHoleHalfModule(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, int layer, String half) {
+        public ShortAxialHoleHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
             super(name, mother, alignmentCorrection, layer, half);
             init();
         }
@@ -1374,14 +1256,13 @@ public class HPSTracker2017GeometryDefinition extends
 
         // reference with respect to hole half module (hack)
         private final static double sensor_x = ShortAxialHoleHalfModule.sensor_x;
-        private final static double sensor_y = ShortAxialHoleHalfModule.sensor_y
-                + ShortSensor.length;
+        private final static double sensor_y = ShortAxialHoleHalfModule.sensor_y + ShortSensor.length;
         // private final static double sensor_z =
         // ShortAxialHoleHalfModule.sensor_z;
         private final static double sensor_z = ShortAxialHalfModule.sensor_z;
 
-        public ShortAxialSlotHalfModule(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, int layer, String half) {
+        public ShortAxialSlotHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
             super(name, mother, alignmentCorrection, layer, half);
             init();
         }
@@ -1400,18 +1281,18 @@ public class HPSTracker2017GeometryDefinition extends
             // side
 
             if (debug) {
-                System.out.printf("%s: Coord before corrections\n%s\n",
-                        getClass().getSimpleName(), getCoord().toString());
-                System.out.printf("%s: box center before corrections\n%s\n",
-                        getClass().getSimpleName(), getBoxDim().toString());
+                System.out.printf("%s: Coord before corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center before corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
             }
             getCoord().rotateApache(getSlotRotation());
 
             if (debug) {
-                System.out.printf("%s: Coord after corrections\n%s\n",
-                        getClass().getSimpleName(), getCoord().toString());
-                System.out.printf("%s: box center after corrections\n%s\n",
-                        getClass().getSimpleName(), getBoxDim().toString());
+                System.out.printf("%s: Coord after corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center after corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
             }
         }
 
@@ -1429,11 +1310,11 @@ public class HPSTracker2017GeometryDefinition extends
 
         // protected final static Hep3Vector pos_of_rotation = new
         // BasicHep3Vector(ActiveShortSensor.width/2,ActiveShortSensor.length/2,0);
-        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(
-                ShortSensor.width / 2, ShortSensor.length / 2, 0);
+        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
+                ShortSensor.length / 2, 0);
 
-        public ShortStereoHoleHalfModule(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, int layer, String half) {
+        public ShortStereoHoleHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
             super(name, mother, alignmentCorrection, layer, half);
             init();
         }
@@ -1457,22 +1338,20 @@ public class HPSTracker2017GeometryDefinition extends
             // Rotate these into the right place for the stereo
             // My rotations here are active rotations in the mother coordinate
             // system frame
-            
+
             if (debug) {
                 System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass().getSimpleName());
-                System.out.printf("%s: YIHAA 1 coord %s\n", getClass().getSimpleName(), getCoord().toString());            
+                System.out.printf("%s: YIHAA 1 coord %s\n", getClass().getSimpleName(), getCoord().toString());
             }
 
-            Hep3Vector o2 = new BasicHep3Vector(getCoord().origin().x(),
-                    getCoord().origin().y(), getCoord().origin().z());
+            Hep3Vector o2 = new BasicHep3Vector(getCoord().origin().x(), getCoord().origin().y(), getCoord().origin()
+                    .z());
             Hep3Vector s = pos_of_rotation;
 
             if (debug) {
-                System.out.printf("%s: YIHAA 1 o2 %s\n",
-                        getClass().getSimpleName(), o2.toString());
+                System.out.printf("%s: YIHAA 1 o2 %s\n", getClass().getSimpleName(), o2.toString());
 
-                System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(),
-                        s.toString());
+                System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(), s.toString());
             }
 
             // flip around v ~ along the strips
@@ -1484,57 +1363,47 @@ public class HPSTracker2017GeometryDefinition extends
             // Rotation r = r2;
             // Rotation r = r1;
             if (debug) {
-                System.out.printf(
-                        "%s: LongStereoHalfModule Generic Corrections\n",
-                        getClass().getSimpleName());
-                System.out.printf("%s: Coord before corrections\n%s\n",
-                        getClass().getSimpleName(), getCoord().toString());
-                System.out.printf("%s: box center before corrections\n%s\n",
-                        getClass().getSimpleName(), getBoxDim().toString());
+                System.out.printf("%s: LongStereoHalfModule Generic Corrections\n", getClass().getSimpleName());
+                System.out.printf("%s: Coord before corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center before corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
             }
 
             // flip s
-            Hep3Vector sf = new BasicHep3Vector(r1.applyTo(new Vector3D(s.v()))
-                    .toArray());
+            Hep3Vector sf = new BasicHep3Vector(r1.applyTo(new Vector3D(s.v())).toArray());
 
             if (debug) {
-                System.out.printf("%s: YIHAA 1 sf %s\n",
-                        getClass().getSimpleName(), sf.toString());
+                System.out.printf("%s: YIHAA 1 sf %s\n", getClass().getSimpleName(), sf.toString());
 
-                System.out.printf("%s: YIHAA 1 -sf %s\n", getClass()
-                        .getSimpleName(), VecOp.mult(-1, sf).toString());
+                System.out.printf("%s: YIHAA 1 -sf %s\n", getClass().getSimpleName(), VecOp.mult(-1, sf).toString());
             }
 
-            Hep3Vector sfp = new BasicHep3Vector(r2.applyTo(
-                    new Vector3D(VecOp.mult(-1, sf).v())).toArray());
-            
+            Hep3Vector sfp = new BasicHep3Vector(r2.applyTo(new Vector3D(VecOp.mult(-1, sf).v())).toArray());
+
             if (debug) {
 
-                System.out.printf("%s: YIHAA 1 sf' %s\n", getClass()
-                        .getSimpleName(), sfp.toString());
+                System.out.printf("%s: YIHAA 1 sf' %s\n", getClass().getSimpleName(), sfp.toString());
 
-                System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass()
-                        .getSimpleName(), VecOp.add(o2, sf).toString());
+                System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass().getSimpleName(), VecOp.add(o2, sf).toString());
 
-                System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass()
-                        .getSimpleName(), VecOp.add(VecOp.add(o2, sf), sfp)
+                System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass().getSimpleName(),
+                        VecOp.add(VecOp.add(o2, sf), sfp).toString());
+
+                System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass().getSimpleName(), VecOp.add(sf, sfp)
                         .toString());
-
-                System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass()
-                        .getSimpleName(), VecOp.add(sf, sfp).toString());
             }
 
             getCoord().translate(VecOp.add(sf, sfp));
 
             getCoord().rotateApache(r);
 
-            if (debug) {                
-                System.out.printf("%s: YIHAA 3 coord %s\n", getClass()
-                        .getSimpleName(), getCoord().toString());
-                System.out.printf("%s: Coord after corrections\n%s\n",
-                        getClass().getSimpleName(), getCoord().toString());
-                System.out.printf("%s: box center after corrections\n%s\n",
-                        getClass().getSimpleName(), getBoxDim().toString());
+            if (debug) {
+                System.out.printf("%s: YIHAA 3 coord %s\n", getClass().getSimpleName(), getCoord().toString());
+                System.out.printf("%s: Coord after corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center after corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
             }
 
         }
@@ -1545,19 +1414,18 @@ public class HPSTracker2017GeometryDefinition extends
 
         // reference with respect to hole stereo half module (hack)
         private final static double sensor_x = ShortStereoHoleHalfModule.sensor_x;
-        private final static double sensor_y = ShortStereoHoleHalfModule.sensor_y
-                + ShortSensor.length;
+        private final static double sensor_y = ShortStereoHoleHalfModule.sensor_y + ShortSensor.length;
         private final static double sensor_z = ShortStereoHalfModule.sensor_z;
         // private final static double sensor_x = 1.481*inch;
         // private final static double sensor_y = 7.861*inch;
 
         // protected final static Hep3Vector pos_of_rotation = new
         // BasicHep3Vector(ActiveShortSensor.width/2,-1*ActiveShortSensor.length/2,0);
-        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(
-                ShortSensor.width / 2, -ShortSensor.length / 2, 0);
+        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
+                -ShortSensor.length / 2, 0);
 
-        public ShortStereoSlotHalfModule(String name, SurveyVolume mother,
-                AlignmentCorrection alignmentCorrection, int layer, String half) {
+        public ShortStereoSlotHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
             super(name, mother, alignmentCorrection, layer, half);
             init();
         }
@@ -1573,23 +1441,19 @@ public class HPSTracker2017GeometryDefinition extends
             // My rotations here are active rotations in the mother coordinate
             // system frame
             if (debug) {
-                System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass()
-                        .getSimpleName());
+                System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass().getSimpleName());
 
-                System.out.printf("%s: YIHAA 1 coord %s\n", getClass()
-                        .getSimpleName(), getCoord().toString());
-            }          
+                System.out.printf("%s: YIHAA 1 coord %s\n", getClass().getSimpleName(), getCoord().toString());
+            }
 
-            Hep3Vector o2 = new BasicHep3Vector(getCoord().origin().x(),
-                    getCoord().origin().y(), getCoord().origin().z());
+            Hep3Vector o2 = new BasicHep3Vector(getCoord().origin().x(), getCoord().origin().y(), getCoord().origin()
+                    .z());
             Hep3Vector s = pos_of_rotation;
 
             if (debug) {
-                System.out.printf("%s: YIHAA 1 o2 %s\n",
-                        getClass().getSimpleName(), o2.toString());
+                System.out.printf("%s: YIHAA 1 o2 %s\n", getClass().getSimpleName(), o2.toString());
 
-                System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(),
-                        s.toString());
+                System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(), s.toString());
             }
 
             // flip around v ~ along the strips
@@ -1601,43 +1465,34 @@ public class HPSTracker2017GeometryDefinition extends
             // Rotation r = r2;
             // Rotation r = r1;
             if (debug) {
-                System.out.printf(
-                        "%s: LongStereoHalfModule Generic Corrections\n",
-                        getClass().getSimpleName());
-                System.out.printf("%s: Coord before corrections\n%s\n",
-                        getClass().getSimpleName(), getCoord().toString());
-                System.out.printf("%s: box center before corrections\n%s\n",
-                        getClass().getSimpleName(), getBoxDim().toString());
+                System.out.printf("%s: LongStereoHalfModule Generic Corrections\n", getClass().getSimpleName());
+                System.out.printf("%s: Coord before corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center before corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
             }
 
             // flip s
-            Hep3Vector sf = new BasicHep3Vector(r1.applyTo(new Vector3D(s.v()))
-                    .toArray());
+            Hep3Vector sf = new BasicHep3Vector(r1.applyTo(new Vector3D(s.v())).toArray());
 
             if (debug) {
-                System.out.printf("%s: YIHAA 1 sf %s\n",
-                        getClass().getSimpleName(), sf.toString());
+                System.out.printf("%s: YIHAA 1 sf %s\n", getClass().getSimpleName(), sf.toString());
 
-                System.out.printf("%s: YIHAA 1 -sf %s\n", getClass()
-                        .getSimpleName(), VecOp.mult(-1, sf).toString());
+                System.out.printf("%s: YIHAA 1 -sf %s\n", getClass().getSimpleName(), VecOp.mult(-1, sf).toString());
             }
 
-            Hep3Vector sfp = new BasicHep3Vector(r2.applyTo(
-                    new Vector3D(VecOp.mult(-1, sf).v())).toArray());
+            Hep3Vector sfp = new BasicHep3Vector(r2.applyTo(new Vector3D(VecOp.mult(-1, sf).v())).toArray());
 
             if (debug) {
-                System.out.printf("%s: YIHAA 1 sf' %s\n", getClass()
-                        .getSimpleName(), sfp.toString());
+                System.out.printf("%s: YIHAA 1 sf' %s\n", getClass().getSimpleName(), sfp.toString());
 
-                System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass()
-                        .getSimpleName(), VecOp.add(o2, sf).toString());
+                System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass().getSimpleName(), VecOp.add(o2, sf).toString());
 
-                System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass()
-                        .getSimpleName(), VecOp.add(VecOp.add(o2, sf), sfp)
+                System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass().getSimpleName(),
+                        VecOp.add(VecOp.add(o2, sf), sfp).toString());
+
+                System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass().getSimpleName(), VecOp.add(sf, sfp)
                         .toString());
-
-                System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass()
-                        .getSimpleName(), VecOp.add(sf, sfp).toString());
             }
 
             getCoord().translate(VecOp.add(sf, sfp));
@@ -1645,13 +1500,12 @@ public class HPSTracker2017GeometryDefinition extends
             getCoord().rotateApache(r);
 
             if (debug) {
-                System.out.printf("%s: YIHAA 3 coord %s\n", getClass()
-                        .getSimpleName(), getCoord().toString());
+                System.out.printf("%s: YIHAA 3 coord %s\n", getClass().getSimpleName(), getCoord().toString());
 
-                System.out.printf("%s: Coord after corrections\n%s\n",
-                        getClass().getSimpleName(), getCoord().toString());
-                System.out.printf("%s: box center after corrections\n%s\n",
-                        getClass().getSimpleName(), getBoxDim().toString());
+                System.out.printf("%s: Coord after corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center after corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
             }
 
         }
@@ -1664,22 +1518,20 @@ public class HPSTracker2017GeometryDefinition extends
             stereo_rotation();
 
             if (debug) {
-                System.out
-                        .printf("%s: v1 LongStereoSlotHalfModule Generic Corrections\n",
-                                getClass().getSimpleName());
-                System.out.printf("%s: Coord before corrections\n%s\n",
-                        getClass().getSimpleName(), getCoord().toString());
-                System.out.printf("%s: box center before corrections\n%s\n",
-                        getClass().getSimpleName(), getBoxDim().toString());
+                System.out.printf("%s: v1 LongStereoSlotHalfModule Generic Corrections\n", getClass().getSimpleName());
+                System.out.printf("%s: Coord before corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center before corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
             }
 
             getCoord().rotateApache(getSlotRotation());
 
             if (debug) {
-                System.out.printf("%s: Coord after corrections\n%s\n",
-                        getClass().getSimpleName(), getCoord().toString());
-                System.out.printf("%s: box center after corrections\n%s\n",
-                        getClass().getSimpleName(), getBoxDim().toString());
+                System.out.printf("%s: Coord after corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center after corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
             }
         }
 
