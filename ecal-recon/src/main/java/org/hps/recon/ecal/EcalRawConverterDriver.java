@@ -31,6 +31,7 @@ import org.lcsim.util.Driver;
  * The results are by default written to the <b>EcalCalHits</b> output collection.
  */
 public class EcalRawConverterDriver extends Driver {
+	private final TempOutputWriter writer = new TempOutputWriter("converted_hits_old.log");
 
     // To import database conditions
     private EcalConditions ecalConditions = null;
@@ -394,6 +395,11 @@ public class EcalRawConverterDriver extends Driver {
         useDAQConfig = state;
         converter.setUseDAQConfig(state);
     }
+	
+	@Override
+	public void endOfData() {
+		writer.close();
+	}
 
     @Override
     public void startOfData() {
@@ -447,6 +453,17 @@ public class EcalRawConverterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
+		// DEBUG :: Write the raw hits seen.
+		writer.write("> Event " + event.getEventNumber() + " - ???");
+		writer.write("Input");
+		
+    	if(event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) {
+    		List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
+    		for(RawCalorimeterHit hit : hits) {
+    			writer.write(String.format("%d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
+    		}
+    	}
+    	
         // Do not process the event if the DAQ configuration should be
         // used for value, but is not initialized.
         if(useDAQConfig && !ConfigurationManager.isInitialized()) {
@@ -567,6 +584,12 @@ public class EcalRawConverterDriver extends Driver {
                     }
                 }
                 event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
+        		
+        		// DEBUG :: Write the converted hits seen.
+        		writer.write("Output");
+        		for(CalorimeterHit hit : newHits) {
+        			writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+        		}
             }
         } else {
             ArrayList<RawCalorimeterHit> newHits = new ArrayList<RawCalorimeterHit>();
