@@ -146,6 +146,7 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 		
 		if(triggered) {
 			System.out.println("\tTriggered!");
+			ReadoutDataManager.sendTrigger(this);
 		}
 	}
 	
