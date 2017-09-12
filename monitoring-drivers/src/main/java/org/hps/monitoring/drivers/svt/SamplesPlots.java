@@ -71,8 +71,7 @@ public class SamplesPlots extends Driver {
         IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Raw Samples");
         IHistogramFactory histogramFactory = AIDA.defaultInstance().histogramFactory();
 
-        sensors
-                = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
+        sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
 
         if (sensors.size() == 0) {
             throw new RuntimeException("No sensors were found in this detector.");
@@ -90,11 +89,15 @@ public class SamplesPlots extends Driver {
                     histogramFactory.createHistogram2D(sensor.getName() + " - Samples", 6, 0, 6, 1000, -200.0, 3000));
 
             if (sensor.getLayerNumber() < 7) {
-                plotters.get("L1-L3 Raw hit samples").region(this.computePlotterRegion(sensor))
-                        .plot(samplesPlots.get(sensor), this.createStyle(plotterFactory, "Sample Number", "Amplitude [ADC Counts]"));
+                plotters.get("L1-L3 Raw hit samples")
+                        .region(this.computePlotterRegion(sensor))
+                        .plot(samplesPlots.get(sensor),
+                                this.createStyle(plotterFactory, "Sample Number", "Amplitude [ADC Counts]"));
             } else {
-                plotters.get("L4-L6 Raw hit samples").region(this.computePlotterRegion(sensor))
-                        .plot(samplesPlots.get(sensor), this.createStyle(plotterFactory, "Sample Number", "Amplitude [ADC Counts]"));
+                plotters.get("L4-L6 Raw hit samples")
+                        .region(this.computePlotterRegion(sensor))
+                        .plot(samplesPlots.get(sensor),
+                                this.createStyle(plotterFactory, "Sample Number", "Amplitude [ADC Counts]"));
             }
         }
 
@@ -142,7 +145,7 @@ public class SamplesPlots extends Driver {
         // Set the z axis to log scale
         style.zAxisStyle().setScaling("log");
 
-        // Turn off the histogram grid 
+        // Turn off the histogram grid
         style.gridStyle().setVisible(false);
 
         // Set the style of the data

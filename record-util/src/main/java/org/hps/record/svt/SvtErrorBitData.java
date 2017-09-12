@@ -7,7 +7,6 @@ import org.lcsim.event.GenericObject;
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class SvtErrorBitData implements GenericObject {
 
@@ -16,8 +15,7 @@ public class SvtErrorBitData implements GenericObject {
     private final int hybrid;
     private final int apv;
     private final int error;
-    
-    
+
     /**
      * 
      */
@@ -29,7 +27,6 @@ public class SvtErrorBitData implements GenericObject {
         this.error = errorBit;
     }
 
-    
     public int getRce() {
         return this.rce;
     }
@@ -45,29 +42,25 @@ public class SvtErrorBitData implements GenericObject {
     public int getApv() {
         return this.apv;
     }
-    
+
     public int getErrorBit() {
         return this.error;
     }
-
 
     @Override
     public int getNInt() {
         return 5;
     }
 
-
     @Override
     public int getNFloat() {
         return 0;
     }
 
-
     @Override
     public int getNDouble() {
-       return 0;
+        return 0;
     }
-
 
     @Override
     public int getIntVal(int index) {
@@ -94,24 +87,19 @@ public class SvtErrorBitData implements GenericObject {
         return value;
     }
 
-
     @Override
     public float getFloatVal(int index) {
         throw new ArrayIndexOutOfBoundsException();
     }
-
 
     @Override
     public double getDoubleVal(int index) {
         throw new ArrayIndexOutOfBoundsException();
     }
 
-
     @Override
     public boolean isFixedSize() {
         return true;
     }
-    
-    
 
 }

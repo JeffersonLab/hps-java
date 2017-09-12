@@ -23,8 +23,8 @@ final class LogLevelFilterComboBox extends JComboBox<Level> implements ActionLis
     /**
      * Available log levels.
      */
-    private static final Level[] LOG_LEVELS = new Level[] { Level.ALL, Level.FINEST, Level.FINER, Level.FINE,
-            Level.CONFIG, Level.INFO, Level.WARNING, Level.SEVERE };
+    private static final Level[] LOG_LEVELS = new Level[] {Level.ALL, Level.FINEST, Level.FINER, Level.FINE,
+            Level.CONFIG, Level.INFO, Level.WARNING, Level.SEVERE};
 
     /**
      * The {@link org.hps.monitoring.application.model.ConfigurationModel} providing the backing model.
@@ -35,7 +35,7 @@ final class LogLevelFilterComboBox extends JComboBox<Level> implements ActionLis
      * Class constructor.
      *
      * @param configurationModel the {@link org.hps.monitoring.application.model.ConfigurationModel} providing the
-     *            backing model
+     * backing model
      */
     LogLevelFilterComboBox(final ConfigurationModel configurationModel) {
 

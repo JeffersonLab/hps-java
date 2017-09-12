@@ -506,6 +506,9 @@
                   <property name="processJavadoc" value="false" />
                 </module>
                 <module name="RedundantImport" />
+                <module name="Indentation">
+                  <property name="lineWrappingIndentation" value="8" />
+                </module>
               </module>
             </module>
           </checkstyleRules>

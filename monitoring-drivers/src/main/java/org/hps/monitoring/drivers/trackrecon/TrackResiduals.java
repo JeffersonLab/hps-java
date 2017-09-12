@@ -66,7 +66,7 @@ public class TrackResiduals extends Driver {
             region = (i - 3) * 4 + 2;
         else
             region = (i - 3) * 4 + 3;
-//     System.out.println("Setting region to "+region);
+        // System.out.println("Setting region to "+region);
         return region;
     }
 
@@ -74,7 +74,7 @@ public class TrackResiduals extends Driver {
     protected void detectorChanged(Detector detector) {
 
         aida.tree().cd("/");
-//        resetOccupancyMap(); // this is for calculating averages         
+        // resetOccupancyMap(); // this is for calculating averages
         IAnalysisFactory fac = aida.analysisFactory();
         IPlotterFactory pfac = fac.createPlotterFactory("Track Residuals");
         functionFactory = aida.analysisFactory().createFunctionFactory(null);
@@ -85,10 +85,14 @@ public class TrackResiduals extends Driver {
         plotterResY.createRegions(3, 4);
 
         for (int i = 1; i <= nmodules; i++) {
-            xresidTop[i - 1] = aida.histogram1D("Module " + i + " Top x Residual", 50, -getRange(i, true), getRange(i, true));
-            yresidTop[i - 1] = aida.histogram1D("Module " + i + " Top y Residual", 50, -getRange(i, false), getRange(i, false));
-            xresidBot[i - 1] = aida.histogram1D("Module " + i + " Bot x Residual", 50, -getRange(i, true), getRange(i, true));
-            yresidBot[i - 1] = aida.histogram1D("Module " + i + " Bot y Residual", 50, -getRange(i, false), getRange(i, false));
+            xresidTop[i - 1] = aida.histogram1D("Module " + i + " Top x Residual", 50, -getRange(i, true),
+                    getRange(i, true));
+            yresidTop[i - 1] = aida.histogram1D("Module " + i + " Top y Residual", 50, -getRange(i, false),
+                    getRange(i, false));
+            xresidBot[i - 1] = aida.histogram1D("Module " + i + " Bot x Residual", 50, -getRange(i, true),
+                    getRange(i, true));
+            yresidBot[i - 1] = aida.histogram1D("Module " + i + " Bot y Residual", 50, -getRange(i, false),
+                    getRange(i, false));
 
             fxresidTop[i - 1] = functionFactory.createFunctionByName("Gaussian", "G");
             fyresidTop[i - 1] = functionFactory.createFunctionByName("Gaussian", "G");
@@ -111,11 +115,14 @@ public class TrackResiduals extends Driver {
         plotterResY.show();
 
         /*
-         for (int i = 1; i <= nmodules * 2; i++) {
-         IHistogram1D tresid = aida.histogram1D(plotDir + timeresDir + "HalfModule " + i + " t Residual", 50, -20, 20);
-         IHistogram1D utopresid = aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Top u Residual", 50, -getRange((i + 1) / 2, false), getRange((i + 1) / 2, false));
-         IHistogram1D ubotresid = aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Bot u Residual", 50, -getRange((i + 1) / 2, false), getRange((i + 1) / 2, false));
-         }
+         * for (int i = 1; i <= nmodules * 2; i++) {
+         * IHistogram1D tresid = aida.histogram1D(plotDir + timeresDir + "HalfModule " + i + " t Residual", 50, -20,
+         * 20);
+         * IHistogram1D utopresid = aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Top u Residual", 50,
+         * -getRange((i + 1) / 2, false), getRange((i + 1) / 2, false));
+         * IHistogram1D ubotresid = aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Bot u Residual", 50,
+         * -getRange((i + 1) / 2, false), getRange((i + 1) / 2, false));
+         * }
          */
     }
 
@@ -130,15 +137,15 @@ public class TrackResiduals extends Driver {
         List<GenericObject> trdList = event.get(GenericObject.class, trackResidualsCollectionName);
         for (GenericObject trd : trdList) {
             int nResid = trd.getNDouble();
-            int isBot = trd.getIntVal(trd.getNInt() - 1);//last Int is the top/bottom flag
+            int isBot = trd.getIntVal(trd.getNInt() - 1);// last Int is the top/bottom flag
             for (int i = 0; i < nResid; i++)
 
                 if (isBot == 1) {
-                    xresidBot[i].fill(trd.getDoubleVal(i));//x is the double value in the generic object
-                    yresidBot[i].fill(trd.getFloatVal(i));//y is the float value in the generic object
+                    xresidBot[i].fill(trd.getDoubleVal(i));// x is the double value in the generic object
+                    yresidBot[i].fill(trd.getFloatVal(i));// y is the float value in the generic object
                 } else {
-                    xresidTop[i].fill(trd.getDoubleVal(i));//x is the double value in the generic object
-                    yresidTop[i].fill(trd.getFloatVal(i));//y is the float value in the generic object                    
+                    xresidTop[i].fill(trd.getDoubleVal(i));// x is the double value in the generic object
+                    yresidTop[i].fill(trd.getFloatVal(i));// y is the float value in the generic object
                 }
         }
         for (int i = 0; i < nmodules; i++) {
@@ -149,30 +156,35 @@ public class TrackResiduals extends Driver {
         }
 
         /*
-         List<GenericObject> ttdList = event.get(GenericObject.class, trackTimeDataCollectionName);
-         for (GenericObject ttd : ttdList) {
-         int nResid = ttd.getNDouble();
-         for (int i = 1; i <= nResid; i++)
-         aida.histogram1D( "HalfModule " + i + " t Residual").fill(ttd.getDoubleVal(i - 1));//x is the double value in the generic object               
-         }
+         * List<GenericObject> ttdList = event.get(GenericObject.class, trackTimeDataCollectionName);
+         * for (GenericObject ttd : ttdList) {
+         * int nResid = ttd.getNDouble();
+         * for (int i = 1; i <= nResid; i++)
+         * aida.histogram1D( "HalfModule " + i + " t Residual").fill(ttd.getDoubleVal(i - 1));//x is the double value in
+         * the generic object
+         * }
          */
         /*
-         if (!event.hasCollection(GenericObject.class, gblStripClusterDataCollectionName))
-         return;
-         List<GenericObject> gblSCDList = event.get(GenericObject.class, gblStripClusterDataCollectionName);
-         for (GenericObject gblSCD : gblSCDList) {
-         double umeas = gblSCD.getDoubleVal(15);//TODO:  implement generic methods into GBLStripClusterData so this isn't hard coded
-         double utrk = gblSCD.getDoubleVal(16);//implement generic methods into GBLStripClusterData so this isn't hard coded
-         double resid = umeas - utrk;
-         double tanlambda = gblSCD.getDoubleVal(21);//use the slope as a proxy for the top/bottom half of tracker
-
-         int i = gblSCD.getIntVal(0);//implement generic methods into GBLStripClusterData so this isn't hard coded
-         if (tanlambda > 0)
-         aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Top u Residual").fill(resid);//x is the double value in the generic object                 
-         else
-         aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Bot u Residual").fill(resid);//x is the double value in the generic object                 
-
-         }
+         * if (!event.hasCollection(GenericObject.class, gblStripClusterDataCollectionName))
+         * return;
+         * List<GenericObject> gblSCDList = event.get(GenericObject.class, gblStripClusterDataCollectionName);
+         * for (GenericObject gblSCD : gblSCDList) {
+         * double umeas = gblSCD.getDoubleVal(15);//TODO: implement generic methods into GBLStripClusterData so this
+         * isn't hard coded
+         * double utrk = gblSCD.getDoubleVal(16);//implement generic methods into GBLStripClusterData so this isn't hard
+         * coded
+         * double resid = umeas - utrk;
+         * double tanlambda = gblSCD.getDoubleVal(21);//use the slope as a proxy for the top/bottom half of tracker
+         * 
+         * int i = gblSCD.getIntVal(0);//implement generic methods into GBLStripClusterData so this isn't hard coded
+         * if (tanlambda > 0)
+         * aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Top u Residual").fill(resid);//x is the double
+         * value in the generic object
+         * else
+         * aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Bot u Residual").fill(resid);//x is the double
+         * value in the generic object
+         * 
+         * }
          */
     }
 

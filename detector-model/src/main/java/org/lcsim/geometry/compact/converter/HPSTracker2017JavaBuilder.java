@@ -13,8 +13,7 @@ public class HPSTracker2017JavaBuilder extends HPSTracker2014v1JavaBuilder {
     }
 
     @Override
-    public HPSTrackerGeometryDefinition createGeometryDefinition(boolean debug,
-            Element node) {
+    public HPSTrackerGeometryDefinition createGeometryDefinition(boolean debug, Element node) {
         return new HPSTracker2017GeometryDefinition(debug, node);
     }
 
@@ -34,18 +33,14 @@ public class HPSTracker2017JavaBuilder extends HPSTracker2014v1JavaBuilder {
     /**
      * Rules for adding the LCDD module geometry.
      * 
-     * @param bundle
-     *            - module to be added
-     * @param mother
-     *            - mother LCDD geometry object
+     * @param bundle - module to be added
+     * @param mother - mother LCDD geometry object
      */
-    protected void addShortModule(ShortModuleBundle bundle,
-            JavaSurveyVolume mother) {
+    protected void addShortModule(ShortModuleBundle bundle, JavaSurveyVolume mother) {
         // This could perhaps be fixed if there is a relation with daughters in
         // geometry definition?
         // create the module
-        JavaSurveyVolume lcddM = new JavaGhostSurveyVolume(bundle.module,
-                mother);
+        JavaSurveyVolume lcddM = new JavaGhostSurveyVolume(bundle.module, mother);
         add(lcddM);
         if (bundle.halfModuleAxialHole != null)
             addLongHalfModule(bundle.halfModuleAxialHole, lcddM);

@@ -27,10 +27,8 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.util.Driver;
 
-
 /**
- * Driver used to create reconstructed particles and matching clusters
- * and tracks.
+ * Driver used to create reconstructed particles and matching clusters and tracks.
  *
  * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a>
  * @author Mathew Graham <mgraham@slac.stanford.edu>
@@ -48,29 +46,141 @@ public abstract class ReconParticleDriver extends Driver {
     public static final int POSITRON = 1;
     public static final int MOLLER_TOP = 0;
     public static final int MOLLER_BOT = 1;
-    
+
     // normalized cluster-track distance required for qualifying as a match:
-    private double MAXNSIGMAPOSITIONMATCH=30.0;
+    private double MAXNSIGMAPOSITIONMATCH = 30.0;
 
     HPSEcal3 ecal;
 
     protected boolean isMC = false;
     private boolean disablePID = false;
-    
+
+    // ==============================================================
+    // ==== Class Variables =========================================
+    // ==============================================================
+    // Local variables.
     /**
-     * Sets the condition of whether the data is Monte Carlo or not.
-     * This is used to smear the cluster energy corrections so that
-     * the energy resolution is consistent with data. False by default.
+     * Indicates whether debug text should be output or not.
+     */
+    protected boolean debug = false;
+
+    /**
+     * Indicates whether this is Monte Carlo or data
+     */
+    public boolean isMonteCarlo = false;
+
+    /**
+     * The simple name of the class used for debug print statements.
+     */
+    private final String simpleName = getClass().getSimpleName();
+
+    // Reconstructed Particle Lists
+    /**
+     * Stores reconstructed electron particles.
+     */
+    private List<ReconstructedParticle> electrons;
+    /**
+     * Stores reconstructed positron particles.
+     */
+    private List<ReconstructedParticle> positrons;
+    /**
+     * Stores particles reconstructed from an event.
+     */
+    protected List<ReconstructedParticle> finalStateParticles;
+    /**
+     * Stores reconstructed V0 candidate particles generated without constraints.
+     */
+    protected List<ReconstructedParticle> unconstrainedV0Candidates;
+    /**
+     * Stores reconstructed V0 candidate particles generated with beam spot constraints.
+     */
+    protected List<ReconstructedParticle> beamConV0Candidates;
+    /**
+     * Stores reconstructed V0 candidate particles generated with target constraints.
+     */
+    protected List<ReconstructedParticle> targetConV0Candidates;
+    /**
+     * Stores reconstructed V0 candidate vertices generated without constraints.
+     */
+    protected List<Vertex> unconstrainedV0Vertices;
+    /**
+     * Stores reconstructed V0 candidate vertices generated with beam spot constraints.
+     */
+    protected List<Vertex> beamConV0Vertices;
+    /**
+     * Stores reconstructed V0 candidate vertices generated with target constraints.
+     */
+    protected List<Vertex> targetConV0Vertices;
+
+    // LCIO Collection Names
+    /**
+     * LCIO collection name for calorimeter clusters.
+     */
+    private String ecalClustersCollectionName = "EcalClusters";
+    /**
+     * LCIO collection name for tracks.
+     */
+    private String trackCollectionName = "MatchedTracks";
+    /**
+     * LCIO collection name for reconstructed particles.
+     */
+    private String finalStateParticlesColName = "FinalStateParticles";
+    /**
+     * LCIO collection name for V0 candidate particles generated without constraints.
+     */
+    protected String unconstrainedV0CandidatesColName = null;
+    /**
+     * LCIO collection name for V0 candidate particles generated with beam spot constraints.
+     */
+    protected String beamConV0CandidatesColName = null;
+    /**
+     * LCIO collection name for V0 candidate particles generated with target constraints.
+     */
+    protected String targetConV0CandidatesColName = null;
+    /**
+     * LCIO collection name for V0 candidate vertices generated without constraints.
+     */
+    protected String unconstrainedV0VerticesColName = null;
+    /**
+     * LCIO collection name for V0 candidate vertices generated with beam spot constraints.
+     */
+    protected String beamConV0VerticesColName = null;
+    /**
+     * LCIO collection name for V0 candidate vertices generated with target constraints.
+     */
+    protected String targetConV0VerticesColName = null;
+
+    // Beam size variables.
+    // The beamsize array is in the tracking frame
+    /* TODO mg-May 14, 2014: the the beam size from the conditions db...also beam position! */
+    protected double[] beamSize = {0.001, 0.130, 0.050}; // rough estimate from harp scans during engineering run
+                                                         // production running
+    // Beam position variables.
+    // The beamPosition array is in the tracking frame
+    /* TODO get the beam position from the conditions db */
+    protected double[] beamPosition = {0.0, 0.0, 0.0}; //
+    protected double bField;
+
+    // flipSign is a kludge...
+    // HelicalTrackFitter doesn't deal with B-fields in -ive Z correctly
+    // so we set the B-field in +iveZ and flip signs of fitted tracks
+    //
+    // Note: This should be -1 for test run configurations and +1 for
+    // prop-2014 configurations
+    private int flipSign = 1;
+
+    /**
+     * Sets the condition of whether the data is Monte Carlo or not. This is used to smear the cluster energy
+     * corrections so that the energy resolution is consistent with data. False by default.
+     * 
      * @param isMC
      */
     public void setIsMC(boolean state) {
         isMC = state;
-    }   
-    
-    
+    }
+
     /**
-     * Sets the name of the LCIO collection for beam spot constrained V0
-     * candidate particles.
+     * Sets the name of the LCIO collection for beam spot constrained V0 candidate particles.
      *
      * @param beamConV0CandidatesColName - The LCIO collection name.
      */
@@ -79,8 +189,7 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the name of the LCIO collection for beam spot constrained V0
-     * candidate vertices.
+     * Sets the name of the LCIO collection for beam spot constrained V0 candidate vertices.
      *
      * @param beamConV0VerticesColName - The LCIO collection name.
      */
@@ -88,22 +197,22 @@ public abstract class ReconParticleDriver extends Driver {
         this.beamConV0VerticesColName = beamConV0VerticesColName;
     }
 
-     /**
+    /**
      * Sets the beam position in the x-direction.
      *
      * @param X - The beam position at the target in the x-direction in mm.
      */
     public void setBeamPositionX(double X) {
-        beamPosition[1] = X;  // The beamPosition array is in the tracking frame HPS X => TRACK Y
+        beamPosition[1] = X; // The beamPosition array is in the tracking frame HPS X => TRACK Y
     }
+
     /**
      * Sets the beam size sigma in the x-direction.
      *
-     * @param sigmaX - The standard deviation of the beam width in the
-     * x-direction.
+     * @param sigmaX - The standard deviation of the beam width in the x-direction.
      */
     public void setBeamSigmaX(double sigmaX) {
-        beamSize[1] = sigmaX;  // The beamsize array is in the tracking frame HPS X => TRACK Y
+        beamSize[1] = sigmaX; // The beamsize array is in the tracking frame HPS X => TRACK Y
     }
 
     /**
@@ -114,17 +223,16 @@ public abstract class ReconParticleDriver extends Driver {
     public void setBeamPositionY(double Y) {
         beamPosition[2] = Y; // The beamPosition array is in the tracking frame HPS Y => TRACK Z
     }
-    
+
     /**
      * Sets the beam size sigma in the y-direction.
      *
-     * @param sigmaY - The standard deviation of the beam width in the
-     * y-direction.
+     * @param sigmaY - The standard deviation of the beam width in the y-direction.
      */
     public void setBeamSigmaY(double sigmaY) {
         beamSize[2] = sigmaY; // The beamsize array is in the tracking frame HPS Y => TRACK Z
-    }  
-    
+    }
+
     /**
      * Sets the beam position in the z-direction in mm.
      *
@@ -133,15 +241,13 @@ public abstract class ReconParticleDriver extends Driver {
     public void setBeamPositionZ(double Z) {
         beamPosition[0] = Z; // The beamPosition array is in the tracking frame HPS Z => TRACK X
     }
-    
-    
 
     /**
-     * Indicates whether verbose debug text should be written out during runtime
-     * or note. Defaults to <code>false</code>.
+     * Indicates whether verbose debug text should be written out during runtime or note. Defaults to <code>false</code>
+     * .
      *
-     * @param debug - <code>true</code> indicates that debug text should be
-     * written and <code>false</code> that it should be suppressed.
+     * @param debug - <code>true</code> indicates that debug text should be written and <code>false</code> that it
+     *            should be suppressed.
      */
     public void setDebug(boolean debug) {
         this.debug = debug;
@@ -166,8 +272,7 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the name of the LCIO collection for target constrained V0 candidate
-     * particles.
+     * Sets the name of the LCIO collection for target constrained V0 candidate particles.
      *
      * @param targetConV0CandidatesColName - The LCIO collection name.
      */
@@ -176,8 +281,7 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the name of the LCIO collection for target constrained V0 candidate
-     * vertices.
+     * Sets the name of the LCIO collection for target constrained V0 candidate vertices.
      *
      * @param targetConV0VerticesColName - The LCIO collection name.
      */
@@ -195,8 +299,7 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the name of the LCIO collection for unconstrained V0 candidate
-     * particles.
+     * Sets the name of the LCIO collection for unconstrained V0 candidate particles.
      *
      * @param unconstrainedV0CandidatesColName - The LCIO collection name.
      */
@@ -205,8 +308,7 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the name of the LCIO collection for unconstrained V0 candidate
-     * vertices.
+     * Sets the name of the LCIO collection for unconstrained V0 candidate vertices.
      *
      * @param unconstrainedV0VerticesColName - The LCIO collection name.
      */
@@ -217,8 +319,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Set the names of the LCIO track collections used as input.
      *
-     * @param trackCollectionNames Array of collection names. If not set, use
-     * all Track collections in the event.
+     * @param trackCollectionNames Array of collection names. If not set, use all Track collections in the event.
      */
     public void setTrackCollectionNames(String[] trackCollectionNames) {
         this.trackCollectionNames = trackCollectionNames;
@@ -230,17 +331,16 @@ public abstract class ReconParticleDriver extends Driver {
      * @param nsigma
      */
     public void setNSigmaPositionMatch(double nsigma) {
-        MAXNSIGMAPOSITIONMATCH=nsigma;
+        MAXNSIGMAPOSITIONMATCH = nsigma;
     }
-    
+
     /** Disable setting the PID of an Ecal cluster. */
-    public void setDisablePID(boolean disablePID) { 
+    public void setDisablePID(boolean disablePID) {
         this.disablePID = disablePID;
     }
-    
+
     /**
-     * Updates the magnetic field parameters to match the appropriate values for
-     * the current detector settings.
+     * Updates the magnetic field parameters to match the appropriate values for the current detector settings.
      */
     @Override
     protected void detectorChanged(Detector detector) {
@@ -259,10 +359,9 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Generates reconstructed V0 candidate particles and vertices from sets of
-     * positrons and electrons. Implementing methods should place the
-     * reconstructed vertices and candidate particles into the appropriate class
-     * variable lists in <code>ReconParticleDriver
+     * Generates reconstructed V0 candidate particles and vertices from sets of positrons and electrons. Implementing
+     * methods should place the reconstructed vertices and candidate particles into the appropriate class variable lists
+     * in <code>ReconParticleDriver
      * </code>.
      *
      * @param electrons - The list of electrons.
@@ -271,16 +370,16 @@ public abstract class ReconParticleDriver extends Driver {
     protected abstract void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons);
 
     /**
-     * Create the set of final state particles from the event tracks and
-     * clusters. Clusters will be matched with tracks when this is possible.
+     * Create the set of final state particles from the event tracks and clusters. Clusters will be matched with tracks
+     * when this is possible.
      *
      * @param clusters - The list of event clusters.
      * @param trackCollections - The list of event tracks.
-     * @return Returns a <code>List</code> collection containing all of the
-     * <code>ReconstructedParticle</code> objects generated from the argument
-     * data.
+     * @return Returns a <code>List</code> collection containing all of the <code>ReconstructedParticle</code> objects
+     *         generated from the argument data.
      */
-    protected List<ReconstructedParticle> makeReconstructedParticles(List<Cluster> clusters, List<List<Track>> trackCollections) {
+    protected List<ReconstructedParticle> makeReconstructedParticles(List<Cluster> clusters,
+            List<List<Track>> trackCollections) {
 
         // Create a list in which to store reconstructed particles.
         List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
@@ -288,26 +387,26 @@ public abstract class ReconParticleDriver extends Driver {
         // Create a list of unmatched clusters. A cluster should be
         // removed from the list if a matching track is found.
         Set<Cluster> unmatchedClusters = new HashSet<Cluster>(clusters);
-        
+
         // Create a mapping of matched clusters to corresponding tracks.
-        HashMap<Cluster, Track> clusterToTrack = new HashMap<Cluster,Track>();
-        
+        HashMap<Cluster, Track> clusterToTrack = new HashMap<Cluster, Track>();
+
         // Loop through all of the track collections and try to match every
-        // track to a cluster.  Allow a cluster to be matched to multiple 
-        // tracks and use a probability (to be coded later) to determine what 
+        // track to a cluster. Allow a cluster to be matched to multiple
+        // tracks and use a probability (to be coded later) to determine what
         // the best match is.
         // TODO: At some point, pull this out to it's own method
         for (List<Track> tracks : trackCollections) {
-            
+
             for (Track track : tracks) {
-                
+
                 // Create a reconstructed particle to represent the track.
                 ReconstructedParticle particle = new BaseReconstructedParticle();
 
                 // Store the track in the particle.
                 particle.addTrack(track);
-                
-                // Set the type of the particle.  This is used to identify
+
+                // Set the type of the particle. This is used to identify
                 // the tracking strategy used in finding the track associated with
                 // this particle.
                 ((BaseReconstructedParticle) particle).setType(track.getType());
@@ -317,7 +416,7 @@ public abstract class ReconParticleDriver extends Driver {
                 ((BaseReconstructedParticle) particle).setCharge(charge * flipSign);
 
                 // initialize PID quality to a junk value:
-                ((BaseReconstructedParticle)particle).setGoodnessOfPid(9999);
+                ((BaseReconstructedParticle) particle).setGoodnessOfPid(9999);
 
                 // Extrapolate the particle ID from the track. Positively
                 // charged particles are assumed to be positrons and those
@@ -329,20 +428,22 @@ public abstract class ReconParticleDriver extends Driver {
                 }
 
                 // normalized distance of the closest match:
-                double smallestNSigma=Double.MAX_VALUE;
-               
+                double smallestNSigma = Double.MAX_VALUE;
+
                 // try to find a matching cluster:
                 Cluster matchedCluster = null;
                 for (Cluster cluster : clusters) {
 
                     // normalized distance between this cluster and track:
-                    final double thisNSigma=matcher.getNSigmaPosition(cluster, particle);
+                    final double thisNSigma = matcher.getNSigmaPosition(cluster, particle);
 
                     // ignore if matching quality doesn't make the cut:
-                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH) continue;
+                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH)
+                        continue;
 
                     // ignore if we already found a cluster that's a better match:
-                    if (thisNSigma > smallestNSigma) continue;
+                    if (thisNSigma > smallestNSigma)
+                        continue;
 
                     // we found a new best cluster candidate for this track:
                     smallestNSigma = thisNSigma;
@@ -350,7 +451,7 @@ public abstract class ReconParticleDriver extends Driver {
 
                     // prefer using GBL tracks to correct (later) the clusters, for some consistency:
                     if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster)) {
-                          clusterToTrack.put(matchedCluster,track);
+                        clusterToTrack.put(matchedCluster, track);
                     }
                 }
 
@@ -361,12 +462,13 @@ public abstract class ReconParticleDriver extends Driver {
                     particle.addCluster(matchedCluster);
 
                     // use pid quality to store track-cluster matching quality:
-                    ((BaseReconstructedParticle)particle).setGoodnessOfPid(smallestNSigma);
-                    
+                    ((BaseReconstructedParticle) particle).setGoodnessOfPid(smallestNSigma);
+
                     // propogate pid to the cluster:
                     final int pid = particle.getParticleIDUsed().getPDG();
                     if (Math.abs(pid) == 11) {
-                        if (!disablePID) ((BaseCluster) matchedCluster).setParticleId(pid);
+                        if (!disablePID)
+                            ((BaseCluster) matchedCluster).setParticleId(pid);
                     }
 
                     // unmatched clusters will (later) be used to create photon particles:
@@ -389,7 +491,8 @@ public abstract class ReconParticleDriver extends Driver {
 
             int pid = particle.getParticleIDUsed().getPDG();
             if (Math.abs(pid) != 11) {
-                if (!disablePID) ((BaseCluster) unmatchedCluster).setParticleId(pid);
+                if (!disablePID)
+                    ((BaseCluster) unmatchedCluster).setParticleId(pid);
             }
 
             // Add the cluster to the particle.
@@ -405,13 +508,12 @@ public abstract class ReconParticleDriver extends Driver {
         // Apply the corrections to the Ecal clusters using track information, if available
         for (Cluster cluster : clusters) {
             if (cluster.getParticleId() != 0) {
-                if (clusterToTrack.containsKey(cluster)){
+                if (clusterToTrack.containsKey(cluster)) {
                     Track matchedT = clusterToTrack.get(cluster);
                     double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
-                    ClusterUtilities.applyCorrections(ecal, cluster, ypos,isMC);
-                }
-                else {
-                    ClusterUtilities.applyCorrections(ecal, cluster,isMC);               
+                    ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
+                } else {
+                    ClusterUtilities.applyCorrections(ecal, cluster, isMC);
                 }
             }
         }
@@ -440,8 +542,8 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Prints a message as per <code>System.out.println</code> to the output
-     * stream if the verbose debug output option is enabled.
+     * Prints a message as per <code>System.out.println</code> to the output stream if the verbose debug output option
+     * is enabled.
      *
      * @param debugMessage - The message to print.
      */
@@ -453,9 +555,8 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Processes the track and cluster collections in the event into
-     * reconstructed particles and V0 candidate particles and vertices. These
-     * reconstructed particles are then stored in the event.
+     * Processes the track and cluster collections in the event into reconstructed particles and V0 candidate particles
+     * and vertices. These reconstructed particles are then stored in the event.
      *
      * @param event - The event to process.
      */
@@ -479,10 +580,10 @@ public abstract class ReconParticleDriver extends Driver {
 
         // Get all collections of the type Track from the event. This is
         // required in case an event contains different track collection
-        // for each of the different tracking strategies.  If the event
-        // doesn't contain any track collections, intialize an empty 
-        // collection and add it to the list of collections.  This is 
-        // needed in order to create final state particles from the the 
+        // for each of the different tracking strategies. If the event
+        // doesn't contain any track collections, intialize an empty
+        // collection and add it to the list of collections. This is
+        // needed in order to create final state particles from the the
         // Ecal clusters in the event.
         List<List<Track>> trackCollections = new ArrayList<List<Track>>();
         if (trackCollectionNames != null) {
@@ -511,7 +612,7 @@ public abstract class ReconParticleDriver extends Driver {
         beamConV0Vertices = new ArrayList<Vertex>();
         targetConV0Vertices = new ArrayList<Vertex>();
 
-        // Loop through all of the track collections present in the event and 
+        // Loop through all of the track collections present in the event and
         // create final state particles.
         finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections));
 
@@ -572,8 +673,7 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the LCIO collection names to their default values if they are not
-     * already defined.
+     * Sets the LCIO collection names to their default values if they are not already defined.
      */
     @Override
     protected void startOfData() {
@@ -609,130 +709,6 @@ public abstract class ReconParticleDriver extends Driver {
 
     @Override
     protected void endOfData() {
-        //matcher.saveHistograms();
+        // matcher.saveHistograms();
     }
-
-    // ==============================================================
-    // ==== Class Variables =========================================
-    // ==============================================================
-    // Local variables.
-    /**
-     * Indicates whether debug text should be output or not.
-     */
-    protected boolean debug = false;
-
-    /**
-     * Indicates whether this is Monte Carlo or data
-     */
-    public boolean isMonteCarlo = false;
-    
-    /**
-     * The simple name of the class used for debug print statements.
-     */
-    private final String simpleName = getClass().getSimpleName();
-
-    // Reconstructed Particle Lists
-    /**
-     * Stores reconstructed electron particles.
-     */
-    private List<ReconstructedParticle> electrons;
-    /**
-     * Stores reconstructed positron particles.
-     */
-    private List<ReconstructedParticle> positrons;
-    /**
-     * Stores particles reconstructed from an event.
-     */
-    protected List<ReconstructedParticle> finalStateParticles;
-    /**
-     * Stores reconstructed V0 candidate particles generated without
-     * constraints.
-     */
-    protected List<ReconstructedParticle> unconstrainedV0Candidates;
-    /**
-     * Stores reconstructed V0 candidate particles generated with beam spot
-     * constraints.
-     */
-    protected List<ReconstructedParticle> beamConV0Candidates;
-    /**
-     * Stores reconstructed V0 candidate particles generated with target
-     * constraints.
-     */
-    protected List<ReconstructedParticle> targetConV0Candidates;
-    /**
-     * Stores reconstructed V0 candidate vertices generated without constraints.
-     */
-    protected List<Vertex> unconstrainedV0Vertices;
-    /**
-     * Stores reconstructed V0 candidate vertices generated with beam spot
-     * constraints.
-     */
-    protected List<Vertex> beamConV0Vertices;
-    /**
-     * Stores reconstructed V0 candidate vertices generated with target
-     * constraints.
-     */
-    protected List<Vertex> targetConV0Vertices;
-
-    // LCIO Collection Names
-    /**
-     * LCIO collection name for calorimeter clusters.
-     */
-    private String ecalClustersCollectionName = "EcalClusters";
-    /**
-     * LCIO collection name for tracks.
-     */
-    private String trackCollectionName = "MatchedTracks";
-    /**
-     * LCIO collection name for reconstructed particles.
-     */
-    private String finalStateParticlesColName = "FinalStateParticles";
-    /**
-     * LCIO collection name for V0 candidate particles generated without
-     * constraints.
-     */
-    protected String unconstrainedV0CandidatesColName = null;
-    /**
-     * LCIO collection name for V0 candidate particles generated with beam spot
-     * constraints.
-     */
-    protected String beamConV0CandidatesColName = null;
-    /**
-     * LCIO collection name for V0 candidate particles generated with target
-     * constraints.
-     */
-    protected String targetConV0CandidatesColName = null;
-    /**
-     * LCIO collection name for V0 candidate vertices generated without
-     * constraints.
-     */
-    protected String unconstrainedV0VerticesColName = null;
-    /**
-     * LCIO collection name for V0 candidate vertices generated with beam spot
-     * constraints.
-     */
-    protected String beamConV0VerticesColName = null;
-    /**
-     * LCIO collection name for V0 candidate vertices generated with target
-     * constraints.
-     */
-    protected String targetConV0VerticesColName = null;
-
-    // Beam size variables.
-    // The beamsize array is in the tracking frame
-    /* TODO  mg-May 14, 2014:  the the beam size from the conditions db...also beam position!  */
-    protected double[] beamSize = {0.001, 0.130, 0.050}; //rough estimate from harp scans during engineering run production running
-    // Beam position variables.
-    // The beamPosition array is in the tracking frame
-    /* TODO get the beam position from the conditions db */
-    protected double[] beamPosition = {0.0, 0.0, 0.0}; //
-    protected double bField;
-
-    //  flipSign is a kludge...
-    //  HelicalTrackFitter doesn't deal with B-fields in -ive Z correctly
-    //  so we set the B-field in +iveZ and flip signs of fitted tracks
-    //  
-    //  Note:  This should be -1 for test run configurations and +1 for 
-    //         prop-2014 configurations 
-    private int flipSign = 1;
 }

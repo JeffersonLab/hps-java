@@ -52,16 +52,18 @@ public class SVTCellIDPrintDriver extends Driver {
         // Get the list of ECal hits.
         if (event.hasCollection(SVTData.class, rawTrackerHitCollectionName)) {
             List<SVTData> hits = event.get(SVTData.class, rawTrackerHitCollectionName);
-            //outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
+            // outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
             for (SVTData hit : hits) {
-                outputStream.printf("FPGA=%d\thybrid=%d\tchannel=%d\n", hit.getFPGAAddress(), hit.getHybridNumber(), hit.getChannelNumber());
+                outputStream.printf("FPGA=%d\thybrid=%d\tchannel=%d\n", hit.getFPGAAddress(), hit.getHybridNumber(),
+                        hit.getChannelNumber());
             }
         }
         if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
             List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
-            //outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
+            // outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
             for (RawTrackerHit hit : hits) {
-                outputStream.printf("name=%s\tside=%d\tstrip=%d\n", hit.getDetectorElement().getName(), hit.getIdentifierFieldValue("side"), hit.getIdentifierFieldValue("strip"));
+                outputStream.printf("name=%s\tside=%d\tstrip=%d\n", hit.getDetectorElement().getName(),
+                        hit.getIdentifierFieldValue("side"), hit.getIdentifierFieldValue("strip"));
             }
         }
     }

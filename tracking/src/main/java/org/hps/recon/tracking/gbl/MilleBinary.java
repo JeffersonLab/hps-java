@@ -12,41 +12,24 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Millepede-II (binary) record.
- * Containing information for local (track) and global fit.
- *
- *         real array              integer array
- *     0   0.0                     error count (this record)
- *     1   RMEAS, measured value   0                            -+
- *     2   local derivative        index of local derivative     |
- *     3   local derivative        index of local derivative     |
- *     4    ...                                                  | block
- *         SIGMA, error (>0)       0                             |
- *         global derivative       label of global derivative    |
- *         global derivative       label of global derivative   -+
- *         RMEAS, measured value   0
- *         local derivative        index of local derivative
- *         local derivative        index of local derivative
- *         ...
- *         SIGMA, error            0
- *         global derivative       label of global derivative
- *         global derivative       label of global derivative
- *         ...
- *         global derivative       label of global derivative
+ * Millepede-II (binary) record. Containing information for local (track) and global fit. real array integer array 0 0.0
+ * error count (this record) 1 RMEAS, measured value 0 -+ 2 local derivative index of local derivative | 3 local
+ * derivative index of local derivative | 4 ... | block SIGMA, error (>0) 0 | global derivative label of global
+ * derivative | global derivative label of global derivative -+ RMEAS, measured value 0 local derivative index of local
+ * derivative local derivative index of local derivative ... SIGMA, error 0 global derivative label of global derivative
+ * global derivative label of global derivative ... global derivative label of global derivative
  *
  * @author Norman A Graf
- *
  * @version $Id$
- * 
  */
-public class MilleBinary
-{
+public class MilleBinary {
+
     FileChannel _channel;
     List<Integer> _intBuffer = new ArrayList<Integer>();
     List<Float> _floatBuffer = new ArrayList<Float>();
-    
-    static String DEFAULT_OUTPUT_FILE_NAME = "millepedeData.bin"; 
-    
+
+    static String DEFAULT_OUTPUT_FILE_NAME = "millepedeData.bin";
+
     /**
      * Default Constructor
      */
@@ -62,10 +45,10 @@ public class MilleBinary
 
     /**
      * Fully qualified Constructor
+     * 
      * @param outputFileName name of output binary file for millepede II
      */
-        public MilleBinary(String outputFileName)
-    {
+    public MilleBinary(String outputFileName) {
         try {
             _channel = new FileOutputStream(outputFileName).getChannel();
         } catch (FileNotFoundException ex) {
@@ -78,8 +61,7 @@ public class MilleBinary
     /**
      * Closes the binary output file
      */
-    public void close()
-    {
+    public void close() {
         try {
             _channel.close();
         } catch (IOException ex) {
@@ -89,19 +71,16 @@ public class MilleBinary
 
     /**
      * Add data block to (end of) record.
-     * @param aMeas      Value
-     * @param aErr       Error
-     * @param indLocal   List of labels of local parameters
-     * @param derLocal   List of derivatives for local parameters
-     * @param labGlobal  List of labels of global parameters
-     * @param derGlobal  List of derivatives for global parameters
+     * 
+     * @param aMeas Value
+     * @param aErr Error
+     * @param indLocal List of labels of local parameters
+     * @param derLocal List of derivatives for local parameters
+     * @param labGlobal List of labels of global parameters
+     * @param derGlobal List of derivatives for global parameters
      */
-        public void addData(float aMeas, float aErr,
-                        List<Integer> indLocal,
-                        List<Double> derLocal,
-                        List<Integer> labGlobal,
-                        List<Double> derGlobal)
-    {
+    public void addData(float aMeas, float aErr, List<Integer> indLocal, List<Double> derLocal,
+            List<Integer> labGlobal, List<Double> derGlobal) {
         _intBuffer.add(0);
         _floatBuffer.add(aMeas);
         for (int i = 0; i < indLocal.size(); ++i) {
@@ -121,8 +100,7 @@ public class MilleBinary
     /**
      * Write record to file.
      */
-        public void writeRecord()
-    {
+    public void writeRecord() {
         int recordLength = _intBuffer.size() * 2 * 4; // writing both ints and floats, each is 4 bytes
         ByteBuffer b = ByteBuffer.allocate((recordLength + 1) * 2); // writing one extra word per collection
         b.order(ByteOrder.LITTLE_ENDIAN);

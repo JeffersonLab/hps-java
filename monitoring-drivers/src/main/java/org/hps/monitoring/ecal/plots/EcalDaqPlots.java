@@ -18,7 +18,7 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * The driver <code>EcalDaqPlots</code> implements the histogram shown to the user in the fourth tab of the 
+ * The driver <code>EcalDaqPlots</code> implements the histogram shown to the user in the fourth tab of the
  * Monitoring Application, when using the Ecal monitoring lcsim file. It contains only a sub-tab, showing
  * the number of hits recorded by the different FADC channels. It is a very preliminary driver to monitor
  * the DAQ status. These plots are updated continuously.
@@ -64,12 +64,15 @@ public class EcalDaqPlots extends Driver {
         }
 
         // Get the channel information from the database.
-        channels = manager.getCachedConditions(EcalChannel.EcalChannelCollection.class, "ecal_channels").getCachedData();
+        channels = manager.getCachedConditions(EcalChannel.EcalChannelCollection.class, "ecal_channels")
+                .getCachedData();
 
         /*
-         * I do not want the ECAL Crates and Slots to be hard-coded. It is fine to assume that the FADC channels are from 0 to 15: 
+         * I do not want the ECAL Crates and Slots to be hard-coded. It is fine to assume that the FADC channels are
+         * from 0 to 15:
          * This is determined by JLAB FADC architecture.
-         * It is also fine to say that there are 14 slots occupied by FADCs in each crate: 14*16=224, number of channel in each Ecal sector 
+         * It is also fine to say that there are 14 slots occupied by FADCs in each crate: 14*16=224, number of channel
+         * in each Ecal sector
          * (apart from the hole).
          */
         slotsT = new ArrayList<Integer>();
@@ -99,8 +102,8 @@ public class EcalDaqPlots extends Driver {
         Collections.sort(slotsT);
 
         /*
-         * System.out.println("These DAQ slots found:"); System.out.println("TOP: "); 
-         * for (int slot : slotsT){ System.out.print(slot+" "); } 
+         * System.out.println("These DAQ slots found:"); System.out.println("TOP: ");
+         * for (int slot : slotsT){ System.out.print(slot+" "); }
          * System.out.println(""); System.out.println("BOTTOM: "); for
          * (int slot : slotsB){ System.out.print(slot+" "); } System.out.println("");
          */
@@ -142,7 +145,8 @@ public class EcalDaqPlots extends Driver {
                     else
                         plot_id = (j - 1) * 2 + 3;
                 }
-                //System.out.println("Plot in region " + plot_id + " the plot " + plots.get(id).title() + "(index: " + id + ")");
+                // System.out.println("Plot in region " + plot_id + " the plot " + plots.get(id).title() + "(index: " +
+                // id + ")");
                 plotter.region(plot_id).plot(plots.get(id));
             }
         }
@@ -169,7 +173,8 @@ public class EcalDaqPlots extends Driver {
                 int slotN = channel.getSlot();
                 int channelN = channel.getChannel();
 
-                // System.out.println("found channel at " + column + " " + row + " corresponding to DAQ crate/slot/channel " + crateN + " "+slotN+" "+channelN);
+                // System.out.println("found channel at " + column + " " + row +
+                // " corresponding to DAQ crate/slot/channel " + crateN + " "+slotN+" "+channelN);
 
                 // Top CRATE
                 if (row > 0) {

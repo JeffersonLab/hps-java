@@ -13,17 +13,12 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.geometry.Detector;
 
 /**
- * Class to strip off trident candidates. Currently defined as: e+ e- events
- * with tracks; track and vertex chi2 must be better than values defined by
- * cuts, and track times must be within trackDtCut of each other. If the tight
- * constraint is enabled, tracks must be matched to clusters, the Ecal cluster
- * times must be within _timingCut [2.5ns] of each other, and there must be
- * exactly one V0 passing all cuts.
- *
- * Only GBL vertices are considered.
+ * Class to strip off trident candidates. Currently defined as: e+ e- events with tracks; track and vertex chi2 must be
+ * better than values defined by cuts, and track times must be within trackDtCut of each other. If the tight constraint
+ * is enabled, tracks must be matched to clusters, the Ecal cluster times must be within _timingCut [2.5ns] of each
+ * other, and there must be exactly one V0 passing all cuts. Only GBL vertices are considered.
  *
  * @author Norman A Graf
- *
  * @version $Id:
  */
 public class V0CandidateFilter extends EventReconFilter {
@@ -60,18 +55,19 @@ public class V0CandidateFilter extends EventReconFilter {
             skipEvent();
         }
         List<ReconstructedParticle> V0Candidates = event.get(ReconstructedParticle.class, _V0CandidateCollectionName);
-        int nV0 = 0; //number of good V0
+        int nV0 = 0; // number of good V0
         for (ReconstructedParticle v0 : V0Candidates) {
             ReconstructedParticle electron = v0.getParticles().get(ReconParticleDriver.ELECTRON);
             ReconstructedParticle positron = v0.getParticles().get(ReconParticleDriver.POSITRON);
 
-            if (!TrackType.isGBL(v0.getType())) { //we only care about GBL vertices
+            if (!TrackType.isGBL(v0.getType())) { // we only care about GBL vertices
                 continue;
             }
             if (v0.getStartVertex().getChi2() > v0Chi2Cut) {
                 continue;
             }
-            if (electron.getTracks().get(0).getChi2() > trackChi2Cut || positron.getTracks().get(0).getChi2() > trackChi2Cut) {
+            if (electron.getTracks().get(0).getChi2() > trackChi2Cut
+                    || positron.getTracks().get(0).getChi2() > trackChi2Cut) {
                 continue;
             }
             if (electron.getMomentum().magnitude() > trackPMax || positron.getMomentum().magnitude() > trackPMax) {
@@ -120,8 +116,8 @@ public class V0CandidateFilter extends EventReconFilter {
     }
 
     /**
-     * Maximum track chi2 for a V0 to be counted. A V0 is rejected if either of
-     * the final state tracks has a chi2 exceeding the cut.
+     * Maximum track chi2 for a V0 to be counted. A V0 is rejected if either of the final state tracks has a chi2
+     * exceeding the cut.
      *
      * @param trackChi2Cut default of 20.0.
      */
@@ -139,8 +135,8 @@ public class V0CandidateFilter extends EventReconFilter {
     }
 
     /**
-     * Maximum track momentum for a V0 to be counted. A V0 is rejected if either
-     * of the final state tracks has momentum exceeding this cut.
+     * Maximum track momentum for a V0 to be counted. A V0 is rejected if either of the final state tracks has momentum
+     * exceeding this cut.
      *
      * @param trackPMax units of GeV, default of 0.9
      */
@@ -171,8 +167,7 @@ public class V0CandidateFilter extends EventReconFilter {
     }
 
     /**
-     * Setting a tight constraint requires one and only one candidate in the
-     * event
+     * Setting a tight constraint requires one and only one candidate in the event
      *
      * @param b
      */
@@ -188,8 +183,8 @@ public class V0CandidateFilter extends EventReconFilter {
     public void setKeepEpicsDataEvents(boolean b) {
         _keepEpicsDataEvents = b;
     }
-    
-    protected void detectorChanged(Detector detector){
-          super.detectorChanged(detector);
-      }
+
+    protected void detectorChanged(Detector detector) {
+        super.detectorChanged(detector);
+    }
 }

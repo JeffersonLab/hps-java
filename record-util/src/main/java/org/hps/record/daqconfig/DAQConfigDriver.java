@@ -62,7 +62,8 @@ public class DAQConfigDriver extends Driver {
             // location for this option to be used.
             if(filepath == null) {
                 throw new NullPointerException("DAQ settings repository filepath must be defined.");
-            } if(runNumber == -1) {
+            } 
+            if(runNumber == -1) {
                 throw new NullPointerException("Run number must be defined.");
             }
             
