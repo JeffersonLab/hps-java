@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-TestRun-v3" />
-    <generator name="GeomConverter" version="1.0" file="./detectors/HPS-TestRun-v3/compact.xml" checksum="114059788" />
+    <generator name="lcsim" version="1.0" file="./detectors/HPS-TestRun-v3/compact.xml" checksum="1300866251" />
     <author name="NONE" />
     <comment>HPS JLab Test Run detector</comment>
   </header>
@@ -37,14 +37,14 @@
     <region name="TrackingRegion" store_secondaries="true" kill_tracks="false" cut="10.0" lunit="mm" threshold="1.0" eunit="MeV" />
   </regions>
   <display>
+    <vis name="InvisibleWithDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
+      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
+    </vis>
     <vis name="InvisibleNoDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="false" visible="false">
       <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
     </vis>
     <vis name="ECALVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
       <color R="0.8" G="0.5" B="0.1" alpha="1.0" />
-    </vis>
-    <vis name="InvisibleWithDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
-      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
     </vis>
     <vis name="WorldVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
       <color R="1.0" G="1.0" B="1.0" alpha="1.0" />
@@ -58,108 +58,109 @@
       <rotation name="identity_rot" x="0.0" y="0.0" z="0.0" unit="radian" />
       <rotation name="reflect_rot" x="3.141592653589793" y="0.0" z="0.0" unit="radian" />
       <position name="identity_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <constant name="y7t" value="33.359" />
-      <constant name="x3t" value="-0.047" />
-      <constant name="a10b" value="3.49065850398866E-5" />
-      <constant name="z4t" value="196.234" />
-      <constant name="a4b" value="1.91986217719376E-4" />
-      <constant name="y7b" value="-32.766" />
-      <constant name="x3b" value="0.004" />
-      <constant name="a3t" value="-1.22173047639603E-4" />
-      <constant name="a10t" value="-4.01425727958696E-4" />
-      <constant name="z4b" value="211.213" />
-      <constant name="ecal_z" value="80.0" />
-      <constant name="x_rot_bot_add" value="0.002" />
-      <constant name="x4t" value="-0.109" />
-      <constant name="y8t" value="33.183" />
-      <constant name="z3t" value="188.85" />
-      <constant name="x_rot_top" value="-0.0235619449" />
-      <constant name="y8b" value="-32.595" />
-      <constant name="a5b" value="-3.49065850398866E-4" />
-      <constant name="tracking_region_min" value="50.0" />
-      <constant name="x4b" value="0.081" />
-      <constant name="z3b" value="203.863" />
-      <constant name="a4t" value="-5.23598775598299E-5" />
-      <constant name="ecal_back" value="8.0" />
-      <constant name="moduleWidth" value="40.34" />
-      <constant name="x_rot_bot" value="0.020943951" />
-      <constant name="world_side" value="5000.0" />
-      <constant name="z6t" value="296.217" />
-      <constant name="a2b" value="2.96705972839036E-4" />
-      <constant name="y_rot" value="0.03" />
-      <constant name="x5t" value="-0.013" />
-      <constant name="y5t" value="34.984" />
-      <constant name="y5b" value="-33.842" />
-      <constant name="pivot" value="791.0" />
-      <constant name="x_rot_top_add" value="-0.002" />
-      <constant name="z6b" value="311.217" />
-      <constant name="ecal_dx" value="41.27" />
-      <constant name="sensorLength" value="98.33" />
-      <constant name="x5b" value="-0.087" />
-      <constant name="a1t" value="-3.49065850398866E-5" />
-      <constant name="y6t" value="34.845" />
-      <constant name="sensorWidth" value="38.3399" />
-      <constant name="world_y" value="5000.0" />
-      <constant name="a3b" value="3.49065850398866E-5" />
-      <constant name="z5t" value="288.808" />
-      <constant name="world_z" value="5000.0" />
-      <constant name="x6t" value="-0.062" />
-      <constant name="world_x" value="5000.0" />
-      <constant name="y6b" value="-33.7" />
-      <constant name="ecal_front" value="6.65" />
-      <constant name="z5b" value="303.784" />
-      <constant name="a2t" value="-1.22173047639603E-4" />
-      <constant name="x6b" value="0.022" />
-      <constant name="y3b" value="-34.346" />
-      <constant name="x7t" value="-0.067" />
-      <constant name="z10b" value="711.1419999999999" />
-      <constant name="z8b" value="511.194" />
-      <constant name="a8b" value="4.71238898038469E-4" />
-      <constant name="y3t" value="35.833" />
-      <constant name="z10t" value="696.122" />
-      <constant name="x7b" value="-0.004" />
-      <constant name="a8t" value="-2.61799387799149E-4" />
-      <constant name="z8t" value="496.194" />
-      <constant name="x8t" value="-0.045" />
-      <constant name="a1b" value="1.74532925199433E-4" />
-      <constant name="z7b" value="503.907" />
-      <constant name="a9b" value="5.41052068118242E-4" />
-      <constant name="y4b" value="-34.179" />
-      <constant name="y4t" value="35.669" />
-      <constant name="x8b" value="-0.038" />
-      <constant name="z7t" value="488.8" />
-      <constant name="moduleLength" value="100.0" />
-      <constant name="a9t" value="-3.31612557878923E-4" />
-      <constant name="x9t" value="-0.152" />
       <constant name="a5t" value="5.41052068118242E-4" />
+      <constant name="ecal_dx" value="41.27" />
+      <constant name="z7b" value="503.907" />
+      <constant name="x_rot_top" value="-0.0235619449" />
+      <constant name="x3b" value="0.004" />
+      <constant name="y5b" value="-33.842" />
+      <constant name="a6b" value="3.14159265358979E-4" />
+      <constant name="a10b" value="3.49065850398866E-5" />
+      <constant name="z7t" value="488.8" />
+      <constant name="x3t" value="-0.047" />
+      <constant name="a10t" value="-4.01425727958696E-4" />
+      <constant name="ecal_back" value="8.0" />
+      <constant name="pivot" value="791.0" />
+      <constant name="y5t" value="34.984" />
+      <constant name="a6t" value="1.22173047639603E-4" />
+      <constant name="y6b" value="-33.7" />
+      <constant name="z8b" value="511.194" />
+      <constant name="x4b" value="0.081" />
+      <constant name="y10t" value="31.596" />
+      <constant name="a7b" value="5.23598775598299E-4" />
+      <constant name="y6t" value="34.845" />
+      <constant name="z8t" value="496.194" />
+      <constant name="x4t" value="-0.109" />
+      <constant name="y10b" value="-31.052" />
+      <constant name="a7t" value="-5.23598775598299E-5" />
+      <constant name="z9b" value="703.749" />
+      <constant name="z10t" value="696.122" />
+      <constant name="x5b" value="-0.087" />
+      <constant name="y7b" value="-32.766" />
+      <constant name="tracking_region_zmax" value="1000.0" />
+      <constant name="z1b" value="103.81" />
+      <constant name="a8b" value="4.71238898038469E-4" />
+      <constant name="z10b" value="711.1419999999999" />
+      <constant name="z9t" value="688.7790000000001" />
+      <constant name="x5t" value="-0.013" />
+      <constant name="y7t" value="33.359" />
+      <constant name="z1t" value="88.795" />
+      <constant name="a8t" value="-2.61799387799149E-4" />
+      <constant name="ecal_front" value="6.65" />
+      <constant name="y8b" value="-32.595" />
+      <constant name="x6b" value="0.022" />
+      <constant name="z2b" value="111.167" />
+      <constant name="a9b" value="5.41052068118242E-4" />
+      <constant name="a1b" value="1.74532925199433E-4" />
+      <constant name="y8t" value="33.183" />
+      <constant name="x6t" value="-0.062" />
+      <constant name="moduleLength" value="100.0" />
+      <constant name="z2t" value="96.268" />
+      <constant name="a9t" value="-3.31612557878923E-4" />
+      <constant name="x7b" value="-0.004" />
+      <constant name="y9b" value="-31.217" />
+      <constant name="a1t" value="-3.49065850398866E-5" />
+      <constant name="z3b" value="203.863" />
       <constant name="x10t" value="0.02" />
       <constant name="y1b" value="-34.787" />
-      <constant name="z2t" value="96.268" />
-      <constant name="tracking_region_radius" value="2000.0" />
-      <constant name="x1b" value="-0.04" />
+      <constant name="a2b" value="2.96705972839036E-4" />
+      <constant name="x7t" value="-0.067" />
       <constant name="y9t" value="31.764" />
-      <constant name="a6b" value="3.14159265358979E-4" />
-      <constant name="y10b" value="-31.052" />
-      <constant name="z2b" value="111.167" />
-      <constant name="y1t" value="36.894" />
+      <constant name="z3t" value="188.85" />
       <constant name="x10b" value="-0.214" />
-      <constant name="x9b" value="-0.171" />
-      <constant name="y10t" value="31.596" />
-      <constant name="x1t" value="-0.156" />
-      <constant name="y9b" value="-31.217" />
-      <constant name="a6t" value="1.22173047639603E-4" />
-      <constant name="z1t" value="88.795" />
+      <constant name="y1t" value="36.894" />
+      <constant name="a2t" value="-1.22173047639603E-4" />
+      <constant name="x8b" value="-0.038" />
+      <constant name="x_rot_top_add" value="-0.002" />
       <constant name="y2b" value="-34.633" />
-      <constant name="z9b" value="703.749" />
-      <constant name="x2b" value="0.054" />
-      <constant name="a7b" value="5.23598775598299E-4" />
-      <constant name="x_off" value="0.0" />
-      <constant name="z1b" value="103.81" />
+      <constant name="z4b" value="211.213" />
+      <constant name="tracking_region_min" value="50.0" />
+      <constant name="world_side" value="5000.0" />
+      <constant name="sensorLength" value="98.33" />
+      <constant name="sensorWidth" value="38.3399" />
+      <constant name="a3b" value="3.49065850398866E-5" />
+      <constant name="x8t" value="-0.045" />
       <constant name="y2t" value="36.746" />
+      <constant name="x_rot_bot" value="0.020943951" />
+      <constant name="z4t" value="196.234" />
+      <constant name="x9b" value="-0.171" />
+      <constant name="a3t" value="-1.22173047639603E-4" />
+      <constant name="z5b" value="303.784" />
+      <constant name="y_rot" value="0.03" />
+      <constant name="x1b" value="-0.04" />
+      <constant name="y3b" value="-34.346" />
+      <constant name="x_rot_bot_add" value="0.002" />
+      <constant name="a4b" value="1.91986217719376E-4" />
+      <constant name="x9t" value="-0.152" />
+      <constant name="z5t" value="288.808" />
+      <constant name="x1t" value="-0.156" />
+      <constant name="y3t" value="35.833" />
+      <constant name="a4t" value="-5.23598775598299E-5" />
+      <constant name="world_x" value="5000.0" />
+      <constant name="world_y" value="5000.0" />
+      <constant name="world_z" value="5000.0" />
+      <constant name="y4b" value="-34.179" />
+      <constant name="tracking_region_radius" value="2000.0" />
+      <constant name="z6b" value="311.217" />
+      <constant name="moduleWidth" value="40.34" />
+      <constant name="x2b" value="0.054" />
+      <constant name="x_off" value="0.0" />
+      <constant name="a5b" value="-3.49065850398866E-4" />
+      <constant name="y4t" value="35.669" />
+      <constant name="z6t" value="296.217" />
       <constant name="x2t" value="-0.158" />
-      <constant name="tracking_region_zmax" value="1000.0" />
-      <constant name="a7t" value="-5.23598775598299E-5" />
-      <constant name="z9t" value="688.7790000000001" />
+      <constant name="ecal_z" value="80.0" />
+      <position name="tracking_region_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
       <position name="TestRunModuleVolume_component0_position" x="0.0" y="0.0" z="-0.1" unit="mm" />
       <rotation name="TestRunModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="TestRunModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -1421,7 +1422,7 @@
         <solidref ref="world_box" />
         <physvol>
           <volumeref ref="tracking_volume" />
-          <positionref ref="identity_pos" />
+          <positionref ref="tracking_region_pos" />
           <rotationref ref="identity_rot" />
         </physvol>
         <physvol>

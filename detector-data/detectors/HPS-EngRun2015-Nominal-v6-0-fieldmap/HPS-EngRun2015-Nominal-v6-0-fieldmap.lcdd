@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-EngRun2015-Nominal-v6-0-fieldmap" />
-    <generator name="lcsim" version="1.0" file="/home/omoreno/work/hps/software/hps-java/detector-data/detectors/HPS-EngRun2015-Nominal-v6-0-fieldmap/compact.xml" checksum="3269625204" />
+    <generator name="lcsim" version="1.0" file="./detectors/HPS-EngRun2015-Nominal-v6-0-fieldmap/compact.xml" checksum="3429500867" />
     <author name="NONE" />
     <comment>HPS detector for 2015 Engineering Run. Start from version v1 with optical survey Curved + straight tracks Order of sensor floating: u translations, w translations, u-v-w rotations, global alignment tuning impact parameters central values (remember: z offsets must change sign!) best alignment version for 2015 data as of 170214</comment>
   </header>

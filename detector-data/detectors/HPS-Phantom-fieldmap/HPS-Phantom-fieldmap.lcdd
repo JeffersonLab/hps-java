@@ -2,21 +2,12 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-Phantom-fieldmap" />
-    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="3372402216" />
+    <generator name="lcsim" version="1.0" file="./detectors/HPS-Phantom-fieldmap/compact.xml" checksum="2157807321" />
     <author name="NONE" />
     <comment>HPS detector with phantom scoring planes to study field propagation</comment>
   </header>
   <iddict>
     <idspec name="TrackerHits" length="46">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="barrel" length="3" start="6" />
-      <idfield signed="false" label="layer" length="4" start="9" />
-      <idfield signed="false" label="module" length="12" start="13" />
-      <idfield signed="false" label="sensor" length="1" start="25" />
-      <idfield signed="true" label="side" length="2" start="32" />
-      <idfield signed="false" label="strip" length="12" start="34" />
-    </idspec>
-    <idspec name="PhantomTrackerHits" length="46">
       <idfield signed="false" label="system" length="6" start="0" />
       <idfield signed="false" label="barrel" length="3" start="6" />
       <idfield signed="false" label="layer" length="4" start="9" />
@@ -34,16 +25,25 @@
       <idfield signed="true" label="side" length="2" start="32" />
       <idfield signed="false" label="strip" length="12" start="34" />
     </idspec>
+    <idspec name="PhantomTrackerHits" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
   </iddict>
   <sensitive_detectors>
-    <tracker name="TrackerFieldDef" ecut="0.0" eunit="MeV" verbose="0" hits_collection="PhantomTrackerHits">
-      <idspecref ref="PhantomTrackerHits" />
-    </tracker>
     <tracker name="PhantomTracker" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHits">
       <idspecref ref="TrackerHits" />
     </tracker>
     <tracker name="ECalScoringPlane" ecut="0.0" eunit="MeV" verbose="0" hits_collection="ECalScoringTrackerHits">
       <idspecref ref="ECalScoringTrackerHits" />
+    </tracker>
+    <tracker name="TrackerFieldDef" ecut="0.0" eunit="MeV" verbose="0" hits_collection="PhantomTrackerHits">
+      <idspecref ref="PhantomTrackerHits" />
     </tracker>
   </sensitive_detectors>
   <limits />
@@ -63,58 +63,51 @@
       <rotation name="identity_rot" x="0.0" y="0.0" z="0.0" unit="radian" />
       <rotation name="reflect_rot" x="3.141592653589793" y="0.0" z="0.0" unit="radian" />
       <position name="identity_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <constant name="x_rot_bot" value="0.0" />
-      <constant name="world_side" value="5000.0" />
-      <constant name="z2t" value="96.185" />
-      <constant name="tracking_region_radius" value="4000.0" />
-      <constant name="beam_angle" value="0.03052" />
-      <constant name="z6t" value="296.185" />
-      <constant name="z4t" value="196.185" />
-      <constant name="y_rot" value="0.03052" />
-      <constant name="xtar" value="0.0" />
-      <constant name="pivot" value="791.0" />
-      <constant name="dipoleMagnetLength" value="1080.0" />
-      <constant name="x_rot_top_add" value="0.0" />
-      <constant name="z10t" value="696.185" />
-      <constant name="sensorLength" value="98.33" />
       <constant name="z12t" value="896.185" />
-      <constant name="z8t" value="496.185" />
-      <constant name="dipoleMagnetHeight" value="177.8" />
-      <constant name="constBFieldY" value="-0.5" />
-      <constant name="ztar" value="0.0" />
-      <constant name="x_rot_bot_add" value="0.0" />
-      <constant name="z1t" value="88.815" />
-      <constant name="dipoleMagnetPositionZ" value="457.2" />
-      <constant name="dipoleMagnetWidth" value="416.052" />
-      <constant name="dipoleMagnetPositionX" value="21.17" />
-      <constant name="sensorWidth" value="38.3399" />
-      <constant name="world_y" value="5000.0" />
-      <constant name="z5t" value="288.815" />
-      <constant name="world_z" value="5000.0" />
-      <constant name="z3t" value="188.815" />
-      <constant name="world_x" value="5000.0" />
+      <constant name="z10t" value="696.185" />
       <constant name="x_rot_top" value="0.0" />
-      <constant name="zst" value="1.0" />
-      <constant name="x_off" value="0.0" />
-      <constant name="SA2" value="0.05" />
-      <constant name="tracking_region_min" value="50.0" />
-      <constant name="SA1" value="0.1" />
-      <constant name="ytar" value="0.0" />
-      <constant name="PI" value="3.14159265359" />
-      <constant name="z7t" value="488.815" />
-      <constant name="z11t" value="888.815" />
-      <constant name="moduleLength" value="100.0" />
+      <constant name="y_rot" value="0.03052" />
       <constant name="tracking_region_zmax" value="1350.0" />
-      <constant name="moduleWidth" value="40.34" />
+      <constant name="constBFieldY" value="-0.5" />
+      <constant name="dipoleMagnetLength" value="1080.0" />
+      <constant name="x_rot_bot_add" value="0.0" />
+      <constant name="ztar" value="0.0" />
       <constant name="z9t" value="688.815" />
-      <position name="PhantomPlaneFieldDefVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="PhantomPlaneFieldDefVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="PhantomPlaneFieldDefVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="PhantomPlaneFieldDefVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TrackerFieldDef_PhantomPlaneFieldDef_layer1_module0_position" x="21.17" y="0.0" z="-82.80000000000001" unit="mm" />
-      <rotation name="TrackerFieldDef_PhantomPlaneFieldDef_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
-      <position name="TrackerFieldDef_PhantomPlaneFieldDef_layer2_module0_position" x="21.17" y="0.0" z="997.2" unit="mm" />
-      <rotation name="TrackerFieldDef_PhantomPlaneFieldDef_layer2_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <constant name="xtar" value="0.0" />
+      <constant name="z7t" value="488.815" />
+      <constant name="z5t" value="288.815" />
+      <constant name="pivot" value="791.0" />
+      <constant name="zst" value="1.0" />
+      <constant name="z3t" value="188.815" />
+      <constant name="z1t" value="88.815" />
+      <constant name="beam_angle" value="0.03052" />
+      <constant name="dipoleMagnetWidth" value="416.052" />
+      <constant name="SA1" value="0.1" />
+      <constant name="z11t" value="888.815" />
+      <constant name="world_x" value="5000.0" />
+      <constant name="world_y" value="5000.0" />
+      <constant name="dipoleMagnetPositionX" value="21.17" />
+      <constant name="x_rot_top_add" value="0.0" />
+      <constant name="world_z" value="5000.0" />
+      <constant name="SA2" value="0.05" />
+      <constant name="dipoleMagnetPositionZ" value="457.2" />
+      <constant name="tracking_region_radius" value="4000.0" />
+      <constant name="moduleWidth" value="40.34" />
+      <constant name="tracking_region_min" value="50.0" />
+      <constant name="world_side" value="5000.0" />
+      <constant name="x_off" value="0.0" />
+      <constant name="sensorLength" value="98.33" />
+      <constant name="sensorWidth" value="38.3399" />
+      <constant name="ytar" value="0.0" />
+      <constant name="z8t" value="496.185" />
+      <constant name="moduleLength" value="100.0" />
+      <constant name="PI" value="3.14159265359" />
+      <constant name="z6t" value="296.185" />
+      <constant name="x_rot_bot" value="0.0" />
+      <constant name="z4t" value="196.185" />
+      <constant name="z2t" value="96.185" />
+      <constant name="dipoleMagnetHeight" value="177.8" />
+      <position name="tracking_region_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
       <position name="PhantomPlaneVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="PhantomPlaneVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="PhantomPlaneVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -149,6 +142,14 @@
       <rotation name="ECalScoringPlaneDefVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="ECalScoringPlane_ECalScoringPlaneDef_layer1_module0_position" x="0.0" y="0.0" z="1338.0" unit="mm" />
       <rotation name="ECalScoringPlane_ECalScoringPlaneDef_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <position name="PhantomPlaneFieldDefVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="PhantomPlaneFieldDefVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="PhantomPlaneFieldDefVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="PhantomPlaneFieldDefVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TrackerFieldDef_PhantomPlaneFieldDef_layer1_module0_position" x="21.17" y="0.0" z="-82.80000000000001" unit="mm" />
+      <rotation name="TrackerFieldDef_PhantomPlaneFieldDef_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <position name="TrackerFieldDef_PhantomPlaneFieldDef_layer2_module0_position" x="21.17" y="0.0" z="997.2" unit="mm" />
+      <rotation name="TrackerFieldDef_PhantomPlaneFieldDef_layer2_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
     </define>
     <materials>
       <element Z="1" formula="H" name="H">
@@ -170,42 +171,17 @@
     <solids>
       <box name="world_box" x="world_x" y="world_y" z="world_z" />
       <tube name="tracking_cylinder" deltaphi="6.283185307179586" rmin="0.0" rmax="tracking_region_radius" z="2*tracking_region_zmax" />
-      <box name="PhantomPlaneFieldDefBox" x="177.8" y="416.052" z="1.0E-8" />
-      <box name="PhantomPlaneFieldDefVolume_component0Box" x="177.8" y="416.052" z="1.0E-8" />
-      <box name="PhantomPlaneFieldDefVolume_component0Sensor0Box" x="177.8" y="416.052" z="1.0E-8" />
       <box name="PhantomPlaneBox" x="177.8" y="416.052" z="1.0E-8" />
       <box name="PhantomPlaneVolume_component0Box" x="177.8" y="416.052" z="1.0E-8" />
       <box name="PhantomPlaneVolume_component0Sensor0Box" x="177.8" y="416.052" z="1.0E-8" />
       <box name="ECalScoringPlaneDefBox" x="355.6" y="832.104" z="1.0E-8" />
       <box name="ECalScoringPlaneDefVolume_component0Box" x="355.6" y="832.104" z="1.0E-8" />
       <box name="ECalScoringPlaneDefVolume_component0Sensor0Box" x="355.6" y="832.104" z="1.0E-8" />
+      <box name="PhantomPlaneFieldDefBox" x="177.8" y="416.052" z="1.0E-8" />
+      <box name="PhantomPlaneFieldDefVolume_component0Box" x="177.8" y="416.052" z="1.0E-8" />
+      <box name="PhantomPlaneFieldDefVolume_component0Sensor0Box" x="177.8" y="416.052" z="1.0E-8" />
     </solids>
     <structure>
-      <volume name="PhantomPlaneFieldDefVolume_component0Sensor0">
-        <materialref ref="Vacuum" />
-        <solidref ref="PhantomPlaneFieldDefVolume_component0Sensor0Box" />
-        <sdref ref="TrackerFieldDef" />
-      </volume>
-      <volume name="PhantomPlaneFieldDefVolume_component0">
-        <materialref ref="Vacuum" />
-        <solidref ref="PhantomPlaneFieldDefVolume_component0Box" />
-        <physvol>
-          <volumeref ref="PhantomPlaneFieldDefVolume_component0Sensor0" />
-          <positionref ref="PhantomPlaneFieldDefVolume_component0Sensor0Position" />
-          <rotationref ref="PhantomPlaneFieldDefVolume_component0Sensor0Rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-      </volume>
-      <volume name="PhantomPlaneFieldDefVolume">
-        <materialref ref="Vacuum" />
-        <solidref ref="PhantomPlaneFieldDefBox" />
-        <physvol>
-          <volumeref ref="PhantomPlaneFieldDefVolume_component0" />
-          <positionref ref="PhantomPlaneFieldDefVolume_component0_position" />
-          <rotationref ref="PhantomPlaneFieldDefVolume_component0_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-      </volume>
       <volume name="PhantomPlaneVolume_component0Sensor0">
         <materialref ref="Vacuum" />
         <solidref ref="PhantomPlaneVolume_component0Sensor0Box" />
@@ -256,27 +232,34 @@
           <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
+      <volume name="PhantomPlaneFieldDefVolume_component0Sensor0">
+        <materialref ref="Vacuum" />
+        <solidref ref="PhantomPlaneFieldDefVolume_component0Sensor0Box" />
+        <sdref ref="TrackerFieldDef" />
+      </volume>
+      <volume name="PhantomPlaneFieldDefVolume_component0">
+        <materialref ref="Vacuum" />
+        <solidref ref="PhantomPlaneFieldDefVolume_component0Box" />
+        <physvol>
+          <volumeref ref="PhantomPlaneFieldDefVolume_component0Sensor0" />
+          <positionref ref="PhantomPlaneFieldDefVolume_component0Sensor0Position" />
+          <rotationref ref="PhantomPlaneFieldDefVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="PhantomPlaneFieldDefVolume">
+        <materialref ref="Vacuum" />
+        <solidref ref="PhantomPlaneFieldDefBox" />
+        <physvol>
+          <volumeref ref="PhantomPlaneFieldDefVolume_component0" />
+          <positionref ref="PhantomPlaneFieldDefVolume_component0_position" />
+          <rotationref ref="PhantomPlaneFieldDefVolume_component0_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+      </volume>
       <volume name="tracking_volume">
         <materialref ref="TrackingMaterial" />
         <solidref ref="tracking_cylinder" />
-        <physvol>
-          <volumeref ref="PhantomPlaneFieldDefVolume" />
-          <positionref ref="TrackerFieldDef_PhantomPlaneFieldDef_layer1_module0_position" />
-          <rotationref ref="TrackerFieldDef_PhantomPlaneFieldDef_layer1_module0_rotation" />
-          <physvolid field_name="system" value="2" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <physvol>
-          <volumeref ref="PhantomPlaneFieldDefVolume" />
-          <positionref ref="TrackerFieldDef_PhantomPlaneFieldDef_layer2_module0_position" />
-          <rotationref ref="TrackerFieldDef_PhantomPlaneFieldDef_layer2_module0_rotation" />
-          <physvolid field_name="system" value="2" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="2" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
         <physvol>
           <volumeref ref="PhantomPlaneVolume" />
           <positionref ref="PhantomTracker_PhantomPlane_layer1_module0_position" />
@@ -394,6 +377,24 @@
           <physvolid field_name="layer" value="1" />
           <physvolid field_name="module" value="0" />
         </physvol>
+        <physvol>
+          <volumeref ref="PhantomPlaneFieldDefVolume" />
+          <positionref ref="TrackerFieldDef_PhantomPlaneFieldDef_layer1_module0_position" />
+          <rotationref ref="TrackerFieldDef_PhantomPlaneFieldDef_layer1_module0_rotation" />
+          <physvolid field_name="system" value="2" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="PhantomPlaneFieldDefVolume" />
+          <positionref ref="TrackerFieldDef_PhantomPlaneFieldDef_layer2_module0_position" />
+          <rotationref ref="TrackerFieldDef_PhantomPlaneFieldDef_layer2_module0_rotation" />
+          <physvolid field_name="system" value="2" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
         <regionref ref="TrackingRegion" />
         <visref ref="TrackingVis" />
       </volume>
@@ -402,7 +403,7 @@
         <solidref ref="world_box" />
         <physvol>
           <volumeref ref="tracking_volume" />
-          <positionref ref="identity_pos" />
+          <positionref ref="tracking_region_pos" />
           <rotationref ref="identity_rot" />
         </physvol>
         <visref ref="WorldVis" />
