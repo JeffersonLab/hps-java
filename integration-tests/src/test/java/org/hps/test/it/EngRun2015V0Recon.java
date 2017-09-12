@@ -5,6 +5,7 @@ import hep.aida.IHistogram2D;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+import java.io.IOException;
 import static java.lang.Math.abs;
 import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
@@ -387,6 +388,16 @@ public class EngRun2015V0Recon extends Driver {
 
     public void setAidaFileName(String s) {
         _aidaFileName = s;
+    }
+    
+    @Override
+    protected void endOfData() {
+      try {
+            AIDA.defaultInstance().saveAs(_aidaFileName);
+            //AIDA.defaultInstance().saveAs(testOutputDir.getPath() + File.separator + this.getClass().getSimpleName() + ".root");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }  
     }
 
     private boolean isTopTrack(Track t) {
