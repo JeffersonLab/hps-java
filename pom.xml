@@ -449,13 +449,18 @@
         <configuration>
           <useFile>false</useFile>
           <trimStackTrace>false</trimStackTrace>
-          <argLine>-Xmx1024m</argLine>
+          <!--<argLine>-Xmx1024m</argLine>-->
           <forkMode>pertest</forkMode>
           <systemPropertyVariables>
             <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
             <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
-            <hep.aida.IAnalysisFactory>hep.aida.ref.BatchAnalysisFactory</hep.aida.IAnalysisFactory>
           </systemPropertyVariables>
+          <systemProperties>
+            <property>
+              <name>hep.aida.IAnalysisFactory</name>
+              <value>hep.aida.ref.BatchAnalysisFactory</value>
+            </property>
+          </systemProperties>
         </configuration>
       </plugin>
       <plugin>
