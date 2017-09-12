@@ -30,14 +30,15 @@ import org.lcsim.geometry.Detector;
 public class V0CandidateFilter extends EventReconFilter {
 
     private String _V0CandidateCollectionName = "UnconstrainedV0Candidates";
-    private double _clusterTimingCut = 20.0;
+    private double _clusterTimingCut = 2.5;
     private double v0Chi2Cut = 100.0;
     private double trackChi2Cut = 80.0;
     private double trackDtCut = 20.0;
     private double trackPMax = 0.9;
     private double v0PMax = 1.4;
+    private int trackMinHits = 6;
 
-    private boolean _tight = false;
+    private boolean _tight = true;
     private boolean _keepEpicsDataEvents = false;
     
     private boolean _debug = true;
@@ -81,7 +82,11 @@ public class V0CandidateFilter extends EventReconFilter {
                 if (electron.getMomentum().magnitude() > trackPMax || positron.getMomentum().magnitude() > trackPMax) {
                     continue;
                 }
+                
                 if (v0.getMomentum().magnitude() > v0PMax) {
+                    continue;
+                }
+                if (electron.getTracks().get(0).getTrackerHits().size()<trackMinHits || positron.getTracks().get(0).getTrackerHits().size()<trackMinHits) {
                     continue;
                 }
                 double eleTime = TrackData.getTrackTime(TrackData.getTrackData(event, electron.getTracks().get(0)));
@@ -185,7 +190,7 @@ public class V0CandidateFilter extends EventReconFilter {
     }
 
     /**
-     * Setting a tight constraint requires one and only one candidate in the
+     * Setting a tight constraint requires one and only one candidate V0 in the
      * event
      *
      * @param b
