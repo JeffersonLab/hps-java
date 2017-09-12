@@ -22,7 +22,7 @@ public class EcalWindowEventPlots extends Driver implements ActionListener {
     private String inputCollection;
     private IPlotter plotter;
     private AIDA aida = AIDA.defaultInstance();
-    //private AIDAFrame plotterFrame;
+    // private AIDAFrame plotterFrame;
     private IHistogram1D[][] plots = new IHistogram1D[47][11];
     private JLabel xLabel, yLabel;
     private JComboBox xCombo;
@@ -71,14 +71,14 @@ public class EcalWindowEventPlots extends Driver implements ActionListener {
         // Setup the plotter.
         plotter = aida.analysisFactory().createPlotterFactory().create();
         plotter.setTitle("HPS ECal Window Event Plots");
-        //plotterFrame = new AIDAFrame();
-        //plotterFrame.addPlotter(plotter);
+        // plotterFrame = new AIDAFrame();
+        // plotterFrame.addPlotter(plotter);
 
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
 
         for (int x = -23; x <= 23; x++) { // slot
-            for (int y = -5; y <= 5; y++) { // crate                
+            for (int y = -5; y <= 5; y++) { // crate
                 plots[x + 23][y + 5] = aida.histogram1D("ECAL window: x=" + x + "; y=" + y, window, -0.5, window - 0.5);
             }
         }
@@ -90,19 +90,19 @@ public class EcalWindowEventPlots extends Driver implements ActionListener {
         xCombo.addActionListener(this);
         xLabel = new JLabel("x");
         xLabel.setLabelFor(xCombo);
-        //plotterFrame.getControlsPanel().add(xLabel);
-        //plotterFrame.getControlsPanel().add(xCombo);
+        // plotterFrame.getControlsPanel().add(xLabel);
+        // plotterFrame.getControlsPanel().add(xCombo);
         yCombo = new JComboBox(yList);
         yCombo.addActionListener(this);
         yLabel = new JLabel("y");
         yLabel.setLabelFor(yCombo);
-        //plotterFrame.getControlsPanel().add(yLabel);
-        //plotterFrame.getControlsPanel().add(yCombo);
+        // plotterFrame.getControlsPanel().add(yLabel);
+        // plotterFrame.getControlsPanel().add(yCombo);
         blankButton = new JButton("Hide histogram");
-        //plotterFrame.getControlsPanel().add(blankButton);
+        // plotterFrame.getControlsPanel().add(blankButton);
         blankButton.addActionListener(this);
 
-        //plotterFrame.pack();
+        // plotterFrame.pack();
 
         plotter.style().statisticsBoxStyle().setVisible(false);
         plotter.style().zAxisStyle().setParameter("allowZeroSuppression", "true");
@@ -112,15 +112,15 @@ public class EcalWindowEventPlots extends Driver implements ActionListener {
         xCombo.setSelectedIndex((-5 + 23));
         yCombo.setSelectedIndex((2 + 5 - 1));
 
-        //if (!hide) {
-        //    plotterFrame.setVisible(true);
-        //}
+        // if (!hide) {
+        // plotterFrame.setVisible(true);
+        // }
     }
 
     @Override
     public void process(EventHeader event) {
         for (int x = -23; x <= 23; x++) { // slot
-            for (int y = -5; y <= 5; y++) { // crate                
+            for (int y = -5; y <= 5; y++) { // crate
                 plots[x + 23][y + 5].reset();
             }
         }

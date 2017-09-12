@@ -11,9 +11,9 @@ import hep.aida.IHistogram;
 import hep.aida.IPlotterStyle;
 
 /**
- *  A MouseListener used to pop up a separate window with a plotter in it when 
- *  a region is clicked.  The histogram that is plotted on the region clicked
- *  will also be plotted in the newly created plotter. 
+ * A MouseListener used to pop up a separate window with a plotter in it when
+ * a region is clicked. The histogram that is plotted on the region clicked
+ * will also be plotted in the newly created plotter.
  * 
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
@@ -21,15 +21,15 @@ import hep.aida.IPlotterStyle;
  */
 public class PopupPlotterListener extends ChartPanelMouseListener {
 
-    private PlotterRegion plotterRegion = null; 
-    private static Plotter plotter = null; 
+    private PlotterRegion plotterRegion = null;
+    private static Plotter plotter = null;
     IHistogram histogram;
-    PlotterFactory plotterFactory = (PlotterFactory) AnalysisFactory.create().createPlotterFactory(); 
-    
+    PlotterFactory plotterFactory = (PlotterFactory) AnalysisFactory.create().createPlotterFactory();
+
     /**
-     *  Constructor
+     * Constructor
      * 
-     *  @param plotterRegion : The plotter region that has been selected
+     * @param plotterRegion : The plotter region that has been selected
      */
     public PopupPlotterListener(PlotterRegion plotterRegion) {
         super(plotterRegion);
@@ -41,32 +41,32 @@ public class PopupPlotterListener extends ChartPanelMouseListener {
      */
     @Override
     public void mouseClicked(MouseEvent e) {
-     
-            if (plotter == null) {
-                plotter = (Plotter) plotterFactory.create();
-                plotter.createRegion(0);
-            } else {  
-                ((PlotterRegion) plotter.region(0)).clear();
-            }
-            
-            histogram = ((IHistogram) plotterRegion.getPlottedObjects().get(0));
-            plotter.region(0).plot(histogram, this.createStyle());
-            plotter.show();
+
+        if (plotter == null) {
+            plotter = (Plotter) plotterFactory.create();
+            plotter.createRegion(0);
+        } else {
+            ((PlotterRegion) plotter.region(0)).clear();
+        }
+
+        histogram = ((IHistogram) plotterRegion.getPlottedObjects().get(0));
+        plotter.region(0).plot(histogram, this.createStyle());
+        plotter.show();
     }
-    
+
     /**
-     *  Create a plotter style.
+     * Create a plotter style.
      * 
      * @return plotter style
      */
     IPlotterStyle createStyle() {
-        
+
         // Create a default style
         IPlotterStyle style = this.plotterFactory.createPlotterStyle();
-        
-        // Turn off the histogram grid 
+
+        // Turn off the histogram grid
         style.gridStyle().setVisible(false);
-        
+
         // Set the style of the data
         style.dataStyle().lineStyle().setVisible(false);
         style.dataStyle().outlineStyle().setVisible(false);
@@ -76,10 +76,10 @@ public class PopupPlotterListener extends ChartPanelMouseListener {
         style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
         style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
         style.dataStyle().errorBarStyle().setVisible(false);
-        
+
         // Turn off the legend
         style.legendBoxStyle().setVisible(false);
-       
+
         return style;
     }
 }

@@ -24,7 +24,7 @@ public abstract class HPSTrackerBuilder {
     protected List<SurveyVolume> surveyVolumes = new ArrayList<SurveyVolume>();
     protected Element node;
     protected List<MilleParameter> milleparameters = new ArrayList<MilleParameter>();
-    
+
     /**
      * Default constructor to create a geometry.
      * 
@@ -34,7 +34,7 @@ public abstract class HPSTrackerBuilder {
     public HPSTrackerBuilder(boolean debug, Element node) {
         this.debug = debug;
         this.node = node;
-        
+
         // Applying SVT alignment constants from the conditions database must be explicitly enabled with a system property.
         if (System.getProperties().getProperty("org.hps.conditions.enableSvtAlignmentConstants") != null) {
             LOGGER.config("Alignment conditions will be read from database.");
@@ -48,10 +48,10 @@ public abstract class HPSTrackerBuilder {
             LOGGER.config("Mille parameters will be read from compact.xml file.");
             initAlignmentParameters();
         }
-        
-        if(debug) {
+
+        if (debug) {
             for (MilleParameter p : milleparameters)
-                System.out.printf("%d,%f \n", p.getId(),p.getValue());
+                System.out.printf("%d,%f \n", p.getId(), p.getValue());
         }
     }
 
@@ -181,6 +181,7 @@ public abstract class HPSTrackerBuilder {
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class BaseModuleBundle {
+
         public SurveyVolume module = null;
 
         public BaseModuleBundle(BaseModule m) {
@@ -209,12 +210,12 @@ public abstract class HPSTrackerBuilder {
     }
 
     /**
-     * Bundle volumes into a half-module. TODO If the geometry definition has access to daughter information I could
-     * avoid this?
+     * Bundle volumes into a half-module. TODO If the geometry definition has access to daughter information I could avoid this?
      * 
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static abstract class HalfModuleBundle {
+
         public SurveyVolume halfModule = null;
         public SurveyVolume lamination = null;
         public SurveyVolume sensor = null;
@@ -235,41 +236,40 @@ public abstract class HPSTrackerBuilder {
         }
     }
 
-    
     public static boolean isTopFromName(String name) {
         return getHalfFromName(name).equals("top") ? true : false;
     }
-    
+
     public static String getHalfFromName(String name) {
         boolean matchBottom = Pattern.matches(".*bottom.*", name);
         boolean matchTop = Pattern.matches(".*top.*", name);
-        
-        if(matchBottom && matchTop)
+
+        if (matchBottom && matchTop)
             throw new RuntimeException("found both halfs from name  " + name);
 
-        if(matchBottom)
+        if (matchBottom)
             return "bottom";
-        if(matchTop)
+        if (matchTop)
             return "top";
 
         // check for other signatures
         Pattern pattern = Pattern.compile(".*_L\\d\\d?(t|b).*");
         Matcher matcher = pattern.matcher(name);
-        if(matcher.matches()) {
-            if(matcher.group(1).equals("t"))
+        if (matcher.matches()) {
+            if (matcher.group(1).equals("t"))
                 return "top";
-            else if(matcher.group(1).equals("b"))
+            else if (matcher.group(1).equals("b"))
                 return "bottom";
             else
                 throw new RuntimeException("I should never get here from name " + name);
-        } 
+        }
         throw new RuntimeException("Couldn't find half from " + name);
     }
 
     public static int getLayerFromVolumeName(String name) {
         Matcher matcher = Pattern.compile(".*module_L(\\d+).*").matcher(name);
-        if(matcher.matches())
-            return Integer.parseInt( matcher.group(1));
+        if (matcher.matches())
+            return Integer.parseInt(matcher.group(1));
         else
             throw new RuntimeException("cannot find layer from " + name);
     }
@@ -289,16 +289,16 @@ public abstract class HPSTrackerBuilder {
         }
         return false;
     }
-    
+
     public static boolean isModule(String name) {
         return Pattern.matches("module_L\\d+[bt]$", name);
     }
-    
+
     public static int getUChannelSupportLayer(String name) {
-        if(isUChannelSupport(name)) {
+        if (isUChannelSupport(name)) {
             Pattern patter = Pattern.compile("^support_[a-z]*_L([1-6])[1-6]$");
             Matcher matcher = patter.matcher(name);
-            if(matcher.matches() ) {
+            if (matcher.matches()) {
                 int layer = Integer.parseInt(matcher.group(1));
                 return layer;
             } else {
@@ -308,8 +308,7 @@ public abstract class HPSTrackerBuilder {
             throw new RuntimeException("this is not a valid u-channel name: " + name);
         }
     }
-    
-    
+
     public static boolean isUChannelSupport(String name) {
         Pattern patter = Pattern.compile("^support_[a-z]*_L(4|1)(6|3)$");
         Matcher matcher = patter.matcher(name);
@@ -320,9 +319,8 @@ public abstract class HPSTrackerBuilder {
         Pattern patter = Pattern.compile("^c_support_kin_L13(b|t)$");
         Matcher matcher = patter.matcher(name);
         return matcher.matches();
-    }    
-    
-    
+    }
+
     public static boolean isSensor(String name) {
         if (name.endsWith("sensor")) {
             return true;
@@ -410,8 +408,7 @@ public abstract class HPSTrackerBuilder {
     }
 
     /**
-     * Checks if the orientation of the sensor is axial. Uses the moduleId definition from the "old" geometry for
-     * consistency.
+     * Checks if the orientation of the sensor is axial. Uses the moduleId definition from the "old" geometry for consistency.
      * 
      * @return true if it is, false if it is a stereo sensor
      */
@@ -530,8 +527,7 @@ public abstract class HPSTrackerBuilder {
         }
         return transformToParent(vec_mother_coord, geometry.getMother(), targetName);
     }
-    
-    
+
     /**
      * Find the vector in a mother volume coordinate system.
      * 
@@ -550,8 +546,8 @@ public abstract class HPSTrackerBuilder {
             return null;
         }
         if (debug > 0)
-            System.out.printf("\nrotateToParent: vec %s in local coordinates of %s with mother %s\n",
-                    vec.toString(), geometry.getName(), geometry.getMother().getName().toString());
+            System.out.printf("\nrotateToParent: vec %s in local coordinates of %s with mother %s\n", vec.toString(),
+                    geometry.getName(), geometry.getMother().getName().toString());
         SurveyCoordinateSystem coord = geometry.getCoord();
         if (coord == null) {
             throw new RuntimeException("rotateToParent: no coordinate system found for %s, return null "
@@ -570,8 +566,6 @@ public abstract class HPSTrackerBuilder {
         }
         return rotateToParent(vec_mother_coord, geometry.getMother(), targetName);
     }
-
-    
 
     /**
      * Get axial or stereo key name from string

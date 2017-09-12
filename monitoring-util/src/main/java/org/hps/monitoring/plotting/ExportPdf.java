@@ -50,8 +50,7 @@ public final class ExportPdf {
      * @param runData the list of run data to save on the cover page
      * @throws IOException if there is a problem with the IO (e.g. writing to PDF file)
      */
-    public static void write(List<IPlotter> plotters, String fileName, List<String> runData)
-            throws IOException {
+    public static void write(List<IPlotter> plotters, String fileName, List<String> runData) throws IOException {
 
         LOGGER.info("writing plots to " + fileName + " ...");
 
@@ -71,19 +70,20 @@ public final class ExportPdf {
         } catch (DocumentException e) {
             throw new IOException(e);
         }
-        
+
         // Sort plotters so output appears the same every time.
         ArrayList<IPlotter> sortedPlotters = new ArrayList<IPlotter>(plotters);
         Collections.sort(sortedPlotters, new Comparator<IPlotter>() {
-           public int compare(IPlotter object1, IPlotter object2) {
-               if (object1.title() == null) {
-                   return -1;
-               }
-               if (object2.title() == null) {
-                   return 1;
-               }
-               return object1.title().compareTo(object2.title());
-           }
+
+            public int compare(IPlotter object1, IPlotter object2) {
+                if (object1.title() == null) {
+                    return -1;
+                }
+                if (object2.title() == null) {
+                    return 1;
+                }
+                return object1.title().compareTo(object2.title());
+            }
         });
 
         // Write the graphics from each plotter on a new page.

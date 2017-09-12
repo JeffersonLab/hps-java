@@ -29,7 +29,7 @@ import org.hps.monitoring.application.model.HasConfigurationModel;
  */
 @SuppressWarnings("serial")
 abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListener, HasConfigurationModel,
-ActionListener, AddActionListener {
+        ActionListener, AddActionListener {
 
     /**
      * Default button height in pixels.

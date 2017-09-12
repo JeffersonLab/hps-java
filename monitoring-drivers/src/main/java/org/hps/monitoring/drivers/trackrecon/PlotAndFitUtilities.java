@@ -29,8 +29,8 @@ public class PlotAndFitUtilities {
     static private AIDA aida = AIDA.defaultInstance();
 
     /*
-     *  creates a new plotter with one region and puts the histogram in it
-     *  copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
+     * creates a new plotter with one region and puts the histogram in it
+     * copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
     static IPlotter plot(IPlotterFactory plotterFactory, IBaseHistogram histogram, IPlotterStyle style, boolean show) {
         if (style == null)
@@ -44,19 +44,20 @@ public class PlotAndFitUtilities {
     }
 
     /*
-     *  puts a histogram on a plotter region with a  style
-     *  copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
+     * puts a histogram on a plotter region with a style
+     * copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
     static void plot(IPlotter plotter, IBaseHistogram histogram, IPlotterStyle style, int region) {
         if (style == null)
             style = getPlotterStyle(histogram);
-        //System.out.println("Putting plot in region " + region);
+        // System.out.println("Putting plot in region " + region);
         plotter.region(region).plot(histogram, style);
 
     }
+
     /*
-     *  puts a function on a plotter region with a  style
-     *  copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
+     * puts a function on a plotter region with a style
+     * copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
 
     static void plot(IPlotter plotter, IFunction function, IPlotterStyle style, int region) {
@@ -67,8 +68,8 @@ public class PlotAndFitUtilities {
     }
 
     /*
-     *  gets default plotter style based on histogram type
-     *  copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
+     * gets default plotter style based on histogram type
+     * copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
     static IPlotterStyle getPlotterStyle(IBaseHistogram histogram) {
         StyleRegistry styleRegistry = StyleRegistry.getStyleRegistry();
@@ -85,7 +86,7 @@ public class PlotAndFitUtilities {
         if (style == null)
             throw new RuntimeException("A default style could not be found for " + histogram.title());
 
-        //custom stuff...mg
+        // custom stuff...mg
         style.dataStyle().errorBarStyle().setVisible(false);
         style.legendBoxStyle().setVisible(false);
         style.dataStyle().outlineStyle().setVisible(false);
@@ -94,8 +95,8 @@ public class PlotAndFitUtilities {
     }
 
     /*
-     *  gets default plotter style for a function type
-     *  copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
+     * gets default plotter style for a function type
+     * copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
     static IPlotterStyle getPlotterStyle(IFunction func) {
         StyleRegistry styleRegistry = StyleRegistry.getStyleRegistry();
@@ -118,10 +119,10 @@ public class PlotAndFitUtilities {
         parameters[2] = histogram.rms();
         function.setParameters(parameters);
         IFitResult fitResult = null;
-         Logger minuitLogger = Logger.getLogger("org.freehep.math.minuit");
+        Logger minuitLogger = Logger.getLogger("org.freehep.math.minuit");
         minuitLogger.setLevel(Level.OFF);
         minuitLogger.info("minuit logger test");
-        
+
         try {
             fitResult = fitter.fit(histogram, function);
         } catch (RuntimeException e) {

@@ -77,9 +77,8 @@ public class SVTOpeningStudies extends DataQualityMonitor {
     double rangeZ0 = 10;
 
     double pcut = 0.8;
-    boolean onlyFEEStubs=false;
-      
-    
+    boolean onlyFEEStubs = false;
+
     private final String plotDir = "SVTOpening/";
 
     public SVTOpeningStudies() {
@@ -89,10 +88,10 @@ public class SVTOpeningStudies extends DataQualityMonitor {
         this.outputPlots = output;
     }
 
-     public void setOnlyFEEStubs(boolean onlyFEE) {
+    public void setOnlyFEEStubs(boolean onlyFEE) {
         this.onlyFEEStubs = onlyFEE;
     }
-    
+
     public void setHelicalTrackHitCollectionName(String helicalTrackHitCollectionName) {
         this.helicalTrackHitCollectionName = helicalTrackHitCollectionName;
     }
@@ -109,56 +108,66 @@ public class SVTOpeningStudies extends DataQualityMonitor {
     protected void detectorChanged(Detector detector) {
         aida.tree().cd("/");
 
-        nTracks13Top = aida.histogram1D(plotDir + triggerType + "/"+"Number of L1-3 Tracks: Top ", 7, 0, 7.0);
-        nTracks46Top = aida.histogram1D(plotDir + triggerType + "/"+"Number of L4-6 Tracks: Top ", 7, 0, 7.0);
+        nTracks13Top = aida.histogram1D(plotDir + triggerType + "/" + "Number of L1-3 Tracks: Top ", 7, 0, 7.0);
+        nTracks46Top = aida.histogram1D(plotDir + triggerType + "/" + "Number of L4-6 Tracks: Top ", 7, 0, 7.0);
 
-        deld0Top = aida.histogram1D(plotDir + triggerType + "/"+"Delta d0: Top", 50, -rangeD0, rangeD0);
-        delphiTop = aida.histogram1D(plotDir + triggerType + "/"+"Delta sin(phi): Top", 50, -rangePhi0, rangePhi0);
-        delwTop = aida.histogram1D(plotDir + triggerType + "/"+"Delta curvature: Top", 50, -rangeOmega, rangeOmega);
-        dellambdaTop = aida.histogram1D(plotDir + triggerType + "/"+"Delta slope: Top", 50, -rangeSlope, rangeSlope);
-        delz0Top = aida.histogram1D(plotDir + triggerType + "/"+"Delta y0: Top", 50, -rangeZ0, rangeZ0);
+        deld0Top = aida.histogram1D(plotDir + triggerType + "/" + "Delta d0: Top", 50, -rangeD0, rangeD0);
+        delphiTop = aida.histogram1D(plotDir + triggerType + "/" + "Delta sin(phi): Top", 50, -rangePhi0, rangePhi0);
+        delwTop = aida.histogram1D(plotDir + triggerType + "/" + "Delta curvature: Top", 50, -rangeOmega, rangeOmega);
+        dellambdaTop = aida.histogram1D(plotDir + triggerType + "/" + "Delta slope: Top", 50, -rangeSlope, rangeSlope);
+        delz0Top = aida.histogram1D(plotDir + triggerType + "/" + "Delta y0: Top", 50, -rangeZ0, rangeZ0);
 
-        nTracks13Bot = aida.histogram1D(plotDir + triggerType + "/"+"Number of L1-3 Tracks: Bot ", 7, 0, 7.0);
-        nTracks46Bot = aida.histogram1D(plotDir + triggerType + "/"+"Number of L4-6 Tracks: Bot ", 7, 0, 7.0);
+        nTracks13Bot = aida.histogram1D(plotDir + triggerType + "/" + "Number of L1-3 Tracks: Bot ", 7, 0, 7.0);
+        nTracks46Bot = aida.histogram1D(plotDir + triggerType + "/" + "Number of L4-6 Tracks: Bot ", 7, 0, 7.0);
 
-        deld0Bot = aida.histogram1D(plotDir + triggerType + "/"+"Delta d0: Bot", 50, -rangeD0, rangeD0);
-        delphiBot = aida.histogram1D(plotDir + triggerType + "/"+"Delta sin(phi): Bot", 50, -rangePhi0, rangePhi0);
-        delwBot = aida.histogram1D(plotDir + triggerType + "/"+"Delta curvature: Bot", 50, -rangeOmega, rangeOmega);
-        dellambdaBot = aida.histogram1D(plotDir + triggerType + "/"+"Delta slope: Bot", 50, -rangeSlope, rangeSlope);
-        delz0Bot = aida.histogram1D(plotDir + triggerType + "/"+"Delta y0: Bot", 50, -rangeZ0, rangeZ0);
+        deld0Bot = aida.histogram1D(plotDir + triggerType + "/" + "Delta d0: Bot", 50, -rangeD0, rangeD0);
+        delphiBot = aida.histogram1D(plotDir + triggerType + "/" + "Delta sin(phi): Bot", 50, -rangePhi0, rangePhi0);
+        delwBot = aida.histogram1D(plotDir + triggerType + "/" + "Delta curvature: Bot", 50, -rangeOmega, rangeOmega);
+        dellambdaBot = aida.histogram1D(plotDir + triggerType + "/" + "Delta slope: Bot", 50, -rangeSlope, rangeSlope);
+        delz0Bot = aida.histogram1D(plotDir + triggerType + "/" + "Delta y0: Bot", 50, -rangeZ0, rangeZ0);
 
-        nTracks13Ele = aida.histogram1D(plotDir + triggerType + "/"+"Number of L1-3 Tracks: Ele ", 7, 0, 7.0);
-        nTracks46Ele = aida.histogram1D(plotDir + triggerType + "/"+"Number of L4-6 Tracks: Ele ", 7, 0, 7.0);
+        nTracks13Ele = aida.histogram1D(plotDir + triggerType + "/" + "Number of L1-3 Tracks: Ele ", 7, 0, 7.0);
+        nTracks46Ele = aida.histogram1D(plotDir + triggerType + "/" + "Number of L4-6 Tracks: Ele ", 7, 0, 7.0);
 
-        deld0Ele = aida.histogram1D(plotDir + triggerType + "/"+"Delta d0: Ele", 50, -rangeD0, rangeD0);
-        delphiEle = aida.histogram1D(plotDir + triggerType + "/"+"Delta sin(phi): Ele", 50, -rangePhi0, rangePhi0);
-        delwEle = aida.histogram1D(plotDir + triggerType + "/"+"Delta curvature: Ele", 50, -rangeOmega, rangeOmega);
-        dellambdaEle = aida.histogram1D(plotDir + triggerType + "/"+"Delta slope: Ele", 50, -rangeSlope, rangeSlope);
-        delz0Ele = aida.histogram1D(plotDir + triggerType + "/"+"Delta y0: Ele", 50, -rangeZ0, rangeZ0);
+        deld0Ele = aida.histogram1D(plotDir + triggerType + "/" + "Delta d0: Ele", 50, -rangeD0, rangeD0);
+        delphiEle = aida.histogram1D(plotDir + triggerType + "/" + "Delta sin(phi): Ele", 50, -rangePhi0, rangePhi0);
+        delwEle = aida.histogram1D(plotDir + triggerType + "/" + "Delta curvature: Ele", 50, -rangeOmega, rangeOmega);
+        dellambdaEle = aida.histogram1D(plotDir + triggerType + "/" + "Delta slope: Ele", 50, -rangeSlope, rangeSlope);
+        delz0Ele = aida.histogram1D(plotDir + triggerType + "/" + "Delta y0: Ele", 50, -rangeZ0, rangeZ0);
 
-        nTracks13Pos = aida.histogram1D(plotDir + triggerType + "/"+"Number of L1-3 Tracks: Pos ", 7, 0, 7.0);
-        nTracks46Pos = aida.histogram1D(plotDir + triggerType + "/"+"Number of L4-6 Tracks: Pos ", 7, 0, 7.0);
+        nTracks13Pos = aida.histogram1D(plotDir + triggerType + "/" + "Number of L1-3 Tracks: Pos ", 7, 0, 7.0);
+        nTracks46Pos = aida.histogram1D(plotDir + triggerType + "/" + "Number of L4-6 Tracks: Pos ", 7, 0, 7.0);
 
-        deld0Pos = aida.histogram1D(plotDir + triggerType + "/"+"Delta d0: Pos", 50, -rangeD0, rangeD0);
-        delphiPos = aida.histogram1D(plotDir + triggerType + "/"+"Delta sin(phi): Pos", 50, -rangePhi0, rangePhi0);
-        delwPos = aida.histogram1D(plotDir + triggerType + "/"+"Delta curvature: Pos", 50, -rangeOmega, rangeOmega);
-        dellambdaPos = aida.histogram1D(plotDir + triggerType + "/"+"Delta slope: Pos", 50, -rangeSlope, rangeSlope);
-        delz0Pos = aida.histogram1D(plotDir + triggerType + "/"+"Delta y0: Pos", 50, -rangeZ0, rangeZ0);
+        deld0Pos = aida.histogram1D(plotDir + triggerType + "/" + "Delta d0: Pos", 50, -rangeD0, rangeD0);
+        delphiPos = aida.histogram1D(plotDir + triggerType + "/" + "Delta sin(phi): Pos", 50, -rangePhi0, rangePhi0);
+        delwPos = aida.histogram1D(plotDir + triggerType + "/" + "Delta curvature: Pos", 50, -rangeOmega, rangeOmega);
+        dellambdaPos = aida.histogram1D(plotDir + triggerType + "/" + "Delta slope: Pos", 50, -rangeSlope, rangeSlope);
+        delz0Pos = aida.histogram1D(plotDir + triggerType + "/" + "Delta y0: Pos", 50, -rangeZ0, rangeZ0);
 
-        d0Ele = aida.histogram2D(plotDir + triggerType + "/"+"electrons d0: L46vs L13", 50, -rangeD0, rangeD0, 50, -rangeD0, rangeD0);
-        phiEle = aida.histogram2D(plotDir + triggerType + "/"+"electrons sin(phi): L46vs L13", 50, -rangePhi0, rangePhi0, 50, -rangePhi0, rangePhi0);
-        wEle = aida.histogram2D(plotDir + triggerType + "/"+"electrons curvature: L46vs L13", 50, -rangeOmega, rangeOmega, 50, -rangeOmega, rangeOmega);
-        lambdaEle = aida.histogram2D(plotDir + triggerType + "/"+"electrons slope: L46vs L13", 50, -10 * rangeSlope, 10 * rangeSlope, 50, -10 * rangeSlope, 10 * rangeSlope);
-        z0Ele = aida.histogram2D(plotDir + triggerType + "/"+"electrons y0: L46vs L13", 50, -rangeZ0, rangeZ0, 50, -rangeZ0, rangeZ0);
+        d0Ele = aida.histogram2D(plotDir + triggerType + "/" + "electrons d0: L46vs L13", 50, -rangeD0, rangeD0, 50,
+                -rangeD0, rangeD0);
+        phiEle = aida.histogram2D(plotDir + triggerType + "/" + "electrons sin(phi): L46vs L13", 50, -rangePhi0,
+                rangePhi0, 50, -rangePhi0, rangePhi0);
+        wEle = aida.histogram2D(plotDir + triggerType + "/" + "electrons curvature: L46vs L13", 50, -rangeOmega,
+                rangeOmega, 50, -rangeOmega, rangeOmega);
+        lambdaEle = aida.histogram2D(plotDir + triggerType + "/" + "electrons slope: L46vs L13", 50, -10 * rangeSlope,
+                10 * rangeSlope, 50, -10 * rangeSlope, 10 * rangeSlope);
+        z0Ele = aida.histogram2D(plotDir + triggerType + "/" + "electrons y0: L46vs L13", 50, -rangeZ0, rangeZ0, 50,
+                -rangeZ0, rangeZ0);
 
-        d0Pos = aida.histogram2D(plotDir + triggerType + "/"+"positrons d0: L46vs L13", 50, -rangeD0, rangeD0, 50, -rangeD0, rangeD0);
-        phiPos = aida.histogram2D(plotDir + triggerType + "/"+"positrons sin(phi): L46vs L13", 50, -rangePhi0, rangePhi0, 50, -rangePhi0, rangePhi0);
-        wPos = aida.histogram2D(plotDir + triggerType + "/"+"positrons curvature: L46vs L13", 50, -rangeOmega, rangeOmega, 50, -rangeOmega, rangeOmega);
-        lambdaPos = aida.histogram2D(plotDir + triggerType + "/"+"positrons slope: L46vs L13", 50, -10 * rangeSlope, 10 * rangeSlope, 50, -10 * rangeSlope, 10 * rangeSlope);
-        z0Pos = aida.histogram2D(plotDir + triggerType + "/"+"positrons y0: L46vs L13", 50, -rangeZ0, rangeZ0, 50, -rangeZ0, rangeZ0);
+        d0Pos = aida.histogram2D(plotDir + triggerType + "/" + "positrons d0: L46vs L13", 50, -rangeD0, rangeD0, 50,
+                -rangeD0, rangeD0);
+        phiPos = aida.histogram2D(plotDir + triggerType + "/" + "positrons sin(phi): L46vs L13", 50, -rangePhi0,
+                rangePhi0, 50, -rangePhi0, rangePhi0);
+        wPos = aida.histogram2D(plotDir + triggerType + "/" + "positrons curvature: L46vs L13", 50, -rangeOmega,
+                rangeOmega, 50, -rangeOmega, rangeOmega);
+        lambdaPos = aida.histogram2D(plotDir + triggerType + "/" + "positrons slope: L46vs L13", 50, -10 * rangeSlope,
+                10 * rangeSlope, 50, -10 * rangeSlope, 10 * rangeSlope);
+        z0Pos = aida.histogram2D(plotDir + triggerType + "/" + "positrons y0: L46vs L13", 50, -rangeZ0, rangeZ0, 50,
+                -rangeZ0, rangeZ0);
 
-        nCombosTop = aida.histogram1D(plotDir + triggerType + "/"+"Number of Combinations: Top", 7, 0, 7.0);
-        nCombosBot = aida.histogram1D(plotDir + triggerType + "/"+"Number of Combinations: Bot", 7, 0, 7.0);
+        nCombosTop = aida.histogram1D(plotDir + triggerType + "/" + "Number of Combinations: Top", 7, 0, 7.0);
+        nCombosBot = aida.histogram1D(plotDir + triggerType + "/" + "Number of Combinations: Bot", 7, 0, 7.0);
 
     }
 
@@ -203,7 +212,7 @@ public class SVTOpeningStudies extends DataQualityMonitor {
         for (Track trk46 : l4to6tracksTop) {
             TrackState ts46 = trk46.getTrackStates().get(0);
             for (Track trk13 : l1to3tracksTop)
-                if (!onlyFEEStubs||(trk46.getMomentum()[0] > pcut && trk13.getMomentum()[0] > pcut)) {
+                if (!onlyFEEStubs || (trk46.getMomentum()[0] > pcut && trk13.getMomentum()[0] > pcut)) {
                     TrackState ts13 = trk13.getTrackStates().get(0);
                     deld0Top.fill(ts46.getD0() - ts13.getD0());
                     delphiTop.fill(Math.sin(ts46.getPhi()) - Math.sin(ts13.getPhi()));
@@ -217,7 +226,7 @@ public class SVTOpeningStudies extends DataQualityMonitor {
         for (Track trk46 : l4to6tracksBot) {
             TrackState ts46 = trk46.getTrackStates().get(0);
             for (Track trk13 : l1to3tracksBot)
-                if (!onlyFEEStubs||(trk46.getMomentum()[0] > pcut && trk13.getMomentum()[0] > pcut)) {
+                if (!onlyFEEStubs || (trk46.getMomentum()[0] > pcut && trk13.getMomentum()[0] > pcut)) {
                     TrackState ts13 = trk13.getTrackStates().get(0);
                     deld0Bot.fill(ts46.getD0() - ts13.getD0());
                     delphiBot.fill(Math.sin(ts46.getPhi()) - Math.sin(ts13.getPhi()));
@@ -267,15 +276,15 @@ public class SVTOpeningStudies extends DataQualityMonitor {
         }
 
         /*
-         l1to3tracksPos = null;
-         l1to3tracksEle = null;
-         l1to3tracksTop = null;
-         l1to3tracksBot = null;
-
-         l4to6tracksPos = null;
-         l4to6tracksEle = null;
-         l4to6tracksTop = null;
-         l4to6tracksBot = null;
+         * l1to3tracksPos = null;
+         * l1to3tracksEle = null;
+         * l1to3tracksTop = null;
+         * l1to3tracksBot = null;
+         * 
+         * l4to6tracksPos = null;
+         * l4to6tracksEle = null;
+         * l4to6tracksTop = null;
+         * l4to6tracksBot = null;
          */
     }
 
@@ -292,13 +301,13 @@ public class SVTOpeningStudies extends DataQualityMonitor {
             isTop = false;
             isBot = false;
             for (TrackerHit hit : trk.getTrackerHits())
-                if (hit.getPosition()[2] > 0)//remember, non-bend in tracking frame is z-direction
+                if (hit.getPosition()[2] > 0)// remember, non-bend in tracking frame is z-direction
                     isTop = true;
                 else
                     isBot = true;
-            if (isTop == true && isBot != true && doTop == true)  //if we want top tracks and all hits are in top
+            if (isTop == true && isBot != true && doTop == true)  // if we want top tracks and all hits are in top
                 tracksHalf.add(trk);
-            if (isBot == true && isTop != true && doTop == false) //if we want bottom tracks and all hits are in bottom
+            if (isBot == true && isTop != true && doTop == false) // if we want bottom tracks and all hits are in bottom
                 tracksHalf.add(trk);
         }
         return tracksHalf;
@@ -311,15 +320,16 @@ public class SVTOpeningStudies extends DataQualityMonitor {
         for (Track trk : trks) {
             isTop = false;
             isBot = false;
-            if (!(trk.getCharge() == charge)) { //XNOR but remember that the track charge is opposite because of B-field definition...
+            if (!(trk.getCharge() == charge)) { // XNOR but remember that the track charge is opposite because of
+                                                // B-field definition...
                 for (TrackerHit hit : trk.getTrackerHits())
-                    if (hit.getPosition()[2] > 0)//remember, non-bend in tracking frame is z-direction
+                    if (hit.getPosition()[2] > 0)// remember, non-bend in tracking frame is z-direction
                         isTop = true;
                     else
                         isBot = true;
-                if (isTop == true && isBot != true)  //if  all hits are in top
+                if (isTop == true && isBot != true)  // if all hits are in top
                     tracksHalf.add(trk);
-                if (isBot == true && isTop != true) //if all hits are in bottom
+                if (isBot == true && isTop != true) // if all hits are in bottom
                     tracksHalf.add(trk);
             }
         }

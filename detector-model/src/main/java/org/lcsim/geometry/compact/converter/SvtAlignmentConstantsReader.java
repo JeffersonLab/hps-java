@@ -8,19 +8,17 @@ import org.hps.conditions.svt.SvtAlignmentConstant;
 import org.hps.conditions.svt.SvtAlignmentConstant.SvtAlignmentConstantCollection;
 
 /**
- * Reads in SVT alignment constants from the database and converts them to the {@link MilleParameter} class expected by
- * the detector model.
+ * Reads in SVT alignment constants from the database and converts them to the {@link MilleParameter} class expected by the detector model.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class SvtAlignmentConstantsReader {
-    
+
     private SvtAlignmentConstantsReader() {
     }
 
     /**
-     * Read SVT alignment constants from the conditions database table <i>svt_alignments</i> and create a list of 
-     * <code>MilleParameter</code> objects from it.
+     * Read SVT alignment constants from the conditions database table <i>svt_alignments</i> and create a list of <code>MilleParameter</code> objects from it.
      * 
      * @return the Millepede parameter list
      */

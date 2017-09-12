@@ -82,7 +82,7 @@ public class SvtHeaderDataInfo implements GenericObject {
 
     @Override
     public int getNDouble() {
-       return 0;
+        return 0;
     }
 
     @Override

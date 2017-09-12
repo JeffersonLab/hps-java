@@ -1328,7 +1328,8 @@ public final class TriggerModule {
         // Make sure that the requested crystal is a valid crystal.
         if(ix == 0 || ix < -23 || ix > 23) {
             throw new IndexOutOfBoundsException(String.format("Value \"%d\" is invalid for field x-index.", ix));
-        } if(iy == 0 || iy < -5 || iy > 5) {
+        } 
+        if(iy == 0 || iy < -5 || iy > 5) {
             throw new IndexOutOfBoundsException(String.format("Value \"%d\" is invalid for field y-index.", iy));
         }
         

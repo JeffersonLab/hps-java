@@ -10,20 +10,21 @@ public class HPSTracker2014v1Converter extends HPSTracker2014Converter {
     public HPSTracker2014v1Converter() {
         super();
     }
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
      * @see org.lcsim.detector.converter.compact.HPSTracker2014ConverterBase#initializeBuilder(org.jdom.Element)
      */
     protected HPSTrackerJavaBuilder initializeBuilder(Element node) {
-       return new HPSTracker2014v1JavaBuilder(_debug, node);
+        return new HPSTracker2014v1JavaBuilder(_debug, node);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see org.lcsim.detector.converter.compact.AbstractSubdetectorConverter#getSubdetectorType()
      */
     public Class getSubdetectorType() {
         return HPSTracker2014v1.class;
     }
 
-    
 }

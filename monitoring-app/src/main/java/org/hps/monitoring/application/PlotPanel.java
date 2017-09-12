@@ -47,8 +47,8 @@ final class PlotPanel extends JPanel implements ActionListener {
      */
     @Override
     public void actionPerformed(final ActionEvent event) {
-        if (event.getActionCommand().equals(Commands.SAVE_SELECTED_PLOTS)) {            
-            saveCurrentPlot();                       
+        if (event.getActionCommand().equals(Commands.SAVE_SELECTED_PLOTS)) {
+            saveCurrentPlot();
         }
     }
 
@@ -75,15 +75,15 @@ final class PlotPanel extends JPanel implements ActionListener {
      *
      * @return The indices of the current tabs.
      */
-    //private int[] getSelectedTabIndices() {
-    //    final int[] indices = new int[2];
-    //    indices[0] = this.plotPane.getSelectedIndex();
-    //    final Component component = this.plotPane.getSelectedComponent();
-    //    if (component instanceof JTabbedPane) {
-    //        indices[1] = ((JTabbedPane) component).getSelectedIndex();
-    //    }
-    //    return indices;
-    //}
+    // private int[] getSelectedTabIndices() {
+    // final int[] indices = new int[2];
+    // indices[0] = this.plotPane.getSelectedIndex();
+    // final Component component = this.plotPane.getSelectedComponent();
+    // if (component instanceof JTabbedPane) {
+    // indices[1] = ((JTabbedPane) component).getSelectedIndex();
+    // }
+    // return indices;
+    // }
 
     /**
      * Remove all tabs from the plot pane.

@@ -90,9 +90,8 @@ public class SvtBiasMyaDumpReader {
         for( SvtBiasMyaRange r : biasRanges) {
             LOGGER.info(r.toString());
         }
-     }
-    
-    
+    }
+        
     protected static List<SvtBiasMyaEntry> readMyaDump(File file) {
 
         List<SvtBiasMyaEntry> myaEntries = new ArrayList<SvtBiasMyaEntry>();

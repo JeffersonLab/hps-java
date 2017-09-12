@@ -21,14 +21,14 @@ import org.lcsim.util.Driver;
 public class EcalTimeCorrectionDriver extends Driver {
 
     private String inputHitsCollectionName = "EcalUncalHits";
-    
+
     private String outputHitsCollectionName = "EcalCalHits";
 
     /**
-     * ecalCollectionName "type" (must match detector-data) 
+     * ecalCollectionName "type" (must match detector-data)
      */
     private final String ecalReadoutName = "EcalHits";
-    
+
     private boolean mode3 = false;
     private boolean useFit = true;
     private boolean useTimeWalkCondition = true;
@@ -55,12 +55,13 @@ public class EcalTimeCorrectionDriver extends Driver {
     public void setInputHitsCollectionName(String inputHitsCollectionName) {
         this.inputHitsCollectionName = inputHitsCollectionName;
     }
+
     /**
      * Set the output {@link org.lcsim.event.CalorimeterHit} collection name,
      * 
      * @param ecalCollectionName The <code>CalorimeterHit</code> collection name.
      */
-    public void setOutputHitsCollectionName(String name){
+    public void setOutputHitsCollectionName(String name) {
         this.outputHitsCollectionName = name;
     }
 
@@ -94,9 +95,9 @@ public class EcalTimeCorrectionDriver extends Driver {
     }
 
     public void process(EventHeader event) {
-       
+
         List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitsCollectionName);
-        
+
         List<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
 
         for (CalorimeterHit hit : hits) {
@@ -106,18 +107,19 @@ public class EcalTimeCorrectionDriver extends Driver {
             if (mode3) {
                 time = correctTimeWalk(time, energy);
 
-            } else if (useFit) { 
+            } else if (useFit) {
                 time = correctTimeWalkPulseFitting(time, energy);
 
             }
 
-            //Apply overall time offset
-            time -= findChannel(hit.getCellID()).getTimeShift().getTimeShift();  
+            // Apply overall time offset
+            time -= findChannel(hit.getCellID()).getTimeShift().getTimeShift();
 
             newHits.add(CalorimeterHitUtilities.create(energy, time, hit.getCellID()));
         }
 
-        event.put(this.outputHitsCollectionName, newHits, CalorimeterHit.class, event.getMetaData(hits).getFlags(), ecalReadoutName);
+        event.put(this.outputHitsCollectionName, newHits, CalorimeterHit.class, event.getMetaData(hits).getFlags(),
+                ecalReadoutName);
 
     }
 
@@ -154,8 +156,8 @@ public class EcalTimeCorrectionDriver extends Driver {
      * @param cellID (long)
      * @return channel constants (EcalChannelConstants)
      */
-     public EcalChannelConstants findChannel(long cellID) {
-     return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
-     }
+    public EcalChannelConstants findChannel(long cellID) {
+        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
+    }
 
 }

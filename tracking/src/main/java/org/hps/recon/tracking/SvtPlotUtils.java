@@ -26,14 +26,13 @@ import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.util.aida.AIDA;
 
 /**
- *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class SvtPlotUtils {
 
     private static final Logger logger = Logger.getLogger(SvtPlotUtils.class.getSimpleName());
     static private AIDA aida = AIDA.defaultInstance();
-    
+
     public static int computePlotterRegion(HpsSiSensor sensor) {
 
         if (sensor.getLayerNumber() < 7) {
@@ -63,9 +62,10 @@ public class SvtPlotUtils {
     }
 
     public static int computePlotterRegionAxialOnly(HpsSiSensor sensor) {
-        int l =  HPSTrackerBuilder.getLayerFromVolumeName(sensor.getName());
-        if(!sensor.isAxial()) throw new RuntimeException("not axial.");
-        if( l < 4 ) {
+        int l = HPSTrackerBuilder.getLayerFromVolumeName(sensor.getName());
+        if (!sensor.isAxial())
+            throw new RuntimeException("not axial.");
+        if (l < 4) {
             if (sensor.isTopLayer()) {
                 return 6 * (l - 1);
             } else {
@@ -90,7 +90,6 @@ public class SvtPlotUtils {
         return -1;
     }
 
-    
     /**
      * Create a plotter style.
      *
@@ -115,7 +114,7 @@ public class SvtPlotUtils {
         style.yAxisStyle().labelStyle().setFontSize(14);
         style.yAxisStyle().setVisible(true);
 
-        // Turn off the histogram grid 
+        // Turn off the histogram grid
         style.gridStyle().setVisible(false);
 
         // Set the style of the data
@@ -134,7 +133,8 @@ public class SvtPlotUtils {
         return style;
     }
 
-    public static IPlotterStyle createStyle(IPlotterFactory plotterFactory, HpsSiSensor sensor, String xAxisTitle, String yAxisTitle) {
+    public static IPlotterStyle createStyle(IPlotterFactory plotterFactory, HpsSiSensor sensor, String xAxisTitle,
+            String yAxisTitle) {
         IPlotterStyle style = createStyle(plotterFactory, xAxisTitle, yAxisTitle);
 
         if (sensor.isTopLayer()) {
@@ -177,7 +177,8 @@ public class SvtPlotUtils {
         double pedestal = sensor.getPedestal(strip, 0);
         double noise = sensor.getNoise(strip, 0);
 
-        if (hitMap.get(sensor) != null && (hitMap.get(sensor).contains(strip - 1) || hitMap.get(sensor).contains(strip + 1))) {
+        if (hitMap.get(sensor) != null
+                && (hitMap.get(sensor).contains(strip - 1) || hitMap.get(sensor).contains(strip + 1))) {
             return false;
         }
         for (int i = 0; i < 6; i++) {
@@ -187,7 +188,7 @@ public class SvtPlotUtils {
         }
         return true;
     }
-    
+
     public static IFitResult performGaussianFit(IHistogram1D histogram) {
         IFunctionFactory functionFactory = aida.analysisFactory().createFunctionFactory(null);
         IFitFactory fitFactory = aida.analysisFactory().createFitFactory();
@@ -199,52 +200,55 @@ public class SvtPlotUtils {
         parameters[2] = histogram.rms();
         function.setParameters(parameters);
         IFitResult fitResult = null;
-         Logger minuitLogger = Logger.getLogger("org.freehep.math.minuit");
+        Logger minuitLogger = Logger.getLogger("org.freehep.math.minuit");
         minuitLogger.setLevel(Level.OFF);
         minuitLogger.info("minuit logger test");
-        
+
         try {
             fitResult = fitter.fit(histogram, function);
         } catch (RuntimeException e) {
-           logger.warning("fit failed");
+            logger.warning("fit failed");
         }
         return fitResult;
     }
-    
+
     /*
-     *  puts a function on a plotter region with a  style
-     *  copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
+     * puts a function on a plotter region with a style copied from
+     * org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
 
     public static void plot(IPlotter plotter, IFunction function, IPlotterStyle style, int region) {
         if (style == null)
             style = getPlotterStyle(function);
         logger.info("Putting function in region " + region);
-        if(style != null)
+        if (style != null)
             plotter.region(region).plot(function, style);
         else
             plotter.region(region).plot(function);
     }
 
-    
     /*
-     *  gets default plotter style for a function type
-     *  copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
+     * gets default plotter style for a function type copied from
+     * org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
     public static IPlotterStyle getPlotterStyle(IFunction func) {
         StyleRegistry styleRegistry = StyleRegistry.getStyleRegistry();
         IStyleStore store = styleRegistry.getStore("DefaultStyleStore");
-        if(store == null) {
+        if (store == null) {
             int n = styleRegistry.getAvailableStoreNames().length;
-            if(n==0) return null;
-            else store = styleRegistry.getStore(styleRegistry.getAvailableStoreNames()[0]);
+            if (n == 0)
+                return null;
+            else
+                store = styleRegistry.getStore(styleRegistry.getAvailableStoreNames()[0]);
         }
         IPlotterStyle style = null;
         style = store.getStyle("DefaultFunctionStyle");
         if (style == null) {
             int n = store.getAllStyleNames().length;
-            if(n==0) return null;
-            else style = store.getStyle(store.getAllStyleNames()[0]);
+            if (n == 0)
+                return null;
+            else
+                style = store.getStyle(store.getAllStyleNames()[0]);
         }
         return style;
     }

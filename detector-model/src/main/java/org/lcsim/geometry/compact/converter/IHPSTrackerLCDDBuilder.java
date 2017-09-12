@@ -5,10 +5,10 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 
 public interface IHPSTrackerLCDDBuilder {
 
-    public  void setSensitiveDetector(SensitiveDetector sens);
+    public void setSensitiveDetector(SensitiveDetector sens);
 
-    public  SensitiveDetector getSensitiveDetector();
-    
+    public SensitiveDetector getSensitiveDetector();
+
     public void build(Volume worldVolume);
 
     public void setVisualization();

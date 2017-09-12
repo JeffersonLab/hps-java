@@ -136,7 +136,7 @@ final class DataSourceComboBox extends JComboBox<DataSourceItem> implements Prop
      * @param configurationModel the underlying configuration data model
      * @param connectionModel the underlying connection status data model
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     DataSourceComboBox(final ConfigurationModel configurationModel, final ConnectionStatusModel connectionModel) {
         addActionListener(this);
         setActionCommand(Commands.DATA_SOURCE_CHANGED);
@@ -147,6 +147,7 @@ final class DataSourceComboBox extends JComboBox<DataSourceItem> implements Prop
         configurationModel.addPropertyChangeListener(this);
 
         final ListCellRenderer renderer = new DefaultListCellRenderer() {
+
             @Override
             public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
                     final boolean isSelected, final boolean cellHasFocus) {

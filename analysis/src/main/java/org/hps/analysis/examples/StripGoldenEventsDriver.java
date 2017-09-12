@@ -13,7 +13,7 @@ import org.lcsim.util.Driver;
  * Currently defined as e+ e- with six-hit tracks and nothing else in the event
  * @author Norman A Graf
  *
- * @version $Id:
+ * @todo Move to recon.filtering
  */
 public class StripGoldenEventsDriver extends Driver
 {
