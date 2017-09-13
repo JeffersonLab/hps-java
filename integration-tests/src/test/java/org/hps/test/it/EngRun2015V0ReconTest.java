@@ -24,17 +24,17 @@ public class EngRun2015V0ReconTest extends TestCase {
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_005772_v0skim_10k.evio";
     private final int nEvents = -1;
-    private String aidaOutputFile = "target/test-output/EngRun2015FeeReconTest/EngRun2015V0ReconTest.aida";
+    private String aidaOutputFile = "target/test-output/EngRun2015V0ReconTest/EngRun2015V0ReconTest.aida";
 
     public void testIt() throws Exception {
         URL testURL = new URL(testURLBase + "/" + testFileName);
         FileCache cache = new FileCache();
         File evioInputFile = cache.getCachedFile(testURL);
-        File outputFile = new TestOutputFile(EngRun2015V0ReconTest.class, "EngRun2015MollerReconTest");
+        File outputFile = new TestOutputFile(EngRun2015V0ReconTest.class, "EngRun2015V0ReconTest");
         String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim", "-d",
             "HPS-EngRun2015-Nominal-v6-0-fieldmap", "-D", "outputFile=" + outputFile.getPath(),// "-n", "200",
             evioInputFile.getPath(), "-e", "1000"};
-        System.out.println("Running EngRun2015MollerReconTest.main ...");
+        System.out.println("Running EngRun2015V0ReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
