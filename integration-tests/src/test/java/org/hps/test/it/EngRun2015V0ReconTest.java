@@ -83,7 +83,7 @@ public class EngRun2015V0ReconTest extends TestCase {
                 IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
                 assertEquals(h1_r.entries(), h1_t.entries());
                 assertEquals(h1_r.mean(), h1_t.mean());
-                assertEquals(h1_r.rms(), h1_t.rms());
+                assertEquals(h1_r.rms(), h1_t.rms(), 1E-8);
             }
         }
     }
