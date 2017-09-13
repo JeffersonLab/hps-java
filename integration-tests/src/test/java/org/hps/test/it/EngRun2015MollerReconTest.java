@@ -1,11 +1,16 @@
 package org.hps.test.it;
 
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.ITree;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import junit.framework.TestCase;
+import static junit.framework.TestCase.assertEquals;
 import org.hps.evio.EvioToLcio;
 import org.hps.test.util.TestOutputFile;
+import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil;
@@ -15,10 +20,11 @@ import org.lcsim.util.test.TestUtil;
  * @author Norman A. Graf
  */
 public class EngRun2015MollerReconTest extends TestCase {
-    
-static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
+
+    static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_005772_mollerskim_10k.evio";
     private final int nEvents = -1;
+    private String aidaOutputFile = "target/test-output/EngRun2015FeeReconTest/EngRun2015MollerReconTest.aida";
 
     public void testIt() throws Exception {
         URL testURL = new URL(testURLBase + "/" + testFileName);
@@ -38,8 +44,7 @@ static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibratio
         System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         EngRun2015MollerRecon reconDriver = new EngRun2015MollerRecon();
-        String aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName() + ".aida";
-        System.out.println("writing aida file to: "+aidaOutputFile);
+        aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName() + ".aida";
         reconDriver.setAidaFileName(aidaOutputFile);
         loop.add(reconDriver);
         try {
@@ -49,6 +54,37 @@ static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibratio
             throw new RuntimeException(e);
         }
         System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
+        System.out.println("writing aida file to: " + aidaOutputFile);
+        testPlots();
         System.out.println("Done!");
+    }
+
+    public void testPlots() throws Exception {
+        AIDA aida = AIDA.defaultInstance();
+        final IAnalysisFactory af = aida.analysisFactory();
+
+        URL refFileURL = new URL("http://www.lcsim.org/test/hps-java/referencePlots/EngRun2015MollerReconTest/EngRun2015MollerReconTest-ref.aida");
+        FileCache cache = new FileCache();
+        File aidaRefFile = cache.getCachedFile(refFileURL);
+
+        File aidaTstFile = new File(aidaOutputFile);
+
+        ITree ref = af.createTreeFactory().create(aidaRefFile.getAbsolutePath());
+        ITree tst = af.createTreeFactory().create(aidaTstFile.getAbsolutePath());
+
+        String[] histoNames = ref.listObjectNames();
+        String[] histoTypes = ref.listObjectTypes();
+        System.out.println("comparing " + histoNames.length + " managed objects");
+        for (int i = 0; i < histoNames.length; ++i) {
+            String histoName = histoNames[i];
+            if (histoTypes[i].equals("IHistogram1D")) {
+                System.out.println("checking entries, means and rms for " + histoName);
+                IHistogram1D h1_r = (IHistogram1D) ref.find(histoName);
+                IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
+                assertEquals(h1_r.entries(), h1_t.entries());
+                assertEquals(h1_r.mean(), h1_t.mean());
+                assertEquals(h1_r.rms(), h1_t.rms());
+            }
+        }
     }
 }

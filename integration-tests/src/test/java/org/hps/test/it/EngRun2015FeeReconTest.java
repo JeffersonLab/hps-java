@@ -78,10 +78,12 @@ public class EngRun2015FeeReconTest extends TestCase {
         for (int i = 0; i < histoNames.length; ++i) {
             String histoName = histoNames[i];
             if (histoTypes[i].equals("IHistogram1D")) {
-                System.out.println("comparing " + histoName);
+                System.out.println("checking entries, means and rms for " + histoName);
                 IHistogram1D h1_r = (IHistogram1D) ref.find(histoName);
                 IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
                 assertEquals(h1_r.entries(), h1_t.entries());
+                assertEquals(h1_r.mean(), h1_t.mean());
+                assertEquals(h1_r.rms(), h1_t.rms());
             }
         }
     }
