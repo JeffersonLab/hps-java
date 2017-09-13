@@ -73,12 +73,16 @@ public class EngRun2015FeeReconTest extends TestCase {
         ITree tst = af.createTreeFactory().create(aidaTstFile.getAbsolutePath());
 
         String[] histoNames = ref.listObjectNames();
-        System.out.println("comparing "+histoNames.length+" histograms");
-        for (String histoName : histoNames) {
-            System.out.println("comparing " + histoName);
-            IHistogram1D h1_r = (IHistogram1D) ref.find(histoName);
-            IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
-            assertEquals(h1_r.entries(), h1_t.entries());
+        String[] histoTypes = ref.listObjectTypes();
+        System.out.println("comparing " + histoNames.length + " managed objects");
+        for (int i = 0; i < histoNames.length; ++i) {
+            String histoName = histoNames[i];
+            if (histoTypes[i].equals("IHistogram1D")) {
+                System.out.println("comparing " + histoName);
+                IHistogram1D h1_r = (IHistogram1D) ref.find(histoName);
+                IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
+                assertEquals(h1_r.entries(), h1_t.entries());
+            }
         }
     }
 }
