@@ -24,7 +24,7 @@ public class EngRun2015MollerReconTest extends TestCase {
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_005772_mollerskim_10k.evio";
     private final int nEvents = -1;
-    private String aidaOutputFile = "target/test-output/EngRun2015FeeReconTest/EngRun2015MollerReconTest.aida";
+    private String aidaOutputFile = "target/test-output/EngRun2015MollerReconTest/EngRun2015MollerReconTest.aida";
 
     public void testIt() throws Exception {
         URL testURL = new URL(testURLBase + "/" + testFileName);
