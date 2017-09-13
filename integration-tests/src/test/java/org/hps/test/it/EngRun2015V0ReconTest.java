@@ -72,8 +72,8 @@ public class EngRun2015V0ReconTest extends TestCase {
         ITree ref = af.createTreeFactory().create(aidaRefFile.getAbsolutePath());
         ITree tst = af.createTreeFactory().create(aidaTstFile.getAbsolutePath());
 
-        String[] histoNames = ref.listObjectNames();
-        String[] histoTypes = ref.listObjectTypes();
+        String[] histoNames = ref.listObjectNames(".", true);
+        String[] histoTypes = ref.listObjectTypes(".", true);
         System.out.println("comparing " + histoNames.length + " managed objects");
         for (int i = 0; i < histoNames.length; ++i) {
             String histoName = histoNames[i];
