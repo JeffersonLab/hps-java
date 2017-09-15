@@ -1547,7 +1547,7 @@ public class TrackUtils {
         double tanLambda = TrackUtils.calculateTanLambda(currentMomentum.z(), currentMomentum.magnitude());
 
         double[] trackParameters = new double[5];
-        trackParameters[ParameterName.d0.ordinal()] = Math.sqrt(doca);
+        trackParameters[ParameterName.d0.ordinal()] = doca;
         trackParameters[ParameterName.phi0.ordinal()] = phi;
         trackParameters[ParameterName.omega.ordinal()] = curvature;
         trackParameters[ParameterName.z0.ordinal()] = z;
