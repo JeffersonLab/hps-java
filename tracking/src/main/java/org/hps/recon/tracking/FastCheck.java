@@ -15,8 +15,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
-//import org.lcsim.util.aida.AIDA;
-
 /**
  * HPS version of LCSim class
  * @author Richard Partridge
@@ -30,12 +28,10 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
     private double _max_p;
     private double _min_dztot;
 
-    //private AIDA aida = AIDA.defaultInstance();
-
     public FastCheck(SeedStrategy strategy, double bfield, ISeedTrackerDiagnostics diag) {
         super(strategy, bfield, diag);
         _bfield = bfield;
-        setNSigErr(6);
+        setNSigErr(-1);
         setMax_p(1.1);
         setMin_dztot(0.05);
     }
@@ -254,6 +250,10 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         if (rcurv < super.getRMin())
             return false;
 
+        // stop checking here unless nsig is set to positive value
+        if (_nsigErr <= 0)
+            return true;
+
         //  Find the point of closest approach
         double x0 = xc * (1. - rcurv / rc);
         double y0 = yc * (1. - rcurv / rc);
@@ -363,22 +363,12 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
             dztot = _min_dztot;
 
         double dzpred = Math.abs(zpred - z[1]);
-        //aida.histogram2D("DztotVsZpred_all").fill(dzpred, dztot);
-        //aida.histogram2D("MserrVsP").fill(pEstimate, mserr);
-        //if (dztot < 0.5 && dzpred < 0.5) {
-        //  aida.histogram2D("DztotVsP_low").fill(pEstimate, dztot);
-        // aida.histogram2D("ZpredVsP_low").fill(pEstimate, dzpred);
-        // aida.histogram2D("MserrVsP_low").fill(pEstimate, mserr);
-        //}
 
         // comparison of middle z to prediction including error
-        if (dzpred > dztot) {
-            // aida.histogram2D("DztotVsZpred_failed").fill(dzpred, dztot);
+        if (dzpred > dztot)
             return false;
-        }
 
         //  Passed all checks - success!
-        //aida.histogram2D("DztotVsZpred_passed").fill(dzpred, dztot);
         return true;
     }
 
