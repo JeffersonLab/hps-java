@@ -313,19 +313,15 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
             RelationalTable hittostripHS = null;
 
             if (allowHoleSlotCombo) {
-                helicalTrackCrossesHS = findHoleStripCrosses(striplistmap);
+                helicalTrackCrossesHS = findHoleSlotCrosses(striplistmap);
                 hittostripHS = makeHitToStripTable(helicalTrackCrossesHS, stripmap);
                 // reject a hole-slot cross if there's a better hole-hole or slot-slot cross
                 helicalTrackCrossesHS = eliminateGhostHits(helicalTrackCrossesHS, hittostripHS, hittostrip);
+                helicalTrackCrosses.addAll(helicalTrackCrossesHS);
             }
 
-            if (rejectGhostHits) {
+            if (rejectGhostHits)
                 helicalTrackCrosses = eliminateGhostHits(helicalTrackCrosses, hittostrip, hittostrip);
-                if (allowHoleSlotCombo)
-                    helicalTrackCrossesHS = eliminateGhostHits(helicalTrackCrossesHS, hittostripHS, hittostripHS);
-            }
-            if (allowHoleSlotCombo)
-                helicalTrackCrosses.addAll(helicalTrackCrossesHS);
 
             for (Iterator<HelicalTrackCross> iter = helicalTrackCrosses.listIterator(); iter.hasNext();) {
                 HelicalTrackCross cross = iter.next();
@@ -473,7 +469,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         return helicalTrackCrosses;
     }
 
-    private List<HelicalTrackCross> findHoleStripCrosses(Map<SiSensor, List<HelicalTrackStrip>> striplistmap) {
+    private List<HelicalTrackCross> findHoleSlotCrosses(Map<SiSensor, List<HelicalTrackStrip>> striplistmap) {
         List<HelicalTrackCross> helicalTrackCrossesHS = new ArrayList<HelicalTrackCross>();
 
         Map<Integer, Integer> HSmap = new HashMap<Integer, Integer>();
