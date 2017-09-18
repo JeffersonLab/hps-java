@@ -1,22 +1,22 @@
 package kalman;
 
 //State vector (projected, filtered, or smoothed) for the Kalman filter
-class StateVector {      
+class StateVector {  
 
 	int kUp;         // Last site index for which information is used in this state vector
 	int kLow;        // Index of the site for the present pivot (lower index on a in the formalism)
 	Vec a;           // Helix parameters at this site, relevant only in the local site coordinates
 	Vec X0;          // Pivot point of this site; reference point for these helix parameters, in local site coordinates
 	RotMatrix Rot;   // Rotation from the global coordinates to the local site coordinates aligned with B field on z axis
-	Vec origin;      // Origin of the local site coordinates.
+	Vec origin;      // Origin of the local site coordinates in the global system.
 	SquareMatrix C;  // Helix covariance matrix at this site
 	double mPred;    // Filtered or smoothed predicted measurement at site kLow
 	double r;        // Filtered or smoothed residual at site kLow
 	double R;        // Covariance of residual
 	boolean verbose;
-	private SquareMatrix F;  // Propagator matrix to propagate from this site to the next site
-	private double B;        // Field magnitude
-	private double alpha;    // Conversion from 1/K to radius R
+	private SquareMatrix F;  	// Propagator matrix to propagate from this site to the next site
+	private double B;        	// Field magnitude
+	private double alpha;    	// Conversion from 1/K to radius R
 	private HelixPlaneIntersect hpi;
 	
 	// Constructor for the initial state vector used to start the Kalman filter.
@@ -29,7 +29,7 @@ class StateVector {
 		this.origin = origin.copy();
 		this.B = B;
 		double c = 2.99793e8;             // Speed of light in m/s
-		alpha = 1000.0*1.0e9/(c*B);       // Convert from pt in GeV to curvature in mm
+		alpha = 1.0e12/(c*B);             // Convert from pt in GeV to curvature in mm
 		if (verbose) System.out.format("Creating state vector with alpha=%12.4e\n", alpha);
 		kLow = site;
 		kUp = kLow;
@@ -92,7 +92,8 @@ class StateVector {
 		helixErrors().print("helix parameter errors");
 		C.print("for the helix covariance");
 		if (F != null) F.print("for the propagator");
-		System.out.format("Predicted measurement=%10.6f, residual=%10.7f, covariance of residual=%12.4e\n", mPred, r, R);
+		double sigmas= r/Math.sqrt(R);
+		System.out.format("Predicted measurement=%10.6f, residual=%10.7f, covariance of residual=%12.4e, std. devs. = %12.4e\n", mPred, r, R, sigmas);
 		System.out.format("End of dump of state vector %s %d  %d<<<\n", s, kUp, kLow);
 	}
 	
@@ -218,7 +219,8 @@ class StateVector {
 		aPrime.C = D.invert();
 		if (verbose) {
 			aPrime.C.print("filtered covariance");
-			SquareMatrix Calt = (C.unit(5).dif(K.product(H))).multiply(C);
+			SquareMatrix U = new SquareMatrix(5,1.0);
+			SquareMatrix Calt = (U.dif(K.product(H))).multiply(C);
 			Calt.print("alternate filtered covariance");
 			aPrime.C.multiply(D).print("unit matrix??");
 		}

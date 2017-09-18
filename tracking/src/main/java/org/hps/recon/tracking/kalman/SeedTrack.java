@@ -32,8 +32,9 @@ class SeedTrack {
 	}
 	
 	SeedTrack(
-		ArrayList<Measurement> data,   // List of measurement data points
-		int Npnt,                      // Number of points to use (starting with the first)
+		ArrayList<SiModule> data,      // List of Si modules with data
+		int frst,                      // First Si module to use
+		int Npnt,                      // Number of modules to use (starting with the first)
 	    boolean verbose                // Set true for lots of debug printout
 		) {
 		
@@ -54,13 +55,12 @@ class SeedTrack {
 		
 		// First find the average field 
 		Vec Bvec = new Vec(0.,0.,0.);
-		Iterator<Measurement> itr = data.iterator();
-		while (itr.hasNext() && N < Npnt) {     
-			Measurement m = itr.next();
-			Bvec = Bvec.sum(m.t.scale(m.B));
-			N++;
+		for (int itr=frst; itr<frst+Npnt; itr++) {
+			SiModule thisSi = data.get(itr);
+			Vec thisB = thisSi.Bfield.getField(thisSi.toGlobal(new Vec(0.,0.,0.)));  // Taking the field from the center of the module
+			Bvec = Bvec.sum(thisB);
 		}
-		Bvec = Bvec.scale(1.0/(double)N);
+		Bvec = Bvec.scale(1.0/(double)Npnt);
 		Bavg = Bvec.mag();
 		tavg = Bvec.unitVec();
 		double c = 2.99793e8;             // Speed of light in m/s
@@ -71,23 +71,23 @@ class SeedTrack {
 		Rot = new RotMatrix(uhat,vhat,tavg);
 		
 		N = 0;
-		itr = data.iterator();
-		while (itr.hasNext() && N < Npnt) {     
-			Measurement m = itr.next();
-			if (m.stereo == 0.) Nnonbending ++; else Nbending++;
+		for (int itr=frst; itr<frst+Npnt; itr++) {
+			SiModule thisSi = data.get(itr);
+			if (thisSi.stereo == 0.) Nnonbending ++; else Nbending++;
+			Measurement m = thisSi.hits.get(0);                         // TBD elaborate the hit selection
 			Vec pnt = new Vec(0., m.v, 0.);
-			pnt = m.toGlobal(pnt);
+			pnt = thisSi.toGlobal(pnt);
 			if (verbose) {
-				System.out.format("Measurement %d = %10.7f\n", N, m.v);
+				System.out.format("itr=%d, Measurement %d = %10.7f, stereo=%10.7f\n", itr, N, m.v, thisSi.stereo);
 				pnt.print("point global");
 			}
 			pnt = Rot.rotate(pnt);  // Rotate coordinate system to align with the average field
 			x[N] = pnt.v[0];
 			y[N] = pnt.v[1];
 			z[N] = pnt.v[2];
-			v[N] = z[N]*Math.cos(m.stereo) + x[N]*Math.sin(m.stereo);
+			v[N] = z[N]*Math.cos(thisSi.stereo) + x[N]*Math.sin(thisSi.stereo);
 			s[N] = m.sigma;
-			t[N] = m.stereo;
+			t[N] = thisSi.stereo;
 			N++;
 		}
 		if (Nnonbending < 2) {

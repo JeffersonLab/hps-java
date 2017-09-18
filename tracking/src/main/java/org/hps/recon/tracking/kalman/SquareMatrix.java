@@ -19,12 +19,12 @@ class SquareMatrix {    // Simple matrix package strictly for N by N matrices ne
 		}
 	}
 
-	SquareMatrix unit(int N) {            // Create and return a unit matrix
-		SquareMatrix R = new SquareMatrix(N);
+	SquareMatrix(int N, double v) {            // Create a diagonal matrix proportional to the unit matrix
+		this.N = N;
+		M = new double [N][N];
 		for (int i=0; i<N; i++) {
-			R.M[i][i] = 1.0;
+			M[i][i] = v;
 		}
-		return R;
 	}
 	
 	void scale(double f) {   // Multiply all matrix elements by a scalar

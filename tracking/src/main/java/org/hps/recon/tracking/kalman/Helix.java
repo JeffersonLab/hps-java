@@ -172,7 +172,9 @@ class Helix {         // Create a simple helix oriented along the B field axis f
 		Vec t= pmom.unitVec();
 		//System.out.format("randomScat: original direction=%10.7f, %10.7f, %10.7f\n", t.v[0],t.v[1],t.v[2]);
 		double ct = Math.abs(P.T().dot(t));
-		double theta0 = Math.sqrt(2.0*(X/radLen)/ct)*(0.0136/pmom.mag())*(1.0+0.038*Math.log((X/radLen)/ct));
+		double theta0;
+		if (X == 0.) theta0 = 0.;
+		else theta0 = Math.sqrt(2.0*(X/radLen)/ct)*(0.0136/pmom.mag())*(1.0+0.038*Math.log((X/radLen)/ct));
 		double thetaScat = gausRan()*theta0;
 		double phiScat = Math.random()*2.0*Math.PI;
 		//System.out.format("randomScat: theta0=%10.6f thetaScat=%10.7f phiScat=%10.6f\n",theta0,thetaScat,phiScat);
@@ -181,12 +183,15 @@ class Helix {         // Create a simple helix oriented along the B field axis f
 		RotMatrix R1 = new RotMatrix(t,phiScat);
 		uhat = R1.rotate(uhat);       // Rotate the unit vector randomly around the helix direction
 		//System.out.format("uhat dot t=%12.8f\n", uhat.dot(t));  //Crosscheck that uhat is still perpendicular to t
-		RotMatrix R2 = new RotMatrix(uhat,thetaScat);   // Now rotate the helix direction by theta about the u axis
+		RotMatrix R2;
+		if (thetaScat == 0.) R2 = new RotMatrix(0.);
+		else R2 = new RotMatrix(uhat,thetaScat);   // Now rotate the helix direction by theta about the u axis
 
 		Vec yhat = new Vec(0., 1.0, 0.);
 		Vec uBnew = (yhat.cross(tBnew)).unitVec();
 		Vec vBnew = tBnew.cross(uBnew);
 		RotMatrix Rnew = new RotMatrix(uBnew,vBnew,tBnew);  // Also rotate into the frame of the new B field
+		//Rnew.print("Rnew");
 		Vec tnew = Rnew.rotate(R2.rotate(t));		
 		
 		//System.out.format("tnew dot tnew= %14.10f\n", tnew.dot(tnew));

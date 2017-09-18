@@ -1,11 +1,9 @@
 package kalman;
 
-//Kalman fit measurement site, one for each silicon-strip detector
+//Kalman fit measurement site, one for each silicon-strip detector that the track crosses
 class MeasurementSite {  
-	Measurement m;            // Hit measurement    
-	int thisSite;             // Index of this measurement site
-	int nextSite;             // Index of next measurement site
-	int prevSite;             // Index of previous measurement site
+	SiModule m;               // Si detector hit data    
+	int thisSite;             // Index of this measurement
 	StateVector aP;           // Predicted state vector
 	boolean predicted;        // True if the predicted state vector has been built
 	StateVector aF;           // Filtered state vector
@@ -14,18 +12,14 @@ class MeasurementSite {
 	boolean smoothed;         // True if the smoothed state vector has been built
 	double chi2inc;   		  // chi^2 increment for this site
 	Vec H;                    // Derivatives of the transformation from state vector to measurement
+	private double conFac;    // Conversion from B to alpha
 	private double alpha;
 	private double XL;        // Thickness of the detector in radiation lengths
 	private double dEdx;      // in GeV/mm
-	private Vec u;            // Unit vector perpendicular to the B field direction t and lying in the x,z plane
-	private Vec v;            // Another unit vector perpendicular to t and u.  t,u,v form a right-handed orthogonal system aligned with the field
 	private boolean verbose;
 
-	void print() {
-		System.out.format(">>Dump of measurement site %d\n", thisSite);
-		m.print("for this site");
-		u.print("unit vector u");
-		v.print("umit vector v");
+	void print(String s) {
+		System.out.format(">>Dump of measurement site %d %s;  ", thisSite, s);
 		if (smoothed) {
 			System.out.format("    This site has been smoothed\n");
 		} else if (filtered) {
@@ -33,8 +27,11 @@ class MeasurementSite {
 		} else if (predicted) {
 			System.out.format("    This site has been predicted\n");
 		}
-		System.out.format("    nextSite=%d,  prevSite=%d\n", nextSite, prevSite);
-		System.out.format("    Magnetic field strength=%10.6f;   alpha=%10.6f\n", m.B, alpha);
+		m.print("for this site");
+		double B = m.Bfield.getField(m.p.X()).mag();
+		Vec tB = m.Bfield.getField(m.p.X()).unitVec();
+		System.out.format("    Magnetic field strength=%10.6f;   alpha=%10.6f\n", B, alpha);
+		tB.print("magnetic field direction");
 		System.out.format("    chi^2 increment=%12.4e\n",chi2inc);
 		if (predicted) aP.print("predicted");
 		if (filtered) aF.print("filtered");
@@ -45,24 +42,22 @@ class MeasurementSite {
 		System.out.format("End of dump of measurement site %d<<\n",  thisSite);
 	}
 	
-	MeasurementSite(int thisSite, int prevSite, Measurement measurement) {  
+	MeasurementSite(int thisSite, SiModule data) {  
 		this.thisSite = thisSite;
-		this.prevSite = prevSite;
-		nextSite = -1;
-		this.m = measurement;
+		this.m = data;
 		double c = 2.99793e8;             // Speed of light in m/s
-		alpha = 1000.0*1.0e9/(c*m.B);       // Convert from pt in GeV to curvature in mm
+		conFac = 1.0e12/c;
+		Vec Bfield = m.Bfield.getField(m.p.X());
+		double B = Bfield.mag();
+		alpha = conFac/B;       // Convert from pt in GeV to curvature in mm
 		predicted = false;
 		filtered = false;
 		smoothed = false;
 		double rho = 2.329;                  // Density of silicon in g/cm^2
 		double radLen = (21.82/rho) * 10.0;    // Radiation length of silicon in millimeters
-		XL = measurement.thickness/radLen;
+		XL = m.thickness/radLen;
 		double sp = 0.002;   // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
 		dEdx = -0.1*sp*rho;  // in GeV/mm
-		Vec yhat = new Vec(0., 1.0, 0.);
-		u = yhat.cross(m.t).unitVec();
-		v = m.t.cross(u);
 		verbose = false;
 	}
 
@@ -70,7 +65,7 @@ class MeasurementSite {
 		verbose = pS.verbose;
 		double phi = pS.planeIntersect(m.p);
 		if (Double.isNaN(phi)) {  // There may be no intersection if the momentum is too low!
-			System.out.format("MeasurementSite.makePrediction: no intersection of helix with the plane exists. Previous site=%d\n",prevSite);
+			System.out.format("MeasurementSite.makePrediction: no intersection of helix with the plane exists. Site=%d\n",thisSite);
 			return false;
 		}
 		
@@ -85,8 +80,11 @@ class MeasurementSite {
 		
 		double deltaE = 0.; //dEdx*thickness/ct;
 
+		Vec Bfield = m.Bfield.getField(X0);
+		double B = Bfield.mag();
+		Vec tB = Bfield.scale(1.0/B);
 		Vec origin = pS.toGlobal(X0);
-		aP = pS.predict(thisSite, X0, m.B, m.t, origin, XL/ct, deltaE);  // Move pivot point to X0 to generate the predicted helix
+		aP = pS.predict(thisSite, X0, B, tB, origin, XL/ct, deltaE);  // Move pivot point to X0 to generate the predicted helix
 		if (verbose) {
 			pS.a.print("original helix in MeasurementSite.makePrediction");
 			aP.a.print("pivot transformed helix in MeasurementSite.makePrediction");
@@ -103,7 +101,7 @@ class MeasurementSite {
 		//}
 		
 		aP.mPred = h(pS, phi);
-		aP.r = m.v - aP.mPred;
+		aP.r = m.hits.get(0).v - aP.mPred;
 		//if (verbose) {
 		//	System.out.format("MeasurementSite.makePrediction: intersection with old helix is at phi=%10.7f, z=%10.7f\n", phi,aP.mPred);
 		//	double phi2 = aP.planeIntersect(m.p);  // This should always be zero
@@ -114,7 +112,7 @@ class MeasurementSite {
 		H = new Vec(5, buildH(aP));
 		if (verbose) H.print("H in MeasurementSite.makePrediction");
 
-		aP.R = m.sigma*m.sigma - H.dot(aP.a);
+		aP.R = m.hits.get(0).sigma*m.hits.get(0).sigma - H.dot(aP.a);
 		chi2inc = aP.r*aP.r/aP.R;
 		
 		predicted = true;
@@ -134,15 +132,16 @@ class MeasurementSite {
 		// end debug
 		 */
 		
-		double V = m.sigma*m.sigma;
+		Measurement hit = m.hits.get(0);
+		double V = hit.sigma * hit.sigma;
 		aF = aP.filter(H, V);
 		double phiF = aF.planeIntersect(m.p);
 		if (Double.isNaN(phiF)) {  // There may be no intersection if the momentum is too low!
-			System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Previous site=%d\n",prevSite);
+			System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n",thisSite);
 			return false;
 		}
 		aF.mPred = h(aF, phiF);
-		aF.r = m.v - aF.mPred;
+		aF.r = hit.v - aF.mPred;
 
 		//Vec HF = new Vec(5, buildH(aF));   // No need to recalculate H from the filtered helix parameters
 		//HF.print("filtered H");
@@ -163,14 +162,15 @@ class MeasurementSite {
 		
 		aS = aF.smooth(nS.aS, nS.aP);
 		
-		double V = m.sigma*m.sigma;
+		Measurement hit = m.hits.get(0);
+		double V = hit.sigma*hit.sigma;
 		double phiS = aS.planeIntersect(m.p);
 		if (Double.isNaN(phiS)) {  // This should almost never happen!
 			System.out.format("MeasurementSite.smooth: no intersection of helix with the plane exists.\n");
 			return false;
 		}
 		aS.mPred = h(aS, phiS);
-		aS.r = m.v - aS.mPred;
+		aS.r = hit.v - aS.mPred;
 
 		//Vec HS = new Vec(5, buildH(aS));  // It's not necessary to recalculate H with the smoothed helix parameters
 		//H.print("old H");
