@@ -56,7 +56,7 @@ final class RunSummaryCommand extends AbstractCommand {
 
         final CommandLine commandLine = this.parse(arguments);
 
-        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        final DatabaseConditionsManager conditionsManager = getManager();
 
         if (!conditionsManager.isInitialized()) {
             throw new RuntimeException("The conditions system is not initialized.");

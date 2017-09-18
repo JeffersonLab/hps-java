@@ -5,8 +5,6 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
     <execute>
-        <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver"/>
         <driver name="EcalEdepToTriggerConverterDriver"/>
         <driver name="EcalReadoutConverterDriver"/>
         <driver name="EcalTriggerClusterer"/>
@@ -17,14 +15,6 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>
-  <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-         <detectorName>${detector}</detectorName>
-          <runNumber>${run}</runNumber>
-        <freeze>true</freeze>
-    </driver>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>
         <driver name="EcalEdepToTriggerConverterDriver" type="org.hps.recon.ecal.EcalEdepToTriggerConverterDriver">
             <readoutCollection>EcalReadoutAnalogHits</readoutCollection>
             <applyBadCrystalMap>false</applyBadCrystalMap>

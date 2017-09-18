@@ -3,9 +3,10 @@ package org.hps.recon.tracking;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
@@ -49,7 +50,7 @@ public abstract class AmbiguityResolver {
         this.wereCleaned = new ArrayList<Track>();
         this.poorScore = new ArrayList<Track>();
 
-        hitsToTracksMap = new HashMap<List<TrackerHit>, List<Track>>();
+        hitsToTracksMap = new LinkedHashMap<List<TrackerHit>, List<Track>>();
         sharedTracksMap = new HashMap<Track, List<Track>>();
         trackScoreMap = new HashMap<Track, double[]>();
     }

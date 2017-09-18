@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1189,7 +1190,7 @@ public class TrackUtils {
     public static MCParticle getMatchedTruthParticle(Track track) {
         boolean debug = false;
 
-        Map<MCParticle, Integer> particlesOnTrack = new HashMap<MCParticle, Integer>();
+        Map<MCParticle, Integer> particlesOnTrack = new LinkedHashMap<MCParticle, Integer>();
 
         if (debug)
             System.out.printf("getMatchedTruthParticle: getmatched mc particle from %d tracker hits on the track \n", track.getTrackerHits().size());
@@ -1603,7 +1604,7 @@ public class TrackUtils {
         double tanLambda = TrackUtils.calculateTanLambda(currentMomentum.z(), currentMomentum.magnitude());
 
         double[] trackParameters = new double[5];
-        trackParameters[ParameterName.d0.ordinal()] = doca;
+        trackParameters[ParameterName.d0.ordinal()] = Math.sqrt(doca);
         trackParameters[ParameterName.phi0.ordinal()] = phi;
         trackParameters[ParameterName.omega.ordinal()] = curvature;
         trackParameters[ParameterName.z0.ordinal()] = z;

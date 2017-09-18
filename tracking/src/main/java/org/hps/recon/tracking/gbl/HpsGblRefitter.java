@@ -21,7 +21,6 @@ import org.hps.recon.tracking.TrackUtils;
 import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
-import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.hps.util.BasicLogFormatter;
 import org.lcsim.constants.Constants;
@@ -44,6 +43,7 @@ import org.lcsim.util.Driver;
  *
  * @author Norman A Graf, SLAC
  * @author Per Hansson Adrian, SLAC
+ * @author Miriam Diamond, SLAC
  */
 public class HpsGblRefitter extends Driver {
 
@@ -55,7 +55,6 @@ public class HpsGblRefitter extends Driver {
     private final String gblTrack2StripRelationName = "GBLTrackToStripData";
     private final String outputTrackCollectionName = "GBLTracks";
     private final String trackRelationCollectionName = "MatchedToGBLTrackRelations";
-
 
     private MilleBinary mille;
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
@@ -188,7 +187,7 @@ public class HpsGblRefitter extends Driver {
         LOGGER.info(trackFits.size() + " fitted GBL tracks before adding to event");
 
         List<Track> newTracks = new ArrayList<Track>();
-        
+
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();
 
         List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
@@ -210,7 +209,7 @@ public class HpsGblRefitter extends Driver {
 
             // Create relation from seed to GBL track
             trackRelations.add(new BaseLCRelation(fittedTraj.get_seed(), trk.getFirst()));
-            
+
             kinkDataCollection.add(trk.getSecond());
             kinkDataRelations.add(new BaseLCRelation(trk.getSecond(), trk.getFirst()));
         }
@@ -235,22 +234,20 @@ public class HpsGblRefitter extends Driver {
         double s = 0.;
         int iLabel;
 
-
         // jacobian to transport errors between points along the path
         Matrix jacPointToPoint = new Matrix(5, 5);
         jacPointToPoint.UnitMatrix();
         // Vector of the strip clusters used for the GBL fit
         List<GblPoint> listOfPoints = new ArrayList<GblPoint>();
+        // Save the association between strip cluster and label, and between label and path length
         Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
-
-        // Store the projection from local to measurement frame for each strip cluster
-        Map< Integer, Matrix> proL2m_list = new HashMap<Integer, Matrix>();
-        // Save the association between strip cluster and label
+        Map<Integer, double[]> trackPosMap = new HashMap<Integer, double[]>();
+        Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
 
         //start trajectory at refence point (s=0) - this point has no measurement
         GblPoint ref_point = new GblPoint(jacPointToPoint);
         listOfPoints.add(ref_point);
-        
+
         // save path length to each point
         iLabel = listOfPoints.size();
         pathLengthMap.put(iLabel, s);
@@ -327,7 +324,6 @@ public class HpsGblRefitter extends Driver {
             //projection from local (uv) to measurement directions (dm/duv)
             Matrix proL2m = proM2l.copy();
             proL2m = proL2m.inverse();
-            proL2m_list.put(strip.getId(), proL2m.copy()); // is a copy needed or is that just a C++/root thing?
 
             if (debug) {
                 System.out.println("HpsGblFitter: " + "proM2l:");
@@ -341,11 +337,9 @@ public class HpsGblRefitter extends Driver {
             // measurement/residual in the measurement system
             // only 1D measurement in u-direction, set strip measurement direction to zero
             Vector meas = new Vector(2);
-//      double uRes = strip->GetUmeas() - strip->GetTrackPos().x(); // how can this be correct?
             double uRes = strip.getMeas() - strip.getTrackPos().x();
             meas.set(0, uRes);
             meas.set(1, 0.);
-//      //meas[0][0] += deltaU[iLayer] # misalignment
             Vector measErr = new Vector(2);
             measErr.set(0, strip.getMeasErr());
             measErr.set(1, 0.);
@@ -370,32 +364,6 @@ public class HpsGblRefitter extends Driver {
                 jacPointToPoint.print(4, 6);
             }
 
-            // Get the transpose of the Jacobian
-            Matrix jacPointToPointTransposed = jacPointToPoint.copy().transpose();
-
-            // Option to use uncorrelated  MS errors
-            // This is similar to what is done in lcsim seedtracker
-            // The msCov below holds the MS errors
-            // This is for testing purposes only.
-            boolean useUncorrMS = false;
-            Matrix msCov = new Matrix(5, 5);
-
-            // Propagate the MS covariance matrix (in the curvilinear frame) to this strip position
-            msCov = msCov.times(jacPointToPointTransposed);
-            msCov = jacPointToPoint.times(msCov);
-
-            // Get the MS covariance for the measurements in the measurement frame
-            Matrix proL2mTransposed = proL2m.copy().transpose();
-
-            Matrix measMsCov = proL2m.times((msCov.getMatrix(3, 4, 3, 4)).times(proL2mTransposed));
-
-            if (debug) {
-                System.out.println("HpsGblFitter: " + " msCov at this point:");
-                msCov.print(4, 6);
-                System.out.println("HpsGblFitter: " + "measMsCov at this point:");
-                measMsCov.print(4, 6);
-            }
-
             GblPoint point = new GblPoint(jacPointToPoint);
             //Add measurement to the point
             point.addMeasurement(proL2m, meas, measPrec, 0.);
@@ -412,25 +380,20 @@ public class HpsGblRefitter extends Driver {
             scatPrec.set(0, 1.0 / (scatErr.get(0) * scatErr.get(0)));
             scatPrec.set(1, 1.0 / (scatErr.get(1) * scatErr.get(1)));
 
-            // add scatterer if not using the uncorrelated MS covariances for testing
-            if (!useUncorrMS) {
-                point.addScatterer(scat, scatPrec);
-                if (debug) {
-                    System.out.println("HpsGblFitter: " + "adding scatError to this point:");
-                    scatErr.print(4, 6);
-                }
+            // add scatterer 
+            point.addScatterer(scat, scatPrec);
+            if (debug) {
+                System.out.println("HpsGblFitter: " + "adding scatError to this point:");
+                scatErr.print(4, 6);
             }
 
             // Add this GBL point to list that will be used in fit
             listOfPoints.add(point);
             iLabel = listOfPoints.size();
 
-            // save path length to each point
+            // save path length and sensor-number to each point
             pathLengthMap.put(iLabel, s);
-
-            // Update MS covariance matrix 
-            msCov.set(1, 1, msCov.get(1, 1) + scatErr.get(0) * scatErr.get(0));
-            msCov.set(2, 2, msCov.get(2, 2) + scatErr.get(1) * scatErr.get(1));
+            sensorMap.put(iLabel, strip.getId());
 
             //// Calculate global derivatives for this point
             // track direction in tracking/global frame
@@ -440,20 +403,37 @@ public class HpsGblRefitter extends Driver {
             if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
                 throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
             }
-            // rotate track direction to measurement frame     
+            // rotate track direction to measurement frame   
+            //            Matrix GlobalToMeas = new Matrix(3, 3);
+            //            GlobalToMeas.set(0, 0, u.x());
+            //            GlobalToMeas.set(0, 1, u.y());
+            //            GlobalToMeas.set(0, 2, u.z());
+            //            GlobalToMeas.set(1, 0, v.x());
+            //            GlobalToMeas.set(1, 1, v.y());
+            //            GlobalToMeas.set(1, 2, v.z());
+            //            GlobalToMeas.set(2, 0, w.x());
+            //            GlobalToMeas.set(2, 1, w.y());
+            //            GlobalToMeas.set(2, 2, w.z());
+            //            Vector tDirMeasVect = new Vector(GlobalToMeas.times(new Vector(tDirGlobal.v())));
+            //            Hep3Vector tDirMeas = new BasicHep3Vector(tDirMeasVect.get(0), tDirMeasVect.get(1), tDirMeasVect.get(2));
+
             Hep3Vector tDirMeas = new BasicHep3Vector(VecOp.dot(tDirGlobal, u), VecOp.dot(tDirGlobal, v), VecOp.dot(tDirGlobal, w));
-            // TODO this is a trivial one. Fix it.
+            // vector coplanar with measurement plane from origin to prediction
             Hep3Vector normalMeas = new BasicHep3Vector(VecOp.dot(w, u), VecOp.dot(w, v), VecOp.dot(w, w));
 
-            // vector coplanar with measurement plane from origin to prediction
-            Hep3Vector tPosMeas = strip.getTrackPos();
+            // global track position
+            //Matrix MeasToGlobal = GlobalToMeas.inverse();
+            //Vector tPosGlobalVect = MeasToGlobal.times(new Vector(strip.getTrackPos().v()));
+            //double[] tPosGlobal = { tPosGlobalVect.get(0), tPosGlobalVect.get(1), tPosGlobalVect.get(2) };
+            //trackPosMap.put(iLabel, tPosGlobal);
+            trackPosMap.put(iLabel, strip.getTrackPos().v());
 
             // measurements: non-measured directions 
             double vmeas = 0.;
             double wmeas = 0.;
 
             // calculate and add derivatives to point
-            GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, tPosMeas, normalMeas);
+            GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, strip.getTrackPos(), normalMeas);
 
             //TODO find a more robust way to get half.
             boolean isTop = Math.sin(strip.getTrackLambda()) > 0;
@@ -502,21 +482,12 @@ public class HpsGblRefitter extends Driver {
         int[] iVals = new int[1];
         traj.fit(dVals, iVals, "");
         LOGGER.info("fit result: Chi2=" + dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
-        Vector aCorrection = new Vector(5);
-        SymMatrix aCovariance = new SymMatrix(5);
-        traj.getResults(1, aCorrection, aCovariance);
-        if (debug) {
-            System.out.println(" cor ");
-            aCorrection.print(6, 4);
-            System.out.println(" cov ");
-            aCovariance.print(6, 4);
-        }
-
-        LOGGER.fine("locPar " + aCorrection.toString());
 
         FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
         fittedTraj.setPathLengthMap(pathLengthMap);
-        
+        fittedTraj.setSensorMap(sensorMap);
+        fittedTraj.setTrackPosMap(trackPosMap);
+
         return fittedTraj;
     }
 
@@ -555,9 +526,6 @@ public class HpsGblRefitter extends Driver {
     private static class GlobalDers {
 
         private final int _layer;
-        private final double _umeas; // measurement direction
-        private final double _vmeas; // unmeasured direction
-        private final double _wmeas; // normal to plane
         private final Hep3Vector _t; // track direction
         private final Hep3Vector _p; // track prediction
         private final Hep3Vector _n; // normal to plane
@@ -567,9 +535,6 @@ public class HpsGblRefitter extends Driver {
 
         public GlobalDers(int layer, double umeas, double vmeas, double wmeas, Hep3Vector tDir, Hep3Vector tPred, Hep3Vector normal) {
             _layer = layer;
-            _umeas = umeas;
-            _vmeas = vmeas;
-            _wmeas = wmeas;
             _t = tDir;
             _p = tPred;
             _n = normal;
@@ -579,15 +544,6 @@ public class HpsGblRefitter extends Driver {
             _dm_dg = getMeasDers();
             // Calculate, by chain rule, derivatives of residuals w.r.t. global parameters
             _dr_dg = _dr_dm.times(_dm_dg);
-
-            //logger.log(Level.FINER," dr_dm\n"+ _dr_dm.toString() + "\ndm_dg\n" + _dm_dg.toString() + "\ndr_dg\n" +_dr_dg.toString());
-            //logger.info("loglevel " + logger.getLevel().toString());
-            //print 'dm_dg'
-            //print dm_dg
-            //print 'dr_dm'
-            //print dr_dm
-            //print 'dr_dg'
-            //print self.dr_dg
         }
 
         /**
@@ -618,7 +574,7 @@ public class HpsGblRefitter extends Driver {
             double dmw_dbeta = _p.x(); //self.umeas
             // Derivative of the local measurement for a rotation around w-axis (gamma)
             double dmu_dgamma = _p.y(); // self.vmeas
-            double dmv_dgamma = -1.0 * _p.x();  // -1.0 * self.umeas 
+            double dmv_dgamma = -1.0 * _p.x(); // -1.0 * self.umeas 
             double dmw_dgamma = 0.;
             // put into matrix
             Matrix dm_dg = new Matrix(3, 6);
@@ -640,7 +596,7 @@ public class HpsGblRefitter extends Driver {
             dm_dg.set(2, 3, dmw_dalpha);
             dm_dg.set(2, 4, dmw_dbeta);
             dm_dg.set(2, 5, dmw_dgamma);
-            //dmdg = np.array([[dmu_du, dmu_dv, dmu_dw, dmu_dalpha, dmu_dbeta, dmu_dgamma],[dmv_du, dmv_dv, dmv_dw, dmv_dalpha, dmv_dbeta, dmv_dgamma],[dmw_du, dmw_dv, dmw_dw, dmw_dalpha, dmw_dbeta, dmw_dgamma]])
+
             return dm_dg;
         }
 
@@ -651,8 +607,6 @@ public class HpsGblRefitter extends Driver {
         private Matrix getResDers() {
             double tdotn = VecOp.dot(_t, _n);
             Matrix dr_dm = Matrix.identity(3, 3);
-            //print 't ', self.t, ' n ', self.n, ' dot(t,n) ', tdotn
-            //logger.info("t " + _t.toString() +" n " + _n.toString() + " dot(t,n) " + tdotn);
             double delta, val;
             for (int i = 0; i < 3; ++i) {
                 for (int j = 0; j < 3; ++j) {
@@ -693,114 +647,5 @@ public class HpsGblRefitter extends Driver {
             return milleParameters;
         }
 
-
-        /*
-
-         class globalDers:
-         def __init__(self,layer,umeas,vmeas,wmeas, tDir, tPred, normal):
-         self.layer = layer # measurement direction
-         self.umeas = umeas # measurement direction
-         self.vmeas = vmeas # unmeasured direction
-         self.wmeas = wmeas # normal to plane
-         self.t = tDir # track direction
-         self.p = tPred # track prediction
-         self.n = normal # normal to plane
-         # Global derivaties of the local measurements
-         self.dm_dg = self.getMeasDers()
-         # Derivatives of residuals w.r.t. measurement 
-         self.dr_dm = self.getResDers()
-         # Derivatives of residuals w.r.t. global parameters
-         self.dr_dg = np.dot(self.dr_dm, self.dm_dg)
-         #print 'dm_dg'
-         #print dm_dg
-         #print 'dr_dm'
-         #print dr_dm
-         #print 'dr_dg'
-         #print self.dr_dg
-
-         def dump(self):
-         print 'globalDers:'
-         print 'layer ', self.layer
-         print 'umeas ', self.umeas, ' vmeas ', self.vmeas, ' wmeas ', self.wmeas
-         print 't ', self.t, ' p ', self.p, ' n ', self.n
-         print 'dm_dg\n',self.dm_dg, '\ndr_dm\n',self.dr_dm,'\ndr_dg\n',self.dr_dg
-
-         def getDers(self,isTop):
-         half_offset = 10000 
-         translation_offset = 1000
-         direction_offset = 100
-         topBot = 1
-         transRot = 1
-         direction = 1
-         if not isTop:
-         topBot = 2
-         res = {}
-         labels = []
-         ders = []
-         for ip, name in global_params.iteritems():
-         if ip > 3:
-         transRot = 2
-         direction = ((ip-1) % 3) + 1
-         else:
-         direction = ip
-         label = (int)(topBot * half_offset + transRot * translation_offset + direction * direction_offset + self.layer)
-         labels.append(label)
-         ders.append(self.dr_dg[0,ip-1])
-
-         return {'labels':np.array([labels]) , 'ders':np.array([ders])}
-
-
-
-
-         def getResDers(self):
-         # Derivatives of the local perturbed residual w.r.t. the measurements m (u,v,w)'
-         tdotn = np.dot(self.t.T,self.n)
-         drdg = np.eye(3)
-         #print 't ', self.t, ' n ', self.n, ' dot(t,n) ', tdotn
-         for i in range(3):
-         for j in range(3):
-         delta = 0.
-         if i==j:
-         delta = 1.       
-         drdg[i][j] = delta - self.t[i]*self.n[j]/tdotn[0]
-         return drdg
-
-
-
-
-         def getMeasDers(self):
-         # Derivative of mt, the perturbed measured coordinate vector m 
-         # w.r.t. to global parameters: u,v,w,alpha,beta,gamma
-
-         # Derivative of the local measurement for a translation in u
-         dmu_du = 1.
-         dmv_du = 0.
-         dmw_du = 0.
-         # Derivative of the local measurement for a translation in v
-         dmu_dv = 0.
-         dmv_dv = 1.
-         dmw_dv = 0.
-         # Derivative of the local measurement for a translation in w
-         dmu_dw = 0.
-         dmv_dw = 0.
-         dmw_dw = 1.
-         # Derivative of the local measurement for a rotation around u-axis (alpha)
-         dmu_dalpha = 0.
-         dmv_dalpha = self.p[2] # self.wmeas
-         dmw_dalpha = -1.0 * self.p[1] # -1.0 * self.vmeas
-         # Derivative of the local measurement for a rotation around v-axis (beta)
-         dmu_dbeta = -1.0 * self.p[2] #-1.0 * self.wmeas
-         dmv_dbeta = 0.
-         dmw_dbeta = self.p[0] #self.umeas
-         # Derivative of the local measurement for a rotation around w-axis (gamma)
-         dmu_dgamma = self.p[1] # self.vmeas
-         dmv_dgamma = -1.0 * self.p[0]  # -1.0 * self.umeas 
-         dmw_dgamma = 0.
-         # put into matrix
-         dmdg = np.array([[dmu_du, dmu_dv, dmu_dw, dmu_dalpha, dmu_dbeta, dmu_dgamma],[dmv_du, dmv_dv, dmv_dw, dmv_dalpha, dmv_dbeta, dmv_dgamma],[dmw_du, dmw_dv, dmw_dw, dmw_dalpha, dmw_dbeta, dmw_dgamma]])
-         #print dmw_dbeta
-         #dmdg = np.array([[dmu_du, dmu_dv],[dmu_dw, dmu_dalpha], [dmw_dbeta, dmw_dgamma]])
-         return dmdg
-         */
     }
 }

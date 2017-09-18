@@ -344,12 +344,10 @@
 <!--        <field type="BoxDipole" name="AnalyzingDipole" x="2.117*cm" y="0*cm" z="45.72*cm" dx="22.86*cm" dy="10.2743*cm" dz="45.72*cm" bx="0.0" by="-0.5" bz="0.0">     
         </field>-->
         <field 
-            type="FieldMap3D"
-            name="HPSDipoleFieldMap3D" 
+            type="FieldMap3D" name="HPSDipoleFieldMap3D" 
             filename="fieldmap/HPS_b18d36_unfolded.dat" 
-            xoffset="2.117*cm"
-            yoffset="0.0*cm"
-            zoffset="45.72*cm"
+            url="https://raw.githubusercontent.com/JeffersonLab/hps-fieldmaps/master/HPS_b18d36_unfolded.tar.gz"
+            xoffset="2.117*cm" yoffset="0.0*cm" zoffset="45.72*cm"
         />
     </fields>
 

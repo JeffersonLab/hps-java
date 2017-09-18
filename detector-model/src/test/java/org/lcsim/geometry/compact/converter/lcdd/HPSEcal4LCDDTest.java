@@ -26,7 +26,7 @@ public class HPSEcal4LCDDTest extends TestCase {
     }
 
     public void test_converter() throws Exception {
-        DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+        DatabaseConditionsManager mgr = new DatabaseConditionsManager();
         mgr.setDetector("HPS-PhysicsRun2016-Nominal-v4-4", 0); /*
          * any run number and detector will work here
          */
