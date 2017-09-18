@@ -22,6 +22,7 @@ import java.util.Set;
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.EventQuality.Quality;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
+import org.lcsim.constants.Constants;
 
 import static org.lcsim.constants.Constants.fieldConversion;
 
@@ -91,7 +92,63 @@ public class TrackUtils {
     public static Hep3Vector extrapolateHelixToXPlane(TrackState track, double x) {
         return extrapolateHelixToXPlane(getHTF(track), x);
     }
+    /*      
+    *   mg 9/11/2017  ... get the perigee parameters from a known point on the helix and momentum at that point
+    *   I though this was done elsewhere, but stuff like the HelixParamCaluculator seems to give crappy answers
+    *   this is particularly useful for 
+    */
+    
+    public static double[] getParametersFromPointAndMomentum(Hep3Vector point,Hep3Vector momentum, int charge, double BField){
+        //first, get the curvature
+          //Calculate theta, the of the helix projected into an SZ plane, from the z axis
+        double px = momentum.x();
+        double py = momentum.y();
+        double pz = momentum.z();
+        double pt = Math.sqrt(px*px + py*py);
+        double p = Math.sqrt(pt*pt + pz*pz);
+//        double cth = pz / p;
+//        double theta = Math.acos(cth);
+//        System.out.println("pt = "+pt+"; costh = "+cth);
+       
+        //Calculate Radius of the Helix
+        double R = charge* pt / (Constants.fieldConversion * BField);                
+        //Slope in the Dz/Ds sense, tanL Calculation
+        double tanL = pz / pt;
+       //  Azimuthal direction at point
+        double phi = Math.atan2(py, px);
+        //reference position is at x=pointX, y=pointY, z=0
+        //so dca=0, z0=pointZ
+        double dca=0;
+        double z0=point.z();
+        
+        double[] params = new double[5];
+        params[HelicalTrackFit.phi0Index] = phi;
+        params[HelicalTrackFit.curvatureIndex] = 1/R;
+        params[HelicalTrackFit.dcaIndex] = dca;
+        params[HelicalTrackFit.slopeIndex] = tanL;
+        params[HelicalTrackFit.z0Index] = z0;
+         System.out.println("Orig  :  d0 = " + params[HelicalTrackFit.dcaIndex]
+                + "; phi0 = " + params[HelicalTrackFit.phi0Index]
+                + "; curvature = " + params[HelicalTrackFit.curvatureIndex]
+                + "; z0 = " +params[HelicalTrackFit.z0Index]
+                + "; slope = " + params[HelicalTrackFit.slopeIndex]
+        );
+               
+        //ok, now shift these to the new reference frame, recalculating the new perigee parameters        
+        double[] oldReferencePoint={point.x(),point.y(),0};
+        double[] newReferencePoint={0,0,0};
 
+        System.out.println("MC origin : x = "+point.x()+"; y = "+point.y());
+        double[] newParameters=getParametersAtNewRefPoint(newReferencePoint,oldReferencePoint,params);
+            System.out.println("New  :  d0 = " + newParameters[HelicalTrackFit.dcaIndex]
+                + "; phi0 = " + newParameters[HelicalTrackFit.phi0Index]
+                + "; curvature = " + newParameters[HelicalTrackFit.curvatureIndex]
+                + "; z0 = " +newParameters[HelicalTrackFit.z0Index]
+                + "; slope = " + newParameters[HelicalTrackFit.slopeIndex]
+        );
+        return newParameters;
+    }
+    
     /**
      * Change reference point of helix (following L3 Internal Note 1666.)
      *
