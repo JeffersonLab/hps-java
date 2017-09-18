@@ -20,6 +20,7 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.hps.analysis.tuple.TupleDriver;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
@@ -28,9 +29,11 @@ import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
 import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
+import org.lcsim.fit.helicaltrack.HelixParamCalculator;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
@@ -194,6 +197,17 @@ public class VertexDebugTupleDriver extends TupleDriver {
             "pPosXErrRefitBSCFromV0/D", "pPosYErrRefitBSCFromV0/D", "pPosZErrRefitBSCFromV0/D"};
         tupleVariables.addAll(Arrays.asList(refitBSCFromV0Vars));
 
+         String[] trackPars = new String[]{"eleOmegaErr/D","eleD0Err/D","elePhi0Err/D","eleSlopeErr/D", "eleZ0Err/D",  
+             "posOmegaErr/D","posD0Err/D","posPhi0Err/D","posSlopeErr/D", "posZ0Err/D",
+             "eleOmega/D","eleD0/D","elePhi0/D","eleSlope/D", "eleZ0/D",  
+             "posOmega/D","posD0/D","posPhi0/D","posSlope/D", "posZ0/D",
+             "eleMCOmega/D","eleMCD0/D","eleMCPhi0/D","eleMCSlope/D", "eleMCZ0/D",  
+             "posMCOmega/D","posMCD0/D","posMCPhi0/D","posMCSlope/D", "posMCZ0/D",
+             "eleTrkChisq/D","posTrkChisq/D"
+         };
+        tupleVariables.addAll(Arrays.asList(trackPars));
+
+        
     }
 
     protected void detectorChanged(Detector detector) {
@@ -322,6 +336,10 @@ public class VertexDebugTupleDriver extends TupleDriver {
         tupleMap.put("pPosYMC/D", pPosMC.y());
         tupleMap.put("pPosZMC/D", pPosMC.z());
 
+        // Debug the uncertainties on the track
+//        double[] cov=electron.getTracks().get(0).getTrackStates().get(0).getCovMatrix();
+//        SymmetricMatrix foo= new SymmetricMatrix(5,cov,false);
+//     
         // Covert the tracks to BilliorTracks.
         BilliorTrack electronBTrack = toBilliorTrack(electron.getTracks().get(0));
         BilliorTrack positronBTrack = toBilliorTrack(positron.getTracks().get(0));
@@ -331,6 +349,112 @@ public class VertexDebugTupleDriver extends TupleDriver {
 
         BilliorVertex vtxFit = fitVertex(VertexDebugTupleDriver.Constraint.UNCONSTRAINED, electronBTrack, positronBTrack);
         Hep3Vector vtxPos = vtxFit.getPosition();
+
+        // Parameter ordering.
+        int D0 = ParameterName.d0.ordinal();
+        int PHI = ParameterName.phi0.ordinal();
+        int OMEGA = ParameterName.omega.ordinal();
+        int TANLAMBDA = ParameterName.tanLambda.ordinal();
+        int Z0 = ParameterName.z0.ordinal();
+
+        double[] ecov = electron.getTracks().get(0).getTrackStates().get(0).getCovMatrix();
+        SymmetricMatrix emat = new SymmetricMatrix(5, ecov, true);
+        double[] pcov = positron.getTracks().get(0).getTrackStates().get(0).getCovMatrix();
+        SymmetricMatrix pmat = new SymmetricMatrix(5, pcov, true);
+     
+//        System.out.println("ecov(0) = " + ecov[0]
+//                + "; ecov(1) = " + ecov[1]
+//                + "; ecov(2) = " + ecov[2]
+//                + "; ecov(3) = " + ecov[3]
+//                + "; ecov(4) = " + ecov[4]
+//                + "; ecov(5) = " + ecov[5]
+//                + "; ecov(6) = " + ecov[6]
+//                + "; ecov(7) = " + ecov[7]
+//                + "; ecov(8) = " + ecov[8]
+//                + "; ecov(9) = " + ecov[9]
+//                + "; ecov(10) = " + ecov[10]
+//                + "; ecov(11) = " + ecov[11]
+//                + "; ecov(12) = " + ecov[12]
+//                + "; ecov(13) = " + ecov[13]
+//                + "; ecov(14) = " + ecov[14]
+//        );
+//        System.out.println("Matrix : \n" + emat.toString());
+//        System.out.println("Matrix : \n" + emattrue.toString());
+
+        //        HelicalTrackFit mcHTF=TrackUtils.getHTF(posMC, B_FIELD);   
+        //switch the sign of the B_FIELD like the tracking code needs
+//        HelixParamCalculator parCalc = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), (int) posMC.getCharge(), -B_FIELD);
+        double[] newparCalc = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), (int) posMC.getCharge(), -B_FIELD);
+//        System.out.println("MC Origin:  ox = " + CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()).x()
+//                + "; oy = " + CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()).y()
+//                + "; oz = " + CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()).z()
+//        );
+//        System.out.println("MC Momentum:  px = " + CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()).x()
+//                + "; py = " + CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()).y()
+//                + "; pz = " + CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()).z()
+//        );
+//        System.out.println("MC HTF:  d0 = " + parCalc.getDCA()
+//                + "; phi0 = " + parCalc.getPhi0()
+//                + "; curvature = " + 1 / parCalc.getRadius()
+//                + "; z0 = " + parCalc.getZ0()
+//                + "; slope = " + parCalc.getSlopeSZPlane()
+//        );
+//        System.out.println("Recon HTF:  d0 = " + electron.getTracks().get(0).getTrackStates().get(0).getD0()
+//                + "; phi0 = " + electron.getTracks().get(0).getTrackStates().get(0).getPhi()
+//                + "; curvature = " + electron.getTracks().get(0).getTrackStates().get(0).getOmega()
+//                + "; z0 = " + electron.getTracks().get(0).getTrackStates().get(0).getZ0()
+//                + "; slope = " + electron.getTracks().get(0).getTrackStates().get(0).getTanLambda()
+//        );
+ 
+        HelixParamCalculator parCalcP = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), (int) posMC.getCharge(), -B_FIELD);
+        HelixParamCalculator parCalcM = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(eleMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(eleMC.getOrigin()), (int) eleMC.getCharge(), -B_FIELD);
+          System.out.println("MC HTF:  d0 = " + parCalcP.getDCA()
+                + "; phi0 = " + parCalcP.getPhi0()
+                + "; curvature = " + 1 / parCalcP.getRadius()
+                + "; z0 = " + parCalcP.getZ0()
+                + "; slope = " + parCalcP.getSlopeSZPlane()
+        );
+        tupleMap.put("eleTrkChisq/D", electronBTrack.chisqtot());
+        tupleMap.put("eleOmegaErr/D", Math.sqrt(emat.e(OMEGA, OMEGA)));//omega
+        tupleMap.put("eleD0Err/D", Math.sqrt(emat.e(D0, D0)));//doca
+        tupleMap.put("elePhi0Err/D", Math.sqrt(emat.e(PHI, PHI)));
+        tupleMap.put("eleSlopeErr/D", Math.sqrt(emat.e(TANLAMBDA, TANLAMBDA)));
+        tupleMap.put("eleZ0Err/D", Math.sqrt(emat.e(Z0, Z0)));
+        tupleMap.put("posTrkChisq/D", positronBTrack.chisqtot());
+        tupleMap.put("posOmegaErr/D", Math.sqrt(pmat.e(OMEGA, OMEGA)));//omega
+        tupleMap.put("posD0Err/D", Math.sqrt(pmat.e(D0, D0)));//doca
+        tupleMap.put("posPhi0Err/D", Math.sqrt(pmat.e(PHI, PHI)));
+        tupleMap.put("posSlopeErr/D", Math.sqrt(pmat.e(TANLAMBDA, TANLAMBDA)));
+        tupleMap.put("posZ0Err/D", Math.sqrt(pmat.e(Z0, Z0)));
+
+        tupleMap.put("eleOmega/D", electron.getTracks().get(0).getTrackStates().get(0).getOmega());//omega
+        tupleMap.put("eleD0/D", electron.getTracks().get(0).getTrackStates().get(0).getD0());//doca
+        tupleMap.put("elePhi0/D", electron.getTracks().get(0).getTrackStates().get(0).getPhi());
+        tupleMap.put("eleSlope/D", electron.getTracks().get(0).getTrackStates().get(0).getTanLambda());
+        tupleMap.put("eleZ0/D", electron.getTracks().get(0).getTrackStates().get(0).getZ0());
+        tupleMap.put("posOmega/D", positron.getTracks().get(0).getTrackStates().get(0).getOmega());//omega
+        tupleMap.put("posD0/D", positron.getTracks().get(0).getTrackStates().get(0).getD0());//doca
+        tupleMap.put("posPhi0/D", positron.getTracks().get(0).getTrackStates().get(0).getPhi());
+        tupleMap.put("posSlope/D", positron.getTracks().get(0).getTrackStates().get(0).getTanLambda());
+        tupleMap.put("posZ0/D", positron.getTracks().get(0).getTrackStates().get(0).getZ0());
+
+        tupleMap.put("eleMCSlope/D", parCalcM.getSlopeSZPlane());//emct.slope());
+        tupleMap.put("eleMCD0/D", parCalcM.getDCA());//emct.dca());
+        tupleMap.put("eleMCPhi0/D", parCalcM.getPhi0());//emct.phi0());
+        tupleMap.put("eleMCOmega/D", -1*parCalcM.getMCOmega());//emct.curvature());
+        tupleMap.put("eleMCZ0/D", parCalcM.getZ0());//emct.z0());
+        tupleMap.put("posMCSlope/D", parCalcP.getSlopeSZPlane());//pmct.slope());
+        tupleMap.put("posMCD0/D", parCalcP.getDCA());//pmct.dca());
+        tupleMap.put("posMCPhi0/D", parCalcP.getPhi0());//pmct.phi0());
+        tupleMap.put("posMCOmega/D", -1*parCalcP.getMCOmega());//pmct.curvature());
+        tupleMap.put("posMCZ0/D", parCalcP.getZ0());//pmct.z0());
+
+//        System.out.println("MC New:  d0 = " + newparCalc[HelicalTrackFit.dcaIndex]
+//                + "; phi0 = " + newparCalc[HelicalTrackFit.phi0Index]
+//                + "; curvature = " + newparCalc[HelicalTrackFit.curvatureIndex]
+//                + "; z0 = " + newparCalc[HelicalTrackFit.z0Index]
+//                + "; slope = " + newparCalc[HelicalTrackFit.slopeIndex]
+//        );
 
         Hep3Vector pEleFit = vtxFit.getFittedMomentum(0);
         Hep3Vector pPosFit = vtxFit.getFittedMomentum(1);
@@ -511,13 +635,13 @@ public class VertexDebugTupleDriver extends TupleDriver {
         double mBSCShift = vtxFitBSCShift.getInvMass();
         double chisqBSCShift = vtxFitBSCShift.getChi2();
 
-        if (BSCV0List.size() == 1){
+        if (BSCV0List.size() == 1) {
             if (mBSCShift != BSCV0List.get(0).getMass())
                 LOGGER.info("BSC mass mis-match!!!   " + mBSCShift + ";   " + BSCV0List.get(0).getMass());
             else
                 LOGGER.info("BSC mass good match!!!   " + mBSCShift);
-            
-              BilliorVertex vtxFitBSCShiftFromV0 = (BilliorVertex) BSCV0List.get(0).getStartVertex();
+
+            BilliorVertex vtxFitBSCShiftFromV0 = (BilliorVertex) BSCV0List.get(0).getStartVertex();
             Hep3Vector vtxPosRefitBSCFromV0 = vtxFitBSCShiftFromV0.getPosition();
             Hep3Vector pEleRefitBSCFromV0 = vtxFitBSCShiftFromV0.getFittedMomentum(0);
             Hep3Vector pPosRefitBSCFromV0 = vtxFitBSCShiftFromV0.getFittedMomentum(1);
