@@ -315,8 +315,6 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
             if (allowHoleSlotCombo) {
                 helicalTrackCrossesHS = findHoleSlotCrosses(striplistmap);
                 hittostripHS = makeHitToStripTable(helicalTrackCrossesHS, stripmap);
-                // reject a hole-slot cross if there's a better hole-hole or slot-slot cross
-                helicalTrackCrossesHS = eliminateGhostHits(helicalTrackCrossesHS, hittostripHS, hittostrip);
                 helicalTrackCrosses.addAll(helicalTrackCrossesHS);
             }
 
