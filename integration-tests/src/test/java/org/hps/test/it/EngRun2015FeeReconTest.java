@@ -5,8 +5,10 @@ import hep.aida.IHistogram1D;
 import hep.aida.ITree;
 import java.io.File;
 import java.io.IOException;
+import static java.lang.Math.abs;
 import java.net.URL;
 import junit.framework.TestCase;
+import static junit.framework.TestCase.assertEquals;
 import org.hps.evio.EvioToLcio;
 import org.hps.test.util.TestOutputFile;
 import org.lcsim.util.aida.AIDA;
@@ -31,7 +33,7 @@ public class EngRun2015FeeReconTest extends TestCase {
         File evioInputFile = cache.getCachedFile(testURL);
         File outputFile = new TestOutputFile(EngRun2015FeeReconTest.class, "EngRun2015FeeReconTest");
         String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim", "-d",
-            "HPS-EngRun2015-Nominal-v6-0-fieldmap", "-D", "outputFile=" + outputFile.getPath(), //"-n", "2000",
+            "HPS-EngRun2015-Nominal-v6-0-fieldmap", "-D", "outputFile=" + outputFile.getPath(), "-n", "5000",
             evioInputFile.getPath(), "-e", "1000"};
         System.out.println("Running EngRun2015FeeReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
@@ -75,6 +77,7 @@ public class EngRun2015FeeReconTest extends TestCase {
         String[] histoNames = ref.listObjectNames();
         String[] histoTypes = ref.listObjectTypes();
         System.out.println("comparing " + histoNames.length + " managed objects");
+        double tolerance = 1E-4;
         for (int i = 0; i < histoNames.length; ++i) {
             String histoName = histoNames[i];
             if (histoTypes[i].equals("IHistogram1D")) {
@@ -82,8 +85,8 @@ public class EngRun2015FeeReconTest extends TestCase {
                 IHistogram1D h1_r = (IHistogram1D) ref.find(histoName);
                 IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
                 assertEquals(h1_r.entries(), h1_t.entries());
-                assertEquals(h1_r.mean(), h1_t.mean());
-                assertEquals(h1_r.rms(), h1_t.rms());
+                assertEquals(h1_r.mean(), h1_t.mean(), tolerance * abs((h1_r.mean() - h1_t.mean())/h1_r.mean()));
+                assertEquals(h1_r.rms(), h1_t.rms(), tolerance * abs((h1_r.rms() - h1_t.rms())/h1_r.rms()));
             }
         }
     }
