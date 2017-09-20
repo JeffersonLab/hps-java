@@ -56,11 +56,11 @@ public class EngRun2015V0ReconTest extends TestCase {
         }
         System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
         System.out.println("writing aida file to: " + aidaOutputFile);
-        testPlots();
+        comparePlots();
         System.out.println("Done!");
     }
     
-       public void testPlots() throws Exception {
+       public void comparePlots() throws Exception {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
 
