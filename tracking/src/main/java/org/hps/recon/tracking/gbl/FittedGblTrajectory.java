@@ -310,6 +310,57 @@ public class FittedGblTrajectory {
         return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
     }
 
+    public Pair<double[], SymmetricMatrix> getCorrectedPerigeeParametersAtPoint(HelicalTrackFit htf, int iLabel, double bfield) {
+
+        // Get corrections from GBL fit
+        Vector locPar = new Vector(5);
+        SymMatrix locCov = new SymMatrix(5);
+
+        // Extract the corrections to the track parameters and the covariance matrix from the GBL trajectory
+        getResults(iLabel, locPar, locCov);
+
+        // Use the super class to keep track of reference point of the helix
+        HpsHelicalTrackFit helicalTrackFit = new HpsHelicalTrackFit(htf);
+
+        // Calculate new reference point for this point
+        // This is the intersection of the helix with the plane
+        // The trajectory has this information already in the form of a map between GBL point and path length
+        double pathLength = getPathLength(iLabel);
+        Hep3Vector refPointVec = HelixUtils.PointOnHelix(helicalTrackFit, pathLength);
+        double[] refPoint = new double[] { refPointVec.x(), refPointVec.y() };
+
+        LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
+
+        // Propagate the helix to new reference point
+        double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
+
+        // Create a new helix with the new parameters and the new reference point
+        HpsHelicalTrackFit helicalTrackFitAtPoint = new HpsHelicalTrackFit(helixParametersAtPoint, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
+
+        // find the corrected perigee track parameters at this point
+        double[] helixParametersAtPointCorrected = GblUtils.getCorrectedPerigeeParameters(locPar, helicalTrackFitAtPoint, bfield);
+
+        // create a new helix
+        HpsHelicalTrackFit helicalTrackFitAtPointCorrected = new HpsHelicalTrackFit(helixParametersAtPointCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
+
+        // Calculate the updated covariance
+        Matrix jacobian = GblUtils.getCLToPerigeeJacobian(helicalTrackFit, helicalTrackFitAtPointCorrected, bfield);
+        Matrix helixCovariance = jacobian.times(locCov.times(jacobian.transpose()));
+        SymmetricMatrix cov = new SymmetricMatrix(5);
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (i >= j) {
+                    cov.setElement(i, j, helixCovariance.get(i, j));
+                }
+            }
+        }
+        LOGGER.finest("corrected helix covariance:\n" + cov);
+
+        double parameters_gbl[] = helicalTrackFitAtPointCorrected.parameters();
+
+        return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
+    }
+
     /**
      * Extract kinks across the trajectory.
      * @return kinks in a {@link GBLKinkData} object.

@@ -115,7 +115,7 @@ public class MakeGblTracks {
                     trk.getTrackStates().add(dummy);
                 }
                 prevID = millepedeID;
-                Pair<double[], SymmetricMatrix> correctedHelixParamsSensor = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, ilabel, bfield);
+                Pair<double[], SymmetricMatrix> correctedHelixParamsSensor = fittedGblTrajectory.getCorrectedPerigeeParametersAtPoint(helicalTrackFit, ilabel, bfield);
                 // set TrackState location code
                 int loc = TrackState.AtOther;
                 if (i == 0)
