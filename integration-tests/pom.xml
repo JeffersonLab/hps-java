@@ -58,6 +58,11 @@
           <excludes>
             <exclude>**/EcalSimReconTest.java</exclude>
             <exclude>**/DataQualityMonitorTest.java</exclude>
+            <exclude>**/MCReconNoReadoutTest.java</exclude>
+            <exclude>**/MCReconSteeringTest.java</exclude>
+            <exclude>**/ReadoutNoPileupTest.java</exclude>
+            <exclude>**/ReconSteeringTest.java</exclude>
+            <exclude>**/SimpleSvtReadoutTest.java</exclude>
           </excludes>
           <systemPropertyVariables>
             <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
