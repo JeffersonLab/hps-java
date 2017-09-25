@@ -97,15 +97,17 @@ public class TrackUtils {
     public static Hep3Vector extrapolateHelixToXPlane(TrackState track, double x) {
         return extrapolateHelixToXPlane(getHTF(track), x);
     }
+
     /*      
     *   mg 9/11/2017  ... get the perigee parameters from a known point on the helix and momentum at that point
     *   I though this was done elsewhere, but stuff like the HelixParamCaluculator seems to give crappy answers
     *   this is particularly useful for getting the helix parameters for MC truth
      */
-    public static double[] getParametersFromPointAndMomentum(Hep3Vector point, Hep3Vector momentum, int charge, double BField,boolean writeIt ) throws FileNotFoundException {
+    public static double[] getParametersFromPointAndMomentum(Hep3Vector point, Hep3Vector momentum, int charge, double BField, boolean writeIt) throws FileNotFoundException {
 
         //print out the original trajectory
-        if(writeIt) writeTrajectory(momentum, point, charge, BField, "orig-point-and-mom.txt");
+        if (writeIt)
+            writeTrajectory(momentum, point, charge, BField, "orig-point-and-mom.txt");
         //first, get the curvature
         //Calculate theta, the of the helix projected into an SZ plane, from the z axis
         double px = momentum.x();
@@ -145,7 +147,7 @@ public class TrackUtils {
         double[] oldReferencePoint = {point.x(), point.y(), 0};
         double[] newReferencePoint = {0, 0, 0};
 
-        System.out.println("MC origin : x = " + point.x() + "; y = " + point.y()+";  z = " + point.z());
+        System.out.println("MC origin : x = " + point.x() + "; y = " + point.y() + ";  z = " + point.z());
         double[] newParameters = getParametersAtNewRefPoint(newReferencePoint, oldReferencePoint, params);
         System.out.println("New  :  d0 = " + newParameters[HelicalTrackFit.dcaIndex]
                 + "; phi0 = " + newParameters[HelicalTrackFit.phi0Index]
@@ -154,9 +156,10 @@ public class TrackUtils {
                 + "; slope = " + newParameters[HelicalTrackFit.slopeIndex]
         );
         //print the trajectory after shift.  Should be the same!!!        
-         if(writeIt) writeTrajectory(getMomentum(newParameters[HelicalTrackFit.curvatureIndex], newParameters[HelicalTrackFit.phi0Index], newParameters[HelicalTrackFit.slopeIndex], BField),
-                getPoint(newParameters[HelicalTrackFit.dcaIndex], newParameters[HelicalTrackFit.phi0Index], newParameters[HelicalTrackFit.z0Index]),
-                charge, BField, "final-point-and-mom.txt");
+        if (writeIt)
+            writeTrajectory(getMomentum(newParameters[HelicalTrackFit.curvatureIndex], newParameters[HelicalTrackFit.phi0Index], newParameters[HelicalTrackFit.slopeIndex], BField),
+                    getPoint(newParameters[HelicalTrackFit.dcaIndex], newParameters[HelicalTrackFit.phi0Index], newParameters[HelicalTrackFit.z0Index]),
+                    charge, BField, "final-point-and-mom.txt");
 
         return newParameters;
     }
@@ -258,96 +261,49 @@ public class TrackUtils {
         BasicMatrix jac = new BasicMatrix(5, 5);
 //
 //        //the jacobian elements below are copied & pasted from mg's mathemematica notebook 7/5/17
-//        jac.setElement(0, 0, (Power(rho, 2) * (-1 + d0 * rho) * Power(Sec((phi0 - ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.), 2)
-//                * Power(dx * Cos(phi0) + dy * Sin(phi0), 2) + 2 * (1 - d0 * rho)
-//                * (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2) + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2)))
-//                / (2. * (1 - d0 * rho) * (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2) + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2))));
-//
-//        jac.setElement(0, 1, dx * Cos(phi0) + dy * Sin(phi0) - (rho * Power(Sec((phi0 - ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.),
-//                2) * (dx * Cos(phi0) + dy * Sin(phi0)) * ((Power(dx, 2) + Power(dy, 2)) * rho + (dy - d0 * dy * rho) * Cos(phi0) + dx * (-1 + d0 * rho) * Sin(phi0)))
-//                / (2. * (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
-//                - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)))
-//                + (dy * Cos(phi0) - dx * Sin(phi0)) * Tan((-phi0 + ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.));
-//
-//        jac.setElement(0, 2, -(Power(Sec((-phi0 + ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.), 2)
-//                * Power(dx * Cos(phi0) + dy * Sin(phi0), 2))
-//                / (2. * (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
-//                - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0))));
-//
-//        jac.setElement(1, 0, -((Power(rho, 2) * (dx * Cos(phi0) + dy * Sin(phi0)))
-//                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
-//                - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0))));
-//
-//        jac.setElement(1, 1, ((-1 + d0 * rho) * (-1 + d0 * rho - dy * rho * Cos(phi0) + dx * rho * Sin(phi0)))
-//                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2) - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0)
-//                + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)));
-//
-//        jac.setElement(1, 2, -((dx * Cos(phi0) + dy * Sin(phi0))
-//                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
-//                - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0))));
-//
-//        jac.setElement(3, 0, (rho * tanLambda * (dx * Cos(phi0) + dy * Sin(phi0)))
-//                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2) - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0)
-//                + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)));
-//
-//        jac.setElement(3, 1, (tanLambda * ((Power(dx, 2) + Power(dy, 2)) * rho + (dy - d0 * dy * rho) * Cos(phi0) + dx * (-1 + d0 * rho) * Sin(phi0)))
-//                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2) - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0)
-//                + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)));
-//
-//        jac.setElement(3, 2, (tanLambda * (ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))
-//                + (dx * rho * Cos(phi0) + dy * rho * Sin(phi0) - phi0 * (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2)
-//                + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2)))
-//                / (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2) + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2)))) / Power(rho, 2));
-//
-//        jac.setElement(3, 4, (phi0 - ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / rho);
-//
-//        jac.setElement(2, 2, 1);
-//        jac.setElement(3, 3, 1);
-//        jac.setElement(4, 4, 1);
-
-        jac.setElement(0, 0, (-(Power(rho, 2) * (-1 + d0 * rho) * Power(Sec((phi0 - ArcTan((dx * rho) / (-1 + d0 * rho) + Sin(phi0), (dy * rho) / (1 - d0 * rho) + Cos(phi0))) / 2.), 2)
-                * Power(dx * Cos(phi0) + dy * Sin(phi0), 2)) + 2 * (1 - d0 * rho)
+        jac.setElement(0, 0, (Power(rho, 2) * (-1 + d0 * rho) * Power(Sec((phi0 - ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.), 2)
+                * Power(dx * Cos(phi0) + dy * Sin(phi0), 2) + 2 * (1 - d0 * rho)
                 * (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2) + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2)))
                 / (2. * (1 - d0 * rho) * (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2) + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2))));
 
-        jac.setElement(0, 1, dx * Cos(phi0) + dy * Sin(phi0) - (Power(Sec((phi0 - ArcTan((dx * rho) / (-1 + d0 * rho) + Sin(phi0), (dy * rho) / (1 - d0 * rho) + Cos(phi0))) / 2.), 2)
-                * (dx * Cos(phi0) + dy * Sin(phi0)) * (2 - 4 * d0 * rho + 2 * Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
-                - 3 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 3 * dx * rho * (-1 + d0 * rho) * Sin(phi0)))
+        jac.setElement(0, 1, dx * Cos(phi0) + dy * Sin(phi0) - (rho * Power(Sec((phi0 - ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.),
+                2) * (dx * Cos(phi0) + dy * Sin(phi0)) * ((Power(dx, 2) + Power(dy, 2)) * rho + (dy - d0 * dy * rho) * Cos(phi0) + dx * (-1 + d0 * rho) * Sin(phi0)))
                 / (2. * (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
                 - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)))
-                + (dy * Cos(phi0) - dx * Sin(phi0)) * Tan((-phi0 + ArcTan((dx * rho) / (-1 + d0 * rho) + Sin(phi0), (dy * rho) / (1 - d0 * rho) + Cos(phi0))) / 2.));
+                + (dy * Cos(phi0) - dx * Sin(phi0)) * Tan((-phi0 + ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.));
 
-        jac.setElement(0, 2, (Power(Sec((-phi0 + ArcTan((dx * rho) / (-1 + d0 * rho) + Sin(phi0), (dy * rho) / (1 - d0 * rho) + Cos(phi0))) / 2.), 2)
+        jac.setElement(0, 2, -(Power(Sec((-phi0 + ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / 2.), 2)
                 * Power(dx * Cos(phi0) + dy * Sin(phi0), 2))
                 / (2. * (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
                 - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0))));
 
-        jac.setElement(1, 0, (Power(rho, 2) * (dx * Cos(phi0) + dy * Sin(phi0)))
-                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2) - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0)
-                + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)));
-
-        jac.setElement(1, 1, -(((-1 + d0 * rho) * (-1 + d0 * rho - dy * rho * Cos(phi0) + dx * rho * Sin(phi0)))
+        jac.setElement(1, 0, -((Power(rho, 2) * (dx * Cos(phi0) + dy * Sin(phi0)))
                 / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
                 - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0))));
 
-        jac.setElement(1, 2, (dx * Cos(phi0) + dy * Sin(phi0))
+        jac.setElement(1, 1, ((-1 + d0 * rho) * (-1 + d0 * rho - dy * rho * Cos(phi0) + dx * rho * Sin(phi0)))
                 / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2) - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0)
                 + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)));
 
-        jac.setElement(3, 0, -((rho * tanLambda * (dx * Cos(phi0) + dy * Sin(phi0)))
+        jac.setElement(1, 2, -((dx * Cos(phi0) + dy * Sin(phi0))
                 / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
                 - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0))));
 
-        jac.setElement(3, 1, (tanLambda * (2 - 4 * d0 * rho + 2 * Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
-                - 3 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 3 * dx * rho * (-1 + d0 * rho) * Sin(phi0)))
-                / (rho * (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2)
-                - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0) + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0))));
+        jac.setElement(3, 0, (rho * tanLambda * (dx * Cos(phi0) + dy * Sin(phi0)))
+                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2) - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0)
+                + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)));
 
-        jac.setElement(3, 2, (tanLambda * (ArcTan((dx * rho) / (-1 + d0 * rho) + Sin(phi0), (dy * rho) / (1 - d0 * rho) + Cos(phi0))
-                - (dx * rho * Cos(phi0) + dy * rho * Sin(phi0) + phi0 * (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2)
+        jac.setElement(3, 1, (tanLambda * ((Power(dx, 2) + Power(dy, 2)) * rho + (dy - d0 * dy * rho) * Cos(phi0) + dx * (-1 + d0 * rho) * Sin(phi0)))
+                / (1 - 2 * d0 * rho + Power(d0, 2) * Power(rho, 2) + Power(dx, 2) * Power(rho, 2) + Power(dy, 2) * Power(rho, 2) - 2 * dy * rho * (-1 + d0 * rho) * Cos(phi0)
+                + 2 * dx * rho * (-1 + d0 * rho) * Sin(phi0)));
+
+        jac.setElement(3, 2, (tanLambda * (ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))
+                + (dx * rho * Cos(phi0) + dy * rho * Sin(phi0) - phi0 * (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2)
                 + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2)))
                 / (Power(dy * rho + Cos(phi0) - d0 * rho * Cos(phi0), 2) + Power(dx * rho + (-1 + d0 * rho) * Sin(phi0), 2)))) / Power(rho, 2));
-        jac.setElement(3, 4, (phi0 - ArcTan((dx * rho) / (-1 + d0 * rho) + Sin(phi0), (dy * rho) / (1 - d0 * rho) + Cos(phi0))) / rho);
+
+        jac.setElement(3, 4, (phi0 - ArcTan((dy * rho) / (1 - d0 * rho) + Cos(phi0), (dx * rho) / (-1 + d0 * rho) + Sin(phi0))) / rho);
+
         jac.setElement(2, 2, 1);
         jac.setElement(3, 3, 1);
         jac.setElement(4, 4, 1);
@@ -1799,7 +1755,7 @@ public class TrackUtils {
         Trajectory trajectory = getTrajectory(momentum, new org.lcsim.spacegeom.SpacePoint(position), q, bField);
         writer.println("x/D:y/D:z/D");
         double maxLength = 800;//mm
-        double startLength=-50;//mm
+        double startLength = -50;//mm
         for (double alpha = startLength; alpha < maxLength; alpha += 1) {
             Hep3Vector point = trajectory.getPointAtDistance(alpha);
             writer.println(point.x() + "  " + point.y() + "  " + point.z());
