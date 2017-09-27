@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Formatter;
+//import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,7 +22,7 @@ import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
-import org.hps.util.BasicLogFormatter;
+//import org.hps.util.BasicLogFormatter;
 import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -47,7 +47,7 @@ import org.lcsim.util.Driver;
  */
 public class HpsGblRefitter extends Driver {
 
-    static Formatter f = new BasicLogFormatter();
+    //static Formatter f = new BasicLogFormatter();
     private final static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
     private boolean _debug = false;
     private final String trackCollectionName = "MatchedTracks";
