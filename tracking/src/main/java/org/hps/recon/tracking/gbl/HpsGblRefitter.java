@@ -241,7 +241,6 @@ public class HpsGblRefitter extends Driver {
         List<GblPoint> listOfPoints = new ArrayList<GblPoint>();
         // Save the association between strip cluster and label, and between label and path length
         Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
-        Map<Integer, double[]> trackPosMap = new HashMap<Integer, double[]>();
         Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
 
         //start trajectory at refence point (s=0) - this point has no measurement
@@ -426,7 +425,8 @@ public class HpsGblRefitter extends Driver {
             //Vector tPosGlobalVect = MeasToGlobal.times(new Vector(strip.getTrackPos().v()));
             //double[] tPosGlobal = { tPosGlobalVect.get(0), tPosGlobalVect.get(1), tPosGlobalVect.get(2) };
             //trackPosMap.put(iLabel, tPosGlobal);
-            trackPosMap.put(iLabel, strip.getTrackPos().v());
+            // local track position
+            //trackPosMap.put(iLabel, strip.getTrackPos().v());
 
             // measurements: non-measured directions 
             double vmeas = 0.;
@@ -486,7 +486,7 @@ public class HpsGblRefitter extends Driver {
         FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
         fittedTraj.setPathLengthMap(pathLengthMap);
         fittedTraj.setSensorMap(sensorMap);
-        fittedTraj.setTrackPosMap(trackPosMap);
+        //fittedTraj.setTrackPosMap(trackPosMap);
 
         return fittedTraj;
     }

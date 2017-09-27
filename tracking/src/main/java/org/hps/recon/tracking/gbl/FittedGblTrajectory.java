@@ -3,6 +3,7 @@ package org.hps.recon.tracking.gbl;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.Hep3Vector;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -92,6 +93,8 @@ public class FittedGblTrajectory {
         _chi2 = chi2;
         _ndf = ndf;
         _lost = lost;
+
+        trackPosMap = new HashMap<Integer, double[]>();
     }
 
     /**
@@ -328,6 +331,9 @@ public class FittedGblTrajectory {
         double pathLength = getPathLength(iLabel);
         Hep3Vector refPointVec = HelixUtils.PointOnHelix(helicalTrackFit, pathLength);
         double[] refPoint = new double[] { refPointVec.x(), refPointVec.y() };
+
+        if (!trackPosMap.containsKey(iLabel))
+            trackPosMap.put(iLabel, refPointVec.v());
 
         LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
 

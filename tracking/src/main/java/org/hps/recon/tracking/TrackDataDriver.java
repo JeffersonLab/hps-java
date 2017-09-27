@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.lcsim.detector.ITransform3D;
-import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+//import org.lcsim.detector.ITransform3D;
+//import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -235,11 +235,12 @@ public final class TrackDataDriver extends Driver {
                     stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
                     TrackState ts = TrackStateUtils.getTrackStateAtSensor(track, ((HpsSiSensor) sensor).getMillepedeId());
                     if (ts != null) {
-                        double[] trackPos = ts.getReferencePoint();
-                        Hep3Vector trackPosVector = new BasicHep3Vector(trackPos);
-                        ITransform3D trans = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
-                        trackPosition = trans.transformed(trackPosVector);
+                        //System.out.println("good ts");
+                        trackPosition = new BasicHep3Vector(ts.getReferencePoint());
+                        //ITransform3D trans = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
+                        //trackPosition = trans.transformed(trackPosVector);
                     } else {
+
                         trackPosition = TrackUtils.extrapolateTrack(trackStateForResiduals, stereoHitPosition.x());
                     }
                     trackPosition = VecOp.mult(CoordinateTransformations.getMatrix(), trackPosition);
