@@ -2,8 +2,6 @@ package org.hps.recon.tracking.gbl;
 
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.Hep3Vector;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -93,8 +91,6 @@ public class FittedGblTrajectory {
         _chi2 = chi2;
         _ndf = ndf;
         _lost = lost;
-
-        trackPosMap = new HashMap<Integer, double[]>();
     }
 
     /**

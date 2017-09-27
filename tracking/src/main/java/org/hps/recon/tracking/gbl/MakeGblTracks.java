@@ -8,6 +8,7 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -80,6 +81,7 @@ public class MakeGblTracks {
 
         //  Create a new SeedTrack
         BaseTrack trk = new BaseTrack();
+        fittedGblTrajectory.setTrackPosMap(new HashMap<Integer, double[]>());
 
         //  Add the hits to the track
         for (TrackerHit hit : hitsOnTrack) {
