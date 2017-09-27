@@ -4,6 +4,8 @@ import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import static java.lang.Math.sqrt;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +24,9 @@ import org.lcsim.event.TrackState;
 import org.hps.analysis.tuple.TupleDriver;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
+import static org.hps.recon.tracking.TrackUtils.getMomentum;
+import static org.hps.recon.tracking.TrackUtils.getPoint;
+import static org.hps.recon.tracking.TrackUtils.writeTrajectory;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.vertexing.BilliorTrack;
@@ -31,6 +36,7 @@ import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.MCParticle;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixParamCalculator;
@@ -98,6 +104,7 @@ public class VertexDebugTupleDriver extends TupleDriver {
 
     double minPhi = -0.25;
     double maxPhi = 0.25;
+    boolean isFirst = true;
 
     private enum Constraint {
 
@@ -197,17 +204,18 @@ public class VertexDebugTupleDriver extends TupleDriver {
             "pPosXErrRefitBSCFromV0/D", "pPosYErrRefitBSCFromV0/D", "pPosZErrRefitBSCFromV0/D"};
         tupleVariables.addAll(Arrays.asList(refitBSCFromV0Vars));
 
-         String[] trackPars = new String[]{"eleOmegaErr/D","eleD0Err/D","elePhi0Err/D","eleSlopeErr/D", "eleZ0Err/D",  
-             "posOmegaErr/D","posD0Err/D","posPhi0Err/D","posSlopeErr/D", "posZ0Err/D",
-             "eleOmega/D","eleD0/D","elePhi0/D","eleSlope/D", "eleZ0/D",  
-             "posOmega/D","posD0/D","posPhi0/D","posSlope/D", "posZ0/D",
-             "eleMCOmega/D","eleMCD0/D","eleMCPhi0/D","eleMCSlope/D", "eleMCZ0/D",  
-             "posMCOmega/D","posMCD0/D","posMCPhi0/D","posMCSlope/D", "posMCZ0/D",
-             "eleTrkChisq/D","posTrkChisq/D"
-         };
+        String[] trackPars = new String[]{"eleOmegaErr/D", "eleD0Err/D", "elePhi0Err/D", "eleSlopeErr/D", "eleZ0Err/D",
+            "posOmegaErr/D", "posD0Err/D", "posPhi0Err/D", "posSlopeErr/D", "posZ0Err/D",
+            "eleOmega/D", "eleD0/D", "elePhi0/D", "eleSlope/D", "eleZ0/D",
+            "posOmega/D", "posD0/D", "posPhi0/D", "posSlope/D", "posZ0/D",
+            "eleMCOmega/D", "eleMCD0/D", "eleMCPhi0/D", "eleMCSlope/D", "eleMCZ0/D",
+            "posMCOmega/D", "posMCD0/D", "posMCPhi0/D", "posMCSlope/D", "posMCZ0/D",
+            "eleMCNewCalcOmega/D", "eleMCNewCalcD0/D", "eleMCNewCalcPhi0/D", "eleMCNewCalcSlope/D", "eleMCNewCalcZ0/D",
+            "posMCNewCalcOmega/D", "posMCNewCalcD0/D", "posMCNewCalcPhi0/D", "posMCNewCalcSlope/D", "posMCNewCalcZ0/D",
+            "eleTrkChisq/D", "posTrkChisq/D"
+        };
         tupleVariables.addAll(Arrays.asList(trackPars));
 
-        
     }
 
     protected void detectorChanged(Detector detector) {
@@ -361,7 +369,7 @@ public class VertexDebugTupleDriver extends TupleDriver {
         SymmetricMatrix emat = new SymmetricMatrix(5, ecov, true);
         double[] pcov = positron.getTracks().get(0).getTrackStates().get(0).getCovMatrix();
         SymmetricMatrix pmat = new SymmetricMatrix(5, pcov, true);
-     
+
 //        System.out.println("ecov(0) = " + ecov[0]
 //                + "; ecov(1) = " + ecov[1]
 //                + "; ecov(2) = " + ecov[2]
@@ -380,11 +388,35 @@ public class VertexDebugTupleDriver extends TupleDriver {
 //        );
 //        System.out.println("Matrix : \n" + emat.toString());
 //        System.out.println("Matrix : \n" + emattrue.toString());
-
         //        HelicalTrackFit mcHTF=TrackUtils.getHTF(posMC, B_FIELD);   
         //switch the sign of the B_FIELD like the tracking code needs
 //        HelixParamCalculator parCalc = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), (int) posMC.getCharge(), -B_FIELD);
-        double[] newparCalc = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), (int) posMC.getCharge(), -B_FIELD);
+        if (isFirst == true && posMC.getOrigin().z() < 3) {
+            LOGGER.info("Getting Parameters & Trajectories for this MC particle");
+            try {
+                double[] newparCalc = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), (int) posMC.getCharge(), B_FIELD, isFirst);
+                writePoint(CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), "mcp-origin.txt");
+                writePoint(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), "mcp-momentum.txt");
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(VertexDebugTupleDriver.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                TrackUtils.writeTrajectory(getMomentum(positron.getTracks().get(0).getTrackStates().get(0).getOmega(), positron.getTracks().get(0).getTrackStates().get(0).getPhi(), positron.getTracks().get(0).getTrackStates().get(0).getTanLambda(), B_FIELD),
+                        getPoint(positron.getTracks().get(0).getTrackStates().get(0).getD0(), positron.getTracks().get(0).getTrackStates().get(0).getPhi(), positron.getTracks().get(0).getTrackStates().get(0).getZ0()),
+                        (int) positron.getCharge(), B_FIELD, "recon-point-and-mom.txt");
+                System.out.println("Recon HTF:  d0 = " + positron.getTracks().get(0).getTrackStates().get(0).getD0()
+                        + "; phi0 = " + positron.getTracks().get(0).getTrackStates().get(0).getPhi()
+                        + "; curvature = " + positron.getTracks().get(0).getTrackStates().get(0).getOmega()
+                        + "; z0 = " + positron.getTracks().get(0).getTrackStates().get(0).getZ0()
+                        + "; slope = " + positron.getTracks().get(0).getTrackStates().get(0).getTanLambda()
+                );
+                writeTrackerHits(positron.getTracks().get(0).getTrackerHits(), "recon-tracker-hits.txt");
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(VertexDebugTupleDriver.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            isFirst = false;
+        }
+
 //        System.out.println("MC Origin:  ox = " + CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()).x()
 //                + "; oy = " + CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()).y()
 //                + "; oz = " + CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()).z()
@@ -405,10 +437,20 @@ public class VertexDebugTupleDriver extends TupleDriver {
 //                + "; z0 = " + electron.getTracks().get(0).getTrackStates().get(0).getZ0()
 //                + "; slope = " + electron.getTracks().get(0).getTrackStates().get(0).getTanLambda()
 //        );
- 
         HelixParamCalculator parCalcP = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), (int) posMC.getCharge(), -B_FIELD);
         HelixParamCalculator parCalcM = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(eleMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(eleMC.getOrigin()), (int) eleMC.getCharge(), -B_FIELD);
-          System.out.println("MC HTF:  d0 = " + parCalcP.getDCA()
+//        HelixParamCalculator parCalcP = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), (int) posMC.getCharge(), B_FIELD);
+//        HelixParamCalculator parCalcM = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(eleMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(eleMC.getOrigin()), (int) eleMC.getCharge(), B_FIELD);
+        double[] newparP=null;
+        double[] newparE = null;
+        try {
+             newparP = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), (int) posMC.getCharge(), B_FIELD, isFirst);
+            newparE = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(eleMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(eleMC.getMomentum()), (int) eleMC.getCharge(), B_FIELD, isFirst);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(VertexDebugTupleDriver.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        System.out.println("MC HTF:  d0 = " + parCalcP.getDCA()
                 + "; phi0 = " + parCalcP.getPhi0()
                 + "; curvature = " + 1 / parCalcP.getRadius()
                 + "; z0 = " + parCalcP.getZ0()
@@ -441,20 +483,24 @@ public class VertexDebugTupleDriver extends TupleDriver {
         tupleMap.put("eleMCSlope/D", parCalcM.getSlopeSZPlane());//emct.slope());
         tupleMap.put("eleMCD0/D", parCalcM.getDCA());//emct.dca());
         tupleMap.put("eleMCPhi0/D", parCalcM.getPhi0());//emct.phi0());
-        tupleMap.put("eleMCOmega/D", -1*parCalcM.getMCOmega());//emct.curvature());
+        tupleMap.put("eleMCOmega/D",  parCalcM.getMCOmega());//emct.curvature());
         tupleMap.put("eleMCZ0/D", parCalcM.getZ0());//emct.z0());
         tupleMap.put("posMCSlope/D", parCalcP.getSlopeSZPlane());//pmct.slope());
         tupleMap.put("posMCD0/D", parCalcP.getDCA());//pmct.dca());
         tupleMap.put("posMCPhi0/D", parCalcP.getPhi0());//pmct.phi0());
-        tupleMap.put("posMCOmega/D", -1*parCalcP.getMCOmega());//pmct.curvature());
+        tupleMap.put("posMCOmega/D", parCalcP.getMCOmega());//pmct.curvature());
         tupleMap.put("posMCZ0/D", parCalcP.getZ0());//pmct.z0());
 
-//        System.out.println("MC New:  d0 = " + newparCalc[HelicalTrackFit.dcaIndex]
-//                + "; phi0 = " + newparCalc[HelicalTrackFit.phi0Index]
-//                + "; curvature = " + newparCalc[HelicalTrackFit.curvatureIndex]
-//                + "; z0 = " + newparCalc[HelicalTrackFit.z0Index]
-//                + "; slope = " + newparCalc[HelicalTrackFit.slopeIndex]
-//        );
+        tupleMap.put("eleMCNewCalcSlope/D", newparE[TANLAMBDA]);//emct.slope());
+        tupleMap.put("eleMCNewCalcD0/D",  newparE[D0]);//emct.dca());
+        tupleMap.put("eleMCNewCalcPhi0/D", newparE[PHI]);//emct.phi0());
+        tupleMap.put("eleMCNewCalcOmega/D",newparE[OMEGA]);//emct.curvature());
+        tupleMap.put("eleMCNewCalcZ0/D", newparE[Z0]);//emct.z0());
+        tupleMap.put("posMCNewCalcSlope/D", newparP[TANLAMBDA]);//pmct.slope());
+        tupleMap.put("posMCNewCalcD0/D", newparP[D0]);//pmct.dca());
+        tupleMap.put("posMCNewCalcPhi0/D",newparP[PHI]);//pmct.phi0());
+        tupleMap.put("posMCNewCalcOmega/D", newparP[OMEGA]);//pmct.curvature());
+        tupleMap.put("posMCNewCalcZ0/D", newparP[Z0]);//pmct.z0());
 
         Hep3Vector pEleFit = vtxFit.getFittedMomentum(0);
         Hep3Vector pPosFit = vtxFit.getFittedMomentum(1);
@@ -818,6 +864,21 @@ public class VertexDebugTupleDriver extends TupleDriver {
         Hep3Vector pEleX = new BasicHep3Vector(p1.y(), 0.0, p1.x());
         Hep3Vector pPosX = new BasicHep3Vector(p2.y(), 0.0, p2.x());
         return Math.acos(VecOp.dot(pEleX, pPosX) / (pEleX.magnitude() * pPosX.magnitude()));
+    }
+
+    private void writeTrackerHits(List<TrackerHit> hits, String ofile) throws FileNotFoundException {
+        PrintWriter writer = new PrintWriter(ofile);
+        writer.println("x/D:y/D:z/D");
+        for (TrackerHit hit : hits)
+            writer.println(hit.getPosition()[0] + " " + hit.getPosition()[1] + " " + hit.getPosition()[2] + " ");
+        writer.close();
+    }
+
+    private void writePoint(Hep3Vector hit, String ofile) throws FileNotFoundException {
+        PrintWriter writer = new PrintWriter(ofile);
+        writer.println("x/D:y/D:z/D");
+        writer.println(hit.x() + " " + hit.y() + " " + hit.z() + " ");
+        writer.close();
     }
 
 }
