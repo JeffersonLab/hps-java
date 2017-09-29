@@ -103,6 +103,7 @@ public class MakeGblTracks {
         } else {
             // store states at all 18 sensors
             int prevID = 0;
+            int dummyCounter = -1;
             // note: SensorMap doesn't include IP
             Integer[] sensorsFromMapArray = fittedGblTrajectory.getSensorMap().keySet().toArray(new Integer[0]);
 
@@ -113,8 +114,9 @@ public class MakeGblTracks {
                 int millepedeID = fittedGblTrajectory.getSensorMap().get(ilabel);
                 for (int k = 1; k < millepedeID - prevID; k++) {
                     // uses new lcsim constructor
-                    BaseTrackState dummy = new BaseTrackState(-1);
+                    BaseTrackState dummy = new BaseTrackState(dummyCounter);
                     trk.getTrackStates().add(dummy);
+                    dummyCounter--;
                 }
                 prevID = millepedeID;
                 Pair<double[], SymmetricMatrix> correctedHelixParamsSensor = fittedGblTrajectory.getCorrectedPerigeeParametersAtPoint(helicalTrackFit, ilabel, bfield);

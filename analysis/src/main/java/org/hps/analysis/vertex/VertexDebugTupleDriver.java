@@ -26,7 +26,7 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import static org.hps.recon.tracking.TrackUtils.getMomentum;
 import static org.hps.recon.tracking.TrackUtils.getPoint;
-import static org.hps.recon.tracking.TrackUtils.writeTrajectory;
+//import static org.hps.recon.tracking.TrackUtils.writeTrajectory;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.vertexing.BilliorTrack;
