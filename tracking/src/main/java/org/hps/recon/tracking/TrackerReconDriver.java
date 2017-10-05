@@ -238,7 +238,7 @@ public final class TrackerReconDriver extends Driver {
                     double correction = VecOp.sub(hth.getCorrectedPosition(), new BasicHep3Vector(hth.getPosition())).magnitude();
                     double chisq = hth.chisq();
                     if (correction < 1e-6) {
-                        this.getLogger().warning(String.format("Discarding track with bad HelicalTrackHit (correction distance %f, chisq penalty %f)", correction, chisq));
+                        this.getLogger().warning(String.format(event.getRunNumber()+ " " + event.getEventNumber()+" Discarding track with bad HelicalTrackHit (correction distance %f, chisq penalty %f)", correction, chisq));
                         iter.remove();
                         continue trackLoop;
                     }
