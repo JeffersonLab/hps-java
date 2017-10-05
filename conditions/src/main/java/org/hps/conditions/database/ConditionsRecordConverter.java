@@ -32,13 +32,6 @@ public final class ConditionsRecordConverter extends AbstractConditionsObjectCon
 
         final DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.getInstance();
 
-        // Setup connection if necessary.
-        boolean reopenedConnection = false;
-        if (!databaseConditionsManager.isConnected()) {
-            databaseConditionsManager.openConnection();
-            reopenedConnection = true;
-        }
-
         final TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
 
         if (tableMetaData == null) {
@@ -76,10 +69,6 @@ public final class ConditionsRecordConverter extends AbstractConditionsObjectCon
 
         // Close the ResultSet and Statement.
         DatabaseUtilities.cleanup(resultSet);
-
-        if (reopenedConnection) {
-            databaseConditionsManager.closeConnection();
-        }
 
         return this.getType().cast(collection);
     }

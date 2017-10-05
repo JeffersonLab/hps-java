@@ -25,13 +25,13 @@ import org.lcsim.util.loop.DummyConditionsConverter;
 import org.lcsim.util.loop.DummyDetector;
 
 /**
- * A rewrite of the LCSim detector converter that supports setting of the run number
- * for conditions system initialization so that database conditions are available.
+ * A rewrite of the LCSim detector converter that supports setting of the run number for conditions system
+ * initialization so that database conditions are available.
  * 
  * @author jeremym
  */
 public class DetectorConverter {
-    
+
     private static Options OPTIONS = new Options();
     static {
         OPTIONS.addOption(new Option("i", "input-file", true, "input compact.xml file"));
@@ -41,29 +41,30 @@ public class DetectorConverter {
         OPTIONS.addOption(new Option("f", "format", true, "output format (lcdd, etc.)"));
         OPTIONS.addOption(new Option("r", "run-number", true, "run number for conditions initialization"));
     }
-    
+
     private DefaultParser parser = new DefaultParser();
     private File inputFile = null;
     private File outputFile = null;
     private String outputFormat = null;
     private Integer runNumber = null;
-    
+
     public static void main(String args[]) throws Exception {
         DetectorConverter cnv = new DetectorConverter();
         cnv.run(args);
     }
-    
+
     private static List<Converter> getConverters() {
         Iterator<Converter> iter = getServices(Converter.class);
         List<Converter> result = new ArrayList<Converter>();
-        while (iter.hasNext()) result.add(iter.next());
+        while (iter.hasNext())
+            result.add(iter.next());
         return result;
     }
-    
+
     private static <T> Iterator<T> getServices(Class<T> providerClass) {
-       return ServiceRegistry.lookupProviders(providerClass, DetectorConverter.class.getClassLoader());
+        return ServiceRegistry.lookupProviders(providerClass, DetectorConverter.class.getClassLoader());
     }
-        
+
     private void run(String args[]) throws Exception {
         CommandLine cl = parser.parse(OPTIONS, args);
         if (!cl.hasOption("i")) {
@@ -71,7 +72,7 @@ public class DetectorConverter {
         }
         if (!cl.hasOption("o")) {
             throw new RuntimeException("Missing required -o arg.");
-        }        
+        }
         inputFile = new File(cl.getOptionValue("i"));
         outputFile = new File(cl.getOptionValue("o"));
         if (cl.hasOption("f")) {
@@ -82,9 +83,9 @@ public class DetectorConverter {
         } else {
             runNumber = 0;
         }
-        
+
         Converter cnv = null;
-        
+
         if (outputFormat != null) {
             for (Converter c : getConverters()) {
                 if (c.getOutputFormat().equalsIgnoreCase(outputFormat)) {
@@ -94,17 +95,17 @@ public class DetectorConverter {
             }
         } else {
             for (Converter c : getConverters()) {
-               if (c.getFileFilter().accept(outputFile))
-               {
-                  cnv = c;
-                  break;
-               }
+                if (c.getFileFilter().accept(outputFile)) {
+                    cnv = c;
+                    break;
+                }
             }
         }
-        if (cnv == null) throw new IllegalArgumentException("No converter found for format: " + outputFormat);
-        
+        if (cnv == null)
+            throw new IllegalArgumentException("No converter found for format: " + outputFormat);
+
         if (runNumber != null) {
-            String name = "DUMMY";            
+            String name = "DUMMY";
             DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
             ConditionsReader dummyReader = ConditionsReader.createDummy();
             ((ConditionsManagerImplementation) mgr).setConditionsReader(dummyReader, name);
@@ -112,11 +113,11 @@ public class DetectorConverter {
             mgr.registerConditionsConverter(new DummyConditionsConverter(detector));
             mgr.setDetector(name, runNumber);
         }
-        
+
         InputStream in = new BufferedInputStream(new FileInputStream(inputFile));
         OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile));
         cnv.convert(inputFile.getCanonicalPath(), in, out);
         in.close();
         out.close();
-    }                  
+    }
 }

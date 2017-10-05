@@ -7,7 +7,6 @@ import org.hps.conditions.api.ConditionsSeries;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.svt.SvtTimingConstants.SvtTimingConstantsCollection;
 import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.geometry.Detector;
 
 /**
  * General test of the {@link DatabaseConditionsManager} class.
@@ -24,29 +23,25 @@ public class DatabaseConditionsManagerTest extends TestCase {
      */
     public void testDatabaseConditionsManager() throws Exception {
         
-        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        DatabaseConditionsManager manager = new DatabaseConditionsManager();
         
         // Check initial state.
-        TestCase.assertTrue("The conditions manager instance is null.", manager != null);        
-        TestCase.assertFalse("The manager should not be connected.", manager.isConnected());        
-        TestCase.assertFalse("The manager should not be initialized.", manager.isInitialized());        
+        TestCase.assertTrue("The conditions manager instance is null.", manager != null);
+        TestCase.assertFalse("The manager should not be initialized.", manager.isInitialized());
         TestCase.assertFalse("The manager should not be frozen.", manager.isFrozen());        
         TestCase.assertTrue("The manager should be setup.", ConditionsManager.isSetup());
         
         // Open database connection.
         manager.openConnection();
-        
+                
         // Check that a new collection can be created.
         EcalCalibrationCollection newCollection = manager.newCollection(EcalCalibrationCollection.class, "ecal_calibrations");
         TestCase.assertNotNull("New collection should have metadata.", newCollection.getTableMetaData());
                 
         // Check connection state.
-        TestCase.assertTrue("The manager should be connected.", manager.isConnected());        
+        TestCase.assertTrue("The connection should not be closed.", !manager.getConnection().isClosed());
         TestCase.assertNotNull("The connection is null.", manager.getConnection());
-        
-        // Turn off SVT detector setup because some required classes are not available from this module.
-        manager.setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");    
-        
+                
         // Initialize the conditions system.
         manager.setDetector("HPS-EngRun2015-Nominal-v2", 5772);
         
@@ -59,15 +54,7 @@ public class DatabaseConditionsManagerTest extends TestCase {
         TestCase.assertTrue("The manager should be frozen.", manager.isFrozen());
         manager.setDetector("HPS-EngRun2015-Nominal-v2", 1234);
         TestCase.assertEquals("The run number should be the same because system was frozen.", 5772, manager.getRun());
-        
-        // Check detector object state.
-        Detector detector = manager.getDetectorObject();
-        TestCase.assertNotNull("The detector is null.", detector);
-        //TestCase.assertNotNull("The ECal conditions are null.", manager.getEcalConditions());
-        TestCase.assertNotNull("The ECal name is null.", manager.getEcalName());        
-        TestCase.assertNotNull("The ECal subdetector is null.", manager.getEcalSubdetector());        
-        TestCase.assertNotNull("The SVT conditions are null.", manager.getSvtConditions());        
-        
+               
         // Load a test collection.
         EcalCalibrationCollection testCollection = manager.getCachedConditions(EcalCalibrationCollection.class, "ecal_calibrations").getCachedData();
         TestCase.assertTrue("The test collection should not be empty.", testCollection.size() > 0);

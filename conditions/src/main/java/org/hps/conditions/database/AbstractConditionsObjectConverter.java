@@ -81,9 +81,6 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
         // Get the DatabaseConditionsManager which is required for using this converter.
         final DatabaseConditionsManager databaseConditionsManager = (DatabaseConditionsManager) conditionsManager;
 
-        // Setup connection if necessary.
-        final boolean openedConnection = databaseConditionsManager.openConnection();
-
         // Get the TableMetaData from the table name.
         final TableMetaData tableMetaData = TableRegistry.getTableRegistry().findByTableName(name);
 
@@ -137,11 +134,6 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
         } catch (DatabaseObjectException | SQLException e) {
             throw new RuntimeException("Error creating conditions collection from table " + name
                     + " with collection ID " + conditionsRecord.getCollectionId(), e);
-        }
-
-        if (openedConnection) {
-            // Close connection if one was opened.
-            databaseConditionsManager.closeConnection();
         }
 
         return (T) collection;

@@ -30,8 +30,7 @@ public class HoleCreationDriver extends Driver {
     // private String outputTrackCollectionName = "TracksWithHoles";
 
     private String outputRawTrackHitCollectionName = "RawTrackerHitsWithHoles";
-    private String inputRawTrackHitCollectionName = "RawTrackerHitMaker_RawTrackerHits"; // not
-                                                                                         // SVTRawTrackerHits
+    private String inputRawTrackHitCollectionName = "SVTRawTrackerHits";
     private String inputHelicalTrackHitCollectionName = "HelicalTrackHits";
     private String outputHelicalTrackHitCollectionName = "HelicalTrackHitsWithHoles";
     private String inputRHelicalTrackHitCollectionName = "RotatedHelicalTrackHits";
@@ -189,9 +188,7 @@ public class HoleCreationDriver extends Driver {
         inputRawTrackHitCollection = event.get(RawTrackerHit.class, inputRawTrackHitCollectionName);
         inputHelicalTrackHitCollection = event.get(HelicalTrackHit.class, inputHelicalTrackHitCollectionName);
         inputRHelicalTrackHitCollection = event.get(HelicalTrackHit.class, inputRHelicalTrackHitCollectionName);
-        // outputTrackCollection = new ArrayList<Track>();
-        // outputTrackHitCollection = new
-        // ArrayList<TrackerHit>(inputTrackHitCollection);
+
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
         rn = new Random();

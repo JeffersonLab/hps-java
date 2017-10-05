@@ -18,7 +18,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
-    <lcsimVersion>3.8</lcsimVersion>
+    <lcsimVersion>4.0-SNAPSHOT</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
   </properties>
@@ -347,6 +347,11 @@
         <artifactId>org-srs-datacat-client</artifactId>
         <version>0.5-TEST3</version>
       </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.11</version>
+      </dependency>      
     </dependencies>
   </dependencyManagement>
   
@@ -442,11 +447,13 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.19.1</version>
         <configuration>
-          <argLine>-Xmx1024m</argLine>
+          <useFile>false</useFile>
+          <trimStackTrace>false</trimStackTrace>
           <forkMode>pertest</forkMode>
           <systemPropertyVariables>
             <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
             <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
+            <hep.aida.IAnalysisFactory>hep.aida.ref.BatchAnalysisFactory</hep.aida.IAnalysisFactory>
           </systemPropertyVariables>
         </configuration>
       </plugin>
@@ -501,6 +508,9 @@
                   <property name="processJavadoc" value="false" />
                 </module>
                 <module name="RedundantImport" />
+                <module name="Indentation">
+                  <property name="lineWrappingIndentation" value="8" />
+                </module>
               </module>
             </module>
           </checkstyleRules>
@@ -762,8 +772,8 @@
   </mailingLists>
 
   <issueManagement>
-    <system>JIRA</system>
-    <url>https://jira.slac.stanford.edu/browse/HPSJAVA/</url>
+    <system>Github</system>
+    <url>https://github.com/JeffersonLab/hps-java/issues/</url>
   </issueManagement>
 
   <ciManagement>

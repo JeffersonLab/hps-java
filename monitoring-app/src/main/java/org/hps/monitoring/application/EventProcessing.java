@@ -194,7 +194,7 @@ final class EventProcessing {
      * The current {@link EventProcessing.SessionState} object which has all of the session state for event processing.
      */
     private SessionState sessionState;
-   
+
     /**
      * Class constructor, which will initialize with reference to the current monitoring application and lists of extra
      * processors to add to the loop, as well as supplemental conditions listeners that activate when the conditions
@@ -315,8 +315,8 @@ final class EventProcessing {
         } catch (final Exception e) {
             throw new RuntimeException("Failed to create LCSimEventBuilder.", e);
         }
-        
-        return this.sessionState.eventBuilder; 
+
+        return this.sessionState.eventBuilder;
     }
 
     /**
@@ -465,20 +465,20 @@ final class EventProcessing {
             }
         }
 
-        this.logger.config("set steering " + steering + " with type " 
+        this.logger.config("set steering " + steering + " with type "
                 + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE"));
 
         try {
             // Create the job manager. A new conditions manager is instantiated from this call but not configured.
             this.sessionState.jobManager = new JobManager();
-            
+
             // Setup class for conditions system.
             DatabaseConditionsManagerSetup conditions = new DatabaseConditionsManagerSetup();
-                        
+
             // Setup the event builder to translate from EVIO to LCIO.
-            LCSimEventBuilder eventBuilder = this.createEventBuilder(configurationModel);            
+            LCSimEventBuilder eventBuilder = this.createEventBuilder(configurationModel);
             conditions.addConditionsListener(eventBuilder);
-                        
+
             // Add extra conditions listeners.
             for (final ConditionsListener conditionsListener : this.sessionState.conditionsListeners) {
                 this.logger.config("Adding conditions listener " + conditionsListener.getClass().getName());
@@ -489,8 +489,8 @@ final class EventProcessing {
             if (configurationModel.hasValidProperty(ConfigurationModel.DETECTOR_ALIAS_PROPERTY)) {
                 conditions.addAlias(configurationModel.getDetectorName(),
                         "file://" + configurationModel.getDetectorAlias());
-                this.logger.config("Added detector alias " + configurationModel.getDetectorAlias() 
-                        + " for " + configurationModel.getDetectorName());
+                this.logger.config("Added detector alias " + configurationModel.getDetectorAlias() + " for "
+                        + configurationModel.getDetectorName());
             }
 
             // Add conditions tag.
@@ -501,26 +501,26 @@ final class EventProcessing {
                 this.logger.config("Added conditions tag " + configurationModel.getConditionsTag());
                 conditions.setTags(tags);
             }
-            
+
             // Set user specified job number.
             if (configurationModel.hasValidProperty(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
                 final int userRun = configurationModel.getUserRunNumber();
                 this.logger.config("User run number set to " + userRun);
                 conditions.setRun(userRun);
             }
-            
+
             // Set detector name.
             conditions.setDetectorName(configurationModel.getDetectorName());
-            
+
             // Freeze the conditions system to ignore run numbers from event data.
             if (configurationModel.hasPropertyKey(ConfigurationModel.FREEZE_CONDITIONS_PROPERTY)) {
                 this.logger.config("user configured to freeze conditions system");
                 conditions.setFreeze(configurationModel.getFreezeConditions());
             }
-                        
+
             // Register the configured conditions settings with the job manager.
             this.sessionState.jobManager.setConditionsSetup(conditions);
-                        
+
             // Configure the job manager for the XML steering.
             this.sessionState.jobManager.setDryRun(true);
             if (steeringType == SteeringType.RESOURCE) {
@@ -528,10 +528,10 @@ final class EventProcessing {
             } else if (steeringType.equals(SteeringType.FILE)) {
                 this.setupSteeringFile(steering);
             }
-            
+
             // Post-init conditions system which may freeze if run and name were provided.
             this.sessionState.jobManager.getConditionsSetup().postInitialize();
-            
+
             this.logger.info("lcsim setup was successful");
 
         } catch (final Throwable t) {
@@ -558,7 +558,8 @@ final class EventProcessing {
                 .setEtConnection(this.sessionState.connection).setFilePath(configurationModel.getDataSourcePath())
                 .setLCSimEventBuilder(this.sessionState.eventBuilder);
 
-        this.logger.config("data src path " + configurationModel.getDataSourcePath() + " and type " + configurationModel.getDataSourceType());
+        this.logger.config("data src path " + configurationModel.getDataSourcePath() + " and type "
+                + configurationModel.getDataSourceType());
 
         // Set the max events.
         if (configurationModel.hasValidProperty(ConfigurationModel.MAX_EVENTS_PROPERTY)) {

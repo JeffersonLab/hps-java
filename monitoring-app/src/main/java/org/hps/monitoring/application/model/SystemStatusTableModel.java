@@ -100,12 +100,12 @@ public final class SystemStatusTableModel extends AbstractTableModel implements 
     @Override
     public Class getColumnClass(final int columnIndex) {
         switch (columnIndex) {
-        case ACTIVE_COLUMN_INDEX:
-            return Boolean.class;
-        case LAST_CHANGED_COLUMN_INDEX:
-            return Date.class;
-        default:
-            return String.class;
+            case ACTIVE_COLUMN_INDEX:
+                return Boolean.class;
+            case LAST_CHANGED_COLUMN_INDEX:
+                return Date.class;
+            default:
+                return String.class;
         }
     }
 
@@ -149,42 +149,43 @@ public final class SystemStatusTableModel extends AbstractTableModel implements 
     public Object getValueAt(final int rowIndex, final int columnIndex) {
         final SystemStatus status = this.statuses.get(rowIndex);
         switch (columnIndex) {
-        case ACTIVE_COLUMN_INDEX:
-            return status.isActive();
-        case STATUS_COLUMN_INDEX:
-            return status.getStatusCode().name();
-        case SYSTEM_COLUMN_INDEX:
-            return status.getSubsystem().name();
-        case DESCRIPTION_COLUMN_INDEX:
-            return status.getDescription();
-        case MESSAGE_COLUMN_INDEX:
-            return status.getMessage();
-        case LAST_CHANGED_COLUMN_INDEX:
-            return new Date(status.getLastChangedMillis());
-        case RESET_COLUMN_INDEX:
-            // If the status is clear-able, then the cell has a button which can be used to
-            // manually set the state to CLEARED. If the status cannot be cleared,
-            // then nothing is rendered in this cell.
-            if (status.isClearable()) {
-                final JButton button = new JButton();
-                button.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(final ActionEvent e) {
-                        final SystemStatus status = SystemStatusTableModel.this.statuses.get(rowIndex);
-                        if (status.isClearable()) {
-                            final StatusCode oldStatusCode = status.getStatusCode();
-                            status.setStatus(StatusCode.CLEARED, "Cleared from " + oldStatusCode.name() + " state.");
+            case ACTIVE_COLUMN_INDEX:
+                return status.isActive();
+            case STATUS_COLUMN_INDEX:
+                return status.getStatusCode().name();
+            case SYSTEM_COLUMN_INDEX:
+                return status.getSubsystem().name();
+            case DESCRIPTION_COLUMN_INDEX:
+                return status.getDescription();
+            case MESSAGE_COLUMN_INDEX:
+                return status.getMessage();
+            case LAST_CHANGED_COLUMN_INDEX:
+                return new Date(status.getLastChangedMillis());
+            case RESET_COLUMN_INDEX:
+                // If the status is clear-able, then the cell has a button which can be used to
+                // manually set the state to CLEARED. If the status cannot be cleared,
+                // then nothing is rendered in this cell.
+                if (status.isClearable()) {
+                    final JButton button = new JButton();
+                    button.addActionListener(new ActionListener() {
+
+                        @Override
+                        public void actionPerformed(final ActionEvent e) {
+                            final SystemStatus status = SystemStatusTableModel.this.statuses.get(rowIndex);
+                            if (status.isClearable()) {
+                                final StatusCode oldStatusCode = status.getStatusCode();
+                                status.setStatus(StatusCode.CLEARED, "Cleared from " + oldStatusCode.name() + " state.");
+                            }
                         }
-                    }
-                });
-                return button;
-            } else {
+                    });
+                    return button;
+                } else {
+                    return null;
+                }
+            case CLEARABLE_COLUMN_INDEX:
+                return status.isClearable();
+            default:
                 return null;
-            }
-        case CLEARABLE_COLUMN_INDEX:
-            return status.isClearable();
-        default:
-            return null;
         }
     }
 

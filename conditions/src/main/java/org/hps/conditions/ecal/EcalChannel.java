@@ -19,6 +19,7 @@ import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
 
 /**
@@ -292,7 +293,10 @@ public final class EcalChannel extends BaseConditionsObject {
         @Override
         public EcalChannelCollection getData(final ConditionsManager conditionsManager, final String name) {
             final EcalChannelCollection collection = super.getData(conditionsManager, name);
-            final Subdetector ecal = DatabaseConditionsManager.getInstance().getEcalSubdetector();
+            DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+            // FIXME: Ugly method call to get Ecal subdetector object!
+            final Subdetector ecal = 
+                    mgr.getCachedConditions(Detector.class, "compact.xml").getCachedData().getSubdetector("Ecal");
             if (ecal != null) {
                 if (ecal.getDetectorElement() != null) {
                     collection.buildGeometryMap(ecal.getDetectorElement().getIdentifierHelper(), ecal.getSystemID());
@@ -301,9 +305,8 @@ public final class EcalChannel extends BaseConditionsObject {
                     throw new IllegalStateException("The ECal subdetector's detector element is not setup.");
                 }
             } else {
+                // FIXME: Probably this should be a fatal error.
                 LOGGER.warning("ECal subdetector is not accessible so geometry map was not initialized.");
-                // Bad detector or conditions system not initialized properly.
-                //throw new IllegalStateException("The ECal subdetector object is null.");
             }            
             return collection;
         }

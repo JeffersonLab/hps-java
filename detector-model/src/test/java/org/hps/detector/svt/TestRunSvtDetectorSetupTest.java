@@ -64,7 +64,6 @@ public final class TestRunSvtDetectorSetupTest extends TestCase {
     public void test() throws Exception {
 
         final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
         conditionsManager.setDetector("HPS-TestRun-v5", RUN_NUMBER);
 
         // Get the detector.

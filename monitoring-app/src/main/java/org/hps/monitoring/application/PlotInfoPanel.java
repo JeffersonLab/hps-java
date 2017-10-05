@@ -127,6 +127,7 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
 
         // Combo box for selecting plotted object.
         this.plotComboBox = new JComboBox<Object>() {
+
             @Override
             public Dimension getMaximumSize() {
                 final Dimension max = super.getMaximumSize();
@@ -137,6 +138,7 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
         this.plotComboBox.setActionCommand(Commands.PLOT_SELECTED);
         this.plotComboBox.setAlignmentX(CENTER_ALIGNMENT);
         this.plotComboBox.setRenderer(new BasicComboBoxRenderer() {
+
             @Override
             @SuppressWarnings("rawtypes")
             public Component getListCellRendererComponent(final JList list, final Object value, final int index,
@@ -313,7 +315,7 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
      *
      * @param object the AIDA object
      * @return the title of the object from its title method or value of its <code>toString</code> method, if none
-     *         exists
+     * exists
      */
     private String getObjectTitle(final Object object) {
         if (object instanceof IBaseHistogram) {
@@ -363,6 +365,7 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
      */
     private void runUpdateTable() {
         SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
                 PlotInfoPanel.this.updateTable();
@@ -434,6 +437,7 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
 
         // Make a timer task for running the update.
         final TimerTask task = new TimerTask() {
+
             @Override
             public void run() {
 

@@ -44,6 +44,9 @@ import org.lcsim.util.fourvec.Momentum4Vector;
  */
 public class APrimeMCAnalysisDriver extends Driver {
 
+
+    String outputFile = "APrimeMCAnalysisDriver_" + myDate() + ".aida";
+
     String vertexCollectionName = "UnconstrainedV0Vertices";
     String[] names = {"X", "Y", "Z"};
     double[] p1 = new double[4];
@@ -84,6 +87,10 @@ public class APrimeMCAnalysisDriver extends Driver {
     private IHistogram2D vtxMassResvsMCz = aida.histogram2D("vertex fitted mass - MC mass vs MC z", 200, -100., 200., 100, -0.05, 0.05);
 
     private IHistogram2D vtx_zvsMCz = aida.histogram2D("vertex z vs MCz", 200, -100., 200., 200, -100., 200.);
+
+    public void setOutputFile(String outputFile) {
+        this.outputFile = outputFile;
+    }
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -350,13 +357,13 @@ public class APrimeMCAnalysisDriver extends Driver {
     @Override
     protected void endOfData() {
         try {
-            aida.saveAs("APrimeMCAnalysisDriver_" + myDate() + ".aida");
+            aida.saveAs(outputFile);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
 
-    private String myDate() {
+    static private String myDate() {
         Calendar cal = new GregorianCalendar();
         Date date = new Date();
         cal.setTime(date);

@@ -6,8 +6,6 @@
       @author Matt Graham <mgraham@slac.stanford.edu>
     -->    
     <execute>    
-        <driver name="ConditionsDriver"/>
-        <driver name="EventMarkerDriver" />
         <!--  Readout Simulation -->
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
@@ -20,14 +18,6 @@
         <driver name="CleanupDriver" /> 
     </execute>
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <detectorName>${detector}</detectorName>
-            <runNumber>${run}</runNumber>
-            <freeze>true</freeze>
-        </driver>
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <coincidenceWindow>1</coincidenceWindow>
             <ecalName>Ecal</ecalName>
