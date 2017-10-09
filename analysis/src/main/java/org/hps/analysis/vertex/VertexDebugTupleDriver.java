@@ -26,7 +26,7 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import static org.hps.recon.tracking.TrackUtils.getMomentum;
 import static org.hps.recon.tracking.TrackUtils.getPoint;
-import static org.hps.recon.tracking.TrackUtils.writeTrajectory;
+//import static org.hps.recon.tracking.TrackUtils.writeTrajectory;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.vertexing.BilliorTrack;
@@ -100,7 +100,7 @@ public class VertexDebugTupleDriver extends TupleDriver {
     // Beam position variables.
     // The beamPosition array is in the tracking frame
     /* TODO get the beam position from the conditions db */
-    protected double[] beamPosition = {-5.0, 0.0, 0.0}; //
+    protected double[] beamPosition = {0.0, 0.0, 0.0}; //
 
     double minPhi = -0.25;
     double maxPhi = 0.25;
@@ -215,6 +215,14 @@ public class VertexDebugTupleDriver extends TupleDriver {
             "eleTrkChisq/D", "posTrkChisq/D"
         };
         tupleVariables.addAll(Arrays.asList(trackPars));
+
+        addEventVariables();
+        addVertexVariables();
+        addParticleVariables("ele");
+        addParticleVariables("pos");
+        String[] newVars = new String[]{"minPositiveIso/D", "minNegativeIso/D", "minIso/D"};
+        tupleVariables.addAll(Arrays.asList(newVars));
+        addMCTridentVariables();
 
     }
 
@@ -332,6 +340,32 @@ public class VertexDebugTupleDriver extends TupleDriver {
         Hep3Vector pPosMC = posMC.getMomentum();
 
         tupleMap.clear();
+
+        fillEventVariables(event, triggerData);
+        fillParticleVariables(event, electron, "ele");
+        fillParticleVariables(event, positron, "pos");
+        fillMCTridentVariables(event);
+
+        Track eleTrack = electron.getTracks().get(0);
+        Track posTrack = positron.getTracks().get(0);
+
+        TrackState eleTSTweaked = fillParticleVariables(event, electron, "ele");
+        TrackState posTSTweaked = fillParticleVariables(event, positron, "pos");
+
+        List<BilliorTrack> billiorTracks = new ArrayList<BilliorTrack>();
+        billiorTracks.add(new BilliorTrack(eleTSTweaked, eleTrack.getChi2(), eleTrack.getNDF()));
+        billiorTracks.add(new BilliorTrack(posTSTweaked, posTrack.getChi2(), posTrack.getNDF()));
+
+        double minPositiveIso = Math.min(tupleMap.get("eleMinPositiveIso/D"), tupleMap.get("posMinPositiveIso/D"));
+        double minNegativeIso = Math.min(Math.abs(tupleMap.get("eleMinNegativeIso/D")), Math.abs(tupleMap.get("posMinNegativeIso/D")));
+        double minIso = Math.min(minPositiveIso, minNegativeIso);
+
+        fillVertexVariables(event, billiorTracks, electron, positron);
+
+        tupleMap.put("minPositiveIso/D", minPositiveIso);
+        tupleMap.put("minNegativeIso/D", minNegativeIso);
+        tupleMap.put("minIso/D", minIso);
+
 
         tupleMap.put("apMass/D", apMassMC);
         tupleMap.put("vtxXMC/D", vertexPositionMC.x());

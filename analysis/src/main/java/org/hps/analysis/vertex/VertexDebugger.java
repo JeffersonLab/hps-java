@@ -92,13 +92,13 @@ public class VertexDebugger extends DataQualityMonitor {
     double maxPairs = 5;
     boolean requireSuperFiducial = false;
     int nbins = 50;
-    double B_FIELD = 0.23;//Tesla
+    double B_FIELD = 0.50;//Tesla
 
     protected double[] beamSize = {0.001, 0.130, 0.050}; //rough estimate from harp scans during engineering run production running
     // Beam position variables.
     // The beamPosition array is in the tracking frame
     /* TODO get the beam position from the conditions db */
-    protected double[] beamPosition = {-5.0, 0.0, 0.0}; //
+    protected double[] beamPosition = {0.0, 0.0, 0.0}; //
 
     double minPhi = -0.25;
     double maxPhi = 0.25;
