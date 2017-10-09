@@ -16,10 +16,9 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 
 /**
- * A class that collects information about a fitted GBL trajectory. 
+ * A class that collects information about a fitted GBL trajectory.
  *
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * 
  */
 public class FittedGblTrajectory {
 
@@ -27,6 +26,7 @@ public class FittedGblTrajectory {
 
     public enum GBLPOINT {
         IP(0), LAST(1), VERTEX(2);
+
         private int numVal;
 
         GBLPOINT(int numVal) {
@@ -40,14 +40,14 @@ public class FittedGblTrajectory {
         public String toString() {
             String s;
             switch (numVal) {
-            case 0:
-                s = "VERTEX";
-                break;
-            case 1:
-                s = "LAST";
-                break;
-            default:
-                s = "";
+                case 0:
+                    s = "VERTEX";
+                    break;
+                case 1:
+                    s = "LAST";
+                    break;
+                default:
+                    s = "";
             }
             if (s.isEmpty())
                 throw new RuntimeException("This value " + Integer.toString(numVal) + " is not valid.");
@@ -58,6 +58,7 @@ public class FittedGblTrajectory {
 
     public static enum GBLPARIDX {
         QOVERP(0), YTPRIME(1), XTPRIME(2), XT(3), YT(4);
+
         private int _value;
 
         private GBLPARIDX(int value) {
@@ -75,7 +76,6 @@ public class FittedGblTrajectory {
     private int _ndf;
     private Track _seed = null;
     private Map<Integer, Double> pathLengthMap = null;
-    private Map<Integer, double[]> trackPosMap = null;
     private Map<Integer, Integer> sensorMap = null;
 
     /**
@@ -95,6 +95,7 @@ public class FittedGblTrajectory {
 
     /**
      * Find the index (or label) of the GBL point on the trajectory from the {@link GBLPOINT}.
+     * 
      * @param point
      * @return the index of the GBL point on the trajectory from the enum
      */
@@ -111,6 +112,7 @@ public class FittedGblTrajectory {
 
     /**
      * Find the corrections and covariance matrix for a particular {@link GBLPOINT}
+     * 
      * @param point
      * @param locPar
      * @param locCov
@@ -127,6 +129,7 @@ public class FittedGblTrajectory {
 
     /**
      * Find the corrections and covariance matrix for a particular point on the GBL trajectory
+     * 
      * @param iLabel
      * @param locPar
      * @param locCov
@@ -143,6 +146,7 @@ public class FittedGblTrajectory {
 
     /**
      * Find the path length to this point.
+     * 
      * @param point - {@link GBLPOINT} point
      * @return path length
      */
@@ -153,6 +157,7 @@ public class FittedGblTrajectory {
 
     /**
      * Find the path length to this point.
+     * 
      * @param iLabel - GBL point index
      * @return path length
      */
@@ -200,10 +205,6 @@ public class FittedGblTrajectory {
         this.sensorMap = sensorMap;
     }
 
-    public void setTrackPosMap(Map<Integer, double[]> trackPosMap) {
-        this.trackPosMap = trackPosMap;
-    }
-
     public Map<Integer, Double> getPathLengthMap() {
         if (this.pathLengthMap == null)
             throw new RuntimeException("No path length map has been set on this trajectory!");
@@ -216,22 +217,16 @@ public class FittedGblTrajectory {
         return this.sensorMap;
     }
 
-    public Map<Integer, double[]> getTrackPosMap() {
-        if (this.trackPosMap == null)
-            throw new RuntimeException("No track-position map has been set on this trajectory!");
-        return this.trackPosMap;
-    }
-
     /**
-     * Get the corrected perigee parameters and covariance matrix for a point on the {@link GblTrajectory}.
-     * 
-     * FIXME the covariance matrix is not properly propagated along the trajectory right now!
+     * Get the corrected perigee parameters and covariance matrix for a point on the {@link GblTrajectory}. FIXME the
+     * covariance matrix is not properly propagated along the trajectory right now!
      * 
      * @param htf - helix to be corrected
      * @param point - {@link GBLPOINT} on the trajectory
      * @param bfield - magnitude of B-field.
      * @return the corrected perigee parameters and covariance matrix
      */
+
     public Pair<double[], SymmetricMatrix> getCorrectedPerigeeParameters(HelicalTrackFit htf, GBLPOINT point, double bfield) {
 
         // find the point on the trajectory from the GBLPOINT
@@ -242,9 +237,8 @@ public class FittedGblTrajectory {
     }
 
     /**
-     * Get the corrected perigee parameters and covariance matrix for a point on the {@link GblTrajectory}.
-     * 
-     * FIXME the covariance matrix is not properly propagated along the trajectory right now!
+     * Get the corrected perigee parameters and covariance matrix for a point on the {@link GblTrajectory}. FIXME the
+     * covariance matrix is not properly propagated along the trajectory right now!
      * 
      * @param htf - helix to be corrected
      * @param iLabel - label of the point on the {@link GblTrajectory}
@@ -271,6 +265,8 @@ public class FittedGblTrajectory {
         Hep3Vector refPointVec = HelixUtils.PointOnHelix(helicalTrackFit, pathLength);
         double[] refPoint = new double[] { refPointVec.x(), refPointVec.y() };
 
+        //System.out.printf("iLabel %d: pathLength %f -> refPointVec %s \n", iLabel, pathLength, refPointVec.toString());
+
         LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
 
         // Propagate the helix to new reference point
@@ -278,18 +274,21 @@ public class FittedGblTrajectory {
 
         // Create a new helix with the new parameters and the new reference point
         HpsHelicalTrackFit helicalTrackFitAtPoint = new HpsHelicalTrackFit(helixParametersAtPoint, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
+        //System.out.printf("raw params at new ref point: d0 %f  z0 %f \n", helicalTrackFitAtPoint.dca(), helicalTrackFitAtPoint.z0());
 
         // find the corrected perigee track parameters at this point
         double[] helixParametersAtPointCorrected = GblUtils.getCorrectedPerigeeParameters(locPar, helicalTrackFitAtPoint, bfield);
 
         // create a new helix
         HpsHelicalTrackFit helicalTrackFitAtPointCorrected = new HpsHelicalTrackFit(helixParametersAtPointCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
+        //System.out.printf("corrected params at new ref point: d0 %f  z0 %f \n", helicalTrackFitAtPointCorrected.dca(), helicalTrackFitAtPointCorrected.z0());
 
         // change reference point back to the original one
         double[] helixParametersAtIPCorrected = TrackUtils.getParametersAtNewRefPoint(refIP, helicalTrackFitAtPointCorrected);
 
         // create a new helix for the new parameters at the IP reference point
         HpsHelicalTrackFit helicalTrackFitAtIPCorrected = new HpsHelicalTrackFit(helixParametersAtIPCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refIP);
+        //System.out.printf("params at IP: d0 %f  z0 %f \n \n", helicalTrackFitAtIPCorrected.dca(), helicalTrackFitAtIPCorrected.z0());
 
         // Calculate the updated covariance
         Matrix jacobian = GblUtils.getCLToPerigeeJacobian(helicalTrackFit, helicalTrackFitAtIPCorrected, bfield);
@@ -309,62 +308,9 @@ public class FittedGblTrajectory {
         return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
     }
 
-    public Pair<double[], SymmetricMatrix> getCorrectedPerigeeParametersAtPoint(HelicalTrackFit htf, int iLabel, double bfield) {
-
-        // Get corrections from GBL fit
-        Vector locPar = new Vector(5);
-        SymMatrix locCov = new SymMatrix(5);
-
-        // Extract the corrections to the track parameters and the covariance matrix from the GBL trajectory
-        getResults(iLabel, locPar, locCov);
-
-        // Use the super class to keep track of reference point of the helix
-        HpsHelicalTrackFit helicalTrackFit = new HpsHelicalTrackFit(htf);
-
-        // Calculate new reference point for this point
-        // This is the intersection of the helix with the plane
-        // The trajectory has this information already in the form of a map between GBL point and path length
-        double pathLength = getPathLength(iLabel);
-        Hep3Vector refPointVec = HelixUtils.PointOnHelix(helicalTrackFit, pathLength);
-        double[] refPoint = new double[] { refPointVec.x(), refPointVec.y() };
-
-        if (!trackPosMap.containsKey(iLabel))
-            trackPosMap.put(iLabel, refPointVec.v());
-
-        LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
-
-        // Propagate the helix to new reference point
-        double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
-
-        // Create a new helix with the new parameters and the new reference point
-        HpsHelicalTrackFit helicalTrackFitAtPoint = new HpsHelicalTrackFit(helixParametersAtPoint, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
-
-        // find the corrected perigee track parameters at this point
-        double[] helixParametersAtPointCorrected = GblUtils.getCorrectedPerigeeParameters(locPar, helicalTrackFitAtPoint, bfield);
-
-        // create a new helix
-        HpsHelicalTrackFit helicalTrackFitAtPointCorrected = new HpsHelicalTrackFit(helixParametersAtPointCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
-
-        // Calculate the updated covariance
-        Matrix jacobian = GblUtils.getCLToPerigeeJacobian(helicalTrackFit, helicalTrackFitAtPointCorrected, bfield);
-        Matrix helixCovariance = jacobian.times(locCov.times(jacobian.transpose()));
-        SymmetricMatrix cov = new SymmetricMatrix(5);
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                if (i >= j) {
-                    cov.setElement(i, j, helixCovariance.get(i, j));
-                }
-            }
-        }
-        LOGGER.finest("corrected helix covariance:\n" + cov);
-
-        double parameters_gbl[] = helicalTrackFitAtPointCorrected.parameters();
-
-        return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
-    }
-
     /**
      * Extract kinks across the trajectory.
+     * 
      * @return kinks in a {@link GBLKinkData} object.
      */
     public GBLKinkData getKinks() {
@@ -383,7 +329,7 @@ public class FittedGblTrajectory {
             if (i > 0) {
                 lambdaKinks[i - 1] = (float) (newLambda - oldLambda);
                 phiKinks[i - 1] = newPhi - oldPhi;
-                //                System.out.println("phikink: " + (newPhi - oldPhi));
+                // System.out.println("phikink: " + (newPhi - oldPhi));
             }
             oldPhi = newPhi;
             oldLambda = newLambda;

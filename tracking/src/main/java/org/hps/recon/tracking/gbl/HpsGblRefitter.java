@@ -3,6 +3,7 @@ package org.hps.recon.tracking.gbl;
 import static java.lang.Math.abs;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
+import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -11,18 +12,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-//import java.util.logging.Formatter;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.TrackUtils;
-
-import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
-
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
-//import org.hps.util.BasicLogFormatter;
 import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -37,9 +32,8 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 
 /**
- * A Driver which refits tracks using GBL. Modeled on the hps-dst code written
- * by Per Hansson and Omar Moreno. Requires the GBL Collections and Relations to
- * be present in the event.
+ * A Driver which refits tracks using GBL. Modeled on the hps-dst code written by Per Hansson and Omar Moreno. Requires
+ * the GBL Collections and Relations to be present in the event.
  *
  * @author Norman A Graf, SLAC
  * @author Per Hansson Adrian, SLAC
@@ -47,7 +41,6 @@ import org.lcsim.util.Driver;
  */
 public class HpsGblRefitter extends Driver {
 
-    //static Formatter f = new BasicLogFormatter();
     private final static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
     private boolean _debug = false;
     private final String trackCollectionName = "MatchedTracks";
@@ -75,14 +68,13 @@ public class HpsGblRefitter extends Driver {
 
     public HpsGblRefitter() {
         MakeGblTracks.setDebug(_debug);
-        LOGGER.setLevel(Level.WARNING);
-        //System.out.println("level " + LOGGER.getLevel().toString());
+        // System.out.println("level " + LOGGER.getLevel().toString());
     }
 
-    //@Override
-    //public void setLogLevel(String logLevel) {
-    //    logger.setLevel(Level.parse(logLevel));
-    //}
+    // @Override
+    // public void setLogLevel(String logLevel) {
+    // logger.setLevel(Level.parse(logLevel));
+    // }
     @Override
     protected void startOfData() {
         if (writeMilleBinary) {
@@ -100,7 +92,7 @@ public class HpsGblRefitter extends Driver {
     @Override
     protected void process(EventHeader event) {
         double bfield = TrackUtils.getBField(event.getDetector()).y();
-        //double bfac = 0.0002998 * bfield;
+        // double bfac = 0.0002998 * bfield;
         double bfac = Constants.fieldConversion * bfield;
 
         // get the tracks
@@ -111,7 +103,7 @@ public class HpsGblRefitter extends Driver {
             return;
         }
 
-        //get the relations to the GBLtracks
+        // get the relations to the GBLtracks
         if (!event.hasItem(track2GblTrackRelationName)) {
             System.out.println("Need Relations " + track2GblTrackRelationName);
             return;
@@ -123,9 +115,9 @@ public class HpsGblRefitter extends Driver {
         }
 
         List<LCRelation> track2GblTrackRelations = event.get(LCRelation.class, track2GblTrackRelationName);
-        //need a map of GBLTrackData keyed on the Generic object from which it created
+        // need a map of GBLTrackData keyed on the Generic object from which it created
         Map<GenericObject, GBLTrackData> gblObjMap = new HashMap<GenericObject, GBLTrackData>();
-        //need a map of SeedTrack to GBLTrackData keyed on the track object from which it created
+        // need a map of SeedTrack to GBLTrackData keyed on the track object from which it created
         Map<GBLTrackData, Track> gblToSeedMap = new HashMap<GBLTrackData, Track>();
 
         // loop over the relations
@@ -135,17 +127,17 @@ public class HpsGblRefitter extends Driver {
             GBLTrackData gblT = new GBLTrackData(gblTrackObject);
             gblObjMap.put(gblTrackObject, gblT);
             gblToSeedMap.put(gblT, t);
-        } //end of loop over tracks
+        } // end of loop over tracks
 
-        //get the strip hit relations
+        // get the strip hit relations
         List<LCRelation> gblTrack2StripRelations = event.get(LCRelation.class, gblTrack2StripRelationName);
 
         // need a map of lists of strip data keyed by the gblTrack to which they correspond
         Map<GBLTrackData, List<GBLStripClusterData>> stripsGblMap = new HashMap<GBLTrackData, List<GBLStripClusterData>>();
         for (LCRelation relation : gblTrack2StripRelations) {
-            //from GBLTrackData to GBLStripClusterData
+            // from GBLTrackData to GBLStripClusterData
             GenericObject gblTrackObject = (GenericObject) relation.getFrom();
-            //Let's get the GBLTrackData that corresponds to this object...
+            // Let's get the GBLTrackData that corresponds to this object...
             GBLTrackData gblT = gblObjMap.get(gblTrackObject);
             GBLStripClusterData sd = new GBLStripClusterData((GenericObject) relation.getTo());
             if (stripsGblMap.containsKey(gblT)) {
@@ -201,10 +193,10 @@ public class HpsGblRefitter extends Driver {
             SeedTrack seedTrack = (SeedTrack) fittedTraj.get_seed();
             SeedCandidate trackseed = seedTrack.getSeedCandidate();
 
-            //  Create a new Track
+            // Create a new Track
             Pair<Track, GBLKinkData> trk = makeCorrectedTrack(fittedTraj, trackseed.getHelix(), seedTrack.getTrackerHits(), seedTrack.getType(), bfield);
 
-            //  Add the track to the list of tracks
+            // Add the track to the list of tracks
             newTracks.add(trk.getFirst());
 
             // Create relation from seed to GBL track
@@ -243,7 +235,7 @@ public class HpsGblRefitter extends Driver {
         Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
         Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
 
-        //start trajectory at refence point (s=0) - this point has no measurement
+        // start trajectory at refence point (s=0) - this point has no measurement
         GblPoint ref_point = new GblPoint(jacPointToPoint);
         listOfPoints.add(ref_point);
 
@@ -255,7 +247,7 @@ public class HpsGblRefitter extends Driver {
         int n_strips = hits.size();
         for (int istrip = 0; istrip != n_strips; ++istrip) {
             GBLStripClusterData strip = hits.get(istrip);
-            //MG--9/18/2015--beamspot has Id=666/667...don't include it in the GBL fit
+            // MG--9/18/2015--beamspot has Id=666/667...don't include it in the GBL fit
             if (strip.getId() > 99) {
                 continue;
             }
@@ -292,10 +284,10 @@ public class HpsGblRefitter extends Driver {
                 mDirT.print(4, 6);
             }
 
-            // Track direction 
-            double sinLambda = sin(strip.getTrackLambda());//->GetLambda());
+            // Track direction
+            double sinLambda = sin(strip.getTrackLambda());// ->GetLambda());
             double cosLambda = sqrt(1.0 - sinLambda * sinLambda);
-            double sinPhi = sin(strip.getTrackPhi());//->GetPhi());
+            double sinPhi = sin(strip.getTrackPhi());// ->GetPhi());
             double cosPhi = sqrt(1.0 - sinPhi * sinPhi);
 
             if (debug) {
@@ -317,10 +309,10 @@ public class HpsGblRefitter extends Driver {
                 uvDir.print(6, 4);
             }
 
-            // projection from  measurement to local (curvilinear uv) directions (duv/dm)
+            // projection from measurement to local (curvilinear uv) directions (duv/dm)
             Matrix proM2l = uvDir.times(mDirT);
 
-            //projection from local (uv) to measurement directions (dm/duv)
+            // projection from local (uv) to measurement directions (dm/duv)
             Matrix proL2m = proM2l.copy();
             proL2m = proL2m.inverse();
 
@@ -336,6 +328,7 @@ public class HpsGblRefitter extends Driver {
             // measurement/residual in the measurement system
             // only 1D measurement in u-direction, set strip measurement direction to zero
             Vector meas = new Vector(2);
+            // double uRes = strip->GetUmeas() - strip->GetTrackPos().x(); // how can this be correct?
             double uRes = strip.getMeas() - strip.getTrackPos().x();
             meas.set(0, uRes);
             meas.set(1, 0.);
@@ -355,23 +348,21 @@ public class HpsGblRefitter extends Driver {
                 measPrec.print(4, 6);
             }
 
-            //Find the Jacobian to be able to propagate the covariance matrix to this strip position
+            // Find the Jacobian to be able to propagate the covariance matrix to this strip position
             jacPointToPoint = gblSimpleJacobianLambdaPhi(step, cosLambda, abs(bfac));
-
             if (debug) {
                 System.out.println("HpsGblFitter: " + "jacPointToPoint to extrapolate to this point:");
                 jacPointToPoint.print(4, 6);
             }
 
             GblPoint point = new GblPoint(jacPointToPoint);
-            //Add measurement to the point
+            // Add measurement to the point
             point.addMeasurement(proL2m, meas, measPrec, 0.);
-            //Add scatterer in curvilinear frame to the point
+            // Add scatterer in curvilinear frame to the point
             // no direction in this frame
             Vector scat = new Vector(2);
-
             // Scattering angle in the curvilinear frame
-            //Note the cosLambda to correct for the projection in the phi direction
+            // Note the cosLambda to correct for the projection in the phi direction
             Vector scatErr = new Vector(2);
             scatErr.set(0, strip.getScatterAngle());
             scatErr.set(1, strip.getScatterAngle() / cosLambda);
@@ -389,12 +380,11 @@ public class HpsGblRefitter extends Driver {
             // Add this GBL point to list that will be used in fit
             listOfPoints.add(point);
             iLabel = listOfPoints.size();
-
             // save path length and sensor-number to each point
-            pathLengthMap.put(iLabel, s);
+            pathLengthMap.put(iLabel, s + step);
             sensorMap.put(iLabel, strip.getId());
 
-            //// Calculate global derivatives for this point
+            // // Calculate global derivatives for this point
             // track direction in tracking/global frame
             Hep3Vector tDirGlobal = new BasicHep3Vector(cosPhi * cosLambda, sinPhi * cosLambda, sinLambda);
 
@@ -402,40 +392,19 @@ public class HpsGblRefitter extends Driver {
             if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
                 throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
             }
-            // rotate track direction to measurement frame   
-            //            Matrix GlobalToMeas = new Matrix(3, 3);
-            //            GlobalToMeas.set(0, 0, u.x());
-            //            GlobalToMeas.set(0, 1, u.y());
-            //            GlobalToMeas.set(0, 2, u.z());
-            //            GlobalToMeas.set(1, 0, v.x());
-            //            GlobalToMeas.set(1, 1, v.y());
-            //            GlobalToMeas.set(1, 2, v.z());
-            //            GlobalToMeas.set(2, 0, w.x());
-            //            GlobalToMeas.set(2, 1, w.y());
-            //            GlobalToMeas.set(2, 2, w.z());
-            //            Vector tDirMeasVect = new Vector(GlobalToMeas.times(new Vector(tDirGlobal.v())));
-            //            Hep3Vector tDirMeas = new BasicHep3Vector(tDirMeasVect.get(0), tDirMeasVect.get(1), tDirMeasVect.get(2));
 
+            // rotate track direction to measurement frame
             Hep3Vector tDirMeas = new BasicHep3Vector(VecOp.dot(tDirGlobal, u), VecOp.dot(tDirGlobal, v), VecOp.dot(tDirGlobal, w));
-            // vector coplanar with measurement plane from origin to prediction
             Hep3Vector normalMeas = new BasicHep3Vector(VecOp.dot(w, u), VecOp.dot(w, v), VecOp.dot(w, w));
 
-            // global track position
-            //Matrix MeasToGlobal = GlobalToMeas.inverse();
-            //Vector tPosGlobalVect = MeasToGlobal.times(new Vector(strip.getTrackPos().v()));
-            //double[] tPosGlobal = { tPosGlobalVect.get(0), tPosGlobalVect.get(1), tPosGlobalVect.get(2) };
-            //trackPosMap.put(iLabel, tPosGlobal);
-            // local track position
-            //trackPosMap.put(iLabel, strip.getTrackPos().v());
-
-            // measurements: non-measured directions 
+            // measurements: non-measured directions
             double vmeas = 0.;
             double wmeas = 0.;
 
             // calculate and add derivatives to point
             GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, strip.getTrackPos(), normalMeas);
 
-            //TODO find a more robust way to get half.
+            // TODO find a more robust way to get half.
             boolean isTop = Math.sin(strip.getTrackLambda()) > 0;
 
             // Get the list of millepede parameters
@@ -449,25 +418,25 @@ public class HpsGblRefitter extends Driver {
                 addDer.set(0, i, milleParameters.get(i).getValue());
             }
             point.addGlobals(labGlobal, addDer);
-            String logders = "";
-            for (int i = 0; i < milleParameters.size(); ++i) {
-                logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
-            }
-            LOGGER.info("\n" + logders);
+            //            String logders = "";
+            //            for (int i = 0; i < milleParameters.size(); ++i) {
+            //                logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
+            //            }
+            //            LOGGER.info("\n" + logders);
 
             LOGGER.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
 
-            //go to next point
+            // go to next point
             s += step;
 
-        } //strips
+        } // strips
 
-        //create the trajectory
-        GblTrajectory traj = new GblTrajectory(listOfPoints); //,seedLabel, clSeed);
+        // create the trajectory
+        GblTrajectory traj = new GblTrajectory(listOfPoints); // ,seedLabel, clSeed);
 
         if (!traj.isValid()) {
             System.out.println("HpsGblFitter: " + " Invalid GblTrajectory -> skip");
-            return null; //1;//INVALIDTRAJ;
+            return null; // 1;//INVALIDTRAJ;
         }
 
         // print the trajectory
@@ -486,7 +455,6 @@ public class HpsGblRefitter extends Driver {
         FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
         fittedTraj.setPathLengthMap(pathLengthMap);
         fittedTraj.setSensorMap(sensorMap);
-        //fittedTraj.setTrackPosMap(trackPosMap);
 
         return fittedTraj;
     }
@@ -497,8 +465,7 @@ public class HpsGblRefitter extends Driver {
 
     private static Matrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
         /**
-         * Simple jacobian: quadratic in arc length difference. using lambda phi
-         * as directions
+         * Simple jacobian: quadratic in arc length difference. using lambda phi as directions
          *
          * @param ds: arc length difference
          * @type ds: float
@@ -507,12 +474,10 @@ public class HpsGblRefitter extends Driver {
          * @param bfac: Bz*c
          * @type bfac: float
          * @return: jacobian to move by 'ds' on trajectory
-         * @rtype: matrix(float) ajac(1,1)= 1.0D0 ajac(2,2)= 1.0D0
-         * ajac(3,1)=-DBLE(bfac*ds) ajac(3,3)= 1.0D0
-         * ajac(4,1)=-DBLE(0.5*bfac*ds*ds*cosl) ajac(4,3)= DBLE(ds*cosl)
-         * ajac(4,4)= 1.0D0 ajac(5,2)= DBLE(ds) ajac(5,5)= 1.0D0 ''' jac =
-         * np.eye(5) jac[2, 0] = -bfac * ds jac[3, 0] = -0.5 * bfac * ds * ds *
-         * cosl jac[3, 2] = ds * cosl jac[4, 1] = ds return jac
+         * @rtype: matrix(float) ajac(1,1)= 1.0D0 ajac(2,2)= 1.0D0 ajac(3,1)=-DBLE(bfac*ds) ajac(3,3)= 1.0D0
+         *         ajac(4,1)=-DBLE(0.5*bfac*ds*ds*cosl) ajac(4,3)= DBLE(ds*cosl) ajac(4,4)= 1.0D0 ajac(5,2)= DBLE(ds)
+         *         ajac(5,5)= 1.0D0 ''' jac = np.eye(5) jac[2, 0] = -bfac * ds jac[3, 0] = -0.5 * bfac * ds * ds * cosl
+         *         jac[3, 2] = ds * cosl jac[4, 1] = ds return jac
          */
         Matrix jac = new Matrix(5, 5);
         jac.UnitMatrix();
@@ -529,30 +494,31 @@ public class HpsGblRefitter extends Driver {
         private final Hep3Vector _t; // track direction
         private final Hep3Vector _p; // track prediction
         private final Hep3Vector _n; // normal to plane
-        private final Matrix _dm_dg; //Global derivaties of the local measurements
-        private final Matrix _dr_dm; //Derivatives of residuals w.r.t. measurement
-        private final Matrix _dr_dg; //Derivatives of residuals w.r.t. global parameters
+        private final Matrix _dm_dg; // Global derivaties of the local measurements
+        private final Matrix _dr_dm; // Derivatives of residuals w.r.t. measurement
+        private final Matrix _dr_dg; // Derivatives of residuals w.r.t. global parameters
 
         public GlobalDers(int layer, double umeas, double vmeas, double wmeas, Hep3Vector tDir, Hep3Vector tPred, Hep3Vector normal) {
             _layer = layer;
             _t = tDir;
             _p = tPred;
             _n = normal;
-            // Derivatives of residuals w.r.t. perturbed measurement 
+            // Derivatives of residuals w.r.t. perturbed measurement
             _dr_dm = getResDers();
             // Derivatives of perturbed measurement w.r.t. global parameters
             _dm_dg = getMeasDers();
             // Calculate, by chain rule, derivatives of residuals w.r.t. global parameters
             _dr_dg = _dr_dm.times(_dm_dg);
+
         }
 
         /**
-         * Derivative of mt, the perturbed measured coordinate vector m w.r.t.
-         * to global parameters: u,v,w,alpha,beta,gamma
+         * Derivative of mt, the perturbed measured coordinate vector m w.r.t. to global parameters:
+         * u,v,w,alpha,beta,gamma
          */
         private Matrix getMeasDers() {
 
-            //Derivative of the local measurement for a translation in u
+            // Derivative of the local measurement for a translation in u
             double dmu_du = 1.;
             double dmv_du = 0.;
             double dmw_du = 0.;
@@ -569,9 +535,9 @@ public class HpsGblRefitter extends Driver {
             double dmv_dalpha = _p.z(); // self.wmeas
             double dmw_dalpha = -1.0 * _p.y(); // -1.0 * self.vmeas
             // Derivative of the local measurement for a rotation around v-axis (beta)
-            double dmu_dbeta = -1.0 * _p.z(); //-1.0 * self.wmeas
+            double dmu_dbeta = -1.0 * _p.z(); // -1.0 * self.wmeas
             double dmv_dbeta = 0.;
-            double dmw_dbeta = _p.x(); //self.umeas
+            double dmw_dbeta = _p.x(); // self.umeas
             // Derivative of the local measurement for a rotation around w-axis (gamma)
             double dmu_dgamma = _p.y(); // self.vmeas
             double dmv_dgamma = -1.0 * _p.x(); // -1.0 * self.umeas 
@@ -601,12 +567,12 @@ public class HpsGblRefitter extends Driver {
         }
 
         /**
-         * Derivatives of the local perturbed residual w.r.t. the measurements m
-         * (u,v,w)'
+         * Derivatives of the local perturbed residual w.r.t. the measurements m (u,v,w)'
          */
         private Matrix getResDers() {
             double tdotn = VecOp.dot(_t, _n);
             Matrix dr_dm = Matrix.identity(3, 3);
+
             double delta, val;
             for (int i = 0; i < 3; ++i) {
                 for (int j = 0; j < 3; ++j) {
