@@ -29,6 +29,7 @@ final class LogTable extends JTable implements PropertyChangeListener {
      * The table cell renderer for displaying dates.
      */
     static class DateRenderer extends DefaultTableCellRenderer {
+
         @Override
         public void setValue(final Object value) {
             setText(value == null ? "" : DATE_FORMAT.format(value));
@@ -104,14 +105,14 @@ final class LogTable extends JTable implements PropertyChangeListener {
         @Override
         public Class<?> getColumnClass(final int columnIndex) {
             switch (columnIndex) {
-            case 0:
-                return Date.class;
-            case 1:
-                return Level.class;
-            case 2:
-                return String.class;
-            default:
-                return Object.class;
+                case 0:
+                    return Date.class;
+                case 1:
+                    return Level.class;
+                case 2:
+                    return String.class;
+                default:
+                    return Object.class;
             }
         }
 
@@ -157,14 +158,14 @@ final class LogTable extends JTable implements PropertyChangeListener {
         public Object getValueAt(final int rowIndex, final int columnIndex) {
             final LogRecord record = this.get(rowIndex);
             switch (columnIndex) {
-            case 0:
-                return new Date(record.getMillis());
-            case 1:
-                return record.getLevel();
-            case 2:
-                return record.getMessage();
-            default:
-                return null;
+                case 0:
+                    return new Date(record.getMillis());
+                case 1:
+                    return record.getLevel();
+                case 2:
+                    return record.getMessage();
+                default:
+                    return null;
             }
         }
     }
@@ -172,7 +173,7 @@ final class LogTable extends JTable implements PropertyChangeListener {
     /**
      * The column names.
      */
-    static final String[] COLUMN_NAMES = { "Date", "Level", "Message" };
+    static final String[] COLUMN_NAMES = {"Date", "Level", "Message"};
 
     /**
      * Date formatting.

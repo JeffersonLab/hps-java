@@ -123,8 +123,8 @@ public final class RunSpreadsheet {
                     return record;
                 }
             } catch (final NumberFormatException e) {
-                //System.out.println("problem reading run" + run);
-                //e.printStackTrace();
+                // System.out.println("problem reading run" + run);
+                // e.printStackTrace();
             }
         }
         return null;
@@ -162,55 +162,54 @@ public final class RunSpreadsheet {
     public List<CSVRecord> getRecords() {
         return records;
     }
-    
-    public static final RunSpreadsheetDateFormat DATE_FORMAT = new RunSpreadsheetDateFormat("MM/dd/yyyy H:mm"); 
-    private static final TimeZone TIME_ZONE =  TimeZone.getTimeZone("EST");
-    
-    
+
+    public static final RunSpreadsheetDateFormat DATE_FORMAT = new RunSpreadsheetDateFormat("MM/dd/yyyy H:mm");
+    private static final TimeZone TIME_ZONE = TimeZone.getTimeZone("EST");
+
     @SuppressWarnings("serial")
-    public
-    static class RunSpreadsheetDateFormat extends SimpleDateFormat {
-        
+    public static class RunSpreadsheetDateFormat extends SimpleDateFormat {
+
         public RunSpreadsheetDateFormat(String formatstring) {
             super(formatstring);
-            //Calendar c = Calendar.getInstance(TIME_ZONE,Locale.US);
-            //setTimeZone(TIME_ZONE);
+            // Calendar c = Calendar.getInstance(TIME_ZONE,Locale.US);
+            // setTimeZone(TIME_ZONE);
         }
 
         public Date parse(String source) throws ParseException {
             setTimeZone(TIME_ZONE);
-            //System.out.println("parse  " + source);
+            // System.out.println("parse  " + source);
             Date date = super.parse(source);
-            //System.out.println("update date " + date.toString() + " epoch " + date.getTime());
-            Date dateUpdated = new Date(date.getTime()-3600*1000);
-            //System.out.println("updated date " + dateUpdated.toString() + " epoch " + dateUpdated.getTime());
+            // System.out.println("update date " + date.toString() + " epoch " + date.getTime());
+            Date dateUpdated = new Date(date.getTime() - 3600 * 1000);
+            // System.out.println("updated date " + dateUpdated.toString() + " epoch " + dateUpdated.getTime());
             return dateUpdated;
         }
-        
+
     }
 
-    
     private static Date parseStartDate(CSVRecord record) throws ParseException {
-        //System.out.printf("Start date result of parsing %s %s is %s since epoch %d  \n",record.get("date"), record.get("start_time"),DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time")).toString(), DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time")).getTime() );
+        // System.out.printf("Start date result of parsing %s %s is %s since epoch %d  \n",record.get("date"),
+        // record.get("start_time"),DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time")).toString(),
+        // DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time")).getTime() );
         return DATE_FORMAT.parse(record.get("date") + " " + record.get("start_time"));
     }
-    
+
     private static Date parseEndDate(CSVRecord record) throws ParseException {
-        //DATE_FORMAT.setTimeZone(TIME_ZONE);
+        // DATE_FORMAT.setTimeZone(TIME_ZONE);
         return DATE_FORMAT.parse(record.get("date") + " " + record.get("end_time"));
     }
-    
+
     private static int parseRunNumber(CSVRecord record) throws NumberFormatException {
         return Integer.parseInt(record.get("run"));
     }
-    
+
     public static class RunData {
-        
+
         private int run;
         private Date startDate;
         private Date endDate;
         private CSVRecord record;
-        
+
         RunData(CSVRecord record) throws NumberFormatException {
             this.record = record;
             run = parseRunNumber(this.record);
@@ -234,73 +233,76 @@ public final class RunSpreadsheet {
         public int getRun() {
             return run;
         }
-        
+
         public Date getStartDate() {
             return startDate;
         }
-        
+
         public Date getEndDate() {
             return endDate;
-        }      
-        
+        }
+
         public String toString() {
             return "RunData { run: " + run + ", startDate: " + startDate + ", endDate: " + endDate + " }";
         }
-        
+
         public CSVRecord getRecord() {
             return record;
         }
-        
+
         public boolean isJunk() {
             return "JUNK".compareToIgnoreCase(record.get("to_tape")) == 0;
         }
     }
-    
+
     @SuppressWarnings("serial")
     public static class RunMap extends LinkedHashMap<Integer, RunData> {
+
         public RunMap() {
             super();
         }
+
         public RunMap(List<CSVRecord> records) {
             super();
             for (final CSVRecord record : records) {
                 try {
                     addRunData(new RunData(record));
                 } catch (NumberFormatException e) {
-                    //e.printStackTrace();
+                    // e.printStackTrace();
                 }
             }
         }
+
         private void addRunData(RunData runData) {
             this.put(runData.getRun(), runData);
         }
     }
-    
+
     public RunMap getRunMap() {
         return new RunMap(getRecords());
-    } 
+    }
 
     public RunMap getRunMap(List<RunRange> ranges) {
         List<CSVRecord> records = new ArrayList<CSVRecord>();
-        for(RunRange range : ranges) {
-           //System.out.println(range.toString());
-           if(range.getColumnNames().contains("run")) {
-               if(!range.getValue("run").isEmpty()) {
-                   CSVRecord record = findRun(Integer.parseInt(range.getValue("run")));
-                   if(record!=null) {
-                       records.add(record);
-                   } else {
-                       throw new RuntimeException("this RunRange object was not found. This shouldn't happen. " + range.toString());
-                   }
-               } else {
-                   throw new RuntimeException("this RunRange object has an empty run value ");
-               }
-           } else {
-               throw new RuntimeException("this RunRange object has no run column? " + range.toString());
-           }
+        for (RunRange range : ranges) {
+            // System.out.println(range.toString());
+            if (range.getColumnNames().contains("run")) {
+                if (!range.getValue("run").isEmpty()) {
+                    CSVRecord record = findRun(Integer.parseInt(range.getValue("run")));
+                    if (record != null) {
+                        records.add(record);
+                    } else {
+                        throw new RuntimeException("this RunRange object was not found. This shouldn't happen. "
+                                + range.toString());
+                    }
+                } else {
+                    throw new RuntimeException("this RunRange object has an empty run value ");
+                }
+            } else {
+                throw new RuntimeException("this RunRange object has no run column? " + range.toString());
+            }
         }
         return new RunMap(records);
-    } 
-
+    }
     
 }

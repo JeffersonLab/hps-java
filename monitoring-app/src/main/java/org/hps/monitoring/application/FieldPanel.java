@@ -89,6 +89,7 @@ class FieldPanel extends JPanel {
      */
     final void setValue(final double value) {
         SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
                 FieldPanel.this.field.setText(new Double(value).toString());
@@ -103,6 +104,7 @@ class FieldPanel extends JPanel {
      */
     final void setValue(final int value) {
         SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
                 FieldPanel.this.field.setText(new Integer(value).toString());
@@ -117,6 +119,7 @@ class FieldPanel extends JPanel {
      */
     final void setValue(final long value) {
         SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
                 FieldPanel.this.field.setText(new Long(value).toString());
@@ -131,6 +134,7 @@ class FieldPanel extends JPanel {
      */
     void setValue(final String value) {
         SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
                 FieldPanel.this.field.setText(value);

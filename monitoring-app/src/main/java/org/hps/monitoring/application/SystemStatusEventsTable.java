@@ -124,18 +124,18 @@ final class SystemStatusEventsTable extends JTable {
         public Object getValueAt(final int rowIndex, final int columnIndex) {
             final SystemStatus status = this.statuses.get(rowIndex);
             switch (columnIndex) {
-            case 0:
-                return new Date(status.getLastChangedMillis());
-            case 1:
-                return status.getSubsystem();
-            case 2:
-                return status.getStatusCode();
-            case 3:
-                return status.getDescription();
-            case 4:
-                return status.getMessage();
-            default:
-                return null;
+                case 0:
+                    return new Date(status.getLastChangedMillis());
+                case 1:
+                    return status.getSubsystem();
+                case 2:
+                    return status.getStatusCode();
+                case 3:
+                    return status.getDescription();
+                case 4:
+                    return status.getMessage();
+                default:
+                    return null;
             }
         }
 

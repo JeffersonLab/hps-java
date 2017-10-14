@@ -38,27 +38,17 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
 /**
- * Class to calculate and print the residuals and derivatives
- * of the alignment parameters...used as input for MillePede
- * Notation follows the MillePede manual:
- * http://www.desy.de/~blobel/Mptwo.pdf
- *
- * the track is measured in the HelicalTrackFit frame
- * and residuals are in the sensor frame (u,v,w)
- *
- * ordering of track parameters is
- *    double d0 = _trk.dca();
- *    double z0 = _trk.z0();
- *    double slope = _trk.slope();
- *    double phi0 = _trk.phi0();
- *    double R = _trk.R();
+ * Class to calculate and print the residuals and derivatives of the alignment parameters...used as input for MillePede
+ * Notation follows the MillePede manual: http://www.desy.de/~blobel/Mptwo.pdf the track is measured in the
+ * HelicalTrackFit frame and residuals are in the sensor frame (u,v,w) ordering of track parameters is double d0 =
+ * _trk.dca(); double z0 = _trk.z0(); double slope = _trk.slope(); double phi0 = _trk.phi0(); double R = _trk.R();
  *
  * @author mgraham
  */
 public class AlignmentParameters {
 
-    private int _nlc = 5;  //the five track parameters
-    private int _ngl = 1; //delta(u) and delta(gamma) for each plane
+    private int _nlc = 5; // the five track parameters
+    private int _ngl = 1; // delta(u) and delta(gamma) for each plane
     private BasicMatrix _dfdq;
     private BasicMatrix _dfdp;
     private HelicalTrackFit _trk;
@@ -73,7 +63,7 @@ public class AlignmentParameters {
 
     public AlignmentParameters(String outfile) {
         try {
-//open things up
+            // open things up
             fWriter = new FileWriter(outfile);
             pWriter = new PrintWriter(fWriter);
         } catch (IOException ex) {
@@ -101,7 +91,7 @@ public class AlignmentParameters {
                 CalculateLocalDerivatives(cl);
                 CalculateGlobalDerivatives(cl);
                 CalculateResidual(cl, msdrphi, msdz);
-//                CalculateResidual(cl, 0,0);
+                // CalculateResidual(cl, 0,0);
                 PrintStripResiduals(cl);
             }
         }
@@ -109,19 +99,19 @@ public class AlignmentParameters {
     }
 
     private void CalculateLocalDerivatives(HelicalTrackStrip strip) {
-        //get track parameters.
+        // get track parameters.
         double d0 = _trk.dca();
         double z0 = _trk.z0();
         double slope = _trk.slope();
         double phi0 = _trk.phi0();
         double R = _trk.R();
-//strip origin is defined in the tracking coordinate system (x=beamline)
+        // strip origin is defined in the tracking coordinate system (x=beamline)
         double xint = strip.origin().x();
         double s = HelixUtils.PathToXPlane(_trk, xint, smax, _nlc).get(0);
         double phi = s / R - phi0;
         double[][] dfdq = new double[3][5];
-        //dx/dq
-        //these are wrong for X, but for now it doesn't matter
+        // dx/dq
+        // these are wrong for X, but for now it doesn't matter
         dfdq[0][0] = Math.sin(phi0);
         dfdq[0][1] = 0;
         dfdq[0][2] = 0;
@@ -149,13 +139,13 @@ public class AlignmentParameters {
     }
 
     private void CalculateGlobalDerivatives(HelicalTrackStrip strip) {
-        //1st index = alignment parameter (only u so far)
-        //2nd index = residual coordinate (on du so far)
+        // 1st index = alignment parameter (only u so far)
+        // 2nd index = residual coordinate (on du so far)
 
         double[][] dfdpLab = new double[3][1];
-        dfdpLab[0][0] = 0; //df/dx
-        dfdpLab[1][0] = 0; //df/dy
-        dfdpLab[2][0] = 1; //df/dz
+        dfdpLab[0][0] = 0; // df/dx
+        dfdpLab[1][0] = 0; // df/dy
+        dfdpLab[2][0] = 1; // df/dz
         BasicMatrix _dfdpLab = FillMatrix(dfdpLab, 3, 1);
         Hep3Matrix trkToStrip = getTrackToStripRotation(strip);
         _dfdp = (BasicMatrix) MatrixOp.mult(trkToStrip, _dfdpLab);
@@ -163,7 +153,7 @@ public class AlignmentParameters {
             System.out.printf("dfdz = %5.5f     %5.5f   %5.5f\n", _dfdp.e(0, 0), _dfdp.e(1, 0), _dfdp.e(2, 0));
         }
         _globalLabel[0] = GetIdentifier(strip);
-//         _globalLabel[0] = GetIdentifierModule(strip);
+        // _globalLabel[0] = GetIdentifierModule(strip);
 
     }
 
@@ -180,8 +170,8 @@ public class AlignmentParameters {
         double phi = s / R - phi0;
         Hep3Vector trkpos = HelixUtils.PointOnHelix(_trk, s);
 
-        //System.out.println("trkpos = "+trkpos.toString());
-        //System.out.println("origin = "+corigin.toString());
+        // System.out.println("trkpos = "+trkpos.toString());
+        // System.out.println("origin = "+corigin.toString());
 
         Hep3Vector mserr = new BasicHep3Vector(msdrdphi * Math.sin(phi), msdrdphi * Math.sin(phi), msdz);
         Hep3Vector vdiffTrk = VecOp.sub(trkpos, corigin);
@@ -197,7 +187,7 @@ public class AlignmentParameters {
         double vError = (strip.vmax() - strip.vmin()) / Math.sqrt(12);
         double wmeas = 0;
         double wError = 0.001;
-        //System.out.println("strip error="+uError+"; ms error ="+msuError);
+        // System.out.println("strip error="+uError+"; ms error ="+msuError);
         _resid[0] = umeas - umc;
         _error[0] = Math.sqrt(uError * uError + msuError * msuError);
         _resid[1] = vmeas - vmc;
@@ -246,7 +236,8 @@ public class AlignmentParameters {
                     res[4] = _error[1];
                     res[5] = _error[2];
                     res[6] = layer;
-                    if(hit.getPosition()[2]<0)res[6]=layer+10;
+                    if (hit.getPosition()[2] < 0)
+                        res[6] = layer + 10;
                 }
             }
         }
@@ -261,7 +252,7 @@ public class AlignmentParameters {
         double slope = _trk.slope();
         double phi0 = _trk.phi0();
         double R = _trk.R();
-        double xint = 0; //target
+        double xint = 0; // target
         double s = HelixUtils.PathToXPlane(_trk, xint, smax, _nlc).get(0);
         Hep3Vector ptAtTarget = HelixUtils.PointOnHelix(_trk, s);
         double[] mydydq = dydq(R, d0, phi0, xint, s);
@@ -302,7 +293,8 @@ public class AlignmentParameters {
             String[] p = {"u-displacement"};
             System.out.println("global parameter derivatives");
             for (int j = 0; j < _ngl; j++) {
-                System.out.printf("%s  %5.5e %5.5e %5.5e   %5d\n", p[j], _dfdp.e(0, j), _dfdp.e(1, j), _dfdp.e(2, j), _globalLabel[j]);
+                System.out.printf("%s  %5.5e %5.5e %5.5e   %5d\n", p[j], _dfdp.e(0, j), _dfdp.e(1, j), _dfdp.e(2, j),
+                        _globalLabel[j]);
             }
 
         }
@@ -346,66 +338,86 @@ public class AlignmentParameters {
         RawTrackerHit rth = (RawTrackerHit) strip.rawhits().get(0);
         IDetectorElement ide = rth.getDetectorElement();
         SiSensor sensor = ide.findDescendants(SiSensor.class).get(0);
-        //       return rth.getIdentifierFieldValue(sensor.getName());
-        return sensor.getSensorID();  //individual sensor positions
-//        int sid=sensor.getSensorID();
-//        int global=1;
-//        if(sid>10)global=2;
-//        return global;  //return top/bottom plates
+        // return rth.getIdentifierFieldValue(sensor.getName());
+        return sensor.getSensorID(); // individual sensor positions
+        // int sid=sensor.getSensorID();
+        // int global=1;
+        // if(sid>10)global=2;
+        // return global; //return top/bottom plates
     }
 
     private int GetIdentifierModule(HelicalTrackStrip strip) {
         RawTrackerHit rth = (RawTrackerHit) strip.rawhits().get(0);
         IDetectorElement ide = rth.getDetectorElement();
         SiSensor sensor = ide.findDescendants(SiSensor.class).get(0);
-        //       return rth.getIdentifierFieldValue(sensor.getName());
-//        return sensor.getSensorID();  //individual sensor positions
+        // return rth.getIdentifierFieldValue(sensor.getName());
+        // return sensor.getSensorID(); //individual sensor positions
         int sid = sensor.getSensorID();
         int gid = -1;
         switch (sid) {
             case 1:
-                gid = 1; break;
+                gid = 1;
+                break;
             case 2:
-                gid = 1;break;
+                gid = 1;
+                break;
             case 3:
-                gid = 2;break;
+                gid = 2;
+                break;
             case 4:
-                gid = 2;break;
+                gid = 2;
+                break;
             case 5:
-                gid = 3;break;
+                gid = 3;
+                break;
             case 6:
-                gid = 3;break;
+                gid = 3;
+                break;
             case 7:
-                gid = 4;break;
+                gid = 4;
+                break;
             case 8:
-                gid = 4;break;
+                gid = 4;
+                break;
             case 9:
-                gid = 5;break;
+                gid = 5;
+                break;
             case 10:
-                gid = 5;break;
+                gid = 5;
+                break;
             case 11:
-                gid = 11;break;
+                gid = 11;
+                break;
             case 12:
-                gid = 11;break;
+                gid = 11;
+                break;
             case 13:
-                gid = 12;break;
+                gid = 12;
+                break;
             case 14:
-                gid = 12;break;
+                gid = 12;
+                break;
             case 15:
-                gid = 13;break;
+                gid = 13;
+                break;
             case 16:
-                gid = 13;break;
+                gid = 13;
+                break;
             case 17:
-                gid = 14;break;
+                gid = 14;
+                break;
             case 18:
-                gid = 14;break;
+                gid = 14;
+                break;
             case 19:
-                gid = 15;break;
+                gid = 15;
+                break;
             case 20:
-                gid = 15;break;
+                gid = 15;
+                break;
         }
 
-        return gid;  //return top/bottom plates
+        return gid; // return top/bottom plates
     }
 
     private BasicMatrix FillMatrix(double[][] array, int nrow, int ncol) {
@@ -427,12 +439,9 @@ public class AlignmentParameters {
         double sqrtTerm = Sqrt(R * R - Math.pow(((d0 - R) * Sin(phi0) + xint), 2));
 
         double rsign = Math.signum(R);
-        double dsdr = (1 / sqrtTerm) * ((-rsign * xint) + (-rsign) * d0 * Sin(phi0)
-                + ArcTan(R * Cos(phi0), (-R) * Sin(phi0))
-                * sqrtTerm
-                - ArcTan(rsign * sqrtTerm, xint + (d0 - R) * Sin(phi0))
-                * sqrtTerm);
-
+        double dsdr = (1 / sqrtTerm)
+                * ((-rsign * xint) + (-rsign) * d0 * Sin(phi0) + ArcTan(R * Cos(phi0), (-R) * Sin(phi0)) * sqrtTerm - ArcTan(
+                        rsign * sqrtTerm, xint + (d0 - R) * Sin(phi0)) * sqrtTerm);
 
         if (_DEBUG)
             System.out.println("xint = " + xint + "; dsdr = " + dsdr);
@@ -460,14 +469,17 @@ public class AlignmentParameters {
 
     private double[] dydq(double R, double d0, double phi0, double xint, double s) {
         double[] dy = new double[5];
-//        dy[0] = Cos(phi0) + Cot(phi0 - s / R) * Csc(phi0 - s / R) * dsdd0(R, d0, phi0, xint);
+        // dy[0] = Cos(phi0) + Cot(phi0 - s / R) * Csc(phi0 - s / R) * dsdd0(R, d0, phi0, xint);
         dy[0] = Cos(phi0) - Sec(phi0 - s / R) * Tan(phi0 - s / R) * dsdd0(R, d0, phi0, xint);
         dy[1] = 0;
         dy[2] = 0;
-//        dy[3] = (-(d0 - R)) * Sin(phi0) - R * Cot(phi0 - s / R) * Csc(phi0 - s / R) * (1 - dsdphi(R, d0, phi0, xint) / R);
+        // dy[3] = (-(d0 - R)) * Sin(phi0) - R * Cot(phi0 - s / R) * Csc(phi0 - s / R) * (1 - dsdphi(R, d0, phi0, xint)
+        // / R);
         dy[3] = (-(d0 - R)) * Sin(phi0) + Sec(phi0 - s / R) * Tan(phi0 - s / R) * (R - dsdphi(R, d0, phi0, xint));
-        //        dy[4] = -Cos(phi0) + Csc(phi0 - s / R) - R * Cot(phi0 - s / R) * Csc(phi0 - s / R) * (s / (R * R) - dsdR(R, d0, phi0, xint) / R);
-        dy[4] = -Cos(phi0) + Sec(phi0 - s / R) + (1 / R) * Sec(phi0 - s / R) * Tan(phi0 - s / R) * (s - R * dsdR(R, d0, phi0, xint));
+        // dy[4] = -Cos(phi0) + Csc(phi0 - s / R) - R * Cot(phi0 - s / R) * Csc(phi0 - s / R) * (s / (R * R) - dsdR(R,
+        // d0, phi0, xint) / R);
+        dy[4] = -Cos(phi0) + Sec(phi0 - s / R) + (1 / R) * Sec(phi0 - s / R) * Tan(phi0 - s / R)
+                * (s - R * dsdR(R, d0, phi0, xint));
         return dy;
     }
 
@@ -522,7 +534,8 @@ public class AlignmentParameters {
         System.out.println("s         xint");
         System.out.printf("%5.5f %5.5f\n", trackpars[5], trackpars[6]);
         System.out.println("             d0           z0           slope         phi0          R");
-        System.out.printf("Values       %5.5f    %5.5f     %5.5f      %5.5f      %5.5f\n", trackpars[0], trackpars[1], trackpars[2], trackpars[3], trackpars[4]);
+        System.out.printf("Values       %5.5f    %5.5f     %5.5f      %5.5f      %5.5f\n", trackpars[0], trackpars[1],
+                trackpars[2], trackpars[3], trackpars[4]);
         System.out.printf("dzdq         ");
         for (int i = 0; i < 5; i++) {
             System.out.printf("%5.3e   ", dfdq[2][i]);
@@ -555,7 +568,7 @@ public class AlignmentParameters {
             System.out.printf("%5.3e   ", _dfdq.e(2, i));
         }
         System.out.println();
-        //        System.out.println(        _trk.xc()+ "; "+_trk.yc());
-//          System.out.println(        _trk.x0()+ "; "+_trk.y0());
+        // System.out.println( _trk.xc()+ "; "+_trk.yc());
+        // System.out.println( _trk.x0()+ "; "+_trk.y0());
     }
 }

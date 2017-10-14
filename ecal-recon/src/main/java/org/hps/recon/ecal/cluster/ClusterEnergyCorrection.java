@@ -6,144 +6,130 @@ import java.util.Random;
 
 import org.hps.detector.ecal.EcalCrystal;
 import org.hps.detector.ecal.HPSEcalDetectorElement;
-//import org.jdom.DataConversionException;
+// import org.jdom.DataConversionException;
 // import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
 /**
- * This is the cluster energy correction requiring the particle id uncorrected
- * cluster energy. This is now updated to include edge corrections and sampling
- * fractions derived from data.
+ * This is the cluster energy correction requiring the particle id uncorrected cluster energy. This is now updated to
+ * include edge corrections and sampling fractions derived from data.
  * 
  * @author Holly Vance <hvanc001@odu.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class ClusterEnergyCorrection {
-    
-    
-    // Variables derived as the difference between data and mc noise in 
+
+    // Variables derived as the difference between data and mc noise in
     // ecal cluster energy resolution.
     static final double A = -0.00000981;
     static final double B = 0.00013725;
     static final double C = 0.000301;
-    
+
     // Calculate the noise factor to smear the Ecal energy by
-    private static double calcNoise(double energy){
+    private static double calcNoise(double energy) {
         Random r = new Random();
-        double noise = r.nextGaussian()*Math.sqrt(A+B*energy+C*Math.pow(energy, 2));
-        //System.out.println("energy:\t"+energy+"\tnoise:\t"+noise);
+        double noise = r.nextGaussian() * Math.sqrt(A + B * energy + C * Math.pow(energy, 2));
+        // System.out.println("energy:\t"+energy+"\tnoise:\t"+noise);
         return noise;
     }
-    
-    
+
     // Variables for electron energy corrections.
     static final double par0_em = -0.017;
-    static final double par1_em[] = { 35, -0.06738, -0.0005613, 16.42, 0.3431,-2.021, 74.85, -0.3626 };
-    static final double par2_em[] = { 35, 0.933, 0.003234, 18.06, 0.24, 8.586,75.08, -0.39 };
+    static final double par1_em[] = {35, -0.06738, -0.0005613, 16.42, 0.3431, -2.021, 74.85, -0.3626};
+    static final double par2_em[] = {35, 0.933, 0.003234, 18.06, 0.24, 8.586, 75.08, -0.39};
 
     // Variables for positron energy corrections.
     static final double par0_ep = -0.0131;
-    static final double par1_ep[] = { 35, -0.076, -0.0008183, 17.88, 0.2886,-1.192, 73.12, -0.3747 };
-    static final double par2_ep[] = { 35, 0.94, 0.003713, 18.19, 0.24, 8.342,72.44, -0.39 };
+    static final double par1_ep[] = {35, -0.076, -0.0008183, 17.88, 0.2886, -1.192, 73.12, -0.3747};
+    static final double par2_ep[] = {35, 0.94, 0.003713, 18.19, 0.24, 8.342, 72.44, -0.39};
 
     // Variables for photon energy corrections.
     static final double par0_p = -0.0113;
-    static final double par1_p[] = { 35, -0.0585, -0.0008572, 16.76, 0.2784,-0.07232, 72.88, -0.1685 };
-    static final double par2_p[] = { 35, 0.9307, 0.004, 18.05, 0.23, 3.027,74.93, -0.34 };
-    
-    // Variables for electron energy corrections--MC.    
-    static final double par0MC_em = 0.009051;
-    static final double par1MC_em[] = {35,-0.1322,-0.0005613,16.42,0.3431,-2.021,74.85,-0.3626};
-    static final double par2MC_em[] = {35, 0.9652, 0.003234, 18.06, 0.2592, 8.586, 75.08, -0.3771};
-    
-    
+    static final double par1_p[] = {35, -0.0585, -0.0008572, 16.76, 0.2784, -0.07232, 72.88, -0.1685};
+    static final double par2_p[] = {35, 0.9307, 0.004, 18.05, 0.23, 3.027, 74.93, -0.34};
 
-    // Variables for positron energy corrections--MC. 
+    // Variables for electron energy corrections--MC.
+    static final double par0MC_em = 0.009051;
+    static final double par1MC_em[] = {35, -0.1322, -0.0005613, 16.42, 0.3431, -2.021, 74.85, -0.3626};
+    static final double par2MC_em[] = {35, 0.9652, 0.003234, 18.06, 0.2592, 8.586, 75.08, -0.3771};
+
+    // Variables for positron energy corrections--MC.
     static final double par0MC_ep = 0.01307;
-    static final double par1MC_ep[] = {35,-0.1415,-0.0008183,17.88,0.2886,-1.192,73.12,-0.3747};
+    static final double par1MC_ep[] = {35, -0.1415, -0.0008183, 17.88, 0.2886, -1.192, 73.12, -0.3747};
     static final double par2MC_ep[] = {35, 0.9733, 0.003713, 18.19, 0.2557, 8.342, 72.44, -0.3834};
 
     // Variables for photon energy corrections--MC.
     static final double par0MC_p = 0.01604;
-    static final double par1MC_p[] = {35,-0.1268,-0.0008572,16.76,0.2784,-0.07232,72.88,-0.1685};
+    static final double par1MC_p[] = {35, -0.1268, -0.0008572, 16.76, 0.2784, -0.07232, 72.88, -0.1685};
     static final double par2MC_p[] = {35, 0.965, 0.004, 18.05, 0.24, 3.027, 74.93, -0.3221};
 
     /**
      * Calculate the corrected energy for the cluster.
      * 
-     * @param cluster
-     *            The input cluster.
+     * @param cluster The input cluster.
      * @return The corrected energy.
      */
-    public static double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster,boolean isMC) {
+    public static double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster, boolean isMC) {
         double rawE = cluster.getEnergy();
-        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE,cluster.getPosition()[0], cluster.getPosition()[1],isMC);
+        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0],
+                cluster.getPosition()[1], isMC);
     }
 
     /**
-     * Calculate the corrected energy for the cluster using track position at
-     * ecal.
+     * Calculate the corrected energy for the cluster using track position at ecal.
      * 
-     * @param cluster
-     *            The input cluster.
+     * @param cluster The input cluster.
      * @return The corrected energy.
      */
-    public static double calculateCorrectedEnergy(HPSEcal3 ecal,Cluster cluster, double ypos, boolean isMC) {
+    public static double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
         double rawE = cluster.getEnergy();
-        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0], ypos,isMC);
+        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0], ypos, isMC);
     }
 
     /**
      * Calculate the corrected energy and set on the cluster.
      * 
-     * @param cluster
-     *            The input cluster.
+     * @param cluster The input cluster.
      */
     public static void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, boolean isMC) {
-        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster,isMC);
-        if (isMC){
-            correctedEnergy += calcNoise(correctedEnergy);
-        }     
-        cluster.setEnergy(correctedEnergy);
-    }
-
-    /**
-     * Calculate the corrected energy and set on the cluster.
-     * 
-     * @param cluster
-     *            The input cluster.
-     */
-
-    public static void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster,double ypos, boolean isMC) {
-        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, ypos,isMC);
-        if(isMC){
+        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, isMC);
+        if (isMC) {
             correctedEnergy += calcNoise(correctedEnergy);
         }
         cluster.setEnergy(correctedEnergy);
     }
 
     /**
-     * Calculates energy correction based on cluster raw energy and particle
-     * type as per <a href=
-     * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014"
-     * >HPS Note 2014-001</a>
+     * Calculate the corrected energy and set on the cluster.
      * 
-     * @param pdg
-     *            Particle id as per PDG
-     * @param rawEnergy
-     *            Raw Energy of the cluster (sum of hits with shared hit
-     *            distribution)
+     * @param cluster The input cluster.
+     */
+
+    public static void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, double ypos, boolean isMC) {
+        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, ypos, isMC);
+        if (isMC) {
+            correctedEnergy += calcNoise(correctedEnergy);
+        }
+        cluster.setEnergy(correctedEnergy);
+    }
+
+    /**
+     * Calculates energy correction based on cluster raw energy and particle type as per <a href=
+     * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014" >HPS Note 2014-001</a>
+     * 
+     * @param pdg Particle id as per PDG
+     * @param rawEnergy Raw Energy of the cluster (sum of hits with shared hit distribution)
      * @return Corrected Energy
      */
 
-    private static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos, boolean isMC) {
+    private static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos,
+            boolean isMC) {
         // distance to beam gap edge
         double r;
         // Get these values from the Ecal geometry:
-        HPSEcalDetectorElement detElement = (HPSEcalDetectorElement) ecal
-                .getDetectorElement();
+        HPSEcalDetectorElement detElement = (HPSEcalDetectorElement) ecal.getDetectorElement();
         // double BEAMGAPTOP =
         // 22.3;//ecal.getNode().getChild("layout").getAttribute("beamgapTop").getDoubleValue();//mm
         double BEAMGAPTOP = 20.0;
@@ -197,63 +183,60 @@ public final class ClusterEnergyCorrection {
                 }
             }
         }
-        
-        //Eliminates corrections at outermost edges to negative cluster energies
-        //66 for positrons, 69 is safe for electrons and photons
-        if (r > 66) {r = 66;}
-        
-        if (isMC){
+
+        // Eliminates corrections at outermost edges to negative cluster energies
+        // 66 for positrons, 69 is safe for electrons and photons
+        if (r > 66) {
+            r = 66;
+        }
+
+        if (isMC) {
             switch (pdg) {
-            case 11:
-                // electron
-                return computeCorrectedEnergy(r, rawEnergy, par0MC_em, par1MC_em,par2MC_em);
-            case -11:
-                // positron
-                return computeCorrectedEnergy(r, rawEnergy, par0MC_ep, par1MC_ep,par2MC_ep);
-            case 22:
-                // photon
-                return computeCorrectedEnergy(r, rawEnergy, par0MC_p, par1MC_p, par2MC_p);
-            default:
-                // unknown
-                return rawEnergy;
+                case 11:
+                    // electron
+                    return computeCorrectedEnergy(r, rawEnergy, par0MC_em, par1MC_em, par2MC_em);
+                case -11:
+                    // positron
+                    return computeCorrectedEnergy(r, rawEnergy, par0MC_ep, par1MC_ep, par2MC_ep);
+                case 22:
+                    // photon
+                    return computeCorrectedEnergy(r, rawEnergy, par0MC_p, par1MC_p, par2MC_p);
+                default:
+                    // unknown
+                    return rawEnergy;
             }
-        }   
-        else{
+        } else {
             switch (pdg) {
-            case 11:
-                // electron
-                return computeCorrectedEnergy(r, rawEnergy, par0_em, par1_em,par2_em);
-            case -11:
-                // positron
-                return computeCorrectedEnergy(r, rawEnergy, par0_ep, par1_ep,par2_ep);
-            case 22:
-                // photon
-                return computeCorrectedEnergy(r, rawEnergy, par0_p, par1_p, par2_p);
-            default:
-                // unknown
-                return rawEnergy;        
+                case 11:
+                    // electron
+                    return computeCorrectedEnergy(r, rawEnergy, par0_em, par1_em, par2_em);
+                case -11:
+                    // positron
+                    return computeCorrectedEnergy(r, rawEnergy, par0_ep, par1_ep, par2_ep);
+                case 22:
+                    // photon
+                    return computeCorrectedEnergy(r, rawEnergy, par0_p, par1_p, par2_p);
+                default:
+                    // unknown
+                    return rawEnergy;
             }
         }
     }
 
-
     /**
-     * Calculates the energy correction to a cluster given the variables from
-     * the fit as per <a href=
-     * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014"
-     * >HPS Note 2014-001</a> Note that this is correct as there is a typo in
-     * the formula print in the note.
+     * Calculates the energy correction to a cluster given the variables from the fit as per <a href=
+     * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014" >HPS Note 2014-001</a> Note that this
+     * is correct as there is a typo in the formula print in the note.
      * 
-     * @param rawEnergy
-     *            Raw energy of the cluster
+     * @param rawEnergy Raw energy of the cluster
      * @param A,B,C from fitting in note
      * @return Corrected Energy
      */
-    private static double computeCorrectedEnergy(double y, double rawEnergy,
-            double varA, double varB[], double varC[]) {
+    private static double computeCorrectedEnergy(double y, double rawEnergy, double varA, double varB[], double varC[]) {
         int ii = y < varB[0] ? 2 : 5;
-        double corrEnergy = rawEnergy/ (varA / rawEnergy+ (varB[1] - varB[ii]* Math.exp(-(y - varB[ii + 1]) * varB[ii + 2]))/ (Math.sqrt(rawEnergy)) + 
-                (varC[1] - varC[ii]* Math.exp(-(y - varC[ii + 1]) * varC[ii + 2])));
+        double corrEnergy = rawEnergy
+                / (varA / rawEnergy + (varB[1] - varB[ii] * Math.exp(-(y - varB[ii + 1]) * varB[ii + 2]))
+                        / (Math.sqrt(rawEnergy)) + (varC[1] - varC[ii] * Math.exp(-(y - varC[ii + 1]) * varC[ii + 2])));
         return corrEnergy;
     }
 }

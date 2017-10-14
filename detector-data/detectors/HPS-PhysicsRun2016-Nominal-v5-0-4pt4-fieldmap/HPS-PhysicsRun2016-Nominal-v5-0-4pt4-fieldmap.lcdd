@@ -2,30 +2,21 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-PhysicsRun2016-Nominal-v5-0-4pt4-fieldmap" />
-    <generator name="lcsim" version="1.0" file="/nfs/slac/g/hps2/mrsolt/hps/hps-java-trunk/detector-data/detectors/HPS-PhysicsRun2016-Nominal-v5-0-4pt4-fieldmap/compact.xml" checksum="146472840" />
+    <generator name="lcsim" version="1.0" file="./detectors/HPS-PhysicsRun2016-Nominal-v5-0-4pt4-fieldmap/compact.xml" checksum="1624931235" />
     <author name="NONE" />
     <comment>HPS detector for 2016 Physics Run at 4.4 GeV. Based on HPS-PhysicsRun2015-Nominal-v5-0-fieldmap. Millepede constants are cleaned up (tweak parameters are set to 0) but their actual values are unchanged. LCDD is generated using the corrected SVT dead material (no carbon fiber in the beam plane). Fieldmap for 4.4 GeV is included.</comment>
   </header>
   <iddict>
-    <idspec name="TrackerHits" length="46">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="barrel" length="3" start="6" />
-      <idfield signed="false" label="layer" length="4" start="9" />
-      <idfield signed="false" label="module" length="12" start="13" />
-      <idfield signed="false" label="sensor" length="1" start="25" />
-      <idfield signed="true" label="side" length="2" start="32" />
-      <idfield signed="false" label="strip" length="12" start="34" />
-    </idspec>
-    <idspec name="TrackerHitsECal" length="46">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="barrel" length="3" start="6" />
-      <idfield signed="false" label="layer" length="4" start="9" />
-      <idfield signed="false" label="module" length="12" start="13" />
-      <idfield signed="false" label="sensor" length="1" start="25" />
-      <idfield signed="true" label="side" length="2" start="32" />
-      <idfield signed="false" label="strip" length="12" start="34" />
-    </idspec>
     <idspec name="TrackerHitsFieldDef" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
+    <idspec name="TrackerHits" length="46">
       <idfield signed="false" label="system" length="6" start="0" />
       <idfield signed="false" label="barrel" length="3" start="6" />
       <idfield signed="false" label="layer" length="4" start="9" />
@@ -39,6 +30,15 @@
       <idfield signed="false" label="layer" length="2" start="6" />
       <idfield signed="true" label="ix" length="8" start="8" />
       <idfield signed="true" label="iy" length="6" start="16" />
+    </idspec>
+    <idspec name="TrackerHitsECal" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
     </idspec>
   </iddict>
   <sensitive_detectors>
@@ -59,44 +59,11 @@
     <region name="TrackingRegion" store_secondaries="true" kill_tracks="false" cut="10.0" lunit="mm" threshold="1.0" eunit="MeV" />
   </regions>
   <display>
-    <vis name="ChamberVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
-      <color R="1.0" G="0.0" B="1.0" alpha="1.0" />
-    </vis>
-    <vis name="SupportPlateVis" line_style="dashed" drawing_style="solid" show_daughters="true" visible="true">
-      <color R="0.45" G="0.45" B="0.45" alpha="1.0" />
-    </vis>
-    <vis name="HybridVis" line_style="unbroken" drawing_style="solid" show_daughters="true" visible="true">
-      <color R="0.0" G="1.0" B="0.0" alpha="1.0" />
-    </vis>
-    <vis name="BeamPlaneVis" line_style="unbroken" drawing_style="solid" show_daughters="false" visible="true">
-      <color R="1.0" G="1.0" B="1.0" alpha="1.0" />
-    </vis>
-    <vis name="CarbonFiberVis" line_style="unbroken" drawing_style="solid" show_daughters="true" visible="true">
-      <color R="0.88" G="0.88" B="0.88" alpha="1.0" />
-    </vis>
-    <vis name="ColdBlockVis" line_style="dashed" drawing_style="solid" show_daughters="true" visible="true">
-      <color R="0.75" G="0.73" B="0.75" alpha="1.0" />
+    <vis name="InvisibleWithDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
+      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
     </vis>
     <vis name="SensorVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
       <color R="1.0" G="0.0" B="0.0" alpha="1.0" />
-    </vis>
-    <vis name="LayerVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
-      <color R="0.0" G="0.0" B="1.0" alpha="0.0" />
-    </vis>
-    <vis name="KaptonVis" line_style="unbroken" drawing_style="solid" show_daughters="true" visible="true">
-      <color R="0.91" G="0.77" B="0.06" alpha="1.0" />
-    </vis>
-    <vis name="ActiveSensorVis" line_style="unbroken" drawing_style="solid" show_daughters="true" visible="true">
-      <color R="1.0" G="0.0" B="0.0" alpha="1.0" />
-    </vis>
-    <vis name="InvisibleNoDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="false" visible="false">
-      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
-    </vis>
-    <vis name="SupportVolumeVis" line_style="dashed" drawing_style="wireframe" show_daughters="true" visible="true">
-      <color R="0.75" G="0.73" B="0.75" alpha="1.0" />
-    </vis>
-    <vis name="ECALVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
-      <color R="0.8" G="0.5" B="0.1" alpha="1.0" />
     </vis>
     <vis name="SvtBoxVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
       <color R="1.0" G="1.0" B="0.0" alpha="1.0" />
@@ -104,17 +71,50 @@
     <vis name="ComponentVis" line_style="unbroken" drawing_style="solid" show_daughters="false" visible="false">
       <color R="0.0" G="0.2" B="0.4" alpha="0.0" />
     </vis>
+    <vis name="HybridVis" line_style="unbroken" drawing_style="solid" show_daughters="true" visible="true">
+      <color R="0.0" G="1.0" B="0.0" alpha="1.0" />
+    </vis>
+    <vis name="ColdBlockVis" line_style="dashed" drawing_style="solid" show_daughters="true" visible="true">
+      <color R="0.75" G="0.73" B="0.75" alpha="1.0" />
+    </vis>
+    <vis name="ECALVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
+      <color R="0.8" G="0.5" B="0.1" alpha="1.0" />
+    </vis>
     <vis name="BasePlateVis" line_style="dashed" drawing_style="solid" show_daughters="true" visible="true">
       <color R="0.35" G="0.35" B="0.35" alpha="1.0" />
     </vis>
-    <vis name="InvisibleWithDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
-      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
+    <vis name="BeamPlaneVis" line_style="unbroken" drawing_style="solid" show_daughters="false" visible="true">
+      <color R="1.0" G="1.0" B="1.0" alpha="1.0" />
     </vis>
     <vis name="HalfModuleVis" line_style="dashed" drawing_style="wireframe" show_daughters="true" visible="true">
       <color R="1.0" G="1.0" B="1.0" alpha="1.0" />
     </vis>
+    <vis name="CarbonFiberVis" line_style="unbroken" drawing_style="solid" show_daughters="true" visible="true">
+      <color R="0.88" G="0.88" B="0.88" alpha="1.0" />
+    </vis>
     <vis name="ModuleVis" line_style="dotted" drawing_style="wireframe" show_daughters="true" visible="true">
       <color R="1.0" G="1.0" B="1.0" alpha="1.0" />
+    </vis>
+    <vis name="SupportPlateVis" line_style="dashed" drawing_style="solid" show_daughters="true" visible="true">
+      <color R="0.45" G="0.45" B="0.45" alpha="1.0" />
+    </vis>
+    <vis name="LayerVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
+      <color R="0.0" G="0.0" B="1.0" alpha="0.0" />
+    </vis>
+    <vis name="ChamberVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
+      <color R="1.0" G="0.0" B="1.0" alpha="1.0" />
+    </vis>
+    <vis name="InvisibleNoDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="false" visible="false">
+      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
+    </vis>
+    <vis name="ActiveSensorVis" line_style="unbroken" drawing_style="solid" show_daughters="true" visible="true">
+      <color R="1.0" G="0.0" B="0.0" alpha="1.0" />
+    </vis>
+    <vis name="KaptonVis" line_style="unbroken" drawing_style="solid" show_daughters="true" visible="true">
+      <color R="0.91" G="0.77" B="0.06" alpha="1.0" />
+    </vis>
+    <vis name="SupportVolumeVis" line_style="dashed" drawing_style="wireframe" show_daughters="true" visible="true">
+      <color R="0.75" G="0.73" B="0.75" alpha="1.0" />
     </vis>
     <vis name="WorldVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
       <color R="1.0" G="1.0" B="1.0" alpha="1.0" />
@@ -128,60 +128,60 @@
       <rotation name="identity_rot" x="0.0" y="0.0" z="0.0" unit="radian" />
       <rotation name="reflect_rot" x="3.141592653589793" y="0.0" z="0.0" unit="radian" />
       <position name="identity_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <constant name="dLambda_bot" value="0.0" />
-      <constant name="y02b" value="-21.419865625949214" />
-      <constant name="dPhi_bot" value="0.0" />
-      <constant name="beam_angle" value="0.03052" />
-      <constant name="electronGapLeftEdge" value="382.492" />
-      <constant name="dZ0_bot" value="0.0" />
-      <constant name="y02t" value="21.419865625949214" />
-      <constant name="constBFieldY" value="-0.5" />
-      <constant name="ecal_z" value="80.0" />
-      <constant name="x_rot_bot_add" value="0.0" />
-      <constant name="dipoleMagnetWidth" value="1000.0" />
-      <constant name="dD0_top" value="0.0" />
-      <constant name="ecal_dface" value="1393.0" />
-      <constant name="dOmega_top" value="0.0" />
-      <constant name="scoringThickness" value="0.001" />
       <constant name="x_rot_top" value="0.0" />
+      <constant name="dD0_bot" value="0.0" />
+      <constant name="scoringThickness" value="0.001" />
+      <constant name="ecal_back" value="8.0" />
+      <constant name="pivot" value="791.0" />
+      <constant name="dipoleMagnetWidth" value="1000.0" />
+      <constant name="dPhi_bot" value="0.0" />
+      <constant name="SA1" value="0.1" />
+      <constant name="x_rot_top_add" value="0.0" />
       <constant name="SA2" value="0.05" />
       <constant name="tracking_region_min" value="50.0" />
-      <constant name="SA1" value="0.1" />
-      <constant name="moduleLength" value="100.0" />
-      <constant name="moduleWidth" value="40.34" />
-      <constant name="ecal_back" value="8.0" />
-      <constant name="x_rot_bot" value="0.0" />
+      <constant name="dD0_top" value="0.0" />
+      <constant name="y02t" value="21.419865625949214" />
       <constant name="world_side" value="5000.0" />
-      <constant name="dZ0_top" value="0.0" />
-      <constant name="dPhi_top" value="0.0" />
-      <constant name="electronGapRightEdge" value="474.962" />
-      <constant name="z01t" value="138.815" />
-      <constant name="tracking_region_radius" value="2000.0" />
-      <constant name="y_rot" value="0.03052" />
-      <constant name="pivot" value="791.0" />
-      <constant name="dipoleMagnetLength" value="1080.0" />
-      <constant name="x_rot_top_add" value="0.0" />
-      <constant name="sensorLength" value="98.33" />
-      <constant name="z01b" value="153.815" />
-      <constant name="dipoleMagnetHeight" value="1000.0" />
-      <constant name="y01b" value="-21.419865625949214" />
-      <constant name="dipoleMagnetPositionZ" value="457.2" />
-      <constant name="z02t" value="146.185" />
-      <constant name="dipoleMagnetPositionX" value="21.17" />
-      <constant name="sensorWidth" value="38.3399" />
-      <constant name="world_y" value="5000.0" />
-      <constant name="world_z" value="5000.0" />
-      <constant name="dLambda_top" value="0.0" />
-      <constant name="world_x" value="5000.0" />
-      <constant name="zst" value="1.0" />
-      <constant name="y01t" value="21.419865625949214" />
-      <constant name="ecal_front" value="6.65" />
-      <constant name="x_off" value="0.0" />
-      <constant name="PI" value="3.14159265359" />
-      <constant name="dD0_bot" value="0.0" />
-      <constant name="z02b" value="161.185" />
-      <constant name="tracking_region_zmax" value="1318.0" />
       <constant name="dOmega_bot" value="0.0" />
+      <constant name="sensorLength" value="98.33" />
+      <constant name="sensorWidth" value="38.3399" />
+      <constant name="y02b" value="-21.419865625949214" />
+      <constant name="dOmega_top" value="0.0" />
+      <constant name="x_rot_bot" value="0.0" />
+      <constant name="dipoleMagnetHeight" value="1000.0" />
+      <constant name="z02t" value="146.185" />
+      <constant name="dZ0_top" value="0.0" />
+      <constant name="y_rot" value="0.03052" />
+      <constant name="tracking_region_zmax" value="1318.0" />
+      <constant name="constBFieldY" value="-0.5" />
+      <constant name="dipoleMagnetLength" value="1080.0" />
+      <constant name="y01t" value="21.419865625949214" />
+      <constant name="x_rot_bot_add" value="0.0" />
+      <constant name="dZ0_bot" value="0.0" />
+      <constant name="dPhi_top" value="0.0" />
+      <constant name="zst" value="1.0" />
+      <constant name="dLambda_top" value="0.0" />
+      <constant name="beam_angle" value="0.03052" />
+      <constant name="z02b" value="161.185" />
+      <constant name="y01b" value="-21.419865625949214" />
+      <constant name="electronGapLeftEdge" value="382.492" />
+      <constant name="ecal_front" value="6.65" />
+      <constant name="z01t" value="138.815" />
+      <constant name="world_x" value="5000.0" />
+      <constant name="world_y" value="5000.0" />
+      <constant name="dipoleMagnetPositionX" value="21.17" />
+      <constant name="world_z" value="5000.0" />
+      <constant name="dipoleMagnetPositionZ" value="457.2" />
+      <constant name="tracking_region_radius" value="2000.0" />
+      <constant name="moduleWidth" value="40.34" />
+      <constant name="x_off" value="0.0" />
+      <constant name="dLambda_bot" value="0.0" />
+      <constant name="electronGapRightEdge" value="474.962" />
+      <constant name="moduleLength" value="100.0" />
+      <constant name="PI" value="3.14159265359" />
+      <constant name="ecal_dface" value="1393.0" />
+      <constant name="ecal_z" value="80.0" />
+      <constant name="z01b" value="153.815" />
       <position name="tracking_region_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
       <position name="base_position" x="21.336" y="0.0" z="349.9358" unit="mm" />
       <rotation name="base_rotation" x="1.5707963267948963" y="-0.0" z="0.0" unit="radian" />

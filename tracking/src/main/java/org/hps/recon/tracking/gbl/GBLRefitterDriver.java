@@ -25,8 +25,7 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * A Driver which refits tracks using GBL. Does not require GBL collections to
- * be present in the event.
+ * A Driver which refits tracks using GBL. Does not require GBL collections to be present in the event.
  */
 public class GBLRefitterDriver extends Driver {
 
@@ -70,8 +69,10 @@ public class GBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield);
-            //            newTrack.getFirst().
+            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track),
+                    TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5,
+                    track.getType(), _scattering, bfield);
+            // newTrack.getFirst().
             refittedTracks.add(newTrack.getFirst());
             trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
             inputToRefitted.put(track, newTrack.getFirst());
@@ -99,7 +100,8 @@ public class GBLRefitterDriver extends Driver {
 
         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
         // Get the ID dictionary and field information.
-        IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+        IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper()
+                .getIdentifierDictionary();
         int fieldIdx = dict.getFieldIndex("side");
         int sideIdx = dict.getFieldIndex("strip");
         for (RawTrackerHit hit : rawTrackerHits) {
@@ -115,7 +117,8 @@ public class GBLRefitterDriver extends Driver {
             // Find the sensor DetectorElement.
             List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
             if (des == null || des.size() == 0) {
-                throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+                throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x"
+                        + Long.toHexString(strippedId.getValue()) + ">.");
             } else if (des.size() == 1) {
                 hit.setDetectorElement((SiSensor) des.get(0));
             } else {
@@ -129,7 +132,8 @@ public class GBLRefitterDriver extends Driver {
             }
             // No sensor was found.
             if (hit.getDetectorElement() == null) {
-                throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+                throw new RuntimeException("No sensor was found for hit with stripped ID <0x"
+                        + Long.toHexString(strippedId.getValue()) + ">.");
             }
         }
     }

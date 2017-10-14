@@ -44,6 +44,7 @@ final class SettingsDialog extends JDialog {
 
         // Add window listener for turning invisible when closing.
         this.addWindowListener(new WindowAdapter() {
+
             @Override
             public void windowClosing(final WindowEvent e) {
                 SettingsDialog.this.setVisible(false);
