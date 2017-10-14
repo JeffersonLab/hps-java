@@ -424,7 +424,7 @@ public class TrackClusterMatcher {
             if (p > 1.7 && hasL6) 
                 p=1.7;
             if (p > 1.0 && !hasL6) 
-              p=1.0;
+                p=1.0;
         }
         // calculate measured mean and sigma of deltaX and deltaY for this energy:
         double aDxMean=0,aDxSigm=0,aDyMean=0,aDySigm=0;
