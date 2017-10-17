@@ -5,7 +5,6 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.HepLorentzVector;
 import hep.physics.vec.VecOp;
-
 import hep.physics.matrix.Matrix;
 import hep.physics.matrix.MatrixOp;
 
@@ -19,6 +18,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hps.analysis.ecal.MassCalculator;
+import org.hps.analysis.MC.MCFullDetectorTruth;
+import org.hps.analysis.MC.TrackTruthMatching;
 import org.hps.conditions.beam.BeamEnergy;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.HpsReconParticleDriver;
@@ -38,15 +39,23 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.SimCalorimeterHit;
+import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.FieldMap;
+import org.lcsim.geometry.IDDecoder;
 import org.lcsim.util.Driver;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.TrackerHit;
+
 import java.util.Collection;
+import java.util.Map.Entry;
+
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 
@@ -72,6 +81,7 @@ public abstract class TupleDriver extends Driver {
     private boolean applyBeamRotation = true;
 
     private final String finalStateParticlesColName = "FinalStateParticles";
+    private final String trackHitMCRelationsCollectionName = "RotatedHelicalTrackMCRelations";
     protected double bfield;
     private final double[] beamSize = {0.001, 0.130, 0.050}; // rough estimate from harp scans during engineering run
                                                              // production running
@@ -84,9 +94,16 @@ public abstract class TupleDriver extends Driver {
     protected final BasicHep3Matrix beamAxisRotation = BasicHep3Matrix.identity();
     protected double ebeam = Double.NaN;
     private int nLay = 6;
+    private int nEcalHit = 3;
+    private int tupleevent = 0;
+    FieldMap bFieldMap = null;
 
     public void setNLay(int nLay) {
         this.nLay = nLay;
+    }
+    
+    public void setNEcalHit(int nEcalHit) {
+        this.nEcalHit = nEcalHit;
     }
 
     public void setApplyBeamRotation(boolean applyBeamRotation) {
@@ -177,6 +194,7 @@ public abstract class TupleDriver extends Driver {
             beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
         }
         bfield = TrackUtils.getBField(detector).magnitude();
+        bFieldMap = detector.getFieldMap();
 
         if (Double.isNaN(ebeam)) {
             try {
@@ -259,7 +277,7 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void addEventVariables() {
-        String[] newVars = new String[] {"run/I", "event/I", "nTrk/I", "nPos/I", "nCl/I", "isCalib/B", "isPulser/B",
+        String[] newVars = new String[] {"run/I", "event/I", "tupleevent/I","nTrk/I", "nPos/I", "nCl/I", "isCalib/B", "isPulser/B",
                 "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B", "evTime/D", "evTx/I", "evTy/I", "rfT1/D",
                 "rfT2/D", "nEcalHits/I", "nSVTHits/I", "nEcalCl/I", "nEcalClele/I", "nEcalClpos/I", "nEcalClpho/I",
                 "nEcalClEleSide/I", "nEcalClPosSide/I", "nSVTHitsL1/I", "nSVTHitsL2/I", "nSVTHitsL3/I", "nSVTHitsL4/I",
@@ -319,9 +337,17 @@ public abstract class TupleDriver extends Driver {
         tupleVariables.addAll(Arrays.asList(newVars));
     }
 
+    protected void fillTruthEventVariables(EventHeader event) {
+        tupleMap.put("run/I", (double) event.getRunNumber());
+        tupleMap.put("event/I", (double) event.getEventNumber());
+        tupleMap.put("tupleevent/I", (double) tupleevent);
+        tupleevent++;
+    }
     protected void fillEventVariables(EventHeader event, TIData triggerData) {
         tupleMap.put("run/I", (double) event.getRunNumber());
         tupleMap.put("event/I", (double) event.getEventNumber());
+        tupleMap.put("tupleevent/I", (double) tupleevent);
+        tupleevent++;
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         int npos = 0;
         int ntrk = 0;
@@ -1423,15 +1449,88 @@ public abstract class TupleDriver extends Driver {
         addMCPairVariables("triPair1");
         addMCPairVariables("triPair2");
     }
+    
+    protected void addMCWabVariables() {
+        addMCParticleVariables("wab");
+        addMCParticleVariables("wabEle1");
+        addMCParticleVariables("wabEle2");
+        addMCParticleVariables("wabPos");
+    }
+    
+    protected void addFullMCTridentVariables() {
+        addMCTridentVariables();
+        addEcalTruthVariables("triEle1");
+        addEcalTruthVariables("triEle2");
+        addEcalTruthVariables("triPos");
+        addSVTTruthVariables("triEle1");
+        addSVTTruthVariables("triEle2");
+        addSVTTruthVariables("tripos");
+    }
+    
+    protected void addFullMCWabVariables() {
+        addMCTridentVariables();
+        addEcalTruthVariables("wabEle1");
+        addEcalTruthVariables("wabEle2");
+        addEcalTruthVariables("wabPos");
+        addSVTTruthVariables("wabEle1");
+        addSVTTruthVariables("wabEle2");
+        addSVTTruthVariables("wabPos");
+    }
+    
+    
+    protected void addFullTruthVertextVariables() {
+        addMCParticleVariables("ele");
+        addMCParticleVariables("pos");
+        addEcalTruthVariables("ele");
+        addEcalTruthVariables("pos");
+        addSVTTruthVariables("ele");
+        addSVTTruthVariables("pos");
+    }
 
     protected void addMCParticleVariables(String prefix) {
         String[] newVars = new String[] {"StartX/D", "StartY/D", "StartZ/D", "EndX/D", "EndY/D", "EndZ/D", "PX/D",
-                "PY/D", "PZ/D", "P/D", "M/D", "E/D"};
+                "PY/D", "PZ/D", "P/D", "M/D", "E/D","pdgid/I","parentID/I"};
 
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
         }
         tupleVariables.addAll(Arrays.asList(newVars));
+    }
+    
+    protected void addMCSVTVariables(String prefix) {
+        String[] newVars = new String[] {"svthitX/D","svthitY/D","svthitZ/D",
+                "svthitPx/D","svthitPy/D","svthitPz/D","thetaX/D","thetaY/D"};
+        for (int i = 0; i < newVars.length; i++) {
+            newVars[i] = prefix + newVars[i];
+        }
+        tupleVariables.addAll(Arrays.asList(newVars));
+    }
+    
+    protected void addMCEcalVariables(String prefix) {
+        String[] newVars = new String[]{
+                "ecalhitIx/D","ecalhitIy/D","ecalhitX/D","ecalhitY/D","ecalhitZ/D",
+                "ecalhitEnergy/D"};
+        for (int i = 0; i < newVars.length; i++) {
+            newVars[i] = prefix + newVars[i];
+        }
+        tupleVariables.addAll(Arrays.asList(newVars));
+    }
+    
+    protected void addEcalTruthVariables(String prefix){
+        for(int i = 0; i < nEcalHit; i++){
+            String hit = Integer.toString(i);
+            addMCEcalVariables(prefix+"Hit"+hit);
+        }
+    }
+
+    protected void addSVTTruthVariables(String prefix){    
+        for(int i = 0; i < nLay*2; i++){
+            String layer = Integer.toString(i+1);
+            addMCSVTVariables(prefix+"L"+layer+"t");
+            addMCSVTVariables(prefix+"L"+layer+"b");
+            addMCSVTVariables(prefix+"L"+layer+"tIn");
+            addMCSVTVariables(prefix+"L"+layer+"bIn");
+        }
     }
 
     protected void addMCPairVariables(String prefix) {
@@ -1447,10 +1546,17 @@ public abstract class TupleDriver extends Driver {
         // System.out.format("%d %x\n", particle.getGeneratorStatus(), particle.getSimulatorStatus().getValue());
         Hep3Vector start = VecOp.mult(beamAxisRotation, particle.getOrigin());
         Hep3Vector end;
+        MCParticle parent;
         try {
             end = VecOp.mult(beamAxisRotation, particle.getEndPoint());
         } catch (RuntimeException e) {
             end = null;
+        }
+        
+        try {
+            parent = particle.getParents().get(0);
+        } catch (RuntimeException e) {
+            parent = null;
         }
 
         Hep3Vector p = VecOp.mult(beamAxisRotation, particle.getMomentum());
@@ -1469,6 +1575,10 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put(prefix + "P/D", p.magnitude());
         tupleMap.put(prefix + "M/D", particle.getMass());
         tupleMap.put(prefix + "E/D", particle.getEnergy());
+        tupleMap.put(prefix + "pdgid/I", (double) particle.getPDGID());
+        if(parent != null){
+            tupleMap.put(prefix + "parentID/I", (double) parent.getPDGID());
+        }
     }
 
     protected void fillMCPairVariables(String prefix, MCParticle ele, MCParticle pos) {
@@ -1476,7 +1586,7 @@ public abstract class TupleDriver extends Driver {
         Hep3Vector vtxP = VecOp.mult(beamAxisRotation, vtx.v3());
         tupleMap.put(prefix + "PX/D", vtxP.x());
         tupleMap.put(prefix + "PY/D", vtxP.y());
-        tupleMap.put(prefix + "PY/D", vtxP.z());
+        tupleMap.put(prefix + "PZ/D", vtxP.z());
         tupleMap.put(prefix + "P/D", vtxP.magnitude());
         tupleMap.put(prefix + "M/D", vtx.magnitude());
         tupleMap.put(prefix + "E/D", vtx.t());
@@ -1541,5 +1651,395 @@ public abstract class TupleDriver extends Driver {
             }
         }
 
+    }
+    
+    protected void fillMCWabVariables(EventHeader event) {
+        List<MCParticle> MCParticles = event.getMCParticles();
+
+        MCParticle wab = null;
+
+        MCParticle ele1 = null;// conversion electron daughter
+        MCParticle ele2 = null;// recoil wab electron
+        MCParticle pos = null;// conversion positron daughter
+
+        List<MCParticle> wabParticles = null;
+
+        for (MCParticle particle : MCParticles) {
+            if (particle.getPDGID() == 22) {
+                if (particle.getDaughters().size() != 2) continue;
+                double wabEnergy = particle.getEnergy();
+                for(MCParticle p : MCParticles){
+                    if(p.getPDGID() != 11 || !p.getParents().isEmpty()) continue;
+                    double eleEnergy = p.getEnergy();
+                    double energy = wabEnergy + eleEnergy;
+                    if(energy < 0.98 * ebeam || energy > 1.02 * ebeam) continue;
+                    ele2 = p;
+                    wab = particle;
+                    wabParticles = wab.getDaughters();
+                    break;
+                }
+            }
+        }
+        if (wab == null) {
+            return;
+        }
+
+        fillMCParticleVariables("wab", wab);
+
+        for (MCParticle particle : wabParticles) {
+            if(particle.getPDGID() == 11){
+                pos = particle;
+            }
+            if(particle.getPDGID() == -11){
+                ele1 = particle;
+            }
+        }
+
+        if (ele1 != null) {
+            fillMCParticleVariables("wabEle1", ele1);
+        }
+        if (ele2 != null) {
+            fillMCParticleVariables("wabEle2", ele2);
+        }
+        if (pos != null) {
+            fillMCParticleVariables("wabPos", pos);
+        }
+    }
+    
+    protected void fillMCFullTruthVariables(EventHeader event){
+        fillMCTridentVariables(event);
+
+        // get objects and collections from event header
+        List<SimTrackerHit> trackerHits = event.get(SimTrackerHit.class, "TrackerHits");
+        List<SimTrackerHit> trackerHits_Inactive = event.get(SimTrackerHit.class, "TrackerHits_Inactive");
+        List<SimCalorimeterHit> calHits = event.get(SimCalorimeterHit.class, "EcalHits");
+        List<MCParticle> particles = event.get(MCParticle.class, "MCParticle");        
+        IDDecoder trackerDecoder = event.getMetaData(trackerHits).getIDDecoder();
+        IDDecoder calDecoder = event.getMetaData(calHits).getIDDecoder();
+            
+        // maps of particles to hits
+        //Map<MCParticle, List<SimTrackerHit>> trackerHitMap = new HashMap<MCParticle, List<SimTrackerHit>>();
+        //Map<MCParticle, List<SimCalorimeterHit>> calHitMap = new HashMap<MCParticle, List<SimCalorimeterHit>>();
+        
+        Map<MCParticle, List<SimTrackerHit>> trackerHitMap = MCFullDetectorTruth.BuildTrackerHitMap(trackerHits);
+        Map<MCParticle, List<SimTrackerHit>> trackerInHitMap = MCFullDetectorTruth.BuildTrackerHitMap(trackerHits_Inactive);
+        Map<MCParticle, List<SimCalorimeterHit>> calHitMap = MCFullDetectorTruth.BuildCalHitMap(calHits);
+        
+        for (Entry<MCParticle, List<SimTrackerHit>> entry : trackerInHitMap.entrySet()) {
+            
+            MCParticle p = entry.getKey();
+            List<SimTrackerHit> hits = entry.getValue();
+            
+            String MCprefix = MCFullDetectorTruth.MCParticleType(p, particles, ebeam);
+            boolean isTri = MCprefix == "triEle1" && MCprefix == "triEle2" && MCprefix == "triPos";
+            boolean isWab = MCprefix == "wabEle1" && MCprefix == "wabEle2" && MCprefix == "wabPos";
+            
+            if(!isTri && !isWab) continue;
+            
+            if (isTri) System.out.println("Is Trident!");
+            if (isWab) System.out.println("Is Wab!");
+            
+            Hep3Vector startPosition = p.getOrigin();
+            Hep3Vector startMomentum = p.getMomentum();
+
+            // loop over particle's hits
+            for (SimTrackerHit hit : hits) {
+                    
+                trackerDecoder.setID(hit.getCellID64());
+                
+                String layerprefix = MCFullDetectorTruth.trackHitLayer(trackerDecoder,hit);
+                //System.out.println(layerprefix);
+                String prefix = MCprefix + layerprefix + "In";
+                    
+                // position of the hit
+                Hep3Vector pos = hit.getPositionVec();             
+                    
+                // hit momentum (really direction as it is a unit vector)
+                Hep3Vector hitP = new BasicHep3Vector(hit.getMomentum()[0], hit.getMomentum()[1], hit.getMomentum()[2]);
+                
+                double q = p.getCharge();
+                //Hep3Vector extrapPos = MCFullDetectorTruth.extrapolateTrackPosition(startPosition,startMomentum,pos.z(),5,bFieldMap,q);
+                Hep3Vector extrapP = MCFullDetectorTruth.extrapolateTrackMomentum(startPosition,startMomentum,pos.z(),5,bFieldMap,q);
+                
+                double thetaX = MCFullDetectorTruth.deltaThetaX(extrapP,hitP);
+                double thetaY = MCFullDetectorTruth.deltaThetaY(extrapP,hitP);
+                    
+                tupleMap.put(prefix+"svthitX/D", pos.x());
+                tupleMap.put(prefix+"svthitY/D", pos.y());
+                tupleMap.put(prefix+"svthitZ/D", pos.z());
+                tupleMap.put(prefix+"svthitPx/D", hitP.x());
+                tupleMap.put(prefix+"svthitPy/D", hitP.y());
+                tupleMap.put(prefix+"svthitPz/D", hitP.z());
+                tupleMap.put(prefix+"thetaX/D", thetaX);
+                tupleMap.put(prefix+"thetaY/D", thetaY);
+                
+                startPosition = pos;
+                startMomentum = hitP;
+            }            
+        }
+        
+        // loop over entries mapping particles to sim tracker hits
+        for (Entry<MCParticle, List<SimTrackerHit>> entry : trackerHitMap.entrySet()) {
+                
+            MCParticle p = entry.getKey();
+            List<SimTrackerHit> hits = entry.getValue();
+            
+            String MCprefix = MCFullDetectorTruth.MCParticleType(p, particles, ebeam);
+            System.out.println(MCprefix);
+            boolean isTri = MCprefix == "triEle1" && MCprefix == "triEle2" && MCprefix == "triPos";
+            boolean isWab = MCprefix == "wabEle1" && MCprefix == "wabEle2" && MCprefix == "wabPos";
+            
+            if(!isTri && !isWab) continue;
+            
+            if (isTri) System.out.println("Is Trident!");
+            if (isWab) System.out.println("Is Wab!");
+            
+            
+            Hep3Vector startPosition = p.getOrigin();
+            Hep3Vector startMomentum = p.getMomentum();
+
+            // loop over particle's hits
+            for (SimTrackerHit hit : hits) {
+                    
+                trackerDecoder.setID(hit.getCellID64());
+                
+                String layerprefix = MCFullDetectorTruth.trackHitLayer(trackerDecoder,hit);
+                String prefix = MCprefix + layerprefix;
+                    
+                // position of the hit
+                Hep3Vector pos = hit.getPositionVec();             
+                    
+                // hit momentum (really direction as it is a unit vector)
+                Hep3Vector hitP = new BasicHep3Vector(hit.getMomentum()[0], hit.getMomentum()[1], hit.getMomentum()[2]);
+                
+                double q = p.getCharge();
+                //Hep3Vector extrapPos = MCFullDetectorTruth.extrapolateTrackPosition(startPosition,startMomentum,pos.z(),5,bFieldMap,q);
+                Hep3Vector extrapP = MCFullDetectorTruth.extrapolateTrackMomentum(startPosition,startMomentum,pos.z(),5,bFieldMap,q);
+                
+                double thetaX = MCFullDetectorTruth.deltaThetaX(extrapP,hitP);
+                double thetaY = MCFullDetectorTruth.deltaThetaY(extrapP,hitP);
+                    
+                tupleMap.put(prefix+"svthitX/D", pos.x());
+                tupleMap.put(prefix+"svthitY/D", pos.y());
+                tupleMap.put(prefix+"svthitZ/D", pos.z());
+                tupleMap.put(prefix+"svthitPx/D", hitP.x());
+                tupleMap.put(prefix+"svthitPy/D", hitP.y());
+                tupleMap.put(prefix+"svthitPz/D", hitP.z());
+                tupleMap.put(prefix+"thetaX/D", thetaX);
+                tupleMap.put(prefix+"thetaY/D", thetaY);
+                
+                startPosition = pos;
+                startMomentum = hitP;
+            }            
+        }
+        
+     // loop over entries mapping particles to sim cal hits
+        for (Entry<MCParticle, List<SimCalorimeterHit>> entry : calHitMap.entrySet()) {
+            MCParticle p = entry.getKey();
+            String MCprefix = MCFullDetectorTruth.MCParticleType(p, particles, ebeam);
+            List<SimCalorimeterHit> hits = entry.getValue();
+            int i = 0;
+            for (SimCalorimeterHit hit : hits) {
+                calDecoder.setID(hit.getCellID());
+                int ix = calDecoder.getValue("ix");
+                int iy = calDecoder.getValue("iy");
+                String HitNum = Integer.toString(i);
+                String prefix = MCprefix + "Hit" + HitNum;
+                tupleMap.put(prefix+"ecalhitIx/D", (double) ix);
+                tupleMap.put(prefix+"ecalhitIy/D", (double) iy);
+                tupleMap.put(prefix+"ecalhitX/D", hit.getPositionVec().x());
+                tupleMap.put(prefix+"ecalhitY/D", hit.getPositionVec().y());
+                tupleMap.put(prefix+"ecalhitZ/D", hit.getPositionVec().z());
+                tupleMap.put(prefix+"ecalhitEnergy/D", hit.getCorrectedEnergy());
+                i++;
+            }
+        }   
+    }
+    
+    protected void fillFullVertexTruth(EventHeader event, Track eleTrack, Track posTrack){
+        List<SimTrackerHit> trackerHits = event.get(SimTrackerHit.class, "TrackerHits");
+        List<SimTrackerHit> trackerHits_Inactive = event.get(SimTrackerHit.class, "TrackerHits_Inactive");
+        List<SimCalorimeterHit> calHits = event.get(SimCalorimeterHit.class, "EcalHits");
+        //List<MCParticle> particles = event.get(MCParticle.class, "MCParticle");        
+        IDDecoder trackerDecoder = event.getMetaData(trackerHits).getIDDecoder();
+        IDDecoder calDecoder = event.getMetaData(calHits).getIDDecoder();
+        
+        RelationalTable hittomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        List<LCRelation> mcrelations = event.get(LCRelation.class, trackHitMCRelationsCollectionName);
+        for (LCRelation relation : mcrelations)
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+                hittomc.add(relation.getFrom(), relation.getTo());
+        
+        Map<MCParticle, List<SimTrackerHit>> trackerHitMap = MCFullDetectorTruth.BuildTrackerHitMap(trackerHits);
+        Map<MCParticle, List<SimTrackerHit>> trackerInHitMap = MCFullDetectorTruth.BuildTrackerHitMap(trackerHits_Inactive);
+        Map<MCParticle, List<SimCalorimeterHit>> calHitMap = MCFullDetectorTruth.BuildCalHitMap(calHits);
+    
+        TrackTruthMatching eleTruth = new TrackTruthMatching(eleTrack, hittomc);
+        TrackTruthMatching posTruth = new TrackTruthMatching(posTrack, hittomc);
+        
+        //System.out.println(eleTruth + "  " + posTruth);
+        
+        MCParticle ele = eleTruth.getMCParticle();
+        MCParticle pos = posTruth.getMCParticle();
+        
+        if(ele == null || pos == null){
+            //System.out.println("Ele or Pos is null!");
+            return;
+        }
+        
+        fillMCParticleVariables("ele", ele);
+        fillMCParticleVariables("pos", pos);
+        
+     // loop over entries mapping particles to sim tracker hits
+        for (Entry<MCParticle, List<SimTrackerHit>> entry : trackerInHitMap.entrySet()) {
+            
+            MCParticle p = entry.getKey();
+            String MCprefix = "";
+            //if(p.getParents().get(0) == null) continue;
+            boolean eleMatch = (p.getPDGID() == ele.getPDGID());
+            boolean posMatch = (p.getPDGID() == pos.getPDGID());
+            //System.out.println("Ele " + p.getPDGID() + "  " + ele.getPDGID());
+            //System.out.println("Pos " + p.getPDGID() + "  " + pos.getPDGID());
+            if(eleMatch) MCprefix = "ele";
+            else if (posMatch){ 
+                MCprefix = "pos";
+                //System.out.println("Found Pos!!");
+            }
+            else continue;
+            //System.out.println(MCprefix);
+            List<SimTrackerHit> hits = entry.getValue();
+        
+            //MCFullDetectorTruth.outputMCParticle(p, particles);
+        
+            Hep3Vector startPosition = p.getOrigin();
+            Hep3Vector startMomentum = p.getMomentum();
+        
+            // loop over particle's hits
+            for (SimTrackerHit hit : hits) {
+                
+                trackerDecoder.setID(hit.getCellID64());
+            
+                String layerprefix = MCFullDetectorTruth.trackHitLayer(trackerDecoder,hit);
+                String prefix = MCprefix + layerprefix + "In";
+                
+                // position of the hit
+                Hep3Vector hitPos = hit.getPositionVec();             
+                
+                // hit momentum (really direction as it is a unit vector)
+                Hep3Vector hitP = new BasicHep3Vector(hit.getMomentum()[0], hit.getMomentum()[1], hit.getMomentum()[2]);
+            
+                double q = p.getCharge();
+                //Hep3Vector extrapPos = MCFullDetectorTruth.extrapolateTrackPosition(startPosition,startMomentum,hitPos.z(),5,bFieldMap,q);
+                Hep3Vector extrapP = MCFullDetectorTruth.extrapolateTrackMomentum(startPosition,startMomentum,hitPos.z(),5,bFieldMap,q);
+        
+                Hep3Vector hitProt = VecOp.mult(beamAxisRotation, hitP);
+                Hep3Vector extrapProt = VecOp.mult(beamAxisRotation, extrapP);
+            
+                double thetaX = MCFullDetectorTruth.deltaThetaX(extrapProt,hitProt);
+                double thetaY = MCFullDetectorTruth.deltaThetaY(extrapProt,hitProt);
+                
+                tupleMap.put(prefix+"svthitX/D", hitPos.x());
+                tupleMap.put(prefix+"svthitY/D", hitPos.y());
+                tupleMap.put(prefix+"svthitZ/D", hitPos.z());
+                tupleMap.put(prefix+"svthitPx/D", hitP.x());
+                tupleMap.put(prefix+"svthitPy/D", hitP.y());
+                tupleMap.put(prefix+"svthitPz/D", hitP.z());
+                tupleMap.put(prefix+"thetaX/D", thetaX);
+                tupleMap.put(prefix+"thetaY/D", thetaY);
+                
+                startPosition = hitPos;
+                startMomentum = hitP;
+            }            
+    
+        }
+        
+        // loop over entries mapping particles to sim tracker hits
+        for (Entry<MCParticle, List<SimTrackerHit>> entry : trackerHitMap.entrySet()) {
+            
+            MCParticle p = entry.getKey();
+            String MCprefix = "";
+            //if(p.getParents().get(0) == null) continue;
+            boolean eleMatch = (p.getPDGID() == ele.getPDGID());
+            boolean posMatch = (p.getPDGID() == pos.getPDGID());
+            //System.out.println("Ele " + p.getPDGID() + "  " + ele.getPDGID());
+            //System.out.println("Pos " + p.getPDGID() + "  " + pos.getPDGID());
+            if(eleMatch) MCprefix = "ele";
+            else if (posMatch){ 
+                MCprefix = "pos";
+                //System.out.println("Found Pos!!");
+            }
+            else continue;
+            //System.out.println(MCprefix);
+            List<SimTrackerHit> hits = entry.getValue();
+        
+            //MCFullDetectorTruth.outputMCParticle(p, particles);
+        
+            Hep3Vector startPosition = p.getOrigin();
+            Hep3Vector startMomentum = p.getMomentum();
+        
+            // loop over particle's hits
+            for (SimTrackerHit hit : hits) {
+                
+                trackerDecoder.setID(hit.getCellID64());
+            
+                String layerprefix = MCFullDetectorTruth.trackHitLayer(trackerDecoder,hit);
+                String prefix = MCprefix + layerprefix;
+                
+                // position of the hit
+                Hep3Vector hitPos = hit.getPositionVec();             
+                
+                // hit momentum (really direction as it is a unit vector)
+                Hep3Vector hitP = new BasicHep3Vector(hit.getMomentum()[0], hit.getMomentum()[1], hit.getMomentum()[2]);
+            
+                double q = p.getCharge();
+                //Hep3Vector extrapPos = MCFullDetectorTruth.extrapolateTrackPosition(startPosition,startMomentum,hitPos.z(),5,bFieldMap,q);
+                Hep3Vector extrapP = MCFullDetectorTruth.extrapolateTrackMomentum(startPosition,startMomentum,hitPos.z(),5,bFieldMap,q);
+        
+                Hep3Vector hitProt = VecOp.mult(beamAxisRotation, hitP);
+                Hep3Vector extrapProt = VecOp.mult(beamAxisRotation, extrapP);
+            
+                double thetaX = MCFullDetectorTruth.deltaThetaX(extrapProt,hitProt);
+                double thetaY = MCFullDetectorTruth.deltaThetaY(extrapProt,hitProt);
+                
+                tupleMap.put(prefix+"svthitX/D", hitPos.x());
+                tupleMap.put(prefix+"svthitY/D", hitPos.y());
+                tupleMap.put(prefix+"svthitZ/D", hitPos.z());
+                tupleMap.put(prefix+"svthitPx/D", hitP.x());
+                tupleMap.put(prefix+"svthitPy/D", hitP.y());
+                tupleMap.put(prefix+"svthitPz/D", hitP.z());
+                tupleMap.put(prefix+"thetaX/D", thetaX);
+                tupleMap.put(prefix+"thetaY/D", thetaY);
+                
+                startPosition = hitPos;
+                startMomentum = hitP;
+            }            
+    
+        }
+                
+        
+        // loop over entries mapping particles to sim cal hits
+        for (Entry<MCParticle, List<SimCalorimeterHit>> entry : calHitMap.entrySet()) {
+            MCParticle p = entry.getKey();
+            String MCprefix = "";
+            if(p.getPDGID() == eleTruth.getMCParticle().getPDGID()) MCprefix = "ele";
+            if (p.getPDGID() == posTruth.getMCParticle().getPDGID()) MCprefix = "pos";
+            else continue;
+            List<SimCalorimeterHit> hits = entry.getValue();
+            int i = 0;
+            for (SimCalorimeterHit hit : hits) {
+                calDecoder.setID(hit.getCellID());
+                int ix = calDecoder.getValue("ix");
+                int iy = calDecoder.getValue("iy");
+                String HitNum = Integer.toString(i);
+                String prefix = MCprefix + "Hit" + HitNum;
+                tupleMap.put(prefix+"ecalhitIx/D", (double) ix);
+                tupleMap.put(prefix+"ecalhitIy/D", (double) iy);
+                tupleMap.put(prefix+"ecalhitX/D", hit.getPositionVec().x());
+                tupleMap.put(prefix+"ecalhitY/D", hit.getPositionVec().y());
+                tupleMap.put(prefix+"ecalhitZ/D", hit.getPositionVec().z());
+                tupleMap.put(prefix+"ecalhitEnergy/D", hit.getCorrectedEnergy());
+                i++;
+            }
+        }
     }
 }

@@ -1,8 +1,17 @@
 package org.hps.analysis.tuple;
 
+//import hep.physics.vec.BasicHep3Vector;
+//import hep.physics.vec.Hep3Vector;
+//import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+//import java.util.Map;
+//import java.util.Map.Entry;
+
+//import org.hps.analysis.MC.MCFullDetectorTruth;
+//import org.hps.analysis.MC.TrackTruthMatching;
 import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.vertexing.BilliorTrack;
@@ -10,9 +19,13 @@ import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
+//import org.lcsim.event.MCParticle;
 import org.lcsim.event.ReconstructedParticle;
+//import org.lcsim.event.SimCalorimeterHit;
+//import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+//import org.lcsim.geometry.IDDecoder;
 
 public class TridentTupleDriver extends TupleDriver {
 
@@ -21,6 +34,7 @@ public class TridentTupleDriver extends TupleDriver {
     private final double tupleTrkPCut = 0.9;
     private final double tupleMaxSumCut = 1.3;
     private boolean getMC = false;
+    private boolean getFullTruth = false;
 
     @Override
     protected void setupVariables() {
@@ -29,15 +43,23 @@ public class TridentTupleDriver extends TupleDriver {
         addVertexVariables();
         addParticleVariables("ele");
         addParticleVariables("pos");
+        if(getFullTruth){
+            addFullTruthVertextVariables();
+        }
         String[] newVars = new String[]{"minPositiveIso/D", "minNegativeIso/D", "minIso/D"};
         tupleVariables.addAll(Arrays.asList(newVars));
         if (getMC) {
-            addMCTridentVariables();
+            addFullMCTridentVariables();
+            addFullMCWabVariables();
         }
     }
 
     public void setGetMC(boolean getMC) {
         this.getMC = getMC;
+    }
+    
+    public void setGetFullTruth(boolean getFullTruth) {
+        this.getFullTruth = getFullTruth;
     }
 
     @Override
@@ -97,6 +119,12 @@ public class TridentTupleDriver extends TupleDriver {
 
             if (getMC) {
                 fillMCTridentVariables(event);
+                fillMCWabVariables(event);
+                fillMCFullTruthVariables(event);
+            }
+            
+            if (getFullTruth){
+                fillFullVertexTruth(event,eleTrack,posTrack);
             }
 
             if (tupleWriter != null) {
