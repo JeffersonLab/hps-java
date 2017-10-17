@@ -3609,6 +3609,7 @@
           <rotationref ref="module_L5t_halfmodule_stereo_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="Tracker_Inactive" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L5t_halfmodule_stereo_hole_lamination_volume">
@@ -3648,6 +3649,7 @@
           <rotationref ref="module_L5t_halfmodule_stereo_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="Tracker_Inactive" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L5t_halfmodule_stereo_slot_lamination_volume">
