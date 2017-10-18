@@ -1,9 +1,14 @@
 package org.hps.recon.tracking;
 
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+
+import org.lcsim.constants.Constants;
 import org.lcsim.fit.threepointcircle.CircleFit;
-import org.lcsim.fit.helicaltrack.HelicalTrack2DHit;
-import org.lcsim.fit.helicaltrack.HelicalTrack3DHit;
+import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
+import org.lcsim.fit.helicaltrack.HitUtils;
+import org.lcsim.fit.helicaltrack.TrackDirection;
 import org.lcsim.fit.twopointcircle.TwoPointCircleFit;
 import org.lcsim.fit.twopointcircle.TwoPointLineFit;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
@@ -18,8 +23,52 @@ import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
  */
 public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
 
+    private double _nsigErr;
+    private double _bfield;
+    private double _max_p;
+    private double _min_dztot;
+
     public FastCheck(SeedStrategy strategy, double bfield, ISeedTrackerDiagnostics diag) {
         super(strategy, bfield, diag);
+        _bfield = bfield;
+        setNSigErr(-1);
+        setMax_p(1.1);
+        setMin_dztot(0.05);
+    }
+
+    public void setMin_dztot(double input) {
+        _min_dztot = input;
+    }
+
+    public double getNSigErr() {
+        return _nsigErr;
+    }
+
+    public void setNSigErr(double input) {
+        _nsigErr = input;
+    }
+
+    public void setMax_p(double input) {
+        _max_p = input;
+    }
+
+    private double calculateMSerror(double[] s, double[] z, double p) {
+        // radlength=0.003417*2 = 0.006834
+        // angle = (0.0136 / p) * Math.sqrt(radlength) * (1.0 + 0.038 * Math.log(radlength))
+        double MSangle = 0.000911276 / p;
+
+        double lambda_01 = Math.atan((z[1] - z[0]) / (s[1] - s[0]));
+        double tan_lambda02 = (z[1] - z[0] + (s[2] - s[1]) * Math.tan(lambda_01 + MSangle)) / (s[2] - s[0]);
+        double MSerr = z[0] - z[1] + (s[1] - s[0]) * tan_lambda02;
+
+        return MSerr;
+    }
+
+    private double estimateMomentum(double slope, double rcurve) {
+        double estimate = Math.sqrt(1 + slope * slope) * _bfield * Constants.fieldConversion * rcurve;
+        if (estimate > _max_p)
+            estimate = _max_p;
+        return estimate;
     }
 
     @Override
@@ -144,6 +193,7 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
 
     }
 
+    @Override
     public boolean ThreePointHelixCheck(HelicalTrackHit hit1, HelicalTrackHit hit2, HelicalTrackHit hit3) {
         if (super.getSkipChecks())
             return true;
@@ -153,9 +203,6 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         double[] pos;
         double z[] = new double[3];
         double dztot = 0.;
-        int indx;
-        HelicalTrackHit hit;
-        boolean zfirst = true;
 
         // construct p and z arrays based on hit position x order
         // function for dztot(hit)
@@ -163,66 +210,29 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         //  While not terribly elegant, code for speed
         //  Use calls that give uncorrected position and error
         //  Get the relevant variables for hit 1
-        indx = 0;
-        hit = hit1;
-        pos = hit.getPosition();
-        p[indx][0] = pos[0];
-        p[indx][1] = pos[1];
-        z[indx] = pos[2];
 
-        if (hit instanceof HelicalTrack3DHit)
-            dztot += super.getNSig() * ((HelicalTrack3DHit) hit).dz();
-        else {
-            zfirst = false;
-            if (hit instanceof HelicalTrack2DHit)
-                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-            else
-                dztot += super.getNSig() * Math.sqrt(hit.getCovMatrix()[5]);
-        }
+        pos = hit1.getPosition();
+        p[0][0] = pos[0];
+        p[0][1] = pos[1];
+        z[0] = pos[2];
 
         //  Get the relevant variables for hit 2
-        indx = 1;
-        hit = hit2;
-        pos = hit.getPosition();
-        p[indx][0] = pos[0];
-        p[indx][1] = pos[1];
-        z[indx] = pos[2];
-
-        if (hit instanceof HelicalTrack3DHit)
-            dztot += super.getNSig() * ((HelicalTrack3DHit) hit).dz();
-        else {
-            zfirst = false;
-            if (hit instanceof HelicalTrack2DHit)
-                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-            else
-                dztot += super.getNSig() * Math.sqrt(hit.getCovMatrix()[5]);
-        }
+        pos = hit2.getPosition();
+        p[1][0] = pos[0];
+        p[1][1] = pos[1];
+        z[1] = pos[2];
 
         //  Get the relevant variables for hit 3
-        indx = 2;
-        hit = hit3;
-        pos = hit.getPosition();
-        p[indx][0] = pos[0];
-        p[indx][1] = pos[1];
-        z[indx] = pos[2];
+        pos = hit3.getPosition();
+        p[2][0] = pos[0];
+        p[2][1] = pos[1];
+        z[2] = pos[2];
 
-        if (hit instanceof HelicalTrack3DHit)
-            dztot += super.getNSig() * ((HelicalTrack3DHit) hit).dz();
-        else {
-            zfirst = false;
-            if (hit instanceof HelicalTrack2DHit)
-                dztot += ((HelicalTrack2DHit) hit).zlen() / 2.;
-            else
-                dztot += super.getNSig() * Math.sqrt(hit.getCovMatrix()[5]);
-        }
-
-        //  Unless the three hits are all pixel hits, do the circle checks first
-        if (!zfirst) {
-            if (!TwoPointCircleCheck(hit1, hit3, null))
-                return false;
-            if (!TwoPointCircleCheck(hit2, hit3, null))
-                return false;
-        }
+        //  do the circle checks first
+        if (!TwoPointCircleCheck(hit1, hit3, null))
+            return false;
+        if (!TwoPointCircleCheck(hit2, hit3, null))
+            return false;
 
         //  Do the 3 point circle fit and check for success
         boolean success = _cfit3.fit(p[0], p[1], p[2]);
@@ -239,6 +249,10 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         // min pT cut
         if (rcurv < super.getRMin())
             return false;
+
+        // stop checking here unless nsig is set to positive value
+        if (_nsigErr <= 0)
+            return true;
 
         //  Find the point of closest approach
         double x0 = xc * (1. - rcurv / rc);
@@ -278,16 +292,34 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
                 s[i] += twopi * rcurv;
         }
 
-        //  Order the arc lengths and z info by increasing arc length
         for (int i = 0; i < 2; i++) {
             for (int j = i + 1; j < 3; j++) {
                 if (s[j] < s[i]) {
                     double temp = s[i];
                     s[i] = s[j];
                     s[j] = temp;
+
                     temp = z[i];
                     z[i] = z[j];
                     z[j] = temp;
+
+                    if (i + j == 1) {
+                        //0+1:swap hits 1 and 2
+                        HelicalTrackHit tempHit = hit1;
+                        hit1 = hit2;
+                        hit2 = tempHit;
+                    } else if (i + j == 2) {
+                        //0+2:swap hits 1 and 3
+                        HelicalTrackHit tempHit = hit1;
+                        hit1 = hit3;
+                        hit3 = tempHit;
+                    } else if (i + j == 3) {
+                        //1+2:swap hits 2 and 3
+                        HelicalTrackHit tempHit = hit2;
+                        hit2 = hit3;
+                        hit3 = tempHit;
+                    }
+
                 }
             }
         }
@@ -297,22 +329,58 @@ public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
         double z0 = z[0] - s[0] * slope;
         double zpred = z0 + s[1] * slope;
 
+        // find corrected hit positions
+        TrackDirection dir1 = new TrackDirection(getDirection(circle, slope, phi0, s[0]), null);
+        TrackDirection dir2 = new TrackDirection(getDirection(circle, slope, phi0, s[1]), null);
+        TrackDirection dir3 = new TrackDirection(getDirection(circle, slope, phi0, s[2]), null);
+        Hep3Vector poscor1 = HitUtils.PositionOnHelix(dir1, ((HelicalTrackCross) hit1).getStrips().get(0), ((HelicalTrackCross) hit1).getStrips().get(1));
+        Hep3Vector poscor2 = HitUtils.PositionOnHelix(dir2, ((HelicalTrackCross) hit2).getStrips().get(0), ((HelicalTrackCross) hit2).getStrips().get(1));
+        Hep3Vector poscor3 = HitUtils.PositionOnHelix(dir3, ((HelicalTrackCross) hit3).getStrips().get(0), ((HelicalTrackCross) hit3).getStrips().get(1));
+        double zCorr[] = new double[3];
+        zCorr[0] = poscor1.z();
+        zCorr[1] = poscor2.z();
+        zCorr[2] = poscor3.z();
+
+        // find hit errors
+        double dz1 = zCorr[0] - z[0];
+        double dz2 = zCorr[1] - z[1];
+        double dz3 = zCorr[2] - z[2];
+        double d12 = p[1][0] - p[0][0];
+        double d13 = p[2][0] - p[0][0];
+        double d23 = p[2][0] - p[1][0];
+        // dAB = difference between actual x coordinates of hits A and B
+        dztot = dz2 * dz2 + (dz1 * d23 / d13) * (dz1 * d23 / d13) + (dz3 * d12 / d13) * (dz3 * d12 / d13);
+
         //  Add multiple scattering error here
-        dztot += 1.0;
+        double pEstimate = estimateMomentum(slope, rcurv);
+        double mserr = calculateMSerror(s, z, pEstimate);
+        //        System.out.printf("MSerr %f dztot %f \n", mserr, dztot);
+        dztot += (mserr * mserr);
+        dztot = _nsigErr * Math.sqrt(dztot);
+
+        // min dztot?
+        if (dztot < _min_dztot)
+            dztot = _min_dztot;
+
+        double dzpred = Math.abs(zpred - z[1]);
 
         // comparison of middle z to prediction including error
-        if (Math.abs(zpred - z[1]) > dztot)
+        if (dzpred > dztot)
             return false;
-
-        //  If we haven't already done the circle checks, do them now
-        if (zfirst) {
-            if (!TwoPointCircleCheck(hit1, hit3, null))
-                return false;
-            if (!TwoPointCircleCheck(hit2, hit3, null))
-                return false;
-        }
 
         //  Passed all checks - success!
         return true;
+    }
+
+    public Hep3Vector getDirection(CircleFit circle, double slope, double phi0, double s) {
+
+        double phi = phi0 - s / circle.radius();
+        double sth = 1. / Math.sqrt(1 + Math.pow(slope, 2));
+        //  direction unit vector
+        double uy = Math.cos(phi) * sth * -1.0;
+        double ux = Math.sin(phi) * sth;
+        double uz = slope / Math.sqrt(1 + Math.pow(slope, 2));
+
+        return new BasicHep3Vector(ux, uy, uz);
     }
 }
