@@ -46,7 +46,7 @@ public class MollerAnalysisDriver extends Driver {
     private double _trackChi2NdfCut = 8.; //corresponds to chisquared cut of 40 for 5-hit tracks
 
     private boolean _dumpRunAndEventNumber = false;
-   
+
     private IHistogram1D invMassHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Invariant Mass", 200, 0., 0.1);
     private IHistogram1D pHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Momentum", 200, 0., 3.0);
     private IHistogram1D pxHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller x Momentum", 200, -0.01, 0.01);
@@ -62,6 +62,9 @@ public class MollerAnalysisDriver extends Driver {
     private IHistogram1D vtxYHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex y", 200, -1.0, 1.0);
     private IHistogram1D vtxZHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex z", 200, -20.0, 20.0);
     private IHistogram1D vtxChisqHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex Chisq", 100, 0.0, 100.0);
+
+    private IHistogram1D invMassHist_UnconstrainedMollerVertices_6hitTracks = aida.histogram1D("UnconstrainedMollerVertices/Moller Invariant Mass 6-hit Tracks", 200, 0., 0.1);
+    private IHistogram1D vtxZHist_UnconstrainedMollerVertices_6hitTracks = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex z 6-hit Tracks", 200, -20.0, 20.0);
 
     //2D
     private IHistogram2D p1vsp2Hist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
@@ -243,13 +246,20 @@ public class MollerAnalysisDriver extends Driver {
                         vtxYHist_UnconstrainedMollerVertices.fill(pos.y());
                         vtxZHist_UnconstrainedMollerVertices.fill(pos.z());
                         vtxChisqHist_UnconstrainedMollerVertices.fill(v.getChi2());
+
+                        if (t1.getTrackerHits().size() == 6 && t2.getTrackerHits().size() == 6) {
+                            invMassHist_UnconstrainedMollerVertices_6hitTracks.fill(rp.getMass());
+                            vtxZHist_UnconstrainedMollerVertices_6hitTracks.fill(pos.z());
+                        }
 // 2D
                         p1vsp2Hist_UnconstrainedMollerVertices.fill(p1, p2);
                         theta1vstheta2Hist_UnconstrainedMollerVertices.fill(theta1, theta2);
                         pvsthetaHist_UnconstrainedMollerVertices.fill(p1, theta1);
                         pvsthetaHist_UnconstrainedMollerVertices.fill(p2, theta2);
                         xvsyHist_UnconstrainedMollerVertices.fill(pos.x(), pos.y());
-                        if(_dumpRunAndEventNumber) System.out.println(event.getRunNumber()+" "+event.getEventNumber());
+                        if (_dumpRunAndEventNumber) {
+                            System.out.println(event.getRunNumber() + " " + event.getEventNumber());
+                        }
                     }
                     if (vertexCollectionName.equals("BeamspotConstrainedMollerVertices")) {
                         invMassHist_BeamspotConstrainedMollerVertices.fill(rp.getMass());
@@ -374,9 +384,8 @@ public class MollerAnalysisDriver extends Driver {
     public void setESumPlusMinusPercentCut(double d) {
         _psumDelta = d;
     }
-    
-    public void setDumpRunAndEventNumber(boolean b)
-    {
+
+    public void setDumpRunAndEventNumber(boolean b) {
         _dumpRunAndEventNumber = b;
     }
 
