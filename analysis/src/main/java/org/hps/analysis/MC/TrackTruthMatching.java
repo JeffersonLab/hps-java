@@ -84,7 +84,7 @@ public class TrackTruthMatching {
                 if (mcmap.containsKey(mcp))
                     mchits = mcmap.get(mcp);
                 mchits++;
-                //System.out.println("mchits " + mchits);
+                //System.out.println("mcp " + mcp + "  ID " + mcp.getPDGID() + "   mchits " + mchits);
                 
                 mcmap.put(mcp, mchits);
             }

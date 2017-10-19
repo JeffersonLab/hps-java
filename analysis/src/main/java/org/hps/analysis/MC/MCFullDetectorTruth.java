@@ -15,7 +15,6 @@ import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.geometry.FieldMap;
-import org.lcsim.geometry.IDDecoder;
 import org.lcsim.util.swim.Trajectory;
 
 /**
@@ -66,10 +65,24 @@ public class MCFullDetectorTruth{
         return calHitMap;
     }
     
-    public static String trackHitLayer(IDDecoder trackerDecoder,SimTrackerHit hit) {
+    public static String trackHitLayer(SimTrackerHit hit) {
         String layer = Integer.toString( (int) hit.getLayer());
         double y = hit.getPositionVec().y();
         String volume = "";
+        //boolean isTop = ((HpsSiSensor) ((SimTrackerHit) hit.getDetectorElement()).getDetectorElement()).isTopLayer();
+        //if(isTop) volume = "t";
+        if(y > 0) volume = "t";
+        else volume = "b";
+        String prefix = "L" + layer + volume;
+        return prefix;
+    }
+    
+    public static String trackHitLayer_1(SimTrackerHit hit) {
+        String layer = Integer.toString( (int) hit.getLayer() - 1);
+        double y = hit.getPositionVec().y();
+        String volume = "";
+        //boolean isTop = ((HpsSiSensor) ((SimTrackerHit) hit.getDetectorElement()).getDetectorElement()).isTopLayer();
+        //if(isTop) volume = "t";
         if(y > 0) volume = "t";
         else volume = "b";
         String prefix = "L" + layer + volume;
@@ -180,7 +193,7 @@ public class MCFullDetectorTruth{
         return "";
     }
 
-    public static Hep3Vector extrapolateTrackPosition(Hep3Vector startPosition, Hep3Vector startMomentum, double endPositionZ, double stepSize, FieldMap fieldMap, double q) {
+    /*public static Hep3Vector extrapolateTrackPosition(Hep3Vector startPosition, Hep3Vector startMomentum, double endPositionZ, double stepSize, FieldMap fieldMap, double q) {
 
         // Start by transforming detector vectors into tracking frame
         Hep3Vector currentPosition = CoordinateTransformations.transformVectorToTracking(startPosition);
@@ -220,8 +233,7 @@ public class MCFullDetectorTruth{
             // update the extrapolated position.
             //if(CoordinateTransformations.transformVectorToTracking(startPosition).x() > currentPosition.x()){
             if(currentMomentum.x() < 0){
-                //System.out.println("Extrapolation is going backwards! Break loop! Z = " + currentPosition.x());
-                break;
+                return null;
             }
             currentPosition = trajectory.getPointAtDistance(stepSize);
 
@@ -281,8 +293,7 @@ public class MCFullDetectorTruth{
             
             //if(CoordinateTransformations.transformVectorToTracking(startPosition).x() > currentPosition.x()){
             if(currentMomentum.x() < 0){
-                //System.out.println("Extrapolation is going backwards! Break loop! Z = " + currentPosition.x());
-                break;
+                return null;
             }
 
             // Using the new trajectory, extrapolated the track by a step and
@@ -305,7 +316,7 @@ public class MCFullDetectorTruth{
 
         // Transform vector back to detector frame
         return CoordinateTransformations.transformVectorToDetector(currentMomentum);
-    }
+    }*/
     
     public static double deltaThetaX(Hep3Vector p1, Hep3Vector p2){
         double theta1 = p1.x()/p1.z();
@@ -318,4 +329,140 @@ public class MCFullDetectorTruth{
         double theta2 = p2.y()/p2.z();
         return theta2 - theta1;
     }
+    
+    public static Hep3Vector extrapolateTrackMomentum(Hep3Vector endPosition, Hep3Vector endMomentum, Hep3Vector startPosition, double stepSize, FieldMap fieldMap, double q) {
+        if(endPosition == null || endMomentum == null || startPosition == null) return null;
+        // Start by transforming detector vectors into tracking frame
+        Hep3Vector currentPosition = CoordinateTransformations.transformVectorToTracking(endPosition);
+        Hep3Vector currentMomentum = VecOp.neg(CoordinateTransformations.transformVectorToTracking(endMomentum));
+        double startPositionZ = startPosition.z();
+    
+        //System.out.println(currentPosition.x() + "  " + currentPosition.y() + "  " + currentPosition.z() + "  ");
+
+        // Retrieve the y component of the bfield in the middle of detector
+        double bFieldY = fieldMap.getField(new BasicHep3Vector(0, 0, 500.0)).y();       
+    
+        // HACK: LCSim doesn't deal well with negative fields so they are
+        // turned to positive for tracking purposes. As a result,
+        // the charge calculated using the B-field, will be wrong
+        // when the field is negative and needs to be flipped.
+        if (bFieldY < 0)
+            q = q * (-1);
+
+        // Swim the track through the B-field until the end point is reached.
+        // The position of the track will be incremented according to the step
+        // size up to ~90% of the final position. At this point, a finer
+        // track size will be used.
+        boolean stepSizeChange = false;
+        while (currentPosition.x() > startPositionZ) {      
+            // The field map coordinates are in the detector frame so the
+            // extrapolated track position needs to be transformed from the
+            // track frame to detector.
+            Hep3Vector currentPositionDet = CoordinateTransformations.transformVectorToDetector(currentPosition);
+
+            // Get the field at the current position along the track.
+            bFieldY = fieldMap.getField(currentPositionDet).y();
+
+            // Get a trajectory (Helix or Line objects) created with the
+            // track parameters at the current position.
+            Trajectory trajectory = TrackUtils.getTrajectory(currentMomentum, new org.lcsim.spacegeom.SpacePoint(currentPosition), q, bFieldY);
+
+            // Using the new trajectory, extrapolated the track by a step and
+            // update the extrapolated position.
+            //if(CoordinateTransformations.transformVectorToTracking(startPosition).x() > currentPosition.x()){
+            if(currentMomentum.x() > 0){
+                //System.out.println("Track is going Forwards!");
+                return null;
+            }
+            currentPosition = trajectory.getPointAtDistance(stepSize);
+
+            // Calculate the momentum vector at the new position. This will
+            // be used when creating the trajectory that will be used to
+            // extrapolate the track in the next iteration.
+            currentMomentum = VecOp.mult(currentMomentum.magnitude(), trajectory.getUnitTangentAtLength(stepSize));
+            
+            //System.out.println("Position " + CoordinateTransformations.transformVectorToDetector(currentPosition) + "   Momentum " + CoordinateTransformations.transformVectorToDetector(currentMomentum) + "   startPositionZ " + startPositionZ);
+        
+            //System.out.println(currentPosition.x() + "  " + currentPosition.y() + "  " + currentPosition.z() + "  ");
+
+            // If the position of the track along X (or z in the detector frame)
+            // is at 90% of the total distance, reduce the step size.
+            if (currentPosition.x() / startPositionZ > .80 && !stepSizeChange) {
+                stepSize /= 10;
+                //System.out.println("Changing step size: " + stepSize);
+                stepSizeChange = true;
+            }
+        }
+
+        // Transform vector back to detector frame
+        return CoordinateTransformations.transformVectorToDetector(currentMomentum);
+    }
+    
+    public static Hep3Vector extrapolateTrackPosition(Hep3Vector endPosition, Hep3Vector endMomentum, Hep3Vector startPosition, double stepSize, FieldMap fieldMap, double q) {
+        if(endPosition == null || endMomentum == null || startPosition == null) return null;
+        // Start by transforming detector vectors into tracking frame
+        Hep3Vector currentPosition = CoordinateTransformations.transformVectorToTracking(endPosition);
+        Hep3Vector currentMomentum = VecOp.neg(CoordinateTransformations.transformVectorToTracking(endMomentum));
+        double startPositionZ = startPosition.z();
+    
+        //System.out.println(currentPosition.x() + "  " + currentPosition.y() + "  " + currentPosition.z() + "  ");
+
+        // Retrieve the y component of the bfield in the middle of detector
+        double bFieldY = fieldMap.getField(new BasicHep3Vector(0, 0, 500.0)).y();       
+    
+        // HACK: LCSim doesn't deal well with negative fields so they are
+        // turned to positive for tracking purposes. As a result,
+        // the charge calculated using the B-field, will be wrong
+        // when the field is negative and needs to be flipped.
+        if (bFieldY < 0)
+            q = q * (-1);
+
+        // Swim the track through the B-field until the end point is reached.
+        // The position of the track will be incremented according to the step
+        // size up to ~90% of the final position. At this point, a finer
+        // track size will be used.
+        boolean stepSizeChange = false;
+        while (currentPosition.x() > startPositionZ) {      
+            // The field map coordinates are in the detector frame so the
+            // extrapolated track position needs to be transformed from the
+            // track frame to detector.
+            Hep3Vector currentPositionDet = CoordinateTransformations.transformVectorToDetector(currentPosition);
+
+            // Get the field at the current position along the track.
+            bFieldY = fieldMap.getField(currentPositionDet).y();
+
+            // Get a trajectory (Helix or Line objects) created with the
+            // track parameters at the current position.
+            Trajectory trajectory = TrackUtils.getTrajectory(currentMomentum, new org.lcsim.spacegeom.SpacePoint(currentPosition), q, bFieldY);
+
+            // Using the new trajectory, extrapolated the track by a step and
+            // update the extrapolated position.
+            //if(CoordinateTransformations.transformVectorToTracking(startPosition).x() > currentPosition.x()){
+            if(currentMomentum.x() > 0){
+                //System.out.println("Track is going Forwards!");
+                return null;
+            }
+            currentPosition = trajectory.getPointAtDistance(stepSize);
+
+            // Calculate the momentum vector at the new position. This will
+            // be used when creating the trajectory that will be used to
+            // extrapolate the track in the next iteration.
+            currentMomentum = VecOp.mult(currentMomentum.magnitude(), trajectory.getUnitTangentAtLength(stepSize));
+        
+            //System.out.println(currentPosition.x() + "  " + currentPosition.y() + "  " + currentPosition.z() + "  ");
+
+            // If the position of the track along X (or z in the detector frame)
+            // is at 90% of the total distance, reduce the step size.
+            if (currentPosition.x() / startPositionZ > .80 && !stepSizeChange) {
+                stepSize /= 10;
+                //System.out.println("Changing step size: " + stepSize);
+                stepSizeChange = true;
+            }
+        }
+
+        // Transform vector back to detector frame
+        return CoordinateTransformations.transformVectorToDetector(currentPosition);
+    }
+    
+
 }

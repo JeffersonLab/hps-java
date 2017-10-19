@@ -44,13 +44,12 @@ public class TridentTupleDriver extends TupleDriver {
         addParticleVariables("ele");
         addParticleVariables("pos");
         if(getFullTruth){
-            addFullTruthVertextVariables();
+            addFullTruthVertexVariables();
         }
         String[] newVars = new String[]{"minPositiveIso/D", "minNegativeIso/D", "minIso/D"};
         tupleVariables.addAll(Arrays.asList(newVars));
         if (getMC) {
-            addFullMCTridentVariables();
-            addFullMCWabVariables();
+            addMCTridentVariables();
         }
     }
 
@@ -119,8 +118,6 @@ public class TridentTupleDriver extends TupleDriver {
 
             if (getMC) {
                 fillMCTridentVariables(event);
-                fillMCWabVariables(event);
-                fillMCFullTruthVariables(event);
             }
             
             if (getFullTruth){

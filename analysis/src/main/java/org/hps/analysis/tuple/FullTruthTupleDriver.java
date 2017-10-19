@@ -11,6 +11,7 @@ public class FullTruthTupleDriver extends TupleDriver {
         tupleVariables.clear();
         addEventVariables();
         addFullMCTridentVariables();
+        addFullMCWabVariables();
     }
     
     protected void addEventVariables() {
@@ -23,6 +24,7 @@ public class FullTruthTupleDriver extends TupleDriver {
 
         fillTruthEventVariables(event);
         fillMCFullTruthVariables(event);
+        fillMCWabVariables(event);
 
         if (tupleWriter != null) {
             writeTuple();
