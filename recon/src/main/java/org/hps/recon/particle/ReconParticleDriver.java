@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
@@ -48,12 +49,18 @@ public abstract class ReconParticleDriver extends Driver {
     public static final int MOLLER_BOT = 1;
 
     // normalized cluster-track distance required for qualifying as a match:
-    private double MAXNSIGMAPOSITIONMATCH = 30.0;
+    private double MAXNSIGMAPOSITIONMATCH=15.0;
 
     HPSEcal3 ecal;
 
     protected boolean isMC = false;
     private boolean disablePID = false;
+   
+    public void setUseCorrectedClusterPositionsForMatching(boolean val){
+        useCorrectedClusterPositionsForMatching = val;
+    }
+    
+    boolean useCorrectedClusterPositionsForMatching = false;
 
     // ==============================================================
     // ==== Class Variables =========================================
@@ -355,6 +362,10 @@ public abstract class ReconParticleDriver extends Driver {
 
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
         matcher.setBFieldMap(detector.getFieldMap());
+        BeamEnergyCollection beamEnergyCollection = 
+                this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+            
+        matcher.setBeamEnergy(beamEnergyCollection.get(0).getBeamEnergy()); 
 
     }
 
@@ -433,7 +444,17 @@ public abstract class ReconParticleDriver extends Driver {
                 // try to find a matching cluster:
                 Cluster matchedCluster = null;
                 for (Cluster cluster : clusters) {
-
+                    
+                    //if the option to use corrected cluster positions is selected, then
+                    //create a copy of the current cluster, and apply corrections to it
+                    //before calculating nsigma.  Default is don't use corrections.  
+                    Cluster originalCluster = cluster;
+                    if(useCorrectedClusterPositionsForMatching){
+                        cluster = new BaseCluster(cluster);
+                        double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
+                        ClusterUtilities.applyCorrections(ecal, cluster, ypos,isMC);
+                    }
+                    
                     // normalized distance between this cluster and track:
                     final double thisNSigma = matcher.getNSigmaPosition(cluster, particle);
 
@@ -447,7 +468,7 @@ public abstract class ReconParticleDriver extends Driver {
 
                     // we found a new best cluster candidate for this track:
                     smallestNSigma = thisNSigma;
-                    matchedCluster = cluster;
+                    matchedCluster = originalCluster;
 
                     // prefer using GBL tracks to correct (later) the clusters, for some consistency:
                     if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster)) {
@@ -535,6 +556,14 @@ public abstract class ReconParticleDriver extends Driver {
             }
             HepLorentzVector fourVector = new BasicHepLorentzVector(clusterEnergy, momentum);
             ((BaseReconstructedParticle) particle).set4Vector(fourVector);
+        
+            // recalculate track-cluster matching n_sigma using corrected cluster positions
+            // if that option is selected
+            if(!particle.getClusters().isEmpty() && useCorrectedClusterPositionsForMatching){
+                double goodnessPID_corrected = matcher.getNSigmaPosition(particle.getClusters().get(0), particle);
+                ((BaseReconstructedParticle) particle).setGoodnessOfPid(goodnessPID_corrected);
+            }
+            
         }
 
         // Return the list of reconstructed particles.
@@ -710,5 +739,10 @@ public abstract class ReconParticleDriver extends Driver {
     @Override
     protected void endOfData() {
         // matcher.saveHistograms();
+    }
+
+    
+    public void setSnapToEdge(boolean val){
+        this.matcher.setSnapToEdge(val);
     }
 }
