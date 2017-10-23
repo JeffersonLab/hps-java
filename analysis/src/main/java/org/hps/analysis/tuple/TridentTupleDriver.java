@@ -35,6 +35,7 @@ public class TridentTupleDriver extends TupleDriver {
     private final double tupleMaxSumCut = 1.3;
     private boolean getMC = false;
     private boolean getFullTruth = false;
+    private int tupleevent = 0;
 
     @Override
     protected void setupVariables() {
@@ -64,6 +65,8 @@ public class TridentTupleDriver extends TupleDriver {
     @Override
     public void process(EventHeader event) {
         /*  make sure everything is there */
+        tupleevent++;
+        //tupleMap.put("tupleevent/I",(double) tupleevent);
         if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
             return;
         }
@@ -115,6 +118,7 @@ public class TridentTupleDriver extends TupleDriver {
             tupleMap.put("minPositiveIso/D", minPositiveIso);
             tupleMap.put("minNegativeIso/D", minNegativeIso);
             tupleMap.put("minIso/D", minIso);
+            tupleMap.put("tupleevent/I",(double) tupleevent);
 
             if (getMC) {
                 fillMCTridentVariables(event);

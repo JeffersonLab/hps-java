@@ -44,6 +44,62 @@ public class MCFullDetectorTruth{
         return trackerHitMap;
     }
     
+    public static Map<MCParticle, Map<String, List<SimTrackerHit>>> BuildComboTrackerHitMap(List<SimTrackerHit> trackerHitsAct, List<SimTrackerHit> trackerHitsIn){
+        Map<MCParticle,Map<String, List<SimTrackerHit>>> trackerNewHitMap = new HashMap<MCParticle,Map<String, List<SimTrackerHit>>>();
+        for (SimTrackerHit hit : trackerHitsAct) {
+            MCParticle p = hit.getMCParticle();
+            if (p == null) {
+                throw new RuntimeException("Tracker hit points to null MCParticle!");
+            }
+            if (trackerNewHitMap.get(p) == null) {
+                trackerNewHitMap.put(p, new HashMap<String, List<SimTrackerHit>>());
+                trackerNewHitMap.get(p).put("active", new ArrayList<SimTrackerHit>());
+            }
+            trackerNewHitMap.get(p).get("active").add(hit);
+        }
+        int i = 0;
+        for (SimTrackerHit hit : trackerHitsIn) {
+            if (i == trackerHitsIn.size()/2) break;
+            MCParticle p = hit.getMCParticle();
+            if (p == null) {
+                throw new RuntimeException("Tracker hit points to null MCParticle!");
+            }
+            if (trackerNewHitMap.get(p) == null) {
+                trackerNewHitMap.put(p, new HashMap<String, List<SimTrackerHit>>());
+                trackerNewHitMap.get(p).put("inactive", new ArrayList<SimTrackerHit>());
+            }
+            if(trackerNewHitMap.get(p).get("inactive") == null){
+                trackerNewHitMap.get(p).put("inactive", new ArrayList<SimTrackerHit>());
+            }
+            trackerNewHitMap.get(p).get("inactive").add(hit);
+            i++;
+        }
+        return trackerNewHitMap;
+    }
+    
+    /*public static Map<MCParticle,List<SimTrackerHit>> BuildComboTrackerHitMap(Map<MCParticle, List<SimTrackerHit>> ActiveHitMap, Map<MCParticle, List<SimTrackerHit>> InActiveHitMap){
+        Map<MCParticle, List<SimTrackerHit>> trackerHitMap = new HashMap<MCParticle, List<SimTrackerHit>>();
+        for (Entry<MCParticle, List<SimTrackerHit>> entry_act : ActiveHitMap.entrySet()) {
+            MCParticle p_act = entry_act.getKey();
+            List<SimTrackerHit> hits_act = entry_act.getValue();
+            for (Entry<MCParticle, List<SimTrackerHit>> entry_in : InActiveHitMap.entrySet()) {
+                MCParticle p_in = entry_in.getKey();
+                if(p_act != p_in) continue;
+                List<SimTrackerHit> hits_in = entry_in.getValue();
+                if (trackerHitMap.get(p_act) == null) {
+                    trackerHitMap.put(p_act, new ArrayList<SimTrackerHit>());
+                }
+                for (SimTrackerHit hit : hits_act) {
+                    trackerHitMap.get(p_act).add(hit);
+                }
+                for (SimTrackerHit hit : hits_in) {
+                    trackerHitMap.get(p_act).add(hit);
+                }
+            }
+        }
+        return trackerHitMap;
+    }*/
+    
     public static Map<MCParticle, List<SimCalorimeterHit>> BuildCalHitMap(List<SimCalorimeterHit> calHits){
         // map particle to a list of its sim cal hits
         Map<MCParticle, List<SimCalorimeterHit>> calHitMap = new HashMap<MCParticle, List<SimCalorimeterHit>>();
