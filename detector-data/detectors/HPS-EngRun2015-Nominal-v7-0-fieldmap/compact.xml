@@ -162,7 +162,7 @@
    
     <detectors>
        
-        <detector id="1" name="Tracker" type="HPSTracker2014v1" readout="TrackerHits" inactiveSiReadout="TrackerHits_InactiveSi">
+        <detector id="1" name="Tracker" type="HPSTracker2014v1" readout="TrackerHits" inactiveSiReadout="TrackerHits_Inactive">
             <SurveyVolumes>
  
                  <!-- U-channel in Svt box survey survey  -->
@@ -832,7 +832,7 @@
         <readout name="TrackerHits">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
         </readout>
-        <readout name="TrackerHits_InactiveSi">
+        <readout name="TrackerHits_Inactive">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
         </readout>
         <readout name="TrackerHitsFieldDef">
