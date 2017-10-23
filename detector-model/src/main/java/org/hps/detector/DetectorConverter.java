@@ -18,6 +18,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.geometry.compact.converter.Converter;
@@ -80,9 +81,7 @@ public class DetectorConverter {
         }
         if (cl.hasOption("r")) {
             runNumber = Integer.parseInt(cl.getOptionValue("r"));
-        } else {
-            runNumber = 0;
-        }
+        } 
 
         Converter cnv = null;
 
@@ -105,8 +104,8 @@ public class DetectorConverter {
             throw new IllegalArgumentException("No converter found for format: " + outputFormat);
 
         if (runNumber != null) {
+            DatabaseConditionsManager mgr = new DatabaseConditionsManager();
             String name = "DUMMY";
-            DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
             ConditionsReader dummyReader = ConditionsReader.createDummy();
             ((ConditionsManagerImplementation) mgr).setConditionsReader(dummyReader, name);
             DummyDetector detector = new DummyDetector(name);
