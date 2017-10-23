@@ -8,7 +8,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>3.11-SNAPSHOT</version>
+    <version>4.0-SNAPSHOT</version>
   </parent>
   <build>
     <plugins>
@@ -17,10 +17,13 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>org/hps/recon/tracking/**/**.java</exclude>
-            <!-- Test input LCIO file is missing for next two. -->
-            <!-- <exclude>org/hps/recon/tracking/TestRunTrackReconTest.java</exclude> 
-              <exclude>org/hps/recon/tracking/HelicalTrackHitDriverTest.java</exclude> -->
+            <exclude>**/ReconTestSkeleton.java</exclude>
+            <exclude>**/RecoToRaw.java</exclude>
+            <exclude>**/RecoToRawMC.java</exclude>
+            <exclude>**/TrackingReconstructionPlotsTest.java</exclude>
+            <exclude>**/TrackReconWithPlotsTest.java</exclude>
+            <exclude>**/CircleFitTest.java</exclude>
+            <exclude>**/TwoPointRadiusCircleFitterTest.java</exclude>
           </excludes>
         </configuration>
       </plugin>

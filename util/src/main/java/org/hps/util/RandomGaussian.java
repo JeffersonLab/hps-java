@@ -1,21 +1,20 @@
 package org.hps.util;
 
-//--- java ---//
+// --- java ---//
 import java.util.Random;
 
 /**
- * 
  * @author Omar Moreno
  * @version $Id: RandomGaussian.java,v 1.1 2012/08/27 19:01:36 omoreno Exp $
  */
 public class RandomGaussian {
 
     private static Random randNumberGenerator;
-        
+
     /**
-     * Class shouldn't be instantiated by anyone 
+     * Class shouldn't be instantiated by anyone
      */
-    private RandomGaussian(){
+    private RandomGaussian() {
     }
 
     /**
@@ -25,8 +24,9 @@ public class RandomGaussian {
      * @param sigma : Standard deviation of the distribution
      * @return Gaussian distributed number
      */
-    public static double getGaussian(double mean, double sigma){
-            if(randNumberGenerator == null) randNumberGenerator = new Random();
-            return mean + randNumberGenerator.nextGaussian()*sigma;
+    public static double getGaussian(double mean, double sigma) {
+        if (randNumberGenerator == null)
+            randNumberGenerator = new Random();
+        return mean + randNumberGenerator.nextGaussian() * sigma;
     }
 }

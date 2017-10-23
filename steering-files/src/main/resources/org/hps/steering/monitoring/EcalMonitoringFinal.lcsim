@@ -15,9 +15,6 @@
         <!-- <driver name="AidaSaveDriver"/>   -->
     </execute>
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
-        </driver>
         
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>

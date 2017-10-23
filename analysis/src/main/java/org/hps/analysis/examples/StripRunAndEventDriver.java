@@ -15,7 +15,7 @@ import org.lcsim.util.Driver;
  *
  * @author Norman A Graf
  *
- * @version $Id:
+ * @todo Move to recon.filtering
  */
 public class StripRunAndEventDriver extends Driver
 {

@@ -7,7 +7,6 @@
     </control>
 -->
     <execute>
-        <driver name="EventMarkerDriver"/>   
         <driver name="ReconClusterer" />
         <driver name="CopyCluster" />
         <driver name="TrackerDigiDriver"/>
@@ -22,9 +21,6 @@
         <driver name="CleanupDriver"/>
     </execute>
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <inputHitCollectionName>EcalHits</inputHitCollectionName>            

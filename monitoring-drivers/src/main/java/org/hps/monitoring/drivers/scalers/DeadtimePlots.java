@@ -18,16 +18,16 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  *
- * Make a strip chart for DAQ deadtime from the info in the scaler block. 
+ * Make a strip chart for DAQ deadtime from the info in the scaler block.
  *
  * @author mgraham
  */
 public class DeadtimePlots extends Driver {
 
-//    static final int REFRESH_RATE = 10 * 1000; // units = ms
-//    static final double DOMAIN_SIZE = 4 * 60 * 60 * 1000; // x-axis range (ms)
-      double DOMAIN_SIZE =  10 * 60 * 1000; // 10 minutes
-    //String scalarsName = "Scalars";
+    // static final int REFRESH_RATE = 10 * 1000; // units = ms
+    // static final double DOMAIN_SIZE = 4 * 60 * 60 * 1000; // x-axis range (ms)
+    double DOMAIN_SIZE = 10 * 60 * 1000; // 10 minutes
+    // String scalarsName = "Scalars";
 
     int events;
 
@@ -35,29 +35,26 @@ public class DeadtimePlots extends Driver {
     double fcupTrg;
     StripChartUpdater updater;
     JFreeChart deadtimes;
-    
-    public void setTimeAxisRange(double width){
-        this.DOMAIN_SIZE=width;
+
+    public void setTimeAxisRange(double width) {
+        this.DOMAIN_SIZE = width;
     }
 
     public void startOfData() {
-//        plotFactory.createStripChart(
-//                "DAQ Deadtime",
-//                "deadtime",
-//                2,
-//                new String[]{"fcupTdc", "fcupTrg"},
-//                100,
-//                new Second(),
-//                new DeadtimeProvider(),
-//                50000L);
+        // plotFactory.createStripChart(
+        // "DAQ Deadtime",
+        // "deadtime",
+        // 2,
+        // new String[]{"fcupTdc", "fcupTrg"},
+        // 100,
+        // new Second(),
+        // new DeadtimeProvider(),
+        // 50000L);
 
-        MonitoringPlotFactory plotFactory
-            = (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("Deadtime Monitoring");
-        deadtimes = plotFactory.createTimeSeriesChart(
-                "DAQ Deadtime",
-                "Livetime",
-                2, new String[]{"fcupTdc", "fcupTrg"},
-                DOMAIN_SIZE);
+        MonitoringPlotFactory plotFactory = (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory()
+                .createPlotterFactory("Deadtime Monitoring");
+        deadtimes = plotFactory.createTimeSeriesChart("DAQ Deadtime", "Livetime", 2,
+                new String[] {"fcupTdc", "fcupTrg"}, DOMAIN_SIZE);
         deadtimes.getXYPlot().getRangeAxis().setRange(0.5, 1.0);
     }
 
@@ -82,14 +79,14 @@ public class DeadtimePlots extends Driver {
     }
 
     public void endOfData() {
-        if(updater!=null)
-            updater.stop(); 
+        if (updater != null)
+            updater.stop();
     }
 
     class DeadtimeProvider implements ValueProvider {
 
         public float[] getValues() {
-            return new float[]{(float) fcupTdc, (float) fcupTrg};
+            return new float[] {(float) fcupTdc, (float) fcupTrg};
         }
     }
 

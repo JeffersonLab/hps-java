@@ -1,10 +1,10 @@
 package org.hps.util;
 
 /**
- * MergeBunches.java
- * Driver to merge bunch trains for HPS and displace them in time
- * much of this code was taken from org.lcsim.util.OverlayDriver.java
- * Created 6/8/2011 @author mgraham
+ * MergeBunches.java Driver to merge bunch trains for HPS and displace them in time much of this code was taken from
+ * org.lcsim.util.OverlayDriver.java Created 6/8/2011 
+ * 
+ * @author mgraham
  */
 import hep.physics.particle.properties.ParticleType;
 import hep.physics.vec.BasicHep3Vector;
@@ -42,7 +42,7 @@ public class MergeBunches extends Driver {
     BaseLCSimEvent newEvent;
     static double startT = -40.0;
     static double deltaT = 2.0;
-    static int nBunches = 40;    
+    static int nBunches = 40;
     double offsetT = startT;
     int bunchCounter = 0;
     int eventCounter = 0;
@@ -59,16 +59,14 @@ public class MergeBunches extends Driver {
         MergeBunches mb = new MergeBunches();
         mb.parseArgs(args);
 
-
-//         LCReader* lcReader = LCFactory::getInstance()->createLCReader() ;
-
+        // LCReader* lcReader = LCFactory::getInstance()->createLCReader() ;
 
     }
 
     public MergeBunches() throws IOException {
 
-//        LCIODriver lcioDriver = new LCIODriver(outFile);
-         writer=new LCIOWriter(outFile);
+        // LCIODriver lcioDriver = new LCIODriver(outFile);
+        writer = new LCIOWriter(outFile);
         caloHitMap = new HashMap<String, Map<Long, SimCalorimeterHit>>();
         overlayMcParticles = new ArrayList<MCParticle>();
         allMcParticles = new ArrayList<MCParticle>();
@@ -78,14 +76,13 @@ public class MergeBunches extends Driver {
 
     public void process(EventHeader event) {
 
-
         if (bunchCounter == 0)
             newEvent = new BaseLCSimEvent(event.getRunNumber(), eventCounter, event.getDetectorName());
         mergeEvents(newEvent, event, offsetT);
         bunchCounter++;
         offsetT += deltaT;
         if (bunchCounter == nBunches) {
-            System.out.println("Writing events #"+eventCounter);
+            System.out.println("Writing events #" + eventCounter);
             eventCounter++;
             offsetT = startT;
             bunchCounter = 0;
@@ -98,8 +95,9 @@ public class MergeBunches extends Driver {
     }
 
     /**
-     * Merges all collections from the given events and applies a time offset
-     * to all entries in all collections of the overlay event.
+     * Merges all collections from the given events and applies a time offset to all entries in all collections of the
+     * overlay event.
+     * 
      * @param event the event where everything is merged into
      * @param overlayEvent the event overlaid
      * @param overlayTime the time offset for the overlay event
@@ -111,7 +109,8 @@ public class MergeBunches extends Driver {
         for (LCMetaData overlayCollection : overlayCollections) {
             String overlayCollectionName = overlayCollection.getName();
             if (event.hasItem(overlayCollectionName)) {
-                this.mergeCollections(event.getMetaData((List) event.get(overlayCollectionName)), overlayCollection, overlayTime);
+                this.mergeCollections(event.getMetaData((List) event.get(overlayCollectionName)), overlayCollection,
+                        overlayTime);
             } else {
                 // event does not contain corresponding collection from overlayEvent, just put it there
                 // First move hits and apply timing cuts
@@ -122,8 +121,8 @@ public class MergeBunches extends Driver {
     }
 
     /**
-     * Shifts an event in time. Moves all entries in all collections
-     * in the event by the given offset in time.
+     * Shifts an event in time. Moves all entries in all collections in the event by the given offset in time.
+     * 
      * @param event the event to move in time
      * @param time the time shift applied to all entries in all collections
      */
@@ -141,9 +140,9 @@ public class MergeBunches extends Driver {
     }
 
     /**
-     * Shifts a collection in time. Moves all entries in the collection
-     * by the given offset in time. If a readout time is set for the
-     * given collection, all entries outside of that window will be removed.
+     * Shifts a collection in time. Moves all entries in the collection by the given offset in time. If a readout time
+     * is set for the given collection, all entries outside of that window will be removed.
+     * 
      * @param collection the collection to move in time
      * @param time the time shift applied to all entries in the collection
      * @return returns the list of moved entries
@@ -154,7 +153,8 @@ public class MergeBunches extends Driver {
         Class collectionType = collection.getType();
         int flags = collection.getFlags();
         if (this.getHistogramLevel() > HLEVEL_NORMAL)
-            System.out.println("Moving collection: " + collectionName + " of type " + collectionType + " to " + time + "ns");
+            System.out.println("Moving collection: " + collectionName + " of type " + collectionType + " to " + time
+                    + "ns");
 
         double timeWindow = 0;
 
@@ -189,7 +189,7 @@ public class MergeBunches extends Driver {
                 if (this.getHistogramLevel() > HLEVEL_HIGH && nHitsMoved % 100 == 0)
                     System.out.print("Moved " + nHitsMoved + " / " + nSimCaloHits + " hits\n");
                 movedHit = (BaseSimCalorimeterHit) hit;
-                movedHit.shiftTime(time);//adds this amount of time to all the times of SimCalorimeterHits
+                movedHit.shiftTime(time);// adds this amount of time to all the times of SimCalorimeterHits
                 movedCollection.add(movedHit);
             }
         } else if (collectionType.isAssignableFrom(GenericObject.class)) {
@@ -203,8 +203,9 @@ public class MergeBunches extends Driver {
     }
 
     /**
-     * Adds a collection to an event using the meta data information from the
-     * given collection and the entries from the given list.
+     * Adds a collection to an event using the meta data information from the given collection and the entries from the
+     * given list.
+     * 
      * @param collection the collection to take the meta data from
      * @param entries the list of entries to put into the event
      * @param event the event to put the collection
@@ -221,8 +222,8 @@ public class MergeBunches extends Driver {
     }
 
     /**
-     * Merges two collections and applies a time offset to all entries in
-     * the overlay collection.
+     * Merges two collections and applies a time offset to all entries in the overlay collection.
+     * 
      * @param collection the collection where the overlay collection is merged into
      * @param overlayCollection the collection overlaid
      * @param overlayTime the time offset for the overlay collection
@@ -233,16 +234,16 @@ public class MergeBunches extends Driver {
         Class collectionType = collection.getType();
         Class overlayCollectionType = overlayCollection.getType();
         if (this.getHistogramLevel() > HLEVEL_NORMAL)
-        System.out.println("Merging collection: " + collectionName + " of type " + collectionType + ".");
+            System.out.println("Merging collection: " + collectionName + " of type " + collectionType + ".");
         if (!collectionType.equals(overlayCollectionType)) {
-            System.err.println("Can not merge collections: " + collectionName
-                    + " of type " + collectionType + " and " + overlayCollectionType);
+            System.err.println("Can not merge collections: " + collectionName + " of type " + collectionType + " and "
+                    + overlayCollectionType);
             return false;
         }
 
         // move the overlay hits in time, signal should have been moved already
         List overlayEntries = this.moveCollectionToTime(overlayCollection, overlayTime);
-        //List overlayEntries = overlayCollection.getEvent().get(overlayCollectionType, overlayCollection.getName());
+        // List overlayEntries = overlayCollection.getEvent().get(overlayCollectionType, overlayCollection.getName());
         // Check if there are actually entries to overlay
         if (overlayEntries.isEmpty())
             return true;
@@ -264,7 +265,7 @@ public class MergeBunches extends Driver {
                 SimTrackerHit overlayHit = copySimTrackerHit(hit, collection);
                 signalTrackerHits.add(overlayHit);
             }
-//            System.out.println("Overlaid TrackerHits!");
+            // System.out.println("Overlaid TrackerHits!");
         } else if (collectionType.isAssignableFrom(SimCalorimeterHit.class)) {
             // SimCalorimeterHits: need to merge hits in cells which are hit in both events
             // check if map has already been filled
@@ -330,8 +331,8 @@ public class MergeBunches extends Driver {
                         rawEnergy += eneList[j];
                     }
                     // need to set time to 0 so it is recalculated from the timeList
-                    SimCalorimeterHit mergedHit = new BaseSimCalorimeterHit(oldHit.getCellID(),
-                            rawEnergy, 0., mcpList, eneList, timeList, pdgList, collection);
+                    SimCalorimeterHit mergedHit = new BaseSimCalorimeterHit(oldHit.getCellID(), rawEnergy, 0., mcpList,
+                            eneList, timeList, pdgList, collection);
                     // replace old hit with merged hit
                     signalCaloHits.remove(oldHit);
                     signalCaloHits.add(mergedHit);
@@ -348,11 +349,11 @@ public class MergeBunches extends Driver {
             if (collectionName.equals("MCParticleEndPointEnergy")) {
                 // TODO decide what to do with this collection in the overlay events
                 // TODO would need to resolve the position of kept mc particles and keep the same position here
-                //event.get(GenericObject.class, collectionName).addAll(overlayEntries);
-                //event.remove("MCParticleEndPointEnergy");
+                // event.get(GenericObject.class, collectionName).addAll(overlayEntries);
+                // event.remove("MCParticleEndPointEnergy");
             } else {
-                System.err.println("Can not merge collection " + collectionName
-                        + " of type " + collectionType + ". Unhandled type.");
+                System.err.println("Can not merge collection " + collectionName + " of type " + collectionType
+                        + ". Unhandled type.");
                 return false;
             }
         }
@@ -360,8 +361,8 @@ public class MergeBunches extends Driver {
     }
 
     /**
-     * Deep copy of an SimCalorimeterHit. Necessary in order to be able to close an
-     * overlay event.
+     * Deep copy of an SimCalorimeterHit. Necessary in order to be able to close an overlay event.
+     * 
      * @param hit The hit to be copied
      * @param meta The meta data that will be attached to the hit
      * @param hasPDG Flag if the pdg code of the mc contriutions should be saved
@@ -391,14 +392,15 @@ public class MergeBunches extends Driver {
                 pdgs[i] = hit.getPDG(i);
         }
 
-        BaseSimCalorimeterHit copyHit = new BaseSimCalorimeterHit(id, rawEnergy, time, mcparts, energies, times, pdgs, meta);
+        BaseSimCalorimeterHit copyHit = new BaseSimCalorimeterHit(id, rawEnergy, time, mcparts, energies, times, pdgs,
+                meta);
 
         return copyHit;
     }
 
     /**
-     * Deep copy of an SimTrackerHit. Necessary in order to be able to close an
-     * overlay event.
+     * Deep copy of an SimTrackerHit. Necessary in order to be able to close an overlay event.
+     * 
      * @param hit The hit to be copied
      * @param meta The meta data that will be attached to the hit
      * @return The copied SimTrackerHit
@@ -429,16 +431,18 @@ public class MergeBunches extends Driver {
     }
 
     /**
-     * Deep copy of an mc particle. Necessary in order to be able to close an
-     * overlay event. The parent and daught relations are <b>not</b> set for the
-     * copied mc particle. Because those should most likely also point to copies
+     * Deep copy of an mc particle. Necessary in order to be able to close an overlay event. The parent and daught
+     * relations are <b>not</b> set for the copied mc particle. Because those should most likely also point to copies
      * this should be handled somewhere else.
+     * 
      * @param mcParticle The mc particle to be copied
      * @return the copied mc particle
      */
     static public MCParticle copyMcParticle(MCParticle mcParticle) {
-        Hep3Vector origin = new BasicHep3Vector(mcParticle.getOriginX(), mcParticle.getOriginY(), mcParticle.getOriginZ());
-        HepLorentzVector p = new BasicHepLorentzVector(mcParticle.getEnergy(), new double[]{mcParticle.getPX(), mcParticle.getPY(), mcParticle.getPZ()});
+        Hep3Vector origin = new BasicHep3Vector(mcParticle.getOriginX(), mcParticle.getOriginY(),
+                mcParticle.getOriginZ());
+        HepLorentzVector p = new BasicHepLorentzVector(mcParticle.getEnergy(), new double[] {mcParticle.getPX(),
+                mcParticle.getPY(), mcParticle.getPZ()});
         ParticleType ptype = mcParticle.getType().getParticlePropertyProvider().get(mcParticle.getPDGID());
         int status = mcParticle.getGeneratorStatus();
         double time = mcParticle.getProductionTime();
@@ -451,9 +455,9 @@ public class MergeBunches extends Driver {
     }
 
     /**
-     * Copies an mc particle and stores it together with  the copy in a map.
-     * Adds it to the list of mc particles as well as the overlay mc particles.
-     * Also copies and keeps all ancestors.
+     * Copies an mc particle and stores it together with the copy in a map. Adds it to the list of mc particles as well
+     * as the overlay mc particles. Also copies and keeps all ancestors.
+     * 
      * @param particle
      */
     protected void addOverlayMcParticle(MCParticle particle) {
@@ -476,6 +480,7 @@ public class MergeBunches extends Driver {
         System.out.println("java MergeBunches [-o <format>] [<input> [<output>]]");
         System.exit(0);
     }
+
     private String format;
 
     void parseArgs(String[] args) {
@@ -489,7 +494,6 @@ public class MergeBunches extends Driver {
             }
 
         }
-
 
     }
 }

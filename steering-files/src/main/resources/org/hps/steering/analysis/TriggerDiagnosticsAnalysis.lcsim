@@ -6,7 +6,6 @@
     </control>
     
     <execute>
-        <driver name="EventMarkerDriver"/>
         <driver name="DAQConfig"/>
         <driver name="EcalRawConverter"/>
         <driver name="GTPClusterer"/>
@@ -20,9 +19,6 @@
     </execute>
      
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>
 		
         <driver name="DAQConfig" type="org.hps.recon.ecal.DatabaseDAQConfigDriver">
             <runNumber>${run}</runNumber>
