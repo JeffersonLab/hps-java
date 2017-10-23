@@ -4,7 +4,6 @@
         <!--<fileRegExp baseDir="./../data/mc/v3/pair_filter/" >pairs.*filt.*recon.*</fileRegExp>-->
     </inputFiles>
     <execute>
-        <driver name="EventMarkerDriver"/>
         <driver name="TwoTrackFilter"/>
     </execute>    
 
@@ -14,9 +13,5 @@
             <debug>false</debug>
             <outputFilePath>${outputFile}</outputFilePath>
         </driver>
-        <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>        
     </drivers>   
 </lcsim>

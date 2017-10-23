@@ -14,7 +14,7 @@ public final class TriggerTimeWindowTest extends TestCase {
 
     @Override
     public void setUp() {
-        conditionsManager = DatabaseConditionsManager.getInstance();
+        conditionsManager = new DatabaseConditionsManager();
         try {
             conditionsManager.setDetector("HPS-PhysicsRun2016-Nominal-v4-4", RUN_NUMBER);
         } catch (final ConditionsNotFoundException e) {

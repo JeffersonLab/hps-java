@@ -125,6 +125,13 @@ public class BilliorVertex implements Vertex {
         }
         return pars;
     }
+    
+    public void setVertexTrackParameters(Hep3Vector p1, Hep3Vector p2, double mass)
+    {
+        _invMass = mass;
+        _fittedMomentum.put(0, p1);
+        _fittedMomentum.put(1,p2);
+    }
 
     @Override
     public ReconstructedParticle getAssociatedParticle() {

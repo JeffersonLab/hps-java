@@ -1,0 +1,29 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <control>
+        <printDriverStatistics>true</printDriverStatistics>
+    </control>
+    <execute>
+        <driver name="StripEvent"/>
+        <driver name="Writer"/>
+    </execute>
+    <drivers>
+        
+        <!-- Driver to strip events -->
+       <driver name="StripEvent"
+                type="org.hps.recon.filtering.MollerCandidateFilterPass1">
+             
+              <!-- Name of the Moller Candidate Collection of ReconstriuctedParticles -->
+              <mollerCollectionName>TargetConstrainedMollerCandidates</mollerCollectionName>
+              <trackMomentumMinFraction>0</trackMomentumMinFraction>
+              <trackMomentumMaxFraction>0.82</trackMomentumMaxFraction>
+              <momentumSumMinFraction>.65</momentumSumMinFraction>
+              <momentumSumMaxFraction>1.30</momentumSumMaxFraction>
+        </driver>
+        <!-- Driver to write output slcio file -->
+        <driver name="Writer"
+                type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+    </drivers>
+</lcsim>

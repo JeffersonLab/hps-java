@@ -62,13 +62,6 @@ final class ConditionsSeriesConverter<ObjectType extends ConditionsObject, Colle
 
         final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 
-        // Setup connection if necessary.
-        boolean reopenedConnection = false;
-        if (!conditionsManager.isConnected()) {
-            conditionsManager.openConnection();
-            reopenedConnection = true;
-        }
-
         // Get the table meta data for the collection type.
         final TableMetaData tableMetaData = conditionsManager.findTableMetaData(tableName);
         if (tableMetaData == null) {
@@ -97,10 +90,6 @@ final class ConditionsSeriesConverter<ObjectType extends ConditionsObject, Colle
                 throw new RuntimeException(e);
             }
             series.add((ConditionsObjectCollection<ObjectType>) collection);
-        }
-
-        if (reopenedConnection) {
-            conditionsManager.closeConnection();
         }
 
         // Return new collection.

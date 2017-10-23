@@ -1,13 +1,11 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * To change this template, choose Tools | Templates and open the template in the editor.
  */
 package org.hps.util;
 
 /**
-
- @author Mathew Thomas Graham <mgraham@slac.stanford.edu> $Id:
- ConvertToStdhep.java,v 1.9 2013/02/27 18:50:10 mgraham Exp $
+ * @author Mathew Thomas Graham <mgraham@slac.stanford.edu> $Id: ConvertToStdhep.java,v 1.9 2013/02/27 18:50:10 mgraham
+ *         Exp $
  */
 import java.io.FileReader;
 import java.io.IOException;
@@ -34,33 +32,33 @@ public class DumpLHEEventsToASCII {
 
     static FileWriter fw;
     static PrintWriter pw;
-    static boolean expDecay = false;  //set a ctau decay length
-    static boolean flatDecay = false; //decay uniformily in some range
-    static boolean trident = false;  //are these trident events or A' signal events
-    static double _declength = 0.0;   //A' decay length  (mm)
-    static double _xoff = 0.0;   //set the x,y,z origin offsets...
+    static boolean expDecay = false; // set a ctau decay length
+    static boolean flatDecay = false; // decay uniformily in some range
+    static boolean trident = false; // are these trident events or A' signal events
+    static double _declength = 0.0; // A' decay length (mm)
+    static double _xoff = 0.0; // set the x,y,z origin offsets...
     static double _yoff = 0.0;
     static double _zoff = 0.03;
-    static double aMass = 99;  //Aprime mass (MeV)
-    static double sigx = 0.2;        // Luminous region size in x (mm)
-    static double sigy = 0.02;        // Luminous region size in y (mm)
-    static double sigz = 0.0;         // Luminous region size in z (mm)
-//beam is positioned so that at first beam direction is in z, then rotated to correct orientation    
-    static double rotx = 0.00;        // Rotation of beam about X
-    static double roty = 0.03;        // Rotation of beam about Y
-    static double rotz = 0.00;         // Rotation of beam about Z
+    static double aMass = 99; // Aprime mass (MeV)
+    static double sigx = 0.2; // Luminous region size in x (mm)
+    static double sigy = 0.02; // Luminous region size in y (mm)
+    static double sigz = 0.0; // Luminous region size in z (mm)
+    // beam is positioned so that at first beam direction is in z, then rotated to correct orientation
+    static double rotx = 0.00; // Rotation of beam about X
+    static double roty = 0.03; // Rotation of beam about Y
+    static double rotz = 0.00; // Rotation of beam about Z
     static double maxLen = 200; // maximum decay length (mm)
-    static double _ecm = 6.6; //GeV
-    static int nInFiles = 10000;  //number of input files
+    static double _ecm = 6.6; // GeV
+    static int nInFiles = 10000; // number of input files
     static int nBegin = 0;
-    static int nmax = 500000;  //maximum number of events to write to 1 stdhep file (new one opens if n>nmax)
+    static int nmax = 500000; // maximum number of events to write to 1 stdhep file (new one opens if n>nmax)
     static String fileType = "lhe";
     static IRotation3D rot = new RotationGeant(rotx, roty, rotz);
-//        static String fileType="dat";
-    static int nread = -1;  // a running total of number of events read/written to stdhep files
+    // static String fileType="dat";
+    static int nread = -1; // a running total of number of events read/written to stdhep files
     static boolean _eventFilter = false;
     static boolean _isMuon = false;
-//    static int _nEleRequired = 2;
+    // static int _nEleRequired = 2;
     static int _nEleRequired = 0;
 
     private static Options createCommandLineOptions() {
@@ -80,11 +78,10 @@ public class DumpLHEEventsToASCII {
     }
 
     /**
-     @param args the command line arguments
-     @throws IOException
+     * @param args the command line arguments
+     * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-
 
         // Set up command line parsing.
         Options options = createCommandLineOptions();
@@ -108,7 +105,7 @@ public class DumpLHEEventsToASCII {
         String sigyString = String.valueOf(sigy);
         eptString = convertDecimal(eptString);
         if (cl.hasOption("t")) {
-        trident=true;
+            trident = true;
         }
         if (cl.hasOption("m")) {
             massString = cl.getOptionValue("m");
@@ -157,18 +154,18 @@ public class DumpLHEEventsToASCII {
         sigxString = convertMicron(sigx);
         sigyString = convertMicron(sigy);
 
-//        String postfix = "_20ux200u_beamspot_gammactau_0cm.stdhep";
-//        String postfix = "_"+sigxString+"x"+sigyString+"_beamspot_gammactau_0cm.stdhep";
+        // String postfix = "_20ux200u_beamspot_gammactau_0cm.stdhep";
+        // String postfix = "_"+sigxString+"x"+sigyString+"_beamspot_gammactau_0cm.stdhep";
         String postfix = ".dat";
-//        String fDir="/nfs/slac/g/hps/mgraham/DarkPhoton/tvm/testrun/";
-//        String fileLabel = "ap2.2gev40mevsel";
+        // String fDir="/nfs/slac/g/hps/mgraham/DarkPhoton/tvm/testrun/";
+        // String fileLabel = "ap2.2gev40mevsel";
 
-        //            String fDir="/nfs/slac/g/hps/mgraham/DarkPhoton/tvm/trident/full/";
-        //      String fileLabel = "full6.6gev";
+        // String fDir="/nfs/slac/g/hps/mgraham/DarkPhoton/tvm/trident/full/";
+        // String fileLabel = "full6.6gev";
 
-        //String fDir = "/nfs/slac/g/hps/mgraham/DarkPhoton/MadGraph/aMassEvents2pt2Ap100MeV/";
-        //String fileLabel = "ap2.2gev100mevall";
-        //String inLabel = "W2pt2GeV_Ap100MeV_";
+        // String fDir = "/nfs/slac/g/hps/mgraham/DarkPhoton/MadGraph/aMassEvents2pt2Ap100MeV/";
+        // String fileLabel = "ap2.2gev100mevall";
+        // String inLabel = "W2pt2GeV_Ap100MeV_";
 
         String fDir = "/nfs/slac/g/hps/mgraham/DarkPhoton/MadGraph/Events" + eptString + "Ap" + massString + "MeV/";
         String fileLabel = "ap" + ecmString + "gev" + massString + "mev" + filter;
@@ -184,7 +181,6 @@ public class DumpLHEEventsToASCII {
             inLabel = "W" + eptString + "GeV_Ap" + massString + "MeVMuon_";
         }
         String inPost = "_unweighted_events.lhe";
-
 
         String outDir = "/nfs/slac/g/hps/mgraham/DarkPhoton/GeneratedEvents/";
 
@@ -209,7 +205,7 @@ public class DumpLHEEventsToASCII {
             String infile = "";
             if (fileType.contains("dat")) {
                 infile = fDir + fileLabel + snum + ".dat";
-//                System.out.println(infile);
+                // System.out.println(infile);
             } else if (fileType.contains("lhe")) {
                 infile = fDir + inLabel + i + inPost;
                 System.out.println("Unzipping " + infile);
@@ -224,7 +220,7 @@ public class DumpLHEEventsToASCII {
             File f = new File(infile);
             if (nread == -1 && f.exists()) {
                 nOutFile++;
-                String outfile = outDir + fileLabel + "_" + nOutFile + postfix;//replace .txt by .stdhep
+                String outfile = outDir + fileLabel + "_" + nOutFile + postfix;// replace .txt by .stdhep
                 System.out.println("==== processing " + infile + " into " + outfile + "  aP mass = " + aMass + "====");
                 openASCIIFile(outfile);
             }
@@ -259,7 +255,7 @@ public class DumpLHEEventsToASCII {
                 return lines;
             }
         }
-        //shouldn't get here...but maybe
+        // shouldn't get here...but maybe
         return lines;
     }
 
@@ -302,7 +298,7 @@ public class DumpLHEEventsToASCII {
         tok.whitespaceChars(0, ' ');
         tok.eolIsSignificant(true);
 
-//        System.out.println("Found " + nevts + "  events");
+        // System.out.println("Found " + nevts + "  events");
         int nreq = (int) nevts;
         int ngen = (int) nevts;
         int nwrit = (int) nevts;
@@ -310,30 +306,25 @@ public class DumpLHEEventsToASCII {
         float xsec = (float) 99999997952.;
         double rn1 = 12345321;
         double rn2 = 66666666;
-//        StdhepBeginRun sb = new StdhepBeginRun(nreq, ngen, nwrit, ecm, xsec, rn1, rn2);
-//        sw.writeRecord(sb);
-
+        // StdhepBeginRun sb = new StdhepBeginRun(nreq, ngen, nwrit, ecm, xsec, rn1, rn2);
+        // sw.writeRecord(sb);
 
         tok.resetSyntax();
         tok.wordChars(33, 255);
-        tok.wordChars('0', '9');        // java.io.StreamTokenizer fails to parse
-        tok.wordChars('e', 'e');        // scientific notation like "1.09E-008".
-        tok.wordChars('E', 'E');        // The solution is to read and parse
-        tok.wordChars('.', '.');        // coordinates as "words".
-        tok.wordChars('+', '+');        // You run into trouble if the input file
-        tok.wordChars('-', '-');        // contains text with "e" or "E" which is
+        tok.wordChars('0', '9'); // java.io.StreamTokenizer fails to parse
+        tok.wordChars('e', 'e'); // scientific notation like "1.09E-008".
+        tok.wordChars('E', 'E'); // The solution is to read and parse
+        tok.wordChars('.', '.'); // coordinates as "words".
+        tok.wordChars('+', '+'); // You run into trouble if the input file
+        tok.wordChars('-', '-'); // contains text with "e" or "E" which is
         tok.whitespaceChars(0, ' ');
         tok.eolIsSignificant(true);
-
-
 
         double[] beam = {0, 0, 0, 0};
         int nevhep = 0;
         for (int icross = 0; icross < nwrit; icross++) {
-            Hep3Vector beamVecOrig =
-                    new BasicHep3Vector(sigx * generator.nextGaussian() + _xoff,
-                    sigy * generator.nextGaussian() + _yoff,
-                    sigz * generator.nextGaussian() + _zoff);
+            Hep3Vector beamVecOrig = new BasicHep3Vector(sigx * generator.nextGaussian() + _xoff, sigy
+                    * generator.nextGaussian() + _yoff, sigz * generator.nextGaussian() + _zoff);
             Hep3Vector beamVec = rot.rotated(beamVecOrig);
             beam[0] = beamVec.x();
             beam[1] = beamVec.y();
@@ -348,9 +339,7 @@ public class DumpLHEEventsToASCII {
         }
         fr.close();
 
-
         return nwrit;
-
 
     }
 
@@ -383,7 +372,7 @@ public class DumpLHEEventsToASCII {
                 break;
             }
             String tokVal = tok.sval;
-//            System.out.println(tokVal);
+            // System.out.println(tokVal);
             nums.add(Double.valueOf(tokVal).doubleValue());
         }
 
@@ -397,12 +386,12 @@ public class DumpLHEEventsToASCII {
         boolean fndEvents = false;
         int evts = -1;
         while (tok.nextToken() != tok.TT_EOF) {
-//            System.out.println(tok.toString());
+            // System.out.println(tok.toString());
             if (tok.ttype == tok.TT_EOL) {
                 break;
             }
             if (tok.ttype == tok.TT_WORD && tok.sval.contentEquals("Number")) {
-                //              System.out.println(tok.toString());
+                // System.out.println(tok.toString());
                 fndNumber = true;
             }
             if (tok.ttype == tok.TT_WORD && tok.sval.contentEquals("of")) {
@@ -420,10 +409,10 @@ public class DumpLHEEventsToASCII {
 
     @SuppressWarnings("static-access")
     private static void getToNextEvent(StreamTokenizer tok) throws IOException {
-        while (tok.nextToken() != tok.TT_EOF) //            System.out.println(tok.toString());
+        while (tok.nextToken() != tok.TT_EOF) // System.out.println(tok.toString());
         {
             if (tok.ttype == tok.TT_WORD && tok.sval.contentEquals("<event>")) {
-                tok.nextToken();//get to the EOL
+                tok.nextToken();// get to the EOL
                 return;
             }
         }
@@ -438,19 +427,13 @@ public class DumpLHEEventsToASCII {
     }
 
     /*
-     Old code written by Matt static private double findMaxWeight() { Random
-     generator = new Random(); int ntrials = 100000; double maxlength = maxLen;
-     double maxWeight = 0; for (int i = 0; i < ntrials; i++) { double x =
-     generator.nextDouble() * maxlength; double wght = expWeight(x); if (wght >
-     maxWeight) { maxWeight = wght; } }
-
-     return maxWeight; }
-
-     static private double getDecayLength(double MaxWeight, double gamma) {
-     Random generator = new Random(); double maxlength = maxLen; double dl = 0;
-     double draw = generator.nextDouble(); double tmpwght = 0; while (tmpwght <
-     draw) { dl = generator.nextDouble() * maxlength; tmpwght = expWeight(dl,
-     gamma) / MaxWeight; } return dl; }
+     * Old code written by Matt static private double findMaxWeight() { Random generator = new Random(); int ntrials =
+     * 100000; double maxlength = maxLen; double maxWeight = 0; for (int i = 0; i < ntrials; i++) { double x =
+     * generator.nextDouble() * maxlength; double wght = expWeight(x); if (wght > maxWeight) { maxWeight = wght; } }
+     * return maxWeight; } static private double getDecayLength(double MaxWeight, double gamma) { Random generator = new
+     * Random(); double maxlength = maxLen; double dl = 0; double draw = generator.nextDouble(); double tmpwght = 0;
+     * while (tmpwght < draw) { dl = generator.nextDouble() * maxlength; tmpwght = expWeight(dl, gamma) / MaxWeight; }
+     * return dl; }
      */
     static private double getDecayLength(double gamma) {
         Random generator = new Random();
@@ -460,11 +443,10 @@ public class DumpLHEEventsToASCII {
     }
 
     /*
-     Old code written by Matt static private double getDecayLength(double
-     MaxWeight) { Random generator = new Random(); double maxlength = maxLen;
-     double dl = 0; double draw = generator.nextDouble(); double tmpwght = 0;
-     while (tmpwght < draw) { dl = generator.nextDouble() * maxlength; tmpwght =
-     expWeight(dl) / MaxWeight; } return dl; }
+     * Old code written by Matt static private double getDecayLength(double MaxWeight) { Random generator = new
+     * Random(); double maxlength = maxLen; double dl = 0; double draw = generator.nextDouble(); double tmpwght = 0;
+     * while (tmpwght < draw) { dl = generator.nextDouble() * maxlength; tmpwght = expWeight(dl) / MaxWeight; } return
+     * dl; }
      */
     static private void writeLHEEvent(StreamTokenizer tok, double[] beam, int nevhep) throws IOException {
         Random generator = new Random();
@@ -475,22 +457,19 @@ public class DumpLHEEventsToASCII {
             throw new RuntimeException("Unexpected entry for number of particles");
         }
         int nhep = nums.get(0).intValue();
-    //        System.out.println("Number of particles for event " + nevhep + ": " + nhep);
+        // System.out.println("Number of particles for event " + nevhep + ": " + nhep);
 
         double decLen = 0;
         double maxWght = 0;
 
         /*
-         No longer needed
-
-         if (expDecay) { maxWght = findMaxWeight(); }
+         * No longer needed if (expDecay) { maxWght = findMaxWeight(); }
          */
 
         double phepEle[] = new double[5];
         double phepPos[] = new double[5];
         double phepRec[] = new double[5];
         double phepNuc[] = new double[5];
-
 
         int idhepTmp = 0;
         double[] ApMom = {0, 0, 0};
@@ -503,40 +482,32 @@ public class DumpLHEEventsToASCII {
             if (vals.size() != 13) {
                 throw new RuntimeException("Unexpected entry for a particle");
             }
-        idhepTmp = vals.get(0).intValue();
-//      System.out.println(idhepTmp);
-            if (vals.get(1).intValue() == 9) {//apparently, vertices aren't counted in nhep
-        nhep++;
-        }
+            idhepTmp = vals.get(0).intValue();
+            // System.out.println(idhepTmp);
+            if (vals.get(1).intValue() == 9) {// apparently, vertices aren't counted in nhep
+                nhep++;
+            }
 
-            if (vals.get(1).intValue() == 1) {//ignore initial  & intermediate state particles
-        //      System.out.println("Ok...good"+idhepTmp);
-
-
+            if (vals.get(1).intValue() == 1) {// ignore initial & intermediate state particles
+                // System.out.println("Ok...good"+idhepTmp);
 
                 for (int j = 0; j < 5; j++) {
                     if (idhepTmp == 611)
-                        phepEle[j] = vals.get(j + 6);                    
+                        phepEle[j] = vals.get(j + 6);
                     if (idhepTmp == -611)
                         phepPos[j] = vals.get(j + 6);
                     if (idhepTmp == 11)
                         phepRec[j] = vals.get(j + 6);
-                    if (idhepTmp == -623){
+                    if (idhepTmp == -623) {
                         phepNuc[j] = vals.get(j + 6);
-            //          System.out.println("Found the recoil nucleus");
-            }
+                        // System.out.println("Found the recoil nucleus");
+                    }
                 }
 
-
-
-
-
             }
 
-
-
         }
-        //StdhepEvent ev = new StdhepEvent(nevhep, nhep, isthep, idhep, jmohep, jdahep, phep, vhep);
+        // StdhepEvent ev = new StdhepEvent(nevhep, nhep, isthep, idhep, jmohep, jdahep, phep, vhep);
 
         pw.format("%d ", nevhep);
         pw.format("%5.5f %5.5f %5.5f %5.5f %5.5f ", phepEle[0], phepEle[1], phepEle[2], phepEle[3], phepEle[4]);
@@ -549,8 +520,7 @@ public class DumpLHEEventsToASCII {
     }
 
     public static Hep3Vector rotateToDetector(double x, double y, double z) {
-        Hep3Vector vecOrig =
-                new BasicHep3Vector(x, y, z);
+        Hep3Vector vecOrig = new BasicHep3Vector(x, y, z);
         return rot.rotated(vecOrig);
     }
 
@@ -575,8 +545,8 @@ public class DumpLHEEventsToASCII {
         double sinThx = p[0] / Math.sqrt(p[0] * p[0] + p[2] * p[2]);
         double sinThy = p[1] / Math.sqrt(p[1] * p[1] + p[2] * p[2]);
         // for now, just use thetay (non-bend direction)
-//         System.out.println("px = "+p[0]+"; py = "+p[1]+"; pz = "+p[2]);
-//        System.out.println(sinThy+" "+sinThx+" "+ptot);
+        // System.out.println("px = "+p[0]+"; py = "+p[1]+"; pz = "+p[2]);
+        // System.out.println(sinThy+" "+sinThx+" "+ptot);
 
         if (Math.abs(sinThy) > 0.012 && ptot > 0.1) {
             ok = true;

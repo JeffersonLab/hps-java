@@ -137,19 +137,14 @@ final class AddCommand extends AbstractCommand {
                 collectionId, createdBy, notes);
         LOGGER.info("inserting conditions record ..." + '\n' + conditionsRecord);
         try {
-            boolean createdConnection = false;
-            final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-            if (!DatabaseConditionsManager.getInstance().isConnected()) {
-                createdConnection = manager.openConnection();
-            }
+            final DatabaseConditionsManager manager = this.getManager();
             conditionsRecord.setConnection(manager.getConnection());
             conditionsRecord.setTableMetaData(TableRegistry.getTableRegistry().findByTableName("conditions"));
             conditionsRecord.insert();
-            manager.closeConnection(createdConnection);
         } catch (final SQLException | DatabaseObjectException e) {
             LOGGER.log(Level.SEVERE, "Error adding conditions record", e);
             throw new RuntimeException("An error occurred while adding a conditions record.", e);
         }
-        LOGGER.info("successfully added conditions record ..." + '\n' + conditionsRecord);
+        LOGGER.info("successfully added conditions record ..." + '\n' + conditionsRecord);       
     }
 }

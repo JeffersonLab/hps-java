@@ -4,14 +4,10 @@
         <printDriverStatistics>true</printDriverStatistics>
     </control>
     <execute>
-        <driver name="EventMarkerDriver"/>
         <driver name="FEEskim"/>
         <driver name="Writer"/>
     </execute>
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>
         <!-- Driver to find FEE events -->
        <driver name="FEEskim" type="org.hps.recon.filtering.FEEFilterDriver">
         </driver>

@@ -18,24 +18,22 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * sort of an interface for DQM analysis drivers creates the DQM database
- * manager, checks whether row exists in db etc
- *
- * @author mgraham on Apr 15, 2014 update mgraham on May 15, 2014 to include
- * calculateEndOfRunQuantities & printDQMData i.e. useful methods
+ * Interface for DQM analysis drivers.
  */
 public class DataQualityMonitor extends Driver {
 
     private static final Logger LOGGER = Logger.getLogger(DataQualityMonitor.class.getPackage().getName());
 
     protected Double beamEnergy;
-    public void setBeamEnergy(double e){
-    this.beamEnergy = e;
+
+    public void setBeamEnergy(double e) {
+        this.beamEnergy = e;
     }
-    public double getBeamEnergy(){
-    return this.beamEnergy;
+
+    public double getBeamEnergy() {
+        return this.beamEnergy;
     }
-    
+
     protected AIDA aida = AIDA.defaultInstance();
     protected DQMDatabaseManager manager;
     protected String recoVersion = "v0.0";
@@ -49,20 +47,19 @@ public class DataQualityMonitor extends Driver {
     protected String outputPlotDir = "DQMOutputPlots/";
 
     @Override
-    protected void detectorChanged(Detector detector){
-        BeamEnergyCollection beamEnergyCollection = 
-            this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-        if(beamEnergy== null && beamEnergyCollection != null && beamEnergyCollection.size() != 0)
+    protected void detectorChanged(Detector detector) {
+        BeamEnergyCollection beamEnergyCollection = this.getConditionsManager()
+                .getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
+        if (beamEnergy == null && beamEnergyCollection != null && beamEnergyCollection.size() != 0)
             beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
-        else{
+        else {
             LOGGER.log(Level.WARNING, "warning:  beam energy not found.  Using a 6.6 GeV as the default energy");
             beamEnergy = 6.6;
         }
-       
+
     }
-    
-    
-    String triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
+
+    String triggerType = "all";// allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
     public boolean isGBL = false;
 
     public void setTriggerType(String type) {
@@ -117,7 +114,7 @@ public class DataQualityMonitor extends Driver {
         if (connectToDB) {
             LOGGER.info("Connecting To Database...getting DQMDBManager");
             manager = DQMDatabaseManager.getInstance();
-            //check to see if I need to make a new db entry
+            // check to see if I need to make a new db entry
             boolean entryExists = false;
             try {
                 entryExists = checkRowExists();
@@ -139,7 +136,7 @@ public class DataQualityMonitor extends Driver {
         LOGGER.info("is the data base connected?  " + manager.isConnected);
         if (manager.isConnected) {
             String ins = "insert into dqm SET runNumber=" + runNumber;
-//            LOGGER.info(ins);
+            // LOGGER.info(ins);
             manager.updateQuery(ins);
             ins = "update  dqm SET recoVersion='" + recoVersion + "' where runNumber=" + runNumber;
             manager.updateQuery(ins);
@@ -150,7 +147,7 @@ public class DataQualityMonitor extends Driver {
     private boolean checkRowExists() throws SQLException {
         String ins = "select * from dqm where " + getRunRecoString();
         ResultSet res = manager.selectQuery(ins);
-        return res.next(); //this is a funny way of determining if the ResultSet has any entries
+        return res.next(); // this is a funny way of determining if the ResultSet has any entries
     }
 
     public boolean checkSelectionIsNULL(String var) throws SQLException {
@@ -169,13 +166,13 @@ public class DataQualityMonitor extends Driver {
         return "runNumber=" + runNumber + " and recoVersion='" + recoVersion + "'";
     }
 
-    //override this method to do something interesting   
-    //like fill some plots that you only want to fill at end of data (e.g. for occupancies)
+    // override this method to do something interesting
+    // like fill some plots that you only want to fill at end of data (e.g. for occupancies)
     public void fillEndOfRunPlots() {
     }
 
-    //override this method to do something interesting   
-    //like calculate averages etc. that can then be put in the db  
+    // override this method to do something interesting
+    // like calculate averages etc. that can then be put in the db
     public void calculateEndOfRunQuantities() {
     }
 
@@ -191,7 +188,7 @@ public class DataQualityMonitor extends Driver {
             }
             if (!overwriteDB && !isnull) {
                 LOGGER.info("Not writing because " + name + " is already filled for this entry");
-                continue; //entry exists and I don't want to overwrite                
+                continue; // entry exists and I don't want to overwrite
             }
             String put = "update dqm SET " + name + " = " + val + " WHERE " + getRunRecoString();
             LOGGER.info(put);
@@ -231,7 +228,7 @@ public class DataQualityMonitor extends Driver {
             for (GenericObject data : triggerList) {
                 if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
                     TIData triggerData = new TIData(data);
-                    if (!matchTriggerType(triggerData))//only process singles0 triggers...
+                    if (!matchTriggerType(triggerData))// only process singles0 triggers...
                     {
                         match = false;
                     }
@@ -243,14 +240,14 @@ public class DataQualityMonitor extends Driver {
         return match;
     }
 
-    //override this method to do something interesting   
-    //like print the DQM data log file
+    // override this method to do something interesting
+    // like print the DQM data log file
     public void printDQMData() {
     }
 
-    //override this method to do something interesting   
-    //like print the DQM db variable strings in a good 
-    //format for making the db column headers
+    // override this method to do something interesting
+    // like print the DQM db variable strings in a good
+    // format for making the db column headers
     public void printDQMStrings() {
     }
 }

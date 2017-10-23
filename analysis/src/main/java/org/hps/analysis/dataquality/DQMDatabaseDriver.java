@@ -11,7 +11,6 @@ import org.lcsim.util.Driver;
  * connection
  *
  * @author Matt Graham <mgraham@slac.stanford.edu>
- * cribbed heavily from {@link org.hps.conditions.ConditionsDriver}
  */
 public class DQMDatabaseDriver extends Driver {
     

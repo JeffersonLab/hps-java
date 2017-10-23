@@ -16,7 +16,7 @@ import java.util.Map;
 import org.hps.recon.tracking.StraightLineTrack;
 
 /**
- *  Fit a set of straight line tracks to a common vertex
+ * Fit a set of straight line tracks to a common vertex
  *
  * @author Richard Partridge
  */
@@ -28,11 +28,10 @@ public class VertexFitter {
     private VertexFit _vfit;
 
     /**
-     * Instantiate the vertex fitting class for the Heavy Photon Search simulation.
-     * The tracks are assumed to travel in the +x direction in a field-free region
-     * for x < xref.  For x > xref, the particles are assumed to travel in a helical
-     * trajectory.  HelixConverter should be called before VertexFitter to transform
-     * the helices to StraightLineTracks at the x = xref boundary.
+     * Instantiate the vertex fitting class for the Heavy Photon Search simulation. The tracks are assumed to travel in
+     * the +x direction in a field-free region for x < xref. For x > xref, the particles are assumed to travel in a
+     * helical trajectory. HelixConverter should be called before VertexFitter to transform the helices to
+     * StraightLineTracks at the x = xref boundary.
      *
      * @param xref x coordinate of the magnetic field boundary
      */
@@ -42,99 +41,98 @@ public class VertexFitter {
     }
 
     /**
-     * Perform a vertex fit of the specified StraightLineTracks.  At least two
-     * tracks must be provided to locate the vertex position.  The fitter performs
-     * a chi^2 minimization using the correlated track errors using the method of
-     * Lagrange Multipliers to impose the constraint that the track passes through
-     * the vertex position.  The vertex position is assumed to be unmeasured.
-     *
-     * The algorithm follows the fitting formalism used by SQUAW, with the
-     * vertex position treated as a "poorly measured variable" with infinite error.
-     * Matrix names largely follow the SQUAW writeup where defined.
-     * 
-     * A writeup of the SQUAW fitting procedure can be found in the cvs directory
-     * containing this package.
+     * Perform a vertex fit of the specified StraightLineTracks. At least two tracks must be provided to locate the
+     * vertex position. The fitter performs a chi^2 minimization using the correlated track errors using the method of
+     * Lagrange Multipliers to impose the constraint that the track passes through the vertex position. The vertex
+     * position is assumed to be unmeasured. The algorithm follows the fitting formalism used by SQUAW, with the vertex
+     * position treated as a "poorly measured variable" with infinite error. Matrix names largely follow the SQUAW
+     * writeup where defined. A writeup of the SQUAW fitting procedure can be found in the cvs directory containing this
+     * package.
      *
      * @param sltlist list of StraightLineTracks to be fit
      * @return fit success flag - true if the fit converged
      */
     public boolean VertexFit(List<StraightLineTrack> sltlist) {
 
-        //  Dump any previous vertex fit
+        // Dump any previous vertex fit
         _vfit = null;
 
-        //  Find the number of tracks and make sure we have at least 2
+        // Find the number of tracks and make sure we have at least 2
         int ntrks = sltlist.size();
-        if (ntrks < 2) return false;
+        if (ntrks < 2)
+            return false;
 
-        //  Extract the measured values of the measured variables
+        // Extract the measured values of the measured variables
         Matrix mm = FillMeasured(sltlist);
 
-        //  Find the starting point for the unmeasured vertex position
+        // Find the starting point for the unmeasured vertex position
         Matrix mstar = ApproximateIntersection(sltlist.get(0), sltlist.get(1));
 
-        //  Extract the error matrix and it's inverse for the measured variables
+        // Extract the error matrix and it's inverse for the measured variables
         Matrix GInv = FillCovariance(sltlist);
         Matrix GG = MatrixOp.inverse(GInv);
 
-        //  The inverse error matrix for the unmeasured variables is all 0's
+        // The inverse error matrix for the unmeasured variables is all 0's
         Matrix GStar = new BasicMatrix(3, 3);
 
-        //  Initialize the differences between the fitted and measured quantities to 0
+        // Initialize the differences between the fitted and measured quantities to 0
         Matrix cc = new BasicMatrix(mm.getNRows(), 1);
         Matrix cstar = new BasicMatrix(mstar.getNRows(), 1);
 
         for (int iter = 0; iter < _maxIterations; iter++) {
 
-            //  Update the fitted and unmeasured variables
+            // Update the fitted and unmeasured variables
             Matrix xx = MatrixOp.add(mm, cc);
             Matrix xstar = MatrixOp.add(mstar, cstar);
 
-            //  Calculate the errors in the constraint equations
+            // Calculate the errors in the constraint equations
             Matrix FF = CalculateFF(ntrks, xx, xstar);
 
-            //  Calculate the derivative matrices BB and BStar and their transposes
+            // Calculate the derivative matrices BB and BStar and their transposes
             Matrix BB = CalculateBB(ntrks, xstar);
             Matrix BStar = CalculateBStar(ntrks, xx);
 
-            //  Calculate the matrix AA that provides the coefficients for the
-            //  system of linear equations to be solved: AA * XX = YY
+            // Calculate the matrix AA that provides the coefficients for the
+            // system of linear equations to be solved: AA * XX = YY
             Matrix AA = CalculateAA(ntrks, BB, BStar, GInv, GStar);
 
-            //  Calculate the constant terms in the system of linear equations
+            // Calculate the constant terms in the system of linear equations
             MutableMatrix YY = new BasicMatrix(AA.getNRows(), 1);
-            Matrix RR = MatrixOp.sub(MatrixOp.add(MatrixOp.mult(MatrixOp.transposed(BStar), cstar), MatrixOp.mult(MatrixOp.transposed(BB), cc)), FF);
+            Matrix RR = MatrixOp.sub(
+                    MatrixOp.add(MatrixOp.mult(MatrixOp.transposed(BStar), cstar),
+                            MatrixOp.mult(MatrixOp.transposed(BB), cc)), FF);
             MatrixOp.setSubMatrix(YY, RR, 0, 0);
 
-            //  Solve the system of linear equations
+            // Solve the system of linear equations
             Matrix AAInv = MatrixOp.inverse(AA);
             Matrix XX = MatrixOp.mult(AAInv, YY);
 
-            //  Get the Lagrange multipliers
+            // Get the Lagrange multipliers
             Matrix alpha = MatrixOp.getSubMatrix(XX, 0, 0, FF.getNRows(), 1);
 
             if (iter > 0 && Converged(FF)) {
 
-                //  Fit converged - extract the fit quantities
-                //  Calculate the fit chi square
+                // Fit converged - extract the fit quantities
+                // Calculate the fit chi square
                 double chisq = MatrixOp.mult(MatrixOp.transposed(cc), MatrixOp.mult(GG, cc)).e(0, 0);
 
-                //  Extract the covariance matrix for the vertex position from the matrix AAInv
-                Matrix vtxcov = MatrixOp.getSubMatrix(AAInv, FF.getNRows(), FF.getNRows(), GStar.getNRows(), GStar.getNColumns());
-                
-                //  Find the fitted track directions and save them in a map
+                // Extract the covariance matrix for the vertex position from the matrix AAInv
+                Matrix vtxcov = MatrixOp.getSubMatrix(AAInv, FF.getNRows(), FF.getNRows(), GStar.getNRows(),
+                        GStar.getNColumns());
+
+                // Find the fitted track directions and save them in a map
                 Map<StraightLineTrack, Hep3Vector> dirmap = new HashMap<StraightLineTrack, Hep3Vector>();
-                for (int i=0; i<ntrks; i++) {
-                   Hep3Vector u = VecOp.unit(new BasicHep3Vector(1, xx.e(4*i + 1, 0), xx.e(4*i + 3, 0)));
-                   dirmap.put(sltlist.get(i), u);
+                for (int i = 0; i < ntrks; i++) {
+                    Hep3Vector u = VecOp.unit(new BasicHep3Vector(1, xx.e(4 * i + 1, 0), xx.e(4 * i + 3, 0)));
+                    dirmap.put(sltlist.get(i), u);
                 }
 
-                //  Create a new VertexFit and return with a success flag
+                // Create a new VertexFit and return with a success flag
                 _vfit = new VertexFit(MatrixOp.as3Vector(xstar), new SymmetricMatrix(vtxcov), chisq, dirmap);
                 return true;
             }
 
-            //  Update the change in the fitted and unmeasured variables
+            // Update the change in the fitted and unmeasured variables
             cc = MatrixOp.mult(-1., MatrixOp.mult(GInv, MatrixOp.mult(BB, alpha)));
             cstar = MatrixOp.getSubMatrix(XX, FF.getNRows(), 0, GStar.getNRows(), 1);
         }
@@ -152,7 +150,7 @@ public class VertexFitter {
     }
 
     /**
-     * Set the convergence criteria for the fit (default is 1E-9).  Units are mm.
+     * Set the convergence criteria for the fit (default is 1E-9). Units are mm.
      *
      * @param tol convergence criteria
      */
@@ -161,8 +159,7 @@ public class VertexFitter {
     }
 
     /**
-     * Set the maximum number of iterations to try before the fit fails for
-     * lack of convergence (default is 100).
+     * Set the maximum number of iterations to try before the fit fails for lack of convergence (default is 100).
      *
      * @param maxIterations maximum number of fit iterations
      */
@@ -171,9 +168,8 @@ public class VertexFitter {
     }
 
     /**
-     * Extract the measured variables from the list of straight line tracks.
-     * Measurement variables are saved as four consecutive values (y0, y', z0, z')
-     * for each track, with the measurement variables for track 0 coming first.
+     * Extract the measured variables from the list of straight line tracks. Measurement variables are saved as four
+     * consecutive values (y0, y', z0, z') for each track, with the measurement variables for track 0 coming first.
      *
      * @param sltlist list of StraightLineTracks
      * @return column matrix containing the measured variables
@@ -193,9 +189,8 @@ public class VertexFitter {
     }
 
     /**
-     * Extract the covariance matrix.  It is assumed that there are no
-     * correlations between tracks.  Ordering of elements in the covariance
-     * matrix follows the ordering of the measured variables.
+     * Extract the covariance matrix. It is assumed that there are no correlations between tracks. Ordering of elements
+     * in the covariance matrix follows the ordering of the measured variables.
      *
      * @param sltlist list of StraightLineTracks
      * @return covariance matrix
@@ -206,36 +201,35 @@ public class VertexFitter {
         MutableMatrix GInv = new BasicMatrix(4 * ntrks, 4 * ntrks);
         for (int i = 0; i < ntrks; i++) {
             SymmetricMatrix cov = sltlist.get(i).cov();
-            GInv.setElement(4*i + 0, 4*i + 0, cov.diagonal(StraightLineTrack.y0Index));
-            GInv.setElement(4*i + 1, 4*i + 1, cov.diagonal(StraightLineTrack.dydxIndex));
-            GInv.setElement(4*i + 2, 4*i + 2, cov.diagonal(StraightLineTrack.z0Index));
-            GInv.setElement(4*i + 3, 4*i + 3, cov.diagonal(StraightLineTrack.dzdxIndex));
+            GInv.setElement(4 * i + 0, 4 * i + 0, cov.diagonal(StraightLineTrack.y0Index));
+            GInv.setElement(4 * i + 1, 4 * i + 1, cov.diagonal(StraightLineTrack.dydxIndex));
+            GInv.setElement(4 * i + 2, 4 * i + 2, cov.diagonal(StraightLineTrack.z0Index));
+            GInv.setElement(4 * i + 3, 4 * i + 3, cov.diagonal(StraightLineTrack.dzdxIndex));
             double cov01 = cov.e(StraightLineTrack.y0Index, StraightLineTrack.dydxIndex);
-            GInv.setElement(4*i + 0, 4*i + 1, cov01);
-            GInv.setElement(4*i + 1, 4*i + 0, cov01);
+            GInv.setElement(4 * i + 0, 4 * i + 1, cov01);
+            GInv.setElement(4 * i + 1, 4 * i + 0, cov01);
             double cov02 = cov.e(StraightLineTrack.y0Index, StraightLineTrack.z0Index);
-            GInv.setElement(4*i + 0, 4*i + 2, cov02);
-            GInv.setElement(4*i + 2, 4*i + 0, cov02);
+            GInv.setElement(4 * i + 0, 4 * i + 2, cov02);
+            GInv.setElement(4 * i + 2, 4 * i + 0, cov02);
             double cov03 = cov.e(StraightLineTrack.y0Index, StraightLineTrack.dzdxIndex);
-            GInv.setElement(4*i + 0, 4*i + 3, cov03);
-            GInv.setElement(4*i + 3, 4*i + 0, cov03);
+            GInv.setElement(4 * i + 0, 4 * i + 3, cov03);
+            GInv.setElement(4 * i + 3, 4 * i + 0, cov03);
             double cov12 = cov.e(StraightLineTrack.dydxIndex, StraightLineTrack.z0Index);
-            GInv.setElement(4*i + 1, 4*i + 2, cov12);
-            GInv.setElement(4*i + 2, 4*i + 1, cov12);
+            GInv.setElement(4 * i + 1, 4 * i + 2, cov12);
+            GInv.setElement(4 * i + 2, 4 * i + 1, cov12);
             double cov13 = cov.e(StraightLineTrack.dydxIndex, StraightLineTrack.dzdxIndex);
-            GInv.setElement(4*i + 1, 4*i + 3, cov13);
-            GInv.setElement(4*i + 3, 4*i + 1, cov13);
+            GInv.setElement(4 * i + 1, 4 * i + 3, cov13);
+            GInv.setElement(4 * i + 3, 4 * i + 1, cov13);
             double cov23 = cov.e(StraightLineTrack.z0Index, StraightLineTrack.dzdxIndex);
-            GInv.setElement(4*i + 2, 4*i + 3, cov23);
-            GInv.setElement(4*i + 3, 4*i + 2, cov23);
+            GInv.setElement(4 * i + 2, 4 * i + 3, cov23);
+            GInv.setElement(4 * i + 3, 4 * i + 2, cov23);
         }
         return GInv;
     }
 
     /**
-     * Find a first approximation to the unmeasured variables by finding the
-     * track intersections in the x-y and x-z planes.  The intersection points
-     * for the two planes are averaged.
+     * Find a first approximation to the unmeasured variables by finding the track intersections in the x-y and x-z
+     * planes. The intersection points for the two planes are averaged.
      *
      * @param slt1 first StraightLineTrack to use
      * @param slt2 second StraightLineTrack to use
@@ -256,11 +250,9 @@ public class VertexFitter {
     }
 
     /**
-     * Calculate derivative of constraints with respect to the measured variables.
-     * Each track has two constraint equations:
-     *   f_y(i) = y0(i) + y'(i) * (xv - xref) - yv
-     *   f_z(i) = z0(i) + z'(i) * (xv - xref) - zv
-     * Save the result in the form BB(i,j) = df(j)/dx(i)
+     * Calculate derivative of constraints with respect to the measured variables. Each track has two constraint
+     * equations: f_y(i) = y0(i) + y'(i) * (xv - xref) - yv f_z(i) = z0(i) + z'(i) * (xv - xref) - zv Save the result in
+     * the form BB(i,j) = df(j)/dx(i)
      *
      * @param ntrks number of tracks
      * @param xstar current estimate of the vertex position
@@ -271,20 +263,18 @@ public class VertexFitter {
         MutableMatrix BB = new BasicMatrix(4 * ntrks, 2 * ntrks);
         double xv = xstar.e(0, 0);
         for (int i = 0; i < ntrks; i++) {
-            BB.setElement(4 * i, 2 * i, 1.);                    // df_y/dy0
-            BB.setElement(4 * i + 1, 2 * i, xv - _xref);          // df_y/dy'
-            BB.setElement(4 * i + 2, 2 * i + 1, 1.);                // df_z/dz0
-            BB.setElement(4 * i + 3, 2 * i + 1, xv - _xref);        // df_z/dz'
+            BB.setElement(4 * i, 2 * i, 1.); // df_y/dy0
+            BB.setElement(4 * i + 1, 2 * i, xv - _xref); // df_y/dy'
+            BB.setElement(4 * i + 2, 2 * i + 1, 1.); // df_z/dz0
+            BB.setElement(4 * i + 3, 2 * i + 1, xv - _xref); // df_z/dz'
         }
         return BB;
     }
 
     /**
-     * Calculate derivative of constraints with respect to the unmeasured variables.
-     * Each track has two constraint equations:
-     *   f_y(i) = y0(i) + y'(i) * (xv - xref) - yv
-     *   f_z(i) = z0(i) + z'(i) * (xv - xref) - zv
-     * Save the result in the form BStar(i,j) = df(j)/dxv(i)
+     * Calculate derivative of constraints with respect to the unmeasured variables. Each track has two constraint
+     * equations: f_y(i) = y0(i) + y'(i) * (xv - xref) - yv f_z(i) = z0(i) + z'(i) * (xv - xref) - zv Save the result in
+     * the form BStar(i,j) = df(j)/dxv(i)
      *
      * @param ntrks number of tracks
      * @param xx current estimate of the measured variables
@@ -305,8 +295,7 @@ public class VertexFitter {
     }
 
     /**
-     * Calculate the matrix AA that provides the coefficients for the
-     * system of linear equations to be solved
+     * Calculate the matrix AA that provides the coefficients for the system of linear equations to be solved
      *
      * @param ntrks number of tracks
      * @param BB constraint derivatives for the measured variables
@@ -328,12 +317,9 @@ public class VertexFitter {
     }
 
     /**
-     * Evaluate the residual values for the constraint equations (the fitter
-     * will try to force this vector to 0).
-     * Each track has two constraint equations:
-     *   f_y(i) = y0(i) + y'(i) * (xv - xref) - yv
-     *   f_z(i) = z0(i) + z'(i) * (xv - xref) - zv
-     * Save the result in the form FF(2*i) = f_y(i), FF(2*i+) = f_z(i)
+     * Evaluate the residual values for the constraint equations (the fitter will try to force this vector to 0). Each
+     * track has two constraint equations: f_y(i) = y0(i) + y'(i) * (xv - xref) - yv f_z(i) = z0(i) + z'(i) * (xv -
+     * xref) - zv Save the result in the form FF(2*i) = f_y(i), FF(2*i+) = f_z(i)
      *
      * @param ntrks number of tracks
      * @param xx measured variables
@@ -360,16 +346,16 @@ public class VertexFitter {
     }
 
     /**
-     * Check to see if all the constraints are satisfied within the tolerance
-     * that has been set.
+     * Check to see if all the constraints are satisfied within the tolerance that has been set.
      *
      * @param FF constraint residuals
      * @return true if the fit has converged
      */
     private boolean Converged(Matrix FF) {
 
-        for (int i=0; i<FF.getNRows(); i++) {
-            if (Math.abs(FF.e(i, 0)) > _tol) return false;
+        for (int i = 0; i < FF.getNRows(); i++) {
+            if (Math.abs(FF.e(i, 0)) > _tol)
+                return false;
         }
         return true;
     }

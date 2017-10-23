@@ -22,17 +22,10 @@ import org.hps.record.evio.EvioEventUtilities;
  */
 public class LCSimTestRunEventBuilderTest extends TestCase {
 
-    //-----------------//
-    //--- Constants ---//
-    //-----------------//
-    private static final String DB_CONFIGURATION
-        = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
-    
     public void testLCSimTestRunEventBuilder() throws Exception { 
     
-        // Configure the conditions system to retrieve test run conditions fo run 1351.
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        conditionsManager.setXmlConfig(DB_CONFIGURATION);
+        // Configure the conditions system to retrieve test run conditions for run 1351.
+        DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
         
         // Create the test run event builder
         LCSimTestRunEventBuilder builder = new LCSimTestRunEventBuilder();

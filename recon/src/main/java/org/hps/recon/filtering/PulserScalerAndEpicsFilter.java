@@ -1,23 +1,12 @@
 package org.hps.recon.filtering;
 
-//import org.hps.recon.ecal.triggerbank.AbstractIntData;
-//import org.hps.recon.ecal.triggerbank.TIData;
-//import org.lcsim.event.GenericObject;
-
-import java.io.File;
-import java.io.IOException;
-
-import org.hps.conditions.ConditionsDriver;
-import org.hps.record.epics.EpicsData;
-import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
+
+import org.hps.record.epics.EpicsData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
-import org.lcsim.lcio.LCIOReader;
-import org.lcsim.lcio.LCIOWriter;
+import org.hps.record.triggerbank.AbstractIntData;
 import org.lcsim.util.Driver;
-//import org.hps.recon.ecal.triggerbank.AbstractIntData;
-//import org.hps.recon.ecal.triggerbank.TIData;
 
 public class PulserScalerAndEpicsFilter extends Driver{
 
@@ -56,6 +45,7 @@ public class PulserScalerAndEpicsFilter extends Driver{
      * @param arg [0] inputFile [1] outputFile [2] run number [3] detectorName (optional, default = "HPS-EngRun2015-Nominal-v1") 
      * @throws IOException
      */
+/*
     public static void main(String arg[]) throws IOException{
         ConditionsDriver hack = new ConditionsDriver();
         
@@ -100,4 +90,6 @@ public class PulserScalerAndEpicsFilter extends Driver{
 
         writer.close();
     }
+*/
+
 }
