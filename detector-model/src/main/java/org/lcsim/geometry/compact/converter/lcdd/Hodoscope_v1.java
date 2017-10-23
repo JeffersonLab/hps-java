@@ -320,13 +320,14 @@ public class Hodoscope_v1 extends LCDDSubdetector {
             new PhysVol(bufferVolume, lcdd.pickMotherVolume(this), bufferPos, PIXEL_ROTATION);
         }
         
+        /*
         // BooleanSolid
         org.lcsim.geometry.compact.converter.lcdd.util.BooleanSolid testSolid
-        		= new org.lcsim.geometry.compact.converter.lcdd.util.SubtractionSolid("testSolid");
+                = new org.lcsim.geometry.compact.converter.lcdd.util.SubtractionSolid("testSolid");
         
         // Takes two strings - GDML object references? Does it take references to Solid, Volume, or PhysVol objects?
         org.lcsim.geometry.compact.converter.lcdd.util.Tube testTube
-        		= new org.lcsim.geometry.compact.converter.lcdd.util.Tube("testTube", 0.1, 1, 2.5);
+                = new org.lcsim.geometry.compact.converter.lcdd.util.Tube("testTube", 0.1, 1, 2.5);
         Box testBox = new Box("testBox", 5, 5, 5);
         
         testSolid.setFirstSolid(testBox);
@@ -341,7 +342,7 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         lcdd.add(testVolume);
         lcdd.add(origin);
         new PhysVol(testVolume, lcdd.pickMotherVolume(this), origin, PIXEL_ROTATION);
-        
+        */
     }
     
     /**

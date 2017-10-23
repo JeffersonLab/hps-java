@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-PhysicsRun2016-Hodoscope-v0-4pt4-fieldmap">
-        <comment>HPS detector for 2017 proposal with fieldmap,
-                 tracker at nominal opening angle, and no SVT survey.
-                 This detector uses the corrected fieldmap scaled to -1.00T
-                 for 4.4 GeV. A basic hodoscope with scoring planes was added
-                 to perform initial positron trigger tests.
+    <info name="HPS-PhysicsRun2016-Nominal-v5-0-4pt4-fieldmap">
+        <comment>HPS detector for 2016 Physics Run at 4.4 GeV.
+            Based on HPS-PhysicsRun2015-Nominal-v5-0-fieldmap.
+            Millepede constants are cleaned up (tweak parameters are set to 0) but their actual values are unchanged.
+            LCDD is generated using the corrected SVT dead material (no carbon fiber in the beam plane).
+	    Fieldmap for 4.4 GeV is included.
         </comment>
     </info>
 
@@ -52,12 +52,6 @@
         
         <!--scoring plane thickness-->
         <constant name="scoringThickness" value="0.001" />
-        
-        <!-- Hodoscope thickness -->
-        <constant name="hodoscopeThickness" value="0.500*cm"/>
-        
-        <!-- Distance between hodoscope and scoring planes -->
-        <constant name="hodoscopeScoreDisplacement" value="1.000"/>
 
         <!--left and right edges of the electron gap for the ECal scoring plane, measured as distances from the BL edge of the flange-->
         <constant name="electronGapLeftEdge" value="382.16+20*0.0166" />
@@ -126,13 +120,6 @@
             <composite n="1" ref="Pb" />
             <composite n="1" ref="W" />
             <composite n="4" ref="O" />
-        </material>
-        
-        <!-- Hodoscope material. -->
-        <material name="EJ204_PlasticScintillator">
-            <D value="1.032" unit="g/cm3"/>
-            <fraction n="0.523618" ref="H"/>
-            <fraction n="0.476382" ref="C"/>
         </material>
     </materials>
   
@@ -809,65 +796,7 @@
                 <module_placement name="BeamRight" id="0" x="-1*electronGapRightEdge/2+21.17" y="-1*(457.2/2+14)/2" z="1318+20+scoringThickness" rx="0" ry="0" rz="-3*PI/2" />
             </layer>
         </detector> 
-        <detector id="30" name="Hodoscope" type="HPSTracker2" readout="HodoscopeHits" insideTrackingVolume="true" >
-            <comment>A hodoscope for the positron trigger.</comment>
-            <module name="HodoscopeModule">
-                <box x="2*214.393" y="57.299"/>
-                <module_component thickness="hodoscopeThickness" material="EJ204_PlasticScintillator" sensitive="false"/>
-            </module>
-            <layer id="1"><!--top-->
-                <module_placement name="HodoscopeModule" id="0" x="21.17" y="57.299/2+17.295" z="1108+(hodoscopeThickness/2)" rx="0" ry="0" rz="-PI/2"/>
-            </layer>
-            <layer id="2"><!--bottom-->
-                <module_placement name="HodoscopeModule" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108+(hodoscopeThickness/2)" rx="0" ry="0" rz="-3*PI/2"/>
-            </layer>
-        </detector>
-        <detector id="31" name="HodoscopeForeScore" type="HPSTracker2" readout="HodoscopeForeHits" insideTrackingVolume="true">
-            <comment>Scoring plane immediately before the hodoscope.</comment>
-            <module name="HodoscopeForeScoreModule">
-                <box x="2*214.393" y="57.299"/>
-                <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
-            </module>
-            <layer id="1"><!--top-->
-                <module_placement name="HodoscopeForeScoreModule" id="0" x="21.17" y="57.299/2+17.295" z="1108-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
-            </layer>
-            <layer id="2"><!--bottom-->
-                <module_placement name="HodoscopeForeScoreModule" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-3*PI/2"/>
-            </layer>
-        </detector>
-        <detector id="32" name="HodoscopeAftScore" type="HPSTracker2" readout="HodoscopeAftHits" insideTrackingVolume="true">
-            <comment>Scoring plane immediately after the hodoscope.</comment>
-            <module name="HodoscopeAftScoreModule">
-                <box x="2*214.393" y="57.299"/>
-                <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
-            </module>
-            <layer id="1"><!--top-->
-                <module_placement name="HodoscopeAftScoreModule" id="0" x="21.17" y="57.299/2+17.295" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
-            </layer>
-            <layer id="2"><!--bottom-->
-                <module_placement name="HodoscopeAftScoreModule" id="0" x="21.17" y="-1*57.299/2-17.295" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-3*PI/2"/>
-            </layer>
-        </detector>
-        <detector id="33" name="HodoscopeGapForeScore" type="HPSTracker2" readout="HodoscopeForeHits" insideTrackingVolume="true">
-            <comment>Scoring plane immediately before the hodoscope.</comment>
-            <module name="HodoscopeGapForeScoreModule">
-                <box x="214.393" y="2*17.295"/>
-                <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
-            </module>
-            <layer id="1">
-                <module_placement name="HodoscopeGapForeScoreModule" id="0" x="21.17+(214.393/2)" y="0" z="1108-(scoringThickness/2)-hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
-            </layer>
-        </detector>
-        <detector id="34" name="HodoscopeGapAftScore" type="HPSTracker2" readout="HodoscopeAftHits" insideTrackingVolume="true">
-            <comment>Scoring plane immediately after the hodoscope.</comment>
-            <module name="HodoscopeGapAftScoreModule">
-                <box x="214.393" y="2*17.295"/>
-                <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
-            </module>
-            <layer id="1">
-                <module_placement name="HodoscopeGapAftScoreModule" id="0" x="21.17+(214.393/2)" y="0" z="1108+hodoscopeThickness+(scoringThickness/2)+hodoscopeScoreDisplacement" rx="0" ry="0" rz="-PI/2"/>
-            </layer>
-        </detector>
+
         <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
             <comment>The crystal ECal</comment>
             <material name="LeadTungstate" />
@@ -884,7 +813,7 @@
         <readout name="TrackerHits">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
         </readout>
-		<readout name="TrackerHitsFieldDef">
+    <readout name="TrackerHitsFieldDef">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
             <processor type="ScoringTrackerHitProcessor" />        
         </readout>
@@ -892,34 +821,16 @@
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
             <processor type="ScoringTrackerHitProcessor" />        
         </readout>
-        <readout name="HodoscopeHits">
-            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
-            <processor type="ScoringTrackerHitProcessor"/>
-        </readout>
-        <readout name="HodoscopeForeHits">
-            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
-            <processor type="ScoringTrackerHitProcessor"/>
-        </readout>
-        <readout name="HodoscopeAftHits">
-            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
-            <processor type="ScoringTrackerHitProcessor"/>
-        </readout>
         <readout name="EcalHits">
             <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
             <id>system:6,layer:2,ix:-8,iy:-6</id>
         </readout>
+
     </readouts>
 
 
     <fields>
-        <field 
-            type="FieldMap3D"
-            name="HPSDipoleFieldMap3D" 
-            filename="fieldmap/418acm2_10kg_corrected_unfolded_scaled_0.9979.dat" 
-            xoffset="2.117*cm"
-            yoffset="0.0*cm"
-            zoffset="45.72*cm"
-       />
+        <field type="FieldMap3D" name="HPSDipoleFieldMap3D" filename="fieldmap/418acm2_10kg_corrected_unfolded_scaled_0.9979.dat" xoffset="2.117*cm" yoffset="0.0*cm" zoffset="45.72*cm" />
     </fields>
 <!--
     <fields>

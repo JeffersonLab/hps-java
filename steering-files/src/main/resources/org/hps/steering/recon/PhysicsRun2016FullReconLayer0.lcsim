@@ -41,7 +41,7 @@
             name of the tracks found with this strategy will be 
             "Tracks_s234_c5_e167"
         -->
-        <driver name="TrackReconSeed234Conf6Extd157"/>
+        <driver name="TrackReconSeed234Conf5Extd167"/>
         <!-- 
             Will run track finding algorithm using layers 234 as a seed, 
             layer 6 to confirm and layers 1, 5, and 7 to extend.  The collection

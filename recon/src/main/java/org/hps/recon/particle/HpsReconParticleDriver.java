@@ -160,9 +160,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                     continue;
                 }
                 // Only vertex two particles if at least one strategy found both tracks. Take out this check once we reduce the number of tracks.
-                if ((positron.getType() & electron.getType() & 0x1f) == 0) {
+                // This is dumb so I took it out. - Matt Solt
+                /*if ((positron.getType() & electron.getType() & 0x1f) == 0) {
                     continue;
-                }
+                }*/
 
                 // Make V0 candidates
                 this.makeV0Candidates(electron, positron);
