@@ -44,7 +44,7 @@ public class MollerAnalysisDriver extends Driver {
     private double _psumDelta = 0.05;
     private double _thetasumCut = 0.07;
     private double _trackChi2NdfCut = 8.; //corresponds to chisquared cut of 40 for 5-hit tracks
-
+    private boolean _requireClusterMatch = false;
     private boolean _dumpRunAndEventNumber = false;
 
     private IHistogram1D invMassHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Invariant Mass", 200, 0., 0.1);
@@ -152,13 +152,8 @@ public class MollerAnalysisDriver extends Driver {
                     if (rp1.getMomentum().magnitude() > 1.5 * _beamEnergy || rp2.getMomentum().magnitude() > 1.5 * _beamEnergy) {
                         continue;
                     }
-                    // require both reconstructed particles to have a track and a cluster
-                    if (rp1.getClusters().size() != 1) {
-                        continue;
-                    }
-                    if (rp2.getClusters().size() != 1) {
-                        continue;
-                    }
+                    // require both reconstructed particles to have a track
+
                     if (rp1.getTracks().size() != 1) {
                         continue;
                     }
@@ -167,12 +162,22 @@ public class MollerAnalysisDriver extends Driver {
                     }
                     Track t1 = rp1.getTracks().get(0);
                     Track t2 = rp2.getTracks().get(0);
-                    Cluster c1 = rp1.getClusters().get(0);
-                    Cluster c2 = rp2.getClusters().get(0);
-                    double deltaT = ClusterUtilities.getSeedHitTime(c1) - ClusterUtilities.getSeedHitTime(c2);
-                    // require cluster times to be coincident within 2 ns
-                    if (abs(deltaT) > 2.0) {
-                        continue;
+                    if (_requireClusterMatch) {
+                        // require both reconstructed particles to have a cluster
+
+                        if (rp1.getClusters().size() != 1) {
+                            continue;
+                        }
+                        if (rp2.getClusters().size() != 1) {
+                            continue;
+                        }
+                        Cluster c1 = rp1.getClusters().get(0);
+                        Cluster c2 = rp2.getClusters().get(0);
+                        double deltaT = ClusterUtilities.getSeedHitTime(c1) - ClusterUtilities.getSeedHitTime(c2);
+                        // require cluster times to be coincident within 2 ns
+                        if (abs(deltaT) > 2.0) {
+                            continue;
+                        }
                     }
                     // require momentum sum to equal beam energy +-
                     double psum = rp1.getMomentum().magnitude() + rp2.getMomentum().magnitude();
@@ -383,6 +388,10 @@ public class MollerAnalysisDriver extends Driver {
 
     public void setESumPlusMinusPercentCut(double d) {
         _psumDelta = d;
+    }
+
+    public void setRequireClusterMatch(boolean b) {
+        _requireClusterMatch = b;
     }
 
     public void setDumpRunAndEventNumber(boolean b) {
