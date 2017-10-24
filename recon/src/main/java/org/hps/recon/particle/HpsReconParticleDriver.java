@@ -405,7 +405,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFit.getParameters().get("p2X"),
                 vtxFit.getParameters().get("p2Y"),
                 vtxFit.getParameters().get("p2Z")));
-        fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
+        //mg 10/24/2017...billiorvertex now returns momentum in JLAB frame
+        //         fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
 
         // If both the electron and positron have an associated Ecal cluster,
         // calculate the total energy and assign it to the V0 particle
@@ -526,5 +527,5 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             newTrks.add(electronBTrackShift);
         }
         return newTrks;
-    }  
+    }
 }
