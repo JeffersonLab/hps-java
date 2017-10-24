@@ -85,7 +85,7 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
      * Menu with list of recent files (10 max).
      */
     private final JMenu recentFilesMenu;
-  
+
     /**
      * Menu item for opening the settings dialog window.
      */
@@ -96,7 +96,7 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
      *
      * @param configurationModel the {@link org.hps.monitoring.application.model.ConfigurationModel} providing the model
      * @param connectionModel the {@link org.hps.monitoring.application.model.ConnectionStatusModel} providing
-     *            connection status
+     * connection status
      * @param listener an {@link ava.awt.event.ActionListener} which is assigned to certain components
      */
     MenuBar(final ConfigurationModel configurationModel, final ConnectionStatusModel connectionModel,
@@ -307,6 +307,7 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
         for (final String recentFile : recentFiles) {
             final RecentFileItem recentFileItem = new RecentFileItem(recentFile, fileMnemonic);
             recentFileItem.addActionListener(new ActionListener() {
+
                 @Override
                 public void actionPerformed(final ActionEvent e) {
                     final String recentFile = ((RecentFileItem) e.getSource()).getPath();

@@ -19,6 +19,7 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.FieldMap;
 
 /**
@@ -27,6 +28,8 @@ import org.lcsim.geometry.FieldMap;
  * @author <a href="mailto:moreno1@ucsc.edu">Omar Moreno</a>
  */
 public class TrackClusterMatcher {
+
+    Double beamEnergy;
 
     /**
      * The B field map
@@ -112,6 +115,41 @@ public class TrackClusterMatcher {
     private static final double dySigmTopElecSeed[] ={ 19.9111,-53.2699,-261.915,  1593.2,-2774.01, 1605.54 };
     private static final double dyMeanBotElecSeed[] ={-9.22963, 98.1346, -427.91, 840.225,-751.188, 250.792 };
     private static final double dySigmBotElecSeed[] ={ 21.7909,-85.4757,-56.9423, 977.522,-1902.05, 1137.92 };
+
+    // parameters for 2.3 GeV running.
+    private static final double dyMeanBotElecGBL_noL6_2016[] = {-45.0271, 263.389, -593.596, 637.131, -324.378, 62.5313, };
+    private static final double dySigmBotElecGBL_noL6_2016[] = {22.5155, -63.3324, 93.3737, -73.0256, 26.9909, -3.2845, };
+    private static final double dyMeanBotPosiGBL_noL6_2016[] = {74.5853, -460.349, 1065.47, -1172.94, 622.104, -128.197, };
+    private static final double dySigmBotPosiGBL_noL6_2016[] = {-28.913, 257.363, -666.667, 784.812, -432.658, 90.0893, };
+    private static final double dyMeanTopElecGBL_noL6_2016[] = {-16.4899, 88.8594, -190.81, 199.875, -103.301, 21.2986, };
+    private static final double dySigmTopElecGBL_noL6_2016[] = {17.2265, -24.8578, 2.5515, 17.8253, -12.5355, 2.70829, };
+    private static final double dyMeanTopPosiGBL_noL6_2016[] = {-60.9579, 403.992, -1021.69, 1241.67, -731.371, 167.807, };
+    private static final double dySigmTopPosiGBL_noL6_2016[] = {-3.34014, 99.79, -294.521, 365.686, -213.598, 48.5256, };
+    private static final double dxMeanBotElecGBL_noL6_2016[] = {77.2511, -392.82, 785.802, -761.2, 357.936, -65.273, };
+    private static final double dxSigmBotElecGBL_noL6_2016[] = {42.5778, -139.345, 209.232, -160.592, 61.9873, -9.46576, };
+    private static final double dxMeanBotPosiGBL_noL6_2016[] = {-81.9964, 373.662, -602.711, 407.369, -93.2641, -2.7378, };
+    private static final double dxSigmBotPosiGBL_noL6_2016[] = {-41.8225, 401.121, -1111.79, 1380.13, -794.998, 172.177, };
+    private static final double dxMeanTopElecGBL_noL6_2016[] = {99.5506, -531.817, 1108.59, -1105.95, 527.326, -95.7355, };
+    private static final double dxSigmTopElecGBL_noL6_2016[] = {48.6026, -181.788, 324.079, -303.356, 142.144, -25.862, };
+    private static final double dxMeanTopPosiGBL_noL6_2016[] = {-88.234, 426.614, -781.645, 667.716, -244.828, 23.4546, };
+    private static final double dxSigmTopPosiGBL_noL6_2016[] = {19.7422, 86.695, -556.05, 1019.35, -787.387, 222.154, };
+    private static final double dyMeanBotElecGBL_hasL6_2016[] = {-11.2893, 59.1031, -118.513, 109.064, -46.5272, 7.37959, };
+    private static final double dySigmBotElecGBL_hasL6_2016[] = {18.1299, -52.6839, 75.8313, -56.083, 20.4512, -2.85891, };
+    private static final double dyMeanBotPosiGBL_hasL6_2016[] = {1.91696, -13.7172, 27.286, -25.8358, 11.5746, -1.96679, };
+    private static final double dySigmBotPosiGBL_hasL6_2016[] = {11.0477, -13.5811, -1.95461, 17.2309, -12.5715, 2.79961, };
+    private static final double dyMeanTopElecGBL_hasL6_2016[] = {15.3608, -88.5014, 182.855, -172.404, 75.3262, -12.3228, };
+    private static final double dySigmTopElecGBL_hasL6_2016[] = {10.8315, -10.5199, -16.0859, 40.207, -28.2589, 6.65798, };
+    private static final double dyMeanTopPosiGBL_hasL6_2016[] = {-8.70329, 38.5923, -58.6007, 39.1284, -10.6633, 0.679792, };
+    private static final double dySigmTopPosiGBL_hasL6_2016[] = {0.632074, 32.2835, -78.8756, 77.0573, -33.9216, 5.56321, };
+    private static final double dxMeanBotElecGBL_hasL6_2016[] = {-23.2812, 106.509, -187.519, 161.879, -68.606, 11.3574, };
+    private static final double dxSigmBotElecGBL_hasL6_2016[] = {15.6636, -44.1506, 59.6105, -38.7918, 11.6611, -1.21741, };
+    private static final double dxMeanBotPosiGBL_hasL6_2016[] = {5.13843, -4.34642, -7.5459, 12.3376, -6.18021, 1.11868, };
+    private static final double dxSigmBotPosiGBL_hasL6_2016[] = {2.51144, 18.2242, -50.4872, 51.6848, -23.2671, 3.84415, };
+    private static final double dxMeanTopElecGBL_hasL6_2016[] = {-19.1931, 82.4696, -131.517, 101.329, -36.0044, 4.47723, };
+    private static final double dxSigmTopElecGBL_hasL6_2016[] = {5.03375, 9.08728, -42.5864, 55.6423, -30.7765, 6.25259, };
+    private static final double dxMeanTopPosiGBL_hasL6_2016[] = {18.9015, -87.8249, 172.68, -163.97, 76.083, -13.7529, };
+    private static final double dxSigmTopPosiGBL_hasL6_2016[] = {21.8112, -80.8339, 144.335, -131.621, 59.7611, -10.7205, };
+    
     /**
      * Z position to start extrapolation from
      */
@@ -121,6 +159,13 @@ public class TrackClusterMatcher {
      * The extrapolation step size
      */
     double stepSize = 5.; // mm
+
+    private boolean snapToEdge = true;
+    
+    public void setSnapToEdge(boolean val){
+        this.snapToEdge = val;
+    }
+    
 
     /**
      * Constant denoting the index of the {@link TrackState} at the Ecal
@@ -132,8 +177,6 @@ public class TrackClusterMatcher {
      */
     public TrackClusterMatcher() {
     }
-
-    ;
 
     /**
      * Enable/disable booking, filling of Ecal cluster and extrapolated track 
@@ -260,9 +303,9 @@ public class TrackClusterMatcher {
     public double getNSigmaPosition(Cluster cluster, ReconstructedParticle particle) {
         if (particle.getTracks().size()<1) return Double.MAX_VALUE;
         Track track=particle.getTracks().get(0);
-        return getNSigmaPosition(cluster, track);
+        return getNSigmaPosition(cluster, track, new BasicHep3Vector(track.getTrackStates().get(0).getMomentum()).magnitude());
     }
-    public double getNSigmaPosition(Cluster cluster, Track track){
+    public double getNSigmaPosition(Cluster cluster, Track track, double p){
         
         
         if (this.useAnalyticExtrapolator)
@@ -285,62 +328,149 @@ public class TrackClusterMatcher {
         // whether it's a GBL track:
         final boolean isGBL = track.getType() >= 32;
        
+        boolean hasL6 = false;
+        for(TrackerHit hit : track.getTrackerHits()){
+            if(TrackUtils.getLayer(hit) == 11)
+                hasL6 = true;
+        }
         
         // choose which parameterization of mean and sigma to use:
         double dxMean[],dyMean[],dxSigm[],dySigm[];
         int charge = TrackUtils.getCharge(track);
-        if (charge>0) {
-            if (isTopTrack) {
-                dxMean = isGBL ? dxMeanTopPosiGBL : dxMeanTopPosiSeed;
-                dxSigm = isGBL ? dxSigmTopPosiGBL : dxSigmTopPosiSeed;
-                dyMean = isGBL ? dyMeanTopPosiGBL : dyMeanTopPosiSeed;
-                dySigm = isGBL ? dySigmTopPosiGBL : dySigmTopPosiSeed;
-            }
-            else {
-                dxMean = isGBL ? dxMeanBotPosiGBL : dxMeanBotPosiSeed;
-                dxSigm = isGBL ? dxSigmBotPosiGBL : dxSigmBotPosiSeed;
-                dyMean = isGBL ? dyMeanBotPosiGBL : dyMeanBotPosiSeed;
-                dySigm = isGBL ? dySigmBotPosiGBL : dySigmBotPosiSeed;
-            }
-        }
-        else if (charge<0) {
-            if (isTopTrack) {
-                dxMean = isGBL ? dxMeanTopElecGBL : dxMeanTopElecSeed;
-                dxSigm = isGBL ? dxSigmTopElecGBL : dxSigmTopElecSeed;
-                dyMean = isGBL ? dyMeanTopElecGBL : dyMeanTopElecSeed;
-                dySigm = isGBL ? dySigmTopElecGBL : dySigmTopElecSeed;
-            }
-            else {
-                dxMean = isGBL ? dxMeanBotElecGBL : dxMeanBotElecSeed;
-                dxSigm = isGBL ? dxSigmBotElecGBL : dxSigmBotElecSeed;
-                dyMean = isGBL ? dyMeanBotElecGBL : dyMeanBotElecSeed;
-                dySigm = isGBL ? dySigmBotElecGBL : dySigmBotElecSeed;
-            }
-        }
-        else return Double.MAX_VALUE;
-
-        // get particle energy:
-        Hep3Vector p3 = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
-        p3 = CoordinateTransformations.transformVectorToDetector(p3);
-        double ee = p3.magnitude();
         
-        // Rafo's parameterization isn't measured above 650 MeV/c but expected to be constant:
-        if (ee > 0.65) ee=0.65;
-
+        boolean use1pt05parameters = false, use2pt3parameters;
+        if(beamEnergy < 2){
+            use1pt05parameters = true;
+            use2pt3parameters = false;
+        } else { // if we do 4.4 or 6.6 GeV or other beam energies, use the 2.3 GeV values,
+            // until we have new parameters for that beam energy.  
+            use1pt05parameters = false;
+            use2pt3parameters = true;
+        }
+            
+        
+        if(use1pt05parameters){
+            if (charge>0) {
+                if (isTopTrack) {
+                    dxMean = isGBL ? dxMeanTopPosiGBL : dxMeanTopPosiSeed;
+                    dxSigm = isGBL ? dxSigmTopPosiGBL : dxSigmTopPosiSeed;
+                    dyMean = isGBL ? dyMeanTopPosiGBL : dyMeanTopPosiSeed;
+                    dySigm = isGBL ? dySigmTopPosiGBL : dySigmTopPosiSeed;
+                }
+                else {
+                    dxMean = isGBL ? dxMeanBotPosiGBL : dxMeanBotPosiSeed;
+                    dxSigm = isGBL ? dxSigmBotPosiGBL : dxSigmBotPosiSeed;
+                    dyMean = isGBL ? dyMeanBotPosiGBL : dyMeanBotPosiSeed;
+                    dySigm = isGBL ? dySigmBotPosiGBL : dySigmBotPosiSeed;
+                }
+            }
+            else if (charge<0) {
+                if (isTopTrack) {
+                    dxMean = isGBL ? dxMeanTopElecGBL : dxMeanTopElecSeed;
+                    dxSigm = isGBL ? dxSigmTopElecGBL : dxSigmTopElecSeed;
+                    dyMean = isGBL ? dyMeanTopElecGBL : dyMeanTopElecSeed;
+                    dySigm = isGBL ? dySigmTopElecGBL : dySigmTopElecSeed;
+                }
+                else {
+                    dxMean = isGBL ? dxMeanBotElecGBL : dxMeanBotElecSeed;
+                    dxSigm = isGBL ? dxSigmBotElecGBL : dxSigmBotElecSeed;
+                    dyMean = isGBL ? dyMeanBotElecGBL : dyMeanBotElecSeed;
+                    dySigm = isGBL ? dySigmBotElecGBL : dySigmBotElecSeed;
+                }
+            }
+            else return Double.MAX_VALUE;
+        }
+        else if (use2pt3parameters){
+            
+            if (charge>0) {
+                if (isTopTrack) {
+                    dxMean = !hasL6 ? dxMeanTopPosiGBL_noL6_2016 : dxMeanTopPosiGBL_hasL6_2016;
+                    dxSigm = !hasL6 ? dxSigmTopPosiGBL_noL6_2016 : dxSigmTopPosiGBL_hasL6_2016;
+                    dyMean = !hasL6 ? dyMeanTopPosiGBL_noL6_2016 : dyMeanTopPosiGBL_hasL6_2016;
+                    dySigm = !hasL6 ? dySigmTopPosiGBL_noL6_2016 : dySigmTopPosiGBL_hasL6_2016;
+                }
+                else {
+                    dxMean = !hasL6 ? dxMeanBotPosiGBL_noL6_2016 : dxMeanBotPosiGBL_hasL6_2016;
+                    dxSigm = !hasL6 ? dxSigmBotPosiGBL_noL6_2016 : dxSigmBotPosiGBL_hasL6_2016;
+                    dyMean = !hasL6 ? dyMeanBotPosiGBL_noL6_2016 : dyMeanBotPosiGBL_hasL6_2016;
+                    dySigm = !hasL6 ? dySigmBotPosiGBL_noL6_2016 : dySigmBotPosiGBL_hasL6_2016;
+                }
+            }
+            else if (charge<0) {
+                if (isTopTrack) {
+                    dxMean = !hasL6 ? dxMeanTopElecGBL_noL6_2016 : dxMeanTopElecGBL_hasL6_2016;
+                    dxSigm = !hasL6 ? dxSigmTopElecGBL_noL6_2016 : dxSigmTopElecGBL_hasL6_2016;
+                    dyMean = !hasL6 ? dyMeanTopElecGBL_noL6_2016 : dyMeanTopElecGBL_hasL6_2016;
+                    dySigm = !hasL6 ? dySigmTopElecGBL_noL6_2016 : dySigmTopElecGBL_hasL6_2016;
+                }
+                else {
+                    dxMean = !hasL6 ? dxMeanBotElecGBL_noL6_2016 : dxMeanBotElecGBL_hasL6_2016;
+                    dxSigm = !hasL6 ? dxSigmBotElecGBL_noL6_2016 : dxSigmBotElecGBL_hasL6_2016;
+                    dyMean = !hasL6 ? dyMeanBotElecGBL_noL6_2016 : dyMeanBotElecGBL_hasL6_2016;
+                    dySigm = !hasL6 ? dySigmBotElecGBL_noL6_2016 : dySigmBotElecGBL_hasL6_2016;
+                }
+            }
+            else return Double.MAX_VALUE;
+        }
+        else 
+            return Double.MAX_VALUE; //this line is never executed.   
+        
+        // Rafo's parameterization (with 1.05 GeV beam) isn't measured above 650 MeV/c but expected to be constant:
+        if(use1pt05parameters){
+            if (p > 0.65) p=0.65;
+        }
+        // Sebouh's parameterization (with 2.3 GeV) beam isn't measured above 1700 MeV/c (1000 MeV/c for non L6 tracks) but expected to be constant:
+        if(use2pt3parameters){
+            if (p > 1.7 && hasL6) 
+                p=1.7;
+            if (p > 1.0 && !hasL6) 
+                p=1.0;
+        }
         // calculate measured mean and sigma of deltaX and deltaY for this energy:
         double aDxMean=0,aDxSigm=0,aDyMean=0,aDySigm=0;
-        for (int ii=dxMean.length-1; ii>=0; ii--) aDxMean = dxMean[ii] + ee*aDxMean;
-        for (int ii=dxSigm.length-1; ii>=0; ii--) aDxSigm = dxSigm[ii] + ee*aDxSigm;
-        for (int ii=dyMean.length-1; ii>=0; ii--) aDyMean = dyMean[ii] + ee*aDyMean;
-        for (int ii=dySigm.length-1; ii>=0; ii--) aDySigm = dySigm[ii] + ee*aDySigm;
+        for (int ii=dxMean.length-1; ii>=0; ii--) aDxMean = dxMean[ii] + p*aDxMean;
+        for (int ii=dxSigm.length-1; ii>=0; ii--) aDxSigm = dxSigm[ii] + p*aDxSigm;
+        for (int ii=dyMean.length-1; ii>=0; ii--) aDyMean = dyMean[ii] + p*aDyMean;
+        for (int ii=dySigm.length-1; ii>=0; ii--) aDySigm = dySigm[ii] + p*aDySigm;
 
+      //if the track's extrapolated position is within 1/2 a crystal width of the edge of 
+        // the ecal edge, then move it to be 1/2 a crystal from the edge in y.  
+       
+        Hep3Vector originalTPos = tPos;
+        
+        if(snapToEdge )
+            tPos= snapper.snapToEdge(tPos,cluster);
+        
+        
         // calculate nSigma between track and cluster:
         final double nSigmaX = (cPos.x() - tPos.x() - aDxMean) / aDxSigm;
         final double nSigmaY = (cPos.y() - tPos.y() - aDyMean) / aDySigm;
-        return Math.sqrt(nSigmaX*nSigmaX + nSigmaY*nSigmaY);
+        
+        double nSigma = Math.sqrt(nSigmaX*nSigmaX + nSigmaY*nSigmaY);
+        
+        if(debug && Math.abs(cPos.x()-tPos.x())<50 &&  Math.abs(cPos.y()-tPos.y())<50){
+            System.out.println("TC MATCH RESULTS:");
+            System.out.println("isTop:  " + isTopTrack);
+            System.out.println("charge: " + charge);
+            System.out.println("hasL6:  " + hasL6);
+            System.out.println("p: " + p);
+            System.out.println("cx: " + cPos.x());
+            System.out.println("cy: " + cPos.y());
+            System.out.println("tx: " + originalTPos.x());
+            System.out.println("ty: " + originalTPos.y());
+            
+            System.out.println("nSigmaX: " + nSigmaX);
+            System.out.println("nSigmaY: " + nSigmaY);
+            System.out.println("nSigma: " + nSigma);
+        }
+        
+        return nSigma;
         //return Math.sqrt( 1 / ( 1/nSigmaX/nSigmaX + 1/nSigmaY/nSigmaY ) );
     }
 
+    boolean debug = false;
+    
+    SnapToEdge snapper = new SnapToEdge();
 
     /**
      * Determine if a track is matched to a cluster. Currently, this is
@@ -542,6 +672,10 @@ public class TrackClusterMatcher {
             nSigmaPositionMatch = getNSigmaPosition(cc,pp);
         }
         public double getNSigmaPositionMatch() { return nSigmaPositionMatch; }
+    }
+
+    public void setBeamEnergy(double beamEnergy) {
+        this.beamEnergy = beamEnergy;
     }
     
 }

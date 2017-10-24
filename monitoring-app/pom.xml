@@ -16,7 +16,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>org/hps/monitoring/subsys/et/**.java</exclude>
+            <exclude>**/*Test.java</exclude>
           </excludes>
         </configuration>
       </plugin>

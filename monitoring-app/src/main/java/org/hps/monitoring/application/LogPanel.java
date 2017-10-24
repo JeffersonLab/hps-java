@@ -35,7 +35,7 @@ final class LogPanel extends JPanel {
      * Class constructor.
      *
      * @param configurationModel the {@link org.hps.monitoring.application.model.ConfigurationModel} providing the data
-     *            model
+     * model
      * @param listener an {@link java.awt.event.ActionListener} to register on certain components
      */
     LogPanel(final ConfigurationModel configurationModel, final ActionListener listener) {

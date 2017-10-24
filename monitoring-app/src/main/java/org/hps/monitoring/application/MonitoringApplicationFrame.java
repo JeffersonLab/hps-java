@@ -37,7 +37,7 @@ final class MonitoringApplicationFrame extends JFrame {
     /**
      * The conditions panel.
      */
-    //private final ConditionsPanel conditionsPanel;
+    // private final ConditionsPanel conditionsPanel;
 
     /**
      * The dashboard panel.
@@ -98,7 +98,7 @@ final class MonitoringApplicationFrame extends JFrame {
      * The trigger diagnostics panel.
      */
     // TODO: Trigger diagnostics panel is now removed; to-be-replaced with plots.
-    //private final TriggerDiagnosticsPanel triggerPanel;
+    // private final TriggerDiagnosticsPanel triggerPanel;
 
     /**
      * Class constructor.
@@ -148,12 +148,12 @@ final class MonitoringApplicationFrame extends JFrame {
 
         // Add the trigger diagnostics tables.
         // TODO: Trigger diagnostics panel is removed.
-        //this.triggerPanel = new TriggerDiagnosticsPanel();
-        //tableTabbedPane.addTab("Trigger Diagnostics", this.triggerPanel);
+        // this.triggerPanel = new TriggerDiagnosticsPanel();
+        // tableTabbedPane.addTab("Trigger Diagnostics", this.triggerPanel);
 
         // Add the conditions panel.
-        //this.conditionsPanel = new ConditionsPanel();
-        //tableTabbedPane.addTab("Detector Conditions", this.conditionsPanel);
+        // this.conditionsPanel = new ConditionsPanel();
+        // tableTabbedPane.addTab("Detector Conditions", this.conditionsPanel);
 
         // Vertical split pane in left panel.
         this.leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.dashboardPanel, tableTabbedPane);
@@ -211,9 +211,9 @@ final class MonitoringApplicationFrame extends JFrame {
      *
      * @return the conditions panel
      */
-    //ConditionsPanel getConditionsPanel() {
-    //    return this.conditionsPanel;
-    //}
+    // ConditionsPanel getConditionsPanel() {
+    // return this.conditionsPanel;
+    // }
 
     /**
      * Get the panel for the dashboard.
@@ -284,9 +284,9 @@ final class MonitoringApplicationFrame extends JFrame {
      * @return the trigger diagnostics panel
      */
     // TODO: Trigger diagnostics panel is removed.
-    //TriggerDiagnosticsPanel getTriggerPanel() {
-    //    return this.triggerPanel;
-    //}
+    // TriggerDiagnosticsPanel getTriggerPanel() {
+    // return this.triggerPanel;
+    // }
 
     /**
      * Restore default window settings.

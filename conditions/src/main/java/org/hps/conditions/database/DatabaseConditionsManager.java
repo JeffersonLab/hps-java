@@ -691,10 +691,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         
         if (!this.isInitialized || !detectorName.equals(this.getDetector()) || runNumber != this.getRun()) {
             
-            LOG.config("Initializing conditions system with detector '" + detectorName + "' and run " + runNumber);
-            
             if (!this.isFrozen) {
                 
+                LOG.config("Initializing conditions system with detector '" + detectorName + "' and run " + runNumber);
+
                 // Set flag if run number is from Test Run 2012 data.
                 if (isTestRun(runNumber)) {
                     this.isTestRun = true;

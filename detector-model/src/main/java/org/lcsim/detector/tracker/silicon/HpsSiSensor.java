@@ -531,9 +531,7 @@ public class HpsSiSensor extends SiSensor {
 
         // Set the charge transfer efficiency of both the sense and readout
         // strips.
-        final double[][] transferEfficiencies = {
-          {this.getReadoutTransferEfficiency(), this.getSenseTransferEfficiency()}
-        };
+        final double[][] transferEfficiencies = {{this.getReadoutTransferEfficiency(), this.getSenseTransferEfficiency()}};
         this.setTransferEfficiencies(ChargeCarrier.HOLE, new BasicMatrix(transferEfficiencies));
 
     }

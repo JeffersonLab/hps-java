@@ -17,11 +17,13 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>org/hps/recon/tracking/ReconTestSkeleton.java</exclude>
-            <exclude>org/hps/recon/tracking/RecoToRaw.java</exclude>
-            <exclude>org/hps/recon/tracking/RecoToRawMC.java</exclude>
-            <exclude>org/hps/recon/tracking/TrackingReconstructionPlotsTest.java</exclude>
-            <exclude>org/hps/recon/tracking/TrackReconWithPlotsTest.java</exclude>
+            <exclude>**/ReconTestSkeleton.java</exclude>
+            <exclude>**/RecoToRaw.java</exclude>
+            <exclude>**/RecoToRawMC.java</exclude>
+            <exclude>**/TrackingReconstructionPlotsTest.java</exclude>
+            <exclude>**/TrackReconWithPlotsTest.java</exclude>
+            <exclude>**/CircleFitTest.java</exclude>
+            <exclude>**/TwoPointRadiusCircleFitterTest.java</exclude>
           </excludes>
         </configuration>
       </plugin>

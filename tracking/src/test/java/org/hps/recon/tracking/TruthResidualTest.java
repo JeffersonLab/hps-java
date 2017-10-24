@@ -23,6 +23,11 @@ import org.lcsim.util.aida.AIDA;
  * @author mdiamond <mdiamond@slac.stanford.edu>
  */
 public class TruthResidualTest extends ReconTestSkeleton {
+
+    static {
+        System.setProperty("hep.aida.IAnalysisFactory", "hep.aida.ref.BatchAnalysisFactory");
+    }
+
     static final String inputFileName = "ap_prompt_raw.slcio";
     private AIDA aida;
     private static final double maxResMean = 0.05; //in mm 
