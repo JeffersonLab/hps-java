@@ -766,22 +766,22 @@ public class VertexDebugger extends DataQualityMonitor {
             delPvsVtxZ.fill(delPPosFit.magnitude() * Math.signum(delPPosFit.x()), vertexPositionMC.z());
             delMvsVtxZ.fill(delm, vertexPositionMC.z());
             chiSqVtxZ.fill(chisq, vertexPositionMC.z());
-            
-             double cosOpen = getCosOpenX(pEleFit,pPosFit);     
+
+            double cosOpen = getCosOpenX(pEleFit, pPosFit);
 
             openAnglevsVtxZ.fill(cosOpen, vertexPositionMC.z());
 
-            delElePxReco.fill(delPEleMC.x()/eleMC.getMomentum().magnitude(), vertexPositionMC.z());
+            delElePxReco.fill(delPEleMC.x() / eleMC.getMomentum().magnitude(), vertexPositionMC.z());
             delElePyReco.fill(delPEleMC.y(), vertexPositionMC.z());
             delElePzReco.fill(delPEleMC.z(), vertexPositionMC.z());
-            delPosPxReco.fill(delPPosMC.x()/posMC.getMomentum().magnitude(), vertexPositionMC.z());
+            delPosPxReco.fill(delPPosMC.x() / posMC.getMomentum().magnitude(), vertexPositionMC.z());
             delPosPyReco.fill(delPPosMC.y(), vertexPositionMC.z());
             delPosPzReco.fill(delPPosMC.z(), vertexPositionMC.z());
 
-            delElePx.fill((eleMC.getMomentum().x() - pEleFit.y())/eleMC.getMomentum().magnitude(), vertexPositionMC.z());
+            delElePx.fill((eleMC.getMomentum().x() - pEleFit.y()) / eleMC.getMomentum().magnitude(), vertexPositionMC.z());
             delElePy.fill(eleMC.getMomentum().y() - pEleFit.z(), vertexPositionMC.z());
             delElePz.fill(eleMC.getMomentum().z() - pEleFit.x(), vertexPositionMC.z());
-            delPosPx.fill((posMC.getMomentum().x() - pPosFit.y())/posMC.getMomentum().magnitude(), vertexPositionMC.z());
+            delPosPx.fill((posMC.getMomentum().x() - pPosFit.y()) / posMC.getMomentum().magnitude(), vertexPositionMC.z());
             delPosPy.fill(posMC.getMomentum().y() - pPosFit.z(), vertexPositionMC.z());
             delPosPz.fill(posMC.getMomentum().z() - pPosFit.x(), vertexPositionMC.z());
 
@@ -838,14 +838,14 @@ public class VertexDebugger extends DataQualityMonitor {
             delPvsVtxZShift.fill(delPPosFitShift.magnitude(), vertexPositionMC.z());
             delMvsVtxZShift.fill(delmShift, vertexPositionMC.z());
             chiSqVtxZShift.fill(chisqShift, vertexPositionMC.z());
-            delElePxShift.fill((eleMC.getMomentum().x() - pEleFitShift.y())/eleMC.getMomentum().magnitude(), vertexPositionMC.z());
+            delElePxShift.fill((eleMC.getMomentum().x() - pEleFitShift.y()) / eleMC.getMomentum().magnitude(), vertexPositionMC.z());
             delElePyShift.fill(eleMC.getMomentum().y() - pEleFitShift.z(), vertexPositionMC.z());
             delElePzShift.fill(eleMC.getMomentum().z() - pEleFitShift.x(), vertexPositionMC.z());
-            delPosPxShift.fill((posMC.getMomentum().x() - pPosFitShift.y())/posMC.getMomentum().magnitude(), vertexPositionMC.z());
+            delPosPxShift.fill((posMC.getMomentum().x() - pPosFitShift.y()) / posMC.getMomentum().magnitude(), vertexPositionMC.z());
             delPosPyShift.fill(posMC.getMomentum().y() - pPosFitShift.z(), vertexPositionMC.z());
             delPosPzShift.fill(posMC.getMomentum().z() - pPosFitShift.x(), vertexPositionMC.z());
-            
-            double cosOpenShift = getCosOpenX(pEleFitShift,pPosFitShift); 
+
+            double cosOpenShift = getCosOpenX(pEleFitShift, pPosFitShift);
 
             openAnglevsVtxZShift.fill(cosOpenShift, vertexPositionMC.z());
 
@@ -877,13 +877,13 @@ public class VertexDebugger extends DataQualityMonitor {
             delPvsVtxZBSC.fill(delPPosFitBSC.magnitude(), vertexPositionMC.z());
             delMvsVtxZBSC.fill(delmBSC, vertexPositionMC.z());
             chiSqVtxZBSC.fill(chisqBSC, vertexPositionMC.z());
-            delElePxBSC.fill((eleMC.getMomentum().x() - pEleFitBSC.y())/eleMC.getMomentum().magnitude(), vertexPositionMC.z());
+            delElePxBSC.fill((eleMC.getMomentum().x() - pEleFitBSC.y()) / eleMC.getMomentum().magnitude(), vertexPositionMC.z());
             delElePyBSC.fill(eleMC.getMomentum().y() - pEleFitBSC.z(), vertexPositionMC.z());
             delElePzBSC.fill(eleMC.getMomentum().z() - pEleFitBSC.x(), vertexPositionMC.z());
-            delPosPxBSC.fill((posMC.getMomentum().x() - pPosFitBSC.y())/posMC.getMomentum().magnitude(), vertexPositionMC.z());
+            delPosPxBSC.fill((posMC.getMomentum().x() - pPosFitBSC.y()) / posMC.getMomentum().magnitude(), vertexPositionMC.z());
             delPosPyBSC.fill(posMC.getMomentum().y() - pPosFitBSC.z(), vertexPositionMC.z());
             delPosPzBSC.fill(posMC.getMomentum().z() - pPosFitBSC.x(), vertexPositionMC.z());
-             double cosOpenBSC = getCosOpenX(pEleFitBSC,pPosFitBSC); 
+            double cosOpenBSC = getCosOpenX(pEleFitBSC, pPosFitBSC);
             openAnglevsVtxZBSC.fill(cosOpenBSC, vertexPositionMC.z());
 
             //    Ok...same thing with beam-spot constrained
@@ -915,14 +915,14 @@ public class VertexDebugger extends DataQualityMonitor {
             delPvsVtxZBSCShift.fill(delPPosFitBSCShift.magnitude(), vertexPositionMC.z());
             delMvsVtxZBSCShift.fill(delmBSCShift, vertexPositionMC.z());
             chiSqVtxZBSCShift.fill(chisqBSCShift, vertexPositionMC.z());
-            delElePxBSCShift.fill((eleMC.getMomentum().x() - pEleFitBSCShift.y())/eleMC.getMomentum().magnitude(), vertexPositionMC.z());
+            delElePxBSCShift.fill((eleMC.getMomentum().x() - pEleFitBSCShift.y()) / eleMC.getMomentum().magnitude(), vertexPositionMC.z());
             delElePyBSCShift.fill(eleMC.getMomentum().y() - pEleFitBSCShift.z(), vertexPositionMC.z());
             delElePzBSCShift.fill(eleMC.getMomentum().z() - pEleFitBSCShift.x(), vertexPositionMC.z());
-            delPosPxBSCShift.fill((posMC.getMomentum().x() - pPosFitBSCShift.y())/posMC.getMomentum().magnitude(), vertexPositionMC.z());
+            delPosPxBSCShift.fill((posMC.getMomentum().x() - pPosFitBSCShift.y()) / posMC.getMomentum().magnitude(), vertexPositionMC.z());
             delPosPyBSCShift.fill(posMC.getMomentum().y() - pPosFitBSCShift.z(), vertexPositionMC.z());
             delPosPzBSCShift.fill(posMC.getMomentum().z() - pPosFitBSCShift.x(), vertexPositionMC.z());
 
-             double cosOpenBSCShift = getCosOpenX(pEleFitBSCShift,pPosFitBSCShift); 
+            double cosOpenBSCShift = getCosOpenX(pEleFitBSCShift, pPosFitBSCShift);
             openAnglevsVtxZBSCShift.fill(cosOpenBSCShift, vertexPositionMC.z());
 
             delZShiftMinusNoShiftvsVtxZBSC.fill(delzBSC - delzBSCShift, vertexPositionMC.z());
@@ -1278,11 +1278,11 @@ public class VertexDebugger extends DataQualityMonitor {
         else
             return -99;
     }
-    
-    private double getCosOpenX(Hep3Vector p1, Hep3Vector p2){   // p vectors are in tracking frame...return open angle in X-detector!!!       
-         Hep3Vector pEleX=new BasicHep3Vector(p1.y(), 0.0, p1.x());
-             Hep3Vector pPosX=new BasicHep3Vector(p2.y(), 0.0, p2.x());
-          return Math.acos(VecOp.dot(pEleX,pPosX)/(pEleX.magnitude()*pPosX.magnitude()));
+
+    private double getCosOpenX(Hep3Vector p1, Hep3Vector p2) {   // p vectors are in tracking frame...return open angle in X-detector!!!       
+        Hep3Vector pEleX = new BasicHep3Vector(p1.y(), 0.0, p1.x());
+        Hep3Vector pPosX = new BasicHep3Vector(p2.y(), 0.0, p2.x());
+        return Math.acos(VecOp.dot(pEleX, pPosX) / (pEleX.magnitude() * pPosX.magnitude()));
     }
 
 }

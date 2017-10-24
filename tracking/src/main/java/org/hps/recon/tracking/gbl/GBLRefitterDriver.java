@@ -35,15 +35,6 @@ public class GBLRefitterDriver extends Driver {
 
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
-    private boolean storeTrackStates = false;
-
-    public void setStoreTrackStates(boolean input) {
-        storeTrackStates = input;
-    }
-
-    public boolean getStoreTrackStates() {
-        return storeTrackStates;
-    }
 
     public void setInputCollectionName(String inputCollectionName) {
         this.inputCollectionName = inputCollectionName;
@@ -78,8 +69,10 @@ public class GBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
-
+            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track),
+                    TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5,
+                    track.getType(), _scattering, bfield);
+            // newTrack.getFirst().
             refittedTracks.add(newTrack.getFirst());
             trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
             inputToRefitted.put(track, newTrack.getFirst());
@@ -107,7 +100,8 @@ public class GBLRefitterDriver extends Driver {
 
         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
         // Get the ID dictionary and field information.
-        IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+        IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper()
+                .getIdentifierDictionary();
         int fieldIdx = dict.getFieldIndex("side");
         int sideIdx = dict.getFieldIndex("strip");
         for (RawTrackerHit hit : rawTrackerHits) {
@@ -123,7 +117,8 @@ public class GBLRefitterDriver extends Driver {
             // Find the sensor DetectorElement.
             List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
             if (des == null || des.size() == 0) {
-                throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+                throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x"
+                        + Long.toHexString(strippedId.getValue()) + ">.");
             } else if (des.size() == 1) {
                 hit.setDetectorElement((SiSensor) des.get(0));
             } else {
@@ -137,7 +132,8 @@ public class GBLRefitterDriver extends Driver {
             }
             // No sensor was found.
             if (hit.getDetectorElement() == null) {
-                throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+                throw new RuntimeException("No sensor was found for hit with stripped ID <0x"
+                        + Long.toHexString(strippedId.getValue()) + ">.");
             }
         }
     }

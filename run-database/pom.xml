@@ -30,7 +30,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>org/hps/rundb/builder/RunBuilderTest.java</exclude>
+            <exclude>**/*Test.java</exclude>
           </excludes>
         </configuration>
       </plugin>

@@ -23,8 +23,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>**/VertexAnalysisTest.java</exclude>
-            <exclude>org/hps/analysis/MC/MCTrackerHitResidualAnalysisDriverTest.java</exclude>
+            <exclude>**/*Test.java</exclude>
           </excludes>
         </configuration>
       </plugin>

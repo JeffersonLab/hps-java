@@ -29,14 +29,14 @@ public class TriggerDecisionCalculator {
     public TriggerDecisionCalculator(EventHeader event) {
         process(event);
     }
-    
+
     public void add(TriggerType type) {
         passedTriggers.add(type);
     }
 
     public boolean passed(TriggerType type) {
-        for(TriggerType passed : passedTriggers) {
-            if( passed == type) 
+        for (TriggerType passed : passedTriggers) {
+            if (passed == type)
                 return true;
         }
         return false;
@@ -45,82 +45,75 @@ public class TriggerDecisionCalculator {
     public void process(EventHeader event) {
         List<GenericObject> triggerBanks = event.get(GenericObject.class, "TriggerBank");
         for (GenericObject triggerBank : triggerBanks) {
-            if(AbstractIntData.getTag(triggerBank) == SSPData.BANK_TAG) {
+            if (AbstractIntData.getTag(triggerBank) == SSPData.BANK_TAG) {
                 SSPData sspBank = new SSPData(triggerBank);
-                
+
                 // recompute the decision for singles1
                 List<SSPCluster> sspClusters = sspBank.getClusters();
                 List<List<SinglesTrigger<SSPCluster>>> singleTriggers = constructSinglesTriggersFromSSP(sspClusters);
-                if( singleTriggers.get(1).size() > 0 )
+                if (singleTriggers.get(1).size() > 0)
                     passedTriggers.add(TriggerType.SINGLES1_SIM);
-                
+
                 // "use trigger results objects"
                 List<SSPSinglesTrigger> triggerResults = sspBank.getSinglesTriggers();
                 boolean passedSingles1 = false;
-                resultLoop:
-                for(SSPSinglesTrigger result : triggerResults) {
+                resultLoop: for (SSPSinglesTrigger result : triggerResults) {
                     // Check if this is a singles 1 trigger result.
-                    if(result.isSecondTrigger()) {
+                    if (result.isSecondTrigger()) {
                         // Check if the all the cuts passed.
-                        if(result.passCutEnergyMin() && result.passCutEnergyMax() && result.passCutHitCount()) {
+                        if (result.passCutEnergyMin() && result.passCutEnergyMax() && result.passCutHitCount()) {
                             passedSingles1 = true;
                             break resultLoop;
                         }
                     }
                 }
-                if(passedSingles1)
+                if (passedSingles1)
                     passedTriggers.add(TriggerType.SINGLES1_RESULTS);
-            } 
-            else if (AbstractIntData.getTag(triggerBank) == TIData.BANK_TAG) {
+            } else if (AbstractIntData.getTag(triggerBank) == TIData.BANK_TAG) {
                 TIData tiData = new TIData(triggerBank);
-                if(tiData.isSingle0Trigger())
+                if (tiData.isSingle0Trigger())
                     passedTriggers.add(TriggerType.SINGLES0);
-                else if(tiData.isSingle1Trigger())
+                else if (tiData.isSingle1Trigger())
                     passedTriggers.add(TriggerType.SINGLES1);
-                else if(tiData.isPair0Trigger())
+                else if (tiData.isPair0Trigger())
                     passedTriggers.add(TriggerType.PAIR0);
-                else if(tiData.isPair1Trigger())
+                else if (tiData.isPair1Trigger())
                     passedTriggers.add(TriggerType.PAIR1);
-                else if(tiData.isPulserTrigger()) 
+                else if (tiData.isPulserTrigger())
                     passedTriggers.add(TriggerType.PULSER);
             }
-        }      
+        }
     }
-    
-    
+
     static public List<List<SinglesTrigger<SSPCluster>>> constructSinglesTriggersFromSSP(List<SSPCluster> clusters) {
-        
-        List<List<SinglesTrigger<SSPCluster>>> triggers = new ArrayList<List<SinglesTrigger<SSPCluster>>>(2); 
+
+        List<List<SinglesTrigger<SSPCluster>>> triggers = new ArrayList<List<SinglesTrigger<SSPCluster>>>(2);
         // Instantiate the triggers lists.
-        for(int triggerNum = 0; triggerNum < 2; triggerNum++) 
+        for (int triggerNum = 0; triggerNum < 2; triggerNum++)
             triggers.add(new ArrayList<SinglesTrigger<SSPCluster>>());
-        
-    
-        
-        final double ENERGY_CUT_LOW[] = {0.06,0.4}; 
-        final double ENERGY_CUT_HIGH[] = {2.5,1.1}; 
-        final int HIT_COUNT_CUT_LOW[] = {3,3}; 
-        final boolean singlesCutsEnabled_ENERGY_MIN[] = {true,true};
-        final boolean singlesCutsEnabled_ENERGY_MAX[] = {true,true};
-        final boolean singlesCutsEnabled_HIT_COUNT[] = {true,true};
-       
-        
-        for(SSPCluster cluster : clusters) {
-           
-            triggerLoop:
-            for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
+
+        final double ENERGY_CUT_LOW[] = {0.06, 0.4};
+        final double ENERGY_CUT_HIGH[] = {2.5, 1.1};
+        final int HIT_COUNT_CUT_LOW[] = {3, 3};
+        final boolean singlesCutsEnabled_ENERGY_MIN[] = {true, true};
+        final boolean singlesCutsEnabled_ENERGY_MAX[] = {true, true};
+        final boolean singlesCutsEnabled_HIT_COUNT[] = {true, true};
+
+        for (SSPCluster cluster : clusters) {
+
+            triggerLoop: for (int triggerNum = 0; triggerNum < 2; triggerNum++) {
                 // For a cluster to have formed it is assumed to have
                 // passed the cluster seed energy cuts. This can not
                 // be verified since the SSP bank does not report
-                // individual hit. 
+                // individual hit.
                 boolean passSeedLow = true;
                 boolean passSeedHigh = true;
-                
+
                 // The remaining cuts may be acquired from trigger module.
-                boolean passClusterLow = cluster.getEnergy() >= ENERGY_CUT_LOW[triggerNum] ? true : false; 
-                boolean passClusterHigh = cluster.getEnergy() <= ENERGY_CUT_HIGH[triggerNum] ? true : false; 
-                boolean passHitCount = cluster.getHitCount() >= HIT_COUNT_CUT_LOW[triggerNum] ? true : false; 
-                
+                boolean passClusterLow = cluster.getEnergy() >= ENERGY_CUT_LOW[triggerNum] ? true : false;
+                boolean passClusterHigh = cluster.getEnergy() <= ENERGY_CUT_HIGH[triggerNum] ? true : false;
+                boolean passHitCount = cluster.getHitCount() >= HIT_COUNT_CUT_LOW[triggerNum] ? true : false;
+
                 // Make a trigger to store the results.
                 SinglesTrigger<SSPCluster> trigger = new SinglesTrigger<SSPCluster>(cluster, triggerNum);
                 trigger.setStateSeedEnergyLow(passSeedLow);
@@ -128,28 +121,28 @@ public class TriggerDecisionCalculator {
                 trigger.setStateClusterEnergyLow(passClusterLow);
                 trigger.setStateClusterEnergyHigh(passClusterHigh);
                 trigger.setStateHitCount(passHitCount);
-                
+
                 // A trigger will only be reported by the SSP if it
                 // passes all of the enabled cuts for that trigger.
                 // Check whether this trigger meets these conditions.
                 // Set the singles cut statuses.
-                if(singlesCutsEnabled_ENERGY_MIN[triggerNum] && !trigger.getStateClusterEnergyLow()) {
-                    continue triggerLoop;
-                } if(singlesCutsEnabled_ENERGY_MAX[triggerNum] && !trigger.getStateClusterEnergyHigh()) {
-                    continue triggerLoop;
-                } if(singlesCutsEnabled_HIT_COUNT[triggerNum] && !trigger.getStateHitCount()) {
+                if (singlesCutsEnabled_ENERGY_MIN[triggerNum] && !trigger.getStateClusterEnergyLow()) {
                     continue triggerLoop;
                 }
-                
+                if (singlesCutsEnabled_ENERGY_MAX[triggerNum] && !trigger.getStateClusterEnergyHigh()) {
+                    continue triggerLoop;
+                }
+                if (singlesCutsEnabled_HIT_COUNT[triggerNum] && !trigger.getStateHitCount()) {
+                    continue triggerLoop;
+                }
+
                 // If all the necessary checks passed, store the new
                 // trigger for verification.
-                
+
                 triggers.get(triggerNum).add(trigger);
             }
         }
         return triggers;
     }
-    
-
 
 }

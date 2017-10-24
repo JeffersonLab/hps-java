@@ -8,7 +8,7 @@ import org.jdom.JDOMException;
 import org.lcsim.detector.converter.heprep.DetectorElementToHepRepConverter;
 
 public class HPSTracker2 extends AbstractTracker {
-    
+
     HPSTracker2(Element node) throws JDOMException {
         super(node);
     }

@@ -366,7 +366,6 @@ public class VertexDebugTupleDriver extends TupleDriver {
         tupleMap.put("minNegativeIso/D", minNegativeIso);
         tupleMap.put("minIso/D", minIso);
 
-
         tupleMap.put("apMass/D", apMassMC);
         tupleMap.put("vtxXMC/D", vertexPositionMC.x());
         tupleMap.put("vtxYMC/D", vertexPositionMC.y());
@@ -475,10 +474,10 @@ public class VertexDebugTupleDriver extends TupleDriver {
         HelixParamCalculator parCalcM = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(eleMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(eleMC.getOrigin()), (int) eleMC.getCharge(), -B_FIELD);
 //        HelixParamCalculator parCalcP = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), (int) posMC.getCharge(), B_FIELD);
 //        HelixParamCalculator parCalcM = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(eleMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(eleMC.getOrigin()), (int) eleMC.getCharge(), B_FIELD);
-        double[] newparP=null;
+        double[] newparP = null;
         double[] newparE = null;
         try {
-             newparP = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), (int) posMC.getCharge(), B_FIELD, isFirst);
+            newparP = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), (int) posMC.getCharge(), B_FIELD, isFirst);
             newparE = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(eleMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(eleMC.getMomentum()), (int) eleMC.getCharge(), B_FIELD, isFirst);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(VertexDebugTupleDriver.class.getName()).log(Level.SEVERE, null, ex);
@@ -517,7 +516,7 @@ public class VertexDebugTupleDriver extends TupleDriver {
         tupleMap.put("eleMCSlope/D", parCalcM.getSlopeSZPlane());//emct.slope());
         tupleMap.put("eleMCD0/D", parCalcM.getDCA());//emct.dca());
         tupleMap.put("eleMCPhi0/D", parCalcM.getPhi0());//emct.phi0());
-        tupleMap.put("eleMCOmega/D",  parCalcM.getMCOmega());//emct.curvature());
+        tupleMap.put("eleMCOmega/D", parCalcM.getMCOmega());//emct.curvature());
         tupleMap.put("eleMCZ0/D", parCalcM.getZ0());//emct.z0());
         tupleMap.put("posMCSlope/D", parCalcP.getSlopeSZPlane());//pmct.slope());
         tupleMap.put("posMCD0/D", parCalcP.getDCA());//pmct.dca());
@@ -526,13 +525,13 @@ public class VertexDebugTupleDriver extends TupleDriver {
         tupleMap.put("posMCZ0/D", parCalcP.getZ0());//pmct.z0());
 
         tupleMap.put("eleMCNewCalcSlope/D", newparE[TANLAMBDA]);//emct.slope());
-        tupleMap.put("eleMCNewCalcD0/D",  newparE[D0]);//emct.dca());
+        tupleMap.put("eleMCNewCalcD0/D", newparE[D0]);//emct.dca());
         tupleMap.put("eleMCNewCalcPhi0/D", newparE[PHI]);//emct.phi0());
-        tupleMap.put("eleMCNewCalcOmega/D",newparE[OMEGA]);//emct.curvature());
+        tupleMap.put("eleMCNewCalcOmega/D", newparE[OMEGA]);//emct.curvature());
         tupleMap.put("eleMCNewCalcZ0/D", newparE[Z0]);//emct.z0());
         tupleMap.put("posMCNewCalcSlope/D", newparP[TANLAMBDA]);//pmct.slope());
         tupleMap.put("posMCNewCalcD0/D", newparP[D0]);//pmct.dca());
-        tupleMap.put("posMCNewCalcPhi0/D",newparP[PHI]);//pmct.phi0());
+        tupleMap.put("posMCNewCalcPhi0/D", newparP[PHI]);//pmct.phi0());
         tupleMap.put("posMCNewCalcOmega/D", newparP[OMEGA]);//pmct.curvature());
         tupleMap.put("posMCNewCalcZ0/D", newparP[Z0]);//pmct.z0());
 

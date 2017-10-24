@@ -447,11 +447,13 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.19.1</version>
         <configuration>
-          <argLine>-Xmx1024m</argLine>
+          <useFile>false</useFile>
+          <trimStackTrace>false</trimStackTrace>
           <forkMode>pertest</forkMode>
           <systemPropertyVariables>
             <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
             <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
+            <hep.aida.IAnalysisFactory>hep.aida.ref.BatchAnalysisFactory</hep.aida.IAnalysisFactory>
           </systemPropertyVariables>
         </configuration>
       </plugin>
@@ -506,6 +508,9 @@
                   <property name="processJavadoc" value="false" />
                 </module>
                 <module name="RedundantImport" />
+                <module name="Indentation">
+                  <property name="lineWrappingIndentation" value="8" />
+                </module>
               </module>
             </module>
           </checkstyleRules>
