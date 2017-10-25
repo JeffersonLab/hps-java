@@ -155,6 +155,10 @@ class MeasurementSite {
          * aP.atPhi(phi); xGlobal.print("xGlobal"); Vec xLocal = R.rotate(xGlobal.dif(p.X()));
          * xLocal.print("MeasurementSite.filter: local intersection"); // end debug
          */
+        if (smoothed || filtered || !predicted) {
+            System.out.format("******MeasurementSite.filter: Warning, this site is not in the correct state!\n");
+            this.print("in the wrong state for filtering");
+        }
 
         Measurement hit = m.hits.get(0);
         double V = hit.sigma * hit.sigma;
@@ -185,31 +189,37 @@ class MeasurementSite {
     }
 
     boolean smooth(MeasurementSite nS) { // Produce the smoothed state vector for this site
+        // nS is the next site in the filtering chain (i.e. the previous site that was smoothed)
+        
+        if (smoothed || !filtered) {
+            System.out.format("******MeasurementSite.smooth: Warning, this site is not in the correct state!\n");
+            this.print("in the wrong state for smoothing");
+        }
 
-        aS = aF.smooth(nS.aS, nS.aP);
+        this.aS = this.aF.smooth(nS.aS, nS.aP);
 
-        Measurement hit = m.hits.get(0);
+        Measurement hit = this.m.hits.get(0);
         double V = hit.sigma * hit.sigma;
-        double phiS = hpi.planeIntersect(aF.a, aF.X0, aF.alpha, m.p.toLocal(aF.Rot, aF.origin));
+        double phiS = this.hpi.planeIntersect(this.aS.a, this.aS.X0, this.aS.alpha, this.m.p.toLocal(this.aS.Rot, this.aS.origin));
         if (Double.isNaN(phiS)) { // This should almost never happen!
             System.out.format("MeasurementSite.smooth: no intersection of helix with the plane exists.\n");
             return false;
         }
-        aS.mPred = h(aS, phiS);
-        aS.r = hit.v - aS.mPred;
+        this.aS.mPred = this.h(aS, phiS);
+        this.aS.r = hit.v - this.aS.mPred;
 
         // Vec HS = new Vec(5, buildH(aS)); // It's not necessary to recalculate H with
         // the smoothed helix parameters
         // H.print("old H");
         // HS.print("new H");
-        aS.R = V - H.dot(H.leftMultiply(aS.C));
-        if (aS.R < 0) {
-            System.out.format("MeasurementSite.smooth, measurement covariance %12.4e is negative\n", aS.R);
+        this.aS.R = V - this.H.dot(this.H.leftMultiply(this.aS.C));
+        if (this.aS.R < 0) {
+            System.out.format("MeasurementSite.smooth, measurement covariance %12.4e is negative\n", this.aS.R);
         }
 
-        chi2inc = (aS.r * aS.r) / aS.R;
+        this.chi2inc = (this.aS.r * this.aS.r) / this.aS.R;
 
-        smoothed = true;
+        this.smoothed = true;
         return true;
     }
 

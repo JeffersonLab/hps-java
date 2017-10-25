@@ -56,7 +56,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         int nPlanes = 6;
         Vec tInt = new Vec(0., 1., 0.); // Nominal detector plane orientation
         double[] location = { 100., 200., 300., 500., 700., 900. }; // Detector positions in y
-        double thickness = 0.3; // Silicon thickness in mm
+        double thickness = 0.00000000003; // Silicon thickness in mm
         double delta = 5.0; // Distance between stereo pairs
         double[] stereoAngle = { 0.1, 0.1, 0.1, 0.05, 0.05, 0.05 }; // Angles of the stereo layers in radians
         double resolution = 0.012; // SSD point resolution, in mm
@@ -638,7 +638,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             Bstart = Bf0.mag();
             tBstart = Bf0.unitVec();
 
-            // initialCovariance.scale(10000.); // Blow up the errors on the initial guess
+            initialCovariance.scale(10000.); // Blow up the errors on the initial guess
 
             if (verbose) {
                 initialCovariance.print("initial covariance guess");
