@@ -173,8 +173,8 @@ public class FieldMap {
         // double Byc = bY[iX][iY][iZ]*1000.;
         // double Bzc = bZ[iX][iY][iZ]*1000.;
         // new Vec(-Bxc,Bzc,Byc).print("B on grid");
-        return new Vec(Bx, Bz, -By);
-        // return new Vec(0.,0.,0.24);
+        //return new Vec(Bx, Bz, -By);
+        return new Vec(0.,0.,0.24);
     }
 
     private double triLinear(int i, int j, int k, double xd, double yd, double zd, double[][][] f) {

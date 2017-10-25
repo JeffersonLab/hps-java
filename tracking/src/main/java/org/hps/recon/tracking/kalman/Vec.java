@@ -66,6 +66,14 @@ class Vec { // N-vector for the Kalman filter
         return new Vec(N, t);
     }
 
+    // For this version you supply the magnitude, in case it is already calculated
+    Vec unitVec(double n) {
+        double[] t = new double[N];
+        for (int i = 0; i < N; i++)
+            t[i] = v[i] / n;
+        return new Vec(N, t);
+    }
+
     Vec leftMultiply(SquareMatrix G) {
         double[] R = new double[N];
         if (G.N != N) {

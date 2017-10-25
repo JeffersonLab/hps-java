@@ -5,8 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-class Histogram { // Very light interface into Gnuplot to make histograms while testing the
-                  // fitting package.
+class Histogram { // Very light interface into Gnuplot to make histograms while testing the fitting package.
                   // The output histograms are just text files that can be displayed by Gnuplot.
     int N;
     double BW, B0;
@@ -111,8 +110,8 @@ class Histogram { // Very light interface into Gnuplot to make histograms while 
         // on it, but it doesn't work in multiplot mode.
         // pW.format("set term X11 persist\n");
         if (stats) {
-            pW.format("set label 777 'mean=%7.3f' at graph 0.67, 0.9 left font 'Verdana,12'\n", mean);
-            pW.format("set label 778 'rms=%8.3f' at graph 0.67, 0.85 left font 'Verdana,12'\n", rms);
+            pW.format("set label 777 'mean=%10.5f' at graph 0.67, 0.9 left font 'Verdana,12'\n", mean);
+            pW.format("set label 778 'rms=%10.5f' at graph 0.67, 0.85 left font 'Verdana,12'\n", rms);
             pW.format("set label 779 'counts=%d' at graph 0.67, 0.80 left font 'Verdana,12'\n", nEntry);
         }
         pW.format("set xtics font 'Verdana,12'\n");

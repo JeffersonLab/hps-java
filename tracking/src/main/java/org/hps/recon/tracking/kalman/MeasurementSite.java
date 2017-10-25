@@ -17,6 +17,7 @@ class MeasurementSite {
     private double XL; // Thickness of the detector in radiation lengths
     private double dEdx; // in GeV/mm
     private boolean verbose;
+    private HelixPlaneIntersect hpi;
 
     void print(String s) {
         System.out.format(">>Dump of measurement site %d %s;  ", thisSite, s);
@@ -63,14 +64,13 @@ class MeasurementSite {
         double sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in
                            // GeV cm2/g
         dEdx = -0.1 * sp * rho; // in GeV/mm
+        hpi = new HelixPlaneIntersect();
         verbose = false;
     }
 
     boolean makePrediction(StateVector pS) { // Create predicted state vector by propagating from previous site
         verbose = pS.verbose;
         double phi = pS.planeIntersect(m.p);
-        if (verbose)
-            System.out.format("MeasurementSite.makePrediction: angle phi to plane intersection=%12.10f\n", phi);
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low!
             System.out.format("MeasurementSite.makePrediction: no intersection of helix with the plane exists. Site=%d\n", thisSite);
             return false;
@@ -90,15 +90,21 @@ class MeasurementSite {
 
         double deltaE = 0.; // dEdx*thickness/ct;
 
-        Vec origin = pS.toGlobal(X0);
-        Vec Bfield = m.Bfield.getField(origin);
+        Vec origin = m.p.X();          
+        if (verbose) origin.print("new origin in MeasurementSite.makePrediction");
+        Vec Bfield = m.Bfield.getField(pS.toGlobal(X0));
         double B = Bfield.mag();
-        Vec tB = Bfield.scale(1.0 / B);
+        Vec tB = Bfield.unitVec(B);
         aP = pS.predict(thisSite, X0, B, tB, origin, XL / ct, deltaE); // Move pivot point to X0 to generate the
                                                                        // predicted helix
         if (verbose) {
             pS.a.print("original helix in MeasurementSite.makePrediction");
             aP.a.print("pivot transformed helix in MeasurementSite.makePrediction");
+            //double phi2 = aP.planeIntersect(m.p);
+            //System.out.format("MeasurementSite.makePrediction: phi2=%12.9f\n", phi2);
+            //Vec X02 = aP.atPhi(phi2);
+            //X02.print("intersection in local coordinates from new helix");
+            //aP.toGlobal(X02).print("intersection in global coordinates from new helix");
         }
 
         // if (verbose) {
@@ -117,20 +123,25 @@ class MeasurementSite {
 
         aP.mPred = h(pS, phi);
         aP.r = m.hits.get(0).v - aP.mPred;
-        // if (verbose) {
-        // System.out.format("MeasurementSite.makePrediction: intersection with old
-        // helix is at phi=%10.7f, z=%10.7f\n", phi,aP.mPred);
-        // double phi2 = aP.planeIntersect(m.p); // This should always be zero
-        // double mPred2 = h(aP,phi2);
-        // System.out.format("MeasurementSite.makePrediction: intersection with new
-        // helix is at phi=%10.7f, z=%10.7f\n", phi2,mPred2);
-        // }
+        if (verbose) {
+            System.out.format("MeasurementSite.makePrediction: intersection with old helix is at phi=%10.7f, z=%10.7f\n", phi, aP.mPred);
+            double phi2 = aP.planeIntersect(m.p); // This should always be zero
+            double mPred2 = h(aP, phi2);
+            System.out.format("MeasurementSite.makePrediction: intersection with new helix is at phi=%10.7f, z=%10.7f\n", phi2, mPred2);
+        }
 
         H = new Vec(5, buildH(aP));
-        if (verbose)
+        aP.R = m.hits.get(0).sigma * m.hits.get(0).sigma - H.dot(H.leftMultiply(aP.C));
+        if (verbose) {
             H.print("H in MeasurementSite.makePrediction");
+            Vec H2 = new Vec(5, buildH(pS));
+            H2.print("H made using old statevector");
+            aP.C.print("covariance");
+            double exRes = m.hits.get(0).sigma * m.hits.get(0).sigma - H2.dot(H2.leftMultiply(pS.C));
+            System.out.format("MeasurementSite.makePrediction: expected residual = %12.5e; from old state vector = %12.5e, sigma=%12.5e\n", 
+                                            aP.R, exRes, m.hits.get(0).sigma);
+        }
 
-        aP.R = m.hits.get(0).sigma * m.hits.get(0).sigma - H.dot(aP.a);
         chi2inc = aP.r * aP.r / aP.R;
 
         predicted = true;
@@ -140,16 +151,17 @@ class MeasurementSite {
 
     boolean filter() { // Produce the filtered state vector for this site
         /*
-         * // For debugging only double phi = aP.planeIntersect(p);
-         * System.out.format("    phiNew=%10.7f\n", phi); Vec xGlobal = aP.atPhi(phi);
-         * xGlobal.print("xGlobal"); Vec xLocal = R.rotate(xGlobal.dif(p.X()));
+         * // For debugging only double phi = aP.planeIntersect(p); System.out.format("    phiNew=%10.7f\n", phi); Vec xGlobal =
+         * aP.atPhi(phi); xGlobal.print("xGlobal"); Vec xLocal = R.rotate(xGlobal.dif(p.X()));
          * xLocal.print("MeasurementSite.filter: local intersection"); // end debug
          */
 
         Measurement hit = m.hits.get(0);
         double V = hit.sigma * hit.sigma;
         aF = aP.filter(H, V);
-        double phiF = aF.planeIntersect(m.p);
+        double phiF = hpi.planeIntersect(aF.a, aF.X0, aF.alpha, m.p.toLocal(aF.Rot, aF.origin));
+        // double phiCheck = aF.planeIntersect(m.p);
+        // System.out.format("MeasurementSite.filter: phi = %10.7f, phi check = %10.7f\n",phiF, phiCheck);
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
             System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
             return false;
@@ -178,7 +190,7 @@ class MeasurementSite {
 
         Measurement hit = m.hits.get(0);
         double V = hit.sigma * hit.sigma;
-        double phiS = aS.planeIntersect(m.p);
+        double phiS = hpi.planeIntersect(aF.a, aF.X0, aF.alpha, m.p.toLocal(aF.Rot, aF.origin));
         if (Double.isNaN(phiS)) { // This should almost never happen!
             System.out.format("MeasurementSite.smooth: no intersection of helix with the plane exists.\n");
             return false;
@@ -203,28 +215,31 @@ class MeasurementSite {
 
     double h(StateVector pS, double phi) { // Predict the measurement for a helix passing through this plane
         Vec rGlobal = pS.toGlobal(pS.atPhi(phi));
-        // if (verbose) rGlobal.print("MeasurementSite.h: global intersection");
+        if (verbose)
+            rGlobal.print("MeasurementSite.h: global intersection");
         Vec rLocal = m.toLocal(rGlobal); // Rotate into the detector coordinate system
-        // if (verbose) {
-        // rLocal.print("MeasurementSite.h: local intersection");
-        // System.out.format("MeasurementSite.h: detector coordinate out of the plane =
-        // %10.7f\n", rLocal.v[2]);
-        // }
+        if (verbose) {
+            rLocal.print("MeasurementSite.h: local intersection");
+            System.out.format("MeasurementSite.h: phi=%12.5e, detector coordinate out of the plane = %10.7f, h=%10.7f\n", phi, rLocal.v[2],
+                                            rLocal.v[1]);
+        }
         return rLocal.v[1];
     }
 
-    private double[] buildH(StateVector S) { // Create the derivative matrix for prediction of the measurement from the
-                                             // helix
+    // Create the derivative matrix for prediction of the measurement from the helix
+    private double[] buildH(StateVector S) {
         double[] HH = new double[5];
-        double phi = S.planeIntersect(m.p);
+        double phi = hpi.planeIntersect(S.a, S.X0, S.alpha, m.p.toLocal(S.Rot, S.origin));
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low!
             System.out.format("MeasurementSite.buildH: no intersection of helix with the plane exists.\n");
             return HH;
         }
-        // System.out.format("MeasurementSite.buildH: phi=%10.7f\n", phi);
-        // S.print("given to buildH");
-        // R.print("in buildH");
-        // p.print("in buildH");
+        if (verbose) {
+            System.out.format("MeasurementSite.buildH: phi=%10.7f\n", phi);
+            // S.print("given to buildH");
+            // R.print("in buildH");
+            // p.print("in buildH");
+        }
         Vec dxdphi = new Vec((alpha / S.a.v[2]) * Math.sin(S.a.v[1] + phi), -(alpha / S.a.v[2]) * Math.cos(S.a.v[1] + phi),
                                         -(alpha / S.a.v[2]) * S.a.v[4]);
         double[][] dxda = new double[3][5];
@@ -249,13 +264,12 @@ class MeasurementSite {
             }
             dphida[i] = dphida[i] / denom;
         }
-        // System.out.format(" dphida=%10.7f, %10.7f, %10.7f, %10.7f, %10.7f\n",
-        // dphida[0], dphida[1], dphida[2], dphida[3], dphida[4]);
+        // System.out.format(" dphida=%10.7f, %10.7f, %10.7f, %10.7f, %10.7f\n",dphida[0], dphida[1], dphida[2], dphida[3], dphida[4]);
         double[][] DxDa = new double[3][5];
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 3; j++) {
                 DxDa[j][i] = dxdphi.v[j] * dphida[i] + dxda[j][i];
-                // System.out.format(" %d %d DxDa=%10.7f\n", j,i,DxDa[j][i]);
+                //if (verbose) System.out.format(" %d %d DxDa=%10.7f\n", j,i,DxDa[j][i]);
             }
         }
         RotMatrix Rt = m.Rinv.multiply(S.Rot.invert());
@@ -266,31 +280,44 @@ class MeasurementSite {
         }
 
         // Testing the derivatives
-        /*
-         * StateVector sVp = S.copy(); double daRel[] = {0.01,0.03,-0.02,0.05,-0.01};
-         * for (int i=0; i<5; i++) sVp.a.v[i] = sVp.a.v[i]*(1.0+daRel[i]); Vec da = new
-         * Vec(S.a.v[0]*daRel[0], S.a.v[1]*daRel[1], S.a.v[2]*daRel[2],
-         * S.a.v[3]*daRel[3], S.a.v[4]*daRel[4]); double phi1 = phi; Vec x1Global =
-         * S.atPhi(phi1); double dot1 = x1Global.dif(p.X()).dot(p.T()); Vec
-         * x1GlobalTrans = x1Global.dif(p.X()); Vec x1Local = R.rotate(x1GlobalTrans);
-         * double phi2 = sVp.planeIntersect(p); Vec x2Global = sVp.atPhi(phi2); double
-         * dot2 = x2Global.dif(p.X()).dot(p.T());
-         * System.out.format("dot1=%10.8f, dot2=%10.8f\n", dot1, dot2); Vec
-         * x2GlobalTrans = x2Global.dif(p.X()); Vec x2Local = R.rotate(x2GlobalTrans);
-         * 
-         * S.a.print("Test helix parameters"); p.print("of the measurement");
-         * sVp.a.print("Modified helix parameters");
-         * System.out.format("Phi1=%10.7f,  Phi2=%10.7f\n", phi1, phi2);
-         * x1Global.print("x1"); x2Global.print("x2"); for (int j=0; j<3; j++) { double
-         * dx = 0.; for (int i=0; i<5; i++) { dx += DxDa[j][i]*da.v[i]; }
-         * System.out.format("j=%d dx=%10.7f,   dxExact=%10.7f\n", j, dx,
-         * x2Global.v[j]-x1Global.v[j]); }
-         * 
-         * double dmExact = x2Local.v[1] - x1Local.v[1]; double dm = 0.; for (int i=0;
-         * i<5; i++) { dm += HH[i]*da.v[i]; }
-         * System.out.format("Test of H matrix: dm=%10.8f,  dmExact=%10.8f\n", dm,
-         * dmExact);
-         */
+        if (verbose) {
+            StateVector sVp = S.copy();
+            double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
+            for (int i = 0; i < 5; i++) {
+                sVp.a.v[i] = sVp.a.v[i] * (1.0 + daRel[i]);
+            }
+            Vec da = new Vec(S.a.v[0] * daRel[0], S.a.v[1] * daRel[1], S.a.v[2] * daRel[2], S.a.v[3] * daRel[3], S.a.v[4] * daRel[4]);
+            double phi1 = phi;
+            Vec x1Global = S.toGlobal(S.atPhi(phi1));
+            Vec x1Local = m.toLocal(x1Global);
+            double phi2 = sVp.planeIntersect(m.p);
+            Vec x2Global = sVp.toGlobal(sVp.atPhi(phi2));
+            double dot2 = x2Global.dif(m.p.X()).dot(m.p.T());
+            double dot1 = x1Global.dif(m.p.X()).dot(m.p.T());
+            System.out.format("h derivative testing: dot1=%10.8f, dot2=%10.8f, both should be zero\n", dot1, dot2);
+            Vec x2Local = m.toLocal(x2Global);
+
+            S.a.print("Test helix parameters");
+            // m.p.print("of the measurement");
+            sVp.a.print("Modified helix parameters");
+            System.out.format("Phi1=%10.7f,  Phi2=%10.7f\n", phi1, phi2);
+            x1Global.print("x1");
+            x2Global.print("x2");
+            for (int j = 0; j < 3; j++) {
+                double dx = 0.;
+                for (int i = 0; i < 5; i++) {
+                    dx += DxDa[j][i] * da.v[i];
+                }
+                System.out.format("j=%d dx=%10.7f,   dxExact=%10.7f\n", j, dx, x2Global.v[j] - x1Global.v[j]);
+            }
+
+            double dmExact = x2Local.v[1] - x1Local.v[1];
+            double dm = 0.;
+            for (int i = 0; i < 5; i++) {
+                dm += HH[i] * da.v[i];
+            }
+            System.out.format("Test of H matrix: dm=%10.8f,  dmExact=%10.8f\n", dm, dmExact);
+        }
 
         return HH;
     }

@@ -10,8 +10,7 @@ public class KalmanTrackFit {
     ArrayList<MeasurementSite> sites;
     int initialSite;
     int finalSite;
-    double chi2f, chi2s; // Filtered and smoothed chi squared values (just summed over the N measurement
-                         // sites)
+    double chi2f, chi2s; // Filtered and smoothed chi squared values (just summed over the N measurement sites)
 
     private boolean stopCondition(int dir, int i, int N) {
         if (dir > 0) {
@@ -36,14 +35,14 @@ public class KalmanTrackFit {
                                     Vec helixParams, // 5 helix parameters for the starting "guess" helix
                                     SquareMatrix C, // Full covariance matrix for the starting "guess" helix
                                     double B, // Magnetic field strength at helix beginning
-                                    Vec t, // Magnetic field direction at helix beginning; defines the helix coordinate
-                                           // system
+                                    Vec t, // Magnetic field direction at helix beginning; defines the helix coordinate system
                                     boolean verbose) {
 
-        if (direction > 0)
+        if (direction > 0) {
             direction = 1;
-        else
+        } else {
             direction = -1;
+        }
 
         // Create an state vector from the input seed to initialize the Kalman filter
         StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot, verbose);
@@ -60,6 +59,7 @@ public class KalmanTrackFit {
         int prevSite = -1;
         int thisSite = -1;
         for (int idx = start; stopCondition(direction, idx, data.size()); idx = increment(direction, idx)) {
+            finalSite = idx;
             SiModule m = data.get(idx);
             thisSite++;
             MeasurementSite newSite = new MeasurementSite(idx, m);

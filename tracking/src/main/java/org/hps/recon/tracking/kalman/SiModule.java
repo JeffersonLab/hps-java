@@ -5,24 +5,22 @@ import java.util.Iterator;
 
 // Description of a single silicon-strip module, and a container for its hits
 class SiModule {
+    int Layer; // Tracker layer number 0 through 5
     ArrayList<Measurement> hits; // Hits ordered by coordinate value, from minimum to maximum
     Plane p; // Orientation and offset of the detector measurement plane in global
              // coordinates (NOT rotated by the stereo angle)
              // The offset should be the location of the center of the detector in global
              // coordinates
-    double[] xExtent; // Plus and minus limits on the detector active area in the x direction (along
-                      // the strips)
-    double[] yExtent; // Plus and minus limits on the detector active area in the y direction
-                      // (perpendicular to the strips)
-    RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field
-                 // coordinates)
-    RotMatrix Rinv; // Rotation from global (not field) coordinates to detector coordinates
-                    // (transpose of R)
+    double[] xExtent; // Plus and minus limits on the detector active area in the x direction (along the strips)
+    double[] yExtent; // Plus and minus limits on the detector active area in the y direction (perpendicular to the strips)
+    RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field coordinates)
+    RotMatrix Rinv; // Rotation from global (not field) coordinates to detector coordinates (transpose of R)
     double stereo; // Stereo angle of the detectors in radians
     double thickness; // Silicon thickness in mm
     FieldMap Bfield;
 
-    SiModule(Plane p, double stereo, double width, double height, double thickness, FieldMap Bfield) {
+    SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, FieldMap Bfield) {
+        this.Layer = Layer;
         this.Bfield = Bfield;
         this.p = p;
         this.stereo = stereo;

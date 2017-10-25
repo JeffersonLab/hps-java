@@ -18,7 +18,7 @@ class StateVector {
     boolean verbose;
     private SquareMatrix F; // Propagator matrix to propagate from this site to the next site
     private double B; // Field magnitude
-    private double alpha; // Conversion from 1/K to radius R
+    double alpha; // Conversion from 1/K to radius R
     private HelixPlaneIntersect hpi;
 
     // Constructor for the initial state vector used to start the Kalman filter.
@@ -37,7 +37,7 @@ class StateVector {
         kLow = site;
         kUp = kLow;
         C = Cov.copy();
-        hpi = new HelixPlaneIntersect(alpha);
+        hpi = new HelixPlaneIntersect();
         Vec yhat = new Vec(0., 1.0, 0.);
         Vec u = yhat.cross(t).unitVec();
         Vec v = t.cross(u);
@@ -51,7 +51,7 @@ class StateVector {
         double c = 2.99793e8; // Speed of light in m/s
         alpha = 1000.0 * 1.0e9 / (c * B); // Convert from pt in GeV to curvature in mm
         this.B = B;
-        hpi = new HelixPlaneIntersect(alpha);
+        hpi = new HelixPlaneIntersect();
         this.verbose = verbose;
         this.origin = origin.copy();
         Vec yhat = new Vec(0., 1.0, 0.);
@@ -82,7 +82,7 @@ class StateVector {
         q.mPred = mPred;
         q.R = R;
         q.r = r;
-        q.hpi = new HelixPlaneIntersect(alpha);
+        q.hpi = new HelixPlaneIntersect();
         return q;
     }
 
@@ -121,43 +121,43 @@ class StateVector {
     // site
     StateVector predict(int newSite, Vec pivot, double B, Vec t, Vec origin, double XL, double deltaE) {
         // newSite = index of the new site
-        // pivot = pivot point of the new site in the local coordinates of this state
-        // vector
+        // pivot = pivot point of the new site in the local coordinates of this state vector
         // alpha = constant to transform from pt to radius of curvature
         // XL = thickness of the scattering material
         // deltaE = energy loss in the scattering material
         // Put the origin of the local coordinates of the new state vector at the pivot
         // point (makes drho and dz zero)
         StateVector aPrime = new StateVector(newSite, B, t, origin, verbose);
-        aPrime.X0 = new Vec(0., 0., 0.);
 
         double E = a.v[2] * Math.sqrt(1.0 + a.v[4] * a.v[4]);
         double deltaEoE = deltaE / E;
+        
+        // Transform helix in old coordinate system to new pivot point lying on the next detector plane
         if (deltaE == 0.) {
-            aPrime.a = pivotTransform(pivot);
+            aPrime.a = this.pivotTransform(pivot);
         } else {
-            aPrime.a = pivotTransform(pivot, deltaEoE);
+            aPrime.a = this.pivotTransform(pivot, deltaEoE);
         }
         // if (verbose) aPrime.a.print("pivot transformed helix; should have zero drho
         // and dz");
 
-        F = makeF(aPrime.a); // Derivatives of propagator from this site to the prime (next) site where we
-                             // are making the prediction
+        F = this.makeF(aPrime.a); // Calculate derivatives of the pivot transform                           
         if (deltaE != 0.) {
             double factor = 1.0 - deltaEoE;
             for (int i = 0; i < 5; i++) {
                 F.M[i][2] *= factor;
             }
         }
-
+        
         // Transform to the coordinate system of the field at the new site
-        RotMatrix Rt = Rot.invert().multiply(aPrime.Rot);
+        aPrime.X0 = aPrime.toLocal(this.toGlobal(pivot));
+        RotMatrix Rt = this.Rot.invert().multiply(aPrime.Rot);
         SquareMatrix fRot = new SquareMatrix(5);
         if (verbose) {
             Rt.print("rotation from old local frame to new local frame");
             aPrime.a.print("StateVector:predict helix before rotation");
         }
-        aPrime.a = rotateHelix(aPrime.a, Rt, fRot); // Derivative matrix fRot gets filled in here
+        aPrime.a = this.rotateHelix(aPrime.a, Rt, fRot); // Derivative matrix fRot gets filled in here
         if (verbose) {
             aPrime.a.print("StateVector:predict helix after rotation");
             fRot.print("fRot from StateVector:predict");
@@ -165,32 +165,42 @@ class StateVector {
         F = fRot.multiply(F);
 
         // Test the derivatives
-        /*
-         * if (verbose) { double daRel[] = {0.01,0.03,-0.02,0.05,-0.01}; StateVector
-         * aPda = copy(); for (int i=0; i<5; i++) aPda.a.v[i] = a.v[i]*(1.0+daRel[i]);
-         * Vec da = aPda.a.dif(a); StateVector aPrimeNew = copy(); aPrimeNew.a =
-         * aPda.pivotTransform(pivot); RotMatrix RtTmp =
-         * Rot.invert().multiply(aPrime.Rot); SquareMatrix fRotTmp = new
-         * SquareMatrix(5); aPrimeNew.a = rotateHelix(aPrimeNew.a, RtTmp, fRotTmp); for
-         * (int i=0; i<5; i++) { double deltaExact = aPrimeNew.a.v[i] - aPrime.a.v[i];
-         * double delta = 0.; for (int j=0; j<5; j++) { delta +=
-         * aPrimeNew.F.M[i][j]*da.v[j]; } System.out.
-         * format("Test of F: Helix parameter %d, deltaExact=%10.8f, delta=%10.8f\n", i,
-         * deltaExact, delta); } }
-         */
-
+        
+        if (verbose) {
+            double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
+            StateVector aPda = copy();
+            for (int i = 0; i < 5; i++)
+                aPda.a.v[i] = a.v[i] * (1.0 + daRel[i]);
+            Vec da = aPda.a.dif(a);
+            StateVector aPrimeNew = copy();
+            aPrimeNew.a = aPda.pivotTransform(pivot);
+            RotMatrix RtTmp = Rot.invert().multiply(aPrime.Rot);
+            SquareMatrix fRotTmp = new SquareMatrix(5);
+            aPrimeNew.a = rotateHelix(aPrimeNew.a, RtTmp, fRotTmp);
+            for (int i = 0; i < 5; i++) {
+                double deltaExact = aPrimeNew.a.v[i] - aPrime.a.v[i];
+                double delta = 0.;
+                for (int j = 0; j < 5; j++) {
+                    delta += F.M[i][j] * da.v[j];
+                }
+                System.out.format("Test of F: Helix parameter %d, deltaExact=%10.8f, delta=%10.8f\n", i, deltaExact, delta);
+            }
+        }
+        
         aPrime.kLow = newSite;
         aPrime.kUp = kUp;
 
         // Add the multiple scattering contribution for the silicon layer
+        // sigmaMS is the rms of the projected scattering angle
         double sigmaMS;
         if (XL == 0.)
             sigmaMS = 0.;
         else {
             double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
-            sigmaMS = (0.0136 / momentum) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
+            sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
+            if (verbose) System.out.format("StateVector.predict: momentum=%12.5e, sigmaMS=%12.5e\n", momentum, sigmaMS);
         }
-        SquareMatrix Ctot = C.sum(getQ(sigmaMS));
+        SquareMatrix Ctot = this.C.sum(this.getQ(sigmaMS));
 
         // Now propagate the multiple scattering matrix and covariance matrix to the new
         // site
@@ -272,33 +282,7 @@ class StateVector {
     // measurement plane
     double planeIntersect(Plane pIn) { // pIn is assumed to be defined in the global reference frame
         Plane p = pIn.toLocal(Rot, origin); // Transform the plane into the B-field local reference frame
-        /*
-         * if (verbose) { System.out.format("StateVector.planeIntersect:\n");
-         * pIn.print("of measurement global"); p.print("of measurement local");
-         * a.print("helix parameters"); X0.print("pivot");
-         * //Rot.print("from global to local coordinates");
-         * //origin.print("origin of local coordinates");
-         * System.out.format(" alpha=%10.7f, radius=%10.5f\n", alpha, alpha/a.v[2]); }
-         */
-        // Take as a starting guess the solution for the case that the plane orientation
-        // is exactly y-hat.
-        double arg = (a.v[2] / alpha) * ((a.v[0] + (alpha / a.v[2])) * Math.sin(a.v[1]) - (p.X().v[1] - X0.v[1]));
-        double phi0 = -a.v[1] + Math.asin(arg);
-        // if (verbose) System.out.format(" StateVector.planeIntersect: arg=%10.7f,
-        // phi=%10.7f\n", arg, phi0);
-        if (Double.isNaN(phi0) || p.T().v[1] == 1.0)
-            return phi0;
-
-        hpi.a = a;
-        hpi.X0 = X0;
-        hpi.p = p;
-        double dphi = 0.1;
-        double accuracy = 0.0000001;
-        double phi = hpi.rtSafe(phi0, phi0 - dphi, phi0 + dphi, accuracy); // Iterative solution for a general plane
-                                                                           // orientation
-        if (verbose)
-            System.out.format("StateVector.planeIntersect: phi0=%12.10f, phi=%12.10f\n", phi0, phi);
-        return phi;
+        return hpi.planeIntersect(a, X0, alpha, p);
     }
 
     // Multiple scattering matrix; assume a single thin scattering layer at the
@@ -504,15 +488,21 @@ class StateVector {
         fRot.M[4][1] = prod.M[2][0];
         fRot.M[4][2] = prod.M[2][1];
         fRot.M[4][4] = prod.M[2][2];
+
         /*
-         * if (verbose) { // derivative test Vec da = a.scale(0.005); Vec apda =
-         * a.sum(da); Vec ap = pTOa(R.rotate(aTOp(a)),a); Vec apdap =
-         * pTOa(R.rotate(aTOp(apda)),apda); Vec dap = apdap.dif(ap); Vec dap2 =
-         * da.leftMultiply(fRot);
-         * System.out.format("StateVector:rotateHelix: derivative test:\n");
-         * dap.print("actual difference in helix parameters");
-         * dap2.print("diff in helix params from derivatives"); }
-         */
+        if (verbose) { // derivative test
+            Vec da = a.scale(0.005);
+            Vec apda = a.sum(da);
+            Vec ap = pTOa(R.rotate(aTOp(a)), a);
+            Vec apdap = pTOa(R.rotate(aTOp(apda)), apda);
+            Vec dap = apdap.dif(ap);
+            Vec dap2 = da.leftMultiply(fRot);
+            System.out.format("StateVector:rotateHelix: derivative test:\n");
+            dap.print("actual difference in helix parameters");
+            dap2.print("diff in helix params from derivatives");
+        }
+        */
+
         return pTOa(p_prime, a);
     }
 
