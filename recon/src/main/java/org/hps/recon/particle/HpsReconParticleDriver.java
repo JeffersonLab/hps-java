@@ -16,7 +16,6 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseReconstructedParticle;
-import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
