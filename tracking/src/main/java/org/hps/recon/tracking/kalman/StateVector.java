@@ -317,19 +317,11 @@ class StateVector {
 
     // Transform the helix covariance to new pivot point (specified in local
     // coordinates)
-    SquareMatrix covariancePivotTransform(Vec pivot, Vec aP) {
+    SquareMatrix covariancePivotTransform(Vec aP) {
         // aP are the helix parameters for the new pivot point, assumed already to be
         // calculated by pivotTransform()
         SquareMatrix mF = makeF(aP);
         return C.similarity(mF);
-    }
-
-    // Transform the helix covariance to a pivot point at the origin
-    SquareMatrix covariancePivotTransform(Vec aP) {
-        // aP are the helix parameters for a pivot point at the origin, assumed already
-        // to be calculated by pivotTransform()
-        Vec pivot = origin.scale(-1.0);
-        return covariancePivotTransform(pivot, aP);
     }
 
     // Transform the helix to a pivot back at the global origin
@@ -441,11 +433,9 @@ class StateVector {
 
     // Transformation of a helix from one B-field frame to another, by rotation R
     Vec rotateHelix(Vec a, RotMatrix R, SquareMatrix fRot) {
-        // The rotation is easily applied to the momentum vector, so first we transform
-        // from helix parameters
+        // The rotation is easily applied to the momentum vector, so first we transform from helix parameters
         // to momentum, apply the rotation, and then transform back to helix parameters.
-        // The values for fRot, the corresponding derivative matrix, are also calculated
-        // and returned.
+        // The values for fRot, the corresponding derivative matrix, are also calculated and returned.
         Vec p_prime = R.rotate(aTOp(a));
 
         SquareMatrix dpda = new SquareMatrix(3);

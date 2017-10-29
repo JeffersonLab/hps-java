@@ -34,14 +34,15 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         // HelixParams.print("helix constructor helix parameters");
         // X0.print("Helix constructor: pivot in B-field frame");
         // Bf.print("Helix constructor: B field");
-        tB = Bf.unitVec();
+        tB = Bf.unitVec(B);
         Vec yhat = new Vec(0., 1.0, 0.);
         uB = yhat.cross(tB).unitVec();
         vB = tB.cross(uB);
         R = new RotMatrix(uB, vB, tB);
-        hpi = new HelixPlaneIntersect();
+        //R.print("new helix rotation matrix");
         X0 = R.rotate(pivotGlobal.dif(origin));
-        //origin.print("new helix oring");
+        hpi = new HelixPlaneIntersect();
+        //origin.print("new helix origin");
         //pivotGlobal.print("new helix pivot global");
         //X0.print("new helix pivot");
     }
@@ -159,26 +160,25 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
 
     Helix randomScat(Plane P, double X) { // Produce a new helix scattered randomly in a given plane P
         // X is the thickness of the silicon material in meters
-        double phi = planeIntersect(P); // Here the plane P is assumed to be given in global coordinates
+        double phi = this.planeIntersect(P); // Here the plane P is assumed to be given in global coordinates
         // p.print("randomScat: helix parameters before scatter");
 
-        Vec r = atPhiGlobal(phi);
-        // double tst = r.dif(P.X()).dot(P.T());
-        // System.out.format("randomScat: test dot product %12.6e should be zero\n", tst);
+        Vec r = this.atPhiGlobal(phi);
+        double tst = r.dif(P.X()).dot(P.T());
+        //System.out.format("randomScat: test dot product %12.6e should be zero\n", tst);
         Vec Bf = fM.getField(r);
         double Bnew = Bf.mag();
-        Vec tBnew = Bf.unitVec();
+        Vec tBnew = Bf.unitVec(Bnew);
         // r.print("randomScat: r global");
         Vec pmom = getMomGlobal(phi);
-        // pmom.print("randomScat: p global");
+        //pmom.print("randomScat: p global");
         Vec t = pmom.unitVec();
-        // System.out.format("randomScat: original direction in global
-        // coordinates=%10.7f, %10.7f, %10.7f\n", t.v[0],t.v[1],t.v[2]);
+        //System.out.format("randomScat: original direction in global coordinates=%10.7f, %10.7f, %10.7f\n", t.v[0],t.v[1],t.v[2]);
         Vec zhat = new Vec(0., 0., 1.);
         Vec uhat = t.cross(zhat).unitVec(); // A unit vector u perpendicular to the helix direction
         Vec vhat = t.cross(uhat);
         RotMatrix R = new RotMatrix(uhat, vhat, t);
-        // t.print("initial helix direction in Helix.randomScat");
+        //t.print("initial helix direction in Helix.randomScat");
         // R.print("rotation matrix in Helix.randomScat");
         double ct = Math.abs(P.T().dot(t));
         double theta0;
@@ -190,47 +190,39 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         double[] gran = gausRan();
         double thetaX = gran[0] * theta0;
         double thetaY = gran[1] * theta0;
-        // System.out.format("Helix.randomScat: X=%12.5e, ct=%12.5e, theta0=%12.5e, thetaX=%12.5e, thetaY=%12.5e\n",
-        // X,ct,theta0,thetaX,thetaY);
+        //System.out.format("Helix.randomScat: X=%12.5e, ct=%12.5e, theta0=%12.5e, thetaX=%12.5e, thetaY=%12.5e\n",X,ct,theta0,thetaX,thetaY);
         double tx = Math.sin(thetaX);
         double ty = Math.sin(thetaY);
         Vec tLoc = new Vec(tx, ty, Math.sqrt(1.0 - tx * tx - ty * ty));
         // tLoc.print("tLoc in Helix.randomScat");
         Vec tnew = R.inverseRotate(tLoc);
-        // tnew.print("tnew in Helix.randomScat");
-        // System.out.format("tnew dot tnew= %14.10f\n", tnew.dot(tnew));
-        // System.out.format("t dot tnew= %14.10f\n", t.dot(tnew));
-        // double check = Math.acos(t.dot(tnew));
-        // System.out.format("recalculated scattered angle=%10.7f\n", check);
+        //tnew.print("tnew in Helix.randomScat");
+        //System.out.format("tnew dot tnew= %14.10f\n", tnew.dot(tnew));
+        //System.out.format("t dot tnew= %14.10f\n", t.dot(tnew));
+        double check = Math.acos(Math.min(t.dot(tnew),1.));
+        //System.out.format("recalculated scattered angle=%10.7f\n", check);
+        
+        // Rotate the direction into the frame of the new field (evaluated at the new pivot)
+        Vec yhat = new Vec(0.,1.,0.);
+        Vec uBnew = yhat.cross(tBnew).unitVec();
+        Vec vBnew = tBnew.cross(uBnew);
+        RotMatrix RB = new RotMatrix(uBnew, vBnew, tBnew);
+        //RB.print("randomscat: field rotation matrix");
+        tnew = RB.rotate(tnew);
 
         double E = pmom.mag(); // Everything is assumed electron
         double sp = 0.0; // 0.002; // Estar collision stopping power for electrons in silicon at about a
                          // GeV, in GeV cm2/g
         double dEdx = 0.1 * sp * rho; // in GeV/mm
         double eLoss = dEdx * X / ct;
-        // System.out.format("randomScat: energy=%10.7f, energy loss=%10.7f\n", E,
-        // eLoss);
+        // System.out.format("randomScat: energy=%10.7f, energy loss=%10.7f\n", E, eLoss);
         E = E - eLoss;
         double tanl = tnew.v[2] / Math.sqrt(1.0 - tnew.v[2] * tnew.v[2]);
         double pt = E / Math.sqrt(1.0 + tanl * tanl);
         double K = Q / pt;
         double phi0 = Math.atan2(-tnew.v[0], tnew.v[1]);
-        Vec H = new Vec(0., phi0, K, 0., tanl); // Pivot point is on the helix, at the plane intersection point, so drho
-                                                // and dz are zero
-        // H.print("scattered helix parameters");
-        /*
-         * // Testing of the pivot transformation equations: double [] aP = pivotTransform(r.v, p, B);
-         * System.out.format("Comparing transformations:\n"); for (int i=0; i<5; i++) { System.out.format("     %d   %10.6f    %10.6f\n", i,
-         * H[i], aP[i]); }
-         * 
-         * Matrix5 F = makeF(aP, p, B); // analytic derivatives
-         * 
-         * double [] dP = new double [5]; double [] ppdP = new double [5]; for (int i=0; i<5; i++) { dP[i] = p[i]*0.1; ppdP[i] = p[i] +
-         * dP[i]; } double [] aPpdP = pivotTransform(r.v, ppdP, B); double [] N = new double[5]; // numerical estimates from derivatives for
-         * (int i=0; i<5; i++) { N[i] = aP[i]; for (int j=0; j<5; j++) { N[i] = N[i] + F.M[i][j] * dP[j]; } }
-         * System.out.format("Comparing with numerical difference:\n"); for (int i=0; i<5; i++) {
-         * System.out.format("     %d   %10.6f    %10.6f\n", i, aPpdP[i], N[i]); }
-         */
+        Vec H = new Vec(0., phi0, K, 0., tanl); // Pivot point is on the helix, at the plane intersection point, so drho and dz are zero
+        // H.print("scattered helix parameters");  
  
         return new Helix(H, r, P.X(), fM); // Create the new helix with new origin and pivot point
     }
