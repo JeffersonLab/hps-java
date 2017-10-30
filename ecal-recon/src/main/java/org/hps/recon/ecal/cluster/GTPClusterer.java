@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.hps.recon.ecal.TempOutputWriter;
-import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -108,16 +106,6 @@ public class GTPClusterer extends AbstractClusterer {
      * @param hits - A list of <code>CalorimeterHit</code> objects from which clusters should be formed.
      */
     public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits) {
-		StringBuffer outputBuffer = new StringBuffer();
-		outputBuffer.append("Clustering...\n");
-    	/*
-        writer.write("> Event " + event.getEventNumber() + " - ???");
-		writer.write("Input");
-		seedWriter.write("> Event " + event.getEventNumber() + " - ???");
-		seedWriter.write("Input");
-        System.out.println("Old Clusterer -- Event " + event.getEventNumber() +" -- Current Time is ???");
-        */
-        
         // Store each hit in a set by its cell ID so that it may be
         // easily acquired later.
         HashMap<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();
@@ -157,18 +145,6 @@ public class GTPClusterer extends AbstractClusterer {
         }
 
         // Return the clusters.
-		if(!clusterList.isEmpty()) {
-	        writer.write(outputBuffer.toString());
-	        writer.write("Saw " + clusterList.size() + " old clusters.");
-	        for(Cluster cluster : clusterList) {
-				writer.write(String.format("%f;%f;%f;%d", cluster.getEnergy(), TriggerModule.getClusterTime(cluster), TriggerModule.getClusterHitCount(cluster),
-						TriggerModule.getClusterSeedHit(cluster).getCellID()));
-				for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
-					writer.write(String.format("\t\t\t%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-				}
-			}
-	        writer.write("\n\n");
-		}
         return clusterList;
     }
 
@@ -202,7 +178,6 @@ public class GTPClusterer extends AbstractClusterer {
         int bufferSize = (2 * clusterWindow) + 1;
         for (int i = 0; i < bufferSize; i++) {
             hitBuffer.add(new HashMap<Long, CalorimeterHit>(0));
-            hitNumBuffer.add(-1);
         }
     }
 
