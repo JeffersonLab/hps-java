@@ -171,12 +171,24 @@ public class SimpleSvtReadout extends TriggerableDriver {
      */
     @Override
     public void process(EventHeader event) {
+    	System.out.println("\n\n==== Starting SimpleSvtReadout Method process(EventHeader)");
+    	
+    	
         super.process(event);
 
         List<StripHit> stripHits = doSiSimulation();
+        System.out.println("Got StripHits:");
+        for(StripHit hit : stripHits) {
+        	System.out.printf("\tStripHit with amplitude %f at time %f on channel %d on sensor %s.%n",
+        			hit.amplitude, hit.time, hit.channel, hit.sensor.getName());
+        }
 
         if (!noPileup) {
+        	System.out.println("Starting pile-up processing...");
             for (StripHit stripHit : stripHits) {
+            	System.out.printf("\nConsidering StripHit with amplitude %f at time %f on channel %d on sensor %s.%n",
+            			stripHit.amplitude, stripHit.time, stripHit.channel, stripHit.sensor.getName());
+            	
                 SiSensor sensor = stripHit.sensor;
                 int channel = stripHit.channel;
 
@@ -188,13 +200,16 @@ public class SimpleSvtReadout extends TriggerableDriver {
             }
 
             // dump stale hits
+            System.out.println("Dumping stale hits...");
             for (SiSensor sensor : sensors) {
                 PriorityQueue<StripHit>[] hitQueues = hitMap.get(sensor);
                 for (int i = 0; i < hitQueues.length; i++) {
                     if (hitQueues[i] != null) {
                         while (!hitQueues[i].isEmpty() && hitQueues[i].peek().time < ClockSingleton.getTime() - (readoutLatency + pileupCutoff)) {
                             //System.out.format("Time %f: Dump stale hit with time %f\n",ClockSingleton.getTime(),hitQueues[i].peek().time);
-                            hitQueues[i].poll();
+                            StripHit hit = hitQueues[i].poll();
+                        	System.out.printf("\tStripHit with amplitude %f at time %f on channel %d on sensor %s.%n",
+                        			hit.amplitude, hit.time, hit.channel, hit.sensor.getName());
                         }
                         if (hitQueues[i].isEmpty()) {
                             hitQueues[i] = null;
@@ -206,11 +221,15 @@ public class SimpleSvtReadout extends TriggerableDriver {
             // If an ECal trigger is received, make hits from pipelines
             checkTrigger(event);
         } else {
-
+        	System.out.println("Starting no pile-up processing...");
+        	
             // Create a list to hold the analog data
             List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
 
             for (StripHit stripHit : stripHits) {
+            	System.out.printf("\nConsidering StripHit with amplitude %f at time %f on channel %d on sensor %s.%n",
+            			stripHit.amplitude, stripHit.time, stripHit.channel, stripHit.sensor.getName());
+            	
                 HpsSiSensor sensor = (HpsSiSensor) stripHit.sensor;
                 int channel = stripHit.channel;
                 double amplitude = stripHit.amplitude;
@@ -220,9 +239,23 @@ public class SimpleSvtReadout extends TriggerableDriver {
                 for (int sampleN = 0; sampleN < 6; sampleN++) {
                     signal[sampleN] = sensor.getPedestal(channel, sampleN);
                 }
+                System.out.println("Adding pedestal to sample...");
+                System.out.print("\t");
+                for(short sample : samples) {
+                	System.out.print(sample + "   ");
+                }
+                System.out.println();
+                
                 if (addNoise) {
                     addNoise(sensor, channel, signal);
+                    System.out.println("Adding noise to sample...");
+                    System.out.print("\t");
+                    for(short sample : samples) {
+                    	System.out.print(sample + "   ");
+                    }
+                    System.out.println();
                 }
+                
 
                 for (int sampleN = 0; sampleN < 6; sampleN++) {
                     double time = sampleN * HPSSVTConstants.SAMPLING_INTERVAL - timeOffset;
@@ -233,16 +266,36 @@ public class SimpleSvtReadout extends TriggerableDriver {
                         System.out.println("\t\tMaking samples: sample#" + sampleN + " has " + samples[sampleN] + " ADC counts");
                     }
                 }
+                System.out.println("Adding pulse to sample...");
+                System.out.print("\t");
+                for(short sample : samples) {
+                	System.out.print(sample + "   ");
+                }
+                System.out.println();
 
                 long channel_id = sensor.makeChannelID(channel);
                 RawTrackerHit hit = new BaseRawTrackerHit(0, channel_id, samples, new ArrayList<SimTrackerHit>(stripHit.simHits), sensor);
+                System.out.printf("Produced RawTrackerHit on channel %d with ADC [ %d, %d, %d, %d, %d, %d ].%n",
+                		hit.getCellID(), hit.getADCValues()[0], hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3],
+                		hit.getADCValues()[5], hit.getADCValues()[6]);
                 if (readoutCuts(hit)) {
+                	System.out.println("Hit passed cuts, added to list.");
                     hits.add(hit);
+                } else {
+                	System.out.println("Hit failed cuts, ignored.");
                 }
             }
 
             int flags = 1 << LCIOConstants.TRAWBIT_ID1;
             // flags += 1 << LCIOConstants.RTHBIT_HITS;
+            System.out.printf("Output collection \"%s\" of type %s with flags %s and readout %s.%n",
+            		outputCollection, RawTrackerHit.class.getSimpleName(), Integer.toBinaryString(flags), readout);
+            for(RawTrackerHit hit : hits) {
+            	 System.out.printf("\tRawTrackerHit on channel %d with ADC [ %d, %d, %d, %d, %d, %d ].%n",
+                 		hit.getCellID(), hit.getADCValues()[0], hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3],
+                 		hit.getADCValues()[5], hit.getADCValues()[6]);
+            }
+            
             event.put(outputCollection, hits, RawTrackerHit.class, flags, readout);
             if (verbosity >= 1) {
                 System.out.println("Made " + hits.size() + " RawTrackerHits");
