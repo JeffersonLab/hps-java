@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout.util;
 
 /**
  * Class <code>DoubleRingBUffer</code> is an implementation of {@link

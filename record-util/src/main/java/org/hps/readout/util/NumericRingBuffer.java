@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout.util;
 
 import java.lang.reflect.Array;
 import java.util.Iterator;

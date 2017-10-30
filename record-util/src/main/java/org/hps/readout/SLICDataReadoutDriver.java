@@ -1,21 +1,36 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hps.readout.ReadoutDataManager;
+import org.hps.readout.ReadoutDriver;
 import org.lcsim.event.EventHeader;
 
 public class SLICDataReadoutDriver<E> extends ReadoutDriver {
+	protected final int flags;
 	protected final Class<E> type;
 	protected String collectionName = null;
+	protected TempOutputWriter writer = null;
 	
-	SLICDataReadoutDriver(Class<E> classType) {
+	protected SLICDataReadoutDriver(Class<E> classType) {
+		this(classType, 0);
+	}
+	
+	protected SLICDataReadoutDriver(Class<E> classType, int flags) {
 		type = classType;
+		this.flags = flags;
 	}
 	
 	@Override
 	public void startOfData() {
-		ReadoutDataManager.registerCollection(collectionName, this, type);
+		ReadoutDataManager.registerCollection(collectionName, this, type, flags);
+		writer = new TempOutputWriter(collectionName + ".log");
+	}
+	
+	@Override
+	public void endOfData() {
+		writer.close();
 	}
 	
 	@Override
@@ -29,6 +44,8 @@ public class SLICDataReadoutDriver<E> extends ReadoutDriver {
 			slicData = new ArrayList<E>(0);
 		}
 		
+		writeData(slicData);
+		
 		// Add the SLIC data to the readout data manager.
 		ReadoutDataManager.addData(collectionName, slicData, type);
 	}
@@ -40,5 +57,9 @@ public class SLICDataReadoutDriver<E> extends ReadoutDriver {
 	
 	public void setCollectionName(String collection) {
 		collectionName = collection;
+	}
+	
+	protected void writeData(List<E> data) {
+		
 	}
 }

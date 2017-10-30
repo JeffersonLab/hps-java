@@ -1,5 +1,7 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -7,36 +9,54 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Set;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.readout.util.LcsimCollectionData;
+import org.hps.readout.util.LcsimSingleEventCollectionData;
+import org.hps.readout.util.TimedList;
+import org.hps.readout.util.TriggerTime;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.base.BaseLCSimEvent;
+import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.util.Driver;
 
 public class ReadoutDataManager extends Driver {
 	private static double deadTime = 0.0;
 	private static double lastTrigger = Double.MIN_VALUE;
-	private static double readoutWindow = 200;
+	private static int readoutWindow = 200;
 	private static double triggerTimeDisplacement = 50;
 	private static final double BEAM_BUNCH_SIZE = 2.0;
 	private static double currentTime = 0.0;
-	private static final Map<String, CollectionData<?>> collectionMap = new HashMap<String, CollectionData<?>>();
-	
-	/*
-	private static final Map<String, Class<?>> collectionTypeMap = new HashMap<String, Class<?>>();
-	private static final Map<String, Double> timeDisplacementMap = new HashMap<String, Double>();
-	private static final Map<String, ReadoutDriver> collectionSourceMap = new HashMap<String, ReadoutDriver>();
-	private static final Map<String, Integer> collectionFlagMap = new HashMap<String, Integer>();
-	private static final Map<String, LinkedList<TimedList<?>>> collectionDataMap = new HashMap<String, LinkedList<TimedList<?>>>();
-	*/
+	private static String largestDisplacement = null;
+	private static final Set<ReadoutDriver> driverSet = new HashSet<ReadoutDriver>();
+	private static final Map<String, LcsimCollectionData<?>> collectionMap = new HashMap<String, LcsimCollectionData<?>>();
 	private static final Map<ReadoutDriver, Double> triggerTimeDisplacementMap = new HashMap<ReadoutDriver, Double>();
 	private static final PriorityQueue<TriggerTime> triggerQueue = new PriorityQueue<TriggerTime>();
 	
 	private static final StringBuffer debugBuffer = new StringBuffer();
+	
+	private static LCIOWriter outputWriter = null;
+	
+	@Override
+	public void startOfData() {
+		try { outputWriter = new LCIOWriter(new File("C:\\cygwin64\\home\\Kyle\\newReadout.slcio")); }
+		catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException();
+		}
+	}
+	
+	@Override
+	public void endOfData() {
+		try { outputWriter.close(); }
+		catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException();
+		}
+	}
 	
 	@Override
 	public void process(EventHeader event) {
@@ -45,18 +65,11 @@ public class ReadoutDataManager extends Driver {
 		// Check the trigger queue.
 		if(!triggerQueue.isEmpty()) {
 			System.out.println("A trigger is queued for time " + triggerQueue.peek().getTriggerWriteTime() + "; it is now " + getCurrentTime() + ".");
+			System.out.println("The most displaced trigger collection, \"" + largestDisplacement + ",\" is at time "
+					+ (getCurrentTime() - collectionMap.get(largestDisplacement).getGlobalTimeDisplacement()));
 			
 			// Check the earliest possible trigger write time.
-			boolean isWritable = true;
-			for(String outputCollection : collectionMap.keySet()) {
-				System.out.print("\tCollection \"" + outputCollection + "\" is ");
-				if(!checkCollectionStatus(outputCollection, triggerQueue.peek().getTriggerWriteTime())) {
-					System.out.println("not ready for readout.");
-					isWritable = false;
-					break;
-				}
-				System.out.println("ready for readout.");
-			}
+			boolean isWritable = checkCollectionStatus(largestDisplacement, triggerQueue.peek().getTriggerWriteTime());
 			
 			// If all collections are available to be written, the
 			// event should be output.
@@ -71,14 +84,43 @@ public class ReadoutDataManager extends Driver {
 				EventHeader lcsimEvent = new BaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(),
 						triggerEventNumber, event.getDetectorName(), (long) 4 * (Math.round(trigger.getTriggerTime() / 4)), false);
 				
-				int tempFlags = 0xe0000000;
-				for(Entry<String, CollectionData<?>> entry : collectionMap.entrySet()) {
-					System.out.println("\tWriting collection \"" + entry.getKey() + ".");
-					// DEBUG :: Only store the calorimeter truth hits for now.
-					if(entry.getKey().compareTo("EcalHits") == 0) {
-						storeCollection(entry.getKey(), trigger.getTriggerWriteTime() - readoutWindow, trigger.getTriggerWriteTime(),
-								entry.getValue(), tempFlags, lcsimEvent);
+				// Calculate the readout window time range.
+				double startTime = trigger.getTriggerTime() - triggerTimeDisplacement;
+				double endTime = startTime + readoutWindow;
+				
+				// Write out the writable collections into the event.
+				for(LcsimCollectionData<?> collectionData : collectionMap.values()) {
+					// Ignore any collections that are not set to be persisted.
+					if(!collectionData.isPersistent()) {
+						System.out.println("Ignoring collection \"" + collectionData.getCollectionName() + "\" - It is transient.");
+						continue;
 					}
+					
+					// Persisted collection should be added to event
+					// within the readout window time range.
+					storeCollection(startTime, endTime, collectionData, lcsimEvent);
+				}
+				
+				// Write out any special on-trigger collections into
+				// the event as well.
+				for(ReadoutDriver driver : driverSet) {
+					// Get the special collection(s) from the current
+					// driver, if it exists.
+					Collection<LcsimSingleEventCollectionData<?>> onTriggerData = driver.getOnTriggerData(trigger.getTriggerTime());
+					
+					// If there are special collections, write them.
+					if(onTriggerData != null) {
+						for(LcsimSingleEventCollectionData<?> triggerData : onTriggerData) {
+							storeCollection(triggerData, lcsimEvent);
+						}
+					}
+				}
+				
+				// Write the event to the output file.
+				try { outputWriter.write(lcsimEvent); }
+				catch (IOException e) {
+					e.printStackTrace();
+					throw new RuntimeException();
 				}
 			}
 		}
@@ -90,34 +132,61 @@ public class ReadoutDataManager extends Driver {
 		currentTime += BEAM_BUNCH_SIZE;
 	}
 	
-	private static final <T> void storeCollection(String collectionName, double startTime, double endTime,
-			CollectionData<T> collectionData, int flags, EventHeader event) {
+	private static final <T> void storeCollection(double startTime, double endTime, LcsimCollectionData<T> collectionData, EventHeader event) {
+		// Get the trigger window data.
+		List<T> triggerData = getDataList(startTime, endTime, collectionData.getCollectionName(), collectionData.getObjectType());
+		
+		// Store the trigger window data.
+		storeCollection(collectionData.getCollectionName(), collectionData.getObjectType(), collectionData.getFlags(), collectionData.getReadoutName(),
+				triggerData, event);
+	}
+	
+	private static final <T> void storeCollection(LcsimSingleEventCollectionData<T> collectionData, EventHeader event) {
+		storeCollection(collectionData.getCollectionName(), collectionData.getObjectType(), collectionData.getFlags(), collectionData.getReadoutName(),
+				collectionData.getData(), event);
+	}
+	
+	private static final <T> void storeCollection(String collectionName, Class<T> objectType, int flags, String readoutName,
+			List<T> collectionData, EventHeader event) {
 		// DEBUG :: Test the object type.
-		System.out.println("Output collection type is " + collectionData.getObjectType().getSimpleName());
-		
-		// Get the data.
-		Collection<T> data = getData(startTime, endTime, collectionName, collectionData.getObjectType());
-		
-		// Transfer the data into a list object.
-		List<T> dataList = null;
-		if(data instanceof List) {
-			dataList = (List<T>) data;
-		} else {
-			dataList = new ArrayList<T>(data.size());
-			dataList.addAll(data);
-		}
+		System.out.println("Output collection type is " + objectType.getSimpleName());
 		
 		// Place the data into the LCSim event.
-		event.put(collectionName, dataList, collectionData.getObjectType(), flags);
-		System.out.println("Adding collection \"" + collectionName + "\" of size " + data.size() + " of type "
-				+ collectionData.getObjectType().getSimpleName() + ".");
+		if(readoutName == null) {
+			event.put(collectionName, collectionData, objectType, flags);
+		} else {
+			event.put(collectionName, collectionData, objectType, flags, readoutName);
+		}
+		System.out.println("Adding collection \"" + collectionName + "\" of size " + collectionData.size() + " of type " + objectType.getSimpleName() + ".");
+		for(T element : collectionData) {
+			if(element instanceof Cluster) {
+				System.out.println("\tCluster Hits: " + ((Cluster) element).getCalorimeterHits().size());
+			}
+		}
 	}
 	
 	public static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType) {
-		registerCollection(collectionName, productionDriver, objectType, 0);
+		registerCollection(collectionName, productionDriver, objectType, 0, null, true);
+	}
+	
+	public static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, boolean persistent) {
+		registerCollection(collectionName, productionDriver, objectType, 0, null, persistent);
 	}
 	
 	public static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, int flags) {
+		registerCollection(collectionName, productionDriver, objectType, flags, null, true);
+	}
+	
+	public static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, int flags, boolean persistent) {
+		registerCollection(collectionName, productionDriver, objectType, flags, null, persistent);
+	}
+	
+	public static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, int flags, String readoutName) {
+		registerCollection(collectionName, productionDriver, objectType, flags, readoutName, true);
+	}
+	
+	private static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, int flags, String readoutName,
+			boolean persistent) {
 		// Make sure that all arguments are defined.
 		if(collectionName == null) {
 			throw new IllegalArgumentException("Error: Collection name must be defined.");
@@ -134,16 +203,22 @@ public class ReadoutDataManager extends Driver {
 		
 		// Create a collection data object.
 		double tempTime = getTotalTimeDisplacement(collectionName, productionDriver);
-		CollectionData<T> collectionData = new CollectionData<T>(collectionName, productionDriver, objectType, tempTime, flags);
+		LcsimCollectionData<T> collectionData = new LcsimCollectionData<T>(collectionName, productionDriver, objectType, persistent, tempTime, flags, readoutName);
 		collectionMap.put(collectionName, collectionData);
 		
-		/*
-		// Input the collection into the data maps.
-		collectionTypeMap.put(collectionName, objectType);
-		collectionSourceMap.put(collectionName, productionDriver);
-		collectionDataMap.put(collectionName, new LinkedList<TimedList<?>>());
-		timeDisplacementMap.put(collectionName, tempTime);
-		*/
+		// Track which collection has the largest time displacement.
+		// This only applied if the registered collection is to be
+		// persisted.
+		if(persistent) {
+			if(largestDisplacement == null) {
+				largestDisplacement = collectionName;
+			} else if(tempTime > collectionMap.get(largestDisplacement).getGlobalTimeDisplacement()) {
+				largestDisplacement = collectionName;
+			}
+		}
+		
+		// Store the readout driver in the driver set.
+		driverSet.add(productionDriver);
 		
 		// DEBUG
 		debugBuffer.append("Registered readout collection \"" + collectionName + "\" of object type " + objectType.getSimpleName() + "."
@@ -179,7 +254,7 @@ public class ReadoutDataManager extends Driver {
 		}
 		
 		// Get the collection data object.
-		CollectionData<?> collectionData = collectionMap.get(collectionName);
+		LcsimCollectionData<?> collectionData = collectionMap.get(collectionName);
 		
 		// Validate that the data type is correct.
 		if(collectionData.getObjectType() != dataType) {
@@ -217,9 +292,9 @@ public class ReadoutDataManager extends Driver {
 		return BEAM_BUNCH_SIZE;
 	}
 	
-	public static final <T> Collection<T> getData(double startTime, double endTime, String collectionName, Class<T> objectType) {
+	public static final <T> List<T> getDataList(double startTime, double endTime, String collectionName, Class<T> objectType) {
 		// Get the collection data.
-		CollectionData<?> collectionData = collectionMap.get(collectionName);
+		LcsimCollectionData<?> collectionData = collectionMap.get(collectionName);
 		
 		// Verify that the a collection of the indicated name exists
 		// and that it is the appropriate object type.
@@ -255,6 +330,10 @@ public class ReadoutDataManager extends Driver {
 		return outputList;
 	}
 	
+	public static final <T> Collection<T> getData(double startTime, double endTime, String collectionName, Class<T> objectType) {
+		return getDataList(startTime, endTime, collectionName, objectType);
+	}
+	
 	public static final boolean checkCollectionStatus(String collectionName, double time) {
 		// Verify that the requested collection exists.
 		if(!collectionMap.containsKey(collectionName)) {
@@ -267,28 +346,19 @@ public class ReadoutDataManager extends Driver {
 		return time <= getCurrentTime() - collectionMap.get(collectionName).getGlobalTimeDisplacement();
 	}
 	
+	public static final int getReadoutWindow() {
+		return readoutWindow;
+	}
+	
 	public static final void sendTrigger(ReadoutDriver driver) {
-		/*
-		System.out.println("ReadoutDataManager -- Event ??? -- Current Time is " + getCurrentTime());
-		System.out.println("\tOutputting MCParticle collection:");
-		for(TimedList<?> particleList : collectionDataMap.get("MCParticle")) {
-			System.out.println("\t\tTime = " + particleList.getTime());
-			for(Object objParticle : particleList) {
-				org.lcsim.event.MCParticle particle = (org.lcsim.event.MCParticle) objParticle;
-				System.out.println("\t\t\tParticle with momentum " + particle.getMomentum().magnitude() + " and time " + particle.getProductionTime()
-						+ " with charge " + particle.getCharge() + " and PID " + particle.getPDGID() + ".");
-			}
-		}
-		
 		// Calculate the trigger and readout times.
 		double triggerTime = getCurrentTime() - triggerTimeDisplacementMap.get(driver);
-		double readoutTime = getCurrentTime() + (readoutWindow - triggerTimeDisplacement);
+		double readoutTime = triggerTime + (readoutWindow - triggerTimeDisplacement); //getCurrentTime() + (readoutWindow - triggerTimeDisplacement);
 		
 		// Add the trigger to the trigger queue.
 		triggerQueue.add(new TriggerTime(triggerTime, readoutTime, driver));
 		System.out.println("Added trigger to queue with trigger time " + triggerTime + " and readout time " + readoutTime + " from driver "
 				+ driver.getClass().getSimpleName() + ".");
-		*/
 	}
 	
 	private static final double getTotalTimeDisplacement(String collectionName, ReadoutDriver productionDriver) {
@@ -331,7 +401,7 @@ public class ReadoutDataManager extends Driver {
 			}
 			
 			// Get the collection data for the dependency.
-			CollectionData<?> collectionData = collectionMap.get(dependency);
+			LcsimCollectionData<?> collectionData = collectionMap.get(dependency);
 			
 			// Check that this dependency does not depend on the
 			// higher driver.

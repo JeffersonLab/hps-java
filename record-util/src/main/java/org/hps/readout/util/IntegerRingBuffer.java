@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout.util;
 
 /**
  * Class <code>IntegerRingBuffer</code> is an implementation of

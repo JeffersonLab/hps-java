@@ -1,25 +1,27 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout.util;
 
-class TriggerTime implements Comparable<TriggerTime> {
+import org.hps.readout.ReadoutDriver;
+
+public class TriggerTime implements Comparable<TriggerTime> {
 	private final double time;
 	private final double writeTime;
 	private final ReadoutDriver trigger;
 	
-	TriggerTime(double time, double writeTime, ReadoutDriver trigger) {
+	public TriggerTime(double time, double writeTime, ReadoutDriver trigger) {
 		this.time = time;
 		this.writeTime = writeTime;
 		this.trigger = trigger;
 	}
 	
-	double getTriggerTime() {
+	public double getTriggerTime() {
 		return time;
 	}
 	
-	double getTriggerWriteTime() {
+	public double getTriggerWriteTime() {
 		return writeTime;
 	}
 	
-	ReadoutDriver getTriggeringDriver() {
+	public ReadoutDriver getTriggeringDriver() {
 		return trigger;
 	}
 	
