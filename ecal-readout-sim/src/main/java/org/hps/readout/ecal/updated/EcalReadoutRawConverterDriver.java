@@ -7,6 +7,9 @@ import java.util.List;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.readout.ReadoutDataManager;
+import org.hps.readout.ReadoutDriver;
+import org.hps.readout.TempOutputWriter;
 import org.hps.recon.ecal.EcalRawConverter;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -147,13 +150,14 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
 		// TODO: This collection is probably not persisted -- if not, this can be ignored.
 		// Set the LCIO flags for the output collection. Flags are
 		// set to store the hit time and hit position respectively.
-		setLCIOFlag(LCIOConstants.RCHBIT_TIME, true);
-		setLCIOFlag(LCIOConstants.RCHBIT_LONG, true);
+        int flags = 0;
+        flags += 1 << LCIOConstants.RCHBIT_TIME;
+        flags += 1 << LCIOConstants.RCHBIT_LONG;
 		
 		// Set the dependencies for the driver and register its
 		// output collections with the data management driver.
 		addDependency(inputCollectionName);
-		ReadoutDataManager.registerCollection(outputCollectionName, this, CalorimeterHit.class);
+		ReadoutDataManager.registerCollection(outputCollectionName, this, CalorimeterHit.class, flags, false);
 	}
 	
 	@Override

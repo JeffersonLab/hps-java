@@ -2,6 +2,9 @@ package org.hps.readout.ecal.updated;
 
 import java.util.Collection;
 
+import org.hps.readout.ReadoutDataManager;
+import org.hps.readout.ReadoutDriver;
+import org.hps.readout.TempOutputWriter;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -71,6 +74,14 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 	private IHistogram1D[] clusterTotalEnergy = new IHistogram1D[2];
 	private IHistogram2D[] clusterDistribution = new IHistogram2D[2];
 	
+	
+	private final TempOutputWriter writer = new TempOutputWriter("triggers_new.log");
+	
+	@Override
+	public void endOfData() {
+		writer.close();
+	}
+	
 	@Override
 	public void detectorChanged(Detector detector) {
 		// Get the calorimeter sub-detector.
@@ -101,6 +112,13 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 			System.out.println("\t\tSaw cluster with energy " + cluster.getEnergy() + " at time " + TriggerModule.getClusterTime(cluster) + " with "
 					+ TriggerModule.getClusterHitCount(cluster) + " hit on channel " + TriggerModule.getClusterSeedHit(cluster).getCellID() + ".");
 		}
+		
+		writer.write("Saw " + clusters.size() + " new clusters.");
+		for(Cluster cluster : clusters) {
+			writer.write(String.format("%f;%f;%f;%d", cluster.getEnergy(), TriggerModule.getClusterTime(cluster), TriggerModule.getClusterHitCount(cluster),
+					TriggerModule.getClusterSeedHit(cluster).getCellID()));
+		}
+		writer.write("\n\n");
 		
 		// Track whether or not a trigger was seen.
 		boolean triggered = false;
@@ -145,6 +163,7 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 		}
 		
 		if(triggered) {
+			writer.write("Triggered");
 			System.out.println("\tTriggered!");
 			ReadoutDataManager.sendTrigger(this);
 		}
@@ -154,6 +173,9 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 	public void startOfData() {
 		// Define the driver collection dependencies.
 		addDependency(inputCollectionName);
+		
+		// Register the trigger.
+		ReadoutDataManager.registerTrigger(this);
 		
 		// Set the plot range based on the beam energy.
 		int bins = (int) Math.ceil((beamEnergy * 1.1) / BIN_SIZE);

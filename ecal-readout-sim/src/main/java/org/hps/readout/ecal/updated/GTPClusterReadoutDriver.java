@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.readout.ReadoutDataManager;
+import org.hps.readout.ReadoutDriver;
+import org.hps.readout.TempOutputWriter;
 import org.hps.recon.ecal.cluster.ClusterType;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.CalorimeterHit;
@@ -17,6 +20,7 @@ import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
+import org.lcsim.lcio.LCIOConstants;
 
 public class GTPClusterReadoutDriver extends ReadoutDriver {
 	private LinkedList<Map<Long, CalorimeterHit>> hitBuffer;
@@ -31,6 +35,8 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 	private double localTime = 2.0;
 	private double localTimeDisplacement = 0;
 	private double seedEnergyThreshold = 0.050;
+	
+	private boolean outputClusters = true;
 	
 	@Override
 	public void endOfData() {
@@ -198,23 +204,23 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 	
 	@Override
 	public void startOfData() {
+		// Instantiate the GTP cluster collection with the readout
+		// data manager.
 		localTimeDisplacement = temporalWindow + 4.0;
 		addDependency(inputCollectionName);
-		ReadoutDataManager.registerCollection(outputCollectionName, this, Cluster.class);
+		ReadoutDataManager.registerCollection(outputCollectionName, this, Cluster.class, (1 << LCIOConstants.CLBIT_HITS), outputClusters);
 		
+		// Initiate the hit buffer.
+		hitBuffer = new LinkedList<Map<Long, CalorimeterHit>>();
 		
-		
-        // Initiate the hit buffer.
-        hitBuffer = new LinkedList<Map<Long, CalorimeterHit>>();
-        
-        // Populate the event buffer with (2 * clusterWindow + 1)
-        // empty events. These empty events represent the fact that
-        // the first few events will not have any events in the past
-        // portion of the buffer.
-        int bufferSize = (2 * (temporalWindow / 4)) + 1;
-        for (int i = 0; i < bufferSize; i++) {
-            hitBuffer.add(new HashMap<Long, CalorimeterHit>(0));
-        }
+		// Populate the event buffer with (2 * clusterWindow + 1)
+		// empty events. These empty events represent the fact that
+		// the first few events will not have any events in the past
+		// portion of the buffer.
+		int bufferSize = (2 * (temporalWindow / 4)) + 1;
+		for (int i = 0; i < bufferSize; i++) {
+			hitBuffer.add(new HashMap<Long, CalorimeterHit>(0));
+		}
 	}
 	
 	@Override
@@ -264,6 +270,6 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
      * be persisted, and <code>false</code> that they will not.
      */
     public void setWriteClusterCollection(boolean state) {
-        setTransient(state);
+    	outputClusters = state;
     }
 }

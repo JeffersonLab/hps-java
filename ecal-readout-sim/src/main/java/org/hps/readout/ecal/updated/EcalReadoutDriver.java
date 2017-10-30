@@ -17,16 +17,25 @@ import java.util.Set;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.readout.ReadoutDataManager;
+import org.hps.readout.ReadoutDriver;
+import org.hps.readout.TempOutputWriter;
 import org.hps.readout.ecal.FADCEcalReadoutDriver.TimeComparator;
+import org.hps.readout.util.DoubleRingBuffer;
+import org.hps.readout.util.IntegerRingBuffer;
+import org.hps.readout.util.LcsimSingleEventCollectionData;
 import org.hps.recon.ecal.EcalUtils;
 import org.hps.util.RandomGaussian;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
+import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
+import org.lcsim.lcio.LCIOConstants;
 
 /**
  * Class <code>EcalReadoutDriver</code>performs digitization of truth
@@ -121,6 +130,10 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	 * exceeds the integration threshold.
 	 */
 	private int numSamplesAfter = 25;
+	/**
+	 * The format in which readout hits should be output.
+	 */
+	private int mode = 1;
 	
 	// ==============================================================
 	// ==== Driver Parameters =======================================
@@ -177,6 +190,9 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	 */
 	private EcalConditions ecalConditions = null;
 	
+	private int readoutWindow = 100;
+	private int readoutOffset = 36;
+	
 	// ==============================================================
 	// ==== To Be Re-Worked =========================================
 	// ==============================================================
@@ -185,6 +201,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	private static final int PIPELINE_LENGTH = 2000;
 	
 	// TODO: This is left-over 2014 legacy junk; ideally should be replaced by something simpler.
+	// TODO: Copy TimeComparator to this driver.
 	private PriorityQueue<RawCalorimeterHit> triggerPathDelayQueue = new PriorityQueue<RawCalorimeterHit>(20, new TimeComparator());
 	private LinkedList<RawCalorimeterHit> triggerPathCoincidenceQueue = new LinkedList<RawCalorimeterHit>();
 	
@@ -200,11 +217,16 @@ public class EcalReadoutDriver extends ReadoutDriver {
 		// TODO: There really probably doesn't need to be an output delay.
 		localTimeOffset = 32 + (4 * numSamplesAfter) - 4;
 		
+		// Validate that a real mode was selected.
+		if(mode != 1 && mode != 3 && mode != 7) {
+			throw new IllegalArgumentException("Error: Mode " + mode + " is not a supported output mode.");
+		}
+		
 		// Set the dependencies for the driver and register its
 		// output collections with the data management driver.
 		addDependency(truthHitCollectionName);
-		ReadoutDataManager.registerCollection(truthRelationCollectionName, this, LCRelation.class);
-		ReadoutDataManager.registerCollection(outputHitCollectionName, this, RawCalorimeterHit.class);
+		//ReadoutDataManager.registerCollection(truthRelationCollectionName, this, LCRelation.class);
+		ReadoutDataManager.registerCollection(outputHitCollectionName, this, RawCalorimeterHit.class, false);
 	}
 	
 	@Override
@@ -296,7 +318,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
 		// Check whether the appropriate amount of time has passed to
 		// perform another integration step. If so, create a list to
 		// contain any newly integrated hits and perform integration.
-		System.out.println("New Driver -- Event " + event.getEventNumber() + " -- Current Time is " + ReadoutDataManager.getCurrentTime() + " -- Counter is " + readoutCounter);
 		boolean readHits = false;
 		List<RawCalorimeterHit> newHits = null;
 		while(ReadoutDataManager.getCurrentTime() - readoutTime() + ReadoutDataManager.getBeamBunchSize() >= READOUT_PERIOD) {
@@ -348,6 +369,9 @@ public class EcalReadoutDriver extends ReadoutDriver {
 			// Get the total ADC value that has been integrated
 			// on this channel.
 			Integer sum = channelIntegrationSumMap.get(cellID);
+			
+			// If any readout hits exist on this channel, add the
+			// current ADC values to them.
 			
 			// If the ADC sum is undefined, then there is not an
 			// ongoing integration. If the pedestal subtracted
@@ -426,12 +450,215 @@ public class EcalReadoutDriver extends ReadoutDriver {
 			
 			ReadoutDataManager.addData(outputHitCollectionName, newHits, RawCalorimeterHit.class);
 			
+			// Check to see if there are any readout path hits which
+			// are ready to be processed.
+			// TODO: Implement readout hits.
+			/*
+			if(readoutHitQueue.peek().getSecondElement() + readoutDelay >= ReadoutDataManager.getCurrentTime()) {
+				
+			}
+			*/
+			
 			// DEBUG :: Write the truth hits seen.
 			writer.write("Output");
 			for(RawCalorimeterHit hit : newHits) {
 				writer.write(String.format("%d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
 			}
 		}
+	}
+	
+	private short[] getTriggerADCValues(long cellID, double triggerTime) {
+		// Calculate the offset between the current position and the
+		// trigger time.
+		int readoutLatency = (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0) + readoutOffset;
+		
+		// Get the ADC pipeline.
+		IntegerRingBuffer pipeline = adcBufferMap.get(cellID);
+		
+		// Extract the ADC values for the requested channel.
+		short[] adcValues = new short[readoutWindow];
+		for(int i = 0; i < readoutWindow; i++) {
+			adcValues[i] = (short) pipeline.getValue(-(readoutLatency - i - 1)).intValue();
+		}
+		
+		// Return the result.
+		return adcValues;
+	}
+	
+	@Override
+	protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
+		// Get the readout name for the collection.
+		String readoutName = calorimeterGeometry.getReadout().getName();
+		
+		// Define the readout hits collection flags.
+		int flags = 0;
+		if(mode == 7) { flags += 1 << LCIOConstants.RCHBIT_TIME; }
+		
+		// Create a list to store the extra collections.
+		List<LcsimSingleEventCollectionData<?>> collectionsList = new ArrayList<LcsimSingleEventCollectionData<?>>(1);
+		
+		// DEBUG :: Output the full buffer.
+		/*
+		for(Long cellID : adcBufferMap.keySet()) {
+			// Get the ADC pipeline.
+			IntegerRingBuffer pipeline = adcBufferMap.get(cellID);
+			
+			// Extract the ADC values for the requested channel.
+			System.out.printf("%8d :: ", cellID);
+			for(int adc : pipeline) {
+				System.out.printf("%3d   ", adc);
+			}
+			System.out.println();
+		}
+		*/
+		
+		
+		// Get the appropriate collection of readout hits and output
+		// them to the readout data manager.
+		if(mode == 7) {
+			List<RawCalorimeterHit> readoutHits = getMode7Hits(triggerTime);
+			LcsimSingleEventCollectionData<RawCalorimeterHit> readoutData = new LcsimSingleEventCollectionData<RawCalorimeterHit>("EcalReadoutHits", this,
+					RawCalorimeterHit.class, flags, readoutName);
+			readoutData.getData().addAll(readoutHits);
+			collectionsList.add(readoutData);
+		} else {
+			List<RawTrackerHit> readoutHits = null;
+			if(mode == 1) { readoutHits = getMode1Hits(triggerTime); }
+			else { readoutHits = getMode3Hits(triggerTime); }
+			LcsimSingleEventCollectionData<RawTrackerHit> readoutData = new LcsimSingleEventCollectionData<RawTrackerHit>("EcalReadoutHits", this,
+					RawTrackerHit.class, flags, readoutName);
+			readoutData.getData().addAll(readoutHits);
+			collectionsList.add(readoutData);
+		}
+		
+		// Return the extra trigger collections.
+		return collectionsList;
+	}
+	
+	private List<RawTrackerHit> getMode1Hits(double triggerTime) {
+		// Create a list to store the Mode-1 hits.
+		List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
+		
+		// Iterate over each channel.
+		for(Long cellID : adcBufferMap.keySet()) {
+			// Get the ADC values at the time of the trigger.
+			short[] adcValues = getTriggerADCValues(cellID, triggerTime);
+			
+			// Get the channel constants for the current channel.
+			EcalChannelConstants channelData = findChannel(cellID);
+			
+			// Iterate across the ADC values. If the ADC value is
+			// sufficiently high to produce a hit, then it should be
+			// written out.
+			boolean isAboveThreshold = false;
+			for(int i = 0; i < adcValues.length; i++) {
+				// Check that there is a threshold-crossing at some
+				// point in the ADC buffer.
+				if(adcValues[i] > channelData.getCalibration().getPedestal() + integrationThreshold) {
+					isAboveThreshold = true;
+					break;
+				}
+			}
+			
+			// If so, create a new hit and add it to the list.
+			if(isAboveThreshold) {
+				hits.add(new BaseRawTrackerHit(cellID, 0, adcValues));
+            	System.out.printf("%8d :: ", cellID);
+            	for(short s : adcValues) {
+            		System.out.printf("%-3d   ", s);
+            	}
+            	System.out.println();
+			}
+		}
+		
+		// DEBUG :: Output the hits.
+		/*
+		for(RawTrackerHit hit : hits) {
+			System.out.print("\tSaw hit in channel " + hit.getCellID() + " with ADC values: ");
+			for(short val : hit.getADCValues()) {
+				System.out.print(val + " ");
+			}
+			System.out.println();
+		}
+		*/
+		
+		// Return the hits.
+		return hits;
+	}
+	
+	private List<RawTrackerHit> getMode3Hits(double triggerTime) {
+		// Create a list to store the Mode-3 hits.
+		List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
+		
+		// Iterate across the ADC values and extract Mode-3 hits.
+		for(Long cellID : adcBufferMap.keySet()) {
+			int pointerOffset = 0;
+			int numSamplesToRead = 0;
+			int thresholdCrossing = 0;
+			short[] adcValues = null;
+			short[] window = getTriggerADCValues(cellID, triggerTime);
+			
+			// Get the channel data.
+			EcalChannelConstants channelData = findChannel(cellID);
+			
+			for(int i = 0; i < ReadoutDataManager.getReadoutWindow(); i++) {
+				if(numSamplesToRead != 0) {
+					adcValues[adcValues.length - numSamplesToRead] = window[i - pointerOffset];
+					numSamplesToRead--;
+					if (numSamplesToRead == 0) {
+					    hits.add(new BaseRawTrackerHit(cellID, thresholdCrossing, adcValues));
+					}
+				} else if ((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + integrationThreshold) && window[i]
+						> channelData.getCalibration().getPedestal() + integrationThreshold) {
+					thresholdCrossing = i;
+					pointerOffset = Math.min(numSamplesBefore, i);
+					numSamplesToRead = pointerOffset + Math.min(numSamplesAfter, ReadoutDataManager.getReadoutWindow() - i - pointerOffset - 1);
+					adcValues = new short[numSamplesToRead];
+				}
+			}
+		}
+		
+		// Return the hits.
+		return hits;
+	}
+	
+	private List<RawCalorimeterHit> getMode7Hits(double triggerTime) {
+		// Create a list to store the Mode-7 hits.
+		List<RawCalorimeterHit> hits = new ArrayList<RawCalorimeterHit>();
+		
+		// Iterate across the ADC values and extract Mode-7 hits.
+		for (Long cellID : adcBufferMap.keySet()) {
+			int adcSum = 0;
+			int pointerOffset = 0;
+			int numSamplesToRead = 0;
+			int thresholdCrossing = 0;
+			short[] window = getTriggerADCValues(cellID, triggerTime);
+			
+			// Get the channel data.
+			EcalChannelConstants channelData = findChannel(cellID);
+			
+			// Generate Mode-7 hits.
+			if(window != null) {
+				for (int i = 0; i < ReadoutDataManager.getReadoutWindow(); i++) {
+					if (numSamplesToRead != 0) {
+						adcSum += window[i - pointerOffset];
+						numSamplesToRead--;
+						if(numSamplesToRead == 0) {
+						    hits.add(new BaseRawCalorimeterHit(cellID, adcSum, 64 * thresholdCrossing));
+						}
+					} else if((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + integrationThreshold)
+							&& window[i] > channelData.getCalibration().getPedestal() + integrationThreshold) {
+						thresholdCrossing = i;
+						pointerOffset = Math.min(numSamplesBefore, i);
+						numSamplesToRead = pointerOffset + Math.min(numSamplesAfter, ReadoutDataManager.getReadoutWindow() - i - pointerOffset - 1);
+						adcSum = 0;
+					}
+				}
+			}
+		}
+		
+		// Return the hits.
+		return hits;
 	}
 	
 	@Override
@@ -668,6 +895,17 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	 */
 	public void setPulseTimeParameter(double value) {
 		tp = value;
+	}
+	
+	/**
+	 * Sets the number of samples by which readout hit pulse-crossing
+	 * samples should be offset. Units are in clock-cycles (intervals
+	 * of 4 ns).
+	 * @param value - The offset of the pulse-crossing sample in
+	 * units of clock-cycles (4 ns intervals).
+	 */
+	public void setReadoutOffset(int value) {
+		readoutOffset = value;
 	}
 	
 	/**
