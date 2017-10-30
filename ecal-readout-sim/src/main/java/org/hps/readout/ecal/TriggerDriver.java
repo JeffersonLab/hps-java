@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.readout.TempOutputWriter;
 import org.hps.record.triggerbank.TestRunTriggerData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOWriter;
@@ -29,14 +30,17 @@ public abstract class TriggerDriver extends TriggerableDriver {
     protected String outputFileName = null;
     protected PrintWriter outputStream = null;
     protected int numTriggers;
-    private static int lastTrigger = Integer.MIN_VALUE;
-    private int deadTime = 0;
+    protected static int lastTrigger = Integer.MIN_VALUE;
+    protected int deadTime = 0;
     private int prescale = 1;
     private int prescaleCounter = 0;
     private static boolean triggerBit = false;
     private String lcioFile = null;
     LCIOWriter lcioWriter = null;
     private static final List<TriggerableDriver> triggerables = new ArrayList<TriggerableDriver>();
+	
+	
+	protected final TempOutputWriter writer = new TempOutputWriter("triggers_old.log");
 
     public TriggerDriver() {
         triggerDelay = 50.0;
@@ -182,6 +186,7 @@ public abstract class TriggerDriver extends TriggerableDriver {
 
     @Override
     public void endOfData() {
+		writer.close();
         if (outputStream != null) {
             outputStream.printf("Trigger count: %d\n", numTriggers);
             outputStream.close();

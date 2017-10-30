@@ -3,7 +3,6 @@ package org.hps.readout.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.readout.ecal.updated.ReadoutDataManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOConstants;
@@ -31,7 +30,7 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
     //readout period in ns
     double readoutPeriod = 2.0;
     //readout period time offset in ns
-    //double readoutOffset = 0.0;
+    double readoutOffset = 0.0;
     //readout period counter
     int readoutCounter;
     public static boolean readoutBit = false;
@@ -62,15 +61,13 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
     public void setReadoutCycle(int readoutCycle) {
         this.readoutCycle = readoutCycle;
         if (readoutCycle > 0) {
-            this.readoutPeriod = readoutCycle * ClockSingleton.getStepSize();
+            this.readoutPeriod = readoutCycle * ClockSingleton.getDt();
         }
     }
 
-    /*
     public void setReadoutOffset(double readoutOffset) {
         this.readoutOffset = readoutOffset;
     }
-    */
 
     public void setReadoutPeriod(double readoutPeriod) {
         this.readoutPeriod = readoutPeriod;
@@ -95,61 +92,30 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
 
     @Override
     public void process(EventHeader event) {
-    	/*
-    	System.out.println("==========================================================================================");
-    	System.out.println("==== Method process(EventHeader) in Class EcalReadoutDriver ==============================");
-    	System.out.println();
-    	System.out.println("Variable Statuses:");
-    	System.out.println("\tecalCollectionName:    " + ecalCollectionName);
-    	System.out.println("\tecalRawCollectionName: " + ecalRawCollectionName);
-    	System.out.println("\tecalReadoutName:       " + ecalReadoutName);
-    	System.out.println("\thitClass:              " + hitClass.getSimpleName());
-    	System.out.println("\thitType:               " + hitType);
-    	System.out.println("\treadoutCycle:          " + readoutCycle);
-    	System.out.println("\tthreshold:             " + threshold);
-    	System.out.println("\tflags:                 " + Integer.toBinaryString(flags));
-    	System.out.println("\treadoutPeriod:         " + readoutPeriod);
-    	System.out.println("\treadoutCounter:        " + readoutCounter);
-    	System.out.println("\treadoutBit:            " + readoutBit);
-    	System.out.println("\tdebug:                 " + debug);
-    	System.out.println("\tTime:                  " + ClockSingleton.getTime());
-    	*/
-    	
-    	
-    	
         //System.out.println(this.getClass().getCanonicalName() + " - process");
         // Get the list of ECal hits.        
-    	//System.out.println();
-    	//System.out.println("Obtaining collection of type CalorimeterHit from collection \"" + ecalCollectionName + "\" in event " + event.getEventNumber() + ".");
         List<CalorimeterHit> hits;
         if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
             hits = event.get(CalorimeterHit.class, ecalCollectionName);
         } else {
             hits = new ArrayList<CalorimeterHit>();
-        }   
-    	//System.out.println("\tFound " + hits.size() + " hits.");
-    	//for(CalorimeterHit hit : hits) {
-    	//	System.out.println("\t\tSaw hit on channel " + hit.getCellID() + " with truth energy " + hit.getRawEnergy() + " and time " + hit.getTime() + ".");
-    	//}
-    	
+        }
         //write hits into buffers
         putHits(hits);
 
         ArrayList<T> newHits = null;
 
         //if at the end of a readout cycle, write buffers to hits
-        if(readoutCycle > 0) {
-            if((ClockSingleton.getClock() + 1) % readoutCycle == 0) {
-                if(newHits == null) {
+        if (readoutCycle > 0) {
+            if ((ClockSingleton.getClock() + 1) % readoutCycle == 0) {
+                if (newHits == null) {
                     newHits = new ArrayList<T>();
                 }
                 readHits(newHits);
                 readoutCounter++;
             }
-        }
-        
-        else {
-            while (ClockSingleton.getTime() - readoutTime() + ClockSingleton.getStepSize() >= readoutPeriod) {
+        } else {
+            while (ClockSingleton.getTime() - readoutTime() + ClockSingleton.getDt() >= readoutPeriod) {
                 if (newHits == null) {
                     newHits = new ArrayList<T>();
                 }
@@ -166,7 +132,7 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
     }
 
     protected double readoutTime() {
-        return readoutCounter * readoutPeriod; //+ readoutOffset;
+        return readoutCounter * readoutPeriod + readoutOffset;
     }
 
     //read analog signal out of buffers and make hits; reset buffers

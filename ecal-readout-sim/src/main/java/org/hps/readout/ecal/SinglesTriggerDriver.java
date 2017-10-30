@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import org.hps.readout.TempOutputWriter;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -70,6 +71,16 @@ public class SinglesTriggerDriver extends TriggerDriver {
             // Add the new cluster collection to the queue.
             clusterDelayQueue.add(clusterList);
             clusterDelayQueue.remove();
+            
+    		writer.write("Saw " + clusterDelayQueue.peek().size() + " new clusters.");
+    		for(Cluster cluster : clusterDelayQueue.peek()) {
+    			writer.write(String.format("%f;%f;%f;%d", cluster.getEnergy(), TriggerModule.getClusterTime(cluster), TriggerModule.getClusterHitCount(cluster),
+    					TriggerModule.getClusterSeedHit(cluster).getCellID()));
+    		}
+        	if(lastTrigger != Integer.MIN_VALUE && ClockSingleton.getClock() - lastTrigger <= deadTime) {
+        		writer.write("Deadtime");
+        	}
+    		writer.write("\n\n");
 
             // Iterate over the clusters.
             for (Cluster cluster : clusterList) {
@@ -106,7 +117,7 @@ public class SinglesTriggerDriver extends TriggerDriver {
         if (event.hasCollection(Cluster.class, clusterCollectionName)) {
             // Get the list of clusters.
             List<Cluster> clusterList = clusterDelayQueue.peek();
-
+            
             // Iterate over the hits and perform the cuts.
             triggerLoop:
             for (Cluster cluster : clusterList) {
@@ -142,6 +153,7 @@ public class SinglesTriggerDriver extends TriggerDriver {
         }
 
         // Return whether a triggering cluster was seen.
+        if(passTrigger) { writer.write("Triggered"); }
         return passTrigger;
     }
 
