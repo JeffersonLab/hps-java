@@ -1315,6 +1315,10 @@ public final class TriggerModule {
     
     /**
      * Gets the mapped position used by the SSP for a specific crystal.
+     * Warning: This is the hardware position mapping, and does not
+     * always align perfectly with the LCSim coordinate system. For
+     * instance, the electron side of the detector is has positive x
+     * coordinates in the hardware system, and is negative in LCSim.
      * @param ix - The crystal x-index.
      * @param iy - The crystal y-index.
      * @return Returns the crystal position as a <code>double</code>
