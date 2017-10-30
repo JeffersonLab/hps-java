@@ -80,9 +80,7 @@ public class DetectorConverter {
         }
         if (cl.hasOption("r")) {
             runNumber = Integer.parseInt(cl.getOptionValue("r"));
-        } else {
-            runNumber = 0;
-        }
+        } 
 
         Converter cnv = null;
 
@@ -105,8 +103,8 @@ public class DetectorConverter {
             throw new IllegalArgumentException("No converter found for format: " + outputFormat);
 
         if (runNumber != null) {
+            DatabaseConditionsManager mgr = new DatabaseConditionsManager();
             String name = "DUMMY";
-            DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
             ConditionsReader dummyReader = ConditionsReader.createDummy();
             ((ConditionsManagerImplementation) mgr).setConditionsReader(dummyReader, name);
             DummyDetector detector = new DummyDetector(name);
