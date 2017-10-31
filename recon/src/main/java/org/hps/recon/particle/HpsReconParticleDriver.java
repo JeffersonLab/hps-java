@@ -119,6 +119,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     }
 
     private boolean _patchVertexTrackParameters = true;
+    private boolean _storeCovTrkMomList = false;
 
     /**
      * Processes the track and cluster collections in the event into
@@ -145,6 +146,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         event.put(unconstrainedMollerVerticesColName, unconstrainedMollerVertices, Vertex.class, 0);
         event.put(beamConMollerVerticesColName, beamConMollerVertices, Vertex.class, 0);
         event.put(targetConMollerVerticesColName, targetConMollerVertices, Vertex.class, 0);
+    }
+    
+    protected void setStoreVertexCovars(boolean input) {
+        _storeCovTrkMomList = input;
     }
 
     /**
@@ -246,7 +251,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // TODO: The beam size should come from the conditions database.
         vtxFitter.setBeamSize(beamSize);
         vtxFitter.setBeamPosition(beamPosition);
-
+        vtxFitter.setStoreCovTrkMomList(_storeCovTrkMomList);
         vtxFitter.setDebug(debug);
 
         // Perform the vertexing based on the specified constraint.
