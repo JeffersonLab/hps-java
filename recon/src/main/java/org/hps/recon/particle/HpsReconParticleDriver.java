@@ -116,7 +116,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         TARGET_CONSTRAINED
     }
     
-    private boolean storeCovVtxMomList = true;
+    private boolean storeCovVtxMomList = false;
 
     private boolean _patchVertexTrackParameters = true;
     
