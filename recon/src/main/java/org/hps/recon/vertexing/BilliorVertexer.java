@@ -23,6 +23,7 @@ public class BilliorVertexer {
     // the value of the magnetic field in the vicinity of the vertex
     // default is a constant field along the z axis
 
+    private boolean storeCovTrkMomList = false;
     private boolean _debug = false;
     private final double _bField;
     private boolean _beamspotConstraint;
@@ -61,6 +62,10 @@ public class BilliorVertexer {
             _constraintType = "TargetConstrained";
     }
 
+    public void setStoreCovTrkMomList(boolean value) {
+        storeCovTrkMomList = value;
+    }
+    
     public void setDebug(boolean debug) {
         _debug = debug;
     }
@@ -87,6 +92,7 @@ public class BilliorVertexer {
         pcov.add(CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix(this.getFittedMomentumCovariance(0))));
         pcov.add(CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix(this.getFittedMomentumCovariance(1))));
         vertex.setTrackMomentumCovariances(pcov);
+        vertex.setStoreCovTrkMomList(storeCovTrkMomList);
         return vertex;
     }
 

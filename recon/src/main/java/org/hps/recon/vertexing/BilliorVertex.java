@@ -1,5 +1,6 @@
 package org.hps.recon.vertexing;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,23 +28,18 @@ public class BilliorVertex implements Vertex {
     private Hep3Vector _vertexPositionError;
 
     private Matrix _covVtx = new BasicMatrix(3, 3);
-    private List<BilliorTrack> _tracks;
     private Map<Integer, Hep3Vector> _fittedMomentum = new HashMap<Integer, Hep3Vector>();
     private ReconstructedParticle _particle = null;
     private String _constraintType;
 
-    private boolean _debug = false;
     private boolean _isPrimary = true;
-
-    private int _ntracks;
-
-    private double[] _v0 = {0.0, 0.0, 0.0};
     private double _chiSq;
     private double _invMass;
     private double _probability;
 
-    private List<Matrix> _covTrkMomList;
+    private List<Matrix> _covTrkMomList = null;
     private double _invMassError;
+    private boolean storeCovTrkMomList = false;
 
     /**
      * Dflt Ctor
@@ -66,6 +62,59 @@ public class BilliorVertex implements Vertex {
         _vertexPosition = vtxPos;
         _invMass = invMass;
 
+    }
+    
+    BilliorVertex(Vertex lcioVtx) {
+        _chiSq = lcioVtx.getChi2();
+        _vertexPosition = lcioVtx.getPosition();
+        _covVtx = lcioVtx.getCovMatrix();
+        _constraintType = lcioVtx.getAlgorithmType();
+        _particle = lcioVtx.getAssociatedParticle();
+        _probability = lcioVtx.getProbability();
+        Map<String, Double> paramMap = lcioVtx.getParameters();
+        if (paramMap.containsKey("p1X")) {
+            Hep3Vector v1 = new BasicHep3Vector(paramMap.get("p1X"), paramMap.get("p1Y"), paramMap.get("p1Z"));
+            _fittedMomentum.put(0, v1);
+        }
+        if (paramMap.containsKey("p2X")) {
+            Hep3Vector v2 = new BasicHep3Vector(paramMap.get("p2X"), paramMap.get("p2Y"), paramMap.get("p2Z"));
+            _fittedMomentum.put(1, v2);
+        }
+        if (paramMap.containsKey("invMass"))
+            _invMass = paramMap.get("invMass");
+        if (paramMap.containsKey("invMassError"))
+            _invMassError = paramMap.get("invMassError");
+
+        List<Matrix> covList = new ArrayList<Matrix>();
+        if (paramMap.containsKey("c1-0")) {
+            double[] temp = new double[6];
+            temp[0] = paramMap.get("c1-0");
+            temp[1] = paramMap.get("c1-1");
+            temp[2] = paramMap.get("c1-2");
+            temp[3] = paramMap.get("c1-3");
+            temp[4] = paramMap.get("c1-4");
+            temp[5] = paramMap.get("c1-5");
+            SymmetricMatrix cov1 = new SymmetricMatrix(3, temp, true);
+            covList.add(cov1);
+        }
+        if (paramMap.containsKey("c2-0")) {
+            double[] temp = new double[6];
+            temp[0] = paramMap.get("c2-0");
+            temp[1] = paramMap.get("c2-1");
+            temp[2] = paramMap.get("c2-2");
+            temp[3] = paramMap.get("c2-3");
+            temp[4] = paramMap.get("c2-4");
+            temp[5] = paramMap.get("c2-5");
+            SymmetricMatrix cov2 = new SymmetricMatrix(3, temp, true);
+            covList.add(cov2);
+        }
+        if (covList.size() > 0)
+            _covTrkMomList = covList;
+
+    }
+    
+    public void setStoreCovTrkMomList(boolean input) {
+        storeCovTrkMomList = input;
     }
 
     public String toString() {
@@ -122,6 +171,7 @@ public class BilliorVertex implements Vertex {
     public Map<String, Double> getParameters() {
         Map<String, Double> pars = new HashMap<String, Double>();
         pars.put("invMass", _invMass);
+        pars.put("invMassError", _invMassError);
         if (!_fittedMomentum.isEmpty()) {
             Hep3Vector p1Fit = _fittedMomentum.get(0);
             Hep3Vector p2Fit = _fittedMomentum.get(1);
@@ -131,6 +181,27 @@ public class BilliorVertex implements Vertex {
             pars.put("p2X", p2Fit.x());
             pars.put("p2Y", p2Fit.y());
             pars.put("p2Z", p2Fit.z());
+        }
+        
+        if (_covTrkMomList != null && storeCovTrkMomList == true) {
+            if (_covTrkMomList.size() >= 2) {
+                SymmetricMatrix covMat = new SymmetricMatrix(_covTrkMomList.get(0));
+                double[] cov = covMat.asPackedArray(true);
+                pars.put("c1-0", cov[0]);
+                pars.put("c1-1", cov[1]);
+                pars.put("c1-2", cov[2]);
+                pars.put("c1-3", cov[3]);
+                pars.put("c1-4", cov[4]);
+                pars.put("c1-5", cov[5]);
+                covMat = new SymmetricMatrix(_covTrkMomList.get(1));
+                cov = covMat.asPackedArray(true);
+                pars.put("c2-0", cov[0]);
+                pars.put("c2-1", cov[1]);
+                pars.put("c2-2", cov[2]);
+                pars.put("c2-3", cov[3]);
+                pars.put("c2-4", cov[4]);
+                pars.put("c2-5", cov[5]);
+            }
         }
         return pars;
     }
