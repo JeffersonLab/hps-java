@@ -86,7 +86,7 @@
 	<driver name="RemoveRawHits" type="org.hps.readout.svt.DropSVTHits">
 	    <enableHitEfficiency>true</enableHitEfficiency>
 	    <enableHitEfficiencyDistribution>false</enableHitEfficiencyDistribution>
-            <layer1HitEfficiency>0.975</layer1HitEfficiency>
+            <layer1HitEfficiency>0.95</layer1HitEfficiency>
         </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
