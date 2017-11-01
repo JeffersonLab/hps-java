@@ -25,6 +25,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
 
         int nTrials = 10000; // The number of test events to generate for fitting
         boolean perfect = false;
+        boolean rungeKutta = true; // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
         boolean verbose = nTrials < 2;
 
         double[] Q = { -1.0, 1.0, 1.0 }; // charge
@@ -460,6 +461,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             // Populate the Si detector planes with hits from helices scattered at each
             // plane
             for (int ih = 0; ih < nHelices; ih++) {
+                HelixPlaneIntersect hpi = new HelixPlaneIntersect();
                 if (verbose)
                     printWriter2.format("$helix%d << EOD\n", ih);
                 for (int pln = 0; pln < nPlanes; pln++) {
@@ -473,24 +475,32 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                         break;
                     if (verbose)
                         System.out.format("Plane %d, phiInt1= %12.10f\n", pln, phiInt);
-                    Vec rscat = Tk[ih].atPhiGlobal(phiInt);
+                    Vec rscat = new Vec(3);
+                    Vec pInt = new Vec(3);
+                    if (rungeKutta) {
+                        rscat = hpi.rkIntersect(thisSi.p, Tk[ih].atPhiGlobal(0.), Tk[ih].getMomGlobal(0.), Q[ih], fM, pInt);
+                    } else {
+                        rscat = Tk[ih].atPhiGlobal(phiInt);
+                        pInt = Tk[ih].getMomGlobal(phiInt);
+                    }
                     if (verbose) {
                         double check = (rscat.dif(thisSi.p.X()).dot(thisSi.p.T()));
                         System.out.format("Dot product of vector in plane with plane direction=%12.8e, should be zero\n", check);
-                        Tk[ih].atPhi(phiInt).print("local intersection point");
+                        Tk[ih].atPhi(phiInt).print("local intersection point of helix");
                         Vec xIntGlob = Tk[ih].atPhiGlobal(phiInt);
-                        xIntGlob.print("global intersection point");
+                        xIntGlob.print("global intersection point of helix");
                         double dPhi = -Q[ih] * (phiInt) / 20.0;
                         for (double phi = 0.; phi < Math.abs(phiInt); phi = phi + dPhi) {
                             Vec r = Tk[ih].atPhiGlobal(-Q[ih] * phi);
                             printWriter2.format("%10.6f %10.6f %10.6f\n", r.v[0], r.v[1], r.v[2]);
                         }
                         // printWriter2.format("%10.6f %10.6f %10.6f\n", rscat.v[0], rscat.v[1], rscat.v[2]);
-                        HelixPlaneIntersect hpi = new HelixPlaneIntersect();
-                        Vec Xintersect = hpi.rkIntersect(thisSi.p, Tk[ih].atPhiGlobal(0.), Tk[ih].getMomGlobal(0.), Q[ih], fM);
-                        double errX = Xintersect.dif(xIntGlob).mag();
-                        System.out.format("Runge-Kutta difference from Helix extrapolation is %12.5e mm for plane %d\n", errX, pln);
-                        Xintersect.print("Runge-Kutta intersection");
+                        if (rungeKutta) {
+                            double errX = rscat.dif(xIntGlob).mag();
+                            System.out.format("Runge-Kutta difference from Helix extrapolation is %12.5e mm for plane %d\n", errX, pln);
+                            rscat.print("Runge-Kutta intersection point");
+                            pInt.print("Runge-Kutta momentum at intersection point");
+                        }
                     }
                     Vec rDet = thisSi.toLocal(rscat);
                     if (verbose) {
@@ -521,7 +531,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                     uhat = t1.cross(zhat).unitVec(); // A unit vector u perpendicular to the helix direction
                     vhat = t1.cross(uhat);
                     RotMatrix Rtmp = new RotMatrix(uhat, vhat, t1);
-                    Tk[ih] = Tk[ih].randomScat(thisSi.p, thisSi.thickness);
+                    Tk[ih] = Tk[ih].randomScat(thisSi.p, rscat, pInt, thisSi.thickness);
                     Vec t2 = Tk[ih].getMomGlobal(0.).unitVec();
                     if (verbose) {
                         Tk[ih].print("scattered from the first layer of the detector plane");
@@ -549,13 +559,23 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                             printWriter2.format(" %10.6f %10.6f %10.6f\n", r.v[0], r.v[1], r.v[2]);
                         }
                     }
-                    rscat = Tk[ih].atPhiGlobal(phiInt);
+                    if (rungeKutta) {
+                        rscat = hpi.rkIntersect(thisSi.p, Tk[ih].atPhiGlobal(0.), Tk[ih].getMomGlobal(0.), Q[ih], fM, pInt);
+                    } else {
+                        rscat = Tk[ih].atPhiGlobal(phiInt);
+                        pInt = Tk[ih].getMomGlobal(phiInt);
+                    }
                     // check = (rscat.dif(thisSi.p.X()).dot(thisSi.p.T()));
                     // System.out.format("Dot product of vector in plane with plane
                     // direction=%12.8e, should be zero\n", check);
                     if (verbose) {
                         thisSi.p.print("Second layer");
                         rscat.print("       Global intersection point 2");
+                        if (rungeKutta) {
+                            Vec rIntTmp = Tk[ih].atPhiGlobal(phiInt);
+                            double errX = rscat.dif(rIntTmp).mag();
+                            System.out.format("Runge-Kutta difference from Helix extrapolation is %12.5e mm for plane %d stereo\n", errX, pln);
+                        }
                     }
 
                     Vec rscatRot = thisSi.toLocal(rscat);
@@ -573,7 +593,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                         uhat = t1.cross(zhat).unitVec(); // A unit vector u perpendicular to the helix direction
                         vhat = t1.cross(uhat);
                         Rtmp = new RotMatrix(uhat, vhat, t1);
-                        Tk[ih] = Tk[ih].randomScat(thisSi.p, thisSi.thickness);
+                        Tk[ih] = Tk[ih].randomScat(thisSi.p, rscat, pInt, thisSi.thickness);
                         t2 = Tk[ih].getMomGlobal(0.).unitVec();
                         if (verbose) {
                             Tk[ih].print("scattered from the second layer of the measurement plane");
@@ -742,7 +762,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                 newPivot = kF.fittedStateEnd().toLocal(TkEnd.R.inverseRotate(TkEnd.X0).sum(TkEnd.origin));
                 Vec eF = kF.fittedStateEnd().pivotTransform(newPivot);
                 Rcombo = TkEnd.R.multiply(kF.fittedStateEnd().Rot.invert());
-                eF= kF.fittedStateEnd().rotateHelix(eF, Rcombo, fRot);
+                eF = kF.fittedStateEnd().rotateHelix(eF, Rcombo, fRot);
                 if (verbose) {
                     eF.print("final smoothed helix parameters at the track end");
                     newPivot.print("new pivot at the track end");

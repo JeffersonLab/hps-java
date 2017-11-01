@@ -66,26 +66,6 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         origin.print("origin of the B-field frame in global coordinates");
     }
 
-    Vec pivotTransform(Vec pivot) {
-        double xC = X0.v[0] + (p.v[0] + alpha / p.v[2]) * Math.cos(p.v[1]); // Center of the helix circle
-        double yC = X0.v[1] + (p.v[0] + alpha / p.v[2]) * Math.sin(p.v[1]);
-        // System.out.format("pivotTransform center=%10.6f, %10.6f\n", xC, yC);
-
-        // Predicted state vector
-        double[] aP = new double[5];
-        aP[2] = p.v[2];
-        aP[4] = p.v[4];
-        if (p.v[2] > 0) {
-            aP[1] = Math.atan2(yC - pivot.v[1], xC - pivot.v[0]);
-        } else {
-            aP[1] = Math.atan2(pivot.v[1] - yC, pivot.v[0] - xC);
-        }
-        aP[0] = (xC - pivot.v[0]) * Math.cos(aP[1]) + (yC - pivot.v[1]) * Math.sin(aP[1]) - alpha / p.v[2];
-        aP[3] = X0.v[2] - pivot.v[2] + p.v[3] - (alpha / p.v[2]) * (aP[1] - p.v[1]) * p.v[4];
-
-        return new Vec(5, aP);
-    }
-
     double drho() {
         return p.v[0];
     }
@@ -158,19 +138,20 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         return gran;
     }
 
-    Helix randomScat(Plane P, double X) { // Produce a new helix scattered randomly in a given plane P
+    Helix randomScat(Plane P, Vec r, Vec pmom, double X) { // Produce a new helix scattered randomly in a given plane P
         // X is the thickness of the silicon material in meters
+        // r is the intersection point and pmom the momentum at that point
         double phi = this.planeIntersect(P); // Here the plane P is assumed to be given in global coordinates
         // p.print("randomScat: helix parameters before scatter");
 
-        Vec r = this.atPhiGlobal(phi);
+        //Vec r = this.atPhiGlobal(phi);
         double tst = r.dif(P.X()).dot(P.T());
         //System.out.format("randomScat: test dot product %12.6e should be zero\n", tst);
         Vec Bf = fM.getField(r);
         double Bnew = Bf.mag();
         Vec tBnew = Bf.unitVec(Bnew);
         // r.print("randomScat: r global");
-        Vec pmom = getMomGlobal(phi);
+        //Vec pmom = getMomGlobal(phi);
         //pmom.print("randomScat: p global");
         Vec t = pmom.unitVec();
         //System.out.format("randomScat: original direction in global coordinates=%10.7f, %10.7f, %10.7f\n", t.v[0],t.v[1],t.v[2]);
@@ -258,6 +239,26 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         return new SquareMatrix(5, f);
     }
 
+    Vec pivotTransform(Vec pivot) {
+        double xC = X0.v[0] + (p.v[0] + alpha / p.v[2]) * Math.cos(p.v[1]); // Center of the helix circle
+        double yC = X0.v[1] + (p.v[0] + alpha / p.v[2]) * Math.sin(p.v[1]);
+        // System.out.format("pivotTransform center=%10.6f, %10.6f\n", xC, yC);
+
+        // Predicted state vector
+        double[] aP = new double[5];
+        aP[2] = p.v[2];
+        aP[4] = p.v[4];
+        if (p.v[2] > 0) {
+            aP[1] = Math.atan2(yC - pivot.v[1], xC - pivot.v[0]);
+        } else {
+            aP[1] = Math.atan2(pivot.v[1] - yC, pivot.v[0] - xC);
+        }
+        aP[0] = (xC - pivot.v[0]) * Math.cos(aP[1]) + (yC - pivot.v[1]) * Math.sin(aP[1]) - alpha / p.v[2];
+        aP[3] = X0.v[2] - pivot.v[2] + p.v[3] - (alpha / p.v[2]) * (aP[1] - p.v[1]) * p.v[4];
+
+        return new Vec(5, aP);
+    }
+    
     private double[] pivotTransform(double[] pivot, double[] a, double B) { // For testing purposes only
         double alpha = 1 / B;
         double xC = X0.v[0] + (a[0] + alpha / a[2]) * Math.cos(a[1]); // Center of the helix circle

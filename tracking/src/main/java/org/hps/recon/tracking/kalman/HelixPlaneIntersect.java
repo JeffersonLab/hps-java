@@ -17,7 +17,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with an arbitr
     
     // Expensive Runge Kutta integration extrapolation to the plane through a non-uniform field
     // When close to the plane, then a helix is used to find the exact intersection
-    Vec rkIntersect(Plane P, Vec X0, Vec P0, double Q, FieldMap fM) {
+    Vec rkIntersect(Plane P, Vec X0, Vec P0, double Q, FieldMap fM, Vec pInt) {
         // Find the straight-line distance to the plane for starters
         Vec r = X0.dif(P.X());
         double dPerp = Math.abs(r.dot(P.T()));
@@ -55,7 +55,11 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with an arbitr
             return X0;
         }
         //System.out.format("HelixPlaneIntersect:rkIntersect, delta-phi to the intersection is %12.5e\n", phiInt);
-        Vec xInt = atPhi(phiInt);
+        Vec xInt = this.atPhi(phiInt);  // Note: the helix parameter vector 'a' got filled in planeIntersect
+        Vec temp = R.inverseRotate(this.getMom(phiInt));
+        pInt.v[0] = temp.v[0];
+        pInt.v[1] = temp.v[1];
+        pInt.v[2] = temp.v[2];
         return R.inverseRotate(xInt).sum(X1); // return value in global coordinates
     }
 
@@ -75,11 +79,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with an arbitr
 
     // Find the intersection of a helix with a plane.
     double planeIntersect(Vec a, Vec pivot, double alpha, Plane p) { // Plane p is assumed to be defined in the local helix reference frame
-        /*
-         * if (verbose) { System.out.format("StateVector.planeIntersect:\n"); pIn.print("of measurement global");
-         * p.print("of measurement local"); a.print("helix parameters"); X0.print("pivot"); //Rot.print("from global to local coordinates");
-         * //origin.print("origin of local coordinates"); System.out.format(" alpha=%10.7f, radius=%10.5f\n", alpha, alpha/a.v[2]); }
-         */
+                 
         // Take as a starting guess the solution for the case that the plane orientation
         // is exactly y-hat.
         //System.out.format("HelixPlaneIntersection:planeIntersect, alpha=%f10.5\n", alpha);
@@ -191,4 +191,10 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with an arbitr
         return new Vec(x, y, z);
     }
 
+    private Vec getMom(double phi) {
+        double px = -Math.sin(a.v[1] + phi) / Math.abs(a.v[2]);
+        double py = Math.cos(a.v[1] + phi) / Math.abs(a.v[2]);
+        double pz = a.v[4] / Math.abs(a.v[2]);
+        return new Vec(px, py, pz);
+    }
 }
