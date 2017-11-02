@@ -40,11 +40,8 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
  * Utilities that create track objects from fitted GBL trajectories.
  *
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
-<<<<<<< HEAD
  * @author Miriam Diamond
  *
-=======
->>>>>>> master
  */
 public class MakeGblTracks {
 
