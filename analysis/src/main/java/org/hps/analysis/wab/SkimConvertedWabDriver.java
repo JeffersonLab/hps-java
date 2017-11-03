@@ -36,7 +36,7 @@ public class SkimConvertedWabDriver extends Driver {
     private double _beamEnergy = 1.056;
     private double _percentFeeCut = 0.8;
 
-    private boolean _writeRunAndEventNumber = true;
+    private boolean _writeRunAndEventNumber = false;
 
     private AIDA aida = AIDA.defaultInstance();
 
@@ -68,62 +68,62 @@ public class SkimConvertedWabDriver extends Driver {
         // beam electron which bremmed, and photon decay particles 
         if (nPositrons == 1 && nElectrons == 2) {
             // may also want to require no other activity in the event
-            //if (finalStateParticles.size() == 3) {
-            setupSensors(event);
-            List<Vertex> vertices = event.get(Vertex.class, "UnconstrainedV0Vertices");
-            for (Vertex v : vertices) {
-                ReconstructedParticle rp = v.getAssociatedParticle();
-                int type = rp.getType();
-                boolean isGbl = TrackType.isGBL(type);
-                // require GBL tracks in vertex
-                if (isGbl) {
-                    List<ReconstructedParticle> parts = rp.getParticles();
-                    ReconstructedParticle rp1 = parts.get(0);
-                    ReconstructedParticle rp2 = parts.get(1);
-                    // basic sanity check here, remove full energy electrons (fee)
-                    if (rp1.getMomentum().magnitude() > 1.5 * _beamEnergy || rp2.getMomentum().magnitude() > 1.5 * _beamEnergy) {
-                        continue;
-                    }
-                    // require both reconstructed particles to have a track and a cluster
-                    if (rp1.getClusters().size() != 1) {
-                        continue;
-                    }
-                    if (rp2.getClusters().size() != 1) {
-                        continue;
-                    }
-                    if (rp1.getTracks().size() != 1) {
-                        continue;
-                    }
-                    if (rp2.getTracks().size() != 1) {
-                        continue;
-                    }
-                    Track t1 = rp1.getTracks().get(0);
-                    Track t2 = rp2.getTracks().get(0);
-                    Cluster c1 = rp1.getClusters().get(0);
-                    Cluster c2 = rp2.getClusters().get(0);
-                    double deltaT = ClusterUtilities.getSeedHitTime(c1) - ClusterUtilities.getSeedHitTime(c2);
-                    // require cluster times to be coincident within 2 ns
-                    if (abs(deltaT) > 2.0) {
-                        continue;
-                    }
+            if (finalStateParticles.size() == 3) {
+                setupSensors(event);
+                List<Vertex> vertices = event.get(Vertex.class, "UnconstrainedV0Vertices");
+                for (Vertex v : vertices) {
+                    ReconstructedParticle rp = v.getAssociatedParticle();
+                    int type = rp.getType();
+                    boolean isGbl = TrackType.isGBL(type);
+                    // require GBL tracks in vertex
+                    if (isGbl) {
+                        List<ReconstructedParticle> parts = rp.getParticles();
+                        ReconstructedParticle rp1 = parts.get(0);
+                        ReconstructedParticle rp2 = parts.get(1);
+                        // basic sanity check here, remove full energy electrons (fee)
+                        if (rp1.getMomentum().magnitude() > 1.5 * _beamEnergy || rp2.getMomentum().magnitude() > 1.5 * _beamEnergy) {
+                            continue;
+                        }
+                        // require both reconstructed particles to have a track and a cluster
+                        if (rp1.getClusters().size() != 1) {
+                            continue;
+                        }
+                        if (rp2.getClusters().size() != 1) {
+                            continue;
+                        }
+                        if (rp1.getTracks().size() != 1) {
+                            continue;
+                        }
+                        if (rp2.getTracks().size() != 1) {
+                            continue;
+                        }
+                        Track t1 = rp1.getTracks().get(0);
+                        Track t2 = rp2.getTracks().get(0);
+                        Cluster c1 = rp1.getClusters().get(0);
+                        Cluster c2 = rp2.getClusters().get(0);
+                        double deltaT = ClusterUtilities.getSeedHitTime(c1) - ClusterUtilities.getSeedHitTime(c2);
+                        // require cluster times to be coincident within 2 ns
+                        if (abs(deltaT) > 2.0) {
+                            continue;
+                        }
                     // require conversion e+e- to be in same hemisphere
-                    //System.out.println(isTopTrack(t1) + " " + isTopTrack(t2));
-                    if (isTopTrack(t1) && !isTopTrack(t2)) {
-                        continue;
-                    }
-                    if (isTopTrack(t2) && !isTopTrack(t1)) {
-                        continue;
-                    }
-                    // if we get here, we have a good candidate V0 and event
-                    aida.cloud1D("event esum").fill(eSum);
-                    aida.cloud1D("mass").fill(rp.getMass());
-                    aida.cloud2D("psum vs mass").fill(rp.getMomentum().magnitude(), rp.getMass());
-                    aida.cloud2D("z pos vs mass").fill(v.getPosition().z(), rp.getMass());
-                    skipEvent = false;
+                        //System.out.println(isTopTrack(t1) + " " + isTopTrack(t2));
+                        if (isTopTrack(t1) && !isTopTrack(t2)) {
+                            continue;
+                        }
+                        if (isTopTrack(t2) && !isTopTrack(t1)) {
+                            continue;
+                        }
+                        // if we get here, we have a good candidate V0 and event
+                        aida.cloud1D("event esum").fill(eSum);
+                        aida.cloud1D("mass").fill(rp.getMass());
+                        aida.cloud2D("psum vs mass").fill(rp.getMomentum().magnitude(), rp.getMass());
+                        aida.cloud2D("z pos vs mass").fill(v.getPosition().z(), rp.getMass());
+                        skipEvent = false;
 
+                    }
                 }
             }
-            //}
         }
         if (skipEvent) {
             throw new Driver.NextEventException();
@@ -194,9 +194,8 @@ public class SkimConvertedWabDriver extends Driver {
             }
         }
     }
-    
-    public void setWriteRunAndEventNumber(boolean b)
-    {
+
+    public void setWriteRunAndEventNumber(boolean b) {
         _writeRunAndEventNumber = b;
     }
 }
