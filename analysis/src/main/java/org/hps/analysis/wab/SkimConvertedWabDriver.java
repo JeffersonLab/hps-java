@@ -194,4 +194,9 @@ public class SkimConvertedWabDriver extends Driver {
             }
         }
     }
+    
+    public void setWriteRunAndEventNumber(boolean b)
+    {
+        _writeRunAndEventNumber = b;
+    }
 }
