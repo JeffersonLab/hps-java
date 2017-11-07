@@ -38,13 +38,14 @@ public class SkimConvertedWabDriver extends Driver {
     private double _beamEnergy = 1.056;
     private double _percentFeeCut = 0.8;
 
-    private int _nReconstructedParticles = 3;
+    private int _nReconstructedParticles = 6; // early recon versions (e.g. 2015) included MatchedTracks
 
     private boolean _writeRunAndEventNumber = false;
+    private boolean _printOutZoomedEvents = false;
 
     private AIDA aida = AIDA.defaultInstance();
 
-    private IHistogram1D invMassHist_UnconstrainedV0Vertices = aida.histogram1D("V0 Invariant Mass", 2100, 0., 0.3);
+    private IHistogram1D invMassHist_UnconstrainedV0Vertices = aida.histogram1D("V0 Invariant Mass", 200, 0., 0.3);
     private IHistogram1D esumHist_UnconstrainedV0Vertices = aida.histogram1D("V0 event esum", 200, 0., 4.0);
     private IHistogram1D zposHist_UnconstrainedV0Vertices = aida.histogram1D("V0 vertex z", 250, -50., 200.0);
     private IHistogram1D zposHist_UnconstrainedV0Vertices_top = aida.histogram1D("V0 vertex z top", 250, -50., 200.0);
@@ -62,15 +63,26 @@ public class SkimConvertedWabDriver extends Driver {
     private IHistogram1D zposHist_56hitUnconstrainedV0Vertices_top = aida.histogram1D("V0 vertex z top 56hit", 250, -50., 200.0);
     private IHistogram1D zposHist_56hitUnconstrainedV0Vertices_bottom = aida.histogram1D("V0 vertex z bottom 56hit", 250, -50., 200.0);
 
-    private IHistogram2D psumVsMassHist_UnconstrainedV0Vertices = aida.histogram2D("V0 vertex psum vs mass", 100, 0.8, 1.8, 100, 0., 0.3);
+    private IHistogram2D psumVsMassHist_UnconstrainedV0Vertices = aida.histogram2D("V0 vertex psum vs mass", 150, 0.3, 1.8, 100, 0., 0.3);
     private IHistogram2D zposVsMassHist_UnconstrainedV0Vertices = aida.histogram2D("V0 vertex zpos vs mass", 250, -50., 200., 100, 0., 0.3);
-    private IHistogram2D xVsYHist_UnconstrainedV0Vertices = aida.histogram2D("V0 vertex xpos vs ypos", 100, -20., 20., 100, -10., 10.);
+    private IHistogram2D xVsYHist_UnconstrainedV0Vertices = aida.histogram2D("V0 vertex xpos vs ypos", 100, -10., 10., 100, -10., 10.);
+
+    private IHistogram2D xVsZHist_UnconstrainedV0Vertices_top = aida.histogram2D("V0 vertex xpos vs zpos top", 250, -50., 200., 100, -10., 10.);
+    private IHistogram2D xVsZHist_UnconstrainedV0Vertices_bottom = aida.histogram2D("V0 vertex xpos vs zpos bottom", 250, -50., 200., 100, -10., 10.);
+    private IHistogram2D yVsZHist_UnconstrainedV0Vertices_top = aida.histogram2D("V0 vertex ypos vs zpos top", 250, -50., 200., 100, -10., 10.);
+    private IHistogram2D yVsZHist_UnconstrainedV0Vertices_bottom = aida.histogram2D("V0 vertex ypos vs zpos bottom", 250, -50., 200., 100, -10., 10.);
+
+    // zoom in
+    private IHistogram1D invMassHist_zoom = aida.histogram1D("V0 Invariant Mass zoom", 200, 0., 0.3);
+    private IHistogram1D zposHist_zoom = aida.histogram1D("V0 zpos zoom", 250, -50., 200.0);
+    private IHistogram2D zposVsMassHist_zoom = aida.histogram2D("V0 vertex zpos vs mass zoom", 250, -50., 200., 100, 0., 0.3);
 
     protected void process(EventHeader event) {
         _numberOfEventsRead++;
         boolean skipEvent = true;
         if (event.getRunNumber() > 7000) {
             _beamEnergy = 2.306;
+            _nReconstructedParticles = 3;
         }
 
         int nElectrons = 0;
@@ -175,7 +187,8 @@ public class SkimConvertedWabDriver extends Driver {
                             if ((t1nhits == 5 && t2nhits == 6) || (t1nhits == 6 && t2nhits == 5)) {
                                 zposHist_56hitUnconstrainedV0Vertices_top.fill(z);
                             }
-
+                            xVsZHist_UnconstrainedV0Vertices_top.fill(z, x);
+                            yVsZHist_UnconstrainedV0Vertices_top.fill(z, y);
                         } else {
                             zposHist_UnconstrainedV0Vertices_bottom.fill(z);
                             if (t1nhits == 6 && t2nhits == 6) {
@@ -187,7 +200,8 @@ public class SkimConvertedWabDriver extends Driver {
                             if ((t1nhits == 5 && t2nhits == 6) || (t1nhits == 6 && t2nhits == 5)) {
                                 zposHist_56hitUnconstrainedV0Vertices_bottom.fill(z);
                             }
-
+                            xVsZHist_UnconstrainedV0Vertices_bottom.fill(z, x);
+                            yVsZHist_UnconstrainedV0Vertices_bottom.fill(z, y);
                         }
                         psumVsMassHist_UnconstrainedV0Vertices.fill(p, m);
                         zposVsMassHist_UnconstrainedV0Vertices.fill(z, m);
@@ -198,6 +212,17 @@ public class SkimConvertedWabDriver extends Driver {
                         aida.cloud2D("z pos vs mass").fill(v.getPosition().z(), rp.getMass());
                         aida.cloud2D("x pos vs y pos").fill(x, y);
 
+                        // let's zero in on the narrow peaks at ~z=75
+                        if (65. < z && z < 80.) {
+                            if (.065 < m && m < .1) {
+                                invMassHist_zoom.fill(m);
+                                zposHist_zoom.fill(z);
+                                zposVsMassHist_zoom.fill(z, m);
+                                if (_printOutZoomedEvents) {
+                                    System.out.println(event.getRunNumber() + " " + event.getEventNumber());
+                                }
+                            }
+                        }
                         skipEvent = false;
 
                     }
@@ -277,9 +302,12 @@ public class SkimConvertedWabDriver extends Driver {
     public void setWriteRunAndEventNumber(boolean b) {
         _writeRunAndEventNumber = b;
     }
-    
-    public void setNumberOfReconstructedParticles(int n)
-    {
+
+    public void setPrintOutZoomedEvents(boolean b) {
+        _printOutZoomedEvents = b;
+    }
+
+    public void setNumberOfReconstructedParticles(int n) {
         _nReconstructedParticles = n;
     }
 }
