@@ -66,12 +66,12 @@ public final class TrackTweakDriver extends Driver {
     /**
      * The track parameter corrections that will be applied to all top tracks.
      */
-    private double[] topTrackCorrection = {0, 0, 0, 0, 0};
+    private double[] topTrackCorrection = { 0, 0, 0, 0, 0 };
 
     /**
      * The track parameter corrections that will be applied to all bottom tracks.
      */
-    private double[] botTrackCorrection = {0, 0, 0, 0, 0};
+    private double[] botTrackCorrection = { 0, 0, 0, 0, 0 };
 
     /** List of collections to remove from an event. */
     private String[] removeCollections = {};
@@ -158,8 +158,7 @@ public final class TrackTweakDriver extends Driver {
 
         // Get the stereo layers from the geometry and build the stereo
         // layer maps
-        List<SvtStereoLayer> stereoLayers = ((HpsTracker2) detector.getSubdetector(SUBDETECTOR_NAME)
-                .getDetectorElement()).getStereoPairs();
+        List<SvtStereoLayer> stereoLayers = ((HpsTracker2) detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement()).getStereoPairs();
 
         // Loop through all of the stereo layers and find the midpoint between
         // the sensors of layers 1 & 2. This will be used to set the track
@@ -210,9 +209,7 @@ public final class TrackTweakDriver extends Driver {
             // Loop through the track parameters and apply the corrections
             double[] tweakedTrackParameters = new double[trackState.getParameters().length];
             for (int param_index = 0; param_index < tweakedTrackParameters.length; ++param_index) {
-                tweakedTrackParameters[param_index] = trackState.getParameter(param_index)
-                        + ((trackState.getTanLambda() > 0) ? topTrackCorrection[param_index]
-                                : botTrackCorrection[param_index]);
+                tweakedTrackParameters[param_index] = trackState.getParameter(param_index) + ((trackState.getTanLambda() > 0) ? topTrackCorrection[param_index] : botTrackCorrection[param_index]);
             }
             // Override the old track parameters with the tweaked parameters
             ((BaseTrack) track).setTrackParameters(tweakedTrackParameters, bField);
@@ -223,26 +220,41 @@ public final class TrackTweakDriver extends Driver {
             if (stateIP == null) {
                 throw new RuntimeException("IP track state for GBL track was not found");
             }
-            TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, ecalPosition,
-                    stepSize, bFieldMap);
+            TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, ecalPosition, stepSize, bFieldMap);
 
-            // Replace the existing track state at the Ecal
-            int ecalTrackStateIndex = track.getTrackStates().indexOf(
-                    TrackUtils.getTrackStateAtLocation(track, TrackState.AtCalorimeter));
-            track.getTrackStates().set(ecalTrackStateIndex, stateEcalIP);
+            // Add / replace the existing track state at the Ecal
+            TrackState existingEcal = TrackUtils.getTrackStateAtLocation(track, TrackState.AtCalorimeter);
+            if (existingEcal == null) {
+                track.getTrackStates().add(existingEcal);
+            } else {
+                track.getTrackStates().set(track.getTrackStates().indexOf(existingEcal), stateEcalIP);
+            }
 
             // Get the track state at the first layer
             double layer1Z = trackState.getTanLambda() > 0 ? topLayer1Z : botLayer1Z;
-            TrackState stateLayer1 = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, layer1Z, stepSize,
-                    bFieldMap);
+            TrackState stateLayer1 = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, layer1Z, stepSize, bFieldMap);
             ((BaseTrackState) stateLayer1).setLocation(TrackState.AtFirstHit);
-            track.getTrackStates().add(stateLayer1);
+            // Add or replace this track state
+            TrackState stateLayer1old = TrackUtils.getTrackStateAtLocation(track, TrackState.AtFirstHit);
+            if (stateLayer1old == null) {
+                track.getTrackStates().add(stateLayer1);
+            } else {
+                track.getTrackStates().set(track.getTrackStates().indexOf(stateLayer1old), stateLayer1);
+            }
 
-            // Get the track state at the first layer
+            // Remove track states at all other layers
+            List<TrackState> existingLayers = TrackStateUtils.getTrackStatesAtLocation(track, TrackState.AtOther);
+            if (existingLayers != null)
+                track.getTrackStates().removeAll(existingLayers);
+            TrackState existingLast = TrackUtils.getTrackStateAtLocation(track, TrackState.AtLastHit);
+            if (existingLast != null)
+                track.getTrackStates().remove(existingLast);
+
+            // Get the track state at the second layer
             double layer2Z = trackState.getTanLambda() > 0 ? topLayer2Z : botLayer2Z;
-            TrackState stateLayer2 = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, layer2Z, stepSize,
-                    bFieldMap);
+            TrackState stateLayer2 = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, layer2Z, stepSize, bFieldMap);
             ((BaseTrackState) stateLayer2).setLocation(TrackState.AtOther);
+            // Add this track state
             track.getTrackStates().add(stateLayer2);
         }
 
@@ -258,10 +270,6 @@ public final class TrackTweakDriver extends Driver {
         // value is used.
         List<Track> seedTracks = event.get(Track.class, seedTrackCollectionName);
         for (Track seedTrack : seedTracks) {
-
-            // Get the track state at the target
-            TrackState trackState = seedTrack.getTrackStates().get(0);
-
             // Force re-computation of momentum using the correct B-field,
             // otherwise, a bogus value is returned.
             ((BaseTrack) seedTrack).setTrackParameters(seedTrack.getTrackStates().get(0).getParameters(), bField);
