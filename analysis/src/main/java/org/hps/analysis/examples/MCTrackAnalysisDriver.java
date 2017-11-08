@@ -90,41 +90,40 @@ public class MCTrackAnalysisDriver extends Driver {
     }
 
     protected void process(EventHeader event) {
-        
+
 //        setupSensors(event);
         List<Track> tracks = event.get(Track.class, "GBLTracks");
-        for (Track t : tracks)
-        {
+        for (Track t : tracks) {
             double chiSquared = t.getChi2();
-                int ndf = t.getNDF();
-                double chi2Ndf = t.getChi2() / t.getNDF();
-                double chisqProb = ChisqProb.gammp(ndf, chiSquared);
-                int nHits = t.getTrackerHits().size();
-                double dEdx = t.getdEdx();
-                TrackState ts = t.getTrackStates().get(0);
-                System.out.println(ts);
-                double[] p = ts.getMomentum();
-                Hep3Vector pvec = new BasicHep3Vector(p);
-                //rotate into physiscs frame of reference
-                Hep3Vector rprot = VecOp.mult(beamAxisRotation, pvec);
-                double theta = Math.acos(rprot.z() / rprot.magnitude());
-                
-                // debug diagnostics to set cuts
-                if (debug) {
-                    aida.cloud1D("Track chisq per df").fill(chiSquared / ndf);
-                    aida.cloud1D("Track chisq prob").fill(chisqProb);
-                    aida.cloud1D("Track nHits").fill(t.getTrackerHits().size());
-                    aida.cloud1D("Track momentum").fill(pvec.magnitude());
-                    aida.cloud1D("Track deDx").fill(t.getdEdx());
-                    aida.cloud1D("Track theta").fill(theta);
-                    aida.cloud2D("Track theta vs p").fill(theta, pvec.magnitude());
-                    aida.cloud1D("rp x0").fill(TrackUtils.getX0(t));
-                    aida.cloud1D("rp y0").fill(TrackUtils.getY0(t));
-                    aida.cloud1D("rp z0").fill(TrackUtils.getZ0(t));
-                }
+            int ndf = t.getNDF();
+            double chi2Ndf = t.getChi2() / t.getNDF();
+            double chisqProb = ChisqProb.gammp(ndf, chiSquared);
+            int nHits = t.getTrackerHits().size();
+            double dEdx = t.getdEdx();
+            TrackState ts = t.getTrackStates().get(0);
+            System.out.println(ts);
+            double[] p = ts.getMomentum();
+            Hep3Vector pvec = new BasicHep3Vector(p);
+            //rotate into physiscs frame of reference
+            Hep3Vector rprot = VecOp.mult(beamAxisRotation, pvec);
+            double theta = Math.acos(rprot.z() / rprot.magnitude());
+
+            // debug diagnostics to set cuts
+            if (debug) {
+                aida.cloud1D("Track chisq per df").fill(chiSquared / ndf);
+                aida.cloud1D("Track chisq prob").fill(chisqProb);
+                aida.cloud1D("Track nHits").fill(t.getTrackerHits().size());
+                aida.cloud1D("Track momentum").fill(pvec.magnitude());
+                aida.cloud1D("Track deDx").fill(t.getdEdx());
+                aida.cloud1D("Track theta").fill(theta);
+                aida.cloud2D("Track theta vs p").fill(theta, pvec.magnitude());
+                aida.cloud1D("rp x0").fill(TrackUtils.getX0(t));
+                aida.cloud1D("rp y0").fill(TrackUtils.getY0(t));
+                aida.cloud1D("rp z0").fill(TrackUtils.getZ0(t));
+            }
         }
     }
-    
+
     private boolean isTopTrack(Track t) {
         List<TrackerHit> hits = t.getTrackerHits();
         int n[] = {0, 0};

@@ -224,7 +224,6 @@ public class SkimConvertedWabDriver extends Driver {
                             }
                         }
                         skipEvent = false;
-
                     }
                 }
             }
