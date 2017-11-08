@@ -20,6 +20,7 @@ import org.lcsim.geometry.compact.converter.lcdd.util.PhysVol;
 import org.lcsim.geometry.compact.converter.lcdd.util.Position;
 import org.lcsim.geometry.compact.converter.lcdd.util.Rotation;
 import org.lcsim.geometry.compact.converter.lcdd.util.SensitiveDetector;
+import org.lcsim.geometry.compact.converter.lcdd.util.Tracker;
 import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 import org.lcsim.geometry.util.TransformationUtils;
 
@@ -36,9 +37,19 @@ public abstract class HPSTracker2014Base extends LCDDSubdetector {
     private final double beamPlaneWidth = 385.00;
     private final double beamPlaneLength = 1216.00;
     private final double beamPlaneThickness = 0.00000001;
+    
+    private String inactiveSiReadoutName = null;
+    private Tracker inactiveSiTracker = null;
 
     public HPSTracker2014Base(Element c) throws JDOMException {
         super(c);
+        if (c.getAttribute("inactiveSiReadout") != null) {
+            this.inactiveSiReadoutName = c.getAttributeValue("inactiveSiReadout");
+        }
+    }
+    
+    public void setInactiveSiReadoutName(String inactiveSiReadoutName) {
+        this.inactiveSiReadoutName = inactiveSiReadoutName;
     }
 
     /**
@@ -49,7 +60,7 @@ public abstract class HPSTracker2014Base extends LCDDSubdetector {
      * @return the builder.
      */
     abstract protected HPSTrackerLCDDBuilder initializeBuilder(LCDD lcdd, SensitiveDetector sens);
-
+        
     public boolean isTracker() {
         return true;
     }
@@ -73,6 +84,17 @@ public abstract class HPSTracker2014Base extends LCDDSubdetector {
         // vee (constraints pitch & yaw)
         // flat (constraints roll)
         // /
+        
+        /**
+         * The sensitive detector for reading out hits from the inactive region of the
+         * sensor is setup here, if necessary.  --JM
+         */
+        if (this.inactiveSiReadoutName != null) {            
+            Tracker tracker = new Tracker(this.inactiveSiReadoutName + "_det");
+            tracker.setHitsCollection(this.inactiveSiReadoutName);
+            lcdd.addSensitiveDetector(tracker);
+            this.inactiveSiTracker = tracker;
+        }
 
         // ID of the detector.
         int id = node.getAttribute("id").getIntValue();
@@ -227,14 +249,14 @@ public abstract class HPSTracker2014Base extends LCDDSubdetector {
      */
     private void setPhysicalVolumeProperties(LCDDSurveyVolume surveyVolume, SensitiveDetector sd)
             throws DataConversionException {
-
+                       
         if (_debug)
             System.out.printf("%s: setPhysVolumeProperties for name %s\n", getClass().getSimpleName(),
-                    surveyVolume.getName());
+                    surveyVolume.getName());                    
 
         String name = surveyVolume.getName();
         if (HPSTrackerBuilder.isHalfModule(surveyVolume.getName())) {
-            setHalfModulePhysicalVolumeProperties(surveyVolume);
+            setHalfModulePhysicalVolumeProperties(surveyVolume);            
         } else if (HPSTrackerBuilder.isActiveSensor(surveyVolume.getName())) {
             setActiveSensorPhysicalVolumeProperties(surveyVolume, sd);
         } else if (HPSTrackerBuilder.isSensor(surveyVolume.getName())) {
@@ -272,6 +294,16 @@ public abstract class HPSTracker2014Base extends LCDDSubdetector {
     private void setActiveSensorPhysicalVolumeProperties(LCDDSurveyVolume surveyVolume, SensitiveDetector sd) {
         surveyVolume.getPhysVolume().addPhysVolID("sensor", 0);
         surveyVolume.getVolume().setSensitiveDetector(sd);
+        
+        /**
+         * Assign inactive Si detector to half-module, which must happen after the active sensor has been processed so
+         * that XML elements appear in the correct order defined by the schema.  --JM
+         */ 
+        if (this.inactiveSiTracker != null) {
+            //System.out.println("Setting sens det '" + this.inactiveSiReadoutName 
+            //        + "' on inactive Si volume '" + surveyVolume.getVolume().getName() + "'");
+            surveyVolume.getPhysMother().getVolume().setSensitiveDetector(this.inactiveSiTracker);
+        }
     }
 
     abstract protected int getModuleNumber(String surveyVolume);
@@ -293,7 +325,6 @@ public abstract class HPSTracker2014Base extends LCDDSubdetector {
         physVol.addPhysVolID("barrel", 0);
         surveyVolume.getPhysVolume().addPhysVolID("layer", layer);
         surveyVolume.getPhysVolume().addPhysVolID("module", moduleNumber);
-
     }
 
     protected void makeBeamPlane(Volume motherVolume, LCDD lcdd, SensitiveDetector sens) throws JDOMException {
