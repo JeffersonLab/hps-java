@@ -1,10 +1,18 @@
 package org.hps.recon.tracking;
 
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lcsim.detector.ITransform3D;
+import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
 /**
  * Utilities for retrieving TrackStates.
@@ -14,6 +22,54 @@ import org.lcsim.event.TrackState;
  */
 
 public class TrackStateUtils {
+
+    public static Hep3Vector getLocationAtSensor(Track track, HpsSiSensor sensor, double bfield) {
+        int millepedeID = sensor.getMillepedeId();
+
+        // try to get trackstate at sensor directly
+        TrackState tsAtSensor = TrackStateUtils.getTrackStateAtSensor(track, millepedeID);
+        if (tsAtSensor != null)
+            return getLocationAtSensor(tsAtSensor, sensor, bfield);
+
+        // if not available, check if track has states at any sensor
+        List<TrackState> tsAtSensorList = TrackStateUtils.getTrackStatesAtLocation(track, 0);
+        if ((tsAtSensorList == null) || tsAtSensorList.isEmpty()) {
+            // no track states at sensor available, so use track state at IP
+            tsAtSensor = TrackStateUtils.getTrackStateAtIP(track);
+        } else {
+            // find closest previous trackstate
+            while ((tsAtSensor == null) && (millepedeID > 0)) {
+                millepedeID--;
+                tsAtSensor = TrackStateUtils.getTrackStateAtSensor(track, millepedeID);
+            }
+        }
+
+        if (tsAtSensor != null)
+            return getLocationAtSensor(tsAtSensor, sensor, bfield);
+
+        return null;
+    }
+
+    public static Hep3Vector getLocationAtSensor(TrackState ts, HpsSiSensor sensor, double bfield) {
+        // get origin of sensor, in global coordinates
+        Hep3Vector point_on_plane = sensor.getGeometry().getPosition();
+
+        // get u, v, w : in global coordinates
+        SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.getCarrier(sensor.getTrackerIdHelper().getSideValue(sensor.getIdentifier())));
+        ITransform3D fromElectrodes = electrodes.getLocalToGlobal();
+        //ITransform3D fromGlobal = sensor.getGeometry().getGlobalToLocal();
+        //ITransform3D trans = Transform3D.multiply(fromGlobal, fromElectrodes);
+        //trans.rotated(...)
+        Hep3Vector u = fromElectrodes.rotated(electrodes.getMeasuredCoordinate(0));
+        Hep3Vector v = fromElectrodes.rotated(electrodes.getUnmeasuredCoordinate(0));
+        Hep3Vector w = VecOp.cross(u, v);
+
+        // make HelicalTrackFit
+        HelicalTrackFit htf = TrackUtils.getHTF(ts);
+
+        return TrackUtils.getHelixPlaneIntercept(htf, w, point_on_plane, bfield);
+    }
+
     public static List<TrackState> getTrackStatesAtLocation(List<TrackState> trackStates, int location) {
         List<TrackState> result = new ArrayList<TrackState>();
         for (TrackState state : trackStates) {
@@ -88,20 +144,28 @@ public class TrackStateUtils {
     // if track doesn't hit a sensor, the corresponding TrackState in List is invalid, and is a dummy with location code -1
     public static TrackState getTrackStateAtSensor(List<TrackState> trackStates, int sensorNum) {
         int first = -1;
-        boolean ok = false;
+        int last = -1;
+        boolean foundFirst = false;
+        boolean foundLast = false;
         TrackState result = null;
 
-        // TODO: add more checks here, perhaps using AtLastHit
         for (TrackState state : trackStates) {
-            first++;
+            if (!foundFirst)
+                first++;
+            last++;
             if (state.getLocation() == TrackState.AtFirstHit) {
-                ok = true;
+                foundFirst = true;
+            }
+            if (state.getLocation() == TrackState.AtLastHit) {
+                if (!foundFirst)
+                    return null;
+                foundLast = true;
                 break;
             }
         }
 
-        if (ok) {
-            if ((first - 1 + sensorNum) < trackStates.size()) {
+        if (foundFirst && foundLast) {
+            if ((first - 1 + sensorNum) <= last) {
                 result = trackStates.get(first - 1 + sensorNum);
                 if (result.getLocation() != TrackState.AtOther && result.getLocation() != TrackState.AtFirstHit && result.getLocation() != TrackState.AtLastHit)
                     return null;

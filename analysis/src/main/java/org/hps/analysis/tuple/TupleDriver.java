@@ -506,10 +506,8 @@ public abstract class TupleDriver extends Driver {
             double[] extrapTrackYBotAxial = new double[nLay];
             double[] extrapTrackYBotStereo = new double[nLay];
             
-            //TODO: change to use new TrackStates-at-sensors
             for (HpsSiSensor sensor : sensors) {
-                double zPos = sensor.getGeometry().getPosition().z();
-                Hep3Vector extrapPos = TrackUtils.extrapolateTrack(track, zPos);
+                Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(track, sensor, bfield);
                 int i = ((sensor.getLayerNumber() + 1) / 2) - 1;
                 if (trackState.getTanLambda() > 0 && sensor.isTopLayer()) {
                     if (sensor.isAxial()) {
@@ -617,8 +615,17 @@ public abstract class TupleDriver extends Driver {
             double trkTsd = TrackUtils.getTrackTimeSD(track, TrackUtils.getHitToStripsTable(event),
                     TrackUtils.getHitToRotatedTable(event));
 
-            // TODO: better way?
-            Hep3Vector atEcal = TrackUtils.getTrackPositionAtEcal(TrackStateUtils.getTrackStateAtECal(track));
+            // Find track state at ECal, or nearest previous track state
+            TrackState stateAtEcal = TrackStateUtils.getTrackStateAtECal(track);
+            if (stateAtEcal == null)
+                stateAtEcal = TrackStateUtils.getTrackStateAtLast(track);
+            if (stateAtEcal == null)
+                stateAtEcal = TrackStateUtils.getTrackStateAtFirst(track);
+            if (stateAtEcal == null)
+                stateAtEcal = TrackStateUtils.getTrackStateAtIP(track);
+            // then get track position at ECal using this state
+            Hep3Vector atEcal = TrackUtils.getTrackPositionAtEcal(stateAtEcal);
+            
             Hep3Vector firstHitPosition = VecOp.mult(
                     beamAxisRotation,
                     CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(track.getTrackerHits()
@@ -708,8 +715,16 @@ public abstract class TupleDriver extends Driver {
             // ////////////////////////////////////
             double momentumOfShared = pRotShared.magnitude();
             int maxShared = TrackUtils.numberOfSharedHits(track, trackShared);
-         // TODO: better way?
-            Hep3Vector atEcalShared = TrackUtils.getTrackPositionAtEcal(TrackStateUtils.getTrackStateAtECal(trackShared));
+            
+         // shared at ECal
+            TrackState stateAtEcalShared = TrackStateUtils.getTrackStateAtECal(trackShared);
+            if (stateAtEcalShared == null)
+                stateAtEcalShared = TrackStateUtils.getTrackStateAtLast(trackShared);
+            if (stateAtEcalShared == null)
+                stateAtEcalShared = TrackStateUtils.getTrackStateAtFirst(trackShared);
+            if (stateAtEcalShared == null)
+                stateAtEcalShared = TrackStateUtils.getTrackStateAtIP(trackShared);
+            Hep3Vector atEcalShared = TrackUtils.getTrackPositionAtEcal(stateAtEcalShared);
 
             // if (track == trackShared){System.out.println("Tracks are same!");}
             // System.out.println("momentum of shared:\t"+momentumOfShared+"\t max shared \t"+maxShared+"\tall shared\t"+allShared);
