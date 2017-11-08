@@ -13,7 +13,6 @@
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
-        <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
         <driver name="CopyCluster" />
         <!-- SVT reconstruction drivers -->
@@ -68,8 +67,8 @@
             <logLevel>CONFIG</logLevel>
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-        </driver>
-         <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+        </driver>             
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
