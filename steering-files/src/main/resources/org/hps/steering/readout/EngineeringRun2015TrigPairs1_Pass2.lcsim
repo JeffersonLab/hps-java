@@ -12,6 +12,7 @@
         <driver name="EcalClustererGTP"/>
         <driver name="PairTrigger1"/>
         <driver name="SimpleSVTReadout" />
+        <driver name="InactiveSiHitReadout" />
         <driver name="TestRunReconToLcio"/>     
         <driver name="AidaSaveDriver"/>    
         <driver name="ClockDriver"/>     
@@ -72,7 +73,7 @@
             <energySlopeLow>0.600</energySlopeLow>
             <prescale>1</prescale>
             <outputFileName>${outputFile}.triggers.pairs1</outputFileName>
-            <!--<verbose>true</verbose>-->
+            <verbose>true</verbose>
         </driver>         
         <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
             <enablePileupCut>false</enablePileupCut>
@@ -91,5 +92,6 @@
             <writeSvtData>true</writeSvtData>
             <ecalMode>1</ecalMode>
         </driver>
+        <driver name="InactiveSiHitReadout" type="org.hps.readout.ecal.InactiveSiHitReadout" />
     </drivers>
 </lcsim>
