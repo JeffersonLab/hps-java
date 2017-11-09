@@ -8,7 +8,6 @@ import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
-import org.lcsim.geometry.Detector;
 
 /**
  * Class to strip off trident candidates for the 2015 Pass7 Reconstruction.
@@ -103,7 +102,4 @@ public class V0CandidateFilter2015Pass7 extends EventReconFilter {
         _V0CandidateCollectionName = s;
     }
 
-    protected void detectorChanged(Detector detector) {
-        super.detectorChanged(detector);
-    }
 }
