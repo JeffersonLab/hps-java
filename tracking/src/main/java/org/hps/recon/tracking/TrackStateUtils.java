@@ -31,7 +31,7 @@ public class TrackStateUtils {
         if (tsAtSensor != null)
             return getLocationAtSensor(tsAtSensor, sensor, bfield);
 
-        // if not available, check if track has states at any sensor
+        //        if not available, check if track has states at any sensor
         List<TrackState> tsAtSensorList = TrackStateUtils.getTrackStatesAtLocation(track, 0);
         if ((tsAtSensorList == null) || tsAtSensorList.isEmpty()) {
             // no track states at sensor available, so use track state at IP
@@ -51,23 +51,29 @@ public class TrackStateUtils {
     }
 
     public static Hep3Vector getLocationAtSensor(TrackState ts, HpsSiSensor sensor, double bfield) {
-        // get origin of sensor, in global coordinates
+        // get origin of sensor, in global tracking coordinates
         Hep3Vector point_on_plane = sensor.getGeometry().getPosition();
+        Hep3Vector pointInTrackingFrame = CoordinateTransformations.transformVectorToTracking(point_on_plane);
 
-        // get u, v, w : in global coordinates
-        SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.getCarrier(sensor.getTrackerIdHelper().getSideValue(sensor.getIdentifier())));
+        // get u, v, w : in local coordinates
+        SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.getCarrier(1));
+        if (electrodes == null)
+            electrodes = sensor.getReadoutElectrodes(ChargeCarrier.getCarrier(-1));
+        ITransform3D fromGlobal = sensor.getGeometry().getGlobalToLocal();
         ITransform3D fromElectrodes = electrodes.getLocalToGlobal();
-        //ITransform3D fromGlobal = sensor.getGeometry().getGlobalToLocal();
-        //ITransform3D trans = Transform3D.multiply(fromGlobal, fromElectrodes);
-        //trans.rotated(...)
-        Hep3Vector u = fromElectrodes.rotated(electrodes.getMeasuredCoordinate(0));
-        Hep3Vector v = fromElectrodes.rotated(electrodes.getUnmeasuredCoordinate(0));
-        Hep3Vector w = VecOp.cross(u, v);
+        Hep3Vector u = fromElectrodes.transformed(electrodes.getMeasuredCoordinate(0));
+        Hep3Vector v = fromElectrodes.transformed(electrodes.getUnmeasuredCoordinate(0));
+        Hep3Vector w = VecOp.cross(v, u);
+        Hep3Vector wInLocal = fromGlobal.transformed(w);
 
         // make HelicalTrackFit
         HelicalTrackFit htf = TrackUtils.getHTF(ts);
 
-        return TrackUtils.getHelixPlaneIntercept(htf, w, point_on_plane, bfield);
+        // get helix intercept: in global tracking coordinates
+        Hep3Vector theInt = TrackUtils.getHelixPlaneIntercept(htf, wInLocal, pointInTrackingFrame, bfield);
+
+        // return in global detector coordinates
+        return CoordinateTransformations.transformVectorToDetector(theInt);
     }
 
     public static List<TrackState> getTrackStatesAtLocation(List<TrackState> trackStates, int location) {
