@@ -202,6 +202,45 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         Vec zhat = null;
         Vec uhat = null;
         Vec vhat = null;
+
+        // Test extrapolation of the helix from layer 5 to 6
+        /*
+        Histogram hXe = new Histogram(100,-4.,0.08,"X extrapolation","x","trial");
+        Histogram hZe = new Histogram(100,-4.,0.08,"Z extrapolation","z","trial");
+        Helix tkH = TkInitial[0].copy();
+        Plane pl = new Plane(new Vec(0.,location[4],0.),new Vec(0.,1.,0.));
+        Plane pl6 = new Plane(new Vec(0.,location[5],0.),new Vec(0.,1.,0.));
+        double phiInt5 = tkH.planeIntersect(pl);
+        Vec x1 = tkH.atPhiGlobal(phiInt5);
+        x1.print("point on plane 5");
+        Vec ctr = null;
+        for (int itr = 0; itr<10000; itr++) {
+            double [] grn = {0.,0.};
+            if (itr != 0) {
+                grn = gausRan();
+            }
+            double x = x1.v[0] + grn[0]*0.4;
+            double z = x1.v[2] + grn[1]*0.4;
+            Vec pvt = new Vec(x,x1.v[1],z);
+            //pvt.print("new pivot");
+            Vec hNew = tkH.pivotTransform(pvt);
+            //hNew.print("new helix parameters");
+            hNew.v[0] = 0.;
+            hNew.v[3] = 0.;
+            Helix tkHnew = new Helix(hNew,pvt,pl.X(),fM);
+            double phiInt6 = tkHnew.planeIntersect(pl6);
+            Vec pnt6 = tkHnew.atPhiGlobal(phiInt6);
+            //pnt6.print("point at plane 6");
+            if (itr == 0) {
+                ctr = pnt6.copy();
+            }
+            hXe.entry(pnt6.v[0]-ctr.v[0]);
+            hZe.entry(pnt6.v[2]-ctr.v[2]);
+        }
+        hXe.plot(path + "Xe.gp", true, " ", " ");
+        hZe.plot(path + "Ze.gp", true, " ", " "); 
+        */
+
         // Test the multiple scattering matrix
         /*
         Histogram hEdrho3 = new Histogram(100, -10., 0.2, "MS drho error", "sigmas", "track");
@@ -412,9 +451,13 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         Histogram hResid1 = new Histogram(100, -10., 0.2, "Filtered residual for rotated planes", "sigmas", "hits");
         Histogram[] hResidS0 = new Histogram[6];
         Histogram[] hResidS1 = new Histogram[6];
+        Histogram[] hResidS2 = new Histogram[6];
+        Histogram[] hResidS3 = new Histogram[6];
         for (int i = 0; i < nPlanes; i++) {
-            hResidS1[i] = new Histogram(100, -10., 0.2, "Smoothed residual for rotated planes", "sigmas", "hits");
             hResidS0[i] = new Histogram(100, -10., 0.2, "Smoothed residual for non-rotated planes", "sigmas", "hits");
+            hResidS1[i] = new Histogram(100, -10., 0.2, "Smoothed residual for rotated planes", "sigmas", "hits");
+            hResidS2[i] = new Histogram(100, -0.1, 0.002, "Smoothed residual for non-rotated planes", "mm", "hits");
+            hResidS3[i] = new Histogram(100, -0.1, 0.002, "Smoothed residual for rotated planes", "mm", "hits");
         }
 
         Instant timestamp = Instant.now();
@@ -574,7 +617,8 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                         if (rungeKutta) {
                             Vec rIntTmp = Tk[ih].atPhiGlobal(phiInt);
                             double errX = rscat.dif(rIntTmp).mag();
-                            System.out.format("Runge-Kutta difference from Helix extrapolation is %12.5e mm for plane %d stereo\n", errX, pln);
+                            System.out.format("Runge-Kutta difference from Helix extrapolation is %12.5e mm for plane %d stereo\n", errX,
+                                                            pln);
                         }
                     }
 
@@ -688,23 +732,29 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             }
             // Run the Kalman fit
             KalmanTrackFit kF = new KalmanTrackFit(SiModules, 0, 1, 1, helixOrigin, initialHelixGuess, initialCovariance, Bstart, tBstart,
-                                            verbose);
+                                            fM, verbose);
 
             ArrayList<MeasurementSite> sites = kF.sites;
             Iterator<MeasurementSite> itr = sites.iterator();
             while (itr.hasNext()) {
                 MeasurementSite site = itr.next();
                 SiModule siM = site.m;
-                if (site.m.stereo == 0.) {
-                    if (site.filtered)
-                        hResid0.entry(site.aF.r / Math.sqrt(site.aF.R));
-                    if (site.smoothed)
-                        hResidS0[siM.Layer].entry(site.aS.r / Math.sqrt(site.aS.R));
-                } else {
-                    if (site.filtered)
-                        hResid1.entry(site.aF.r / Math.sqrt(site.aF.R));
-                    if (site.smoothed)
-                        hResidS1[siM.Layer].entry(site.aS.r / Math.sqrt(site.aS.R));
+                if (site.m.Layer >= 0) {
+                    if (site.m.stereo == 0.) {
+                        if (site.filtered)
+                            hResid0.entry(site.aF.r / Math.sqrt(site.aF.R));
+                        if (site.smoothed) {
+                            hResidS0[siM.Layer].entry(site.aS.r / Math.sqrt(site.aS.R));
+                            hResidS2[siM.Layer].entry(site.aS.r);
+                        }
+                    } else {
+                        if (site.filtered)
+                            hResid1.entry(site.aF.r / Math.sqrt(site.aF.R));
+                        if (site.smoothed) {
+                            hResidS1[siM.Layer].entry(site.aS.r / Math.sqrt(site.aS.R));
+                            hResidS3[siM.Layer].entry(site.aS.r);
+                        }
+                    }
                 }
             }
 
@@ -826,6 +876,8 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         for (int i = 0; i < nPlanes; i++) {
             hResidS0[i].plot(path + String.format("residS0_%d.gp", i), true, " ", " ");
             hResidS1[i].plot(path + String.format("residS1_%d.gp", i), true, " ", " ");
+            hResidS2[i].plot(path + String.format("residS2_%d.gp", i), true, " ", " ");
+            hResidS3[i].plot(path + String.format("residS3_%d.gp", i), true, " ", " ");
         }
     }
 

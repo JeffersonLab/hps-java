@@ -1,5 +1,7 @@
 package kalman;
 
+import java.util.Random;
+
 class Helix { // Create a simple helix oriented along the B field axis for testing the Kalman
               // fit
     Vec p; // Helix parameters drho, phi0, K, dz, tanl
@@ -16,6 +18,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
     RotMatrix R; // Rotation from global coordinates to the B field frame
     Vec origin; // Origin of the B-field reference frame in global coordinates
     private FieldMap fM;
+    private Random rndm;
 
     Helix(Vec HelixParams, Vec pivotGlobal, Vec origin, FieldMap fM) {
         this.origin = origin.copy();
@@ -45,6 +48,9 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         //origin.print("new helix origin");
         //pivotGlobal.print("new helix pivot global");
         //X0.print("new helix pivot");
+        long seedLong = 123445439;
+        rndm = new Random();
+        rndm.setSeed(seedLong);
     }
 
     Helix copy() {
@@ -122,13 +128,15 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         return R.inverseRotate(new Vec(px, py, pz));
     }
 
-    static double[] gausRan() { // Return two gaussian random numbers
+    double[] gausRan() { // Return two gaussian random numbers
 
         double x1, x2, w;
         double[] gran = new double[2];
         do {
             x1 = 2.0 * Math.random() - 1.0;
             x2 = 2.0 * Math.random() - 1.0;
+            //x1 = 2.0 * rndm.nextDouble() - 1.0;
+            //x2 = 2.0 * rndm.nextDouble() - 1.0;
             w = x1 * x1 + x2 * x2;
         } while (w >= 1.0);
         w = Math.sqrt((-2.0 * Math.log(w)) / w);
@@ -136,7 +144,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         gran[1] = x2 * w;
 
         return gran;
-    }
+    }    
 
     Helix randomScat(Plane P, Vec r, Vec pmom, double X) { // Produce a new helix scattered randomly in a given plane P
         // X is the thickness of the silicon material in meters
@@ -169,8 +177,10 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         else
             theta0 = Math.sqrt((X / radLen) / ct) * (0.0136 / pmom.mag()) * (1.0 + 0.038 * Math.log((X / radLen) / ct));
         double[] gran = gausRan();
-        double thetaX = gran[0] * theta0;
-        double thetaY = gran[1] * theta0;
+        double thetaX = gran[0]*theta0;
+        double thetaY = gran[1]*theta0;
+        //double thetaX = rndm.nextGaussian() * theta0;
+        //double thetaY = rndm.nextGaussian() * theta0;
         //System.out.format("Helix.randomScat: X=%12.5e, ct=%12.5e, theta0=%12.5e, thetaX=%12.5e, thetaY=%12.5e\n",X,ct,theta0,thetaX,thetaY);
         double tx = Math.sin(thetaX);
         double ty = Math.sin(thetaY);

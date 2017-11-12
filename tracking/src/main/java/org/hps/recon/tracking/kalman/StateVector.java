@@ -16,7 +16,7 @@ class StateVector {
     double r; // Filtered or smoothed residual at site kLow
     double R; // Covariance of residual
     boolean verbose;
-    private SquareMatrix F; // Propagator matrix to propagate from this site to the next site
+    SquareMatrix F; // Propagator matrix to propagate from this site to the next site
     private double B; // Field magnitude
     double alpha; // Conversion from 1/K to radius R
     private HelixPlaneIntersect hpi;
@@ -92,6 +92,7 @@ class StateVector {
         origin.print("origin of local coordinates");
         Rot.print("from global to field coordinates");
         X0.print("pivot point in local cooordinates");
+        this.toGlobal(X0).print("pivot point in global coordinates");
         a.print("helix parameters");
         helixErrors().print("helix parameter errors");
         C.print("for the helix covariance");
@@ -131,7 +132,7 @@ class StateVector {
 
         double E = a.v[2] * Math.sqrt(1.0 + a.v[4] * a.v[4]);
         double deltaEoE = deltaE / E;
-        
+
         // Transform helix in old coordinate system to new pivot point lying on the next detector plane
         if (deltaE == 0.) {
             aPrime.a = this.pivotTransform(pivot);
@@ -141,14 +142,14 @@ class StateVector {
         // if (verbose) aPrime.a.print("pivot transformed helix; should have zero drho
         // and dz");
 
-        F = this.makeF(aPrime.a); // Calculate derivatives of the pivot transform                           
+        F = this.makeF(aPrime.a); // Calculate derivatives of the pivot transform
         if (deltaE != 0.) {
             double factor = 1.0 - deltaEoE;
             for (int i = 0; i < 5; i++) {
                 F.M[i][2] *= factor;
             }
         }
-        
+
         // Transform to the coordinate system of the field at the new site
         aPrime.X0 = aPrime.toLocal(this.toGlobal(pivot));
         RotMatrix Rt = this.Rot.invert().multiply(aPrime.Rot);
@@ -165,7 +166,7 @@ class StateVector {
         F = fRot.multiply(F);
 
         // Test the derivatives
-        
+
         if (verbose) {
             double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
             StateVector aPda = copy();
@@ -186,7 +187,7 @@ class StateVector {
                 System.out.format("Test of F: Helix parameter %d, deltaExact=%10.8f, delta=%10.8f\n", i, deltaExact, delta);
             }
         }
-        
+
         aPrime.kLow = newSite;
         aPrime.kUp = kUp;
 
@@ -198,7 +199,8 @@ class StateVector {
         else {
             double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
             sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
-            if (verbose) System.out.format("StateVector.predict: momentum=%12.5e, sigmaMS=%12.5e\n", momentum, sigmaMS);
+            if (verbose)
+                System.out.format("StateVector.predict: momentum=%12.5e, sigmaMS=%12.5e\n", momentum, sigmaMS);
         }
         SquareMatrix Ctot = this.C.sum(this.getQ(sigmaMS));
 
@@ -247,11 +249,24 @@ class StateVector {
     }
 
     // Create a smoothed state vector from the filtered state vector
-    StateVector smooth(StateVector snS, StateVector snP) {
+    StateVector smooth(StateVector snS, StateVector snP, SquareMatrix Facc) {
+        // Facc is the accumulated propagation matrix from dummy steps in between this Si layer and the next,
+        // used only to take into account large B field variations.  It should be either null or a unit matrix
+        // if there were no intermediate dummy steps.
+        if (verbose) {
+            System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow,
+                                            kUp, snS.kLow, snS.kUp, snP.kLow, snP.kUp);
+            if (Facc != null) {
+                F.multiply(Facc).print("total propagation matrix");
+            }
+        }
         StateVector sS = copy();
+        if (Facc != null) {
+            sS.F = F.multiply(Facc);
+        }
 
         SquareMatrix CnInv = snP.C.invert();
-        SquareMatrix A = (C.multiply(F.transpose())).multiply(CnInv);
+        SquareMatrix A = (C.multiply(sS.F.transpose())).multiply(CnInv);
 
         Vec diff = snS.a.dif(snP.a);
         sS.a = a.sum(diff.leftMultiply(A));
