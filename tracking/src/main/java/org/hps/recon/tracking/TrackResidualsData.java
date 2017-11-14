@@ -93,4 +93,16 @@ public class TrackResidualsData implements GenericObject {
     public boolean isFixedSize() {
         return false;
     }
+    
+    public String toString()
+    {
+        StringBuffer sb = new StringBuffer("TrackResidualsData: \n");
+        sb.append("Track Volume: "+ (getTrackerVolume()==0 ? "top" : "bottom") +"\n");
+        sb.append("Layer   Residual X  Residual Y \n");
+        for(int i=0; i<layers.size()-1; ++i)
+        {
+            sb.append(layers.get(i)+" " +trackResidualsX.get(i)+" "+ trackResidualsY.get(i)+"\n");
+        }
+        return sb.toString();
+    }    
 }
