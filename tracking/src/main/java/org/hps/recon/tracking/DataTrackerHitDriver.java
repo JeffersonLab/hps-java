@@ -49,6 +49,8 @@ public class DataTrackerHitDriver extends Driver {
     private double threeClusterErr = clusterErrorMultiplier / 3.0;
     private double fourClusterErr = clusterErrorMultiplier / 2.0;
     private double fiveClusterErr = clusterErrorMultiplier / 1.0;
+    // weight the hits in a cluster by charge? (if not, all hits have equal weight)
+    private boolean useWeights = true;
     // Various data lists required by digitization.
     private List<String> processPaths = new ArrayList<String>();
     private List<IDetectorElement> processDEs = new ArrayList<IDetectorElement>();
@@ -127,6 +129,10 @@ public class DataTrackerHitDriver extends Driver {
         this.fiveClusterErr = fiveClusterErr;
     }
 
+    public void setUseWeights(boolean useWeights){
+        this.useWeights = useWeights;
+    }
+    
     /**
      * Creates a new instance of TrackerHitDriver.
      */
@@ -180,11 +186,18 @@ public class DataTrackerHitDriver extends Driver {
         stripClusterer.setCentralStripAveragingThreshold(clusterCentralStripAveragingThreshold);
 
         // Set the cluster errors.
-        stripClusterer.SetOneClusterErr(oneClusterErr);
-        stripClusterer.SetTwoClusterErr(twoClusterErr);
-        stripClusterer.SetThreeClusterErr(threeClusterErr);
-        stripClusterer.SetFourClusterErr(fourClusterErr);
-        stripClusterer.SetFiveClusterErr(fiveClusterErr);
+        
+        DefaultSiliconResolutionModel model = new DefaultSiliconResolutionModel();
+
+        model.setOneClusterErr(oneClusterErr);
+        model.setTwoClusterErr(twoClusterErr);
+        model.setThreeClusterErr(threeClusterErr);
+        model.setFourClusterErr(fourClusterErr);
+        model.setFiveClusterErr(fiveClusterErr);
+        model.setUseWeights(useWeights);
+        
+        stripClusterer.setResolutionModel(model);
+        
 
         // Set the detector to process.
         processPaths.add(subdetectorName);

@@ -114,12 +114,12 @@ public final class EcalMonitoringUtilities {
             if ((column < XHOLESTART + XHOLEWIDTH) && (column >= XHOLESTART)) {
                 return true;
             }
-        } 
-        
+        }
+
         if (row == 0) {
             return true;
-        } 
-        
+        }
+
         if (column == 0) {
             return true;
         }

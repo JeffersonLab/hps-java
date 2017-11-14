@@ -59,8 +59,8 @@ public class SvtClusterPlots extends Driver {
     private static final int BOTTOM = 1;
 
     private List<HpsSiSensor> sensors;
-//    private Map<RawTrackerHit, FittedRawTrackerHit> fittedRawTrackerHitMap
-//            = new HashMap<RawTrackerHit, FittedRawTrackerHit>();
+    // private Map<RawTrackerHit, FittedRawTrackerHit> fittedRawTrackerHitMap
+    // = new HashMap<RawTrackerHit, FittedRawTrackerHit>();
 
     // Detector name
     private static final String SUBDETECTOR_NAME = "Tracker";
@@ -122,7 +122,7 @@ public class SvtClusterPlots extends Driver {
         style.yAxisStyle().labelStyle().setFontSize(14);
         style.yAxisStyle().setVisible(true);
 
-        // Turn off the histogram grid 
+        // Turn off the histogram grid
         style.gridStyle().setVisible(false);
 
         // Set the style of the data
@@ -162,8 +162,8 @@ public class SvtClusterPlots extends Driver {
     private void resetPlots() {
 
         // Clear the fitted raw hit map of old values
-//        fittedRawTrackerHitMap.clear();
-        // Since all plots are mapped to the name of a sensor, loop 
+        // fittedRawTrackerHitMap.clear();
+        // Since all plots are mapped to the name of a sensor, loop
         // through the sensors, get the corresponding plots and clear them.
         for (HpsSiSensor sensor : sensors) {
             clusterChargePlots.get(sensor.getName()).reset();
@@ -183,31 +183,31 @@ public class SvtClusterPlots extends Driver {
         }
     }
 
-//    /**
-//     * Method that creates a map between a fitted raw hit and it's corresponding
-//     * raw fit
-//     *
-//     * @param fittedHits : List of fitted hits to map
-//     */
-//    private void mapFittedRawHits(List<FittedRawTrackerHit> fittedHits) {
-//
-//        // Clear the fitted raw hit map of old values
-//        fittedRawTrackerHitMap.clear();
-//
-//        // Loop through all fitted hits and map them to their corresponding raw hits
-//        for (FittedRawTrackerHit fittedHit : fittedHits) {
-//            fittedRawTrackerHitMap.put(fittedHit.getRawTrackerHit(), fittedHit);
-//        }
-//    }
-//
-//    /**
-//     *
-//     * @param rawHit
-//     * @return
-//     */
-//    private FittedRawTrackerHit getFittedHit(RawTrackerHit rawHit) {
-//        return fittedRawTrackerHitMap.get(rawHit);
-//    }
+    // /**
+    // * Method that creates a map between a fitted raw hit and it's corresponding
+    // * raw fit
+    // *
+    // * @param fittedHits : List of fitted hits to map
+    // */
+    // private void mapFittedRawHits(List<FittedRawTrackerHit> fittedHits) {
+    //
+    // // Clear the fitted raw hit map of old values
+    // fittedRawTrackerHitMap.clear();
+    //
+    // // Loop through all fitted hits and map them to their corresponding raw hits
+    // for (FittedRawTrackerHit fittedHit : fittedHits) {
+    // fittedRawTrackerHitMap.put(fittedHit.getRawTrackerHit(), fittedHit);
+    // }
+    // }
+    //
+    // /**
+    // *
+    // * @param rawHit
+    // * @return
+    // */
+    // private FittedRawTrackerHit getFittedHit(RawTrackerHit rawHit) {
+    // return fittedRawTrackerHitMap.get(rawHit);
+    // }
     protected void detectorChanged(Detector detector) {
 
         // Get the HpsSiSensor objects from the geometry
@@ -217,12 +217,12 @@ public class SvtClusterPlots extends Driver {
             throw new RuntimeException("No sensors were found in this detector.");
         }
 
-//        // If the tree already exist, clear all existing plots of any old data
-//        // they might contain.
-//        if (tree != null) {
-//            this.resetPlots();
-//            return;
-//        }
+        // // If the tree already exist, clear all existing plots of any old data
+        // // they might contain.
+        // if (tree != null) {
+        // this.resetPlots();
+        // return;
+        // }
         tree = analysisFactory.createTreeFactory().create();
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
@@ -236,13 +236,18 @@ public class SvtClusterPlots extends Driver {
 
             clusterChargePlots.put(sensor.getName(),
                     histogramFactory.createHistogram1D(sensor.getName() + " - Cluster Charge", 100, 0, 5000));
-            plotters.get("Cluster Amplitude").region(this.computePlotterRegion(sensor))
-                    .plot(clusterChargePlots.get(sensor.getName()), this.createStyle(sensor, "Cluster Amplitude [ADC Counts]", ""));
+            plotters.get("Cluster Amplitude")
+                    .region(this.computePlotterRegion(sensor))
+                    .plot(clusterChargePlots.get(sensor.getName()),
+                            this.createStyle(sensor, "Cluster Amplitude [ADC Counts]", ""));
 
-            singleHitClusterChargePlots.put(sensor.getName(),
-                    histogramFactory.createHistogram1D(sensor.getName() + " - Single Hit Cluster Charge", 100, 0, 5000));
-            plotters.get("Cluster Amplitude").region(this.computePlotterRegion(sensor))
-                    .plot(singleHitClusterChargePlots.get(sensor.getName()), this.createStyle(null, "Cluster Amplitude [ADC Counts]", ""));
+            singleHitClusterChargePlots
+                    .put(sensor.getName(), histogramFactory.createHistogram1D(sensor.getName()
+                            + " - Single Hit Cluster Charge", 100, 0, 5000));
+            plotters.get("Cluster Amplitude")
+                    .region(this.computePlotterRegion(sensor))
+                    .plot(singleHitClusterChargePlots.get(sensor.getName()),
+                            this.createStyle(null, "Cluster Amplitude [ADC Counts]", ""));
 
             clusterTimePlots.put(sensor.getName(),
                     histogramFactory.createHistogram1D(sensor.getName() + " - Cluster Time", 100, -75, 50));
@@ -255,23 +260,36 @@ public class SvtClusterPlots extends Driver {
 
         hitTimeTrigTimePlots.put("Top",
                 histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -75, 50, 6, 0, 24));
-        plotters.get("SVT-trigger timing top-bottom").region(0).plot(hitTimeTrigTimePlots.get("Top"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
+        plotters.get("SVT-trigger timing top-bottom")
+                .region(0)
+                .plot(hitTimeTrigTimePlots.get("Top"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
         hitTimeTrigTimePlots.put("Bottom",
                 histogramFactory.createHistogram2D("Bottom Cluster Time vs. Trigger Phase", 100, -75, 50, 6, 0, 24));
-        plotters.get("SVT-trigger timing top-bottom").region(1).plot(hitTimeTrigTimePlots.get("Bottom"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
+        plotters.get("SVT-trigger timing top-bottom")
+                .region(1)
+                .plot(hitTimeTrigTimePlots.get("Bottom"),
+                        this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
 
         plotters.put("SVT-trigger timing by phase", plotterFactory.create("SVT-trigger timing by phase"));
         plotters.get("SVT-trigger timing by phase").createRegions(2, 6);
 
-        plotters.put("SVT-trigger timing and amplitude by phase", plotterFactory.create("SVT-trigger timing and amplitude by phase"));
+        plotters.put("SVT-trigger timing and amplitude by phase",
+                plotterFactory.create("SVT-trigger timing and amplitude by phase"));
         plotters.get("SVT-trigger timing and amplitude by phase").createRegions(2, 6);
 
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 2; j++) {
-                hitTimeTrigTimePlots1D[i][j] = histogramFactory.createHistogram1D(String.format("Cluster Time for Phase %d, %s", i, j == TOP ? "Top" : "Bottom"), 100, -75, 50);
-                plotters.get("SVT-trigger timing by phase").region(i + 6 * j).plot(hitTimeTrigTimePlots1D[i][j], this.createStyle(null, "Cluster Time [ns]", ""));
-                hitTimeTrigTimePlots2D[i][j] = histogramFactory.createHistogram2D(String.format("Cluster Amplitude vs. Time for Phase %d, %s", i, j == TOP ? "Top" : "Bottom"), 100, -75, 50, 100, 0, 5000.0);
-                plotters.get("SVT-trigger timing and amplitude by phase").region(i + 6 * j).plot(hitTimeTrigTimePlots2D[i][j], this.createStyle(null, "Cluster Time [ns]", "Cluster Amplitude [ADC Counts]"));
+                hitTimeTrigTimePlots1D[i][j] = histogramFactory.createHistogram1D(
+                        String.format("Cluster Time for Phase %d, %s", i, j == TOP ? "Top" : "Bottom"), 100, -75, 50);
+                plotters.get("SVT-trigger timing by phase").region(i + 6 * j)
+                        .plot(hitTimeTrigTimePlots1D[i][j], this.createStyle(null, "Cluster Time [ns]", ""));
+                hitTimeTrigTimePlots2D[i][j] = histogramFactory.createHistogram2D(
+                        String.format("Cluster Amplitude vs. Time for Phase %d, %s", i, j == TOP ? "Top" : "Bottom"),
+                        100, -75, 50, 100, 0, 5000.0);
+                plotters.get("SVT-trigger timing and amplitude by phase")
+                        .region(i + 6 * j)
+                        .plot(hitTimeTrigTimePlots2D[i][j],
+                                this.createStyle(null, "Cluster Time [ns]", "Cluster Amplitude [ADC Counts]"));
             }
         }
 
@@ -293,15 +311,15 @@ public class SvtClusterPlots extends Driver {
             runNumber = event.getRunNumber();
         }
 
-//        // If the event doesn't contain fitted raw hits, skip it
-//        if (!event.hasCollection(FittedRawTrackerHit.class, fittedHitsCollectionName)) {
-//            return;
-//        }
-//         Get the list of fitted hits from the event
-//        List<FittedRawTrackerHit> fittedHits = event.get(FittedRawTrackerHit.class, fittedHitsCollectionName);
-//
-//        // Map the fitted hits to their corresponding raw hits
-//        this.mapFittedRawHits(fittedHits);
+        // // If the event doesn't contain fitted raw hits, skip it
+        // if (!event.hasCollection(FittedRawTrackerHit.class, fittedHitsCollectionName)) {
+        // return;
+        // }
+        // Get the list of fitted hits from the event
+        // List<FittedRawTrackerHit> fittedHits = event.get(FittedRawTrackerHit.class, fittedHitsCollectionName);
+        //
+        // // Map the fitted hits to their corresponding raw hits
+        // this.mapFittedRawHits(fittedHits);
         // If the event doesn't contain any clusters, skip it
         if (!event.hasCollection(SiTrackerHitStrip1D.class, clusterCollectionName)) {
             return;
@@ -334,11 +352,13 @@ public class SvtClusterPlots extends Driver {
             clusterTimePlots.get(sensor.getName()).fill(cluster.getTime());
             if (sensor.isTopLayer()) {
                 hitTimeTrigTimePlots1D[(int) ((event.getTimeStamp() / 4) % 6)][TOP].fill(cluster.getTime());
-                hitTimeTrigTimePlots2D[(int) ((event.getTimeStamp() / 4) % 6)][TOP].fill(cluster.getTime(), cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
+                hitTimeTrigTimePlots2D[(int) ((event.getTimeStamp() / 4) % 6)][TOP].fill(cluster.getTime(),
+                        cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
                 hitTimeTrigTimePlots.get("Top").fill(cluster.getTime(), event.getTimeStamp() % 24);
             } else {
                 hitTimeTrigTimePlots1D[(int) ((event.getTimeStamp() / 4) % 6)][BOTTOM].fill(cluster.getTime());
-                hitTimeTrigTimePlots2D[(int) ((event.getTimeStamp() / 4) % 6)][BOTTOM].fill(cluster.getTime(), cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
+                hitTimeTrigTimePlots2D[(int) ((event.getTimeStamp() / 4) % 6)][BOTTOM].fill(cluster.getTime(),
+                        cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
                 hitTimeTrigTimePlots.get("Bottom").fill(cluster.getTime(), event.getTimeStamp() % 24);
             }
         }

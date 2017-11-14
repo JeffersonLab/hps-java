@@ -21,45 +21,45 @@ import org.hps.datacat.DatacatConstants;
  * @author Jeremy McCormick, SLAC
  */
 public final class MetadataWriter {
-    
-    private static final Logger LOGGER = Logger.getLogger(MetadataWriter.class.getPackage().getName());        
+
+    private static final Logger LOGGER = Logger.getLogger(MetadataWriter.class.getPackage().getName());
     private static final Options OPTIONS = new Options();
-    
+
     private List<File> inputFiles;
-    private File outputDir = new File(".");    
+    private File outputDir = new File(".");
 
     static {
         OPTIONS.addOption("h", "help", false, "print help and exit (overrides all other arguments)");
         OPTIONS.addOption("d", "dir", true, "directory where metadata files should be written");
     }
-            
+
     public static void main(final String[] args) {
         new MetadataWriter().parse(args).run();
     }
-    
+
     private MetadataWriter parse(final String[] args) {
-        
-        try { 
+
+        try {
             final CommandLine cl = new PosixParser().parse(OPTIONS, args);
 
             // Print help.
             if (cl.hasOption("h") || args.length == 0) {
                 this.printUsage();
             }
-                        
+
             // List of input files.
             if (!cl.getArgList().isEmpty()) {
                 inputFiles = new ArrayList<File>();
-                for (String arg : cl.getArgList()) {                    
+                for (String arg : cl.getArgList()) {
                     inputFiles.add(new File(arg));
                 }
             } else {
                 printUsage();
-            }            
+            }
             if (this.inputFiles.isEmpty()) {
                 throw new RuntimeException("Missing at least one input file to process.");
             }
-            
+
             // Output directory for metadata files.
             if (cl.hasOption("d")) {
                 outputDir = new File(cl.getOptionValue("d"));
@@ -67,7 +67,7 @@ public final class MetadataWriter {
                     throw new IllegalArgumentException("The file " + outputDir.getPath() + " is not a directory.");
                 }
             }
-         
+
         } catch (final ParseException e) {
             throw new RuntimeException("Error parsing command line options.", e);
         }
@@ -88,11 +88,11 @@ public final class MetadataWriter {
             LOGGER.info("Creating metadata for " + file.getPath() + " ...");
             Map<String, Object> metadata = DatacatHelper.createMetadata(file);
             String metadataFileName = this.outputDir + File.separator + file.getName() + ".metadata";
-            writeString(toPyDict(metadata), new File(metadataFileName));            
+            writeString(toPyDict(metadata), new File(metadataFileName));
             LOGGER.info("Wrote metadata for " + file.getPath() + " to " + metadataFileName);
         }
     }
-               
+
     private static String toPyDict(Map<String, Object> metadata) {
         StringBuffer sb = new StringBuffer();
         sb.append("{");
@@ -104,19 +104,19 @@ public final class MetadataWriter {
                 } else {
                     sb.append("\"" + name + "\" : \"" + metadata.get(name) + "\", ");
                 }
-            }            
+            }
         }
         sb.setLength(sb.length() - 2);
         sb.append(", \"versionMetadata\" : {");
         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
             if (!DatacatConstants.isSystemMetadata(entry.getKey())) {
-               Object value = entry.getValue();
-               String name = entry.getKey();
-               if (value instanceof Number) {
-                   sb.append("\"" + name + "\" : " + metadata.get(name) + ", ");
-               } else {
-                   sb.append("\"" + name + "\" : \"" + metadata.get(name) + "\", ");
-               }
+                Object value = entry.getValue();
+                String name = entry.getKey();
+                if (value instanceof Number) {
+                    sb.append("\"" + name + "\" : " + metadata.get(name) + ", ");
+                } else {
+                    sb.append("\"" + name + "\" : \"" + metadata.get(name) + "\", ");
+                }
             }
         }
         sb.setLength(sb.length() - 2);
@@ -124,7 +124,7 @@ public final class MetadataWriter {
         sb.append("}");
         return sb.toString();
     }
-    
+
     private static void writeString(String dictString, File file) {
         try {
             FileWriter fileWriter = new FileWriter(file);

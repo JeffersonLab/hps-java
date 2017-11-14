@@ -33,6 +33,8 @@ abstract class AbstractCommand {
      * The parser for the options.
      */
     private final PosixParser parser = new PosixParser();
+    
+    private DatabaseConditionsManager manager;
 
     /**
      * Class constructor.
@@ -114,6 +116,15 @@ abstract class AbstractCommand {
      * @return the conditions manager
      */
     public DatabaseConditionsManager getManager() {
-        return DatabaseConditionsManager.getInstance();
+        if (manager == null) {
+            manager = new DatabaseConditionsManager();
+            manager.openConnection();
+        }
+        return manager;
+    }
+    
+    public void cleanup() {
+        manager.closeConnection();
+        manager = null;
     }
 }

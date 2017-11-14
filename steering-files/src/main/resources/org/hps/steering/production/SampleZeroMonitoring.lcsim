@@ -8,16 +8,12 @@
         <numberOfEvents>10000</numberOfEvents>
     </control>
     <execute>
-        <driver name="EventMarkerDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="BiasCheck"/>
          <driver name="AidaSaveDriverRoot" /> 
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>10000</eventInterval>
-        </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>

@@ -1,7 +1,6 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">         
     <execute>
-        <driver name="EventMarkerDriver"/>
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />    
         <driver name="LedAnalysisDriver"/>
@@ -9,9 +8,6 @@
         <driver name="AidaSaveDriver"/>
     </execute>           
     <drivers>    
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100000</eventInterval>            
-        </driver>
          <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <minLookbackEvents>10</minLookbackEvents>
             <maxLookbackEvents>50</maxLookbackEvents>

@@ -1,13 +1,5 @@
 package org.hps.recon.vertexing;
 
-/**
- * @version $Id: BFitter.java,v 1.1 2011/06/01 17:10:13 jeremy Exp $
- * @version Billior Fitter used in the HPS Java package. Meant to simulate
- * the multiple scatters of the detector
- */
-
-// Performs a Kalman fit to a list of tracks and returns
-// a Vertex object
 import Jama.util.Maths;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
@@ -21,13 +13,15 @@ import org.lcsim.event.Track;
 import org.lcsim.recon.vertexing.billoir.Vertex;
 import org.lcsim.recon.vertexing.billoir.Perigee;
 
-
 import Jama.Matrix;
 import hep.physics.matrix.SymmetricMatrix;
 import org.lcsim.spacegeom.SpacePoint;
 
-
+/** 
+ * Performs a Kalman fit to a list of tracks and returns a Vertex object. 
+ */
 public class BFitter implements VFitter {
+
     // the value of the magnetic field in the vicinity of the vertex
     // default is a constant field along the z axis
     private double _bField;
@@ -37,25 +31,23 @@ public class BFitter implements VFitter {
         _bField = bField;
     }
 
-    // Function copied from trf to avoid unnecessary dependency on that package.  --JM
-    public static double fmod1( double value, double range )
-    {
-        double tmp = value%range;
-        if ( tmp < 0.0 ) return tmp + Math.abs(range);
+    // Function copied from trf to avoid unnecessary dependency on that package. --JM
+    public static double fmod1(double value, double range) {
+        double tmp = value % range;
+        if (tmp < 0.0)
+            return tmp + Math.abs(range);
         return tmp;
     }
-
 
     // fitter
     private Vertex fit(int ntrk, boolean fitwb, boolean[] invtx, double[][] par, double[][] wgt, double[] xyz) {
         return pxfvtx(ntrk, fitwb, invtx, par, wgt, xyz);
     }
 
-
     public Vertex fit(List<Track> tracks, SpacePoint initialPosition, boolean withBeamConstraint) {
         int ntrk = tracks.size();
         boolean[] isInVtx = new boolean[ntrk];
-        for (int i=0; i<ntrk; i++) {
+        for (int i = 0; i < ntrk; i++) {
             isInVtx[i] = true;
         }
         double[][] parameters = new double[5][ntrk];
@@ -63,59 +55,56 @@ public class BFitter implements VFitter {
         for (Track iTrack : tracks) {
             double[] iOldParams = iTrack.getTrackStates().get(0).getParameters();
             Matrix jacobi = new Matrix(getJacobi(iOldParams));
-            Matrix olderrors = Maths.toJamaMatrix(new SymmetricMatrix(5,iTrack.getTrackStates().get(0).getCovMatrix(),true));
+            Matrix olderrors = Maths.toJamaMatrix(new SymmetricMatrix(5, iTrack.getTrackStates().get(0).getCovMatrix(),
+                    true));
 
-            double theta = PI/2 - atan(iOldParams[4]);
-//            double[] newparams = new double[]{iOldParams[0], iOldParams[3], theta, iOldParams[1], iOldParams[2]};
-            double[] newparams = new double[]{-iOldParams[0], iOldParams[3], theta, iOldParams[1], iOldParams[2]};
+            double theta = PI / 2 - atan(iOldParams[4]);
+            // double[] newparams = new double[]{iOldParams[0], iOldParams[3], theta, iOldParams[1], iOldParams[2]};
+            double[] newparams = new double[] {-iOldParams[0], iOldParams[3], theta, iOldParams[1], iOldParams[2]};
 
             double[] iErrors = flattenMatrix(jacobi.times(olderrors).times(jacobi.transpose()).getArray());
             int iTrackIndex = tracks.indexOf(iTrack);
-//            System.out.println("Track # "+iTrackIndex);
-//            System.out.println(olderrors.toString());
-            for (int i=0; i<iErrors.length; ++i) {
+            // System.out.println("Track # "+iTrackIndex);
+            // System.out.println(olderrors.toString());
+            for (int i = 0; i < iErrors.length; ++i) {
                 errors[i][iTrackIndex] = iErrors[i];
- //               System.out.println("error "+i + " = " + errors[i][iTrackIndex]);
+                // System.out.println("error "+i + " = " + errors[i][iTrackIndex]);
             }
-            for (int i=0; i<newparams.length; ++i) {
+            for (int i = 0; i < newparams.length; ++i) {
                 parameters[i][iTrackIndex] = newparams[i];
- //                System.out.println("parameter "+i + " = " + parameters[i][iTrackIndex]);
+                // System.out.println("parameter "+i + " = " + parameters[i][iTrackIndex]);
             }
         }
         return pxfvtx(ntrk, withBeamConstraint, isInVtx, parameters, errors, initialPosition.getCartesianArray());
     }
+
     /**
      * Conversion matrix from org.lcsim track parameters (old) to internal parameters
      */
     private double[][] getJacobi(double[] old) {
-        double[][] jacobi = new double[][]{
-//               {-old[0], 0, 0, 0, 0}
-//               , {0, 0, 0, old[1], 0}
-//               , {0, 0, 0, 0, old[2]}
-//               , {0, old[3], 0, 0, 0}
-//               , {0, 0, -1/(1+old[4]*old[4]), 0, 0}
-//                 {-1, 0, 0, 0, 0}
-//               , {0, 0, 0, 1, 0}
-//               , {0, 0, 0, 0, -1/(1+old[4]*old[4])}
-//               , {0, 1, 0, 0, 0}
-//               , {0, 0, 1, 0, 0}
-               {-1, 0, 0, 0, 0}
-               , {0, 0, 0, 1, 0}
-               , {0, 0, 0, 0, 1}
-               , {0, 1, 0, 0, 0}
-               , {0, 0, -1/(1+old[4]*old[4]), 0, 0}
-        };
-
+        double[][] jacobi = new double[][] {
+                // {-old[0], 0, 0, 0, 0}
+                // , {0, 0, 0, old[1], 0}
+                // , {0, 0, 0, 0, old[2]}
+                // , {0, old[3], 0, 0, 0}
+                // , {0, 0, -1/(1+old[4]*old[4]), 0, 0}
+                // {-1, 0, 0, 0, 0}
+                // , {0, 0, 0, 1, 0}
+                // , {0, 0, 0, 0, -1/(1+old[4]*old[4])}
+                // , {0, 1, 0, 0, 0}
+                // , {0, 0, 1, 0, 0}
+                {-1, 0, 0, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}, {0, 1, 0, 0, 0},
+                {0, 0, -1 / (1 + old[4] * old[4]), 0, 0}};
 
         return jacobi;
     }
 
     private double[] flattenMatrix(double[][] matrix) {
         int length = matrix.length;
-        double[] result = new double[length*(length+1)/2];
+        double[] result = new double[length * (length + 1) / 2];
         int count = 0;
-        for (int i=0; i<length; ++i)
-            for (int j=0; j<=i; ++j)
+        for (int i = 0; i < length; ++i)
+            for (int j = 0; j <= i; ++j)
                 result[count++] = matrix[i][j];
         return result;
     }
@@ -375,7 +364,7 @@ public class BFitter implements VFitter {
         dat[13] = rawdat[7] - rawdat[10];
         dat[14] = (rawdat[14] - rawdat[12]) * sthet2;
         dat[15] = rawdat[6] - 2 * rawdat[9] + rawdat[11];
-        dat[16] = - (rawdat[16] * sthet + rawdat[12] * gamma) * rawdat[0];
+        dat[16] = -(rawdat[16] * sthet + rawdat[12] * gamma) * rawdat[0];
         dat[17] = -rawdat[17] * sthet - rawdat[13] * gamma;
         dat[18] = (rawdat[19] * sthet + rawdat[15] * gamma) * sthet2;
         dat[19] = (rawdat[14] - rawdat[12]) * gamma + (rawdat[18] - rawdat[16]) * sthet;
@@ -384,7 +373,7 @@ public class BFitter implements VFitter {
         //
         // icypl = 1 if "cylindrical" coordinates, 0 if "plane" coordinates
         //
-        if ( (icypl == 1 && dat[0] == 0.) || dat[3] == 0. || dat[5] == 0.) {
+        if ((icypl == 1 && dat[0] == 0.) || dat[3] == 0. || dat[5] == 0.) {
             System.err.println("******error in perigee*******");
             throw new IllegalArgumentException("Choke!");
         }
@@ -479,34 +468,17 @@ public class BFitter implements VFitter {
         der11 = rdphi / sqrt(x0 * x0 + y0 * y0);
         der14 = -rdphi;
         der15 = -rdphi * rdphi / 2.;
-        der23 = - (1. + cotth * cotth) * rdphi;
+        der23 = -(1. + cotth * cotth) * rdphi;
         der45 = rdphi;
         //
-        cov[0] = der11
-                * der11
-                * cov[0]
-                + 2
-                * der11
-                * (der14 * cov[6] + der15 * cov[10])
-                + der14
-                * (der14 * cov[9] + 2 * der15 * cov[13])
-                + der15
-                * der15
-                * cov[14];
-        cov[1] = der11
-                * (cov[1] + der23 * cov[3])
-                + der14
-                * (cov[7] + der23 * cov[8])
-                + der15
+        cov[0] = der11 * der11 * cov[0] + 2 * der11 * (der14 * cov[6] + der15 * cov[10]) + der14
+                * (der14 * cov[9] + 2 * der15 * cov[13]) + der15 * der15 * cov[14];
+        cov[1] = der11 * (cov[1] + der23 * cov[3]) + der14 * (cov[7] + der23 * cov[8]) + der15
                 * (cov[11] + der23 * cov[12]);
         cov[2] = cov[2] + 2 * der23 * cov[4] + der23 * der23 * cov[5];
         cov[3] = der11 * cov[3] + der14 * cov[8] + der15 * cov[12];
         cov[4] = cov[4] + der23 * cov[5];
-        cov[6] = der11
-                * (cov[6] + der45 * cov[10])
-                + der14
-                * (cov[9] + der45 * cov[13])
-                + der15
+        cov[6] = der11 * (cov[6] + der45 * cov[10]) + der14 * (cov[9] + der45 * cov[13]) + der15
                 * (cov[13] + der45 * cov[14]);
         cov[7] = cov[7] + der23 * cov[8] + der45 * (cov[11] + der23 * cov[12]);
         cov[8] = cov[8] + der45 * cov[12];
@@ -686,7 +658,7 @@ public class BFitter implements VFitter {
         double sigxbe = 100.0;
         double sigybe = .01;
         double sigzbe = .01;
-        double beamoy[] = { 0., 0., 0. };
+        double beamoy[] = {0., 0., 0.};
         //
         // *
         // * executable statements
@@ -718,16 +690,7 @@ public class BFitter implements VFitter {
                 // *
                 deps[i] = par[0][i] - eps[i];
                 dzp[i] = par[1][i] - zp[i];
-                chi2i = chi2i
-                        + wgt[0][i]
-                        * deps[i]
-                        * deps[i]
-                        + 2
-                        * wgt[1][i]
-                        * deps[i]
-                        * dzp[i]
-                        + wgt[2][i]
-                        * dzp[i]
+                chi2i = chi2i + wgt[0][i] * deps[i] * deps[i] + 2 * wgt[1][i] * deps[i] * dzp[i] + wgt[2][i] * dzp[i]
                         * dzp[i];
                 // *
                 // * derivatives (deriv1) of perigee param. w.r.t. x,y,z (vertex)
@@ -763,8 +726,8 @@ public class BFitter implements VFitter {
                 // * derivatives (deriv2) of perigee param. w.r.t. theta,phi,1/r (vertex)
                 e12 = uu;
                 e13 = -.5 * uu * uu;
-                //e21 = -uu * (1. + cotth * cotth);//I think this sign is wrong
-                  e21 = uu * (1. + cotth * cotth);//I think this sign is wrong
+                // e21 = -uu * (1. + cotth * cotth);//I think this sign is wrong
+                e21 = uu * (1. + cotth * cotth);// I think this sign is wrong
                 e22 = -vv * cotth;
                 e23 = uu * vv * cotth;
                 e43 = -uu;
@@ -824,7 +787,7 @@ public class BFitter implements VFitter {
                 double[] tmp = new double[6];
                 for (int j = 0; j < 6; ++j) {
                     tmp[j] = wc[j][i];
-//                    System.out.println("tmp[" + j + "]= " + tmp[j]);
+                    // System.out.println("tmp[" + j + "]= " + tmp[j]);
                 }
                 double[] tmpinv = new double[6];
                 tmpinv = pxmi3(tmp);
@@ -874,7 +837,7 @@ public class BFitter implements VFitter {
         // * covariance matrix on vertex
         vcov = pxmi3(wa);
         for (int ii = 0; ii < vcov.length; ++ii) {
-//            System.out.println("vcov[" + ii + "]= " + vcov[ii]);
+            // System.out.println("vcov[" + ii + "]= " + vcov[ii]);
         }
         //
         // *
@@ -892,93 +855,42 @@ public class BFitter implements VFitter {
             if (invtx[i]) {
                 // *
                 // * variation on par is wci * tt - (wbci)t * dxyz
-                parf[0][i] = par[2][i]
-                        + wci[0][i]
-                        * tt[0][i]
-                        + wci[1][i]
-                        * tt[1][i]
-                        + wci[3][i]
-                        * tt[2][i]
-                        - wbci[0][i]
-                        * dxyz[0]
-                        - wbci[1][i]
-                        * dxyz[1]
-                        - wbci[2][i]
-                        * dxyz[2];
-                parf[1][i] = phiv[i]
-                        + wci[1][i]
-                        * tt[0][i]
-                        + wci[2][i]
-                        * tt[1][i]
-                        + wci[4][i]
-                        * tt[2][i]
-                        - wbci[3][i]
-                        * dxyz[0]
-                        - wbci[4][i]
-                        * dxyz[1]
-                        - wbci[5][i]
-                        * dxyz[2];
-                parf[2][i] = par[4][i]
-                        + wci[3][i]
-                        * tt[0][i]
-                        + wci[4][i]
-                        * tt[1][i]
-                        + wci[5][i]
-                        * tt[2][i]
-                        - wbci[6][i]
-                        * dxyz[0]
-                        - wbci[7][i]
-                        * dxyz[1]
-                        - wbci[8][i]
-                        * dxyz[2];
+                parf[0][i] = par[2][i] + wci[0][i] * tt[0][i] + wci[1][i] * tt[1][i] + wci[3][i] * tt[2][i]
+                        - wbci[0][i] * dxyz[0] - wbci[1][i] * dxyz[1] - wbci[2][i] * dxyz[2];
+                parf[1][i] = phiv[i] + wci[1][i] * tt[0][i] + wci[2][i] * tt[1][i] + wci[4][i] * tt[2][i] - wbci[3][i]
+                        * dxyz[0] - wbci[4][i] * dxyz[1] - wbci[5][i] * dxyz[2];
+                parf[2][i] = par[4][i] + wci[3][i] * tt[0][i] + wci[4][i] * tt[1][i] + wci[5][i] * tt[2][i]
+                        - wbci[6][i] * dxyz[0] - wbci[7][i] * dxyz[1] - wbci[8][i] * dxyz[2];
                 // *
                 // * covariance matrix of par is wci + (wbci)t * vcov * wbci
-                tcov[0][i] = wci[0][i]
-                        + wbci[0][i]
-                        * (vcov[0] * wbci[0][i] + vcov[1] * wbci[1][i] + vcov[3] * wbci[2][i])
-                        + wbci[1][i]
-                        * (vcov[1] * wbci[0][i] + vcov[2] * wbci[1][i] + vcov[4] * wbci[2][i])
-                        + wbci[2][i]
+                tcov[0][i] = wci[0][i] + wbci[0][i]
+                        * (vcov[0] * wbci[0][i] + vcov[1] * wbci[1][i] + vcov[3] * wbci[2][i]) + wbci[1][i]
+                        * (vcov[1] * wbci[0][i] + vcov[2] * wbci[1][i] + vcov[4] * wbci[2][i]) + wbci[2][i]
                         * (vcov[3] * wbci[0][i] + vcov[4] * wbci[1][i] + vcov[5] * wbci[2][i]);
 
-                tcov[1][i] = wci[1][i]
-                        + wbci[0][i]
-                        * (vcov[0] * wbci[3][i] + vcov[1] * wbci[4][i] + vcov[3] * wbci[5][i])
-                        + wbci[1][i]
-                        * (vcov[1] * wbci[3][i] + vcov[2] * wbci[4][i] + vcov[4] * wbci[5][i])
-                        + wbci[2][i]
+                tcov[1][i] = wci[1][i] + wbci[0][i]
+                        * (vcov[0] * wbci[3][i] + vcov[1] * wbci[4][i] + vcov[3] * wbci[5][i]) + wbci[1][i]
+                        * (vcov[1] * wbci[3][i] + vcov[2] * wbci[4][i] + vcov[4] * wbci[5][i]) + wbci[2][i]
                         * (vcov[3] * wbci[3][i] + vcov[4] * wbci[4][i] + vcov[5] * wbci[5][i]);
 
-                tcov[2][i] = wci[2][i]
-                        + wbci[3][i]
-                        * (vcov[0] * wbci[3][i] + vcov[1] * wbci[4][i] + vcov[3] * wbci[5][i])
-                        + wbci[4][i]
-                        * (vcov[1] * wbci[3][i] + vcov[2] * wbci[4][i] + vcov[4] * wbci[5][i])
-                        + wbci[5][i]
+                tcov[2][i] = wci[2][i] + wbci[3][i]
+                        * (vcov[0] * wbci[3][i] + vcov[1] * wbci[4][i] + vcov[3] * wbci[5][i]) + wbci[4][i]
+                        * (vcov[1] * wbci[3][i] + vcov[2] * wbci[4][i] + vcov[4] * wbci[5][i]) + wbci[5][i]
                         * (vcov[3] * wbci[3][i] + vcov[4] * wbci[4][i] + vcov[5] * wbci[5][i]);
 
-                tcov[3][i] = wci[3][i]
-                        + wbci[0][i]
-                        * (vcov[0] * wbci[6][i] + vcov[1] * wbci[7][i] + vcov[3] * wbci[8][i])
-                        + wbci[1][i]
-                        * (vcov[1] * wbci[6][i] + vcov[2] * wbci[7][i] + vcov[4] * wbci[8][i])
-                        + wbci[2][i]
+                tcov[3][i] = wci[3][i] + wbci[0][i]
+                        * (vcov[0] * wbci[6][i] + vcov[1] * wbci[7][i] + vcov[3] * wbci[8][i]) + wbci[1][i]
+                        * (vcov[1] * wbci[6][i] + vcov[2] * wbci[7][i] + vcov[4] * wbci[8][i]) + wbci[2][i]
                         * (vcov[3] * wbci[6][i] + vcov[4] * wbci[7][i] + vcov[5] * wbci[8][i]);
 
-                tcov[4][i] = wci[4][i]
-                        + wbci[3][i]
-                        * (vcov[0] * wbci[6][i] + vcov[1] * wbci[7][i] + vcov[3] * wbci[8][i])
-                        + wbci[4][i]
-                        * (vcov[1] * wbci[6][i] + vcov[2] * wbci[7][i] + vcov[4] * wbci[8][i])
-                        + wbci[5][i]
+                tcov[4][i] = wci[4][i] + wbci[3][i]
+                        * (vcov[0] * wbci[6][i] + vcov[1] * wbci[7][i] + vcov[3] * wbci[8][i]) + wbci[4][i]
+                        * (vcov[1] * wbci[6][i] + vcov[2] * wbci[7][i] + vcov[4] * wbci[8][i]) + wbci[5][i]
                         * (vcov[3] * wbci[6][i] + vcov[4] * wbci[7][i] + vcov[5] * wbci[8][i]);
 
-                tcov[5][i] = wci[5][i]
-                        + wbci[6][i]
-                        * (vcov[0] * wbci[6][i] + vcov[1] * wbci[7][i] + vcov[3] * wbci[8][i])
-                        + wbci[7][i]
-                        * (vcov[1] * wbci[6][i] + vcov[2] * wbci[7][i] + vcov[4] * wbci[8][i])
-                        + wbci[8][i]
+                tcov[5][i] = wci[5][i] + wbci[6][i]
+                        * (vcov[0] * wbci[6][i] + vcov[1] * wbci[7][i] + vcov[3] * wbci[8][i]) + wbci[7][i]
+                        * (vcov[1] * wbci[6][i] + vcov[2] * wbci[7][i] + vcov[4] * wbci[8][i]) + wbci[8][i]
                         * (vcov[3] * wbci[6][i] + vcov[4] * wbci[7][i] + vcov[5] * wbci[8][i]);
 
                 // *
@@ -990,12 +902,9 @@ public class BFitter implements VFitter {
         // *
         chi2 = 0.;
         if (fitwb)
-            chi2 += ( (xyzf[0] - beamoy[0]) / sigxbe)
-                    * ( (xyzf[0] - beamoy[0]) / sigxbe)
-                    + ( (xyzf[1] - beamoy[1]) / sigybe)
-                    * ( (xyzf[1] - beamoy[1]) / sigybe)
-                    + ( (xyzf[2] - beamoy[2]) / sigzbe)
-                    * ( (xyzf[2] - beamoy[2]) / sigzbe);
+            chi2 += ((xyzf[0] - beamoy[0]) / sigxbe) * ((xyzf[0] - beamoy[0]) / sigxbe)
+                    + ((xyzf[1] - beamoy[1]) / sigybe) * ((xyzf[1] - beamoy[1]) / sigybe)
+                    + ((xyzf[2] - beamoy[2]) / sigzbe) * ((xyzf[2] - beamoy[2]) / sigzbe);
 
         for (int i = 0; i < ntrk; ++i) {
             if (invtx[i]) {
@@ -1014,7 +923,7 @@ public class BFitter implements VFitter {
                 chi2 += chi2tr[i];
             }
         }
-//        System.out.println("chi2= " + chi2);
+        // System.out.println("chi2= " + chi2);
         return new Vertex(ntrk, xyzf, parf, vcov, tcov, chi2, chi2tr);
 
     }

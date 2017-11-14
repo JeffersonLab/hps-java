@@ -9,8 +9,6 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <!-- Print out event numbers. -->
-        <driver name="EventMarkerDriver"/>
         <!-- Simple tracker hit digi. -->
         <driver name="TrackerDigiDriver"/>
         <!-- Create tracker hits. -->
@@ -27,9 +25,6 @@
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>10</eventInterval>
-        </driver>
         <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
             <debug>false</debug>
         </driver>

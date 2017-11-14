@@ -13,14 +13,11 @@ public class HPSTracker2017JavaBuilder extends HPSTracker2014v1JavaBuilder {
     }
 
     @Override
-    public HPSTrackerGeometryDefinition createGeometryDefinition(boolean debug,
-            Element node) {
+    public HPSTrackerGeometryDefinition createGeometryDefinition(boolean debug, Element node) {
         return new HPSTracker2017GeometryDefinition(debug, node);
     }
 
     protected void addModule(BaseModuleBundle bundle, JavaSurveyVolume mother) {
-
-        System.out.println("what");
         if (bundle instanceof TestRunModuleBundle) {
             addTestRunModule((TestRunModuleBundle) bundle, mother);
         } else if (bundle instanceof ShortModuleBundle) {
@@ -31,27 +28,19 @@ public class HPSTracker2017JavaBuilder extends HPSTracker2014v1JavaBuilder {
         } else {
             throw new RuntimeException("The bundle is of unknown class type!");
         }
-        System.out.println("what2");
     }
 
     /**
      * Rules for adding the LCDD module geometry.
      * 
-     * @param bundle
-     *            - module to be added
-     * @param mother
-     *            - mother LCDD geometry object
+     * @param bundle - module to be added
+     * @param mother - mother LCDD geometry object
      */
-    protected void addShortModule(ShortModuleBundle bundle,
-            JavaSurveyVolume mother) {
+    protected void addShortModule(ShortModuleBundle bundle, JavaSurveyVolume mother) {
         // This could perhaps be fixed if there is a relation with daughters in
         // geometry definition?
         // create the module
-
-        System.out.println("what22");
-
-        JavaSurveyVolume lcddM = new JavaGhostSurveyVolume(bundle.module,
-                mother);
+        JavaSurveyVolume lcddM = new JavaGhostSurveyVolume(bundle.module, mother);
         add(lcddM);
         if (bundle.halfModuleAxialHole != null)
             addLongHalfModule(bundle.halfModuleAxialHole, lcddM);
@@ -63,8 +52,6 @@ public class HPSTracker2017JavaBuilder extends HPSTracker2014v1JavaBuilder {
             addLongHalfModule(bundle.halfModuleStereoHole, lcddM);
         if (bundle.halfModuleStereoSlot != null)
             addLongHalfModule(bundle.halfModuleStereoSlot, lcddM);
-
-        System.out.println("what222");
     }
 
 }

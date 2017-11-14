@@ -20,16 +20,12 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * This driver class is used to 
- * 1) write LCIO collection of GBL info objects, or, 
- * 2) write GBL info into a structured text-based output
- *
- * It uses a helper class that does the actual work. 
+ * This driver class is used to 1) write LCIO collection of GBL info objects, or, 2) write GBL info into a structured
+ * text-based output It uses a helper class that does the actual work.
  *
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @version $Id: GBLOutputDriver.java,v 1.9 2013/11/07 03:54:58 phansson Exp $
- * $Date: 2013/11/07 03:54:58 $ $Author: phansson $
- *
+ * @version $Id: GBLOutputDriver.java,v 1.9 2013/11/07 03:54:58 phansson Exp $ $Date: 2013/11/07 03:54:58 $ $Author:
+ *          phansson $
  */
 public class GBLOutputDriver extends Driver {
 
@@ -73,10 +69,10 @@ public class GBLOutputDriver extends Driver {
         gbl.setBeamspotTiltZOverY(beamspotTiltZOverY);
         gbl.setBeamspotPosition(beamspotPosition);
 
-        //Create the class that makes residual plots for cross-checking
-        //truthRes = new TruthResiduals(bfield);
-        //truthRes.setDebug(_debug);
-        //truthRes.setHideFrame(hideFrame);
+        // Create the class that makes residual plots for cross-checking
+        // truthRes = new TruthResiduals(bfield);
+        // truthRes.setDebug(_debug);
+        // truthRes.setHideFrame(hideFrame);
     }
 
     @Override
@@ -85,15 +81,18 @@ public class GBLOutputDriver extends Driver {
         if (event.hasCollection(Track.class, trackCollectionName)) {
             tracklist = event.get(Track.class, trackCollectionName);
             if (_debug > 0) {
-                System.out.printf("%s: Event %d has %d tracks\n", this.getClass().getSimpleName(), event.getEventNumber(), tracklist.size());
+                System.out.printf("%s: Event %d has %d tracks\n", this.getClass().getSimpleName(),
+                        event.getEventNumber(), tracklist.size());
             }
         } else {
             return;
         }
 
-        List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
+        List<SiTrackerHitStrip1D> stripHits = event
+                .get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
         if (_debug > 0) {
-            System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", this.getClass().getSimpleName(), stripHits.size());
+            System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", this.getClass().getSimpleName(),
+                    stripHits.size());
         }
 
         List<MCParticle> mcParticles = new ArrayList<MCParticle>();
@@ -112,7 +111,7 @@ public class GBLOutputDriver extends Driver {
             }
         }
 
-        // GBLData 
+        // GBLData
         // containers and data
         List<GBLEventData> gblEventData = new ArrayList<GBLEventData>();
         gblEventData.add(new GBLEventData(event.getEventNumber(), gbl.get_B().z()));
@@ -131,7 +130,8 @@ public class GBLOutputDriver extends Driver {
             totalTracks++;
 
             if (_debug > 0) {
-                System.out.printf("%s: PX %f bottom %d\n", this.getClass().getSimpleName(), trk.getPX(), TrackUtils.isBottomTrack(trk, 4) ? 1 : 0);
+                System.out.printf("%s: PX %f bottom %d\n", this.getClass().getSimpleName(), trk.getPX(),
+                        TrackUtils.isBottomTrack(trk, 4) ? 1 : 0);
             }
 
             if (TrackUtils.isGoodTrack(trk, tracklist, EventQuality.Quality.NONE)) {
@@ -139,16 +139,16 @@ public class GBLOutputDriver extends Driver {
                     System.out.printf("%s: Print GBL output for this track\n", this.getClass().getSimpleName());
                 }
 
-                //GBLDATA
+                // GBLDATA
                 GBLTrackData gblTrackData = new GBLTrackData(iTrack);
                 gblTrackDataList.add(gblTrackData);
 
-                //print to text file
+                // print to text file
                 gbl.printTrackID(iTrack);
                 gbl.printGBL(trk, stripHits, gblTrackData, gblStripDataList, mcParticles, simTrackerHits, this.isMC);
 
-                //GBLDATA
-                //add relation to normal track object
+                // GBLDATA
+                // add relation to normal track object
                 trackToGBLTrackRelationListAll.add(new MyLCRelation(trk, gblTrackData));
                 // add strip clusters to lists
                 for (GBLStripClusterData gblStripClusterData : gblStripDataList) {
@@ -187,12 +187,14 @@ public class GBLOutputDriver extends Driver {
             try {
                 aida.saveAs(outputPlotFileName);
             } catch (IOException ex) {
-                Logger.getLogger(GBLOutputDriver.class.getName()).log(Level.SEVERE, "Couldn't save aida plots to file " + outputPlotFileName, ex);
+                Logger.getLogger(GBLOutputDriver.class.getName()).log(Level.SEVERE,
+                        "Couldn't save aida plots to file " + outputPlotFileName, ex);
             }
         }
         System.out.println(this.getClass().getSimpleName() + ": Total Number of Events           = " + iEvent);
         System.out.println(this.getClass().getSimpleName() + ": Total Number of Tracks           = " + totalTracks);
-        System.out.println(this.getClass().getSimpleName() + ": Total Number of Tracks Processed = " + totalTracksProcessed);
+        System.out.println(this.getClass().getSimpleName() + ": Total Number of Tracks Processed = "
+                + totalTracksProcessed);
 
     }
 

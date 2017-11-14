@@ -18,9 +18,7 @@ public class HPSTracker2017Converter extends HPSTracker2014v1Converter {
 
     /*
      * (non-Javadoc)
-     * 
-     * @see org.lcsim.detector.converter.compact.HPSTracker2014ConverterBase#
-     * initializeBuilder(org.jdom.Element)
+     * @see org.lcsim.detector.converter.compact.HPSTracker2014ConverterBase# initializeBuilder(org.jdom.Element)
      */
     protected HPSTrackerJavaBuilder initializeBuilder(Element node) {
         return new HPSTracker2017JavaBuilder(_debug, node);
@@ -28,35 +26,27 @@ public class HPSTracker2017Converter extends HPSTracker2014v1Converter {
 
     /*
      * (non-Javadoc)
-     * 
-     * @see org.lcsim.detector.converter.compact.AbstractSubdetectorConverter#
-     * getSubdetectorType()
+     * @see org.lcsim.detector.converter.compact.AbstractSubdetectorConverter# getSubdetectorType()
      */
     public Class getSubdetectorType() {
         return HPSTracker2017.class;
     }
-    
+
     @Override
-    HpsSiSensor createSiSensor(int sensorid, String name,
-            IDetectorElement parent, String support, IIdentifier id) {
+    HpsSiSensor createSiSensor(int sensorid, String name, IDetectorElement parent, String support, IIdentifier id) {
         int layer = HPSTrackerBuilder.getLayerFromVolumeName(name);
-        if(layer == 1)  
+        if (layer == 1)
             return new HpsThinSiSensor(sensorid, name, parent, support, id);
         else
             return new HpsSiSensor(sensorid, name, parent, support, id);
     }
 
     /*
-     * Override this to handle different layer structure. (non-Javadoc)
-     * 
-     * TODO This function is duplicated! FIX THIS.
-     * 
-     * @see org.lcsim.detector.converter.compact.HPSTracker2014ConverterBase#
-     * getModuleNumber(org.lcsim.geometry.compact.converter.JavaSurveyVolume)
+     * Override this to handle different layer structure. (non-Javadoc) TODO This function is duplicated! FIX THIS.
+     * @see org.lcsim.detector.converter.compact.HPSTracker2014ConverterBase# getModuleNumber(org.lcsim.geometry.compact.converter.JavaSurveyVolume)
      */
     protected int getModuleNumber(String surveyVolume) {
-        boolean isTopLayer = HPSTrackerBuilder.getHalfFromName(surveyVolume)
-                .equals("top") ? true : false;
+        boolean isTopLayer = HPSTrackerBuilder.getHalfFromName(surveyVolume).equals("top") ? true : false;
         int layer = HPSTrackerBuilder.getLayerFromVolumeName(surveyVolume);
         int moduleNumber = -1;
         if (isTopLayer) {
@@ -82,8 +72,7 @@ public class HPSTracker2017Converter extends HPSTracker2014v1Converter {
         }
 
         if (moduleNumber < 0)
-            throw new RuntimeException("Invalid module nr found for "
-                    + surveyVolume);
+            throw new RuntimeException("Invalid module nr found for " + surveyVolume);
 
         return moduleNumber;
     }

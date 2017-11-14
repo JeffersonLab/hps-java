@@ -33,7 +33,6 @@ public class TestRunSvtEvioReaderTest extends TestCase {
 
         // Configure conditions system
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
 
         // Instantiate the event builder
         LCSimEventBuilder eventBuilder = new LCSimTestRunEventBuilder();
