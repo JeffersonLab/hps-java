@@ -81,6 +81,18 @@ public class EngRun2015FeeReconTest extends TestCase {
         for (int i = 0; i < histoNames.length; ++i) {
             String histoName = histoNames[i];
             if (histoTypes[i].equals("IHistogram1D")) {
+                System.out.println("Checking entries, means and rms for " + histoName);
+                IHistogram1D h1_r = (IHistogram1D) ref.find(histoName);
+                IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
+                //System.out.println("           Found              Expected");
+                System.out.println("Entries: "+h1_r.entries()+" "+ h1_t.entries());
+                System.out.println("Mean: "+h1_r.mean()+" "+ h1_t.mean());
+                System.out.println("RMS "+h1_r.rms()+" "+ h1_t.rms());
+            }
+        }
+        for (int i = 0; i < histoNames.length; ++i) {
+            String histoName = histoNames[i];
+            if (histoTypes[i].equals("IHistogram1D")) {
                 System.out.println("checking entries, means and rms for " + histoName);
                 IHistogram1D h1_r = (IHistogram1D) ref.find(histoName);
                 IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
