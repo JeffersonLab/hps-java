@@ -244,8 +244,10 @@ public class TrackUtils {
         double z0 = par[HelicalTrackFit.z0Index];
         double tanLambda = par[HelicalTrackFit.slopeIndex];
 
-        if (phi0 > Math.PI)
+        while (phi0 > Math.PI)
             phi0 -= Math.PI * 2;
+        while (phi0 < -Math.PI/2)
+            phi0 += Math.PI;
 
         BasicMatrix jac = new BasicMatrix(5, 5);
         //
