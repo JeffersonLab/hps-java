@@ -188,8 +188,10 @@ public class TrackUtils {
         // take care of phi0 range if needed (this matters for dphi below I
         // think)
         // L3 defines it in the range [-pi,pi]
-        if (phi0 > Math.PI)
-            phi0 -= Math.PI * 2;
+        while (phi0 > Math.PI/2)
+            phi0 -= Math.PI;
+        while (phi0 < -Math.PI/2)
+            phi0 += Math.PI;
 
         double dx = newRefPoint[0] - __refPoint[0];
         double dy = newRefPoint[1] - __refPoint[1];
