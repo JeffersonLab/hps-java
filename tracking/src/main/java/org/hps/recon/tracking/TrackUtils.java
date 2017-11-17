@@ -113,7 +113,7 @@ public class TrackUtils {
         double py = momentum.y();
         double pz = momentum.z();
         double pt = Math.sqrt(px * px + py * py);
-        double p = Math.sqrt(pt * pt + pz * pz);
+        //double p = Math.sqrt(pt * pt + pz * pz);
         //        double cth = pz / p;
         //        double theta = Math.acos(cth);
         //        System.out.println("pt = "+pt+"; costh = "+cth);
@@ -135,15 +135,15 @@ public class TrackUtils {
         params[HelicalTrackFit.dcaIndex] = dca;
         params[HelicalTrackFit.slopeIndex] = tanL;
         params[HelicalTrackFit.z0Index] = z0;
-        System.out.println("Orig  :  d0 = " + params[HelicalTrackFit.dcaIndex] + "; phi0 = " + params[HelicalTrackFit.phi0Index] + "; curvature = " + params[HelicalTrackFit.curvatureIndex] + "; z0 = " + params[HelicalTrackFit.z0Index] + "; slope = " + params[HelicalTrackFit.slopeIndex]);
+        //System.out.println("Orig  :  d0 = " + params[HelicalTrackFit.dcaIndex] + "; phi0 = " + params[HelicalTrackFit.phi0Index] + "; curvature = " + params[HelicalTrackFit.curvatureIndex] + "; z0 = " + params[HelicalTrackFit.z0Index] + "; slope = " + params[HelicalTrackFit.slopeIndex]);
 
         //ok, now shift these to the new reference frame, recalculating the new perigee parameters        
         double[] oldReferencePoint = { point.x(), point.y(), 0 };
         double[] newReferencePoint = { 0, 0, 0 };
 
-        System.out.println("MC origin : x = " + point.x() + "; y = " + point.y() + ";  z = " + point.z());
+        //System.out.println("MC origin : x = " + point.x() + "; y = " + point.y() + ";  z = " + point.z());
         double[] newParameters = getParametersAtNewRefPoint(newReferencePoint, oldReferencePoint, params);
-        System.out.println("New  :  d0 = " + newParameters[HelicalTrackFit.dcaIndex] + "; phi0 = " + newParameters[HelicalTrackFit.phi0Index] + "; curvature = " + newParameters[HelicalTrackFit.curvatureIndex] + "; z0 = " + newParameters[HelicalTrackFit.z0Index] + "; slope = " + newParameters[HelicalTrackFit.slopeIndex]);
+        //System.out.println("New  :  d0 = " + newParameters[HelicalTrackFit.dcaIndex] + "; phi0 = " + newParameters[HelicalTrackFit.phi0Index] + "; curvature = " + newParameters[HelicalTrackFit.curvatureIndex] + "; z0 = " + newParameters[HelicalTrackFit.z0Index] + "; slope = " + newParameters[HelicalTrackFit.slopeIndex]);
         //print the trajectory after shift.  Should be the same!!!        
         if (writeIt)
             writeTrajectory(getMomentum(newParameters[HelicalTrackFit.curvatureIndex], newParameters[HelicalTrackFit.phi0Index], newParameters[HelicalTrackFit.slopeIndex], BField), getPoint(newParameters[HelicalTrackFit.dcaIndex], newParameters[HelicalTrackFit.phi0Index], newParameters[HelicalTrackFit.z0Index]), charge, BField, "final-point-and-mom.txt");
@@ -645,6 +645,7 @@ public class TrackUtils {
         double dx = 0.0;
         int nIter = 0;
         Hep3Vector pos = null;
+
         while (Math.abs(d) > eps && nIter < 50) {
             // Calculate position on helix at x
             pos = getHelixPosAtX(helix, x + dx);
