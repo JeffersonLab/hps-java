@@ -5,8 +5,6 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.HepLorentzVector;
 import hep.physics.vec.VecOp;
-import hep.physics.matrix.Matrix;
-import hep.physics.matrix.MatrixOp;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -41,6 +39,7 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.FieldMap;
 import org.lcsim.util.Driver;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.TrackerHit;
@@ -73,6 +72,7 @@ public abstract class TupleDriver extends Driver {
 
     private final String finalStateParticlesColName = "FinalStateParticles";
     protected double bfield;
+    protected FieldMap bFieldMap;
     private final double[] beamSize = {0.001, 0.130, 0.050}; // rough estimate from harp scans during engineering run
                                                              // production running
     private final double[] beamPos = {0.0, 0.0, 0.0};
@@ -135,6 +135,8 @@ public abstract class TupleDriver extends Driver {
             beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
         }
         bfield = TrackUtils.getBField(detector).magnitude();
+        
+        bFieldMap = detector.getFieldMap();
 
         if (Double.isNaN(ebeam)) {
             try {
@@ -540,43 +542,57 @@ public abstract class TupleDriver extends Driver {
             double[] extrapTrackYBotAxial = new double[nLay];
             double[] extrapTrackYBotStereo = new double[nLay];
 
+            
             for (HpsSiSensor sensor : sensors) {
-                Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(track, sensor, bfield);
                 int i = ((sensor.getLayerNumber() + 1) / 2) - 1;
-                if (trackState.getTanLambda() > 0 && sensor.isTopLayer()) {
-                    if (sensor.isAxial()) {
-                        extrapTrackXTopAxial[i] = extrapPos.x();
-                        extrapTrackYTopAxial[i] = extrapPos.y();
-                    } else {
-                        extrapTrackXTopStereo[i] = extrapPos.x();
-                        extrapTrackYTopStereo[i] = extrapPos.y();
-                    }
+                
+                // try using TrackState at sensor
+                Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(track, sensor, bfield);
+                if (extrapPos == null) {
+                    // no TrackState at this sensor available
+                    // try to get last available TrackState-at-sensor
+                    extrapPos = TrackStateUtils.getLocationAtSensor(TrackStateUtils.getPreviousTrackStateAtSensor(track, sensors, i+1), sensor, bfield);
+                    if (extrapPos == null)
+                        // now try using TrackState at IP
+                        extrapPos = TrackStateUtils.getLocationAtSensor(TrackStateUtils.getTrackStateAtIP(track), sensor, bfield);
                 }
-                if (trackState.getTanLambda() > 0 && sensor.isBottomLayer()) {
-                    if (sensor.isAxial()) {
-                        extrapTrackXBotAxial[i] = -9999;
-                        extrapTrackYBotAxial[i] = -9999;
-                    } else {
-                        extrapTrackXBotStereo[i] = -9999;
-                        extrapTrackYBotStereo[i] = -9999;
+                
+                if (extrapPos != null) {
+                    if (trackState.getTanLambda() > 0 && sensor.isTopLayer()) {
+                        if (sensor.isAxial()) {
+                            extrapTrackXTopAxial[i] = extrapPos.x();
+                            extrapTrackYTopAxial[i] = extrapPos.y();
+                        } else {
+                            extrapTrackXTopStereo[i] = extrapPos.x();
+                            extrapTrackYTopStereo[i] = extrapPos.y();
+                        }
                     }
-                }
-                if (trackState.getTanLambda() < 0 && sensor.isBottomLayer()) {
-                    if (sensor.isAxial()) {
-                        extrapTrackXBotAxial[i] = extrapPos.x();
-                        extrapTrackYBotAxial[i] = extrapPos.y();
-                    } else {
-                        extrapTrackXBotStereo[i] = extrapPos.x();
-                        extrapTrackYBotStereo[i] = extrapPos.y();
+                    if (trackState.getTanLambda() > 0 && sensor.isBottomLayer()) {
+                        if (sensor.isAxial()) {
+                            extrapTrackXBotAxial[i] = -9999;
+                            extrapTrackYBotAxial[i] = -9999;
+                        } else {
+                            extrapTrackXBotStereo[i] = -9999;
+                            extrapTrackYBotStereo[i] = -9999;
+                        }
                     }
-                }
-                if (trackState.getTanLambda() < 0 && sensor.isTopLayer()) {
-                    if (sensor.isAxial()) {
-                        extrapTrackXTopAxial[i] = -9999;
-                        extrapTrackYTopAxial[i] = -9999;
-                    } else {
-                        extrapTrackXTopStereo[i] = -9999;
-                        extrapTrackYTopStereo[i] = -9999;
+                    if (trackState.getTanLambda() < 0 && sensor.isBottomLayer()) {
+                        if (sensor.isAxial()) {
+                            extrapTrackXBotAxial[i] = extrapPos.x();
+                            extrapTrackYBotAxial[i] = extrapPos.y();
+                        } else {
+                            extrapTrackXBotStereo[i] = extrapPos.x();
+                            extrapTrackYBotStereo[i] = extrapPos.y();
+                        }
+                    }
+                    if (trackState.getTanLambda() < 0 && sensor.isTopLayer()) {
+                        if (sensor.isAxial()) {
+                            extrapTrackXTopAxial[i] = -9999;
+                            extrapTrackYTopAxial[i] = -9999;
+                        } else {
+                            extrapTrackXTopStereo[i] = -9999;
+                            extrapTrackYTopStereo[i] = -9999;
+                        }
                     }
                 }
             }

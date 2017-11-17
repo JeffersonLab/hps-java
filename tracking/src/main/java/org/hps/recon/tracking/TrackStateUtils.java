@@ -24,81 +24,32 @@ import org.lcsim.util.swim.Trajectory;
 
 public class TrackStateUtils {
 
-    public static Hep3Vector getLocationExtrapolated(TrackState ts, HpsSiSensor sensor, Hep3Vector startPosition, double epsilon, FieldMap fieldMap) {
-        HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(ts);
+    public static TrackState getTrackStateAtLayer(Track track, List<HpsSiSensor> sensors, int layer) {
+        TrackState atIP = getTrackStateAtIP(track);
 
-        // start position: x along beam line (tracking frame!)
-        Hep3Vector currentPosition = startPosition;
-        // Calculate the path length to the start position
-        double pathToStart = HelixUtils.PathToXPlane(helicalTrackFit, startPosition.x(), 0., 0).get(0);
-
-        // Get the momentum of the track
-        double bFieldY = fieldMap.getField(new BasicHep3Vector(0, 0, startPosition.x())).y();
-        double p = Math.abs(helicalTrackFit.p(bFieldY));
-        // Get a unit vector giving the track direction at the start
-        Hep3Vector helixDirection = HelixUtils.Direction(helicalTrackFit, pathToStart);
-        // Calculate the momentum vector at the start
-        Hep3Vector currentMomentum = VecOp.mult(p, helixDirection);
-
-        // HACK: LCSim doesn't deal well with negative fields so they are
-        // turned to positive for tracking purposes. As a result,
-        // the charge calculated using the B-field, will be wrong
-        // when the field is negative and needs to be flipped.
-        double q = Math.signum(ts.getOmega());
-        if (bFieldY < 0)
-            q = q * (-1);
-
-        // Swim the track through the B-field until the end point is reached
-        double endPositionX = sensor.getGeometry().getPosition().z();
-        Hep3Vector currentPositionDet = null;
-
-        double distance = endPositionX - currentPosition.x();
-        double stepSize = distance / 100.0;
-        double sign = Math.signum(distance);
-        distance = Math.abs(distance);
-
-        while (distance > epsilon) {
-            // The field map coordinates are in the detector frame so the
-            // extrapolated track position needs to be transformed from the
-            // track frame to detector.
-            currentPositionDet = CoordinateTransformations.transformVectorToDetector(currentPosition);
-
-            // Get the field at the current position along the track.
-            bFieldY = fieldMap.getField(currentPositionDet).y();
-
-            // Get a trajectory (Helix or Line objects) created with the
-            // track parameters at the current position.
-            Trajectory trajectory = TrackUtils.getTrajectory(currentMomentum, new org.lcsim.spacegeom.SpacePoint(currentPosition), q, bFieldY);
-
-            // Using the new trajectory, extrapolated the track by a step and
-            // update the extrapolated position.
-            Hep3Vector currentPositionTry = trajectory.getPointAtDistance(stepSize);
-
-            if ((Math.abs(endPositionX - currentPositionTry.x()) > epsilon) && (Math.signum(endPositionX - currentPositionTry.x()) != sign)) {
-                // went too far, try again with smaller step-size
-                if (Math.abs(stepSize) > 0.001) {
-                    stepSize /= 2.0;
-                    continue;
-                } else {
-                    break;
+        for (HpsSiSensor sensor2 : sensors) {
+            if ((atIP.getTanLambda() > 0 && sensor2.isTopLayer()) || (atIP.getTanLambda() < 0 && sensor2.isBottomLayer())) {
+                if ((sensor2.getLayerNumber() + 1) / 2 == layer) {
+                    return getTrackStateAtSensor(track, sensor2.getMillepedeId());
                 }
             }
-            currentPosition = currentPositionTry;
-
-            distance = Math.abs(endPositionX - currentPosition.x());
-            // Calculate the momentum vector at the new position. This will
-            // be used when creating the trajectory that will be used to
-            // extrapolate the track in the next iteration.
-            currentMomentum = VecOp.mult(currentMomentum.magnitude(), trajectory.getUnitTangentAtLength(stepSize));
         }
 
-        return CoordinateTransformations.transformVectorToDetector(currentPosition);
+        return null;
+    }
+
+    public static TrackState getPreviousTrackStateAtSensor(Track track, List<HpsSiSensor> sensors, int layer) {
+        TrackState ts = null;
+        for (int i = layer - 1; i > 0; i--) {
+            ts = getTrackStateAtLayer(track, sensors, i);
+            if (ts != null)
+                break;
+        }
+        return ts;
     }
 
     public static Hep3Vector getLocationAtSensor(Track track, HpsSiSensor sensor, double bfield) {
         int millepedeID = sensor.getMillepedeId();
-
-        // try to get trackstate at sensor directly
         TrackState tsAtSensor = TrackStateUtils.getTrackStateAtSensor(track, millepedeID);
         if (tsAtSensor != null)
             return getLocationAtSensor(tsAtSensor, sensor, bfield);
