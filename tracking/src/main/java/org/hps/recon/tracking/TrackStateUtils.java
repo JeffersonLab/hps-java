@@ -12,8 +12,6 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
-import org.lcsim.geometry.FieldMap;
-import org.lcsim.util.swim.Trajectory;
 
 /**
  * Utilities for retrieving TrackStates.
