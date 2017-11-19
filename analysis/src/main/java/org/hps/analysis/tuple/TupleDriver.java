@@ -74,7 +74,7 @@ public abstract class TupleDriver extends Driver {
     protected double bfield;
     protected FieldMap bFieldMap;
     private final double[] beamSize = {0.001, 0.130, 0.050}; // rough estimate from harp scans during engineering run
-                                                             // production running
+    // production running
     private final double[] beamPos = {0.0, 0.0, 0.0};
     private final double[] vzcBeamSize = {0.001, 100, 100};
     private static List<HpsSiSensor> sensors;
@@ -135,7 +135,7 @@ public abstract class TupleDriver extends Driver {
             beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
         }
         bfield = TrackUtils.getBField(detector).magnitude();
-        
+
         bFieldMap = detector.getFieldMap();
 
         if (Double.isNaN(ebeam)) {
@@ -259,7 +259,7 @@ public abstract class TupleDriver extends Driver {
     protected void addParticleVariables(String prefix) {
         addParticleVariables(prefix, true, true, true);
     }
-    
+
     protected void addParticleVariables(String prefix, boolean doTrkExtrap, boolean doRaw, boolean doIso) {
         String[] newVars = new String[] {"PX/D", "PY/D", "PZ/D", "P/D", "TrkChisq/D", "TrkHits/I", "TrkType/I",
                 "TrkT/D", "TrkTsd/D", "TrkZ0/D", "TrkLambda/D", "TrkD0/D", "TrkPhi/D", "TrkOmega/D", "TrkEcalX/D",
@@ -274,7 +274,7 @@ public abstract class TupleDriver extends Driver {
             newVars[i] = prefix + newVars[i];
         }
         tupleVariables.addAll(Arrays.asList(newVars));
-        
+
         if (doRaw) {
             String[] newVars1 = new String[] {"RawMaxAmplL1/D",
                     "RawT0L1/D", "RawChisqL1/D", "RawTDiffL1/D", "RawMaxAmplL2/D", "RawT0L2/D", "RawChisqL2/D",
@@ -306,11 +306,9 @@ public abstract class TupleDriver extends Driver {
             }
             tupleVariables.addAll(Arrays.asList(newVars2));
         }
-        
+
         if (doIso) {
-            String[] newVars3 = new String[] {"IsoStereo/D",
-                    "IsoAxial/D", "MinPositiveIso/D", "MinNegativeIso/D", "MinNegativeIsoL2/D", "MinPositiveIsoL2/D", "IsoStereoL2/D",
-                    "IsoAxialL2/D"};
+            String[] newVars3 = new String[] {"IsoStereo/D", "IsoAxial/D", "MinPositiveIso/D", "MinNegativeIso/D", "MinNegativeIsoL2/D", "MinPositiveIsoL2/D", "IsoStereoL2/D", "IsoAxialL2/D"};
             for (int i = 0; i < newVars3.length; i++) {
                 newVars3[i] = prefix + newVars3[i];
             }
@@ -530,136 +528,144 @@ public abstract class TupleDriver extends Driver {
     protected TrackState fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix) {
         return fillParticleVariables(event, particle, prefix, true, true, true);
     }
-    
+
     private void fillParticleVariablesTrkExtrap(String prefix, Track track) {
         TrackState trackState = track.getTrackStates().get(0);
-            double[] extrapTrackXTopAxial = new double[nLay];
-            double[] extrapTrackXTopStereo = new double[nLay];
-            double[] extrapTrackXBotAxial = new double[nLay];
-            double[] extrapTrackXBotStereo = new double[nLay];
-            double[] extrapTrackYTopAxial = new double[nLay];
-            double[] extrapTrackYTopStereo = new double[nLay];
-            double[] extrapTrackYBotAxial = new double[nLay];
-            double[] extrapTrackYBotStereo = new double[nLay];
+        double[] extrapTrackXTopAxial = new double[nLay];
+        double[] extrapTrackXTopStereo = new double[nLay];
+        double[] extrapTrackXBotAxial = new double[nLay];
+        double[] extrapTrackXBotStereo = new double[nLay];
+        double[] extrapTrackYTopAxial = new double[nLay];
+        double[] extrapTrackYTopStereo = new double[nLay];
+        double[] extrapTrackYBotAxial = new double[nLay];
+        double[] extrapTrackYBotStereo = new double[nLay];
 
-            
-            for (HpsSiSensor sensor : sensors) {
-                int i = ((sensor.getLayerNumber() + 1) / 2) - 1;
-                
-                // try using TrackState at sensor
-                Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(track, sensor, bfield);
-                if (extrapPos == null) {
-                    // no TrackState at this sensor available
-                    // try to get last available TrackState-at-sensor
-                    extrapPos = TrackStateUtils.getLocationAtSensor(TrackStateUtils.getPreviousTrackStateAtSensor(track, sensors, i+1), sensor, bfield);
-                    if (extrapPos == null)
-                        // now try using TrackState at IP
-                        extrapPos = TrackStateUtils.getLocationAtSensor(TrackStateUtils.getTrackStateAtIP(track), sensor, bfield);
+
+        for (HpsSiSensor sensor : sensors) {
+            int i = ((sensor.getLayerNumber() + 1) / 2) - 1;
+
+            // try using TrackState at sensor
+            Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(track, sensor, bfield);
+            if (extrapPos == null) {
+                // no TrackState at this sensor available
+                // try to get last available TrackState-at-sensor
+                TrackState tmp = TrackStateUtils.getPreviousTrackStateAtSensor(track, sensors, i+1);
+                if (tmp != null)
+                    extrapPos = TrackStateUtils.getLocationAtSensor(tmp, sensor, bfield);
+                if (extrapPos == null)
+                    // now try using TrackState at IP
+                    extrapPos = TrackStateUtils.getLocationAtSensor(TrackStateUtils.getTrackStateAtIP(track), sensor, bfield);
+            }
+
+            if (extrapPos != null) {
+                if (trackState.getTanLambda() > 0 && sensor.isTopLayer()) {
+                    if (sensor.isAxial()) {
+                        extrapTrackXTopAxial[i] = extrapPos.x();
+                        extrapTrackYTopAxial[i] = extrapPos.y();
+                    } else {
+                        extrapTrackXTopStereo[i] = extrapPos.x();
+                        extrapTrackYTopStereo[i] = extrapPos.y();
+                    }
                 }
-                
-                if (extrapPos != null) {
-                    if (trackState.getTanLambda() > 0 && sensor.isTopLayer()) {
-                        if (sensor.isAxial()) {
-                            extrapTrackXTopAxial[i] = extrapPos.x();
-                            extrapTrackYTopAxial[i] = extrapPos.y();
-                        } else {
-                            extrapTrackXTopStereo[i] = extrapPos.x();
-                            extrapTrackYTopStereo[i] = extrapPos.y();
-                        }
+                if (trackState.getTanLambda() > 0 && sensor.isBottomLayer()) {
+                    if (sensor.isAxial()) {
+                        extrapTrackXBotAxial[i] = -9999;
+                        extrapTrackYBotAxial[i] = -9999;
+                    } else {
+                        extrapTrackXBotStereo[i] = -9999;
+                        extrapTrackYBotStereo[i] = -9999;
                     }
-                    if (trackState.getTanLambda() > 0 && sensor.isBottomLayer()) {
-                        if (sensor.isAxial()) {
-                            extrapTrackXBotAxial[i] = -9999;
-                            extrapTrackYBotAxial[i] = -9999;
-                        } else {
-                            extrapTrackXBotStereo[i] = -9999;
-                            extrapTrackYBotStereo[i] = -9999;
-                        }
+                }
+                if (trackState.getTanLambda() < 0 && sensor.isBottomLayer()) {
+                    if (sensor.isAxial()) {
+                        extrapTrackXBotAxial[i] = extrapPos.x();
+                        extrapTrackYBotAxial[i] = extrapPos.y();
+                    } else {
+                        extrapTrackXBotStereo[i] = extrapPos.x();
+                        extrapTrackYBotStereo[i] = extrapPos.y();
                     }
-                    if (trackState.getTanLambda() < 0 && sensor.isBottomLayer()) {
-                        if (sensor.isAxial()) {
-                            extrapTrackXBotAxial[i] = extrapPos.x();
-                            extrapTrackYBotAxial[i] = extrapPos.y();
-                        } else {
-                            extrapTrackXBotStereo[i] = extrapPos.x();
-                            extrapTrackYBotStereo[i] = extrapPos.y();
-                        }
-                    }
-                    if (trackState.getTanLambda() < 0 && sensor.isTopLayer()) {
-                        if (sensor.isAxial()) {
-                            extrapTrackXTopAxial[i] = -9999;
-                            extrapTrackYTopAxial[i] = -9999;
-                        } else {
-                            extrapTrackXTopStereo[i] = -9999;
-                            extrapTrackYTopStereo[i] = -9999;
-                        }
+                }
+                if (trackState.getTanLambda() < 0 && sensor.isTopLayer()) {
+                    if (sensor.isAxial()) {
+                        extrapTrackXTopAxial[i] = -9999;
+                        extrapTrackYTopAxial[i] = -9999;
+                    } else {
+                        extrapTrackXTopStereo[i] = -9999;
+                        extrapTrackYTopStereo[i] = -9999;
                     }
                 }
             }
-            
-            if (nLay == 7) {
-                tupleMap.put(prefix + "TrkExtrpXAxialTopL0/D", extrapTrackXTopAxial[nLay - 7]);
-                tupleMap.put(prefix + "TrkExtrpYAxialTopL0/D", extrapTrackYTopAxial[nLay - 7]);
-                tupleMap.put(prefix + "TrkExtrpXStereoTopL0/D", extrapTrackXTopStereo[nLay - 7]);
-                tupleMap.put(prefix + "TrkExtrpYStereoTopL0/D", extrapTrackYTopStereo[nLay - 7]);
-                tupleMap.put(prefix + "TrkExtrpXAxialBotL0/D", extrapTrackXBotAxial[nLay - 7]);
-                tupleMap.put(prefix + "TrkExtrpYAxialBotL0/D", extrapTrackYBotAxial[nLay - 7]);
-                tupleMap.put(prefix + "TrkExtrpXStereoBotL0/D", extrapTrackXBotStereo[nLay - 7]);
-                tupleMap.put(prefix + "TrkExtrpYStereoBotL0/D", extrapTrackYBotStereo[nLay - 7]);
+            else {
+                extrapTrackXBotAxial[i] = -9999;
+                extrapTrackYBotAxial[i] = -9999;
+                extrapTrackXBotStereo[i] = -9999;
+                extrapTrackYBotStereo[i] = -9999;
             }
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL1/D", extrapTrackXTopAxial[nLay - 6]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL1/D", extrapTrackYTopAxial[nLay - 6]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL1/D", extrapTrackXTopStereo[nLay - 6]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL1/D", extrapTrackYTopStereo[nLay - 6]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL1/D", extrapTrackXBotAxial[nLay - 6]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL1/D", extrapTrackYBotAxial[nLay - 6]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL1/D", extrapTrackXBotStereo[nLay - 6]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL1/D", extrapTrackYBotStereo[nLay - 6]);
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL2/D", extrapTrackXTopAxial[nLay - 5]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL2/D", extrapTrackYTopAxial[nLay - 5]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL2/D", extrapTrackXTopStereo[nLay - 5]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL2/D", extrapTrackYTopStereo[nLay - 5]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL2/D", extrapTrackXBotAxial[nLay - 5]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL2/D", extrapTrackYBotAxial[nLay - 5]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL2/D", extrapTrackXBotStereo[nLay - 5]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL2/D", extrapTrackYBotStereo[nLay - 5]);
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL3/D", extrapTrackXTopAxial[nLay - 4]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL3/D", extrapTrackYTopAxial[nLay - 4]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL3/D", extrapTrackXTopStereo[nLay - 4]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL3/D", extrapTrackYTopStereo[nLay - 4]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL3/D", extrapTrackXBotAxial[nLay - 4]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL3/D", extrapTrackYBotAxial[nLay - 4]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL3/D", extrapTrackXBotStereo[nLay - 4]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL3/D", extrapTrackYBotStereo[nLay - 4]);
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL4/D", extrapTrackXTopAxial[nLay - 3]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL4/D", extrapTrackYTopAxial[nLay - 3]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL4/D", extrapTrackXTopStereo[nLay - 3]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL4/D", extrapTrackYTopStereo[nLay - 3]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL4/D", extrapTrackXBotAxial[nLay - 3]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL4/D", extrapTrackYBotAxial[nLay - 3]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL4/D", extrapTrackXBotStereo[nLay - 3]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL4/D", extrapTrackYBotStereo[nLay - 3]);
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL5/D", extrapTrackXTopAxial[nLay - 2]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL5/D", extrapTrackYTopAxial[nLay - 2]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL5/D", extrapTrackXTopStereo[nLay - 2]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL5/D", extrapTrackYTopStereo[nLay - 2]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL5/D", extrapTrackXBotAxial[nLay - 2]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL5/D", extrapTrackYBotAxial[nLay - 2]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL5/D", extrapTrackXBotStereo[nLay - 2]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL5/D", extrapTrackYBotStereo[nLay - 2]);
-            tupleMap.put(prefix + "TrkExtrpXAxialTopL6/D", extrapTrackXTopAxial[nLay - 1]);
-            tupleMap.put(prefix + "TrkExtrpYAxialTopL6/D", extrapTrackYTopAxial[nLay - 1]);
-            tupleMap.put(prefix + "TrkExtrpXStereoTopL6/D", extrapTrackXTopStereo[nLay - 1]);
-            tupleMap.put(prefix + "TrkExtrpYStereoTopL6/D", extrapTrackYTopStereo[nLay - 1]);
-            tupleMap.put(prefix + "TrkExtrpXAxialBotL6/D", extrapTrackXBotAxial[nLay - 1]);
-            tupleMap.put(prefix + "TrkExtrpYAxialBotL6/D", extrapTrackYBotAxial[nLay - 1]);
-            tupleMap.put(prefix + "TrkExtrpXStereoBotL6/D", extrapTrackXBotStereo[nLay - 1]);
-            tupleMap.put(prefix + "TrkExtrpYStereoBotL6/D", extrapTrackYBotStereo[nLay - 1]);
+        }
+
+        if (nLay == 7) {
+            tupleMap.put(prefix + "TrkExtrpXAxialTopL0/D", extrapTrackXTopAxial[nLay - 7]);
+            tupleMap.put(prefix + "TrkExtrpYAxialTopL0/D", extrapTrackYTopAxial[nLay - 7]);
+            tupleMap.put(prefix + "TrkExtrpXStereoTopL0/D", extrapTrackXTopStereo[nLay - 7]);
+            tupleMap.put(prefix + "TrkExtrpYStereoTopL0/D", extrapTrackYTopStereo[nLay - 7]);
+            tupleMap.put(prefix + "TrkExtrpXAxialBotL0/D", extrapTrackXBotAxial[nLay - 7]);
+            tupleMap.put(prefix + "TrkExtrpYAxialBotL0/D", extrapTrackYBotAxial[nLay - 7]);
+            tupleMap.put(prefix + "TrkExtrpXStereoBotL0/D", extrapTrackXBotStereo[nLay - 7]);
+            tupleMap.put(prefix + "TrkExtrpYStereoBotL0/D", extrapTrackYBotStereo[nLay - 7]);
+        }
+        tupleMap.put(prefix + "TrkExtrpXAxialTopL1/D", extrapTrackXTopAxial[nLay - 6]);
+        tupleMap.put(prefix + "TrkExtrpYAxialTopL1/D", extrapTrackYTopAxial[nLay - 6]);
+        tupleMap.put(prefix + "TrkExtrpXStereoTopL1/D", extrapTrackXTopStereo[nLay - 6]);
+        tupleMap.put(prefix + "TrkExtrpYStereoTopL1/D", extrapTrackYTopStereo[nLay - 6]);
+        tupleMap.put(prefix + "TrkExtrpXAxialBotL1/D", extrapTrackXBotAxial[nLay - 6]);
+        tupleMap.put(prefix + "TrkExtrpYAxialBotL1/D", extrapTrackYBotAxial[nLay - 6]);
+        tupleMap.put(prefix + "TrkExtrpXStereoBotL1/D", extrapTrackXBotStereo[nLay - 6]);
+        tupleMap.put(prefix + "TrkExtrpYStereoBotL1/D", extrapTrackYBotStereo[nLay - 6]);
+        tupleMap.put(prefix + "TrkExtrpXAxialTopL2/D", extrapTrackXTopAxial[nLay - 5]);
+        tupleMap.put(prefix + "TrkExtrpYAxialTopL2/D", extrapTrackYTopAxial[nLay - 5]);
+        tupleMap.put(prefix + "TrkExtrpXStereoTopL2/D", extrapTrackXTopStereo[nLay - 5]);
+        tupleMap.put(prefix + "TrkExtrpYStereoTopL2/D", extrapTrackYTopStereo[nLay - 5]);
+        tupleMap.put(prefix + "TrkExtrpXAxialBotL2/D", extrapTrackXBotAxial[nLay - 5]);
+        tupleMap.put(prefix + "TrkExtrpYAxialBotL2/D", extrapTrackYBotAxial[nLay - 5]);
+        tupleMap.put(prefix + "TrkExtrpXStereoBotL2/D", extrapTrackXBotStereo[nLay - 5]);
+        tupleMap.put(prefix + "TrkExtrpYStereoBotL2/D", extrapTrackYBotStereo[nLay - 5]);
+        tupleMap.put(prefix + "TrkExtrpXAxialTopL3/D", extrapTrackXTopAxial[nLay - 4]);
+        tupleMap.put(prefix + "TrkExtrpYAxialTopL3/D", extrapTrackYTopAxial[nLay - 4]);
+        tupleMap.put(prefix + "TrkExtrpXStereoTopL3/D", extrapTrackXTopStereo[nLay - 4]);
+        tupleMap.put(prefix + "TrkExtrpYStereoTopL3/D", extrapTrackYTopStereo[nLay - 4]);
+        tupleMap.put(prefix + "TrkExtrpXAxialBotL3/D", extrapTrackXBotAxial[nLay - 4]);
+        tupleMap.put(prefix + "TrkExtrpYAxialBotL3/D", extrapTrackYBotAxial[nLay - 4]);
+        tupleMap.put(prefix + "TrkExtrpXStereoBotL3/D", extrapTrackXBotStereo[nLay - 4]);
+        tupleMap.put(prefix + "TrkExtrpYStereoBotL3/D", extrapTrackYBotStereo[nLay - 4]);
+        tupleMap.put(prefix + "TrkExtrpXAxialTopL4/D", extrapTrackXTopAxial[nLay - 3]);
+        tupleMap.put(prefix + "TrkExtrpYAxialTopL4/D", extrapTrackYTopAxial[nLay - 3]);
+        tupleMap.put(prefix + "TrkExtrpXStereoTopL4/D", extrapTrackXTopStereo[nLay - 3]);
+        tupleMap.put(prefix + "TrkExtrpYStereoTopL4/D", extrapTrackYTopStereo[nLay - 3]);
+        tupleMap.put(prefix + "TrkExtrpXAxialBotL4/D", extrapTrackXBotAxial[nLay - 3]);
+        tupleMap.put(prefix + "TrkExtrpYAxialBotL4/D", extrapTrackYBotAxial[nLay - 3]);
+        tupleMap.put(prefix + "TrkExtrpXStereoBotL4/D", extrapTrackXBotStereo[nLay - 3]);
+        tupleMap.put(prefix + "TrkExtrpYStereoBotL4/D", extrapTrackYBotStereo[nLay - 3]);
+        tupleMap.put(prefix + "TrkExtrpXAxialTopL5/D", extrapTrackXTopAxial[nLay - 2]);
+        tupleMap.put(prefix + "TrkExtrpYAxialTopL5/D", extrapTrackYTopAxial[nLay - 2]);
+        tupleMap.put(prefix + "TrkExtrpXStereoTopL5/D", extrapTrackXTopStereo[nLay - 2]);
+        tupleMap.put(prefix + "TrkExtrpYStereoTopL5/D", extrapTrackYTopStereo[nLay - 2]);
+        tupleMap.put(prefix + "TrkExtrpXAxialBotL5/D", extrapTrackXBotAxial[nLay - 2]);
+        tupleMap.put(prefix + "TrkExtrpYAxialBotL5/D", extrapTrackYBotAxial[nLay - 2]);
+        tupleMap.put(prefix + "TrkExtrpXStereoBotL5/D", extrapTrackXBotStereo[nLay - 2]);
+        tupleMap.put(prefix + "TrkExtrpYStereoBotL5/D", extrapTrackYBotStereo[nLay - 2]);
+        tupleMap.put(prefix + "TrkExtrpXAxialTopL6/D", extrapTrackXTopAxial[nLay - 1]);
+        tupleMap.put(prefix + "TrkExtrpYAxialTopL6/D", extrapTrackYTopAxial[nLay - 1]);
+        tupleMap.put(prefix + "TrkExtrpXStereoTopL6/D", extrapTrackXTopStereo[nLay - 1]);
+        tupleMap.put(prefix + "TrkExtrpYStereoTopL6/D", extrapTrackYTopStereo[nLay - 1]);
+        tupleMap.put(prefix + "TrkExtrpXAxialBotL6/D", extrapTrackXBotAxial[nLay - 1]);
+        tupleMap.put(prefix + "TrkExtrpYAxialBotL6/D", extrapTrackYBotAxial[nLay - 1]);
+        tupleMap.put(prefix + "TrkExtrpXStereoBotL6/D", extrapTrackXBotStereo[nLay - 1]);
+        tupleMap.put(prefix + "TrkExtrpYStereoBotL6/D", extrapTrackYBotStereo[nLay - 1]);
 
     }
-    
+
     private void fillParticleVariablesIso(String prefix, Hep3Vector pRot, Double[] iso) {
-       
+
         double minPositiveIso = 9999;
         double minPositiveIsoL2 = 9999;
         double minNegativeIso = 9999;
@@ -724,7 +730,7 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put(prefix + "MinPositiveIsoL2/D", minPositiveIsoL2);
         tupleMap.put(prefix + "MinNegativeIsoL2/D", minNegativeIsoL2);
     }
-    
+
     private void fillParticleVariablesRaw(String prefix, List<TrackerHit> allTrackHits, Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap) {
         double rawHitTime[] = new double[nLay];
         double rawHitTDiff[] = new double[nLay];
@@ -953,7 +959,7 @@ public abstract class TupleDriver extends Driver {
 
         return trackState;
     }
-    
+
     private void fillParticleVariablesClusters(String prefix, ReconstructedParticle particle, EventHeader event) {
         Cluster cluster = particle.getClusters().get(0);
         tupleMap.put(prefix + "ClT/D", ClusterUtilities.getSeedHitTime(cluster));
@@ -989,8 +995,8 @@ public abstract class TupleDriver extends Driver {
             ReconstructedParticle electron, ReconstructedParticle positron) {
         int nEleClusters = electron.getClusters().size();
         int nPosClusters = positron.getClusters().size();
-        
-        
+
+
         BilliorVertex theVertex = vtxFitter.fitVertex(billiorTracks);
         ReconstructedParticle theV0 = HpsReconParticleDriver.makeReconstructedParticle(electron, positron, theVertex);
         Hep3Vector momRot = VecOp.mult(beamAxisRotation, theV0.getMomentum());
@@ -1083,28 +1089,28 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix+"WtM/D", theV0.getMass());
         }    
     }
-    
+
     protected void fillVertexVariables(EventHeader event, List<BilliorTrack> billiorTracks,
             ReconstructedParticle electron, ReconstructedParticle positron) {
         fillVertexVariables(event, billiorTracks, electron, positron, true, true, true);
     }
-    
+
     protected void fillVertexVariables(EventHeader event, List<BilliorTrack> billiorTracks,
             ReconstructedParticle electron, ReconstructedParticle positron, boolean doBsc, boolean doTar, boolean doVzc) {
 
         BilliorVertexer vtxFitter = new BilliorVertexer(TrackUtils.getBField(event.getDetector()).y());
         vtxFitter.setBeamSize(beamSize);
         vtxFitter.setBeamPosition(beamPos);
-        
+
         int nEleClusters = electron.getClusters().size();
         int nPosClusters = positron.getClusters().size();
-        
+
 
         //Unconstrained
-        
+
         vtxFitter.doBeamSpotConstraint(false);
         fillVertexVariablesHelper("unc", vtxFitter, billiorTracks, electron, positron);
-        
+
         if (doBsc) {
             vtxFitter.doBeamSpotConstraint(true);
             fillVertexVariablesHelper("bsc", vtxFitter, billiorTracks, electron, positron);
