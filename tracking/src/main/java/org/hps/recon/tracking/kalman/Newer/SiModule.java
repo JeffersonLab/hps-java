@@ -39,8 +39,8 @@ class SiModule {
     }
 
     void print(String s) {
-        System.out.format("Si module %s, Layer=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n",
-                                        s, Layer, stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
+        System.out.format("Si module %s, Layer=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n", s, Layer,
+                                        stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
         p.X().print("origin of Si layer coordinates in the global system");
         R.print("from detector coordinates to global coordinates");
         System.out.format("List of measurements for Si module %s:\n", s);

@@ -20,39 +20,6 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
     private FieldMap fM;
     private Random rndm;
 
-    // Construct a helix starting from a momentum vector
-    Helix(double Q, Vec Xinit, Vec Pinit, Vec origin, FieldMap fM) {
-        this.Q = Q;
-        this.origin = origin.copy();
-        this.fM = fM;
-        Vec Bf = fM.getField(Xinit);
-        B = Bf.mag();
-        double c = 2.99793e8;
-        alpha = 1000.0 * 1.0E9 / (c * B); // Units are Tesla, mm, GeV
-        rho = 2.329; // Density of silicon in g/cm^2
-        tB = Bf.unitVec(B);
-        Vec yhat = new Vec(0., 1.0, 0.);
-        uB = yhat.cross(tB).unitVec();
-        vB = tB.cross(uB);
-        R = new RotMatrix(uB, vB, tB);
-        X0 = R.rotate(Xinit.dif(origin));
-        hpi = new HelixPlaneIntersect();
-        long seedLong = 123445439;
-        rndm = new Random();
-        rndm.setSeed(seedLong);
-        radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
-        double Pmag = Pinit.mag();
-        Vec tnew = R.rotate(Pinit.unitVec(Pmag));
-        tnew.print("Helix constructor tnew");
-        double tanl = tnew.v[2] / Math.sqrt(1.0 - tnew.v[2] * tnew.v[2]);
-        double pt = Pmag / Math.sqrt(1.0 + tanl * tanl);
-        double K = Q / pt;
-        double phi0 = Math.atan2(-tnew.v[0], tnew.v[1]);
-        System.out.format("    Helix constructor pt=%10.5f, tanl=%10.5f, phi0=%10.6f\n", pt, tanl, phi0);
-        p = new Vec(0., phi0, K, 0., tanl); // Pivot point is on the helix, so drho and dz are zero
-    }
-
-    // Construct a helix from given helix parameters (given in B field frame)
     Helix(Vec HelixParams, Vec pivotGlobal, Vec origin, FieldMap fM) {
         this.origin = origin.copy();
         this.fM = fM;
@@ -75,12 +42,12 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         uB = yhat.cross(tB).unitVec();
         vB = tB.cross(uB);
         R = new RotMatrix(uB, vB, tB);
-        // R.print("new helix rotation matrix");
+        //R.print("new helix rotation matrix");
         X0 = R.rotate(pivotGlobal.dif(origin));
         hpi = new HelixPlaneIntersect();
-        // origin.print("new helix origin");
-        // pivotGlobal.print("new helix pivot global");
-        // X0.print("new helix pivot");
+        //origin.print("new helix origin");
+        //pivotGlobal.print("new helix pivot global");
+        //X0.print("new helix pivot");
         long seedLong = 123445439;
         rndm = new Random();
         rndm.setSeed(seedLong);
@@ -100,10 +67,6 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         System.out.format("         Pivot in B-field frame=%10.5f, %10.5f, %10.5f\n", X0.v[0], X0.v[1], X0.v[2]);
         Vec pivotGlobal = R.inverseRotate(X0).sum(origin);
         System.out.format("         Pivot in global frame=%10.5f, %10.5f, %10.5f\n", pivotGlobal.v[0], pivotGlobal.v[1], pivotGlobal.v[2]);
-        Vec Bf = fM.getField(pivotGlobal);
-        Bf.print("B field in global frame at the pivot point");
-        Vec Bflocal = R.rotate(Bf);
-        Bflocal.print("B field in its local frame; should be in +z direction");
         System.out.format("         Helix radius=%10.5f, with field B=%10.7f\n", alpha / p.v[2], B);
         R.print("from global frame to B-field frame");
         origin.print("origin of the B-field frame in global coordinates");
@@ -172,8 +135,8 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         do {
             x1 = 2.0 * Math.random() - 1.0;
             x2 = 2.0 * Math.random() - 1.0;
-            // x1 = 2.0 * rndm.nextDouble() - 1.0;
-            // x2 = 2.0 * rndm.nextDouble() - 1.0;
+            //x1 = 2.0 * rndm.nextDouble() - 1.0;
+            //x2 = 2.0 * rndm.nextDouble() - 1.0;
             w = x1 * x1 + x2 * x2;
         } while (w >= 1.0);
         w = Math.sqrt((-2.0 * Math.log(w)) / w);
@@ -181,7 +144,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         gran[1] = x2 * w;
 
         return gran;
-    }
+    }    
 
     Helix randomScat(Plane P, Vec r, Vec pmom, double X) { // Produce a new helix scattered randomly in a given plane P
         // X is the thickness of the silicon material in meters
@@ -189,22 +152,22 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         double phi = this.planeIntersect(P); // Here the plane P is assumed to be given in global coordinates
         // p.print("randomScat: helix parameters before scatter");
 
-        // Vec r = this.atPhiGlobal(phi);
+        //Vec r = this.atPhiGlobal(phi);
         double tst = r.dif(P.X()).dot(P.T());
-        // System.out.format("randomScat: test dot product %12.6e should be zero\n", tst);
+        //System.out.format("randomScat: test dot product %12.6e should be zero\n", tst);
         Vec Bf = fM.getField(r);
         double Bnew = Bf.mag();
         Vec tBnew = Bf.unitVec(Bnew);
         // r.print("randomScat: r global");
-        // Vec pmom = getMomGlobal(phi);
-        // pmom.print("randomScat: p global");
+        //Vec pmom = getMomGlobal(phi);
+        //pmom.print("randomScat: p global");
         Vec t = pmom.unitVec();
-        // System.out.format("randomScat: original direction in global coordinates=%10.7f, %10.7f, %10.7f\n", t.v[0],t.v[1],t.v[2]);
+        //System.out.format("randomScat: original direction in global coordinates=%10.7f, %10.7f, %10.7f\n", t.v[0],t.v[1],t.v[2]);
         Vec zhat = new Vec(0., 0., 1.);
         Vec uhat = t.cross(zhat).unitVec(); // A unit vector u perpendicular to the helix direction
         Vec vhat = t.cross(uhat);
         RotMatrix R = new RotMatrix(uhat, vhat, t);
-        // t.print("initial helix direction in Helix.randomScat");
+        //t.print("initial helix direction in Helix.randomScat");
         // R.print("rotation matrix in Helix.randomScat");
         double ct = Math.abs(P.T().dot(t));
         double theta0;
@@ -214,29 +177,28 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         else
             theta0 = Math.sqrt((X / radLen) / ct) * (0.0136 / pmom.mag()) * (1.0 + 0.038 * Math.log((X / radLen) / ct));
         double[] gran = gausRan();
-        double thetaX = gran[0] * theta0;
-        double thetaY = gran[1] * theta0;
-        // double thetaX = rndm.nextGaussian() * theta0;
-        // double thetaY = rndm.nextGaussian() * theta0;
-        // System.out.format("Helix.randomScat: X=%12.5e, ct=%12.5e, theta0=%12.5e, thetaX=%12.5e,
-        // thetaY=%12.5e\n",X,ct,theta0,thetaX,thetaY);
+        double thetaX = gran[0]*theta0;
+        double thetaY = gran[1]*theta0;
+        //double thetaX = rndm.nextGaussian() * theta0;
+        //double thetaY = rndm.nextGaussian() * theta0;
+        //System.out.format("Helix.randomScat: X=%12.5e, ct=%12.5e, theta0=%12.5e, thetaX=%12.5e, thetaY=%12.5e\n",X,ct,theta0,thetaX,thetaY);
         double tx = Math.sin(thetaX);
         double ty = Math.sin(thetaY);
         Vec tLoc = new Vec(tx, ty, Math.sqrt(1.0 - tx * tx - ty * ty));
         // tLoc.print("tLoc in Helix.randomScat");
         Vec tnew = R.inverseRotate(tLoc);
-        // tnew.print("tnew in Helix.randomScat");
-        // System.out.format("tnew dot tnew= %14.10f\n", tnew.dot(tnew));
-        // System.out.format("t dot tnew= %14.10f\n", t.dot(tnew));
-        double check = Math.acos(Math.min(t.dot(tnew), 1.));
-        // System.out.format("recalculated scattered angle=%10.7f\n", check);
-
+        //tnew.print("tnew in Helix.randomScat");
+        //System.out.format("tnew dot tnew= %14.10f\n", tnew.dot(tnew));
+        //System.out.format("t dot tnew= %14.10f\n", t.dot(tnew));
+        double check = Math.acos(Math.min(t.dot(tnew),1.));
+        //System.out.format("recalculated scattered angle=%10.7f\n", check);
+        
         // Rotate the direction into the frame of the new field (evaluated at the new pivot)
-        Vec yhat = new Vec(0., 1., 0.);
+        Vec yhat = new Vec(0.,1.,0.);
         Vec uBnew = yhat.cross(tBnew).unitVec();
         Vec vBnew = tBnew.cross(uBnew);
         RotMatrix RB = new RotMatrix(uBnew, vBnew, tBnew);
-        // RB.print("randomscat: field rotation matrix");
+        //RB.print("randomscat: field rotation matrix");
         tnew = RB.rotate(tnew);
 
         double E = pmom.mag(); // Everything is assumed electron
@@ -251,8 +213,8 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         double K = Q / pt;
         double phi0 = Math.atan2(-tnew.v[0], tnew.v[1]);
         Vec H = new Vec(0., phi0, K, 0., tanl); // Pivot point is on the helix, at the plane intersection point, so drho and dz are zero
-        // H.print("scattered helix parameters");
-
+        // H.print("scattered helix parameters");  
+ 
         return new Helix(H, r, P.X(), fM); // Create the new helix with new origin and pivot point
     }
 
@@ -306,7 +268,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
 
         return new Vec(5, aP);
     }
-
+    
     private double[] pivotTransform(double[] pivot, double[] a, double B) { // For testing purposes only
         double alpha = 1 / B;
         double xC = X0.v[0] + (a[0] + alpha / a[2]) * Math.cos(a[1]); // Center of the helix circle

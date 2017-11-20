@@ -5,7 +5,7 @@ import java.util.Iterator;
 
 // Description of a single silicon-strip module, and a container for its hits
 class SiModule {
-    int Layer; // Tracker layer number 0 through 5, -1 for a dummy layer
+    int Layer; // Tracker layer number 0 through 5
     ArrayList<Measurement> hits; // Hits ordered by coordinate value, from minimum to maximum
     Plane p; // Orientation and offset of the detector measurement plane in global
              // coordinates (NOT rotated by the stereo angle)
@@ -39,9 +39,8 @@ class SiModule {
     }
 
     void print(String s) {
-        System.out.format("Si module %s, Layer=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n",
-                                        s, Layer, stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
-        p.X().print("origin of Si layer coordinates in the global system");
+        System.out.format("Si module %s, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n", s,
+                                        stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
         R.print("from detector coordinates to global coordinates");
         System.out.format("List of measurements for Si module %s:\n", s);
         Iterator<Measurement> itr = hits.iterator();

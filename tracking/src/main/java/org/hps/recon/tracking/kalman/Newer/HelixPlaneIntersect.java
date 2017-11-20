@@ -1,9 +1,6 @@
 package kalman;
 
-class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly arbitrary plane
-    // Coordinates: the beam is ~ in the y direction
-    // the B field is ~ along the +z direction
-    // Si detectors are ~ in the xz plane
+class HelixPlaneIntersect { // Calculates intersection of a helix with an arbitrary plane
 
     Plane p;
     Vec a;
@@ -12,24 +9,16 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
     private double c;
     double alpha;
     private FieldMap fM;
-
+    
     HelixPlaneIntersect() {
         c = 2.99793e8;
-        h = 1.0; // Integration step size. It is not optimized and can probably be set significantly larger to save time.
+        h = 1.0;
     }
-
-    // Runge Kutta integration extrapolation to a plane through a non-uniform field
+    
+    // Expensive Runge Kutta integration extrapolation to the plane through a non-uniform field
     // When close to the plane, then a helix is used to find the exact intersection
     Vec rkIntersect(Plane P, Vec X0, Vec P0, double Q, FieldMap fM, Vec pInt) {
-        // P definition of the plane to which to extrapolate
-        // X0 3-D starting point for the extrapolation
-        // P0 3-momentum at the start of the extrapolation
-        // Q sign of the particle charge (+1 or -1)
-        // fM HPS field map
-        // pInt return value for the momentum at the intersection
-        // the function return value is the 3-D intersection point
-
-        // Find the straight-line distance to the plane for an initial guess at the distance
+        // Find the straight-line distance to the plane for starters
         Vec r = X0.dif(P.X());
         double dPerp = Math.abs(r.dot(P.T()));
         Vec pHat = P0.unitVec();
@@ -43,7 +32,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         double[] d = rk4.integrate(X0, P0, distance);
         Vec X1 = new Vec(d[0], d[1], d[2]);
         Vec P1 = new Vec(d[3], d[4], d[5]);
-        // X1.print("point close to the plane in rkIntersect");
+        //X1.print("point close to the plane in rkIntersect");
 
         // Transform to the local B-field reference frame at this location
         Vec B = fM.getField(X1);
@@ -59,14 +48,14 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         Vec helix = pToHelix(X1local, P1local, Q);
         Plane pLocal = P.toLocal(R, X1);
 
-        // helix.print("helix parameters close to the plane in rkIntersect");
+        //helix.print("helix parameters close to the plane in rkIntersect");
         double phiInt = planeIntersect(helix, X1local, alpha, pLocal); // helix intersection
         if (Double.isNaN(phiInt)) {
             System.out.format("HelixPlaneIntersect:rkIntersect: there is no intersection.\n");
             return X0;
         }
-        // System.out.format("HelixPlaneIntersect:rkIntersect, delta-phi to the intersection is %12.5e\n", phiInt);
-        Vec xInt = this.atPhi(phiInt); // Note: the helix parameter vector 'a' got filled in planeIntersect
+        //System.out.format("HelixPlaneIntersect:rkIntersect, delta-phi to the intersection is %12.5e\n", phiInt);
+        Vec xInt = this.atPhi(phiInt);  // Note: the helix parameter vector 'a' got filled in planeIntersect
         Vec temp = R.inverseRotate(this.getMom(phiInt));
         pInt.v[0] = temp.v[0];
         pInt.v[1] = temp.v[1];
@@ -89,14 +78,11 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
     }
 
     // Find the intersection of a helix with a plane.
-    double planeIntersect(Vec a, Vec pivot, double alpha, Plane p) {
-        // p: Plane assumed to be defined in the local helix reference frame
-        // a: vector of 5 helix parameters
-        // alpha: 10^12/c/B
-
+    double planeIntersect(Vec a, Vec pivot, double alpha, Plane p) { // Plane p is assumed to be defined in the local helix reference frame
+                 
         // Take as a starting guess the solution for the case that the plane orientation
         // is exactly y-hat.
-        // System.out.format("HelixPlaneIntersection:planeIntersect, alpha=%f10.5\n", alpha);
+        //System.out.format("HelixPlaneIntersection:planeIntersect, alpha=%f10.5\n", alpha);
         this.alpha = alpha;
         double arg = (a.v[2] / alpha) * ((a.v[0] + (alpha / a.v[2])) * Math.sin(a.v[1]) - (p.X().v[1] - pivot.v[1]));
         double phi0 = -a.v[1] + Math.asin(arg);
@@ -134,8 +120,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         fl = S(x1);
         fh = S(x2);
         if ((fl > 0.0 && fh > 0.0) || (fl < 0.0 && fh < 0.0)) {
-            System.out.format("ZeroFind.rtsafe: root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f\n", fl, fh,
-                                            alpha);
+            System.out.format("ZeroFind.rtsafe: root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f\n", fl, fh, alpha);
             // p.print("internal plane");
             // a.print("internal helix parameters");
             // X0.print("internal pivot");

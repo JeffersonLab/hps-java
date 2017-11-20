@@ -36,31 +36,12 @@ public class KalmanTrackFit {
                                     SquareMatrix C, // Full covariance matrix for the starting "guess" helix
                                     double B, // Magnetic field strength at helix beginning
                                     Vec t, // Magnetic field direction at helix beginning; defines the helix coordinate system
-                                    FieldMap fM, boolean verbose) {
+                                    boolean verbose) {
 
         if (direction > 0) {
             direction = 1;
         } else {
             direction = -1;
-        }
-
-        // First insert some dummy layers where needed for propagation in the non-uniform field
-        int nNew = 0;
-        int last = data.size() - 1;
-        double y0 = data.get(last - 2).p.X().v[1];
-        double dy = (data.get(last - 1).p.X().v[1] - y0) / (double) (nNew + 1);
-        // System.out.format("y0=%12.5e, dy=%12.5e\n", y0,dy);
-        for (int i = 0; i < nNew; i++) {
-            Plane p = new Plane(new Vec(0., y0 + (nNew - i) * dy, 0.), new Vec(0., 1., 0.));
-            SiModule si = new SiModule(-1, p, 0., 999., 999., 0., fM);
-            data.add(last - 1, si);
-        }
-        if (verbose) {
-            Iterator<SiModule> itrSi = data.iterator();
-            while (itrSi.hasNext()) {
-                SiModule siTmp = itrSi.next();
-                siTmp.p.X().print("of SiModule in list to be fit");
-            }
         }
 
         // Create an state vector from the input seed to initialize the Kalman filter
@@ -114,23 +95,13 @@ public class KalmanTrackFit {
         // Go back through the filtered sites in the reverse order to do the smoothing
         chi2s = 0.;
         MeasurementSite nextSite = null;
-        SquareMatrix Facc = null;
         for (int idx = sites.size() - 1; idx >= 0; idx--) {
             MeasurementSite currentSite = sites.get(idx);
-            if (currentSite.m.Layer < 0) {
-                if (Facc == null) {
-                    Facc = currentSite.aP.F;
-                } else {
-                    Facc = currentSite.aP.F.multiply(Facc); // Accumulate propagator from dummy steps.
-                }
-                continue;
-            }
             if (nextSite == null) {
                 currentSite.aS = currentSite.aF.copy();
                 currentSite.smoothed = true;
             } else {
-                currentSite.smooth(nextSite, Facc);
-                Facc = null;
+                currentSite.smooth(nextSite);
             }
             chi2s += currentSite.chi2inc;
 
@@ -159,6 +130,7 @@ public class KalmanTrackFit {
                     System.out.format("KalmanTrackFit: Failed to filter at site %d, idx=%d.  Ignore remaining sites\n", thisSite, idx);
                     break;
                 }
+                ;
 
                 if (verbose)
                     newSite.print("filtering remainding sites");
@@ -169,7 +141,45 @@ public class KalmanTrackFit {
             if (verbose)
                 System.out.format("KalmanTrackfit: Fit chi^2 after completing the filtering = %12.5e\n", chi2f);
         }
+
+        // if (verbose) print("testing");
         /*
+         * if (sites.get(0).smoothed) sI = sites.get(0).aS.copy(); else sI =
+         * sites.get(0).aF.copy(); sI.C.scale(10000.); sites = new
+         * ArrayList<MeasurementSite>(); initialSite = 0; chi2f = 0.; prevSite = -1;
+         * thisSite = -1; for (int idx=0; idx<data.size(); idx++) { Measurement m =
+         * data.get(idx); thisSite++; MeasurementSite newSite = new MeasurementSite(idx,
+         * idx-direction, m); if (idx == 0) { if (!newSite.makePrediction(sI)) {
+         * System.out.
+         * format("KalmanTrackFit: Failed to make initial prediction at site %d, idx=%d.  Abort\n"
+         * , thisSite, idx); break; } } else { if
+         * (!newSite.makePrediction(sites.get(prevSite).aF)) { System.out.
+         * format("KalmanTrackFit: Failed to make prediction at site %d, idx=%d.  Abort\n"
+         * , thisSite, idx); break; } }
+         * 
+         * if (!newSite.filter()) { System.out.
+         * format("KalmanTrackFit: Failed to filter at site %d, idx=%d.  Ignore remaining sites\n"
+         * , thisSite, idx); break; };
+         * 
+         * if (verbose) newSite.print("initial filtering"); chi2f += newSite.chi2inc;
+         * 
+         * sites.add(newSite);
+         * 
+         * prevSite = thisSite; } if (verbose) System.out.
+         * format("KalmanTrackFit: Fit chi^2 after initial filtering = %12.4e\n",
+         * chi2f);
+         * 
+         * // Go back through the filtered sites in the reverse order to do the
+         * smoothing chi2s = 0.; nextSite = null; for (int idx = sites.size()-1; idx>=0;
+         * idx--) { MeasurementSite currentSite= sites.get(idx); if (nextSite == null) {
+         * currentSite.aS = currentSite.aF.copy(); currentSite.smoothed = true; } else {
+         * currentSite.smooth(nextSite); } chi2s += currentSite.chi2inc;
+         * 
+         * if (verbose) currentSite.print("initial smoothing"); nextSite = currentSite;
+         * } if (verbose) System.out.
+         * format("KalmanTrackFit: Fit chi^2 after initial smoothing = %12.4e\n",
+         * chi2s);
+         */
         for (int iteration = 1; iteration < nIterations; iteration++) {
             if (verbose)
                 System.out.format("KalmanTrackFit: starting filtering for iteration %d\n", iteration);
@@ -195,14 +205,14 @@ public class KalmanTrackFit {
                     success = false;
                     break;
                 }
-        
+
                 if (!currentSite.filter()) {
                     System.out.format("KalmanTrackFit: in iteration %d failed to filter!!\n", iteration);
                     success = false;
                     break;
                 }
                 ;
-        
+
                 if (verbose)
                     currentSite.print("iterating filtering");
                 chi2f += currentSite.chi2inc;
@@ -222,7 +232,7 @@ public class KalmanTrackFit {
                         currentSite.smooth(nextSite);
                     }
                     chi2s += currentSite.chi2inc;
-        
+
                     if (verbose)
                         currentSite.print("iterating smoothing");
                     nextSite = currentSite;
@@ -231,7 +241,7 @@ public class KalmanTrackFit {
                     System.out.format("KalmanTrackFit: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s);
             }
         }
-        */
+
         if (verbose) {
             System.out.format("KalmanTrackFit: Final fit chi^2 after smoothing = %12.4e\n", chi2s);
             Vec afF = sites.get(sites.size() - 1).aF.a;

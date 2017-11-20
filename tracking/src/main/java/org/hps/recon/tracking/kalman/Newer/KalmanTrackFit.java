@@ -36,7 +36,8 @@ public class KalmanTrackFit {
                                     SquareMatrix C, // Full covariance matrix for the starting "guess" helix
                                     double B, // Magnetic field strength at helix beginning
                                     Vec t, // Magnetic field direction at helix beginning; defines the helix coordinate system
-                                    FieldMap fM, boolean verbose) {
+                                    FieldMap fM,
+                                    boolean verbose) {
 
         if (direction > 0) {
             direction = 1;
@@ -45,24 +46,25 @@ public class KalmanTrackFit {
         }
 
         // First insert some dummy layers where needed for propagation in the non-uniform field
-        int nNew = 0;
-        int last = data.size() - 1;
-        double y0 = data.get(last - 2).p.X().v[1];
-        double dy = (data.get(last - 1).p.X().v[1] - y0) / (double) (nNew + 1);
-        // System.out.format("y0=%12.5e, dy=%12.5e\n", y0,dy);
-        for (int i = 0; i < nNew; i++) {
-            Plane p = new Plane(new Vec(0., y0 + (nNew - i) * dy, 0.), new Vec(0., 1., 0.));
+        int nNew = 2;
+        int last = data.size()-1;
+        double y0 = data.get(last-2).p.X().v[1];
+        double dy = (data.get(last-1).p.X().v[1] - y0)/(double)(nNew+1);
+        //System.out.format("y0=%12.5e,  dy=%12.5e\n", y0,dy);
+        for (int i=0; i<nNew; i++) {
+            Plane p = new Plane(new Vec(0.,y0+(nNew-i)*dy,0.),new Vec(0.,1.,0.));
             SiModule si = new SiModule(-1, p, 0., 999., 999., 0., fM);
-            data.add(last - 1, si);
+            data.add(last-1,si);
         }
         if (verbose) {
             Iterator<SiModule> itrSi = data.iterator();
             while (itrSi.hasNext()) {
                 SiModule siTmp = itrSi.next();
                 siTmp.p.X().print("of SiModule in list to be fit");
+                
             }
         }
-
+        
         // Create an state vector from the input seed to initialize the Kalman filter
         StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot, verbose);
 
@@ -121,10 +123,10 @@ public class KalmanTrackFit {
                 if (Facc == null) {
                     Facc = currentSite.aP.F;
                 } else {
-                    Facc = currentSite.aP.F.multiply(Facc); // Accumulate propagator from dummy steps.
+                    Facc = currentSite.aP.F.multiply(Facc);  // Accumulate propagator from dummy steps.
                 }
                 continue;
-            }
+            } 
             if (nextSite == null) {
                 currentSite.aS = currentSite.aF.copy();
                 currentSite.smoothed = true;
@@ -169,7 +171,7 @@ public class KalmanTrackFit {
             if (verbose)
                 System.out.format("KalmanTrackfit: Fit chi^2 after completing the filtering = %12.5e\n", chi2f);
         }
-        /*
+/*
         for (int iteration = 1; iteration < nIterations; iteration++) {
             if (verbose)
                 System.out.format("KalmanTrackFit: starting filtering for iteration %d\n", iteration);
@@ -195,14 +197,14 @@ public class KalmanTrackFit {
                     success = false;
                     break;
                 }
-        
+
                 if (!currentSite.filter()) {
                     System.out.format("KalmanTrackFit: in iteration %d failed to filter!!\n", iteration);
                     success = false;
                     break;
                 }
                 ;
-        
+
                 if (verbose)
                     currentSite.print("iterating filtering");
                 chi2f += currentSite.chi2inc;
@@ -222,7 +224,7 @@ public class KalmanTrackFit {
                         currentSite.smooth(nextSite);
                     }
                     chi2s += currentSite.chi2inc;
-        
+
                     if (verbose)
                         currentSite.print("iterating smoothing");
                     nextSite = currentSite;
@@ -231,7 +233,7 @@ public class KalmanTrackFit {
                     System.out.format("KalmanTrackFit: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s);
             }
         }
-        */
+*/
         if (verbose) {
             System.out.format("KalmanTrackFit: Final fit chi^2 after smoothing = %12.4e\n", chi2s);
             Vec afF = sites.get(sites.size() - 1).aF.a;

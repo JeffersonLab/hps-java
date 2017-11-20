@@ -100,16 +100,13 @@ class MeasurementSite {
         double deltaE = 0.; // dEdx*thickness/ct;
 
         Vec origin = m.p.X();
+        if (verbose)
+            origin.print("new origin in MeasurementSite.makePrediction");
         Vec Bfield = m.Bfield.getField(pS.toGlobal(X0));
         double B = Bfield.mag();
         Vec tB = Bfield.unitVec(B);
-        if (verbose) {
-            origin.print("new origin in MeasurementSite.makePrediction");
-            Bfield.print("B field at pivot in MeasurementSite.makePrediction");
-        }
-
-        // Move pivot point to X0 to generate the predicted helix
-        aP = pS.predict(thisSite, X0, B, tB, origin, XL / ct, deltaE);
+        aP = pS.predict(thisSite, X0, B, tB, origin, XL / ct, deltaE); // Move pivot point to X0 to generate the
+                                                                       // predicted helix
         if (verbose) {
             pS.a.print("original helix in MeasurementSite.makePrediction");
             aP.a.print("pivot transformed helix in MeasurementSite.makePrediction");
@@ -219,7 +216,7 @@ class MeasurementSite {
             this.print("in the wrong state for smoothing");
         }
 
-        if (m.Layer < 0) { // If this method is called properly, we really shouldn't go here. . .
+        if (m.Layer < 0) {  // If this method is called properly, we really shouldn't go here. . .
             this.aS = nS.aS;
             this.aP = nS.aP;
             smoothed = true;
