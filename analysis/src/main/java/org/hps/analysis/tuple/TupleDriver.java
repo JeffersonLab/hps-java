@@ -270,7 +270,7 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void addParticleVariables(String prefix, boolean doTrkExtrap, boolean doRaw, boolean doIso) {
-        String[] newVars = new String[] {"PX/D", "PY/D", "PZ/D", "P/D", "TrkChisq/D", "TrkHits/I", "TrkType/I",
+        String[] newVars = new String[] {"PX/D", "PY/D", "PZ/D", "P/D", "TrkChisq/D", "TrkType/I",
                 "TrkT/D", "TrkTsd/D", "TrkZ0/D", "TrkLambda/D", "TrkD0/D", "TrkPhi/D", "TrkOmega/D", "TrkEcalX/D",
                 "TrkEcalY/D", "HasL1/B", "HasL2/B", "HasL3/B", "HasL4/B", "HasL5/B", "HasL6/B", "FirstHitX/D",
                 "FirstHitY/D", "FirstHitT1/D", "FirstHitT2/D", "FirstHitDEDx1/D", "FirstHitDEDx2/D",
@@ -325,64 +325,12 @@ public abstract class TupleDriver extends Driver {
         }
     }
 
-    protected void fillEventVariables(EventHeader event, TIData triggerData) {
-        tupleMap.put("run/I", (double) event.getRunNumber());
-        tupleMap.put("event/I", (double) event.getEventNumber());
-        List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
-        int npos = 0;
-        int ntrk = 0;
-        int ncl = 0;
-        for (ReconstructedParticle fsp : fspList) {
-            if (isGBL != TrackType.isGBL(fsp.getType())) {
-                continue;
-            }
-            /*
-             * if (fsp.getClusters().isEmpty()){
-             * continue;
-             * }
-             */
-            if (fsp.getCharge() != 0) {
-                ntrk++;
-            }
-            if (fsp.getCharge() > 0) {
-                npos++;
-            }
-            ncl = fsp.getClusters().size();
-        }
-
-        tupleMap.put("nTrk/I", (double) ntrk);
-        tupleMap.put("nPos/I", (double) npos);
-        tupleMap.put("nCl/I", (double) ncl);
-
-        if (triggerData != null) {
-            tupleMap.put("isCalib/B", triggerData.isCalibTrigger() ? 1.0 : 0.0);
-            tupleMap.put("isPulser/B", triggerData.isPulserTrigger() ? 1.0 : 0.0);
-            tupleMap.put("isSingle0/B", triggerData.isSingle0Trigger() ? 1.0 : 0.0);
-            tupleMap.put("isSingle1/B", triggerData.isSingle1Trigger() ? 1.0 : 0.0);
-            tupleMap.put("isPair0/B", triggerData.isPair0Trigger() ? 1.0 : 0.0);
-            tupleMap.put("isPair1/B", triggerData.isPair1Trigger() ? 1.0 : 0.0);
-        }
-
-        if (event.hasCollection(GenericObject.class, "TriggerTime")) {
-            if (event.get(GenericObject.class, "TriggerTime") != null) {
-                List<GenericObject> triggT = event.get(GenericObject.class, "TriggerTime");
-                tupleMap.put("evTime/D", triggT.get(0).getDoubleVal(0));
-                tupleMap.put("evTx/I", (double) triggT.get(0).getIntVal(0));
-                tupleMap.put("evTy/I", (double) triggT.get(0).getIntVal(1));
-            }
-        }
-        if (event.hasCollection(GenericObject.class, "RFHits")) {
-            List<GenericObject> rfTimes = event.get(GenericObject.class, "RFHits");
-            if (rfTimes.size() > 0) {
-                tupleMap.put("rfT1/D", rfTimes.get(0).getDoubleVal(0));
-                tupleMap.put("rfT2/D", rfTimes.get(0).getDoubleVal(1));
-            }
-        }
+    private void fillEventVariablesECal(EventHeader event) {
         if (event.hasCollection(CalorimeterHit.class, "EcalCalHits")) {
             List<CalorimeterHit> ecalHits = event.get(CalorimeterHit.class, "EcalCalHits");
             tupleMap.put("nEcalHits/I", (double) ecalHits.size());
         }
-
+        
         if (event.hasCollection(Cluster.class, "EcalClustersCorr")) {
             List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClustersCorr");
             tupleMap.put("nEcalCl/I", (double) ecalClusters.size());
@@ -422,82 +370,53 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put("nEcalClPosSide/I", (double) nPosSide);
 
         }
+    }
 
-        // //////////////////////////////////////////////////////////////////////
-        // All of the following is specifically for getting raw tracker hit info
-        // //////////////////////////////////////////////////////////////////////
-        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-
-        // Get the list of fitted hits from the event
+    protected void fillEventVariablesHits(EventHeader event) {
+        if (event.hasCollection(GenericObject.class, "RFHits")) {
+            List<GenericObject> rfTimes = event.get(GenericObject.class, "RFHits");
+            if (rfTimes.size() > 0) {
+                tupleMap.put("rfT1/D", rfTimes.get(0).getDoubleVal(0));
+                tupleMap.put("rfT2/D", rfTimes.get(0).getDoubleVal(1));
+            }
+        }
+        
         List<LCRelation> fittedHits = event.get(LCRelation.class, "SVTFittedRawTrackerHits");
         tupleMap.put("nSVTHits/I", (double) fittedHits.size());
 
-        int nL1hits = 0;
-        int nL2hits = 0;
-        int nL3hits = 0;
-        int nL4hits = 0;
-        int nL5hits = 0;
-        int nL6hits = 0;
-        int nL1bhits = 0;
-        int nL2bhits = 0;
-        int nL3bhits = 0;
-        int nL4bhits = 0;
-        int nL5bhits = 0;
-        int nL6bhits = 0;
+        int[] nLhits = {0,0,0,0,0,0};
+        int[] nLbhits = {0,0,0,0,0,0};
+        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
         for (RawTrackerHit rHit : rawHits) {
-
             HpsSiSensor sensor = (HpsSiSensor) rHit.getDetectorElement();
-            if (sensor.getLayerNumber() == 1) {
-                nL1hits++;
-            } else if (sensor.getLayerNumber() == 2) {
-                nL1bhits++;
-            } else if (sensor.getLayerNumber() == 3) {
-                nL2hits++;
-            } else if (sensor.getLayerNumber() == 4) {
-                nL2bhits++;
-            } else if (sensor.getLayerNumber() == 5) {
-                nL3hits++;
-            } else if (sensor.getLayerNumber() == 6) {
-                nL3bhits++;
-            } else if (sensor.getLayerNumber() == 7) {
-                nL4hits++;
-            } else if (sensor.getLayerNumber() == 8) {
-                nL4bhits++;
-            } else if (sensor.getLayerNumber() == 9) {
-                nL5hits++;
-            } else if (sensor.getLayerNumber() == 10) {
-                nL5bhits++;
-            } else if (sensor.getLayerNumber() == 11) {
-                nL6hits++;
-            } else if (sensor.getLayerNumber() == 12) {
-                nL6bhits++;
+            int layer = sensor.getLayerNumber();
+            int i = ((sensor.getLayerNumber() + 1) / 2) - 1;
+            
+            if (layer % 2 == 0) {
+                //bottom hit
+                nLbhits[i]++;
+            }
+            else {
+                nLhits[i]++;
             }
         }
 
-        tupleMap.put("nSVTHitsL1/I", (double) nL1hits);
-        tupleMap.put("nSVTHitsL2/I", (double) nL2hits);
-        tupleMap.put("nSVTHitsL3/I", (double) nL3hits);
-        tupleMap.put("nSVTHitsL4/I", (double) nL4hits);
-        tupleMap.put("nSVTHitsL5/I", (double) nL5hits);
-        tupleMap.put("nSVTHitsL6/I", (double) nL6hits);
-        tupleMap.put("nSVTHitsL1b/I", (double) nL1bhits);
-        tupleMap.put("nSVTHitsL2b/I", (double) nL2bhits);
-        tupleMap.put("nSVTHitsL3b/I", (double) nL3bhits);
-        tupleMap.put("nSVTHitsL4b/I", (double) nL4bhits);
-        tupleMap.put("nSVTHitsL5b/I", (double) nL5bhits);
-        tupleMap.put("nSVTHitsL6b/I", (double) nL6bhits);
-
+        for (int k = 1; k<7; k++) {
+            String putMe = String.format("nSVTHitsL%d/I", k);
+            tupleMap.put(putMe, (double) nLhits[k-1]);
+            putMe = String.format("nSVTHitsL%db/I", k);
+            tupleMap.put(putMe, (double) nLbhits[k-1]);
+        }
+        
         double topL1HitX = 9999;
         double topL1HitY = 9999;
         double botL1HitX = 9999;
         double botL1HitY = -9999;
 
-        String stereoHitCollectionName = "RotatedHelicalTrackHits";
-
         // Get the collection of 3D hits from the event. This collection
         // contains all 3D hits in the event and not just those associated
         // with a track.
-        List<TrackerHit> hits = event.get(TrackerHit.class, stereoHitCollectionName);
+        List<TrackerHit> hits = event.get(TrackerHit.class, "RotatedHelicalTrackHits");
 
         // Loop over the collection of 3D hits in the event and map them to
         // their corresponding layer.
@@ -524,14 +443,61 @@ public abstract class TupleDriver extends Driver {
                 botL1HitX = hit.getPosition()[1];
 
             }
-
-            // To check if hit is in top or bottom, use the sensor
-            // sensor.isTopLayer()
         }
         tupleMap.put("topL1HitX/D", topL1HitX);
         tupleMap.put("topL1HitY/D", topL1HitY);
         tupleMap.put("botL1HitX/D", botL1HitX);
         tupleMap.put("botL1HitY/D", botL1HitY);
+    }
+    
+    private void fillEventVariablesTrigger(EventHeader event, TIData triggerData) {
+        if (triggerData != null) {
+            tupleMap.put("isCalib/B", triggerData.isCalibTrigger() ? 1.0 : 0.0);
+            tupleMap.put("isPulser/B", triggerData.isPulserTrigger() ? 1.0 : 0.0);
+            tupleMap.put("isSingle0/B", triggerData.isSingle0Trigger() ? 1.0 : 0.0);
+            tupleMap.put("isSingle1/B", triggerData.isSingle1Trigger() ? 1.0 : 0.0);
+            tupleMap.put("isPair0/B", triggerData.isPair0Trigger() ? 1.0 : 0.0);
+            tupleMap.put("isPair1/B", triggerData.isPair1Trigger() ? 1.0 : 0.0);
+        }
+
+        if (event.hasCollection(GenericObject.class, "TriggerTime")) {
+            if (event.get(GenericObject.class, "TriggerTime") != null) {
+                List<GenericObject> triggT = event.get(GenericObject.class, "TriggerTime");
+                tupleMap.put("evTime/D", triggT.get(0).getDoubleVal(0));
+                tupleMap.put("evTx/I", (double) triggT.get(0).getIntVal(0));
+                tupleMap.put("evTy/I", (double) triggT.get(0).getIntVal(1));
+            }
+        }
+    }
+    
+    protected void fillEventVariables(EventHeader event, TIData triggerData) {
+        tupleMap.put("run/I", (double) event.getRunNumber());
+        tupleMap.put("event/I", (double) event.getEventNumber());
+        List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
+        int npos = 0;
+        int ntrk = 0;
+        int ncl = 0;
+        for (ReconstructedParticle fsp : fspList) {
+            if (isGBL != TrackType.isGBL(fsp.getType())) {
+                continue;
+            }
+            if (fsp.getCharge() != 0) {
+                ntrk++;
+            }
+            if (fsp.getCharge() > 0) {
+                npos++;
+            }
+            ncl = fsp.getClusters().size();
+        }
+
+        tupleMap.put("nTrk/I", (double) ntrk);
+        tupleMap.put("nPos/I", (double) npos);
+        tupleMap.put("nCl/I", (double) ncl);
+
+        fillEventVariablesTrigger(event, triggerData);
+        fillEventVariablesECal(event);
+        fillEventVariablesHits(event);
+
     }
 
     protected TrackState fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix) {
@@ -702,8 +668,7 @@ public abstract class TupleDriver extends Driver {
         double rawHitMaxAmpl[] = new double[nLay];
         double rawHitChisq[] = new double[nLay];
 
-        // TODO: FIXME
-        int nTrackHits = allTrackHits.size();
+        int nTrackHits = 0;
         for (TrackerHit iTrackHit : allTrackHits) {
             List<RawTrackerHit> allRawHits = iTrackHit.getRawHits();
 
@@ -735,12 +700,12 @@ public abstract class TupleDriver extends Driver {
 
                 }// end if
             }  // end loop over raw hits
-            // System.out.println("\t nTrackHits\t"+nTrackHits+"\t t0\t"+t0+"\ttdiff\t"+t0max+"\tampl\t"+amplmax+
-            // "\tchi2\t"+chi2);
+
             rawHitTime[nTrackHits] = t0;
             rawHitTDiff[nTrackHits] = t0max - t0min;
             rawHitMaxAmpl[nTrackHits] = amplmax;
             rawHitChisq[nTrackHits] = chi2;
+            nTrackHits++;
         }// end loop over track hits
 
         tupleMap.put(prefix + "RawMaxAmplL1/D", rawHitMaxAmpl[0]);
@@ -755,6 +720,7 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put(prefix + "RawT0L3/D", rawHitTime[2]);
         tupleMap.put(prefix + "RawChisqL3/D", rawHitChisq[2]);
         tupleMap.put(prefix + "RawTDiffL3/D", rawHitTDiff[2]);
+        
     }
 
     protected TrackState fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix, boolean doTrkExtrap, boolean doRaw, boolean doIso) {
@@ -870,7 +836,6 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put(prefix + "SharedTrkEcalY/D", atEcalShared.y());
         }
 
-        // TODO: FIXME
         tupleMap.put(prefix + "NTrackHits/I", (double) nTrackHits);
 
         tupleMap.put(prefix + "PX/D", pRot.x());
@@ -884,8 +849,6 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put(prefix + "TrkOmega/D", trackState.getOmega());
 
         tupleMap.put(prefix + "TrkChisq/D", track.getChi2());
-        // TODO: FIXME
-        tupleMap.put(prefix + "TrkHits/I", (double) track.getTrackerHits().size());
         tupleMap.put(prefix + "TrkType/I", (double) particle.getType());
         tupleMap.put(prefix + "TrkT/D", trkT);
         tupleMap.put(prefix + "TrkTsd/D", trkTsd);
@@ -1067,15 +1030,11 @@ public abstract class TupleDriver extends Driver {
         vtxFitter.setBeamSize(beamSize);
         vtxFitter.setBeamPosition(beamPos);
 
-        int nEleClusters = electron.getClusters().size();
-        int nPosClusters = positron.getClusters().size();
-
-
         //Unconstrained
-
         vtxFitter.doBeamSpotConstraint(false);
         fillVertexVariablesHelper("unc", vtxFitter, billiorTracks, electron, positron);
 
+        // others
         if (doBsc) {
             vtxFitter.doBeamSpotConstraint(true);
             fillVertexVariablesHelper("bsc", vtxFitter, billiorTracks, electron, positron);
