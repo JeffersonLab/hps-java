@@ -18,7 +18,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
-    <lcsimVersion>4.0-SNAPSHOT</lcsimVersion>
+    <lcsimVersion>4.0</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
   </properties>
@@ -452,6 +452,7 @@
           <forkMode>pertest</forkMode>
           <systemPropertyVariables>
             <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
+            <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
             <hep.aida.IAnalysisFactory>hep.aida.ref.BatchAnalysisFactory</hep.aida.IAnalysisFactory>
           </systemPropertyVariables>
         </configuration>
@@ -781,6 +782,17 @@
   </ciManagement>
 
   <profiles>
+    <profile>
+      <id>default-cache-dir</id>
+      <activation>
+        <property>
+          <name>!org.lcsim.cacheDir</name>
+        </property>
+      </activation>
+      <properties>
+        <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
+      </properties>
+    </profile>
     <profile>
       <id>no-plugin</id>
       <activation>
