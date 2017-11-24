@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.EventQuality.Quality;
@@ -81,6 +82,8 @@ public class TrackUtils {
     private TrackUtils() {
     }
 
+    private static Logger LOGGER = Logger.getLogger(TrackUtils.class.getPackage().getName());
+    
     /**
      * Extrapolate track to a position along the x-axis. Turn the track into a
      * helix object in order to use HelixUtils.
@@ -1555,7 +1558,8 @@ public class TrackUtils {
         // size up to ~90% of the final position. At this point, a finer
         // track size will be used.
         boolean stepSizeChange = false;
-        while (currentPosition.x() < endPositionX) {
+
+        while (currentPosition.x() < endPositionX){
 
             // The field map coordinates are in the detector frame so the
             // extrapolated track position needs to be transformed from the
@@ -1588,6 +1592,12 @@ public class TrackUtils {
                 // System.out.println("Changing step size: " + stepSize);
                 stepSizeChange = true;
             }
+
+            if(currentMomentum.x() < 0 ){
+                LOGGER.warning("extrapolateTrackUsingFieldMap track going backwards - Killed\n");
+                throw new RuntimeException("extrapolateTrackUsingFieldMap track going backwards - Killed\n");
+            }
+
         }
 
         // Calculate the track parameters at the Extrapolation point
