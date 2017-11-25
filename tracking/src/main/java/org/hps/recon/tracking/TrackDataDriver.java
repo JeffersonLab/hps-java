@@ -315,7 +315,6 @@ public final class TrackDataDriver extends Driver {
                     trackToTrackResidualsRelations.add(new BaseLCRelation(trackResiduals, track));
 
                 }catch( Exception e){
-                    LOGGER.warning("Exception in TrackDataDriver - TrackExtrapolate \n");
                     LOGGER.log(Level.SEVERE, e.getMessage(), e);
                     continue;
                 }

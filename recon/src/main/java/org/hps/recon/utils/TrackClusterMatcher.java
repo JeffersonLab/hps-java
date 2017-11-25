@@ -322,6 +322,10 @@ public class TrackClusterMatcher {
 
         // Get the extrapolated track position at the calorimeter:
         TrackState trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
+        if(trackStateAtEcal == null){
+            // Track never made it to the ECAL, so it curled before doing this and probably extrapolateTrackUsingFieldMap aborted.
+            return Double.MAX_VALUE;
+        }
         Hep3Vector tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
         tPos = CoordinateTransformations.transformVectorToDetector(tPos);
 

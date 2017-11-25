@@ -1594,8 +1594,7 @@ public class TrackUtils {
             }
 
             if(currentMomentum.x() < 0 ){
-                LOGGER.warning("extrapolateTrackUsingFieldMap track going backwards - Killed\n");
-                throw new RuntimeException("extrapolateTrackUsingFieldMap track going backwards - Killed\n");
+                throw new RuntimeException("extrapolateTrackUsingFieldMap track going backwards - abort search\n");
             }
 
         }
