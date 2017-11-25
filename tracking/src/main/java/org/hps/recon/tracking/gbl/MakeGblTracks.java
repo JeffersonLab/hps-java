@@ -232,7 +232,7 @@ public class MakeGblTracks {
                 strip = new HelicalTrackStripGbl(makeDigiStrip(newHit), true);
             }
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
-            MultipleScattering.ScatterPoint temp = getScatterPointGbl(sensor, strip, htf, scatters, _scattering, _B);
+            MultipleScattering.ScatterPoint temp = getScatterPointGbl(sensor, strip, htf, _scattering, _B);
             GBLStripClusterData stripData = makeStripData(sensor, strip, htf, temp);
             if (stripData != null)
                 stripClusterDataList.add(stripData);
@@ -241,7 +241,8 @@ public class MakeGblTracks {
         return stripClusterDataList;
     }
 
-    public static MultipleScattering.ScatterPoint getScatterPointGbl(HpsSiSensor sensor, HelicalTrackStripGbl strip, HelicalTrackFit htf, MultipleScattering.ScatterPoints scatters, MultipleScattering _scattering, double _B) {
+    public static MultipleScattering.ScatterPoint getScatterPointGbl(HpsSiSensor sensor, HelicalTrackStripGbl strip, HelicalTrackFit htf, MultipleScattering _scattering, double _B) {
+        MultipleScattering.ScatterPoints scatters = _scattering.FindHPSScatterPoints(htf);
         MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
 
         if (temp == null) {
