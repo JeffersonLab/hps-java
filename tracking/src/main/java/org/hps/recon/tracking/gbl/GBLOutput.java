@@ -193,8 +193,6 @@ public class GBLOutput {
 
     void printGBL(Track trk, List<SiTrackerHitStrip1D> stripHits, GBLTrackData gtd, List<GBLStripClusterData> stripClusterDataList, List<MCParticle> mcParticles, List<SimTrackerHit> simTrackerHits) {
 
-        System.out.println("in printGBL");
-
         HelicalTrackFit htf = TrackUtils.getHTF(trk);
         List<TrackerHit> hits = trk.getTrackerHits();
 
