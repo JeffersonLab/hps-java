@@ -194,6 +194,7 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void writeTuple() {
+        System.out.printf("in writeTuple3");
         for (String variable : tupleVariables) {
             Double value = tupleMap.get(variable);
             if (value == null || Double.isNaN(value)) {
@@ -270,7 +271,7 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void addParticleVariables(String prefix, boolean doTrkExtrap, boolean doRaw, boolean doIso) {
-        String[] newVars = new String[] {"PX/D", "PY/D", "PZ/D", "P/D", "TrkChisq/D", "TrkType/I",
+        String[] newVars = new String[] {"PX/D", "PY/D", "PZ/D", "P/D", "TrkChisq/D", "TrkHits/I", "TrkType/I",
                 "TrkT/D", "TrkTsd/D", "TrkZ0/D", "TrkLambda/D", "TrkD0/D", "TrkPhi/D", "TrkOmega/D", "TrkEcalX/D",
                 "TrkEcalY/D", "HasL1/B", "HasL2/B", "HasL3/B", "HasL4/B", "HasL5/B", "HasL6/B", "FirstHitX/D",
                 "FirstHitY/D", "FirstHitT1/D", "FirstHitT2/D", "FirstHitDEDx1/D", "FirstHitDEDx2/D",
@@ -471,6 +472,7 @@ public abstract class TupleDriver extends Driver {
     }
     
     protected void fillEventVariables(EventHeader event, TIData triggerData) {
+        
         tupleMap.put("run/I", (double) event.getRunNumber());
         tupleMap.put("event/I", (double) event.getEventNumber());
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
@@ -795,7 +797,7 @@ public abstract class TupleDriver extends Driver {
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) temp.getRawHits().get(0)).getDetectorElement();
 
             // Retrieve the layer number by using the sensor
-            int layer = (sensor.getLayerNumber() + 1) / 2;
+            int layer = (sensor.getLayerNumber() + 1) / 2 -1;
             hasHits[layer] = true;
         }
 
@@ -849,6 +851,7 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put(prefix + "TrkOmega/D", trackState.getOmega());
 
         tupleMap.put(prefix + "TrkChisq/D", track.getChi2());
+        tupleMap.put(prefix + "TrkHits/I", (double) track.getTrackerHits().size());
         tupleMap.put(prefix + "TrkType/I", (double) particle.getType());
         tupleMap.put(prefix + "TrkT/D", trkT);
         tupleMap.put(prefix + "TrkTsd/D", trkTsd);

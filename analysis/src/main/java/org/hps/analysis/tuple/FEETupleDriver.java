@@ -52,8 +52,11 @@ public class FEETupleDriver extends TupleDriver {
             fillParticleVariables(event, fsp, "fsp");
 
             if (tupleWriter != null) {
+                System.out.println("in tupleWriting1");
                 boolean trkCut = tupleMap.get("fspP/D") > tupleTrkPCut * ebeam;
+                System.out.printf("fspPD %f  tupleTrkPCut %f  ebeam %f \n", tupleMap.get("fspP/D"), tupleTrkPCut, ebeam);
                 if (!cutTuple || (trkCut)) {
+                    System.out.println("in tupleWriting2");
                     writeTuple();
                 }
             }
