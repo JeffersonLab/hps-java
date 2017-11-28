@@ -246,11 +246,14 @@ public class GBLOutput {
                     printStripData(stripData);
                 }
 
-                // calculate strip isolation if we are printing a text file or debugging
+                // order: iso, u, ures,  truth ures, simhit ures, scatangle
                 doStripIso(stripHits, strip, sensor.getName());
+                textFile.printStripMeas(stripData.getMeas());
+                textFile.printStripMeasRes(stripData.getMeas() - stripData.getTrackPos().x(), stripData.getMeasErr());
 
                 doResiduals(strip, htfTruth, stripData, simHitsLayerMap, temp.getPosition());
 
+                textFile.printStripScat(stripData.getScatterAngle());
                 ++istrip;
             }
         }
@@ -265,9 +268,6 @@ public class GBLOutput {
         textFile.printNormalDir(stripData.getW());
         textFile.printStripTrackDir(Math.sin(stripData.getTrackPhi()), Math.sin(stripData.getTrackLambda()));
         textFile.printStripTrackDirFull(stripData.getTrackDirection());
-        textFile.printStripMeas(stripData.getMeas());
-        textFile.printStripMeasRes(stripData.getMeas() - stripData.getTrackPos().x(), stripData.getMeasErr());
-        textFile.printStripScat(stripData.getScatterAngle());
     }
 
     private void doResiduals(HelicalTrackStripGbl strip, HelicalTrackFit htfTruth, GBLStripClusterData stripData, Map<Integer, SimTrackerHit> simHitsLayerMap, Hep3Vector pos) {
