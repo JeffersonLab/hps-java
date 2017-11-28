@@ -45,17 +45,19 @@ public class TupleDriverTest extends TestCase {
         
         loop.add(new org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver());
         
+        loop.add(new org.hps.recon.filtering.EventFlagFilter());
+        
         org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup rthss = new org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup();
         String[] readoutColl = { "SVTRawTrackerHits" };
         rthss.setReadoutCollections(readoutColl);
         loop.add(rthss);
         
-//        testTupleDriver = new org.hps.analysis.tuple.FEETupleDriver();
-//        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setTupleFile(txtOutputFileName);
-//        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setTriggerType("all");
-//        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setIsGBL(true);
-//        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setCutTuple(true);
-//        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setBeamPosZ(-5.0);
+        testTupleDriver = new org.hps.analysis.tuple.FEETupleDriver();
+        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setTupleFile(txtOutputFileName);
+        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setTriggerType("all");
+        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setIsGBL(true);
+        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setCutTuple(true);
+        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setBeamPosZ(-5.0);
         loop.add(testTupleDriver);
         
         loop.loop(100);
