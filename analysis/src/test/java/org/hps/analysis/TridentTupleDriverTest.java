@@ -4,8 +4,8 @@ public class TridentTupleDriverTest extends TupleDriverTest {
     @Override
     public void testIt() throws Exception {
          testURLBase = "http://www.lcsim.org/test/hps-java/";
-         txtRefFileName = "out_tri_Ref.txt";
-         lcioInputFileName = "tmp.slcio";
+         txtRefFileName = "ntuple_005772_tri_Ref.txt";
+         lcioInputFileName = "hps_005772.0_recon_Rv4657-0-10000.slcio";
          txtOutputFileName = "target/test-output/out_tri.txt";
 
          testTupleDriver = new org.hps.analysis.tuple.TridentTupleDriver();

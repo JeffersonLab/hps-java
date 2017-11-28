@@ -21,9 +21,9 @@ import junit.framework.TestCase;
 public class TupleDriverTest extends TestCase {
     protected String testURLBase = null;
             //"http://www.lcsim.org/test/hps-java/";
-    protected String txtRefFileName = "out_fee_Ref.txt";
-    protected String lcioInputFileName = "tmp.slcio";
-    protected String txtOutputFileName = "out_fee.txt";
+    protected String txtRefFileName = "ntuple_005772_fee_Ref.txt";
+    protected String lcioInputFileName = "hps_005772.0_recon_Rv4657-0-10000.slcio";
+    protected String txtOutputFileName = "target/test-output/out_fee.txt";
     protected Driver testTupleDriver = null;
 
     public void testIt() throws Exception {
@@ -58,7 +58,7 @@ public class TupleDriverTest extends TestCase {
 //        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setBeamPosZ(-5.0);
         loop.add(testTupleDriver);
         
-        loop.loop(1);
+        loop.loop(100);
         loop.dispose();
         
         CompareTextFiles();
