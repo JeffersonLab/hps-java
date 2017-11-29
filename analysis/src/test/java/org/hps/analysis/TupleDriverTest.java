@@ -45,6 +45,8 @@ public class TupleDriverTest extends TestCase {
         
         loop.add(new org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver());
         
+        loop.add(new org.hps.recon.filtering.EventFlagFilter());
+        
         org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup rthss = new org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup();
         String[] readoutColl = { "SVTRawTrackerHits" };
         rthss.setReadoutCollections(readoutColl);

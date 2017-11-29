@@ -48,6 +48,7 @@ import java.util.Collection;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.base.BaseTrackState;
 
 /**
  * sort of an interface for DQM analysis drivers creates the DQM database
@@ -194,7 +195,6 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void writeTuple() {
-        System.out.printf("in writeTuple3");
         for (String variable : tupleVariables) {
             Double value = tupleMap.get(variable);
             if (value == null || Double.isNaN(value)) {
@@ -229,7 +229,7 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void addEventVariables() {
-        String[] newVars = new String[] {"run/I", "event/I", "nTrk/I", "nPos/I", "nCl/I", "isCalib/B", "isPulser/B",
+        String[] newVars = new String[] {"run/I", "event/I", "tupleevent/I", "nTrk/I", "nPos/I", "nCl/I", "isCalib/B", "isPulser/B",
                 "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B", "evTime/D", "evTx/I", "evTy/I", "rfT1/D",
                 "rfT2/D", "nEcalHits/I", "nSVTHits/I", "nEcalCl/I", "nEcalClele/I", "nEcalClpos/I", "nEcalClpho/I",
                 "nEcalClEleSide/I", "nEcalClPosSide/I", "nSVTHitsL1/I", "nSVTHitsL2/I", "nSVTHitsL3/I", "nSVTHitsL4/I",
@@ -733,8 +733,10 @@ public abstract class TupleDriver extends Driver {
         List<Track> allTracks = event.get(Track.class, "GBLTracks");
         Track track = particle.getTracks().get(0);
         trackState = track.getTrackStates().get(0);
+        TrackState baseTrackState = new BaseTrackState(trackState.getParameters(), trackState.getReferencePoint(),
+                trackState.getCovMatrix(), trackState.getLocation(), bfield);
         Hep3Vector pRot = VecOp.mult(beamAxisRotation, CoordinateTransformations
-                .transformVectorToDetector(new BasicHep3Vector(trackState.getMomentum())));
+                .transformVectorToDetector(new BasicHep3Vector(baseTrackState.getMomentum())));
 
         if (doTrkExtrap) 
             fillParticleVariablesTrkExtrap(prefix, track);
@@ -818,8 +820,10 @@ public abstract class TupleDriver extends Driver {
         // shared
         Track trackShared = TrackUtils.mostSharedHitTrack(track, allTracks);
         TrackState trackStateShared = trackShared.getTrackStates().get(0);
+        TrackState baseTrackStateShared = new BaseTrackState(trackStateShared.getParameters(), trackStateShared.getReferencePoint(),
+                trackStateShared.getCovMatrix(), trackStateShared.getLocation(), bfield);
         Hep3Vector pRotShared = VecOp.mult(beamAxisRotation, CoordinateTransformations
-                .transformVectorToDetector(new BasicHep3Vector(trackStateShared.getMomentum())));
+                .transformVectorToDetector(new BasicHep3Vector(baseTrackStateShared.getMomentum())));
         double momentumOfShared = pRotShared.magnitude();
         int maxShared = TrackUtils.numberOfSharedHits(track, trackShared);
 
