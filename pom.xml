@@ -21,6 +21,7 @@
     <lcsimVersion>4.0</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
+    <additionalparam>-Xdoclint:none</additionalparam>
   </properties>
 
   <scm>
@@ -632,6 +633,7 @@
           <detectLinks>true</detectLinks>
           <detectJavaApiLink>true</detectJavaApiLink>
           <failOnError>false</failOnError>
+          <additionalparam>-Xdoclint:none</additionalparam>
           <links>
             <link>http://java.freehep.org/freehep-physics/apidocs/</link>
             <link>http://java.freehep.org/heprep/apidocs/</link>
