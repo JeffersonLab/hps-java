@@ -243,7 +243,8 @@ public class EngRun2015FeeRecon extends Driver {
     @Override
     protected void endOfData() {
       try {
-            AIDA.defaultInstance().saveAs(_aidaFileName);
+            AIDA.defaultInstance().saveAs(_aidaFileName+".aida");
+            AIDA.defaultInstance().saveAs(_aidaFileName+".root");
             //AIDA.defaultInstance().saveAs(testOutputDir.getPath() + File.separator + this.getClass().getSimpleName() + ".root");
         } catch (IOException e) {
             throw new RuntimeException(e);
