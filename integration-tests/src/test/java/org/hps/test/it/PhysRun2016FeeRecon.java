@@ -67,7 +67,7 @@ public class PhysRun2016FeeRecon extends Driver
     private IHistogram1D trkY0Bottom = aida.histogram1D("Bottom Track Y0", 100, -5.0, 5.0);
     private IHistogram1D trkZ0Bottom = aida.histogram1D("Bottom Track Z0", 100, -1.0, 1.0);
 
-    private String _aidaFileName = "PhysRun2016FeeRecon.aida";
+    private String _aidaFileName = "PhysRun2016FeeRecon";
     private final String finalStateParticlesColName = "FinalStateParticles";
 
     private Double _beamEnergy = 1.056;
@@ -242,7 +242,8 @@ public class PhysRun2016FeeRecon extends Driver
     @Override
     protected void endOfData() {
       try {
-            AIDA.defaultInstance().saveAs(_aidaFileName);
+            AIDA.defaultInstance().saveAs(_aidaFileName+".aida");
+            AIDA.defaultInstance().saveAs(_aidaFileName+".root");
             //AIDA.defaultInstance().saveAs(testOutputDir.getPath() + File.separator + this.getClass().getSimpleName() + ".root");
         } catch (IOException e) {
             throw new RuntimeException(e);

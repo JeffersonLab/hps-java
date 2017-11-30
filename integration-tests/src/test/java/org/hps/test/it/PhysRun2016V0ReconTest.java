@@ -25,7 +25,7 @@ public class PhysRun2016V0ReconTest  extends TestCase {
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_007796_v0skim.evio";
     private final int nEvents = -1;
-    private String aidaOutputFile = "target/test-output/PhysRun2016V0ReconTest/PhysRun2016V0ReconTest.aida";
+    private String aidaOutputFile = "target/test-output/PhysRun2016V0ReconTest/PhysRun2016V0ReconTest";
 
     public void testIt() throws Exception {
         URL testURL = new URL(testURLBase + "/" + testFileName);
@@ -45,7 +45,7 @@ public class PhysRun2016V0ReconTest  extends TestCase {
         System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         PhysRun2016V0Recon reconDriver = new PhysRun2016V0Recon();
-        aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName() + ".aida";
+        aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
         reconDriver.setAidaFileName(aidaOutputFile);
         loop.add(reconDriver);
         try {
@@ -68,7 +68,7 @@ public class PhysRun2016V0ReconTest  extends TestCase {
         FileCache cache = new FileCache();
         File aidaRefFile = cache.getCachedFile(refFileURL);
 
-        File aidaTstFile = new File(aidaOutputFile);
+        File aidaTstFile = new File(aidaOutputFile+".aida");
 
         ITree ref = af.createTreeFactory().create(aidaRefFile.getAbsolutePath());
         ITree tst = af.createTreeFactory().create(aidaTstFile.getAbsolutePath());

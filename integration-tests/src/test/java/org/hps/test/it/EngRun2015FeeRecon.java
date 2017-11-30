@@ -68,7 +68,7 @@ public class EngRun2015FeeRecon extends Driver {
     private IHistogram1D trkY0Bottom = aida.histogram1D("Bottom Track Y0", 100, -5.0, 5.0);
     private IHistogram1D trkZ0Bottom = aida.histogram1D("Bottom Track Z0", 100, -1.0, 1.0);
 
-    private String _aidaFileName = "EngRun2015FeeRecon.aida";
+    private String _aidaFileName = "EngRun2015FeeRecon";
     private final String finalStateParticlesColName = "FinalStateParticles";
 
     private Double _beamEnergy = 1.056;
