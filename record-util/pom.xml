@@ -7,7 +7,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>4.0.1</version>
+    <version>4.1-SNAPSHOT</version>
   </parent>
   <build>
     <plugins>
