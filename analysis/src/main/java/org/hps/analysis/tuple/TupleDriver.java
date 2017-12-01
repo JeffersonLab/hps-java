@@ -229,7 +229,7 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void addEventVariables() {
-        String[] newVars = new String[] {"run/I", "event/I", "tupleevent/I", "nTrk/I", "nPos/I", "nCl/I", "isCalib/B", "isPulser/B",
+        String[] newVars = new String[] {"run/I", "event/I", "nPos/I", "nCl/I", "isCalib/B", "isPulser/B",
                 "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B", "evTime/D", "evTx/I", "evTy/I", "rfT1/D",
                 "rfT2/D", "nEcalHits/I", "nSVTHits/I", "nEcalCl/I", "nEcalClele/I", "nEcalClpos/I", "nEcalClpho/I",
                 "nEcalClEleSide/I", "nEcalClPosSide/I", "nSVTHitsL1/I", "nSVTHitsL2/I", "nSVTHitsL3/I", "nSVTHitsL4/I",
@@ -491,8 +491,6 @@ public abstract class TupleDriver extends Driver {
             }
             ncl = fsp.getClusters().size();
         }
-
-        tupleMap.put("nTrk/I", (double) ntrk);
         tupleMap.put("nPos/I", (double) npos);
         tupleMap.put("nCl/I", (double) ncl);
 
