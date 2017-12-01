@@ -21,7 +21,6 @@ import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.HpsReconParticleDriver;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.FittedRawTrackerHit;
-import org.hps.recon.tracking.TrackDataDriver;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
@@ -553,7 +552,7 @@ public abstract class TupleDriver extends Driver {
             // try using TrackState at sensor
             Hep3Vector extrapPos = null;
             if ((trackState.getTanLambda() > 0 && sensor.isTopLayer()) || (trackState.getTanLambda() < 0 && sensor.isBottomLayer())) {
-                extrapPos = TrackDataDriver.extrapolateTrackPositionToSensor(track, sensor, sensors, bfield);
+                extrapPos = TrackUtils.extrapolateTrackPositionToSensor(track, sensor, sensors, bfield);
             }
 
             if (extrapPos != null) {

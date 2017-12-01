@@ -121,22 +121,6 @@ public final class TrackDataDriver extends Driver {
         ecalPosition = detector.getConstants().get(ECAL_POSITION_CONSTANT_NAME).getValue();
     }
 
-    public static Hep3Vector extrapolateTrackPositionToSensor(Track track, HpsSiSensor sensor, List<HpsSiSensor> sensors, double bfield) {
-        int i = ((sensor.getLayerNumber() + 1) / 2) - 1;
-        Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(track, sensor, bfield);
-        if (extrapPos == null) {
-            // no TrackState at this sensor available
-            // try to get last available TrackState-at-sensor
-            TrackState tmp = TrackStateUtils.getPreviousTrackStateAtSensor(track, sensors, i + 1);
-            if (tmp != null)
-                extrapPos = TrackStateUtils.getLocationAtSensor(tmp, sensor, bfield);
-            if (extrapPos == null)
-                // now try using TrackState at IP
-                extrapPos = TrackStateUtils.getLocationAtSensor(TrackStateUtils.getTrackStateAtIP(track), sensor, bfield);
-        }
-        return extrapPos;
-    }
-
     /**
      * Method called by the framework to process the event.
      * 
@@ -247,7 +231,7 @@ public final class TrackDataDriver extends Driver {
                     // Extrapolate the track to the stereo hit position and
                     // calculate track residuals
                     stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
-                    trackPosition = extrapolateTrackPositionToSensor(track, sensor, sensors, bField);
+                    trackPosition = TrackUtils.extrapolateTrackPositionToSensor(track, sensor, sensors, bField);
                     Hep3Vector stereoHitPositionDetector = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
                     xResidual = trackPosition.x() - stereoHitPositionDetector.x();
                     yResidual = trackPosition.y() - stereoHitPositionDetector.y();

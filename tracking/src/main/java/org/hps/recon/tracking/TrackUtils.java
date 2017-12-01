@@ -8,8 +8,10 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+
 import static java.lang.Math.abs;
 
 import java.util.ArrayList;
@@ -79,6 +81,22 @@ public class TrackUtils {
      * Private constructor to make class static only
      */
     private TrackUtils() {
+    }
+
+    public static Hep3Vector extrapolateTrackPositionToSensor(Track track, HpsSiSensor sensor, List<HpsSiSensor> sensors, double bfield) {
+        int i = ((sensor.getLayerNumber() + 1) / 2) - 1;
+        Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(track, sensor, bfield);
+        if (extrapPos == null) {
+            // no TrackState at this sensor available
+            // try to get last available TrackState-at-sensor
+            TrackState tmp = TrackStateUtils.getPreviousTrackStateAtSensor(track, sensors, i + 1);
+            if (tmp != null)
+                extrapPos = TrackStateUtils.getLocationAtSensor(tmp, sensor, bfield);
+            if (extrapPos == null)
+                // now try using TrackState at IP
+                extrapPos = TrackStateUtils.getLocationAtSensor(TrackStateUtils.getTrackStateAtIP(track), sensor, bfield);
+        }
+        return extrapPos;
     }
 
     /**
