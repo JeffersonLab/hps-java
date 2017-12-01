@@ -47,6 +47,9 @@ public class TrackStateUtils {
     }
 
     public static Hep3Vector getLocationAtSensor(Track track, HpsSiSensor sensor, double bfield) {
+        if (track == null || sensor == null)
+            return null;
+
         int millepedeID = sensor.getMillepedeId();
         TrackState tsAtSensor = TrackStateUtils.getTrackStateAtSensor(track, millepedeID);
         if (tsAtSensor != null)
@@ -56,12 +59,21 @@ public class TrackStateUtils {
     }
 
     public static Hep3Vector getLocationAtSensor(TrackState ts, HpsSiSensor sensor, double bfield) {
-        return getLocationAtSensor(TrackUtils.getHTF(ts), sensor, bfield);
+        if (ts == null || sensor == null)
+            return null;
+        if ((ts.getTanLambda() > 0 && sensor.isTopLayer()) || (ts.getTanLambda() < 0 && sensor.isBottomLayer()))
+            return getLocationAtSensor(TrackUtils.getHTF(ts), sensor, bfield);
+        return null;
     }
 
     public static Hep3Vector getLocationAtSensor(HelicalTrackFit htf, HpsSiSensor sensor, double bfield) {
+        if (htf == null || sensor == null)
+            return null;
+
         // get origin and normal of sensor, in global tracking coordinates
         Hep3Vector point_on_plane = sensor.getGeometry().getPosition();
+        if (point_on_plane == null)
+            return null;
         Hep3Vector pointInTrackingFrame = CoordinateTransformations.transformVectorToTracking(point_on_plane);
         Hep3Vector w = sensor.getGeometry().getLocalToGlobal().rotated(new BasicHep3Vector(0, 0, 1));
         Hep3Vector wInTrackingFrame = CoordinateTransformations.transformVectorToTracking(w);
