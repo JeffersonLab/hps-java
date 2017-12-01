@@ -175,7 +175,7 @@ public final class CommandLineTool {
         LOGGER.info("Setting up the conditions manager ...");
 
         // Create new manager.
-        this.conditionsManager = DatabaseConditionsManager.getInstance();
+        this.conditionsManager = new DatabaseConditionsManager();
 
         // Connection properties.
         if (commandLine.hasOption("p")) {
