@@ -18,7 +18,7 @@ import org.lcsim.util.loop.LCSimLoop;
 
 import junit.framework.TestCase;
 
-public class TupleDriverTest extends TestCase {
+abstract public class TupleDriverTest extends TestCase {
     protected String testURLBase = null;
             //"http://www.lcsim.org/test/hps-java/";
     protected String txtRefFileName = "ntuple_005772_fee_Ref.txt";
@@ -51,13 +51,7 @@ public class TupleDriverTest extends TestCase {
         String[] readoutColl = { "SVTRawTrackerHits" };
         rthss.setReadoutCollections(readoutColl);
         loop.add(rthss);
-        
-        testTupleDriver = new org.hps.analysis.tuple.FEETupleDriver();
-        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setTupleFile(txtOutputFileName);
-        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setTriggerType("all");
-        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setIsGBL(true);
-        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setCutTuple(true);
-        ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setBeamPosZ(-5.0);
+
         loop.add(testTupleDriver);
         
         loop.loop(100);
