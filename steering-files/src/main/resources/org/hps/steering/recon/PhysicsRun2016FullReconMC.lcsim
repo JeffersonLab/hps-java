@@ -17,7 +17,6 @@
         <driver name="HitTimeSmear"/>
         <driver name="ReconClusterer" />
         <driver name="CopyCluster" />
-        <driver name="EventMarkerDriver"/>
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
