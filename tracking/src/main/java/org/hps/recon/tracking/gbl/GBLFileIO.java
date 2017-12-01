@@ -65,13 +65,11 @@ public class GBLFileIO {
     }
 
     void printOldPerTrackParam(HelicalTrackFit htf) {
-        addLine(String.format("Track perPar (R phi0 slope d0 z0) %.12f %.12f %.12f %.12f %.12f", htf.R(), htf.phi0(),
-                htf.slope(), htf.dca(), htf.z0()));
+        addLine(String.format("Track perPar (R phi0 slope d0 z0) %.12f %.12f %.12f %.12f %.12f", htf.R(), htf.phi0(), htf.slope(), htf.dca(), htf.z0()));
     }
 
     String getPerTrackParamStr(GblUtils.PerigeeParams perPar) {
-        return String.format("Track perPar (R theta phi d0 z0) %.12f %.12f %.12f %.12f %.12f", 1.0 / perPar.getKappa(),
-                perPar.getTheta(), perPar.getPhi(), perPar.getD0(), perPar.getZ0());
+        return String.format("Track perPar (R theta phi d0 z0) %.12f %.12f %.12f %.12f %.12f", 1.0 / perPar.getKappa(), perPar.getTheta(), perPar.getPhi(), perPar.getD0(), perPar.getZ0());
     }
 
     void printPerTrackParam(GblUtils.PerigeeParams perPar) {
@@ -79,8 +77,9 @@ public class GBLFileIO {
     }
 
     String getPerTrackParamTruthStr(GblUtils.PerigeeParams perPar) {
-        return String.format("Truth perPar (kappa theta phi d0 z0) %.12f %.12f %.12f %.12f %.12f", perPar.getKappa(),
-                perPar.getTheta(), perPar.getPhi(), perPar.getD0(), perPar.getZ0());
+        if (perPar == null)
+            return String.format("Truth perPar (kappa theta phi d0 z0) %d %d %d %d %d", 0, 0, 0, 0, 0);
+        return String.format("Truth perPar (kappa theta phi d0 z0) %.12f %.12f %.12f %.12f %.12f", perPar.getKappa(), perPar.getTheta(), perPar.getPhi(), perPar.getD0(), perPar.getZ0());
     }
 
     void printPerTrackParamTruth(GblUtils.PerigeeParams perPar) {
@@ -88,8 +87,9 @@ public class GBLFileIO {
     }
 
     String getClTrackParamTruthStr(GblUtils.ClParams perPar) {
-        return String.format("Truth clPar (q/p lambda phi xT yT) %.12f %.12f %.12f %.12f %.12f", perPar.getQoverP(),
-                perPar.getLambda(), perPar.getPhi(), perPar.getXt(), perPar.getYt());
+        if (perPar == null)
+            return String.format("Truth clPar (q/p lambda phi xT yT) %d %d %d %d %d", 0, 0, 0, 0, 0);
+        return String.format("Truth clPar (q/p lambda phi xT yT) %.12f %.12f %.12f %.12f %.12f", perPar.getQoverP(), perPar.getLambda(), perPar.getPhi(), perPar.getXt(), perPar.getYt());
     }
 
     void printClTrackParamTruth(GblUtils.ClParams perPar) {
@@ -97,8 +97,7 @@ public class GBLFileIO {
     }
 
     String getClTrackParamStr(GblUtils.ClParams perPar) {
-        return String.format("Track clPar (q/p lambda phi xT yT) %.12f %.12f %.12f %.12f %.12f", perPar.getQoverP(),
-                perPar.getLambda(), perPar.getPhi(), perPar.getXt(), perPar.getYt());
+        return String.format("Track clPar (q/p lambda phi xT yT) %.12f %.12f %.12f %.12f %.12f", perPar.getQoverP(), perPar.getLambda(), perPar.getPhi(), perPar.getXt(), perPar.getYt());
     }
 
     void printClTrackParam(GblUtils.ClParams perPar) {

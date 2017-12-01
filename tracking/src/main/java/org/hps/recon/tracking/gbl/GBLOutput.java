@@ -123,7 +123,8 @@ public class GBLOutput {
             // This causes the MC particle to come from the origin even if the decay happen somewhere else
             if (this.getAprimeDecayProducts(mcParticles).size() > 0) {
                 // do a full check
-                checkAprimeTruth(mcp, mcParticles);
+                if (!checkAprimeTruth(mcp, mcParticles))
+                    ap = null;
             }
         }
 
@@ -166,6 +167,8 @@ public class GBLOutput {
             textFile.printClTrackParam(new GblUtils.ClParams(htf, bFieldVector.z()));
             if (htfTruth != null)
                 textFile.printClTrackParamTruth(new GblUtils.ClParams(htfTruth, bFieldVector.z()));
+            else
+                textFile.printClTrackParamTruth(null);
             textFile.printPerToClPrj(gtd.getPrjPerToCl());
             textFile.printChi2(htf.chisq(), htf.ndf());
             textFile.printPerTrackCov(htf);
@@ -206,9 +209,11 @@ public class GBLOutput {
             mcp = TrackUtils.getMatchedTruthParticle(trk);
             if (mcp != null) {
                 ap = getAprime(mcParticles, mcp);
-                htfTruth = getHTFtruth(mcp, ap);
-                perParTruth = new GblUtils.PerigeeParams(htfTruth, bFieldVector.z());
-                simHitsLayerMap = makeSimHitsLayerMap(simTrackerHits, mcp);
+                if (ap != null) {
+                    htfTruth = getHTFtruth(mcp, ap);
+                    perParTruth = new GblUtils.PerigeeParams(htfTruth, bFieldVector.z());
+                    simHitsLayerMap = makeSimHitsLayerMap(simTrackerHits, mcp);
+                }
             } else {
                 // TODO: what do we really want here?
                 System.out.printf("%s: WARNING!! no truth particle found in event!\n", this.getClass().getSimpleName());
@@ -285,7 +290,7 @@ public class GBLOutput {
         // sim hit residual based on the sim tracker hit for this layer
         double printSimHitPos = -999999.9;
         double printMeasErr = -999999.9;
-        if (isMC) {
+        if (isMC && simHitsLayerMap != null) {
             SimTrackerHit simHit = simHitsLayerMap.get(strip.layer());
             if (simHit != null) {
                 Hep3Vector simHitPos = CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec());
@@ -341,43 +346,43 @@ public class GBLOutput {
 
     }
 
-    private void checkAprimeTruth(MCParticle mcp, List<MCParticle> mcParticles) {
-
+    private boolean checkAprimeTruth(MCParticle mcp, List<MCParticle> mcParticles) {
         List<MCParticle> mcp_pair = getAprimeDecayProducts(mcParticles);
 
         if (mcp_pair.size() != 2) {
             System.out.printf("%s: ERROR this event has %d mcp with 622 as parent!!??  \n", this.getClass().getSimpleName(), mcp_pair.size());
             this.printMCParticles(mcParticles);
-            System.exit(1);
+            return false;
         }
         if (Math.abs(mcp_pair.get(0).getPDGID()) != 11 || Math.abs(mcp_pair.get(1).getPDGID()) != 11) {
             System.out.printf("%s: ERROR decay products are not e+e-? \n", this.getClass().getSimpleName());
             this.printMCParticles(mcParticles);
-            System.exit(1);
+            return false;
         }
         if (mcp_pair.get(0).getPDGID() * mcp_pair.get(1).getPDGID() > 0) {
             System.out.printf("%s: ERROR decay products have the same sign? \n", this.getClass().getSimpleName());
             this.printMCParticles(mcParticles);
-            System.exit(1);
+            return false;
         }
 
         // cross-check
-        if (!mcp_pair.contains(mcp)) {
-            boolean hasBeamElectronParent = false;
-            for (MCParticle parent : mcp.getParents()) {
-                if (parent.getGeneratorStatus() != MCParticle.FINAL_STATE && parent.getPDGID() == 11 && parent.getMomentum().y() == 0.0 && Math.abs(parent.getMomentum().magnitude() - _beamEnergy) < 0.01) {
-                    hasBeamElectronParent = true;
-                }
-            }
-            if (!hasBeamElectronParent) {
-                System.out.printf("%s: the matched MC particle is not an A' daughter and not a the recoil electrons!?\n", this.getClass().getSimpleName());
-                System.out.printf("%s: %s %d p %s org %s\n", this.getClass().getSimpleName(), mcp.getGeneratorStatus() == MCParticle.FINAL_STATE ? "F" : "I", mcp.getPDGID(), mcp.getMomentum().toString(), mcp.getOrigin().toString());
-                printMCParticles(mcParticles);
-                System.exit(1);
-            } else if (_debug > 0) {
-                System.out.printf("%s: the matched MC particle is the recoil electron\n", this.getClass().getSimpleName());
-            }
-        }
+        //        if (!mcp_pair.contains(mcp)) {
+        //            boolean hasBeamElectronParent = false;
+        //            for (MCParticle parent : mcp.getParents()) {
+        //                if (parent.getGeneratorStatus() != MCParticle.FINAL_STATE && parent.getPDGID() == 11 && parent.getMomentum().y() == 0.0 && Math.abs(parent.getMomentum().magnitude() - _beamEnergy) < 0.01) {
+        //                    hasBeamElectronParent = true;
+        //                }
+        //            }
+        //            if (!hasBeamElectronParent) {
+        //                System.out.printf("%s: the matched MC particle is not an A' daughter and not a the recoil electrons!?\n", this.getClass().getSimpleName());
+        //                System.out.printf("%s: %s %d p %s org %s\n", this.getClass().getSimpleName(), mcp.getGeneratorStatus() == MCParticle.FINAL_STATE ? "F" : "I", mcp.getPDGID(), mcp.getMomentum().toString(), mcp.getOrigin().toString());
+        //                printMCParticles(mcParticles);
+        //                return false;
+        //            } else if (_debug > 0) {
+        //                System.out.printf("%s: the matched MC particle is the recoil electron\n", this.getClass().getSimpleName());
+        //            }
+        //        }
+        return true;
     }
 
     // TODO: is this needed?
