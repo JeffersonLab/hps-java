@@ -7,12 +7,16 @@
       @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
     -->
     <execute>
+        <!-- Skip events with known bad conditions -->
+        <driver name="EventFlagFilter"/>
+        
         <!--RF driver-->
         <driver name="RfFitter"/>
  
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
+        <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
         <driver name="CopyCluster" />
         <!-- SVT reconstruction drivers -->
@@ -60,15 +64,20 @@
     </execute>    
     <drivers>    
         
+        <!-- Driver to reject "bad" events -->
+         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
+             <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good svt_latency_good</flagNames> 
+         </driver> 
+        
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
         </driver>
-        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
-        </driver>             
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+        </driver>
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
@@ -131,7 +140,12 @@
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
-            <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
+            <trackCollectionNames>GBLTracks</trackCollectionNames>
+            <beamPositionX> 0.0 </beamPositionX>
+            <beamSigmaX> 0.125 </beamSigmaX>
+            <beamPositionY> 0.0 </beamPositionY>
+            <beamSigmaY> 0.030 </beamSigmaY>
+            <beamPositionZ> 0.5 </beamPositionZ>
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">

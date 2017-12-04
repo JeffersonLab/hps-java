@@ -665,8 +665,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public void setConnectionProperties(final File file) {
         LOG.config("Setting connection properties file '" + file.getPath() + "'");
         if (!file.exists()) {
-            throw new IllegalArgumentException("The connection properties file does not exist: "
-                    + this.connectionPropertiesFile.getPath());
+            throw new IllegalArgumentException("The connection properties file does not exist: " + file.getPath());
         }
         this.connectionParameters = ConnectionParameters.fromProperties(file);
     }

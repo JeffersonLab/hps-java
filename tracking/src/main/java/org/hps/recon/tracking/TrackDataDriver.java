@@ -4,6 +4,7 @@ import hep.physics.vec.Hep3Vector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -32,6 +33,7 @@ import org.lcsim.util.Driver;
 public final class TrackDataDriver extends Driver {
 
     /** logger **/
+
     private static final Logger LOGGER = Logger.getLogger(TrackDataDriver.class.getPackage().getName());
 
     /** The B field map */
@@ -61,12 +63,12 @@ public final class TrackDataDriver extends Driver {
     /** Z position to start extrapolation from */
     double extStartPos = 700; // mm
 
-    /** The extrapolation step size */
     double stepSize = 5.0; // mm
 
     /** The default number of layers */
     int layerNum = 6;
     List<HpsSiSensor> sensors = null;
+
 
     /** Default constructor */
     public TrackDataDriver() {
@@ -188,7 +190,6 @@ public final class TrackDataDriver extends Driver {
 
             // Loop over all the tracks in the event
             for (Track track : tracks) {
-
                 totalT0 = 0;
                 totalHits = 0;
                 t0Residuals.clear();
@@ -301,6 +302,7 @@ public final class TrackDataDriver extends Driver {
                 TrackResidualsData trackResiduals = new TrackResidualsData((int) trackerVolume, stereoLayers, trackResidualsX, trackResidualsY);
                 trackResidualsCollection.add(trackResiduals);
                 trackToTrackResidualsRelations.add(new BaseLCRelation(trackResiduals, track));
+
             }
         }
 

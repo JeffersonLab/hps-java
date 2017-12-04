@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.EventQuality.Quality;
@@ -83,6 +84,7 @@ public class TrackUtils {
     private TrackUtils() {
     }
 
+
     public static Hep3Vector extrapolateTrackPositionToSensor(Track track, HpsSiSensor sensor, List<HpsSiSensor> sensors, double bfield) {
         int i = ((sensor.getLayerNumber() + 1) / 2) - 1;
         Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(track, sensor, bfield);
@@ -98,6 +100,7 @@ public class TrackUtils {
         }
         return extrapPos;
     }
+
 
     /**
      * Extrapolate track to a position along the x-axis. Turn the track into a
@@ -206,8 +209,10 @@ public class TrackUtils {
         // take care of phi0 range if needed (this matters for dphi below I
         // think)
         // L3 defines it in the range [-pi,pi]
-        if (phi0 > Math.PI)
-            phi0 -= Math.PI * 2;
+        while (phi0 > Math.PI/2)
+            phi0 -= Math.PI;
+        while (phi0 < -Math.PI/2)
+            phi0 += Math.PI;
 
         double dx = newRefPoint[0] - __refPoint[0];
         double dy = newRefPoint[1] - __refPoint[1];
@@ -260,8 +265,10 @@ public class TrackUtils {
         double z0 = par[HelicalTrackFit.z0Index];
         double tanLambda = par[HelicalTrackFit.slopeIndex];
 
-        if (phi0 > Math.PI)
+        while (phi0 > Math.PI)
             phi0 -= Math.PI * 2;
+        while (phi0 < -Math.PI/2)
+            phi0 += Math.PI;
 
         BasicMatrix jac = new BasicMatrix(5, 5);
         //
@@ -1570,7 +1577,8 @@ public class TrackUtils {
         // size up to ~90% of the final position. At this point, a finer
         // track size will be used.
         boolean stepSizeChange = false;
-        while (currentPosition.x() < endPositionX) {
+
+        while (currentPosition.x() < endPositionX){
 
             // The field map coordinates are in the detector frame so the
             // extrapolated track position needs to be transformed from the
@@ -1603,6 +1611,11 @@ public class TrackUtils {
                 // System.out.println("Changing step size: " + stepSize);
                 stepSizeChange = true;
             }
+
+            if(currentMomentum.x() < 0 ){
+                throw new RuntimeException("extrapolateTrackUsingFieldMap track going backwards - abort search\n");
+            }
+
         }
 
         // Calculate the track parameters at the Extrapolation point
