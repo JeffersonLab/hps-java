@@ -83,6 +83,7 @@ public abstract class TupleDriver extends Driver {
     protected final BasicHep3Matrix beamAxisRotation = BasicHep3Matrix.identity();
     protected double ebeam = Double.NaN;
     private int nLay = 6;
+    private int tupleevent = 0;
     
     private double[] extrapTrackXTopAxial = new double[nLay];
     private double[] extrapTrackXTopStereo = new double[nLay];
@@ -229,7 +230,7 @@ public abstract class TupleDriver extends Driver {
     }
 
     protected void addEventVariables() {
-        String[] newVars = new String[] {"run/I", "event/I", "nPos/I", "nCl/I", "isCalib/B", "isPulser/B",
+        String[] newVars = new String[] {"run/I", "event/I", "tupleevent/I", "nPos/I", "nCl/I", "isCalib/B", "isPulser/B",
                 "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B", "evTime/D", "evTx/I", "evTy/I", "rfT1/D",
                 "rfT2/D", "nEcalHits/I", "nSVTHits/I", "nEcalCl/I", "nEcalClele/I", "nEcalClpos/I", "nEcalClpho/I",
                 "nEcalClEleSide/I", "nEcalClPosSide/I", "nSVTHitsL1/I", "nSVTHitsL2/I", "nSVTHitsL3/I", "nSVTHitsL4/I",
@@ -475,16 +476,14 @@ public abstract class TupleDriver extends Driver {
         
         tupleMap.put("run/I", (double) event.getRunNumber());
         tupleMap.put("event/I", (double) event.getEventNumber());
+        tupleMap.put("tupleevent/I", (double) tupleevent);
+        tupleevent++;
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         int npos = 0;
-        int ntrk = 0;
         int ncl = 0;
         for (ReconstructedParticle fsp : fspList) {
             if (isGBL != TrackType.isGBL(fsp.getType())) {
                 continue;
-            }
-            if (fsp.getCharge() != 0) {
-                ntrk++;
             }
             if (fsp.getCharge() > 0) {
                 npos++;
