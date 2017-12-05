@@ -1529,39 +1529,31 @@ public class TrackUtils {
      * system.
      */
     public static TrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPositionX, double stepSize, FieldMap fieldMap) {
-
         // Start by extrapolating the track to the approximate point where the
         // fringe field begins.
         Hep3Vector currentPosition = TrackUtils.extrapolateHelixToXPlane(track, startPositionX);
-        // System.out.println("Track position at start of fringe: " +
-        // currentPosition.toString());
+        return extrapolateToEndplane(TrackUtils.getHTF(track), Math.signum(track.getOmega()), currentPosition.x(), endPositionX, 0.005, stepSize, fieldMap);
+    }
 
-        // Get the HelicalTrackFit object associated with the track. This will
-        // be used to calculate the path length to the start of the fringe and
-        // to find the initial momentum of the track.
-        HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(track);
+    public static TrackState extrapolateToEndplane(TrackState ts, double startPosition, double endPosition, double epsilon, FieldMap fieldMap) {
+        HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(ts);
+        return extrapolateToEndplane(helicalTrackFit, Math.signum(ts.getOmega()), startPosition, endPosition, epsilon, 0, fieldMap);
+    }
 
-        // Calculate the path length to the start of the fringe field.
-        double pathToStart = HelixUtils.PathToXPlane(helicalTrackFit, startPositionX, 0., 0).get(0);
+    public static TrackState extrapolateToEndplane(HelicalTrackFit helicalTrackFit, double q, double startPosition, double endPosition, double epsilon, double stepSize, FieldMap fieldMap) {
+        // start position: x along beam line (tracking frame!)
+        Hep3Vector currentPosition = new BasicHep3Vector(startPosition, 0, 0);
+        // Calculate the path length to the start position
+        double pathToStart = HelixUtils.PathToXPlane(helicalTrackFit, startPosition, 0., 0).get(0);
 
-        // Get the momentum of the track and calculate the magnitude. The
-        // momentum can be calculate using the track curvature and magnetic
-        // field strength in the middle of the analyzing magnet.
-        // FIXME: The position of the middle of the analyzing magnet should
-        // be retrieved from the compact description.
-        double bFieldY = fieldMap.getField(new BasicHep3Vector(0, 0, 500.0)).y();
+        // Get the momentum of the track
+        double bFieldY = fieldMap.getField(currentPosition).y();
         double p = Math.abs(helicalTrackFit.p(bFieldY));
-
-        // Get a unit vector giving the track direction at the start of the of
-        // the fringe field
+        // Get a unit vector giving the track direction at the start
         Hep3Vector helixDirection = HelixUtils.Direction(helicalTrackFit, pathToStart);
-        // Calculate the momentum vector at the start of the fringe field
+        // Calculate the momentum vector at the start
         Hep3Vector currentMomentum = VecOp.mult(p, helixDirection);
-        // System.out.println("Track momentum vector: " +
-        // currentMomentum.toString());
 
-        // Get the charge of the track.
-        double q = Math.signum(track.getOmega());
         // HACK: LCSim doesn't deal well with negative fields so they are
         // turned to positive for tracking purposes. As a result,
         // the charge calculated using the B-field, will be wrong
@@ -1569,50 +1561,48 @@ public class TrackUtils {
         if (bFieldY < 0)
             q = q * (-1);
 
-        // Swim the track through the B-field until the end point is reached.
-        // The position of the track will be incremented according to the step
-        // size up to ~90% of the final position. At this point, a finer
-        // track size will be used.
-        boolean stepSizeChange = false;
+        // Swim the track through the B-field until the end point is reached
+        Hep3Vector currentPositionDet = null;
 
-        while (currentPosition.x() < endPositionX) {
+        double distance = endPosition - currentPosition.x();
+        if (stepSize == 0)
+            stepSize = distance / 100.0;
+        double sign = Math.signum(distance);
+        distance = Math.abs(distance);
 
+        while (distance > epsilon) {
             // The field map coordinates are in the detector frame so the
             // extrapolated track position needs to be transformed from the
             // track frame to detector.
-            Hep3Vector currentPositionDet = CoordinateTransformations.transformVectorToDetector(currentPosition);
+            currentPositionDet = CoordinateTransformations.transformVectorToDetector(currentPosition);
 
             // Get the field at the current position along the track.
             bFieldY = fieldMap.getField(currentPositionDet).y();
-            // System.out.println("Field along y (z in detector): " + bField);
 
-            // Get a tracjectory (Helix or Line objects) created with the
+            // Get a trajectory (Helix or Line objects) created with the
             // track parameters at the current position.
-            Trajectory trajectory = getTrajectory(currentMomentum, new org.lcsim.spacegeom.SpacePoint(currentPosition), q, bFieldY);
+            Trajectory trajectory = TrackUtils.getTrajectory(currentMomentum, new org.lcsim.spacegeom.SpacePoint(currentPosition), q, bFieldY);
 
             // Using the new trajectory, extrapolated the track by a step and
             // update the extrapolated position.
-            currentPosition = trajectory.getPointAtDistance(stepSize);
-            // System.out.println("Current position: " + ((Hep3Vector)
-            // currentPosition).toString());
+            Hep3Vector currentPositionTry = trajectory.getPointAtDistance(stepSize);
 
+            if ((Math.abs(endPosition - currentPositionTry.x()) > epsilon) && (Math.signum(endPosition - currentPositionTry.x()) != sign)) {
+                // went too far, try again with smaller step-size
+                if (Math.abs(stepSize) > 0.001) {
+                    stepSize /= 2.0;
+                    continue;
+                } else {
+                    break;
+                }
+            }
+            currentPosition = currentPositionTry;
+
+            distance = Math.abs(endPosition - currentPosition.x());
             // Calculate the momentum vector at the new position. This will
             // be used when creating the trajectory that will be used to
             // extrapolate the track in the next iteration.
             currentMomentum = VecOp.mult(currentMomentum.magnitude(), trajectory.getUnitTangentAtLength(stepSize));
-
-            // If the position of the track along X (or z in the detector frame)
-            // is at 90% of the total distance, reduce the step size.
-            if (currentPosition.x() / endPositionX > .80 && !stepSizeChange) {
-                stepSize /= 10;
-                // System.out.println("Changing step size: " + stepSize);
-                stepSizeChange = true;
-            }
-
-            if (currentMomentum.x() < 0) {
-                throw new RuntimeException("extrapolateTrackUsingFieldMap track going backwards - abort search\n");
-            }
-
         }
 
         // Calculate the track parameters at the Extrapolation point
@@ -1630,7 +1620,8 @@ public class TrackUtils {
         trackParameters[ParameterName.tanLambda.ordinal()] = tanLambda;
 
         // Create a track state at the extrapolation point
-        TrackState trackState = new BaseTrackState(trackParameters, currentPosition.v(), track.getCovMatrix(), TrackState.AtCalorimeter, bFieldY);
+        TrackState trackState = new BaseTrackState(trackParameters, bFieldY);
+        ((BaseTrackState) trackState).setReferencePoint(currentPosition.v());
 
         return trackState;
     }
