@@ -325,14 +325,6 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         if (!doIterative)
             return pos_int_trk;
 
-        // TODO Catch special cases where the incidental iteration procedure seems to fail
-        if (Math.abs(helix.R()) < 2000 && Math.abs(helix.dca()) > 10.0) {
-            if (_debug) {
-                System.out.printf("%s: momentum is low (p=%f,R=%f,B=%f) and d0 is big (d0=%f), skip the iterative calculation\n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield, helix.dca());
-            }
-            return pos_int_trk;
-        }
-
         if (_debug) {
             System.out.printf("%s: calculate iterative helix intercept\n", this.getClass().getSimpleName());
         }
