@@ -4,7 +4,6 @@ import hep.physics.vec.Hep3Vector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -68,7 +67,6 @@ public final class TrackDataDriver extends Driver {
     /** The default number of layers */
     int layerNum = 6;
     List<HpsSiSensor> sensors = null;
-
 
     /** Default constructor */
     public TrackDataDriver() {
