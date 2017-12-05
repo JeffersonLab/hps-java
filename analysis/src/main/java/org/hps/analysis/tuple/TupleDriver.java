@@ -488,6 +488,13 @@ public abstract class TupleDriver extends Driver {
         }
     }
     
+    protected void fillTruthEventVariables(EventHeader event) {
+        tupleMap.put("run/I", (double) event.getRunNumber());
+        tupleMap.put("event/I", (double) event.getEventNumber());
+        //tupleMap.put("tupleevent/I", (double) tupleevent);
+        //tupleevent++;
+    }
+    
     protected void fillEventVariables(EventHeader event, TIData triggerData) {
         
         tupleMap.put("run/I", (double) event.getRunNumber());
