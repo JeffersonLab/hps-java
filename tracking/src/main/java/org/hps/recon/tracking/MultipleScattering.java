@@ -332,9 +332,11 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         Hep3Vector pos_iter_trk = TrackUtils.getHelixPlaneIntercept(helix, plane.normal(), plane.origin(), _bfield, s_origin);
 
         if (pos_iter_trk == null) {
-            System.out.printf("%s: iterative intercept failed for helix \n%s\n at sensor with org=%s, unit w=%s\n", this.getClass().getSimpleName(), helix.toString(), plane.origin().toString(), plane.normal().toString());
-            System.out.printf("%s: => use simple intercept pos=%s\n", this.getClass().getSimpleName(), pos_int_trk);
-            System.out.printf("helix pos=%s dir=%s\n", pos, direction);
+            if (_debug) {
+                System.out.printf("%s: iterative intercept failed for helix \n%s\n at sensor with org=%s, unit w=%s\n", this.getClass().getSimpleName(), helix.toString(), plane.origin().toString(), plane.normal().toString());
+                System.out.printf("%s: => use simple intercept pos=%s\n", this.getClass().getSimpleName(), pos_int_trk);
+                System.out.printf("helix pos=%s dir=%s\n", pos, direction);
+            }
             return pos_int_trk;
         }
 
