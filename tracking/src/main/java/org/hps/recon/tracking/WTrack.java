@@ -28,7 +28,7 @@ public class WTrack {
     private boolean _debug = false;
     private final int max_iterations_intercept = 10;
     private final double epsilon_intercept = 1e-4;
-      
+
     /**
      * Constructor. Assumes that b-field is in detector z direction. 
      * 
@@ -38,7 +38,7 @@ public class WTrack {
     public WTrack(HelicalTrackFit track, double bfield) {
         _htf = track;
         //_bfield = flip ? -1.0 * bfield : bfield; // flip if needed
-        _bfield = bfield; 
+        _bfield = bfield;
         _a = -1 * Constants.fieldConversion * _bfield * Math.signum(track.R());
         double p = track.p(Math.abs(_bfield));
         double theta = Math.PI / 2.0 - Math.atan(track.slope());
@@ -55,7 +55,6 @@ public class WTrack {
         }
     }
 
-    
     /**
      * Copy constructor
      * 
@@ -69,7 +68,6 @@ public class WTrack {
         _debug = trk._debug;
     }
 
-    
     public void setTrackParameters(double[] params) {
         _parameters = params;
     }
@@ -156,13 +154,16 @@ public class WTrack {
         double C = VecOp.dot(VecOp.sub(x0, xp), eta);
         double t = B * B - 4 * A * C;
         if (t < 0) {
-            System.out.println(" getPathLengthToPlaneApprox ERROR t is negative (" + t + ")!");
-            System.out.println(" p " + p + " rho " + rho + " a " + a + " A " + A + " B " + B + " C " + C);
-            System.out.println(" track params: " + track.paramsToString());
-            System.out.println(" xp " + xp.toString());
-            System.out.println(" eta " + eta.toString());
-            System.out.println(" h " + h.toString());
-            throw new RuntimeException("Problem in calculating the approximate path length to the plane.");
+            if (_debug) {
+                System.out.println(" getPathLengthToPlaneApprox ERROR t is negative (" + t + ")!");
+                System.out.println(" p " + p + " rho " + rho + " a " + a + " A " + A + " B " + B + " C " + C);
+                System.out.println(" track params: " + track.paramsToString());
+                System.out.println(" xp " + xp.toString());
+                System.out.println(" eta " + eta.toString());
+                System.out.println(" h " + h.toString());
+            }
+            return Double.NaN;
+
         }
         double root1 = (-B + Math.sqrt(t)) / (2 * A);
         double root2 = (-B - Math.sqrt(t)) / (2 * A);
@@ -233,7 +234,6 @@ public class WTrack {
      * @return track parameters
      */
     public double[] getHelixParametersAtPathLength(double s, Hep3Vector h) {
-        
 
         // Find track parameters at that path length
         Hep3Vector p = getMomentumOnHelix(s, h);
@@ -286,6 +286,8 @@ public class WTrack {
 
                 // Start by approximating the path length to the point
                 step = getPathLengthToPlaneApprox(xp, eta, h);
+                if (step == Double.NaN)
+                    return null;
 
                 if (_debug)
                     System.out.printf("%s: path length step s=%.3f\n", this.getClass().getSimpleName(), step);
