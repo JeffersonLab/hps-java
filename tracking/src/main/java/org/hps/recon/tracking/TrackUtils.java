@@ -422,7 +422,7 @@ public class TrackUtils {
         boolean debug = false;
         // Hep3Vector B = new BasicHep3Vector(0, 0, -1);
         // WTrack wtrack = new WTrack(helfit, -1.0*bfield); //
-        if ((point_on_plane.x() - helfit.xc()) > helfit.R())
+        if (Math.abs(point_on_plane.x() - helfit.xc()) > Math.abs(helfit.R()))
             return null;
         Hep3Vector B = new BasicHep3Vector(0, 0, 1);
         WTrack wtrack = new WTrack(helfit, bfield); //
@@ -454,7 +454,7 @@ public class TrackUtils {
      */
     public static Hep3Vector getHelixPlaneIntercept(HelicalTrackFit helfit, HelicalTrackStripGbl strip, double bfield) {
         Hep3Vector point_on_plane = strip.origin();
-        if ((point_on_plane.x() - helfit.xc()) > helfit.R())
+        if (Math.abs(point_on_plane.x() - helfit.xc()) > Math.abs(helfit.R()))
             return null;
         Hep3Vector unit_vec_normal_to_plane = VecOp.cross(strip.u(), strip.v());// strip.w();
         double s_origin = HelixUtils.PathToXPlane(helfit, point_on_plane.x(), 0., 0).get(0);
