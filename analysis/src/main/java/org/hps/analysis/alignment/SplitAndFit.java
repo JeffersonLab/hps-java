@@ -141,6 +141,7 @@ public class SplitAndFit {
         List<String> histogramNames1D = new ArrayList<String>();
         List<String> histogramNames2D = new ArrayList<String>();
         for (String objectName : objectNameList) {
+            System.out.println(objectName);
             // Get the object.
             IManagedObject object = tree.find(objectName);
 
@@ -237,17 +238,22 @@ public class SplitAndFit {
 
         // split and fit...
         IHistogram2D topPlot = (IHistogram2D) tree.find("trackY at Ecal vs nSigma top");
-        IHistogram2D bottomPlot = (IHistogram2D) tree.find("trackY at Ecal vs nSigma bottom");
+        IHistogram2D bottomPlot = (IHistogram2D) tree.find("-trackY at Ecal vs nSigma bottom");
 
+        ITree myTree = af.createTreeFactory().create("myFile.aida", "xml", false, true);
+        IHistogramFactory hf = af.createHistogramFactory(myTree);
+
+        System.out.println("tree:" + tree);
         System.out.println("top plot has " + topPlot.allEntries() + " entries");
         System.out.println("bottom plot has " + bottomPlot.allEntries() + " entries");
         IHistogram1D[] bottomSlices = new IHistogram1D[25];
         IHistogram1D[] topSlices = new IHistogram1D[25];
-        IHistogramFactory hf = af.createHistogramFactory(af.createTreeFactory().create());
         for (int i = 0; i < 25; ++i) {
-            bottomSlices[i] = hf.sliceY("bottom slice " + i, bottomPlot, i);
-            topSlices[i] = hf.sliceY("top slice " + i, topPlot, i);
+            bottomSlices[i] = hf.sliceY("/bottom slice " + i, bottomPlot, i);
+            System.out.println("bottom slice " + i + " has " + bottomSlices[i].allEntries() + " entries");
+            topSlices[i] = hf.sliceY("/top slice " + i, topPlot, i);
         }
+        myTree.commit();
         // Save the compiled plots to a new file.
         aida.saveAs(rootDir + "compiled-plots.aida");
         System.out.println("Plots written to path " + rootDir + "compiled-plots.aida");
