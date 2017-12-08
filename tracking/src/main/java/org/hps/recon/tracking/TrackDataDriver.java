@@ -1,6 +1,8 @@
 package org.hps.recon.tracking;
 
+//import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+//import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,8 @@ import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.util.Driver;
+
+//import org.lcsim.util.aida.AIDA;
 
 /**
  * Driver used to persist additional {@link org.lcsim.event.Track} information via a 
@@ -63,6 +67,8 @@ public final class TrackDataDriver extends Driver {
     double epsilon = 0.005; // mm
 
     List<HpsSiSensor> sensors = null;
+
+    //public AIDA aida = AIDA.defaultInstance();
 
     /** Default constructor */
     public TrackDataDriver() {
@@ -183,7 +189,6 @@ public final class TrackDataDriver extends Driver {
                 trackResidualsX.clear();
                 trackResidualsY.clear();
                 stereoLayers.clear();
-                isFirstHit = true;
                 HpsSiSensor LastSensor = null;
 
                 // Change the position of a HelicalTrackHit to be the corrected
@@ -196,6 +201,7 @@ public final class TrackDataDriver extends Driver {
                 // Loop over all stereo hits comprising a track
                 for (TrackerHit rotatedStereoHit : track.getTrackerHits()) {
                     HpsSiSensor sensor = null;
+                    isFirstHit = true;
                     // Loop over the clusters comprising the stereo hit
                     for (HelicalTrackStrip cluster : ((HelicalTrackCross) rotatedStereoHit).getStrips()) {
 
@@ -212,40 +218,34 @@ public final class TrackDataDriver extends Driver {
                             isFirstHit = false;
                         }
                     }
-
-                    // Add the stereo layer number associated with the track
-                    // residual
-                    stereoLayers.add(((HelicalTrackHit) rotatedStereoHit).Layer());
-
-                    // Extrapolate the track to the stereo hit position and
-                    // calculate track residuals
                     stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
-                    trackPosition = TrackUtils.extrapolateTrackPositionToSensor(track, sensor, sensors, bField);
-                    Hep3Vector stereoHitPositionDetector = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
-                    xResidual = trackPosition.x() - stereoHitPositionDetector.x();
-                    yResidual = trackPosition.y() - stereoHitPositionDetector.y();
-                    trackResidualsX.add(xResidual);
-                    trackResidualsY.add((float) yResidual);
 
-                    //
+                    trackPosition = TrackUtils.extrapolateTrackPositionToSensor(track, sensor, sensors, bField);
+                    if (trackPosition != null) {
+                        // Add the stereo layer number associated with the track residual
+                        stereoLayers.add(((HelicalTrackHit) rotatedStereoHit).Layer());
+                        // Extrapolate the track to the stereo hit position and calculate track residuals
+                        Hep3Vector stereoHitPositionDetector = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
+                        xResidual = trackPosition.x() - stereoHitPositionDetector.x();
+                        yResidual = trackPosition.y() - stereoHitPositionDetector.y();
+                        trackResidualsX.add(xResidual);
+                        trackResidualsY.add((float) yResidual);
+                        if (LastSensor == null)
+                            LastSensor = sensor;
+                        else {
+                            if (sensor.getLayerNumber() > LastSensor.getLayerNumber())
+                                LastSensor = sensor;
+                        }
+                    }
+
                     // Change the persisted position of both 
                     // RotatedHelicalTrackHits and HelicalTrackHits to the
                     // corrected position.
-                    //
-
-                    // Get the HelicalTrackHit corresponding to the 
-                    // RotatedHelicalTrackHit associated with a track
                     helicalTrackHit = (HelicalTrackHit) hitToRotated.from(rotatedStereoHit);
                     ((HelicalTrackHit) rotatedStereoHit).setPosition(stereoHitPosition.v());
                     stereoHitPosition = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
                     helicalTrackHit.setPosition(stereoHitPosition.v());
 
-                    if (LastSensor == null)
-                        LastSensor = sensor;
-                    else {
-                        if (sensor.getLayerNumber() > LastSensor.getLayerNumber())
-                            LastSensor = sensor;
-                    }
                 }
 
                 //
@@ -256,14 +256,27 @@ public final class TrackDataDriver extends Driver {
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 if (TrackType.isGBL(track.getType())) {
-                    TrackState stateAtLast = TrackUtils.getTrackStateAtLocation(track, TrackState.AtLastHit);
-                    if (stateAtLast != null && LastSensor != null) {
-                        Hep3Vector atLastSensor = TrackStateUtils.getLocationAtSensor(stateAtLast, LastSensor, bField);
-                        if (atLastSensor != null) {
-                            TrackState stateEcal = TrackUtils.extrapolateToEndplane(stateAtLast, atLastSensor.z(), ecalPosition, epsilon, bFieldMap);
-                            track.getTrackStates().add(stateEcal);
+                    TrackState stateEcal = null;
+                    if (LastSensor != null) {
+                        //                        TrackState stateAtLast = TrackUtils.getTrackStateAtLocation(track, TrackState.AtLastHit);
+                        TrackState stateAtLast = TrackStateUtils.getTrackStateAtSensor(track, LastSensor.getMillepedeId());
+                        if (stateAtLast != null) {
+                            Hep3Vector atLastSensor = TrackStateUtils.getLocationAtSensor(stateAtLast, LastSensor, bField);
+                            if (atLastSensor != null) {
+                                stateEcal = TrackUtils.extrapolateToEndplane(stateAtLast, atLastSensor.z(), ecalPosition, epsilon, bFieldMap);
+
+                                //Hep3Vector stateDiff = VecOp.sub(new BasicHep3Vector(stateEcalIP.getReferencePoint()), new BasicHep3Vector(stateEcal.getReferencePoint()));
+                                //System.out.printf("ECalstateIP refPoint %s  stateECal refPoint %s", new BasicHep3Vector(stateEcalIP.getReferencePoint()).toString(), new BasicHep3Vector(stateEcal.getReferencePoint()).toString());
+                                //aida.histogram1D("extrap [old-new] x").fill(stateDiff.x());
+                                //aida.histogram1D("extrap [old-new] y").fill(stateDiff.y());
+                                //aida.histogram1D("extrap [old-new] z").fill(stateDiff.z());
+                            }
+                        } else {
+                            stateEcal = TrackUtils.extrapolateTrackUsingFieldMap(TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP), 700, ecalPosition, 5.0, bFieldMap);
                         }
                     }
+                    if (stateEcal != null)
+                        track.getTrackStates().add(stateEcal);
 
                 }
 

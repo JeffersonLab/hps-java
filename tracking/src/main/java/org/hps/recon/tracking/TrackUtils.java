@@ -1547,7 +1547,7 @@ public class TrackUtils {
         double pathToStart = HelixUtils.PathToXPlane(helicalTrackFit, startPosition, 0., 0).get(0);
 
         // Get the momentum of the track
-        double bFieldY = fieldMap.getField(currentPosition).y();
+        double bFieldY = fieldMap.getField(new BasicHep3Vector(0, 0, startPosition)).y();
         double p = Math.abs(helicalTrackFit.p(bFieldY));
         // Get a unit vector giving the track direction at the start
         Hep3Vector helixDirection = HelixUtils.Direction(helicalTrackFit, pathToStart);
