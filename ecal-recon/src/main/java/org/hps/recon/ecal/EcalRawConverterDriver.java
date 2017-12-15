@@ -6,6 +6,7 @@ import java.util.List;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.readout.TempOutputWriter;
 import org.hps.record.daqconfig.ConfigurationManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -31,6 +32,7 @@ import org.lcsim.util.Driver;
  * The results are by default written to the <b>EcalCalHits</b> output collection.
  */
 public class EcalRawConverterDriver extends Driver {
+	private final TempOutputWriter writer = new TempOutputWriter("converted_hits_old.log");
 
     // To import database conditions
     private EcalConditions ecalConditions = null;
@@ -60,7 +62,7 @@ public class EcalRawConverterDriver extends Driver {
      */
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
 
-    private boolean debug = false;
+    private boolean debug = true;
     
     /**
      * Hit threshold in GeV.  Anything less will not be put into LCIO. 
@@ -116,6 +118,11 @@ public class EcalRawConverterDriver extends Driver {
     public EcalRawConverterDriver() {
         converter = new EcalRawConverter();
     }
+	
+	@Override
+	public void endOfData() {
+		if(debug) { writer.close(); }
+	}
 
     /**
      * Set to <code>true</code> to use pulse fitting instead of arithmetic integration:<br/>
@@ -350,10 +357,8 @@ public class EcalRawConverterDriver extends Driver {
     }
     
     public void setDisplay(boolean display){
-        this.display = display;
         converter.setDisplay(display);
     }
-    private boolean display;
     
 
     /**
@@ -400,6 +405,8 @@ public class EcalRawConverterDriver extends Driver {
         if (ecalCollectionName == null) {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
         }
+        
+        if(debug) { writer.initialize(); }
     }
 
     @Override
@@ -447,6 +454,9 @@ public class EcalRawConverterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
+		writer.write("> Event " + event.getEventNumber() + " - ???");
+		writer.write("Input");
+		
         // Do not process the event if the DAQ configuration should be
         // used for value, but is not initialized.
         if(useDAQConfig && !ConfigurationManager.isInitialized()) {
@@ -521,9 +531,6 @@ public class EcalRawConverterDriver extends Driver {
                     List<LCRelation> extraDataRelations = event.get(LCRelation.class, extraDataRelationsName);
                     for (LCRelation rel : extraDataRelations) {
                         RawCalorimeterHit hit = (RawCalorimeterHit) rel.getFrom();
-                        if (debug) {
-                            System.out.format("old hit energy %d\n", hit.getAmplitude());
-                        }
                         GenericObject extraData = (GenericObject) rel.getTo();
                         CalorimeterHit newHit;
                         newHit = converter.HitDtoA(event,hit, extraData, timeOffset);
@@ -534,9 +541,6 @@ public class EcalRawConverterDriver extends Driver {
                             if (dropBadFADC && isBadFADC(newHit)) {
                                 continue;
                             }
-                            if (debug) {
-                                System.out.format("new hit energy %f\n", newHit.getRawEnergy());
-                            }
                             newHits.add(newHit);
                         }
 
@@ -546,10 +550,13 @@ public class EcalRawConverterDriver extends Driver {
                      * This is for FADC Mode-3 data:
                      */
                     List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
+            		
+            		// DEBUG :: Write the raw hits seen.
+            		for(RawCalorimeterHit hit : hits) {
+            			writer.write(String.format("%d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
+            		}
+            		
                     for (RawCalorimeterHit hit : hits) {
-                        if (debug) {
-                            System.out.format("old hit energy %d\n", hit.getAmplitude());
-                        }
                         CalorimeterHit newHit;
                         newHit = converter.HitDtoA(event, hit, timeOffset);
                         if (newHit.getRawEnergy() > threshold) {
@@ -559,13 +566,14 @@ public class EcalRawConverterDriver extends Driver {
                             if (dropBadFADC && isBadFADC(newHit)) {
                                 continue;
                             }
-                            if (debug) {
-                                System.out.format("new hit energy %f\n", newHit.getRawEnergy());
-                            }
                             newHits.add(newHit);
                         }
                     }
                 }
+        		writer.write("Output");
+        		for(CalorimeterHit hit : newHits) {
+        			writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+        		}
                 event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
             }
         } else {
@@ -574,14 +582,8 @@ public class EcalRawConverterDriver extends Driver {
                 List<CalorimeterHit> hits = event.get(CalorimeterHit.class, ecalCollectionName);
 
                 for (CalorimeterHit hit : hits) {
-                    if (debug) {
-                        System.out.format("old hit energy %f\n", hit.getRawEnergy());
-                    }
                     RawCalorimeterHit newHit = converter.HitAtoD(hit);
                     if (newHit.getAmplitude() > 0) {
-                        if (debug) {
-                            System.out.format("new hit energy %d\n", newHit.getAmplitude());
-                        }
                         newHits.add(newHit);
                     }
                 }
