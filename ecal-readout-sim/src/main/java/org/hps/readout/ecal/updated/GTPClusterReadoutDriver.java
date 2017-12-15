@@ -2,17 +2,14 @@ package org.hps.readout.ecal.updated;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
 import org.hps.readout.TempOutputWriter;
+import org.hps.readout.util.LcsimCollection;
 import org.hps.recon.ecal.cluster.ClusterType;
-import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -22,26 +19,117 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 import org.lcsim.lcio.LCIOConstants;
 
+/**
+ * Class <code>GTPClusterReadoutDriver</code> produces GTP cluster
+ * objects for use in the readout trigger simulation. It takes in
+ * {@link org.lcsim.event.CalorimeterHit CalorimeterHit} objects as
+ * input and generates clusters from these using the GTP algorithm.
+ * This algorithm works by selected all hits in the current
+ * clock-cycle (4 ns period) and comparing them to adjacent hits. If
+ * a given hit is an energy maximum compared to all adjacent hits in
+ * both the current clock-cycle, and a number of clock-cycles before
+ * and after the current cycle (defined through the variable {@link
+ * org.hps.readout.ecal.updated.GTPClusterReadoutDriver#temporalWindow
+ * temporalWindow} and set through the method {@link
+ * org.hps.readout.ecal.updated.GTPClusterReadoutDriver#setClusterWindow(int)
+ * setClusterWindow(int)}), then it is a seed hit so long as it also
+ * exceeds a certain minimum energy (defined through the variable
+ * {@link
+ * org.hps.readout.ecal.updated.GTPClusterReadoutDriver#seedEnergyThreshold
+ * seedEnergyThreshold} and set through the method {@link
+ * org.hps.readout.ecal.updated.GTPClusterReadoutDriver#setSeedEnergyThreshold(double)
+ * setSeedEnergyThreshold(double)}).<br/><br/>
+ * Clusters are then output as objects of type {@link
+ * org.lcsim.event.Cluster Cluster} to the specified output
+ * collection. If the {@link
+ * org.hps.readout.ecal.updated.GTPClusterReadoutDriver#setWriteClusterCollection(boolean)
+ * setWriteClusterCollection(boolean)} is set to true, the clusters
+ * will also be persisted into the output LCIO file.
+ * 
+ * @author Kyle McCarty <mccarty@jlab.org>
+ */
 public class GTPClusterReadoutDriver extends ReadoutDriver {
-	private LinkedList<Map<Long, CalorimeterHit>> hitBuffer;
-	private final TempOutputWriter writer = new TempOutputWriter("clusters_new.log");
-	private final TempOutputWriter seedWriter = new TempOutputWriter("cluster_seeds_new.log");
+	// ==============================================================
+	// ==== LCIO Collections ========================================
+	// ==============================================================
 	
-	private NeighborMap neighborMap;
+	/**
+	 * The name of the collection that contains the calorimeter hits
+	 * from which clusters should be generated.
+	 */
 	private String inputCollectionName = "EcalCorrectedHits";
+	/**
+	 * The name of the collection into which generated clusters should
+	 * be output.
+	 */
 	private String outputCollectionName = "EcalClustersGTP";
 	
-	private int temporalWindow = 16;
-	private double localTime = 2.0;
-	private double localTimeDisplacement = 0;
-	private double seedEnergyThreshold = 0.050;
+	// ==============================================================
+	// ==== Driver Options ==========================================
+	// ==============================================================
 	
+	/**
+	 * The time window used for cluster verification. A seed hit must
+	 * be the highest energy hit within plus or minus this range in
+	 * order to be considered a valid cluster.
+	 */
+	private int temporalWindow = 16;
+	/**
+	 * The minimum energy needed for a hit to be considered as a seed
+	 * hit candidate.
+	 */
+	private double seedEnergyThreshold = 0.050;
+	/**
+	 * The local time for the driver. This starts at 2 ns due to a
+	 * quirk in the timing of the {@link
+	 * org.hps.readout.ecal.updated.EcalReadoutDriver
+	 * EcalReadoutDriver}.
+	 */
+	private double localTime = 2.0;
+	/**
+	 * The length of time by which objects produced by this driver
+	 * are shifted due to the need to buffer data from later events.
+	 * This is calculated automatically.
+	 */
+	private double localTimeDisplacement = 0;
+	/**
+	 * Indicates whether or not the GTP clusters produced by the
+	 * driver should be output into the LCIO file.
+	 */
 	private boolean outputClusters = true;
+	
+	// ==============================================================
+	// ==== Driver Parameters =======================================
+	// ==============================================================
+	
+	/**
+	 * An object which can provide, given an argument cell ID, a map
+	 * of cell IDs that are physically adjacent to the argument ID.
+	 * This is used to determine adjacency for energy comparisons in
+	 * the clustering algorithm.
+	 */
+	private NeighborMap neighborMap;
+	
+	// ==============================================================
+	// ==== Debug Output Writers ====================================
+	// ==============================================================
+	
+	/**
+	 * Outputs debug comparison data for both input hits and output
+	 * clusters to a text file.
+	 */
+	private final TempOutputWriter writer = new TempOutputWriter("clusters_new.log");
+	/**
+	 * Outputs debug comparison data for seed hits to a text file.
+	 */
+	private final TempOutputWriter seedWriter = new TempOutputWriter("cluster_seeds_new.log");
 	
 	@Override
 	public void endOfData() {
-		writer.close();
-		seedWriter.close();
+		if(debug) {
+			writer.close();
+			seedWriter.close();
+		}
 	}
     
 	@Override
@@ -61,30 +149,24 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 	
 	@Override
 	public void process(EventHeader event) {
-		StringBuffer outputBuffer = new StringBuffer();
-		outputBuffer.append("Status for range: [" + (localTime - temporalWindow) + ", " + (localTime + temporalWindow + 4) + ") :: "
-				+ ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + temporalWindow + 4.0) + "\n");
-		int index = (temporalWindow / 4) * 2 + 1;
-		double time = localTime - temporalWindow;
-		outputBuffer.append("System Time: " + localTime + "\n");
-		while(time < localTime + temporalWindow + 4) {
-			Collection<CalorimeterHit> hits = ReadoutDataManager.getData(time, time + 4.0, inputCollectionName, CalorimeterHit.class);
-			if(localTime == time) {
-				outputBuffer.append("\tSeed Buffer " + index + " (" + time + " --> " + (time + 4.0) + ")\n");
-			} else {
-				outputBuffer.append("\tBuffer " + index + " (" + time + " --> " + (time + 4.0) + ")\n");
-			}
-        	for(CalorimeterHit hit : hits) {
-        		outputBuffer.append(String.format("\t\t%f;%f;%d%n", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-        	}
-        	index--;
-        	time += 4.0;
-		}
+		// DEBUG :: Declare event headers.
+		writer.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime() + " (Current) - "
+				+ (ReadoutDataManager.getCurrentTime() - ReadoutDataManager.getTotalTimeDisplacement(outputCollectionName)) + " (Local)");
+		seedWriter.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime());
 		
-		
-		
-		
-		System.out.println("New Clusterer -- Event " + event.getEventNumber() +" -- Current Time is " + localTime);
+		// DEBUG :: Output all input hits.
+	    if(Math.round(ReadoutDataManager.getCurrentTime()) % 4 != 0) {
+	    	if(ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + temporalWindow + 4.0)) {
+				writer.write("Input");
+				for(int offset = temporalWindow; offset >= -temporalWindow; offset -= 4.0) {
+					Collection<CalorimeterHit> windowHits = ReadoutDataManager.getData(localTime + offset, localTime + offset + 4.0,
+							inputCollectionName, CalorimeterHit.class);
+					for(CalorimeterHit hit : windowHits) {
+						writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+					}
+				}
+	    	}
+	    }
 		
 		// Check the data management driver to determine whether the
 		// input collection is available or not.
@@ -95,42 +177,26 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 		// Get the hits that occur during the present clock-cycle, as
 		// well as the hits that occur in the verification window
 		// both before and after the current clock-cycle.
+		// TODO: Simplify this?
 		Collection<CalorimeterHit> seedCandidates = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, CalorimeterHit.class);
 		Collection<CalorimeterHit> foreHits = ReadoutDataManager.getData(localTime - temporalWindow, localTime, inputCollectionName, CalorimeterHit.class);
 		Collection<CalorimeterHit> postHits = ReadoutDataManager.getData(localTime + 4.0, localTime + temporalWindow + 4.0, inputCollectionName, CalorimeterHit.class);
 		
+		// DEBUG :: Output the seed hits.
+		seedWriter.write("Input");
+		for(CalorimeterHit hit : seedCandidates) {
+			seedWriter.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+		}
+		
 		// Increment the local time.
 		localTime += 4.0;
 		
-		//writer.write("Fore: [" + (localTime - temporalWindow) + ", " + localTime + ");   Seeds: [" + localTime + ", " + (localTime + 4.0) + ");   Aft: ["
-		//		+ (localTime + 4.0) + ", " + (localTime + temporalWindow + 8.0) + ")");
-		
 		// DEBUG :: Print out the input hits.
+		// TODO: Simplify this?
 		List<CalorimeterHit> allHits = new ArrayList<CalorimeterHit>(seedCandidates.size() + foreHits.size() + postHits.size());
 		allHits.addAll(foreHits);
 		allHits.addAll(seedCandidates);
 		allHits.addAll(postHits);
-		System.out.println("\tSaw Hits:");
-		if(allHits.isEmpty()) { System.out.println("\t\tNone!"); }
-		for(CalorimeterHit hit : allHits) {
-			System.out.println("\t\tCalorimeter hit with energy " + hit.getRawEnergy() + " and time " + hit.getTime() + " on channel " + hit.getCellID() + ".");
-		}
-		
-		// DEBUG :: Write the converted hits seen.
-		/*
-		for(CalorimeterHit hit : allHits) {
-			writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-		}
-		for(CalorimeterHit hit : seedCandidates) {
-			seedWriter.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-		}
-		*/
-		
-		System.out.println("\tSaw Seed Candidates:");
-		if(seedCandidates.isEmpty()) { System.out.println("\t\tNone!"); }
-		for(CalorimeterHit hit : seedCandidates) {
-			System.out.println("\t\tCalorimeter hit with energy " + hit.getRawEnergy() + " and time " + hit.getTime() + " on channel " + hit.getCellID() + ".");
-		}
 		
 		// Store newly created clusters.
 		List<Cluster> gtpClusters = new ArrayList<Cluster>();
@@ -178,57 +244,59 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
 			gtpClusters.add(createBasicCluster(seedCandidate, clusterHits));
 		}
 		
-		// DEBUG :: Output the generated clusters.
-		System.out.println("\tClusters:");
-		if(gtpClusters.isEmpty()) { System.out.println("\t\tNone!"); }
-		for(Cluster cluster : gtpClusters) {
-			System.out.println("\t\tSaw cluster with energy " + cluster.getEnergy() + " at time " + TriggerModule.getClusterTime(cluster) + " with "
-					+ TriggerModule.getClusterHitCount(cluster) + " hit on channel " + TriggerModule.getClusterSeedHit(cluster).getCellID() + ".");
-		}
-		
 		// Pass the clusters to the data management driver.
 		ReadoutDataManager.addData(outputCollectionName, gtpClusters, Cluster.class);
 		
-		if(!gtpClusters.isEmpty()) {
-			// DEBUG :: Write the converted hits seen.
-			//writer.write("Output");
-			writer.write(outputBuffer.toString());
-			writer.write("Saw " + gtpClusters.size() + " new clusters.");
-			for(Cluster cluster : gtpClusters) {
-				writer.write(String.format("%f;%f;%f;%d", cluster.getEnergy(), TriggerModule.getClusterTime(cluster), TriggerModule.getClusterHitCount(cluster),
-						TriggerModule.getClusterSeedHit(cluster).getCellID()));
+		// DEBUG :: Output the produced clusters.
+		writer.write("Output");
+		for(Cluster cluster : gtpClusters) {
+			writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
+					cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
+			for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
+				writer.write(String.format("\t%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
 			}
-			writer.write("\n\n");
 		}
 	}
 	
 	@Override
 	public void startOfData() {
+		// Define the output LCSim collection parameters.
+		LcsimCollection<Cluster> clusterCollectionParams = new LcsimCollection<Cluster>(outputCollectionName, this, Cluster.class, getTimeDisplacement());
+		clusterCollectionParams.setFlags(1 << LCIOConstants.CLBIT_HITS);
+		clusterCollectionParams.setPersistent(outputClusters);
+		
 		// Instantiate the GTP cluster collection with the readout
 		// data manager.
 		localTimeDisplacement = temporalWindow + 4.0;
 		addDependency(inputCollectionName);
-		ReadoutDataManager.registerCollection(outputCollectionName, this, Cluster.class, (1 << LCIOConstants.CLBIT_HITS), outputClusters);
+		ReadoutDataManager.registerCollection(clusterCollectionParams);
 		
-		// Initiate the hit buffer.
-		hitBuffer = new LinkedList<Map<Long, CalorimeterHit>>();
+		// DEBUG :: Pass the writers to the superclass writer list.
+		writers.add(writer);
+		writers.add(seedWriter);
 		
-		// Populate the event buffer with (2 * clusterWindow + 1)
-		// empty events. These empty events represent the fact that
-		// the first few events will not have any events in the past
-		// portion of the buffer.
-		int bufferSize = (2 * (temporalWindow / 4)) + 1;
-		for (int i = 0; i < bufferSize; i++) {
-			hitBuffer.add(new HashMap<Long, CalorimeterHit>(0));
-		}
+		// Run the superclass method.
+		super.startOfData();
 	}
 	
 	@Override
 	protected double getTimeDisplacement() {
 		return localTimeDisplacement;
 	}
+
+	@Override
+	protected double getTimeNeededForLocalOutput() {
+		return 0;
+	}
 	
-	public static final Cluster createBasicCluster(CalorimeterHit seedHit, List<CalorimeterHit> hits) {
+	/**
+	 * Creates a new cluster object from a seed hit and list of hits.
+	 * @param seedHit - The seed hit of the new cluster.
+	 * @param hits - The hits for the new cluster.
+	 * @return Returns a {@link org.lcsim.event.Cluster Cluster}
+	 * object with the specified properties.
+	 */
+	private static final Cluster createBasicCluster(CalorimeterHit seedHit, List<CalorimeterHit> hits) {
         BaseCluster cluster = new BaseCluster();
         cluster.setType(ClusterType.GTP.getType());
         cluster.addHit(seedHit);
