@@ -10,6 +10,7 @@ import org.hps.conditions.ecal.EcalConditions;
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
 import org.hps.readout.TempOutputWriter;
+import org.hps.readout.util.LcsimCollection;
 import org.hps.recon.ecal.EcalRawConverter;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -29,7 +30,6 @@ import org.lcsim.lcio.LCIOConstants;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class EcalReadoutRawConverterDriver extends ReadoutDriver {
-	private final TempOutputWriter writer = new TempOutputWriter("converted_hits_new.log");
 	
 	// ==============================================================
 	// ==== LCIO Collections ========================================
@@ -78,15 +78,19 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
 	 */
 	private double localTime = 2.0;
 	
-	@Override
-	public void endOfData() {
-		writer.close();
-	}
+	// ==============================================================
+	// ==== Debug Output Writers ====================================
+	// ==============================================================
+	
+	/**
+	 * Outputs debug comparison data for both input hits and output
+	 * converted hits to a text file.
+	 */
+	private final TempOutputWriter writer = new TempOutputWriter("converted_hits_new.log");
 	
 	@Override
 	public void detectorChanged(Detector detector) {
 		// Reset the converter calorimeter conditions.
-		// TODO: The detector object is not actually used by the converter...
 		converter.setDetector(detector);
 		
 		// Cache the calorimeter conditions object.
@@ -95,7 +99,8 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
 	
 	@Override
 	public void process(EventHeader event) {
-		writer.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime());
+		writer.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime() + " (Current) - "
+				+ (ReadoutDataManager.getCurrentTime() - ReadoutDataManager.getTotalTimeDisplacement(outputCollectionName)) + " (Local)");
 		writer.write("Input");
 		
 		// Check the data management driver to determine whether the
@@ -139,29 +144,42 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
 		for(CalorimeterHit hit : newHits) {
 			writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
 		}
-		
-		// TODO: What is function of the "readout name"?
-		// LCMetaData meta = new MetaData(name, type, flags, readoutName);
-		//event.put(outputCollectionName, newHits, CalorimeterHit.class, flags, "ecalReadoutName");
 	}
 	
 	@Override
 	public void startOfData() {
-		// TODO: This collection is probably not persisted -- if not, this can be ignored.
 		// Set the LCIO flags for the output collection. Flags are
 		// set to store the hit time and hit position respectively.
         int flags = 0;
         flags += 1 << LCIOConstants.RCHBIT_TIME;
         flags += 1 << LCIOConstants.RCHBIT_LONG;
 		
+        // Define the LCSim collection parameters for this driver's
+        // output.
+        LcsimCollection<CalorimeterHit> hitCollectionParams = new LcsimCollection<CalorimeterHit>(outputCollectionName,
+        		this, CalorimeterHit.class, getTimeDisplacement());
+        hitCollectionParams.setFlags(flags);
+        hitCollectionParams.setPersistent(false);
+        
 		// Set the dependencies for the driver and register its
 		// output collections with the data management driver.
 		addDependency(inputCollectionName);
-		ReadoutDataManager.registerCollection(outputCollectionName, this, CalorimeterHit.class, flags, false);
+		ReadoutDataManager.registerCollection(hitCollectionParams);
+		
+		// DEBUG :: Pass the writer to the superclass writer list.
+		writers.add(writer);
+		
+		// Run the superclass method.
+		super.startOfData();
 	}
 	
 	@Override
 	protected double getTimeDisplacement() {
+		return 0;
+	}
+
+	@Override
+	protected double getTimeNeededForLocalOutput() {
 		return 0;
 	}
 	
