@@ -13,19 +13,17 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.readout.util.LcsimCollection;
 import org.hps.readout.util.LcsimCollectionData;
 import org.hps.readout.util.LcsimSingleEventCollectionData;
 import org.hps.readout.util.TimedList;
 import org.hps.readout.util.TriggerTime;
-import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseLCSimEvent;
 import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.util.Driver;
 
 public class ReadoutDataManager extends Driver {
-	private static double deadTime = 0.0;
-	private static double lastTrigger = Double.MIN_VALUE;
 	private static int readoutWindow = 200;
 	private static double triggerTimeDisplacement = 50;
 	private static final double BEAM_BUNCH_SIZE = 2.0;
@@ -36,17 +34,29 @@ public class ReadoutDataManager extends Driver {
 	private static final Map<ReadoutDriver, Double> triggerTimeDisplacementMap = new HashMap<ReadoutDriver, Double>();
 	private static final PriorityQueue<TriggerTime> triggerQueue = new PriorityQueue<TriggerTime>();
 	
-	private static final StringBuffer debugBuffer = new StringBuffer();
-	
 	private static LCIOWriter outputWriter = null;
+	
+	private static double bufferBefore = 0.0;
+	private static double bufferAfter = 0.0;
+	private static double bufferTrigger = 0.0;
+	private static double bufferTotal = 0.0;
+	
+	private static StringBuffer outputBuffer = new StringBuffer();
 	
 	@Override
 	public void startOfData() {
+		// Instantiate the readout LCIO file.
 		try { outputWriter = new LCIOWriter(new File("C:\\cygwin64\\home\\Kyle\\newReadout.slcio")); }
 		catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException();
 		}
+		
+		// Determine the total amount of time that must be included
+		// in the data buffer in order to safely write out all data.
+		// An extra 100 ns of data is retained as a safety, just in
+		// case some driver needs to look unusually far back.
+		bufferTotal = bufferTrigger + bufferBefore + 100.0;
 	}
 	
 	@Override
@@ -64,41 +74,59 @@ public class ReadoutDataManager extends Driver {
 		
 		// Check the trigger queue.
 		if(!triggerQueue.isEmpty()) {
-			System.out.println("A trigger is queued for time " + triggerQueue.peek().getTriggerWriteTime() + "; it is now " + getCurrentTime() + ".");
-			System.out.println("The most displaced trigger collection, \"" + largestDisplacement + ",\" is at time "
-					+ (getCurrentTime() - collectionMap.get(largestDisplacement).getGlobalTimeDisplacement()));
-			
 			// Check the earliest possible trigger write time.
 			boolean isWritable = checkCollectionStatus(largestDisplacement, triggerQueue.peek().getTriggerWriteTime());
 			
 			// If all collections are available to be written, the
 			// event should be output.
 			if(isWritable) {
-				System.out.println("\tA trigger is writable.");
 				// Store the current trigger data.
 				TriggerTime trigger = triggerQueue.poll();
-				lastTrigger = trigger.getTriggerTime();
 				
 				// Make a new LCSim event.
 				int triggerEventNumber = event.getEventNumber() - ((int) Math.floor((getCurrentTime() - trigger.getTriggerTime()) / 2.0));
 				EventHeader lcsimEvent = new BaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(),
 						triggerEventNumber, event.getDetectorName(), (long) 4 * (Math.round(trigger.getTriggerTime() / 4)), false);
 				
-				// Calculate the readout window time range.
+				// Calculate the readout window time range. This is
+				// used for any production driver that does not have
+				// a manually specified output range.
 				double startTime = trigger.getTriggerTime() - triggerTimeDisplacement;
 				double endTime = startTime + readoutWindow;
+				
+				outputBuffer.append("\n\nTrigger is now writing.\n");
+				outputBuffer.append("\tCurrent Time         :: " + getCurrentTime() + "\n");
+				outputBuffer.append("\tTrigger Time         :: " + trigger.getTriggerTime() + "\n");
+				outputBuffer.append("\tTrigger Displacement :: " + triggerTimeDisplacement + "\n");
+				outputBuffer.append("\tDefault Start Time   :: " + startTime + "\n");
+				outputBuffer.append("\tDefault End Time     :: " + endTime + "\n");
 				
 				// Write out the writable collections into the event.
 				for(LcsimCollectionData<?> collectionData : collectionMap.values()) {
 					// Ignore any collections that are not set to be persisted.
 					if(!collectionData.isPersistent()) {
-						System.out.println("Ignoring collection \"" + collectionData.getCollectionName() + "\" - It is transient.");
 						continue;
+					}
+					
+					// Get the local start and end times. A driver
+					// may manually specify an amount of time before
+					// and after the trigger time which should be
+					// output. If this is the case, use it instead of
+					// the time found through use of the readout
+					// window/trigger time displacement calculation.
+					double localStartTime = startTime;
+					if(!Double.isNaN(collectionData.getWindowBefore())) {
+						localStartTime = trigger.getTriggerTime() - collectionData.getWindowBefore();
+					}
+					
+					double localEndTime = endTime;
+					if(!Double.isNaN(collectionData.getWindowAfter())) {
+						localEndTime = trigger.getTriggerTime() + collectionData.getWindowAfter();
 					}
 					
 					// Persisted collection should be added to event
 					// within the readout window time range.
-					storeCollection(startTime, endTime, collectionData, lcsimEvent);
+					storeCollection(localStartTime, localEndTime, collectionData, lcsimEvent);
 				}
 				
 				// Write out any special on-trigger collections into
@@ -125,10 +153,23 @@ public class ReadoutDataManager extends Driver {
 			}
 		}
 		
-		// DEBUG :: Output debug logging.
-		System.out.println("===== EVENT " + event.getEventNumber() + " =====");
-		System.out.println(debugBuffer.toString());
-		debugBuffer.delete(0, debugBuffer.length() - 1);
+		// Remove all data from the buffer that occurs before the max
+		// buffer length cut-off.
+		/*
+		for(LcsimCollectionData<?> data : collectionMap.values()) {
+			while(!data.getData().isEmpty() && (data.getData().getFirst().getTime() < (getCurrentTime() - bufferTotal))) {
+				data.getData().removeFirst();
+			}
+		}
+		*/
+		
+		if(outputBuffer.length() != 0) {
+			System.out.println("\n\n\n");
+			System.out.println(outputBuffer.toString());
+			outputBuffer = new StringBuffer();
+		}
+		
+		// Increment the current time.
 		currentTime += BEAM_BUNCH_SIZE;
 	}
 	
@@ -139,6 +180,9 @@ public class ReadoutDataManager extends Driver {
 		// Store the trigger window data.
 		storeCollection(collectionData.getCollectionName(), collectionData.getObjectType(), collectionData.getFlags(), collectionData.getReadoutName(),
 				triggerData, event);
+		
+		outputBuffer.append("Storing output collection \"" + collectionData.getCollectionName() + "\" in range [" + startTime + ", "
+				+ endTime + "). " + triggerData.size() + " objects found.\n");
 	}
 	
 	private static final <T> void storeCollection(LcsimSingleEventCollectionData<T> collectionData, EventHeader event) {
@@ -148,81 +192,70 @@ public class ReadoutDataManager extends Driver {
 	
 	private static final <T> void storeCollection(String collectionName, Class<T> objectType, int flags, String readoutName,
 			List<T> collectionData, EventHeader event) {
-		// DEBUG :: Test the object type.
-		System.out.println("Output collection type is " + objectType.getSimpleName());
-		
 		// Place the data into the LCSim event.
 		if(readoutName == null) {
 			event.put(collectionName, collectionData, objectType, flags);
 		} else {
 			event.put(collectionName, collectionData, objectType, flags, readoutName);
 		}
-		System.out.println("Adding collection \"" + collectionName + "\" of size " + collectionData.size() + " of type " + objectType.getSimpleName() + ".");
-		for(T element : collectionData) {
-			if(element instanceof Cluster) {
-				System.out.println("\tCluster Hits: " + ((Cluster) element).getCalorimeterHits().size());
-			}
-		}
 	}
 	
-	public static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType) {
-		registerCollection(collectionName, productionDriver, objectType, 0, null, true);
+	public static final void registerReadoutDriver(ReadoutDriver productionDriver) {
+		driverSet.add(productionDriver);
+		System.out.println("Registered driver: " + productionDriver.getClass().getSimpleName());
 	}
 	
-	public static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, boolean persistent) {
-		registerCollection(collectionName, productionDriver, objectType, 0, null, persistent);
-	}
-	
-	public static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, int flags) {
-		registerCollection(collectionName, productionDriver, objectType, flags, null, true);
-	}
-	
-	public static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, int flags, boolean persistent) {
-		registerCollection(collectionName, productionDriver, objectType, flags, null, persistent);
-	}
-	
-	public static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, int flags, String readoutName) {
-		registerCollection(collectionName, productionDriver, objectType, flags, readoutName, true);
-	}
-	
-	private static final <T> void registerCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, int flags, String readoutName,
-			boolean persistent) {
+	public static final <T> void registerCollection(LcsimCollection<T> params) {
 		// Make sure that all arguments are defined.
-		if(collectionName == null) {
+		if(params.getCollectionName() == null) {
 			throw new IllegalArgumentException("Error: Collection name must be defined.");
-		} if(objectType == null) {
+		} if(params.getObjectType() == null) {
 			throw new IllegalArgumentException("Error: Collection object class must be defined.");
-		} if(productionDriver == null) {
+		} if(params.getProductionDriver() == null) {
 			throw new IllegalArgumentException("Error: Production driver must be defined.");
 		}
 		
 		// There should only be one collection for a given name.
-		if(collectionMap.containsKey(collectionName)) {
-			throw new IllegalArgumentException("Collection \"" + collectionName + "\" of object type " + objectType.getSimpleName() + " already exists.");
+		if(collectionMap.containsKey(params.getCollectionName())) {
+			throw new IllegalArgumentException("Collection \"" + params.getCollectionName() + "\" of object type "
+					+ params.getObjectType().getSimpleName() + " already exists.");
 		}
 		
 		// Create a collection data object.
-		double tempTime = getTotalTimeDisplacement(collectionName, productionDriver);
-		LcsimCollectionData<T> collectionData = new LcsimCollectionData<T>(collectionName, productionDriver, objectType, persistent, tempTime, flags, readoutName);
-		collectionMap.put(collectionName, collectionData);
+		double timeDisplacement = getTotalTimeDisplacement(params.getCollectionName(), params.getProductionDriver());
+		LcsimCollectionData<T> collectionData = new LcsimCollectionData<T>(params, timeDisplacement);
+		collectionMap.put(params.getCollectionName(), collectionData);
 		
 		// Track which collection has the largest time displacement.
 		// This only applied if the registered collection is to be
 		// persisted.
-		if(persistent) {
+		if(params.isPersistent()) {
 			if(largestDisplacement == null) {
-				largestDisplacement = collectionName;
-			} else if(tempTime > collectionMap.get(largestDisplacement).getGlobalTimeDisplacement()) {
-				largestDisplacement = collectionName;
+				largestDisplacement = params.getCollectionName();
+			} else if(timeDisplacement > collectionMap.get(largestDisplacement).getGlobalTimeDisplacement()) {
+				largestDisplacement = params.getCollectionName();
 			}
 		}
 		
-		// Store the readout driver in the driver set.
-		driverSet.add(productionDriver);
+		// Track the largest window both before and after the trigger
+		// time that must be buffered to safely output the data. If
+		// the collection gives NaN for its time window, it will use
+		// the default readout window and trigger time displacement.
+		// Otherwise, it will use its own specified window.
+		if(Double.isNaN(params.getWindowAfter())) {
+			bufferAfter = Math.max(bufferAfter, (readoutWindow - triggerTimeDisplacement));
+		} else {
+			bufferAfter = Math.max(bufferAfter, params.getWindowAfter());
+		}
 		
-		// DEBUG
-		debugBuffer.append("Registered readout collection \"" + collectionName + "\" of object type " + objectType.getSimpleName() + "."
-				+ " Total time displacement for the collection is " + tempTime + " ns.\n");
+		if(Double.isNaN(params.getWindowBefore())) {
+			bufferBefore = Math.max(bufferBefore, triggerTimeDisplacement);
+		} else {
+			bufferBefore = Math.max(bufferBefore, params.getWindowBefore());
+		}
+		
+		// Store the readout driver in the driver set.
+		driverSet.add(params.getProductionDriver());
 	}
 	
 	public static final void registerTrigger(ReadoutDriver triggerDriver) {
@@ -239,12 +272,11 @@ public class ReadoutDataManager extends Driver {
 		timeDisplacement += triggerDriver.getTimeDisplacement();
 		*/
 		
+		// Track the longest displacement needed for trigger output.
+		bufferTrigger = Math.max(bufferTrigger, timeDisplacement + triggerDriver.getTimeDisplacement());
+		
 		// Store the time displacement in the trigger driver map.
 		triggerTimeDisplacementMap.put(triggerDriver, timeDisplacement);
-		
-		// DEBUG
-		debugBuffer.append("Registered trigger driver of type \"" + triggerDriver.getClass().getSimpleName()
-				+ "\" with a total time displacement of " + timeDisplacement + " ns.\n");
 	}
 	
 	public static final <T> void addData(String collectionName, double dataTime, Collection<T> data, Class<T> dataType) {
@@ -270,9 +302,8 @@ public class ReadoutDataManager extends Driver {
 			LinkedList<TimedList<?>> dataBuffer = collectionData.getData();
 			dataBuffer.add(new TimedList<T>(time, data));
 			
-			// DEBUG
-			debugBuffer.append("Added " + data.size() + " objects of type " + dataType.getSimpleName() + " to the buffer for collection \""
-					+ collectionName + "\" at real time " + currentTime + " and simulation time " + time + ".\n");
+			outputBuffer.append("Adding " + data.size() + " objects of type " + dataType.getSimpleName() + " into collection \""
+					+ collectionName + "\" at time t = " + time + ".\n");
 		}
 	}
 	
@@ -419,5 +450,9 @@ public class ReadoutDataManager extends Driver {
 			dependencySet.addAll(dependents);
 			validateDependencies(dependency, collectionData.getProductionDriver(), dependencySet);
 		}
+	}
+	
+	public static final double getTotalTimeDisplacement(String collectionName) {
+		return collectionMap.get(collectionName).getGlobalTimeDisplacement();
 	}
 }
