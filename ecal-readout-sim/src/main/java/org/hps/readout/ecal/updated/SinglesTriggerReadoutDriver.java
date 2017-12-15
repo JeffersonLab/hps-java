@@ -15,7 +15,18 @@ import org.lcsim.util.aida.AIDA;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 
+/**
+ * <code>SinglesTriggerReadoutDriver</code> simulates an HPS singles
+ * trigger. It takes in clusters produced by the {@link
+ * org.hps.readout.ecal.updated.GTPClusterReadoutDriver
+ * GTPClusterReadoutDriver} and performs the necessary trigger logic
+ * on them. If a trigger is detected, it is sent to the readout data
+ * manager so that a triggered readout event may be written.
+ * 
+ * @author Kyle McCarty <mccarty@jlab.org>
+ */
 public class SinglesTriggerReadoutDriver extends ReadoutDriver {
+	
 	// ==============================================================
 	// ==== LCIO Collections ========================================
 	// ==============================================================
@@ -64,8 +75,19 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 	private static final double BIN_SIZE = 0.025;
 	
 	// ==============================================================
+	// ==== Debug Output Writers ====================================
+	// ==============================================================
+	
+	/**
+	 * Outputs debug comparison data for both input clusters and
+	 * triggered clusters to a text file.
+	 */
+	private final TempOutputWriter writer = new TempOutputWriter("triggers_new.log");
+	
+	// ==============================================================
 	// ==== AIDA Plots ==============================================
 	// ==============================================================
+	
 	private AIDA aida = AIDA.defaultInstance();
 	private static final int NO_CUTS = 0;
 	private static final int WITH_CUTS = 1;
@@ -74,13 +96,9 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 	private IHistogram1D[] clusterTotalEnergy = new IHistogram1D[2];
 	private IHistogram2D[] clusterDistribution = new IHistogram2D[2];
 	
-	
-	private final TempOutputWriter writer = new TempOutputWriter("triggers_new.log");
-	
-	@Override
-	public void endOfData() {
-		writer.close();
-	}
+	// TODO: This should probably be handled by the manager?
+	private static final int DEADTIME = 32 * 4;
+	private double lastTrigger = Double.NaN;
 	
 	@Override
 	public void detectorChanged(Detector detector) {
@@ -95,33 +113,32 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 	
 	@Override
 	public void process(EventHeader event) {
-		System.out.println("New Trigger -- Event " + event.getEventNumber() +" -- Current Time is " + localTime);
-		System.out.println("\tSaw Clusters:");
+		// DEBUG :: Output the event header to the debug writer.
+		writer.write(">" + ReadoutDataManager.getCurrentTime());
+		writer.write("Input");
 		
 		// Check that clusters are available for the trigger.
 		Collection<Cluster> clusters = null;
 		if(ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime)) {
 			clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, Cluster.class);
 			localTime += 4.0;
-		} else {
-			System.out.println("\t\tNone!");
-			return;
-		}
+		} else { return; }
 		
-		for(Cluster cluster: clusters) {
-			System.out.println("\t\tSaw cluster with energy " + cluster.getEnergy() + " at time " + TriggerModule.getClusterTime(cluster) + " with "
-					+ TriggerModule.getClusterHitCount(cluster) + " hit on channel " + TriggerModule.getClusterSeedHit(cluster).getCellID() + ".");
-		}
-		
-		writer.write("Saw " + clusters.size() + " new clusters.");
+		// DEBUG :: Output the input clusters, if any exist.
 		for(Cluster cluster : clusters) {
-			writer.write(String.format("%f;%f;%f;%d", cluster.getEnergy(), TriggerModule.getClusterTime(cluster), TriggerModule.getClusterHitCount(cluster),
-					TriggerModule.getClusterSeedHit(cluster).getCellID()));
+			writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
+					cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
 		}
-		writer.write("\n\n");
+		StringBuffer triggerOutput = new StringBuffer("Output");
+		//writer.write("Output");
 		
 		// Track whether or not a trigger was seen.
 		boolean triggered = false;
+		
+		// DEBUG :: Hack in deadtime.
+		if(!Double.isNaN(lastTrigger) && lastTrigger + DEADTIME >= ReadoutDataManager.getCurrentTime()) {
+			return;
+		}
 		
 		// Plot the trigger distributions before trigger cuts are
 		// performed.
@@ -151,9 +168,18 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 			if(!triggerModule.clusterTotalEnergyCut(cluster)) {
 				continue;
 			}
+            
+            // DEBUG :: Output the triggering cluster.
+			triggerOutput.append(String.format("%n%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
+					cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
+			//writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
+			//		cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
 			
 			// Note that a trigger occurred.
 			triggered = true;
+			
+			// DEBUG :: Hack in deadtime.
+			lastTrigger = ReadoutDataManager.getCurrentTime();
 			
 			// Populate the cut plots.
 			clusterSeedEnergy[WITH_CUTS].fill(TriggerModule.getValueClusterSeedEnergy(cluster));
@@ -163,8 +189,7 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 		}
 		
 		if(triggered) {
-			writer.write("Triggered");
-			System.out.println("\tTriggered!");
+			writer.write(triggerOutput.toString());
 			ReadoutDataManager.sendTrigger(this);
 		}
 	}
@@ -189,10 +214,21 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 			clusterTotalEnergy[i] = aida.histogram1D("Trigger Plots\\Cluster Total Energy Distribution" + postscripts[i], bins, 0.0, xMax);
 			clusterDistribution[i] = aida.histogram2D("Trigger Plots\\Cluster Seed Distribution" + postscripts[i], 46, -23, 23, 11, -5.5, 5.5);
 		}
+		
+		// DEBUG :: Pass the writer to the superclass writer list.
+		writers.add(writer);
+		
+		// Run the superclass method.
+		super.startOfData();
 	}
 	
 	@Override
 	protected double getTimeDisplacement() {
+		return 0;
+	}
+	
+	@Override
+	protected double getTimeNeededForLocalOutput() {
 		return 0;
 	}
 	
