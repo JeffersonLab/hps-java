@@ -334,22 +334,22 @@ public class HPSEcal3 extends AbstractSubdetector {
      */
     public NeighborMap getNeighborMap() {
         if (neighborMap == null) {
-        	instantiateMaps();
+            instantiateMaps();
         }
         return neighborMap;
     }
     
     public Point getCellIndices(long cellID) {
-    	if(cellIDMap == null) {
-    		instantiateMaps();
-    	}
-    	return cellIDMap.get(cellID);
+        if(cellIDMap == null) {
+            instantiateMaps();
+        }
+        return cellIDMap.get(cellID);
     }
     
     private void instantiateMaps() {
         // Setup the private instance of the map.
         neighborMap = new NeighborMap(this.getDetectorElement().getIdentifierHelper());
-		cellIDMap = new HashMap<Long, Point>();
+        cellIDMap = new HashMap<Long, Point>();
 
         IDDecoder dec = getIDDecoder();
         IDEncoder enc = new IDEncoder(dec.getIDDescription());
