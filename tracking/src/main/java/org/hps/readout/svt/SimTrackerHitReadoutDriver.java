@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.SLICDataReadoutDriver;
+import org.hps.readout.util.LcsimCollection;
 import org.hps.readout.util.LcsimSingleEventCollectionData;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
@@ -17,6 +18,7 @@ import org.lcsim.geometry.Subdetector;
 
 public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTrackerHit> {
 	private Subdetector detector = null;
+	private LcsimCollection<FpgaData> fpgaDataParams = null;
 	
 	public SimTrackerHitReadoutDriver() {
 		super(SimTrackerHit.class, 0xc0000000);
@@ -27,12 +29,22 @@ public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTracker
 		this.detector = detector.getSubdetector("Tracker");
 	}
 	
+	@Override
+	public void startOfData() {
+		// Run the superclass method.
+		super.startOfData();
+		
+		// Create the LCSim collection parameters for the FPGA data.
+		// String collectionName, ReadoutDriver productionDriver, Class<T> objectType, double globalTimeDisplacement
+		fpgaDataParams = new LcsimCollection<FpgaData>("FPGAData", this, FpgaData.class, 0.0);
+	}
+	
 	protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
 		// Get the FPGA data.
 		List<FpgaData> fpgaData = new ArrayList<FpgaData>(makeFPGAData(detector).values());
 		
 		// Create the FPGA data collection.
-		LcsimSingleEventCollectionData<FpgaData> fpgaCollection = new LcsimSingleEventCollectionData<FpgaData>("FPGAData", this, FpgaData.class);
+		LcsimSingleEventCollectionData<FpgaData> fpgaCollection = new LcsimSingleEventCollectionData<FpgaData>(fpgaDataParams);
 		fpgaCollection.getData().addAll(fpgaData);
 		
 		// Create a general list for the collection.
@@ -67,7 +79,7 @@ public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTracker
 	}
 	
 	@Override
-	public void writeData(List<SimTrackerHit> data) {
+	protected void writeData(List<SimTrackerHit> data) {
 		writer.write("Event Time: " + ReadoutDataManager.getCurrentTime());
 		for(SimTrackerHit hit : data) {
 			String output = String.format("\tCell ID: %d;    Energy: %f;   (x, y, z): (%f, %f, %f);   p: (%f, %f, %f);   l: %f;   t: %f",
