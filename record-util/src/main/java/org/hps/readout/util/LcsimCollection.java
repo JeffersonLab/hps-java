@@ -2,44 +2,22 @@ package org.hps.readout.util;
 
 import org.hps.readout.ReadoutDriver;
 
-abstract class LcsimCollection<T> {
-	private final int flags;
+public class LcsimCollection<T> {
+	private int flags = 0;
 	private final Class<T> objectType;
 	private final double timeDisplacement;
 	private final String collectionName;
-	private final String readoutName;
-	private final boolean persistent;
+	private String readoutName = null;
+	private boolean persistent = true;
 	private final ReadoutDriver productionDriver;
+	private double windowBefore = Double.NaN;
+	private double windowAfter = Double.NaN;
 	
 	public LcsimCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, double globalTimeDisplacement) {
-		this(collectionName, productionDriver,objectType, true, globalTimeDisplacement, 0, null);
-	}
-	
-	public LcsimCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, double globalTimeDisplacement, boolean persistent) {
-		this(collectionName, productionDriver,objectType, persistent, globalTimeDisplacement, 0, null);
-	}
-	
-	public LcsimCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, double globalTimeDisplacement, int flags) {
-		this(collectionName, productionDriver,objectType, true, globalTimeDisplacement, flags, null);
-	}
-	
-	public LcsimCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, double globalTimeDisplacement, boolean persistent, int flags) {
-		this(collectionName, productionDriver,objectType, persistent, globalTimeDisplacement, flags, null);
-	}
-	
-	public LcsimCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, double globalTimeDisplacement, int flags, String readoutName) {
-		this(collectionName, productionDriver,objectType, true, globalTimeDisplacement, flags, readoutName);
-	}
-	
-	public LcsimCollection(String collectionName, ReadoutDriver productionDriver, Class<T> objectType, boolean persistent, double globalTimeDisplacement,
-			int flags, String readoutName) {
-		this.flags = flags;
 		this.objectType = objectType;
 		this.timeDisplacement = globalTimeDisplacement;
 		this.productionDriver = productionDriver;
-		this.readoutName = readoutName;
 		this.collectionName = collectionName;
-		this.persistent = persistent;
 	}
 	
 	public String getCollectionName() {
@@ -66,7 +44,35 @@ abstract class LcsimCollection<T> {
 		return readoutName;
 	}
 	
+	public double getWindowAfter() {
+		return windowAfter;
+	}
+	
+	public double getWindowBefore() {
+		return windowBefore;
+	}
+	
 	public boolean isPersistent() {
 		return persistent;
+	}
+	
+	public void setPersistent(boolean state) {
+		persistent = state;
+	}
+	
+	public void setFlags(int value) {
+		flags = value;
+	}
+	
+	public void setReadoutName(String value) {
+		readoutName = value;
+	}
+	
+	public void setWindowBefore(double value) {
+		windowBefore = value;
+	}
+	
+	public void setWindowAfter(double value) {
+		windowAfter = value;
 	}
 }
