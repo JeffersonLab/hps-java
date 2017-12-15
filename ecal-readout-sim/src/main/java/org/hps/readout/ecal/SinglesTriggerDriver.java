@@ -43,11 +43,24 @@ public class SinglesTriggerDriver extends TriggerDriver {
     private IHistogram2D clusterDistributionSingle = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 46, -23, 23, 11, -5.5, 5.5);
 
     private final Queue<List<Cluster>> clusterDelayQueue; //the length of this queue sets the trigger delay. Defaults to length 1 (zero delay).
+	
+	private boolean debug = true;
+	private final TempOutputWriter writer = new TempOutputWriter("triggers_old.log");
 
     public SinglesTriggerDriver() {
         clusterDelayQueue = new LinkedList<List<Cluster>>();
         clusterDelayQueue.add(new ArrayList<Cluster>());
     }
+	
+	@Override
+	public void startOfData() {
+		if(debug) { writer.initialize(); }
+	}
+    
+	@Override
+	public void endOfData() {
+		if(debug) { writer.close(); }
+	}
 
     /**
      * Sets the trigger delay (units of 4-ns FADC clocks). Default of 0.
@@ -56,15 +69,18 @@ public class SinglesTriggerDriver extends TriggerDriver {
      */
     public void setDelay(int delay) {
         clusterDelayQueue.clear();
-        for (int i = 0; i <= delay; i++) {
+        for(int i = 0; i <= delay; i++) {
             clusterDelayQueue.add(new ArrayList<Cluster>());
         }
     }
 
     @Override
     public void process(EventHeader event) {
+        writer.write(">" + ClockSingleton.getTime());
+		writer.write("Input");
+		
         // Make sure that there are clusters in the event.
-        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
+        if(event.hasCollection(Cluster.class, clusterCollectionName)) {
             // Get the list of clusters.
             List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
 
@@ -72,18 +88,14 @@ public class SinglesTriggerDriver extends TriggerDriver {
             clusterDelayQueue.add(clusterList);
             clusterDelayQueue.remove();
             
-    		writer.write("Saw " + clusterDelayQueue.peek().size() + " new clusters.");
+            // DEBUG :: Output the input clusters.
     		for(Cluster cluster : clusterDelayQueue.peek()) {
-    			writer.write(String.format("%f;%f;%f;%d", cluster.getEnergy(), TriggerModule.getClusterTime(cluster), TriggerModule.getClusterHitCount(cluster),
-    					TriggerModule.getClusterSeedHit(cluster).getCellID()));
+    			writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
+    					cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
     		}
-        	if(lastTrigger != Integer.MIN_VALUE && ClockSingleton.getClock() - lastTrigger <= deadTime) {
-        		writer.write("Deadtime");
-        	}
-    		writer.write("\n\n");
 
             // Iterate over the clusters.
-            for (Cluster cluster : clusterList) {
+            for(Cluster cluster : clusterList) {
                 // Get the x and y indices.
                 int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
                 int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
@@ -110,19 +122,21 @@ public class SinglesTriggerDriver extends TriggerDriver {
      */
     @Override
     protected boolean triggerDecision(EventHeader event) {
+		writer.write("Output");
+		
         // Track whether triggering cluster was seen.
         boolean passTrigger = false;
 
         // Check that there is a cluster object collection.
-        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
+        if(event.hasCollection(Cluster.class, clusterCollectionName)) {
             // Get the list of clusters.
             List<Cluster> clusterList = clusterDelayQueue.peek();
             
             // Iterate over the hits and perform the cuts.
             triggerLoop:
-            for (Cluster cluster : clusterList) {
+            for(Cluster cluster : clusterList) {
                 // Perform the hit count cut.
-                if (!triggerModule.clusterHitCountCut(cluster)) {
+                if(!triggerModule.clusterHitCountCut(cluster)) {
                     continue triggerLoop;
                 }
 
@@ -135,7 +149,11 @@ public class SinglesTriggerDriver extends TriggerDriver {
                 if (!triggerModule.clusterTotalEnergyCut(cluster)) {
                     continue triggerLoop;
                 }
-
+                
+                // DEBUG :: Output the triggering cluster.
+    			writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
+    					cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
+                
                 // A trigger was seen. Note it.
                 passTrigger = true;
 
@@ -153,7 +171,6 @@ public class SinglesTriggerDriver extends TriggerDriver {
         }
 
         // Return whether a triggering cluster was seen.
-        if(passTrigger) { writer.write("Triggered"); }
         return passTrigger;
     }
 
@@ -225,4 +242,8 @@ public class SinglesTriggerDriver extends TriggerDriver {
     public void setCuts(String cuts) {
         triggerModule.setCutValues(true, cuts);
     }
+	
+	public void setDebug(boolean state) {
+		debug = state;
+	}
 }
