@@ -16,8 +16,8 @@ public class InactiveSiHitReadout extends TriggerableDriver {
     
     public void process(EventHeader event) {
         if (event.hasCollection(SimTrackerHit.class, COLLNAME)) {
-            List<SimTrackerHit> hits = event.get(SimTrackerHit.class, COLLNAME);
-            for (SimTrackerHit hit : hits) {
+            List<SimTrackerHit> newHits = event.get(SimTrackerHit.class, COLLNAME);
+            for (SimTrackerHit hit : newHits) {
                 double hitTime = hit.getTime();
                 hitTime += ClockSingleton.getTime();
                 ((BaseSimTrackerHit)hit).setTime(hitTime);
