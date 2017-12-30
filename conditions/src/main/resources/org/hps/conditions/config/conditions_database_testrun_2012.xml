@@ -1,8 +1,0 @@
-<conditions_database>
-    <configuration>
-        <isTestRun>true</isTestRun>
-        <setupSvtDetector>true</setupSvtDetector>
-        <cacheAllConditions>false</cacheAllConditions>
-        <freezeAfterInitialize>false</freezeAfterInitialize>
-    </configuration>
-</conditions_database>

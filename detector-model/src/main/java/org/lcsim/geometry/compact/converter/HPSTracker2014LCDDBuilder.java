@@ -2,7 +2,7 @@ package org.lcsim.geometry.compact.converter;
 
 import org.jdom.Element;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.TestRunHalfModuleBundle;
-//import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.LongHalfModuleBundle;
+// import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.LongHalfModuleBundle;
 import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.LongModuleBundle;
 import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.PSVacuumChamber;
 import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.SvtBox;
@@ -25,8 +25,7 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 
 public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder {
 
-    public HPSTracker2014LCDDBuilder(boolean debugFlag, Element node,
-            LCDD lcdd, SensitiveDetector sens) {
+    public HPSTracker2014LCDDBuilder(boolean debugFlag, Element node, LCDD lcdd, SensitiveDetector sens) {
 
         super(debugFlag, node, lcdd, sens);
 
@@ -34,10 +33,7 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.lcsim.geometry.compact.converter.HPSTestRunTracker2014LCDDBuilder
-     * #setBuilder()
+     * @see org.lcsim.geometry.compact.converter.HPSTestRunTracker2014LCDDBuilder #setBuilder()
      */
     public void setBuilder() {
         setBuilder(createGeometryDefinition(_debug, node));
@@ -45,10 +41,7 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.lcsim.geometry.compact.converter.HPSTestRunTracker2014LCDDBuilder
-     * #build(org.lcsim.geometry.compact.converter.lcdd.util.Volume)
+     * @see org.lcsim.geometry.compact.converter.HPSTestRunTracker2014LCDDBuilder #build(org.lcsim.geometry.compact.converter.lcdd.util.Volume)
      */
     public void build(Volume worldVolume) {
 
@@ -56,25 +49,21 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
         setBuilder();
 
         if (_builder == null)
-            throw new RuntimeException(
-                    "need to set builder class before calling build!");
+            throw new RuntimeException("need to set builder class before calling build!");
 
         if (isDebug())
-            System.out.printf("%s: build the base geometry objects\n",
-                    getClass().getSimpleName());
+            System.out.printf("%s: build the base geometry objects\n", getClass().getSimpleName());
 
         _builder.build();
 
         if (isDebug())
-            System.out.printf("%s: DONE build the base geometry objects\n",
-                    getClass().getSimpleName());
+            System.out.printf("%s: DONE build the base geometry objects\n", getClass().getSimpleName());
 
         if (isDebug())
-            System.out.printf("%s: build the LCDD geometry objects\n",
-                    getClass().getSimpleName());
+            System.out.printf("%s: build the LCDD geometry objects\n", getClass().getSimpleName());
 
-        LCDDSurveyVolume trackingGeometry = new LCDDSurveyVolume(
-                _builder.getSurveyVolume(TrackingVolume.class), worldVolume);
+        LCDDSurveyVolume trackingGeometry = new LCDDSurveyVolume(_builder.getSurveyVolume(TrackingVolume.class),
+                worldVolume);
         add(trackingGeometry);
 
         // baseSurveyVolume = new
@@ -82,8 +71,7 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
         // lcdd, trackingGeometry);
         // add(baseSurveyVolume);
         LCDDSurveyVolume vacuumChamberVolume = new LCDDGhostSurveyVolume(
-                _builder.getSurveyVolume(PSVacuumChamber.class),
-                trackingGeometry);
+                _builder.getSurveyVolume(PSVacuumChamber.class), trackingGeometry);
         add(vacuumChamberVolume);
 
         // LCDDSurveyVolume svtBox = new
@@ -91,14 +79,13 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
         // baseSurveyVolume);
         // add(svtBox);
 
-        LCDDSurveyVolume svtBox = new LCDDSurveyVolume(
-                _builder.getSurveyVolume(SvtBox.class), lcdd,
+        LCDDSurveyVolume svtBox = new LCDDSurveyVolume(_builder.getSurveyVolume(SvtBox.class), lcdd,
                 vacuumChamberVolume);
         baseSurveyVolume = svtBox;
         add(baseSurveyVolume);
 
-        LCDDSurveyVolume svtBoxBasePlate = new LCDDSurveyVolume(
-                _builder.getSurveyVolume(SvtBoxBasePlate.class), lcdd, svtBox);
+        LCDDSurveyVolume svtBoxBasePlate = new LCDDSurveyVolume(_builder.getSurveyVolume(SvtBoxBasePlate.class), lcdd,
+                svtBox);
         add(svtBoxBasePlate);
 
         LCDDSurveyVolume uChannelL13Bottom = new LCDDGhostSurveyVolume(
@@ -106,17 +93,15 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
         add(uChannelL13Bottom);
 
         LCDDSurveyVolume uChannelL13BottomPlate = new LCDDSurveyVolume(
-                _builder.getSurveyVolume(UChannelL13BottomPlate.class), lcdd,
-                svtBox);
+                _builder.getSurveyVolume(UChannelL13BottomPlate.class), lcdd, svtBox);
         add(uChannelL13BottomPlate);
 
-        LCDDSurveyVolume uChannelL13Top = new LCDDGhostSurveyVolume(
-                _builder.getSurveyVolume(UChannelL13Top.class), svtBox);
+        LCDDSurveyVolume uChannelL13Top = new LCDDGhostSurveyVolume(_builder.getSurveyVolume(UChannelL13Top.class),
+                svtBox);
         add(uChannelL13Top);
 
         LCDDSurveyVolume uChannelL13TopPlate = new LCDDSurveyVolume(
-                _builder.getSurveyVolume(UChannelL13TopPlate.class), lcdd,
-                svtBox);
+                _builder.getSurveyVolume(UChannelL13TopPlate.class), lcdd, svtBox);
         add(uChannelL13TopPlate);
 
         LCDDSurveyVolume uChannelL46Bottom = new LCDDGhostSurveyVolume(
@@ -124,35 +109,29 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
         add(uChannelL46Bottom);
 
         LCDDSurveyVolume uChannelL46BottomPlate = new LCDDSurveyVolume(
-                _builder.getSurveyVolume(UChannelL46BottomPlate.class), lcdd,
-                svtBox);
+                _builder.getSurveyVolume(UChannelL46BottomPlate.class), lcdd, svtBox);
         add(uChannelL46BottomPlate);
 
-        LCDDSurveyVolume uChannelL46Top = new LCDDGhostSurveyVolume(
-                _builder.getSurveyVolume(UChannelL46Top.class), svtBox);
+        LCDDSurveyVolume uChannelL46Top = new LCDDGhostSurveyVolume(_builder.getSurveyVolume(UChannelL46Top.class),
+                svtBox);
         add(uChannelL46Top);
 
         LCDDSurveyVolume uChannelL46TopPlate = new LCDDSurveyVolume(
-                _builder.getSurveyVolume(UChannelL46TopPlate.class), lcdd,
-                svtBox);
+                _builder.getSurveyVolume(UChannelL46TopPlate.class), lcdd, svtBox);
         add(uChannelL46TopPlate);
 
         // build modules
 
         if (isDebug())
-            System.out
-                    .printf("%s: build modules\n", getClass().getSimpleName());
+            System.out.printf("%s: build modules\n", getClass().getSimpleName());
 
         addModules();
 
-        System.out.printf("%s: Built %d LCDD geometry objects\n", getClass()
-                .getSimpleName(), lcddSurveyVolumes.size());
+        System.out.printf("%s: Built %d LCDD geometry objects\n", getClass().getSimpleName(), lcddSurveyVolumes.size());
 
         if (isDebug()) {
-            System.out.printf(
-                    "%s: List of all %d LCDD geometry objects built\n", this
-                            .getClass().getSimpleName(), lcddSurveyVolumes
-                            .size());
+            System.out.printf("%s: List of all %d LCDD geometry objects built\n", this.getClass().getSimpleName(),
+                    lcddSurveyVolumes.size());
             for (SurveyVolumeImpl bg : lcddSurveyVolumes) {
                 System.out.printf("-------\n%s\n", bg.toString());
             }
@@ -172,8 +151,8 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
             // SVTModuleBundle m = (SVTModuleBundle) mod;
             BaseModuleBundle m = mod;
             if (isDebug()) {
-                System.out.printf("%s: module layer %d half %s\n", getClass()
-                        .getSimpleName(), m.getLayer(), m.getHalf());
+                System.out.printf("%s: module layer %d half %s\n", getClass().getSimpleName(), m.getLayer(),
+                        m.getHalf());
                 m.print();
             }
 
@@ -189,15 +168,12 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
             }
             // Check that it had a mother
             if (mother == null)
-                throw new RuntimeException(
-                        "Cound't find mother to module layer " + m.getLayer()
-                                + " half " + m.getHalf());
+                throw new RuntimeException("Cound't find mother to module layer " + m.getLayer() + " half "
+                        + m.getHalf());
 
             if (isDebug())
-                System.out.printf(
-                        "%s: found mother %s for module layer %d half %s\n",
-                        getClass().getSimpleName(), mother.getName(),
-                        m.getLayer(), m.getHalf());
+                System.out.printf("%s: found mother %s for module layer %d half %s\n", getClass().getSimpleName(),
+                        mother.getName(), m.getLayer(), m.getHalf());
 
             // add the module to the list of objects that will be added to LCDD
             addModule(m, mother);
@@ -208,10 +184,8 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
     /**
      * Rules for adding the LCDD module geometry.
      * 
-     * @param bundle
-     *            - module to be added
-     * @param mother
-     *            - mother LCDD geometry object
+     * @param bundle - module to be added
+     * @param mother - mother LCDD geometry object
      */
     protected void addModule(BaseModuleBundle bundle, LCDDSurveyVolume mother) {
         if (bundle instanceof TestRunModuleBundle) {
@@ -226,15 +200,11 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
     /**
      * Rules for adding the LCDD module geometry.
      * 
-     * @param bundle
-     *            - module to be added
-     * @param mother
-     *            - mother LCDD geometry object
+     * @param bundle - module to be added
+     * @param mother - mother LCDD geometry object
      */
-    protected void addLongModule(LongModuleBundle bundle,
-            LCDDSurveyVolume mother) {
-        LCDDSurveyVolume lcddM = new LCDDGhostSurveyVolume(bundle.module,
-                mother);
+    protected void addLongModule(LongModuleBundle bundle, LCDDSurveyVolume mother) {
+        LCDDSurveyVolume lcddM = new LCDDGhostSurveyVolume(bundle.module, mother);
         // LCDDSurveyVolume lcddM = new LCDDSurveyVolume(bundle.module, lcdd,
         // mother);
         add(lcddM);
@@ -253,18 +223,14 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
     /**
      * Rules for adding the LCDD module geometry.
      * 
-     * @param bundle
-     *            - module to be added
-     * @param mother
-     *            - mother LCDD geometry object
+     * @param bundle - module to be added
+     * @param mother - mother LCDD geometry object
      */
-    protected void addTestRunModule(TestRunModuleBundle bundle,
-            LCDDSurveyVolume mother) {
+    protected void addTestRunModule(TestRunModuleBundle bundle, LCDDSurveyVolume mother) {
         // This could perhaps be fixed if there is a relation with daughters in
         // geometry definition?
         // create the module
-        LCDDSurveyVolume lcddM = new LCDDGhostSurveyVolume(bundle.module,
-                mother);
+        LCDDSurveyVolume lcddM = new LCDDGhostSurveyVolume(bundle.module, mother);
         // SurveyVolume(bundle.module, lcdd, mother);
         add(lcddM);
         if (bundle.halfModuleAxial != null)
@@ -272,51 +238,39 @@ public class HPSTracker2014LCDDBuilder extends HPSTestRunTracker2014LCDDBuilder 
         if (bundle.coldBlock != null)
             add(new LCDDSurveyVolume(bundle.coldBlock, lcdd, lcddM));
         if (bundle.halfModuleStereo != null)
-            addTestRunHalfModule(
-                    (TestRunHalfModuleBundle) bundle.halfModuleStereo, lcddM);
+            addTestRunHalfModule((TestRunHalfModuleBundle) bundle.halfModuleStereo, lcddM);
     }
 
     /**
      * Rules for adding the LCDD half module geometry.
      * 
-     * @param bundle
-     *            - module to be added
-     * @param mother
-     *            - mother LCDD geometry object
+     * @param bundle - module to be added
+     * @param mother - mother LCDD geometry object
      */
-    protected void addLongHalfModule(HalfModuleBundle bundle2,
-            LCDDSurveyVolume mother) {
+    protected void addLongHalfModule(HalfModuleBundle bundle2, LCDDSurveyVolume mother) {
         // LongHalfModuleBundle bundle = (LongHalfModuleBundle) bundle2;
         HalfModuleBundle bundle = bundle2;
         // create the half-module
-        LCDDSurveyVolume lcddHM = new LCDDSurveyVolume(bundle.halfModule, lcdd,
-                mother);
+        LCDDSurveyVolume lcddHM = new LCDDSurveyVolume(bundle.halfModule, lcdd, mother);
         add(lcddHM);
         // create the sensor
-        LCDDSurveyVolume lcddS = new LCDDSurveyVolume(bundle.sensor, lcdd,
-                lcddHM);
+        LCDDSurveyVolume lcddS = new LCDDSurveyVolume(bundle.sensor, lcdd, lcddHM);
         add(lcddS);
         // create the active sensor
-        LCDDSurveyVolume lcddAS = new LCDDSurveyVolume(bundle.activeSensor,
-                lcdd, lcddS);
+        LCDDSurveyVolume lcddAS = new LCDDSurveyVolume(bundle.activeSensor, lcdd, lcddS);
         add(lcddAS);
         // create the lamination
         if (bundle.lamination != null) {
-            LCDDSurveyVolume lcddL = new LCDDSurveyVolume(bundle.lamination,
-                    lcdd, lcddHM);
+            LCDDSurveyVolume lcddL = new LCDDSurveyVolume(bundle.lamination, lcdd, lcddHM);
             add(lcddL);
         }
         /*
-         * // create the carbon fiber frame LCDDSurveyVolume lcddCF = new
-         * LCDDSurveyVolume(bundle.carbonFiber, lcdd, lcddHM); add(lcddCF); //
-         * create the hybrid frame LCDDSurveyVolume lcddH = new
-         * LCDDSurveyVolume(bundle.hybrid, lcdd, lcddHM); add(lcddH);
+         * // create the carbon fiber frame LCDDSurveyVolume lcddCF = new LCDDSurveyVolume(bundle.carbonFiber, lcdd, lcddHM); add(lcddCF); // create the hybrid frame LCDDSurveyVolume lcddH = new LCDDSurveyVolume(bundle.hybrid, lcdd, lcddHM); add(lcddH);
          */
     }
 
     @Override
-    public HPSTrackerGeometryDefinition createGeometryDefinition(boolean debug,
-            Element node) {
+    public HPSTrackerGeometryDefinition createGeometryDefinition(boolean debug, Element node) {
         return new HPSTracker2014GeometryDefinition(_debug, node);
     }
 

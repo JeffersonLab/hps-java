@@ -6,16 +6,12 @@ import hep.physics.vec.Hep3Matrix;
 import org.lcsim.event.GenericObject;
 
 /**
- *
- *
  * @version $Id:
  */
 public class GBLTrackData implements GenericObject {
 
     /*
-     * 
      * Interface enumerator to access the correct data
-     * 
      */
     private static class GBLINT {
 
@@ -33,6 +29,7 @@ public class GBLTrackData implements GenericObject {
         // 9 entries from projection matrix from perigee to curvilinear frame
         public static final int BANK_DOUBLE_SIZE = 5 + 9;
     }
+
     // array holding the integer data
     private int bank_int[] = new int[GBLINT.BANK_INT_SIZE];
     // array holding the double data
@@ -46,8 +43,7 @@ public class GBLTrackData implements GenericObject {
     }
 
     /*
-     * Constructor from GenericObject
-     * TODO add size checks for backwards compatability
+     * Constructor from GenericObject TODO add size checks for backwards compatability
      */
     public GBLTrackData(GenericObject o) {
         for (int i = 0; i < GBLINT.BANK_INT_SIZE; ++i) {
@@ -85,10 +81,8 @@ public class GBLTrackData implements GenericObject {
     }
 
     public GblUtils.PerigeeParams getPerigeeTrackParameters() {
-        return new GblUtils.PerigeeParams(this.bank_double[GBLDOUBLE.PERKAPPA],
-                this.bank_double[GBLDOUBLE.PERTHETA],
-                this.bank_double[GBLDOUBLE.PERPHI],
-                this.bank_double[GBLDOUBLE.PERD0],
+        return new GblUtils.PerigeeParams(this.bank_double[GBLDOUBLE.PERKAPPA], this.bank_double[GBLDOUBLE.PERTHETA],
+                this.bank_double[GBLDOUBLE.PERPHI], this.bank_double[GBLDOUBLE.PERD0],
                 this.bank_double[GBLDOUBLE.PERZ0]);
     }
 
@@ -117,7 +111,7 @@ public class GBLTrackData implements GenericObject {
     }
 
     /*
-     * The functions below are all overide from 
+     * The functions below are all overide from
      * @see org.lcsim.event.GenericObject#getNInt()
      */
     public int getNInt() {

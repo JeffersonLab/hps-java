@@ -35,7 +35,7 @@ public final class SvtDaqMappingTest extends TestCase {
      * @throws Exception if there is a test error
      */
     public void test() throws Exception {
-        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        final DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
         conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
         final SvtDaqMappingCollection daqMappingCollection = conditionsManager.getCachedConditions(
                 SvtDaqMappingCollection.class, "svt_daq_map").getCachedData();

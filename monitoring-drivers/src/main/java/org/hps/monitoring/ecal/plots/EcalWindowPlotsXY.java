@@ -23,10 +23,10 @@ import org.hps.recon.ecal.EcalUtils;
 
 public class EcalWindowPlotsXY extends Driver implements ActionListener {
 
-    private String subdetectorName= "Ecal";
+    private String subdetectorName = "Ecal";
     private String inputCollection;
     private IPlotter plotter;
-    //private AIDAFrame plotterFrame;
+    // private AIDAFrame plotterFrame;
     private AIDA aida;
     private Detector detector;
     private IDDecoder dec;
@@ -94,29 +94,30 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
 
     private void setupPlots() {
         System.out.println("ECAL WINDOW PLOTS START");
-        //if (plotterFrame != null) {
-        //    plotterFrame.dispose();
-        //}
+        // if (plotterFrame != null) {
+        // plotterFrame.dispose();
+        // }
 
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
         plotter = aida.analysisFactory().createPlotterFactory("ECAL Window plots").create("HPS ECAL Window Plots");
 
-        //plotterFrame = new AIDAFrame();
-        //plotterFrame.addPlotter(plotter);
-        //plotterFrame.setVisible(true);
+        // plotterFrame = new AIDAFrame();
+        // plotterFrame.addPlotter(plotter);
+        // plotterFrame.setVisible(true);
         IPlotterStyle pstyle = plotter.style();
         pstyle.dataStyle().errorBarStyle().setVisible(false);
-        plotter.createRegions(1,1);     
-        windowPlot1 = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : dummy", 1, -0.5, 1 - 0.5);
+        plotter.createRegions(1, 1);
+        windowPlot1 = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : dummy", 1, -0.5,
+                1 - 0.5);
         plotter.region(0).plot(windowPlot1);
         plotter.show();
     }
 
     public void endOfData() {
-        //if (plotterFrame != null) {
-        //    plotterFrame.dispose();
-        //}
+        // if (plotterFrame != null) {
+        // plotterFrame.dispose();
+        // }
     }
 
     public void process(EventHeader event) {
@@ -126,16 +127,17 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
                 dec.setID(hit.getCellID());
                 int x = dec.getValue("ix");
                 int y = dec.getValue("iy");
-//              System.out.println("got hit: x= " + x + ", y= " + y);
+                // System.out.println("got hit: x= " + x + ", y= " + y);
                 if (isFirst) {
                     System.out.println("FIRST!!!");
-                    isFirst=false;
-                    window=hit.getADCValues().length;
-                    windowPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Window Mode Data", window, -0.5, window - 0.5);
+                    isFirst = false;
+                    window = hit.getADCValues().length;
+                    windowPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection
+                            + " : Window Mode Data", window, -0.5, window - 0.5);
                     plotter.region(0).clear();
                     plotter.region(0).plot(windowPlot);
                     plotter.region(0).refresh();
-                
+
                 }
                 if (testX && x != plotX) {
                     continue;
@@ -145,7 +147,7 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
                 }
                 windowPlot.reset();
                 for (int i = 0; i < window; i++) {
-                    windowPlot.fill(i, hit.getADCValues()[i]*EcalUtils.adcResolution);
+                    windowPlot.fill(i, hit.getADCValues()[i] * EcalUtils.adcResolution);
 
                 }
             }

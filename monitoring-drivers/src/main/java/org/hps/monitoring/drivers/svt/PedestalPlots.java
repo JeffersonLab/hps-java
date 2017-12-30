@@ -24,8 +24,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.recon.tracking.SvtPlotUtils;
-//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-//===> import org.hps.conditions.deprecated.SvtUtils;
+// ===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+// ===> import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -96,10 +96,12 @@ public class PedestalPlots extends Driver {
         plotters.put("Pedestal vs. channel", plotterFactory.create("Pedestal vs. channel"));
         plotters.get("Pedestal vs. channel").createRegions(6, 6);
 
-        //===> for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
+        // ===> for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
         for (HpsSiSensor sensor : sensors) {
-            hists.put(sensor, aida.histogram2D(sensor.getName() + " sample 1 vs. ch", 640, -0.5, 639.5, 100, -500.0, 500.0));
-            plotters.get("Pedestal vs. channel").region(SvtPlotUtils.computePlotterRegion(sensor)).plot(hists.get(sensor), SvtPlotUtils.createStyle(plotterFactory, sensor, "Channel", "Sample 1"));
+            hists.put(sensor,
+                    aida.histogram2D(sensor.getName() + " sample 1 vs. ch", 640, -0.5, 639.5, 100, -500.0, 500.0));
+            plotters.get("Pedestal vs. channel").region(SvtPlotUtils.computePlotterRegion(sensor))
+                    .plot(hists.get(sensor), SvtPlotUtils.createStyle(plotterFactory, sensor, "Channel", "Sample 1"));
 
             if (plotTimeSeries) {
                 counts.put(sensor, new int[640]);
@@ -108,7 +110,8 @@ public class PedestalPlots extends Driver {
                 IDataPointSet[] plotArray = new IDataPointSet[640];
                 plots.put(sensor, plotArray);
                 for (int i = 0; i < 640; i++) {
-                    plotArray[i] = aida.analysisFactory().createDataPointSetFactory(aida.tree()).create(sensor.getName() + ", channel " + i + " pedestal vs. event", 2);
+                    plotArray[i] = aida.analysisFactory().createDataPointSetFactory(aida.tree())
+                            .create(sensor.getName() + ", channel " + i + " pedestal vs. event", 2);
                 }
             }
         }
@@ -156,50 +159,50 @@ public class PedestalPlots extends Driver {
                 }
 
             }
-//            if (eventCount % eventRefreshRate == 0) {
-//                for (HpsSiSensor sensor : sensors) {
-//                    IHistogram2D hist = hists.get(sensor);
-////                    hist.
-//                }
-//            }
+            // if (eventCount % eventRefreshRate == 0) {
+            // for (HpsSiSensor sensor : sensors) {
+            // IHistogram2D hist = hists.get(sensor);
+            // // hist.
+            // }
+            // }
 
         }
     }
 
-//    private void getMean2D(IHistogram2D hist2D) {
-//        int nx = hist2D.xAxis().bins();
-//        int ny = hist2D.yAxis().bins();
-//        double[][] means = new double[nx][ny];
-//        for (int ix = 0; ix < nx; ix++) {
-//            for (int iy = 0; iy < ny; iy++) {
-//                means[ix][iy] = hist2D.binHeight(ix, iy) / hist2D.binEntries(ix, iy);
-//            }
-//        }
-//        hist2D.reset();
-//        for (int ix = 0; ix < nx; ix++) {
-//            for (int iy = 0; iy < ny; iy++) {
-//                double x = hist2D.xAxis().binCenter(ix);
-//                double y = hist2D.yAxis().binCenter(iy);
-//                hist2D.fill(x, y, means[ix][iy]);
-//            }
-//        }
-//
-//        IFitter fitter = AIDA.defaultInstance().analysisFactory().createFitFactory().createFitter("chi2");
-//
-//    }
-//
-//    IFitResult fitGaussian(IHistogram1D h1d, IFitter fitter, String range) {
-//        double[] init = {h1d.maxBinHeight(), h1d.mean(), h1d.rms()};
-//        IFitResult ifr = null;
-//        try {
-//            ifr = fitter.fit(h1d, "g", init, range);
-//        } catch (RuntimeException ex) {
-//            System.out.println(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
-//        }
-//        return ifr;
-////        double[] init = {20.0, 0.0, 1.0, 20, -1};
-////        return fitter.fit(h1d, "g+p1", init, range);
-//    }
+    // private void getMean2D(IHistogram2D hist2D) {
+    // int nx = hist2D.xAxis().bins();
+    // int ny = hist2D.yAxis().bins();
+    // double[][] means = new double[nx][ny];
+    // for (int ix = 0; ix < nx; ix++) {
+    // for (int iy = 0; iy < ny; iy++) {
+    // means[ix][iy] = hist2D.binHeight(ix, iy) / hist2D.binEntries(ix, iy);
+    // }
+    // }
+    // hist2D.reset();
+    // for (int ix = 0; ix < nx; ix++) {
+    // for (int iy = 0; iy < ny; iy++) {
+    // double x = hist2D.xAxis().binCenter(ix);
+    // double y = hist2D.yAxis().binCenter(iy);
+    // hist2D.fill(x, y, means[ix][iy]);
+    // }
+    // }
+    //
+    // IFitter fitter = AIDA.defaultInstance().analysisFactory().createFitFactory().createFitter("chi2");
+    //
+    // }
+    //
+    // IFitResult fitGaussian(IHistogram1D h1d, IFitter fitter, String range) {
+    // double[] init = {h1d.maxBinHeight(), h1d.mean(), h1d.rms()};
+    // IFitResult ifr = null;
+    // try {
+    // ifr = fitter.fit(h1d, "g", init, range);
+    // } catch (RuntimeException ex) {
+    // System.out.println(this.getClass().getSimpleName() + ":  caught exception in fitGaussian");
+    // }
+    // return ifr;
+    // // double[] init = {20.0, 0.0, 1.0, 20, -1};
+    // // return fitter.fit(h1d, "g+p1", init, range);
+    // }
     @Override
     public void endOfData() {
         if (fitFile == null) {
@@ -207,8 +210,8 @@ public class PedestalPlots extends Driver {
         }
 
         IFitter fitter = aida.analysisFactory().createFitFactory().createFitter("chi2");
-//        fitter.setFitMethod("CleverChiSquared");
-//        fitter.setFitMethod("binnedMaximumLikelihood");
+        // fitter.setFitMethod("CleverChiSquared");
+        // fitter.setFitMethod("binnedMaximumLikelihood");
 
         PrintWriter fitWriter = null;
         try {
@@ -220,7 +223,8 @@ public class PedestalPlots extends Driver {
         for (SiSensor sensor : hists.keySet()) {
             fitWriter.println(sensor.getName());
             IHistogram2D hist = hists.get(sensor);
-            IHistogram1D fit = aida.histogram1D("1D fit", hist.yAxis().bins(), hist.yAxis().lowerEdge(), hist.yAxis().upperEdge());
+            IHistogram1D fit = aida.histogram1D("1D fit", hist.yAxis().bins(), hist.yAxis().lowerEdge(), hist.yAxis()
+                    .upperEdge());
             for (int i = 0; i < 640; i++) {
                 fitWriter.format("%d\t", i);
                 for (int y = 0; y < hist.yAxis().bins(); y++) {

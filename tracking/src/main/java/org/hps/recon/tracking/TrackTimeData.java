@@ -6,59 +6,52 @@ import java.util.ArrayList;
 import org.lcsim.event.GenericObject;
 
 /**
- * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
- *
  */
 public class TrackTimeData implements GenericObject {
 
-    List<Float> trackTimeData = new ArrayList<Float>(); 
-    List<Double> t0Residuals = new ArrayList<Double>(); 
-    List<Integer> layers = new ArrayList<Integer>(); 
-    
+    List<Float> trackTimeData = new ArrayList<Float>();
+    List<Double> t0Residuals = new ArrayList<Double>();
+    List<Integer> layers = new ArrayList<Integer>();
+
     // Constants
     private final static int SVT_VOLUME_INDEX = 0;
     private final static int TRACK_TIME_INDEX = 1;
-    
+
     /**
      * Default Ctor
      * 
      * @param trackTime : The mean t0 time of all hits of a track
-     * @param trackerVolume : The SVT volume to which the track used to calculate
-     *                        the track time corresponds to.
-     *
+     * @param trackerVolume : The SVT volume to which the track used to calculate the track time corresponds to.
      */
-    public TrackTimeData(float trackerVolume, double trackTime, List<Integer> layers, List<Double> t0Residuals){
+    public TrackTimeData(float trackerVolume, double trackTime, List<Integer> layers, List<Double> t0Residuals) {
         trackTimeData.add(trackerVolume);
         trackTimeData.add((float) trackTime);
         this.layers.addAll(layers);
         this.t0Residuals.addAll(t0Residuals);
     }
-    
+
     /**
-     *   
-     * 
-     * @param layer : 
-     * @param t0Residual : 
-     * 
+     * @param layer :
+     * @param t0Residual :
      */
     private void addResidual(int layer, double t0Residual) {
-        layers.add(layer); 
+        layers.add(layer);
         t0Residuals.add(t0Residual);
     }
 
     /**
      * 
      */
-    public double getTrackTime() { 
-        return trackTimeData.get(TRACK_TIME_INDEX); 
+    public double getTrackTime() {
+        return trackTimeData.get(TRACK_TIME_INDEX);
     }
-    
+
     /**
      * 
      * 
      */
-    public double getT0Residual(int layer) { 
+    public double getT0Residual(int layer) {
         return this.getDoubleVal(layer);
     }
 
@@ -66,17 +59,17 @@ public class TrackTimeData implements GenericObject {
      * 
      */
     public double getClusterTime(int layer) {
-       return this.getTrackTime() - this.getT0Residual(layer); 
+        return this.getTrackTime() - this.getT0Residual(layer);
     }
-    
+
     /**
      * 
      * 
      */
-    public boolean isTopSvtVolume() { 
+    public boolean isTopSvtVolume() {
         return (trackTimeData.get(SVT_VOLUME_INDEX) == 0) ? true : false;
     }
-    
+
     /**
      * 
      */

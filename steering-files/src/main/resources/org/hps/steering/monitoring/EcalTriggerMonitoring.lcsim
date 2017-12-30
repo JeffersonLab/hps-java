@@ -1,6 +1,5 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="EventMarkerDriver" />
         <driver name="EcalRawConverter" />
         <driver name="EcalTriggerFilter" />
         <driver name="EcalClusterer" />
@@ -47,9 +46,6 @@
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
 -->
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
-        </driver>
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
             <clustererName>CTPClusterer</clustererName>
             <inputHitCollectionName>EcalFilteredHits</inputHitCollectionName>

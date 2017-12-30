@@ -25,7 +25,6 @@ import org.apache.commons.cli.PosixParser;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
-import org.hps.rundb.RunManager;
 import org.hps.logging.config.DefaultLoggingConfig;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventQueue;
@@ -72,11 +71,6 @@ import org.lcsim.lcio.LCIOWriter;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public final class EvioToLcio {
-
-    /**
-     * The default steering resource, which basically does nothing except print event numbers.
-     */
-    private static final String DEFAULT_STEERING_RESOURCE = "/org/hps/steering/EventMarker.lcsim";
 
     /**
      * Setup logging for this class.
@@ -207,7 +201,6 @@ public final class EvioToLcio {
                         // Check if the conditions system needs to be updated from the head bank.
                         this.checkConditions(runNumber, false);
                     }
-                    RunManager.getRunManager().setRun(runNumber);
                 } else {
                     LOGGER.finer("event " + evioEvent.getEventNumber() + " does not have a head bank");
                 }
@@ -335,12 +328,6 @@ public final class EvioToLcio {
             }
         }
 
-        // Setup the default steering which just prints event numbers.
-        if (steeringStream == null) {
-            steeringStream = EvioToLcio.class.getResourceAsStream(DEFAULT_STEERING_RESOURCE);
-            LOGGER.config("using default steering resource " + DEFAULT_STEERING_RESOURCE);
-        }
-
         // Get the max number of events to process.
         if (cl.hasOption("n")) {
             maxEvents = Integer.valueOf(cl.getOptionValue("n"));
@@ -363,11 +350,7 @@ public final class EvioToLcio {
 
         // Process the LCSim job variable definitions, if any.
         jobManager = new JobManager();
-        
-        // Initialize run manager and add as listener on conditions system.
-        RunManager runManager = RunManager.getRunManager();
-        DatabaseConditionsManager.getInstance().addConditionsListener(runManager);
-        
+                               
         // Enable dry run because events will be processed individually.
         jobManager.setDryRun(true);
         
@@ -402,7 +385,14 @@ public final class EvioToLcio {
         }
 
         // Configure the LCSim job manager.
-        jobManager.setup(steeringStream);
+        if (steeringStream != null) {
+            // Running a steering file with the job; use full job manager setup.
+            jobManager.setup(steeringStream);            
+        } else {
+            // No steering file is being used; configure job manager manually.
+            jobManager.initializeLoop(); /* enables event printing */
+            jobManager.getConditionsSetup().configure(); /* activates SVT detector setup */
+        }       
         jobManager.configure();
         LOGGER.config("LCSim job manager was successfully configured.");
 

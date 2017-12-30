@@ -4,7 +4,6 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">           
     <execute>
-        <driver name="EventMarkerDriver"/>
         <!-- This should be replaced with your actual analysis Driver. -->
         <driver name="DummyAnalysisDriver"/> 
         <driver name="LCIODriver"/>        
@@ -12,9 +11,6 @@
         <driver name="AidaSaveDriverRoot"/>
     </execute>        
     <drivers>    
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>            
-        </driver>
         <!-- This should be replaced with your actual analysis Driver. -->
         <driver name="DummyAnalysisDriver" type="org.hps.analysis.examples.DummyAnalysisDriver"/>
         <driver name="LCIODriver" type="org.lcsim.util.loop.LCIODriver">

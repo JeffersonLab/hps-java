@@ -1,6 +1,5 @@
 package org.hps.rundb;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -22,11 +21,6 @@ import org.lcsim.conditions.ConditionsListener;
  * @author jeremym
  */
 public final class RunManager implements ConditionsListener {
-
-    /**
-     * Name of system property that can be used to specify custom database connection parameters.
-     */
-    private static final String CONNECTION_PROPERTY_FILE = "org.hps.conditions.connection.file";
     
     /**
      * The default connection parameters for read-only access to the run database.
@@ -95,20 +89,7 @@ public final class RunManager implements ConditionsListener {
     /**
      * Class constructor using default connection parameters.
      */
-    public RunManager() {
-        
-        /**
-         * Read database URL from system prop setting.
-         * The database, password and user from that file are overridden.
-         */
-        if (System.getProperties().get(CONNECTION_PROPERTY_FILE) != null) {
-            final String propFile = (String) System.getProperties().get(CONNECTION_PROPERTY_FILE);
-            this.connectionParameters = ConnectionParameters.fromProperties(new File(propFile));
-            this.connectionParameters.setDatabase("hps_run_db_v2");
-            this.connectionParameters.setPassword("darkphoton");
-            this.connectionParameters.setUser("hpsuser");
-            
-        }        
+    public RunManager() {        
         this.connection = this.connectionParameters.createConnection();
         factory = new DaoProvider(this.connection);
         LOGGER.log(Level.INFO, this.connectionParameters.toString());

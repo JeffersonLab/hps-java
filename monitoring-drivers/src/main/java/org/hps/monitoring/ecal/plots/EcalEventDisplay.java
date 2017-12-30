@@ -39,6 +39,7 @@ import org.lcsim.util.aida.AIDA;
  * @author Andrea Celentano
  */
 public class EcalEventDisplay extends Driver implements CrystalListener, ActionListener {
+
     private static final String CLUSTER_ENERGY_TITLE = "Cluster Energy (GeV)";
 
     // private static final String SIGNAL_DATA_STYLE_COLOR = "orange";
@@ -67,7 +68,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     // LCIO Collection names.
     private String inputCollection = "EcalCalHits";
     private String inputCollectionRaw = "EcalReadoutHits";
-  
+
     // channel.
     private long lastEventTime = 0; // Tracks the time at which the last event occurred.
     private double maxEch = 3500 * EcalUtils.MeV; // The energy scale maximum.
@@ -81,7 +82,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     private boolean resetOnUpdate = true; // Clears the event display on each update.
     // Internal variables.
     private final PEventViewer viewer; // Single event display.
-   
+
     public EcalEventDisplay() {
         // Check if the configuration mapping file exists.
         final File config = new File("ecal-mapping-config.csv");
@@ -233,16 +234,14 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
             this.channelTimePlot.add(this.aida.histogram1D(this.detectorName + " : " + this.inputCollection
                     + " : Hit Time : " + column + " " + row + ": " + ii, 100, 0, 400));
             this.channelTimeVsEnergyPlot
-            .add(this.aida.histogram2D(this.detectorName + " : " + this.inputCollection
-                    + " : Hit Time Vs Energy : " + column + " " + row + ": " + ii, 100, 0, 400, 100, -0.2,
-                    this.maxEch));
+                    .add(this.aida.histogram2D(this.detectorName + " : " + this.inputCollection
+                            + " : Hit Time Vs Energy : " + column + " " + row + ": " + ii, 100, 0, 400, 100, -0.2,
+                            this.maxEch));
             // channelRawWaveform.add(aida.histogram1D(detector.getDetectorName() + " : "
             // + inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii));
             this.clusterEnergyPlot.add(this.aida.histogram1D(this.detectorName + " : " + this.inputCollection
                     + " : Cluster Energy : " + column + " " + row + ": " + ii, 100, -0.2, this.maxEch));
 
-   
-          
         }
 
         // Define the plot region that will display the single channel
@@ -299,6 +298,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     public void endOfData() {
         // Disposing of event display window needs to happen on the Swing EDT.
         SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
                 System.out.println("turning ECAL event display off");
@@ -309,39 +309,33 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
             }
         });
 
-        int row,column; String hName; 
-        System.out.println("EcalEventDisplay endOfData clear histograms"); 
-        for(int ii = 0; ii < NUM_CHANNELS; ii++) { 
+        int row, column;
+        String hName;
+        System.out.println("EcalEventDisplay endOfData clear histograms");
+        for (int ii = 0; ii < NUM_CHANNELS; ii++) {
             row = EcalMonitoringUtilities.getRowFromHistoID(ii);
             column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
-            hName=detectorName + " : " + inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii;
-            try{
+            hName = detectorName + " : " + inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii;
+            try {
                 aida.tree().rm(hName);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Got exception " + e);
             }
-            catch(IllegalArgumentException e){
-                System.out.println("Got exception "+e);
-            }
 
-
-
-            hName=detectorName + " : " + inputCollection + " : Hit Time : " + column + " " + row + ": " + ii;
-            try{
+            hName = detectorName + " : " + inputCollection + " : Hit Time : " + column + " " + row + ": " + ii;
+            try {
                 aida.tree().rm(hName);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Got exception " + e);
             }
-            catch(IllegalArgumentException e){
-                System.out.println("Got exception "+e);
-            }
 
-
-
-            hName=detectorName+ " : " + inputCollection + " : Hit Time Vs Energy : " + column + " " + row + ": " + ii; 
-            try{
+            hName = detectorName + " : " + inputCollection + " : Hit Time Vs Energy : " + column + " " + row + ": "
+                    + ii;
+            try {
                 aida.tree().rm(hName);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Got exception " + e);
             }
-            catch(IllegalArgumentException e){
-                System.out.println("Got exception "+e);
-            }
-
 
         }
         System.out.println("EcalEventDisplay endOfData clear histograms done");
@@ -421,7 +415,6 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
             }
         }
 
-   
         // Update the single event display.
         if (update) {
             this.viewer.updateDisplay();
@@ -491,7 +484,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
      * results.
      *
      * @param resetOnUpdate - <code>true</code> means that the event display should be cleared on each update and
-     *            <code>false</code> that it should not.
+     * <code>false</code> that it should not.
      */
     public void setResetOnUpdate(final boolean resetOnUpdate) {
         this.resetOnUpdate = resetOnUpdate;
@@ -511,6 +504,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 
         // Make the Viewer object visible. Run on the Swing EDT.
         SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
                 EcalEventDisplay.this.viewer.setVisible(true);
