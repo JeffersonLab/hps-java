@@ -28,7 +28,6 @@ import java.util.Set;
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.EventQuality.Quality;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
-import org.hps.recon.tracking.kalman.IntersectionUtils;
 import org.lcsim.constants.Constants;
 
 import static org.lcsim.constants.Constants.fieldConversion;
