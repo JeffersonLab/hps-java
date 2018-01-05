@@ -17,11 +17,11 @@ public class IntersectionUtils {
     private FieldMap fM = null;
     private boolean debug = false;
 
-    IntersectionUtils() {
+    public IntersectionUtils() {
 
     }
 
-    IntersectionUtils(FieldMap input, double tolerance) {
+    public IntersectionUtils(FieldMap input, double tolerance) {
         fM = input;
         h = tolerance;
     }
@@ -40,7 +40,7 @@ public class IntersectionUtils {
 
     // Runge Kutta integration extrapolation to a plane through a non-uniform field
     // When close to the plane, then a helix is used to find the exact intersection
-    Hep3Vector rkIntersect(Hep3Vector ptOnPlane, Hep3Vector normal, Hep3Vector X0, Hep3Vector P0, double Q) {
+    public Hep3Vector rkIntersect(Hep3Vector ptOnPlane, Hep3Vector normal, Hep3Vector X0, Hep3Vector P0, double Q) {
         // ptOnPlane, normal: definition of the plane to which to extrapolate
         // X0 3-D starting point for the extrapolation
         // P0 3-momentum at the start of the extrapolation
