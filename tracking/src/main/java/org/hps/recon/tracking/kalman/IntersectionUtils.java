@@ -50,8 +50,10 @@ public class IntersectionUtils {
 
         // Find the straight-line distance to the plane for an initial guess at the distance
 
-        System.out.printf("rkIntersect with ptOnPlane %s normal %s \n", ptOnPlane.toString(), normal.toString());
-        System.out.printf("P0 %s X0 %s \n", P0.toString(), X0.toString());
+        if (debug) {
+            System.out.printf("rkIntersect with ptOnPlane %s normal %s \n", ptOnPlane.toString(), normal.toString());
+            System.out.printf("P0 %s X0 %s \n", P0.toString(), X0.toString());
+        }
 
         Hep3Vector normalInTracking = CoordinateTransformations.transformVectorToTracking(normal);
         // flip normal if it points the wrong way
@@ -59,7 +61,8 @@ public class IntersectionUtils {
             normal = VecOp.mult(-1, normal);
 
         double distance = Math.abs(VecOp.dot(VecOp.sub(X0, ptOnPlane), normal)) / VecOp.dot(VecOp.unit(P0), normal);
-        System.out.printf("initial distance %f \n", distance);
+        if (debug)
+            System.out.printf("initial distance %f \n", distance);
         if (distance < 0.) {
             if (debug)
                 System.out.format("HelixPlaneIntersect:rkIntersect: there will be no intersection. distance=%12.5f\n", distance);
@@ -76,11 +79,11 @@ public class IntersectionUtils {
         P1 = CoordinateTransformations.transformVectorToTracking(P1);
         X1 = CoordinateTransformations.transformVectorToTracking(X1);
         double[] params = { P1.x(), P1.y(), P1.z(), P1.magnitude(), X1.x(), X1.y(), X1.z() };
-        System.out.printf("Pf %s Xf %s \n", P1.toString(), X1.toString());
+        if (debug)
+            System.out.printf("Pf %s Xf %s \n", P1.toString(), X1.toString());
 
         wtrk.setTrackParameters(params);
         wtrk.setCharge(-1 * Q);
-        System.out.printf("Field %s   new a %f \n", B.toString(), wtrk.a());
         //wtrk._debug = true;
         return wtrk.getHelixAndPlaneIntercept(CoordinateTransformations.transformVectorToTracking(ptOnPlane), normalInTracking, new BasicHep3Vector(0, 0, 1));
 
