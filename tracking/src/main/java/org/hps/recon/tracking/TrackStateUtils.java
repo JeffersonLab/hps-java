@@ -78,8 +78,10 @@ public class TrackStateUtils {
                 return null;
             Hep3Vector w = VecOp.unit(sensor.getGeometry().getLocalToGlobal().rotated(new BasicHep3Vector(0, 0, 1)));
             int charge = TrackUtils.getCharge(trk);
-            Hep3Vector p = new BasicHep3Vector(ts.getMomentum());
-            Hep3Vector x = new BasicHep3Vector(ts.getReferencePoint());
+
+            Hep3Vector p = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(ts.getMomentum()));
+            Hep3Vector x = new BasicHep3Vector(TrackUtils.getX0(ts), TrackUtils.getY0(ts), TrackUtils.getZ0(ts));
+
             return iu.rkIntersect(point_on_plane, w, x, p, charge);
         }
         return null;
@@ -88,6 +90,7 @@ public class TrackStateUtils {
     public static Hep3Vector getLocationAtSensorRK(Track trk, HpsSiSensor sensor, FieldMap bFieldMap) {
         IntersectionUtils iu = new IntersectionUtils();
         iu.setFieldmap(bFieldMap);
+
         return getLocationAtSensorRK(trk, sensor, iu);
     }
 
