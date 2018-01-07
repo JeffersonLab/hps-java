@@ -232,10 +232,12 @@ public final class TrackDataDriver extends Driver {
                     stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
                     trackPosition = TrackUtils.extrapolateTrackPositionToSensor(track, sensor, sensors, bField);
                     Hep3Vector stereoHitPositionDetector = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
-                    xResidual = trackPosition.x() - stereoHitPositionDetector.x();
-                    yResidual = trackPosition.y() - stereoHitPositionDetector.y();
-                    trackResidualsX.add(xResidual);
-                    trackResidualsY.add((float) yResidual);
+                    if (trackPosition != null) {
+                        xResidual = trackPosition.x() - stereoHitPositionDetector.x();
+                        yResidual = trackPosition.y() - stereoHitPositionDetector.y();
+                        trackResidualsX.add(xResidual);
+                        trackResidualsY.add((float) yResidual);
+                    }
 
                     //
                     // Change the persisted position of both 
