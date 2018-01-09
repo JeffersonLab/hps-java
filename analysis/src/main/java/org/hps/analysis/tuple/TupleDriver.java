@@ -528,21 +528,21 @@ public abstract class TupleDriver extends Driver {
     }
     
     private void tupleMapTrkExtrap(int lay, String prefix) {
-        String putMe = String.format("%sTrkExtrpXAxialTopL%d/D", prefix, nLay-lay);
+        String putMe = String.format("%sTrkExtrpXAxialTopL%d/D", prefix, 7-lay);
         tupleMap.put(putMe, extrapTrackXTopAxial[nLay-lay]);        
-        putMe = String.format("%sTrkExtrpYAxialTopL%d/D", prefix, nLay-lay);
+        putMe = String.format("%sTrkExtrpYAxialTopL%d/D", prefix, 7-lay);
         tupleMap.put(putMe, extrapTrackYTopAxial[nLay-lay]);
-        putMe = String.format("%sTrkExtrpXStereoTopL%d/D", prefix, nLay-lay);
+        putMe = String.format("%sTrkExtrpXStereoTopL%d/D", prefix, 7-lay);
         tupleMap.put(putMe, extrapTrackXTopStereo[nLay-lay]);
-        putMe = String.format("%sTrkExtrpYStereoTopL%d/D", prefix, nLay-lay);
+        putMe = String.format("%sTrkExtrpYStereoTopL%d/D", prefix, 7-lay);
         tupleMap.put(putMe, extrapTrackYTopStereo[nLay-lay]);
-        putMe = String.format("%sTrkExtrpYAxialBotL%d/D", prefix, nLay-lay);
+        putMe = String.format("%sTrkExtrpYAxialBotL%d/D", prefix, 7-lay);
         tupleMap.put(putMe, extrapTrackYBotAxial[nLay-lay]);
-        putMe = String.format("%sTrkExtrpYAxialBotL%d/D", prefix, nLay-lay);
+        putMe = String.format("%sTrkExtrpYAxialBotL%d/D", prefix, 7-lay);
         tupleMap.put(putMe, extrapTrackYBotAxial[nLay-lay]);
-        putMe = String.format("%sTrkExtrpXStereoBotL%d/D", prefix, nLay-lay);
+        putMe = String.format("%sTrkExtrpXStereoBotL%d/D", prefix, 7-lay);
         tupleMap.put(putMe, extrapTrackXBotStereo[nLay-lay]);
-        putMe = String.format("%sTrkExtrpYStereoBotL%d/D", prefix, nLay-lay);
+        putMe = String.format("%sTrkExtrpYStereoBotL%d/D", prefix, 7-lay);
         tupleMap.put(putMe, extrapTrackYBotStereo[nLay-lay]);
     }
 
@@ -600,10 +600,7 @@ public abstract class TupleDriver extends Driver {
             }
         }
 
-        if (nLay == 7) {
-            tupleMapTrkExtrap(7, prefix);
-        }
-        for (int i=6;i>0;i--) {
+        for (int i=nLay;i>0;i--) {
             tupleMapTrkExtrap(i, prefix);
         }
     }
