@@ -37,7 +37,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class EngRun2015MollerRecon extends Driver {
     private AIDA aida = AIDA.defaultInstance();
-    private String _aidaFileName = "EngRun2015MollerRecon.aida";
+    private String _aidaFileName = "EngRun2015MollerRecon";
 
     String[] vertexCollectionNames = {"UnconstrainedMollerVertices", "BeamspotConstrainedMollerVertices", "TargetConstrainedMollerVertices"};
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
@@ -391,7 +391,8 @@ public class EngRun2015MollerRecon extends Driver {
     @Override
     protected void endOfData() {
       try {
-            AIDA.defaultInstance().saveAs(_aidaFileName);
+            AIDA.defaultInstance().saveAs(_aidaFileName+".aida");
+            AIDA.defaultInstance().saveAs(_aidaFileName+".root");
             //AIDA.defaultInstance().saveAs(testOutputDir.getPath() + File.separator + this.getClass().getSimpleName() + ".root");
         } catch (IOException e) {
             throw new RuntimeException(e);

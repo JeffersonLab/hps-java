@@ -25,7 +25,7 @@ public class EngRun2015MollerReconTest extends TestCase {
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_005772_mollerskim_10k.evio";
     private final int nEvents = -1;
-    private String aidaOutputFile = "target/test-output/EngRun2015MollerReconTest/EngRun2015MollerReconTest.aida";
+    private String aidaOutputFile = "target/test-output/EngRun2015MollerReconTest/EngRun2015MollerReconTest";
 
     public void testIt() throws Exception {
         URL testURL = new URL(testURLBase + "/" + testFileName);
@@ -45,7 +45,7 @@ public class EngRun2015MollerReconTest extends TestCase {
         System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         EngRun2015MollerRecon reconDriver = new EngRun2015MollerRecon();
-        aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName() + ".aida";
+        aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
         reconDriver.setAidaFileName(aidaOutputFile);
         loop.add(reconDriver);
         try {
@@ -68,7 +68,7 @@ public class EngRun2015MollerReconTest extends TestCase {
         FileCache cache = new FileCache();
         File aidaRefFile = cache.getCachedFile(refFileURL);
 
-        File aidaTstFile = new File(aidaOutputFile);
+        File aidaTstFile = new File(aidaOutputFile+".aida");
 
         ITree ref = af.createTreeFactory().create(aidaRefFile.getAbsolutePath());
         ITree tst = af.createTreeFactory().create(aidaTstFile.getAbsolutePath());
