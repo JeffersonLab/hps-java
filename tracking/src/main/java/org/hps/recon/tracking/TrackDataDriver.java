@@ -239,6 +239,21 @@ public final class TrackDataDriver extends Driver {
                         trackResidualsY.add((float) yResidual);
                     }
 
+                    // Add the stereo layer number associated with the track
+                    // residual
+                    stereoLayers.add(((HelicalTrackHit) rotatedStereoHit).Layer());
+
+                    // Extrapolate the track to the stereo hit position and
+                    // calculate track residuals
+                    stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
+                    trackPosition = TrackUtils.extrapolateTrackPositionToSensor(track, sensor, sensors, bField);
+                    Hep3Vector stereoHitPositionDetector = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
+                    if (trackPosition != null) {
+                        xResidual = trackPosition.x() - stereoHitPositionDetector.x();
+                        yResidual = trackPosition.y() - stereoHitPositionDetector.y();
+                        trackResidualsX.add(xResidual);
+                        trackResidualsY.add((float) yResidual);
+                    }
                     //
                     // Change the persisted position of both 
                     // RotatedHelicalTrackHits and HelicalTrackHits to the

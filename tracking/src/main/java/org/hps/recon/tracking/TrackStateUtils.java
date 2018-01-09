@@ -15,6 +15,7 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.FieldMap;
 
+
 /**
  * Utilities for retrieving TrackStates.
  *
@@ -215,7 +216,8 @@ public class TrackStateUtils {
             if (!foundFirst)
                 first++;
             last++;
-            if (state.getLocation() == TrackState.AtFirstHit) {
+
+            if ((state.getLocation() == TrackState.AtFirstHit) || (state.getLocation() == -1)) {
                 foundFirst = true;
             }
             if (state.getLocation() == TrackState.AtLastHit) {
