@@ -1,5 +1,7 @@
 package org.hps.analysis.tuple;
 
+import hep.physics.matrix.Matrix;
+import hep.physics.matrix.MatrixOp;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
@@ -53,7 +55,6 @@ import org.lcsim.event.TrackerHit;
 
 import java.util.Collection;
 import java.util.Map.Entry;
-
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
@@ -937,7 +938,7 @@ public abstract class TupleDriver extends Driver {
     }
 
     private void fillVertexVariablesHelper(String prefix, BilliorVertexer vtxFitter, List<BilliorTrack> billiorTracks,
-            ReconstructedParticle electron, ReconstructedParticle positron) {
+            ReconstructedParticle electron, ReconstructedParticle positron, boolean storeCov) {
         int nEleClusters = electron.getClusters().size();
         int nPosClusters = positron.getClusters().size();
 
@@ -946,7 +947,21 @@ public abstract class TupleDriver extends Driver {
         ReconstructedParticle theV0 = HpsReconParticleDriver.makeReconstructedParticle(electron, positron, theVertex);
         Hep3Vector momRot = VecOp.mult(beamAxisRotation, theV0.getMomentum());
         Hep3Vector theVtx = VecOp.mult(beamAxisRotation, theV0.getStartVertex().getPosition());
-
+        if (storeCov) {
+                Matrix uncCov = MatrixOp.mult(MatrixOp.mult(beamAxisRotation, theV0.getStartVertex().getCovMatrix()),
+                MatrixOp.transposed(beamAxisRotation));
+                
+                tupleMap.put("uncCovXX/D", uncCov.e(0, 0));
+                tupleMap.put("uncCovXY/D", uncCov.e(0, 1));
+                tupleMap.put("uncCovXZ/D", uncCov.e(0, 2));
+                tupleMap.put("uncCovYX/D", uncCov.e(1, 0));
+                tupleMap.put("uncCovYY/D", uncCov.e(1, 1));
+                tupleMap.put("uncCovYZ/D", uncCov.e(1, 2));
+                tupleMap.put("uncCovZX/D", uncCov.e(2, 0));
+                tupleMap.put("uncCovZY/D", uncCov.e(2, 1));
+                tupleMap.put("uncCovZZ/D", uncCov.e(2, 2));
+        }
+        
         tupleMap.put(prefix+"PX/D", momRot.x());
         tupleMap.put(prefix+"PY/D", momRot.y());
         tupleMap.put(prefix+"PZ/D", momRot.z());
@@ -1049,25 +1064,25 @@ public abstract class TupleDriver extends Driver {
 
         //Unconstrained
         vtxFitter.doBeamSpotConstraint(false);
-        fillVertexVariablesHelper("unc", vtxFitter, billiorTracks, electron, positron);
+        fillVertexVariablesHelper("unc", vtxFitter, billiorTracks, electron, positron, true);
 
         // others
         if (doBsc) {
             vtxFitter.doBeamSpotConstraint(true);
-            fillVertexVariablesHelper("bsc", vtxFitter, billiorTracks, electron, positron);
+            fillVertexVariablesHelper("bsc", vtxFitter, billiorTracks, electron, positron, false);
         }
 
         if (doTar) {
             vtxFitter.doBeamSpotConstraint(true);
             vtxFitter.doTargetConstraint(true);
-            fillVertexVariablesHelper("tar", vtxFitter, billiorTracks, electron, positron);
+            fillVertexVariablesHelper("tar", vtxFitter, billiorTracks, electron, positron, false);
         }
 
         if (doVzc) {
             vtxFitter.setBeamSize(vzcBeamSize);
             vtxFitter.doBeamSpotConstraint(true);
             vtxFitter.doTargetConstraint(true);
-            fillVertexVariablesHelper("vzc", vtxFitter, billiorTracks, electron, positron);
+            fillVertexVariablesHelper("vzc", vtxFitter, billiorTracks, electron, positron, false);
         }
     }
 
