@@ -188,9 +188,9 @@ public class TrackUtils {
         // take care of phi0 range if needed (this matters for dphi below I
         // think)
         // L3 defines it in the range [-pi,pi]
-        while (phi0 > Math.PI/2)
+        while (phi0 > Math.PI / 2)
             phi0 -= Math.PI;
-        while (phi0 < -Math.PI/2)
+        while (phi0 < -Math.PI / 2)
             phi0 += Math.PI;
 
         double dx = newRefPoint[0] - __refPoint[0];
@@ -246,7 +246,7 @@ public class TrackUtils {
 
         while (phi0 > Math.PI)
             phi0 -= Math.PI * 2;
-        while (phi0 < -Math.PI/2)
+        while (phi0 < -Math.PI / 2)
             phi0 += Math.PI;
 
         BasicMatrix jac = new BasicMatrix(5, 5);
@@ -1161,8 +1161,15 @@ public class TrackUtils {
     public static HelicalTrackFit getHTF(Track track) {
         if (track.getClass().isInstance(SeedTrack.class))
             return ((SeedTrack) track).getSeedCandidate().getHelix();
-        else
-            return getHTF(track.getTrackStates().get(0));
+        else {
+            double[] chisq = { track.getChi2(), 0 };
+            int[] ndf = { track.getNDF(), 0 };
+            TrackState ts = track.getTrackStates().get(0);
+            double par[] = ts.getParameters();
+            SymmetricMatrix cov = new SymmetricMatrix(5, ts.getCovMatrix(), true);
+            HelicalTrackFit htf = new HelicalTrackFit(par, cov, chisq, ndf, null, null);
+            return htf;
+        }
     }
 
     public static HelicalTrackFit getHTF(double par[]) {
