@@ -8,8 +8,10 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+
 import static java.lang.Math.abs;
 
 import java.util.ArrayList;
@@ -81,6 +83,22 @@ public class TrackUtils {
     private TrackUtils() {
     }
 
+    public static Hep3Vector extrapolateTrackPositionToSensor(Track track, HpsSiSensor sensor, List<HpsSiSensor> sensors, double bfield) {
+        int i = ((sensor.getLayerNumber() + 1) / 2) - 1;
+        Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(track, sensor, bfield);
+        if (extrapPos == null) {
+            // no TrackState at this sensor available
+            // try to get last available TrackState-at-sensor
+            TrackState tmp = TrackStateUtils.getPreviousTrackStateAtSensor(track, sensors, i + 1);
+            if (tmp != null)
+                extrapPos = TrackStateUtils.getLocationAtSensor(tmp, sensor, bfield);
+            if (extrapPos == null)
+                // now try using TrackState at IP
+                extrapPos = TrackStateUtils.getLocationAtSensor(TrackStateUtils.getTrackStateAtIP(track), sensor, bfield);
+        }
+        return extrapPos;
+    }
+
     /**
      * Extrapolate track to a position along the x-axis. Turn the track into a
      * helix object in order to use HelixUtils.
@@ -113,7 +131,7 @@ public class TrackUtils {
         double py = momentum.y();
         double pz = momentum.z();
         double pt = Math.sqrt(px * px + py * py);
-        double p = Math.sqrt(pt * pt + pz * pz);
+        //double p = Math.sqrt(pt * pt + pz * pz);
         //        double cth = pz / p;
         //        double theta = Math.acos(cth);
         //        System.out.println("pt = "+pt+"; costh = "+cth);
@@ -135,15 +153,15 @@ public class TrackUtils {
         params[HelicalTrackFit.dcaIndex] = dca;
         params[HelicalTrackFit.slopeIndex] = tanL;
         params[HelicalTrackFit.z0Index] = z0;
-        System.out.println("Orig  :  d0 = " + params[HelicalTrackFit.dcaIndex] + "; phi0 = " + params[HelicalTrackFit.phi0Index] + "; curvature = " + params[HelicalTrackFit.curvatureIndex] + "; z0 = " + params[HelicalTrackFit.z0Index] + "; slope = " + params[HelicalTrackFit.slopeIndex]);
+        //System.out.println("Orig  :  d0 = " + params[HelicalTrackFit.dcaIndex] + "; phi0 = " + params[HelicalTrackFit.phi0Index] + "; curvature = " + params[HelicalTrackFit.curvatureIndex] + "; z0 = " + params[HelicalTrackFit.z0Index] + "; slope = " + params[HelicalTrackFit.slopeIndex]);
 
         //ok, now shift these to the new reference frame, recalculating the new perigee parameters        
         double[] oldReferencePoint = { point.x(), point.y(), 0 };
         double[] newReferencePoint = { 0, 0, 0 };
 
-        System.out.println("MC origin : x = " + point.x() + "; y = " + point.y() + ";  z = " + point.z());
+        //System.out.println("MC origin : x = " + point.x() + "; y = " + point.y() + ";  z = " + point.z());
         double[] newParameters = getParametersAtNewRefPoint(newReferencePoint, oldReferencePoint, params);
-        System.out.println("New  :  d0 = " + newParameters[HelicalTrackFit.dcaIndex] + "; phi0 = " + newParameters[HelicalTrackFit.phi0Index] + "; curvature = " + newParameters[HelicalTrackFit.curvatureIndex] + "; z0 = " + newParameters[HelicalTrackFit.z0Index] + "; slope = " + newParameters[HelicalTrackFit.slopeIndex]);
+        //System.out.println("New  :  d0 = " + newParameters[HelicalTrackFit.dcaIndex] + "; phi0 = " + newParameters[HelicalTrackFit.phi0Index] + "; curvature = " + newParameters[HelicalTrackFit.curvatureIndex] + "; z0 = " + newParameters[HelicalTrackFit.z0Index] + "; slope = " + newParameters[HelicalTrackFit.slopeIndex]);
         //print the trajectory after shift.  Should be the same!!!        
         if (writeIt)
             writeTrajectory(getMomentum(newParameters[HelicalTrackFit.curvatureIndex], newParameters[HelicalTrackFit.phi0Index], newParameters[HelicalTrackFit.slopeIndex], BField), getPoint(newParameters[HelicalTrackFit.dcaIndex], newParameters[HelicalTrackFit.phi0Index], newParameters[HelicalTrackFit.z0Index]), charge, BField, "final-point-and-mom.txt");
@@ -649,6 +667,7 @@ public class TrackUtils {
         double dx = 0.0;
         int nIter = 0;
         Hep3Vector pos = null;
+
         while (Math.abs(d) > eps && nIter < 50) {
             // Calculate position on helix at x
             pos = getHelixPosAtX(helix, x + dx);
@@ -1562,6 +1581,7 @@ public class TrackUtils {
         // size up to ~90% of the final position. At this point, a finer
         // track size will be used.
         boolean stepSizeChange = false;
+
         while (currentPosition.x() < endPositionX) {
 
             // The field map coordinates are in the detector frame so the
@@ -1595,6 +1615,11 @@ public class TrackUtils {
                 // System.out.println("Changing step size: " + stepSize);
                 stepSizeChange = true;
             }
+
+            if (currentMomentum.x() < 0) {
+                throw new RuntimeException("extrapolateTrackUsingFieldMap track going backwards - abort search\n");
+            }
+
         }
 
         // Calculate the track parameters at the Extrapolation point

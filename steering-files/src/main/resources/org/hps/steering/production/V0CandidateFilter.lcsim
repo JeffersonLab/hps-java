@@ -15,9 +15,7 @@
         </driver>
         <!-- Driver to strip events -->
         <driver name="StripEvent"
-                type="org.hps.recon.filtering.V0CandidateFilter">
-              <!-- Setting this true keeps ALL events containing EPICS data -->
-              <keepEpicsDataEvents>true</keepEpicsDataEvents>
+                type="org.hps.recon.filtering.V0CandidateFilter2015Pass7">
         </driver>
         <!-- Driver to write output slcio file -->
         <driver name="Writer"
