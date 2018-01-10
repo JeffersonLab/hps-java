@@ -939,40 +939,39 @@ public abstract class TupleDriver extends Driver {
         int nEleClusters = electron.getClusters().size();
         int nPosClusters = positron.getClusters().size();
 
-
         BilliorVertex theVertex = vtxFitter.fitVertex(billiorTracks);
         ReconstructedParticle theV0 = HpsReconParticleDriver.makeReconstructedParticle(electron, positron, theVertex);
         Hep3Vector momRot = VecOp.mult(beamAxisRotation, theV0.getMomentum());
         Hep3Vector theVtx = VecOp.mult(beamAxisRotation, theV0.getStartVertex().getPosition());
         if (storeCov) {
-                Matrix uncCov = MatrixOp.mult(MatrixOp.mult(beamAxisRotation, theV0.getStartVertex().getCovMatrix()),
-                MatrixOp.transposed(beamAxisRotation));
-                
-                tupleMap.put("uncCovXX/D", uncCov.e(0, 0));
-                tupleMap.put("uncCovXY/D", uncCov.e(0, 1));
-                tupleMap.put("uncCovXZ/D", uncCov.e(0, 2));
-                tupleMap.put("uncCovYX/D", uncCov.e(1, 0));
-                tupleMap.put("uncCovYY/D", uncCov.e(1, 1));
-                tupleMap.put("uncCovYZ/D", uncCov.e(1, 2));
-                tupleMap.put("uncCovZX/D", uncCov.e(2, 0));
-                tupleMap.put("uncCovZY/D", uncCov.e(2, 1));
-                tupleMap.put("uncCovZZ/D", uncCov.e(2, 2));
+            Matrix uncCov = MatrixOp.mult(MatrixOp.mult(beamAxisRotation, theV0.getStartVertex().getCovMatrix()),
+                    MatrixOp.transposed(beamAxisRotation));
+
+            tupleMap.put("uncCovXX/D", uncCov.e(0, 0));
+            tupleMap.put("uncCovXY/D", uncCov.e(0, 1));
+            tupleMap.put("uncCovXZ/D", uncCov.e(0, 2));
+            tupleMap.put("uncCovYX/D", uncCov.e(1, 0));
+            tupleMap.put("uncCovYY/D", uncCov.e(1, 1));
+            tupleMap.put("uncCovYZ/D", uncCov.e(1, 2));
+            tupleMap.put("uncCovZX/D", uncCov.e(2, 0));
+            tupleMap.put("uncCovZY/D", uncCov.e(2, 1));
+            tupleMap.put("uncCovZZ/D", uncCov.e(2, 2));
         }
-        
-        tupleMap.put(prefix+"PX/D", momRot.x());
-        tupleMap.put(prefix+"PY/D", momRot.y());
-        tupleMap.put(prefix+"PZ/D", momRot.z());
-        tupleMap.put(prefix+"P/D", momRot.magnitude());
-        tupleMap.put(prefix+"VX/D", theVtx.x());
-        tupleMap.put(prefix+"VY/D", theVtx.y());
-        tupleMap.put(prefix+"VZ/D", theVtx.z());
-        tupleMap.put(prefix+"Chisq/D", theV0.getStartVertex().getChi2());
-        tupleMap.put(prefix+"M/D", theV0.getMass());
-        tupleMap.put(prefix+"ElePX/D", theV0.getStartVertex().getParameters().get("p1X"));
-        tupleMap.put(prefix+"ElePY/D", theV0.getStartVertex().getParameters().get("p1Y"));
-        tupleMap.put(prefix+"ElePZ/D", theV0.getStartVertex().getParameters().get("p1Z"));
+
+        tupleMap.put(prefix + "PX/D", momRot.x());
+        tupleMap.put(prefix + "PY/D", momRot.y());
+        tupleMap.put(prefix + "PZ/D", momRot.z());
+        tupleMap.put(prefix + "P/D", momRot.magnitude());
+        tupleMap.put(prefix + "VX/D", theVtx.x());
+        tupleMap.put(prefix + "VY/D", theVtx.y());
+        tupleMap.put(prefix + "VZ/D", theVtx.z());
+        tupleMap.put(prefix + "Chisq/D", theV0.getStartVertex().getChi2());
+        tupleMap.put(prefix + "M/D", theV0.getMass());
+        tupleMap.put(prefix + "ElePX/D", theV0.getStartVertex().getParameters().get("p1X"));
+        tupleMap.put(prefix + "ElePY/D", theV0.getStartVertex().getParameters().get("p1Y"));
+        tupleMap.put(prefix + "ElePZ/D", theV0.getStartVertex().getParameters().get("p1Z"));
         tupleMap.put(
-                prefix+"EleP/D",
+                prefix + "EleP/D",
                 Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p1X"), 2)
                         + Math.pow(theV0.getStartVertex().getParameters().get("p1Y"), 2)
                         + Math.pow(theV0.getStartVertex().getParameters().get("p1Z"), 2)));
