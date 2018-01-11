@@ -60,12 +60,6 @@ public class TrackStateUtils {
     }
 
     public static Hep3Vector getLocationAtSensor(TrackState ts, HpsSiSensor sensor, double bfield) {
-        return getLocationAtSensor(TrackUtils.getHTF(ts), sensor, bfield);
-    }
-
-    public static Hep3Vector getLocationAtSensor(HelicalTrackFit htf, HpsSiSensor sensor, double bfield) {
-        // get origin and normal of sensor, in global tracking coordinates
-        Hep3Vector point_on_plane = sensor.getGeometry().getPosition();
         if (ts == null || sensor == null)
             return null;
         if ((ts.getTanLambda() > 0 && sensor.isTopLayer()) || (ts.getTanLambda() < 0 && sensor.isBottomLayer()))
