@@ -253,12 +253,17 @@ public class GBLOutput {
 
                 // order: iso, u, ures,  truth ures, simhit ures, scatangle
                 doStripIso(stripHits, strip, sensor.getName());
-                textFile.printStripMeas(stripData.getMeas());
-                textFile.printStripMeasRes(stripData.getMeas() - stripData.getTrackPos().x(), stripData.getMeasErr());
+                
+                if (textFile != null) {
+                    textFile.printStripMeas(stripData.getMeas());
+                    textFile.printStripMeasRes(stripData.getMeas() - stripData.getTrackPos().x(), stripData.getMeasErr());
+                }
 
                 doResiduals(strip, htfTruth, stripData, simHitsLayerMap, temp.getPosition());
 
-                textFile.printStripScat(stripData.getScatterAngle());
+                if (textFile != null) 
+                    textFile.printStripScat(stripData.getScatterAngle());
+                
                 ++istrip;
             }
         }
