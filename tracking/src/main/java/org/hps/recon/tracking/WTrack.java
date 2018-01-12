@@ -25,10 +25,10 @@ public class WTrack {
     public HelicalTrackFit _htf = null;
     private double _bfield;
     private double _a;
-    private boolean _debug = false;
+    public boolean _debug = false;
     private final int max_iterations_intercept = 10;
     private final double epsilon_intercept = 1e-4;
-      
+
     /**
      * Constructor. Assumes that b-field is in detector z direction. 
      * 
@@ -38,7 +38,7 @@ public class WTrack {
     public WTrack(HelicalTrackFit track, double bfield) {
         _htf = track;
         //_bfield = flip ? -1.0 * bfield : bfield; // flip if needed
-        _bfield = bfield; 
+        _bfield = bfield;
         _a = -1 * Constants.fieldConversion * _bfield * Math.signum(track.R());
         double p = track.p(Math.abs(_bfield));
         double theta = Math.PI / 2.0 - Math.atan(track.slope());
@@ -55,7 +55,6 @@ public class WTrack {
         }
     }
 
-    
     /**
      * Copy constructor
      * 
@@ -69,7 +68,10 @@ public class WTrack {
         _debug = trk._debug;
     }
 
-    
+    public WTrack(double bfield) {
+        _bfield = bfield;
+    }
+
     public void setTrackParameters(double[] params) {
         _parameters = params;
     }
@@ -88,8 +90,8 @@ public class WTrack {
 
     }
 
-    private int getCharge() {
-        return (int) Math.signum(_htf.R());
+    public void setCharge(int input) {
+        _a = -1 * Constants.fieldConversion * _bfield * input;
     }
 
     public Hep3Vector getP0() {
@@ -233,7 +235,6 @@ public class WTrack {
      * @return track parameters
      */
     public double[] getHelixParametersAtPathLength(double s, Hep3Vector h) {
-        
 
         // Find track parameters at that path length
         Hep3Vector p = getMomentumOnHelix(s, h);
