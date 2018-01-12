@@ -47,6 +47,7 @@ public class TrackStateUtils {
     }
 
     public static Hep3Vector getLocationAtSensor(Track track, HpsSiSensor sensor, double bfield) {
+
         if (track == null || sensor == null)
             return null;
 
@@ -74,6 +75,7 @@ public class TrackStateUtils {
         Hep3Vector point_on_plane = sensor.getGeometry().getPosition();
         if (point_on_plane == null)
             return null;
+
         Hep3Vector pointInTrackingFrame = CoordinateTransformations.transformVectorToTracking(point_on_plane);
         Hep3Vector w = sensor.getGeometry().getLocalToGlobal().rotated(new BasicHep3Vector(0, 0, 1));
         Hep3Vector wInTrackingFrame = CoordinateTransformations.transformVectorToTracking(w);
