@@ -1,6 +1,8 @@
 package org.hps.recon.tracking;
 
+//import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+//import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,8 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.util.Driver;
 
+//import org.lcsim.util.aida.AIDA;
+
 /**
  * Driver used to persist additional {@link org.lcsim.event.Track} information via a 
  * {@link org.lcsim.event.GenericObject} collection.
@@ -40,6 +44,7 @@ public final class TrackDataDriver extends Driver {
     double bField = 0;
 
     /** Collection Names */
+    private String TRK_COLLECTION_NAME = "GBLTracks";
 
     /** Collection name of TrackResidualData objects */
     private static final String TRK_RESIDUALS_COL_NAME = "TrackResiduals";
@@ -59,28 +64,18 @@ public final class TrackDataDriver extends Driver {
     /** Position of the Ecal face */
     private double ecalPosition = 0; // mm
 
-    /** Z position to start extrapolation from */
-    double extStartPos = 700; // mm
+    double epsilon = 0.005; // mm
 
-    double stepSize = 5.0; // mm
-
-    /** The default number of layers */
-    int layerNum = 6;
     List<HpsSiSensor> sensors = null;
+
+    //public AIDA aida = AIDA.defaultInstance();
 
     /** Default constructor */
     public TrackDataDriver() {
     }
 
-    /**
-     * Set the position along Z where the extrapolation of a track should
-     * begin.
-     * 
-     * @param extStartPoint Position along Z where the extrapolation should 
-     *                      begin
-     */
-    void setExtrapolationStartPosition(double extStartPos) {
-        this.extStartPos = extStartPos;
+    public void setTrackCollectionName(String input) {
+        TRK_COLLECTION_NAME = input;
     }
 
     /**
@@ -89,17 +84,12 @@ public final class TrackDataDriver extends Driver {
      * 
      * @param stepSize The extrapolation length between iterations in mm. 
      */
-    void setStepSize(double stepSize) {
-        this.stepSize = stepSize;
+    public void setEpsilon(double input) {
+        epsilon = input;
     }
 
-    /**
-     * Set number of tracking layers. Default is 6 layers.
-     * 
-     */
-
-    public void setLayerNum(int layerNum) {
-        this.layerNum = layerNum;
+    public void setECalPosition(double input) {
+        ecalPosition = input;
     }
 
     /**
@@ -118,7 +108,8 @@ public final class TrackDataDriver extends Driver {
         sensors = detector.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         // Get the position of the Ecal from the compact description
-        ecalPosition = detector.getConstants().get(ECAL_POSITION_CONSTANT_NAME).getValue();
+        if (ecalPosition == 0)
+            ecalPosition = detector.getConstants().get(ECAL_POSITION_CONSTANT_NAME).getValue();
     }
 
     /**
@@ -137,7 +128,13 @@ public final class TrackDataDriver extends Driver {
         // Get all collections of the type Track from the event. This is
         // required since the event contains a track collection for each of the
         // different tracking strategies.
-        List<List<Track>> trackCollections = event.get(Track.class);
+        List<List<Track>> trackCollections = null;
+        if (TRK_COLLECTION_NAME == null) {
+            trackCollections = event.get(Track.class);
+        } else {
+            trackCollections = new ArrayList<List<Track>>();
+            trackCollections.add(event.get(Track.class, TRK_COLLECTION_NAME));
+        }
 
         // Get the collection of LCRelations relating RotatedHelicalTrackHits to
         // HelicalTrackHits
@@ -172,7 +169,6 @@ public final class TrackDataDriver extends Driver {
 
         boolean isFirstHit;
 
-        HpsSiSensor sensor = null;
         Hep3Vector stereoHitPosition;
         Hep3Vector trackPosition;
         HelicalTrackHit helicalTrackHit;
@@ -180,7 +176,6 @@ public final class TrackDataDriver extends Driver {
         List<Double> t0Residuals = new ArrayList<Double>();
         List<Double> trackResidualsX = new ArrayList<Double>();
         List<Float> trackResidualsY = new ArrayList<Float>();
-        List<Integer> sensorLayers = new ArrayList<Integer>();
         List<Integer> stereoLayers = new ArrayList<Integer>();
 
         // Loop over each of the track collections retrieved from the event
@@ -191,11 +186,10 @@ public final class TrackDataDriver extends Driver {
                 totalT0 = 0;
                 totalHits = 0;
                 t0Residuals.clear();
-                sensorLayers.clear();
                 trackResidualsX.clear();
                 trackResidualsY.clear();
                 stereoLayers.clear();
-                isFirstHit = true;
+                HpsSiSensor LastSensor = null;
 
                 // Change the position of a HelicalTrackHit to be the corrected
                 // one.
@@ -206,6 +200,8 @@ public final class TrackDataDriver extends Driver {
                 //
                 // Loop over all stereo hits comprising a track
                 for (TrackerHit rotatedStereoHit : track.getTrackerHits()) {
+                    HpsSiSensor sensor = null;
+                    isFirstHit = true;
                     // Loop over the clusters comprising the stereo hit
                     for (HelicalTrackStrip cluster : ((HelicalTrackCross) rotatedStereoHit).getStrips()) {
 
@@ -222,30 +218,29 @@ public final class TrackDataDriver extends Driver {
                             isFirstHit = false;
                         }
                     }
-
-                    // Add the stereo layer number associated with the track
-                    // residual
-                    stereoLayers.add(((HelicalTrackHit) rotatedStereoHit).Layer());
-
-                    // Extrapolate the track to the stereo hit position and
-                    // calculate track residuals
                     stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
+
                     trackPosition = TrackUtils.extrapolateTrackPositionToSensor(track, sensor, sensors, bField);
-                    Hep3Vector stereoHitPositionDetector = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
                     if (trackPosition != null) {
+                        // Add the stereo layer number associated with the track residual
+                        stereoLayers.add(((HelicalTrackHit) rotatedStereoHit).Layer());
+                        // Extrapolate the track to the stereo hit position and calculate track residuals
+                        Hep3Vector stereoHitPositionDetector = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
                         xResidual = trackPosition.x() - stereoHitPositionDetector.x();
                         yResidual = trackPosition.y() - stereoHitPositionDetector.y();
                         trackResidualsX.add(xResidual);
                         trackResidualsY.add((float) yResidual);
+                        if (LastSensor == null)
+                            LastSensor = sensor;
+                        else {
+                            if (sensor.getLayerNumber() > LastSensor.getLayerNumber())
+                                LastSensor = sensor;
+                        }
                     }
-                    //
+
                     // Change the persisted position of both 
                     // RotatedHelicalTrackHits and HelicalTrackHits to the
                     // corrected position.
-                    //
-
-                    // Get the HelicalTrackHit corresponding to the 
-                    // RotatedHelicalTrackHit associated with a track
                     helicalTrackHit = (HelicalTrackHit) hitToRotated.from(rotatedStereoHit);
                     ((HelicalTrackHit) rotatedStereoHit).setPosition(stereoHitPosition.v());
                     stereoHitPosition = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
@@ -261,16 +256,28 @@ public final class TrackDataDriver extends Driver {
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 if (TrackType.isGBL(track.getType())) {
-                    TrackState stateIP = TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
-                    if (stateIP == null)
-                        throw new RuntimeException("IP track state for GBL track was not found");
-                    TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, ecalPosition, stepSize, bFieldMap);
-                    track.getTrackStates().add(stateEcalIP);
+                    TrackState stateEcal = null;
+                    if (LastSensor != null) {
+                        //                        TrackState stateAtLast = TrackUtils.getTrackStateAtLocation(track, TrackState.AtLastHit);
+                        TrackState stateAtLast = TrackStateUtils.getTrackStateAtSensor(track, LastSensor.getMillepedeId());
+                        if (stateAtLast != null) {
+                            Hep3Vector atLastSensor = TrackStateUtils.getLocationAtSensor(stateAtLast, LastSensor, bField);
+                            if (atLastSensor != null) {
+                                stateEcal = TrackUtils.extrapolateToEndplane(stateAtLast, atLastSensor.z(), ecalPosition, epsilon, bFieldMap);
 
-                } else {
-                    LOGGER.fine("Extrapolate seed track to ECal from vertex");
-                    TrackState state = TrackUtils.extrapolateTrackUsingFieldMap(track, extStartPos, ecalPosition, stepSize, bFieldMap);
-                    track.getTrackStates().add(state);
+                                //Hep3Vector stateDiff = VecOp.sub(new BasicHep3Vector(stateEcalIP.getReferencePoint()), new BasicHep3Vector(stateEcal.getReferencePoint()));
+                                //System.out.printf("ECalstateIP refPoint %s  stateECal refPoint %s", new BasicHep3Vector(stateEcalIP.getReferencePoint()).toString(), new BasicHep3Vector(stateEcal.getReferencePoint()).toString());
+                                //aida.histogram1D("extrap [old-new] x").fill(stateDiff.x());
+                                //aida.histogram1D("extrap [old-new] y").fill(stateDiff.y());
+                                //aida.histogram1D("extrap [old-new] z").fill(stateDiff.z());
+                            }
+                        } else {
+                            stateEcal = TrackUtils.extrapolateTrackUsingFieldMap(TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP), 700, ecalPosition, 5.0, bFieldMap);
+                        }
+                    }
+                    if (stateEcal != null)
+                        track.getTrackStates().add(stateEcal);
+
                 }
 
                 LOGGER.fine(Integer.toString(track.getTrackStates().size()) + " track states for this track at this point:");
@@ -286,7 +293,7 @@ public final class TrackDataDriver extends Driver {
 
                 // Calculate the track isolation constants for each of the 
                 // layers
-                Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated, layerNum);
+                Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated, 6);
                 double qualityArray[] = new double[isolations.length];
                 for (int i = 0; i < isolations.length; i++) {
                     qualityArray[i] = isolations[i] == null ? -99999999.0 : isolations[i];
