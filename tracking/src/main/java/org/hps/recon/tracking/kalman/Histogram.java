@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+//This is for testing only and is not part of the Kalman fitting code
 class Histogram { // Very light interface into Gnuplot to make histograms while testing the fitting package.
                   // The output histograms are just text files that can be displayed by Gnuplot.
     int N;

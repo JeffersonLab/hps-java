@@ -27,11 +27,11 @@ public class LinearHelixFit { // Simultaneous fit to a line in the non-bending p
             A.M[2][4] += w * y[i] * y[i] * st * st;
             A.M[3][4] += w * y[i] * y[i] * y[i] * st * st;
             A.M[4][4] += w * y[i] * y[i] * y[i] * y[i] * st * st;
-            B.v[0] += v[i] * ct * w;
-            B.v[1] += v[i] * y[i] * ct * w;
-            B.v[2] += v[i] * st * w;
-            B.v[3] += v[i] * y[i] * st * w;
-            B.v[4] += v[i] * y[i] * y[i] * st * w;
+            B.v[0] -= v[i] * ct * w;
+            B.v[1] -= v[i] * y[i] * ct * w;
+            B.v[2] -= v[i] * st * w;
+            B.v[3] -= v[i] * y[i] * st * w;
+            B.v[4] -= v[i] * y[i] * y[i] * st * w;
         }
         A.M[1][0] = A.M[0][1];
         A.M[1][2] = A.M[0][3];

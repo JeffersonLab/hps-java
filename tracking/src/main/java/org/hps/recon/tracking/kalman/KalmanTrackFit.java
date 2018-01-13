@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 //Driver program for executing a Kalman fit.  At first it takes just the simplest case of starting
-// from one end, filtering to the other end, and then smoothing.  No pattern recognition is done (yet).
+// from one end, filtering to the other end, and then smoothing.  No pattern recognition is done here.
 public class KalmanTrackFit {
 
     ArrayList<MeasurementSite> sites;
@@ -43,6 +43,7 @@ public class KalmanTrackFit {
         } else {
             direction = -1;
         }
+        double mxResid = 9999.; // Residual cut set very large to ensure all hits are picked up
 
         // First insert some dummy layers where needed for propagation in the non-uniform field
         int nNew = 0;
@@ -81,7 +82,7 @@ public class KalmanTrackFit {
             finalSite = idx;
             SiModule m = data.get(idx);
             thisSite++;
-            MeasurementSite newSite = new MeasurementSite(idx, m);
+            MeasurementSite newSite = new MeasurementSite(idx, m, mxResid);
             if (idx == start) {
                 if (!newSite.makePrediction(sI)) {
                     System.out.format("KalmanTrackFit: Failed to make initial prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
@@ -149,7 +150,7 @@ public class KalmanTrackFit {
                     System.out.format("KalmanTrackFit: filtering remaining sites, measurements %d\n", idx);
                 SiModule m = data.get(idx);
                 thisSite++;
-                MeasurementSite newSite = new MeasurementSite(idx, m);
+                MeasurementSite newSite = new MeasurementSite(idx, m, mxResid);
                 if (!newSite.makePrediction(sites.get(prevSite).aF)) {
                     System.out.format("KalmanTrackFit: Failed to make prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                     break;

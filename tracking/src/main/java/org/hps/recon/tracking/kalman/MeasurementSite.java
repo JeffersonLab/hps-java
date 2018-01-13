@@ -3,7 +3,8 @@ package kalman;
 //Kalman fit measurement site, one for each silicon-strip detector that the track crosses
 class MeasurementSite {
     SiModule m; // Si detector hit data
-    int thisSite; // Index of this measurement
+    int hitID; // hit used on the track (-1 if none)
+    int thisSite; // Index of this measurement site
     StateVector aP; // Predicted state vector
     boolean predicted; // True if the predicted state vector has been built
     StateVector aF; // Filtered state vector
@@ -16,8 +17,12 @@ class MeasurementSite {
     private double alpha;
     private double XL; // Thickness of the detector in radiation lengths
     private double dEdx; // in GeV/mm
+    private double mxResid; // Maximum residual for adding a hit
     private boolean verbose;
     private HelixPlaneIntersect hpi;
+
+    // Note: I can remove the concept of a dummy layer and make all layers equivalent, except that the non-physical ones
+    // will never have a hit and thus will be handled the same as physical layers that lack hits
 
     void print(String s) {
         if (m.Layer < 0) {
@@ -32,6 +37,7 @@ class MeasurementSite {
         } else if (predicted) {
             System.out.format("    This site has been predicted\n");
         }
+        System.out.format("    Hit ID=%d, maximum residual=%12.5e\n", hitID, mxResid);
         m.print("for this site");
         double B = m.Bfield.getField(m.p.X()).mag();
         Vec tB = m.Bfield.getField(m.p.X()).unitVec();
@@ -55,9 +61,11 @@ class MeasurementSite {
         }
     }
 
-    MeasurementSite(int thisSite, SiModule data) {
+    MeasurementSite(int thisSite, SiModule data, double mxResid) {
         this.thisSite = thisSite;
+        this.mxResid = mxResid;
         this.m = data;
+        hitID = -1;
         double c = 2.99793e8; // Speed of light in m/s
         conFac = 1.0e12 / c;
         Vec Bfield = m.Bfield.getField(m.p.X());
@@ -69,8 +77,7 @@ class MeasurementSite {
         double rho = 2.329; // Density of silicon in g/cm^2
         double radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         XL = m.thickness / radLen;
-        double sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in
-                           // GeV cm2/g
+        double sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
         dEdx = -0.1 * sp * rho; // in GeV/mm
         hpi = new HelixPlaneIntersect();
         chi2inc = 0.;
@@ -134,30 +141,56 @@ class MeasurementSite {
         // MeasurementSite.makePrediction");
         // }
 
-        if (m.Layer >= 0) {
+        if (m.Layer >= 0) { // Not a dummy layer
             aP.mPred = h(pS, phi);
-            aP.r = m.hits.get(0).v - aP.mPred;
-            if (verbose) {
-                System.out.format("MeasurementSite.makePrediction: intersection with old helix is at phi=%10.7f, z=%10.7f\n", phi,
-                                                aP.mPred);
-                double phi2 = aP.planeIntersect(m.p); // This should always be zero
-                double mPred2 = h(aP, phi2);
-                System.out.format("MeasurementSite.makePrediction: intersection with new helix is at phi=%10.7f, z=%10.7f\n", phi2, mPred2);
-            }
-
             H = new Vec(5, buildH(aP));
-            aP.R = m.hits.get(0).sigma * m.hits.get(0).sigma - H.dot(H.leftMultiply(aP.C));
-            if (verbose) {
-                H.print("H in MeasurementSite.makePrediction");
-                Vec H2 = new Vec(5, buildH(pS));
-                H2.print("H made using old statevector");
-                aP.C.print("covariance");
-                double exRes = m.hits.get(0).sigma * m.hits.get(0).sigma - H2.dot(H2.leftMultiply(pS.C));
-                System.out.format("MeasurementSite.makePrediction: expected residual = %12.5e; from old state vector = %12.5e, sigma=%12.5e\n",
-                                                aP.R, exRes, m.hits.get(0).sigma);
-            }
 
-            chi2inc = aP.r * aP.r / aP.R;
+            // Loop over hits and find the one that is closest
+            int nHits = m.hits.size();
+            if (nHits > 0) {
+                double minResid = 999.;
+                int theHit = 0;
+                for (int i = 0; i < nHits; i++) {
+                    double residual = m.hits.get(i).v - aP.mPred;
+                    if (Math.abs(residual) < minResid) {
+                        theHit = i;
+                        minResid = Math.abs(residual);
+                    }
+                }
+
+                aP.r = m.hits.get(theHit).v - aP.mPred;
+                if (verbose) {
+                    System.out.format("MeasurementSite.makePrediction: selected hit=%d with minimum residual=%10.7f\n", theHit, minResid);
+                    System.out.format("MeasurementSite.makePrediction: intersection with old helix is at phi=%10.7f, z=%10.7f\n", phi,
+                                                    aP.mPred);
+                    double phi2 = aP.planeIntersect(m.p); // This should always be zero
+                    double mPred2 = h(aP, phi2);
+                    System.out.format("MeasurementSite.makePrediction: intersection with new helix is at phi=%10.7f, z=%10.7f\n", phi2,
+                                                    mPred2);
+                }
+
+                aP.R = m.hits.get(0).sigma * m.hits.get(0).sigma - H.dot(H.leftMultiply(aP.C));
+                if (verbose) {
+                    H.print("H in MeasurementSite.makePrediction");
+                    Vec H2 = new Vec(5, buildH(pS));
+                    H2.print("H made using old statevector");
+                    aP.C.print("covariance");
+                    double exRes = m.hits.get(0).sigma * m.hits.get(0).sigma - H2.dot(H2.leftMultiply(pS.C));
+                    System.out.format("MeasurementSite.makePrediction: expected residual = %12.5e; from old state vector = %12.5e, sigma=%12.5e\n",
+                                                    aP.R, exRes, m.hits.get(0).sigma);
+                }
+
+                chi2inc = aP.r * aP.r / aP.R;
+                if (Math.abs(minResid) < mxResid) {
+                    hitID = theHit;
+                } else {
+                    chi2inc = 0.;
+                }
+                if (verbose) {
+                    System.out.format("MeasurementSite.makePrediction: chi2 increment=%12.5e, hitID=%d, theHit=%d, mxResid=%12.5e\n",
+                                                    chi2inc, hitID, theHit, mxResid);
+                }
+            }
         }
 
         predicted = true;
@@ -176,14 +209,14 @@ class MeasurementSite {
             this.print("in the wrong state for filtering");
         }
 
-        // For dummy layers just copy the predicted state
-        if (m.Layer < 0) {
+        // For dummy layers or layers with no hits just copy the predicted state
+        if (m.Layer < 0 || hitID < 0) {
             aF = aP;
             filtered = true;
             return true;
         }
 
-        Measurement hit = m.hits.get(0);
+        Measurement hit = m.hits.get(hitID);
         double V = hit.sigma * hit.sigma;
         aF = aP.filter(H, V);
         double phiF = hpi.planeIntersect(aF.a, aF.X0, aF.alpha, m.p.toLocal(aF.Rot, aF.origin));
@@ -219,7 +252,7 @@ class MeasurementSite {
             this.print("in the wrong state for smoothing");
         }
 
-        if (m.Layer < 0) { // If this method is called properly, we really shouldn't go here. . .
+        if (m.Layer < 0 || hitID < 0) { // Skip dummy layer or a layer with no hit attached
             this.aS = nS.aS;
             this.aP = nS.aP;
             smoothed = true;
@@ -228,7 +261,11 @@ class MeasurementSite {
 
         this.aS = this.aF.smooth(nS.aS, nS.aP, Facc);
 
-        Measurement hit = this.m.hits.get(0);
+        if (hitID < 0) {
+            System.out.format("MeasurementSite.smooth: hitID=%d", hitID);
+            this.print("buggy");
+        }
+        Measurement hit = this.m.hits.get(hitID);
         double V = hit.sigma * hit.sigma;
         double phiS = this.hpi.planeIntersect(this.aS.a, this.aS.X0, this.aS.alpha, this.m.p.toLocal(this.aS.Rot, this.aS.origin));
         if (Double.isNaN(phiS)) { // This should almost never happen!
@@ -252,6 +289,16 @@ class MeasurementSite {
         this.chi2inc = (this.aS.r * this.aS.r) / this.aS.R;
 
         this.smoothed = true;
+        return true;
+    }
+
+    // Inverse Kalman filter: remove this site from the smoothed track fit
+    boolean removeHit() {
+        return true;
+    }
+
+    // Add a hit to the smoothed track fit at this site (after one has been removed)
+    boolean addHit(int hit) {
         return true;
     }
 

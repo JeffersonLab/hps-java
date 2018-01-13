@@ -10,7 +10,13 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+//This is for testing only and is not part of the Kalman fitting code
 public class HelixTest { // Main program for testing the Kalman fitting code
+
+    // Coordinate system:
+    // z is the B field direction, downward in lab coordinates
+    // y is the beam direction
+    // x is y cross z
 
     public static void main(String[] args) {
 
@@ -52,8 +58,9 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         Vec tInt = new Vec(0., 1., 0.); // Nominal detector plane orientation
         double[] location = { 100., 200., 300., 500., 700., 900. }; // Detector positions in y
         double thickness = 0.3; // Silicon thickness in mm
-        if (perfect)
+        if (perfect) {
             thickness = 0.0000000000001;
+        }
         double delta = 5.0; // Distance between stereo pairs
         double[] stereoAngle = { 0.1, 0.1, 0.1, 0.05, 0.05, 0.05 }; // Angles of the stereo layers in radians
         double resolution = 0.012; // SSD point resolution, in mm
@@ -84,8 +91,9 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             System.out.format("Could not open or read the field map %s\n", mapFile);
             return;
         }
-        if (mapType != "binary")
+        if (mapType != "binary") {
             fM.writeBinaryFile("C:\\Users\\Robert\\Desktop\\Kalman\\fieldmap.bin");
+        }
         Vec Bpivot = fM.getField(helixOrigin);
         Bpivot.print("magnetic field at the initial pivot");
         for (int pln = 0; pln < nPlanes; pln++) {
@@ -307,9 +315,20 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         hphidif.plot(path + "phiscat.gp", true, " ", " ");
         hScatProj.plot(path + "projScat.gp", true, " ", " ");
         */
-        /*       
+
         // Test the seed track fitter using an exact model with no scattering
-        double Bseed = 1.0;
+        // First find the average field
+        Vec Bvec = new Vec(0., 0., 0.);
+        for (int pln = 0; pln < nPlanes; pln++) {
+            Vec thisB = fM.getField(new Vec(0., location[pln], 0.));
+            Bvec = Bvec.sum(thisB);
+            thisB = fM.getField(new Vec(0., location[pln] + delta, 0.));
+            Bvec = Bvec.sum(thisB);
+        }
+        double sF = 1.0 / ((double) 2 * nPlanes);
+        Bvec = Bvec.scale(sF);
+        double Bseed = Bvec.mag();
+        System.out.format("B field averaged over all layers = %12.5e\n", Bseed);
         Histogram hEdrho2 = new Histogram(100, -10., 0.2, "Seed track drho error", "sigmas", "track");
         Histogram hEphi02 = new Histogram(100, -10., 0.2, "Seed track phi0 error", "sigmas", "track");
         Histogram hEk2 = new Histogram(100, -10., 0.2, "Seed track K error", "sigmas", "track");
@@ -329,6 +348,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         double yc = (drho[0] + Radius) * Math.sin(phi0[0]);
         double sgn = -1.0;
         double[] coefs = new double[5];
+        System.out.format("True starting helix is %10.6f %10.6f %10.6f %10.6f %10.6f\n", drho[0], phi0[0], K[0], dz[0], tanl[0]);
         coefs[0] = dz[0] - drho[0] * tanl[0] * Math.tan(phi0[0]);
         coefs[1] = tanl[0] / Math.cos(phi0[0]);
         coefs[3] = sgn * yc / Radius;
@@ -337,7 +357,8 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         double[] circ = parabolaToCircle(alpha, sgn, new Vec(coefs[2], coefs[3], coefs[4]));
         Vec tmp = new Vec(circ[0], circ[1], circ[2]);
         tmp.print("circle params");
-        System.out.format("Helix radius = %10.5f, and the center is at %10.6f, %10.6f\n", Radius, xc, yc);
+        System.out.format("Helix radius = %10.5f, and the center is at %10.6f, %10.6f, alpha=%12.5e, K=%12.5e, B=%12.5e\n", Radius, xc, yc,
+                                        alpha, K[0], Bseed);
         System.out.format("Polynomial approximation coefficients are %10.6f %10.6f %10.6f %10.6f %10.7f\n", coefs[0], coefs[1], coefs[2],
                                         coefs[3], coefs[4]);
         for (int iTrial = 0; iTrial < nTrials; iTrial++) {
@@ -349,15 +370,14 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                 Plane pInt1 = new Plane(rInt1, tInt);
                 SiModule thisSi = new SiModule(pln, pInt1, 0., widths[pln], heights[pln], thickness, fM);
                 SiModules.add(thisSi);
-        
+
                 double xTrue = coefs[2] + (coefs[3] + coefs[4] * rInt1.v[1]) * rInt1.v[1];
                 double zTrue = coefs[0] + coefs[1] * rInt1.v[1];
                 Vec rTrue = new Vec(xTrue, rInt1.v[1], zTrue);
                 double[] gran = gausRan();
-                m1[pln] = -zTrue + resolution * gran[0];
-        
+                m1[pln] = thisSi.toLocal(rTrue).v[1] + resolution * gran[0];
                 thisSi.hits.add(new Measurement(m1[pln], resolution, rTrue, m1[pln]));
-        
+
                 Vec rInt2 = new Vec(0., location[pln] + delta, 0.);
                 Plane pInt2 = new Plane(rInt2, tInt);
                 thisSi = new SiModule(pln, pInt2, stereoAngle[pln], widths[pln], heights[pln], thickness, fM);
@@ -366,7 +386,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                 zTrue = coefs[0] + coefs[1] * rInt2.v[1];
                 rTrue = new Vec(xTrue, rInt2.v[1], zTrue);
                 m2[pln] = thisSi.toLocal(rTrue).v[1] + resolution * gran[1];
-        
+
                 thisSi.hits.add(new Measurement(m2[pln], resolution, rTrue, m2[pln]));
             }
             if (nTrials == 1) {
@@ -374,15 +394,16 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                     mm.print(String.format(" polynomial approximation %d", SiModules.indexOf(mm)));
                 }
             }
-            SeedTrack seed = new SeedTrack(SiModules, 0, 12, verbose);
-            if (!seed.success)
+            SeedTrack seed = new SeedTrack(SiModules, 0., 0, 12, verbose);
+            if (!seed.success) {
                 continue;
+            }
             if (nTrials == 1) {
                 seed.print("helix parameters");
-                System.out.format("True helix is %10.6f %10.6f %10.6f %10.6f %10.6f\n", drho, phi0, K, dz, tanl);
+                System.out.format("True helix is %10.6f %10.6f %10.6f %10.6f %10.6f\n", drho[0], phi0[0], K[0], dz[0], tanl[0]);
                 seed.solution().print("polynomial solution from fit");
-                System.out.format("True polynomial coefficients are %10.6f %10.6f %10.6f %10.6f %10.7f\n", coefs[0], coefs[1], coefs[2],
-                                                coefs[3], coefs[4]);
+                // System.out.format("True polynomial coefficients are %10.4ef %10.4e %10.4e %10.4e %10.4e\n", coefs[0], coefs[1], coefs[2],
+                // coefs[3], coefs[4]);
                 seed.solutionCovariance().print("covariance of polynomial fit");
             }
             Vec initialHelix = seed.helixParams();
@@ -414,7 +435,6 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         hEd.plot(path + "dError.gp", true, " ", " ");
         hEe.plot(path + "eError.gp", true, " ", " ");
         hCoefChi2.plot(path + "coefChi2.gp", true, " ", " ");
-        */
 
         PrintWriter printWriter2 = null;
         if (nTrials == 1) {
@@ -692,7 +712,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             }
 
             // Create a seed track from the first 3 or 4 layers
-            SeedTrack seed = new SeedTrack(SiModules, 0, 7, verbose);
+            SeedTrack seed = new SeedTrack(SiModules, helixOrigin.v[1], 0, 6, verbose);
             if (!seed.success)
                 return;
             if (verbose) {
@@ -702,7 +722,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             Vec initialHelixGuess = seed.helixParams();
             SquareMatrix initialCovariance = seed.covariance();
             double Bstart = seed.B();
-            Vec tBstart = seed.T();
+            Vec tBstart = new Vec(0., 0., 1.);
 
             // Cheating initial "guess" for the helix
 
@@ -724,6 +744,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                 rn = gausRan();
             }
             double kGuess = K[0] + kSigma * rn[0];
+            /*
             initialHelixGuess = new Vec(drhoGuess, phi0Guess, kGuess, dzGuess, tanlGuess);
             initialCovariance = new SquareMatrix(5);
             initialCovariance.M[0][0] = (drhoSigma * drhoSigma);
@@ -731,14 +752,16 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             initialCovariance.M[2][2] = (kSigma * kSigma);
             initialCovariance.M[3][3] = (dzSigma * dzSigma);
             initialCovariance.M[4][4] = (tanlSigma * tanlSigma);
+            */
             Vec Bf0 = fM.getField(helixOrigin);
             if (verbose) {
                 initialHelixGuess.print("initial helix guess");
+                System.out.format("True helix: %10.6f %10.6f %10.6f %10.6f %10.6f\n", drho[0], phi0[0], K[0], dz[0], tanl[0]);
                 helixOrigin.print("initial pivot guess");
                 Bf0.print("B field at pivot");
             }
-            Bstart = Bf0.mag();
-            tBstart = Bf0.unitVec();
+            // Bstart = Bf0.mag();
+            // tBstart = Bf0.unitVec();
 
             initialCovariance.scale(10000.); // Blow up the errors on the initial guess
 
@@ -746,7 +769,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                 initialCovariance.print("initial covariance guess");
             }
             // Run the Kalman fit
-            KalmanTrackFit kF = new KalmanTrackFit(SiModules, 0, 1, 1, helixOrigin, initialHelixGuess, initialCovariance, Bstart, tBstart,
+            KalmanTrackFit kF = new KalmanTrackFit(SiModules, 0, 1, 2, helixOrigin, initialHelixGuess, initialCovariance, Bstart, tBstart,
                                             fM, verbose);
 
             ArrayList<MeasurementSite> sites = kF.sites;

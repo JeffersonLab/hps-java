@@ -1,5 +1,6 @@
 package kalman;
 
+// This simple parabola fit is no longer used.  See LinearHelixFit instead.
 class ParabolaFit {
     private SquareMatrix C;
     private Vec a;

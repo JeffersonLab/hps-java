@@ -1,5 +1,6 @@
 package kalman;
 
+// This simple line fit is no longer used.  See LinearHelixFit instead.
 class LineFit {
     private double[][] C;
     private double inter;

@@ -2,8 +2,8 @@ package kalman;
 
 import java.util.Random;
 
-class Helix { // Create a simple helix oriented along the B field axis for testing the Kalman
-              // fit
+// This is for testing only and is not part of the Kalman fitting code
+class Helix { // Create a simple helix oriented along the B field axis for testing the Kalman fit
     Vec p; // Helix parameters drho, phi0, K, dz, tanl
     Vec X0; // Pivot point in the B field reference frame
     private double alpha;

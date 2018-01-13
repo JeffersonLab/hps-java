@@ -18,12 +18,10 @@ class SeedTrack {
     private Vec sol; // Fitted polynomial coefficients
     private SquareMatrix Csol; // Covariance matrix of the fitted polynomial coefficients
     private double Bavg; // Average B field
-    private Vec tavg; // Average direction for the B field
 
     void print(String s) {
         if (success) {
             System.out.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho, phi0, K, dz, tanl);
-            tavg.print("seed track field direction");
             C.print("seed track covariance");
         } else {
             System.out.format("Seed track %s fit unsuccessful.\n", s);
@@ -31,6 +29,7 @@ class SeedTrack {
     }
 
     SeedTrack(ArrayList<SiModule> data, // List of Si modules with data
+                                    double yOrigin, // New origin along beam to use for the fit
                                     int frst, // First Si module to use
                                     int Npnt, // Number of modules to use (starting with the first)
                                     boolean verbose // Set true for lots of debug printout
@@ -38,8 +37,7 @@ class SeedTrack {
 
         this.verbose = verbose;
 
-        // Fit a straight line in the non-bending plane and a parabola in the bending
-        // plane
+        // Fit a straight line in the non-bending plane and a parabola in the bending plane
 
         double[] x = new double[data.size()]; // Global x coordinates of measurements (bending plane)
         double[] y = new double[data.size()]; // Global y coordinates of measurements (along beam direction)
@@ -50,8 +48,6 @@ class SeedTrack {
         int N = 0;
         int Nbending = 0;
         int Nnonbending = 0;
-        if (verbose)
-            System.out.format("Entering SeedTrack: Npnt=%d\n", Npnt);
 
         // First find the average field
         Vec Bvec = new Vec(0., 0., 0.);
@@ -60,15 +56,14 @@ class SeedTrack {
             Vec thisB = thisSi.Bfield.getField(thisSi.toGlobal(new Vec(0., 0., 0.))); // Taking the field from the center of the module
             Bvec = Bvec.sum(thisB);
         }
-        Bvec = Bvec.scale(1.0 / (double) Npnt);
+        double sF = 1.0 / ((double) Npnt);
+        Bvec = Bvec.scale(sF);
         Bavg = Bvec.mag();
-        tavg = Bvec.unitVec();
+        if (verbose) {
+            System.out.format("Entering SeedTrack: Npnt=%d, Bavg=%10.5e\n", Npnt, Bavg);
+        }
         double c = 2.99793e8; // Speed of light in m/s
         alpha = 1000.0 * 1.0e9 / (c * Bavg); // Convert from pt in GeV to curvature in mm
-        Vec yhat = new Vec(0., 1.0, 0.);
-        Vec uhat = yhat.cross(tavg).unitVec();
-        Vec vhat = tavg.cross(uhat);
-        Rot = new RotMatrix(uhat, vhat, tavg);
 
         N = 0;
         for (int itr = frst; itr < frst + Npnt; itr++) {
@@ -84,11 +79,10 @@ class SeedTrack {
                 System.out.format("itr=%d, Measurement %d = %10.7f, stereo=%10.7f\n", itr, N, m.v, thisSi.stereo);
                 pnt.print("point global");
             }
-            pnt = Rot.rotate(pnt); // Rotate coordinate system to align with the average field
             x[N] = pnt.v[0];
-            y[N] = pnt.v[1];
+            y[N] = pnt.v[1] - yOrigin;
             z[N] = pnt.v[2];
-            v[N] = z[N] * Math.cos(thisSi.stereo) + x[N] * Math.sin(thisSi.stereo);
+            v[N] = m.v;
             s[N] = m.sigma;
             t[N] = thisSi.stereo;
             N++;
@@ -120,13 +114,9 @@ class SeedTrack {
         Vec coef = new Vec(sol.v[2], sol.v[3], sol.v[4]); // Parabola coefficients
 
         double[] circleParams = parabolaToCircle(sgn, coef);
-        if (verbose)
-            System.out.format("     R=%10.6f, xc=%10.6f, yc=%10.6f\n", R, xc, yc);
         phi0 = circleParams[1];
         K = circleParams[2];
         drho = circleParams[0];
-        if (verbose)
-            System.out.format("      phi0=%10.7f,  K=%10.6f,   drho=%10.6f\n", phi0, K, drho);
         double dphi0da = (2.0 * coef.v[2] / coef.v[1]) * square(Math.sin(phi0));
         double dphi0db = Math.sin(phi0) * Math.cos(phi0) / coef.v[1] - square(Math.sin(phi0));
         double dphi0dc = (2.0 * coef.v[0] / coef.v[1]) * square(Math.sin(phi0));
@@ -137,7 +127,11 @@ class SeedTrack {
         double intercept = sol.v[0];
         tanl = slope * Math.cos(phi0);
         dz = intercept + drho * tanl * Math.tan(phi0);
-
+        if (verbose) {
+            System.out.format("SeedTrack: dz=%12.5e   tanl=%12.5e\n", dz, tanl);
+            System.out.format("     R=%10.6f, xc=%10.6f, yc=%10.6f\n", R, xc, yc);
+            System.out.format("     phi0=%10.7f,  K=%10.6f,   drho=%10.6f\n", phi0, K, drho);
+        }
         // Some derivatives to transform the covariance from line and parabola
         // coefficients to helix parameters
         D.M[0][2] = 1.0 / Math.cos(phi0) + temp * dphi0da;
@@ -178,10 +172,6 @@ class SeedTrack {
         return sol;
     }
 
-    Vec T() { // Return the average field direction
-        return tavg;
-    }
-
     double B() { // Return the average field
         return Bavg;
     }
@@ -206,16 +196,18 @@ class SeedTrack {
         xc = coef.v[0] - sgn * R * (1.0 - 0.5 * coef.v[1] * coef.v[1]);
         double[] r = new double[3];
         r[1] = Math.atan2(yc, xc);
-        if (R < 0.)
+        if (R < 0.) {
             r[1] += Math.PI;
+        }
         r[2] = alpha / R;
         r[0] = xc / Math.cos(r[1]) - R;
-        if (verbose)
+        if (verbose) {
             System.out.format("parabolaToCircle:     R=%10.6f, xc=%10.6f, yc=%10.6f, drho=%10.7f, phi0=%10.7f, K=%10.7f\n", R, xc, yc, r[0],
                                             r[1], r[2]);
-        // double phi02 = Math.atan(-coef.v[1]/(2.0*coef.v[0]*coef.v[2] +
-        // (1.0-coef.v[1]*coef.v[1])));
-        // System.out.format("phi02 = %10.7f\n", phi02);
+            coef.print("parabola coefficients");
+            double phi02 = Math.atan(-coef.v[1] / (2.0 * coef.v[0] * coef.v[2] + (1.0 - coef.v[1] * coef.v[1])));
+            System.out.format("phi02 = %10.7f\n", phi02);
+        }
         return r;
     }
 }

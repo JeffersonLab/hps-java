@@ -128,6 +128,7 @@ class StateVector {
         // Put the origin of the local coordinates of the new state vector at the pivot
         // point (makes drho and dz zero)
         StateVector aPrime = new StateVector(newSite, B, t, origin, verbose);
+        aPrime.kUp = kUp;
 
         double E = a.v[2] * Math.sqrt(1.0 + a.v[4] * a.v[4]);
         double deltaEoE = deltaE / E;
@@ -217,6 +218,8 @@ class StateVector {
 
         StateVector aPrime = copy();
         aPrime.kUp = kLow;
+        if (verbose)
+            System.out.format("StateVector.filter: kLow=%d\n", kLow);
 
         double denom = V + H.dot(H.leftMultiply(C));
         if (verbose)
