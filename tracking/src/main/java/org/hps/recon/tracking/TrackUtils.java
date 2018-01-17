@@ -96,7 +96,6 @@ public class TrackUtils {
         return extrapPos;
     }
 
-
     /**
      * Extrapolate track to a position along the x-axis. Turn the track into a
      * helix object in order to use HelixUtils.
@@ -518,12 +517,16 @@ public class TrackUtils {
      * @param track
      * @return position at ECAL
      */
-    public static Hep3Vector getTrackPositionAtEcal(Track track) {
-        return extrapolateTrack(track, BeamlineConstants.ECAL_FACE);
+    public static TrackState getTrackExtrapAtEcal(Track track, FieldMap fieldMap) {
+        TrackState stateAtLast = TrackUtils.getTrackStateAtLocation(track, TrackState.AtLastHit);
+        if (stateAtLast == null)
+            return null;
+        return getTrackExtrapAtEcal(stateAtLast, fieldMap);
     }
 
-    public static Hep3Vector getTrackPositionAtEcal(TrackState track) {
-        return extrapolateTrack(track, BeamlineConstants.ECAL_FACE);
+    public static TrackState getTrackExtrapAtEcal(TrackState track, FieldMap fieldMap) {
+        // extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, FieldMap fieldMap)
+        return extrapolateTrackUsingFieldMap(track, 700.0, BeamlineConstants.ECAL_FACE, 5.0, fieldMap);
     }
 
     /**
@@ -1383,26 +1386,25 @@ public class TrackUtils {
      * the "Tracking" frame is used for the reference point coordinate
      * system.
      */
-    public static TrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPositionX, double stepSize, FieldMap fieldMap) {
+    public static TrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, FieldMap fieldMap) {
+        return extrapolateTrackUsingFieldMap(track, startPositionX, endPosition, stepSize, 0.005, fieldMap);
+    }
+
+    public static TrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, double epsilon, FieldMap fieldMap) {
         // Start by extrapolating the track to the approximate point where the
         // fringe field begins.
         Hep3Vector currentPosition = TrackUtils.extrapolateHelixToXPlane(track, startPositionX);
-        return extrapolateToEndplane(TrackUtils.getHTF(track), Math.signum(track.getOmega()), currentPosition.x(), endPositionX, 0.005, stepSize, fieldMap);
-    }
+        HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(track);
+        double q = Math.signum(track.getOmega());
+        double startPosition = currentPosition.x();
 
-    public static TrackState extrapolateToEndplane(TrackState ts, double startPosition, double endPosition, double epsilon, FieldMap fieldMap) {
-        HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(ts);
-        return extrapolateToEndplane(helicalTrackFit, Math.signum(ts.getOmega()), startPosition, endPosition, epsilon, 0, fieldMap);
-    }
-
-    public static TrackState extrapolateToEndplane(HelicalTrackFit helicalTrackFit, double q, double startPosition, double endPosition, double epsilon, double stepSize, FieldMap fieldMap) {
         // start position: x along beam line (tracking frame!)
-        Hep3Vector currentPosition = new BasicHep3Vector(startPosition, 0, 0);
+        currentPosition = new BasicHep3Vector(startPosition, 0, 0);
         // Calculate the path length to the start position
         double pathToStart = HelixUtils.PathToXPlane(helicalTrackFit, startPosition, 0., 0).get(0);
 
         // Get the momentum of the track
-        double bFieldY = fieldMap.getField(new BasicHep3Vector(0, 0, startPosition)).y();
+        double bFieldY = fieldMap.getField(new BasicHep3Vector(0, 0, 500)).y();
         double p = Math.abs(helicalTrackFit.p(bFieldY));
         // Get a unit vector giving the track direction at the start
         Hep3Vector helixDirection = HelixUtils.Direction(helicalTrackFit, pathToStart);

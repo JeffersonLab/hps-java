@@ -762,15 +762,8 @@ public abstract class TupleDriver extends Driver {
 
         // Find track state at ECal, or nearest previous track state
         if (doTrkExtrap) {
-            TrackState stateAtEcal = TrackStateUtils.getTrackStateAtECal(track);
-            if (stateAtEcal == null)
-                stateAtEcal = TrackStateUtils.getTrackStateAtLast(track);
-            if (stateAtEcal == null)
-                stateAtEcal = TrackStateUtils.getTrackStateAtFirst(track);
-            if (stateAtEcal == null)
-                stateAtEcal = TrackStateUtils.getTrackStateAtIP(track);
-            // then get track position at ECal using this state
-            Hep3Vector atEcal = TrackUtils.getTrackPositionAtEcal(stateAtEcal);
+            Hep3Vector atEcal = new BasicHep3Vector(TrackUtils.getTrackExtrapAtEcal(track, bFieldMap).getReferencePoint());
+            atEcal = CoordinateTransformations.transformVectorToDetector(atEcal);
             tupleMap.put(prefix + "TrkEcalX/D", atEcal.x());
             tupleMap.put(prefix + "TrkEcalY/D", atEcal.y());
         }
@@ -844,8 +837,8 @@ public abstract class TupleDriver extends Driver {
                 stateAtEcalShared = TrackStateUtils.getTrackStateAtFirst(trackShared);
             if (stateAtEcalShared == null)
                 stateAtEcalShared = TrackStateUtils.getTrackStateAtIP(trackShared);
-            Hep3Vector atEcalShared = TrackUtils.getTrackPositionAtEcal(stateAtEcalShared);
-
+            Hep3Vector atEcalShared = new BasicHep3Vector(TrackUtils.getTrackExtrapAtEcal(trackShared, bFieldMap).getReferencePoint());
+            atEcalShared = CoordinateTransformations.transformVectorToDetector(atEcalShared);
             tupleMap.put(prefix + "SharedTrkEcalX/D", atEcalShared.x());
             tupleMap.put(prefix + "SharedTrkEcalY/D", atEcalShared.y());
         }
