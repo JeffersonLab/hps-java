@@ -247,6 +247,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
 	 * of input SLIC data and integration of simulated ADC values.
 	 */
 	private final TempOutputWriter verboseWriter = new TempOutputWriter("raw_hits_verbose_new.log");
+	private final TempOutputWriter triggerWriter = new TempOutputWriter("raw_hits_trigger_new.log");
 	
 	@Override
 	public void startOfData() {
@@ -284,6 +285,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
 		writers.add(outputWriter);
 		writers.add(readoutWriter);
 		writers.add(verboseWriter);
+		writers.add(triggerWriter);
 		
 		// Run the superclass method.
 		super.startOfData();
@@ -659,6 +661,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
 		
 		// DEBUG :: Output the trigger time the ADC buffer writer.
 		readoutWriter.write("> Trigger " + triggerTime);
+		triggerWriter.write(">" + triggerTime);
 		
 		// Iterate over each channel.
 		for(Long cellID : adcBufferMap.keySet()) {
@@ -667,6 +670,9 @@ public class EcalReadoutDriver extends ReadoutDriver {
 			
 			// DEBUG :: Store the ADC buffer and the selected readout
 			//          range into a buffer to be written out.
+			StringBuffer triggerData = new StringBuffer();
+			triggerData.append(cellID + ":");
+			
             StringBuffer outputData = new StringBuffer();
             outputData.append(Long.toString(cellID) + "\n");
             outputData.append("\tFull Buffer:\n");
@@ -684,6 +690,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
 			for(short adcValue : adcValues) {
 				outputData.append(adcValue);
 				outputData.append("    ");
+				triggerData.append(adcValue);
+				triggerData.append(';');
 			}
 			outputData.append("\n");
 			
@@ -710,6 +718,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
 				// DEBUG :: Only write out the ADC buffer if a hit is
 				//          actually generated.
 				readoutWriter.write(outputData.toString() + "\n\n\n");
+				triggerWriter.write(triggerData.toString());
 			}
 		}
 		
