@@ -87,11 +87,15 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
     
 	private final TempOutputWriter readoutWriter = new TempOutputWriter("raw_hits_readout_old.log");
+	private final TempOutputWriter triggerWriter = new TempOutputWriter("raw_hits_trigger_old.log");
 	
 	@Override
 	public void endOfData() {
 		super.endOfData();
-		if(debug) { readoutWriter.close(); }
+		if(debug) {
+			readoutWriter.close();
+			triggerWriter.close();
+		}
 	}
 	
     public FADCEcalReadoutDriver() {
@@ -457,7 +461,10 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             throw new RuntimeException("The parameter ecalReadoutCollectionName was not set!");
         }
         
-        if(debug) { readoutWriter.initialize(); }
+        if(debug) {
+        	readoutWriter.initialize();
+        	triggerWriter.initialize();
+        }
 		
 		// DEBUG :: Write out the basic driver settings.
 		verboseWriter.write("Initiating EcalReadoutDriver logging...");
@@ -543,12 +550,16 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
         
 		readoutWriter.write("> Trigger ");
+		triggerWriter.write(">" + ClockSingleton.getTime());
         
         for (Long cellID : digitalPipelines.keySet()) {
             short[] adcValues = getWindow(cellID);
             
             
             
+			StringBuffer triggerData = new StringBuffer();
+			triggerData.append(cellID + ":");
+			
             StringBuffer outputData = new StringBuffer();
             outputData.append(Long.toString(cellID) + "\n");
             outputData.append("\tFull Buffer:\n");
@@ -564,6 +575,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 			for(short adcValue : adcValues) {
 				outputData.append(adcValue);
 				outputData.append("    ");
+				triggerData.append(adcValue);
+				triggerData.append(';');
 			}
 			outputData.append("\n");
             
@@ -579,6 +592,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             }
             if(isAboveThreshold) {
     			readoutWriter.write(outputData.toString() + "\n\n\n");
+				triggerWriter.write(triggerData.toString());
                 hits.add(new BaseRawTrackerHit(cellID, 0, adcValues));
             }
         }
