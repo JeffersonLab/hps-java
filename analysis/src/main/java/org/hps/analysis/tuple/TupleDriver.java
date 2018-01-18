@@ -970,6 +970,7 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put(prefix + "ElePX/D", theV0.getStartVertex().getParameters().get("p1X"));
         tupleMap.put(prefix + "ElePY/D", theV0.getStartVertex().getParameters().get("p1Y"));
         tupleMap.put(prefix + "ElePZ/D", theV0.getStartVertex().getParameters().get("p1Z"));
+
         tupleMap.put(
                 prefix + "EleP/D",
                 Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p1X"), 2)
