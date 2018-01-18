@@ -122,7 +122,7 @@ public class SinglesTriggerDriver extends TriggerDriver {
      */
     @Override
     protected boolean triggerDecision(EventHeader event) {
-		writer.write("Output");
+    	StringBuffer outputBuffer = new StringBuffer();
 		
         // Track whether triggering cluster was seen.
         boolean passTrigger = false;
@@ -151,7 +151,7 @@ public class SinglesTriggerDriver extends TriggerDriver {
                 }
                 
                 // DEBUG :: Output the triggering cluster.
-    			writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
+                outputBuffer.append(String.format("%f;%f;%d;%d%n", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
     					cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
                 
                 // A trigger was seen. Note it.
@@ -168,6 +168,11 @@ public class SinglesTriggerDriver extends TriggerDriver {
                 clusterHitCountSingle.fill(cluster.getCalorimeterHits().size(), 1);
                 clusterDistributionSingle.fill(ix, iy, 1);
             }
+        }
+        
+        if(outputBuffer.length() != 0) {
+    		writer.write("Output");
+    		writer.write(outputBuffer.toString());
         }
 
         // Return whether a triggering cluster was seen.
