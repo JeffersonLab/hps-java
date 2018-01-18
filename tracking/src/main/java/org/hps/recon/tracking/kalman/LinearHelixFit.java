@@ -54,7 +54,7 @@ public class LinearHelixFit { // Simultaneous fit to a line in the non-bending p
 
         chi2 = 0.;
         for (int i = 0; i < N; i++) {
-            double vPred = evaluateLine(y[i]) * Math.cos(theta[i]) + evaluateParabola(y[i]) * Math.sin(theta[i]);
+            double vPred = -evaluateLine(y[i]) * Math.cos(theta[i]) - evaluateParabola(y[i]) * Math.sin(theta[i]);
             double err = (v[i] - vPred) / s[i];
             chi2 += err * err;
         }
@@ -64,9 +64,9 @@ public class LinearHelixFit { // Simultaneous fit to a line in the non-bending p
         System.out.format("LinearHelixFit: parabola a=%10.7f   b=%10.7f   c=%10.7f\n", a.v[2], a.v[3], a.v[4]);
         System.out.format("LinearHelixFit:     line a=%10.7f   b=%10.7f\n", a.v[0], a.v[1]);
         C.print("LinearHelixFit covariance");
-        System.out.format("LinearHelixFit: i   x          y       y predicted     residual     sigmas       chi^2=%8.3f\n", chi2);
+        System.out.format("LinearHelixFit: i   y          v       v predicted     residual     sigmas       chi^2=%8.3f\n", chi2);
         for (int i = 0; i < N; i++) {
-            double vPred = evaluateLine(y[i]) * Math.cos(theta[i]) + evaluateParabola(y[i]) * Math.sin(theta[i]);
+            double vPred = -evaluateLine(y[i]) * Math.cos(theta[i]) - evaluateParabola(y[i]) * Math.sin(theta[i]);
             System.out.format("        %d   %10.7f   %10.7f   %10.7f   %10.7f   %10.7f\n", i, y[i], v[i], vPred, v[i] - vPred,
                                             (v[i] - vPred) / s[i]);
         }

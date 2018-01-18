@@ -244,8 +244,12 @@ class MeasurementSite {
         return true;
     }
 
-    boolean smooth(MeasurementSite nS, SquareMatrix Facc) { // Produce the smoothed state vector for this site
+    // Produce the smoothed state vector for this site
+    boolean smooth(MeasurementSite nS, SquareMatrix Facc) {
         // nS is the next site in the filtering chain (i.e. the previous site that was smoothed)
+        // Facc is the accumulated propagation matrix from dummy steps in between this Si layer and the next,
+        // used only to take into account large B field variations. It should be either null or a unit matrix
+        // if there were no intermediate dummy steps.
 
         if (smoothed || !filtered) {
             System.out.format("******MeasurementSite.smooth: Warning, this site is not in the correct state!\n");

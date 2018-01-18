@@ -98,9 +98,10 @@ class SeedTrack {
             return;
         }
         if (verbose) {
-            System.out.format("SeedTrack: data in global coordinates: y, z, x, m, sigma, theta\n");
+            System.out.format("SeedTrack: data in global coordinates: y, z, x, m, check, sigma, theta\n");
             for (int i = 0; i < N; i++) {
-                System.out.format("%d  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f   %8.5f\n", i, y[i], z[i], x[i], v[i], s[i], t[i]);
+                double vcheck = -Math.sin(t[i])*x[i] - Math.cos(t[i])*z[i];
+                System.out.format("%d  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f   %10.6f   %8.5f\n", i, y[i], z[i], x[i], v[i], vcheck, s[i], t[i]);
             }
         }
         LinearHelixFit fit = new LinearHelixFit(N, y, v, s, t, verbose);
@@ -146,13 +147,34 @@ class SeedTrack {
         D.M[4][1] = Math.cos(phi0);
         Csol = fit.covariance();
         C = Csol.similarity(D); // Covariance of helix parameters
-        if (verbose)
+        if (verbose) {
             D.print("line/parabola to helix derivatives");
+        }
 
         // Note that the non-bending plane is assumed to be y,z (B field in z
         // direction), and the track is assumed to start out more-or-less
         // in the y direction, so that phi0 should be close to zero. phi0 at 90 degrees
         // will give trouble here!
+        
+        // Rotate the result into the frame of the B field at the specified origin
+        SiModule firstSi = data.get(frst);
+        Vec firstB = firstSi.Bfield.getField(new Vec(0., yOrigin, 0.));
+        Vec zhat = firstB.unitVec();
+        Vec yhat = new Vec(0.,1.,0.);
+        Vec xhat = (yhat.cross(zhat)).unitVec();
+        yhat = zhat.cross(xhat);
+        RotMatrix Rot = new RotMatrix(xhat,yhat,zhat);
+        
+        Vec hParm = rotateHelix(helixParams(),Rot);
+        drho = hParm.v[0];
+        phi0 = hParm.v[1];
+        K = hParm.v[2];
+        dz = hParm.v[3];
+        tanl = hParm.v[4];
+        if (verbose) {
+            System.out.format("Seedtrack: rotated helix is drho=%10.6f phi0=%10.6f K=%10.6f dz=%10.6f tanl=%10.6f\n", drho, phi0, K, dz, tanl);
+        }
+        
         success = true;
     }
 
@@ -210,4 +232,42 @@ class SeedTrack {
         }
         return r;
     }
+    
+    // Transformation of a helix from one B-field frame to another, by rotation R
+    Vec rotateHelix(Vec a, RotMatrix R) {
+        // a = 5 helix parameters
+        // R = 3 by 3 rotation matrix
+        // The rotation is easily applied to the momentum vector, so first we transform from helix parameters
+        // to momentum, apply the rotation, and then transform back to helix parameters.
+        Vec p_prime = R.rotate(aTOp(a));
+        double Q = Math.signum(a.v[2]);
+        Vec a_prime = pTOa(p_prime, Q);
+        return new Vec(a.v[0],a_prime.v[0],a_prime.v[1],a.v[3],a_prime.v[2]);
+    }
+    
+    // Momentum at the start of the given helix (point closest to the pivot)
+    Vec aTOp(Vec a) {
+        double px = -Math.sin(a.v[1]) / Math.abs(a.v[2]);
+        double py = Math.cos(a.v[1]) / Math.abs(a.v[2]);
+        double pz = a.v[4] / Math.abs(a.v[2]);
+        if (verbose) {
+            a.print("helix parameters in SeedTrack.aTOp");
+            System.out.format("SeedTrack.aTOp: p=%10.5f %10.5f %10.5f\n", px, py, pz);
+        }
+        return new Vec(px, py, pz);
+    }
+
+    // Transform from momentum at helix starting point back to the helix parameters
+    Vec pTOa(Vec p, Double Q) {
+        double phi0 = Math.atan2(-p.v[0], p.v[1]);
+        double K = Q / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
+        double tanl = p.v[2] / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
+        if (verbose) {
+            System.out.format("SeedTrack pTOa: Q=%5.1f phi0=%10.7f K=%10.6f tanl=%10.7f\n", Q, phi0, K, tanl);
+            p.print("input momentum vector in SeedTrack.pTOa");
+        }
+        // Note: the following only makes sense when a.v[0] and a.v[3] (drho and dz) are
+        // both zero, i.e. pivot is on the helix
+        return new Vec(phi0, K, tanl);
+    }   
 }
