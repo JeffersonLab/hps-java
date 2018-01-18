@@ -939,7 +939,6 @@ public abstract class TupleDriver extends Driver {
         int nEleClusters = electron.getClusters().size();
         int nPosClusters = positron.getClusters().size();
 
-
         BilliorVertex theVertex = vtxFitter.fitVertex(billiorTracks);
         ReconstructedParticle theV0 = HpsReconParticleDriver.makeReconstructedParticle(electron, positron, theVertex);
         Hep3Vector momRot = VecOp.mult(beamAxisRotation, theV0.getMomentum());
@@ -959,20 +958,21 @@ public abstract class TupleDriver extends Driver {
             tupleMap.put("uncCovZZ/D", uncCov.e(2, 2));
         }
 
-        tupleMap.put(prefix+"PX/D", momRot.x());
-        tupleMap.put(prefix+"PY/D", momRot.y());
-        tupleMap.put(prefix+"PZ/D", momRot.z());
-        tupleMap.put(prefix+"P/D", momRot.magnitude());
-        tupleMap.put(prefix+"VX/D", theVtx.x());
-        tupleMap.put(prefix+"VY/D", theVtx.y());
-        tupleMap.put(prefix+"VZ/D", theVtx.z());
-        tupleMap.put(prefix+"Chisq/D", theV0.getStartVertex().getChi2());
-        tupleMap.put(prefix+"M/D", theV0.getMass());
-        tupleMap.put(prefix+"ElePX/D", theV0.getStartVertex().getParameters().get("p1X"));
-        tupleMap.put(prefix+"ElePY/D", theV0.getStartVertex().getParameters().get("p1Y"));
-        tupleMap.put(prefix+"ElePZ/D", theV0.getStartVertex().getParameters().get("p1Z"));
+        tupleMap.put(prefix + "PX/D", momRot.x());
+        tupleMap.put(prefix + "PY/D", momRot.y());
+        tupleMap.put(prefix + "PZ/D", momRot.z());
+        tupleMap.put(prefix + "P/D", momRot.magnitude());
+        tupleMap.put(prefix + "VX/D", theVtx.x());
+        tupleMap.put(prefix + "VY/D", theVtx.y());
+        tupleMap.put(prefix + "VZ/D", theVtx.z());
+        tupleMap.put(prefix + "Chisq/D", theV0.getStartVertex().getChi2());
+        tupleMap.put(prefix + "M/D", theV0.getMass());
+        tupleMap.put(prefix + "ElePX/D", theV0.getStartVertex().getParameters().get("p1X"));
+        tupleMap.put(prefix + "ElePY/D", theV0.getStartVertex().getParameters().get("p1Y"));
+        tupleMap.put(prefix + "ElePZ/D", theV0.getStartVertex().getParameters().get("p1Z"));
+
         tupleMap.put(
-                prefix+"EleP/D",
+                prefix + "EleP/D",
                 Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p1X"), 2)
                         + Math.pow(theV0.getStartVertex().getParameters().get("p1Y"), 2)
                         + Math.pow(theV0.getStartVertex().getParameters().get("p1Z"), 2)));
